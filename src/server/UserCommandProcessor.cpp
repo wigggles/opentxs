@@ -601,11 +601,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
 
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     const auto& context = reply.Context();
-    const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-
-    std::unique_ptr<Account> account(
-        Account::LoadExistingAccount(accountID, serverID));
+    auto account = wallet_.mutable_Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error loading account "
@@ -614,14 +611,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
         return false;
     }
 
-    if (false == account->VerifyAccount(serverNym)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Error verifying account "
-              << String(accountID) << std::endl;
-
-        return false;
-    }
-
-    const auto balance = account->GetBalance();
+    const auto balance = account.get().GetBalance();
 
     if (balance != 0) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to delate account "
@@ -631,26 +621,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
         return false;
     }
 
-    // TODO: follow up with Justus -- account->IsIssuer() is returning true
-    // in all cases, apparently.
-    //
-    //    if (account->IsIssuer()) {
-    //        const Identifier acct_id{*account};
-    //        const Identifier& asset_id = account->GetInstrumentDefinitionID();
-    //        otErr << OT_METHOD
-    //              << __FUNCTION__
-    //              << ": Unable to delete an ISSUER account ("
-    //              << String(acct_id) << ") without first making sure no other
-    //              "
-    //                 "accounts exist for this unit type: "
-    //              << String(asset_id)
-    //              << std::endl;
-    //
-    //        return false;
-    //    }
-
-    std::unique_ptr<Ledger> inbox(account->LoadInbox(serverNym));
-    std::unique_ptr<Ledger> outbox(account->LoadOutbox(serverNym));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(serverNym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(serverNym));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -687,7 +659,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
         return false;
     }
 
-    const auto& contractID = account->GetInstrumentDefinitionID();
+    const auto& contractID = account.get().GetInstrumentDefinitionID();
     auto contract = wallet_.UnitDefinition(contractID);
 
     if (false == bool(contract)) {
@@ -712,11 +684,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     auto& theAccountSet = nymfile.GetSetAssetAccounts();
     theAccountSet.erase(String(accountID).Get());
     nymfile.SaveSignedNymfile(serverNym);
-    account->MarkForDeletion();
-    account->ReleaseSignatures();
-    account->SignContract(serverNym);
-    account->SaveContract();
-    account->SaveAccount();
+    account.Release();
+    wallet_.DeleteAccount(accountID);
     reply.DropToNymbox(false);
 
     return true;
@@ -817,16 +786,16 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
-    const auto account = Account::LoadExistingAccount(accountID, serverID);
+    auto account = wallet_.mutable_Account(accountID);
 
-    if (nullptr == account) {
+    if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load account "
               << String(accountID) << std::endl;
 
         return false;
     }
 
-    OT_ASSERT(account->GetNymID() == nymID);
+    OT_ASSERT(account.get().GetNymID() == nymID);
 
     const auto inbox = load_inbox(nymID, accountID, serverID, serverNym, false);
 
@@ -854,7 +823,7 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
     String serializedAccount{};
     String serializedInbox{};
     String serializedOutbox{};
-    account->SaveContractRaw(serializedAccount);
+    account.get().SaveContractRaw(serializedAccount);
     inbox->SaveContractRaw(serializedInbox);
     inbox->CalculateInboxHash(inboxHash);
     outbox->SaveContractRaw(serializedOutbox);
@@ -1364,25 +1333,23 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = context.Nym();
     const auto& serverNymID = context.Nym()->ID();
-    const auto& nymID = context.RemoteNym().ID();
 
     // We need to actually create all the sub-accounts. This loop also sets the
     // Account ID onto the basket items (which formerly was blank, from the
     // client.) This loop also adds the BASKET_ID and the NEW ACCOUNT ID to a
     // map on the server for later reference.
     for (auto& it : *serialized.mutable_basket()->mutable_item()) {
-        std::unique_ptr<Account> newAccount;
-        newAccount.reset(Account::GenerateNewAccount(
+        auto newAccount = wallet_.CreateAccount(
             serverNymID,
             serverID,
-            *serverNym,
-            serverNymID,
             Identifier::Factory(it.unit()),
-            Account::basketsub));
+            *serverNym,
+            Account::basketsub,
+            0);
 
         if (newAccount) {
             String newAccountID;
-            newAccount->GetIdentifier(newAccountID);
+            newAccount.get().GetIdentifier(newAccountID);
             it.set_account(newAccountID.Get());
         } else {
             otErr << OT_METHOD << __FUNCTION__
@@ -1436,10 +1403,9 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // because within its walls, it must store an OTAccount for EACH
     // sub-contract, in order to store the reserves. That's what makes the
     // basket work.
-    std::unique_ptr<Account> basketAccount{};
 
-    basketAccount.reset(Account::GenerateNewAccount(
-        serverNymID, serverID, *serverNym, nymID, contractID, Account::basket));
+    auto basketAccount = wallet_.CreateAccount(
+        serverNymID, serverID, contractID, *serverNym, Account::basket, 0);
 
     if (false == bool(basketAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1448,7 +1414,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         return false;
     }
 
-    basketAccount->GetIdentifier(basketAccountID);
+    basketAccount.get().GetIdentifier(basketAccountID);
     reply.SetSuccess(true);
     reply.SetAccount(String(basketAccountID));
 
@@ -1462,6 +1428,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
 #if OT_CASH
     mint_.UpdateMint(basketAccountID);
 #endif  // OT_CASH
+    basketAccount.Release();
 
     return true;
 }
@@ -1609,8 +1576,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    auto account =
-        load_account(nymID, accountID, serverID, clientNym, serverNym);
+    auto account = wallet_.mutable_Account(accountID);
 
     if (false == bool(account)) { return false; }
 
@@ -1674,7 +1640,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     server_.notary_.NotarizeProcessInbox(
         nymfile,
         context,
-        *account,
+        account,
         *processInbox,
         *response.Response(),
         transactionSuccess);
@@ -1867,9 +1833,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto contractID =
         Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
-
-    std::unique_ptr<Account> account(Account::GenerateNewAccount(
-        nymID, serverID, serverNym, nymID, contractID));
+    auto account = wallet_.CreateAccount(
+        nymID, serverID, contractID, serverNym, Account::user, 0);
 
     // If we successfully create the account, then bundle it in the message XML
     // payload
@@ -1881,7 +1846,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     }
 
     auto contract =
-        wallet_.UnitDefinition(account->GetInstrumentDefinitionID());
+        wallet_.UnitDefinition(account.get().GetInstrumentDefinitionID());
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load unit definition"
@@ -1893,7 +1858,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     if (contract->Type() == proto::UNITTYPE_SECURITY) {
         // The instrument definition keeps a list of all accounts for that type.
         // (For shares, not for currencies.)
-        if (false == contract->AddAccountRecord(*account)) {
+        if (false == contract->AddAccountRecord(account.get())) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to add account record " << String(contractID)
                   << std::endl;
@@ -1903,7 +1868,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     }
 
     auto accountID = Identifier::Factory();
-    account->GetIdentifier(accountID);
+    account.get().GetIdentifier(accountID);
 
     Ledger outbox(nymID, accountID, serverID);
     Ledger inbox(nymID, accountID, serverID);
@@ -1917,26 +1882,26 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         inboxLoaded = inbox.VerifyAccount(serverNym);
     } else {
         inboxLoaded =
-            inbox.GenerateLedger(accountID, serverID, Ledger::inbox, true);
+            inbox.CreateLedger(nymID, accountID, serverID, Ledger::inbox, true);
 
         if (inboxLoaded) { inboxLoaded = inbox.SignContract(serverNym); }
 
         if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
 
-        if (inboxLoaded) { inboxLoaded = account->SaveInbox(inbox); }
+        if (inboxLoaded) { inboxLoaded = account.get().SaveInbox(inbox); }
     }
 
     if (true == outboxLoaded) {
         outboxLoaded = outbox.VerifyAccount(serverNym);
     } else {
-        outboxLoaded =
-            outbox.GenerateLedger(accountID, serverID, Ledger::outbox, true);
+        outboxLoaded = outbox.CreateLedger(
+            nymID, accountID, serverID, Ledger::outbox, true);
 
         if (outboxLoaded) { outboxLoaded = outbox.SignContract(serverNym); }
 
         if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
 
-        if (outboxLoaded) { outboxLoaded = account->SaveOutbox(outbox); }
+        if (outboxLoaded) { outboxLoaded = account.get().SaveOutbox(outbox); }
     }
 
     if (false == inboxLoaded) {
@@ -1961,8 +1926,9 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     auto& theAccountSet = nymfile.GetSetAssetAccounts();
     theAccountSet.insert(String(accountID).Get());
     nymfile.SaveSignedNymfile(serverNym);
-    reply.SetPayload(String(*account));
+    reply.SetPayload(String(account.get()));
     reply.DropToNymbox(false);
+    account.Release();
 
     return true;
 }
@@ -2057,8 +2023,8 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    std::unique_ptr<Account> account(Account::GenerateNewAccount(
-        nymID, serverID, serverNym, nymID, contractID, Account::issuer));
+    auto account = wallet_.CreateAccount(
+        nymID, serverID, contractID, serverNym, Account::issuer, 0);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2067,9 +2033,9 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
-    reply.SetPayload(String(*account));
+    reply.SetPayload(String(account.get()));
     auto accountID = Identifier::Factory();
-    account->GetIdentifier(accountID);
+    account.get().GetIdentifier(accountID);
     reply.SetAccount(String(accountID));
     server_.mainFile_.SaveMainFile();
 
@@ -2085,26 +2051,26 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         inboxLoaded = inbox.VerifyAccount(serverNym);
     } else {
         inboxLoaded =
-            inbox.GenerateLedger(accountID, serverID, Ledger::inbox, true);
+            inbox.CreateLedger(nymID, accountID, serverID, Ledger::inbox, true);
 
         if (inboxLoaded) { inboxLoaded = inbox.SignContract(serverNym); }
 
         if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
 
-        if (inboxLoaded) { inboxLoaded = account->SaveInbox(inbox); }
+        if (inboxLoaded) { inboxLoaded = account.get().SaveInbox(inbox); }
     }
 
     if (outboxLoaded) {
         outboxLoaded = outbox.VerifyAccount(serverNym);
     } else {
-        outboxLoaded =
-            outbox.GenerateLedger(accountID, serverID, Ledger::outbox, true);
+        outboxLoaded = outbox.CreateLedger(
+            nymID, accountID, serverID, Ledger::outbox, true);
 
         if (outboxLoaded) { outboxLoaded = outbox.SignContract(serverNym); }
 
         if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
 
-        if (outboxLoaded) { outboxLoaded = account->SaveOutbox(outbox); }
+        if (outboxLoaded) { outboxLoaded = account.get().SaveOutbox(outbox); }
     }
 
     if (false == inboxLoaded) {
@@ -2124,9 +2090,10 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     }
 
     reply.SetSuccess(true);
+    account.Release();
     auto& nymfile = reply.Nymfile();
     auto& theAccountSet = nymfile.GetSetAssetAccounts();
-    theAccountSet.insert(String(accountID).Get());
+    theAccountSet.insert(accountID->str());
     nymfile.SaveSignedNymfile(serverNym);
     reply.DropToNymbox(false);
 #if OT_CASH
@@ -2705,60 +2672,6 @@ bool UserCommandProcessor::isAdmin(const Identifier& nymID)
     if (adminNym.empty()) { return false; }
 
     return (0 == adminNym.compare(String(nymID).Get()));
-}
-
-std::unique_ptr<Account> UserCommandProcessor::load_account(
-    const Identifier& nymID,
-    const Identifier& accountID,
-    const Identifier& serverID,
-    const Nym& clientNym,
-    const Nym& serverNym) const
-{
-    std::unique_ptr<Account> account(new Account(nymID, accountID, serverID));
-
-    if (false == bool(account)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to construct account "
-              << String(accountID) << " for " << String(nymID) << std::endl;
-
-        return {};
-    }
-
-    if (false == account->LoadContract()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed loading account "
-              << String(accountID) << " for " << String(nymID) << std::endl;
-
-        return {};
-    }
-
-    if (account->IsMarkedForDeletion()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Account " << String(accountID)
-              << " for " << String(nymID) << " is makred for deletion.";
-
-        return {};
-    }
-
-    if (false == account->VerifyContractID()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid ID on account "
-              << String(accountID) << " for " << String(nymID) << std::endl;
-
-        return {};
-    }
-
-    if (false == account->VerifyOwner(clientNym)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Wrong owner on account "
-              << String(accountID) << " for " << String(nymID) << std::endl;
-
-        return {};
-    }
-
-    if (false == account->VerifySignature(server_.m_nymServer)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature on account "
-              << String(accountID) << " for " << String(nymID) << std::endl;
-
-        return {};
-    }
-
-    return account;
 }
 
 std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(

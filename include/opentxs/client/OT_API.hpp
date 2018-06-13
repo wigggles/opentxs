@@ -68,15 +68,10 @@ class Api;
 }  // namespace implementation
 }  // namespace api
 
-/** AccountInfo: accountID, nymID, serverID, unitID */
-using AccountInfo =
-    std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
-
 // The C++ high-level interface to the Open Transactions client-side.
 class OT_API : Lockable
 {
 public:
-    /** AccountInfo: accountID, nymID, serverID, unitID*/
     typedef std::pair<std::unique_ptr<Ledger>, std::unique_ptr<Ledger>>
         ProcessInbox;
 
@@ -106,28 +101,15 @@ public:
 
     EXPORT std::int32_t GetNymCount() const;
     EXPORT std::set<OTIdentifier> LocalNymList() const;
-    EXPORT std::set<AccountInfo> Accounts() const;
-    EXPORT std::int32_t GetAccountCount() const;
 
     EXPORT bool GetNym(
         std::int32_t iIndex,
         Identifier& NYM_ID,
         String& NYM_NAME) const;
-    EXPORT bool GetAccount(
-        std::int32_t iIndex,
-        Identifier& THE_ID,
-        String& THE_NAME) const;
     // In this case, the ID is input, the pointer is output.
     // Gets the data from Wallet.
     EXPORT const BasketContract* GetBasketContract(
         const Identifier& THE_ID,
-        const char* szFuncName = nullptr) const;
-    EXPORT std::shared_ptr<Account> GetAccount(
-        const Identifier& THE_ID,
-        const char* szFuncName = nullptr) const;
-
-    EXPORT std::shared_ptr<Account> GetAccountPartialMatch(
-        const std::string PARTIAL_ID,
         const char* szFuncName = nullptr) const;
 
     EXPORT static std::string NymIDFromPaymentCode(
@@ -154,17 +136,6 @@ public:
         const std::uint64_t end = 0,
         const std::uint32_t version = 1) const;
 
-    EXPORT std::shared_ptr<Account> GetOrLoadAccount(
-        const Nym& theNym,
-        const Identifier& ACCT_ID,
-        const Identifier& NOTARY_ID,
-        const char* szFuncName = nullptr) const;
-
-    EXPORT std::shared_ptr<Account> GetOrLoadAccount(
-        const Identifier& NYM_ID,
-        const Identifier& ACCT_ID,
-        const Identifier& NOTARY_ID,
-        const char* szFuncName = nullptr) const;
     // The name is basically just a client-side label.
     // This function lets you change it.
     EXPORT bool SetNym_Alias(
@@ -532,10 +503,6 @@ public:
     EXPORT std::int64_t GetBasketMemberMinimumTransferAmount(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         std::int32_t nIndex) const;
-    EXPORT std::shared_ptr<Account> LoadAssetAccount(
-        const Identifier& NOTARY_ID,
-        const Identifier& NYM_ID,
-        const Identifier& ACCOUNT_ID) const;
     EXPORT Ledger* LoadNymbox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;

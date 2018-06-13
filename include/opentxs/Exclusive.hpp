@@ -36,44 +36,56 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
-#define OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
+#ifndef OPENTXS_EXCLUSIVE_HPP
+#define OPENTXS_EXCLUSIVE_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include <atomic>
+#include <functional>
+#include <memory>
+#include <shared_mutex>
 
 #ifdef SWIG
-// clang-format off
-%rename(UIAccountActivity) opentxs::ui::AccountActivity;
-// clang-format on
-#endif  // SWIG
+%ignore opentxs::Exclusive::Exclusive(Exclusive&&);
+%rename(move) opentxs::Exclusive::operator=(Exclusive&&);
+%rename(valid) opentxs::Exclusive::operator bool();
+#endif
 
 namespace opentxs
 {
-namespace ui
-{
-class AccountActivity : virtual public Widget
+template <class C>
+class Exclusive
 {
 public:
-    EXPORT virtual Amount Balance() const = 0;
-    EXPORT virtual std::string DisplayBalance() const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First()
-        const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
-        const = 0;
+    using Save = std::function<void(C*, eLock&, bool)>;
 
-    EXPORT virtual ~AccountActivity() = default;
+    operator bool() const;
+#ifndef SWIG
+    operator const C&() const;
+    const C& get() const;
 
-protected:
-    AccountActivity() = default;
+    operator C&();
+#endif
+
+    bool Abort();
+    C& get();
+    bool Release();
+
+    Exclusive(C* in, std::shared_mutex& lock, Save save) noexcept;
+    Exclusive() noexcept;
+    Exclusive(const Exclusive&) = delete;
+    Exclusive(Exclusive&&) noexcept;
+    Exclusive& operator=(const Exclusive&) noexcept = delete;
+    Exclusive& operator=(Exclusive&&) noexcept;
+
+    ~Exclusive();
 
 private:
-    AccountActivity(const AccountActivity&) = delete;
-    AccountActivity(AccountActivity&&) = delete;
-    AccountActivity& operator=(const AccountActivity&) = delete;
-    AccountActivity& operator=(AccountActivity&&) = delete;
-};
-}  // namespace ui
+    C* p_{nullptr};
+    std::unique_ptr<eLock> lock_{nullptr};
+    Save save_{[](C*, eLock&, bool) -> void {}};
+    std::atomic<bool> success_{true};
+};  // class Exclusive
 }  // namespace opentxs
-#endif  // OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
+#endif  // OPENTXS_EXCLUSIVE_HPP

@@ -65,6 +65,9 @@ using AccountActivityType = List<
 class AccountActivity : virtual public AccountActivityType
 {
 public:
+    Amount Balance() const override { return balance_.load(); }
+    std::string DisplayBalance() const override;
+
     ~AccountActivity() = default;
 
 private:
@@ -77,9 +80,14 @@ private:
     const api::client::Sync& sync_;
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;
+    const api::storage::Storage& storage_;
+    mutable std::atomic<Amount> balance_{0};
     const OTIdentifier account_id_;
+    std::shared_ptr<const UnitDefinition> contract_{nullptr};
     OTZMQListenCallback account_subscriber_callback_;
+    OTZMQListenCallback balance_subscriber_callback_;
     OTZMQSubscribeSocket account_subscriber_;
+    OTZMQSubscribeSocket balance_subscriber_;
 
     static EventRow extract_event(
         const proto::PaymentEventType event,
@@ -108,6 +116,7 @@ private:
     void update(AccountActivityPimpl& row, const CustomData& custom)
         const override;
 
+    void process_balance(const network::zeromq::Message& message) const;
     void process_workflow(
         const Identifier& workflowID,
         std::set<AccountActivityID>& active);
@@ -120,6 +129,7 @@ private:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::ContactManager& contact,
+        const api::storage::Storage& storage,
         const Identifier& nymID,
         const Identifier& accountID);
     AccountActivity() = delete;

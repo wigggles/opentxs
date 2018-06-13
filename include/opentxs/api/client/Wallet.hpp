@@ -43,6 +43,7 @@
 
 #include "opentxs/api/Editor.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
+#include "opentxs/core/Account.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -56,6 +57,9 @@
 
 namespace opentxs
 {
+/** AccountInfo: accountID, nymID, serverID, unitID*/
+using AccountInfo =
+    std::tuple<OTIdentifier, OTIdentifier, OTIdentifier, OTIdentifier>;
 typedef std::shared_ptr<const class Nym> ConstNym;
 typedef std::shared_ptr<const class ServerContract> ConstServerContract;
 typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
@@ -64,7 +68,6 @@ namespace api
 {
 namespace client
 {
-
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
  *
@@ -78,6 +81,26 @@ namespace client
 class Wallet
 {
 public:
+    virtual SharedAccount Account(const Identifier& accountID) const = 0;
+    virtual OTIdentifier AccountPartialMatch(const std::string& hint) const = 0;
+    virtual ExclusiveAccount CreateAccount(
+        const Identifier& ownerNymID,
+        const Identifier& notaryID,
+        const Identifier& instrumentDefinitionID,
+        const class Nym& signer,
+        Account::AccountType type,
+        TransactionNumber stash) const = 0;
+    virtual bool DeleteAccount(const Identifier& accountID) const = 0;
+    virtual SharedAccount IssuerAccount(const Identifier& unitID) const = 0;
+    virtual ExclusiveAccount mutable_Account(
+        const Identifier& accountID) const = 0;
+    virtual bool UpdateAccount(
+        const Identifier& accountID,
+        const opentxs::ServerContext& context,
+        const String& serialized) const = 0;
+    [[deprecated]] virtual bool ImportAccount(
+        std::unique_ptr<opentxs::Account>& imported) const = 0;
+
     /**   Load a read-only copy of a Context object
      *
      *    This method should only be called if the specific client or server
@@ -155,7 +178,8 @@ public:
         const Identifier& remoteID) const = 0;
 
     /**   Returns a list of all issuers associated with a local nym */
-    virtual std::set<OTIdentifier> IssuerList(const Identifier& nymID) const=0;
+    virtual std::set<OTIdentifier> IssuerList(
+        const Identifier& nymID) const = 0;
 
     /**   Load a read-only copy of an Issuer object
      *

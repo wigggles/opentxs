@@ -1085,14 +1085,12 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const String& strOrigCronItem,
     const originType theOriginType,
     String* pstrNote,
-    String* pstrAttachment,
-    Account* pActualAcct)
+    String* pstrAttachment)
 {
     OT_ASSERT(nullptr != serverNym_);
 
     Nym& pServerNym = *serverNym_;
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
-    std::unique_ptr<Account> theDestAcctGuardian;
 
     // Load the inbox in case it already exists.
     Ledger theInbox(NYM_ID, ACCOUNT_ID, GetNotaryID());
@@ -1216,29 +1214,19 @@ bool OTCronItem::DropFinalReceiptToInbox(
         theInbox.SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
-
-        if (nullptr == pActualAcct)  // no asset account was passed in as
-                                     // already loaded, so let's load it
-                                     // ourselves then.
-        {
-            pActualAcct =
-                Account::LoadExistingAccount(ACCOUNT_ID, GetNotaryID());
-            theDestAcctGuardian.reset(pActualAcct);
-        }
+        auto account = OT::App().Wallet().mutable_Account(ACCOUNT_ID);
 
         // Save inbox to storage. (File, DB, wherever it goes.)
-        //
-        if (nullptr != pActualAcct) {
-            OT_ASSERT(ACCOUNT_ID == pActualAcct->GetPurportedAccountID());
+        if (account) {
+            OT_ASSERT(ACCOUNT_ID == account.get().GetPurportedAccountID());
 
-            if (pActualAcct->VerifyAccount(pServerNym)) {
-                pActualAcct->SaveInbox(theInbox);
-                pActualAcct->SaveAccount();  // inbox hash has changed here, so
-                                             // we save the account to reflect
-                                             // that change.
+            if (account.get().SaveInbox(theInbox)) {
+                account.Release();  // inbox hash has changed here, so we save
+                                    // the account to reflect that change.
             } else {
+                account.Abort();
                 otErr << szFunc
-                      << ": Failed: pActualAcct->VerifyAccount(*pServerNym)\n";
+                      << ": Failed: account.get().VerifyAccount(*pServerNym)\n";
             }
         } else  // todo: would the account EVER be null here? Should never be.
                 // Therefore should we save the inbox here?

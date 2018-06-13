@@ -451,8 +451,7 @@ void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
     // Name is dollars, fraction is cents, TLA is USD and
     // Symbol is $ (for example.) Here, we're grabbing the TLA.
     //
-    auto pUnitDefinition =
-        OT::App().Wallet().UnitDefinition(theInstrumentDefinitionID);
+    auto pUnitDefinition = wallet_.UnitDefinition(theInstrumentDefinitionID);
     // Wallet owns this object
     if (pUnitDefinition) {
         str_asset_name = pUnitDefinition->TLA();  // This might be "USD" --
@@ -1288,18 +1287,18 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
 
     auto theID = Identifier::Factory(server);
     ConstServerContract pServer;  // shared_ptr to const.
+    const auto& wallet = OT::App().Wallet();
 
     // See if it's available using the full length ID.
-    if (!theID->empty()) pServer = OT::App().Wallet().Server(theID);
+    if (!theID->empty()) pServer = wallet.Server(theID);
 
     if (!pServer) {
-        const auto servers = OT::App().Wallet().ServerList();
+        const auto servers = wallet.ServerList();
 
         // See if it's available using the partial length ID.
         for (auto& it : servers) {
             if (0 == it.first.compare(0, server.length(), server)) {
-                pServer =
-                    OT::App().Wallet().Server(Identifier::Factory(it.first));
+                pServer = wallet.Server(Identifier::Factory(it.first));
                 break;
             }
         }
@@ -1307,8 +1306,7 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
             // See if it's available using the full length name.
             for (auto& it : servers) {
                 if (0 == it.second.compare(0, it.second.length(), server)) {
-                    pServer = OT::App().Wallet().Server(
-                        Identifier::Factory(it.first));
+                    pServer = wallet.Server(Identifier::Factory(it.first));
                     break;
                 }
             }
@@ -1317,8 +1315,7 @@ bool OTRecordList::checkServer(const char* name, std::string& server)
                 // See if it's available using the partial name.
                 for (auto& it : servers) {
                     if (0 == it.second.compare(0, server.length(), server)) {
-                        pServer = OT::App().Wallet().Server(
-                            Identifier::Factory(it.first));
+                        pServer = wallet.Server(Identifier::Factory(it.first));
                         break;
                     }
                 }
@@ -1346,10 +1343,11 @@ bool OTRecordList::checkNym(
 
     ConstNym pNym = nullptr;
     const auto nymID = Identifier::Factory(nym);
+    const auto& wallet = OT::App().Wallet();
 
-    if (!nymID->empty()) pNym = OT::App().Wallet().Nym(nymID);
+    if (!nymID->empty()) pNym = wallet.Nym(nymID);
 
-    if (!pNym) pNym = OT::App().Wallet().NymByIDPartialMatch(nym);
+    if (!pNym) pNym = wallet.NymByIDPartialMatch(nym);
 
     if (pNym) {
         String tmp;
@@ -1365,34 +1363,34 @@ bool OTRecordList::checkNym(
 }
 
 // static
-bool OTRecordList::checkAccount(const char* name, std::string& account)
+bool OTRecordList::checkAccount(const char* name, std::string& accountID)
 {
-    if (!checkMandatory(name, account)) { return false; }
+    if (!checkMandatory(name, accountID)) { return false; }
 
-    std::shared_ptr<Account> pAccount{nullptr};
-    OTWallet* wallet = OT::App().API().OTAPI().GetWallet();
+    auto theID = Identifier::Factory(accountID);
 
-    auto theID = Identifier::Factory(account);
+    if (theID->empty()) { return false; }
 
-    if (!theID->empty()) pAccount = wallet->GetAccount(theID);
+    auto account = OT::App().Wallet().Account(theID);
 
-    if (false == bool(pAccount)) {
-        pAccount = wallet->GetAccountPartialMatch(account);
+    if (false == bool(account)) {
+        const auto converted =
+            OT::App().Wallet().AccountPartialMatch(accountID);
 
-        if (false == bool(pAccount)) {
-            otOut << "Error: " << name << ": unknown account: " << account
+        if (converted->empty()) {
+            otOut << "Error: " << name << ": unknown account: " << accountID
                   << "\n";
             return false;
         }
+
+        account = OT::App().Wallet().Account(converted);
     }
 
-    if (pAccount) {
-        String tmp;
-        pAccount->GetPurportedAccountID().GetString(tmp);
-        account = tmp.Get();
-    }
+    OT_ASSERT(account)
 
-    otWarn << "Using " << name << ": " << account << "\n";
+    accountID = account.get().GetPurportedAccountID().str();
+    otWarn << "Using " << name << ": " << accountID << "\n";
+
     return true;
 }
 
@@ -2015,7 +2013,7 @@ bool OTRecordList::PerformAutoAccept()
             const std::string& str_nym_id(it_nym);
             const auto theNymID = Identifier::Factory(str_nym_id);
             const String strNymID(theNymID);
-            ConstNym pNym = OT::App().Wallet().Nym(theNymID);
+            ConstNym pNym = wallet_.Nym(theNymID);
             if (!pNym) continue;
             // LOOP SERVERS
             //
@@ -2027,7 +2025,7 @@ bool OTRecordList::PerformAutoAccept()
                 const std::string& str_msg_notary_id(it_server);
                 const auto theMsgNotaryID =
                     Identifier::Factory(str_msg_notary_id);
-                auto pMsgServer = OT::App().Wallet().Server(theMsgNotaryID);
+                auto pMsgServer = wallet_.Server(theMsgNotaryID);
                 if (!pMsgServer) {
                     // This can happen if the user erases the server contract
                     // from the wallet. Therefore we just need to skip it.
@@ -2272,9 +2270,9 @@ bool OTRecordList::PerformAutoAccept()
                             const std::string& str_account_id(it_acct);
                             const auto theAccountID =
                                 Identifier::Factory(str_account_id);
-                            auto pAccount = pWallet->GetAccount(theAccountID);
+                            auto account = wallet_.Account(theAccountID);
 
-                            if (false == bool(pAccount)) {
+                            if (false == bool(account)) {
                                 // This can happen if the user erases the
                                 // account.
                                 // Therefore we just need to skip it.
@@ -2288,13 +2286,13 @@ bool OTRecordList::PerformAutoAccept()
                             }
 
                             const Identifier& theAcctNymID =
-                                pAccount->GetNymID();
+                                account.get().GetNymID();
                             const Identifier& theAcctNotaryID =
-                                pAccount->GetPurportedNotaryID();
+                                account.get().GetPurportedNotaryID();
                             const Identifier& theAcctInstrumentDefinitionID =
-                                pAccount->GetInstrumentDefinitionID();
+                                account.get().GetInstrumentDefinitionID();
                             const std::string str_acct_type =
-                                pAccount->GetTypeString();
+                                account.get().GetTypeString();
                             const String strAcctNymID(theAcctNymID);
                             const String strAcctNotaryID(theAcctNotaryID);
                             const String strAcctInstrumentDefinitionID(
@@ -2408,9 +2406,9 @@ bool OTRecordList::PerformAutoAccept()
             // For each account, loop through its inbox, outbox, and record box.
             const std::string& str_account_id(it_acct);
             const auto theAccountID = Identifier::Factory(str_account_id);
-            auto pAccount = pWallet->GetAccount(theAccountID);
+            auto account = wallet_.Account(theAccountID);
 
-            if (false == bool(pAccount)) {
+            if (false == bool(account)) {
                 // This can happen if the user erases the account.
                 // Therefore we just need to skip it.
                 otInfo << __FUNCTION__ << ": Skipping an account ("
@@ -2419,10 +2417,11 @@ bool OTRecordList::PerformAutoAccept()
                           "(Probably deleted by the user.)\n";
                 continue;
             }
-            const Identifier& theNymID = pAccount->GetNymID();
-            const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
+            const Identifier& theNymID = account.get().GetNymID();
+            const Identifier& theNotaryID =
+                account.get().GetPurportedNotaryID();
             const Identifier& theInstrumentDefinitionID =
-                pAccount->GetInstrumentDefinitionID();
+                account.get().GetInstrumentDefinitionID();
             const String strNymID(theNymID);
             const String strNotaryID(theNotaryID);
             const String strInstrumentDefinitionID(theInstrumentDefinitionID);
@@ -2686,7 +2685,7 @@ bool OTRecordList::Populate()
                    << ": Beginning loop through Nyms...\n";
         const std::string& str_nym_id(it_nym);
         const auto theNymID = Identifier::Factory(str_nym_id);
-        ConstNym pNym = OT::App().Wallet().Nym(theNymID);
+        ConstNym pNym = wallet_.Nym(theNymID);
         if (!pNym) continue;
 
         // For each Nym, loop through his OUTPAYMENTS box.
@@ -3278,7 +3277,7 @@ bool OTRecordList::Populate()
         for (auto& it_server : m_servers) {
             ++nServerIndex;
             const auto theMsgNotaryID = Identifier::Factory(it_server);
-            auto pServer = OT::App().Wallet().Server(theMsgNotaryID);
+            auto pServer = wallet_.Server(theMsgNotaryID);
             if (!pServer) {
                 // This can happen if the user erases the server contract
                 // from the wallet. Therefore we just need to skip it.
@@ -4856,9 +4855,9 @@ bool OTRecordList::Populate()
         //
         const std::string& str_account_id(it_acct);
         const auto theAccountID = Identifier::Factory(str_account_id);
-        auto pAccount = pWallet->GetAccount(theAccountID);
+        auto account = wallet_.Account(theAccountID);
 
-        if (false == bool(pAccount)) {
+        if (false == bool(account)) {
             // This can happen if the user erases the account.
             // Therefore we just need to skip it.
             otInfo << __FUNCTION__ << ": Skipping an account ("
@@ -4867,10 +4866,10 @@ bool OTRecordList::Populate()
                       "deleted by the user.)\n";
             continue;
         }
-        const Identifier& theNymID = pAccount->GetNymID();
-        const Identifier& theNotaryID = pAccount->GetPurportedNotaryID();
+        const Identifier& theNymID = account.get().GetNymID();
+        const Identifier& theNotaryID = account.get().GetPurportedNotaryID();
         const Identifier& theInstrumentDefinitionID =
-            pAccount->GetInstrumentDefinitionID();
+            account.get().GetInstrumentDefinitionID();
         const String strNymID(theNymID);
         const String strNotaryID(theNotaryID);
         const String strInstrumentDefinitionID(theInstrumentDefinitionID);
@@ -6083,6 +6082,7 @@ void OTRecordList::AddSpecialMsg(
 //
 OTRecordList::OTRecordList()
     : m_pLookup(nullptr)
+    , wallet_(OT::App().Wallet())
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)
@@ -6105,6 +6105,7 @@ OTRecordList::OTRecordList()
 
 OTRecordList::OTRecordList(const OTNameLookup& theLookup)
     : m_pLookup(&theLookup)
+    , wallet_(OT::App().Wallet())
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)

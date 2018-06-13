@@ -20,7 +20,7 @@
  *  http://www.opentransactions.org/
  *
  *  -----------------------------------------------------
- *
+//  *
  *   LICENSE:
  *   This Source Code Form is subject to the terms of the
  *   Mozilla Public License, v. 2.0. If a copy of the MPL
@@ -165,11 +165,11 @@ protected:
     // name is kept.)
     // m_bPartyIsNym is conditional and so is m_lOpeningTransNo.
     //
-    bool m_bCalculatingID{
-        false};  // NOT serialized. Used during ID calculation.
+    bool m_bCalculatingID{false};  // NOT serialized. Used during ID
+                                   // calculation.
 
-    bool m_bSpecifyInstrumentDefinitionID{
-        false};                     // Serialized. See above note.
+    bool m_bSpecifyInstrumentDefinitionID{false};  // Serialized. See above
+                                                   // note.
     bool m_bSpecifyParties{false};  // Serialized. See above note.
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -218,7 +218,7 @@ public:
         const Nym& theNym,
         OTAgent** ppAgent = nullptr) const;
     OTParty* FindPartyBasedOnAccount(
-        Account& theAccount,
+        const Account& theAccount,
         OTPartyAccount** ppPartyAccount = nullptr) const;
     OTParty* FindPartyBasedOnNymIDAsAgent(
         const Identifier& theNymID,
@@ -263,7 +263,7 @@ public:
     //
     EXPORT virtual bool VerifyNymAsAgentForAccount(
         const Nym& theNym,
-        Account& theAccount) const;
+        const Account& theAccount) const;
     bool VerifyPartyAuthorization(
         OTParty& theParty,  // The party that supposedly is authorized for this
                             // supposedly executed agreement.

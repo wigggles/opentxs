@@ -72,9 +72,10 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::UnitDefinition::"
+
 namespace opentxs
 {
-
 bool UnitDefinition::ParseFormatted(
     std::int64_t& lResult,
     const std::string& str_input,
@@ -316,12 +317,8 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
     // this function.
     //
     if (nullptr != pMap) {
-        Identifier* pNotaryID = visitor.GetNotaryID();
-        OT_ASSERT_MSG(
-            nullptr != pNotaryID,
-            "Assert: nullptr Notary ID on functor. "
-            "(How did you even construct the "
-            "thing?)");
+        const auto pNotaryID = visitor.GetNotaryID();
+        OT_ASSERT(false == pNotaryID->empty());
 
         auto& theMap = pMap->the_map;
 
@@ -346,54 +343,22 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
                       << ") when expecting: " << strInstrumentDefinitionID
                       << "\n";
             } else {
-                Account* pAccount = nullptr;
-                std::unique_ptr<Account> theAcctAngel;
+                const auto& wallet = OT::App().Wallet();
+                const auto accountID = Identifier::Factory(str_acct_id);
+                auto account = wallet.Account(accountID);
 
-                const auto theAccountID = Identifier::Factory(str_acct_id);
+                if (false == bool(account)) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Unable to load account " << str_acct_id
+                          << std::endl;
 
-                // Before loading it from local storage, let's first make sure
-                // it's not already loaded.
-                // (visitor functor has a list of 'already loaded' accounts,
-                // just in case.)
-                //
-                mapOfAccounts* pLoadedAccounts = visitor.GetLoadedAccts();
-
-                if (nullptr != pLoadedAccounts)  // there are some accounts
-                                                 // already loaded,
-                {  // let's see if the one we're looking for is there...
-                    auto found_it = pLoadedAccounts->find(str_acct_id);
-
-                    if (pLoadedAccounts->end() != found_it)  // FOUND IT.
-                    {
-                        pAccount = found_it->second;
-                        OT_ASSERT(nullptr != pAccount);
-
-                        if (theAccountID != pAccount->GetPurportedAccountID()) {
-                            otErr << "Error: the actual account didn't have "
-                                     "the ID that the std::map SAID it had! "
-                                     "(Should never happen.)\n";
-                            pAccount = nullptr;
-                        }
-                    }
+                    continue;
                 }
 
-                // I guess it wasn't already loaded...
-                // Let's try to load it.
-                //
-                if (nullptr == pAccount) {
-                    pAccount =
-                        Account::LoadExistingAccount(theAccountID, *pNotaryID);
-                    theAcctAngel.reset(pAccount);
-                }
-
-                bool bSuccessLoadingAccount =
-                    ((pAccount != nullptr) ? true : false);
-                if (bSuccessLoadingAccount) {
-                    bool bTriggerSuccess = visitor.Trigger(*pAccount);
-                    if (!bTriggerSuccess)
-                        otErr << __FUNCTION__ << ": Error: Trigger Failed.";
-                } else {
-                    otErr << __FUNCTION__ << ": Error: Failed Loading Account!";
+                if (false == visitor.Trigger(account.get())) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Error: Trigger failed for account "
+                          << str_acct_id << std::endl;
                 }
             }
         }

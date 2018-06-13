@@ -138,7 +138,7 @@ public:
 
     EXPORT bool SetProposal(
         ServerContext& context,
-        Account& MERCHANT_ACCT,
+        const Account& MERCHANT_ACCT,
         const String& strConsideration,
         time64_t VALID_FROM = OT_TIME_ZERO,
         time64_t VALID_TO = OT_TIME_ZERO);
@@ -147,7 +147,7 @@ public:
     // confirming.
     EXPORT bool Confirm(
         ServerContext& context,
-        Account& PAYER_ACCT,
+        const Account& PAYER_ACCT,
         const Nym* pMERCHANT_NYM = nullptr,
         const Identifier* p_id_MERCHANT_NYM = nullptr);
 
@@ -395,8 +395,9 @@ public:
         const Nym& theSignerNym,
         mapOfConstNyms* pmap_ALREADY_LOADED = nullptr) const override;
 
-    bool VerifyNymAsAgentForAccount(const Nym& theNym, Account& theAccount)
-        const override;
+    bool VerifyNymAsAgentForAccount(
+        const Nym& theNym,
+        const Account& theAccount) const override;
 
     /*
      From Contract, I have:

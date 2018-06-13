@@ -40,6 +40,8 @@
 
 #include "opentxs/core/AccountList.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -50,6 +52,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <sys/types.h>
@@ -66,18 +69,19 @@
 using namespace irr;
 using namespace io;
 
+#define OT_METHOD "opentxs::AccountList::"
+
 namespace opentxs
 {
-
-class Nym;
-
 AccountList::AccountList()
-    : acctType_(Account::voucher)
+    : wallet_(OT::App().Wallet())
+    , acctType_(Account::voucher)
 {
 }
 
 AccountList::AccountList(Account::AccountType acctType)
-    : acctType_(acctType)
+    : wallet_(OT::App().Wallet())
+    , acctType_(acctType)
 {
 }
 
@@ -179,159 +183,79 @@ std::int32_t AccountList::ReadFromXMLNode(
     return 1;
 }
 
-void AccountList::Release_AcctList()
-{
-    mapAcctIDs_.clear();
-    mapWeakAccts_.clear();
-}
+void AccountList::Release_AcctList() { mapAcctIDs_.clear(); }
 
 void AccountList::Release() { Release_AcctList(); }
 
-std::shared_ptr<Account> AccountList::GetOrRegisterAccount(
+ExclusiveAccount AccountList::GetOrRegisterAccount(
     Nym& serverNym,
     const Identifier& accountOwnerId,
     const Identifier& instrumentDefinitionID,
     const Identifier& notaryID,
-    // this will be set to true if the acct is created here.
-    // Otherwise set to false;
     bool& wasAcctCreated,
     std::int64_t stashTransNum)
 {
-    std::shared_ptr<Account> account;
+    ExclusiveAccount account{};
     wasAcctCreated = false;
 
     if (Account::stash == acctType_) {
-        if (stashTransNum <= 0) {
-            otErr << "AccountList::GetOrRegisterAccount: Failed attempt to "
-                     "create "
-                     "stash account without cron item #.\n";
-            return account;
+        if (1 > stashTransNum) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed attempt to "
+                     "create stash account without cron item #.";
+
+            return {};
         }
     }
 
     // First, we'll see if there's already an account ID available for the
     // requested instrument definition ID.
-    std::string instrumentDefinitionIDString =
-        String(instrumentDefinitionID).Get();
-
     String acctTypeString;
     TranslateAccountTypeToString(acctType_, acctTypeString);
+    auto acctIDsIt = mapAcctIDs_.find(instrumentDefinitionID.str());
 
-    auto acctIDsIt = mapAcctIDs_.find(instrumentDefinitionIDString);
     // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
-        // grab account ID
-        std::string accountIdString = acctIDsIt->second;
-        auto weakIt = mapWeakAccts_.find(accountIdString);
+        const auto& accountID = acctIDsIt->second;
+        account = wallet_.mutable_Account(Identifier::Factory(accountID));
 
-        // FOUND the weak ptr to the account! Maybe it's already loaded
-        if (mapWeakAccts_.end() != weakIt) {
-            try {
-                std::shared_ptr<Account> weakAccount(weakIt->second);
-
-                // If success, then we have a shared pointer. But it's worrying
-                // (TODO) because this should have
-                // gone out of scope and been destroyed by whoever ELSE was
-                // using it. The fact that it's still here...
-                // well I'm glad not to double-load it, but I wonder why it's
-                // still here? And we aren't walking on anyone's
-                // toes, right? If this were multi-threaded, then I'd explicitly
-                // lock a mutex here, honestly. But since things
-                // happen one at a time on OT, I'll settle for a warning for
-                // now. I'm assuming that if the account's loaded
-                // already somewhere, it's just a pointer sitting there, and
-                // we're not walking on each other's toes.
-                if (weakAccount) {
-                    otOut << "AccountList::GetOrRegisterAccount: Warning: "
-                             "account ("
-                          << accountIdString
-                          << ") was already in memory so I gave you a "
-                             "pointer to the existing one. (But who else has a "
-                             "copy of it?) \n";
-                    return weakAccount;
-                }
-            } catch (...) {
-            }
-
-            // Though the weak pointer was there, the resource must have since
-            // been destroyed, because I cannot lock a new shared ptr onto it.
-            // Therefore remove it from the map, and RE-LOAD IT.
-            mapWeakAccts_.erase(weakIt);
-        }
-
-        // DIDN'T find the acct pointer, even though we had the ID.
-        // (Or it was there, but we couldn't lock a shared_ptr onto it, so we
-        // erased it...)
-        // So let's load it now. After all, the Account ID *does* exist...
-        String acctIDString(accountIdString.c_str());
-        auto accountID = Identifier::Factory(acctIDString);
-
-        // The Account ID exists, but we don't have the pointer to a loaded
-        // account for it. So, let's load it.
-        Account* loadedAccount =
-            Account::LoadExistingAccount(accountID, notaryID);
-
-        if (!loadedAccount) {
-            otErr << "Failed trying to load " << acctTypeString
-                  << " account with account ID: " << acctIDString << '\n';
-        } else if (!loadedAccount->VerifySignature(serverNym)) {
-            otErr << "Failed verifying server's signature on " << acctTypeString
-                  << " account with account ID: " << acctIDString << '\n';
-        } else if (!loadedAccount->VerifyOwnerByID(accountOwnerId)) {
-            String strOwnerID(accountOwnerId);
-            otErr << "Failed verifying owner ID (" << strOwnerID << ") on "
-                  << acctTypeString << " account ID: " << acctIDString << '\n';
-        } else {
-            otLog3 << "Successfully loaded " << acctTypeString
-                   << " account ID: " << acctIDString
+        if (account) {
+            otLog3 << OT_METHOD << __FUNCTION__ << "Successfully loaded "
+                   << acctTypeString << " account ID: " << accountID
                    << " Instrument Definition ID: "
-                   << instrumentDefinitionIDString << "\n";
+                   << instrumentDefinitionID.str() << std::endl;
 
-            account = std::shared_ptr<Account>(loadedAccount);
-            // save a weak pointer to the acct, so we'll never load it twice,
-            // but we'll also know if it's been deleted.
-            mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
+            return account;
         }
-        return account;
     }
 
     // Not found. There's no account ID yet for that instrument definition ID.
     // That means we can create it.
-
-    Account* createdAccount = Account::GenerateNewAccount(
+    account = wallet_.CreateAccount(
         accountOwnerId,
         notaryID,
-        serverNym,
-        accountOwnerId,
         instrumentDefinitionID,
+        serverNym,
         acctType_,
         stashTransNum);
 
-    if (!createdAccount) {
-        otErr << " AccountList::GetOrRegisterAccount: Failed trying to generate"
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed trying to generate"
               << acctTypeString << " account with instrument definition ID: "
-              << instrumentDefinitionIDString << "\n";
+              << instrumentDefinitionID.str() << std::endl;
     } else {
         String acctIDString;
-        createdAccount->GetIdentifier(acctIDString);
+        account.get().GetIdentifier(acctIDString);
 
         otOut << "Successfully created " << acctTypeString
               << " account ID: " << acctIDString
-              << " Instrument Definition ID: " << instrumentDefinitionIDString
-              << "\n";
-
-        account = std::shared_ptr<Account>(createdAccount);
-
-        // save a weak pointer to the acct, so we'll never load it twice,
-        // but we'll also know if it's been deleted.
-        mapWeakAccts_[acctIDString.Get()] = std::weak_ptr<Account>(account);
-        // Save the new acct ID in a map, keyed by instrument definition ID.
-        mapAcctIDs_[String(instrumentDefinitionID).Get()] = acctIDString.Get();
+              << " Instrument Definition ID: " << instrumentDefinitionID.str()
+              << std::endl;
+        mapAcctIDs_[instrumentDefinitionID.str()] = acctIDString.Get();
 
         wasAcctCreated = true;
     }
 
     return account;
 }
-
 }  // namespace opentxs

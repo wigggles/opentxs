@@ -3316,20 +3316,18 @@ bool OTClient::processServerReplyProcessInbox(
                         // (Asset/Currency.)
                         pData->updated_id = to_string<std::int64_t>(
                             pServerItem->GetTransactionNum());
-
                         pData->completed_count = to_string<std::int32_t>(
                             theTrade.GetCompletedCount());
-                        std::unique_ptr<Account> pAccount(
-                            Account::LoadExistingAccount(
-                                accountID, context.Server()));
+                        auto account = wallet_.Account(accountID);
+
+                        OT_ASSERT(account)
 
                         bool bIsAsset =
                             (theTrade.GetInstrumentDefinitionID() ==
-                             pAccount->GetInstrumentDefinitionID());
+                             account.get().GetInstrumentDefinitionID());
                         bool bIsCurrency =
                             (theTrade.GetCurrencyID() ==
-                             pAccount->GetInstrumentDefinitionID());
-
+                             account.get().GetInstrumentDefinitionID());
                         const String strAcctID(accountID);
                         const String strServerTransaction(*pServerTransaction);
 
@@ -5426,28 +5424,17 @@ bool OTClient::processServerReplyGetAccountData(
     }
 
     if (strAccount.Exists()) {
-        // Load the account object from that string.
-        auto pAccount =
-            std::make_shared<Account>(NYM_ID, accountID, context.Server());
+        const auto updated =
+            wallet_.UpdateAccount(accountID, context, strAccount);
 
-        if (pAccount && pAccount->LoadContractFromString(strAccount) &&
-            pAccount->VerifyAccount(serverNym)) {
-            otInfo << "Saving updated account file to disk...\n";
-            pAccount->ReleaseSignatures();  // So I don't get the
-                                            // annoying failure to
-                                            // verify message from
-                                            // the server's
-                                            // signature.
-            // Will eventually end up keeping the signature,
-            // however, just for reasons of proof.
-            // UPDATE (above) I now release signatures again since
-            // we have receipts functional. As long as receipt has
-            // server's signature, it can prove the others.
-            pAccount->SignContract(*context.Nym());
-            pAccount->SaveContract();
-            pAccount->SaveAccount();
-            m_pWallet.AddAccount(pAccount);
-            m_pWallet.SaveWallet();
+        if (updated) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Saved updated account file." << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+                  << std::endl;
+
+            OT_FAIL
         }
     }
 
@@ -5486,9 +5473,8 @@ bool OTClient::processServerReplyGetAccountData(
 
                 if (false == bHash) {
                     otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting InboxHash on Nym "
-                             "for account: "
-                          << str_acct_id << "\n";
+                          << ": Failed setting inbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
                 }
             }
 
@@ -5593,9 +5579,8 @@ bool OTClient::processServerReplyGetAccountData(
 
                 if (false == bHash) {
                     otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting OutboxHash on Nym "
-                             "for account: "
-                          << str_acct_id << "\n";
+                          << ": Failed setting outbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
                 }
             }
 
@@ -6025,31 +6010,20 @@ bool OTClient::processServerReplyUnregisterAccount(
         theOriginalMessage.m_strCommand.Compare("unregisterAccount")) {
 
         const auto theAccountID = Identifier::Factory(theReply.m_strAcctID);
+        auto account = wallet_.mutable_Account(theAccountID);
 
-        auto pDeletedAcct = m_pWallet.GetAccount(theAccountID);
-
-        if (pDeletedAcct) {
-            pDeletedAcct->MarkForDeletion();
-            pDeletedAcct->ReleaseSignatures();
-            pDeletedAcct->SignContract(*context.Nym());
-            pDeletedAcct->SaveContract();
-            pDeletedAcct->SaveAccount();
-            // (The account still exists in storage, but has been MARKED FOR
-            // DELETION.)
-
-            // Remove the account from the wallet:
-            //
-            if (m_pWallet.RemoveAccount(theAccountID)) {
-                m_pWallet.SaveWallet();
-            }
+        if (account) {
+            account.Release();
+            wallet_.DeleteAccount(theAccountID);
         }
 
         otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID
               << " from Server: " << strNotaryID << ".\n";
-    } else
+    } else {
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my account "
               << theReply.m_strAcctID << " on Server " << strNotaryID << ".\n";
+    }
 
     return true;
 }
@@ -6059,38 +6033,21 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
     const Identifier& accountID,
     ServerContext& context)
 {
-    const auto& NYM_ID = context.Nym()->ID();
-    const auto& serverNym = context.RemoteNym();
     if (theReply.m_ascPayload.GetLength()) {
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
-        auto pAccount =
-            std::make_shared<Account>(NYM_ID, accountID, context.Server());
+        const auto updated =
+            wallet_.UpdateAccount(accountID, context, strAcctContents);
 
-        if (pAccount->LoadContractFromString(strAcctContents) &&
-            pAccount->VerifyAccount(serverNym)) {
-            // (2) Sign the Account
-            pAccount->SignContract(*context.Nym());
-            pAccount->SaveContract();
+        if (updated) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Saved new issuer account."
+                  << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+                  << std::endl;
 
-            // (3) Save the Account to file
-            pAccount->SaveAccount();
-
-            // Need to consider other security considerations.
-            // What if I wasn't EXPECTING a registerInstrumentDefinitionResponse
-            // message?
-            // Well actually, in that case, the server wouldn't have a
-            // copy of my request to send back to me, would he? So I should
-            // check that request to make sure it's good.
-            // Also maybe should check to see if I was expecting this
-            // message
-            // in the first place.
-
-            m_pWallet.AddAccount(pAccount);
-            m_pWallet.SaveWallet();
-
-            return true;
+            return false;
         }
     }
 
@@ -6102,50 +6059,21 @@ bool OTClient::processServerReplyRegisterAccount(
     const Identifier& accountID,
     ServerContext& context)
 {
-    const auto& NYM_ID = context.Nym()->ID();
-    const auto& serverNym = context.RemoteNym();
     if (theReply.m_ascPayload.GetLength()) {
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
-        auto pAccount =
-            std::make_shared<Account>(NYM_ID, accountID, context.Server());
+        const auto updated =
+            wallet_.UpdateAccount(accountID, context, strAcctContents);
 
-        if (pAccount && pAccount->LoadContractFromString(strAcctContents) &&
-            pAccount->VerifyAccount(serverNym)) {
-            // (2) Sign the Account
-            pAccount->ReleaseSignatures();  // So I don't get the annoying
-                                            // failure to verify message from
-                                            // the server's signature.
-            // Will eventually end up keeping the signature, however, just
-            // for reasons of proof.
-            // UPDATE (above) we are releasing these now, for good, since
-            // server's signature is not needed. Receipts are functional
-            // now,
-            pAccount->SignContract(*context.Nym());  // and the last receipt IS
-                                                     // signed by the server,
-                                                     // and it can be used to
-                                                     // verify the nym, account,
-                                                     // inbox, and outbox.
-                                                     // Nifty!
-            pAccount->SaveContract();
-
-            // (3) Save the Account to file
-            pAccount->SaveAccount();
-
-            // Need to consider other security considerations.
-            // What if I wasn't EXPECTING a registerAccountResponse message?
-            // Well actually, in that case, the server wouldn't have a
-            // copy of my request to send back to me, would he? So I should
-            // check that request to make sure it's good.
-            // Also maybe should check to see if I was expecting this
-            // message
-            // in the first place.
-
-            m_pWallet.AddAccount(pAccount);
-            m_pWallet.SaveWallet();
+        if (updated) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Saved updated account file." << std::endl;
 
             return true;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+                  << std::endl;
         }
     }
 

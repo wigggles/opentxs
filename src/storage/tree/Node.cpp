@@ -66,7 +66,14 @@ bool Node::check_hash(const std::string& hash) const
 
 bool Node::delete_item(const std::string& id)
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
+
+    return delete_item(lock, id);
+}
+
+bool Node::delete_item(const Lock& lock, const std::string& id)
+{
+    OT_ASSERT(verify_write_lock(lock))
 
     const auto items = item_map_.erase(id);
 
@@ -104,7 +111,7 @@ std::string Node::get_alias(const std::string& id) const
 ObjectList Node::List() const
 {
     ObjectList output;
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     for (const auto it : item_map_) {
         output.push_back({it.first, std::get<1>(it.second)});
@@ -216,7 +223,7 @@ void Node::serialize_index(
 bool Node::set_alias(const std::string& id, const std::string& alias)
 {
     std::string output;
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
 
     const bool exists = (item_map_.end() != item_map_.find(id));
 
@@ -260,7 +267,18 @@ bool Node::store_raw(
     const std::string& id,
     const std::string& alias)
 {
-    std::unique_lock<std::mutex> lock(write_lock_);
+    Lock lock(write_lock_);
+
+    return store_raw(lock, data, id, alias);
+}
+
+bool Node::store_raw(
+    const Lock& lock,
+    const std::string& data,
+    const std::string& id,
+    const std::string& alias)
+{
+    OT_ASSERT(verify_write_lock(lock))
 
     auto& metadata = item_map_[id];
     auto& hash = std::get<0>(metadata);
@@ -274,7 +292,7 @@ bool Node::store_raw(
 
 std::uint32_t Node::UpgradeLevel() const { return original_version_; }
 
-bool Node::verify_write_lock(const std::unique_lock<std::mutex>& lock) const
+bool Node::verify_write_lock(const Lock& lock) const
 {
     if (lock.mutex() != &write_lock_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;

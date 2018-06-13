@@ -38,9 +38,11 @@
 
 #include "stdafx.hpp"
 
-#include "Storage.hpp"
+#include "opentxs/api/Editor.hpp"
+#include "opentxs/core/Flag.hpp"
 
 #include "storage/drivers/StorageMultiplex.hpp"
+#include "storage/tree/Accounts.hpp"
 #include "storage/tree/BlockchainTransactions.hpp"
 #include "storage/tree/Contacts.hpp"
 #include "storage/tree/Contexts.hpp"
@@ -59,16 +61,45 @@
 #include "storage/tree/Threads.hpp"
 #include "storage/tree/Tree.hpp"
 #include "storage/tree/Units.hpp"
+#include "storage/StorageConfig.hpp"
+#include "Factory.hpp"
+#include "StorageInternal.hpp"
 
 #include <cassert>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
+#include <iostream>
+#include <limits>
+#include <list>
+#include <map>
+#include <mutex>
 #include <stdexcept>
+#include <thread>
+#include <tuple>
 #include <utility>
+#include <vector>
+
+#include "Storage.hpp"
 
 #define OT_METHOD "opentxs::api::storage::implementation::Storage::"
+
+namespace opentxs
+{
+api::storage::StorageInternal* Factory::Storage(
+    const Flag& running,
+    const StorageConfig& config,
+    const String& primary,
+    const bool migrate,
+    const String& previous,
+    const Digest& hash,
+    const Random& random)
+{
+    return new api::storage::implementation::Storage(
+        running, config, primary, migrate, previous, hash, random);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::storage::implementation
 {
@@ -101,6 +132,70 @@ Storage::Storage(
     , multiplex_(*multiplex_p_)
 {
     OT_ASSERT(multiplex_p_);
+}
+
+ObjectList Storage::AccountList() const
+{
+    return Root().Tree().AccountNode().List();
+}
+
+OTIdentifier Storage::AccountContract(const Identifier& accountID) const
+{
+    return Root().Tree().AccountNode().AccountContract(accountID);
+}
+
+OTIdentifier Storage::AccountIssuer(const Identifier& accountID) const
+{
+    return Root().Tree().AccountNode().AccountIssuer(accountID);
+}
+
+OTIdentifier Storage::AccountOwner(const Identifier& accountID) const
+{
+    return Root().Tree().AccountNode().AccountOwner(accountID);
+}
+
+OTIdentifier Storage::AccountServer(const Identifier& accountID) const
+{
+    return Root().Tree().AccountNode().AccountServer(accountID);
+}
+
+OTIdentifier Storage::AccountSigner(const Identifier& accountID) const
+{
+    return Root().Tree().AccountNode().AccountSigner(accountID);
+}
+
+proto::ContactItemType Storage::AccountUnit(const Identifier& accountID) const
+{
+    return Root().Tree().AccountNode().AccountUnit(accountID);
+}
+
+std::set<OTIdentifier> Storage::AccountsByContract(
+    const Identifier& contract) const
+{
+    return Root().Tree().AccountNode().AccountsByContract(contract);
+}
+
+std::set<OTIdentifier> Storage::AccountsByIssuer(
+    const Identifier& issuerNym) const
+{
+    return Root().Tree().AccountNode().AccountsByIssuer(issuerNym);
+}
+
+std::set<OTIdentifier> Storage::AccountsByOwner(
+    const Identifier& ownerNym) const
+{
+    return Root().Tree().AccountNode().AccountsByOwner(ownerNym);
+}
+
+std::set<OTIdentifier> Storage::AccountsByServer(const Identifier& server) const
+{
+    return Root().Tree().AccountNode().AccountsByServer(server);
+}
+
+std::set<OTIdentifier> Storage::AccountsByUnit(
+    const proto::ContactItemType unit) const
+{
+    return Root().Tree().AccountNode().AccountsByUnit(unit);
 }
 
 std::set<std::string> Storage::BlockchainAccountList(
@@ -191,6 +286,17 @@ std::string Storage::DefaultSeed() const
     return Root().Tree().SeedNode().Default();
 }
 
+bool Storage::DeleteAccount(const std::string& id) const
+{
+    return mutable_Root()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Accounts()
+        .It()
+        .Delete(id);
+}
+
 bool Storage::DeleteContact(const std::string& id) const
 {
     return mutable_Root()
@@ -267,6 +373,15 @@ ObjectList Storage::IssuerList(const std::string& nymID) const
     }
 
     return Root().Tree().NymNode().Nym(nymID).Issuers().List();
+}
+
+bool Storage::Load(
+    const std::string& accountID,
+    std::string& output,
+    std::string& alias,
+    const bool checking) const
+{
+    return Root().Tree().AccountNode().Load(accountID, output, alias, checking);
 }
 
 bool Storage::Load(
@@ -1306,6 +1421,35 @@ ObjectList Storage::ServerList() const
 }
 
 void Storage::start() { InitPlugins(); }
+
+bool Storage::Store(
+    const std::string& accountID,
+    const std::string& data,
+    const std::string& alias,
+    const Identifier& ownerNym,
+    const Identifier& signerNym,
+    const Identifier& issuerNym,
+    const Identifier& server,
+    const Identifier& contract,
+    const proto::ContactItemType unit) const
+{
+    return mutable_Root()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Accounts()
+        .It()
+        .Store(
+            accountID,
+            data,
+            alias,
+            ownerNym,
+            signerNym,
+            issuerNym,
+            server,
+            contract,
+            unit);
+}
 
 bool Storage::Store(
     const std::string& nymID,

@@ -440,15 +440,6 @@ void OTParty::ClearTemporaryPointers()
 
         pAgent->ClearTemporaryPointers();
     }
-
-    for (auto& it : m_mapPartyAccounts) {
-        OTPartyAccount* pAcct = it.second;
-        OT_ASSERT_MSG(
-            nullptr != pAcct,
-            "Unexpected nullptr partyaccount pointer in party map.");
-
-        pAcct->ClearTemporaryPointers();
-    }
 }
 
 // as used "IN THE SCRIPT."
@@ -715,8 +706,9 @@ bool OTParty::HasAccountByID(
 
 // If account is present for Party, set account's pointer to theAccount and
 // return true.
-bool OTParty::HasAccount(Account& theAccount, OTPartyAccount** ppPartyAccount)
-    const
+bool OTParty::HasAccount(
+    const Account& theAccount,
+    OTPartyAccount** ppPartyAccount) const
 {
     for (const auto& it : m_mapPartyAccounts) {
         OTPartyAccount* pAcct = it.second;
@@ -1071,7 +1063,6 @@ bool OTParty::SendNoticeToParty(
 }
 
 bool OTParty::LoadAndVerifyAssetAccounts(
-    Nym& theServerNym,
     const String& strNotaryID,
     mapOfAccounts& map_Accts_Already_Loaded,
     mapOfAccounts& map_NewlyLoaded)
@@ -1085,8 +1076,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         OT_ASSERT(pPartyAcct != nullptr);
 
         bool bHadToLoadtheAcctMyself = true;
-        Account* pAccount = nullptr;
-
+        SharedAccount account;
         const String& strAcctID = pPartyAcct->GetAcctID();
 
         if (!strAcctID.Exists()) {
@@ -1113,30 +1103,29 @@ bool OTParty::LoadAndVerifyAssetAccounts(
             return false;
         }
 
-        auto it = map_Accts_Already_Loaded.find(
-            strAcctID.Get());  // If it's there, it's mapped by Acct ID, so we
-                               // can look it up.
+        // If it's there, it's mapped by Acct ID, so we can look it up.
+        auto it = map_Accts_Already_Loaded.find(strAcctID.Get());
 
-        if (map_Accts_Already_Loaded.end() != it)  // Found it.
-        {
-            pAccount = it->second;
-            OT_ASSERT(nullptr != pAccount);
+        if (map_Accts_Already_Loaded.end() != it) {
+            account = it->second;
+
+            OT_ASSERT(account);
 
             // Now we KNOW the Account is "already loaded" and we KNOW the
             // partyaccount has a POINTER to that Acct:
             //
-            const bool bIsPartyAcct = pPartyAcct->IsAccount(*pAccount);
+            const bool bIsPartyAcct = pPartyAcct->IsAccount(account.get());
             OT_ASSERT_MSG(
                 bIsPartyAcct,
                 "OTParty::LoadAndVerifyAssetAccounts: Failed call: "
-                "pPartyAcct->IsAccount(*pAccount); \n");  // assert because the
-                                                          // Acct was already
-                                                          // mapped by ID, so it
-                                                          // should already have
-                                                          // been validated.
+                "pPartyAcct->IsAccount(*account); \n");  // assert because the
+                                                         // Acct was already
+                                                         // mapped by ID, so it
+                                                         // should already have
+                                                         // been validated.
             if (!bIsPartyAcct)
                 otErr << "OTParty::LoadAndVerifyAssetAccounts: Failed call: "
-                         "pPartyAcct->IsAccount(*pAccount); \n";
+                         "pPartyAcct->IsAccount(*account); \n";
 
             bHadToLoadtheAcctMyself = false;  // Whew. The Acct was already
                                               // loaded. Found it. (And the ptr
@@ -1147,13 +1136,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         // Let's load it up...
         //
         if (bHadToLoadtheAcctMyself == true) {
-            if (nullptr == (pAccount = pPartyAcct->LoadAccount(
-                                theServerNym, strNotaryID)))  // This calls
-            // VerifyAccount(),
-            // AND it sets
-            // pPartyAcct's
-            // internal ptr.
-            {
+            if ((account = pPartyAcct->LoadAccount())) {
                 otOut << "OTParty::LoadAndVerifyAssetAccounts: Failed loading "
                          "Account with name: "
                       << str_acct_name << " and ID: " << strAcctID << "\n";
@@ -1161,8 +1144,7 @@ bool OTParty::LoadAndVerifyAssetAccounts(
             }
             // Successfully loaded the Acct! We add to this map so it gets
             // cleaned-up properly later.
-            map_NewlyLoaded.insert(
-                std::pair<std::string, Account*>(strAcctID.Get(), pAccount));
+            map_NewlyLoaded.emplace(strAcctID.Get(), std::move(account));
         }
     }
 

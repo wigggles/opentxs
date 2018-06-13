@@ -745,7 +745,6 @@ public:
     */
     EXPORT static std::int32_t GetServerCount();
     EXPORT static std::int32_t GetAssetTypeCount();
-    EXPORT static std::int32_t GetAccountCount();
     EXPORT static std::int32_t GetNymCount();
 
     EXPORT static std::string GetServer_ID(
@@ -847,10 +846,6 @@ public:
     confusion with
     // a different set of similarly-named functions.
     */
-    EXPORT static std::string GetAccountWallet_ID(
-        const std::int32_t& nIndex);  // returns a string containing the account
-                                      // ID,
-                                      // based on index.
     EXPORT static std::string GetAccountWallet_Name(
         const std::string& ACCOUNT_ID);  // returns the account name, based on
                                          // account ID.
@@ -868,16 +863,6 @@ public:
         const std::string& ACCOUNT_ID);  // returns Notary ID of the account
     EXPORT static std::string GetAccountWallet_NymID(
         const std::string& ACCOUNT_ID);  // returns Nym ID of the account
-
-    EXPORT static std::string GetAccountWallet_InboxHash(
-        const std::string& ACCOUNT_ID);  // returns latest InboxHash according
-                                         // to
-                                         // the account file. (Usually more
-                                         // recent than: GetNym_InboxHash)
-    EXPORT static std::string GetAccountWallet_OutboxHash(
-        const std::string& ACCOUNT_ID);  // returns latest OutboxHash according
-                                         // to the account file. (Usually more
-                                         // recent than: GetNym_OutboxHash)
 
     /** Returns OT_BOOL. Verifies any asset account (intermediary files) against
     its own last signed receipt.
@@ -2091,18 +2076,6 @@ public:
     EXPORT static std::int64_t Basket_GetMemberMinimumTransferAmount(
         const std::string& BASKET_INSTRUMENT_DEFINITION_ID,
         const std::int32_t& nIndex);
-
-    /** --------------------------------------------------------------
-    // LOAD ACCOUNT / INBOX / OUTBOX -- (from local storage)
-    //
-    // Loads an acct, or inbox or outbox, based on account ID, (from local
-    storage)
-    // and returns it as string (or returns nullptr if it couldn't load it.)
-    */
-    EXPORT static std::string LoadAssetAccount(
-        const std::string& NOTARY_ID,
-        const std::string& NYM_ID,
-        const std::string& ACCOUNT_ID);  // Returns nullptr, or an account.
 
     EXPORT static std::string LoadInbox(
         const std::string& NOTARY_ID,

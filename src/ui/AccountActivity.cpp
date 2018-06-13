@@ -38,7 +38,10 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -58,6 +61,7 @@
 #include "AccountActivityParent.hpp"
 #include "List.hpp"
 
+#include <atomic>
 #include <map>
 #include <memory>
 #include <set>
@@ -79,11 +83,12 @@ ui::AccountActivity* Factory::AccountActivity(
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::ContactManager& contact,
+    const api::storage::Storage& storage,
     const Identifier& nymID,
     const Identifier& accountID)
 {
     return new ui::implementation::AccountActivity(
-        zmq, sync, wallet, workflow, contact, nymID, accountID);
+        zmq, sync, wallet, workflow, contact, storage, nymID, accountID);
 }
 }  // namespace opentxs
 
@@ -95,28 +100,44 @@ AccountActivity::AccountActivity(
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::ContactManager& contact,
+    const api::storage::Storage& storage,
     const Identifier& nymID,
     const Identifier& accountID)
     : AccountActivityType(zmq, contact, blank_id(), nymID, new BalanceItemBlank)
     , sync_(sync)
     , wallet_(wallet)
     , workflow_(workflow)
+    , storage_(storage)
+    , balance_(0)
     , account_id_(accountID)
+    , contract_(nullptr)
     , account_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {
               this->process_workflow(message);
           }))
+    , balance_subscriber_callback_(network::zeromq::ListenCallback::Factory(
+          [this](const network::zeromq::Message& message) -> void {
+              this->process_balance(message);
+          }))
     , account_subscriber_(
           zmq_.SubscribeSocket(account_subscriber_callback_.get()))
+    , balance_subscriber_(
+          zmq_.SubscribeSocket(balance_subscriber_callback_.get()))
 {
     OT_ASSERT(blank_p_)
 
     init();
-    const auto endpoint =
-        network::zeromq::Socket::WorkflowAccountUpdateEndpoint;
+    auto endpoint = network::zeromq::Socket::WorkflowAccountUpdateEndpoint;
     otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
            << std::endl;
-    const auto listening = account_subscriber_->Start(endpoint);
+    auto listening = account_subscriber_->Start(endpoint);
+
+    OT_ASSERT(listening)
+
+    endpoint = network::zeromq::Socket::AccountUpdateEndpoint;
+    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
+           << std::endl;
+    listening = balance_subscriber_->Start(endpoint);
 
     OT_ASSERT(listening)
 
@@ -145,6 +166,24 @@ void AccountActivity::construct_item(
             nym_id_,
             account_id_));
     names_.emplace(id, index);
+}
+
+std::string AccountActivity::DisplayBalance() const
+{
+    sLock lock(shared_lock_);
+
+    if (contract_) {
+        const auto amount = balance_.load();
+        std::string output{};
+        const auto formatted =
+            contract_->FormatAmountLocale(amount, output, ",", ".");
+
+        if (formatted) { return output; }
+
+        return std::to_string(amount);
+    }
+
+    return {};
 }
 
 AccountActivity::EventRow AccountActivity::extract_event(
@@ -275,6 +314,22 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
     return output;
 }
 
+void AccountActivity::process_balance(
+    const opentxs::network::zeromq::Message& message) const
+{
+    wait_for_startup();
+
+    OT_ASSERT(2 == message.Body().size())
+
+    const std::string id(*message.Body().begin());
+    const auto& balance = message.Body().at(1);
+
+    OT_ASSERT(balance.size() == sizeof(Amount))
+
+    balance_.store(*static_cast<const Amount*>(balance.data()));
+    UpdateNotify();
+}
+
 void AccountActivity::process_workflow(
     const Identifier& workflowID,
     std::set<AccountActivityID>& active)
@@ -324,6 +379,17 @@ const proto::PaymentWorkflow& AccountActivity::recover_workflow(
 
 void AccountActivity::startup()
 {
+    auto account = wallet_.Account(account_id_);
+
+    if (account) {
+        balance_.store(account.get().GetBalance());
+        UpdateNotify();
+        eLock lock(shared_lock_);
+        contract_ =
+            wallet_.UnitDefinition(storage_.AccountContract(account_id_));
+    }
+
+    account.Release();
     const auto workflows = workflow_.WorkflowsByAccount(nym_id_, account_id_);
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << workflows.size()
            << " workflows." << std::endl;

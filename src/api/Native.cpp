@@ -74,7 +74,7 @@
 #include "api/crypto/Crypto.hpp"
 #include "api/network/Dht.hpp"
 #include "api/network/ZMQ.hpp"
-#include "api/storage/Storage.hpp"
+#include "api/storage/StorageInternal.hpp"
 #include "api/Activity.hpp"
 #include "api/ContactManager.hpp"
 #include "api/Server.hpp"
@@ -307,7 +307,8 @@ void Native::Init()
                  // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
                  // Init_Activity()
     if (!server_mode_) {
-        Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api()
+        Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api(),
+                    // Init_Storage()
     }
 
     if (recover_) { recover(); }
@@ -776,7 +777,7 @@ void Native::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(new api::storage::implementation::Storage(
+    storage_.reset(Factory::Storage(
         running_, config, defaultPlugin, migrate, old, hash, random));
     Config().Set_str(
         STORAGE_CONFIG_KEY,
@@ -790,26 +791,22 @@ void Native::Init_StorageBackup()
 {
     OT_ASSERT(storage_);
 
-    auto storage =
-        dynamic_cast<api::storage::implementation::Storage*>(storage_.get());
-
-    OT_ASSERT(nullptr != storage);
-
-    storage->InitBackup();
+    storage_->InitBackup();
 
     if (storage_encryption_key_) {
-        storage->InitEncryptedBackup(storage_encryption_key_);
+        storage_->InitEncryptedBackup(storage_encryption_key_);
     }
 
-    storage->start();
+    storage_->start();
 }
 
 void Native::Init_UI()
 {
-    OT_ASSERT(activity_);
+    OT_ASSERT(activity_)
     OT_ASSERT(api_)
-    OT_ASSERT(contacts_);
-    OT_ASSERT(wallet_);
+    OT_ASSERT(contacts_)
+    OT_ASSERT(storage_)
+    OT_ASSERT(wallet_)
 
     ui_.reset(Factory::UI(
         zmq_context_,
@@ -818,6 +815,7 @@ void Native::Init_UI()
         api_->Sync(),
         *wallet_,
         api_->Workflow(),
+        *storage_,
         running_));
 
     OT_ASSERT(ui_);

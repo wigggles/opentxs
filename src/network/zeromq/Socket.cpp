@@ -45,6 +45,7 @@
 
 #include <zmq.h>
 
+#define ACCOUNT_UPDATE_ENDPOINT "inproc://opentxs/accountupdate/1"
 #define CONTACT_UPDATE_ENDPOINT "inproc://opentxs/contactupdate/1"
 #define NYM_UPDATE_ENDPOINT "inproc://opentxs/nymupdate/1"
 #define PAIR_EVENT_ENDPOINT "inproc://opentxs/pairevent/1"
@@ -62,6 +63,7 @@
 
 namespace opentxs::network::zeromq
 {
+const std::string Socket::AccountUpdateEndpoint{ACCOUNT_UPDATE_ENDPOINT};
 const std::string Socket::ContactUpdateEndpoint{CONTACT_UPDATE_ENDPOINT};
 const std::string Socket::NymDownloadEndpoint{NYM_UPDATE_ENDPOINT};
 const std::string Socket::PairEndpointPrefix{PAIR_ENDPOINT_PREFIX};

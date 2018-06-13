@@ -464,7 +464,7 @@ bool OTAgreement::VerifyNymAsAgent(
 //
 bool OTAgreement::VerifyNymAsAgentForAccount(
     const Nym& theNym,
-    Account& theAccount) const
+    const Account& theAccount) const
 {
     return theAccount.VerifyOwner(theNym);
 }
@@ -1011,7 +1011,7 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 // this call, from MERCHANT_NYM.)
 bool OTAgreement::SetProposal(
     ServerContext& context,
-    Account& MERCHANT_ACCT,
+    const Account& MERCHANT_ACCT,
     const String& strConsideration,
     time64_t VALID_FROM,
     time64_t VALID_TO)  // VALID_TO is a length here. (i.e. it's ADDED to
@@ -1149,7 +1149,7 @@ bool OTAgreement::SetProposal(
 // (Transaction number and closing number are retrieved from Nym at this time.)
 bool OTAgreement::Confirm(
     ServerContext& context,
-    Account& PAYER_ACCT,
+    const Account& PAYER_ACCT,
     const Nym* pMERCHANT_NYM,
     const Identifier* p_id_MERCHANT_NYM)
 {

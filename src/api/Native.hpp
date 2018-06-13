@@ -125,7 +125,7 @@ private:
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::network::Dht> dht_;
     std::unique_ptr<api::Identity> identity_;
-    std::unique_ptr<api::storage::Storage> storage_;
+    std::unique_ptr<api::storage::StorageInternal> storage_;
     std::unique_ptr<api::client::Wallet> wallet_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;

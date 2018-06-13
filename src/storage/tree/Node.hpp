@@ -236,6 +236,7 @@ protected:
         const proto::StorageHashType type = proto::STORAGEHASH_PROTO) const;
 
     bool delete_item(const std::string& id);
+    bool delete_item(const Lock& lock, const std::string& id);
     bool set_alias(const std::string& id, const std::string& alias);
     void set_hash(
         const std::uint32_t version,
@@ -244,6 +245,11 @@ protected:
         proto::StorageItemHash& output,
         const proto::StorageHashType type = proto::STORAGEHASH_PROTO) const;
     bool store_raw(
+        const std::string& data,
+        const std::string& id,
+        const std::string& alias);
+    bool store_raw(
+        const Lock& lock,
         const std::string& data,
         const std::string& id,
         const std::string& alias);

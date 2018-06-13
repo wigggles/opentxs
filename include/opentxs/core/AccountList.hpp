@@ -64,22 +64,22 @@ class Tag;
 class AccountList
 {
 public:
-    EXPORT AccountList();
-    EXPORT explicit AccountList(Account::AccountType acctType);
-    EXPORT ~AccountList();
-    EXPORT std::int32_t GetCountAccountIDs() const
+    AccountList();
+    explicit AccountList(Account::AccountType acctType);
+    ~AccountList();
+    std::int32_t GetCountAccountIDs() const
     {
         return static_cast<std::int32_t>(mapAcctIDs_.size());
     }
-    EXPORT void Release();
-    EXPORT void Release_AcctList();
-    EXPORT void Serialize(Tag& parent) const;
-    EXPORT std::int32_t ReadFromXMLNode(
+    void Release();
+    void Release_AcctList();
+    void Serialize(Tag& parent) const;
+    std::int32_t ReadFromXMLNode(
         irr::io::IrrXMLReader*& xml,
         const String& acctType,
         const String& acctCount);
     void SetType(Account::AccountType acctType) { acctType_ = acctType; }
-    EXPORT std::shared_ptr<Account> GetOrRegisterAccount(
+    ExclusiveAccount GetOrRegisterAccount(
         Nym& serverNym,
         const Identifier& ACCOUNT_OWNER_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -91,17 +91,11 @@ public:
 private:
     typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
 
+    const api::client::Wallet& wallet_;
     Account::AccountType acctType_;
 
     /** AcctIDs as second mapped by ASSET TYPE ID as first. */
     String::Map mapAcctIDs_;
-
-    /** If someone calls GetOrRegisterAccount(), we pass them a shared pointer.
-     * We store the weak pointer here only to make sure accounts don't get
-     * loaded twice. */
-    MapOfWeakAccounts mapWeakAccts_;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_ACCOUNTLIST_HPP

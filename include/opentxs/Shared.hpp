@@ -36,44 +36,49 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
-#define OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
+#ifndef OPENTXS_SHARED_HPP
+#define OPENTXS_SHARED_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include <memory>
+#include <shared_mutex>
 
 #ifdef SWIG
-// clang-format off
-%rename(UIAccountActivity) opentxs::ui::AccountActivity;
-// clang-format on
-#endif  // SWIG
+%ignore opentxs::Shared::Shared(Shared&&);
+%rename(assign) opentxs::Shared::operator=(const Shared&);
+%rename(move) opentxs::Shared::operator=(Shared&&);
+%rename(valid) opentxs::Shared::operator bool();
+#endif
 
 namespace opentxs
 {
-namespace ui
-{
-class AccountActivity : virtual public Widget
+template <class C>
+class Shared
 {
 public:
-    EXPORT virtual Amount Balance() const = 0;
-    EXPORT virtual std::string DisplayBalance() const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First()
-        const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
-        const = 0;
+    operator bool() const;
+#ifndef SWIG
+    operator const C&() const;
+#endif
 
-    EXPORT virtual ~AccountActivity() = default;
+    const C& get() const;
 
-protected:
-    AccountActivity() = default;
+    bool Release();
+
+    Shared(const C* in, std::shared_mutex& lock) noexcept;
+    Shared() noexcept;
+    Shared(const Shared&) noexcept;
+    Shared(Shared&&) noexcept;
+    Shared& operator=(const Shared&) noexcept;
+    Shared& operator=(Shared&&) noexcept;
+
+    ~Shared();
 
 private:
-    AccountActivity(const AccountActivity&) = delete;
-    AccountActivity(AccountActivity&&) = delete;
-    AccountActivity& operator=(const AccountActivity&) = delete;
-    AccountActivity& operator=(AccountActivity&&) = delete;
-};
-}  // namespace ui
+    const C* p_{nullptr};
+    std::unique_ptr<sLock> lock_{nullptr};
+
+};  // class Shared
 }  // namespace opentxs
-#endif  // OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
+#endif  // OPENTXS_SHARED_HPP

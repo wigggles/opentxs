@@ -46,6 +46,7 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
+#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -114,6 +115,7 @@
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <signal.h>
@@ -333,7 +335,6 @@ bool VerifyBalanceReceipt(
 
     return transaction->VerifyBalanceReceipt(context);
 }
-
 }  // namespace
 
 class OT_API::Pid
@@ -612,7 +613,7 @@ bool OT_API::Init()
     if (m_bDefaultStore) {
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
-        m_pWallet = new OTWallet(crypto_, storage_);
+        m_pWallet = new OTWallet(crypto_, wallet_, storage_);
         m_pClient.reset(
             new OTClient(*m_pWallet, activity_, contacts_, wallet_, workflow_));
 
@@ -866,24 +867,6 @@ std::set<OTIdentifier> OT_API::LocalNymList() const
     return wallet_.LocalNyms();
 }
 
-std::set<AccountInfo> OT_API::Accounts() const
-{
-    auto wallet = GetWallet(__FUNCTION__);
-
-    OT_ASSERT(nullptr != wallet)
-
-    return wallet->AccountList();
-}
-
-std::int32_t OT_API::GetAccountCount() const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr != pWallet) return pWallet->GetAccountCount();
-
-    return 0;
-}
-
 bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
     const
 {
@@ -892,20 +875,6 @@ bool OT_API::GetNym(std::int32_t iIndex, Identifier& NYM_ID, String& NYM_NAME)
 
         return true;
     }
-
-    return false;
-}
-
-bool OT_API::GetAccount(
-    std::int32_t iIndex,
-    Identifier& THE_ID,
-    String& THE_NAME) const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-
-    if (nullptr != pWallet)
-        return pWallet->GetAccount(iIndex, THE_ID, THE_NAME);
 
     return false;
 }
@@ -939,43 +908,6 @@ const BasketContract* OT_API::GetBasketContract(
         auto currency = dynamic_cast<const BasketContract*>(contract.get());
         if (nullptr != currency) { return currency; }
     }
-
-    return nullptr;
-}
-
-std::shared_ptr<Account> OT_API::GetAccount(
-    const Identifier& THE_ID,
-    const char* szFunc) const
-{
-    OTWallet* pWallet = GetWallet(nullptr != szFunc ? szFunc : __FUNCTION__);
-
-    if (nullptr != pWallet) {
-        auto account = pWallet->GetAccount(THE_ID);
-
-        if ((nullptr == account) && (nullptr != szFunc))  // We only log if the
-                                                          // caller asked us to.
-        {
-            const String strID(THE_ID);
-            otWarn << __FUNCTION__ << " " << szFunc
-                   << ": No account found in "
-                      "wallet with ID: "
-                   << strID << "\n";
-        }
-
-        return account;
-    }
-
-    return nullptr;
-}
-
-std::shared_ptr<Account> OT_API::GetAccountPartialMatch(
-    const std::string PARTIAL_ID,
-    const char* szFuncName) const
-{
-    const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
-
-    if (nullptr != pWallet) return pWallet->GetAccountPartialMatch(PARTIAL_ID);
 
     return nullptr;
 }
@@ -1147,26 +1079,16 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
         otErr << OT_METHOD << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         OT_FAIL;
     }
-    String strName;
-    const std::int32_t nCount = GetAccountCount();
 
-    // Loop through all the accounts.
-    for (std::int32_t i = 0; i < nCount; i++) {
-        auto accountID = Identifier::Factory();
-        GetAccount(i, accountID, strName);
-        auto account = GetAccount(accountID, __FUNCTION__);
-        auto purportedNotaryID =
-            Identifier::Factory(account->GetPurportedNotaryID());
+    const auto accounts = storage_.AccountsByServer(NOTARY_ID);
 
-        if (NOTARY_ID == purportedNotaryID) {
-            String strPurportedNotaryID(purportedNotaryID),
-                strNOTARY_ID(NOTARY_ID);
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Unable to remove server contract " << strNOTARY_ID
-                  << " from wallet, because Account " << strPurportedNotaryID
-                  << " uses it.\n";
-            return false;
-        }
+    if (0 < accounts.size()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to remove server contract " << NOTARY_ID.str()
+              << " because at least one account is registered there."
+              << std::endl;
+
+        return false;
     }
 
     // Loop through all the Nyms. (One might be registered on that server.)
@@ -1204,28 +1126,19 @@ bool OT_API::Wallet_CanRemoveAssetType(
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         OT_FAIL;
     }
-    String strName;
-    const std::int32_t nCount = GetAccountCount();
 
-    // Loop through all the accounts.
-    for (std::int32_t i = 0; i < nCount; i++) {
-        auto accountID = Identifier::Factory();
-        GetAccount(i, accountID, strName);
-        auto account = GetAccount(accountID, __FUNCTION__);
-        auto theTYPE_ID =
-            Identifier::Factory(account->GetInstrumentDefinitionID());
+    const auto accounts = storage_.AccountsByContract(INSTRUMENT_DEFINITION_ID);
 
-        if (INSTRUMENT_DEFINITION_ID == theTYPE_ID) {
-            String strINSTRUMENT_DEFINITION_ID(INSTRUMENT_DEFINITION_ID),
-                strTYPE_ID(theTYPE_ID);
+    if (0 < accounts.size()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to remove asset contract "
+              << INSTRUMENT_DEFINITION_ID.str()
+              << " because at least one account of that type exists."
+              << std::endl;
 
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Unable to remove asset contract "
-                  << strINSTRUMENT_DEFINITION_ID << " from wallet: Account "
-                  << strTYPE_ID << " uses it.\n";
-            return false;
-        }
+        return false;
     }
+
     return true;
 }
 
@@ -1249,34 +1162,17 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
     }
 
     auto nym = wallet_.Nym(NYM_ID);
-    if (false == bool(nym)) return false;
-    // Make sure the Nym doesn't have any accounts in the wallet.
-    // (Client must close those before calling this.)
-    //
-    const std::int32_t nCount = GetAccountCount();
 
-    // Loop through all the accounts.
-    for (std::int32_t i = 0; i < nCount; i++) {
-        auto accountID = Identifier::Factory();
-        String strName;
-        GetAccount(i, accountID, strName);
-        auto account = GetAccount(accountID, __FUNCTION__);
-        auto theNYM_ID = Identifier::Factory(account->GetNymID());
+    if (false == bool(nym)) { return false; }
 
-        if (theNYM_ID->IsEmpty()) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Bug in OT_API_Wallet_CanRemoveNym / "
-                     "OT_API_GetAccountWallet_NymID\n";
-            return false;
-        }
+    const auto accounts = storage_.AccountsByOwner(NYM_ID);
 
-        // Looks like the Nym still has some accounts in this wallet.
-        if (NYM_ID == theNYM_ID) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Nym cannot be removed because there are "
-                     "still accounts in the wallet for that Nym.\n";
-            return false;
-        }
+    if (0 < accounts.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to remove nym "
+              << NYM_ID.str() << " because it owns at least one account."
+              << std::endl;
+
+        return false;
     }
 
     // Make sure the Nym isn't registered at any servers...
@@ -1322,18 +1218,18 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     }
 
     const String strAccountID(ACCOUNT_ID);
-    auto account = GetAccount(ACCOUNT_ID, __FUNCTION__);
+    auto account = wallet_.Account(ACCOUNT_ID);
 
     if (false == bool(account)) return false;
 
     // Balance must be zero in order to close an account!
-    else if (account->GetBalance() != 0) {
+    else if (account.get().GetBalance() != 0) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Account balance MUST be zero in order to close "
                  "an asset account: "
               << strAccountID << ".\n";
         return false;
-    } else if (account->IsIssuer()) {
+    } else if (account.get().IsIssuer()) {
         otErr
             << __FUNCTION__
             << ": One does not simply delete an issuer account: "
@@ -1347,8 +1243,8 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 
     bool BOOL_RETURN_VALUE = false;
 
-    const Identifier& theNotaryID = account->GetPurportedNotaryID();
-    const Identifier& theNymID = account->GetNymID();
+    const Identifier& theNotaryID = account.get().GetPurportedNotaryID();
+    const Identifier& theNymID = account.get().GetNymID();
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return nullptr if various verification fails.
@@ -2763,7 +2659,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // to
     // cleanup.)
     const auto accountID = Identifier::Factory(ACCT_ID);
-    auto account = GetAccount(accountID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) return false;
 
@@ -2827,8 +2723,8 @@ bool OT_API::SmartContract_ConfirmAccount(
                                                   // converting
                                                   // from a string.
     const Identifier& theActualInstrumentDefinitionID =
-        account->GetInstrumentDefinitionID();  // the actual instrument
-                                               // definition
+        account.get().GetInstrumentDefinitionID();  // the actual instrument
+                                                    // definition
     // ID, already an identifier, from
     // the actual account.
 
@@ -2857,7 +2753,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // being rejected later because
     // he accidentally set it up with the wrong Nym.
     //
-    if (!account->VerifyOwner(*nym)) {
+    if (!account.get().VerifyOwner(*nym)) {
         const String strNymID(SIGNER_NYM_ID);
         otErr << OT_METHOD << __FUNCTION__ << ": Failed, since this nym ("
               << strNymID << ") isn't the owner of this account (" << str_name
@@ -2883,7 +2779,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // anyway. So might as well save ourselves the hassle, if this doesn't match
     // up now.
     //
-    if (contract->SetNotaryIDIfEmpty(account->GetPurportedNotaryID())) {
+    if (contract->SetNotaryIDIfEmpty(account.get().GetPurportedNotaryID())) {
         // todo security: possibly want to verify here that this really is the
         // FIRST
         // account being confirmed in this smart contract, or at least the first
@@ -2897,9 +2793,10 @@ bool OT_API::SmartContract_ConfirmAccount(
         // verification.) In the std::int64_t term we'll do a more thorough
         // check
         // here, though.
-    } else if (contract->GetNotaryID() != account->GetPurportedNotaryID()) {
+    } else if (
+        contract->GetNotaryID() != account.get().GetPurportedNotaryID()) {
         const String strServer1(contract->GetNotaryID()),
-            strServer2(account->GetPurportedNotaryID());
+            strServer2(account.get().GetPurportedNotaryID());
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure: The smart contract has a different "
                  "server ID on it already ("
@@ -3830,40 +3727,23 @@ bool OT_API::SetAccount_Name(
     const String& ACCT_NEW_NAME) const
 {
     Lock lock(lock_);
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-
-    if (nullptr == pWallet) { return false; }
-
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
     auto pSignerNym = wallet_.Nym(SIGNER_NYM_ID);
 
     if (false == bool(pSignerNym)) { return false; }
 
-    auto account =
-        GetAccount(accountID, __FUNCTION__);  // This logs and ASSERTs already.
+    auto account = wallet_.mutable_Account(accountID);
 
-    if (false == bool(account)) return false;
+    if (false == bool(account)) { return false; }
 
-    if (!ACCT_NEW_NAME.Exists())  // Any other validation to do on the name?
-    {
+    if (!ACCT_NEW_NAME.Exists()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": FYI, new name is empty. "
                  "(Proceeding anyway)\n";
     }
-    account->SetName(ACCT_NEW_NAME);
-    account->ReleaseSignatures();
-    otInfo << "Saving updated account file to disk...\n";
-    if (account->SignContract(*pSignerNym) && account->SaveContract() &&
-        account->SaveAccount())
-        return pWallet->SaveWallet();  // Only because the account's name is
-                                       // stored here, too.
-    else
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed doing this:  "
-                 "if (account->SignContract(*pSignerNym) "
-                 "&& account->SaveContract() && account->SaveAccount())\n";
-    return false;
+
+    account.get().SetName(ACCT_NEW_NAME);
+
+    return true;
 }
 
 /*
@@ -4104,55 +3984,6 @@ bool OT_API::AddClaim(
     return true;
 }
 
-/** Tries to get the account from the wallet.
- Otherwise loads it from local storage.
- */
-std::shared_ptr<Account> OT_API::GetOrLoadAccount(
-    const Nym& theNym,
-    const Identifier& accountID,
-    const Identifier& NOTARY_ID,
-    const char* szFuncName) const
-{
-    const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    OTWallet* pWallet = GetWallet(szFunc);  // This logs and ASSERTs already.
-
-    if (nullptr == pWallet) { return {}; }
-
-    return pWallet->GetOrLoadAccount(
-        theNym,
-        accountID,
-        NOTARY_ID,
-        szFunc);  // This logs plenty.
-}
-
-/** Tries to get the account from the wallet.
- Otherwise loads it from local storage.
- */
-std::shared_ptr<Account> OT_API::GetOrLoadAccount(
-    const Identifier& NYM_ID,
-    const Identifier& accountID,
-    const Identifier& NOTARY_ID,
-    const char* szFuncName) const
-{
-    const char* szFunc = (nullptr != szFuncName) ? szFuncName : __FUNCTION__;
-    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-
-    if (false == bool(context)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
-              << " is not registered on " << NOTARY_ID.str() << std::endl;
-
-        return {};
-    }
-
-    auto nym = context->Nym();
-
-    return GetOrLoadAccount(
-        *nym,
-        accountID,
-        NOTARY_ID,
-        szFunc);  // This logs plenty.
-}
-
 // WRITE CHEQUE
 //
 // Returns an OTCheque pointer, or nullptr.
@@ -4170,10 +4001,14 @@ Cheque* OT_API::WriteCheque(
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nym = context.It().Nym();
-    auto account =
-        GetOrLoadAccount(*nym, SENDER_accountID, NOTARY_ID, __FUNCTION__);
+    auto account = wallet_.Account(SENDER_accountID);
 
-    if (false == bool(account)) { return nullptr; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return nullptr;
+    }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -4202,7 +4037,8 @@ Cheque* OT_API::WriteCheque(
 
     // At this point, I know that number contains one I can use.
     Cheque* pCheque = new Cheque(
-        account->GetRealNotaryID(), account->GetInstrumentDefinitionID());
+        account.get().GetRealNotaryID(),
+        account.get().GetInstrumentDefinitionID());
     OT_ASSERT_MSG(
         nullptr != pCheque,
         "OT_API::WriteCheque: Error allocating memory in the OT API.");
@@ -4304,17 +4140,18 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
 {                                           // two arguments are optional.
     auto context = wallet_.mutable_ServerContext(RECIPIENT_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
-
     auto nym = context.It().Nym();
+    auto account = wallet_.Account(RECIPIENT_accountID);
 
-    auto account =
-        GetOrLoadAccount(*nym, RECIPIENT_accountID, NOTARY_ID, __FUNCTION__);
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
 
-    if (false == bool(account)) { return nullptr; }
+        return nullptr;
+    }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-
     OTPaymentPlan* pPlan = nullptr;
 
     // We don't always know the sender's account ID at the time of the proposal.
@@ -4324,8 +4161,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // and
     // sent it to him.)
     if (nullptr == pSENDER_accountID) {
-        pPlan =
-            new OTPaymentPlan(NOTARY_ID, account->GetInstrumentDefinitionID());
+        pPlan = new OTPaymentPlan(
+            NOTARY_ID, account.get().GetInstrumentDefinitionID());
 
         OT_ASSERT_MSG(
             nullptr != pPlan,
@@ -4339,7 +4176,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     } else {
         pPlan = new OTPaymentPlan(
             NOTARY_ID,
-            account->GetInstrumentDefinitionID(),
+            account.get().GetInstrumentDefinitionID(),
             *pSENDER_accountID,
             SENDER_NYM_ID,
             RECIPIENT_accountID,
@@ -4354,7 +4191,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // At this point, I know that pPlan is a good pointer that I either
     // have to delete, or return to the caller. CLEANUP WARNING!
     bool bSuccessSetProposal = pPlan->SetProposal(
-        context.It(), *account, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
+        context.It(), account, PLAN_CONSIDERATION, VALID_FROM, VALID_TO);
     // WARNING!!!! SetProposal() burns TWO transaction numbers for RECIPIENT.
     // (*nymfile)
     // BELOW THIS POINT, if you have an error, then you must retrieve those
@@ -4494,13 +4331,15 @@ bool OT_API::ConfirmPaymentPlan(
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
-
     auto nym = context.It().Nym();
+    auto account = wallet_.Account(SENDER_accountID);
 
-    auto account =
-        GetOrLoadAccount(*nym, SENDER_accountID, NOTARY_ID, __FUNCTION__);
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
 
-    if (false == bool(account)) { return false; }
+        return false;
+    }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -4520,7 +4359,7 @@ bool OT_API::ConfirmPaymentPlan(
     // The "Creation Date" of the agreement is re-set here.
     //
     bool bConfirmed = thePlan.Confirm(
-        context.It(), *account, pMerchantNym.get(), &RECIPIENT_NYM_ID);
+        context.It(), account, pMerchantNym.get(), &RECIPIENT_NYM_ID);
     //
     // WARNING:  The call to "Confirm()" uses TWO transaction numbers from
     // nymfile!
@@ -5672,40 +5511,6 @@ Mint* OT_API::LoadMint(
     return mint;
 }
 #endif  // OT_CASH
-
-// LOAD ASSET ACCOUNT
-//
-// Caller is NOT responsible to delete -- I add it to the wallet!
-//
-// We don't care if this asset account is already loaded in the wallet.
-// Presumably, the user has just downloaded the latest copy of the account
-// from the server, and the one in the wallet is old, so now this function
-// is being called to load the new one from storage and update the wallet.
-//
-// See also: OT_API::GetOrLoadAccount()
-//
-std::shared_ptr<Account> OT_API::LoadAssetAccount(
-    const Identifier& NOTARY_ID,
-    const Identifier& NYM_ID,
-    const Identifier& ACCOUNT_ID) const
-{
-    OTWallet* pWallet =
-        GetWallet(__FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) return nullptr;
-    // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    auto context = wallet_.ServerContext(NYM_ID, NOTARY_ID);
-
-    if (false == bool(context)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << NYM_ID.str()
-              << " is not registered on " << NOTARY_ID.str() << std::endl;
-
-        return nullptr;
-    }
-
-    auto nym = context->Nym();
-
-    return pWallet->LoadAccount(*nym, ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
-}
 
 // LOAD NYMBOX
 //
@@ -8130,21 +7935,25 @@ Basket* OT_API::GenerateBasketExchange(
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     auto nym = context.It().Nym();
-
     auto contract =
         GetBasketContract(BASKET_INSTRUMENT_DEFINITION_ID, __FUNCTION__);
 
     if (nullptr == contract) return nullptr;
     // By this point, contract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    auto account = GetOrLoadAccount(*nym, accountID, NOTARY_ID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
-    if (false == bool(account)) { return nullptr; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return nullptr;
+    }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     if (BASKET_INSTRUMENT_DEFINITION_ID !=
-        account->GetInstrumentDefinitionID()) {
+        account.get().GetInstrumentDefinitionID()) {
         const String strAcctID(accountID),
             strAcctTypeID(BASKET_INSTRUMENT_DEFINITION_ID);
         otErr
@@ -8215,10 +8024,14 @@ bool OT_API::AddBasketExchangeItem(
 
     if (!contract) { return false; }
 
-    auto account =
-        GetOrLoadAccount(*nym, ASSET_ACCOUNT_ID, NOTARY_ID, __FUNCTION__);
+    auto account = wallet_.Account(ASSET_ACCOUNT_ID);
 
-    if (false == bool(account)) { return false; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return false;
+    }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
@@ -8227,7 +8040,7 @@ bool OT_API::AddBasketExchangeItem(
                  "transaction number to add this exchange item.\n";
         return false;
     }
-    if (INSTRUMENT_DEFINITION_ID != account->GetInstrumentDefinitionID()) {
+    if (INSTRUMENT_DEFINITION_ID != account.get().GetInstrumentDefinitionID()) {
         const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID),
             strAcctID(ASSET_ACCOUNT_ID);
         otErr
@@ -8419,12 +8232,16 @@ CommandResult OT_API::exchangeBasket(
     if (false == validBasket) { return output; }
 
     const Identifier& accountID(basket.GetRequestAccountID());
+    auto account = wallet_.Account(accountID);
 
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
 
-    if (nullptr == account) { return output; }
+        return output;
+    }
 
-    std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading inbox for "
@@ -8433,7 +8250,7 @@ CommandResult OT_API::exchangeBasket(
         return output;
     }
 
-    std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (nullptr == outbox) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading outbox for "
@@ -8515,7 +8332,7 @@ CommandResult OT_API::exchangeBasket(
     item->SaveContract();
     transaction->AddItem(*item.release());
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        0, *transaction, context, *account, *outbox));
+        0, *transaction, context, account, *outbox));
 
     if (false == bool(balanceItem)) { return output; }
 
@@ -8538,6 +8355,7 @@ CommandResult OT_API::exchangeBasket(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
+    account.Release();
     result = send_message(managed, context, *message);
 
     return output;
@@ -8609,11 +8427,16 @@ CommandResult OT_API::notarizeWithdrawal(
 
     if (nullptr == wallet) { return output; }
 
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
-    if (nullptr == account) { return output; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
 
-    const auto& contractID = account->GetInstrumentDefinitionID();
+        return output;
+    }
+
+    const auto& contractID = account.get().GetInstrumentDefinitionID();
     const bool exists =
         OTDB::Exists(OTFolders::Mint().Get(), serverID.str(), contractID.str());
 
@@ -8635,7 +8458,7 @@ CommandResult OT_API::notarizeWithdrawal(
 
     if (false == validMint) { return output; }
 
-    std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading inbox for "
@@ -8644,7 +8467,7 @@ CommandResult OT_API::notarizeWithdrawal(
         return output;
     }
 
-    std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (nullptr == outbox) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading outbox for "
@@ -8750,7 +8573,7 @@ CommandResult OT_API::notarizeWithdrawal(
     item->SaveContract();
     transaction->AddItem(*item.release());
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        totalAmount * (-1), *transaction, context, *account, *outbox));
+        totalAmount * (-1), *transaction, context, account, *outbox));
 
     if (false == bool(balanceItem)) { return output; }
 
@@ -8773,6 +8596,7 @@ CommandResult OT_API::notarizeWithdrawal(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
+    account.Release();
     result = send_message(managed, context, *message);
 
     return output;
@@ -8802,16 +8626,16 @@ CommandResult OT_API::notarizeDeposit(
         "Depositing a cash purse. Enter passphrase for the purse.");
     const OTPasswordData cashPasswordReason(
         "Depositing a cash purse. Enter master passphrase for wallet.");
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
-    if (nullptr == account) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed loading account "
-              << String(accountID) << std::endl;
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
 
         return output;
     }
 
-    std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading inbox for "
@@ -8820,7 +8644,7 @@ CommandResult OT_API::notarizeDeposit(
         return output;
     }
 
-    std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (nullptr == outbox) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading outbox for "
@@ -8875,7 +8699,7 @@ CommandResult OT_API::notarizeDeposit(
         return output;
     }
 
-    const auto& contractID = account->GetInstrumentDefinitionID();
+    const auto& contractID = account.get().GetInstrumentDefinitionID();
     Purse outputPurse(serverID, contractID, serverNym.ID());
 
     // What's going on here?
@@ -8965,7 +8789,7 @@ CommandResult OT_API::notarizeDeposit(
 
     transaction->AddItem(*item.release());
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        pItem->GetAmount(), *transaction, context, *account, *outbox));
+        pItem->GetAmount(), *transaction, context, account, *outbox));
 
     if (false == bool(balanceItem)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -9005,6 +8829,7 @@ CommandResult OT_API::notarizeDeposit(
         return output;
     }
 
+    account.Release();
     result = send_message(managed, context, *message);
 
     return output;
@@ -9042,25 +8867,23 @@ CommandResult OT_API::payDividend(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto dividendAccount =
-        GetOrLoadAccount(nym, DIVIDEND_FROM_accountID, serverID, __FUNCTION__);
+    auto dividendAccount = wallet_.Account(DIVIDEND_FROM_accountID);
 
-    if (nullptr == dividendAccount) { return output; }
+    if (false == bool(dividendAccount)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to load dividend account" << std::endl;
+
+        return output;
+    }
 
     auto contract = wallet_.UnitDefinition(SHARES_INSTRUMENT_DEFINITION_ID);
 
     if (false == bool(contract)) { return output; }
 
-    // wallet is not owned by this function
-    auto wallet = GetWallet(__FUNCTION__);
-
-    if (nullptr == wallet) { return output; }
-
     // issuerAccount is not owned by this function
-    auto issuerAccount =
-        wallet->GetIssuerAccount(SHARES_INSTRUMENT_DEFINITION_ID);
+    auto issuerAccount = wallet_.IssuerAccount(SHARES_INSTRUMENT_DEFINITION_ID);
 
-    if (nullptr == issuerAccount) {
+    if (false == bool(issuerAccount)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure: Unable to find issuer account for the shares "
               << "instrument definition. Are you sure you're the issuer?"
@@ -9069,7 +8892,7 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    if (false == dividendAccount->VerifyOwner(nym)) {
+    if (false == dividendAccount.get().VerifyOwner(nym)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure: Nym doesn't verify as owner of the source "
               << "account for the dividend payout." << std::endl;
@@ -9077,7 +8900,7 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    if (false == issuerAccount->VerifyOwner(nym)) {
+    if (false == issuerAccount.get().VerifyOwner(nym)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure: Nym doesn't verify as owner of issuer "
               << "account for the shares (the shares we're paying the dividend "
@@ -9086,9 +8909,9 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    OT_ASSERT(issuerAccount->GetBalance() <= 0);
+    OT_ASSERT(issuerAccount.get().GetBalance() <= 0);
 
-    if (0 == issuerAccount->GetBalance()) {
+    if (0 == issuerAccount.get().GetBalance()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failure: There are no shares "
               << "issued for that instrument definition." << std::endl;
         requestNum = 0;
@@ -9111,11 +8934,12 @@ CommandResult OT_API::payDividend(
     // resulting in a totalCost of $500,000 that must be available in the dollar
     // account (in order to successfully pay this dividend.)
     const Amount totalCost =
-        ((-1) * issuerAccount->GetBalance()) * AMOUNT_PER_SHARE;
+        ((-1) * issuerAccount.get().GetBalance()) * AMOUNT_PER_SHARE;
 
-    if (dividendAccount->GetBalance() < totalCost) {
+    if (dividendAccount.get().GetBalance() < totalCost) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failure: There's not enough ("
-              << dividendAccount->GetBalance() << ") in the source account, to "
+              << dividendAccount.get().GetBalance()
+              << ") in the source account, to "
               << "cover the total cost of the dividend (" << totalCost << ".)"
               << std::endl;
 
@@ -9140,7 +8964,7 @@ CommandResult OT_API::payDividend(
           << managedNumber << std::endl;
     transactionNum = managedNumber;
 
-    const auto SHARES_ISSUER_accountID = Identifier::Factory(*issuerAccount);
+    const auto SHARES_ISSUER_accountID = Identifier::Factory(issuerAccount);
     // Expiration (ignored by server -- it sets its own for its vouchers.)
     const time64_t VALID_FROM = OTTimeGetCurrentTime();
     const time64_t VALID_TO = OTTimeAddTimeInterval(
@@ -9178,7 +9002,7 @@ CommandResult OT_API::payDividend(
         request voucher (again, just as a way of transmitting it.)
         */
 
-    std::unique_ptr<Ledger> inbox(dividendAccount->LoadInbox(nym));
+    std::unique_ptr<Ledger> inbox(dividendAccount.get().LoadInbox(nym));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading inbox for "
@@ -9187,7 +9011,7 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    std::unique_ptr<Ledger> outbox(dividendAccount->LoadOutbox(nym));
+    std::unique_ptr<Ledger> outbox(dividendAccount.get().LoadOutbox(nym));
 
     if (nullptr == outbox) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading outbox for "
@@ -9224,7 +9048,7 @@ CommandResult OT_API::payDividend(
     item->SaveContract();
     transaction->AddItem(*item.release());
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        totalCost * (-1), *transaction, context, *dividendAccount, *outbox));
+        totalCost * (-1), *transaction, context, dividendAccount, *outbox));
 
     if (false == bool(balanceItem)) { return output; }
 
@@ -9263,6 +9087,8 @@ CommandResult OT_API::payDividend(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
+    dividendAccount.Release();
+    issuerAccount.Release();
     result = send_message(managed, context, *message);
 
     return output;
@@ -9289,13 +9115,18 @@ CommandResult OT_API::withdrawVoucher(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
-    if (nullptr == account) { return output; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return output;
+    }
 
     auto contractID = Identifier::Factory();
     String strContractID;
-    contractID = account->GetInstrumentDefinitionID();
+    contractID = account.get().GetInstrumentDefinitionID();
     contractID->GetString(strContractID);
     Message theMessage;
     const auto withdrawalNumber =
@@ -9338,8 +9169,8 @@ CommandResult OT_API::withdrawVoucher(
         nymID,
         strChequeMemo,
         *((strRecipientNymID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr));
-    std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
-    std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (nullptr == inbox) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading inbox for acct "
@@ -9383,7 +9214,7 @@ CommandResult OT_API::withdrawVoucher(
     item->SaveContract();
     transaction->AddItem(*item.release());
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        amount * (-1), *transaction, context, *account, *outbox));
+        amount * (-1), *transaction, context, account, *outbox));
 
     if (false == bool(item)) { return output; }
 
@@ -9406,6 +9237,7 @@ CommandResult OT_API::withdrawVoucher(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
+    account.Release();
     result = send_message({}, context, *message);
 
     return output;
@@ -9469,16 +9301,21 @@ bool OT_API::DiscardCheque(
 
     if (!pServer) { return false; }
 
-    auto account = GetOrLoadAccount(*nym, accountID, NOTARY_ID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
-    if (false == bool(account)) { return false; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return false;
+    }
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     auto contractID = Identifier::Factory();
     String strContractID;
 
-    contractID = account->GetInstrumentDefinitionID();
+    contractID = account.get().GetInstrumentDefinitionID();
     contractID->GetString(strContractID);
     // By this point, nymfile is a good pointer, and is on the wallet.
     //  (No need to cleanup.)  pServer and account are also good.
@@ -9547,9 +9384,14 @@ CommandResult OT_API::depositCheque(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
-    if (nullptr == account) { return output; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return output;
+    }
 
     if (theCheque.GetNotaryID() != serverID) {
         otErr << OT_METHOD << __FUNCTION__ << ": NotaryID on cheque ("
@@ -9561,7 +9403,7 @@ CommandResult OT_API::depositCheque(
         return output;
     }
 
-    std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed loading inbox for acct "
@@ -9573,7 +9415,7 @@ CommandResult OT_API::depositCheque(
     // If bCancellingCheque==true, we're actually cancelling the cheque by
     // "depositing" it back into the same account it's drawn on.
     bool bCancellingCheque{false};
-    Cheque copy(serverID, account->GetInstrumentDefinitionID());
+    Cheque copy(serverID, account.get().GetInstrumentDefinitionID());
 
     if (theCheque.HasRemitter()) {
         bCancellingCheque =
@@ -9698,7 +9540,7 @@ CommandResult OT_API::depositCheque(
     item->SaveContract();
 
     transaction->AddItem(*item.release());
-    std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (false == bool(outbox)) {
         otErr << "OT_API::depositCheque: Failed loading outbox for acct "
@@ -9708,7 +9550,7 @@ CommandResult OT_API::depositCheque(
     }
 
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        cheque.GetAmount(), *transaction, context, *account, *outbox));
+        cheque.GetAmount(), *transaction, context, account, *outbox));
 
     if (false == bool(balanceItem)) { return output; }
 
@@ -9739,6 +9581,7 @@ CommandResult OT_API::depositCheque(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
+    account.Release();
     result = send_message(managed, context, *message);
 
     if (0 < cheque.GetAmount()) {
@@ -9825,9 +9668,17 @@ CommandResult OT_API::depositPaymentPlan(
     // (it's being activated.)
     const auto accountID = Identifier::Factory(
         bCancelling ? plan.GetRecipientAcctID() : plan.GetSenderAcctID());
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) { return output; }
+    {
+        auto account = wallet_.Account(accountID);
+
+        if (false == bool(account)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+                  << std::endl;
+
+            return output;
+        }
+    }
 
     const auto openingNumber = plan.GetOpeningNumber(nymID);
     std::unique_ptr<OTTransaction> transaction(
@@ -10386,19 +10237,28 @@ CommandResult OT_API::issueMarketOffer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto assetAccount =
-        GetOrLoadAccount(nym, ASSET_ACCOUNT_ID, serverID, __FUNCTION__);
+    auto assetAccount = wallet_.Account(ASSET_ACCOUNT_ID);
 
-    if (nullptr == assetAccount) { return output; }
+    if (false == bool(assetAccount)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load asset account"
+              << std::endl;
 
-    auto currencyAccount =
-        GetOrLoadAccount(nym, CURRENCY_ACCOUNT_ID, serverID, __FUNCTION__);
+        return output;
+    }
 
-    if (nullptr == currencyAccount) { return output; }
+    auto currencyAccount = wallet_.Account(CURRENCY_ACCOUNT_ID);
 
-    const auto& assetContractID = assetAccount->GetInstrumentDefinitionID();
+    if (false == bool(currencyAccount)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to load currency account" << std::endl;
+
+        return output;
+    }
+
+    const auto& assetContractID =
+        assetAccount.get().GetInstrumentDefinitionID();
     const auto& currencyContractID =
-        currencyAccount->GetInstrumentDefinitionID();
+        currencyAccount.get().GetInstrumentDefinitionID();
 
     if (assetContractID == currencyContractID) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10658,6 +10518,8 @@ CommandResult OT_API::issueMarketOffer(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
+    assetAccount.Release();
+    currencyAccount.Release();
     result = send_message(managed, context, *message);
 
     return output;
@@ -10817,10 +10679,14 @@ CommandResult OT_API::notarizeTransfer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = GetOrLoadAccount(nym, ACCT_FROM, serverID, __FUNCTION__);
+    auto account = wallet_.Account(ACCT_FROM);
 
-    // account is not owned by this function
-    if (nullptr == account) { return output; }
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+              << std::endl;
+
+        return output;
+    }
 
     std::set<ServerContext::ManagedNumber> managed{};
     managed.insert(
@@ -10862,8 +10728,8 @@ CommandResult OT_API::notarizeTransfer(
     // sign the item
     item->SignContract(nym);
     item->SaveContract();
-    std::unique_ptr<Ledger> inbox(account->LoadInbox(nym));
-    std::unique_ptr<Ledger> outbox(account->LoadOutbox(nym));
+    std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
+    std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
     if (false == bool(inbox)) {
         otErr << "OT_API::notarizeTransfer: Failed loading inbox for acct: "
@@ -10909,7 +10775,7 @@ CommandResult OT_API::notarizeTransfer(
     // balanceItem is signed and saved within this call. No need to do
     // that twice.
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        amount * (-1), *transaction, context, *account, *outbox));
+        amount * (-1), *transaction, context, account, *outbox));
 
     OT_ASSERT(balanceItem);
 
@@ -10942,6 +10808,7 @@ CommandResult OT_API::notarizeTransfer(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
+    account.Release();
     result = send_message(managed, context, *message);
 
     return output;
@@ -11048,14 +10915,16 @@ CommandResult OT_API::processInbox(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    const auto& nym = *context.Nym();
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
 
-    if (nullptr == account) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
-              << std::endl;
+    {
+        auto account = wallet_.Account(accountID);
 
-        return output;
+        if (false == bool(account)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
+                  << std::endl;
+
+            return output;
+        }
     }
 
     std::unique_ptr<Ledger> inbox(LoadInbox(serverID, nymID, accountID));
@@ -11287,11 +11156,12 @@ CommandResult OT_API::deleteAssetAccount(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    const auto& nym = *context.Nym();
-    const auto& serverID = context.Server();
-    auto account = GetOrLoadAccount(nym, ACCOUNT_ID, serverID, __FUNCTION__);
 
-    if (nullptr == account) { return output; }
+    {
+        auto account = wallet_.Account(ACCOUNT_ID);
+
+        if (false == bool(account)) { return output; }
+    }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::unregisterAccount, requestNum);
@@ -11346,13 +11216,11 @@ CommandResult OT_API::getBoxReceipt(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
 
     if (nymID != ACCOUNT_ID) {
-        auto account =
-            GetOrLoadAccount(nym, ACCOUNT_ID, serverID, __FUNCTION__);
+        auto account = wallet_.Account(ACCOUNT_ID);
 
-        if (nullptr == account) { return output; }
+        if (false == bool(account)) { return output; }
     }
 
     auto [newRequestNumber, message] =
@@ -11385,11 +11253,9 @@ CommandResult OT_API::getAccountData(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    const auto& nym = *context.Nym();
-    const auto& serverID = context.Server();
-    auto account = GetOrLoadAccount(nym, accountID, serverID, __FUNCTION__);
+    const auto accounts = storage_.AccountsByOwner(context.Nym()->ID());
 
-    if (nullptr == account) { return output; }
+    if (0 == accounts.count(Identifier::Factory(accountID))) { return output; }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::getAccountData, requestNum);
@@ -12953,10 +12819,10 @@ bool OT_API::FinalizeProcessInbox(
     // Below this point, any failure will result in the transaction number being
     // recovered
     Cleanup cleanup(*processInbox, context);
-    auto account = GetAccount(accountID, __FUNCTION__);
+    auto account = wallet_.Account(accountID);
 
-    if (nullptr == account) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load account."
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
               << std::endl;
 
         return false;
@@ -13053,12 +12919,7 @@ bool OT_API::FinalizeProcessInbox(
     }
 
     balanceStatement.reset(inbox.GenerateBalanceStatement(
-        totalAccepted,
-        *processInbox,
-        context,
-        *account,
-        outbox,
-        issuedClosing));
+        totalAccepted, *processInbox, context, account, outbox, issuedClosing));
 
     if (false == bool(balanceStatement)) {
         otErr << OT_METHOD << __FUNCTION__

@@ -40,6 +40,8 @@
 
 #include "opentxs/core/Ledger.hpp"
 
+#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -61,6 +63,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <stdlib.h>
@@ -867,16 +870,19 @@ Ledger* Ledger::GenerateLedger(
     ledgerType theType,
     bool bCreateFile)
 {
-    Ledger* pLedger = new Ledger(theNymID, theAcctID, theNotaryID);
-    OT_ASSERT(nullptr != pLedger);
+    std::unique_ptr<Ledger> ledger{
+        new Ledger(theNymID, theAcctID, theNotaryID)};
 
-    pLedger->GenerateLedger(theAcctID, theNotaryID, theType, bCreateFile);
-    pLedger->SetNymID(theNymID);
+    OT_ASSERT(ledger);
 
-    return pLedger;
+    ledger->generate_ledger(
+        theNymID, theAcctID, theNotaryID, theType, bCreateFile);
+
+    return ledger.release();
 }
 
-bool Ledger::GenerateLedger(
+bool Ledger::generate_ledger(
+    const Identifier& theNymID,
     const Identifier& theAcctID,
     const Identifier& theNotaryID,
     ledgerType theType,
@@ -969,56 +975,72 @@ bool Ledger::GenerateLedger(
               << szFolder2name << Log::PathSeparator() << szFilename << "\n";
     }
 
+    SetNymID(theNymID);
+    SetPurportedAccountID(theAcctID);
+    SetPurportedNotaryID(theNotaryID);
+
+    // Notice I still don't actually create the file here.  The programmer still
+    // has to call "SaveNymbox", "SaveInbox" or "SaveOutbox" or "SaveRecordBox"
+    // or "SavePaymentInbox" to actually save the file. But he cannot do that
+    // unless he generates it first here, and the "bCreateFile" parameter
+    // insures that he isn't overwriting one that is already there (even if we
+    // don't actually save the file in this function.)
+
+    return true;
+}
+
+bool Ledger::GenerateLedger(
+    const Identifier& theAcctID,
+    const Identifier& theNotaryID,
+    ledgerType theType,
+    bool bCreateFile)
+{
+    auto nymID = Identifier::Factory();
+
     if ((Ledger::inbox == theType) || (Ledger::outbox == theType)) {
         // Have to look up the NymID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        std::unique_ptr<Account> pAccount(
-            Account::LoadExistingAccount(theAcctID, theNotaryID));
+        auto account = OT::App().Wallet().Account(theAcctID);
 
-        if (nullptr != pAccount)
-            SetNymID(pAccount->GetNymID());
-        else {
+        if (account) {
+            nymID = Identifier::Factory(account.get().GetNymID());
+        } else {
             otErr << "OTLedger::GenerateLedger: Failed in "
                      "OTAccount::LoadExistingAccount().\n";
             return false;
         }
     } else if (Ledger::recordBox == theType) {
-        // RecordBox COULD be by NymID OR AcctID.
-        // So we TRY to lookup the acct.
-        //
-        std::unique_ptr<Account> pAccount(
-            Account::LoadExistingAccount(theAcctID, theNotaryID));
+        // RecordBox COULD be by NymID OR AcctID. So we TRY to lookup the acct.
+        auto account = OT::App().Wallet().Account(theAcctID);
 
-        if (nullptr != pAccount)  // Found it!
-            SetNymID(pAccount->GetNymID());
-        else  // Must be based on NymID, not AcctID (like Nymbox. But RecordBox
-              // can go either way.)
-        {
-            SetNymID(theAcctID);  // In the case of nymbox, and sometimes with
-                                  // recordBox, the acct ID IS the user ID.
+        if (account) {
+            nymID = Identifier::Factory(account.get().GetNymID());
+        } else {
+            // Must be based on NymID, not AcctID (like Nymbox. But RecordBox
+            // can go either way.)
+            nymID = Identifier::Factory(theAcctID);
+            // In the case of nymbox, and sometimes with recordBox, the acct ID
+            // IS the user ID.
         }
     } else {
         // In the case of paymentInbox, expired box, and nymbox, the acct ID IS
-        // the user ID.
-        // (Should change it to "owner ID" to make it sound right either way.)
-        //
-        SetNymID(theAcctID);
+        // the user ID. (Should change it to "owner ID" to make it sound right
+        // either way.)
+        nymID = Identifier::Factory(theAcctID);
     }
 
-    // Notice I still don't actually create the file here.  The programmer still
-    // has to call
-    // "SaveNymbox", "SaveInbox" or "SaveOutbox" or "SaveRecordBox" or
-    // "SavePaymentInbox" to
-    // actually save the file. But he cannot do that unless he generates it
-    // first here, and
-    // the "bCreateFile" parameter insures that he isn't overwriting one that is
-    // already there
-    // (even if we don't actually save the file in this function.)
-    //
-    SetPurportedAccountID(theAcctID);
-    SetPurportedNotaryID(theNotaryID);
+    return generate_ledger(nymID, theAcctID, theNotaryID, theType, bCreateFile);
+}
 
-    return true;
+bool Ledger::CreateLedger(
+    const Identifier& theNymID,
+    const Identifier& theAcctID,
+    const Identifier& theNotaryID,
+    ledgerType theType,
+    bool bCreateFile)
+{
+    return generate_ledger(
+        theNymID, theAcctID, theNotaryID, theType, bCreateFile);
 }
 
 void Ledger::InitLedger()

@@ -50,6 +50,7 @@ public:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::ContactManager& contact,
+        const api::storage::Storage& storage,
         const Identifier& nymID,
         const Identifier& accountID);
     static ui::ActivitySummary* ActivitySummary(
@@ -214,6 +215,14 @@ public:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const ContextLockCallback& lockCallback);
+    static api::storage::StorageInternal* Storage(
+        const Flag& running,
+        const StorageConfig& config,
+        const String& primary,
+        const bool migrate,
+        const String& previous,
+        const Digest& hash,
+        const Random& random);
     static api::client::Sync* Sync(
         const Flag& running,
         const OT_API& otapi,
@@ -224,6 +233,7 @@ public:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
+        const api::storage::Storage& storage,
         const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     static api::UI* UI(
@@ -233,6 +243,7 @@ public:
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
+        const api::storage::Storage& storage,
         const Flag& running);
     static api::client::Wallet* Wallet(
         const api::Native& ot,

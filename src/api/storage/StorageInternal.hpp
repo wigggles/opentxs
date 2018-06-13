@@ -36,44 +36,32 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
-#define OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
+#ifndef OPENTXS_API_STORAGE_STORAGEINTERNAL_HPP
+#define OPENTXS_API_STORAGE_STORAGEINTERNAL_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/ui/Widget.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 
-#ifdef SWIG
-// clang-format off
-%rename(UIAccountActivity) opentxs::ui::AccountActivity;
-// clang-format on
-#endif  // SWIG
-
-namespace opentxs
+namespace opentxs::api::storage
 {
-namespace ui
-{
-class AccountActivity : virtual public Widget
+class StorageInternal : virtual public Storage
 {
 public:
-    EXPORT virtual Amount Balance() const = 0;
-    EXPORT virtual std::string DisplayBalance() const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First()
-        const = 0;
-    EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
-        const = 0;
+    virtual void InitBackup() = 0;
+    virtual void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key) = 0;
+    virtual void start() = 0;
 
-    EXPORT virtual ~AccountActivity() = default;
+    virtual ~StorageInternal() override = default;
 
 protected:
-    AccountActivity() = default;
+    StorageInternal() = default;
 
 private:
-    AccountActivity(const AccountActivity&) = delete;
-    AccountActivity(AccountActivity&&) = delete;
-    AccountActivity& operator=(const AccountActivity&) = delete;
-    AccountActivity& operator=(AccountActivity&&) = delete;
+    StorageInternal(const StorageInternal&) = delete;
+    StorageInternal(StorageInternal&&) = delete;
+    StorageInternal& operator=(const StorageInternal&) = delete;
+    StorageInternal& operator=(StorageInternal&&) = delete;
 };
-}  // namespace ui
-}  // namespace opentxs
-#endif  // OPENTXS_UI_ACCOUNT_ACTIVITY_HPP
+}  // namespace opentxs::api::storage
+#endif  // OPENTXS_API_STORAGE_STORAGEINTERNAL_HPP

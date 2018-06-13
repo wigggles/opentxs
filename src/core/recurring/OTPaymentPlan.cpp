@@ -41,6 +41,7 @@
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -310,7 +311,7 @@ void OTPaymentPlan::UpdateContents()
 // *** Set Initial Payment ***  / Make sure to call SetAgreement() first.
 
 bool OTPaymentPlan::SetInitialPayment(
-    const std::int64_t& lAmount,
+    const std::int64_t& amount,
     time64_t tTimeUntilInitialPayment)
 {
     m_bInitialPayment = true;       // There is now an initial payment.
@@ -323,7 +324,7 @@ bool OTPaymentPlan::SetInitialPayment(
 
     SetInitialPaymentDate(INITIAL_PAYMENT_DATE);
 
-    SetInitialPaymentAmount(lAmount);
+    SetInitialPaymentAmount(amount);
 
     return true;
 }
@@ -591,10 +592,10 @@ bool OTPaymentPlan::SetInitialPaymentDone()
 // TODO: Run a scanner on the code for memory leaks and buffer overflows.
 
 // This can be called by either the initial payment code, or by the payment plan
-// code.
-// true == success, false == failure.
-//
-bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
+// code. true == success, false == failure.
+bool OTPaymentPlan::ProcessPayment(
+    const api::client::Wallet& wallet,
+    const Amount& amount)
 {
     const OTCron* pCron = GetCron();
     OT_ASSERT(nullptr != pCron);
@@ -777,20 +778,18 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
     // worry about deleting it, either.) I know for a fact they have both
     // signed pOrigCronItem...
 
-    std::unique_ptr<Account> pSourceAcct(
-        Account::LoadExistingAccount(SOURCE_ACCT_ID, NOTARY_ID));
+    auto sourceAccount = wallet.mutable_Account(SOURCE_ACCT_ID);
 
-    if (nullptr == pSourceAcct) {
+    if (false == bool(sourceAccount)) {
         otOut << "ERROR verifying existence of source account during attempted "
                  "payment plan processing.\n";
         FlagForRemoval();  // Remove it from future Cron processing, please.
         return false;
     }
 
-    std::unique_ptr<Account> pRecipientAcct(
-        Account::LoadExistingAccount(RECIPIENT_ACCT_ID, NOTARY_ID));
+    auto recipientAccount = wallet.mutable_Account(RECIPIENT_ACCT_ID);
 
-    if (nullptr == pRecipientAcct) {
+    if (false == bool(recipientAccount)) {
         otOut << __FUNCTION__
               << ": ERROR verifying existence of recipient account during "
                  "attempted payment plan processing.\n";
@@ -799,16 +798,16 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
     }
 
     // BY THIS POINT, both accounts are successfully loaded, and I don't have to
-    // worry about
-    // cleaning either one of them up, either. But I can now use pSourceAcct and
-    // pRecipientAcct...
+    // worry about cleaning either one of them up, either. But I can now use
+    // sourceAccount and recipientAccount...
 
     // A few verification if/elses...
 
     // Are both accounts of the same Asset Type?
-    if (pSourceAcct->GetInstrumentDefinitionID() !=
-        pRecipientAcct->GetInstrumentDefinitionID()) {  // We already know the
-                                                        // SUPPOSED
+    if (sourceAccount.get().GetInstrumentDefinitionID() !=
+        recipientAccount.get().GetInstrumentDefinitionID()) {  // We already
+                                                               // know the
+                                                               // SUPPOSED
         // Instrument Definition Ids of these accounts...
         // But only once
         // the accounts THEMSELVES have been loaded can we VERIFY this to be
@@ -826,16 +825,16 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
     // I call VerifySignature here since VerifyContractID was already called in
     // LoadExistingAccount().
     else if (
-        !pSourceAcct->VerifyOwner(*pSenderNym) ||
-        !pSourceAcct->VerifySignature(*pServerNym)) {
+        !sourceAccount.get().VerifyOwner(*pSenderNym) ||
+        !sourceAccount.get().VerifySignature(*pServerNym)) {
         otOut
             << __FUNCTION__
             << ": ERROR verifying ownership or signature on source account.\n";
         FlagForRemoval();  // Remove it from future Cron processing, please.
         return false;
     } else if (
-        !pRecipientAcct->VerifyOwner(*pRecipientNym) ||
-        !pRecipientAcct->VerifySignature(*pServerNym)) {
+        !recipientAccount.get().VerifyOwner(*pRecipientNym) ||
+        !recipientAccount.get().VerifySignature(*pServerNym)) {
         otOut << __FUNCTION__
               << ": ERROR verifying ownership or signature on "
                  "recipient account.\n";
@@ -979,16 +978,16 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
             // failure.
 
             // Make sure he can actually afford it...
-            if (pSourceAcct->GetBalance() >= lAmount) {
+            if (sourceAccount.get().GetBalance() >= amount) {
                 // Debit the source account.
                 bool bMoveSender =
-                    pSourceAcct->Debit(lAmount);  // <====== DEBIT FUNDS
+                    sourceAccount.get().Debit(amount);  // <====== DEBIT FUNDS
                 bool bMoveRecipient = false;
 
                 // IF success, credit the recipient.
                 if (bMoveSender) {
-                    bMoveRecipient =
-                        pRecipientAcct->Credit(lAmount);  // <=== CREDIT FUNDS
+                    bMoveRecipient = recipientAccount.get().Credit(
+                        amount);  // <=== CREDIT FUNDS
 
                     // Okay, we already took it from the source account.
                     // But if we FAIL to credit the recipient, then we need to
@@ -997,7 +996,8 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
                     // it's really superfluous.)
                     //
                     if (!bMoveRecipient)
-                        pSourceAcct->Credit(lAmount);  // put the money back
+                        sourceAccount.get().Credit(amount);  // put the money
+                                                             // back
                     else
                         bSuccess = true;
                 }
@@ -1022,17 +1022,18 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
             {
                 // Both accounts involved need to get a receipt of this trade in
                 // their inboxes...
-                pItemSend->SetStatus(Item::acknowledgement);   // pSourceAcct
-                pItemRecip->SetStatus(Item::acknowledgement);  // pRecipientAcct
+                pItemSend->SetStatus(Item::acknowledgement);  // sourceAccount
+                pItemRecip->SetStatus(
+                    Item::acknowledgement);  // recipientAccount
 
-                pItemSend->SetAmount(lAmount * (-1));  // "paymentReceipt" is
-                                                       // otherwise ambigious
-                                                       // about whether you are
-                                                       // paying or being paid.
-                pItemRecip->SetAmount(lAmount);  // So, I decided for payment
-                                                 // and market receipts, to use
-                                                 // negative and positive
-                                                 // amounts.
+                pItemSend->SetAmount(amount * (-1));  // "paymentReceipt" is
+                                                      // otherwise ambigious
+                                                      // about whether you are
+                                                      // paying or being paid.
+                pItemRecip->SetAmount(amount);  // So, I decided for payment
+                                                // and market receipts, to use
+                                                // negative and positive
+                                                // amounts.
                 // I will probably do the same for cheques, since they can be
                 // negative as well (invoices).
 
@@ -1054,11 +1055,11 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
                 // this function is called.)
             } else  // bSuccess = false.  The payment failed.
             {
-                pItemSend->SetStatus(Item::rejection);   // pSourceAcct
+                pItemSend->SetStatus(Item::rejection);   // sourceAccount
                                                          // // These are already
                                                          // initialized to
                                                          // false.
-                pItemRecip->SetStatus(Item::rejection);  // pRecipientAcct
+                pItemRecip->SetStatus(Item::rejection);  // recipientAccount
                                                          // // (But just making
                                                          // sure...)
 
@@ -1210,8 +1211,8 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
             theRecipientInbox.SaveContract();
 
             // Save both inboxes to storage. (File, DB, wherever it goes.)
-            pSourceAcct->SaveInbox(theSenderInbox);
-            pRecipientAcct->SaveInbox(theRecipientInbox);
+            sourceAccount.get().SaveInbox(theSenderInbox);
+            recipientAccount.get().SaveInbox(theRecipientInbox);
 
             // These correspond to the AddTransaction() calls just above. These
             // are stored in separate files now.
@@ -1224,28 +1225,11 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
             // and the receipts will contain a rejection or acknowledgment
             // stamped by the Server Nym.)
             if (true == bSuccess) {
-
-                // Release any signatures that were there before (They won't
-                // verify anymore anyway, since the content has changed.)
-                pSourceAcct->ReleaseSignatures();
-                pRecipientAcct->ReleaseSignatures();
-
-                // Sign both of them.
-                pSourceAcct->SignContract(*pServerNym);
-                pRecipientAcct->SignContract(*pServerNym);
-
-                // Save both of them internally
-                pSourceAcct->SaveContract();
-                pRecipientAcct->SaveContract();
-
-                // TODO: Better rollback capabilities in case of failures here:
-
-                // Save both accounts to storage.
-                pSourceAcct->SaveAccount();
-                pRecipientAcct->SaveAccount();
-
-                // NO NEED TO LOG HERE, since success / failure is already
-                // logged above.
+                sourceAccount.Release();
+                recipientAccount.Release();
+            } else {
+                sourceAccount.Abort();
+                recipientAccount.Abort();
             }
         }  // both inboxes were successfully loaded or generated.
     }  // By the time we enter this block, accounts and nyms are already loaded.
@@ -1257,12 +1241,12 @@ bool OTPaymentPlan::ProcessPayment(const std::int64_t& lAmount)
 // Assumes we're due for this payment. Execution oriented.
 // NOTE: there used to be more to this function, but it ended up like this. Que
 // sera sera.
-void OTPaymentPlan::ProcessInitialPayment()
+void OTPaymentPlan::ProcessInitialPayment(const api::client::Wallet& wallet)
 {
     OT_ASSERT(nullptr != GetCron());
 
     m_bProcessingInitialPayment = true;
-    ProcessPayment(GetInitialPaymentAmount());
+    ProcessPayment(wallet, GetInitialPaymentAmount());
     m_bProcessingInitialPayment = false;
 
     // No need to save the Payment Plan itself since it's already
@@ -1348,7 +1332,7 @@ void OTPaymentPlan::onRemovalFromCron()
 // Assumes we're due for a payment. Execution oriented.
 // NOTE: There used to be more to this function, but it ended up like this. Que
 // sera sera.
-void OTPaymentPlan::ProcessPaymentPlan()
+void OTPaymentPlan::ProcessPaymentPlan(const api::client::Wallet& wallet)
 {
     OT_ASSERT(nullptr != GetCron());
 
@@ -1358,7 +1342,7 @@ void OTPaymentPlan::ProcessPaymentPlan()
     // :-(
     // But the member could be useful in the future anyway.
     m_bProcessingPaymentPlan = true;
-    ProcessPayment(GetPaymentPlanAmount());
+    ProcessPayment(wallet, GetPaymentPlanAmount());
     m_bProcessingPaymentPlan = false;
 
     // No need to save the Payment Plan itself since it's already
@@ -1448,7 +1432,7 @@ bool OTPaymentPlan::ProcessCron()
 
         otOut << "Cron: Processing initial payment...\n";
 
-        ProcessInitialPayment();
+        ProcessInitialPayment(OT::App().Wallet());
     }
     // ----------------------------------------------
     // Next, process the payment plan...
@@ -1580,9 +1564,8 @@ bool OTPaymentPlan::ProcessCron()
             otOut << "Cron: Processing payment...\n";
 
             // This function assumes the payment is due, and it only fails in
-            // the case of
-            // the payer's account having insufficient funds.
-            ProcessPaymentPlan();
+            // the case of the payer's account having insufficient funds.
+            ProcessPaymentPlan(OT::App().Wallet());
         }
     }
 

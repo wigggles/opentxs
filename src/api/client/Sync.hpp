@@ -224,6 +224,7 @@ private:
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::crypto::Encode& encoding_;
+    const api::storage::Storage& storage_;
     const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex introduction_server_lock_{};
     mutable std::mutex nym_fetch_lock_{};
@@ -238,6 +239,8 @@ private:
     mutable std::map<Identifier, ThreadStatus> task_status_;
     // taskID, messageID
     mutable std::map<Identifier, Identifier> task_message_id_;
+    OTZMQListenCallback account_subscriber_callback_;
+    OTZMQSubscribeSocket account_subscriber_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,
@@ -337,6 +340,8 @@ private:
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy) const;
 #endif  // OT_CASH
+    void process_account(
+        const opentxs::network::zeromq::Message& message) const;
     bool publish_server_contract(
         const Identifier& taskID,
         const Identifier& nymID,
@@ -405,6 +410,7 @@ private:
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
+        const api::storage::Storage& storage,
         const opentxs::network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     Sync() = delete;

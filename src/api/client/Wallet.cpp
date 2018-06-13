@@ -59,20 +59,33 @@
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/Types.hpp"
+
+#include "Exclusive.tpp"
+#include "Shared.tpp"
 
 #include <functional>
 #include <map>
 #include <mutex>
+#include <shared_mutex>
+#include <stdexcept>
 #include <tuple>
 
 #include "Wallet.hpp"
+
+template class opentxs::Exclusive<opentxs::Account>;
+template class opentxs::Shared<opentxs::Account>;
 
 #define OT_METHOD "opentxs::api::client::implementation::Wallet::"
 
@@ -88,13 +101,38 @@ api::client::Wallet* Factory::Wallet(
 
 namespace opentxs::api::client::implementation
 {
+const std::map<std::string, proto::ContactItemType> Wallet::unit_of_account_{
+    {"BTC", proto::CITEMTYPE_BTC},   {"ETH", proto::CITEMTYPE_ETH},
+    {"XRP", proto::CITEMTYPE_XRP},   {"LTC", proto::CITEMTYPE_LTC},
+    {"DAO", proto::CITEMTYPE_DAO},   {"XEM", proto::CITEMTYPE_XEM},
+    {"DAS", proto::CITEMTYPE_DASH},  {"LSK", proto::CITEMTYPE_LSK},
+    {"DGD", proto::CITEMTYPE_DGD},   {"XMR", proto::CITEMTYPE_XMR},
+    {"NXT", proto::CITEMTYPE_NXT},   {"AMP", proto::CITEMTYPE_AMP},
+    {"XLM", proto::CITEMTYPE_XLM},   {"FCT", proto::CITEMTYPE_FCT},
+    {"BTS", proto::CITEMTYPE_BTS},   {"USD", proto::CITEMTYPE_USD},
+    {"EUR", proto::CITEMTYPE_EUR},   {"GBP", proto::CITEMTYPE_GBP},
+    {"INR", proto::CITEMTYPE_INR},   {"AUD", proto::CITEMTYPE_AUD},
+    {"CAD", proto::CITEMTYPE_CAD},   {"SGD", proto::CITEMTYPE_SGD},
+    {"CHF", proto::CITEMTYPE_CHF},   {"MYR", proto::CITEMTYPE_MYR},
+    {"JPY", proto::CITEMTYPE_JPY},   {"CNY", proto::CITEMTYPE_CNY},
+    {"NZD", proto::CITEMTYPE_NZD},   {"THB", proto::CITEMTYPE_THB},
+    {"HUF", proto::CITEMTYPE_HUF},   {"AED", proto::CITEMTYPE_AED},
+    {"HKD", proto::CITEMTYPE_HKD},   {"MXN", proto::CITEMTYPE_MXN},
+    {"ZAR", proto::CITEMTYPE_ZAR},   {"PHP", proto::CITEMTYPE_PHP},
+    {"SEK", proto::CITEMTYPE_SEK},   {"BTT", proto::CITEMTYPE_TNBTC},
+    {"LTT", proto::CITEMTYPE_TNLTC}, {"DAT", proto::CITEMTYPE_TNDASH},
+    {"BCH", proto::CITEMTYPE_BCH},   {"BCT", proto::CITEMTYPE_TNBCH},
+};
+
 Wallet::Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq)
     : ot_(ot)
+    , account_map_()
     , nym_map_()
     , server_map_()
     , unit_map_()
     , context_map_()
     , issuer_map_()
+    , account_map_lock_()
     , nym_map_lock_()
     , server_map_lock_()
     , unit_map_lock_()
@@ -105,9 +143,476 @@ Wallet::Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq)
     , nymfile_map_lock_()
     , nymfile_lock_()
     , nym_publisher_(zmq.PublishSocket())
+    , account_publisher_(zmq.PublishSocket())
 {
     nym_publisher_->Start(
         opentxs::network::zeromq::Socket::NymDownloadEndpoint);
+    account_publisher_->Start(
+        opentxs::network::zeromq::Socket::AccountUpdateEndpoint);
+}
+
+Wallet::AccountLock& Wallet::account(
+    const Lock& lock,
+    const Identifier& account,
+    const bool create) const
+{
+    OT_ASSERT(verify_lock(lock, account_map_lock_))
+
+    auto& row = account_map_[account];
+    // WTF clang? This is perfectly valid c++17. Fix your shit.
+    // auto& [rowMutex, pAccount] = row;
+    auto& rowMutex = std::get<0>(row);
+    auto& pAccount = std::get<1>(row);
+
+    if (pAccount) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Account " << account.str()
+               << " already exists in map." << std::endl;
+
+        return row;
+    }
+
+    eLock rowLock(rowMutex);
+    std::string serialized{""};
+    std::string alias{""};
+    const auto loaded = ot_.DB().Load(account.str(), serialized, alias, true);
+
+    if (loaded) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Account " << account.str()
+               << " loaded from storage." << std::endl;
+        pAccount.reset(account_factory(account, alias, serialized));
+
+        OT_ASSERT(pAccount);
+    } else {
+        if (false == create) {
+            if (ot_.ServerMode()) {
+                otWarn << OT_METHOD << __FUNCTION__
+                       << ": Trying to load account " << account.str()
+                       << " via legacy method." << std::endl;
+                const auto legacy = load_legacy_account(
+                    account, ot_.Server().ID(), rowLock, row);
+
+                if (legacy) { return row; }
+            }
+
+            throw std::out_of_range("Unable to load account from storage");
+        }
+    }
+
+    return row;
+}
+
+SharedAccount Wallet::Account(const Identifier& accountID) const
+{
+    Lock mapLock(account_map_lock_);
+
+    try {
+        auto& row = account(mapLock, accountID, false);
+        // WTF clang? This is perfectly valid c++17. Fix your shit.
+        // auto& [rowMutex, pAccount] = row;
+        auto& rowMutex = std::get<0>(row);
+        auto& pAccount = std::get<1>(row);
+
+        if (pAccount) { return SharedAccount(pAccount.get(), rowMutex); }
+    } catch (...) {
+
+        return {};
+    }
+
+    return {};
+}
+
+std::string Wallet::account_alias(const std::string& accountID) const
+{
+    for (const auto& [id, alias] : ot_.DB().AccountList()) {
+        if (id == accountID) { return alias; }
+    }
+
+    return {};
+}
+
+opentxs::Account* Wallet::account_factory(
+    const Identifier& accountID,
+    const std::string& alias,
+    const std::string& serialized) const
+{
+    std::unique_ptr<OTTransactionType> deserialized{
+        OTTransactionType::TransactionFactory(serialized.c_str())};
+
+    if (false == bool(deserialized)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to deserialize account."
+              << std::endl;
+
+        return nullptr;
+    }
+
+    std::unique_ptr<opentxs::Account> output{
+        dynamic_cast<opentxs::Account*>(deserialized.release())};
+
+    OT_ASSERT(output)
+
+    const auto signerID = ot_.DB().AccountSigner(accountID);
+
+    if (signerID->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unknown signer nym."
+              << std::endl;
+
+        return nullptr;
+    }
+
+    const auto signerNym = Nym(signerID);
+
+    if (false == bool(signerNym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load signer nym."
+              << std::endl;
+
+        return nullptr;
+    }
+
+    if (false == output->VerifySignature(*signerNym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature."
+              << std::endl;
+
+        return nullptr;
+    }
+
+    output->SetName(alias.c_str());
+
+    return output.release();
+}
+
+OTIdentifier Wallet::AccountPartialMatch(const std::string& hint) const
+{
+    const auto list = ot_.DB().AccountList();
+
+    for (const auto& [id, alias] : list) {
+        if (0 == id.compare(0, hint.size(), hint)) {
+
+            return Identifier::Factory(id);
+        }
+
+        if (0 == alias.compare(0, hint.size(), hint)) {
+
+            return Identifier::Factory(alias);
+        }
+    }
+
+    return Identifier::Factory();
+}
+
+ExclusiveAccount Wallet::CreateAccount(
+    const Identifier& ownerNymID,
+    const Identifier& notaryID,
+    const Identifier& instrumentDefinitionID,
+    const class Nym& signer,
+    Account::AccountType type,
+    TransactionNumber stash) const
+{
+    Lock mapLock(account_map_lock_);
+
+    auto contract = UnitDefinition(instrumentDefinitionID);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load unit definition contract "
+              << instrumentDefinitionID.str() << std::endl;
+
+        return {};
+    }
+
+    try {
+        std::unique_ptr<opentxs::Account> newAccount(
+            opentxs::Account::GenerateNewAccount(
+                signer.ID(),
+                notaryID,
+                signer,
+                ownerNymID,
+                instrumentDefinitionID,
+                type,
+                stash));
+
+        OT_ASSERT(newAccount)
+
+        const auto& accountID = newAccount->GetRealAccountID();
+        auto& row = account(mapLock, accountID, true);
+        // WTF clang? This is perfectly valid c++17. Fix your shit.
+        // auto& [rowMutex, pAccount] = row;
+        auto& rowMutex = std::get<0>(row);
+        auto& pAccount = std::get<1>(row);
+
+        if (pAccount) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Account already exists"
+                  << std::endl;
+
+            return {};
+        } else {
+            pAccount.reset(newAccount.release());
+
+            OT_ASSERT(pAccount)
+
+            const auto id = pAccount->GetRealAccountID().str();
+            String serialized{};
+            pAccount->SaveContractRaw(serialized);
+            const auto saved = ot_.DB().Store(
+                id,
+                serialized.Get(),
+                "",
+                ownerNymID,
+                signer.ID(),
+                contract->Nym()->ID(),
+                notaryID,
+                instrumentDefinitionID,
+                extract_unit(instrumentDefinitionID));
+
+            OT_ASSERT(saved)
+
+            std::function<void(opentxs::Account*, eLock&, bool)> callback =
+                [this,
+                 id](opentxs::Account* in, eLock& lock, bool success) -> void {
+                this->save(id, in, lock, success);
+            };
+
+            return ExclusiveAccount(pAccount.get(), rowMutex, callback);
+        }
+    } catch (...) {
+
+        return {};
+    }
+
+    return {};
+}
+
+bool Wallet::DeleteAccount(const Identifier& accountID) const
+{
+    Lock mapLock(account_map_lock_);
+
+    try {
+        auto& row = account(mapLock, accountID, false);
+        // WTF clang? This is perfectly valid c++17. Fix your shit.
+        // auto& [rowMutex, pAccount] = row;
+        auto& rowMutex = std::get<0>(row);
+        auto& pAccount = std::get<1>(row);
+        eLock lock(rowMutex);
+
+        if (pAccount) {
+            const auto deleted = ot_.DB().DeleteAccount(accountID.str());
+
+            if (deleted) {
+                pAccount.reset();
+
+                return true;
+            }
+        }
+    } catch (...) {
+
+        return false;
+    }
+
+    return false;
+}
+
+SharedAccount Wallet::IssuerAccount(const Identifier& unitID) const
+{
+    const auto accounts = ot_.DB().AccountsByContract(unitID);
+    Lock mapLock(account_map_lock_);
+
+    try {
+        for (const auto& accountID : accounts) {
+            auto& row = account(mapLock, accountID, false);
+            // WTF clang? This is perfectly valid c++17. Fix your shit.
+            // auto& [rowMutex, pAccount] = row;
+            auto& rowMutex = std::get<0>(row);
+            auto& pAccount = std::get<1>(row);
+
+            if (pAccount) {
+                if (pAccount->IsIssuer()) {
+
+                    return SharedAccount(pAccount.get(), rowMutex);
+                }
+            }
+        }
+    } catch (...) {
+
+        return {};
+    }
+
+    return {};
+}
+
+ExclusiveAccount Wallet::mutable_Account(const Identifier& accountID) const
+{
+    Lock mapLock(account_map_lock_);
+
+    try {
+        auto& row = account(mapLock, accountID, false);
+        // WTF clang? This is perfectly valid c++17. Fix your shit.
+        // auto& [rowMutex, pAccount] = row;
+        auto& rowMutex = std::get<0>(row);
+        auto& pAccount = std::get<1>(row);
+        const auto id = accountID.str();
+
+        if (pAccount) {
+            std::function<void(opentxs::Account*, eLock&, bool)> callback =
+                [this,
+                 id](opentxs::Account* in, eLock& lock, bool success) -> void {
+                this->save(id, in, lock, success);
+            };
+
+            return ExclusiveAccount(pAccount.get(), rowMutex, callback);
+        }
+    } catch (...) {
+
+        return {};
+    }
+
+    return {};
+}
+
+bool Wallet::UpdateAccount(
+    const Identifier& accountID,
+    const opentxs::ServerContext& context,
+    const String& serialized) const
+{
+    Lock mapLock(account_map_lock_);
+    auto& row = account(mapLock, accountID, true);
+    // WTF clang? This is perfectly valid c++17. Fix your shit.
+    // auto& [rowMutex, pAccount] = row;
+    auto& rowMutex = std::get<0>(row);
+    auto& pAccount = std::get<1>(row);
+    eLock rowLock(rowMutex);
+    mapLock.unlock();
+    const auto& localNym = *context.Nym();
+    std::unique_ptr<opentxs::Account> newAccount{nullptr};
+    newAccount.reset(
+        new opentxs::Account(localNym.ID(), accountID, context.Server()));
+
+    if (false == bool(newAccount)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to construct account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == newAccount->LoadContractFromString(serialized)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to deserialize account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == newAccount->VerifyAccount(context.RemoteNym())) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (newAccount->GetNymID() != localNym.ID()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong nym on account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (newAccount->GetRealNotaryID() != context.Server()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong server on account"
+              << std::endl;
+
+        return false;
+    }
+
+    newAccount->ReleaseSignatures();
+
+    if (false == newAccount->SignContract(localNym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to sign account"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == newAccount->SaveContract()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to serialize account"
+              << std::endl;
+
+        return false;
+    }
+
+    pAccount.reset(newAccount.release());
+
+    OT_ASSERT(pAccount)
+
+    const auto& unitID = pAccount->GetInstrumentDefinitionID();
+    const auto contract = UnitDefinition(unitID);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load unit definition contract " << unitID.str()
+              << std::endl;
+
+        return false;
+    }
+
+    String raw{};
+    auto saved = pAccount->SaveContractRaw(raw);
+
+    if (false == saved) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to serialized account"
+              << std::endl;
+
+        return false;
+    }
+
+    saved = ot_.DB().Store(
+        accountID.str(),
+        raw.Get(),
+        account_alias(accountID.str()),
+        localNym.ID(),
+        localNym.ID(),
+        contract->Nym()->ID(),
+        context.Server(),
+        unitID,
+        extract_unit(*contract));
+
+    if (false == saved) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to save account"
+              << std::endl;
+
+        return false;
+    }
+
+    const auto balance = pAccount->GetBalance();
+    auto message = opentxs::network::zeromq::Message::Factory();
+    message->AddFrame(accountID.str());
+    message->AddFrame(Data::Factory(&balance, sizeof(balance)));
+    account_publisher_->Publish(message);
+
+    return true;
+}
+
+proto::ContactItemType Wallet::extract_unit(const Identifier& contractID) const
+{
+    const auto contract = UnitDefinition(contractID);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load unit definition contract "
+              << contractID.str() << std::endl;
+
+        return proto::CITEMTYPE_UNKNOWN;
+    }
+
+    return extract_unit(*contract);
+}
+
+proto::ContactItemType Wallet::extract_unit(
+    const opentxs::UnitDefinition& contract) const
+{
+    try {
+
+        return unit_of_account_.at(contract.TLA());
+    } catch (...) {
+
+        return proto::CITEMTYPE_UNKNOWN;
+    }
 }
 
 std::shared_ptr<class Context> Wallet::context(
@@ -369,6 +874,81 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
     return Editor<class ServerContext>(child, callback);
 }
 
+bool Wallet::ImportAccount(std::unique_ptr<opentxs::Account>& imported) const
+{
+    if (false == bool(imported)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid account" << std::endl;
+
+        return false;
+    }
+
+    const auto& accountID = imported->GetRealAccountID();
+    Lock mapLock(account_map_lock_);
+
+    try {
+        auto& row = account(mapLock, accountID, true);
+        // WTF clang? This is perfectly valid c++17. Fix your shit.
+        // auto& [rowMutex, pAccount] = row;
+        auto& rowMutex = std::get<0>(row);
+        auto& pAccount = std::get<1>(row);
+        eLock rowLock(rowMutex);
+        mapLock.unlock();
+
+        if (pAccount) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Account already exists"
+                  << std::endl;
+
+            return false;
+        }
+
+        pAccount.reset(imported.release());
+
+        OT_ASSERT(pAccount)
+
+        const auto& contractID = pAccount->GetInstrumentDefinitionID();
+        const auto contract = UnitDefinition(contractID);
+
+        if (false == bool(contract)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to load unit definition" << std::endl;
+            imported.reset(pAccount.release());
+
+            return false;
+        }
+
+        String serialized{};
+        String alias{};
+        pAccount->SaveContractRaw(serialized);
+        pAccount->GetName(alias);
+        const auto saved = ot_.DB().Store(
+            accountID.str(),
+            serialized.Get(),
+            alias.Get(),
+            pAccount->GetNymID(),
+            pAccount->GetNymID(),
+            contract->Nym()->ID(),
+            pAccount->GetRealNotaryID(),
+            contractID,
+            extract_unit(*contract));
+
+        if (false == saved) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account"
+                  << std::endl;
+            imported.reset(pAccount.release());
+
+            return false;
+        }
+
+        return true;
+    } catch (...) {
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Unable to import account."
+          << std::endl;
+
+    return false;
+}
+
 std::set<OTIdentifier> Wallet::IssuerList(const Identifier& nymID) const
 {
     std::set<OTIdentifier> output{};
@@ -447,6 +1027,79 @@ Wallet::IssuerLock& Wallet::issuer(
 bool Wallet::IsLocalNym(const std::string& id) const
 {
     return ot_.DB().LocalNyms().count(id);
+}
+
+bool Wallet::load_legacy_account(
+    const Identifier& accountID,
+    const Identifier& notaryID,
+    const eLock& lock,
+    Wallet::AccountLock& row) const
+{
+    // WTF clang? This is perfectly valid c++17. Fix your shit.
+    // auto& [rowMutex, pAccount] = row;
+    const auto& rowMutex = std::get<0>(row);
+    auto& pAccount = std::get<1>(row);
+
+    OT_ASSERT(verify_lock(lock, rowMutex))
+
+    pAccount.reset(Account::LoadExistingAccount(accountID, notaryID));
+
+    if (false == bool(pAccount)) { return false; }
+
+    const auto signerNym = Nym(ot_.Server().NymID());
+
+    if (false == bool(signerNym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load signer nym."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == pAccount->VerifySignature(*signerNym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature."
+              << std::endl;
+
+        return false;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__ << ": Legacy account " << accountID.str()
+          << " exists." << std::endl;
+
+    String serialized{};
+    auto saved = pAccount->SaveContractRaw(serialized);
+
+    OT_ASSERT(saved)
+
+    const auto& ownerID = pAccount->GetNymID();
+
+    OT_ASSERT(false == ownerID.empty())
+
+    const auto& unitID = pAccount->GetInstrumentDefinitionID();
+
+    OT_ASSERT(false == unitID.empty())
+
+    const auto contract = UnitDefinition(unitID);
+
+    OT_ASSERT(contract)
+
+    const auto& serverID = pAccount->GetPurportedNotaryID();
+
+    OT_ASSERT(ot_.Server().ID() == serverID)
+
+    saved = ot_.DB().Store(
+        accountID.str(),
+        serialized.Get(),
+        "",
+        ownerID,
+        ot_.Server().NymID(),
+        contract->Nym()->ID(),
+        serverID,
+        unitID,
+        extract_unit(unitID));
+
+    OT_ASSERT(saved)
+
+    return true;
 }
 
 std::size_t Wallet::LocalNymCount() const
@@ -1158,6 +1811,72 @@ bool Wallet::RemoveUnitDefinition(const Identifier& id) const
     if (0 != deleted) { return ot_.DB().RemoveUnitDefinition(unit); }
 
     return false;
+}
+
+void Wallet::save(
+    const std::string id,
+    opentxs::Account* in,
+    eLock&,
+    bool success) const
+{
+    OT_ASSERT(nullptr != in)
+
+    auto& account = *in;
+    const auto accountID = Identifier::Factory(id);
+
+    if (false == success) {
+        // I would look up the row containing this account and reset the smart
+        // pointer, but that would result in a deadlock if there is a thread
+        // waiting to acquire a SharedAccount for this row.
+        //
+        // Deleting the old object so the next user of this account will get
+        // clean data loaded from storage without any of the aborted changes.
+        delete in;
+        in = nullptr;
+
+        return;
+    }
+
+    const auto signerID = ot_.DB().AccountSigner(accountID);
+
+    OT_ASSERT(false == signerID->empty())
+
+    const auto signerNym = Nym(signerID);
+
+    OT_ASSERT(signerNym)
+
+    account.ReleaseSignatures();
+    auto saved = account.SignContract(*signerNym);
+
+    OT_ASSERT(saved)
+
+    saved = account.SaveContract();
+
+    OT_ASSERT(saved)
+
+    String serialized{};
+    saved = in->SaveContractRaw(serialized);
+
+    OT_ASSERT(saved)
+
+    const auto contractID = ot_.DB().AccountContract(accountID);
+
+    OT_ASSERT(false == contractID->empty())
+
+    String alias{};
+    in->GetName(alias);
+    saved = ot_.DB().Store(
+        accountID->str(),
+        serialized.Get(),
+        alias.Get(),
+        ot_.DB().AccountOwner(accountID),
+        ot_.DB().AccountSigner(accountID),
+        ot_.DB().AccountIssuer(accountID),
+        ot_.DB().AccountServer(accountID),
+        contractID,
+        extract_unit(contractID));
+
+    OT_ASSERT(saved)
 }
 
 void Wallet::save(class Context* context) const

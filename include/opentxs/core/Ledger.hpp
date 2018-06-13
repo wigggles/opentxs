@@ -75,25 +75,6 @@ typedef std::map<std::int64_t, OTTransaction*> mapOfTransactions;
 // the "inbox" and "outbox" functionality is implemented in this class
 class Ledger : public OTTransactionType
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef OTTransactionType ot_super;
-
-    friend OTTransactionType* OTTransactionType::TransactionFactory(
-        String strInput);
-
-private:
-    mapOfTransactions m_mapTransactions;  // a ledger contains a map of
-                                          // transactions.
-
-protected:
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this is where the ledger saves its
-                                     // contents
-
-    Ledger();  // Hopefully stays here.
-
 public:
     enum ledgerType {
         nymbox,  // the nymbox is per user account (versus per asset account)
@@ -117,15 +98,10 @@ public:
     // top of the .CPP file.
     ledgerType m_Type{error_state};
 
-    bool m_bLoadedLegacyData{
-        false};  // So the server can tell if it just loaded a
-                 // legacy box or a hashed box. (Legacy boxes
-                 // stored ALL of the receipts IN the box. No
-                 // more.)
-
-protected:
-    bool LoadGeneric(ledgerType theType, const String* pString = nullptr);
-    bool SaveGeneric(ledgerType theType);
+    bool m_bLoadedLegacyData{false};  // So the server can tell if it just
+                                      // loaded a legacy box or a hashed box.
+                                      // (Legacy boxes stored ALL of the
+                                      // receipts IN the box. No more.)
 
 public:
     inline ledgerType GetType() const { return m_Type; }
@@ -292,7 +268,13 @@ public:
         ledgerType theType,
         bool bCreateFile = false);
 
-    EXPORT bool GenerateLedger(
+    EXPORT[[deprecated]] bool GenerateLedger(
+        const Identifier& theAcctID,
+        const Identifier& theNotaryID,
+        ledgerType theType,
+        bool bCreateFile = false);
+    EXPORT bool CreateLedger(
+        const Identifier& theNymID,
         const Identifier& theAcctID,
         const Identifier& theNotaryID,
         ledgerType theType,
@@ -300,8 +282,32 @@ public:
 
     EXPORT static char const* _GetTypeString(ledgerType theType);
     EXPORT char const* GetTypeString() const { return _GetTypeString(m_Type); }
+
+protected:
+    bool LoadGeneric(ledgerType theType, const String* pString = nullptr);
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    bool SaveGeneric(ledgerType theType);
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this is where the ledger saves its
+                                     // contents
+
+    Ledger();  // Hopefully stays here.
+
+private:  // Private prevents erroneous use by other classes.
+    typedef OTTransactionType ot_super;
+    friend OTTransactionType* OTTransactionType::TransactionFactory(
+        String strInput);
+
+    mapOfTransactions m_mapTransactions;  // a ledger contains a map of
+                                          // transactions.
+
+    bool generate_ledger(
+        const Identifier& theNymID,
+        const Identifier& theAcctID,
+        const Identifier& theNotaryID,
+        ledgerType theType,
+        bool bCreateFile);
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_OTLEDGER_HPP

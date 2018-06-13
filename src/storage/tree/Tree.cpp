@@ -41,6 +41,7 @@
 #include "Tree.hpp"
 
 #include "storage/Plugin.hpp"
+#include "Accounts.hpp"
 #include "BlockchainTransactions.hpp"
 #include "Contacts.hpp"
 #include "Credentials.hpp"
@@ -50,19 +51,17 @@
 #include "Servers.hpp"
 #include "Units.hpp"
 
-namespace opentxs
-{
-namespace storage
-{
-
-#define CURRENT_VERSION 3
+#define TREE_VERSION 4
 
 #define OT_METHOD "opentxs::storage::Tree::"
 
+namespace opentxs::storage
+{
 Tree::Tree(
     const opentxs::api::storage::Driver& storage,
     const std::string& hash)
     : Node(storage, hash)
+    , account_root_(Node::BLANK_HASH)
     , blockchain_root_(Node::BLANK_HASH)
     , contact_root_(Node::BLANK_HASH)
     , credential_root_(Node::BLANK_HASH)
@@ -70,6 +69,8 @@ Tree::Tree(
     , seed_root_(Node::BLANK_HASH)
     , server_root_(Node::BLANK_HASH)
     , unit_root_(Node::BLANK_HASH)
+    , account_lock_()
+    , account_(nullptr)
     , blockchain_lock_()
     , blockchain_(nullptr)
     , contact_lock_()
@@ -88,13 +89,14 @@ Tree::Tree(
     if (check_hash(hash)) {
         init(hash);
     } else {
-        version_ = CURRENT_VERSION;
+        version_ = TREE_VERSION;
         root_ = Node::BLANK_HASH;
     }
 }
 
 Tree::Tree(const Tree& rhs)
     : Node(rhs.driver_, "")
+    , account_root_(Node::BLANK_HASH)
     , blockchain_root_(Node::BLANK_HASH)
     , contact_root_(Node::BLANK_HASH)
     , credential_root_(Node::BLANK_HASH)
@@ -102,6 +104,8 @@ Tree::Tree(const Tree& rhs)
     , seed_root_(Node::BLANK_HASH)
     , server_root_(Node::BLANK_HASH)
     , unit_root_(Node::BLANK_HASH)
+    , account_lock_()
+    , account_(nullptr)
     , blockchain_lock_()
     , blockchain_(nullptr)
     , contact_lock_()
@@ -121,6 +125,7 @@ Tree::Tree(const Tree& rhs)
 
     version_ = rhs.version_;
     root_ = rhs.root_;
+    account_root_ = rhs.account_root_;
     blockchain_root_ = rhs.blockchain_root_;
     contact_root_ = rhs.contact_root_;
     credential_root_ = rhs.credential_root_;
@@ -128,6 +133,26 @@ Tree::Tree(const Tree& rhs)
     seed_root_ = rhs.seed_root_;
     server_root_ = rhs.server_root_;
     unit_root_ = rhs.unit_root_;
+}
+
+Accounts* Tree::accounts() const
+{
+    Lock lock(account_lock_);
+
+    if (false == bool(account_)) {
+        account_.reset(new Accounts(driver_, account_root_));
+
+        if (false == bool(account_)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
+                  << std::endl;
+
+            OT_FAIL;
+        }
+    }
+
+    lock.unlock();
+
+    return account_.get();
 }
 
 BlockchainTransactions* Tree::blockchain() const
@@ -142,7 +167,7 @@ BlockchainTransactions* Tree::blockchain() const
             otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
                   << std::endl;
 
-            abort();
+            OT_FAIL
         }
     }
 
@@ -150,6 +175,8 @@ BlockchainTransactions* Tree::blockchain() const
 
     return blockchain_.get();
 }
+
+const Accounts& Tree::AccountNode() const { return *accounts(); }
 
 const BlockchainTransactions& Tree::BlockchainNode() const
 {
@@ -169,7 +196,7 @@ Contacts* Tree::contacts() const
             otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
                   << std::endl;
 
-            abort();
+            OT_FAIL
         }
     }
 
@@ -191,7 +218,7 @@ Credentials* Tree::credentials() const
             otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
                   << std::endl;
 
-            abort();
+            OT_FAIL
         }
     }
 
@@ -209,14 +236,15 @@ void Tree::init(const std::string& hash)
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to load root index file." << std::endl;
 
-        abort();
+        OT_FAIL
     }
 
     version_ = serialized->version();
 
     // Upgrade version
-    if (CURRENT_VERSION > version_) { version_ = CURRENT_VERSION; }
+    if (TREE_VERSION > version_) { version_ = TREE_VERSION; }
 
+    account_root_ = normalize_hash(serialized->accounts());
     blockchain_root_ = normalize_hash(serialized->blockchaintransactions());
     contact_root_ = normalize_hash(serialized->contacts());
     credential_root_ = normalize_hash(serialized->creds());
@@ -229,6 +257,7 @@ void Tree::init(const std::string& hash)
 bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
 {
     bool output{true};
+    output &= accounts()->Migrate(to);
     output &= blockchain()->Migrate(to);
     output &= contacts()->Migrate(to);
     output &= credentials()->Migrate(to);
@@ -239,6 +268,14 @@ bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
     output &= migrate(root_, to);
 
     return output;
+}
+
+Editor<Accounts> Tree::mutable_Accounts()
+{
+    std::function<void(Accounts*, Lock&)> callback =
+        [&](Accounts* in, Lock& lock) -> void { this->save(in, lock); };
+
+    return Editor<Accounts>(write_lock_, accounts(), callback);
 }
 
 Editor<BlockchainTransactions> Tree::mutable_Blockchain()
@@ -311,7 +348,7 @@ Nyms* Tree::nyms() const
         if (!nyms_) {
             otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
                   << std::endl;
-            abort();
+            OT_FAIL
         }
     }
 
@@ -324,7 +361,7 @@ bool Tree::save(const Lock& lock) const
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     auto serialized = serialize();
@@ -334,16 +371,38 @@ bool Tree::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
+void Tree::save(Accounts* accounts, const Lock& lock)
+{
+    if (!verify_write_lock(lock)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
+        OT_FAIL
+    }
+
+    if (nullptr == account_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
+        OT_FAIL
+    }
+
+    Lock mapLock(account_lock_);
+    account_root_ = account_->Root();
+    mapLock.unlock();
+
+    if (!save(lock)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
+        OT_FAIL
+    }
+}
+
 void Tree::save(BlockchainTransactions* blockchain, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     if (nullptr == blockchain) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        OT_FAIL
     }
 
     Lock mapLock(blockchain_lock_);
@@ -352,7 +411,7 @@ void Tree::save(BlockchainTransactions* blockchain, const Lock& lock)
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        OT_FAIL
     }
 }
 
@@ -360,12 +419,12 @@ void Tree::save(Contacts* contacts, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     if (nullptr == contacts) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        OT_FAIL
     }
 
     Lock mapLock(contact_lock_);
@@ -374,7 +433,7 @@ void Tree::save(Contacts* contacts, const Lock& lock)
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        OT_FAIL
     }
 }
 
@@ -382,12 +441,12 @@ void Tree::save(Credentials* credentials, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     if (nullptr == credentials) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        OT_FAIL
     }
 
     Lock mapLock(credential_lock_);
@@ -396,7 +455,7 @@ void Tree::save(Credentials* credentials, const Lock& lock)
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        OT_FAIL
     }
 }
 
@@ -404,12 +463,12 @@ void Tree::save(Nyms* nyms, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     if (nullptr == nyms) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        OT_FAIL
     }
 
     Lock mapLock(nym_lock_);
@@ -418,7 +477,7 @@ void Tree::save(Nyms* nyms, const Lock& lock)
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        OT_FAIL
     }
 }
 
@@ -426,12 +485,12 @@ void Tree::save(Seeds* seeds, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     if (nullptr == seeds) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        OT_FAIL
     }
 
     Lock mapLock(seed_lock_);
@@ -440,7 +499,7 @@ void Tree::save(Seeds* seeds, const Lock& lock)
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        OT_FAIL
     }
 }
 
@@ -448,12 +507,12 @@ void Tree::save(Servers* servers, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     if (nullptr == servers) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        OT_FAIL
     }
 
     Lock mapLock(server_lock_);
@@ -462,7 +521,7 @@ void Tree::save(Servers* servers, const Lock& lock)
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        OT_FAIL
     }
 }
 
@@ -470,12 +529,12 @@ void Tree::save(Units* units, const Lock& lock)
 {
     if (!verify_write_lock(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Lock failure." << std::endl;
-        abort();
+        OT_FAIL
     }
 
     if (nullptr == units) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null target" << std::endl;
-        abort();
+        OT_FAIL
     }
 
     Lock mapLock(unit_lock_);
@@ -484,7 +543,7 @@ void Tree::save(Units* units, const Lock& lock)
 
     if (!save(lock)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Save error" << std::endl;
-        abort();
+        OT_FAIL
     }
 }
 
@@ -500,7 +559,7 @@ Seeds* Tree::seeds() const
         if (!seeds_) {
             otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
                   << std::endl;
-            abort();
+            OT_FAIL
         }
     }
 
@@ -513,6 +572,10 @@ proto::StorageItems Tree::serialize() const
 {
     proto::StorageItems serialized;
     serialized.set_version(version_);
+
+    Lock accountLock(account_lock_);
+    serialized.set_accounts(account_root_);
+    accountLock.unlock();
 
     Lock blockchainLock(blockchain_lock_);
     serialized.set_blockchaintransactions(blockchain_root_);
@@ -530,6 +593,10 @@ proto::StorageItems Tree::serialize() const
     serialized.set_nyms(nym_root_);
     nymLock.unlock();
 
+    Lock seedLock(seed_lock_);
+    serialized.set_seeds(seed_root_);
+    seedLock.unlock();
+
     Lock serverLock(server_lock_);
     serialized.set_servers(server_root_);
     serverLock.unlock();
@@ -537,10 +604,6 @@ proto::StorageItems Tree::serialize() const
     Lock unitLock(unit_lock_);
     serialized.set_units(unit_root_);
     unitLock.unlock();
-
-    Lock seedLock(seed_lock_);
-    serialized.set_seeds(seed_root_);
-    seedLock.unlock();
 
     return serialized;
 }
@@ -557,7 +620,7 @@ Servers* Tree::servers() const
         if (!servers_) {
             otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
                   << std::endl;
-            abort();
+            OT_FAIL
         }
     }
 
@@ -578,7 +641,7 @@ Units* Tree::units() const
         if (!units_) {
             otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate."
                   << std::endl;
-            abort();
+            OT_FAIL
         }
     }
 
@@ -588,5 +651,4 @@ Units* Tree::units() const
 }
 
 Tree::~Tree() {}
-}  // namespace storage
-}  // namespace opentxs
+}  // namespace opentxs::storage

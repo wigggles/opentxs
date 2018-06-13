@@ -97,7 +97,8 @@ bool OTTrade::VerifyNymAsAgent(const Nym& nym, const Nym&, mapOfConstNyms*)
 
 // This is an override. See note above.
 //
-bool OTTrade::VerifyNymAsAgentForAccount(const Nym& nym, Account& account) const
+bool OTTrade::VerifyNymAsAgentForAccount(const Nym& nym, const Account& account)
+    const
 {
     return account.VerifyOwner(nym);
 }
@@ -1115,7 +1116,8 @@ bool OTTrade::ProcessCron()
         {
             otInfo << "Processing trade: " << GetTransactionNum() << ".\n";
 
-            bStayOnMarket = market->ProcessTrade(*this, *offer);
+            bStayOnMarket =
+                market->ProcessTrade(OT::App().Wallet(), *this, *offer);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.
         }
