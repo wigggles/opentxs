@@ -93,6 +93,7 @@ private:
     const api::client::Sync& sync_;
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;
+    const api::storage::Storage& storage_;
     const Flag& running_;
     mutable AccountActivityMap accounts_{};
     mutable ActivitySummaryMap activity_summaries_{};
@@ -112,6 +113,7 @@ private:
        const api::client::Sync& sync,
        const api::client::Wallet& wallet,
        const api::client::Workflow& workflow,
+       const api::storage::Storage& storage,
        const Flag& running);
     UI() = delete;
     UI(const UI&) = delete;

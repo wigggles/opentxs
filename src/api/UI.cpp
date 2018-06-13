@@ -77,10 +77,11 @@ api::UI* Factory::UI(
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
+    const api::storage::Storage& storage,
     const Flag& running)
 {
     return new api::implementation::UI(
-        zmq, activity, contact, sync, wallet, workflow, running);
+        zmq, activity, contact, sync, wallet, workflow, storage, running);
 }
 }  // namespace opentxs
 
@@ -93,6 +94,7 @@ UI::UI(
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
+    const api::storage::Storage& storage,
     const Flag& running)
     : zmq_(zmq)
     , activity_(activity)
@@ -100,6 +102,7 @@ UI::UI(
     , sync_(sync)
     , wallet_(wallet)
     , workflow_(workflow)
+    , storage_(storage)
     , running_(running)
     , accounts_()
     , activity_summaries_()
@@ -139,7 +142,14 @@ const ui::AccountActivity& UI::AccountActivity(
 
     if (false == bool(output)) {
         output.reset(Factory::AccountActivity(
-            zmq_, sync_, wallet_, workflow_, contact_, nymID, accountID));
+            zmq_,
+            sync_,
+            wallet_,
+            workflow_,
+            contact_,
+            storage_,
+            nymID,
+            accountID));
     }
 
     OT_ASSERT(output)

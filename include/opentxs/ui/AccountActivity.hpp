@@ -56,6 +56,8 @@ namespace ui
 class AccountActivity : virtual public Widget
 {
 public:
+    EXPORT virtual Amount Balance() const = 0;
+    EXPORT virtual std::string DisplayBalance() const = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> First()
         const = 0;
     EXPORT virtual opentxs::SharedPimpl<opentxs::ui::BalanceItem> Next()
