@@ -102,23 +102,13 @@ ActivityThread::ActivityThread(
     const api::ContactManager& contact,
     const Identifier& nymID,
     const Identifier& threadID)
-    : ActivityThreadType(
-          zmq,
-          publisher,
-          contact,
-          {Identifier::Factory(), {}, Identifier::Factory()},
-          nymID,
-          new ActivityThreadItemBlank)
+    : ActivityThreadList(nymID, zmq, publisher, contact)
+    , listeners_{{activity.ThreadPublisher(nymID),
+        new MessageProcessor<ActivityThread>(&ActivityThread::process_thread)},}
     , activity_(activity)
     , sync_(sync)
     , threadID_(Identifier::Factory(threadID))
     , participants_()
-    , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_thread(message);
-          }))
-    , activity_subscriber_(
-          zmq_.SubscribeSocket(activity_subscriber_callback_.get()))
     , contact_lock_()
     , draft_lock_()
     , draft_()
@@ -126,16 +116,8 @@ ActivityThread::ActivityThread(
     , contact_(nullptr)
     , contact_thread_(nullptr)
 {
-    OT_ASSERT(blank_p_)
-
     init();
-    const auto endpoint = activity_.ThreadPublisher(nymID);
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    const auto listening = activity_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&ActivityThread::startup, this));
 
     OT_ASSERT(startup_)
@@ -145,12 +127,7 @@ ActivityThread::ActivityThread(
     OT_ASSERT(contact_thread_)
 }
 
-ActivityThreadID ActivityThread::blank_id() const
-{
-    return {Identifier::Factory(), {}, Identifier::Factory()};
-}
-
-bool ActivityThread::check_draft(const ActivityThreadID& id) const
+bool ActivityThread::check_draft(const ActivityThreadRowID& id) const
 {
     const auto& taskID = std::get<0>(id);
     const auto [status, contactID] = sync_.MessageStatus(taskID);
@@ -182,7 +159,7 @@ void ActivityThread::check_drafts() const
     eLock lock(draft_lock_);
     otErr << OT_METHOD << __FUNCTION__ << ": Checking " << draft_tasks_.size()
           << " pending sends." << std::endl;
-    std::set<ActivityThreadID> deleted{};
+    std::set<ActivityThreadRowID> deleted{};
 
     for (const auto& draftID : draft_tasks_) {
         if (check_draft(draftID)) {
@@ -216,8 +193,8 @@ std::string ActivityThread::comma(const std::set<std::string>& list) const
     return output;
 }
 
-void ActivityThread::construct_item(
-    const ActivityThreadID& id,
+void ActivityThread::construct_row(
+    const ActivityThreadRowID& id,
     const ActivityThreadSortKey& index,
     const CustomData&) const
 {
@@ -351,16 +328,6 @@ void ActivityThread::new_thread()
     startup_complete_->On();
 }
 
-ActivityThreadOuter::const_iterator ActivityThread::outer_first() const
-{
-    return items_.begin();
-}
-
-ActivityThreadOuter::const_iterator ActivityThread::outer_end() const
-{
-    return items_.end();
-}
-
 std::string ActivityThread::Participants() const
 {
     Lock lock(lock_);
@@ -381,12 +348,12 @@ std::string ActivityThread::PaymentCode(
     return {};
 }
 
-ActivityThreadID ActivityThread::process_item(
+ActivityThreadRowID ActivityThread::process_item(
     const proto::StorageThreadItem& item)
 {
-    const ActivityThreadID id{Identifier::Factory(item.id()),
-                              static_cast<StorageBox>(item.box()),
-                              Identifier::Factory(item.account())};
+    const ActivityThreadRowID id{Identifier::Factory(item.id()),
+                                 static_cast<StorageBox>(item.box()),
+                                 Identifier::Factory(item.account())};
     const ActivityThreadSortKey key{std::chrono::seconds(item.time()),
                                     item.index()};
     add_item(id, key, {});
@@ -413,7 +380,7 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
 
     OT_ASSERT(thread)
 
-    std::set<ActivityThreadID> active{};
+    std::set<ActivityThreadRowID> active{};
 
     for (const auto& item : thread->item()) {
         const auto id = process_item(item);
@@ -424,8 +391,8 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
 }
 
 bool ActivityThread::same(
-    const ActivityThreadID& lhs,
-    const ActivityThreadID& rhs) const
+    const ActivityThreadRowID& lhs,
+    const ActivityThreadRowID& rhs) const
 {
     const auto& [lID, lBox, lAccount] = lhs;
     const auto& [rID, rBox, rAccount] = rhs;
@@ -466,7 +433,8 @@ bool ActivityThread::SendDraft() const
         return false;
     }
 
-    const ActivityThreadID id{taskID, StorageBox::DRAFT, Identifier::Factory()};
+    const ActivityThreadRowID id{
+        taskID, StorageBox::DRAFT, Identifier::Factory()};
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
     draft_tasks_.insert(id);
     draft_.clear();

@@ -53,9 +53,9 @@ using ActivityThreadSortKey =
 class ActivityThreadParent
 {
 public:
-    virtual bool last(const ActivityThreadID& id) const = 0;
+    virtual bool last(const ActivityThreadRowID& id) const = 0;
     virtual void reindex_item(
-        const ActivityThreadID& id,
+        const ActivityThreadRowID& id,
         const ActivityThreadSortKey& newIndex) const = 0;
     virtual std::string ThreadID() const = 0;
     virtual OTIdentifier WidgetID() const = 0;

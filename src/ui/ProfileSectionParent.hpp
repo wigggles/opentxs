@@ -48,7 +48,7 @@ namespace opentxs::ui::implementation
 class ProfileSectionParent
 {
 public:
-    using ProfileSectionIDType =
+    using ProfileSectionRowIDType =
         std::pair<proto::ContactSectionName, proto::ContactItemType>;
     using ProfileSectionSortKey = int;
 
@@ -57,10 +57,10 @@ public:
         const std::string& value,
         const bool primary,
         const bool active) const = 0;
-    virtual bool last(const ProfileSectionIDType& id) const = 0;
+    virtual bool last(const ProfileSectionRowIDType& id) const = 0;
     virtual const Identifier& NymID() const = 0;
     virtual void reindex_item(
-        const ProfileSectionIDType& id,
+        const ProfileSectionRowIDType& id,
         const ProfileSectionSortKey& newIndex) const = 0;
     virtual proto::ContactSectionName Type() const = 0;
     virtual OTIdentifier WidgetID() const = 0;

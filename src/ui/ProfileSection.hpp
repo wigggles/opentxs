@@ -43,22 +43,17 @@
 
 namespace opentxs::ui::implementation
 {
-using ProfileSectionType = List<
-    opentxs::ui::ProfileSection,
-    ProfileSectionParent,
-    opentxs::ui::ProfileSubsection,
-    ProfileSectionIDType,
-    ProfileSectionPimpl,
-    ProfileSectionInner,
-    ProfileSectionSortKey,
-    ProfileSectionOuter,
-    ProfileSectionOuter::const_iterator>;
-using ProfileSectionRowType = RowType<
-    opentxs::ui::ProfileSection,
-    ProfileParent,
-    proto::ContactSectionName>;
+using ProfileSectionList = List<
+    ProfileSectionExternalInterface,
+    ProfileSectionInternalInterface,
+    ProfileSectionRowID,
+    ProfileSectionRowInterface,
+    ProfileSectionRowBlank,
+    ProfileSectionSortKey>;
+using ProfileSectionRow =
+    RowType<ProfileRowInterface, ProfileInternalInterface, ProfileRowID>;
 
-class ProfileSection : public ProfileSectionType, public ProfileSectionRowType
+class ProfileSection : public ProfileSectionList, public ProfileSectionRow
 {
 public:
     bool AddClaim(
@@ -91,37 +86,25 @@ public:
 private:
     friend Factory;
 
-    static int sort_key(const ProfileSectionIDType type);
-    static bool check_type(const ProfileSectionIDType type);
+    static int sort_key(const ProfileSectionRowID type);
+    static bool check_type(const ProfileSectionRowID type);
     static const opentxs::ContactGroup& recover(const void* input);
 
     const api::client::Wallet& wallet_;
 
-    ProfileSectionIDType blank_id() const override
-    {
-        return {proto::CONTACTSECTION_ERROR, proto::CITEMTYPE_ERROR};
-    }
-    void construct_item(
-        const ProfileSectionIDType& id,
+    void construct_row(
+        const ProfileSectionRowID& id,
         const ProfileSectionSortKey& index,
         const CustomData& custom) const override;
 
-    bool last(const ProfileSectionIDType& id) const override
+    bool last(const ProfileSectionRowID& id) const override
     {
-        return ProfileSectionType::last(id);
+        return ProfileSectionList::last(id);
     }
-    ProfileSectionOuter::const_iterator outer_first() const override
-    {
-        return items_.begin();
-    }
-    ProfileSectionOuter::const_iterator outer_end() const override
-    {
-        return items_.end();
-    }
-    std::set<ProfileSectionIDType> process_section(
+    std::set<ProfileSectionRowID> process_section(
         const opentxs::ContactSection& section);
     void startup(const opentxs::ContactSection section);
-    void update(ProfileSectionPimpl& row, const CustomData& custom)
+    void update(ProfileSectionRowInterface& row, const CustomData& custom)
         const override;
 
     ProfileSection(

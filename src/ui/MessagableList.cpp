@@ -86,63 +86,32 @@ ui::MessagableList* Factory::MessagableList(
 
 namespace opentxs::ui::implementation
 {
+const Widget::ListenerDefinitions MessagableList::listeners_{
+    {network::zeromq::Socket::ContactUpdateEndpoint,
+     new MessageProcessor<MessagableList>(&MessagableList::process_contact)},
+    {network::zeromq::Socket::NymDownloadEndpoint,
+     new MessageProcessor<MessagableList>(&MessagableList::process_nym)},
+};
+
 MessagableList::MessagableList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const Identifier& nymID)
-    : MessagableListType(
-          zmq,
-          publisher,
-          contact,
-          contact.ContactID(nymID),
-          nymID,
-          new ContactListItemBlank)
+    : MessagableListList(nymID, zmq, publisher, contact)
     , sync_(sync)
     , owner_contact_id_(Identifier::Factory(last_id_))
-    , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_contact(message);
-          }))
-    , contact_subscriber_(
-          zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
-    , nym_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_nym(message);
-          }))
-    , nym_subscriber_(zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
 {
-    OT_ASSERT(blank_p_)
-
     init();
-    const auto& contactEndpoint =
-        network::zeromq::Socket::ContactUpdateEndpoint;
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << contactEndpoint
-           << std::endl;
-    const auto contactListening = contact_subscriber_->Start(contactEndpoint);
-
-    OT_ASSERT(contactListening)
-
-    const auto& nymEndpoint = network::zeromq::Socket::NymDownloadEndpoint;
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << nymEndpoint
-           << std::endl;
-    const auto nymListening = nym_subscriber_->Start(nymEndpoint);
-
-    OT_ASSERT(nymListening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&MessagableList::startup, this));
 
     OT_ASSERT(startup_)
 }
 
-MessagableListID MessagableList::blank_id() const
-{
-    return Identifier::Factory();
-}
-
-void MessagableList::construct_item(
-    const MessagableListID& id,
+void MessagableList::construct_row(
+    const MessagableListRowID& id,
     const MessagableListSortKey& index,
     const CustomData&) const
 {
@@ -155,18 +124,8 @@ void MessagableList::construct_item(
 
 const Identifier& MessagableList::ID() const { return owner_contact_id_; }
 
-MessagableListOuter::const_iterator MessagableList::outer_first() const
-{
-    return items_.begin();
-}
-
-MessagableListOuter::const_iterator MessagableList::outer_end() const
-{
-    return items_.end();
-}
-
 void MessagableList::process_contact(
-    const MessagableListID& id,
+    const MessagableListRowID& id,
     const MessagableListSortKey& key)
 {
     if (owner_contact_id_ == id) { return; }

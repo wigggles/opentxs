@@ -43,18 +43,15 @@
 
 namespace opentxs::ui::implementation
 {
-using PayableListType = List<
-    opentxs::ui::PayableList,
-    ContactListParent,
-    opentxs::ui::PayableListItem,
-    PayableListID,
-    PayableListPimpl,
-    PayableListInner,
-    PayableListSortKey,
-    PayableListOuter,
-    PayableListOuter::const_iterator>;
+using PayableListList = List<
+    PayableExternalInterface,
+    PayableInternalInterface,
+    PayableListRowID,
+    PayableListRowInterface,
+    PayableListRowBlank,
+    PayableListSortKey>;
 
-class PayableList : virtual public PayableListType
+class PayableList : virtual public PayableListList
 {
 public:
     const Identifier& ID() const override;
@@ -64,28 +61,23 @@ public:
 private:
     friend Factory;
 
+    static const ListenerDefinitions listeners_;
+
     const api::client::Sync& sync_;
     const OTIdentifier owner_contact_id_;
-    OTZMQListenCallback contact_subscriber_callback_;
-    OTZMQSubscribeSocket contact_subscriber_;
-    OTZMQListenCallback nym_subscriber_callback_;
-    OTZMQSubscribeSocket nym_subscriber_;
     const proto::ContactItemType currency_;
 
-    PayableListID blank_id() const override;
-    void construct_item(
-        const PayableListID& id,
+    void construct_row(
+        const PayableListRowID& id,
         const PayableListSortKey& index,
         const CustomData& custom) const override;
-    bool last(const PayableListID& id) const override
+    bool last(const PayableListRowID& id) const override
     {
-        return PayableListType::last(id);
+        return PayableListList::last(id);
     }
-    PayableListOuter::const_iterator outer_first() const override;
-    PayableListOuter::const_iterator outer_end() const override;
 
     void process_contact(
-        const PayableListID& id,
+        const PayableListRowID& id,
         const PayableListSortKey& key);
     void process_contact(const network::zeromq::Message& message);
     void process_nym(const network::zeromq::Message& message);

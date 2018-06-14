@@ -122,7 +122,7 @@ BalanceItem::BalanceItem(
     const proto::PaymentEvent& event,
     const Identifier& nymID,
     const Identifier& accountID)
-    : BalanceItemType(
+    : BalanceItemRow(
           parent,
           zmq,
           publisher,

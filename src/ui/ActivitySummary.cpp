@@ -96,45 +96,23 @@ ActivitySummary::ActivitySummary(
     const api::ContactManager& contact,
     const Flag& running,
     const Identifier& nymID)
-
-    : ActivitySummaryType(
-          zmq,
-          publisher,
-          contact,
-          blank_id(),
-          Identifier::Factory(nymID),
-          new ActivitySummaryItemBlank)
+    : ActivitySummaryList(nymID, zmq, publisher, contact)
+    , listeners_{{activity.ThreadPublisher(nymID),
+        new MessageProcessor<ActivitySummary>(
+            &ActivitySummary::process_thread)},
+}
     , activity_(activity)
     , running_(running)
-    , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_thread(message);
-          }))
-    , activity_subscriber_(
-          zmq_.SubscribeSocket(activity_subscriber_callback_.get()))
 {
-    OT_ASSERT(blank_p_)
-
     init();
-    const auto endpoint = activity_.ThreadPublisher(nymID);
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    const auto listening = activity_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&ActivitySummary::startup, this));
 
     OT_ASSERT(startup_)
 }
 
-ActivitySummaryID ActivitySummary::blank_id() const
-{
-    return Identifier::Factory();
-}
-
-void ActivitySummary::construct_item(
-    const ActivitySummaryID& id,
+void ActivitySummary::construct_row(
+    const ActivitySummaryRowID& id,
     const ActivitySummarySortKey& index,
     const CustomData&) const
 {
@@ -150,17 +128,6 @@ void ActivitySummary::construct_item(
             nym_id_,
             id));
     names_.emplace(id, index);
-}
-
-ActivitySummaryOuter::const_reverse_iterator ActivitySummary::outer_first()
-    const
-{
-    return items_.rbegin();
-}
-
-ActivitySummaryOuter::const_reverse_iterator ActivitySummary::outer_end() const
-{
-    return items_.rend();
 }
 
 void ActivitySummary::process_thread(const std::string& id)

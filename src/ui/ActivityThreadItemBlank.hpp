@@ -66,12 +66,10 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
+    ActivityThreadItemBlank() = default;
     ~ActivityThreadItemBlank() = default;
 
 private:
-    friend opentxs::ui::implementation::ActivityThread;
-
-    ActivityThreadItemBlank() = default;
     ActivityThreadItemBlank(const ActivityThreadItemBlank&) = delete;
     ActivityThreadItemBlank(ActivityThreadItemBlank&&) = delete;
     ActivityThreadItemBlank& operator=(const ActivityThreadItemBlank&) = delete;

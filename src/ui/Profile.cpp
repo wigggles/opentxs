@@ -99,38 +99,24 @@ const std::map<proto::ContactSectionName, int> Profile::sort_keys_{
     {proto::CONTACTSECTION_COMMUNICATION, 0},
     {proto::CONTACTSECTION_PROFILE, 1}};
 
+const Widget::ListenerDefinitions Profile::listeners_{
+    {network::zeromq::Socket::NymDownloadEndpoint,
+     new MessageProcessor<Profile>(&Profile::process_nym)},
+};
+
 Profile::Profile(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Wallet& wallet,
     const Identifier& nymID)
-    : ProfileType(
-          zmq,
-          publisher,
-          contact,
-          proto::CONTACTSECTION_ERROR,
-          nymID,
-          new ProfileSectionBlank)
+    : ProfileList(nymID, zmq, publisher, contact)
     , wallet_(wallet)
     , name_(nym_name(wallet, nymID))
     , payment_code_()
-    , nym_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_nym(message);
-          }))
-    , nym_subscriber_(zmq_.SubscribeSocket(nym_subscriber_callback_.get()))
 {
-    OT_ASSERT(blank_p_)
-
     init();
-    const auto& endpoint = network::zeromq::Socket::NymDownloadEndpoint;
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    const auto listening = nym_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&Profile::startup, this));
 
     OT_ASSERT(startup_)
@@ -223,8 +209,8 @@ bool Profile::check_type(const proto::ContactSectionName type)
     return 1 == allowed_types_.count(type);
 }
 
-void Profile::construct_item(
-    const ProfileIDType& id,
+void Profile::construct_row(
+    const ProfileRowID& id,
     const ContactSortKey& index,
     const CustomData& custom) const
 {
@@ -248,7 +234,7 @@ bool Profile::Delete(
     const std::string& claimID) const
 {
     Lock lock(lock_);
-    auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
+    auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
 
     if (false == section.Valid()) { return false; }
 
@@ -289,7 +275,7 @@ void Profile::process_nym(const Nym& nym)
     payment_code_ = nym.PaymentCode();
     lock.unlock();
     UpdateNotify();
-    std::set<ProfileIDType> active{};
+    std::set<ProfileRowID> active{};
 
     for (const auto& section : nym.Claims()) {
         auto& type = section.first;
@@ -338,7 +324,7 @@ bool Profile::SetActive(
     const bool active) const
 {
     Lock lock(lock_);
-    auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
+    auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
 
     if (false == section.Valid()) { return false; }
 
@@ -352,7 +338,7 @@ bool Profile::SetPrimary(
     const bool primary) const
 {
     Lock lock(lock_);
-    auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
+    auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
 
     if (false == section.Valid()) { return false; }
 
@@ -366,7 +352,7 @@ bool Profile::SetValue(
     const std::string& value) const
 {
     Lock lock(lock_);
-    auto& section = find_by_id(lock, static_cast<ProfileIDType>(sectionType));
+    auto& section = find_by_id(lock, static_cast<ProfileRowID>(sectionType));
 
     if (false == section.Valid()) { return false; }
 
@@ -390,7 +376,7 @@ void Profile::startup()
     startup_complete_->On();
 }
 
-void Profile::update(ProfilePimpl& row, const CustomData& custom) const
+void Profile::update(ProfileRowInterface& row, const CustomData& custom) const
 {
     OT_ASSERT(1 == custom.size())
 

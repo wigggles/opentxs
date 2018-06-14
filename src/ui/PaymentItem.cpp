@@ -63,7 +63,7 @@ ui::ActivityThreadItem* Factory::PaymentItem(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ui::implementation::ActivityThreadID& id,
+    const ui::implementation::ActivityThreadRowID& id,
     const Identifier& nymID,
     const api::Activity& activity,
     const std::chrono::system_clock::time_point& time)
@@ -80,7 +80,7 @@ PaymentItem::PaymentItem(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ActivityThreadID& id,
+    const ActivityThreadRowID& id,
     const Identifier& nymID,
     const api::Activity& activity,
     const std::chrono::system_clock::time_point& time)

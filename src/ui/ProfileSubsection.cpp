@@ -96,18 +96,10 @@ ProfileSubsection::ProfileSubsection(
     const api::client::Wallet& wallet,
     const ProfileSectionParent& parent,
     const opentxs::ContactGroup& group)
-    : ProfileSubsectionType(
-          zmq,
-          publisher,
-          contact,
-          Identifier::Factory(),
-          Identifier::Factory(parent.NymID()),
-          new ProfileItemBlank)
-    , ProfileSubsectionRowType(parent, {parent.Type(), group.Type()}, true)
+    : ProfileSubsectionList(parent.NymID(), zmq, publisher, contact)
+    , ProfileSubsectionRow(parent, {parent.Type(), group.Type()}, true)
     , wallet_(wallet)
 {
-    OT_ASSERT(blank_p_)
-
     init();
     startup_.reset(new std::thread(&ProfileSubsection::startup, this, group));
 
@@ -122,8 +114,8 @@ bool ProfileSubsection::AddItem(
     return parent_.AddClaim(id_.second, value, primary, active);
 }
 
-void ProfileSubsection::construct_item(
-    const ProfileSubsectionIDType& id,
+void ProfileSubsection::construct_row(
+    const ProfileSubsectionRowID& id,
     const ProfileSubsectionSortKey& index,
     const CustomData& custom) const
 {
@@ -217,7 +209,7 @@ bool ProfileSubsection::SetValue(
     return claim.SetValue(value);
 }
 
-int ProfileSubsection::sort_key(const ProfileSubsectionIDType) const
+int ProfileSubsection::sort_key(const ProfileSubsectionRowID) const
 {
     return static_cast<int>(items_.size());
 }

@@ -78,18 +78,23 @@ struct less<STORAGEID> {
 
 namespace opentxs::ui::implementation
 {
-using ActivityThreadType = List<
+template <>
+struct make_blank<ActivityThreadRowID> {
+    static ActivityThreadRowID value()
+    {
+        return {Identifier::Factory(), {}, Identifier::Factory()};
+    }
+};
+
+using ActivityThreadList = List<
     opentxs::ui::ActivityThread,
     ActivityThreadParent,
-    opentxs::ui::ActivityThreadItem,
-    ActivityThreadID,
-    ActivityThreadPimpl,
-    ActivityThreadInner,
-    ActivityThreadSortKey,
-    ActivityThreadOuter,
-    ActivityThreadOuter::const_iterator>;
+    ActivityThreadRowID,
+    ActivityThreadRowInterface,
+    ActivityThreadRowBlank,
+    ActivityThreadSortKey>;
 
-class ActivityThread : virtual public ActivityThreadType
+class ActivityThread : virtual public ActivityThreadList
 {
 public:
     std::string DisplayName() const override;
@@ -97,7 +102,7 @@ public:
     std::string Participants() const override;
     std::string PaymentCode(
         const proto::ContactItemType currency) const override;
-    bool same(const ActivityThreadID& lhs, const ActivityThreadID& rhs)
+    bool same(const ActivityThreadRowID& lhs, const ActivityThreadRowID& rhs)
         const override;
     bool SendDraft() const override;
     bool SetDraft(const std::string& draft) const override;
@@ -108,34 +113,30 @@ public:
 private:
     friend Factory;
 
+    const ListenerDefinitions listeners_;
     const api::Activity& activity_;
     const api::client::Sync& sync_;
     const OTIdentifier threadID_;
     std::set<OTIdentifier> participants_;
-    OTZMQListenCallback activity_subscriber_callback_;
-    OTZMQSubscribeSocket activity_subscriber_;
     mutable std::mutex contact_lock_;
     mutable std::shared_mutex draft_lock_;
     mutable std::string draft_{""};
-    mutable std::set<ActivityThreadID> draft_tasks_;
+    mutable std::set<ActivityThreadRowID> draft_tasks_;
     std::shared_ptr<const opentxs::Contact> contact_;
     std::unique_ptr<std::thread> contact_thread_{nullptr};
 
-    ActivityThreadID blank_id() const override;
-    bool check_draft(const ActivityThreadID& id) const;
+    bool check_draft(const ActivityThreadRowID& id) const;
     void check_drafts() const;
     std::string comma(const std::set<std::string>& list) const;
-    void construct_item(
-        const ActivityThreadID& id,
+    void construct_row(
+        const ActivityThreadRowID& id,
         const ActivityThreadSortKey& index,
         const CustomData& custom) const override;
-    ActivityThreadOuter::const_iterator outer_first() const override;
-    ActivityThreadOuter::const_iterator outer_end() const override;
 
     void init_contact();
     void load_thread(const proto::StorageThread& thread);
     void new_thread();
-    ActivityThreadID process_item(const proto::StorageThreadItem& item);
+    ActivityThreadRowID process_item(const proto::StorageThreadItem& item);
     void process_thread(const network::zeromq::Message& message);
     void startup();
 

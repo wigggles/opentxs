@@ -57,14 +57,10 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
+    ContactItemBlank() = default;
     ~ContactItemBlank() = default;
 
-protected:
-    ContactItemBlank() = default;
-
 private:
-    friend opentxs::ui::implementation::ContactSubsection;
-
     ContactItemBlank(const ContactItemBlank&) = delete;
     ContactItemBlank(ContactItemBlank&&) = delete;
     ContactItemBlank& operator=(const ContactItemBlank&) = delete;

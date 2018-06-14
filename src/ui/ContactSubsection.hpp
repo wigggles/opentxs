@@ -43,23 +43,20 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactSubsectionType = List<
-    opentxs::ui::ContactSubsection,
-    ContactSubsectionParent,
-    opentxs::ui::ContactItem,
-    ContactSubsectionIDType,
-    ContactSubsectionPimpl,
-    ContactSubsectionInner,
-    ContactSubsectionSortKey,
-    ContactSubsectionOuter,
-    ContactSubsectionOuter::const_iterator>;
-using ContactSubsectionRowType = RowType<
-    opentxs::ui::ContactSubsection,
-    ContactSectionParent,
-    std::pair<proto::ContactSectionName, proto::ContactItemType>>;
+using ContactSubsectionList = List<
+    ContactSubsectionExternalInterface,
+    ContactSubsectionInternalInterface,
+    ContactSubsectionRowID,
+    ContactSubsectionRowInterface,
+    ContactSubsectionRowBlank,
+    ContactSubsectionSortKey>;
+using ContactSubsectionRow = RowType<
+    ContactSectionRowInterface,
+    ContactSectionInternalInterface,
+    ContactSectionRowID>;
 
-class ContactSubsection : public ContactSubsectionType,
-                          public ContactSubsectionRowType
+class ContactSubsection : public ContactSubsectionList,
+                          public ContactSubsectionRow
 {
 public:
     std::string Name(const std::string& lang) const override;
@@ -72,32 +69,20 @@ public:
 private:
     friend Factory;
 
-    static bool check_type(const ContactSubsectionIDType type);
+    static bool check_type(const ContactSubsectionRowID type);
     static const opentxs::ContactItem& recover(const void* input);
 
-    ContactSubsectionIDType blank_id() const override
-    {
-        return Identifier::Factory();
-    }
-    void construct_item(
-        const ContactSubsectionIDType& id,
+    void construct_row(
+        const ContactSubsectionRowID& id,
         const ContactSubsectionSortKey& index,
         const CustomData& custom) const override;
 
-    bool last(const ContactSubsectionIDType& id) const override
+    bool last(const ContactSubsectionRowID& id) const override
     {
-        return ContactSubsectionType::last(id);
-    }
-    ContactSubsectionOuter::const_iterator outer_first() const override
-    {
-        return items_.begin();
-    }
-    ContactSubsectionOuter::const_iterator outer_end() const override
-    {
-        return items_.end();
+        return ContactSubsectionList::last(id);
     }
     void process_group(const opentxs::ContactGroup& group);
-    int sort_key(const ContactSubsectionIDType type) const;
+    int sort_key(const ContactSubsectionRowID type) const;
     void startup(const opentxs::ContactGroup group);
 
     ContactSubsection(

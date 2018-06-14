@@ -43,10 +43,12 @@
 
 namespace opentxs::ui::implementation
 {
-using ActivitySummaryItemType =
-    Row<opentxs::ui::ActivitySummaryItem, ActivitySummaryParent, OTIdentifier>;
+using ActivitySummaryItemRow =
+    Row<ActivitySummaryRowInterface,
+        ActivitySummaryInternalInterface,
+        ActivitySummaryRowID>;
 
-class ActivitySummaryItem : virtual public ActivitySummaryItemType
+class ActivitySummaryItem : virtual public ActivitySummaryItemRow
 {
 public:
     std::string DisplayName() const override;
@@ -63,6 +65,7 @@ private:
     // id, box, account
     using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
 
+    const ListenerDefinitions listeners_;
     const api::Activity& activity_;
     const Flag& running_;
     const OTIdentifier nym_id_;
@@ -74,8 +77,6 @@ private:
     std::unique_ptr<std::thread> startup_{nullptr};
     std::unique_ptr<std::thread> newest_item_thread_{nullptr};
     UniqueQueue<ItemLocator> newest_item_;
-    OTZMQListenCallback activity_subscriber_callback_;
-    OTZMQSubscribeSocket activity_subscriber_;
 
     bool check_thread(const proto::StorageThread& thread) const;
     std::string display_name(const proto::StorageThread& thread) const;

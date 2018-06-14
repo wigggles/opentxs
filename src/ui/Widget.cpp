@@ -57,6 +57,8 @@ Widget::Widget(
     : zmq_(zmq)
     , publisher_(publisher)
     , widget_id_(Identifier::Factory(id))
+    , callbacks_()
+    , listeners_()
 {
 }
 
@@ -65,6 +67,22 @@ Widget::Widget(
     const network::zeromq::PublishSocket& publisher)
     : Widget(zmq, publisher, Identifier::Random())
 {
+}
+
+void Widget::setup_listeners(const ListenerDefinitions& definitions)
+{
+    for (const auto& [endpoint, functor] : definitions) {
+        auto& nextCallback =
+            callbacks_.emplace_back(network::zeromq::ListenCallback::Factory(
+                [&](const network::zeromq::Message& message) -> void {
+                    (*functor)(this, message);
+                }));
+        auto& socket =
+            listeners_.emplace_back(zmq_.SubscribeSocket(nextCallback.get()));
+        const auto listening = socket->Start(endpoint);
+
+        OT_ASSERT(listening)
+    }
 }
 
 void Widget::UpdateNotify() const

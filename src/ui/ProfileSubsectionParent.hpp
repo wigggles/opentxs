@@ -48,13 +48,13 @@ namespace opentxs::ui::implementation
 class ProfileSubsectionParent
 {
 public:
-    using ProfileSubsectionIDType = OTIdentifier;
+    using ProfileSubsectionRowIDType = OTIdentifier;
     using ProfileSubsectionSortKey = int;
 
-    virtual bool last(const ProfileSubsectionIDType& id) const = 0;
+    virtual bool last(const ProfileSubsectionRowIDType& id) const = 0;
     virtual const Identifier& NymID() const = 0;
     virtual void reindex_item(
-        const ProfileSubsectionIDType& id,
+        const ProfileSubsectionRowIDType& id,
         const ProfileSubsectionSortKey& newIndex) const = 0;
     virtual proto::ContactSectionName Section() const = 0;
     virtual proto::ContactItemType Type() const = 0;

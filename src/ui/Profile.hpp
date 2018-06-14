@@ -43,18 +43,15 @@
 
 namespace opentxs::ui::implementation
 {
-using ProfileType = List<
-    opentxs::ui::Profile,
-    ProfileParent,
-    opentxs::ui::ProfileSection,
-    ProfileIDType,
-    ProfilePimpl,
-    ProfileInner,
-    ProfileSortKey,
-    ProfileOuter,
-    ProfileOuter::const_iterator>;
+using ProfileList = List<
+    ProfileExternalInterface,
+    ProfileInternalInterface,
+    ProfileRowID,
+    ProfileRowInterface,
+    ProfileRowBlank,
+    ProfileSortKey>;
 
-class Profile : virtual public ProfileType
+class Profile : virtual public ProfileList
 {
 public:
     bool AddClaim(
@@ -94,11 +91,11 @@ public:
 private:
     friend Factory;
 
+    static const ListenerDefinitions listeners_;
+
     const api::client::Wallet& wallet_;
     std::string name_;
     std::string payment_code_;
-    OTZMQListenCallback nym_subscriber_callback_;
-    OTZMQSubscribeSocket nym_subscriber_;
 
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
@@ -110,28 +107,17 @@ private:
         const api::client::Wallet& wallet,
         const Identifier& nymID);
 
-    ProfileIDType blank_id() const override
-    {
-        return proto::CONTACTSECTION_ERROR;
-    }
-    void construct_item(
-        const ProfileIDType& id,
+    void construct_row(
+        const ProfileRowID& id,
         const ProfileSortKey& index,
         const CustomData& custom) const override;
 
-    bool last(const ProfileIDType& id) const override
+    bool last(const ProfileRowID& id) const override
     {
-        return ProfileType::last(id);
+        return ProfileList::last(id);
     }
-    ProfileOuter::const_iterator outer_first() const override
-    {
-        return items_.begin();
-    }
-    ProfileOuter::const_iterator outer_end() const override
-    {
-        return items_.end();
-    }
-    void update(ProfilePimpl& row, const CustomData& custom) const override;
+    void update(ProfileRowInterface& row, const CustomData& custom)
+        const override;
 
     void process_nym(const Nym& nym);
     void process_nym(const network::zeromq::Message& message);

@@ -45,10 +45,12 @@ template class opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
 
 namespace opentxs::ui::implementation
 {
-using ProfileItemType =
-    Row<opentxs::ui::ProfileItem, ProfileSubsectionParent, OTIdentifier>;
+using ProfileItemRow =
+    Row<ProfileSubsectionRowInterface,
+        ProfileSubsectionInternalInterface,
+        ProfileSubsectionRowID>;
 
-class ProfileItem : public ProfileItemType
+class ProfileItem : public ProfileItemRow
 {
 public:
     std::string ClaimID() const override { return id_->str(); }

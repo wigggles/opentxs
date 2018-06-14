@@ -48,11 +48,13 @@
 #define ACCOUNT_UPDATE_ENDPOINT "inproc://opentxs/accountupdate/1"
 #define CONTACT_UPDATE_ENDPOINT "inproc://opentxs/contactupdate/1"
 #define CONNECTION_STATUS_ENDPOINT "inproc://opentxs/connectionstatus/1"
+#define ISSUER_UPDATE_ENDPOINT "inproc://opentxs/issuerupdate/1"
 #define NYM_UPDATE_ENDPOINT "inproc://opentxs/nymupdate/1"
 #define PAIR_EVENT_ENDPOINT "inproc://opentxs/pairevent/1"
 #define PAIR_ENDPOINT_PREFIX "inproc://opentxs//pair/"
 #define PENDING_BAILMENT_ENDPOINT                                              \
     "inproc://opentxs/peerrequest/pendingbailment/1"
+#define SERVER_UPDATE_ENDPOINT "inproc://opentxs/serverupdate/1"
 #define THREAD_UPDATE_ENDPOINT "inproc://opentxs/threadupdate/1/"
 #define WIDGET_UPDATE_ENDPOINT "inproc://opentxs/ui/widgetupdate/1"
 #define WORKFLOW_ACCOUNT_UPDATE_ENDPOINT                                       \
@@ -65,10 +67,12 @@ namespace opentxs::network::zeromq
 const std::string Socket::AccountUpdateEndpoint{ACCOUNT_UPDATE_ENDPOINT};
 const std::string Socket::ContactUpdateEndpoint{CONTACT_UPDATE_ENDPOINT};
 const std::string Socket::ConnectionStatusEndpoint{CONNECTION_STATUS_ENDPOINT};
+const std::string Socket::IssuerUpdateEndpoint{ISSUER_UPDATE_ENDPOINT};
 const std::string Socket::NymDownloadEndpoint{NYM_UPDATE_ENDPOINT};
 const std::string Socket::PairEndpointPrefix{PAIR_ENDPOINT_PREFIX};
 const std::string Socket::PairEventEndpoint{PAIR_EVENT_ENDPOINT};
 const std::string Socket::PendingBailmentEndpoint{PENDING_BAILMENT_ENDPOINT};
+const std::string Socket::ServerUpdateEndpoint{SERVER_UPDATE_ENDPOINT};
 const std::string Socket::ThreadUpdateEndpoint{THREAD_UPDATE_ENDPOINT};
 const std::string Socket::WidgetUpdateEndpoint{WIDGET_UPDATE_ENDPOINT};
 const std::string Socket::WorkflowAccountUpdateEndpoint{

@@ -62,7 +62,7 @@ private:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ActivityThreadID& id,
+        const ActivityThreadRowID& id,
         const Identifier& nymID,
         const api::Activity& activity,
         const std::chrono::system_clock::time_point& time,
@@ -74,7 +74,7 @@ private:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ActivityThreadID& id,
+        const ActivityThreadRowID& id,
         const Identifier& nymID,
         const api::Activity& activity,
         const std::chrono::system_clock::time_point& time);

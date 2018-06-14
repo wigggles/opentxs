@@ -70,14 +70,10 @@ public:
 
     void Update(const opentxs::ContactSection& section) override {}
 
+    ContactSectionBlank() = default;
     ~ContactSectionBlank() = default;
 
-protected:
-    ContactSectionBlank() = default;
-
 private:
-    friend opentxs::ui::implementation::Contact;
-
     ContactSectionBlank(const ContactSectionBlank&) = delete;
     ContactSectionBlank(ContactSectionBlank&&) = delete;
     ContactSectionBlank& operator=(const ContactSectionBlank&) = delete;

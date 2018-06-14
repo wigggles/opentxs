@@ -311,7 +311,7 @@ void Native::Init()
                  // Init_Activity()
     if (!server_mode_) {
         Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api(),
-                    // Init_Storage()
+                    // Init_Storage(), Init_ZMQ()
     }
 
     if (recover_) { recover(); }
@@ -810,15 +810,17 @@ void Native::Init_UI()
     OT_ASSERT(contacts_)
     OT_ASSERT(storage_)
     OT_ASSERT(wallet_)
+    OT_ASSERT(zeromq_)
 
     ui_.reset(Factory::UI(
-        zmq_context_,
-        *activity_,
-        *contacts_,
         api_->Sync(),
         *wallet_,
         api_->Workflow(),
+        *zeromq_,
         *storage_,
+        *activity_,
+        *contacts_,
+        zmq_context_,
         running_));
 
     OT_ASSERT(ui_);

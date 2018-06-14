@@ -142,13 +142,19 @@ Wallet::Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq)
     , peer_lock_()
     , nymfile_map_lock_()
     , nymfile_lock_()
-    , nym_publisher_(zmq.PublishSocket())
     , account_publisher_(zmq.PublishSocket())
+    , issuer_publisher_(zmq.PublishSocket())
+    , nym_publisher_(zmq.PublishSocket())
+    , server_publisher_(zmq.PublishSocket())
 {
-    nym_publisher_->Start(
-        opentxs::network::zeromq::Socket::NymDownloadEndpoint);
     account_publisher_->Start(
         opentxs::network::zeromq::Socket::AccountUpdateEndpoint);
+    issuer_publisher_->Start(
+        opentxs::network::zeromq::Socket::IssuerUpdateEndpoint);
+    nym_publisher_->Start(
+        opentxs::network::zeromq::Socket::NymDownloadEndpoint);
+    server_publisher_->Start(
+        opentxs::network::zeromq::Socket::ServerUpdateEndpoint);
 }
 
 Wallet::AccountLock& Wallet::account(
@@ -1834,6 +1840,11 @@ bool Wallet::RemoveUnitDefinition(const Identifier& id) const
     return false;
 }
 
+void Wallet::publish_server(const Identifier& id) const
+{
+    server_publisher_->Publish(id.str());
+}
+
 void Wallet::save(
     const std::string id,
     opentxs::Account* in,
@@ -1918,7 +1929,12 @@ void Wallet::save(const Lock& lock, api::client::Issuer* in) const
     OT_ASSERT(nullptr != in)
     OT_ASSERT(lock.owns_lock())
 
-    ot_.DB().Store(in->LocalNymID().str(), in->Serialize());
+    const auto& nymID = in->LocalNymID();
+    const auto& issuerID = in->IssuerID();
+    ot_.DB().Store(nymID.str(), in->Serialize());
+    auto message = opentxs::network::zeromq::Message::Factory(nymID.str());
+    message->AddFrame(issuerID.str());
+    issuer_publisher_->Publish(message);
 }
 
 void Wallet::save(NymData* nymData, const Lock& lock) const
@@ -2048,27 +2064,53 @@ ConstServerContract Wallet::Server(
 ConstServerContract Wallet::Server(
     std::unique_ptr<class ServerContract>& contract) const
 {
-    std::string server = contract->ID()->str();
-
     if (contract) {
+        const auto& id = contract->ID();
+        const auto server = id->str();
+
         if (contract->Validate()) {
             if (ot_.DB().Store(contract->Contract(), contract->Alias())) {
                 Lock mapLock(server_map_lock_);
                 server_map_[server].reset(contract.release());
                 mapLock.unlock();
+                publish_server(id);
             }
         }
+
+        return Server(Identifier::Factory(server));
     }
 
-    return Server(Identifier::Factory(server));
+    otErr << OT_METHOD << __FUNCTION__ << ": Invalid server contract"
+          << std::endl;
+
+    return {};
 }
 
 ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
 {
-    std::string server = contract.id();
-    auto nym = Nym(Identifier::Factory(contract.nymid()));
+    const auto& server = contract.id();
+    auto serverID = Identifier::Factory(server);
 
-    if (!nym && contract.has_publicnym()) { nym = Nym(contract.publicnym()); }
+    if (serverID->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid server contract"
+              << std::endl;
+
+        return {};
+    }
+
+    const auto nymID = Identifier::Factory(contract.nymid());
+
+    if (nymID->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym id" << std::endl;
+
+        return {};
+    }
+
+    auto nym = Nym(nymID);
+
+    if (false == bool(nym) && contract.has_publicnym()) {
+        nym = Nym(contract.publicnym());
+    }
 
     if (nym) {
         std::unique_ptr<ServerContract> candidate(
@@ -2076,16 +2118,25 @@ ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
 
         if (candidate) {
             if (candidate->Validate()) {
+                if (serverID.get() != candidate->ID()) {
+                    otErr << OT_METHOD << __FUNCTION__ << ": Wrong contract id"
+                          << std::endl;
+                    serverID->Assign(candidate->ID());
+                }
+
                 if (ot_.DB().Store(candidate->Contract(), candidate->Alias())) {
                     Lock mapLock(server_map_lock_);
                     server_map_[server].reset(candidate.release());
                     mapLock.unlock();
+                    publish_server(serverID);
                 }
             }
         }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym" << std::endl;
     }
 
-    return Server(Identifier::Factory(server));
+    return Server(serverID);
 }
 
 ConstServerContract Wallet::Server(
@@ -2167,6 +2218,7 @@ bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
     if (saved) {
         Lock mapLock(server_map_lock_);
         server_map_.erase(server);
+        publish_server(id);
 
         return true;
     }

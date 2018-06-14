@@ -59,14 +59,14 @@ ActivityThreadItem::ActivityThreadItem(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ActivityThreadID& id,
+    const ActivityThreadRowID& id,
     const Identifier& nymID,
     const api::Activity& activity,
     const std::chrono::system_clock::time_point& time,
     const std::string& text,
     const bool loading,
     const bool pending)
-    : ActivityThreadItemType(parent, zmq, publisher, contact, id, true)
+    : ActivityThreadItemRow(parent, zmq, publisher, contact, id, true)
     , nym_id_(nymID)
     , activity_(activity)
     , time_(time)

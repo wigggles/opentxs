@@ -61,14 +61,10 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
+    ProfileItemBlank() = default;
     ~ProfileItemBlank() = default;
 
-protected:
-    ProfileItemBlank() = default;
-
 private:
-    friend opentxs::ui::implementation::ProfileSubsection;
-
     ProfileItemBlank(const ProfileItemBlank&) = delete;
     ProfileItemBlank(ProfileItemBlank&&) = delete;
     ProfileItemBlank& operator=(const ProfileItemBlank&) = delete;

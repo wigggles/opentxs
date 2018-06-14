@@ -93,14 +93,12 @@ ContactSubsection::ContactSubsection(
     const api::ContactManager& contact,
     const ContactSectionParent& parent,
     const opentxs::ContactGroup& group)
-    : ContactSubsectionType(
+    : ContactSubsectionList(
+          Identifier::Factory(parent.ContactID()),
           zmq,
           publisher,
-          contact,
-          Identifier::Factory(),
-          Identifier::Factory(parent.ContactID()),
-          new ContactItemBlank)
-    , ContactSubsectionRowType(parent, {parent.Type(), group.Type()}, true)
+          contact)
+    , ContactSubsectionRow(parent, {parent.Type(), group.Type()}, true)
 {
     init();
     startup_.reset(new std::thread(&ContactSubsection::startup, this, group));
@@ -108,8 +106,8 @@ ContactSubsection::ContactSubsection(
     OT_ASSERT(startup_)
 }
 
-void ContactSubsection::construct_item(
-    const ContactSubsectionIDType& id,
+void ContactSubsection::construct_row(
+    const ContactSubsectionRowID& id,
     const ContactSubsectionSortKey& index,
     const CustomData& custom) const
 {
@@ -153,7 +151,7 @@ const opentxs::ContactItem& ContactSubsection::recover(const void* input)
     return *static_cast<const opentxs::ContactItem*>(input);
 }
 
-int ContactSubsection::sort_key(const ContactSubsectionIDType) const
+int ContactSubsection::sort_key(const ContactSubsectionRowID) const
 {
     return static_cast<int>(items_.size());
 }

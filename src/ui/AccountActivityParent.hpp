@@ -50,9 +50,9 @@ namespace opentxs::ui::implementation
 class AccountActivityParent
 {
 public:
-    virtual bool last(const AccountActivityID& id) const = 0;
+    virtual bool last(const AccountActivityRowID& id) const = 0;
     virtual void reindex_item(
-        const AccountActivityID& id,
+        const AccountActivityRowID& id,
         const AccountActivitySortKey& newIndex) const = 0;
     virtual OTIdentifier WidgetID() const = 0;
 
