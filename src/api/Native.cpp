@@ -936,6 +936,14 @@ void Native::shutdown()
         OT_ASSERT(server);
 
         server->Cleanup();
+    } else {
+        OT_ASSERT(api_);
+
+        auto wallet = api_->OTAPI().GetWallet(nullptr);
+
+        OT_ASSERT(nullptr != wallet);
+
+        wallet->SaveWallet();
     }
 
     server_.reset();
