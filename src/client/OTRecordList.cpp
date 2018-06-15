@@ -440,10 +440,6 @@ void OTRecordList::SetInstrumentDefinitionID(std::string str_id)
 
 void OTRecordList::AddInstrumentDefinitionID(std::string str_id)
 {
-    OTWallet* pWallet = OT::App().API().OTAPI().GetWallet(
-        __FUNCTION__);  // This logs and ASSERTs already.
-    OT_ASSERT_MSG(
-        nullptr != pWallet, "Wallet was nullptr. Should never happen.");
     const String strInstrumentDefinitionID(str_id);
     const auto theInstrumentDefinitionID =
         Identifier::Factory(strInstrumentDefinitionID);
@@ -1992,13 +1988,6 @@ typedef std::map<std::int32_t, OTPayment*> mapOfPayments;
 
 bool OTRecordList::PerformAutoAccept()
 {
-    OTWallet* pWallet = OT::App().API().OTAPI().GetWallet(
-        __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) {
-        otErr << "OTRecordList::" << __FUNCTION__
-              << ": Error: Wallet is nullptr.\n";
-        return false;
-    }
     // LOOP NYMS
     //
     if (m_bAutoAcceptCheques || m_bAutoAcceptCash) {
@@ -2293,6 +2282,7 @@ bool OTRecordList::PerformAutoAccept()
                                 account.get().GetInstrumentDefinitionID();
                             const std::string str_acct_type =
                                 account.get().GetTypeString();
+                            account.Release();
                             const String strAcctNymID(theAcctNymID);
                             const String strAcctNotaryID(theAcctNotaryID);
                             const String strAcctInstrumentDefinitionID(
@@ -2422,6 +2412,7 @@ bool OTRecordList::PerformAutoAccept()
                 account.get().GetPurportedNotaryID();
             const Identifier& theInstrumentDefinitionID =
                 account.get().GetInstrumentDefinitionID();
+            account.Release();
             const String strNymID(theNymID);
             const String strNotaryID(theNotaryID);
             const String strInstrumentDefinitionID(theInstrumentDefinitionID);
@@ -2663,13 +2654,6 @@ bool OTRecordList::Populate()
     // From OTAPI.h:
     // SwigWrap::GetServerCount()  // wraps the above call.
     //
-    OTWallet* pWallet = OT::App().API().OTAPI().GetWallet(
-        __FUNCTION__);  // This logs and ASSERTs already.
-    if (nullptr == pWallet) {
-        otErr << "OTRecordList::" << __FUNCTION__
-              << ": Error: Wallet is nullptr.\n";
-        return false;
-    }
     // Before populating, process out any items we're supposed to accept
     // automatically.
     //
@@ -4870,6 +4854,7 @@ bool OTRecordList::Populate()
         const Identifier& theNotaryID = account.get().GetPurportedNotaryID();
         const Identifier& theInstrumentDefinitionID =
             account.get().GetInstrumentDefinitionID();
+        account.Release();
         const String strNymID(theNymID);
         const String strNotaryID(theNotaryID);
         const String strInstrumentDefinitionID(theInstrumentDefinitionID);
