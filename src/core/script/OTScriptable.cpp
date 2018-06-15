@@ -709,7 +709,7 @@ bool OTScriptable::ExecuteCallback(
 
 bool OTScriptable::SendNoticeToAllParties(
     bool bSuccessMsg,
-    Nym& theServerNym,
+    const Nym& theServerNym,
     const Identifier& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     // const std::int64_t& lInReferenceTo,
@@ -751,8 +751,7 @@ bool OTScriptable::SendNoticeToAllParties(
                     // // each party has its own opening trans #.
                     strReference,
                     pstrNote,
-                    pstrAttachment,
-                    pActualNym))
+                    pstrAttachment))
                 bSuccess = false;  // Notice I don't break here -- I still allow
                                    // it to try to notice ALL parties, even if
                                    // one fails.
@@ -971,16 +970,6 @@ OTParty* OTScriptable::FindPartyBasedOnAccount(
     return nullptr;
 }
 
-void OTScriptable::RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded)
-{
-    for (auto& it : m_mapParties) {
-        OTParty* pParty = it.second;
-        OT_ASSERT(nullptr != pParty);
-
-        pParty->RetrieveNymPointers(map_Nyms_Already_Loaded);
-    }
-}
-
 /*
  -- Load up the authorizing agent's Nym, if not already loaded. (Why? To
  verifySignature. Also, just to have
@@ -1025,36 +1014,22 @@ void OTScriptable::RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded)
 bool OTScriptable::VerifyPartyAuthorization(
     OTParty& theParty,  // The party that supposedly is authorized for this
                         // supposedly executed agreement.
-    Nym& theSignerNym,  // For verifying signature on the authorizing
-                        // Nym, when loading it
+    const Nym& theSignerNym,    // For verifying signature on the authorizing
+                                // Nym, when loading it
     const String& strNotaryID,  // For verifying issued num, need the notaryID
                                 // the # goes with.
-    mapOfConstNyms* pmap_ALREADY_LOADED,  // If some nyms are already
-                                          // loaded, pass them here so we
-                                          // don't load them twice on
-                                          // accident.
-    mapOfConstNyms* pmap_NEWLY_LOADED,    // If some nyms had to be loaded,
-                                          // then they will be deleted, too.
-                                          // UNLESS you pass a map here, in
-                                          // which case they will instead be
-    // added to this map. (But if you do
-    // that, then you must delete them
-    // yourself after calling this
-    // function.)
-    const bool bBurnTransNo)  // In Server::VerifySmartContract(),
-                              // it not only wants to verify the # is
-                              // properly issued, but it additionally
-                              // wants to see that it hasn't been USED
-                              // yet -- AND it wants to burn it, so it
-                              // can't be used again!  This bool
-                              // allows you to tell the function
-                              // whether or not to do that.
+    const bool bBurnTransNo)    // In Server::VerifySmartContract(),
+                                // it not only wants to verify the # is
+                                // properly issued, but it additionally
+                                // wants to see that it hasn't been USED
+                                // yet -- AND it wants to burn it, so it
+                                // can't be used again!  This bool
+                                // allows you to tell the function
+                                // whether or not to do that.
 {
     // This function DOES assume that theParty was initially FOUND on
     // OTScriptable.
     // Meaning I don't have to verify that much if I got this far.
-
-    const bool bNeedToCleanup = (nullptr == pmap_NEWLY_LOADED) ? true : false;
 
     // This party hasn't signed the contract??
     //
@@ -1075,92 +1050,27 @@ bool OTScriptable::VerifyPartyAuthorization(
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    const Nym* pAuthAgentsNym = nullptr;
-    // In case I have to load it myself, I want it cleaned up properly.
-    std::unique_ptr<const Nym> theAgentNymAngel;
+    ConstNym pAuthAgentsNym = nullptr;
+    pAuthAgentsNym =
+        theParty.LoadAuthorizingAgentNym(theSignerNym, &pAuthorizingAgent);
 
-    // Some nyms are *already* loaded. If any were passed in, let's see if any
-    // of them are
-    // the authorizing agent for the contract (for this party)...
-    //
-    if (nullptr != pmap_ALREADY_LOADED) {
-        // (So we don't load it twice, if it's there.)
-        //
-        mapOfConstNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
-
-        for (auto& it : map_Nyms_Already_Loaded) {
-            const Nym* pNym = it.second;
-            OT_ASSERT(nullptr != pNym);
-
-            if (theParty.HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
-                pAuthAgentsNym = pNym;  // Just in case
-                break;
-            }
-        }
-        // if pAuthorizingAgent != nullptr, that means the authorizing agent was
-        // found among the map of nyms that were already loaded.
-    }
-
-    // Only if I had to load the authorizing agent myself, do I clear its
-    // temporary pointer.
-    // (Because it's going out of scope at the bottom of this function.)
-    // Any other temporary pointers, I do NOT clear, but I leave them because a
-    // script is
-    // probably executing and may still need them.
-    // (This function that we're in was expressly called by someone who didn't
-    // want the
-    // temporary nym pointers cleared just yet, for whatever reason.)
-    //
-    bool bHadToLoadItMyself = (nullptr == pAuthorizingAgent) ? true : false;
-
-    // Still not found? Okay, let's LOAD IT UP then...
-    //
-    if (bHadToLoadItMyself) {
-        // Of all of a party's Agents, the "authorizing agent" is the one who
-        // originally activated
-        // the agreement for this party (and fronted the opening trans#.) Since
-        // we need to verify his
-        // signature, we have to load him up.
-        //
-        pAuthAgentsNym =
-            theParty.LoadAuthorizingAgentNym(theSignerNym, &pAuthorizingAgent);
-
-        if (nullptr != pAuthAgentsNym)  // success
-        {
-            OT_ASSERT(nullptr != pAuthorizingAgent);  // This HAS to be set now.
-                                                      // I assume it henceforth.
-            otLog3 << __FUNCTION__
-                   << ": I just had to load "
-                      "the authorizing agent's Nym for a party ("
-                   << theParty.GetPartyName()
-                   << "), "
-                      "so I guess it wasn't already available on the list of "
-                      "Nyms that were already loaded.\n";
-
-            // Either I'm DEFINITELY cleaning it up myself, OR I'm adding it to
-            // a list
-            // where the CALLER can clean it up.
-            //
-            if (bNeedToCleanup) {
-                theAgentNymAngel.reset(pAuthAgentsNym);  // CLEANUP!!
-            } else {
-                const std::string str_agent_name =
-                    pAuthorizingAgent->GetName().Get();
-
-                mapOfConstNyms& map_Nyms_Newly_Loaded = (*pmap_NEWLY_LOADED);
-                map_Nyms_Newly_Loaded.insert(
-                    map_Nyms_Newly_Loaded.begin(),
-                    std::pair<std::string, const Nym*>(
-                        str_agent_name,
-                        pAuthAgentsNym));  // (Caller must clean these up.)
-            }
-        } else {
-            otErr << __FUNCTION__
-                  << ": Error: Strange, unable to load "
-                     "authorizing agent's Nym (to verify his "
-                     "signature.)\n";
-            return false;
-        }
+    if (nullptr != pAuthAgentsNym)  // success
+    {
+        OT_ASSERT(nullptr != pAuthorizingAgent);  // This HAS to be set now.
+                                                  // I assume it henceforth.
+        otLog3 << __FUNCTION__
+               << ": I just had to load "
+                  "the authorizing agent's Nym for a party ("
+               << theParty.GetPartyName()
+               << "), "
+                  "so I guess it wasn't already available on the list of "
+                  "Nyms that were already loaded.\n";
+    } else {
+        otErr << __FUNCTION__
+              << ": Error: Strange, unable to load "
+                 "authorizing agent's Nym (to verify his "
+                 "signature.)\n";
+        return false;
     }
 
     // Below this point, we KNOW that pAuthorizingAgent is a good pointer and
@@ -1192,12 +1102,6 @@ bool OTScriptable::VerifyPartyAuthorization(
                      "verify for the nym listed as the authorizing agent for "
                      "party "
                   << theParty.GetPartyName() << ".\n";
-            if (bHadToLoadItMyself && bNeedToCleanup)
-                pAuthorizingAgent->ClearTemporaryPointers();  // We loaded the
-                                                              // Nym ourselves,
-                                                              // which goes out
-                                                              // of scope after
-                                                              // this function.
             return false;
         }
 
@@ -1213,16 +1117,6 @@ bool OTScriptable::VerifyPartyAuthorization(
                          "nym listed as the authorizing agent "
                          "for party: "
                       << theParty.GetPartyName() << ".\n";
-                if (bHadToLoadItMyself && bNeedToCleanup)
-                    pAuthorizingAgent->ClearTemporaryPointers();  // We loaded
-                                                                  // the Nym
-                                                                  // ourselves,
-                                                                  // which goes
-                                                                  // out of
-                                                                  // scope after
-                                                                  // this
-                                                                  // function.
-                return false;
             } else  // SUCCESS -- It verified as available, so let's burn it
                     // here. (So he can't use it twice. It remains issued and
                     // open until the cron item is eventually closed out for
@@ -1246,12 +1140,6 @@ bool OTScriptable::VerifyPartyAuthorization(
               << ", expected to burn a legitimate opening transaction "
                  "number, but got this instead: "
               << lOpeningNo << "\n";
-        if (bHadToLoadItMyself && bNeedToCleanup)
-            pAuthorizingAgent->ClearTemporaryPointers();  // We loaded the Nym
-                                                          // ourselves, which
-                                                          // goes out of scope
-                                                          // after this
-                                                          // function.
         return false;
     }
 
@@ -1285,8 +1173,6 @@ bool OTScriptable::VerifyPartyAuthorization(
         otErr << __FUNCTION__
               << ": Error loading party's signed copy of "
                  "agreement. Has it been executed?\n";
-        if (bHadToLoadItMyself && bNeedToCleanup)
-            pAuthorizingAgent->ClearTemporaryPointers();
         return false;
     } else {
         theCopyAngel.reset(pPartySignedCopy);
@@ -1317,14 +1203,6 @@ bool OTScriptable::VerifyPartyAuthorization(
         otOut << __FUNCTION__ << ": Signature failed to verify for party: "
               << theParty.GetPartyName() << " \n";
 
-    if (bHadToLoadItMyself && bNeedToCleanup)
-        pAuthorizingAgent->ClearTemporaryPointers();  // We loaded the Nym
-                                                      // ourselves, which goes
-                                                      // out of scope after this
-                                                      // function.
-    // The party is done with it now, and we don't want it to keep pointing to
-    // something that is now going out of scope.
-
     return bContentsVerified;
 }
 
@@ -1337,10 +1215,8 @@ bool OTScriptable::VerifyPartyAuthorization(
 // and cleans the pointers
 // when it's done.
 //
-bool OTScriptable::VerifyNymAsAgent(
-    const Nym& theNym,
-    const Nym& theSignerNym,
-    mapOfConstNyms* pmap_ALREADY_LOADED) const
+bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
+    const
 {
     // (COmmented out) existing trades / payment plans on OT basically just have
     // this one line:
@@ -1405,30 +1281,11 @@ bool OTScriptable::VerifyNymAsAgent(
     // agent. (Who may not be the Nym, yet might be.)
     //
     OTAgent* pAuthorizingAgent = nullptr;
-    const Nym* pAuthAgentsNym = nullptr;
-    std::unique_ptr<const Nym> theAgentNymAngel;
+    ConstNym pAuthAgentsNym = nullptr;
 
     // See if theNym is the authorizing agent.
     //
-    if ((false == pParty->HasAuthorizingAgent(theNym, &pAuthorizingAgent)) &&
-        (nullptr != pmap_ALREADY_LOADED)) {
-        // No? Okay then, let's see if the authorizing agent is one of these
-        // already loaded.
-        // (So we don't load it twice.)
-        //
-        mapOfConstNyms& map_Nyms_Already_Loaded = (*pmap_ALREADY_LOADED);
-        for (auto& it : map_Nyms_Already_Loaded) {
-            const Nym* pNym = it.second;
-            OT_ASSERT(nullptr != pNym);
-
-            if (pParty->HasAuthorizingAgent(*pNym, &pAuthorizingAgent)) {
-                pAuthAgentsNym = pNym;  // Just in case.
-                break;
-            }
-        }
-        // if pAuthorizingAgent != nullptr, that means the authorizing agent was
-        // found among the map of nyms that were already loaded.
-    }
+    pParty->HasAuthorizingAgent(theNym, &pAuthorizingAgent);
 
     // Still not found?
     if (nullptr == pAuthorizingAgent) {
@@ -1450,7 +1307,6 @@ bool OTScriptable::VerifyNymAsAgent(
                    << pParty->GetPartyName()
                    << "), so I guess it wasn't already available "
                       "on the list of Nyms that were already loaded.\n";
-            theAgentNymAngel.reset(pAuthAgentsNym);  // CLEANUP!!
         } else {
             otErr << "OTScriptable::VerifyNymAsAgent: Error: Strange, unable "
                      "to load authorizing "

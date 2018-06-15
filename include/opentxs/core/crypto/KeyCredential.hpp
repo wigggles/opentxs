@@ -133,8 +133,12 @@ protected:
         const OTPasswordData* pPWData = nullptr,
         const bool onlyPrivate = false);
 
-    KeyCredential(CredentialSet& owner, const NymParameters& nymParameters);
     KeyCredential(
+        const api::client::Wallet& wallet,
+        CredentialSet& owner,
+        const NymParameters& nymParameters);
+    KeyCredential(
+        const api::client::Wallet& wallet,
         CredentialSet& owner,
         const proto::Credential& serializedCred);
 

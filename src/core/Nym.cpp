@@ -93,6 +93,7 @@
 namespace opentxs
 {
 Nym::Nym(
+    const api::client::Wallet& wallet,
     const String& name,
     const String& filename,
     const Identifier& nymID,
@@ -102,7 +103,6 @@ Nym::Nym(
     , m_lUsageCredits(0)
     , m_bMarkForDeletion(false)
     , alias_(name.Get())
-    , lock_()
     , revision_(1)
     , mode_(mode)
     , m_strNymfile(filename)
@@ -111,6 +111,7 @@ Nym::Nym(
     , m_nymID(Identifier::Factory(nymID))
     , source_(nullptr)
     , contact_data_(nullptr)
+    , wallet_(wallet)
     , m_mapCredentialSets()
     , m_mapRevokedSets()
     , m_listRevokedIDs()
@@ -121,28 +122,27 @@ Nym::Nym(
 {
 }
 
-Nym::Nym()
-    : Nym(String(), String(), Identifier())
+Nym::Nym(
+    const api::client::Wallet& wallet,
+    const String& name,
+    const String& filename,
+    const String& nymID)
+    : Nym(wallet, name, filename, Identifier::Factory(nymID))
 {
 }
 
-Nym::Nym(const String& name, const String& filename, const String& nymID)
-    : Nym(name, filename, Identifier::Factory(std::string(nymID.Get())))
+Nym::Nym(const api::client::Wallet& wallet, const Identifier& nymID)
+    : Nym(wallet, String(), String(), nymID)
 {
 }
 
-Nym::Nym(const Identifier& nymID)
-    : Nym(String(), String(), nymID)
+Nym::Nym(const api::client::Wallet& wallet, const String& strNymID)
+    : Nym(wallet, Identifier(strNymID))
 {
 }
 
-Nym::Nym(const String& strNymID)
-    : Nym(Identifier(std::string(strNymID.Get())))
-{
-}
-
-Nym::Nym(const NymParameters& nymParameters)
-    : Nym(String(), String(), Identifier(), proto::CREDINDEX_PRIVATE)
+Nym::Nym(const api::client::Wallet& wallet, const NymParameters& nymParameters)
+    : Nym(wallet, String(), String(), Identifier(), proto::CREDINDEX_PRIVATE)
 {
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -170,24 +170,23 @@ Nym::Nym(const NymParameters& nymParameters)
     revisedParameters.SetNym(nymIndex);
 #endif
     CredentialSet* pNewCredentialSet =
-        new CredentialSet(revisedParameters, version_);
+        new CredentialSet(wallet_, revisedParameters, version_);
 
     OT_ASSERT(nullptr != pNewCredentialSet);
 
     source_ = std::make_shared<NymIDSource>(pNewCredentialSet->Source());
-    m_nymID = source_->NymID();
+    const_cast<OTIdentifier&>(m_nymID) = source_->NymID();
 
     SetDescription(source_->Description());
 
     m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-        pNewCredentialSet->GetMasterCredID().Get(), pNewCredentialSet));
+        pNewCredentialSet->GetMasterCredID(), pNewCredentialSet));
 
-    SaveCredentialIDs();
     SaveSignedNymfile(*this);
 }
 
 bool Nym::add_contact_credential(
-    const Lock& lock,
+    const eLock& lock,
     const proto::ContactData& data)
 {
     OT_ASSERT(verify_lock(lock));
@@ -208,7 +207,7 @@ bool Nym::add_contact_credential(
 }
 
 bool Nym::add_verification_credential(
-    const Lock& lock,
+    const eLock& lock,
     const proto::VerificationSet& data)
 {
     OT_ASSERT(verify_lock(lock));
@@ -232,8 +231,10 @@ std::string Nym::AddChildKeyCredential(
     const Identifier& masterID,
     const NymParameters& nymParameters)
 {
+    eLock lock(shared_lock_);
+
     std::string output;
-    std::string master = String(masterID).Get();
+    std::string master = masterID.str();
     auto it = m_mapCredentialSets.find(master);
     const bool noMaster = (it == m_mapCredentialSets.end());
 
@@ -252,7 +253,7 @@ std::string Nym::AddChildKeyCredential(
 
 bool Nym::AddClaim(const Claim& claim)
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -269,11 +270,11 @@ bool Nym::AddContract(
     const bool primary,
     const bool active)
 {
-    const std::string id(String(instrumentDefinitionID).Get());
+    const std::string id(instrumentDefinitionID.str());
 
     if (id.empty()) { return false; }
 
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -292,7 +293,7 @@ bool Nym::AddEmail(
 {
     if (value.empty()) { return false; }
 
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -310,6 +311,8 @@ bool Nym::AddEmail(
 /// on the heap, NOT the stack, or you will corrupt memory with this call.
 void Nym::AddOutpayments(Message& theMessage)
 {
+    eLock lock(shared_lock_);
+
     m_dequeOutpayments.push_front(&theMessage);
 }
 
@@ -323,7 +326,7 @@ bool Nym::AddPaymentCode(
 
     if (paymentCode.empty()) { return false; }
 
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -342,7 +345,7 @@ bool Nym::AddPhoneNumber(
 {
     if (value.empty()) { return false; }
 
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -356,7 +359,7 @@ bool Nym::AddPhoneNumber(
 
 bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -376,7 +379,7 @@ bool Nym::AddSocialMediaProfile(
 {
     if (value.empty()) { return false; }
 
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -399,6 +402,8 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
     const std::string& masterID,
     const std::string& childID) const
 {
+    sLock lock(shared_lock_);
+
     std::shared_ptr<const proto::Credential> output;
     auto credential = MasterCredential(String(masterID));
 
@@ -412,7 +417,7 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
 
 std::string Nym::BestEmail() const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -423,7 +428,8 @@ std::string Nym::BestEmail() const
 
 std::string Nym::BestPhoneNumber() const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
+
     if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
@@ -433,7 +439,8 @@ std::string Nym::BestPhoneNumber() const
 
 std::string Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
+
     if (false == bool(contact_data_)) { init_claims(lock); }
 
     OT_ASSERT(contact_data_);
@@ -441,35 +448,9 @@ std::string Nym::BestSocialMediaProfile(const proto::ContactItemType type) const
     return contact_data_->BestSocialMediaProfile(type);
 }
 
-std::int32_t Nym::ChildCredentialCount(const std::string& id) const
-{
-    std::int32_t output = 0;
-    auto credential = MasterCredential(String(id));
-
-    if (nullptr != credential) {
-        output = credential->GetChildCredentialCount();
-    }
-
-    return output;
-}
-
-std::string Nym::ChildCredentialID(
-    const std::string& masterID,
-    const std::uint32_t index) const
-{
-    std::string output = "";
-    auto credential = MasterCredential(String(masterID));
-
-    if (nullptr != credential) {
-        output = credential->GetChildCredentialIDByIndex(index);
-    }
-
-    return output;
-}
-
 const class ContactData& Nym::Claims() const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -480,6 +461,8 @@ const class ContactData& Nym::Claims() const
 
 void Nym::ClearAll()
 {
+    eLock lock(shared_lock_);
+
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();
     m_setAccounts.clear();
@@ -488,6 +471,15 @@ void Nym::ClearAll()
 
 void Nym::ClearCredentials()
 {
+    eLock lock(shared_lock_);
+
+    clear_credentials(lock);
+}
+
+void Nym::clear_credentials(const eLock& lock)
+{
+    OT_ASSERT(verify_lock(lock));
+
     m_listRevokedIDs.clear();
 
     while (!m_mapCredentialSets.empty()) {
@@ -507,18 +499,28 @@ void Nym::ClearCredentials()
 
 void Nym::ClearOutpayments()
 {
-    while (GetOutpaymentsCount() > 0) RemoveOutpaymentsByIndex(0);
+    while (GetOutpaymentsCount() > 0) RemoveOutpaymentsByIndex(0, true);
 }
 
-bool Nym::CompareID(const Nym& rhs) const { return rhs.CompareID(m_nymID); }
+bool Nym::CompareID(const Nym& rhs) const
+{
+    sLock lock(shared_lock_);
 
-bool Nym::CompareID(const Identifier& rhs) const { return rhs == m_nymID; }
+    return rhs.CompareID(m_nymID);
+}
+
+bool Nym::CompareID(const Identifier& rhs) const
+{
+    sLock lock(shared_lock_);
+
+    return rhs == m_nymID;
+}
 
 std::set<OTIdentifier> Nym::Contracts(
     const proto::ContactItemType currency,
     const bool onlyActive) const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -529,7 +531,7 @@ std::set<OTIdentifier> Nym::Contracts(
 
 bool Nym::DeleteClaim(const Identifier& id)
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -540,596 +542,7 @@ bool Nym::DeleteClaim(const Identifier& id)
     return set_contact_data(lock, contact_data_->Serialize());
 }
 
-void Nym::DisplayStatistics(String& strOutput) const
-{
-    strOutput.Concatenate("Source for ID:\n%s\n", source_->asString().Get());
-    strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
-
-    const std::size_t nMasterCredCount = GetMasterCredentialCount();
-    if (nMasterCredCount > 0) {
-        for (std::int32_t iii = 0;
-             iii < static_cast<std::int64_t>(nMasterCredCount);
-             ++iii) {
-            const CredentialSet* pCredentialSet =
-                GetMasterCredentialByIndex(iii);
-            if (nullptr != pCredentialSet) {
-                const String strCredType = Credential::CredentialTypeToString(
-                    pCredentialSet->GetMasterCredential().Type());
-                strOutput.Concatenate(
-                    "%s Master Credential ID: %s \n",
-                    strCredType.Get(),
-                    pCredentialSet->GetMasterCredID().Get());
-                const std::size_t nChildCredentialCount =
-                    pCredentialSet->GetChildCredentialCount();
-
-                if (nChildCredentialCount > 0) {
-                    for (std::size_t vvv = 0; vvv < nChildCredentialCount;
-                         ++vvv) {
-                        const Credential* pChild =
-                            pCredentialSet->GetChildCredentialByIndex(vvv);
-                        const String strChildCredType =
-                            Credential::CredentialTypeToString(pChild->Type());
-                        const std::string str_childcred_id(
-                            pCredentialSet->GetChildCredentialIDByIndex(vvv));
-
-                        strOutput.Concatenate(
-                            "   %s child credential ID: %s \n",
-                            strChildCredType.Get(),
-                            str_childcred_id.c_str());
-                    }
-                }
-            }
-        }
-        strOutput.Concatenate("%s", "\n");
-    }
-
-    strOutput.Concatenate(
-        "==>      Name: %s   %s\n",
-        alias_.c_str(),
-        m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
-    strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
-    strOutput.Concatenate(
-        "Outpayments count: %" PRI_SIZE "\n", m_dequeOutpayments.size());
-
-    String theStringID;
-    GetIdentifier(theStringID);
-    strOutput.Concatenate("Nym ID: %s\n", theStringID.Get());
-}
-
-std::string Nym::EmailAddresses(bool active) const
-{
-    Lock lock(lock_);
-
-    if (false == bool(contact_data_)) { init_claims(lock); }
-
-    OT_ASSERT(contact_data_);
-
-    return contact_data_->EmailAddresses(active);
-}
-
-const Credential* Nym::GetChildCredential(
-    const String& strMasterID,
-    const String& strChildCredID) const
-{
-    auto iter = m_mapCredentialSets.find(strMasterID.Get());
-    const CredentialSet* pMaster = nullptr;
-
-    if (iter != m_mapCredentialSets.end())  // found it
-        pMaster = iter->second;
-
-    if (nullptr != pMaster) {
-        const Credential* pSub =
-            pMaster->GetChildCredential(strChildCredID, &m_listRevokedIDs);
-
-        if (nullptr != pSub) return pSub;
-    }
-
-    return nullptr;
-}
-
-bool Nym::GetHash(
-    const mapOfIdentifiers& the_map,
-    const std::string& str_id,
-    Identifier& theOutput) const  // client-side
-{
-    bool bRetVal =
-        false;  // default is false: "No, I didn't find a hash for that id."
-    theOutput.Release();
-
-    // The Pseudonym has a map of its recent hashes, one for each server
-    // (nymbox) or account (inbox/outbox).
-    // For Server Bob, with this Pseudonym, I might have hash lkjsd987345lkj.
-    // For but Server Alice, I might have hash 98345jkherkjghdf98gy.
-    // (Same Nym, but different hash for each server, as well as inbox/outbox
-    // hashes for each asset acct.)
-    //
-    // So let's loop through all the hashes I have, and if the ID on the map
-    // passed in
-    // matches the [server|acct] ID that was passed in, then return TRUE.
-    //
-    for (const auto& it : the_map) {
-        if (str_id == it.first) {
-            // The call has succeeded
-            bRetVal = true;
-            theOutput = it.second;
-            break;
-        }
-    }
-
-    return bRetVal;
-}
-
-// sets argument based on internal member
-void Nym::GetIdentifier(Identifier& theIdentifier) const
-{
-    theIdentifier = m_nymID;
-}
-
-// sets argument based on internal member
-void Nym::GetIdentifier(String& theIdentifier) const
-{
-    m_nymID->GetString(theIdentifier);
-}
-
-bool Nym::GetInboxHash(
-    const std::string& acct_id,
-    Identifier& theOutput) const  // client-side
-{
-    return GetHash(m_mapInboxHash, acct_id, theOutput);
-}
-
-CredentialSet* Nym::GetMasterCredential(const String& strID)
-{
-    auto iter = m_mapCredentialSets.find(strID.Get());
-    CredentialSet* pCredential = nullptr;
-
-    if (m_mapCredentialSets.end() != iter)  // found it
-        pCredential = iter->second;
-
-    return pCredential;
-}
-
-const CredentialSet* Nym::GetMasterCredentialByIndex(std::int32_t nIndex) const
-{
-    if ((nIndex < 0) ||
-        (nIndex >= static_cast<std::int64_t>(m_mapCredentialSets.size()))) {
-        otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
-    } else {
-        std::int32_t nLoopIndex = -1;
-
-        for (const auto& it : m_mapCredentialSets) {
-            const CredentialSet* pCredential = it.second;
-            OT_ASSERT(nullptr != pCredential);
-
-            ++nLoopIndex;  // 0 on first iteration.
-
-            if (nLoopIndex == nIndex) return pCredential;
-        }
-    }
-    return nullptr;
-}
-
-std::size_t Nym::GetMasterCredentialCount() const
-{
-    return m_mapCredentialSets.size();
-}
-
-bool Nym::GetOutboxHash(
-    const std::string& acct_id,
-    Identifier& theOutput) const  // client-side
-{
-    return GetHash(m_mapOutboxHash, acct_id, theOutput);
-}
-
-// Look up a transaction by transaction number and see if it is in the ledger.
-// If it is, return a pointer to it, otherwise return nullptr.
-Message* Nym::GetOutpaymentsByIndex(std::int32_t nIndex) const
-{
-    const std::uint32_t uIndex = nIndex;
-
-    // Out of bounds.
-    if (m_dequeOutpayments.empty() || (nIndex < 0) ||
-        (uIndex >= m_dequeOutpayments.size())) {
-
-        return nullptr;
-    }
-
-    return m_dequeOutpayments.at(nIndex);
-}
-
-Message* Nym::GetOutpaymentsByTransNum(
-    const std::int64_t lTransNum,
-    std::unique_ptr<OTPayment>* pReturnPayment /*=nullptr*/,
-    std::int32_t* pnReturnIndex /*=nullptr*/) const
-{
-    if (nullptr != pnReturnIndex) { *pnReturnIndex = -1; }
-
-    const std::int32_t nCount = GetOutpaymentsCount();
-
-    for (std::int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        Message* pMsg = m_dequeOutpayments.at(nIndex);
-        OT_ASSERT(nullptr != pMsg);
-        String strPayment;
-        std::unique_ptr<OTPayment> payment;
-        std::unique_ptr<OTPayment>& pPayment(
-            nullptr == pReturnPayment ? payment : *pReturnPayment);
-
-        // There isn't any encrypted envelope this time, since it's my
-        // outPayments box.
-        //
-        if (pMsg->m_ascPayload.Exists() &&
-            pMsg->m_ascPayload.GetString(strPayment) && strPayment.Exists()) {
-            pPayment.reset(new OTPayment(strPayment));
-
-            // Let's see if it's the cheque we're looking for...
-            //
-            if (pPayment && pPayment->IsValid()) {
-                if (pPayment->SetTempValues()) {
-                    if (pPayment->HasTransactionNum(lTransNum)) {
-
-                        if (nullptr != pnReturnIndex) {
-                            *pnReturnIndex = nIndex;
-                        }
-
-                        return pMsg;
-                    }
-                }
-            }
-        }
-    }
-    return nullptr;
-}
-
-/// return the number of payments items available for this Nym.
-std::int32_t Nym::GetOutpaymentsCount() const
-{
-    return static_cast<std::int32_t>(m_dequeOutpayments.size());
-}
-
-const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
-{
-    OT_ASSERT(!m_mapCredentialSets.empty());
-
-    const CredentialSet* pCredential = nullptr;
-
-    for (const auto& it : m_mapCredentialSets) {
-        // Todo: If we have some criteria, such as which master or
-        // child credential
-        // is currently being employed by the user, we'll use that here to
-        // skip
-        // through this loop until we find the right one. Until then, I'm
-        // just
-        // going to return the first one that's valid (not null).
-
-        pCredential = it.second;
-        if (nullptr != pCredential) break;
-    }
-    if (nullptr == pCredential) OT_FAIL;
-
-    return pCredential->GetPrivateAuthKey(&m_listRevokedIDs);  // success
-}
-
-void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
-    const
-{
-    Tag tag("nymData");
-
-    tag.add_attribute("version", m_strVersion.Get());
-
-    String strNymID;
-    GetIdentifier(strNymID);
-
-    tag.add_attribute("nymID", strNymID.Get());
-
-    SerializeNymIDSource(tag);
-
-    SaveCredentialsToTag(tag, nullptr, pmapCredFiles);
-
-    std::string str_result;
-    tag.output(str_result);
-
-    strCredList.Concatenate("%s", str_result.c_str());
-}
-
-const OTAsymmetricKey& Nym::GetPrivateEncrKey() const
-{
-    OT_ASSERT(!m_mapCredentialSets.empty());
-
-    const CredentialSet* pCredential = nullptr;
-
-    for (const auto& it : m_mapCredentialSets) {
-        // Todo: If we have some criteria, such as which master or
-        // child credential
-        // is currently being employed by the user, we'll use that here to
-        // skip
-        // through this loop until we find the right one. Until then, I'm
-        // just
-        // going to return the first one that's valid (not null).
-
-        pCredential = it.second;
-        if (nullptr != pCredential) break;
-    }
-    if (nullptr == pCredential) OT_FAIL;
-
-    return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);
-    ;  // success
-}
-
-const OTAsymmetricKey& Nym::GetPrivateSignKey() const
-{
-    OT_ASSERT(!m_mapCredentialSets.empty());
-
-    const CredentialSet* pCredential = nullptr;
-
-    for (const auto& it : m_mapCredentialSets) {
-        // Todo: If we have some criteria, such as which master or
-        // child credential
-        // is currently being employed by the user, we'll use that here to
-        // skip
-        // through this loop until we find the right one. Until then, I'm
-        // just
-        // going to return the first one that's valid (not null).
-
-        pCredential = it.second;
-        if (nullptr != pCredential) break;
-    }
-    if (nullptr == pCredential) OT_FAIL;
-
-    return pCredential->GetPrivateSignKey(&m_listRevokedIDs);  // success
-}
-
-const OTAsymmetricKey& Nym::GetPublicAuthKey() const
-{
-    OT_ASSERT(!m_mapCredentialSets.empty());
-
-    const CredentialSet* pCredential = nullptr;
-
-    for (const auto& it : m_mapCredentialSets) {
-        // Todo: If we have some criteria, such as which master or
-        // child credential
-        // is currently being employed by the user, we'll use that here to
-        // skip
-        // through this loop until we find the right one. Until then, I'm
-        // just
-        // going to return the first one that's valid (not null).
-
-        pCredential = it.second;
-        if (nullptr != pCredential) break;
-    }
-    if (nullptr == pCredential) OT_FAIL;
-
-    return pCredential->GetPublicAuthKey(&m_listRevokedIDs);  // success
-}
-
-const OTAsymmetricKey& Nym::GetPublicEncrKey() const
-{
-    OT_ASSERT(!m_mapCredentialSets.empty());
-
-    const CredentialSet* pCredential = nullptr;
-    for (const auto& it : m_mapCredentialSets) {
-        // Todo: If we have some criteria, such as which master or
-        // child credential
-        // is currently being employed by the user, we'll use that here to
-        // skip
-        // through this loop until we find the right one. Until then, I'm
-        // just
-        // going to return the first one that's valid (not null).
-
-        pCredential = it.second;
-        if (nullptr != pCredential) break;
-    }
-    if (nullptr == pCredential) OT_FAIL;
-
-    return pCredential->GetPublicEncrKey(&m_listRevokedIDs);  // success
-}
-
-// This is being called by:
-// Contract::VerifySignature(const OTPseudonym& theNym, const OTSignature&
-// theSignature, OTPasswordData * pPWData=nullptr)
-//
-// Note: Need to change Contract::VerifySignature so that it checks all of
-// these keys when verifying.
-//
-// OT uses the signature's metadata to narrow down its search for the correct
-// public key.
-// Return value is the count of public keys found that matched the metadata on
-// the signature.
-std::int32_t Nym::GetPublicKeysBySignature(
-    listOfAsymmetricKeys& listOutput,
-    const OTSignature& theSignature,
-    char cKeyType) const
-{
-    // Unfortunately, theSignature can only narrow the search down (there may be
-    // multiple results.)
-    std::int32_t nCount = 0;
-
-    for (const auto& it : m_mapCredentialSets) {
-        const CredentialSet* pCredential = it.second;
-        OT_ASSERT(nullptr != pCredential);
-
-        const std::int32_t nTempCount = pCredential->GetPublicKeysBySignature(
-            listOutput, theSignature, cKeyType);
-        nCount += nTempCount;
-    }
-
-    return nCount;
-}
-
-const OTAsymmetricKey& Nym::GetPublicSignKey() const
-{
-    OT_ASSERT(!m_mapCredentialSets.empty());
-
-    const CredentialSet* pCredential = nullptr;
-
-    for (const auto& it : m_mapCredentialSets) {
-        // Todo: If we have some criteria, such as which master or
-        // child credential
-        // is currently being employed by the user, we'll use that here to
-        // skip
-        // through this loop until we find the right one. Until then, I'm
-        // just
-        // going to return the first one that's valid (not null).
-
-        pCredential = it.second;
-        if (nullptr != pCredential) break;
-    }
-    if (nullptr == pCredential) OT_FAIL;
-
-    return pCredential->GetPublicSignKey(&m_listRevokedIDs);  // success
-}
-
-CredentialSet* Nym::GetRevokedCredential(const String& strID)
-{
-    auto iter = m_mapRevokedSets.find(strID.Get());
-    CredentialSet* pCredential = nullptr;
-
-    if (m_mapCredentialSets.end() != iter)  // found it
-        pCredential = iter->second;
-
-    return pCredential;
-}
-
-const CredentialSet* Nym::GetRevokedCredentialByIndex(std::int32_t nIndex) const
-{
-    if ((nIndex < 0) ||
-        (nIndex >= static_cast<std::int64_t>(m_mapRevokedSets.size()))) {
-        otErr << __FUNCTION__ << ": Index out of bounds: " << nIndex << "\n";
-    } else {
-        std::int32_t nLoopIndex = -1;
-
-        for (const auto& it : m_mapRevokedSets) {
-            const CredentialSet* pCredential = it.second;
-            OT_ASSERT(nullptr != pCredential);
-
-            ++nLoopIndex;  // 0 on first iteration.
-
-            if (nLoopIndex == nIndex) return pCredential;
-        }
-    }
-    return nullptr;
-}
-
-std::size_t Nym::GetRevokedCredentialCount() const
-{
-    return m_mapRevokedSets.size();
-}
-
-bool Nym::hasCapability(const NymCapability& capability) const
-{
-    for (auto& it : m_mapCredentialSets) {
-        OT_ASSERT(nullptr != it.second);
-
-        if (nullptr != it.second) {
-            const CredentialSet& credSet = *it.second;
-
-            if (credSet.hasCapability(capability)) { return true; }
-        }
-    }
-
-    return false;
-}
-
-void Nym::init_claims(const Lock& lock) const
-{
-    OT_ASSERT(verify_lock(lock));
-
-    const std::string nymID = String(m_nymID).Get();
-    contact_data_.reset(new class ContactData(
-        nymID,
-        NYM_CONTACT_DATA_VERSION,
-        NYM_CONTACT_DATA_VERSION,
-        ContactData::SectionMap()));
-
-    OT_ASSERT(contact_data_);
-
-    std::unique_ptr<proto::ContactData> serialized{nullptr};
-
-    for (auto& it : m_mapCredentialSets) {
-        OT_ASSERT(nullptr != it.second);
-
-        const auto& credSet = *it.second;
-        credSet.GetContactData(serialized);
-
-        if (serialized) {
-            OT_ASSERT(
-                proto::Validate(*serialized, VERBOSE, proto::CLAIMS_NORMAL));
-
-            class ContactData claimCred(
-                nymID, NYM_CONTACT_DATA_VERSION, *serialized);
-            contact_data_.reset(
-                new class ContactData(*contact_data_ + claimCred));
-            serialized.reset();
-        }
-    }
-}
-
-bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
-{
-    if (!proto::Validate<proto::CredentialIndex>(index, VERBOSE)) {
-        otErr << __FUNCTION__ << ": Unable to load invalid serialized"
-              << " credential index." << std::endl;
-
-        return false;
-    }
-
-    version_ = index.version();
-    index_ = index.index();
-    revision_.store(index.revision());
-    mode_ = index.mode();
-    Identifier nymID(index.nymid());
-    m_nymID = nymID;
-    source_ = std::make_shared<NymIDSource>(index.source());
-    proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
-                              ? proto::KEYMODE_PRIVATE
-                              : proto::KEYMODE_PUBLIC;
-
-    for (auto& it : index.activecredentials()) {
-        CredentialSet* newSet = new CredentialSet(mode, it);
-
-        if (nullptr != newSet) {
-            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-                newSet->GetMasterCredID().Get(), newSet));
-        }
-    }
-
-    for (auto& it : index.revokedcredentials()) {
-        CredentialSet* newSet = new CredentialSet(mode, it);
-
-        if (nullptr != newSet) {
-            m_mapCredentialSets.insert(std::pair<std::string, CredentialSet*>(
-                newSet->GetMasterCredID().Get(), newSet));
-        }
-    }
-
-    return true;
-}
-
-// Use this to load the keys for a Nym (whether public or private), and then
-// call VerifyPseudonym, and then load the actual Nymfile using
-// LoadSignedNymfile.
-bool Nym::LoadCredentials(
-    bool bLoadPrivate,
-    const OTPasswordData* pPWData,
-    const OTPassword* pImportPassword)
-{
-    ClearCredentials();
-
-    String strNymID;
-    GetIdentifier(strNymID);
-    std::shared_ptr<proto::CredentialIndex> index;
-
-    if (OT::App().DB().Load(strNymID.Get(), index)) {
-        return LoadCredentialIndex(*index);
-    } else {
-        otErr << __FUNCTION__
-              << ": Failed trying to load credential list for nym: " << strNymID
-              << std::endl;
-    }
-
-    return false;
-}
-
-bool Nym::LoadNymFromString(
+bool Nym::DeserializeNymfile(
     const String& strNym,
     bool& converted,
     String::Map* pMapCredentials,  // pMapCredentials can be
@@ -1143,11 +556,36 @@ bool Nym::LoadNymFromString(
     String* pstrReason,
     const OTPassword* pImportPassword)
 {
+    sLock lock(shared_lock_);
+
+    return deserialize_nymfile(
+        lock, strNym, converted, pMapCredentials, pstrReason, pImportPassword);
+}
+
+template <typename T>
+bool Nym::deserialize_nymfile(
+    const T& lock,
+    const String& strNym,
+    bool& converted,
+    String::Map* pMapCredentials,  // pMapCredentials can be
+                                   // passed,
+    // if you prefer to use a specific
+    // set, instead of just loading the
+    // actual set from storage (such as
+    // during registration, when the
+    // credentials have been sent
+    // inside a message.)
+    String* pstrReason,
+    const OTPassword* pImportPassword)
+{
+    OT_ASSERT(verify_lock(lock));
+
     bool bSuccess = false;
     bool convert = false;
     converted = false;
-    ClearAll();  // Since we are loading everything up... (credentials are NOT
-                 // cleared here. See note in OTPseudonym::ClearAll.)
+    //?    ClearAll();  // Since we are loading everything up... (credentials
+    // are NOT
+    // cleared here. See note in OTPseudonym::ClearAll.)
     OTStringXML strNymXML(strNym);  // todo optimize
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
@@ -1185,8 +623,6 @@ bool Nym::LoadNymFromString(
                         m_lUsageCredits = 0;  // This is the default anyway, but
                                               // just being safe...
 
-                    m_nymID->SetString(UserNymID);
-
                     if (UserNymID.GetLength())
                         otLog3 << "\nLoading user, version: " << m_strVersion
                                << " NymID:\n"
@@ -1222,270 +658,6 @@ bool Nym::LoadNymFromString(
                     serializedNymIDSource source =
                         NymIDSource::ExtractArmoredSource(stringSource);
                     source_.reset(new NymIDSource(*source));
-                } else if (strNodeName.Compare("revokedCredential")) {
-                    const String strRevokedID = xml->getAttributeValue("ID");
-                    otLog3 << "revokedCredential ID: " << strRevokedID << "\n";
-                    auto iter = std::find(
-                        m_listRevokedIDs.begin(),
-                        m_listRevokedIDs.end(),
-                        strRevokedID.Get());
-                    if (iter == m_listRevokedIDs.end())  // It's not already
-                                                         // there, so it's safe
-                                                         // to add it.
-                        m_listRevokedIDs.push_back(
-                            strRevokedID.Get());  // todo optimize.
-                } else if (strNodeName.Compare("masterCredential")) {
-                    const String strID = xml->getAttributeValue("ID");
-                    const String strValid = xml->getAttributeValue("valid");
-                    const String strType = xml->getAttributeValue("type");
-                    const bool bValid = strValid.Compare("true");
-                    otLog3 << "Loading " << (bValid ? "valid" : "invalid")
-                           << " masterCredential ID: " << strID << "\n";
-                    String strNymID;
-                    GetIdentifier(strNymID);
-                    CredentialSet* pCredential = nullptr;
-
-                    if (nullptr == pMapCredentials)  // pMapCredentials is an
-                                                     // option that allows you
-                                                     // to read
-                        // credentials from the map instead
-                        // of from local storage. (While
-                        // loading the Nym...) In this
-                        // case, the option isn't being
-                        // employed...
-                        pCredential =
-                            CredentialSet::LoadMaster(strNymID, strID);
-                    else  // In this case, it potentially is on the map...
-                    {
-                        auto it_cred = pMapCredentials->find(strID.Get());
-
-                        if (it_cred == pMapCredentials->end())  // Nope, didn't
-                                                                // find it on
-                                                                // the
-                            // map. But if a Map was passed,
-                            // then it SHOULD have contained
-                            // all the listed credentials
-                            // (including the one we're
-                            // trying to load now.)
-                            otErr
-                                << __FUNCTION__
-                                << ": Expected master credential (" << strID
-                                << ") on map of credentials, but couldn't find "
-                                   "it. (Failure.)\n";
-                        else  // Found it on the map passed in (so no need to
-                              // load
-                              // from storage, we'll load from string instead.)
-                        {
-                            const String strMasterCredential(
-                                it_cred->second.c_str());
-                            if (strMasterCredential.Exists()) {
-                                OTPasswordData thePWData(
-                                    nullptr == pstrReason
-                                        ? "OTPseudonym::LoadFromString"
-                                        : pstrReason->Get());
-                                pCredential =
-                                    CredentialSet::LoadMasterFromString(
-                                        strMasterCredential,
-                                        strNymID,
-                                        strID,
-                                        &thePWData,
-                                        pImportPassword);
-                            }
-                        }
-                    }
-
-                    if (nullptr == pCredential) {
-                        otErr
-                            << __FUNCTION__
-                            << ": Failed trying to load Master Credential ID: "
-                            << strID << "\n";
-                        return false;
-                    } else  // pCredential must be cleaned up or stored
-                            // somewhere.
-                    {
-                        mapOfCredentialSets* pMap =
-                            bValid ? &m_mapCredentialSets : &m_mapRevokedSets;
-                        auto iter = pMap->find(strID.Get());  // todo optimize.
-                        if (iter == pMap->end())  // It's not already there, so
-                                                  // it's safe to add it.
-                            pMap->insert(std::pair<std::string, CredentialSet*>(
-                                strID.Get(), pCredential));  // <=====
-                        else {
-                            otErr << __FUNCTION__
-                                  << ": While loading credential (" << strID
-                                  << "), discovered it was already there "
-                                     "on my list, or one with the exact "
-                                     "same ID! Therefore, failed "
-                                     "adding this newer one.\n";
-                            delete pCredential;
-                            pCredential = nullptr;
-                            return false;
-                        }
-                    }
-                } else if (strNodeName.Compare("keyCredential")) {
-                    const String strID = xml->getAttributeValue("ID");
-                    const String strValid = xml->getAttributeValue(
-                        "valid");  // If this is false, the ID is already on
-                                   // revokedCredentials list. (FYI.)
-                    const String strType = xml->getAttributeValue("type");
-                    const String strMasterCredID =
-                        xml->getAttributeValue("masterID");
-                    const bool bValid = strValid.Compare("true");
-                    otLog3 << "Loading " << (bValid ? "valid" : "invalid")
-                           << " keyCredential ID: " << strID
-                           << "\n ...For master credential: " << strMasterCredID
-                           << "\n";
-                    CredentialSet* pCredential = GetMasterCredential(
-                        strMasterCredID);  // no need to cleanup.
-                    if (nullptr == pCredential)
-                        pCredential = GetRevokedCredential(strMasterCredID);
-                    if (nullptr == pCredential) {
-                        otErr << __FUNCTION__
-                              << ": While loading keyCredential, failed trying "
-                                 "to "
-                                 "find expected Master Credential ID: "
-                              << strMasterCredID << "\n";
-                        return false;
-                    } else  // We found the master credential that this
-                            // keyCredential
-                            // belongs to.
-                    {
-                        bool bLoaded = false;
-
-                        if (nullptr ==
-                            pMapCredentials)  // pMapCredentials is an option
-                                              // that allows you to read
-                                              // credentials from the map
-                                              // instead of from local
-                                              // storage. (While loading the
-                                              // Nym...) In this case, the
-                                              // option isn't being
-                                              // employed...
-                            bLoaded =
-                                pCredential->LoadChildKeyCredential(strID);
-                        else  // In this case, it potentially is on the map...
-                        {
-                            auto it_cred = pMapCredentials->find(strID.Get());
-
-                            if (it_cred == pMapCredentials->end())  // Nope,
-                                                                    // didn't
-                                                                    // find it
-                                                                    // on
-                                // the map. But if a Map was
-                                // passed, then it SHOULD
-                                // have contained all the
-                                // listed credentials
-                                // (including the one we're
-                                // trying to load now.)
-                                otErr
-                                    << __FUNCTION__
-                                    << ": Expected keyCredential (" << strID
-                                    << ") on map of credentials, but couldn't "
-                                       "find it. (Failure.)\n";
-                            else  // Found it on the map passed in (so no need
-                                  // to
-                                  // load from storage, we'll load from string
-                                  // instead.)
-                            {
-                                const String strChildCredential(
-                                    it_cred->second.c_str());
-                                if (strChildCredential.Exists())
-                                    bLoaded =
-                                        pCredential
-                                            ->LoadChildKeyCredentialFromString(
-                                                strChildCredential,
-                                                strID,
-                                                pImportPassword);
-                            }
-                        }
-
-                        if (!bLoaded) {
-                            String strNymID;
-                            GetIdentifier(strNymID);
-                            otErr << __FUNCTION__
-                                  << ": Failed loading keyCredential " << strID
-                                  << " for master credential "
-                                  << strMasterCredID << " for Nym " << strNymID
-                                  << ".\n";
-                            return false;
-                        }
-                    }
-                } else if (strNodeName.Compare("requestNum") && convert) {
-                    const String ReqNumNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    const String ReqNumCurrent =
-                        xml->getAttributeValue("currentRequestNum");
-
-                    otLog3 << "\nCurrent Request Number is " << ReqNumCurrent
-                           << " for NotaryID: " << ReqNumNotaryID << "\n";
-
-                    // Migrate to Context class.
-                    Identifier local, remote;
-
-                    if (serverMode) {
-                        local = serverID;
-                        remote = m_nymID;
-                        auto context = OT::App().Wallet().mutable_ClientContext(
-                            local, remote);
-                        context.It().SetRequest(ReqNumCurrent.ToLong());
-                    } else {
-                        local = m_nymID;
-                        remote = Identifier(ReqNumNotaryID);
-                        auto context = OT::App().Wallet().mutable_ServerContext(
-                            local, remote);
-                        context.It().SetRequest(ReqNumCurrent.ToLong());
-                    }
-
-                    converted = true;
-                } else if (strNodeName.Compare("nymboxHash") && convert) {
-                    const String strValue = xml->getAttributeValue("value");
-
-                    otLog3 << "\nNymboxHash is: " << strValue << "\n";
-
-                    if (strValue.Exists()) {
-                        // Migrate to Context class.
-                        auto context = OT::App().Wallet().mutable_ClientContext(
-                            serverID, m_nymID);
-                        context.It().SetLocalNymboxHash(Identifier(strValue));
-                    }
-
-                    converted = true;
-                } else if (strNodeName.Compare("nymboxHashItem") && convert) {
-                    const String strNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    const String strNymboxHash =
-                        xml->getAttributeValue("nymboxHash");
-
-                    otLog3 << "\nNymboxHash is " << strNymboxHash
-                           << " for NotaryID: " << strNotaryID << "\n";
-
-                    // Convert to Context class
-                    if (strNotaryID.Exists() && strNymboxHash.Exists()) {
-                        auto context = OT::App().Wallet().mutable_ServerContext(
-                            m_nymID, Identifier(strNotaryID));
-                        context.It().SetLocalNymboxHash(
-                            Identifier(strNymboxHash));
-                    }
-
-                    converted = true;
-                } else if (strNodeName.Compare("recentHashItem") && convert) {
-                    const String strNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    const String strRecentHash =
-                        xml->getAttributeValue("recentHash");
-
-                    otLog3 << "\nRecentHash is " << strRecentHash
-                           << " for NotaryID: " << strNotaryID << "\n";
-
-                    // Convert to Context class
-                    if (strNotaryID.Exists() && strRecentHash.Exists()) {
-                        auto context = OT::App().Wallet().mutable_ServerContext(
-                            m_nymID, Identifier(strNotaryID));
-                        context.It().SetRemoteNymboxHash(
-                            Identifier(strRecentHash));
-                    }
-
-                    converted = true;
                 } else if (strNodeName.Compare("inboxHashItem")) {
                     const String strAccountID =
                         xml->getAttributeValue("accountID");
@@ -1524,221 +696,10 @@ bool Nym::LoadNymFromString(
                         OT_ASSERT(!pID->empty())
                         m_mapOutboxHash.emplace(strAccountID.Get(), pID);
                     }
-                } else if (strNodeName.Compare("highestTransNum") && convert) {
-                    const String HighNumNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    const String HighNumRecent =
-                        xml->getAttributeValue("mostRecent");
-
-                    otLog3 << "\nHighest Transaction Number ever received is "
-                           << HighNumRecent
-                           << " for NotaryID: " << HighNumNotaryID << "\n";
-
-                    // Migrate to Context class.
-                    auto context = OT::App().Wallet().mutable_ServerContext(
-                        m_nymID, Identifier(HighNumNotaryID));
-                    context.It().SetHighest(HighNumRecent.ToLong());
-
-                    converted = true;
-                } else if (strNodeName.Compare("transactionNums") && convert) {
-                    const String tempNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    String strTemp;
-
-                    if (!tempNotaryID.Exists() ||
-                        !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__
-                              << ": Error: transactionNums "
-                                 "field without value.\n";
-                        return false;  // error condition
-                    }
-
-                    NumList theNumList;
-
-                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
-
-                    TransactionNumber lTemp = 0;
-
-                    while (theNumList.Peek(lTemp)) {
-                        theNumList.Pop();
-                        // Migrate to Context class.
-                        Identifier local, remote;
-
-                        if (serverMode) {
-                            local = serverID;
-                            remote = m_nymID;
-                            auto context =
-                                OT::App().Wallet().mutable_ClientContext(
-                                    local, remote);
-                            context.It().insert_available_number(lTemp);
-                        } else {
-                            local = m_nymID;
-                            remote = Identifier(tempNotaryID);
-                            auto context =
-                                OT::App().Wallet().mutable_ServerContext(
-                                    local, remote);
-                            context.It().insert_available_number(lTemp);
-                        }
-                    }
-
-                    converted = true;
-                } else if (strNodeName.Compare("issuedNums") && convert) {
-                    const String tempNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    String strTemp;
-                    if (!tempNotaryID.Exists() ||
-                        !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__
-                              << ": Error: issuedNums field without value.\n";
-                        return false;  // error condition
-                    }
-                    NumList theNumList;
-
-                    if (strTemp.Exists()) theNumList.Add(strTemp);
-
-                    TransactionNumber lTemp = 0;
-
-                    while (theNumList.Peek(lTemp)) {
-                        theNumList.Pop();
-
-                        otLog3 << "Currently liable for issued trans# " << lTemp
-                               << " at NotaryID: " << tempNotaryID << "\n";
-
-                        // Migrate to Context class.
-                        Identifier local, remote;
-
-                        if (serverMode) {
-                            local = serverID;
-                            remote = m_nymID;
-                            auto context =
-                                OT::App().Wallet().mutable_ClientContext(
-                                    local, remote);
-                            auto existing = context.It().Request();
-
-                            if (0 == existing) {
-                                context.It().insert_issued_number(lTemp);
-                            }
-                        } else {
-                            local = m_nymID;
-                            remote = Identifier(tempNotaryID);
-                            auto context =
-                                OT::App().Wallet().mutable_ServerContext(
-                                    local, remote);
-                            auto existing = context.It().Request();
-
-                            if (0 == existing) {
-                                context.It().insert_issued_number(lTemp);
-                            }
-                        }
-                    }
-
-                    converted = true;
-                } else if (strNodeName.Compare("tentativeNums") && convert) {
-                    const String tempNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    String strTemp;
-                    if (!tempNotaryID.Exists() ||
-                        !Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << "OTPseudonym::LoadFromString: Error: "
-                                 "tentativeNums field without value.\n";
-                        return false;  // error condition
-                    }
-                    NumList theNumList;
-
-                    if (strTemp.Exists()) theNumList.Add(strTemp);
-
-                    TransactionNumber lTemp = 0;
-                    while (theNumList.Peek(lTemp)) {
-                        theNumList.Pop();
-
-                        otLog3
-                            << "Tentative: Currently awaiting success notice, "
-                               "for accepting trans# "
-                            << lTemp << " for NotaryID: " << tempNotaryID
-                            << "\n";
-
-                        // Convert to Context class
-                        auto context = OT::App().Wallet().mutable_ServerContext(
-                            m_nymID, Identifier(tempNotaryID));
-                        context.It().AddTentativeNumber(lTemp);
-                    }
-
-                    converted = true;
-                } else if (strNodeName.Compare("ackNums") && convert) {
-                    const String tempNotaryID =
-                        xml->getAttributeValue("notaryID");
-                    String strTemp;
-                    if (!tempNotaryID.Exists()) {
-                        otErr << __FUNCTION__
-                              << ": Error: While loading ackNums "
-                                 "field: Missing notaryID. Nym contents:\n\n"
-                              << strNym << "\n\n";
-                        return false;  // error condition
-                    }
-
-                    //                  xml->read(); // there should be a text
-                    //                  field
-                    // next, with the data for the list of acknowledged numbers.
-                    // Note: I think I was forced to add this when the numlist
-                    // was
-                    // empty, one time, so this may come back
-                    // to haunt me, but I want to fix it right, not kludge it.
-
-                    if (!Contract::LoadEncodedTextField(xml, strTemp)) {
-                        otErr << __FUNCTION__
-                              << ": Error: ackNums field without value "
-                                 "(at least, unable to LoadEncodedTextField on "
-                                 "that value.)\n";
-                        return false;  // error condition
-                    }
-                    NumList theNumList;
-
-                    if (strTemp.Exists()) { theNumList.Add(strTemp); }
-
-                    RequestNumber lTemp = 0;
-
-                    while (theNumList.Peek(lTemp)) {
-                        theNumList.Pop();
-                        // Migrate to Context class.
-                        Identifier local, remote;
-
-                        if (serverMode) {
-                            local = serverID;
-                            remote = m_nymID;
-                            auto context =
-                                OT::App().Wallet().mutable_ClientContext(
-                                    local, remote);
-                            context.It().AddAcknowledgedNumber(lTemp);
-                        } else {
-                            local = m_nymID;
-                            remote = Identifier(tempNotaryID);
-                            auto context =
-                                OT::App().Wallet().mutable_ServerContext(
-                                    local, remote);
-                            context.It().AddAcknowledgedNumber(lTemp);
-                        }
-                    }
-
-                    converted = true;
                 } else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
                     m_bMarkForDeletion = true;
                     otLog3 << "This nym has been MARKED_FOR_DELETION (at some "
                               "point prior.)\n";
-                } else if (strNodeName.Compare("hasOpenCronItem") && convert) {
-                    String strID = xml->getAttributeValue("ID");
-
-                    if (strID.Exists()) {
-                        auto context = OT::App().Wallet().mutable_ClientContext(
-                            serverID, m_nymID);
-                        context.It().OpenCronItem(strID.ToLong());
-                        otLog3 << "This nym has an open cron item with ID: "
-                               << strID << "\n";
-                    } else
-                        otLog3 << "This nym MISSING ID when loading open cron "
-                                  "item "
-                                  "record.\n";
-
-                    converted = true;
                 } else if (strNodeName.Compare("ownsAssetAcct")) {
                     String strID = xml->getAttributeValue("ID");
 
@@ -1750,125 +711,7 @@ bool Nym::LoadNymFromString(
                         otLog3
                             << "This nym MISSING asset account ID when loading "
                                "nym record.\n";
-                }
-                // Convert nyms created with opentxs-1.0
-                // TODO: Remove this code after support for opentxs-1.0 ends
-                else if (strNodeName.Compare("mailMessage")) {
-                    OTASCIIArmor armorMail;
-                    String strMessage;
-
-                    xml->read();
-
-                    if (irr::io::EXN_TEXT == xml->getNodeType()) {
-                        String strNodeData = xml->getNodeData();
-
-                        // Sometimes the XML reads up the data with a prepended
-                        // newline.
-                        // This screws up my own objects which expect a
-                        // consistent
-                        // in/out
-                        // So I'm checking here for that prepended newline, and
-                        // removing it.
-                        char cNewline;
-                        if (strNodeData.Exists() &&
-                            strNodeData.GetLength() > 2 &&
-                            strNodeData.At(0, cNewline)) {
-                            if ('\n' == cNewline)
-                                armorMail.Set(
-                                    strNodeData.Get() +
-                                    1);  // I know all this shit is ugly. I
-                                         // refactored this in Contract.
-                            else  // unfortunately OTNym is like a "basic type"
-                                  // and
-                                  // isn't derived from Contract.
-                                armorMail.Set(strNodeData.Get());  // TODO:
-                            // Contract now
-                            // has STATIC
-                            // methods for
-                            // this. (Start
-                            // using them
-                            // here...)
-
-                            if (armorMail.GetLength() > 2) {
-                                armorMail.GetString(
-                                    strMessage,
-                                    true);  // linebreaks == true.
-
-                                if (strMessage.GetLength() > 2) {
-                                    std::unique_ptr<Message> pMessage(
-                                        new Message);
-
-                                    OT_ASSERT(pMessage);
-
-                                    const bool loaded =
-                                        pMessage->LoadContractFromString(
-                                            strMessage);
-
-                                    if (loaded) {
-                                        OT::App().Activity().Mail(
-                                            m_nymID,
-                                            *pMessage,
-                                            StorageBox::MAILINBOX);
-                                    }
-                                }
-                            }  // armorMail
-                        }      // strNodeData
-                    }          // EXN_TEXT
-                }
-                // Convert nyms created with opentxs-1.0
-                // TODO: Remove this code after support for opentxs-1.0 ends
-                else if (strNodeName.Compare("outmailMessage")) {
-                    OTASCIIArmor armorMail;
-                    String strMessage;
-
-                    xml->read();
-
-                    if (irr::io::EXN_TEXT == xml->getNodeType()) {
-                        String strNodeData = xml->getNodeData();
-
-                        // Sometimes the XML reads up the data with a prepended
-                        // newline.
-                        // This screws up my own objects which expect a
-                        // consistent
-                        // in/out
-                        // So I'm checking here for that prepended newline, and
-                        // removing it.
-                        char cNewline;
-                        if (strNodeData.Exists() &&
-                            strNodeData.GetLength() > 2 &&
-                            strNodeData.At(0, cNewline)) {
-                            if ('\n' == cNewline)
-                                armorMail.Set(strNodeData.Get() + 1);
-                            else
-                                armorMail.Set(strNodeData.Get());
-
-                            if (armorMail.GetLength() > 2) {
-                                armorMail.GetString(
-                                    strMessage,
-                                    true);  // linebreaks == true.
-
-                                if (strMessage.GetLength() > 2) {
-                                    std::unique_ptr<Message> pMessage(
-                                        new Message);
-
-                                    OT_ASSERT(pMessage);
-
-                                    const bool loaded =
-                                        pMessage->LoadContractFromString(
-                                            strMessage);
-
-                                    if (loaded) {
-                                        OT::App().Activity().Mail(
-                                            m_nymID,
-                                            *pMessage,
-                                            StorageBox::MAILOUTBOX);
-                                    }
-                                }
-                            }  // armorMail
-                        }      // strNodeData
-                    }          // EXN_TEXT
-                }              // outpayments message
-                else if (strNodeName.Compare("outpaymentsMessage")) {
+                } else if (strNodeName.Compare("outpaymentsMessage")) {
                     OTASCIIArmor armorMail;
                     String strMessage;
 
@@ -1934,6 +777,656 @@ bool Nym::LoadNymFromString(
     return bSuccess;
 }
 
+void Nym::DisplayStatistics(String& strOutput) const
+{
+    sLock lock(shared_lock_);
+    strOutput.Concatenate("Source for ID:\n%s\n", source_->asString().Get());
+    strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
+
+    for (auto it : m_mapCredentialSets) {
+        auto pCredentialSet = it.second;
+        OT_ASSERT(nullptr != pCredentialSet);
+
+        const String strCredType = Credential::CredentialTypeToString(
+            pCredentialSet->GetMasterCredential().Type());
+        strOutput.Concatenate(
+            "%s Master Credential ID: %s \n",
+            strCredType.Get(),
+            pCredentialSet->GetMasterCredID().c_str());
+        const std::size_t nChildCredentialCount =
+            pCredentialSet->GetChildCredentialCount();
+
+        if (nChildCredentialCount > 0) {
+            for (std::size_t vvv = 0; vvv < nChildCredentialCount; ++vvv) {
+                const Credential* pChild =
+                    pCredentialSet->GetChildCredentialByIndex(vvv);
+                const String strChildCredType =
+                    Credential::CredentialTypeToString(pChild->Type());
+                const std::string str_childcred_id(
+                    pCredentialSet->GetChildCredentialIDByIndex(vvv));
+
+                strOutput.Concatenate(
+                    "   %s child credential ID: %s \n",
+                    strChildCredType.Get(),
+                    str_childcred_id.c_str());
+            }
+        }
+    }
+    strOutput.Concatenate("%s", "\n");
+
+    strOutput.Concatenate(
+        "==>      Name: %s   %s\n",
+        alias_.c_str(),
+        m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
+    strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
+    strOutput.Concatenate(
+        "Outpayments count: %" PRI_SIZE "\n", m_dequeOutpayments.size());
+
+    String theStringID(m_nymID);
+    strOutput.Concatenate("Nym ID: %s\n", theStringID.Get());
+}
+
+std::string Nym::EmailAddresses(bool active) const
+{
+    eLock lock(shared_lock_);
+
+    if (false == bool(contact_data_)) { init_claims(lock); }
+
+    OT_ASSERT(contact_data_);
+
+    return contact_data_->EmailAddresses(active);
+}
+
+const std::vector<OTIdentifier> Nym::GetChildCredentialIDs(
+    const std::string& masterID) const
+{
+    sLock lock(shared_lock_);
+
+    std::vector<OTIdentifier> ids;
+
+    auto it = m_mapCredentialSets.find(masterID);
+    if (m_mapCredentialSets.end() != it) {
+        const CredentialSet* pMaster = it->second;
+
+        OT_ASSERT(nullptr != pMaster);
+
+        auto count = pMaster->GetChildCredentialCount();
+        for (size_t i = 0; i < count; ++i) {
+            auto pChild = pMaster->GetChildCredentialByIndex(i);
+
+            OT_ASSERT(nullptr != pChild);
+
+            ids.emplace_back(pChild->ID());
+        }
+    }
+
+    return ids;
+}
+
+bool Nym::GetHash(
+    const mapOfIdentifiers& the_map,
+    const std::string& str_id,
+    Identifier& theOutput) const  // client-side
+{
+    sLock lock(shared_lock_);
+
+    bool bRetVal =
+        false;  // default is false: "No, I didn't find a hash for that id."
+    theOutput.Release();
+
+    // The Pseudonym has a map of its recent hashes, one for each server
+    // (nymbox) or account (inbox/outbox).
+    // For Server Bob, with this Pseudonym, I might have hash lkjsd987345lkj.
+    // For but Server Alice, I might have hash 98345jkherkjghdf98gy.
+    // (Same Nym, but different hash for each server, as well as inbox/outbox
+    // hashes for each asset acct.)
+    //
+    // So let's loop through all the hashes I have, and if the ID on the map
+    // passed in
+    // matches the [server|acct] ID that was passed in, then return TRUE.
+    //
+    for (const auto& it : the_map) {
+        if (str_id == it.first) {
+            // The call has succeeded
+            bRetVal = true;
+            theOutput = it.second;
+            break;
+        }
+    }
+
+    return bRetVal;
+}
+
+// sets argument based on internal member
+void Nym::GetIdentifier(Identifier& theIdentifier) const
+{
+    sLock lock(shared_lock_);
+
+    theIdentifier = m_nymID;
+}
+
+// sets argument based on internal member
+void Nym::GetIdentifier(String& theIdentifier) const
+{
+    sLock lock(shared_lock_);
+
+    m_nymID->GetString(theIdentifier);
+}
+
+bool Nym::GetInboxHash(
+    const std::string& acct_id,
+    Identifier& theOutput) const  // client-side
+{
+    return GetHash(m_mapInboxHash, acct_id, theOutput);
+}
+
+CredentialSet* Nym::GetMasterCredential(const String& strID)
+{
+    sLock lock(shared_lock_);
+    auto iter = m_mapCredentialSets.find(strID.Get());
+    CredentialSet* pCredential = nullptr;
+
+    if (m_mapCredentialSets.end() != iter)  // found it
+        pCredential = iter->second;
+
+    return pCredential;
+}
+
+const std::vector<OTIdentifier> Nym::GetMasterCredentialIDs() const
+{
+    sLock lock(shared_lock_);
+
+    std::vector<OTIdentifier> ids;
+
+    for (const auto& it : m_mapCredentialSets) {
+        const CredentialSet* pCredential = it.second;
+        OT_ASSERT(nullptr != pCredential);
+
+        ids.emplace_back(pCredential->GetMasterCredential().ID());
+    }
+
+    return ids;
+}
+
+bool Nym::GetOutboxHash(
+    const std::string& acct_id,
+    Identifier& theOutput) const  // client-side
+{
+    return GetHash(m_mapOutboxHash, acct_id, theOutput);
+}
+
+// Look up a transaction by transaction number and see if it is in the ledger.
+// If it is, return a pointer to it, otherwise return nullptr.
+Message* Nym::GetOutpaymentsByIndex(std::int32_t nIndex) const
+{
+    sLock lock(shared_lock_);
+    const std::uint32_t uIndex = nIndex;
+
+    // Out of bounds.
+    if (m_dequeOutpayments.empty() || (nIndex < 0) ||
+        (uIndex >= m_dequeOutpayments.size())) {
+
+        return nullptr;
+    }
+
+    return m_dequeOutpayments.at(nIndex);
+}
+
+Message* Nym::GetOutpaymentsByTransNum(
+    const std::int64_t lTransNum,
+    std::unique_ptr<OTPayment>* pReturnPayment /*=nullptr*/,
+    std::int32_t* pnReturnIndex /*=nullptr*/) const
+{
+    if (nullptr != pnReturnIndex) { *pnReturnIndex = -1; }
+
+    const std::int32_t nCount = GetOutpaymentsCount();
+
+    for (std::int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        Message* pMsg = m_dequeOutpayments.at(nIndex);
+        OT_ASSERT(nullptr != pMsg);
+        String strPayment;
+        std::unique_ptr<OTPayment> payment;
+        std::unique_ptr<OTPayment>& pPayment(
+            nullptr == pReturnPayment ? payment : *pReturnPayment);
+
+        // There isn't any encrypted envelope this time, since it's my
+        // outPayments box.
+        //
+        if (pMsg->m_ascPayload.Exists() &&
+            pMsg->m_ascPayload.GetString(strPayment) && strPayment.Exists()) {
+            pPayment.reset(new OTPayment(strPayment));
+
+            // Let's see if it's the cheque we're looking for...
+            //
+            if (pPayment && pPayment->IsValid()) {
+                if (pPayment->SetTempValues()) {
+                    if (pPayment->HasTransactionNum(lTransNum)) {
+
+                        if (nullptr != pnReturnIndex) {
+                            *pnReturnIndex = nIndex;
+                        }
+
+                        return pMsg;
+                    }
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+/// return the number of payments items available for this Nym.
+std::int32_t Nym::GetOutpaymentsCount() const
+{
+    return static_cast<std::int32_t>(m_dequeOutpayments.size());
+}
+
+const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
+{
+    sLock lock(shared_lock_);
+
+    return get_private_auth_key(lock);
+}
+
+template <typename T>
+const OTAsymmetricKey& Nym::get_private_auth_key(const T& lock) const
+{
+    OT_ASSERT(!m_mapCredentialSets.empty());
+
+    OT_ASSERT(verify_lock(lock));
+    const CredentialSet* pCredential = nullptr;
+
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
+
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
+    }
+    if (nullptr == pCredential) OT_FAIL;
+
+    return pCredential->GetPrivateAuthKey(&m_listRevokedIDs);  // success
+}
+
+void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
+    const
+{
+    Tag tag("nymData");
+
+    tag.add_attribute("version", m_strVersion.Get());
+
+    String strNymID(m_nymID);
+
+    tag.add_attribute("nymID", strNymID.Get());
+
+    SerializeNymIDSource(tag);
+
+    SaveCredentialsToTag(tag, nullptr, pmapCredFiles);
+
+    std::string str_result;
+    tag.output(str_result);
+
+    strCredList.Concatenate("%s", str_result.c_str());
+}
+
+const OTAsymmetricKey& Nym::GetPrivateEncrKey() const
+{
+    sLock lock(shared_lock_);
+
+    OT_ASSERT(!m_mapCredentialSets.empty());
+
+    const CredentialSet* pCredential = nullptr;
+
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
+
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
+    }
+    if (nullptr == pCredential) OT_FAIL;
+
+    return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);  // success
+}
+
+const OTAsymmetricKey& Nym::GetPrivateSignKey() const
+{
+    sLock lock(shared_lock_);
+
+    return get_private_sign_key(lock);
+}
+
+template <typename T>
+const OTAsymmetricKey& Nym::get_private_sign_key(const T& lock) const
+{
+    OT_ASSERT(!m_mapCredentialSets.empty());
+
+    OT_ASSERT(verify_lock(lock));
+
+    const CredentialSet* pCredential = nullptr;
+
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
+
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
+    }
+    if (nullptr == pCredential) OT_FAIL;
+
+    return pCredential->GetPrivateSignKey(&m_listRevokedIDs);  // success
+}
+
+const OTAsymmetricKey& Nym::GetPublicAuthKey() const
+{
+    sLock lock(shared_lock_);
+
+    OT_ASSERT(!m_mapCredentialSets.empty());
+
+    const CredentialSet* pCredential = nullptr;
+
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
+
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
+    }
+    if (nullptr == pCredential) OT_FAIL;
+
+    return pCredential->GetPublicAuthKey(&m_listRevokedIDs);  // success
+}
+
+const OTAsymmetricKey& Nym::GetPublicEncrKey() const
+{
+    sLock lock(shared_lock_);
+
+    OT_ASSERT(!m_mapCredentialSets.empty());
+
+    const CredentialSet* pCredential = nullptr;
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
+
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
+    }
+    if (nullptr == pCredential) OT_FAIL;
+
+    return pCredential->GetPublicEncrKey(&m_listRevokedIDs);  // success
+}
+
+// This is being called by:
+// Contract::VerifySignature(const OTPseudonym& theNym, const OTSignature&
+// theSignature, OTPasswordData * pPWData=nullptr)
+//
+// Note: Need to change Contract::VerifySignature so that it checks all of
+// these keys when verifying.
+//
+// OT uses the signature's metadata to narrow down its search for the correct
+// public key.
+// Return value is the count of public keys found that matched the metadata on
+// the signature.
+std::int32_t Nym::GetPublicKeysBySignature(
+    listOfAsymmetricKeys& listOutput,
+    const OTSignature& theSignature,
+    char cKeyType) const
+{
+    // Unfortunately, theSignature can only narrow the search down (there may be
+    // multiple results.)
+    std::int32_t nCount = 0;
+
+    sLock lock(shared_lock_);
+
+    for (const auto& it : m_mapCredentialSets) {
+        const CredentialSet* pCredential = it.second;
+        OT_ASSERT(nullptr != pCredential);
+
+        const std::int32_t nTempCount = pCredential->GetPublicKeysBySignature(
+            listOutput, theSignature, cKeyType);
+        nCount += nTempCount;
+    }
+
+    return nCount;
+}
+
+const OTAsymmetricKey& Nym::GetPublicSignKey() const
+{
+    sLock lock(shared_lock_);
+
+    return get_public_sign_key(lock);
+}
+
+template <typename T>
+const OTAsymmetricKey& Nym::get_public_sign_key(const T& lock) const
+{
+    OT_ASSERT(!m_mapCredentialSets.empty());
+
+    OT_ASSERT(verify_lock(lock));
+
+    const CredentialSet* pCredential = nullptr;
+
+    for (const auto& it : m_mapCredentialSets) {
+        // Todo: If we have some criteria, such as which master or
+        // child credential
+        // is currently being employed by the user, we'll use that here to
+        // skip
+        // through this loop until we find the right one. Until then, I'm
+        // just
+        // going to return the first one that's valid (not null).
+
+        pCredential = it.second;
+        if (nullptr != pCredential) break;
+    }
+    if (nullptr == pCredential) OT_FAIL;
+
+    return pCredential->GetPublicSignKey(&m_listRevokedIDs);  // success
+}
+
+CredentialSet* Nym::GetRevokedCredential(const String& strID)
+{
+    sLock lock(shared_lock_);
+
+    auto iter = m_mapRevokedSets.find(strID.Get());
+    CredentialSet* pCredential = nullptr;
+
+    if (m_mapCredentialSets.end() != iter)  // found it
+        pCredential = iter->second;
+
+    return pCredential;
+}
+
+const std::vector<OTIdentifier> Nym::GetRevokedCredentialIDs() const
+{
+    sLock lock(shared_lock_);
+
+    std::vector<OTIdentifier> ids;
+
+    for (const auto& it : m_mapRevokedSets) {
+        const CredentialSet* pCredential = it.second;
+        OT_ASSERT(nullptr != pCredential);
+
+        ids.emplace_back(pCredential->GetMasterCredential().ID());
+    }
+
+    return ids;
+}
+
+bool Nym::HasCapability(const NymCapability& capability) const
+{
+    eLock lock(shared_lock_);
+
+    return has_capability(lock, capability);
+}
+
+bool Nym::has_capability(const eLock& lock, const NymCapability& capability)
+    const
+{
+    OT_ASSERT(verify_lock(lock));
+
+    for (auto& it : m_mapCredentialSets) {
+        OT_ASSERT(nullptr != it.second);
+
+        if (nullptr != it.second) {
+            const CredentialSet& credSet = *it.second;
+
+            if (credSet.hasCapability(capability)) { return true; }
+        }
+    }
+
+    return false;
+}
+
+void Nym::init_claims(const eLock& lock) const
+{
+    OT_ASSERT(verify_lock(lock));
+
+    const std::string nymID = String(m_nymID).Get();
+    contact_data_.reset(new class ContactData(
+        nymID,
+        NYM_CONTACT_DATA_VERSION,
+        NYM_CONTACT_DATA_VERSION,
+        ContactData::SectionMap()));
+
+    OT_ASSERT(contact_data_);
+
+    std::unique_ptr<proto::ContactData> serialized{nullptr};
+
+    for (auto& it : m_mapCredentialSets) {
+        OT_ASSERT(nullptr != it.second);
+
+        const auto& credSet = *it.second;
+        credSet.GetContactData(serialized);
+
+        if (serialized) {
+            OT_ASSERT(
+                proto::Validate(*serialized, VERBOSE, proto::CLAIMS_NORMAL));
+
+            class ContactData claimCred(
+                nymID, NYM_CONTACT_DATA_VERSION, *serialized);
+            contact_data_.reset(
+                new class ContactData(*contact_data_ + claimCred));
+            serialized.reset();
+        }
+    }
+}
+
+bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)
+{
+    eLock lock(shared_lock_);
+
+    return load_credential_index(lock, index);
+}
+
+bool Nym::load_credential_index(
+    const eLock& lock,
+    const serializedCredentialIndex& index)
+{
+    if (!proto::Validate<proto::CredentialIndex>(index, VERBOSE)) {
+        otErr << __FUNCTION__ << ": Unable to load invalid serialized"
+              << " credential index." << std::endl;
+
+        return false;
+    }
+
+    OT_ASSERT(verify_lock(lock));
+
+    Identifier nymID(index.nymid());
+    if (m_nymID != nymID) { return false; }
+    version_ = index.version();
+    index_ = index.index();
+    revision_.store(index.revision());
+    mode_ = index.mode();
+    source_ = std::make_shared<NymIDSource>(index.source());
+    proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
+                              ? proto::KEYMODE_PRIVATE
+                              : proto::KEYMODE_PUBLIC;
+
+    contact_data_.reset();
+
+    m_mapCredentialSets.clear();
+    for (auto& it : index.activecredentials()) {
+        CredentialSet* newSet = new CredentialSet(wallet_, mode, it);
+
+        if (nullptr != newSet) {
+            m_mapCredentialSets.emplace(
+                std::make_pair(newSet->GetMasterCredID(), newSet));
+        }
+    }
+
+    m_mapRevokedSets.clear();
+    for (auto& it : index.revokedcredentials()) {
+        CredentialSet* newSet = new CredentialSet(wallet_, mode, it);
+
+        if (nullptr != newSet) {
+            m_mapRevokedSets.emplace(
+                std::make_pair(newSet->GetMasterCredID(), newSet));
+        }
+    }
+
+    return true;
+}
+
+// Use this to load the keys for a Nym (whether public or private), and then
+// call VerifyPseudonym, and then load the actual Nymfile using
+// LoadSignedNymfile.
+bool Nym::LoadCredentials(
+    bool bLoadPrivate,
+    const OTPasswordData* pPWData,
+    const OTPassword* pImportPassword)
+{
+    eLock lock(shared_lock_);
+
+    return load_credentials(lock);
+}
+
+bool Nym::load_credentials(
+    const eLock& lock,
+    bool bLoadPrivate,
+    const OTPasswordData* pPWData,
+    const OTPassword* pImportPassword)
+{
+    clear_credentials(lock);
+
+    String strNymID(m_nymID);
+    std::shared_ptr<proto::CredentialIndex> index;
+
+    if (OT::App().DB().Load(strNymID.Get(), index)) {
+        return load_credential_index(lock, *index);
+    } else {
+        otErr << __FUNCTION__
+              << ": Failed trying to load credential list for nym: " << strNymID
+              << std::endl;
+    }
+
+    return false;
+}
+
 Nym* Nym::LoadPrivateNym(
     const Identifier& NYM_ID,
     bool bChecking,
@@ -1954,16 +1447,19 @@ Nym* Nym::LoadPrivateNym(
     std::unique_ptr<Nym> pNym;
     pNym.reset(
         ((nullptr == pstrName) || !pstrName->Exists())
-            ? (new Nym(NYM_ID))
-            : (new Nym(*pstrName, strNymID, strNymID)));
+            ? (new Nym(OT::App().Wallet(), NYM_ID))
+            : (new Nym(OT::App().Wallet(), *pstrName, strNymID, strNymID)));
     OT_ASSERT_MSG(
         nullptr != pNym,
         "OTPseudonym::LoadPrivateNym: Error allocating memory.\n");
 
+    eLock lock(pNym->shared_lock_);
+
     OTPasswordData thePWData(OT_PW_DISPLAY);
     if (nullptr == pPWData) pPWData = &thePWData;
 
-    bool bLoadedKey = pNym->LoadCredentials(true, pPWData, pImportPassword);
+    bool bLoadedKey =
+        pNym->load_credentials(lock, true, pPWData, pImportPassword);
 
     if (!bLoadedKey) {
         Log::vOutput(
@@ -1977,19 +1473,20 @@ Nym* Nym::LoadPrivateNym(
             strNymID.Get());
         // success loading credentials
         // failure verifying pseudonym public key.
-    } else if (!pNym->VerifyPseudonym()) {
+    } else if (!pNym->verify_pseudonym(lock)) {
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure verifying Nym public key: " << strNymID << "\n";
         // success verifying pseudonym public key.
         // failure loading signed nymfile.
-    } else if (!pNym->LoadSignedNymfile(*pNym)) {  // Unlike with public key,
-                                                   // with private key we DO
-                                                   // expect nymfile to be
-                                                   // here.
+    } else if (!pNym->load_signed_nymfile(lock, *pNym)) {  // Unlike with public
+                                                           // key,
+        // with private key we DO
+        // expect nymfile to be
+        // here.
         otErr << __FUNCTION__ << " " << szFunc
               << ": Failure calling LoadSignedNymfile: " << strNymID << "\n";
     } else {  // ultimate success.
-        if (pNym->hasCapability(NymCapability::SIGN_MESSAGE)) {
+        if (pNym->has_capability(lock, NymCapability::SIGN_MESSAGE)) {
 
             return pNym.release();
         }
@@ -2005,16 +1502,29 @@ Nym* Nym::LoadPrivateNym(
 // gibberish itself.
 bool Nym::LoadPublicKey()
 {
-    if (LoadCredentials() && (GetMasterCredentialCount() > 0)) { return true; }
+    eLock lock(shared_lock_);
+
+    if (load_credentials(lock) && (m_mapCredentialSets.size() > 0)) {
+        return true;
+    }
     otInfo << __FUNCTION__ << ": Failure.\n";
     return false;
 }
 
 bool Nym::LoadSignedNymfile(const Nym& SIGNER_NYM)
 {
+    sLock lock(shared_lock_);
+
+    return load_signed_nymfile(lock, SIGNER_NYM);
+}
+
+template <typename T>
+bool Nym::load_signed_nymfile(const T& lock, const Nym& SIGNER_NYM)
+{
+    OT_ASSERT(verify_lock(lock));
+
     // Get the Nym's ID in string form
-    String nymID;
-    GetIdentifier(nymID);
+    String nymID(m_nymID);
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
@@ -2040,12 +1550,19 @@ bool Nym::LoadSignedNymfile(const Nym& SIGNER_NYM)
         return false;
     }
 
-    if (!theNymfile.VerifySignature(SIGNER_NYM)) {
-        String strSignerNymID;
-        SIGNER_NYM.GetIdentifier(strSignerNymID);
+    const OTAsymmetricKey* publicSignKey = nullptr;
+    if (SIGNER_NYM.ID() == ID()) {
+        publicSignKey = &get_public_sign_key(lock);
+    } else {
+        publicSignKey = &SIGNER_NYM.GetPublicSignKey();
+    }
+
+    OT_ASSERT(nullptr != publicSignKey);
+
+    if (!theNymfile.VerifyWithKey(*publicSignKey)) {
         otErr << __FUNCTION__
               << ": Failed verifying signature on nymfile: " << nymID
-              << "\n Signer Nym ID: " << strSignerNymID << "\n";
+              << "\n Signer Nym ID: " << SIGNER_NYM.ID().str() << "\n";
 
         return false;
     }
@@ -2060,8 +1577,13 @@ bool Nym::LoadSignedNymfile(const Nym& SIGNER_NYM)
     }
 
     bool converted = false;
-    const bool loaded =
-        LoadNymFromString(theNymfile.GetFilePayload(), converted);
+    const bool loaded = deserialize_nymfile(
+        lock,
+        theNymfile.GetFilePayload(),
+        converted,
+        nullptr,
+        nullptr,
+        nullptr);
 
     if (!loaded) { return false; }
 
@@ -2069,7 +1591,7 @@ bool Nym::LoadSignedNymfile(const Nym& SIGNER_NYM)
         // This will ensure that none of the old tags will be present the next
         // time this nym is loaded.
         // Converting a nym more than once is likely to cause sync issues.
-        SaveSignedNymfile(SIGNER_NYM);
+        save_signed_nymfile(lock, SIGNER_NYM);
     }
 
     return true;
@@ -2089,6 +1611,8 @@ const CredentialSet* Nym::MasterCredential(const String& strID) const
 std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
     const std::string& id) const
 {
+    eLock lock(shared_lock_);
+
     std::shared_ptr<const proto::Credential> output;
     auto credential = MasterCredential(String(id));
 
@@ -2102,7 +1626,7 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
 
 std::string Nym::Name() const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -2117,7 +1641,7 @@ std::string Nym::Name() const
 
 bool Nym::Path(proto::HDPath& output) const
 {
-    Lock lock(lock_);
+    sLock lock(shared_lock_);
 
     for (const auto& it : m_mapCredentialSets) {
         OT_ASSERT(nullptr != it.second);
@@ -2157,7 +1681,7 @@ std::string Nym::PaymentCode() const
 
 std::string Nym::PhoneNumbers(bool active) const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -2174,6 +1698,8 @@ bool Nym::ReEncryptPrivateCredentials(
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword) const
 {
+    eLock lock(shared_lock_);
+
     const OTPassword* pExportPassphrase = nullptr;
     std::unique_ptr<const OTPassword> thePasswordAngel;
 
@@ -2308,6 +1834,8 @@ bool Nym::RemoveOutpaymentsByTransNum(
 //
 bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
 {
+    eLock lock(shared_lock_);
+
     bool bSuccess = true;
     const Identifier& theNotaryID = theNymbox.GetRealNotaryID();
     const String strNotaryID(theNotaryID);
@@ -2377,12 +1905,12 @@ bool Nym::ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
     std::set<TransactionNumber> notUsed;
     context.It().UpdateHighest(setTransNumbers, notUsed, notUsed);
 
-    return (SaveSignedNymfile(*this) && bSuccess);
+    return (save_signed_nymfile(lock, *this) && bSuccess);
 }
 
 std::uint64_t Nym::Revision() const { return revision_.load(); }
 
-void Nym::revoke_contact_credentials(const Lock& lock)
+void Nym::revoke_contact_credentials(const eLock& lock)
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -2397,7 +1925,7 @@ void Nym::revoke_contact_credentials(const Lock& lock)
     for (auto& it : revokedIDs) { m_listRevokedIDs.push_back(it); }
 }
 
-void Nym::revoke_verification_credentials(const Lock& lock)
+void Nym::revoke_verification_credentials(const eLock& lock)
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -2415,6 +1943,8 @@ void Nym::revoke_verification_credentials(const Lock& lock)
 std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
     const std::string& id) const
 {
+    eLock lock(shared_lock_);
+
     std::shared_ptr<const proto::Credential> output;
 
     auto iter = m_mapRevokedSets.find(id);
@@ -2425,28 +1955,6 @@ std::shared_ptr<const proto::Credential> Nym::RevokedCredentialContents(
     }
 
     return output;
-}
-
-bool Nym::SaveCredentialIDs() const
-{
-    String strNymID;
-    GetIdentifier(strNymID);
-    serializedCredentialIndex index =
-        SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_ONLY_IDS);
-    const bool valid = proto::Validate(index, VERBOSE);
-
-    if (!valid) { return false; }
-
-    if (!OT::App().DB().Store(index, alias_)) {
-        otErr << __FUNCTION__ << ": Failure trying to store "
-              << " credential list for Nym: " << strNymID << std::endl;
-
-        return false;
-    }
-
-    otWarn << "Credentials saved." << std::endl;
-
-    return true;
 }
 
 void Nym::SaveCredentialsToTag(
@@ -2493,12 +2001,21 @@ void Nym::SaveCredentialsToTag(
 }
 
 // Save the Pseudonym to a string...
-bool Nym::SavePseudonym(String& strNym) const
+bool Nym::SerializeNymfile(String& strNym) const
 {
+    sLock lock(shared_lock_);
+
+    return serialize_nymfile(lock, strNym);
+}
+
+template <typename T>
+bool Nym::serialize_nymfile(const T& lock, String& strNym) const
+{
+    OT_ASSERT(verify_lock(lock));
+
     Tag tag("nymData");
 
-    String nymID;
-    GetIdentifier(nymID);
+    String nymID(m_nymID);
 
     tag.add_attribute("version", m_strVersion.Get());
     tag.add_attribute("nymID", nymID.Get());
@@ -2585,13 +2102,15 @@ bool Nym::SavePseudonym(String& strNym) const
     return true;
 }
 
-bool Nym::SavePseudonym(const char* szFoldername, const char* szFilename)
+bool Nym::SerializeNymfile(const char* szFoldername, const char* szFilename)
 {
     OT_ASSERT(nullptr != szFoldername);
     OT_ASSERT(nullptr != szFilename);
 
+    sLock lock(shared_lock_);
+
     String strNym;
-    SavePseudonym(strNym);
+    serialize_nymfile(lock, strNym);
 
     bool bSaved =
         OTDB::StorePlainString(strNym.Get(), szFoldername, szFilename);
@@ -2604,8 +2123,9 @@ bool Nym::SavePseudonym(const char* szFoldername, const char* szFilename)
 
 bool Nym::SavePseudonymWallet(Tag& parent) const
 {
-    String nymID;
-    GetIdentifier(nymID);
+    sLock lock(shared_lock_);
+
+    String nymID(m_nymID);
 
     // Name is in the clear in memory,
     // and base64 in storage.
@@ -2626,9 +2146,18 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
 
 bool Nym::SaveSignedNymfile(const Nym& SIGNER_NYM)
 {
+    eLock lock(shared_lock_);
+
+    return save_signed_nymfile(lock, SIGNER_NYM);
+}
+
+template <typename T>
+bool Nym::save_signed_nymfile(const T& lock, const Nym& SIGNER_NYM)
+{
+    OT_ASSERT(verify_lock(lock));
+
     // Get the Nym's ID in string form
-    String strNymID;
-    GetIdentifier(strNymID);
+    String strNymID(m_nymID);
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
@@ -2639,13 +2168,22 @@ bool Nym::SaveSignedNymfile(const Nym& SIGNER_NYM)
 
     // First we save this nym to a string...
     // Specifically, the file payload string on the OTSignedFile object.
-    SavePseudonym(theNymfile.GetFilePayload());
+    serialize_nymfile(lock, theNymfile.GetFilePayload());
 
     // Now the OTSignedFile contains the path, the filename, AND the
     // contents of the Nym itself, saved to a string inside the OTSignedFile
     // object.
 
-    if (theNymfile.SignContract(SIGNER_NYM) && theNymfile.SaveContract()) {
+    const OTAsymmetricKey* privateSignKey = nullptr;
+    if (SIGNER_NYM.ID() == ID()) {
+        privateSignKey = &get_private_sign_key(lock);
+    } else {
+        privateSignKey = &SIGNER_NYM.GetPrivateSignKey();
+    }
+
+    OT_ASSERT(nullptr != privateSignKey);
+
+    if (theNymfile.SignWithKey(*privateSignKey) && theNymfile.SaveContract()) {
         const bool bSaved = theNymfile.SaveFile();
 
         if (!bSaved) {
@@ -2671,6 +2209,8 @@ bool Nym::SaveSignedNymfile(const Nym& SIGNER_NYM)
 serializedCredentialIndex Nym::SerializeCredentialIndex(
     const CredentialIndexModeFlag mode) const
 {
+    sLock lock(shared_lock_);
+
     serializedCredentialIndex index;
 
     index.set_version(version_);
@@ -2728,9 +2268,9 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     }
 }
 
-bool Nym::set_contact_data(const Lock& lock, const proto::ContactData& data)
+bool Nym::set_contact_data(const eLock& lock, const proto::ContactData& data)
 {
-    OT_ASSERT(lock);
+    OT_ASSERT(verify_lock(lock));
 
     auto version = proto::NymRequiredVersion(data.version(), version_);
 
@@ -2741,7 +2281,7 @@ bool Nym::set_contact_data(const Lock& lock, const proto::ContactData& data)
         return false;
     }
 
-    if (false == hasCapability(NymCapability::SIGN_CHILDCRED)) {
+    if (false == has_capability(lock, NymCapability::SIGN_CHILDCRED)) {
         otErr << OT_METHOD << __FUNCTION__ << ": This nym can not be modified."
               << std::endl;
 
@@ -2765,22 +2305,17 @@ bool Nym::set_contact_data(const Lock& lock, const proto::ContactData& data)
     return false;
 }
 
-bool Nym::SetAlias(const std::string& alias)
+void Nym::SetAlias(const std::string& alias)
 {
+    eLock lock(shared_lock_);
+
     alias_ = alias;
     revision_++;
-
-    if (SaveCredentialIDs()) {
-
-        return OT::App().Wallet().SetNymAlias(m_nymID, alias);
-    }
-
-    return false;
 }
 
 bool Nym::SetCommonName(const std::string& name)
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -2793,7 +2328,7 @@ bool Nym::SetCommonName(const std::string& name)
 
 bool Nym::SetContactData(const proto::ContactData& data)
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     contact_data_.reset(
         new ContactData(m_nymID->str(), NYM_CONTACT_DATA_VERSION, data));
@@ -2837,22 +2372,12 @@ bool Nym::SetHash(
     return bSuccess;
 }
 
-// sets internal member based in ID passed in
-void Nym::SetIdentifier(const Identifier& theIdentifier)
-{
-    m_nymID = theIdentifier;
-}
-
-// sets internal member based in ID passed in
-void Nym::SetIdentifier(const String& theIdentifier)
-{
-    m_nymID->SetString(theIdentifier);
-}
-
 bool Nym::SetInboxHash(
     const std::string& acct_id,
     const Identifier& theInput)  // client-side
 {
+    eLock lock(shared_lock_);
+
     return SetHash(m_mapInboxHash, acct_id, theInput);
 }
 
@@ -2860,6 +2385,8 @@ bool Nym::SetOutboxHash(
     const std::string& acct_id,
     const Identifier& theInput)  // client-side
 {
+    eLock lock(shared_lock_);
+
     return SetHash(m_mapOutboxHash, acct_id, theInput);
 }
 
@@ -2868,7 +2395,7 @@ bool Nym::SetScope(
     const std::string& name,
     const bool primary)
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -2887,14 +2414,15 @@ bool Nym::SetScope(
 
 bool Nym::SetVerificationSet(const proto::VerificationSet& data)
 {
-    if (false == hasCapability(NymCapability::SIGN_CHILDCRED)) {
+    eLock lock(shared_lock_);
+
+    if (false == has_capability(lock, NymCapability::SIGN_CHILDCRED)) {
         otErr << OT_METHOD << __FUNCTION__ << ": This nym can not be modified."
               << std::endl;
 
         return false;
     }
 
-    Lock lock(lock_);
     revoke_verification_credentials(lock);
 
     if (add_verification_credential(lock, data)) {
@@ -2909,7 +2437,7 @@ std::string Nym::SocialMediaProfiles(
     const proto::ContactItemType type,
     bool active) const
 {
-    Lock lock(lock_);
+    eLock lock(shared_lock_);
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
@@ -2920,6 +2448,8 @@ std::string Nym::SocialMediaProfiles(
 
 const std::set<proto::ContactItemType> Nym::SocialMediaProfileTypes() const
 {
+    sLock lock(shared_lock_);
+
     return contact_data_->SocialMediaProfileTypes();
 }
 
@@ -2929,6 +2459,8 @@ std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
     auto privateKey = std::make_unique<OTPassword>();
 
     OT_ASSERT(privateKey);
+
+    sLock lock(shared_lock_);
 
     for (auto& it : m_mapCredentialSets) {
         OT_ASSERT(nullptr != it.second);
@@ -2946,17 +2478,17 @@ std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
     return privateKey;
 }
 
-bool Nym::update_nym(const Lock& lock, const std::int32_t version)
+bool Nym::update_nym(const eLock& lock, const std::int32_t version)
 {
     OT_ASSERT(verify_lock(lock));
 
-    if (VerifyPseudonym()) {
+    if (verify_pseudonym(lock)) {
         // Upgrade version
         if (version > version_) { version_ = version; }
 
         ++revision_;
 
-        return SaveCredentialIDs();
+        return true;
     }
 
     return false;
@@ -2986,24 +2518,14 @@ bool Nym::Verify(const Data& plaintext, const proto::Signature& sig) const
     return false;
 }
 
-bool Nym::verify_lock(const Lock& lock) const
+bool Nym::VerifyPseudonym() const
 {
-    if (lock.mutex() != &lock_) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;
+    eLock lock(shared_lock_);
 
-        return false;
-    }
-
-    if (false == lock.owns_lock()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Lock not owned." << std::endl;
-
-        return false;
-    }
-
-    return true;
+    return verify_pseudonym(lock);
 }
 
-bool Nym::VerifyPseudonym() const
+bool Nym::verify_pseudonym(const eLock& lock) const
 {
     // If there are credentials, then we verify the Nym via his credentials.
     if (!m_mapCredentialSets.empty()) {
@@ -3014,12 +2536,11 @@ bool Nym::VerifyPseudonym() const
 
             const auto theCredentialNymID =
                 Identifier::Factory(pCredential->GetNymID());
-            if (!CompareID(theCredentialNymID)) {
-                String strNymID;
-                GetIdentifier(strNymID);
+            if (m_nymID != theCredentialNymID) {
                 otOut << __FUNCTION__ << ": Credential NymID ("
                       << pCredential->GetNymID()
-                      << ") doesn't match actual NymID: " << strNymID << "\n";
+                      << ") doesn't match actual NymID: " << m_nymID->str()
+                      << "\n";
                 return false;
             }
 
@@ -3040,6 +2561,8 @@ bool Nym::VerifyPseudonym() const
 
 bool Nym::WriteCredentials() const
 {
+    sLock lock(shared_lock_);
+
     for (auto& it : m_mapCredentialSets) {
         if (!it.second->WriteCredentials()) {
             otErr << __FUNCTION__ << ": Failed to save credentials."
@@ -3047,13 +2570,6 @@ bool Nym::WriteCredentials() const
 
             return false;
         }
-    }
-
-    if (!SaveCredentialIDs()) {
-        otErr << __FUNCTION__ << ": Failed to save credential lists."
-              << std::endl;
-
-        return false;
     }
 
     return true;

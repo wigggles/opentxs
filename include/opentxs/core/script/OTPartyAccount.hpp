@@ -183,9 +183,7 @@ public:
     }
     bool Compare(const OTPartyAccount& rhs) const;
     bool DropFinalReceiptToInbox(
-        mapOfNyms* pNymMap,
         const String& strNotaryID,
-        Nym& theServerNym,
         OTSmartContract& theSmartContract,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,

@@ -426,15 +426,6 @@ TEST_F(Test_NymData, PrintContactData)
     ASSERT_STREQ(expectedStringOutput, dataString.c_str());
 }
 
-TEST_F(Test_NymData, SetAlias)
-{
-    bool set = nymData_.SetAlias("nymDataAlias");
-    ASSERT_TRUE(set);
-
-    auto alias = nymData_.Nym().Alias();
-    ASSERT_STREQ(alias.c_str(), "nymDataAlias");
-}
-
 TEST_F(Test_NymData, SetContactData)
 {
     const opentxs::ContactData contactData(

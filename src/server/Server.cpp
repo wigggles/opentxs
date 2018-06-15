@@ -48,6 +48,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -126,9 +127,9 @@ Server::Server(
     , m_strWalletFilename()
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
-    , m_strNotaryID(Identifier::Factory())
+    , m_notaryID(Identifier::Factory())
     , m_strServerNymID()
-    , m_nymServer()
+    , m_nymServer(nullptr)
     , m_Cron()
 {
 }
@@ -176,9 +177,9 @@ void Server::ProcessCron()
     // Such as sweeping server accounts after expiration dates, etc.
 }
 
-const Identifier& Server::GetServerID() const { return m_strNotaryID; }
+const Identifier& Server::GetServerID() const { return m_notaryID; }
 
-const Nym& Server::GetServerNym() const { return m_nymServer; }
+const Nym& Server::GetServerNym() const { return *m_nymServer; }
 
 bool Server::IsFlaggedForShutdown() const { return m_bShutdownFlag; }
 
@@ -234,18 +235,16 @@ void Server::CreateMainFile(bool& mainFileExists)
 #else
     NymParameters nymParameters();
 #endif
-    std::unique_ptr<Nym> newNym(new Nym(nymParameters));
+    auto newNym = wallet_.Nym(nymParameters);
 
-    if (!newNym) {
+    if (nullptr == newNym) {
         Log::vError("Error: Failed to create server nym\n");
         OT_FAIL;
     }
 
     if (!newNym->VerifyPseudonym()) { OT_FAIL; }
 
-    String serverNymID;
-    newNym->GetIdentifier(serverNymID);
-    const std::string strNymID(serverNymID.Get(), serverNymID.GetLength());
+    const Identifier nymID = newNym->ID();
 
     const std::string defaultTerms = "This is an example server contract.";
     const std::string& userTerms = mint_.GetUserTerms();
@@ -392,7 +391,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
 
     if (existing.empty()) {
-        pContract = wallet.Server(strNymID, name, terms, endpoints);
+        pContract = wallet.Server(nymID.str(), name, terms, endpoints);
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Existing contract found. Restoring." << std::endl;
@@ -434,15 +433,15 @@ void Server::CreateMainFile(bool& mainFileExists)
         OT_FAIL;
     }
 
-    if (false == newNym->SetScope(proto::CITEMTYPE_SERVER, name, true)) {
-        OT_FAIL
-    }
-
-    if (false == newNym->SetCommonName(String(pContract->ID()).Get())) {
-        OT_FAIL
-    }
-
     newNym.reset();
+
+    auto nymData = wallet_.mutable_Nym(nymID);
+    if (false == nymData.SetScope(proto::CITEMTYPE_SERVER, name, true)) {
+        OT_FAIL
+    }
+
+    if (false == nymData.SetCommonName(pContract->ID()->str())) { OT_FAIL }
+
     const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
     OTASCIIArmor ascContract(signedContract.get());
     opentxs::String strBookended;
@@ -472,7 +471,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     OTDB::StorePlainString(json, SEED_BACKUP_FILE);
 
     mainFileExists = mainFile_.CreateMainFile(
-        strBookended.Get(), strNotaryID, "", strNymID, strCachedKey);
+        strBookended.Get(), strNotaryID, "", nymID.str(), strCachedKey);
 
     config_.Save();
 }
@@ -485,7 +484,7 @@ void Server::Init(bool readOnly)
         Log::vError("Unable to Init data folders!");
         OT_FAIL;
     }
-    if (!ConfigLoader::load(crypto_, config_, m_strWalletFilename)) {
+    if (!ConfigLoader::load(crypto_, config_, WalletFilename())) {
         Log::vError("Unable to Load Config File!");
         OT_FAIL;
     }
@@ -572,8 +571,8 @@ void Server::Init(bool readOnly)
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
 
     // Load up the transaction number and other Server data members.
-    bool mainFileExists = m_strWalletFilename.Exists()
-                              ? OTDB::Exists(".", m_strWalletFilename.Get())
+    bool mainFileExists = WalletFilename().Exists()
+                              ? OTDB::Exists(".", WalletFilename().Get())
                               : false;
 
     if (false == mainFileExists) {
@@ -581,7 +580,7 @@ void Server::Init(bool readOnly)
             Log::vError(
                 "Error: Main file non-existent (%s). "
                 "Plus, unable to create, since read-only flag is set.\n",
-                m_strWalletFilename.Get());
+                WalletFilename().Get());
             OT_FAIL;
         } else {
             CreateMainFile(mainFileExists);
@@ -591,7 +590,7 @@ void Server::Init(bool readOnly)
     if (mainFileExists) {
         if (false == mainFile_.LoadMainFile(readOnly)) {
             Log::vError("Error in Loading Main File, re-creating.\n");
-            OTDB::EraseValueByKey(".", m_strWalletFilename.Get());
+            OTDB::EraseValueByKey(".", WalletFilename().Get());
             CreateMainFile(mainFileExists);
 
             OT_ASSERT(mainFileExists);
@@ -610,6 +609,16 @@ void Server::Init(bool readOnly)
     // With the Server's private key loaded, and the latest transaction number
     // loaded, and all the various other data (contracts, etc) the server is now
     // ready for operation!
+}
+
+bool Server::LoadServerNym(const Identifier& nymID)
+{
+    auto nym = wallet_.Nym(nymID);
+    if (nullptr == nym) { return false; }
+
+    m_nymServer = nym;
+
+    return true;
 }
 
 // msg, the request msg from payer, which is attached WHOLE to the Nymbox
@@ -797,7 +806,7 @@ bool Server::DropMessageToNymbox(
                     break;  // should never happen.
             }
         }
-        theMsgAngel->m_strNotaryID = String(m_strNotaryID);
+        theMsgAngel->m_strNotaryID = String(m_notaryID);
         theMsgAngel->m_bSuccess = true;
         SENDER_NYM_ID.GetString(theMsgAngel->m_strNymID);
         RECIPIENT_NYM_ID.GetString(
@@ -807,26 +816,9 @@ bool Server::DropMessageToNymbox(
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
-        Nym nymRecipient(RECIPIENT_NYM_ID);
+        ConstNym nymRecipient = wallet_.Nym(RECIPIENT_NYM_ID);
 
-        bool bLoadedNym =
-            nymRecipient.LoadPublicKey();  // Old style (deprecated.) But this
-                                           // function calls the new style,
-                                           // LoadCredentials, at the top.
-                                           // Eventually we'll just call that
-                                           // here directly.
-        if (!bLoadedNym) {
-            Log::vError(
-                "%s: Failed trying to load public key for recipient.\n",
-                __FUNCTION__);
-            return false;
-        } else if (!nymRecipient.VerifyPseudonym()) {
-            Log::vError(
-                "%s: Failed trying to verify Nym for recipient.\n",
-                __FUNCTION__);
-            return false;
-        }
-        const OTAsymmetricKey& thePubkey = nymRecipient.GetPublicEncrKey();
+        const OTAsymmetricKey& thePubkey = nymRecipient->GetPublicEncrKey();
         // Wrap the message up into an envelope and attach it to theMsgAngel.
         //
         OTEnvelope theEnvelope;
@@ -844,7 +836,7 @@ bool Server::DropMessageToNymbox(
         // base64-encoded string, into
         // theMsgAngel->m_ascPayload.
         {
-            theMsgAngel->SignContract(m_nymServer);
+            theMsgAngel->SignContract(*m_nymServer);
             theMsgAngel->SaveContract();
         } else {
             Log::vError(
@@ -882,7 +874,7 @@ bool Server::DropMessageToNymbox(
          // all the Box Receipts, which is unnecessary.
          theLedger.VerifyContractID() &&  // Instead, we'll verify the IDs and
                                           // Signature only.
-         theLedger.VerifySignature(m_nymServer))) {
+         theLedger.VerifySignature(*m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
             theLedger, theType, originType::not_applicable, lTransNum);
@@ -908,7 +900,7 @@ bool Server::DropMessageToNymbox(
             // is signed by sender, and envelope is encrypted
             // to recipient.
 
-            pTransaction->SignContract(m_nymServer);
+            pTransaction->SignContract(*m_nymServer);
             pTransaction->SaveContract();
             theLedger.AddTransaction(*pTransaction);  // Add the message
                                                       // transaction to the
@@ -916,7 +908,7 @@ bool Server::DropMessageToNymbox(
                                                       // cleanup.)
 
             theLedger.ReleaseSignatures();
-            theLedger.SignContract(m_nymServer);
+            theLedger.SignContract(*m_nymServer);
             theLedger.SaveContract();
             theLedger.SaveNymbox();  // We don't grab the Nymbox hash here,
                                      // since
@@ -986,7 +978,7 @@ bool Server::GetConnectInfo(std::string& strHostname, std::uint32_t& nPort)
 
 std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
 {
-    auto contract = wallet_.Server(m_strNotaryID);
+    auto contract = wallet_.Server(m_notaryID);
 
     OT_ASSERT(contract);
 

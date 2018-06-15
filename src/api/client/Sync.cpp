@@ -544,7 +544,7 @@ Messagability Sync::can_message(
         return Messagability::MISSING_SENDER;
     }
 
-    const bool canSign = senderNym->hasCapability(NymCapability::SIGN_MESSAGE);
+    const bool canSign = senderNym->HasCapability(NymCapability::SIGN_MESSAGE);
 
     if (false == canSign) {
         otErr << OT_METHOD << __FUNCTION__ << ": Sender nym "

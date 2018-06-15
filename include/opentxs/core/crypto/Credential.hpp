@@ -89,6 +89,7 @@ public:
     static serializedCredential ExtractArmoredCredential(
         const OTASCIIArmor& armoredCredential);
     static std::unique_ptr<Credential> Factory(
+        const api::client::Wallet& wallet,
         CredentialSet& parent,
         const proto::Credential& serialized,
         const proto::KeyMode& mode,
@@ -96,12 +97,13 @@ public:
 
     template <class C>
     static std::unique_ptr<C> Create(
+        const api::client::Wallet& wallet,
         CredentialSet& owner,
         const NymParameters& nymParameters)
     {
         std::unique_ptr<C> credential;
 
-        credential.reset(new C(owner, nymParameters));
+        credential.reset(new C(wallet, owner, nymParameters));
 
         if (!credential) {
             otErr << __FUNCTION__ << ": Failed to construct credential."
@@ -147,8 +149,9 @@ protected:
     proto::CredentialRole role_ = proto::CREDROLE_ERROR;
     proto::KeyMode mode_ = proto::KEYMODE_ERROR;
     CredentialSet* owner_backlink_ = nullptr;  // Do not cleanup.
-    String master_id_;
-    String nym_id_;
+    std::string master_id_;
+    std::string nym_id_;
+    const api::client::Wallet& wallet_;
 
     virtual serializedCredential serialize(
         const Lock& lock,
@@ -160,15 +163,19 @@ protected:
     bool AddMasterSignature(const Lock& lock);
     virtual bool New(const NymParameters& nymParameters);
 
-    Credential(CredentialSet& owner, const proto::Credential& serializedCred);
     Credential(
+        const api::client::Wallet& wallet,
+        CredentialSet& owner,
+        const proto::Credential& serializedCred);
+    Credential(
+        const api::client::Wallet& wallet,
         CredentialSet& owner,
         const std::uint32_t version,
         const NymParameters& nymParameters);
 
 public:
-    const String& MasterID() const { return master_id_; }
-    const String& NymID() const { return nym_id_; }
+    const std::string& MasterID() const { return master_id_; }
+    const std::string& NymID() const { return nym_id_; }
     const proto::CredentialRole& Role() const { return role_; }
     SerializedSignature MasterSignature() const;
     const proto::KeyMode& Mode() const { return mode_; }

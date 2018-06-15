@@ -96,6 +96,7 @@ namespace opentxs
  * stored as an Contract, and it must be signed by the master key. (which is
  * also an Credential.) */
 std::unique_ptr<Credential> Credential::Factory(
+    const api::client::Wallet& wallet,
     CredentialSet& parent,
     const proto::Credential& serialized,
     const proto::KeyMode& mode,
@@ -114,19 +115,20 @@ std::unique_ptr<Credential> Credential::Factory(
 
     switch (serialized.role()) {
         case proto::CREDROLE_MASTERKEY:
-            result.reset(new MasterCredential(parent, serialized));
+            result.reset(new MasterCredential(wallet, parent, serialized));
 
             break;
         case proto::CREDROLE_CHILDKEY:
-            result.reset(new ChildKeyCredential(parent, serialized));
+            result.reset(new ChildKeyCredential(wallet, parent, serialized));
 
             break;
         case proto::CREDROLE_CONTACT:
-            result.reset(new ContactCredential(parent, serialized));
+            result.reset(new ContactCredential(wallet, parent, serialized));
 
             break;
         case proto::CREDROLE_VERIFY:
-            result.reset(new VerificationCredential(parent, serialized));
+            result.reset(
+                new VerificationCredential(wallet, parent, serialized));
 
             break;
         default:
@@ -139,6 +141,7 @@ std::unique_ptr<Credential> Credential::Factory(
 }
 
 Credential::Credential(
+    const api::client::Wallet& wallet,
     CredentialSet& theOwner,
     const std::uint32_t version,
     const NymParameters& nymParameters)
@@ -146,10 +149,12 @@ Credential::Credential(
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
+    , wallet_(wallet)
 {
 }
 
 Credential::Credential(
+    const api::client::Wallet& wallet,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
     : ot_super(ConstNym(), serializedCred.version())
@@ -157,9 +162,10 @@ Credential::Credential(
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())
     , owner_backlink_(&theOwner)
+    , wallet_(wallet)
 {
     if (serializedCred.has_nymid()) {
-        nym_id_ = String(serializedCred.nymid());
+        nym_id_ = serializedCred.nymid();
         id_ = Identifier::Factory(serializedCred.id());
     }
 
@@ -201,8 +207,8 @@ bool Credential::VerifyMasterID() const
     // This check is not applicable to master credentials
     if (proto::CREDROLE_MASTERKEY == role_) { return true; }
 
-    const std::string parent = owner_backlink_->GetMasterCredID().Get();
-    const std::string child = master_id_.Get();
+    const std::string parent = owner_backlink_->GetMasterCredID();
+    const std::string child = master_id_;
 
     return (parent == child);
 }
@@ -283,7 +289,7 @@ SerializedSignature Credential::MasterSignature() const
     SerializedSignature masterSignature;
     proto::SignatureRole targetRole = proto::SIGROLE_PUBCREDENTIAL;
 
-    const std::string master = MasterID().Get();
+    const std::string master = MasterID();
 
     for (auto& it : signatures_) {
         if ((it->role() == targetRole) && (it->credentialid() == master)) {
@@ -394,7 +400,7 @@ serializedCredential Credential::serialize(
         parameters.reset(new proto::ChildCredentialParameters);
 
         parameters->set_version(1);
-        parameters->set_masterid(MasterID().Get());
+        parameters->set_masterid(MasterID());
         serializedCredential->set_allocated_childdata(parameters.release());
     }
 
@@ -429,8 +435,8 @@ serializedCredential Credential::serialize(
         serializedCredential->clear_signature();  // just in case...
     }
 
-    serializedCredential->set_id(String(id(lock)).Get());
-    serializedCredential->set_nymid(NymID().Get());
+    serializedCredential->set_id(id(lock)->str());
+    serializedCredential->set_nymid(NymID());
 
     return serializedCredential;
 }

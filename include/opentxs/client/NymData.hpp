@@ -183,14 +183,14 @@ namespace client
 namespace implementation
 {
 class Wallet;
-}  // implementation
-}  // client
-}  // api
+}  // namespace implementation
+}  // namespace client
+}  // namespace api
 
 class NymData
 {
 public:
-    NymData(const NymData&) = default;
+    NymData(const NymData&);
     NymData(NymData&&) = default;
 
     const proto::CredentialIndex asPublicNym() const;
@@ -247,7 +247,7 @@ public:
         const proto::ContactItemType type,
         const bool primary,
         const bool active);
-    bool SetAlias(const std::string& alias);
+    bool SetCommonName(const std::string& name);
     bool SetContactData(const proto::ContactData& data);
     bool SetScope(
         const proto::ContactItemType type,
@@ -255,10 +255,16 @@ public:
         const bool primary);
     bool SetVerificationSet(const proto::VerificationSet& data);
 
-    ~NymData() = default;
+    ~NymData();
 
 private:
     friend class api::client::implementation::Wallet;
+
+    typedef std::unique_lock<std::mutex> Lock;
+    typedef std::function<void(NymData*, Lock&)> LockedSave;
+
+    std::unique_ptr<Lock> object_lock_;
+    std::unique_ptr<LockedSave> locked_save_callback_;
 
     std::shared_ptr<class Nym> nym_;
 
@@ -266,7 +272,10 @@ private:
 
     class Nym& nym();
 
-    NymData(const std::shared_ptr<class Nym>& nym);
+    NymData(
+        std::mutex& objectMutex,
+        const std::shared_ptr<class Nym>& nym,
+        LockedSave save);
     NymData() = delete;
     NymData& operator=(const NymData&) = delete;
     NymData& operator=(NymData&&) = delete;

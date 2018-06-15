@@ -437,8 +437,6 @@ void OTParty::ClearTemporaryPointers()
         OT_ASSERT_MSG(
             nullptr != pAgent,
             "Unexpected nullptr agent pointer in party map.");
-
-        pAgent->ClearTemporaryPointers();
     }
 }
 
@@ -826,16 +824,6 @@ bool OTParty::HasAuthorizingAgentByNymID(
     return false;
 }
 
-void OTParty::RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded)
-{
-    for (auto& it : m_mapAgents) {
-        OTAgent* pAgent = it.second;
-        OT_ASSERT(nullptr != pAgent);
-
-        pAgent->RetrieveNymPointer(map_Nyms_Already_Loaded);
-    }
-}
-
 // Load up the Nym that authorized the agreement for this party
 // (the nym who supplied the opening trans# to sign it.)
 //
@@ -843,10 +831,9 @@ void OTParty::RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded)
 // example
 // to verify that the serverNym isn't the one you were looking for.
 // This is a low-level function.
-// CALLER IS RESPONSIBLE TO DELETE.
 
 // ppAgent lets you get the agent ptr if it was there.
-Nym* OTParty::LoadAuthorizingAgentNym(
+ConstNym OTParty::LoadAuthorizingAgentNym(
     const Nym& theSignerNym,
     OTAgent** ppAgent)
 {
@@ -858,12 +845,12 @@ Nym* OTParty::LoadAuthorizingAgentNym(
             OTAgent* pAgent = it->second;
             OT_ASSERT(nullptr != pAgent);
 
-            Nym* pNym = nullptr;
+            ConstNym pNym = nullptr;
 
             if (!pAgent->IsAnIndividual())
                 otErr << "OTParty::LoadAuthorizingAgentNym: This agent is not "
                          "an individual--there's no Nym to load.\n";
-            else if (nullptr == (pNym = pAgent->LoadNym(theSignerNym)))
+            else if (nullptr == (pNym = pAgent->LoadNym()))
                 otErr << "OTParty::LoadAuthorizingAgentNym: Failed loading "
                          "Nym.\n";
             else {
@@ -914,9 +901,7 @@ bool OTParty::VerifyOwnershipOfAccount(const Account& theAccount) const
 // This is only for SmartContracts, NOT all scriptables.
 //
 bool OTParty::DropFinalReceiptToInboxes(
-    mapOfNyms* pNymMap,
     const String& strNotaryID,
-    Nym& theServerNym,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     String* pstrNote,
@@ -947,10 +932,7 @@ bool OTParty::DropFinalReceiptToInboxes(
             "Unexpected nullptr partyaccount pointer in party map.");
 
         if (false == pAcct->DropFinalReceiptToInbox(
-                         pNymMap,  // contains any Nyms who might already be
-                                   // loaded, mapped by ID.
                          strNotaryID,
-                         theServerNym,
                          *pSmartContract,
                          lNewTransactionNumber,
                          strOrigCronItem,
@@ -972,8 +954,7 @@ bool OTParty::DropFinalReceiptToNymboxes(
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     String* pstrNote,
-    String* pstrAttachment,
-    Nym* pActualNym)
+    String* pstrAttachment)
 {
     bool bSuccess =
         false;  // Success is defined as "at least one agent was notified"
@@ -1005,8 +986,7 @@ bool OTParty::DropFinalReceiptToNymboxes(
                          lNewTransactionNumber,
                          strOrigCronItem,
                          pstrNote,
-                         pstrAttachment,
-                         pActualNym))
+                         pstrAttachment))
             otErr << "OTParty::DropFinalReceiptToNymboxes: Failed dropping "
                      "final Receipt to agent's Nymbox.\n";
         else
@@ -1018,7 +998,7 @@ bool OTParty::DropFinalReceiptToNymboxes(
 
 bool OTParty::SendNoticeToParty(
     bool bSuccessMsg,
-    Nym& theServerNym,
+    const Nym& theServerNym,
     const Identifier& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const String& strReference,
@@ -1146,182 +1126,6 @@ bool OTParty::LoadAndVerifyAssetAccounts(
             // cleaned-up properly later.
             map_NewlyLoaded.emplace(strAcctID.Get(), std::move(account));
         }
-    }
-
-    return true;
-}
-
-// After calling this, map_NewlyLoaded will contain pointers to Nyms that MUST
-// BE CLEANED UP.
-// This function will not bother loading any Nyms which appear on
-// map_Nyms_Already_Loaded.
-//
-bool OTParty::LoadAndVerifyAgentNyms(
-    Nym& theServerNym,
-    mapOfConstNyms& map_Nyms_Already_Loaded,
-    mapOfConstNyms& map_NewlyLoaded)
-{
-    const bool bIsNym = IsNym();
-
-    if (!bIsNym)  // Owner MUST be a Nym (until I code Entities.)
-    {
-        otErr << "OTParty::LoadAndVerifyAgents: Entities and roles have not "
-                 "been coded yet. Party owner MUST be a Nym. \n";
-        return false;
-    }
-    if (GetOpeningTransNo() <= 0)  // Opening Trans Number MUST be set for the
-                                   // party! VerifyPartyAuthorization() only
-                                   // verifies it if it's set. Therefore
-    {  // if we are verifying the agent Nyms based on the assumption that the
-        // authorizing Nym is valid, then we want to make sure
-        otErr << "OTParty::LoadAndVerifyAgents: This party doesn't have a "
-                 "valid opening transaction number. Sorry. \n";  // the Opening
-                                                                 // Num is being
-                                                                 // checked for
-                                                                 // that Nym.
-                                                                 // (And if it's
-                                                                 // above 0,
-                                                                 // then it IS
-                                                                 // being
-                                                                 // checked.)
-        return false;
-    }
-
-    bool bGotPartyNymID = false;
-    const std::string str_owner_id = GetNymID(
-        &bGotPartyNymID);  // str_owner_id  is the NymID of the party OWNER.
-    OT_ASSERT(bGotPartyNymID);
-
-    const String strServerNymID(theServerNym);
-
-    for (auto& it_agent : m_mapAgents) {
-        OTAgent* pAgent = it_agent.second;
-        OT_ASSERT_MSG(
-            pAgent != nullptr,
-            "Unexpected nullptr agent pointer in party map.");
-
-        if (!pAgent->IsAnIndividual() || !pAgent->DoesRepresentHimself()) {
-            otErr << "OTParty::LoadAndVerifyAgents: Entities and roles have "
-                     "not been coded yet. "
-                     "Agent needs to be an individual who represents himself, "
-                     "and Party owner needs to be the same Nym.\n";
-            return false;
-        }
-
-        auto theNymID = Identifier::Factory();
-        bool bGotAgentNymID = pAgent->GetNymID(theNymID);
-        const String strNymID(theNymID);
-        const std::string str_agent_id =
-            bGotAgentNymID ? strNymID.Get()
-                           : "";  // str_agent_id is the NymID of the AGENT.
-        OT_ASSERT(bGotAgentNymID);
-
-        // COMPARE THE IDS...... Since the Nym for this agent is representing
-        // himself (he is also owner)
-        // therefore they should have the same NymID.
-
-        if (!(str_agent_id.compare(str_owner_id) ==
-              0))  // If they don't match. (Until I code entities, a party can
-                   // only be a Nym representing himself as an agent.)
-        {
-            otErr << "OTParty::LoadAndVerifyAgents: Nym supposedly represents "
-                     "himself (owner AND agent) yet "
-                     "they have different Nym IDs:  "
-                  << str_owner_id << " / " << str_agent_id << ".\n";
-            return false;
-        }
-
-        // Server Nym is not allowed as a party (at this time :-)
-        if (str_agent_id.compare(strServerNymID.Get()) == 0)  // If they DO
-                                                              // match.
-        {
-            otErr << "OTParty::LoadAndVerifyAgents: Server Nym is not allowed "
-                     "to serve as an agent for smart contracts. Sorry.\n";
-            return false;
-        }
-
-        // BY THIS POINT we know that the Party is a Nym, the Agent is an
-        // individual representing himself, and
-        // we know that they have the SAME NYM ID.
-        //
-        // Next step: See if the Nym is already loaded and if not, load him up.
-
-        bool bHadToLoadtheNymMyself = true;
-        const Nym* pNym = nullptr;
-
-        auto it =
-            map_Nyms_Already_Loaded.find(str_agent_id);  // If it's there, it's
-                                                         // mapped by Nym ID, so
-                                                         // we can look it up.
-
-        if (map_Nyms_Already_Loaded.end() != it)  // Found it.
-        {
-            pNym = it->second;
-            OT_ASSERT(nullptr != pNym);
-
-            // Now we KNOW the Nym is "already loaded" and we KNOW the agent has
-            // a POINTER to that Nym:
-            //
-            OT_ASSERT(pAgent->IsValidSigner(*pNym));  // assert because the Nym
-                                                      // was already mapped by
-            // ID, so it should already
-            // have been validated.
-
-            bHadToLoadtheNymMyself =
-                false;  // Whew. He was already loaded. Found him.
-        }
-
-        // Looks like the Nym wasn't already loaded....
-        // Let's load him up
-        //
-        if (bHadToLoadtheNymMyself) {
-            if (nullptr == (pNym = pAgent->LoadNym(theServerNym))) {
-                otErr << "OTParty::LoadAndVerifyAgents: Failed loading Nym "
-                         "with ID: "
-                      << str_agent_id << "\n";
-                return false;
-            }
-            // Successfully loaded the Nym! We add to this map so it gets
-            // cleaned-up properly later.
-            map_NewlyLoaded.insert(std::pair<std::string, const Nym*>(
-                str_agent_id, pNym));  // I use str_agent_id here because it
-                                       // contains the right NymID.
-        }
-
-        // BY THIS POINT, we know the Nym is available for use, whether I had to
-        // load it myself first or not.
-        // We also know that if I DID have to load it myself, the pointer was
-        // saved in map_NewlyLoaded for cleanup later.
-        //
-        // Until entities are coded, by this point we also KNOW that
-        // the agent's NymID and the Party (owner)'s NymID are identical.
-        //
-        // Before this function was even called, we knew that
-        // OTScriptable::VerifyPartyAuthorization() was already called
-        // on all the parties, and we know that every party's signed copy was
-        // verified against the signature of its authorizing
-        // agent, and that the Opening trans# for that party is currently signed
-        // out to THAT AGENT.
-        //
-        // If the NymIDs are identical between agent and owner, and the owner's
-        // authorizing agent (that same nym) has SIGNED
-        // its party's copy, and the Opening Trans# is signed out to that agent,
-        // then we have basically verified that agent.
-        // Right?
-        //
-        // WHAT if one of the Nyms loaded by this agent was NOT the same Nym as
-        // the owner? In that case, it would have to be
-        // a Nym working for an entity in a role, and I haven't coded entities
-        // yet, so I just disallow that case entirely
-        //
-        // By this point, the call to LoadNym also did a LoadSignedNymFile() and
-        // a call to VerifyPseudonym().
-        //
-        // FINALLY, the calls to pAgent->IsValidSigner( *pNym ) or
-        // pAgent->LoadNym(theServerNym) (whichever occurred -- one or the
-        // other)
-        // have now insured by this point that pAgent continues to have an
-        // INTERNAL POINTER to pNym...
     }
 
     return true;

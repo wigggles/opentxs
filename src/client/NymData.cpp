@@ -53,9 +53,30 @@
 
 namespace opentxs
 {
-NymData::NymData(const std::shared_ptr<class Nym>& nym)
+NymData::NymData(const NymData& nymData)
+    : nym_(nymData.nym_)
+{
+    Lock* lock = nymData.object_lock_.get();
+    std::mutex* mutex = lock->mutex();
+    object_lock_.reset(new Lock(*mutex));
+
+    LockedSave* lockedSave = nymData.locked_save_callback_.get();
+    locked_save_callback_.reset(new LockedSave(*lockedSave));
+}
+
+NymData::NymData(
+    std::mutex& objectMutex,
+    const std::shared_ptr<class Nym>& nym,
+    LockedSave save)
     : nym_(nym)
 {
+    object_lock_.reset(new Lock(objectMutex));
+
+    OT_ASSERT(object_lock_);
+
+    locked_save_callback_.reset(new LockedSave(save));
+
+    OT_ASSERT(locked_save_callback_);
 }
 
 std::string NymData::AddChildKeyCredential(
@@ -244,9 +265,9 @@ std::string NymData::PrintContactData() const
     return ContactData::PrintContactData(data().Serialize(true));
 }
 
-bool NymData::SetAlias(const std::string& alias)
+bool NymData::SetCommonName(const std::string& name)
 {
-    return nym().SetAlias(alias);
+    return nym().SetCommonName(name);
 }
 
 bool NymData::SetContactData(const proto::ContactData& data)
@@ -286,5 +307,11 @@ bool NymData::Valid() const { return bool(nym_); }
 std::unique_ptr<proto::VerificationSet> NymData::VerificationSet() const
 {
     return nym_->VerificationSet();
+}
+
+NymData::~NymData()
+{
+    auto callback = *locked_save_callback_;
+    callback(this, *object_lock_);
 }
 }  // namespace opentxs

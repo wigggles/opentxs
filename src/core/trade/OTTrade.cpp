@@ -89,8 +89,7 @@ enum { TradeProcessIntervalSeconds = 10 };
 // from the OTScriptable / OTSmartContract version, which verifies parties and
 // agents, etc.
 //
-bool OTTrade::VerifyNymAsAgent(const Nym& nym, const Nym&, mapOfConstNyms*)
-    const
+bool OTTrade::VerifyNymAsAgent(const Nym& nym, const Nym&) const
 {
     return VerifySignature(nym);
 }
@@ -800,19 +799,19 @@ bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
 void OTTrade::onFinalReceipt(
     OTCronItem& origCronItem,
     const std::int64_t& newTransactionNumber,
-    Nym& originator,
-    Nym* remover)
+    ConstNym originator,
+    ConstNym remover)
 {
     const char* szFunc = "OTTrade::onFinalReceipt";
 
     OTCron* cron = GetCron();
     OT_ASSERT(cron != nullptr);
 
-    Nym* serverNym = cron->GetServerNym();
-    OT_ASSERT(serverNym != nullptr);
+    auto serverNym = cron->GetServerNym();
+    OT_ASSERT(serverNym);
 
     auto context = OT::App().Wallet().mutable_ClientContext(
-        serverNym->ID(), originator.ID());
+        serverNym->ID(), originator->ID());
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -883,8 +882,6 @@ void OTTrade::onFinalReceipt(
     }
 
     const String strOrigCronItem(origCronItem);
-    // unused unless it's really not already loaded. (use actualNym.)
-    Nym theActualNym;
 
     // The OPENING transaction number must still be signed-out. It is this act
     // of placing the final receipt, which then finally closes the opening
@@ -897,55 +894,6 @@ void OTTrade::onFinalReceipt(
         // that list.
         context.It().CloseCronItem(openingNumber);
         context.It().ConsumeIssued(openingNumber);
-        // forcing a save here, since multiple things have changed.
-        originator.SaveSignedNymfile(*serverNym);
-        const Identifier& actualNymId = GetSenderNymID();
-        Nym* actualNym = nullptr;  // use this. DON'T use theActualNym.
-
-        if ((serverNym != nullptr) && serverNym->CompareID(actualNymId)) {
-            actualNym = serverNym;
-        } else if (originator.CompareID(actualNymId)) {
-            actualNym = &originator;
-        } else if ((remover != nullptr) && remover->CompareID(actualNymId)) {
-            actualNym = remover;
-        } else {
-            // We couldn't find the Nym among those already loaded--so we have
-            // to load it ourselves (so we can update its NymboxHash value.)
-            theActualNym.SetIdentifier(actualNymId);
-
-            if (!theActualNym.LoadPublicKey())  // Note: this step may be
-                                                // unnecessary since we
-                                                // are only updating his
-                                                // Nymfile, not his key.
-            {
-                String strNymID(actualNymId);
-                otErr << szFunc
-                      << ": Failure loading public key for Nym : " << strNymID
-                      << ". "
-                         "(To update his NymboxHash.) \n";
-            } else if (
-                theActualNym.VerifyPseudonym() &&  // this line may be
-                                                   // unnecessary.
-                theActualNym.LoadSignedNymfile(
-                    *serverNym))  // ServerNym here is not theActualNym's
-                                  // identity, but merely the signer on
-                                  // this file.
-            {
-                otLog3
-                    << szFunc
-                    << ": Loading actual Nym, since he wasn't already loaded. "
-                       "(To update his NymboxHash.)\n";
-                actualNym = &theActualNym;  //  <=====
-            } else {
-                String strNymID(actualNymId);
-                otErr
-                    << szFunc
-                    << ": Failure loading or verifying Actual Nym public key: "
-                    << strNymID
-                    << ". "
-                       "(To update his NymboxHash.)\n";
-            }
-        }
 
         if (!DropFinalReceiptToNymbox(
                 GetSenderNymID(),
@@ -953,8 +901,7 @@ void OTTrade::onFinalReceipt(
                 strOrigCronItem,
                 GetOriginType(),
                 note,
-                attachment,
-                actualNym)) {
+                attachment)) {
             otErr << szFunc << ": Failure dropping receipt into nymbox.\n";
         }
     } else {

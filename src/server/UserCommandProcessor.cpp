@@ -53,6 +53,7 @@
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
@@ -217,7 +218,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
     bool success = true;
     success &= nymbox.VerifyContractID();
 
-    if (success) { success &= nymbox.VerifySignature(server_.m_nymServer); }
+    if (success) { success &= nymbox.VerifySignature(server_.GetServerNym()); }
 
     if (false == success) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error veryfying nymbox."
@@ -246,7 +247,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
 
     if (transaction) {
         transaction->AddNumbersToTransaction(newNumbers);
-        transaction->SignContract(server_.m_nymServer);
+        transaction->SignContract(server_.GetServerNym());
         transaction->SaveContract();
         // Any inbox/nymbox/outbox ledger will only itself contain
         // abbreviated versions of the receipts, including their hashes.
@@ -258,7 +259,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
 
         nymbox.AddTransaction(*transaction.release());
         nymbox.ReleaseSignatures();
-        nymbox.SignContract(server_.m_nymServer);
+        nymbox.SignContract(server_.GetServerNym());
         nymbox.SaveContract();
         savedNymbox = nymbox.SaveNymbox(&nymboxHash);
     } else {
@@ -291,7 +292,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
 void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
 {
     auto& context = reply.Context();
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
 
     // The server reads the list of acknowledged replies from the incoming
     // client message... If we add any acknowledged replies to the server-side
@@ -300,7 +301,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     const auto nymID = Identifier::Factory(context.RemoteNym().ID());
     Ledger nymbox(nymID, nymID, NOTARY_ID);
 
-    if (nymbox.LoadNymbox() && nymbox.VerifySignature(server_.m_nymServer)) {
+    if (nymbox.LoadNymbox() && nymbox.VerifySignature(server_.GetServerNym())) {
         bool bIsDirtyNymbox = false;
 
         for (auto& it : numlist_ack_reply) {
@@ -346,7 +347,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
 
         if (bIsDirtyNymbox) {
             nymbox.ReleaseSignatures();
-            nymbox.SignContract(server_.m_nymServer);
+            nymbox.SignContract(server_.GetServerNym());
             nymbox.SaveContract();
             nymbox.SaveNymbox();
         }
@@ -376,34 +377,9 @@ bool UserCommandProcessor::check_client_isnt_server(
 bool UserCommandProcessor::check_client_nym(ReplyMessage& reply) const
 {
     const auto& msgIn = reply.Original();
-    auto& nymfile = reply.Nymfile();
+    const auto& nym = reply.Context().RemoteNym();
 
-    if (false == nymfile.LoadPublicKey()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failure loading public credentials for Nym: "
-              << String(nymfile.ID()) << std::endl;
-
-        return false;
-    }
-
-    if (nymfile.IsMarkedForDeletion()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": (Failed) attempt by client to use a deleted nym "
-              << String(nymfile.ID()) << std::endl;
-
-        return false;
-    }
-
-    if (false == nymfile.VerifyPseudonym()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify nym "
-              << String(nymfile.ID()) << std::endl;
-
-        return false;
-    }
-
-    otWarn << OT_METHOD << __FUNCTION__ << "Nym verified!" << std::endl;
-
-    if (false == msgIn.VerifySignature(nymfile)) {
+    if (false == msgIn.VerifySignature(nym)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to verify message signature." << std::endl;
 
@@ -412,17 +388,6 @@ bool UserCommandProcessor::check_client_nym(ReplyMessage& reply) const
 
     otInfo << OT_METHOD << __FUNCTION__
            << ": Message signature verification successful." << std::endl;
-
-    if (!nymfile.LoadSignedNymfile(server_.m_nymServer)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to load nymfile: " << String(nymfile.ID())
-              << std::endl;
-
-        return false;
-    }
-
-    otInfo << OT_METHOD << __FUNCTION__ << ": Successfully loaded nymfile."
-           << std::endl;
 
     return true;
 }
@@ -512,24 +477,25 @@ bool UserCommandProcessor::check_server_lock(const Identifier& nymID)
 
 bool UserCommandProcessor::check_usage_credits(ReplyMessage& reply) const
 {
-    auto& nymfile = reply.Nymfile();
-    const std::string nymID = String(nymfile.ID()).Get();
+    const auto& nym = reply.Context().RemoteNym();
     const bool creditsRequired = ServerSettings::__admin_usage_credits;
-    const bool needsCredits = nymfile.GetUsageCredits() >= 0;
+    const bool needsCredits = nym.GetUsageCredits() >= 0;
     const bool checkCredits =
-        creditsRequired && needsCredits && (false == isAdmin(nymfile.ID()));
+        creditsRequired && needsCredits && (false == isAdmin(nym.ID()));
 
     if (checkCredits) {
-        const auto& credits = nymfile.GetUsageCredits();
+        auto nymFile = wallet_.mutable_Nymfile(nym.ID(), __FUNCTION__);
+        const auto& credits = nymFile.It().GetUsageCredits();
 
         if (0 == credits) {
-            otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID
-                  << " Out of usage credits." << std::endl;
+            otErr << OT_METHOD << __FUNCTION__ << ": Nym "
+                  << nymFile.It().ID().str() << " Out of usage credits."
+                  << std::endl;
 
             return false;
         }
 
-        nymfile.SetUsageCredits(credits - 1);
+        nymFile.It().SetUsageCredits(credits - 1);
     }
 
     return true;
@@ -680,10 +646,10 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     }
 
     reply.SetSuccess(true);
-    auto& nymfile = reply.Nymfile();
-    auto& theAccountSet = nymfile.GetSetAssetAccounts();
+    auto nymfile =
+        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.erase(String(accountID).Get());
-    nymfile.SaveSignedNymfile(serverNym);
     account.Release();
     wallet_.DeleteAccount(accountID);
     reply.DropToNymbox(false);
@@ -698,7 +664,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
 // fails.)
 bool UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const
 {
-    auto& nymfile = reply.Nymfile();
+    auto nymfile =
+        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
     const auto& msgIn = reply.Original();
     auto& context = reply.Context();
 
@@ -730,7 +697,7 @@ bool UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const
         return false;
     }
 
-    if (nymfile.GetSetAssetAccounts().size() > 0) {
+    if (nymfile.It().GetSetAssetAccounts().size() > 0) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed due to open asset accounts." << std::endl;
 
@@ -756,14 +723,6 @@ bool UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const
     // as well, when it receives a successful reply that the nym was
     // "deleted."
     context.Reset();
-    // The nym isn't actually deleted yet, just marked for deletion. It will
-    // get cleaned up later, during server maintenance.
-    nymfile.MarkForDeletion();
-
-    // SAVE the Nym... (now marked for deletion and with all of its
-    // transaction numbers removed.)
-    nymfile.SaveSignedNymfile(serverNym);
-
     // TODO: We may also need to mark the Nymbox, as well as the credential
     // files, as "Marked For Deletion."
 
@@ -971,7 +930,7 @@ bool UserCommandProcessor::cmd_get_market_list(ReplyMessage& reply) const
 
     OTASCIIArmor output{};
     std::int32_t count{0};
-    reply.SetSuccess(server_.m_Cron.GetMarketList(output, count));
+    reply.SetSuccess(server_.Cron().GetMarketList(output, count));
 
     if (reply.Success()) {
         reply.SetDepth(count);
@@ -998,7 +957,7 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
     if (depth < 0) { depth = 0; }
 
     auto market =
-        server_.m_Cron.GetMarket(Identifier::Factory(msgIn.m_strNymID2));
+        server_.Cron().GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
     if (nullptr == market) { return false; }
 
@@ -1028,7 +987,7 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_recent_trades);
 
     auto market =
-        server_.m_Cron.GetMarket(Identifier::Factory(msgIn.m_strNymID2));
+        server_.Cron().GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
     if (nullptr == market) { return false; }
 
@@ -1079,7 +1038,7 @@ bool UserCommandProcessor::cmd_get_nym_market_offers(ReplyMessage& reply) const
 
     OTASCIIArmor output{};
     std::int32_t count{0};
-    reply.SetSuccess(server_.m_Cron.GetNym_OfferList(output, nymID, count));
+    reply.SetSuccess(server_.Cron().GetNym_OfferList(output, nymID, count));
 
     if (reply.Success()) {
         reply.SetDepth(count);
@@ -1151,7 +1110,7 @@ bool UserCommandProcessor::cmd_get_request_number(ReplyMessage& reply) const
     }
 
     reply.SetRequestNumber(number);
-    const auto NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
+    const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
     auto EXISTING_NYMBOX_HASH = context.LocalNymboxHash();
 
     if (String(EXISTING_NYMBOX_HASH).Exists()) {
@@ -1218,7 +1177,7 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
     for (std::int32_t i = 0; i < ISSUE_NUMBER_BATCH; i++) {
         TransactionNumber number{0};
 
-        if (!server_.transactor_.issueNextTransactionNumber(number)) {
+        if (!server_.GetTransactor().issueNextTransactionNumber(number)) {
             number = 0;
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error issuing next transaction number." << std::endl;
@@ -1232,8 +1191,8 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
     TransactionNumber transactionNumber{0};
 
     if (bSuccess) {
-        const bool issued =
-            server_.transactor_.issueNextTransactionNumber(transactionNumber);
+        const bool issued = server_.GetTransactor().issueNextTransactionNumber(
+            transactionNumber);
 
         if (false == issued) {
             otErr << OT_METHOD << __FUNCTION__
@@ -1297,8 +1256,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     auto basketAccountID = Identifier::Factory();
     const auto BASKET_ID = BasketContract::CalculateBasketID(serialized);
 
-    const bool exists =
-        server_.transactor_.lookupBasketAccountID(BASKET_ID, basketAccountID);
+    const bool exists = server_.GetTransactor().lookupBasketAccountID(
+        BASKET_ID, basketAccountID);
 
     if (exists) {
         otErr << OT_METHOD << __FUNCTION__ << ": Basket already exists."
@@ -1422,9 +1381,9 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // the account ID on this server corresponding to that basket. (The account
     // ID will be different from server to server, thus the need to be able to
     // look it up via the basket ID.)
-    server_.transactor_.addBasketAccountID(
+    server_.GetTransactor().addBasketAccountID(
         BASKET_ID, basketAccountID, contractID);
-    server_.mainFile_.SaveMainFile();
+    server_.GetMainFile().SaveMainFile();
 #if OT_CASH
     mint_.UpdateMint(basketAccountID);
 #endif  // OT_CASH
@@ -1445,7 +1404,6 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
-    auto& nymfile = reply.Nymfile();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(nymID, accountID, serverID));
@@ -1496,8 +1454,8 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
             inputNumber));
 
         bool success{false};
-        server_.notary_.NotarizeTransaction(
-            nymfile, context, *transaction, *response.Response(), success);
+        server_.GetNotary().NotarizeTransaction(
+            context, *transaction, *response.Response(), success);
 
         if (response.Response()->IsCancelled()) {
             otErr << OT_METHOD << __FUNCTION__
@@ -1552,7 +1510,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
-    auto& nymfile = reply.Nymfile();
+    const auto& nym = reply.Context().RemoteNym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(nymID, accountID, serverID));
@@ -1605,7 +1563,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     // ownership, signatures, and transaction number on each item. That way
     // those things don't have to be checked for security over and over again in
     // the subsequent calls.
-    if (false == processInbox->VerifyItems(nymfile)) {
+    if (false == processInbox->VerifyItems(nym)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to verify transaction items. " << std::endl;
 
@@ -1637,8 +1595,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         originType::not_applicable,
         inputNumber));
     bool transactionSuccess{false};
-    server_.notary_.NotarizeProcessInbox(
-        nymfile,
+    server_.GetNotary().NotarizeProcessInbox(
         context,
         account,
         *processInbox,
@@ -1690,7 +1647,6 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
-    auto& nymfile = reply.Nymfile();
     auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(nymID, nymID, serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
@@ -1740,8 +1696,8 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
             transaction->GetTransactionNum()));
 
         bool success{false};
-        server_.notary_.NotarizeProcessNymbox(
-            nymfile, context, *transaction, *response.Response(), success);
+        server_.GetNotary().NotarizeProcessNymbox(
+            context, *transaction, *response.Response(), success);
 
         if (success) {
             otErr << OT_METHOD << __FUNCTION__
@@ -1922,10 +1878,10 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     reply.SetSuccess(true);
     reply.SetAccount(String(accountID));
-    auto& nymfile = reply.Nymfile();
-    auto& theAccountSet = nymfile.GetSetAssetAccounts();
+    auto nymfile =
+        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.insert(String(accountID).Get());
-    nymfile.SaveSignedNymfile(serverNym);
     reply.SetPayload(String(account.get()));
     reply.DropToNymbox(false);
     account.Release();
@@ -2037,7 +1993,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     auto accountID = Identifier::Factory();
     account.get().GetIdentifier(accountID);
     reply.SetAccount(String(accountID));
-    server_.mainFile_.SaveMainFile();
+    server_.GetMainFile().SaveMainFile();
 
     Log::Output(0, "Generating inbox/outbox for new issuer acct. \n");
 
@@ -2091,10 +2047,10 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     reply.SetSuccess(true);
     account.Release();
-    auto& nymfile = reply.Nymfile();
-    auto& theAccountSet = nymfile.GetSetAssetAccounts();
+    auto nymfile =
+        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.insert(accountID->str());
-    nymfile.SaveSignedNymfile(serverNym);
     reply.DropToNymbox(false);
 #if OT_CASH
     mint_.UpdateMint(contractID);
@@ -2106,30 +2062,25 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 {
     const auto& msgIn = reply.Original();
-    auto& nymfile = reply.Nymfile();
-    const auto& nymID = msgIn.m_strNymID;
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_create_user_acct);
 
-    if (false == reply.LoadNym()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym: " << nymID
-              << std::endl;
+    auto serialized = proto::DataToProto<proto::CredentialIndex>(
+        Data::Factory(reply.Original().m_ascPayload));
+    auto sender_nym = wallet_.Nym(serialized);
 
-        return false;
-    }
-
-    if (false == reply.InitNymfileCredentials()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym: " << nymID
-              << std::endl;
+    if (false == bool(sender_nym)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Invalid nym: " << msgIn.m_strNymID << std::endl;
 
         return false;
     }
 
     otLog3 << OT_METHOD << __FUNCTION__ << ": Nym verified!" << std::endl;
 
-    if (false == msgIn.VerifySignature(nymfile)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature." << nymID
-              << std::endl;
+    if (false == msgIn.VerifySignature(*sender_nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature."
+              << sender_nym->ID().str() << std::endl;
 
         return false;
     }
@@ -2140,17 +2091,13 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     auto& context = reply.Context();
     const auto& serverNym = *context.Nym();
-    bool exists = nymfile.LoadSignedNymfile(serverNym);
-    const bool deleted = nymfile.IsMarkedForDeletion();
 
     // The below block is for the case where the Nym is re-registering, even
     // though he's already registered on this Notary.
     //
     // He ALREADY exists. We'll set success to true, and send him a copy of his
     // own nymfile.
-    if (exists && (false == deleted)) { return reregister_nym(reply); }
-
-    if (deleted) { nymfile.MarkAsUndeleted(); }
+    if (0 != context.Request()) { return reregister_nym(reply); }
 
     reply.SetSuccess(msgIn.WriteContract(
         OTFolders::UserAcct().Get(), msgIn.m_strNymID.Get()));
@@ -2167,10 +2114,8 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
           << ": Success saving new user account verification file."
           << std::endl;
 
-    auto theNewNymID = Identifier::Factory(),
-         NOTARY_ID = Identifier::Factory(server_.m_strNotaryID);
-    nymfile.GetIdentifier(theNewNymID);
-    Ledger theNymbox(theNewNymID, theNewNymID, NOTARY_ID);
+    auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
+    Ledger theNymbox(sender_nym->ID(), sender_nym->ID(), NOTARY_ID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
     if (bSuccessLoadingNymbox) {
@@ -2183,7 +2128,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
     } else {
         bSuccessLoadingNymbox =
             theNymbox.GenerateLedger(
-                theNewNymID, NOTARY_ID, Ledger::nymbox, true) &&
+                sender_nym->ID(), NOTARY_ID, Ledger::nymbox, true) &&
             theNymbox.SignContract(serverNym) && theNymbox.SaveContract() &&
             theNymbox.SaveNymbox();
     }
@@ -2196,16 +2141,15 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
         return true;
     }
 
-    // Either we loaded it up (it already existed) or we didn't, in which case
-    // we should save it now (to create it.)
-    if (exists || nymfile.SaveSignedNymfile(serverNym)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Success registering Nym credentials." << std::endl;
-        String strNymContents;
-        nymfile.SavePseudonym(strNymContents);
-        reply.SetPayload(strNymContents);
-        reply.SetSuccess(true);
-    }
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Success registering Nym credentials." << std::endl;
+    String strNymContents;
+    sender_nym->SerializeNymfile(strNymContents);
+    reply.SetPayload(strNymContents);
+    reply.SetSuccess(true);
+    // This will save the nymfile.
+    auto mutableSenderNym =
+        wallet_.mutable_Nymfile(sender_nym->ID(), __FUNCTION__);
 
     return true;
 }
@@ -2324,7 +2268,7 @@ bool UserCommandProcessor::cmd_trigger_clause(ReplyMessage& reply) const
     }
 
     OTSmartContract* smartContract{nullptr};
-    auto cronItem = server_.m_Cron.GetItemByValidOpeningNum(number);
+    auto cronItem = server_.Cron().GetItemByValidOpeningNum(number);
 
     if (nullptr == cronItem) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2418,12 +2362,10 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
     if (false == admin) { adjustment = 0; }
 
     const auto targetNymID = Identifier::Factory(msgIn.m_strNymID2);
-    Nym targetNym(targetNymID);
-    const bool sameNym = targetNym.CompareID(adminNym);
-    Nym* nymfile{nullptr};
+    Identifier nymID;
 
-    if (sameNym) {
-        nymfile = &reply.Nymfile();
+    if (targetNymID == adminNymID) {
+        nymID = adminNymID;
     } else {
         if (false == admin) {
             otErr << OT_METHOD << __FUNCTION__
@@ -2433,29 +2375,10 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
             return false;
         }
 
-        if (false == targetNym.LoadCredentials()) {
-            otErr << OT_METHOD << __FUNCTION__ << ": Unknown target nym."
-                  << std::endl;
-
-            return false;
-        }
-
-        if (false == targetNym.VerifyPseudonym()) {
-            otErr << OT_METHOD << __FUNCTION__ << ": Invalid target nym."
-                  << std::endl;
-
-            return false;
-        }
-
-        nymfile = &targetNym;
+        nymID = targetNymID;
     }
 
-    if (false == nymfile->LoadSignedNymfile(serverNym)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to load nymfile."
-              << std::endl;
-
-        return false;
-    }
+    auto nymfile = wallet_.mutable_Nymfile(targetNymID, __FUNCTION__);
 
     auto nymbox = load_nymbox(targetNymID, serverID, serverNym, true);
 
@@ -2465,22 +2388,18 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load nymbox for "
-              << String(targetNymID) << std::endl;
+              << targetNymID->str() << std::endl;
 
         return false;
     }
 
-    const auto oldCredits = nymfile->GetUsageCredits();
+    const auto oldCredits = nymfile.It().GetUsageCredits();
     auto newCredits = oldCredits + adjustment;
 
     if (0 > newCredits) { newCredits = -1; }
 
-    if (0 != adjustment) {
-        nymfile->SetUsageCredits(newCredits);
-        reply.SetSuccess(nymfile->SaveSignedNymfile(serverNym));
-    } else {
-        reply.SetSuccess(true);
-    }
+    if (0 != adjustment) { nymfile.It().SetUsageCredits(newCredits); }
+    reply.SetSuccess(true);
 
     if (ServerSettings::__admin_usage_credits) {
         reply.SetDepth(newCredits);
@@ -2534,8 +2453,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const std::int64_t& lRequestNum,
     const bool bReplyTransSuccess,
     ClientContext& context,
-    Server& server,
-    Nym* pActualNym)
+    Server& server)
 {
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
@@ -2559,7 +2477,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
 
     TransactionNumber lReplyNoticeTransNum{0};
     const bool bGotNextTransNum =
-        server.transactor_.issueNextTransactionNumber(lReplyNoticeTransNum);
+        server.GetTransactor().issueNextTransactionNumber(lReplyNoticeTransNum);
 
     if (!bGotNextTransNum) {
         lReplyNoticeTransNum = 0;
@@ -2614,14 +2532,8 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     theNymbox.SaveNymbox(&NYMBOX_HASH.get());
     pReplyNotice->SaveBoxReceipt(theNymbox);
 
-    if ((nullptr != pActualNym) && pActualNym->CompareID(nymID)) {
+    if (context.RemoteNym().CompareID(nymID)) {
         context.SetLocalNymboxHash(NYMBOX_HASH);
-        // TODO remove this
-        pActualNym->SaveSignedNymfile(serverNym);
-    } else if (nullptr != pActualNym) {
-        otErr << OT_METHOD << __FUNCTION__
-              << "ERROR: pActualNym was not nullptr, but it didn't match NYM_ID"
-              << std::endl;
     }
 }
 
@@ -2817,7 +2729,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     ReplyMessage reply(
         wallet_,
         server_.GetServerID(),
-        server_.m_nymServer,
+        server_.GetServerNym(),
         msgIn,
         server_,
         type,
@@ -2839,9 +2751,9 @@ bool UserCommandProcessor::ProcessUserCommand(
         }
     }
 
-    if (false == check_client_nym(reply)) { return false; }
-
     if (false == reply.LoadContext()) { return false; }
+
+    if (false == check_client_nym(reply)) { return false; }
 
     OT_ASSERT(reply.HaveContext());
 
@@ -2991,13 +2903,13 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
            << ": Re-registering nym: " << msgIn.m_strNymID << std::endl;
 
     String strNymContents;
-    auto& nymfile = reply.Nymfile();
-    nymfile.SavePseudonym(strNymContents);
+    const auto& nym = reply.Context().RemoteNym();
+    nym.SerializeNymfile(strNymContents);
     reply.SetPayload(strNymContents);
     auto& context = reply.Context();
     const auto& serverNym = *context.Nym();
     const auto& serverID = context.Server();
-    const auto& targetNymID = nymfile.ID();
+    const auto& targetNymID = nym.ID();
     auto nymbox = load_nymbox(targetNymID, serverID, serverNym, false);
 
     if (false == bool(nymbox)) {

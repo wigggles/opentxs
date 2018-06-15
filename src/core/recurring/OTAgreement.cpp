@@ -82,7 +82,7 @@ void OTAgreement::setCustomerNymId(const Identifier& NYM_ID)
 
 bool OTAgreement::SendNoticeToAllParties(
     bool bSuccessMsg,
-    Nym& theServerNym,
+    const Nym& theServerNym,
     const Identifier& theNotaryID,
     const TransactionNumber& lNewTransactionNumber,
     // Each party has its own opening trans #.
@@ -93,90 +93,6 @@ bool OTAgreement::SendNoticeToAllParties(
 {
     bool bSuccess =
         true;  // Success is defined as ALL parties receiving a notice
-
-    Nym theRecipientNym;  // Don't use this... use the pointer just below.
-    Nym* pRecipient = nullptr;
-
-    if (theServerNym.CompareID(GetRecipientNymID())) {
-        pRecipient = &theServerNym;  // Just in case the recipient Nym is also
-                                     // the server Nym.
-    } else if (
-        (nullptr != pActualNym) && pActualNym->CompareID(GetRecipientNymID())) {
-        pRecipient = pActualNym;
-    }
-
-    if (nullptr == pRecipient) {
-        const auto NYM_ID = Identifier::Factory(GetRecipientNymID());
-        theRecipientNym.SetIdentifier(NYM_ID);
-
-        if (!theRecipientNym.LoadPublicKey()) {
-            const String strNymID(NYM_ID);
-            otErr << __FUNCTION__
-                  << ": Failure loading Recipient's public key: " << strNymID
-                  << "\n";
-            return false;
-        } else if (
-            theRecipientNym.VerifyPseudonym() &&
-            theRecipientNym.LoadSignedNymfile(
-                theServerNym))  // ServerNym here is merely the signer on
-                                // this file.
-        {
-            pRecipient = &theRecipientNym;  //  <=====
-        } else {
-            const String strNymID(NYM_ID);
-            otErr << __FUNCTION__
-                  << ": Failure verifying Recipient's public key or loading "
-                     "signed nymfile: "
-                  << strNymID << "\n";
-            return false;
-        }
-    }
-    // BY THIS POINT, the Recipient Nym is definitely loaded up and we have
-    // a pointer to him (pRecipient.)
-
-    Nym theSenderNym;  // Don't use this... use the pointer just below.
-    Nym* pSender = nullptr;
-
-    if (theServerNym.CompareID(GetSenderNymID())) {
-        pSender = &theServerNym;  // Just in case the Sender Nym is also the
-                                  // server Nym.
-    } else if (
-        (nullptr != pActualNym) && pActualNym->CompareID(GetSenderNymID())) {
-        pSender = pActualNym;
-    }
-
-    if (nullptr == pSender) {
-        const auto NYM_ID = Identifier::Factory(GetSenderNymID());
-        theSenderNym.SetIdentifier(NYM_ID);
-
-        if (!theSenderNym.LoadPublicKey()) {
-            const String strNymID(NYM_ID);
-            otErr << __FUNCTION__
-                  << ": Failure loading Sender's public key: " << strNymID
-                  << "\n";
-            return false;
-        } else if (
-            theSenderNym.VerifyPseudonym() &&
-            theSenderNym.LoadSignedNymfile(theServerNym))  // ServerNym
-                                                           // here is
-                                                           // merely the
-                                                           // signer on
-                                                           // this file.
-        {
-            pSender = &theSenderNym;  //  <=====
-        } else {
-            const String strNymID(NYM_ID);
-            otErr << __FUNCTION__
-                  << ": Failure verifying Sender's public key "
-                     "or loading signed nymfile: "
-                  << strNymID << "\n";
-            return false;
-        }
-    }
-    // BY THIS POINT, the Sender Nym is definitely loaded up and we have
-    // a pointer to him (pSender.)
-
-    // (pRecipient and pSender are both good pointers by this point.)
 
     // Sender
     if (!OTAgreement::DropServerNoticeToNymbox(
@@ -190,7 +106,7 @@ bool OTAgreement::SendNoticeToAllParties(
             originType::origin_payment_plan,
             pstrNote,
             pstrAttachment,
-            pSender))
+            GetSenderNymID()))
         bSuccess = false;
     // Notice I don't break here -- I still allow it to try to notice ALL
     // parties, even if one fails.
@@ -207,7 +123,7 @@ bool OTAgreement::SendNoticeToAllParties(
             originType::origin_payment_plan,
             pstrNote,
             pstrAttachment,
-            pRecipient))
+            GetRecipientNymID()))
         bSuccess = false;
 
     return bSuccess;
@@ -227,7 +143,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     originType theOriginType,
     String* pstrNote,
     String* pstrAttachment,
-    const Nym* pActualNym)
+    const Identifier& actualNymID)
 {
     Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
     // Inbox will receive notification of something ALREADY DONE.
@@ -334,68 +250,9 @@ bool OTAgreement::DropServerNoticeToNymbox(
         //
         pTransaction->SaveBoxReceipt(theLedger);
 
-        // Update the NymboxHash (in the nymfile.)
-        //
-        const Identifier& ACTUAL_NYM_ID = NYM_ID;
-        Nym theActualNym;  // unused unless it's really not already
-                           // loaded. (use pActualNym.)
-
-        // We couldn't find the Nym among those already loaded--so we have to
-        // load
-        // it ourselves (so we can update its NymboxHash value.)
-
-        if (nullptr == pActualNym) {
-            if (theServerNym.CompareID(ACTUAL_NYM_ID))
-                pActualNym = &theServerNym;
-
-            else {
-                theActualNym.SetIdentifier(ACTUAL_NYM_ID);
-
-                if (!theActualNym.LoadPublicKey())  // Note: this step
-                                                    // may be unnecessary
-                                                    // since we are only
-                                                    // updating his
-                                                    // Nymfile, not his
-                                                    // key.
-                {
-                    String strNymID(ACTUAL_NYM_ID);
-                    otErr << __FUNCTION__
-                          << ": Failure loading public key for Nym: "
-                          << strNymID
-                          << ". "
-                             "(To update his NymboxHash.) \n";
-                } else if (
-                    theActualNym.VerifyPseudonym() &&  // this line may be
-                                                       // unnecessary.
-                    theActualNym.LoadSignedNymfile(
-                        theServerNym))  // ServerNym here is not
-                                        // theActualNym's identity, but
-                                        // merely the signer on this file.
-                {
-                    otLog3 << __FUNCTION__
-                           << ": Loading actual Nym, since he "
-                              "wasn't already loaded. (To "
-                              "update his NymboxHash.)\n";
-                    pActualNym = &theActualNym;  //  <=====
-                } else {
-                    String strNymID(ACTUAL_NYM_ID);
-                    otErr << __FUNCTION__
-                          << ": Failure loading or verifying Actual Nym public "
-                             "key: "
-                          << strNymID
-                          << ". "
-                             "(To update his NymboxHash.)\n";
-                }
-            }
-        }
-
-        // By this point we've made every possible effort to get the proper Nym
-        // loaded, so that we can update his NymboxHash appropriately.
-        if (nullptr != pActualNym) {
-            auto context = OT::App().Wallet().mutable_ClientContext(
-                theServerNym.ID(), pActualNym->ID());
-            context.It().SetLocalNymboxHash(theNymboxHash);
-        }
+        auto context = OT::App().Wallet().mutable_ClientContext(
+            theServerNym.ID(), actualNymID);
+        context.It().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions
         // returning true. Right?
@@ -452,10 +309,7 @@ void OTAgreement::GetAllTransactionNumbers(NumList& numlistOutput) const
 // what I still call here, inside this function. But that's a special case -- an
 // override from the OTScriptable / OTSmartContract version, which verifies
 // parties and agents, etc.
-bool OTAgreement::VerifyNymAsAgent(
-    const Nym& theNym,
-    const Nym&,
-    mapOfConstNyms*) const
+bool OTAgreement::VerifyNymAsAgent(const Nym& theNym, const Nym&) const
 {
     return VerifySignature(theNym);
 }
@@ -475,14 +329,14 @@ bool OTAgreement::VerifyNymAsAgentForAccount(
 void OTAgreement::onFinalReceipt(
     OTCronItem& theOrigCronItem,
     const std::int64_t& lNewTransactionNumber,
-    Nym& theOriginator,
-    Nym* pRemover)
+    ConstNym theOriginator,
+    ConstNym pRemover)
 {
     OTCron* pCron = GetCron();
 
     OT_ASSERT(nullptr != pCron);
 
-    Nym* pServerNym = pCron->GetServerNym();
+    auto pServerNym = pCron->GetServerNym();
 
     OT_ASSERT(nullptr != pServerNym);
 
@@ -493,51 +347,6 @@ void OTAgreement::onFinalReceipt(
     String strUpdatedCronItem(*this);
     String* pstrAttachment = &strUpdatedCronItem;
     const String strOrigCronItem(theOrigCronItem);
-    // Don't use this... use the pointer just below.
-    Nym theRecipientNym;
-    // The Nym who is actively requesting to remove a cron item will be passed
-    // in as pRemover. However, sometimes there is no Nym... perhaps it just
-    // expired and pRemover is nullptr. The originating Nym (if different than
-    // remover) is loaded up. Otherwise the originator pointer just pointers to
-    // *pRemover.
-    const Nym* pRecipient = nullptr;
-
-    if (pServerNym->CompareID(GetRecipientNymID())) {
-        // Just in case the recipient Nym is also the server Nym.
-        pRecipient = pServerNym;
-    }
-    // If pRemover is NOT nullptr, and he has the Recipient's ID...
-    // then set the pointer accordingly.
-    else if (
-        (nullptr != pRemover) &&
-        (true == pRemover->CompareID(GetRecipientNymID()))) {
-        // now both pointers are set (to same Nym).
-        pRecipient = pRemover;
-    }
-
-    if (nullptr == pRecipient) {
-        // GetSenderNymID() should be the same on THIS (updated version of the
-        // same cron item) but for whatever reason, I'm checking the nymID on
-        // the original version. Sue me.
-        const auto NYM_ID = Identifier::Factory(GetRecipientNymID());
-        theRecipientNym.SetIdentifier(NYM_ID);
-
-        if (!theRecipientNym.LoadPublicKey()) {
-            const String strNymID(NYM_ID);
-            otErr << szFunc << ": Failure loading Recipient's public key:\n"
-                  << strNymID << "\n";
-        } else if (
-            theRecipientNym.VerifyPseudonym() &&
-            theRecipientNym.LoadSignedNymfile(*pServerNym)) {
-            pRecipient = &theRecipientNym;
-        } else {
-            const String strNymID(NYM_ID);
-            otErr << szFunc
-                  << ": Failure verifying Recipient's public key or "
-                     "loading signed nymfile: "
-                  << strNymID << "\n";
-        }
-    }
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -556,14 +365,11 @@ void OTAgreement::onFinalReceipt(
             : 0;  // index 0 is closing number for sender, since
                   // GetTransactionNum() is his opening #.
     const String strNotaryID(GetNotaryID());
-    // unused unless it's really not already loaded. (use pActualNym.)
-    Nym theActualNym;
     auto oContext = OT::App().Wallet().mutable_ClientContext(
-        pServerNym->ID(), theOriginator.ID());
+        pServerNym->ID(), theOriginator->ID());
 
     if ((lSenderOpeningNumber > 0) &&
         oContext.It().VerifyIssuedNumber(lSenderOpeningNumber)) {
-        Nym* pActualNym = nullptr;  // use this. DON'T use theActualNym.
 
         // The Nym (server side) stores a list of all opening and closing cron
         // #s. So when the number is released from the Nym, we also take it off
@@ -577,46 +383,6 @@ void OTAgreement::onFinalReceipt(
         // NotarizeMarketOffer call, but it remains ISSUED, until the final
         // receipt itself is accepted during a process inbox.
         oContext.It().ConsumeIssued(lSenderOpeningNumber);
-        theOriginator.SaveSignedNymfile(*pServerNym);
-
-        const Identifier& ACTUAL_NYM_ID = GetSenderNymID();
-
-        if ((nullptr != pServerNym) && pServerNym->CompareID(ACTUAL_NYM_ID)) {
-            pActualNym = pServerNym;
-        } else if (theOriginator.CompareID(ACTUAL_NYM_ID)) {
-            pActualNym = &theOriginator;
-        } else if (
-            (nullptr != pRemover) && pRemover->CompareID(ACTUAL_NYM_ID)) {
-            pActualNym = pRemover;
-        } else {
-            // We couldn't find the Nym among those already loaded--so we have
-            // to load it ourselves (so we can update its NymboxHash value.)
-            theActualNym.SetIdentifier(ACTUAL_NYM_ID);
-
-            // Note: this step may be unnecessary since we are only updating his
-            // Nymfile, not his key.
-            if (!theActualNym.LoadPublicKey()) {
-                String strNymID(ACTUAL_NYM_ID);
-                otErr << szFunc
-                      << ": Failure loading public key for Nym : " << strNymID
-                      << ". "
-                         "(To update his NymboxHash.) \n";
-            } else if (
-                theActualNym.VerifyPseudonym() &&
-                theActualNym.LoadSignedNymfile(*pServerNym)) {
-                otLog3
-                    << szFunc
-                    << ": Loading actual Nym, since he wasn't already loaded. "
-                       "(To update his NymboxHash.)\n";
-                pActualNym = &theActualNym;  //  <=====
-            } else {
-                String strNymID(ACTUAL_NYM_ID);
-                otErr
-                    << szFunc
-                    << ": Failure loading or verifying Actual Nym public key: "
-                    << strNymID << ". (To update his NymboxHash.)\n";
-            }
-        }
 
         if (!DropFinalReceiptToNymbox(
                 GetSenderNymID(),
@@ -624,8 +390,7 @@ void OTAgreement::onFinalReceipt(
                 strOrigCronItem,
                 GetOriginType(),
                 nullptr,
-                pstrAttachment,
-                pActualNym)) {
+                pstrAttachment)) {
             otErr << szFunc
                   << ": Failure dropping sender final receipt into nymbox.\n";
         }
@@ -665,10 +430,8 @@ void OTAgreement::onFinalReceipt(
                  "theOriginator.VerifyTransactionNum(lSenderClosingNumber)\n";
     }
 
-    if (nullptr == pRecipient) { return; }
-
     auto rContext = OT::App().Wallet().mutable_ClientContext(
-        pServerNym->ID(), pRecipient->ID());
+        pServerNym->ID(), GetRecipientNymID());
 
     if ((lRecipientOpeningNumber > 0) &&
         rContext.It().VerifyIssuedNumber(lRecipientOpeningNumber)) {
@@ -685,15 +448,14 @@ void OTAgreement::onFinalReceipt(
         // receipt itself is accepted during a process inbox.
         rContext.It().ConsumeIssued(lRecipientOpeningNumber);
 
-        // NymboxHash is updated here in pRecipient.
+        // NymboxHash is updated here in recipient.
         const bool dropped = DropFinalReceiptToNymbox(
             GetRecipientNymID(),
             lNewTransactionNumber,
             strOrigCronItem,
             GetOriginType(),
             nullptr,
-            pstrAttachment,
-            pRecipient);
+            pstrAttachment);
 
         if (!dropped) {
             otErr
@@ -1174,7 +936,7 @@ bool OTAgreement::Confirm(
         return false;
     } else if (
         (nullptr != pMERCHANT_NYM) &&
-        (GetRecipientNymID() != pMERCHANT_NYM->GetConstID())) {
+        (GetRecipientNymID() != pMERCHANT_NYM->ID())) {
         otOut << __FUNCTION__
               << ": Merchant has wrong NymID (should be same "
                  "as RecipientNymID.)\n";

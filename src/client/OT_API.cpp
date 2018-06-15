@@ -1280,7 +1280,7 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 // Returns bool on success, and strOutput will contain the exported data.
 bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 {
-    Lock lock(lock_);
+    /*Lock lock(lock_);
 
     if (NYM_ID.IsEmpty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
@@ -1294,9 +1294,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     if (false == bool(nym)) { return false; }
 
     std::string str_nym_name(nym->Alias());
-    String strID;
-    nym->GetIdentifier(strID);
-    std::string str_nym_id(strID.Get());
+    std::string str_nym_id(NYM_ID.str());
     // Below this point I can use:
     //
     // nymfile, str_nym_name, and str_nym_id.
@@ -1304,7 +1302,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     // I still need the certfile and the nymfile (both in string form.)
     //
 
-    OT_ASSERT(nym->GetMasterCredentialCount() > 0);
+    OT_ASSERT(nym->HasCapability(NymCapability::SIGN_CHILDCRED));
 
     OTASCIIArmor ascCredentials, ascCredList;
     String strCertfile;
@@ -1314,7 +1312,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     // this already has built-in mechanisms to go around OTCachedKey.
     //
     const bool bReEncrypted = nym->ReEncryptPrivateCredentials(
-        false /*bImporting*/,
+        false / *bImporting* /,
         &thePWDataSave);  // Handles OTCachedKey already.
     if (bReEncrypted) {
         // Create a new OTDB::StringMap object.
@@ -1361,12 +1359,12 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
         return false;
     }
     String strNymfile;
-    const bool bSavedNym = nym->SavePseudonym(strNymfile);
+    const bool bSavedNym = nym->SerializeNymfile(strNymfile);
 
     if (!bSavedNym) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed while calling "
-                 "nymfile->SavePseudonym(strNymfile) (to string)\n";
+                 "nymfile->SerializeNymfile(strNymfile) (to string)\n";
         return false;
     }
     // Create an OTDB::StringMap object.
@@ -1415,6 +1413,8 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     }
 
     return bReturnVal;
+    */
+    return false;
 }
 
 // OT has the capability to export a Nym (normally stored in several files) as
@@ -1433,7 +1433,7 @@ bool OT_API::Wallet_ImportNym(
     const String& FILE_CONTENTS,
     Identifier* nymfileID) const
 {
-    Lock lock(lock_);
+    /*Lock lock(lock_);
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
     OTASCIIArmor ascArmor;
@@ -1719,6 +1719,7 @@ bool OT_API::Wallet_ImportNym(
     } else
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed loading or verifying keys|credentials|pseudonym.\n";
+*/
     return false;
 }
 
@@ -2962,7 +2963,7 @@ bool OT_API::SmartContract_ConfirmParty(
     //  pMessage->m_strNotaryID        = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
 
-    auto pNym = wallet_.Nym(nymfile.It().GetConstID());
+    auto pNym = wallet_.Nym(nymfile.It().ID());
     OT_ASSERT(nullptr != pNym)
 
     pMessage->SignContract(*pNym);
@@ -3712,7 +3713,7 @@ bool OT_API::Rename_Nym(
 
     if (!renamed) { return false; }
 
-    nymdata.SetAlias(name);
+    wallet_.SetNymAlias(nymID, name);
 
     return true;
 }
@@ -4621,10 +4622,9 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                      "NymID was passed into "
                      "this function.\nNym who owns the purse: "
                   << strPurseNymID << "\n\n";
-        } else if (
-            bNymIDIncludedInPurse && !(pOwnerNym->GetConstID() == idPurseNym)) {
+        } else if (bNymIDIncludedInPurse && !(pOwnerNym->ID() == idPurseNym)) {
             const String strPurseNymID(idPurseNym),
-                strNymActuallyPassed(pOwnerNym->GetConstID());
+                strNymActuallyPassed(pOwnerNym->ID());
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error: the API call mentions Nym A, but the "
                      "purse is actually owned by Nym B.\nNym A: "
@@ -5459,7 +5459,7 @@ Token* OT_API::Token_ChangeOwner(
 
         token->ReleaseSignatures();
 
-        auto pNym = wallet_.Nym(pSignerNym->GetConstID());
+        auto pNym = wallet_.Nym(pSignerNym->ID());
         OT_ASSERT(nullptr != pNym);
 
         token->SignContract(*pNym);
@@ -7500,7 +7500,7 @@ bool OT_API::ResyncNymWithServer(
         return false;
     }
     if (!theNym.CompareID(theNymbox.GetNymID())) {
-        const String id1(theNym.GetConstID()), id2(theNymbox.GetNymID());
+        const String id1(theNym.ID()), id2(theNymbox.GetNymID());
         otErr << "OT_API::ResyncNymWithServer: Error: NymID of Nym (" << id1
               << ") "
                  "doesn't match NymID on (supposedly) his own Nymbox "
@@ -12341,7 +12341,7 @@ CommandResult OT_API::registerNym(ServerContext& context) const
 
     const auto& nym = *context.Nym();
 
-    if (nym.GetMasterCredentialCount() < 1) {
+    if (!nym.HasCapability(NymCapability::SIGN_MESSAGE)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym" << std::endl;
 
         return output;
@@ -12659,7 +12659,7 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
     const std::string account = accountID.str();
     const auto& serverID = context.Server();
     const auto& nym = *context.Nym();
-    const auto& nymID = nym.GetConstID();
+    const auto& nymID = nym.ID();
     OT_API::ProcessInbox output{};
     auto& [processInbox, inbox] = output;
     inbox.reset(LoadInbox(serverID, nymID, accountID));
@@ -12794,7 +12794,7 @@ bool OT_API::FinalizeProcessInbox(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     auto nym = context.Nym();
-    auto& nymID = nym->GetConstID();
+    auto& nymID = nym->ID();
     auto& serverID = context.Server();
     auto processInbox = response.GetTransaction(OTTransaction::processInbox);
 
@@ -13144,7 +13144,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
     ServerContext& context,
     Ledger& response) const
 {
-    const auto& nymID = context.Nym()->GetConstID();
+    const auto& nymID = context.Nym()->ID();
     const auto& serverID = context.Server();
     auto processInbox = response.GetTransaction(OTTransaction::processInbox);
 

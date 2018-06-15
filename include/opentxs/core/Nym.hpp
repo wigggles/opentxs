@@ -42,6 +42,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/CredentialSet.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/Proto.hpp"
@@ -76,7 +77,7 @@ typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
 typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef bool CredentialIndexModeFlag;
 
-class Nym : public opentxs::NymFile
+class Nym : public opentxs::NymFile, public Lockable
 {
     friend class api::client::implementation::Wallet;
 
@@ -121,30 +122,22 @@ public:
     EXPORT std::shared_ptr<const proto::Credential> ChildCredentialContents(
         const std::string& masterID,
         const std::string& childID) const;
-    EXPORT std::int32_t ChildCredentialCount(const std::string& masterID) const;
     EXPORT const class ContactData& Claims() const;
     EXPORT bool CompareID(const Nym& RHS) const;
     EXPORT std::set<OTIdentifier> Contracts(
         const proto::ContactItemType currency,
         const bool onlyActive) const;
-    EXPORT const Credential* GetChildCredential(
-        const String& strMasterID,
-        const String& strChildCredID) const;
-    EXPORT std::string ChildCredentialID(
-        const std::string& masterID,
-        const std::uint32_t index) const;
+    EXPORT const std::vector<OTIdentifier> GetChildCredentialIDs(
+        const std::string& masterID) const;
     EXPORT bool CompareID(const Identifier& rhs) const override;
     EXPORT std::string EmailAddresses(bool active = true) const;
-    EXPORT const Identifier& GetConstID() const override { return m_nymID; }
     EXPORT const String& GetDescription() const { return m_strDescription; }
     EXPORT bool GetInboxHash(
         const std::string& acct_id,
         Identifier& theOutput) const override;  // client-side
-    EXPORT const CredentialSet* GetMasterCredentialByIndex(
-        std::int32_t nIndex) const;
+    EXPORT const std::vector<OTIdentifier> GetMasterCredentialIDs() const;
     EXPORT void GetIdentifier(Identifier& theIdentifier) const;
     EXPORT void GetIdentifier(String& theIdentifier) const;
-    EXPORT std::size_t GetMasterCredentialCount() const;
     EXPORT bool GetOutboxHash(
         const std::string& acct_id,
         Identifier& theOutput) const override;  // client-side
@@ -170,17 +163,19 @@ public:
         const OTSignature& theSignature,
         char cKeyType = '0') const;
     EXPORT const OTAsymmetricKey& GetPublicSignKey() const;
-    EXPORT const CredentialSet* GetRevokedCredentialByIndex(
-        std::int32_t nIndex) const;
-    EXPORT std::size_t GetRevokedCredentialCount() const;
+    EXPORT const std::vector<OTIdentifier> GetRevokedCredentialIDs() const;
     EXPORT const std::int64_t& GetUsageCredits() const override
     {
+        sLock lock(shared_lock_);
+
         return m_lUsageCredits;
     }
-    EXPORT bool hasCapability(const NymCapability& capability) const;
-    EXPORT const Identifier& ID() const { return m_nymID; }
-    EXPORT bool IsMarkedForDeletion() const override
+    EXPORT bool HasCapability(const NymCapability& capability) const;
+    EXPORT const Identifier& ID() const override { return m_nymID; }
+    EXPORT[[deprecated]] bool IsMarkedForDeletion() const
     {
+        sLock lock(shared_lock_);
+
         return m_bMarkForDeletion;
     }
     EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
@@ -225,6 +220,8 @@ public:
     EXPORT CredentialSet* GetRevokedCredential(const String& strID);
     EXPORT std::set<std::string>& GetSetAssetAccounts() override
     {
+        sLock lock(shared_lock_);
+
         return m_setAccounts;
     }
     EXPORT bool LoadCredentialIndex(const serializedCredentialIndex& index);
@@ -235,7 +232,7 @@ public:
     // pMapCredentials can be passed, if you prefer to use a specific set,
     // instead of just loading the actual set from storage (such as during
     // registration, when the credentials have been sent inside a message.)
-    EXPORT bool LoadNymFromString(
+    EXPORT bool DeserializeNymfile(
         const String& strNym,
         bool& converted,
         String::Map* pMapCredentials = nullptr,
@@ -246,8 +243,8 @@ public:
     // changed. Usually that means the server nym.  Most of the time,
     // m_nymServer will be used as signer.
     EXPORT bool LoadSignedNymfile(const Nym& SIGNER_NYM);
-    EXPORT void MarkAsUndeleted() { m_bMarkForDeletion = false; }
-    EXPORT void MarkForDeletion() { m_bMarkForDeletion = true; }
+    EXPORT[[deprecated]] void MarkAsUndeleted() { m_bMarkForDeletion = false; }
+    EXPORT[[deprecated]] void MarkForDeletion() { m_bMarkForDeletion = true; }
     EXPORT std::string PaymentCode() const override;
     // Like for when you are exporting a Nym from the wallet.
     EXPORT bool ReEncryptPrivateCredentials(
@@ -288,17 +285,16 @@ public:
     EXPORT bool ResyncWithServer(
         const Ledger& theNymbox,
         const Nym& theMessageNym) override;
-    EXPORT bool SavePseudonym(String& strNym) const;
+    EXPORT bool SerializeNymfile(String& strNym) const;
     EXPORT bool SaveSignedNymfile(const Nym& SIGNER_NYM);
-    EXPORT bool SetAlias(const std::string& alias);
     EXPORT bool SetCommonName(const std::string& name);
     EXPORT bool SetContactData(const proto::ContactData& data);
     EXPORT void SetDescription(const String& strLocation)
     {
+        eLock lock(shared_lock_);
+
         m_strDescription = strLocation;
     }
-    EXPORT void SetIdentifier(const Identifier& theIdentifier);
-    EXPORT void SetIdentifier(const String& theIdentifier);
     EXPORT bool SetInboxHash(
         const std::string& acct_id,
         const Identifier& theInput) override;  // client-side
@@ -311,15 +307,12 @@ public:
         const bool primary);
     EXPORT void SetUsageCredits(const std::int64_t& lUsage) override
     {
+        eLock lock(shared_lock_);
+
         m_lUsageCredits = lUsage;
     }
     EXPORT bool SetVerificationSet(const proto::VerificationSet& data);
 
-    EXPORT Nym();
-    EXPORT explicit Nym(const NymParameters& nymParameters);
-    EXPORT explicit Nym(const Identifier& nymID);
-    EXPORT explicit Nym(const String& strNymID);
-    EXPORT Nym(const Nym&) = default;
     EXPORT ~Nym();
 
     template <class T>
@@ -328,6 +321,8 @@ public:
         proto::Signature& signature,
         const OTPasswordData* pPWData = nullptr) const
     {
+        sLock lock(shared_lock_);
+
         bool haveSig = false;
 
         for (auto& it : m_mapCredentialSets) {
@@ -354,6 +349,8 @@ public:
     template <class T>
     bool VerifyProto(T& input, proto::Signature& signature) const
     {
+        sLock lock(shared_lock_);
+
         proto::Signature signatureCopy;
         signatureCopy.CopyFrom(signature);
         signature.clear_signature();
@@ -362,21 +359,23 @@ public:
     }
 
 private:
+    friend api::client::Wallet;
+
     std::int32_t version_{0};
     std::int32_t index_{0};
     // (SERVER side.)
     std::int64_t m_lUsageCredits{-1};
     bool m_bMarkForDeletion{false};
     std::string alias_;
-    mutable std::mutex lock_;
     std::atomic<std::uint64_t> revision_{0};
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
     String m_strNymfile;
     String m_strVersion;
     String m_strDescription;
-    OTIdentifier m_nymID;
+    const OTIdentifier m_nymID;
     std::shared_ptr<NymIDSource> source_{nullptr};
     mutable std::unique_ptr<class ContactData> contact_data_;
+    const api::client::Wallet& wallet_;
 
     // The credentials for this Nym. (Each with a master key credential and
     // various child credentials.)
@@ -404,45 +403,85 @@ private:
         const mapOfIdentifiers& the_map,
         const std::string& str_id,
         Identifier& theOutput) const;
-    void init_claims(const Lock& lock) const;
+    template <typename T>
+    const OTAsymmetricKey& get_private_auth_key(const T& lock) const;
+    template <typename T>
+    const OTAsymmetricKey& get_private_sign_key(const T& lock) const;
+    template <typename T>
+    const OTAsymmetricKey& get_public_sign_key(const T& lock) const;
+    bool has_capability(const eLock& lock, const NymCapability& capability)
+        const;
+    void init_claims(const eLock& lock) const;
     const CredentialSet* MasterCredential(const String& strID) const;
-    bool SaveCredentialIDs() const;
     void SaveCredentialsToTag(
         Tag& parent,
         String::Map* pmapPubInfo = nullptr,
         String::Map* pmapPriInfo = nullptr) const;
     serializedCredentialIndex SerializeCredentialIndex(
         const CredentialIndexModeFlag mode = ONLY_IDS) const;
-    bool set_contact_data(const Lock& lock, const proto::ContactData& data);
+    bool set_contact_data(const eLock& lock, const proto::ContactData& data);
     void SerializeNymIDSource(Tag& parent) const;
     bool Verify(const Data& plaintext, const proto::Signature& sig) const;
-    bool verify_lock(const Lock& lock) const;
+    bool verify_pseudonym(const eLock& lock) const;
 
     bool add_contact_credential(
-        const Lock& lock,
+        const eLock& lock,
         const proto::ContactData& data);
     bool add_verification_credential(
-        const Lock& lock,
+        const eLock& lock,
         const proto::VerificationSet& data);
+    void clear_credentials(const eLock& lock);
     void ClearAll();
     void ClearCredentials();
     void ClearOutpayments();
+    template <typename T>
+    bool deserialize_nymfile(
+        const T& lock,
+        const String& strNym,
+        bool& converted,
+        String::Map* pMapCredentials,
+        String* pstrReason,
+        const OTPassword* pImportPassword);
     CredentialSet* GetMasterCredential(const String& strID);
+    bool load_credentials(
+        const eLock& lock,
+        bool bLoadPrivate = false,
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* pImportPassword = nullptr);
+    bool load_credential_index(
+        const eLock& lock,
+        const serializedCredentialIndex& index);
+    template <typename T>
+    bool load_signed_nymfile(const T& lock, const Nym& SIGNER_NYM);
     void RemoveAllNumbers(const String* pstrNotaryID = nullptr);
-    void revoke_contact_credentials(const Lock& lock);
-    void revoke_verification_credentials(const Lock& lock);
-    bool SavePseudonym(const char* szFoldername, const char* szFilename);
+    void revoke_contact_credentials(const eLock& lock);
+    void revoke_verification_credentials(const eLock& lock);
+    template <typename T>
+    bool serialize_nymfile(const T& lock, String& strNym) const;
+    bool SerializeNymfile(const char* szFoldername, const char* szFilename);
+    template <typename T>
+    bool save_signed_nymfile(const T& lock, const Nym& SIGNER_NYM);
+    void SetAlias(const std::string& alias);
     bool SetHash(
         mapOfIdentifiers& the_map,
         const std::string& str_id,
         const Identifier& theInput);
-    bool update_nym(const Lock& lock, const std::int32_t version);
+    bool update_nym(const eLock& lock, const std::int32_t version);
 
-    Nym(const String& name,
+    Nym() = delete;
+    Nym(const api::client::Wallet& wallet, const NymParameters& nymParameters);
+    Nym(const api::client::Wallet& wallet, const Identifier& nymID);
+    Nym(const api::client::Wallet& wallet, const String& strNymID);
+    Nym(const Nym&) = default;
+    Nym(const api::client::Wallet& wallet,
+        const String& name,
         const String& filename,
         const Identifier& nymID,
         const proto::CredentialIndexMode mode = proto::CREDINDEX_ERROR);
-    Nym(const String& name, const String& filename, const String& nymID);
+    Nym(const api::client::Wallet& wallet,
+        const String& name,
+        const String& filename,
+        const String& nymID);
     Nym& operator=(const Nym&) = delete;
 };
 }  // namespace opentxs

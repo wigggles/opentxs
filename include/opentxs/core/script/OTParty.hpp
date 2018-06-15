@@ -183,21 +183,18 @@ public:
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
-        Nym* pActualNym = nullptr);
+        String* pstrAttachment = nullptr);
     // Iterates through the accounts.
     //
     bool DropFinalReceiptToInboxes(
-        mapOfNyms* pNymMap,
         const String& strNotaryID,
-        Nym& theServerNym,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
     bool SendNoticeToParty(
         bool bSuccessMsg,
-        Nym& theServerNym,
+        const Nym& theServerNym,
         const Identifier& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo,
@@ -300,21 +297,9 @@ public:
                                              // ptr if it was there.
     // Load the authorizing agent from storage. Set agent's pointer to Nym.
     //
-    Nym* LoadAuthorizingAgentNym(
+    ConstNym LoadAuthorizingAgentNym(
         const Nym& theSignerNym,
         OTAgent** ppAgent = nullptr);
-    // Often we endeavor to avoid loading the same Nym twice, and a higher-level
-    // function
-    // will ask an OTParty for a list of all the Nym pointers that it already
-    // has,
-    // so they can be checked for various things if they are already loaded
-    // (when they are needed)
-    // without having to load them again in order to check those things, purely
-    // out of blindness
-    // to the fact that they had infact already been loaded and were floating
-    // around in memory somewhere.
-    //
-    void RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded);
     bool AddAccount(OTPartyAccount& thePartyAcct);
     EXPORT bool AddAccount(
         const String& strAgentName,
@@ -360,10 +345,6 @@ public:
         const;  // When confirming a party, a new version replaces the original.
                 // This is part of that process.
     void RegisterAccountsForExecution(OTScript& theScript);
-    bool LoadAndVerifyAgentNyms(
-        Nym& theServerNym,
-        mapOfConstNyms& map_Nyms_Already_Loaded,
-        mapOfConstNyms& map_NewlyLoaded);
 
     bool LoadAndVerifyAssetAccounts(
         const String& strNotaryID,

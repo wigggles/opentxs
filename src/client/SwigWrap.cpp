@@ -925,18 +925,6 @@ std::string SwigWrap::GetNym_Description(const std::string& NYM_ID)
     return OT::App().API().Exec().GetNym_Description(NYM_ID);
 }
 
-std::int32_t SwigWrap::GetNym_MasterCredentialCount(const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().GetNym_MasterCredentialCount(NYM_ID);
-}
-
-std::string SwigWrap::GetNym_MasterCredentialID(
-    const std::string& NYM_ID,
-    const std::int32_t& nIndex)
-{
-    return OT::App().API().Exec().GetNym_MasterCredentialID(NYM_ID, nIndex);
-}
-
 std::string SwigWrap::GetNym_MasterCredentialContents(
     const std::string& NYM_ID,
     const std::string& CREDENTIAL_ID)
@@ -945,41 +933,12 @@ std::string SwigWrap::GetNym_MasterCredentialContents(
         NYM_ID, CREDENTIAL_ID);
 }
 
-std::int32_t SwigWrap::GetNym_RevokedCredCount(const std::string& NYM_ID)
-{
-    return OT::App().API().Exec().GetNym_RevokedCredCount(NYM_ID);
-}
-
-std::string SwigWrap::GetNym_RevokedCredID(
-    const std::string& NYM_ID,
-    const std::int32_t& nIndex)
-{
-    return OT::App().API().Exec().GetNym_RevokedCredID(NYM_ID, nIndex);
-}
-
 std::string SwigWrap::GetNym_RevokedCredContents(
     const std::string& NYM_ID,
     const std::string& CREDENTIAL_ID)
 {
     return OT::App().API().Exec().GetNym_RevokedCredContents(
         NYM_ID, CREDENTIAL_ID);
-}
-
-std::int32_t SwigWrap::GetNym_ChildCredentialCount(
-    const std::string& NYM_ID,
-    const std::string& MASTER_CRED_ID)
-{
-    return OT::App().API().Exec().GetNym_ChildCredentialCount(
-        NYM_ID, MASTER_CRED_ID);
-}
-
-std::string SwigWrap::GetNym_ChildCredentialID(
-    const std::string& NYM_ID,
-    const std::string& MASTER_CRED_ID,
-    const std::int32_t& nIndex)
-{
-    return OT::App().API().Exec().GetNym_ChildCredentialID(
-        NYM_ID, MASTER_CRED_ID, nIndex);
 }
 
 std::string SwigWrap::GetNym_ChildCredentialContents(
@@ -994,15 +953,6 @@ std::string SwigWrap::GetNym_ChildCredentialContents(
 std::string SwigWrap::NymIDFromPaymentCode(const std::string& paymentCode)
 {
     return OT::App().API().Exec().NymIDFromPaymentCode(paymentCode);
-}
-
-bool SwigWrap::RevokeChildCredential(
-    const std::string& NYM_ID,
-    const std::string& MASTER_CRED_ID,
-    const std::string& SUB_CRED_ID)
-{
-    return OT::App().API().Exec().RevokeChildCredential(
-        NYM_ID, MASTER_CRED_ID, SUB_CRED_ID);
 }
 
 std::string SwigWrap::GetSignerNymID(const std::string& str_Contract)

@@ -704,42 +704,6 @@ std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
     return str_return;
 }
 
-std::int32_t OTAPI_Exec::GetNym_MasterCredentialCount(
-    const std::string& NYM_ID) const
-{
-    if (NYM_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return OT_ERROR;
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = wallet_.Nym(nym_id);
-    if (false == bool(pNym)) return OT_ERROR;
-    const std::int32_t nReturnValue =
-        static_cast<std::int32_t>(pNym->GetMasterCredentialCount());
-    return nReturnValue;
-}
-
-std::string OTAPI_Exec::GetNym_MasterCredentialID(
-    const std::string& NYM_ID,
-    const std::int32_t& nIndex) const
-{
-    if (NYM_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return {};
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = wallet_.Nym(nym_id);
-    if (false == bool(pNym)) return {};
-    std::string str_return;
-    const CredentialSet* pCredential = pNym->GetMasterCredentialByIndex(nIndex);
-
-    if (nullptr != pCredential)
-        str_return = pCredential->GetMasterCredID().Get();
-    return str_return;
-}
-
 std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     const std::string& NYM_ID,
     const std::string& CREDENTIAL_ID) const
@@ -760,44 +724,6 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     return {};
 }
 
-std::int32_t OTAPI_Exec::GetNym_RevokedCredCount(
-    const std::string& NYM_ID) const
-{
-    if (NYM_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return OT_ERROR;
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = wallet_.Nym(nym_id);
-    if (false == bool(pNym)) return OT_ERROR;
-    const std::int32_t nReturnValue =
-        static_cast<std::int32_t>(pNym->GetRevokedCredentialCount());
-    return nReturnValue;
-}
-
-std::string OTAPI_Exec::GetNym_RevokedCredID(
-    const std::string& NYM_ID,
-    const std::int32_t& nIndex) const
-{
-    if (NYM_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return {};
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = wallet_.Nym(nym_id);
-    if (false == bool(pNym)) return {};
-    std::string str_return;
-    const CredentialSet* pCredential =
-        pNym->GetRevokedCredentialByIndex(nIndex);
-
-    if (nullptr != pCredential) {
-        str_return = pCredential->GetMasterCredID().Get();
-    }
-    return str_return;
-}
-
 std::string OTAPI_Exec::GetNym_RevokedCredContents(
     const std::string& NYM_ID,
     const std::string& CREDENTIAL_ID) const
@@ -816,49 +742,6 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     if (serialized) { return proto::ProtoAsString(*serialized); }
 
     return {};
-}
-
-std::int32_t OTAPI_Exec::GetNym_ChildCredentialCount(
-    const std::string& NYM_ID,
-    const std::string& MASTER_CRED_ID) const
-{
-    if (NYM_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return OT_ERROR;
-    }
-    if (MASTER_CRED_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": nullptr MASTER_CRED_ID passed in!\n";
-        return OT_ERROR;
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = wallet_.Nym(nym_id);
-    if (false == bool(pNym)) return OT_ERROR;
-
-    return pNym->ChildCredentialCount(MASTER_CRED_ID);
-}
-
-std::string OTAPI_Exec::GetNym_ChildCredentialID(
-    const std::string& NYM_ID,
-    const std::string& MASTER_CRED_ID,
-    const std::int32_t& nIndex) const
-{
-    if (NYM_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": nullptr NYM_ID passed in!\n";
-        return {};
-    }
-    if (MASTER_CRED_ID.empty()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": nullptr MASTER_CRED_ID passed in!\n";
-        return {};
-    }
-    OTPasswordData thePWData(OT_PW_DISPLAY);
-    auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = wallet_.Nym(nym_id);
-    if (false == bool(pNym)) return {};
-
-    return pNym->ChildCredentialID(MASTER_CRED_ID, nIndex);
 }
 
 std::string OTAPI_Exec::GetNym_ChildCredentialContents(
@@ -1191,7 +1074,7 @@ std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
         return {};
     }
 
-    const NymFile* pNym = pContract->GetContractPublicNym();
+    ConstNym pNym = pContract->GetContractPublicNym();
 
     if (false == bool(pNym)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1200,7 +1083,7 @@ std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
         return {};
     }
     //-----------------------------------
-    return pNym->GetConstID().str();
+    return pNym->ID().str();
 }
 
 std::string OTAPI_Exec::CalculateContractID(
@@ -11097,7 +10980,7 @@ bool OTAPI_Exec::ResyncNymWithServer(
     const std::string& NYM_ID,
     const std::string& THE_MESSAGE) const
 {
-    rLock lock(lock_callback_({NYM_ID, NOTARY_ID}));
+    /*rLock lock(lock_callback_({NYM_ID, NOTARY_ID}));
 
     OT_VERIFY_ID_STR(NOTARY_ID);
     OT_VERIFY_ID_STR(NYM_ID);
@@ -11165,9 +11048,9 @@ bool OTAPI_Exec::ResyncNymWithServer(
     }
 
     bool unused;
-    Nym theMessageNym;
-
-    if (!theMessageNym.LoadNymFromString(strMessageNym, unused)) {
+    std::unique_ptr<class Nym> theMessageNym =
+        Nym::DeserializeNymfile(strMessageNym, unused);
+    if (nullptr == theMessageNym) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed loading theMessageNym from a "
                  "string. String contents:\n\n"
@@ -11184,14 +11067,16 @@ bool OTAPI_Exec::ResyncNymWithServer(
         (theNymbox.LoadNymbox() && theNymbox.VerifyAccount(*pNym));
 
     if (bLoadedNymbox)
-        bSynced =
-            ot_api_.ResyncNymWithServer(nymfile.It(), theNymbox, theMessageNym);
+        bSynced = ot_api_.ResyncNymWithServer(
+            nymfile.It(), theNymbox, *theMessageNym);
     else
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed while loading or verifying Nymbox for User "
               << strNymID << ", on Server " << NOTARY_ID << " \n";
 
     return bSynced;
+*/
+    return false;
 }
 
 // GET MESSAGE PAYLOAD

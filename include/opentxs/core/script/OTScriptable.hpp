@@ -251,8 +251,7 @@ public:
     //
     EXPORT virtual bool VerifyNymAsAgent(
         const Nym& theNym,
-        const Nym& theSignerNym,
-        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr) const;
+        const Nym& theSignerNym) const;
 
     // NEED TO CALL BOTH METHODS. (above / below)
 
@@ -267,21 +266,10 @@ public:
     bool VerifyPartyAuthorization(
         OTParty& theParty,  // The party that supposedly is authorized for this
                             // supposedly executed agreement.
-        Nym& theSignerNym,  // For verifying signature on the authorizing
-                            // Nym, when loading it
-        const String& strNotaryID,  // For verifying issued num, need the
-                                    // notaryID the # goes with.
-        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr,  // If some nyms are
-                                                        // already
-        // loaded, pass them here so
-        // we don't
-        // load them twice on accident.
-        mapOfConstNyms* pmap_NEWLY_LOADED = nullptr,  // If some nyms had to be
-        // loaded, then they will be
-        // deleted,
-        // too. UNLESS you pass a map here, in which case they will
-        // instead be added to this map. (But if you do that, then you
-        // must delete them yourself after calling this function.)
+        const Nym& theSignerNym,  // For verifying signature on the authorizing
+                                  // Nym, when loading it
+        const String& strNotaryID,   // For verifying issued num, need the
+                                     // notaryID the # goes with.
         bool bBurnTransNo = false);  // In Server::VerifySmartContract(), it
                                      // not only wants to
     // verify the # is properly issued, but it additionally
@@ -304,18 +292,6 @@ public:
     // that.
     EXPORT bool VerifyThisAgainstAllPartiesSignedCopies();
     EXPORT bool AllPartiesHaveSupposedlyConfirmed();
-    // Often we endeavor to avoid loading the same Nym twice, and a higher-level
-    // function
-    // will ask an OTScriptable for a list of all the Nym pointers that it
-    // already has,
-    // so they can be checked for various things if they are already loaded
-    // (when they are needed)
-    // without having to load them again in order to check those things, purely
-    // out of blindness
-    // to the fact that they had infact already been loaded and were floating
-    // around in memory somewhere.
-    //
-    void RetrieveNymPointers(mapOfConstNyms& map_Nyms_Already_Loaded);
 
     void ClearTemporaryPointers();
     // Look up all clauses matching a specific hook.
@@ -346,7 +322,7 @@ public:
                         // again.)
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg,
-        Nym& theServerNym,
+        const Nym& theServerNym,
         const Identifier& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo, //

@@ -2876,7 +2876,7 @@ bool OTTransaction::VerifyBoxReceipt(OTTransaction& theFullVersion)
 // make sure that the items on it also have the right owner, as well as that
 // owner's signature, and a matching transaction number to boot.
 //
-bool OTTransaction::VerifyItems(Nym& theNym)
+bool OTTransaction::VerifyItems(const Nym& theNym)
 {
     const Identifier NYM_ID(theNym);
 

@@ -142,7 +142,6 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 }
 
 // Low-level.
-// Caller is responsible to delete.
 // Don't call this unless you're sure the same Nym isn't already loaded, or
 // unless
 // you are prepared to compare the returned Nym with all the Nyms you already
@@ -151,41 +150,16 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
 // This call may always fail for a specific agent, if the agent isn't a Nym
 // (the agent could be a voting group.)
 //
-Nym* OTAgent::LoadNym(const Nym& theServerNym)
+ConstNym OTAgent::LoadNym()
 {
     auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
-        Nym* pNym = new Nym;
-        OT_ASSERT(nullptr != pNym);
+        m_pNym = OT::App().Wallet().Nym(theAgentNymID);
+        OT_ASSERT(m_pNym);
 
-        pNym->SetIdentifier(theAgentNymID);
-
-        if (!pNym->LoadPublicKey()) {
-            String strNymID(theAgentNymID);
-            otErr << "OTAgent::LoadNym: Failure loading "
-                     "agent's public key:\n"
-                  << strNymID << "\n";
-            delete pNym;
-            pNym = nullptr;
-        } else if (
-            pNym->VerifyPseudonym() && pNym->LoadSignedNymfile(theServerNym)) {
-            SetNymPointer(*pNym);  // set this pointer in case I need it for
-                                   // later.
-            // also remember, caller is responsible to delete, so there's no
-            // guarantee the pointer
-            return pNym;  // is any good.  Then again, caller is also
-                          // responsible
-                          // to call ClearTemporaryPointers().
-        } else {
-            String strNymID(theAgentNymID);
-            otErr << "OTAgent::LoadNym: Failure verifying agent's public key "
-                     "or loading signed nymfile: "
-                  << strNymID << "\n";
-            delete pNym;
-            pNym = nullptr;
-        }
+        return m_pNym;
     } else
         otErr << "OTAgent::LoadNym: Failure. Are you sure this agent IS a Nym "
                  "at all? \n";
@@ -287,8 +261,6 @@ void OTAgent::SetParty(OTParty& theOwnerParty)  // This happens when the agent
 
 OTAgent::~OTAgent()
 {
-    m_pNym = nullptr;  // this pointer is not owned by this object, and is here
-                       // for convenience only.
     m_pForParty = nullptr;  // The agent probably has a pointer to the party it
                             // acts on behalf of.
 }
@@ -482,7 +454,7 @@ bool OTAgent::IsValidSigner(const Nym& theNym)
         // That means theNym *is* the Nym for this agent!
         // We'll save his pointer, for future reference...
         //
-        SetNymPointer(theNym);
+        m_pNym.reset(&theNym);
 
         return true;
     }
@@ -583,34 +555,6 @@ bool OTAgent::GetPartyID(Identifier& theOutput) const
     return GetEntityID(theOutput);
 }
 
-void OTAgent::RetrieveNymPointer(mapOfConstNyms& map_Nyms_Already_Loaded)
-{
-    const std::string str_agent_name(m_strName.Get());
-
-    // We actually have a Nym pointer on this agent somehow (so let's add it to
-    // the list.)
-    //
-    if (nullptr != m_pNym) {
-        if (!m_strName.Exists())  // Whoaa!! Can't add it without the agent's
-                                  // name for the map!
-        {
-            otErr << "OTAgent::RetrieveNymPointer: Failed: m_strName is "
-                     "empty!\n";
-        } else if (
-            map_Nyms_Already_Loaded.end() ==
-            map_Nyms_Already_Loaded.insert(
-                map_Nyms_Already_Loaded.begin(),
-                std::pair<std::string, const Nym*>(str_agent_name, m_pNym)))
-            otErr << "OTAgent::RetrieveNymPointer: Failed on insertion, as "
-                     "though another nym were already "
-                     "there with the same agent name! ("
-                  << m_strName << ")\n";
-        // (else it was inserted successfully.)
-    }
-    // else nothing, since it's normal that most of them are nullptr, even when
-    // one is goood.
-}
-
 bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 {
     auto theSignerID = Identifier::Factory();
@@ -630,9 +574,7 @@ bool OTAgent::VerifyAgencyOfAccount(const Account& theAccount) const
 }
 
 bool OTAgent::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap,
     const String& strNotaryID,
-    Nym& theServerNym,
     OTSmartContract& theSmartContract,
     const Identifier& theAccountID,
     const std::int64_t& lNewTransactionNumber,
@@ -654,60 +596,11 @@ bool OTAgent::DropFinalReceiptToInbox(
 
     if (bNymID) {
         // IsAnIndividual() is definitely true.
-        Nym* pNym = nullptr;
-        std::unique_ptr<Nym> theNymAngel;
-
-        // If a list of pre-loaded Nyms was passed in, see if one of them is
-        // ours.
-        if (nullptr != pNymMap) {
-            const String strNymID(theAgentNymID);
-
-            OT_ASSERT(strNymID.Exists());
-
-            auto ittt = pNymMap->find(strNymID.Get());
-
-            if (pNymMap->end() != ittt) {
-                pNym = ittt->second;
-
-                OT_ASSERT(nullptr != pNym);
-            }
-        }
-
-        if (nullptr == pNym) {
-            // It wasn't on the list of already-loaded nyms that was passed in,
-            // so we have to load it.
-            //
-            // By this point we also know that pNym is NOT the server Nym, nor
-            // is it the Originator, nor pActingNym, nor pPartyNym, as they were
-            // all loaded already and were added to pNymMap, yet we didn't find
-            // the Nym we were looking for among them.
-            //
-            // (Therefore this is some new Nym, and doesn't need to be verified
-            // against those Nyms again before loading it. Let's load it up!)
-
-            if (nullptr == (pNym = LoadNym(theServerNym))) {
-                otErr << szFunc << ": Failed loading Nym.\n";
-            } else {
-                theNymAngel.reset(pNym);
-            }
-        }
-
-        if (nullptr == pNym) {
-            otErr << szFunc << ": Error: pNym is nullptr\n";
-
-            return false;
-        }
 
         auto context = OT::App().Wallet().ClientContext(
-            Identifier::Factory(strNotaryID), pNym->ID());
+            Identifier::Factory(strNotaryID), theAgentNymID);
 
         OT_ASSERT(context);
-
-        // I call this because LoadNym sets my internal Nym pointer to pNym, and
-        // then it goes out of scope before the end of this function and gets
-        // cleaned-up. Therefore, no point in letting this agent continue to
-        // point to bad memory...
-        ClearTemporaryPointers();
 
         if ((lClosingNumber > 0) &&
             context->VerifyIssuedNumber(lClosingNumber)) {
@@ -724,8 +617,8 @@ bool OTAgent::DropFinalReceiptToInbox(
                                   // the acct up and update its inbox hash.)
         } else {
             otErr << szFunc
-                  << ": Error: pNym is nullptr, or lClosingNumber <=0, "
-                     "or pNym->VerifyIssuedNum(strNotaryID, "
+                  << ": Error: lClosingNumber <=0, "
+                     "or context->VerifyIssuedNum("
                      "lClosingNumber)) failed to verify.\n";
         }
     } else {
@@ -740,12 +633,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
     String* pstrNote,
-    String* pstrAttachment,
-    Nym* pActualNym)  // IF the Nym was already loaded, then I
-                      // HAD to pass it here. But it may not be
-                      // here. Also: It may not be the right
-                      // Nym, so need to check before actually
-                      // using for anything.
+    String* pstrAttachment)
 {
     auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -753,19 +641,13 @@ bool OTAgent::DropFinalReceiptToNymbox(
     // Not all agents have Nyms. (Might be a voting group.)
 
     if (true == bNymID) {
-        Nym* pToActualNym = nullptr;
-
-        if ((nullptr != pActualNym) && pActualNym->CompareID(theAgentNymID))
-            pToActualNym = pActualNym;
-
         return theSmartContract.DropFinalReceiptToNymbox(
             theAgentNymID,
             lNewTransactionNumber,
             strOrigCronItem,
             theSmartContract.GetOriginType(),
             pstrNote,
-            pstrAttachment,
-            pToActualNym);
+            pstrAttachment);
     }
 
     // TODO: When entites and roles are added, this function may change a bit to
@@ -778,7 +660,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     bool bSuccessMsg,  // Added this so we can notify smart contract parties
                        // when
                        // it FAILS to activate.
-    Nym& theServerNym,
+    const Nym& theServerNym,
     const Identifier& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lInReferenceTo,
@@ -793,12 +675,6 @@ bool OTAgent::DropServerNoticeToNymbox(
     // Not all agents have Nyms. (Might be a voting group.)
 
     if (true == bNymID) {
-        const Nym* pToActualNym = nullptr;
-
-        if ((nullptr != pActualNym) && pActualNym->CompareID(theAgentNymID))
-            pToActualNym = pActualNym;
-        else if ((nullptr != m_pNym) && m_pNym->CompareID(theAgentNymID))
-            pToActualNym = m_pNym;
 
         return OTAgreement::DropServerNoticeToNymbox(
             bSuccessMsg,
@@ -811,7 +687,7 @@ bool OTAgent::DropServerNoticeToNymbox(
             originType::origin_smart_contract,
             pstrNote,
             pstrAttachment,
-            pToActualNym);
+            theAgentNymID);
     }
 
     // TODO: When entites and roles are added, this function may change a bit to

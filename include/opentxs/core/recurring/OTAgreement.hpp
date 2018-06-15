@@ -104,8 +104,8 @@ protected:
     void onFinalReceipt(
         OTCronItem& theOrigCronItem,
         const std::int64_t& lNewTransactionNumber,
-        Nym& theOriginator,
-        Nym* pRemover) override;
+        ConstNym theOriginator,
+        ConstNym pRemover) override;
     void onRemovalFromCron() override;
 
     // Numbers used for CLOSING a transaction. (finalReceipt.)
@@ -390,10 +390,8 @@ public:
     // it the old way: they just check to
     // see if theNym has signed *this.
     //
-    bool VerifyNymAsAgent(
-        const Nym& theNym,
-        const Nym& theSignerNym,
-        mapOfConstNyms* pmap_ALREADY_LOADED = nullptr) const override;
+    bool VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
+        const override;
 
     bool VerifyNymAsAgentForAccount(
         const Nym& theNym,
@@ -407,7 +405,7 @@ public:
      */
     EXPORT bool SendNoticeToAllParties(
         bool bSuccessMsg,
-        Nym& theServerNym,
+        const Nym& theServerNym,
         const Identifier& theNotaryID,
         const std::int64_t& lNewTransactionNumber,
         // const std::int64_t& lInReferenceTo, //
@@ -427,9 +425,9 @@ public:
         const TransactionNumber& lInReferenceTo,
         const String& strReference,
         originType theOriginType,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
-        const Nym* pActualNym = nullptr);
+        String* pstrNote,
+        String* pstrAttachment,
+        const Identifier& actualNymID);
 
     OTAgreement();
     OTAgreement(

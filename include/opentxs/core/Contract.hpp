@@ -113,7 +113,7 @@ protected:
      * requisite key exchange. ==> THE TRADER HAS ASSURANCE THAT, IF HIS
      * OUT-MESSAGE IS ENCRYPTED, HE KNOWS THE MESSAGE CAN ONLY BE DECRYPTED BY
      * THE SAME PERSON WHO SIGNED THAT CONTRACT. */
-    mapOfNyms m_mapNyms;
+    mapOfConstNyms m_mapNyms;
 
     /** The PGP signatures at the bottom of the XML file. */
     listOfSignatures m_listSignatures;
@@ -402,7 +402,7 @@ public:
         const OTSignature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
-    EXPORT const Nym* GetContractPublicNym() const;
+    EXPORT ConstNym GetContractPublicNym() const;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CONTRACT_HPP

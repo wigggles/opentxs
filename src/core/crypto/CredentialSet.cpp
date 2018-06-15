@@ -177,7 +177,7 @@ bool CredentialSet::VerifyInternally() const
     return true;
 }
 
-const String& CredentialSet::GetNymID() const { return m_strNymID; }
+const std::string& CredentialSet::GetNymID() const { return m_strNymID; }
 
 const NymIDSource& CredentialSet::Source() const { return *nym_id_source_; }
 
@@ -187,9 +187,7 @@ void CredentialSet::SetSource(const std::shared_ptr<NymIDSource>& source)
 {
     nym_id_source_ = source;
 
-    m_strNymID.Release();
-
-    m_strNymID = String(nym_id_source_->NymID());
+    m_strNymID = nym_id_source_->NymID()->str();
 }
 
 const serializedCredential CredentialSet::GetSerializedPubCredential() const
@@ -199,13 +197,20 @@ const serializedCredential CredentialSet::GetSerializedPubCredential() const
     return m_MasterCredential->Serialized(AS_PUBLIC, WITH_SIGNATURES);
 }
 
+CredentialSet::CredentialSet(const api::client::Wallet& wallet)
+    : wallet_(wallet)
+{
+}
+
 CredentialSet::CredentialSet(
+    const api::client::Wallet& wallet,
     const proto::KeyMode mode,
     const proto::CredentialSet& serializedCredentialSet)
-    : m_strNymID(String(serializedCredentialSet.nymid()))
+    : m_strNymID(serializedCredentialSet.nymid())
     , version_(serializedCredentialSet.version())
     , index_(serializedCredentialSet.index())
     , mode_(mode)
+    , wallet_(wallet)
 {
     if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
         Load_Master(
@@ -217,7 +222,7 @@ CredentialSet::CredentialSet(
         }
     } else {
         auto master = Credential::Factory(
-            *this, serializedCredentialSet.mastercredential(), mode);
+            wallet_, *this, serializedCredentialSet.mastercredential(), mode);
 
         if (master) {
             m_MasterCredential.reset(
@@ -231,11 +236,13 @@ CredentialSet::CredentialSet(
 }
 
 CredentialSet::CredentialSet(
+    const api::client::Wallet& wallet,
     const NymParameters& nymParameters,
     std::uint32_t version,
     const OTPasswordData*)
     : version_(version)
     , mode_(proto::KEYMODE_PRIVATE)
+    , wallet_(wallet)
 {
     CreateMasterCredential(nymParameters);
 
@@ -283,7 +290,8 @@ std::string CredentialSet::AddChildKeyCredential(
     revisedParameters.SetCredIndex(index_++);
 #endif
     std::unique_ptr<Credential> childCred =
-        Credential::Create<ChildKeyCredential>(*this, revisedParameters);
+        Credential::Create<ChildKeyCredential>(
+            wallet_, *this, revisedParameters);
 
     if (!childCred) {
         otErr << __FUNCTION__ << ": Failed to instantiate child key credential."
@@ -325,7 +333,7 @@ bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
     }
 
     m_MasterCredential =
-        Credential::Create<MasterCredential>(*this, nymParameters);
+        Credential::Create<MasterCredential>(wallet_, *this, nymParameters);
 
     if (m_MasterCredential) {
         index_++;
@@ -339,9 +347,9 @@ bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
     return false;
 }
 
-const String CredentialSet::GetMasterCredID() const
+const std::string CredentialSet::GetMasterCredID() const
 {
-    if (m_MasterCredential) { return String(m_MasterCredential->ID()); }
+    if (m_MasterCredential) { return m_MasterCredential->ID()->str(); }
     return "";
 }
 
@@ -361,7 +369,7 @@ CredentialSet* CredentialSet::LoadMaster(
     const String& strMasterCredID,
     const OTPasswordData* pPWData)
 {
-    CredentialSet* pCredential = new CredentialSet;
+    CredentialSet* pCredential = new CredentialSet(OT::App().Wallet());
     std::unique_ptr<CredentialSet> theCredentialAngel(pCredential);
     OT_ASSERT(nullptr != pCredential);
 
@@ -387,7 +395,7 @@ CredentialSet* CredentialSet::LoadMasterFromString(
     OTPasswordData* pPWData,
     const OTPassword* pImportPassword)
 {
-    CredentialSet* pCredential = new CredentialSet;
+    CredentialSet* pCredential = new CredentialSet(OT::App().Wallet());
     std::unique_ptr<CredentialSet> theCredentialAngel(pCredential);
     OT_ASSERT(nullptr != pCredential);
 
@@ -514,7 +522,7 @@ bool CredentialSet::Load_MasterFromString(
     const OTPasswordData*,
     const OTPassword*)
 {
-    m_strNymID = strNymID;
+    m_strNymID = strNymID.Get();
 
     serializedCredential serializedCred =
         Credential::ExtractArmoredCredential(strInput);
@@ -526,7 +534,7 @@ bool CredentialSet::Load_MasterFromString(
     }
 
     auto master = Credential::Factory(
-        *this, *serializedCred, mode_, proto::CREDROLE_MASTERKEY);
+        wallet_, *this, *serializedCred, mode_, proto::CREDROLE_MASTERKEY);
 
     if (master) {
         m_MasterCredential.reset(
@@ -562,7 +570,7 @@ bool CredentialSet::Load_Master(
     }
 
     auto master = Credential::Factory(
-        *this, *serialized, mode_, proto::CREDROLE_MASTERKEY);
+        wallet_, *this, *serialized, mode_, proto::CREDROLE_MASTERKEY);
 
     if (master) {
         m_MasterCredential.reset(
@@ -584,7 +592,7 @@ bool CredentialSet::LoadChildKeyCredentialFromString(
 
     if (!serialized) { return false; }
 
-    auto child = Credential::Factory(*this, *serialized, mode_);
+    auto child = Credential::Factory(wallet_, *this, *serialized, mode_);
 
     if (child) {
         m_mapCredentials[strSubID.Get()].swap(child);
@@ -598,7 +606,7 @@ bool CredentialSet::LoadChildKeyCredentialFromString(
 bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
 {
 
-    OT_ASSERT(GetNymID().Exists());
+    OT_ASSERT(!GetNymID().empty());
 
     std::shared_ptr<proto::Credential> child;
     bool loaded = OT::App().DB().Load(strSubID.Get(), child);
@@ -629,7 +637,7 @@ bool CredentialSet::LoadChildKeyCredential(
         return false;
     }
 
-    auto child = Credential::Factory(*this, serializedCred, mode_);
+    auto child = Credential::Factory(wallet_, *this, serializedCred, mode_);
 
     if (child) {
         m_mapCredentials[serializedCred.id()].swap(child);
@@ -920,18 +928,18 @@ void CredentialSet::SerializeIDs(
     if (bValid || bShowRevoked) {
         TagPtr pTag(new Tag("masterCredential"));
 
-        pTag->add_attribute("ID", GetMasterCredID().Get());
+        pTag->add_attribute("ID", GetMasterCredID());
         pTag->add_attribute("valid", formatBool(bValid));
 
         parent.add_tag(pTag);
 
         if (nullptr != pmapPubInfo)  // optional out-param.
             pmapPubInfo->insert(std::pair<std::string, std::string>(
-                GetMasterCredID().Get(), m_MasterCredential->asString(false)));
+                GetMasterCredID(), m_MasterCredential->asString(false)));
 
         if (nullptr != pmapPriInfo)  // optional out-param.
             pmapPriInfo->insert(std::pair<std::string, std::string>(
-                GetMasterCredID().Get(), m_MasterCredential->asString(true)));
+                GetMasterCredID(), m_MasterCredential->asString(true)));
     }
 
     for (const auto& it : m_mapCredentials) {
@@ -962,10 +970,10 @@ void CredentialSet::SerializeIDs(
             if (nullptr != pChildKeyCredential) {
                 pTag.reset(new Tag("keyCredential"));
                 pTag->add_attribute(
-                    "masterID", pChildKeyCredential->MasterID().Get());
+                    "masterID", pChildKeyCredential->MasterID());
             } else {
                 pTag.reset(new Tag("credential"));
-                pTag->add_attribute("masterID", pSub->MasterID().Get());
+                pTag->add_attribute("masterID", pSub->MasterID());
             }
 
             pTag->add_attribute("ID", str_cred_id);
@@ -1011,8 +1019,8 @@ SerializedCredentialSet CredentialSet::Serialize(
 {
     SerializedCredentialSet credSet = std::make_shared<proto::CredentialSet>();
     credSet->set_version(version_);
-    credSet->set_nymid(m_strNymID.Get());
-    credSet->set_masterid(GetMasterCredID().Get());
+    credSet->set_nymid(m_strNymID);
+    credSet->set_masterid(GetMasterCredID());
 
     if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
         if (proto::KEYMODE_PRIVATE == mode_) { credSet->set_index(index_); }
@@ -1128,7 +1136,7 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     nymParameters.SetContactData(contactData);
 
     std::unique_ptr<Credential> newChildCredential =
-        Credential::Create<ContactCredential>(*this, nymParameters);
+        Credential::Create<ContactCredential>(wallet_, *this, nymParameters);
 
     if (!newChildCredential) { return false; }
 
@@ -1154,7 +1162,8 @@ bool CredentialSet::AddVerificationCredential(
     nymParameters.SetVerificationSet(verificationSet);
 
     std::unique_ptr<Credential> newChildCredential =
-        Credential::Create<VerificationCredential>(*this, nymParameters);
+        Credential::Create<VerificationCredential>(
+            wallet_, *this, nymParameters);
 
     if (!newChildCredential) { return false; }
 
@@ -1177,7 +1186,7 @@ bool CredentialSet::Verify(
     const proto::Signature& sig,
     const proto::KeyRole key) const
 {
-    String signerID(sig.credentialid());
+    std::string signerID(sig.credentialid());
 
     if (signerID == GetMasterCredID()) {
         otErr << __FUNCTION__ << ": Master credentials are only allowed to "
@@ -1186,7 +1195,7 @@ bool CredentialSet::Verify(
         return false;
     }
 
-    const Credential* credential = GetChildCredential(signerID);
+    const Credential* credential = GetChildCredential(String(signerID));
 
     if (nullptr == credential) {
         otLog3 << "This credential set does not contain the credential which "

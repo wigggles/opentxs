@@ -289,9 +289,7 @@ bool OTPartyAccount::VerifyAgency()
 }
 
 bool OTPartyAccount::DropFinalReceiptToInbox(
-    mapOfNyms* pNymMap,
     const String& strNotaryID,
-    Nym& theServerNym,
     OTSmartContract& theSmartContract,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
@@ -324,9 +322,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
         const auto theAccountID = Identifier::Factory(m_strAcctID);
 
         return pAgent->DropFinalReceiptToInbox(
-            pNymMap,
             strNotaryID,
-            theServerNym,
             theSmartContract,
             theAccountID,  // acct ID from this.
             lNewTransactionNumber,

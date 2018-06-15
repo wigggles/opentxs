@@ -111,7 +111,7 @@ void MessageProcessor::run()
 {
     while (running_) {
         // timeout is the time left until the next cron should execute.
-        const auto timeout = server_.computeTimeout();
+        const auto timeout = server_.ComputeTimeout();
 
         if (timeout <= 0) {
             // ProcessCron and processSocket must not run simultaneously
@@ -173,7 +173,7 @@ bool MessageProcessor::processMessage(
 
     Message repy{};
     const bool processed =
-        server_.userCommandProcessor_.ProcessUserCommand(request, repy);
+        server_.CommandProcessor().ProcessUserCommand(request, repy);
 
     if (false == processed) {
         otWarn << OT_METHOD << __FUNCTION__
