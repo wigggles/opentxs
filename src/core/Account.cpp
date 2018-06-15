@@ -71,7 +71,7 @@
 using namespace irr;
 using namespace io;
 
-#define OT_METHOD "opentxs::Account::"
+//#define OT_METHOD "opentxs::Account::"
 
 namespace opentxs
 {
