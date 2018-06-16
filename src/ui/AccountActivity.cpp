@@ -79,6 +79,7 @@ namespace opentxs
 {
 ui::AccountActivity* Factory::AccountActivity(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
@@ -88,7 +89,15 @@ ui::AccountActivity* Factory::AccountActivity(
     const Identifier& accountID)
 {
     return new ui::implementation::AccountActivity(
-        zmq, sync, wallet, workflow, contact, storage, nymID, accountID);
+        zmq,
+        publisher,
+        sync,
+        wallet,
+        workflow,
+        contact,
+        storage,
+        nymID,
+        accountID);
 }
 }  // namespace opentxs
 
@@ -96,6 +105,7 @@ namespace opentxs::ui::implementation
 {
 AccountActivity::AccountActivity(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
@@ -103,7 +113,13 @@ AccountActivity::AccountActivity(
     const api::storage::Storage& storage,
     const Identifier& nymID,
     const Identifier& accountID)
-    : AccountActivityType(zmq, contact, blank_id(), nymID, new BalanceItemBlank)
+    : AccountActivityType(
+          zmq,
+          publisher,
+          contact,
+          blank_id(),
+          nymID,
+          new BalanceItemBlank)
     , sync_(sync)
     , wallet_(wallet)
     , workflow_(workflow)
@@ -158,6 +174,7 @@ void AccountActivity::construct_item(
         Factory::BalanceItem(
             *this,
             zmq_,
+            publisher_,
             contact_manager_,
             sync_,
             wallet_,

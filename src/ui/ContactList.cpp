@@ -72,10 +72,11 @@ namespace opentxs
 {
 ui::ContactList* Factory::ContactList(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& nymID)
 {
-    return new ui::implementation::ContactList(zmq, contact, nymID);
+    return new ui::implementation::ContactList(zmq, publisher, contact, nymID);
 }
 }  // namespace opentxs
 
@@ -83,13 +84,21 @@ namespace opentxs::ui::implementation
 {
 ContactList::ContactList(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& nymID)
-    : ContactListType(zmq, contact, contact.ContactID(nymID), nymID, nullptr)
+    : ContactListType(
+          zmq,
+          publisher,
+          contact,
+          contact.ContactID(nymID),
+          nymID,
+          nullptr)
     , owner_contact_id_(Identifier::Factory(last_id_))
     , owner_p_(Factory::ContactListItem(
           *this,
           zmq,
+          publisher_,
           contact,
           owner_contact_id_,
           "Owner"))
@@ -141,7 +150,9 @@ void ContactList::construct_item(
 {
     names_.emplace(id, index);
     items_[index].emplace(
-        id, Factory::ContactListItem(*this, zmq_, contact_manager_, id, index));
+        id,
+        Factory::ContactListItem(
+            *this, zmq_, publisher_, contact_manager_, id, index));
 }
 
 /** Returns owner contact. Sets up iterators for next row */

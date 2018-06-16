@@ -75,10 +75,11 @@ namespace opentxs
 {
 ui::Contact* Factory::ContactWidget(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& contactID)
 {
-    return new ui::implementation::Contact(zmq, contact, contactID);
+    return new ui::implementation::Contact(zmq, publisher, contact, contactID);
 }
 }  // namespace opentxs
 
@@ -94,10 +95,12 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
 
 Contact::Contact(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& contactID)
     : ContactType(
           zmq,
+          publisher,
           contact,
           proto::CONTACTSECTION_ERROR,
           contactID,
@@ -142,7 +145,7 @@ void Contact::construct_item(
     items_[index].emplace(
         id,
         Factory::ContactSectionWidget(
-            zmq_, contact_manager_, *this, recover(custom[0])));
+            zmq_, publisher_, contact_manager_, *this, recover(custom[0])));
 }
 
 std::string Contact::ContactID() const { return nym_id_->str(); }

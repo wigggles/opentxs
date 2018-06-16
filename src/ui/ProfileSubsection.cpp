@@ -76,13 +76,14 @@ namespace opentxs
 {
 ui::ProfileSubsection* Factory::ProfileSubsectionWidget(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Wallet& wallet,
     const ui::implementation::ProfileSectionParent& parent,
     const ContactGroup& group)
 {
     return new ui::implementation::ProfileSubsection(
-        zmq, contact, wallet, parent, group);
+        zmq, publisher, contact, wallet, parent, group);
 }
 }  // namespace opentxs
 
@@ -90,12 +91,14 @@ namespace opentxs::ui::implementation
 {
 ProfileSubsection::ProfileSubsection(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Wallet& wallet,
     const ProfileSectionParent& parent,
     const opentxs::ContactGroup& group)
     : ProfileSubsectionType(
           zmq,
+          publisher,
           contact,
           Identifier::Factory(),
           Identifier::Factory(parent.NymID()),
@@ -130,7 +133,12 @@ void ProfileSubsection::construct_item(
     items_[index].emplace(
         id,
         Factory::ProfileItemWidget(
-            zmq_, contact_manager_, wallet_, *this, recover(custom[0])));
+            zmq_,
+            publisher_,
+            contact_manager_,
+            wallet_,
+            *this,
+            recover(custom[0])));
 }
 
 bool ProfileSubsection::Delete(const std::string& claimID) const

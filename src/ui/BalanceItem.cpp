@@ -71,6 +71,7 @@ namespace opentxs
 ui::BalanceItem* Factory::BalanceItem(
     const ui::implementation::AccountActivityParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
@@ -88,6 +89,7 @@ ui::BalanceItem* Factory::BalanceItem(
             return new ui::implementation::ChequeBalanceItem(
                 parent,
                 zmq,
+                publisher,
                 contact,
                 sync,
                 wallet,
@@ -112,6 +114,7 @@ namespace opentxs::ui::implementation
 BalanceItem::BalanceItem(
     const ui::implementation::AccountActivityParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
@@ -122,6 +125,7 @@ BalanceItem::BalanceItem(
     : BalanceItemType(
           parent,
           zmq,
+          publisher,
           contact,
           {Identifier::Factory(workflow.id()), event.type()},
           true)
@@ -139,6 +143,7 @@ BalanceItem::BalanceItem(
 ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivityParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
@@ -149,6 +154,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     : BalanceItem(
           parent,
           zmq,
+          publisher,
           contact,
           sync,
           wallet,

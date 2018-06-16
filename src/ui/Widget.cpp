@@ -41,35 +41,38 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 
 #include "Widget.hpp"
 
-#define OT_METHOD "opentxs::ui::implementation::Widget"
+#define OT_METHOD "opentxs::ui::implementation::Widget::"
 
 namespace opentxs::ui::implementation
 {
-Widget::Widget(const network::zeromq::Context& zmq, const Identifier& id)
+Widget::Widget(
+    const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
+    const Identifier& id)
     : zmq_(zmq)
+    , publisher_(publisher)
     , widget_id_(Identifier::Factory(id))
-    , update_socket_(opentxs::network::zeromq::RequestSocket::Factory(zmq))
 {
-    update_socket_->Start(
-        opentxs::network::zeromq::Socket::WidgetUpdateCollectorEndpoint);
 }
 
-Widget::Widget(const network::zeromq::Context& zmq)
-    : Widget(zmq, Identifier::Random())
+Widget::Widget(
+    const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher)
+    : Widget(zmq, publisher, Identifier::Random())
 {
 }
 
 void Widget::UpdateNotify() const
 {
     auto id(widget_id_->str());
+    publisher_.Publish(id);
     otErr << OT_METHOD << __FUNCTION__ << ": widget " << id << " updated"
           << std::endl;
-    update_socket_->SendRequest(id);
 }
 
 OTIdentifier Widget::WidgetID() const

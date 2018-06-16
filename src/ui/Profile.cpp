@@ -79,11 +79,13 @@ namespace opentxs
 {
 ui::Profile* Factory::ProfileWidget(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Wallet& wallet,
     const Identifier& nymID)
 {
-    return new ui::implementation::Profile(zmq, contact, wallet, nymID);
+    return new ui::implementation::Profile(
+        zmq, publisher, contact, wallet, nymID);
 }
 }  // namespace opentxs
 
@@ -99,11 +101,13 @@ const std::map<proto::ContactSectionName, int> Profile::sort_keys_{
 
 Profile::Profile(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Wallet& wallet,
     const Identifier& nymID)
     : ProfileType(
           zmq,
+          publisher,
           contact,
           proto::CONTACTSECTION_ERROR,
           nymID,
@@ -230,7 +234,12 @@ void Profile::construct_item(
     items_[index].emplace(
         id,
         Factory::ProfileSectionWidget(
-            zmq_, contact_manager_, wallet_, *this, recover(custom[0])));
+            zmq_,
+            publisher_,
+            contact_manager_,
+            wallet_,
+            *this,
+            recover(custom[0])));
 }
 
 bool Profile::Delete(

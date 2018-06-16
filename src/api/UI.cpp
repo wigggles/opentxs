@@ -109,26 +109,10 @@ UI::UI(
     , contacts_()
     , contact_lists_()
     , messagable_lists_()
-    , widget_callback_(opentxs::network::zeromq::ReplyCallback::Factory(
-          [this](
-              const opentxs::network::zeromq::Message& input) -> OTZMQMessage {
-              OT_ASSERT(1 == input.Body().size());
-
-              std::string message(*input.Body().begin());
-              otInfo << OT_METHOD << ": Relaying notification for widget "
-                     << message << "..." << std::endl;
-              widget_update_publisher_->Publish(message);
-              otInfo << "...done" << std::endl;
-
-              return opentxs::network::zeromq::Message::Factory();
-          }))
-    , widget_update_collector_(zmq_.ReplySocket(widget_callback_))
     , widget_update_publisher_(zmq_.PublishSocket())
 {
     widget_update_publisher_->Start(
         opentxs::network::zeromq::Socket::WidgetUpdateEndpoint);
-    widget_update_collector_->Start(
-        opentxs::network::zeromq::Socket::WidgetUpdateCollectorEndpoint);
 }
 
 const ui::AccountActivity& UI::AccountActivity(
@@ -143,6 +127,7 @@ const ui::AccountActivity& UI::AccountActivity(
     if (false == bool(output)) {
         output.reset(Factory::AccountActivity(
             zmq_,
+            widget_update_publisher_,
             sync_,
             wallet_,
             workflow_,
@@ -164,7 +149,12 @@ const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
 
     if (false == bool(output)) {
         output.reset(Factory::ActivitySummary(
-            zmq_, activity_, contact_, running_, nymID));
+            zmq_,
+            widget_update_publisher_,
+            activity_,
+            contact_,
+            running_,
+            nymID));
     }
 
     OT_ASSERT(output)
@@ -181,7 +171,13 @@ const ui::ActivityThread& UI::ActivityThread(
 
     if (false == bool(output)) {
         output.reset(Factory::ActivityThread(
-            zmq_, sync_, activity_, contact_, nymID, threadID));
+            zmq_,
+            widget_update_publisher_,
+            sync_,
+            activity_,
+            contact_,
+            nymID,
+            threadID));
     }
 
     OT_ASSERT(output)
@@ -199,7 +195,8 @@ const ui::Contact& UI::Contact(const Identifier& contactID) const
         it = contacts_
                  .emplace(
                      std::move(id),
-                     Factory::ContactWidget(zmq_, contact_, contactID))
+                     Factory::ContactWidget(
+                         zmq_, widget_update_publisher_, contact_, contactID))
                  .first;
     }
 
@@ -214,7 +211,8 @@ const ui::ContactList& UI::ContactList(const Identifier& nymID) const
     auto& output = contact_lists_[nymID];
 
     if (false == bool(output)) {
-        output.reset(Factory::ContactList(zmq_, contact_, nymID));
+        output.reset(Factory::ContactList(
+            zmq_, widget_update_publisher_, contact_, nymID));
     }
 
     OT_ASSERT(output)
@@ -228,7 +226,8 @@ const ui::MessagableList& UI::MessagableList(const Identifier& nymID) const
     auto& output = messagable_lists_[nymID];
 
     if (false == bool(output)) {
-        output.reset(Factory::MessagableList(zmq_, contact_, sync_, nymID));
+        output.reset(Factory::MessagableList(
+            zmq_, widget_update_publisher_, contact_, sync_, nymID));
     }
 
     OT_ASSERT(output)
@@ -246,8 +245,8 @@ const ui::PayableList& UI::PayableList(
             nymID, currency)];
 
     if (false == bool(output)) {
-        output.reset(
-            Factory::PayableList(zmq_, contact_, sync_, nymID, currency));
+        output.reset(Factory::PayableList(
+            zmq_, widget_update_publisher_, contact_, sync_, nymID, currency));
     }
 
     OT_ASSERT(output)
@@ -265,7 +264,12 @@ const ui::Profile& UI::Profile(const Identifier& contactID) const
         it = profiles_
                  .emplace(
                      std::move(id),
-                     Factory::ProfileWidget(zmq_, contact_, wallet_, contactID))
+                     Factory::ProfileWidget(
+                         zmq_,
+                         widget_update_publisher_,
+                         contact_,
+                         wallet_,
+                         contactID))
                  .first;
     }
 

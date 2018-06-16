@@ -76,6 +76,7 @@ namespace opentxs
 ui::ActivitySummaryItem* Factory::ActivitySummaryItem(
     const ui::implementation::ActivitySummaryParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::Activity& activity,
     const api::ContactManager& contact,
     const Flag& running,
@@ -83,7 +84,7 @@ ui::ActivitySummaryItem* Factory::ActivitySummaryItem(
     const Identifier& threadID)
 {
     return new ui::implementation::ActivitySummaryItem(
-        parent, zmq, activity, contact, running, nymID, threadID);
+        parent, zmq, publisher, activity, contact, running, nymID, threadID);
 }
 }  // namespace opentxs
 
@@ -92,12 +93,13 @@ namespace opentxs::ui::implementation
 ActivitySummaryItem::ActivitySummaryItem(
     const ActivitySummaryParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::Activity& activity,
     const api::ContactManager& contact,
     const Flag& running,
     const Identifier& nymID,
     const Identifier& threadID)
-    : ActivitySummaryItemType(parent, zmq, contact, threadID, true)
+    : ActivitySummaryItemType(parent, zmq, publisher, contact, threadID, true)
     , activity_(activity)
     , running_(running)
     , nym_id_(Identifier::Factory(nymID))

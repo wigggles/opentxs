@@ -65,6 +65,7 @@ private:
 
     ContactItem(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const ContactSubsectionParent& parent,
         const opentxs::ContactItem& item);

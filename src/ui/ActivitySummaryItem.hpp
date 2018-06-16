@@ -91,6 +91,7 @@ private:
     ActivitySummaryItem(
         const ActivitySummaryParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::Activity& activity,
         const api::ContactManager& contact,
         const Flag& running,

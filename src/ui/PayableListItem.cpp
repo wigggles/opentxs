@@ -61,6 +61,7 @@ namespace opentxs
 ui::PayableListItem* Factory::PayableListItem(
     const ui::implementation::ContactListParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& id,
     const std::string& name,
@@ -68,7 +69,7 @@ ui::PayableListItem* Factory::PayableListItem(
     const proto::ContactItemType& currency)
 {
     return new ui::implementation::PayableListItem(
-        parent, zmq, contact, id, name, paymentcode, currency);
+        parent, zmq, publisher, contact, id, name, paymentcode, currency);
 }
 }  // namespace opentxs
 
@@ -77,12 +78,13 @@ namespace opentxs::ui::implementation
 PayableListItem::PayableListItem(
     const ContactListParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& id,
     const std::string& name,
     const std::string& paymentcode,
     const proto::ContactItemType& currency)
-    : ot_super(parent, zmq, contact, id, name)
+    : ot_super(parent, zmq, publisher, contact, id, name)
     , payment_code_(paymentcode)
     , currency_(currency)
 {

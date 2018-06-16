@@ -75,12 +75,13 @@ namespace opentxs
 {
 ui::ContactSubsection* Factory::ContactSubsectionWidget(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ui::implementation::ContactSectionParent& parent,
     const ContactGroup& group)
 {
     return new ui::implementation::ContactSubsection(
-        zmq, contact, parent, group);
+        zmq, publisher, contact, parent, group);
 }
 }  // namespace opentxs
 
@@ -88,11 +89,13 @@ namespace opentxs::ui::implementation
 {
 ContactSubsection::ContactSubsection(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ContactSectionParent& parent,
     const opentxs::ContactGroup& group)
     : ContactSubsectionType(
           zmq,
+          publisher,
           contact,
           Identifier::Factory(),
           Identifier::Factory(parent.ContactID()),
@@ -116,7 +119,7 @@ void ContactSubsection::construct_item(
     items_[index].emplace(
         id,
         Factory::ContactItemWidget(
-            zmq_, contact_manager_, *this, recover(custom[0])));
+            zmq_, publisher_, contact_manager_, *this, recover(custom[0])));
 }
 
 std::string ContactSubsection::Name(const std::string& lang) const

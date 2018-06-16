@@ -68,6 +68,7 @@ protected:
     ContactListItem(
         const ContactListParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const Identifier& id,
         const std::string& name);

@@ -57,6 +57,7 @@ namespace opentxs::ui::implementation
 ActivityThreadItem::ActivityThreadItem(
     const ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ActivityThreadID& id,
     const Identifier& nymID,
@@ -65,7 +66,7 @@ ActivityThreadItem::ActivityThreadItem(
     const std::string& text,
     const bool loading,
     const bool pending)
-    : ActivityThreadItemType(parent, zmq, contact, id, true)
+    : ActivityThreadItemType(parent, zmq, publisher, contact, id, true)
     , nym_id_(nymID)
     , activity_(activity)
     , time_(time)

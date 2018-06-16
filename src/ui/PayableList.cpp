@@ -76,13 +76,14 @@ namespace opentxs
 {
 ui::PayableList* Factory::PayableList(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const Identifier& nymID,
     const proto::ContactItemType& currency)
 {
     return new ui::implementation::PayableList(
-        zmq, contact, sync, nymID, currency);
+        zmq, publisher, contact, sync, nymID, currency);
 }
 }  // namespace opentxs
 
@@ -90,12 +91,14 @@ namespace opentxs::ui::implementation
 {
 PayableList::PayableList(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const Identifier& nymID,
     const proto::ContactItemType& currency)
     : PayableListType(
           zmq,
+          publisher,
           contact,
           contact.ContactID(nymID),
           nymID,
@@ -157,7 +160,14 @@ void PayableList::construct_item(
     items_[index].emplace(
         id,
         Factory::PayableListItem(
-            *this, zmq_, contact_manager_, id, index, *paymentCode, currency_));
+            *this,
+            zmq_,
+            publisher_,
+            contact_manager_,
+            id,
+            index,
+            *paymentCode,
+            currency_));
 }
 
 const Identifier& PayableList::ID() const { return owner_contact_id_; }
