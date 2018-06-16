@@ -93,6 +93,7 @@ private:
 
     PayableList(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const Identifier& nymID,

@@ -61,6 +61,7 @@ namespace opentxs
 ui::ActivityThreadItem* Factory::PaymentItem(
     const ui::implementation::ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ui::implementation::ActivityThreadID& id,
     const Identifier& nymID,
@@ -68,7 +69,7 @@ ui::ActivityThreadItem* Factory::PaymentItem(
     const std::chrono::system_clock::time_point& time)
 {
     return new ui::implementation::PaymentItem(
-        parent, zmq, contact, id, nymID, activity, time);
+        parent, zmq, publisher, contact, id, nymID, activity, time);
 }
 }  // namespace opentxs
 
@@ -77,6 +78,7 @@ namespace opentxs::ui::implementation
 PaymentItem::PaymentItem(
     const ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ActivityThreadID& id,
     const Identifier& nymID,
@@ -85,6 +87,7 @@ PaymentItem::PaymentItem(
     : ActivityThreadItem(
           parent,
           zmq,
+          publisher,
           contact,
           id,
           nymID,

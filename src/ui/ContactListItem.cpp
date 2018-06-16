@@ -64,12 +64,13 @@ namespace opentxs
 ui::ContactListItem* Factory::ContactListItem(
     const ui::implementation::ContactListParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& id,
     const std::string& name)
 {
     return new ui::implementation::ContactListItem(
-        parent, zmq, contact, id, name);
+        parent, zmq, publisher, contact, id, name);
 }
 }  // namespace opentxs
 
@@ -78,10 +79,11 @@ namespace opentxs::ui::implementation
 ContactListItem::ContactListItem(
     const ContactListParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& id,
     const std::string& name)
-    : ContactListItemType(parent, zmq, contact, id, true)
+    : ContactListItemType(parent, zmq, publisher, contact, id, true)
     , name_(name)
     , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
           [this](const network::zeromq::Message& message) -> void {

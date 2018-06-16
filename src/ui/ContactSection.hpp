@@ -112,6 +112,7 @@ private:
 
     ContactSection(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const ContactParent& parent,
         const opentxs::ContactSection& section);

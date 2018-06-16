@@ -75,13 +75,14 @@ namespace opentxs
 {
 ui::ActivitySummary* Factory::ActivitySummary(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::Activity& activity,
     const api::ContactManager& contact,
     const Flag& running,
     const Identifier& nymID)
 {
     return new ui::implementation::ActivitySummary(
-        zmq, activity, contact, running, nymID);
+        zmq, publisher, activity, contact, running, nymID);
 }
 }  // namespace opentxs
 
@@ -90,6 +91,7 @@ namespace opentxs::ui::implementation
 
 ActivitySummary::ActivitySummary(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::Activity& activity,
     const api::ContactManager& contact,
     const Flag& running,
@@ -97,6 +99,7 @@ ActivitySummary::ActivitySummary(
 
     : ActivitySummaryType(
           zmq,
+          publisher,
           contact,
           blank_id(),
           Identifier::Factory(nymID),
@@ -138,7 +141,14 @@ void ActivitySummary::construct_item(
     items_[index].emplace(
         id,
         Factory::ActivitySummaryItem(
-            *this, zmq_, activity_, contact_manager_, running_, nym_id_, id));
+            *this,
+            zmq_,
+            publisher_,
+            activity_,
+            contact_manager_,
+            running_,
+            nym_id_,
+            id));
     names_.emplace(id, index);
 }
 

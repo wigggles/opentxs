@@ -59,6 +59,7 @@ namespace opentxs
 ui::ActivityThreadItem* Factory::MailItem(
     const ui::implementation::ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ui::implementation::ActivityThreadID& id,
     const Identifier& nymID,
@@ -71,6 +72,7 @@ ui::ActivityThreadItem* Factory::MailItem(
     return new ui::implementation::MailItem(
         parent,
         zmq,
+        publisher,
         contact,
         id,
         nymID,
@@ -84,6 +86,7 @@ ui::ActivityThreadItem* Factory::MailItem(
 ui::ActivityThreadItem* Factory::MailItem(
     const ui::implementation::ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ui::implementation::ActivityThreadID& id,
     const Identifier& nymID,
@@ -91,7 +94,7 @@ ui::ActivityThreadItem* Factory::MailItem(
     const std::chrono::system_clock::time_point& time)
 {
     return new ui::implementation::MailItem(
-        parent, zmq, contact, id, nymID, activity, time);
+        parent, zmq, publisher, contact, id, nymID, activity, time);
 }
 }  // namespace opentxs
 
@@ -100,6 +103,7 @@ namespace opentxs::ui::implementation
 MailItem::MailItem(
     const ActivityThreadParent& parent,
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ActivityThreadID& id,
     const Identifier& nymID,
@@ -111,6 +115,7 @@ MailItem::MailItem(
     : ActivityThreadItem(
           parent,
           zmq,
+          publisher,
           contact,
           id,
           nymID,
@@ -119,18 +124,33 @@ MailItem::MailItem(
           text,
           loading,
           pending)
-    , load_(nullptr){OT_ASSERT(false == nym_id_.empty())
-                         OT_ASSERT(false == item_id_.empty())}
+    , load_(nullptr)
+{
+    OT_ASSERT(false == nym_id_.empty());
+    OT_ASSERT(false == item_id_.empty())
+}
 
-    MailItem::MailItem(
-        const ActivityThreadParent& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const ActivityThreadID& id,
-        const Identifier& nymID,
-        const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time)
-    : MailItem(parent, zmq, contact, id, nymID, activity, time, "", true, false)
+MailItem::MailItem(
+    const ActivityThreadParent& parent,
+    const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
+    const api::ContactManager& contact,
+    const ActivityThreadID& id,
+    const Identifier& nymID,
+    const api::Activity& activity,
+    const std::chrono::system_clock::time_point& time)
+    : MailItem(
+          parent,
+          zmq,
+          publisher,
+          contact,
+          id,
+          nymID,
+          activity,
+          time,
+          "",
+          true,
+          false)
 {
     switch (box_) {
         case StorageBox::MAILINBOX:

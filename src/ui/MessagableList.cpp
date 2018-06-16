@@ -74,11 +74,13 @@ namespace opentxs
 {
 ui::MessagableList* Factory::MessagableList(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const Identifier& nymID)
 {
-    return new ui::implementation::MessagableList(zmq, contact, sync, nymID);
+    return new ui::implementation::MessagableList(
+        zmq, publisher, contact, sync, nymID);
 }
 }  // namespace opentxs
 
@@ -86,11 +88,13 @@ namespace opentxs::ui::implementation
 {
 MessagableList::MessagableList(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Sync& sync,
     const Identifier& nymID)
     : MessagableListType(
           zmq,
+          publisher,
           contact,
           contact.ContactID(nymID),
           nymID,
@@ -144,7 +148,9 @@ void MessagableList::construct_item(
 {
     names_.emplace(id, index);
     items_[index].emplace(
-        id, Factory::ContactListItem(*this, zmq_, contact_manager_, id, index));
+        id,
+        Factory::ContactListItem(
+            *this, zmq_, publisher_, contact_manager_, id, index));
 }
 
 const Identifier& MessagableList::ID() const { return owner_contact_id_; }

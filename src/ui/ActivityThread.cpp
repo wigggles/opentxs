@@ -80,6 +80,7 @@ namespace opentxs
 {
 ui::ActivityThread* Factory::ActivityThread(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
     const api::Activity& activity,
     const api::ContactManager& contact,
@@ -87,7 +88,7 @@ ui::ActivityThread* Factory::ActivityThread(
     const Identifier& threadID)
 {
     return new ui::implementation::ActivityThread(
-        zmq, sync, activity, contact, nymID, threadID);
+        zmq, publisher, sync, activity, contact, nymID, threadID);
 }
 }  // namespace opentxs
 
@@ -95,6 +96,7 @@ namespace opentxs::ui::implementation
 {
 ActivityThread::ActivityThread(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
     const api::Activity& activity,
     const api::ContactManager& contact,
@@ -102,6 +104,7 @@ ActivityThread::ActivityThread(
     const Identifier& threadID)
     : ActivityThreadType(
           zmq,
+          publisher,
           contact,
           {Identifier::Factory(), {}, Identifier::Factory()},
           nymID,
@@ -230,6 +233,7 @@ void ActivityThread::construct_item(
                 Factory::MailItem(
                     *this,
                     zmq_,
+                    publisher_,
                     contact_manager_,
                     id,
                     nym_id_,
@@ -242,6 +246,7 @@ void ActivityThread::construct_item(
                 Factory::MailItem(
                     *this,
                     zmq_,
+                    publisher_,
                     contact_manager_,
                     id,
                     nym_id_,
@@ -258,6 +263,7 @@ void ActivityThread::construct_item(
                 Factory::PaymentItem(
                     *this,
                     zmq_,
+                    publisher_,
                     contact_manager_,
                     id,
                     nym_id_,

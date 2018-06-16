@@ -46,6 +46,7 @@ class Factory
 public:
     static ui::AccountActivity* AccountActivity(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
@@ -55,6 +56,7 @@ public:
         const Identifier& accountID);
     static ui::ActivitySummary* ActivitySummary(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::Activity& activity,
         const api::ContactManager& contact,
         const Flag& running,
@@ -62,6 +64,7 @@ public:
     static ui::ActivitySummaryItem* ActivitySummaryItem(
         const ui::implementation::ActivitySummaryParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::Activity& activity,
         const api::ContactManager& contact,
         const Flag& running,
@@ -69,6 +72,7 @@ public:
         const Identifier& threadID);
     static ui::ActivityThread* ActivityThread(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
         const api::Activity& activity,
         const api::ContactManager& contact,
@@ -87,6 +91,7 @@ public:
     static ui::BalanceItem* BalanceItem(
         const ui::implementation::AccountActivityParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
@@ -97,30 +102,36 @@ public:
     static api::client::Cash* Cash();
     static ui::ContactList* ContactList(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const Identifier& nymID);
     static ui::ContactListItem* ContactListItem(
         const ui::implementation::ContactListParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const Identifier& id,
         const std::string& name);
     static ui::Contact* ContactWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const Identifier& contactID);
     static ui::ContactItem* ContactItemWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const ui::implementation::ContactSubsectionParent& parent,
         const ContactItem& item);
     static ui::ContactSection* ContactSectionWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const ui::implementation::ContactParent& parent,
         const ContactSection& section);
     static ui::ContactSubsection* ContactSubsectionWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const ui::implementation::ContactSectionParent& parent,
         const ContactGroup& group);
@@ -135,6 +146,7 @@ public:
     static ui::ActivityThreadItem* MailItem(
         const ui::implementation::ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const ui::implementation::ActivityThreadID& id,
         const Identifier& nymID,
@@ -146,6 +158,7 @@ public:
     static ui::ActivityThreadItem* MailItem(
         const ui::implementation::ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const ui::implementation::ActivityThreadID& id,
         const Identifier& nymID,
@@ -153,6 +166,7 @@ public:
         const std::chrono::system_clock::time_point& time);
     static ui::MessagableList* MessagableList(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const Identifier& nymID);
@@ -164,16 +178,9 @@ public:
         const OT_API& otapi,
         const OTAPI_Exec& exec,
         const network::zeromq::Context& context);
-    static ui::ActivityThreadItem* PaymentItem(
-        const ui::implementation::ActivityThreadParent& parent,
-        const network::zeromq::Context& zmq,
-        const api::ContactManager& contact,
-        const ui::implementation::ActivityThreadID& id,
-        const Identifier& nymID,
-        const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time);
     static ui::PayableList* PayableList(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const Identifier& nymID,
@@ -181,30 +188,44 @@ public:
     static ui::PayableListItem* PayableListItem(
         const ui::implementation::ContactListParent& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const Identifier& id,
         const std::string& name,
         const std::string& paymentcode,
         const proto::ContactItemType& currency);
+    static ui::ActivityThreadItem* PaymentItem(
+        const ui::implementation::ActivityThreadParent& parent,
+        const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
+        const api::ContactManager& contact,
+        const ui::implementation::ActivityThreadID& id,
+        const Identifier& nymID,
+        const api::Activity& activity,
+        const std::chrono::system_clock::time_point& time);
     static ui::Profile* ProfileWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Wallet& wallet,
         const Identifier& nymID);
     static ui::ProfileItem* ProfileItemWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Wallet& wallet,
         const ui::implementation::ProfileSubsectionParent& parent,
         const ContactItem& item);
     static ui::ProfileSection* ProfileSectionWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Wallet& wallet,
         const ui::implementation::ProfileParent& parent,
         const ContactSection& section);
     static ui::ProfileSubsection* ProfileSubsectionWidget(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Wallet& wallet,
         const ui::implementation::ProfileSectionParent& parent,

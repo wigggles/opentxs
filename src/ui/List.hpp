@@ -419,11 +419,12 @@ protected:
 
     List(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const IDType lastID,
         const Identifier& nymID,
         RowType* blank)
-        : Widget(zmq)
+        : Widget(zmq, publisher)
         , contact_manager_(contact)
         , nym_id_(Identifier::Factory(nymID))
         , items_()

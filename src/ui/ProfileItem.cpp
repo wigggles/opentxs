@@ -55,13 +55,14 @@ namespace opentxs
 {
 ui::ProfileItem* Factory::ProfileItemWidget(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Wallet& wallet,
     const ui::implementation::ProfileSubsectionParent& parent,
     const ContactItem& item)
 {
     return new ui::implementation::ProfileItem(
-        zmq, contact, wallet, parent, item);
+        zmq, publisher, contact, wallet, parent, item);
 }
 }  // namespace opentxs
 
@@ -69,6 +70,7 @@ namespace opentxs::ui::implementation
 {
 ProfileItem::ProfileItem(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const api::client::Wallet& wallet,
     const ProfileSubsectionParent& parent,
@@ -76,6 +78,7 @@ ProfileItem::ProfileItem(
     : ProfileItemType(
           parent,
           zmq,
+          publisher,
           contact,
           Identifier::Factory(item.ID()),
           true)

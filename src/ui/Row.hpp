@@ -56,11 +56,12 @@ protected:
 
     Row(const ParentType& parent,
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const IdentifierType id,
         const bool valid)
         : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
-        , Widget(zmq, parent.WidgetID())
+        , Widget(zmq, publisher, parent.WidgetID())
         , contact_(contact)
     {
     }

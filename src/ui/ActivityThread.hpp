@@ -141,6 +141,7 @@ private:
 
     ActivityThread(
         const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
         const api::Activity& activity,
         const api::ContactManager& contact,

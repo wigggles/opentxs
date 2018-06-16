@@ -55,15 +55,20 @@ public:
 
 protected:
     const network::zeromq::Context& zmq_;
+    const network::zeromq::PublishSocket& publisher_;
 
     void UpdateNotify() const;
 
-    Widget(const network::zeromq::Context& zmq, const Identifier& id);
-    Widget(const network::zeromq::Context& zmq);
+    Widget(
+        const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
+        const Identifier& id);
+    Widget(
+        const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher);
 
 private:
     const OTIdentifier widget_id_;
-    const OTZMQRequestSocket update_socket_;
 
     Widget() = delete;
     Widget(const Widget&) = delete;

@@ -55,11 +55,13 @@ namespace opentxs
 {
 ui::ContactItem* Factory::ContactItemWidget(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ui::implementation::ContactSubsectionParent& parent,
     const ContactItem& item)
 {
-    return new ui::implementation::ContactItem(zmq, contact, parent, item);
+    return new ui::implementation::ContactItem(
+        zmq, publisher, contact, parent, item);
 }
 }  // namespace opentxs
 
@@ -67,12 +69,14 @@ namespace opentxs::ui::implementation
 {
 ContactItem::ContactItem(
     const network::zeromq::Context& zmq,
+    const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const ContactSubsectionParent& parent,
     const opentxs::ContactItem& item)
     : ContactItemType(
           parent,
           zmq,
+          publisher,
           contact,
           Identifier::Factory(item.ID()),
           true)
