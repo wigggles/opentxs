@@ -1781,7 +1781,8 @@ std::string OTAPI_Exec::Wallet_ImportNym(const std::string& FILE_CONTENTS) const
     const String strFileContents(FILE_CONTENTS);
     auto theNymID = Identifier::Factory();
 
-    if (ot_api_.Wallet_ImportNym(strFileContents, &theNymID.get())) {
+    if (ot_api_.Wallet_ImportNym(strFileContents, theNymID)) {
+
         return theNymID->str();
     }
 

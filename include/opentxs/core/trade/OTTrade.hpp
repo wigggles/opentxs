@@ -163,9 +163,9 @@ public:
     }
 
     // optionally returns the offer's market ID and a pointer to the market.
-    OTOffer* GetOffer(
-        Identifier* offerMarketId = nullptr,
-        OTMarket** market = nullptr);
+    OTOffer* GetOffer(OTMarket** market = nullptr);
+    // optionally returns the offer's market ID and a pointer to the market.
+    OTOffer* GetOffer(Identifier& offerMarketId, OTMarket** market = nullptr);
 
     inline const Identifier& GetCurrencyID() const { return currencyTypeID_; }
 

@@ -261,7 +261,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
         nymbox.ReleaseSignatures();
         nymbox.SignContract(server_.GetServerNym());
         nymbox.SaveContract();
-        savedNymbox = nymbox.SaveNymbox(&nymboxHash);
+        savedNymbox = nymbox.SaveNymbox(nymboxHash);
     } else {
         nymbox.CalculateNymboxHash(nymboxHash);
     }
@@ -2529,7 +2529,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     theNymbox.SignContract(serverNym);
     theNymbox.SaveContract();
     auto NYMBOX_HASH = Identifier::Factory();
-    theNymbox.SaveNymbox(&NYMBOX_HASH.get());
+    theNymbox.SaveNymbox(NYMBOX_HASH);
     pReplyNotice->SaveBoxReceipt(theNymbox);
 
     if (context.RemoteNym().CompareID(nymID)) {
@@ -2948,7 +2948,7 @@ bool UserCommandProcessor::save_inbox(
 {
     if (false == save_box(nym, inbox)) { return false; }
 
-    if (false == inbox.SaveInbox(&hash)) { return false; }
+    if (false == inbox.SaveInbox(hash)) { return false; }
 
     return true;
 }
@@ -2960,7 +2960,7 @@ bool UserCommandProcessor::save_nymbox(
 {
     if (false == save_box(nym, nymbox)) { return false; }
 
-    if (false == nymbox.SaveNymbox(&hash)) { return false; }
+    if (false == nymbox.SaveNymbox(hash)) { return false; }
 
     return true;
 }
@@ -2972,7 +2972,7 @@ bool UserCommandProcessor::save_outbox(
 {
     if (false == save_box(nym, outbox)) { return false; }
 
-    if (false == outbox.SaveOutbox(&hash)) { return false; }
+    if (false == outbox.SaveOutbox(hash)) { return false; }
 
     return true;
 }

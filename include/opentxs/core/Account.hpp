@@ -115,9 +115,11 @@ public:
     EXPORT bool GetInboxHash(Identifier& output);
     EXPORT bool GetOutboxHash(Identifier& output);
     // If you pass the identifier in, the inbox hash is recorded there
-    EXPORT bool SaveInbox(Ledger& box, Identifier* hash = nullptr);
+    EXPORT bool SaveInbox(Ledger& box);
+    EXPORT bool SaveInbox(Ledger& box, Identifier& hash);
     // If you pass the identifier in, the outbox hash is recorded there
-    EXPORT bool SaveOutbox(Ledger& box, Identifier* nash = nullptr);
+    EXPORT bool SaveOutbox(Ledger& box);
+    EXPORT bool SaveOutbox(Ledger& box, Identifier& hash);
     EXPORT void SetInboxHash(const Identifier& input);
     EXPORT void SetOutboxHash(const Identifier& input);
     EXPORT void SetStashTransNum(const TransactionNumber transNum)
@@ -185,6 +187,13 @@ private:
     // generates filename based on accounts path and account ID. Saves to the
     // standard location for an acct.
     bool SaveAccount();
+
+    bool save_box(
+        Ledger& box,
+        Identifier& hash,
+        bool (Ledger::*save)(Identifier&),
+        void (Account::*set)(const Identifier&));
+
     void UpdateContents() override;
 
     Account(
