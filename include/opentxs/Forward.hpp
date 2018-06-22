@@ -302,6 +302,16 @@ using OTUIProfileSection = SharedPimpl<ui::ProfileSection>;
 using OTUIProfileSubsection = SharedPimpl<ui::ProfileSubsection>;
 }  // namespace opentxs
 
+namespace std
+{
+template <>
+struct less<opentxs::OTIdentifier> {
+    bool operator()(
+        const opentxs::OTIdentifier& lhs,
+        const opentxs::OTIdentifier& rhs) const;
+};
+}  // namespace std
+
 // extern template class opentxs::Pimpl<opentxs::Data>;
 // extern template class opentxs::Pimpl<opentxs::Flag>;
 extern template class opentxs::Pimpl<opentxs::Identifier>;
@@ -324,6 +334,8 @@ extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
+
+extern template struct std::less<opentxs::OTIdentifier>;
 
 extern template class opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem>;

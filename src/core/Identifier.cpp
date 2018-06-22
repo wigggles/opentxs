@@ -59,6 +59,18 @@ template class opentxs::Pimpl<opentxs::Identifier>;
 template class std::set<opentxs::OTIdentifier>;
 template class std::map<opentxs::OTIdentifier, std::set<opentxs::OTIdentifier>>;
 
+namespace std
+{
+bool less<opentxs::Pimpl<opentxs::Identifier>>::operator()(
+    const opentxs::OTIdentifier& lhs,
+    const opentxs::OTIdentifier& rhs) const
+{
+    return lhs.get() < rhs.get();
+}
+}  // namespace std
+
+template struct std::less<opentxs::OTIdentifier>;
+
 namespace opentxs
 {
 bool operator==(const OTIdentifier& lhs, const Identifier& rhs)
