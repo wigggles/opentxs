@@ -183,18 +183,18 @@ public:
     // Returns bool on success, and strOutput will contain the exported data.
     EXPORT bool Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput)
         const;
+
     // OT has the capability to export a Nym (normally stored in several files)
-    // as an encoded
-    // object (in base64-encoded form) and then import it again.
+    // as an encoded object (in base64-encoded form) and then import it again.
     //
     // Returns bool on success, and if pNymID is passed in, will set it to the
-    // new NymID.
-    // Also on failure, if the Nym was already there with that ID, and if pNymID
-    // is passed,
-    // then it will be set to the ID that was already there.
+    // new NymID. Also on failure, if the Nym was already there with that ID,
+    // and if pNymID is passed, then it will be set to the ID that was already
+    // there.
+    EXPORT bool Wallet_ImportNym(const String& FILE_CONTENTS) const;
     EXPORT bool Wallet_ImportNym(
         const String& FILE_CONTENTS,
-        Identifier* pNymID = nullptr) const;
+        Identifier& pNymID) const;
     // First three arguments denote the existing purse.
     // Fourth argument is the NEW purse being imported.
     // (Which may have a different owner Nym, or be protected

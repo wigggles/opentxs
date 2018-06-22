@@ -187,29 +187,23 @@ public:
     EXPORT bool SaveBoxReceipt(const std::int64_t& lTransactionNum);
     // "Deletes" it by adding MARKED_FOR_DELETION to the bottom of the file.
     EXPORT bool DeleteBoxReceipt(const std::int64_t& lTransactionNum);
-    EXPORT bool LoadInbox();
-    EXPORT bool SaveInbox(Identifier* pInboxHash = nullptr);  // If you pass
-                                                              // the
-                                                              // identifier in,
-                                                              // the hash is
-                                                              // recorded there
-    EXPORT bool LoadNymbox();
-    EXPORT bool SaveNymbox(Identifier* pNymboxHash = nullptr);  // If you pass
-                                                                // the
-    // identifier in,
-    // the hash is
-    // recorded there.
-    EXPORT bool LoadOutbox();
-    EXPORT bool SaveOutbox(Identifier* pOutboxHash = nullptr);  // If you pass
-                                                                // the
-    // identifier in,
-    // the hash is
-    // recorded there
 
-    EXPORT bool CalculateHash(Identifier& theOutput);
-    EXPORT bool CalculateInboxHash(Identifier& theOutput);
-    EXPORT bool CalculateOutboxHash(Identifier& theOutput);
-    EXPORT bool CalculateNymboxHash(Identifier& theOutput);
+    EXPORT bool LoadInbox();
+    EXPORT bool LoadNymbox();
+    EXPORT bool LoadOutbox();
+
+    // If you pass the identifier in, the hash is recorded there
+    EXPORT bool SaveInbox();
+    EXPORT bool SaveInbox(Identifier& pInboxHash);
+    EXPORT bool SaveNymbox();
+    EXPORT bool SaveNymbox(Identifier& pNymboxHash);
+    EXPORT bool SaveOutbox();
+    EXPORT bool SaveOutbox(Identifier& pOutboxHash);
+
+    EXPORT bool CalculateHash(Identifier& theOutput) const;
+    EXPORT bool CalculateInboxHash(Identifier& theOutput) const;
+    EXPORT bool CalculateOutboxHash(Identifier& theOutput) const;
+    EXPORT bool CalculateNymboxHash(Identifier& theOutput) const;
     EXPORT bool SavePaymentInbox();
     EXPORT bool LoadPaymentInbox();
 
@@ -308,6 +302,11 @@ private:  // Private prevents erroneous use by other classes.
         const Identifier& theNotaryID,
         ledgerType theType,
         bool bCreateFile);
+
+    bool save_box(
+        const ledgerType type,
+        Identifier& hash,
+        bool (Ledger::*calc)(Identifier&) const);
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTLEDGER_HPP

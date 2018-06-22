@@ -338,8 +338,15 @@ bool OTTrade::VerifyOffer(OTOffer& offer) const
 // Otherwise it will try to add it to the market.
 // Otherwise it will fail. (Perhaps it's a stop order, and not ready to activate
 // yet.)
-//
-OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
+
+OTOffer* OTTrade::GetOffer(OTMarket** market)
+{
+    auto id = Identifier::Factory();
+
+    return GetOffer(id, market);
+}
+
+OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
 {
     OT_ASSERT(GetCron() != nullptr);
 
@@ -372,11 +379,7 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
                          "market it's supposed to be on.\n";
         }
 
-        if (offerMarketId != nullptr) {
-            // Sometimes the caller function would like a copy of this ID. So I
-            // give the option to pass in a pointer so I can give it here.
-            offerMarketId->Assign(OFFER_MARKET_ID);
-        }
+        offerMarketId.Assign(OFFER_MARKET_ID);
 
         return offer_;
     }  // if offer_ ALREADY EXISTS.
@@ -409,13 +412,8 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
     // *Also remember we saved a copy of the original in the cron folder.
 
     // It loaded. Let's get the Market ID off of it so we can locate the market.
-    auto OFFER_MARKET_ID = Identifier::Factory(*offer);
-
-    if (offerMarketId != nullptr) {
-        // Sometimes the caller function would like a copy of this ID. So I
-        // give the option to pass in a pointer so I can give it here.
-        offerMarketId->Assign(OFFER_MARKET_ID);
-    }
+    const auto OFFER_MARKET_ID = Identifier::Factory(*offer);
+    offerMarketId.Assign(OFFER_MARKET_ID);
 
     // Previously if a user tried to use a market that didn't exist, I'd just
     // return failure.
@@ -426,8 +424,6 @@ OTOffer* OTTrade::GetOffer(Identifier* offerMarketId, OTMarket** market)
     // markets folder,
     // actually, without making it impossible for certain Nyms to get rid of
     // certain issued #s.
-    //
-    //    OTMarket * pMarket = m_cron->GetMarket(OFFER_MARKET_ID);
     OTMarket* pMarket = GetCron()->GetOrCreateMarket(
         GetInstrumentDefinitionID(), GetCurrencyID(), offer->GetScale());
 
@@ -1019,15 +1015,11 @@ bool OTTrade::ProcessCron()
     OTMarket* market = nullptr;
 
     // If the Offer is already active on a market, then I already have a pointer
-    // to
-    // it. This function returns that pointer. If nullptr, it tries to find the
-    // offer on
-    // the market and then sets the pointer and returns. If it can't find it, IT
-    // TRIES
-    // TO ADD IT TO THE MARKET and sets the pointer and returns it.
-    OTOffer* offer =
-        GetOffer(&OFFER_MARKET_ID.get(), &market);  // Both of these parameters
-                                                    // are optional.
+    // to it. This function returns that pointer. If nullptr, it tries to find
+    // the offer on the market and then sets the pointer and returns. If it
+    // can't find it, IT TRIES TO ADD IT TO THE MARKET and sets the pointer and
+    // returns it.
+    auto offer = GetOffer(OFFER_MARKET_ID, &market);
 
     // In this case, the offer is NOT on the market.
     // Perhaps it wasn't ready to activate yet.

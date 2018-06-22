@@ -1418,20 +1418,21 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 }
 
 // OT has the capability to export a Nym (normally stored in several files) as
-// an encoded
-// object (in base64-encoded form) and then import it again.
+// an encoded object (in base64-encoded form) and then import it again.
 //
 // Returns bool on success, and if nymfileID is passed in, will set it to the
-// new
-// NymID.
-// Also on failure, if the Nym was already there with that ID, and if nymfileID
-// is
-// passed,
-// then it will be set to the ID that was already there.
-//
+// new NymID. Also on failure, if the Nym was already there with that ID, and if
+// nymfileID is passed, then it will be set to the ID that was already there.
+bool OT_API::Wallet_ImportNym(const String& FILE_CONTENTS) const
+{
+    auto id = Identifier::Factory();
+
+    return Wallet_ImportNym(FILE_CONTENTS, id);
+}
+
 bool OT_API::Wallet_ImportNym(
     const String& FILE_CONTENTS,
-    Identifier* nymfileID) const
+    Identifier& nymfileID) const
 {
     /*Lock lock(lock_);
 

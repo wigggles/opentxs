@@ -1328,7 +1328,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         auto theNymboxHash = Identifier::Factory();
 
         // Save nymbox to storage. (File, DB, wherever it goes.)
-        theLedger.SaveNymbox(&theNymboxHash.get());
+        theLedger.SaveNymbox(theNymboxHash);
 
         // This corresponds to the AddTransaction() call just above.
         // These are stored in a separate file now.

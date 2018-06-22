@@ -71,7 +71,7 @@
 using namespace irr;
 using namespace io;
 
-//#define OT_METHOD "opentxs::Account::"
+#define OT_METHOD "opentxs::Account::"
 
 namespace opentxs
 {
@@ -200,60 +200,52 @@ Ledger* Account::LoadOutbox(const Nym& nym) const
     return nullptr;
 }
 
-// hash is optional, the account will update its internal copy of the hash
-// anyway.
-bool Account::SaveInbox(Ledger& box, Identifier* hash)
+bool Account::save_box(
+    Ledger& box,
+    Identifier& hash,
+    bool (Ledger::*save)(Identifier&),
+    void (Account::*set)(const Identifier&))
 {
     if (!IsSameAccount(box)) {
-        String strAcctID(GetRealAccountID());
-        String strNotaryID(GetRealNotaryID());
-        String strBoxAcctID(box.GetRealAccountID());
-        String strBoxSvrID(box.GetRealNotaryID());
-        otErr << "OTAccount::SaveInbox: ERROR: The ledger passed in, isn't "
-                 "even for this account!\n"
-                 "   Acct ID: "
-              << strAcctID << "\n  Other ID: " << strBoxAcctID
-              << "\n Notary ID: " << strNotaryID
-              << "\n Other ID: " << strBoxSvrID << "\n";
+        otErr << OT_METHOD << __FUNCTION__ << ": ERROR: The ledger passed in, "
+              << "isn't even for this account!\n   Acct ID: "
+              << GetRealAccountID().str()
+              << "\n  Other ID: " << box.GetRealAccountID().str()
+              << "\n Notary ID: " << GetRealNotaryID().str()
+              << "\n Other ID: " << box.GetRealNotaryID().str() << std::endl;
+
         return false;
     }
 
-    auto theHash = Identifier::Factory();
-    if (hash == nullptr) hash = &theHash.get();
+    const bool output = (box.*save)(hash);
 
-    bool success = box.SaveInbox(hash);
+    if (output) { (this->*set)(hash); }
 
-    if (success) SetInboxHash(*hash);
-
-    return success;
+    return output;
 }
 
-// hash is optional, the account will update its internal copy of the hash
-// anyway. If you pass the identifier in, the hash is recorded there.
-bool Account::SaveOutbox(Ledger& box, Identifier* hash)
+bool Account::SaveInbox(Ledger& box)
 {
-    if (!IsSameAccount(box)) {
-        String strAcctID(GetRealAccountID());
-        String strNotaryID(GetRealNotaryID());
-        String strBoxAcctID(box.GetRealAccountID());
-        String strBoxSvrID(box.GetRealNotaryID());
-        otErr << "OTAccount::SaveOutbox: ERROR: The ledger passed in, isn't "
-                 "even for this account!\n"
-                 "   Acct ID: "
-              << strAcctID << "\n  Other ID: " << strBoxAcctID
-              << "\n Notary ID: " << strNotaryID
-              << "\n Other ID: " << strBoxSvrID << "\n";
-        return false;
-    }
+    auto hash = Identifier::Factory();
 
-    auto theHash = Identifier::Factory();
-    if (hash == nullptr) hash = &theHash.get();
+    return SaveInbox(box, hash);
+}
 
-    bool success = box.SaveOutbox(hash);
+bool Account::SaveInbox(Ledger& box, Identifier& hash)
+{
+    return save_box(box, hash, &Ledger::SaveInbox, &Account::SetInboxHash);
+}
 
-    if (success) SetOutboxHash(*hash);
+bool Account::SaveOutbox(Ledger& box)
+{
+    auto hash = Identifier::Factory();
 
-    return success;
+    return SaveOutbox(box, hash);
+}
+
+bool Account::SaveOutbox(Ledger& box, Identifier& hash)
+{
+    return save_box(box, hash, &Ledger::SaveOutbox, &Account::SetOutboxHash);
 }
 
 void Account::SetInboxHash(const Identifier& input) { inboxHash_ = input; }

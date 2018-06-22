@@ -76,6 +76,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::Ledger::"
+
 namespace opentxs
 {
 
@@ -671,161 +673,122 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
 // this.
 // It's more generic but warning: performs less verification.
 //
-bool Ledger::CalculateHash(Identifier& theOutput)
+bool Ledger::CalculateHash(Identifier& theOutput) const
 {
     theOutput.Release();
 
     bool bCalcDigest = theOutput.CalculateDigest(m_xmlUnsigned);
-    if (!bCalcDigest) {
+
+    if (false == bCalcDigest) {
         theOutput.Release();
-        otErr << "OTLedger::CalculateHash: Failed trying to calculate hash "
-                 "(for a "
-              << GetTypeString() << ")\n";
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed trying to calculate hash (for a " << GetTypeString()
+              << ")" << std::endl;
     }
 
     return bCalcDigest;
 }
 
-bool Ledger::CalculateInboxHash(Identifier& theOutput)
+bool Ledger::CalculateInboxHash(Identifier& theOutput) const
 {
     if (m_Type != Ledger::inbox) {
-        otErr << "Wrong ledger type passed to OTLedger::CalculateInboxHash.\n";
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong type." << std::endl;
+
         return false;
     }
 
     return CalculateHash(theOutput);
 }
 
-bool Ledger::CalculateOutboxHash(Identifier& theOutput)
+bool Ledger::CalculateOutboxHash(Identifier& theOutput) const
 {
     if (m_Type != Ledger::outbox) {
-        otErr << "Wrong ledger type passed to OTLedger::CalculateOutboxHash.\n";
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong type." << std::endl;
+
         return false;
     }
 
     return CalculateHash(theOutput);
 }
 
-bool Ledger::CalculateNymboxHash(Identifier& theOutput)
+bool Ledger::CalculateNymboxHash(Identifier& theOutput) const
 {
     if (m_Type != Ledger::nymbox) {
-        otErr << "Wrong ledger type passed to OTLedger::CalculateNymboxHash.\n";
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong type." << std::endl;
+
         return false;
     }
 
     return CalculateHash(theOutput);
 }
 
-// If you're going to save this, make sure you sign it first.
-bool Ledger::SaveNymbox(Identifier* pNymboxHash)  // If you pass
-                                                  // the identifier
-                                                  // in, the hash
-                                                  // is recorded
-                                                  // there.
+bool Ledger::save_box(
+    const ledgerType type,
+    Identifier& hash,
+    bool (Ledger::*calc)(Identifier&) const)
 {
-    if (m_Type != Ledger::nymbox) {
-        otErr << "Wrong ledger type passed to OTLedger::SaveNymbox.\n";
+    OT_ASSERT(nullptr != calc)
+
+    if (m_Type != type) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong type." << std::endl;
+
         return false;
     }
 
-    const bool bSaved = SaveGeneric(m_Type);
+    const bool saved = SaveGeneric(m_Type);
 
-    // Sometimes the caller, when saving the Nymbox, wants to know what the
-    // latest Nymbox hash is. FYI, the NymboxHash is calculated on the UNSIGNED
-    // contents of the Nymbox. So if pNymboxHash is not nullptr, then that is
-    // where
-    // I will put the new hash, as output for the caller of this function.
-    //
-    if (bSaved && (nullptr != pNymboxHash)) {
-        pNymboxHash->Release();
+    if (saved) {
+        hash.Release();
 
-        if (!CalculateNymboxHash(*pNymboxHash))
-            otErr << "OTLedger::SaveNymbox: Failed trying to calculate nymbox "
-                     "hash.\n";
-        //
-        //        if (!pNymboxHash->CalculateDigest(m_xmlUnsigned))
-        //            otErr << "OTLedger::SaveNymbox: Failed trying to calculate
-        // nymbox hash.\n";
+        if (false == (this->*calc)(hash)) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed trying to calculate box hash." << std::endl;
+        }
     }
 
-    return bSaved;
+    return saved;
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveInbox(Identifier* pInboxHash)  // If you pass the
-                                                // identifier in,
-                                                // the hash is
-                                                // recorded there.
+bool Ledger::SaveNymbox()
 {
+    auto hash = Identifier::Factory();
 
-    //    OTString strTempBlah, strTempBlah2(*this);
-    //    GetIdentifier(strTempBlah);
-    //    otErr << "OTLedger::SaveInbox: DEBUGGING: SAVING INBOX for account:
-    // %s, number of transactions currently in the inbox: %d \n\n STACK
-    // TRACE:\n\n",
-    //                  strTempBlah.Get(), GetTransactionCount());
-    //
-    //    print_stacktrace();
-
-    //    otErr << "OTLedger::SaveInbox: (CONTINUED DEBUGGING):  INBOX CONTENTS:
-    // \n\n%s\n\n",
-    //                  strTempBlah2.Get());
-
-    if (m_Type != Ledger::inbox) {
-        otErr << "Wrong ledger type passed to OTLedger::SaveInbox.\n";
-        return false;
-    }
-
-    const bool bSaved = SaveGeneric(m_Type);
-
-    // Sometimes the caller, when saving the Inbox, wants to know what the
-    // latest Inbox hash is. FYI, the InboxHash is calculated on the UNSIGNED
-    // contents of the Inbox. So if pInboxHash is not nullptr, then that is
-    // where
-    // I will put the new hash, as output for the caller of this function.
-    //
-    if (bSaved && (nullptr != pInboxHash)) {
-        pInboxHash->Release();
-
-        if (!CalculateInboxHash(*pInboxHash))
-            //      if (!pInboxHash->CalculateDigest(m_xmlUnsigned))
-            otErr << "OTLedger::SaveInbox: Failed trying to calculate Inbox "
-                     "hash.\n";
-    }
-
-    return bSaved;
+    return SaveNymbox(hash);
 }
 
 // If you're going to save this, make sure you sign it first.
-bool Ledger::SaveOutbox(Identifier* pOutboxHash)  // If you pass
-                                                  // the identifier
-                                                  // in, the hash
-                                                  // is recorded
-                                                  // there.
+bool Ledger::SaveNymbox(Identifier& hash)
 {
-    if (m_Type != Ledger::outbox) {
-        otErr << "Wrong ledger type passed to OTLedger::SaveOutbox.\n";
-        return false;
-    }
+    return save_box(Ledger::nymbox, hash, &Ledger::CalculateNymboxHash);
+}
 
-    const bool bSaved = SaveGeneric(m_Type);
+// If you're going to save this, make sure you sign it first.
+bool Ledger::SaveInbox()
+{
+    auto hash = Identifier::Factory();
 
-    // Sometimes the caller, when saving the Outbox, wants to know what the
-    // latest Outbox hash is. FYI, the OutboxHash is calculated on the UNSIGNED
-    // contents of the Outbox. So if pOutboxHash is not nullptr, then that is
-    // where
-    // I will put the new hash, as output for the caller of this function.
-    //
-    if (bSaved && (nullptr != pOutboxHash)) {
-        pOutboxHash->Release();
+    return SaveInbox(hash);
+}
 
-        if (!CalculateOutboxHash(*pOutboxHash))
-            //      if (!pOutboxHash->CalculateDigest(m_xmlUnsigned))
-            otErr << "OTLedger::SaveOutbox: Failed trying to calculate Outbox "
-                     "hash.\n";
-    }
+// If you're going to save this, make sure you sign it first.
+bool Ledger::SaveInbox(Identifier& hash)
+{
+    return save_box(Ledger::inbox, hash, &Ledger::CalculateInboxHash);
+}
 
-    return bSaved;
+// If you're going to save this, make sure you sign it first.
+bool Ledger::SaveOutbox()
+{
+    auto hash = Identifier::Factory();
+
+    return SaveOutbox(hash);
+}
+
+// If you're going to save this, make sure you sign it first.
+bool Ledger::SaveOutbox(Identifier& hash)
+{
+    return save_box(Ledger::outbox, hash, &Ledger::CalculateOutboxHash);
 }
 
 // If you're going to save this, make sure you sign it first.

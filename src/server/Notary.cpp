@@ -7717,7 +7717,7 @@ void Notary::NotarizeProcessNymbox(
                             theNymbox.ReleaseSignatures();
                             theNymbox.SignContract(server_.GetServerNym());
                             theNymbox.SaveContract();
-                            theNymbox.SaveNymbox(&NYMBOX_HASH.get());
+                            theNymbox.SaveNymbox(NYMBOX_HASH);
 
                             bNymboxHashRegenerated = true;
 
@@ -7752,7 +7752,7 @@ void Notary::NotarizeProcessNymbox(
                             theNymbox.ReleaseSignatures();
                             theNymbox.SignContract(server_.GetServerNym());
                             theNymbox.SaveContract();
-                            theNymbox.SaveNymbox(&NYMBOX_HASH.get());
+                            theNymbox.SaveNymbox(NYMBOX_HASH);
 
                             bNymboxHashRegenerated = true;
 
@@ -8552,7 +8552,6 @@ void Notary::NotarizeProcessInbox(
             theInbox.SignContract(server_.GetServerNym());
             theInbox.SaveContract();
             theAccount.get().SaveInbox(theInbox);
-            theAccount.Release();
 
             // Now we can set the response item as an
             // acknowledgement instead of the default
@@ -8580,7 +8579,6 @@ void Notary::NotarizeProcessInbox(
             theInbox.SignContract(server_.GetServerNym());
             theInbox.SaveContract();
             theAccount.get().SaveInbox(theInbox);
-            theAccount.Release();
 
             // Now we can set the response item as an
             // acknowledgement instead of the default
@@ -8608,7 +8606,6 @@ void Notary::NotarizeProcessInbox(
             theInbox.SignContract(server_.GetServerNym());
             theInbox.SaveContract();
             theAccount.get().SaveInbox(theInbox);
-            theAccount.Release();
 
             // Now we can set the response item as an
             // acknowledgement instead of the default
@@ -8774,7 +8771,6 @@ void Notary::NotarizeProcessInbox(
                     theInbox.SignContract(server_.GetServerNym());
                     theInbox.SaveContract();
                     theAccount.get().SaveInbox(theInbox);
-                    theAccount.Release();
 
                     // Now we can set the response item as an
                     // acknowledgement instead of the default
@@ -9027,7 +9023,6 @@ void Notary::NotarizeProcessInbox(
                             theInbox.SignContract(server_.GetServerNym());
                             theInbox.SaveContract();
                             theAccount.get().SaveInbox(theInbox);
-                            theAccount.Release();
 
                             // Now we can set the response item
                             // as an acknowledgement instead of
@@ -9097,6 +9092,7 @@ void Notary::NotarizeProcessInbox(
     }  // for LOOP (each item)
 
 send_message:
+    theAccount.Release();
     // I put this here so it's signed/saved whether the balance agreement itself
     // was successful OR NOT. (Or whether it even existed or not.)
     pResponseBalanceItem->ReleaseSignatures();
