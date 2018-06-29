@@ -99,6 +99,11 @@ public:
         const proto::PaymentEvent& event,
         const Identifier& nymID,
         const Identifier& accountID);
+    static api::Blockchain* Blockchain(
+        const api::Activity& activity,
+        const api::Crypto& crypto,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet);
     static api::client::Cash* Cash();
     static ui::ContactList* ContactList(
         const network::zeromq::Context& zmq,

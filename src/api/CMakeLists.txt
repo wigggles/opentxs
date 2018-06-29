@@ -23,6 +23,7 @@ set(cxx-headers
   ${cxx-install-headers}
   ${CMAKE_CURRENT_SOURCE_DIR}/Activity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Api.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Blockchain.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ContactManager.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp

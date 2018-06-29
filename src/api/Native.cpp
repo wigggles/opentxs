@@ -364,7 +364,7 @@ void Native::Init_Blockchain()
     OT_ASSERT(wallet_)
 
     blockchain_.reset(
-        new api::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
+        Factory::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
 }
 
 void Native::Init_Config()

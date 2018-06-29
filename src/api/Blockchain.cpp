@@ -38,14 +38,13 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/Blockchain.hpp"
-
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Activity.hpp"
+#include "opentxs/api/Blockchain.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -53,6 +52,12 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+
+#include <map>
+#include <mutex>
+#include <set>
+
+#include "Blockchain.hpp"
 
 #define LOCK_ACCOUNT()                                                         \
     Lock mapLock(lock_);                                                       \
@@ -79,13 +84,26 @@
 
 #define OT_METHOD "opentxs::Blockchain::"
 
-namespace opentxs::api
+namespace opentxs
+{
+api::Blockchain* Factory::Blockchain(
+    const api::Activity& activity,
+    const api::Crypto& crypto,
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet)
+{
+    return new api::implementation::Blockchain(
+        activity, crypto, storage, wallet);
+}
+}  // namespace opentxs
+
+namespace opentxs::api::implementation
 {
 Blockchain::Blockchain(
-    const Activity& activity,
-    const Crypto& crypto,
-    const storage::Storage& storage,
-    const client::Wallet& wallet)
+    const api::Activity& activity,
+    const api::Crypto& crypto,
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet)
     : activity_(activity)
     , crypto_(crypto)
     , storage_(storage)
@@ -779,4 +797,4 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
 
     return output;
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation
