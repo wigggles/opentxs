@@ -194,7 +194,7 @@ const api::Settings& Native::Config(const std::string& path) const
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
 
-    if (!config) { config.reset(new api::Settings(String(path))); }
+    if (!config) { config.reset(Factory::Settings(String(path))); }
 
     OT_ASSERT(config);
 
@@ -364,7 +364,7 @@ void Native::Init_Blockchain()
     OT_ASSERT(wallet_)
 
     blockchain_.reset(
-        new api::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
+        Factory::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
 }
 
 void Native::Init_Config()
@@ -388,7 +388,7 @@ void Native::Init_Config()
 
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_[""].reset(new api::Settings(strConfigFilePath));
+    config_[""].reset(Factory::Settings(strConfigFilePath));
 }
 
 void Native::Init_Contacts()
@@ -483,7 +483,7 @@ void Native::Init_Identity()
 {
     OT_ASSERT(wallet_);
 
-    identity_.reset(new api::Identity(*wallet_));
+    identity_.reset(Factory::Identity(*wallet_));
 }
 
 void Native::Init_Log()

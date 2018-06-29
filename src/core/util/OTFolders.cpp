@@ -42,6 +42,9 @@
 
 #include "opentxs/core/util/OTPaths.hpp"
 
+#include "Internal.hpp"
+#include "Factory.hpp"
+
 #define DEFAULT_ACCOUNT "accounts"
 #define DEFAULT_CERT "certs"
 #define DEFAULT_COMMON "common"
@@ -110,64 +113,65 @@ String OTFolders::s_strUserAcct("");
 
 bool OTFolders::GetSetAll()
 {
-    api::Settings config(OTPaths::GlobalConfigFile());
+    std::unique_ptr<api::Settings> config{
+        Factory::Settings(OTPaths::GlobalConfigFile())};
+    config->Reset();
 
-    config.Reset();
+    if (!config->Load()) return false;
 
-    if (!config.Load()) return false;
-
-    if (!GetSetFolderName(config, KEY_ACCOUNT, DEFAULT_ACCOUNT, s_strAccount))
+    if (!GetSetFolderName(*config, KEY_ACCOUNT, DEFAULT_ACCOUNT, s_strAccount))
         return false;
-    if (!GetSetFolderName(config, KEY_CERT, DEFAULT_CERT, s_strCert))
+    if (!GetSetFolderName(*config, KEY_CERT, DEFAULT_CERT, s_strCert))
         return false;
-    if (!GetSetFolderName(config, KEY_COMMON, DEFAULT_COMMON, s_strCommon))
+    if (!GetSetFolderName(*config, KEY_COMMON, DEFAULT_COMMON, s_strCommon))
         return false;
     if (!GetSetFolderName(
-            config, KEY_CONTRACT, DEFAULT_CONTRACT, s_strContract))
+            *config, KEY_CONTRACT, DEFAULT_CONTRACT, s_strContract))
         return false;
-    if (!GetSetFolderName(config, KEY_CRON, DEFAULT_CRON, s_strCron))
+    if (!GetSetFolderName(*config, KEY_CRON, DEFAULT_CRON, s_strCron))
         return false;
-    if (!GetSetFolderName(config, KEY_INBOX, DEFAULT_INBOX, s_strInbox))
+    if (!GetSetFolderName(*config, KEY_INBOX, DEFAULT_INBOX, s_strInbox))
         return false;
-    if (!GetSetFolderName(config, KEY_MARKET, DEFAULT_MARKET, s_strMarket))
+    if (!GetSetFolderName(*config, KEY_MARKET, DEFAULT_MARKET, s_strMarket))
         return false;
-    if (!GetSetFolderName(config, KEY_MINT, DEFAULT_MINT, s_strMint))
+    if (!GetSetFolderName(*config, KEY_MINT, DEFAULT_MINT, s_strMint))
         return false;
-    if (!GetSetFolderName(config, KEY_NYM, DEFAULT_NYM, s_strNym)) return false;
-    if (!GetSetFolderName(config, KEY_NYMBOX, DEFAULT_NYMBOX, s_strNymbox))
+    if (!GetSetFolderName(*config, KEY_NYM, DEFAULT_NYM, s_strNym))
         return false;
-    if (!GetSetFolderName(config, KEY_OUTBOX, DEFAULT_OUTBOX, s_strOutbox))
+    if (!GetSetFolderName(*config, KEY_NYMBOX, DEFAULT_NYMBOX, s_strNymbox))
         return false;
-    if (!GetSetFolderName(
-            config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX, s_strPaymentInbox))
-        return false;
-    if (!GetSetFolderName(config, KEY_PURSE, DEFAULT_PURSE, s_strPurse))
-        return false;
-    if (!GetSetFolderName(config, KEY_RECEIPT, DEFAULT_RECEIPT, s_strReceipt))
+    if (!GetSetFolderName(*config, KEY_OUTBOX, DEFAULT_OUTBOX, s_strOutbox))
         return false;
     if (!GetSetFolderName(
-            config, KEY_RECORDBOX, DEFAULT_RECORDBOX, s_strRecordBox))
+            *config, KEY_PAYMENTINBOX, DEFAULT_PAYMENTINBOX, s_strPaymentInbox))
+        return false;
+    if (!GetSetFolderName(*config, KEY_PURSE, DEFAULT_PURSE, s_strPurse))
+        return false;
+    if (!GetSetFolderName(*config, KEY_RECEIPT, DEFAULT_RECEIPT, s_strReceipt))
         return false;
     if (!GetSetFolderName(
-            config, KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX, s_strExpiredBox))
-        return false;
-    if (!GetSetFolderName(config, KEY_SCRIPT, DEFAULT_SCRIPT, s_strScript))
+            *config, KEY_RECORDBOX, DEFAULT_RECORDBOX, s_strRecordBox))
         return false;
     if (!GetSetFolderName(
-            config,
+            *config, KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX, s_strExpiredBox))
+        return false;
+    if (!GetSetFolderName(*config, KEY_SCRIPT, DEFAULT_SCRIPT, s_strScript))
+        return false;
+    if (!GetSetFolderName(
+            *config,
             KEY_SMARTCONTRACTS,
             DEFAULT_SMARTCONTRACTS,
             s_strSmartContracts))
         return false;
-    if (!GetSetFolderName(config, KEY_SPENT, DEFAULT_SPENT, s_strSpent))
+    if (!GetSetFolderName(*config, KEY_SPENT, DEFAULT_SPENT, s_strSpent))
         return false;
     if (!GetSetFolderName(
-            config, KEY_USERACCT, DEFAULT_USERACCT, s_strUserAcct))
+            *config, KEY_USERACCT, DEFAULT_USERACCT, s_strUserAcct))
         return false;
 
-    if (!config.Save()) return false;
+    if (!config->Save()) return false;
 
-    config.Reset();
+    config->Reset();
 
     return true;
 }

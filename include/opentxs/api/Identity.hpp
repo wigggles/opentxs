@@ -45,7 +45,6 @@
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
-#include <list>
 #include <memory>
 #include <string>
 
@@ -53,76 +52,12 @@ namespace opentxs
 {
 namespace api
 {
-namespace implementation
-{
-class Native;
-}
-
 class Identity
 {
-private:
-    friend class implementation::Native;
-
-    const api::client::Wallet& wallet_;
-
-    Identity(const api::client::Wallet& wallet);
-    Identity() = delete;
-    Identity(const Identity&) = delete;
-    Identity& operator=(const Identity&) = delete;
-
-    bool AddInternalVerification(
-        bool& changed,
-        proto::VerificationSet& verifications,
-        const Nym& onNym,
-        const std::string& claimantNymID,
-        const std::string& claimID,
-        const ClaimPolarity polarity,
-        const std::int64_t start = 0,
-        const std::int64_t end = 0,
-        const OTPasswordData* pPWData = nullptr) const;
-    void DeleteVerification(
-        bool& changed,
-        proto::VerificationIdentity& identity,
-        const std::string& claimID,
-        const std::int64_t start = 0,
-        const std::int64_t end = 0) const;
-    proto::VerificationGroup& GetOrCreateInternalGroup(
-        proto::VerificationSet& verificationSet,
-        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
-    proto::VerificationIdentity& GetOrCreateVerificationIdentity(
-        proto::VerificationGroup& verificationGroup,
-        const std::string& nym,
-        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
-    bool HaveVerification(
-        proto::VerificationIdentity& identity,
-        const std::string& claimID,
-        const ClaimPolarity polarity,
-        const std::int64_t start = 0,
-        const std::int64_t end = 0) const;
-    std::unique_ptr<proto::VerificationSet> InitializeVerificationSet(
-        const std::uint32_t version = VERIFICATION_CREDENTIAL_VERSION) const;
-    bool MatchVerification(
-        const proto::Verification& item,
-        const std::string& claimID,
-        const std::int64_t start = 0,
-        const std::int64_t end = 0) const;
-    void PopulateVerificationIDs(proto::VerificationGroup& group) const;
-    bool RemoveInternalVerification(
-        bool& changed,
-        proto::VerificationSet& verifications,
-        const std::string& claimantNymID,
-        const std::string& claimID,
-        const std::int64_t start = 0,
-        const std::int64_t end = 0) const;
-    bool Sign(
-        proto::Verification& plaintext,
-        const Nym& nym,
-        const OTPasswordData* pPWData = nullptr) const;
-
 public:
-    std::unique_ptr<proto::VerificationSet> Verifications(
-        const Nym& fromNym) const;
-    std::unique_ptr<proto::VerificationSet> Verify(
+    virtual std::unique_ptr<proto::VerificationSet> Verifications(
+        const Nym& fromNym) const = 0;
+    virtual std::unique_ptr<proto::VerificationSet> Verify(
         NymData& onNym,
         bool& changed,
         const std::string& claimantNymID,
@@ -130,9 +65,19 @@ public:
         const ClaimPolarity polarity,
         const std::int64_t start = 0,
         const std::int64_t end = 0,
-        const OTPasswordData* pPWData = nullptr) const;
+        const OTPasswordData* pPWData = nullptr) const = 0;
+
+    virtual ~Identity() = default;
+
+protected:
+    Identity() = default;
+
+private:
+    Identity(const Identity&) = delete;
+    Identity(Identity&&) = delete;
+    Identity& operator=(const Identity&) = delete;
+    Identity& operator=(Identity&&) = delete;
 };
 }  // namespace api
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_API_IDENTITY_HPP

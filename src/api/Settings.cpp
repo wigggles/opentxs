@@ -39,7 +39,6 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/Settings.hpp"
-
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Log.hpp"
@@ -52,12 +51,26 @@
 #include <simpleini/SimpleIni.h>
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <ostream>
-#include <string>
 
-namespace opentxs::api
+#include "Settings.hpp"
+
+namespace opentxs
 {
+api::Settings* Factory::Settings()
+{
+    return new api::implementation::Settings();
+}
 
+api::Settings* Factory::Settings(const String& path)
+{
+    return new api::implementation::Settings(path);
+}
+}  // namespace opentxs
+
+namespace opentxs::api::implementation
+{
 class Settings::SettingsPvt
 {
 private:
@@ -95,7 +108,7 @@ Settings::Settings()
 {
 }
 
-bool Settings::Init() const
+bool Settings::Init()
 {
     // First Load, Create new fresh config file if failed loading.
     if (!Load()) {
@@ -246,7 +259,7 @@ bool Settings::Save() const
 
 const Flag& Settings::IsLoaded() const { return loaded_; }
 
-bool Settings::Reset() const
+bool Settings::Reset()
 {
     loaded_->Off();
     pvt_->iniSimple.Reset();
@@ -837,4 +850,4 @@ Settings::~Settings()
     Save();
     Reset();
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation

@@ -63,7 +63,7 @@ class OTPaths
 private:
     EXPORT OTPaths();
 
-    static api::Settings s_settings;
+    static api::Settings* s_settings;
 
     static String s_strAppBinaryFolder;
     static String s_strHomeFolder;
@@ -109,19 +109,19 @@ public:
 
     // The LoadSet Functions will update the static values.
 
-    EXPORT static bool LoadSetPrefixFolder    // eg. /usr/local/  (cannot be
-                                              // relative);
-        (api::Settings& config = s_settings,  // optional
-         const String& strPrefixFolder = ""   // optional
+    EXPORT static bool LoadSetPrefixFolder     // eg. /usr/local/  (cannot be
+                                               // relative);
+        (api::Settings& config = *s_settings,  // optional
+         const String& strPrefixFolder = ""    // optional
          // const bool& bIsRelative = false
-         );
+        );
 
     EXPORT static bool LoadSetScriptsFolder    // ie. PrefixFolder() + [if (NOT
                                                // Android) "lib/opentxs/" ]
-        (api::Settings& config = s_settings,   // optional
+        (api::Settings& config = *s_settings,  // optional
          const String& strScriptsFolder = "",  // optional
          const bool& bIsRelative = true        // optional
-         );
+        );
 
     EXPORT static bool Get(
         api::Settings& config,

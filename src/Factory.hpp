@@ -99,6 +99,11 @@ public:
         const proto::PaymentEvent& event,
         const Identifier& nymID,
         const Identifier& accountID);
+    static api::Blockchain* Blockchain(
+        const api::Activity& activity,
+        const api::Crypto& crypto,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet);
     static api::client::Cash* Cash();
     static ui::ContactList* ContactList(
         const network::zeromq::Context& zmq,
@@ -135,6 +140,9 @@ public:
         const api::ContactManager& contact,
         const ui::implementation::ContactSectionParent& parent,
         const ContactGroup& group);
+    static api::Settings* Settings();
+    static api::Settings* Settings(const String& path);
+    static api::Identity* Identity(const api::client::Wallet& wallet);
     static api::client::Issuer* Issuer(
         const api::client::Wallet& wallet,
         const Identifier& nymID,

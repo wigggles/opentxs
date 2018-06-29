@@ -36,136 +36,145 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_API_SETTINGS_HPP
-#define OPENTXS_API_SETTINGS_HPP
+#ifndef OPENTXS_API_SETTINGS_IMPLEMENTATION_HPP
+#define OPENTXS_API_SETTINGS_IMPLEMENTATION_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/core/String.hpp"
-
-#include <cstdint>
-#include <string>
-
-namespace opentxs
+namespace opentxs::api::implementation
 {
-namespace api
-{
-class Settings
+class Settings : virtual public api::Settings
 {
 public:
-    EXPORT virtual void SetConfigFilePath(
-        const String& strConfigFilePath) const = 0;
-    EXPORT virtual bool HasConfigFilePath() const = 0;
+    void SetConfigFilePath(const String& strConfigFilePath) const override;
+    bool HasConfigFilePath() const override;
 
     // Core (Public Load and Save)
-    EXPORT virtual bool Load() const = 0;
-    EXPORT virtual bool Save() const = 0;
+    bool Load() const override;
+    bool Save() const override;
 
-    EXPORT virtual const Flag& IsLoaded() const = 0;
+    const Flag& IsLoaded() const override;
 
     // Configuration Helpers
     //
 
     // Core (Reset Config, and Check if Config is empty)
-    EXPORT virtual bool IsEmpty() const = 0;
+    bool IsEmpty() const override;
 
     // Check Only (get value of key from configuration, if the key exists, then
     // out_bKeyExist will be true.)
-    EXPORT virtual bool Check_str(
+    bool Check_str(
         const String& strSection,
         const String& strKey,
         String& out_strResult,
-        bool& out_bKeyExist) const = 0;
-    EXPORT virtual bool Check_long(
+        bool& out_bKeyExist) const override;
+    bool Check_long(
         const String& strSection,
         const String& strKey,
         std::int64_t& out_lResult,
-        bool& out_bKeyExist) const = 0;
-    EXPORT virtual bool Check_bool(
+        bool& out_bKeyExist) const override;
+    bool Check_bool(
         const String& strSection,
         const String& strKey,
         bool& out_bResult,
-        bool& out_bKeyExist) const = 0;
+        bool& out_bKeyExist) const override;
 
     // Set Only (set new or update value, out_bNewOrUpdate will be true if the
     // value changes.)
-    EXPORT virtual bool Set_str(
+    bool Set_str(
         const String& strSection,
         const String& strKey,
         const String& strValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const = 0;
-    EXPORT virtual bool Set_long(
+        const String& strComment = "") const override;
+    bool Set_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const = 0;
-    EXPORT virtual bool Set_bool(
+        const String& strComment = "") const override;
+    bool Set_bool(
         const String& strSection,
         const String& strKey,
         const bool& bValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const = 0;
+        const String& strComment = "") const override;
 
     // Check for a Section, if the section dosn't exist, it will be made and
     // out_bIsNewSection will be true.)
-    EXPORT virtual bool CheckSetSection(
+    bool CheckSetSection(
         const String& strSection,
         const String& strComment,
-        bool& out_bIsNewSection) const = 0;
+        bool& out_bIsNewSection) const override;
 
     // Check for Key, and returns if the key exists, otherwise will set the
     // default key. If the default key is set, then out_bIsNew will be true.)
-    EXPORT virtual bool CheckSet_str(
+    bool CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         std::string& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
-    EXPORT virtual bool CheckSet_str(
+        const String& strComment = "") const override;
+    bool CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         String& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
-    EXPORT virtual bool CheckSet_long(
+        const String& strComment = "") const override;
+    bool CheckSet_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lDefault,
         std::int64_t& out_lResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
-    EXPORT virtual bool CheckSet_bool(
+        const String& strComment = "") const override;
+    bool CheckSet_bool(
         const String& strSection,
         const String& strKey,
         const bool& bDefault,
         bool& out_bResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
+        const String& strComment = "") const override;
 
     // Set Option helper function for setting bool's
-    EXPORT virtual bool SetOption_bool(
+    bool SetOption_bool(
         const String& strSection,
         const String& strKey,
-        bool& bVariableName) const = 0;
+        bool& bVariableName) const override;
 
-    EXPORT virtual bool Reset() = 0;
+    bool Reset() override;
 
-    EXPORT virtual ~Settings() = default;
-
-protected:
-    Settings() = default;
+    ~Settings() override;
 
 private:
+    friend Factory;
+
+    class SettingsPvt;
+
+    std::unique_ptr<SettingsPvt> pvt_;
+    mutable OTFlag loaded_;
+    mutable std::recursive_mutex lock_;
+
+    mutable String m_strConfigurationFileExactPath;
+
+    // Core (Load and Save)
+    bool Load(const String& strConfigurationFileExactPath) const;
+    bool Save(const String& strConfigurationFileExactPath) const;
+
+    // Log (log to Output in a well-formated way).
+    bool LogChange_str(
+        const String& strSection,
+        const String& strKey,
+        const String& strValue) const;
+
+    bool Init();
+
+    Settings();
+    explicit Settings(const String& strConfigFilePath);
     Settings(const Settings&) = delete;
-    Settings(Settings&&) = delete;
     Settings& operator=(const Settings&) = delete;
-    Settings& operator=(Settings&&) = delete;
 };
-}  // namespace api
-}  // namespace opentxs
-#endif  // OPENTXS_API_SETTINGS_HPP
+}  // namespace opentxs::api::implementation
+#endif  // OPENTXS_API_SETTINGS_IMPLEMENTATION_HPP

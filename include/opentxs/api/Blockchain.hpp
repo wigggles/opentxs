@@ -45,120 +45,66 @@
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
-#include <map>
 #include <memory>
-#include <mutex>
-#include <set>
 
 namespace opentxs
 {
 namespace api
 {
-namespace implementation
-{
-class Native;
-}
-
 class Blockchain
 {
 public:
-    std::shared_ptr<proto::Bip44Account> Account(
+    virtual std::shared_ptr<proto::Bip44Account> Account(
         const Identifier& nymID,
-        const Identifier& accountID) const;
-    std::set<OTIdentifier> AccountList(
+        const Identifier& accountID) const = 0;
+    virtual std::set<OTIdentifier> AccountList(
         const Identifier& nymID,
-        const proto::ContactItemType type) const;
-    std::unique_ptr<proto::Bip44Address> AllocateAddress(
+        const proto::ContactItemType type) const = 0;
+    virtual std::unique_ptr<proto::Bip44Address> AllocateAddress(
         const Identifier& nymID,
         const Identifier& accountID,
         const std::string& label = "",
-        const BIP44Chain chain = EXTERNAL_CHAIN) const;
-    bool AssignAddress(
+        const BIP44Chain chain = EXTERNAL_CHAIN) const = 0;
+    virtual bool AssignAddress(
         const Identifier& nymID,
         const Identifier& accountID,
         const std::uint32_t index,
         const Identifier& contactID,
-        const BIP44Chain chain = EXTERNAL_CHAIN) const;
-    std::unique_ptr<proto::Bip44Address> LoadAddress(
+        const BIP44Chain chain = EXTERNAL_CHAIN) const = 0;
+    virtual std::unique_ptr<proto::Bip44Address> LoadAddress(
         const Identifier& nymID,
         const Identifier& accountID,
         const std::uint32_t index,
-        const BIP44Chain chain) const;
-    OTIdentifier NewAccount(
+        const BIP44Chain chain) const = 0;
+    virtual OTIdentifier NewAccount(
         const Identifier& nymID,
         const BlockchainAccountType standard,
-        const proto::ContactItemType type) const;
-    bool StoreIncoming(
+        const proto::ContactItemType type) const = 0;
+    virtual bool StoreIncoming(
         const Identifier& nymID,
         const Identifier& accountID,
         const std::uint32_t index,
         const BIP44Chain chain,
-        const proto::BlockchainTransaction& transaction) const;
-    bool StoreOutgoing(
+        const proto::BlockchainTransaction& transaction) const = 0;
+    virtual bool StoreOutgoing(
         const Identifier& senderNymID,
         const Identifier& accountID,
         const Identifier& recipientContactID,
-        const proto::BlockchainTransaction& transaction) const;
-    std::shared_ptr<proto::BlockchainTransaction> Transaction(
-        const std::string& id) const;
+        const proto::BlockchainTransaction& transaction) const = 0;
+    virtual std::shared_ptr<proto::BlockchainTransaction> Transaction(
+        const std::string& id) const = 0;
 
-    ~Blockchain() = default;
+    virtual ~Blockchain() = default;
+
+protected:
+    Blockchain() = default;
 
 private:
-    typedef std::map<OTIdentifier, std::mutex> IDLock;
-
-    friend class implementation::Native;
-
-    const Activity& activity_;
-    const Crypto& crypto_;
-    const storage::Storage& storage_;
-    const client::Wallet& wallet_;
-    mutable std::mutex lock_;
-    mutable IDLock nym_lock_;
-    mutable IDLock account_lock_;
-    proto::Bip44Address& add_address(
-        const std::uint32_t index,
-        proto::Bip44Account& account,
-        const BIP44Chain chain) const;
-    std::uint8_t address_prefix(const proto::ContactItemType type) const;
-
-    Bip44Type bip44_type(const proto::ContactItemType type) const;
-    std::string calculate_address(
-        const proto::Bip44Account& account,
-        const BIP44Chain chain,
-        const std::uint32_t index) const;
-    proto::Bip44Address& find_address(
-        const std::uint32_t index,
-        const BIP44Chain chain,
-        proto::Bip44Account& account) const;
-    void init_path(
-        const std::string& root,
-        const proto::ContactItemType chain,
-        const std::uint32_t account,
-        const BlockchainAccountType standard,
-        proto::HDPath& path) const;
-    std::shared_ptr<proto::Bip44Account> load_account(
-        const Lock& lock,
-        const std::string& nymID,
-        const std::string& accountID) const;
-    bool move_transactions(
-        const Identifier& nymID,
-        const proto::Bip44Address& address,
-        const std::string& fromContact,
-        const std::string& toContact) const;
-
-    Blockchain(
-        const Activity& activity,
-        const Crypto& crypto,
-        const storage::Storage& storage,
-        const client::Wallet& wallet);
-    Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;
-    Blockchain operator=(const Blockchain&) = delete;
-    Blockchain operator=(Blockchain&&) = delete;
+    Blockchain& operator=(const Blockchain&) = delete;
+    Blockchain& operator=(Blockchain&&) = delete;
 };
 }  // namespace api
 }  // namespace opentxs
-
 #endif  // OPENTXS_API_BLOCKCHAIN_HPP
