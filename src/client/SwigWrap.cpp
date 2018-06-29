@@ -4138,7 +4138,7 @@ const ui::ActivityThread& SwigWrap::ActivityThread(
 
 const ui::Contact& SwigWrap::Contact(const std::string& contactID)
 {
-    return OT::App().UI().Contact(Identifier(contactID));
+    return OT::App().UI().Contact(Identifier::Factory(contactID));
 }
 
 const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)

@@ -1501,9 +1501,11 @@ Item* Ledger::GenerateBalanceStatement(
     // the account balance, and thus that needs a new balance agreement signed.
     //
     Item* pBalanceItem = Item::CreateItemFromTransaction(
-        theOwner, Item::balanceStatement);  // <=== balanceStatement type, with
-                                            // user ID, server ID, account ID,
-                                            // transaction ID.
+        theOwner,
+        Item::balanceStatement,
+        Identifier::Factory());  // <=== balanceStatement type, with
+                                 // user ID, server ID, account ID,
+                                 // transaction ID.
 
     // The above has an ASSERT, so this this will never actually happen.
     if (nullptr == pBalanceItem) return nullptr;

@@ -894,9 +894,9 @@ bool OTPaymentPlan::ProcessPayment(
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
             Item* pItemSend = Item::CreateItemFromTransaction(
-                *pTransSend, Item::paymentReceipt);
+                *pTransSend, Item::paymentReceipt, Identifier::Factory());
             Item* pItemRecip = Item::CreateItemFromTransaction(
-                *pTransRecip, Item::paymentReceipt);
+                *pTransRecip, Item::paymentReceipt, Identifier::Factory());
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
@@ -1178,8 +1178,10 @@ bool OTPaymentPlan::ProcessPayment(
             theRecipientInbox.SaveContract();
 
             // Save both inboxes to storage. (File, DB, wherever it goes.)
-            sourceAccount.get().SaveInbox(theSenderInbox);
-            recipientAccount.get().SaveInbox(theRecipientInbox);
+            sourceAccount.get().SaveInbox(
+                theSenderInbox, Identifier::Factory());
+            recipientAccount.get().SaveInbox(
+                theRecipientInbox, Identifier::Factory());
 
             // These correspond to the AddTransaction() calls just above. These
             // are stored in separate files now.

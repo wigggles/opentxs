@@ -345,7 +345,7 @@ public:
         const time64_t& VALID_TO,  // 0 defaults to "no expiry." Otherwise this
                                    // value is ADDED to VALID_FROM. (It's a
                                    // length.)
-        const Identifier* pSENDER_ACCT_ID,
+        const Identifier& pSENDER_ACCT_ID,
         const Identifier& SENDER_NYM_ID,
         const String& PLAN_CONSIDERATION,  // like a memo.
         const Identifier& RECIPIENT_ACCT_ID,
@@ -406,12 +406,12 @@ public:
                                   // purses. Passed in so it won't go out of
                                   // scope when return value has a member set to
                                   // point to it.
-        bool bForEncrypting = true,  // true==encrypting,false==decrypting.
-        const Identifier* pOWNER_ID = nullptr,  // This can be nullptr, **IF**
-                                                // purse is password-protected.
-                                                // (It's
+        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
+                                      // purse is password-protected.
+                                      // (It's
         // just ignored in that case.) Otherwise MUST contain the
         // NymID for the Purse owner.
+        bool bForEncrypting = true,  // true==encrypting,false==decrypting.
         const String* pstrDisplay1 = nullptr,
         const String* pstrDisplay2 = nullptr) const;
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerForMerge(
@@ -420,24 +420,24 @@ public:
         OTPassword& thePassword,  // Only used in the case of password-protected
                                   // purses. Passed in so it won't go out of
                                   // scope when pOwner is set to point to it.
-        bool bCanBePublic = false,  // true==private nym isn't mandatory.
-                                    // false==private nym IS mandatory.
-                                    // (Only relevant if there's an owner.)
-        const Identifier* pOWNER_ID = nullptr,  // This can be nullptr, **IF**
-                                                // purse is password-protected.
-                                                // (It's
+        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
+                                      // purse is password-protected.
+                                      // (It's
         // just ignored in that case.) Otherwise if it's
         // Nym-protected, the purse will have a NymID on it already.
         // If not (it's optional), then pOWNER_ID is the ID it will
         // try next, before failing.
+        bool bCanBePublic = false,  // true==private nym isn't mandatory.
+                                    // false==private nym IS mandatory.
+                                    // (Only relevant if there's an owner.)
         const String* pstrDisplay = nullptr) const;
     EXPORT Token* Purse_Peek(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const String& THE_PURSE,
-        const Identifier* pOWNER_ID = nullptr,  // This can be nullptr, **IF**
-                                                // purse is password-protected.
-                                                // (It's
+        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
+                                      // purse is password-protected.
+                                      // (It's
         // just ignored in that case.) Otherwise MUST contain the
         // NymID for the Purse owner (necessary to decrypt the token.)
         const String* pstrDisplay = nullptr) const;
@@ -446,9 +446,9 @@ public:
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const String& THE_PURSE,
-        const Identifier* pOWNER_ID = nullptr,  // This can be nullptr, **IF**
-                                                // purse
-                                                // is
+        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
+                                      // purse
+                                      // is
         // password-protected. (It's just
         // ignored in that case.) Otherwise MUST
         // contain the NymID for the Purse owner
@@ -466,9 +466,9 @@ public:
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const String& THE_PURSE,
         const String& THE_TOKEN,
-        const Identifier* pOWNER_ID = nullptr,  // This can be nullptr, **IF**
-                                                // purse is password-protected.
-                                                // (It's
+        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
+                                      // purse is password-protected.
+                                      // (It's
         // just ignored in that case.) Otherwise MUST contain the
         // NymID for the Purse owner (recipient. necessary to encrypt
         // the token to him.)

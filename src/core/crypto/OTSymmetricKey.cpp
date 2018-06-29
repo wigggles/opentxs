@@ -89,13 +89,11 @@ OTSymmetricKey::OTSymmetricKey(const OTPassword& thePassword)
 {
     GenerateKey(thePassword);
 }
-
 void OTSymmetricKey::GetIdentifier(Identifier& theIdentifier) const
 {
     Lock lock(lock_);
     theIdentifier.CalculateDigest(encrypted_key_.get());
 }
-
 void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
 {
     Lock lock(lock_);

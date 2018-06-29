@@ -55,10 +55,7 @@ public:
     {
         Lock lock(lock_);
 
-        if (0 == set_.count(in)) {
-
-            return;
-        }
+        if (0 == set_.count(in)) { return; }
 
         for (auto i = queue_.cbegin(); i < queue_.cend(); ++i) {
             /* TODO: these lines will cause a segfault in the clang-5 ast
@@ -138,10 +135,7 @@ public:
     {
         Lock lock(lock_);
 
-        if (0 == queue_.size()) {
-
-            return false;
-        }
+        if (0 == queue_.size()) { return false; }
 
         /* TODO: this line will cause a segfault in the clang-5 ast parser.
         const auto & [ outKey, outValue ] = queue_.back();

@@ -185,11 +185,11 @@ void ContactList::process_contact(const network::zeromq::Message& message)
     wait_for_startup();
 
     OT_ASSERT(1 == message.Body().size());
+    const auto contactID(Identifier::Factory());
 
     const std::string id(*message.Body().begin());
-    const Identifier contactID(id);
 
-    OT_ASSERT(false == contactID.empty())
+    OT_ASSERT(false == contactID->empty())
 
     const auto name = contact_manager_.ContactName(contactID);
     add_item(contactID, name, {});
@@ -202,7 +202,7 @@ void ContactList::startup()
           << " contacts." << std::endl;
 
     for (const auto& [id, alias] : contacts) {
-        add_item(Identifier(id), alias, {});
+        add_item(Identifier::Factory(id), alias, {});
     }
 
     startup_complete_->On();

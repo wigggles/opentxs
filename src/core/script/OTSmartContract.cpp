@@ -2535,7 +2535,7 @@ bool OTSmartContract::StashFunds(
             // items... but not in this case.)
             //
             Item* pItemParty = Item::CreateItemFromTransaction(
-                *pTransParty, Item::paymentReceipt);
+                *pTransParty, Item::paymentReceipt, Identifier::Factory());
             OT_ASSERT(
                 nullptr != pItemParty);  //  may be unnecessary, I'll have to
                                          // check CreateItemFromTransaction.
@@ -2896,7 +2896,7 @@ bool OTSmartContract::StashFunds(
             thePartyInbox.SignContract(*pServerNym);
             thePartyInbox.SaveContract();
 
-            account.get().SaveInbox(thePartyInbox);
+            account.get().SaveInbox(thePartyInbox, Identifier::Factory());
 
             // This corresponds to the AddTransaction() call just above.
             // These are stored in a separate file now.
@@ -4605,7 +4605,6 @@ bool OTSmartContract::VerifySmartContract(
     ClearTemporaryPointers();  // Don't want any bad pointers floating
                                // around after cleanup.
 
-
     // DONE: if the above loop fails halfway through, then we should really PUT
     // BACK the closing transaction #s that we removed. After all, we have a
     // list of them. Otherwise the only way to know which parties have their
@@ -5770,9 +5769,9 @@ bool OTSmartContract::MoveFunds(
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
             Item* pItemSend = Item::CreateItemFromTransaction(
-                *pTransSend, Item::paymentReceipt);
+                *pTransSend, Item::paymentReceipt, Identifier::Factory());
             Item* pItemRecip = Item::CreateItemFromTransaction(
-                *pTransRecip, Item::paymentReceipt);
+                *pTransRecip, Item::paymentReceipt, Identifier::Factory());
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
@@ -6047,8 +6046,10 @@ bool OTSmartContract::MoveFunds(
             theRecipientInbox.SaveContract();
 
             // Save both inboxes to storage. (File, DB, wherever it goes.)
-            sourceAccount.get().SaveInbox(theSenderInbox);
-            recipientAccount.get().SaveInbox(theRecipientInbox);
+            sourceAccount.get().SaveInbox(
+                theSenderInbox, Identifier::Factory());
+            recipientAccount.get().SaveInbox(
+                theRecipientInbox, Identifier::Factory());
 
             // These correspond to the AddTransaction() calls, just above
             //

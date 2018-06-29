@@ -118,27 +118,23 @@ protected:
     // will sell for. My limit.
     // (Normally the price I get is whatever is the best one on the market right
     // now.)
-    std::int64_t m_lPriceLimit{
-        0};  // Denominated in CURRENCY TYPE, and priced per
-             // SCALE.
-             // 1oz market price limit might be 1,300
+    std::int64_t m_lPriceLimit{0};  // Denominated in CURRENCY TYPE, and priced
+                                    // per SCALE. 1oz market price limit might
+                                    // be 1,300
     // 100oz market price limit might be 130,000 (or 127,987 or whatever)
 
-    std::int64_t m_lTransactionNum{
-        0};  // Matches to an OTTrade stored in OTCron.
-    std::int64_t m_lTotalAssetsOffer{
-        0};  // Total amount of ASSET TYPE trying to BUY or
-             // SELL, this trade.
-    std::int64_t m_lFinishedSoFar{
-        0};  // Number of ASSETs bought or sold already against
-             // the above total.
+    std::int64_t m_lTransactionNum{0};    // Matches to an OTTrade stored in
+                                          // OTCron.
+    std::int64_t m_lTotalAssetsOffer{0};  // Total amount of ASSET TYPE trying
+                                          // to BUY or SELL, this trade.
+    std::int64_t m_lFinishedSoFar{0};     // Number of ASSETs bought or sold
+                                          // already against the above total.
 
-    std::int64_t m_lScale{
-        0};  // 1oz market? 100oz market? 10,000oz market? This
-             // determines size and granularity.
-    std::int64_t m_lMinimumIncrement{
-        0};  // Each sale or purchase against the above
-             // total must be in minimum increments.
+    std::int64_t m_lScale{0};  // 1oz market? 100oz market? 10,000oz market?
+                               // This determines size and granularity.
+    std::int64_t m_lMinimumIncrement{0};  // Each sale or purchase against the
+                                          // above total must be in minimum
+                                          // increments.
     // Minimum Increment must be evenly divisible by m_lScale.
     // (This effectively becomes a "FILL OR KILL" order if set to the same value
     // as m_lTotalAssetsOffer. Also, MUST be 1

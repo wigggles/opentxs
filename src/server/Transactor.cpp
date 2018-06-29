@@ -161,7 +161,7 @@ bool Transactor::addBasketAccountID(
 /// this server.)
 bool Transactor::lookupBasketAccountIDByContractID(
     const Identifier& BASKET_CONTRACT_ID,
-    Identifier& BASKET_ACCOUNT_ID)
+    OTIdentifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -176,7 +176,7 @@ bool Transactor::lookupBasketAccountIDByContractID(
                                                        // ID passed in matches
                                                        // this one...
         {
-            BASKET_ACCOUNT_ID = id_BASKET_ACCT;
+            BASKET_ACCOUNT_ID = Identifier::Factory(id_BASKET_ACCT);
             return true;
         }
     }
@@ -189,7 +189,7 @@ bool Transactor::lookupBasketAccountIDByContractID(
 /// this server.)
 bool Transactor::lookupBasketContractIDByAccountID(
     const Identifier& BASKET_ACCOUNT_ID,
-    Identifier& BASKET_CONTRACT_ID)
+    OTIdentifier& BASKET_CONTRACT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -204,7 +204,7 @@ bool Transactor::lookupBasketContractIDByAccountID(
                                                   // passed in matches this
                                                   // one...
         {
-            BASKET_CONTRACT_ID = id_BASKET_CONTRACT;
+            BASKET_CONTRACT_ID = Identifier::Factory(id_BASKET_CONTRACT);
             return true;
         }
     }
@@ -217,7 +217,7 @@ bool Transactor::lookupBasketContractIDByAccountID(
 /// servers)
 bool Transactor::lookupBasketAccountID(
     const Identifier& BASKET_ID,
-    Identifier& BASKET_ACCOUNT_ID)
+    OTIdentifier& BASKET_ACCOUNT_ID)
 {
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
@@ -231,7 +231,7 @@ bool Transactor::lookupBasketAccountID(
         if (BASKET_ID == id_BASKET)  // if the basket ID passed in matches this
                                      // one...
         {
-            BASKET_ACCOUNT_ID = id_BASKET_ACCT;
+            BASKET_ACCOUNT_ID = Identifier::Factory(id_BASKET_ACCT);
             return true;
         }
     }

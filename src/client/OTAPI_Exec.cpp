@@ -4108,16 +4108,16 @@ std::string OTAPI_Exec::ProposePaymentPlan(
     OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_LENGTH, OT_TIME_ZERO);
     OT_VERIFY_MIN_BOUND(PAYMENT_PLAN_MAX_PAYMENTS, 0);
 
-    std::unique_ptr<Identifier> angelSenderAcctId;
+    OTIdentifier angelSenderAcctId = Identifier::Factory();
 
     if (!SENDER_ACCT_ID.empty())
-        angelSenderAcctId.reset(new Identifier(SENDER_ACCT_ID));
+        angelSenderAcctId = Identifier::Factory(SENDER_ACCT_ID);
 
     std::unique_ptr<OTPaymentPlan> pPlan(ot_api_.ProposePaymentPlan(
         Identifier::Factory(NOTARY_ID),
         VALID_FROM,  // Default (0) == NOW
         VALID_TO,    // Default (0) == no expiry / cancel anytime
-        // We're making this acct optional here.
+                     // We're making this acct optional here.
         // (Customer acct is unknown until confirmation by customer.)
         angelSenderAcctId.get(),
         Identifier::Factory(SENDER_NYM_ID),
@@ -6557,7 +6557,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                 return false;
             }
             // Now let's get the server ID...
-            const auto serverID = account.get().GetPurportedNotaryID();
+            const auto serverID =
+                Identifier::Factory(account.get().GetPurportedNotaryID());
             auto pServer = wallet_.Server(serverID);
 
             if (!pServer) {
@@ -8963,9 +8964,11 @@ std::int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 
     const auto theNotaryID = Identifier::Factory(NOTARY_ID),
                theNymID = Identifier::Factory(NYM_ID),
-               theAccountID = Identifier::Factory(
-                   NYM_ID);  // account IS user, for Nymbox (the only box that
-                             // carries replyNotices...)
+               theAccountID =
+                   Identifier::Factory(NYM_ID);  // account IS user, for
+                                                 // Nymbox (the only box
+                                                 // that carries
+                                                 // replyNotices...)
 
     String strTransaction(THE_TRANSACTION);
 
@@ -9699,7 +9702,8 @@ std::string OTAPI_Exec::Purse_Peek(
         theNotaryID,
         theInstrumentDefinitionID,
         strPurse,
-        OWNER_ID.empty() ? nullptr : &theOwnerID.get()));
+        OWNER_ID.empty() ? Identifier::Factory()
+                         : Identifier::Factory(theOwnerID.get())));
     if (pToken) {
         pToken->SaveContractRaw(strOutput);
         std::string pBuf = strOutput.Get();
@@ -9763,8 +9767,8 @@ std::string OTAPI_Exec::Purse_Pop(
         theNotaryID,
         theInstrumentDefinitionID,
         strPurse,
-        &theNymID.get(),  // Note: if the purse is password-protected, then this
-                          // parameter is ignored.
+        theNymID.get(),  // Note: if the purse is password-protected, then this
+                         // parameter is ignored.
         &strReason));
     if (pPurse) {
         pPurse->ReleaseSignatures();
@@ -9934,8 +9938,10 @@ std::string OTAPI_Exec::Purse_Push(
         theInstrumentDefinitionID,
         strPurse,
         strToken,
-        OWNER_ID.empty() ? nullptr : &theOwnerID.get()));  // Note: if the purse
-                                                           // is
+        OWNER_ID.empty() ? Identifier::Factory()
+                         : Identifier::Factory(theOwnerID.get())));  // Note: if
+                                                                     // the
+                                                                     // purse is
     // password-protected, then this
     // parameter should be "".
     strReason.empty();

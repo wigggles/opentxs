@@ -848,7 +848,7 @@ void OTCronItem::HookRemovalFromCron(
             // but for whatever reason, I'm checking the nymID on the original
             // version. Sue me.
             //
-            const auto NYM_ID =
+            const OTIdentifier NYM_ID =
                 Identifier::Factory(pOrigCronItem->GetSenderNymID());
 
             pOriginator = OT::App().Wallet().Nym(NYM_ID);
@@ -1056,8 +1056,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        Item* pItem1 =
-            Item::CreateItemFromTransaction(*pTrans1, Item::finalReceipt);
+        Item* pItem1 = Item::CreateItemFromTransaction(
+            *pTrans1, Item::finalReceipt, Identifier::Factory());
 
         // This may be unnecessary, I'll have to check
         // CreateItemFromTransaction. I'll leave it for now.
@@ -1143,7 +1143,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         if (account) {
             OT_ASSERT(ACCOUNT_ID == account.get().GetPurportedAccountID());
 
-            if (account.get().SaveInbox(theInbox)) {
+            if (account.get().SaveInbox(theInbox, Identifier::Factory())) {
                 account.Release();  // inbox hash has changed here, so we save
                                     // the account to reflect that change.
             } else {
@@ -1154,7 +1154,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         } else  // todo: would the account EVER be null here? Should never be.
                 // Therefore should we save the inbox here?
         {
-            theInbox.SaveInbox();
+            theInbox.SaveInbox(Identifier::Factory());
         }
 
         // Notice above, if the account loads but fails to verify, then we do
@@ -1238,8 +1238,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        Item* pItem1 =
-            Item::CreateItemFromTransaction(*pTransaction, Item::finalReceipt);
+        Item* pItem1 = Item::CreateItemFromTransaction(
+            *pTransaction, Item::finalReceipt, Identifier::Factory());
 
         // This may be unnecessary, I'll have to check
         // CreateItemFromTransaction. I'll leave it for now.
@@ -1338,6 +1338,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         // Update the NymboxHash (in the nymfile.)
         //
 
+        const auto ACTUAL_NYM_ID = Identifier::Factory(NYM_ID);
         auto context =
             OT::App().Wallet().mutable_ClientContext(pServerNym->ID(), NYM_ID);
         context.It().SetLocalNymboxHash(theNymboxHash);
@@ -1495,7 +1496,7 @@ bool OTCronItem::GetCancelerID(Identifier& theOutput) const
         return false;
     }
 
-    theOutput = m_pCancelerNymID;
+    theOutput.SetString(m_pCancelerNymID->str());
     return true;
 }
 

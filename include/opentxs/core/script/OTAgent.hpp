@@ -237,8 +237,8 @@ public:
     // For when the agent is an individual:
     //
     EXPORT bool GetNymID(Identifier& theOutput) const;  // If IsIndividual(),
-                                                        // then this is his own
-                                                        // personal NymID,
+                                                        // then this is his
+                                                        // own personal NymID,
     // (whether he DoesRepresentHimself() or DoesRepresentAnEntity()
     // -- either way). Otherwise if IsGroup(), this returns false.
 
@@ -246,7 +246,8 @@ public:
                                                   // DoesRepresentAnEntity(),
                                                   // then this is his RoleID
                                                   // within that Entity.
-                                                  // Otherwise, if IsGroup() or
+                                                  // Otherwise, if IsGroup()
+                                                  // or
                                                   // DoesRepresentHimself(),
                                                   // then this returns false.
 
@@ -282,9 +283,9 @@ public:
     // I'm debating making this function private along with DoesRepresentHimself
     // / DoesRepresentAnEntity().
     //
-    bool GetEntityID(Identifier& theOutput) const;  // IF represents an entity,
-                                                    // this is its ID. Else
-                                                    // fail.
+    bool GetEntityID(Identifier& theOutput) const;  // IF represents an
+                                                    // entity, this is its ID.
+                                                    // Else fail.
 
     EXPORT const String& GetName()
     {

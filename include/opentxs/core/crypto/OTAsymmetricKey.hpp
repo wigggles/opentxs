@@ -267,9 +267,7 @@ public:
             return false;
         }
 
-        if (0 == signature.version()) {
-            signature.set_version(1);
-        }
+        if (0 == signature.version()) { signature.set_version(1); }
 
         signature.set_credentialid(credID.Get());
 

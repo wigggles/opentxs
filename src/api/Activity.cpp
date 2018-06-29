@@ -79,10 +79,10 @@ Activity::Activity(
 }
 
 void Activity::activity_preload_thread(
-    const Identifier nym,
+    const OTIdentifier nym,
     const std::size_t count) const
 {
-    const std::string nymID = nym.str();
+    const std::string nymID = nym->str();
     auto threads = storage_.ThreadList(nymID, false);
 
     for (const auto& it : threads) {
@@ -309,7 +309,7 @@ std::string Activity::Mail(
     mail.CalculateContractID(id);
     const std::string output = id->str();
     const String data(mail);
-    std::string participantNymID{};
+    std::string participantNymID;
     const String localName(nym);
 
     if (localName == mail.m_strNymID2) {
@@ -486,7 +486,7 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     if (false == contactID->empty()) { return contact_.Contact(contactID); }
 
     // Contact does not yet exist. Create it.
-    std::string label{};
+    std::string label;
     auto nym = wallet_.Nym(nymID);
     auto code = PaymentCode::Factory("");
 
@@ -568,8 +568,8 @@ std::shared_ptr<const std::string> Activity::PaymentText(
 }
 
 void Activity::preload(
-    const Identifier nymID,
-    const Identifier id,
+    const OTIdentifier nymID,
+    const OTIdentifier id,
     const StorageBox box) const
 {
     const auto message = Mail(nymID, id, box);
@@ -590,10 +590,10 @@ void Activity::preload(
         return;
     }
 
-    otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message " << id.str()
+    otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message " << id->str()
           << std::endl;
     auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
-    otErr << OT_METHOD << __FUNCTION__ << ": Message " << id.str()
+    otErr << OT_METHOD << __FUNCTION__ << ": Message " << id->str()
           << " decrypted." << std::endl;
 
     if (!peerObject) {

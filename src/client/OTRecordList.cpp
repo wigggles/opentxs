@@ -740,7 +740,7 @@ std::int32_t OTRecordList::processPayment(  // a static method
         return -1;
     }
 
-    OTIdentifier accountNotaryId = Identifier::Factory();
+    auto accountNotaryId = Identifier::Factory();
     std::string acct_server = SwigWrap::GetAccountWallet_NotaryID(myacct);
     if (acct_server.empty()) {
         otOut << "Error: cannot determine acct_server from myacct.\n";
@@ -775,7 +775,7 @@ std::int32_t OTRecordList::processPayment(  // a static method
 
     // The Notary ID we found on the payment instrument itself.
     //
-    OTIdentifier paymentNotaryId = Identifier::Factory();
+    auto paymentNotaryId = Identifier::Factory();
     const bool bGotPaymentNotaryId = thePayment.GetNotaryID(paymentNotaryId);
 
     if (!bGotPaymentNotaryId) {
@@ -783,7 +783,7 @@ std::int32_t OTRecordList::processPayment(  // a static method
         return -1;
     }
 
-    OTIdentifier assetTypeId = Identifier::Factory();
+    auto assetTypeId = Identifier::Factory();
     const bool bGotPaymentAssetTypeId =
         thePayment.GetInstrumentDefinitionID(assetTypeId);
 

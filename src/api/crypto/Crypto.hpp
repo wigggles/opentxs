@@ -130,7 +130,7 @@ private:
     api::Native& native_;
     mutable std::mutex cached_key_lock_;
     mutable std::unique_ptr<OTCachedKey> primary_key_;
-    mutable std::map<Identifier, std::unique_ptr<OTCachedKey>> cached_keys_;
+    mutable std::map<OTIdentifier, std::unique_ptr<OTCachedKey>> cached_keys_;
 #if OT_CRYPTO_USING_TREZOR
     std::unique_ptr<bitcoincrypto> bitcoincrypto_;
 #endif

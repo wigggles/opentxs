@@ -429,7 +429,7 @@ public:
 
     TransactionNumber GetTransactionNumber() const override;
     SendResult LastSendResult() const override;
-    const Identifier MessageID() const override;
+    const OTIdentifier MessageID() const override;
     const std::shared_ptr<PeerRequest>& SentPeerRequest() const override;
     const std::shared_ptr<PeerReply>& SentPeerReply() const override;
     const std::shared_ptr<Message>& Reply() const override;
@@ -503,8 +503,8 @@ private:
     Amount price_{0};
     Amount scale_{0};
     RemoteBoxType remoteBoxType_{RemoteBoxType::Error};
-    TransactionNumber transactionNumber_{
-        0};  // This is not what gets returned by GetTransactionNumber.
+    TransactionNumber transactionNumber_{0};  // This is not what gets returned
+                                              // by GetTransactionNumber.
     proto::ConnectionInfoType infoType_{proto::CONNECTIONINFO_ERROR};
     proto::SecretType secretType_{proto::SECRETTYPE_ERROR};
     proto::UnitDefinition unitDefinition_{};

@@ -1416,7 +1416,7 @@ bool OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::PURSE:
         case OTPayment::NOTICE:
-            theOutput = m_InstrumentDefinitionID;
+            theOutput.Assign(m_InstrumentDefinitionID);
             bSuccess = !m_InstrumentDefinitionID->IsEmpty();
             break;
 
@@ -1454,7 +1454,7 @@ bool OTPayment::GetNotaryID(Identifier& theOutput) const
         case OTPayment::SMART_CONTRACT:
         case OTPayment::PURSE:
         case OTPayment::NOTICE:
-            theOutput = m_NotaryID;
+            theOutput.Assign(m_NotaryID);
             bSuccess = !m_NotaryID->IsEmpty();
             break;
 
@@ -1479,7 +1479,7 @@ bool OTPayment::GetRemitterNymID(Identifier& theOutput) const
 
     switch (m_Type) {
         case OTPayment::VOUCHER:
-            theOutput = m_RemitterNymID;
+            theOutput.Assign(m_RemitterNymID);
             bSuccess = !m_RemitterNymID->IsEmpty();
             break;
 
@@ -1507,7 +1507,7 @@ bool OTPayment::GetRemitterAcctID(Identifier& theOutput) const
 
     switch (m_Type) {
         case OTPayment::VOUCHER:
-            theOutput = m_RemitterAcctID;
+            theOutput.Assign(m_RemitterAcctID);
             bSuccess = !m_RemitterAcctID->IsEmpty();
             break;
 
@@ -1550,7 +1550,7 @@ bool OTPayment::GetSenderNymID(Identifier& theOutput) const
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::SMART_CONTRACT:
         case OTPayment::NOTICE:
-            theOutput = m_SenderNymID;
+            theOutput.Assign(m_SenderNymID);
             bSuccess = !m_SenderNymID->IsEmpty();
             break;
 
@@ -1580,7 +1580,7 @@ bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
         case OTPayment::INVOICE:
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::NOTICE:
-            theOutput = m_SenderAcctID;
+            theOutput.Assign(m_SenderAcctID);
             bSuccess = !m_SenderAcctID->IsEmpty();
             break;
 
@@ -1613,7 +1613,7 @@ bool OTPayment::GetRecipientNymID(Identifier& theOutput) const
         case OTPayment::PURSE:
         case OTPayment::NOTICE:
             if (m_bHasRecipient) {
-                theOutput = m_RecipientNymID;
+                theOutput.Assign(m_RecipientNymID);
                 bSuccess = !m_RecipientNymID->IsEmpty();
             } else
                 bSuccess = false;
@@ -1652,7 +1652,7 @@ bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::NOTICE:
             if (m_bHasRecipient) {
-                theOutput = m_RecipientAcctID;
+                theOutput.Assign(m_RecipientAcctID);
                 bSuccess = !m_RecipientAcctID->IsEmpty();
             } else
                 bSuccess = false;

@@ -97,9 +97,9 @@ public:
     ~Issuer();
 
 private:
-    typedef std::map<Identifier, std::pair<Identifier, bool>> Workflow;
+    typedef std::map<OTIdentifier, std::pair<OTIdentifier, bool>> Workflow;
     typedef std::map<proto::PeerRequestType, Workflow> WorkflowMap;
-    typedef std::pair<Identifier, Identifier> UnitAccountPair;
+    typedef std::pair<OTIdentifier, OTIdentifier> UnitAccountPair;
 
     friend Factory;
     const api::client::Wallet& wallet_;
@@ -108,8 +108,8 @@ private:
     mutable OTFlag paired_;
     const OTIdentifier nym_id_;
     const OTIdentifier issuer_id_;
-    std::map<proto::ContactItemType, std::set<UnitAccountPair>> account_map_{};
-    WorkflowMap peer_requests_{};
+    std::map<proto::ContactItemType, std::set<UnitAccountPair>> account_map_;
+    WorkflowMap peer_requests_;
 
     std::pair<bool, Workflow::iterator> find_request(
         const Lock& lock,

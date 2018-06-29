@@ -141,7 +141,6 @@ void OTOffer::GetIdentifier(Identifier& theIdentifier) const
 
     theIdentifier.CalculateDigest(strTemp);
 }
-
 bool OTOffer::IsMarketOrder() const { return (0 == GetPriceLimit()); }
 
 bool OTOffer::IsLimitOrder() const { return (0 != GetPriceLimit()); }

@@ -90,10 +90,10 @@ bool Purse::GetNymID(Identifier& theOutput) const
                            // assume. Might as well have it here for clarity.
     } else if (IsNymIDIncluded() && !m_NymID->IsEmpty()) {
         bSuccess = true;
-        theOutput = m_NymID;
+        theOutput.SetString(m_NymID->str());
     } else if (!m_NymID->IsEmpty()) {
         bSuccess = true;
-        theOutput = m_NymID;
+        theOutput.SetString(m_NymID->str());
     }
 
     return bSuccess;

@@ -1043,7 +1043,7 @@ void Item::GetNote(String& theStr) const
 Item* Item::CreateItemFromTransaction(
     const OTTransaction& theOwner,
     Item::itemType theType,
-    const Identifier* pDestinationAcctID)
+    const Identifier& pDestinationAcctID)
 {
     Item* pItem =
         new Item(theOwner.GetNymID(), theOwner, theType, pDestinationAcctID);
@@ -1187,7 +1187,7 @@ Item::Item(
     const Identifier& theNymID,
     const OTTransaction& theOwner,
     Item::itemType theType,
-    const Identifier* pDestinationAcctID)
+    const Identifier& pDestinationAcctID)
     : OTTransactionType(
           theNymID,
           theOwner.GetRealAccountID(),
@@ -1212,7 +1212,9 @@ Item::Item(
     // (If you deposit, or withdraw, you don't need a "to" account.)
     // But for the ones that do, you can pass the "to" account's ID in
     // as a pointer, and we'll set that too....
-    if (nullptr != pDestinationAcctID) { m_AcctToID = *pDestinationAcctID; }
+    if (!pDestinationAcctID.empty()) {
+        m_AcctToID = Identifier::Factory(pDestinationAcctID);
+    }
 }
 
 Item::~Item() { Release_Item(); }

@@ -172,7 +172,6 @@ public:
         std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 
     EXPORT explicit OTCachedKey(const OTASCIIArmor& ascCachedKey);
-
     EXPORT bool GetIdentifier(Identifier& theIdentifier) const;
     EXPORT bool GetIdentifier(String& strIdentifier) const;
     /** For Nyms, which have a global master key serving as their "passphrase"

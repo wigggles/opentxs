@@ -90,14 +90,14 @@ public:
         const Identifier& basketContractId);
     bool lookupBasketAccountID(
         const Identifier& basketId,
-        Identifier& basketAccountId);
+        OTIdentifier& basketAccountId);
 
     bool lookupBasketAccountIDByContractID(
         const Identifier& basketContractId,
-        Identifier& basketAccountId);
+        OTIdentifier& basketAccountId);
     bool lookupBasketContractIDByAccountID(
         const Identifier& basketAccountId,
-        Identifier& basketContractId);
+        OTIdentifier& basketContractId);
 
     // Whenever the server issues a voucher (like a cashier's cheque), it puts
     // the funds in one of these voucher accounts (one for each instrument

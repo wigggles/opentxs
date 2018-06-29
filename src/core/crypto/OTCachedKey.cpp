@@ -186,7 +186,6 @@ bool OTCachedKey::GetIdentifier(Identifier& theIdentifier) const
 
     return false;
 }
-
 bool OTCachedKey::GetIdentifier(String& strIdentifier) const
 {
     auto id = Identifier::Factory();

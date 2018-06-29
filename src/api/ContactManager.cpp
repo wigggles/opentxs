@@ -114,7 +114,7 @@ OTIdentifier ContactManager::BlockchainAddressToContact(
 ContactManager::ContactNameMap ContactManager::build_name_map(
     const api::storage::Storage& storage)
 {
-    ContactNameMap output{};
+    ContactNameMap output;
 
     for (const auto& [id, alias] : storage.ContactList()) {
         output.emplace(id, alias);
@@ -128,16 +128,16 @@ void ContactManager::check_identifiers(
     const PaymentCode& paymentCode,
     bool& haveNymID,
     bool& havePaymentCode,
-    Identifier& outputNymID) const
+    OTIdentifier& outputNymID) const
 {
     if (paymentCode.VerifyInternally()) { havePaymentCode = true; }
 
     if (false == inputNymID.empty()) {
         haveNymID = true;
-        outputNymID = inputNymID;
+        outputNymID = Identifier::Factory(inputNymID);
     } else if (havePaymentCode) {
         haveNymID = true;
-        outputNymID = paymentCode.ID();
+        outputNymID = Identifier::Factory(paymentCode.ID());
     }
 }
 
@@ -281,9 +281,7 @@ void ContactManager::init_nym_map(const rLock& lock)
 
         const auto nyms = contact->Nyms();
 
-        for (const auto& nym : nyms) {
-            update_nym_map(lock, Identifier::Factory(nym), *contact);
-        }
+        for (const auto& nym : nyms) { update_nym_map(lock, nym, *contact); }
     }
 
     storage_.ContactSaveIndices();
@@ -700,7 +698,7 @@ std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
 
 void ContactManager::update_nym_map(
     const rLock& lock,
-    const Identifier nymID,
+    const OTIdentifier nymID,
     class Contact& contact,
     const bool replace) const
 {
@@ -708,7 +706,7 @@ void ContactManager::update_nym_map(
         throw std::runtime_error("lock error");
     }
 
-    const auto contactIdentifier = storage_.ContactOwnerNym(nymID.str());
+    const auto contactIdentifier = storage_.ContactOwnerNym(nymID->str());
     const bool exists = (false == contactIdentifier.empty());
     const auto& incomingID = contact.ID();
     const auto contactID = Identifier::Factory(contactIdentifier);
