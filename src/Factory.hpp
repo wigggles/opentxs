@@ -140,6 +140,8 @@ public:
         const api::ContactManager& contact,
         const ui::implementation::ContactSectionParent& parent,
         const ContactGroup& group);
+    static api::Settings* Settings();
+    static api::Settings* Settings(const String& path);
     static api::Identity* Identity(const api::client::Wallet& wallet);
     static api::client::Issuer* Issuer(
         const api::client::Wallet& wallet,

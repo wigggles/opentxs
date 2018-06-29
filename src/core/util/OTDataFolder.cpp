@@ -49,6 +49,9 @@
 #include <memory>
 #include <ostream>
 
+#include "Internal.hpp"
+#include "Factory.hpp"
+
 #define CONFIG_FILE_EXT ".cfg"
 #define DATA_FOLDER_EXT "_data"
 #define OT_CONFIG_ISRELATIVE "_is_relative"
@@ -82,8 +85,8 @@ bool OTDataFolder::Init(const String& strThreadContext)
 
     // setup the config instance.
     std::unique_ptr<api::Settings> pSettings(
-        new api::Settings(OTPaths::GlobalConfigFile()));
-    pSettings->Reset();
+        Factory::Settings(OTPaths::GlobalConfigFile()));
+
     if (!pSettings->Load()) return false;
 
     // setup the RelativeKey
@@ -179,6 +182,7 @@ bool OTDataFolder::Init(const String& strThreadContext)
 
     // save config
     if (!pSettings->Save()) return false;
+
     pSettings->Reset();
 
     // have set the default dir, now returning true;

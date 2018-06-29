@@ -194,7 +194,7 @@ const api::Settings& Native::Config(const std::string& path) const
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
 
-    if (!config) { config.reset(new api::Settings(String(path))); }
+    if (!config) { config.reset(Factory::Settings(String(path))); }
 
     OT_ASSERT(config);
 
@@ -388,7 +388,7 @@ void Native::Init_Config()
 
     String strConfigFilePath;
     OTDataFolder::GetConfigFilePath(strConfigFilePath);
-    config_[""].reset(new api::Settings(strConfigFilePath));
+    config_[""].reset(Factory::Settings(strConfigFilePath));
 }
 
 void Native::Init_Contacts()

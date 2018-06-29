@@ -48,6 +48,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
+#include "Internal.hpp"
+#include "Factory.hpp"
+
 #ifndef _WIN32
 #include <unistd.h>
 #include <cerrno>
@@ -212,13 +215,14 @@ bool Log::Init(
             pLogger->m_strLogFileName.Format(
                 "%s%s%s", LOGFILE_PRE, strThreadContext.Get(), LOGFILE_EXT);
 
-            api::Settings config(OTPaths::GlobalConfigFile());
+            std::unique_ptr<api::Settings> config{
+                Factory::Settings(OTPaths::GlobalConfigFile())};
 
-            config.Reset();
-            if (!config.Load()) { return false; }
+            config->Reset();
+            if (!config->Load()) { return false; }
 
             bool bIsNew(false);
-            if (!config.CheckSet_str(
+            if (!config->CheckSet_str(
                     "logfile",
                     strThreadContext,
                     pLogger->m_strLogFileName,
@@ -227,8 +231,8 @@ bool Log::Init(
                 return false;
             }
 
-            if (!config.Save()) { return false; }
-            config.Reset();
+            if (!config->Save()) { return false; }
+            config->Reset();
         }
 
 #ifdef ANDROID

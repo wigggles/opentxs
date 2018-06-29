@@ -28,6 +28,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Identity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/UI.hpp
 )
 

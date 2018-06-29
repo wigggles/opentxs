@@ -49,6 +49,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
+#include "Internal.hpp"
+#include "Factory.hpp"
+
 #include <sys/stat.h>
 
 #include <cerrno>
@@ -117,7 +120,7 @@
 namespace opentxs
 {
 
-api::Settings OTPaths::s_settings;
+api::Settings* OTPaths::s_settings{Factory::Settings()};
 
 String OTPaths::s_strAppBinaryFolder("");
 String OTPaths::s_strHomeFolder("");
@@ -147,7 +150,7 @@ void OTPaths::SetHomeFolder(String strLocation)
     s_strAppDataFolder.Release();  // So it will be regenerated.
 
 #ifdef ANDROID
-    OTPaths::s_settings.SetConfigFilePath(GlobalConfigFile());
+    OTPaths::s_settings->SetConfigFilePath(GlobalConfigFile());
 #endif
 }
 
@@ -252,7 +255,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
     if they want to manually set the prefix path.
     */
 
-    if (&config == &s_settings) ConfigureDefaultSettings();
+    if (&config == s_settings) ConfigureDefaultSettings();
 
     const bool bPreLoaded(config.IsLoaded());
 
@@ -398,6 +401,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
         if (!config.Save()) { OT_FAIL; }
         config.Reset();
     }
+
     return true;
 }
 
@@ -409,11 +413,12 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
      const bool& bIsRelative          // optional
     )
 {
-    if (&config == &s_settings) ConfigureDefaultSettings();
+    if (&config == s_settings) ConfigureDefaultSettings();
 
     const bool bPreLoaded(config.IsLoaded());
 
     if (!bPreLoaded) {
+
         config.Reset();
         if (!config.Load()) { OT_FAIL; }
     }
@@ -519,6 +524,7 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
         if (!config.Save()) { OT_FAIL; }
         config.Reset();
     }
+
     return true;  // success
 }
 
@@ -1251,8 +1257,8 @@ bool OTPaths::BuildFilePath(
 
 void OTPaths::ConfigureDefaultSettings()
 {
-    if (!s_settings.HasConfigFilePath())
-        s_settings.SetConfigFilePath(GlobalConfigFile());
+    if (!s_settings->HasConfigFilePath())
+        s_settings->SetConfigFilePath(GlobalConfigFile());
 }
 
 }  // namespace opentxs
