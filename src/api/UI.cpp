@@ -66,7 +66,7 @@
 
 #include "UI.hpp"
 
-#define OT_METHOD "opentxs::api::implementation::UI"
+//#define OT_METHOD "opentxs::api::implementation::UI"
 
 namespace opentxs
 {
