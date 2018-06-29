@@ -53,15 +53,12 @@
 
 namespace opentxs
 {
-NymData::NymData(const NymData& nymData)
-    : nym_(nymData.nym_)
+NymData::NymData(const NymData& rhs)
+    : object_lock_(std::move(const_cast<NymData&>(rhs).object_lock_))
+    , locked_save_callback_(
+          std::move(const_cast<NymData&>(rhs).locked_save_callback_))
+    , nym_(std::move(const_cast<NymData&>(rhs).nym_))
 {
-    Lock* lock = nymData.object_lock_.get();
-    std::mutex* mutex = lock->mutex();
-    object_lock_.reset(new Lock(*mutex));
-
-    LockedSave* lockedSave = nymData.locked_save_callback_.get();
-    locked_save_callback_.reset(new LockedSave(*lockedSave));
 }
 
 NymData::NymData(
@@ -311,7 +308,9 @@ std::unique_ptr<proto::VerificationSet> NymData::VerificationSet() const
 
 NymData::~NymData()
 {
-    auto callback = *locked_save_callback_;
-    callback(this, *object_lock_);
+    if (locked_save_callback_) {
+        auto callback = *locked_save_callback_;
+        callback(this, *object_lock_);
+    }
 }
 }  // namespace opentxs
