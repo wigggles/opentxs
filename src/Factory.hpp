@@ -140,6 +140,7 @@ public:
         const api::ContactManager& contact,
         const ui::implementation::ContactSectionParent& parent,
         const ContactGroup& group);
+    static api::Identity* Identity(const api::client::Wallet& wallet);
     static api::client::Issuer* Issuer(
         const api::client::Wallet& wallet,
         const Identifier& nymID,

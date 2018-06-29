@@ -38,9 +38,8 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/Identity.hpp"
-
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
@@ -52,19 +51,28 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
 
-#include <cstdint>
+#include <list>
 #include <memory>
 #include <ostream>
 #include <set>
 #include <string>
 #include <tuple>
 
+#include "Identity.hpp"
+
 // error from being unused.
 //#define OT_METHOD "opentxs::Identity::"
 
-namespace opentxs::api
+namespace opentxs
 {
+api::Identity* Factory::Identity(const api::client::Wallet& wallet)
+{
+    return new api::implementation::Identity(wallet);
+}
+}  // namespace opentxs
 
+namespace opentxs::api::implementation
+{
 Identity::Identity(const api::client::Wallet& wallet)
     : wallet_(wallet)
 {
@@ -361,4 +369,4 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
 
     return nullptr;
 }
-}  // namespace opentxs::api
+}  // namespace opentxs::api::implementation

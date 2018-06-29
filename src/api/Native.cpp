@@ -483,7 +483,7 @@ void Native::Init_Identity()
 {
     OT_ASSERT(wallet_);
 
-    identity_.reset(new api::Identity(*wallet_));
+    identity_.reset(Factory::Identity(*wallet_));
 }
 
 void Native::Init_Log()
