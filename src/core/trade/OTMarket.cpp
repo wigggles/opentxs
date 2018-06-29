@@ -1115,7 +1115,7 @@ void OTMarket::ProcessTrade(
         pOtherNym = pFirstNym;  // theNym is pFirstNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pOtherNym == OT::App().Wallet().Nym(OTHER_NYM_ID);
+        pOtherNym = OT::App().Wallet().Nym(OTHER_NYM_ID);
         if (nullptr == pOtherNym) {
             String strNymID(OTHER_NYM_ID);
             otErr << "Failure loading or verifying Other Nym public key in "
