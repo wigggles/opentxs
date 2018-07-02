@@ -362,7 +362,7 @@ private:
     friend api::client::Wallet;
 
     std::int32_t version_{0};
-    std::int32_t index_{0};
+    std::uint32_t index_{0};
     // (SERVER side.)
     std::int64_t m_lUsageCredits{-1};
     bool m_bMarkForDeletion{false};
