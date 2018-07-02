@@ -11,6 +11,8 @@ include_directories(
   ${GTEST_INCLUDE_DIRS}
 )
 
+add_subdirectory(crypto)
+
 add_executable(${name} ${cxx-sources})
 target_link_libraries(${name} opentxs ${GTEST_BOTH_LIBRARIES})
 set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
