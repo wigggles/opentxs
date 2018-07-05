@@ -237,7 +237,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 #endif
     auto newNym = wallet_.Nym(nymParameters);
 
-    if (nullptr == newNym) {
+    if (false == bool(newNym)) {
         Log::vError("Error: Failed to create server nym\n");
         OT_FAIL;
     }

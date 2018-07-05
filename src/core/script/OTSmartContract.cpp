@@ -2170,15 +2170,8 @@ bool OTSmartContract::UnstashAcctFunds(
 
     const std::int64_t lNegativeAmount = (lAmount * (-1));
 
-    //    mapOfConstNyms map_Nyms_Already_Loaded;
-    //    RetrieveNymPointers(map_Nyms_Already_Loaded);
-
-    bool bMoved = StashFunds(
-        //        map_Nyms_Already_Loaded,
-        lNegativeAmount,
-        theToAcctID,
-        theToAgentID,
-        *pStash);
+    bool bMoved =
+        StashFunds(lNegativeAmount, theToAcctID, theToAgentID, *pStash);
     if (!bMoved) {
         otOut << "OTSmartContract::UnstashAcctFunds: Failed in final call. "
                  "Values: to_acct: "
@@ -2197,7 +2190,6 @@ bool OTSmartContract::UnstashAcctFunds(
 // true == success, false == failure.
 //
 bool OTSmartContract::StashFunds(
-    //    const mapOfConstNyms& map_NymsAlreadyLoaded,
     const std::int64_t& lAmount,  // negative amount here means UNstash.
                                   // Positive means STASH.
     const Identifier& PARTY_ACCT_ID,

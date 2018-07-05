@@ -2191,20 +2191,17 @@ bool Nym::save_signed_nymfile(const T& lock, const Nym& SIGNER_NYM)
         const bool bSaved = theNymfile.SaveFile();
 
         if (!bSaved) {
-            String strSignerNymID;
-            SIGNER_NYM.GetIdentifier(strSignerNymID);
             otErr << __FUNCTION__
                   << ": Failed while calling theNymfile.SaveFile() for Nym "
-                  << strNymID << " using Signer Nym " << strSignerNymID << "\n";
+                  << strNymID << " using Signer Nym " << SIGNER_NYM.ID().str()
+                  << "\n";
         }
 
         return bSaved;
     } else {
-        String strSignerNymID;
-        SIGNER_NYM.GetIdentifier(strSignerNymID);
         otErr << __FUNCTION__
               << ": Failed trying to sign and save Nymfile for Nym " << strNymID
-              << " using Signer Nym " << strSignerNymID << "\n";
+              << " using Signer Nym " << SIGNER_NYM.ID().str() << "\n";
     }
 
     return false;
