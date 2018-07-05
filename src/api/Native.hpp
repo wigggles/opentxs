@@ -75,7 +75,7 @@ public:
     const api::Crypto& Crypto() const override;
     const api::storage::Storage& DB() const override;
     const api::network::Dht& DHT() const override;
-    void HandleSignals() const override;
+    void HandleSignals(ShutdownCallback* shutdown) const override;
     const api::Identity& Identity() const override;
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */
@@ -135,6 +135,7 @@ private:
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
+    mutable ShutdownCallback* shutdown_callback_{nullptr};
 
     explicit Native(
         Flag& running,

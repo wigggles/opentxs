@@ -93,9 +93,9 @@
 #include "Sync.hpp"
 
 #define CONTACT_REFRESH_DAYS 1
-#define CONTRACT_DOWNLOAD_SECONDS 10
-#define MAIN_LOOP_SECONDS 5
-#define NYM_REGISTRATION_SECONDS 10
+#define CONTRACT_DOWNLOAD_MILLISECONDS 10000
+#define MAIN_LOOP_MILLISECONDS 5000
+#define NYM_REGISTRATION_MILLISECONDS 10000
 
 #define SHUTDOWN()                                                             \
     {                                                                          \
@@ -2061,7 +2061,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             break;
         }
 
-        YIELD(CONTRACT_DOWNLOAD_SECONDS);
+        YIELD(CONTRACT_DOWNLOAD_MILLISECONDS);
     }
 
     SHUTDOWN()
@@ -2078,7 +2078,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             break;
         }
 
-        YIELD(NYM_REGISTRATION_SECONDS);
+        YIELD(NYM_REGISTRATION_MILLISECONDS);
     }
 
     SHUTDOWN()
@@ -2439,7 +2439,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             publish_server_contract(taskID, nymID, serverID, contractID);
         }
 
-        YIELD(MAIN_LOOP_SECONDS);
+        YIELD(MAIN_LOOP_MILLISECONDS);
     }
 }
 

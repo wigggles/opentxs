@@ -135,6 +135,7 @@ Native::Native(
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
     , server_args_(args)
+    , shutdown_callback_{nullptr}
 {
     for (const auto& [key, arg] : args) {
         if (key == OPENTXS_ARG_WORDS) {
@@ -272,9 +273,11 @@ String Native::get_primary_storage_plugin(
     }
 }
 
-void Native::HandleSignals() const
+void Native::HandleSignals(ShutdownCallback* callback) const
 {
     Lock lock(signal_handler_lock_);
+
+    if (nullptr != callback) { shutdown_callback_ = callback; }
 
     if (false == bool(signal_handler_)) {
         signal_handler_.reset(new Signals(running_));
@@ -927,6 +930,11 @@ void Native::set_storage_encryption()
 void Native::shutdown()
 {
     running_.Off();
+
+    if (nullptr != shutdown_callback_) {
+        ShutdownCallback& callback = *shutdown_callback_;
+        callback();
+    }
 
     if (periodic_) { periodic_->join(); }
 

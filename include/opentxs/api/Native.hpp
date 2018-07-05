@@ -56,6 +56,8 @@ namespace api
 class Native
 {
 public:
+    using ShutdownCallback = std::function<void()>;
+
     virtual const class Activity& Activity() const = 0;
     virtual const class Api& API() const = 0;
     virtual const class Blockchain& Blockchain() const = 0;
@@ -65,7 +67,7 @@ public:
     virtual const class Crypto& Crypto() const = 0;
     virtual const storage::Storage& DB() const = 0;
     virtual const network::Dht& DHT() const = 0;
-    virtual void HandleSignals() const = 0;
+    virtual void HandleSignals(ShutdownCallback* callback = nullptr) const = 0;
     virtual const class Identity& Identity() const = 0;
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */

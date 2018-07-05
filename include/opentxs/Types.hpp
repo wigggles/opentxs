@@ -189,6 +189,8 @@ enum class StorageBox : std::uint8_t {
     UNKNOWN = 255,
 };
 
+std::string storage_box_name(StorageBox box);
+
 enum class Bip43Purpose : std::uint32_t {
     HDWALLET = 44,    // BIP-44
     PAYCODE = 47,     // BIP-47
