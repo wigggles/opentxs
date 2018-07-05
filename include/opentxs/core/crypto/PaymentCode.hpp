@@ -55,10 +55,10 @@ using SerializedPaymentCode = std::shared_ptr<proto::PaymentCode>;
 class PaymentCode
 {
 public:
-    static OTPaymentCode Factory(const PaymentCode& rhs);
-    static OTPaymentCode Factory(const std::string& base58);
-    static OTPaymentCode Factory(const proto::PaymentCode& serialized);
-    static OTPaymentCode Factory(
+    EXPORT static OTPaymentCode Factory(const PaymentCode& rhs);
+    EXPORT static OTPaymentCode Factory(const std::string& base58);
+    EXPORT static OTPaymentCode Factory(const proto::PaymentCode& serialized);
+    EXPORT static OTPaymentCode Factory(
         const std::string& seed,
         const std::uint32_t nym,
         const std::uint8_t version,
@@ -80,7 +80,11 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const = 0;
 
-    virtual ~PaymentCode() = default;
+    EXPORT virtual bool AddPrivateKeys(
+        const std::string& seed,
+        const std::uint32_t index) = 0;
+
+    EXPORT virtual ~PaymentCode() = default;
 
 protected:
     PaymentCode() = default;

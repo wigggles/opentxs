@@ -69,8 +69,33 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include <tuple>
 
 template class opentxs::Pimpl<opentxs::PaymentCode>;
+
+#define PREFIX_OFFSET 0
+#define PREFIX_BYTES 1
+#define VERSION_OFFSET PREFIX_OFFSET + PREFIX_BYTES
+#define VERSION_BYTES 1
+#define FEATURE_OFFSET VERSION_OFFSET + VERSION_BYTES
+#define FEATURE_BYTES 1
+#define PUBLIC_KEY_OFFSET FEATURE_OFFSET + FEATURE_BYTES
+#define PUBLIC_KEY_BYTES 33
+#define CHAIN_CODE_OFFSET PUBLIC_KEY_OFFSET + PUBLIC_KEY_BYTES
+#define CHAIN_CODE_BYTES 32
+#define CUSTOM_OFFSET CHAIN_CODE_OFFSET + CHAIN_CODE_BYTES
+#define CUSTOM_BYTES 13
+#define SERIALIZED_BYTES CUSTOM_OFFSET + CUSTOM_BYTES
+
+#define BITMESSAGE_VERSION_OFFSET CUSTOM_OFFSET
+#define BITMESSAGE_VERSION_SIZE 1
+#define BITMESSAGE_STREAM_OFFSET                                               \
+    BITMESSAGE_VERSION_OFFSET + BITMESSAGE_VERSION_SIZE
+#define BITMESSAGE_STREAM_SIZE 1
+
+#define XPUB_KEY_OFFSET 0
+#define XPUB_CHAIN_CODE_OFFSET XPUB_KEY_OFFSET + PUBLIC_KEY_BYTES
+#define XPUB_BYTES XPUB_CHAIN_CODE_OFFSET + CHAIN_CODE_BYTES
 
 #define OT_METHOD "opentxs::implementation::PaymentCode::"
 
@@ -109,7 +134,7 @@ namespace opentxs::implementation
 PaymentCode::PaymentCode(const std::string& base58)
     : version_(0)
     , seed_("")
-    , index_(0)
+    , index_(-1)
     , pubkey_(nullptr)
     , chain_code_(new OTPassword)
     , hasBitmessage_(false)
@@ -118,28 +143,28 @@ PaymentCode::PaymentCode(const std::string& base58)
 {
     std::string rawCode = OT::App().Crypto().Encode().IdentifierDecode(base58);
 
-    if (81 == rawCode.size()) {
-        version_ = rawCode[1];
-        const std::uint8_t features = rawCode[2];
+    if (SERIALIZED_BYTES == rawCode.size()) {
+        version_ = rawCode[VERSION_OFFSET];
+        const std::uint8_t features = rawCode[FEATURE_OFFSET];
 
         if (features & 0x80) { hasBitmessage_ = true; }
 
-        auto key = Data::Factory(&rawCode[3], 33);
+        auto key = Data::Factory(&rawCode[PUBLIC_KEY_OFFSET], PUBLIC_KEY_BYTES);
 
         OT_ASSERT(chain_code_);
 
-        chain_code_->setMemory(&rawCode[36], 32);
+        chain_code_->setMemory(&rawCode[CHAIN_CODE_OFFSET], CHAIN_CODE_BYTES);
 
         ConstructKey(key);
 
         if (hasBitmessage_) {
-            bitmessage_version_ = rawCode[68];
-            bitmessage_stream_ = rawCode[69];
+            bitmessage_version_ = rawCode[BITMESSAGE_VERSION_OFFSET];
+            bitmessage_stream_ = rawCode[BITMESSAGE_STREAM_SIZE];
         }
     } else {
         otWarn << OT_METHOD << __FUNCTION__ << "Can not construct payment code."
                << std::endl
-               << "Required size: 81" << std::endl
+               << "Required size: " << SERIALIZED_BYTES << std::endl
                << "Actual size: " << rawCode.size() << std::endl;
         chain_code_.reset();
     }
@@ -148,7 +173,7 @@ PaymentCode::PaymentCode(const std::string& base58)
 PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
     , seed_("")
-    , index_(0)
+    , index_(-1)
     , pubkey_(nullptr)
     , chain_code_(new OTPassword)
     , hasBitmessage_(paycode.has_bitmessage())
@@ -188,31 +213,27 @@ PaymentCode::PaymentCode(
     , bitmessage_version_(bitmessageVersion)
     , bitmessage_stream_(bitmessageStream)
 {
-    serializedAsymmetricKey privatekey =
-        OT::App().Crypto().BIP32().GetPaymentCode(seed_, index_);
+    auto [success, chainCode, publicKey] = make_key(seed_, index_);
 
-    if (privatekey) {
-        chain_code_.reset(new OTPassword);
+    if (success) {
+        chain_code_.swap(chainCode);
+        ConstructKey(publicKey);
+    }
+}
 
-        OT_ASSERT(chain_code_)
-
-        OTPassword privkey;
-        auto symmetricKey = OT::App().Crypto().Symmetric().Key(
-            privatekey->encryptedkey().key(),
-            privatekey->encryptedkey().mode());
-        OTPasswordData password(__FUNCTION__);
-        symmetricKey->Decrypt(privatekey->chaincode(), password, *chain_code_);
-        proto::AsymmetricKey key;
-#if OT_CRYPTO_USING_LIBSECP256K1
-        const bool haveKey =
-            static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1())
-                .PrivateToPublic(*privatekey, key);
-#endif
-
-        if (haveKey) {
-            auto pubkey = Data::Factory(key.key().c_str(), key.key().size());
-            ConstructKey(pubkey);
-        }
+PaymentCode::PaymentCode(const PaymentCode& rhs)
+    : opentxs::PaymentCode()
+    , version_(rhs.version_)
+    , seed_(rhs.seed_)
+    , index_(rhs.index_)
+    , pubkey_(rhs.pubkey_)
+    , chain_code_(nullptr)
+    , hasBitmessage_(rhs.hasBitmessage_)
+    , bitmessage_version_(rhs.bitmessage_version_)
+    , bitmessage_stream_(rhs.bitmessage_stream_)
+{
+    if (rhs.chain_code_) {
+        chain_code_.reset(new OTPassword(*rhs.chain_code_));
     }
 }
 
@@ -226,52 +247,65 @@ bool PaymentCode::operator==(const proto::PaymentCode& rhs) const
     return (LHData == RHData);
 }
 
-PaymentCode* PaymentCode::clone() const
+bool PaymentCode::AddPrivateKeys(
+    const std::string& seed,
+    const std::uint32_t index)
 {
-    return new PaymentCode(
-        seed_,
-        index_,
+    if (false == seed_.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Seed already set" << std::endl;
+
+        return false;
+    }
+
+    if (0 > index_) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Index already set"
+              << std::endl;
+
+        return false;
+    }
+
+    const PaymentCode candidate(
+        seed,
+        index,
         version_,
         hasBitmessage_,
         bitmessage_version_,
         bitmessage_stream_);
-}
 
-const OTData PaymentCode::Pubkey() const
-{
-    auto pubkey = Data::Factory();
-    pubkey->SetSize(33);
+    if (this->ID() != candidate.ID()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong parameters" << std::endl;
 
-    if (pubkey_) {
-#if OT_CRYPTO_USING_LIBSECP256K1
-        std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
-            pubkey);
-#endif
+        return false;
     }
 
-    OT_ASSERT(33 == pubkey->GetSize());
+    seed_ = candidate.seed_;
+    index_ = candidate.index_;
 
-    return pubkey;
+    return true;
 }
 
 const std::string PaymentCode::asBase58() const
 {
     if (chain_code_) {
         auto pubkey = Pubkey();
-        std::array<std::uint8_t, 81> serialized{};
-        serialized[0] = PaymentCode::BIP47_VERSION_BYTE;
-        serialized[1] = version_;
-        serialized[2] = hasBitmessage_ ? 0x80 : 0;
+        std::array<std::uint8_t, SERIALIZED_BYTES> serialized{};
+        serialized[PREFIX_OFFSET] = PaymentCode::BIP47_VERSION_BYTE;
+        serialized[VERSION_OFFSET] = version_;
+        serialized[FEATURE_OFFSET] = hasBitmessage_ ? 0x80 : 0;
         OTPassword::safe_memcpy(
-            &serialized[3], 33, pubkey->GetPointer(), pubkey->GetSize(), false);
+            &serialized[PUBLIC_KEY_OFFSET],
+            PUBLIC_KEY_BYTES,
+            pubkey->GetPointer(),
+            pubkey->GetSize(),
+            false);
         OTPassword::safe_memcpy(
-            &serialized[36],
-            32,
+            &serialized[CHAIN_CODE_OFFSET],
+            CHAIN_CODE_BYTES,
             chain_code_->getMemory(),
             chain_code_->getMemorySize(),
             false);
-        serialized[68] = bitmessage_version_;
-        serialized[69] = bitmessage_stream_;
+        serialized[BITMESSAGE_VERSION_OFFSET] = bitmessage_version_;
+        serialized[BITMESSAGE_STREAM_OFFSET] = bitmessage_stream_;
         auto binaryVersion =
             Data::Factory(serialized.data(), serialized.size());
 
@@ -280,6 +314,115 @@ const std::string PaymentCode::asBase58() const
 
         return {};
     }
+}
+
+PaymentCode* PaymentCode::clone() const { return new PaymentCode(*this); }
+
+void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
+{
+    proto::AsymmetricKey newKey;
+    newKey.set_version(1);
+    newKey.set_type(proto::AKEYTYPE_SECP256K1);
+    newKey.set_mode(proto::KEYMODE_PUBLIC);
+    newKey.set_role(proto::KEYROLE_SIGN);
+    newKey.set_key(pubkey.GetPointer(), pubkey.GetSize());
+    AsymmetricKeyEC* key = dynamic_cast<AsymmetricKeySecp256k1*>(
+        OTAsymmetricKey::KeyFactory(newKey));
+
+    if (nullptr != key) { pubkey_.reset(key); }
+}
+
+const OTIdentifier PaymentCode::ID() const
+{
+    std::uint8_t core[XPUB_BYTES]{};
+
+    auto pubkey = Pubkey();
+    OTPassword::safe_memcpy(
+        &core[XPUB_KEY_OFFSET],
+        PUBLIC_KEY_BYTES,
+        pubkey->GetPointer(),
+        pubkey->GetSize(),
+        false);
+
+    if (chain_code_) {
+        if (chain_code_->getMemorySize() == CHAIN_CODE_BYTES) {
+            OTPassword::safe_memcpy(
+                &core[XPUB_CHAIN_CODE_OFFSET],
+                CHAIN_CODE_BYTES,
+                chain_code_->getMemory(),
+                chain_code_->getMemorySize(),
+                false);
+        }
+    }
+
+    auto dataVersion = Data::Factory(core, sizeof(core));
+
+    auto paymentCodeID = Identifier::Factory();
+
+    paymentCodeID->CalculateDigest(dataVersion);
+
+    return paymentCodeID;
+}
+
+std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
+    const std::string& seed,
+    const std::uint32_t index)
+{
+    std::tuple<bool, std::unique_ptr<OTPassword>, OTData> output{
+        false, new OTPassword, Data::Factory()};
+    auto& [success, chainCode, publicKey] = output;
+    auto fingerprint{seed};
+    serializedAsymmetricKey privatekey =
+        OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, index);
+
+    OT_ASSERT(seed == fingerprint)
+
+    if (privatekey) {
+        OT_ASSERT(chainCode)
+
+        OTPassword privkey{};
+        auto symmetricKey = OT::App().Crypto().Symmetric().Key(
+            privatekey->encryptedkey().key(),
+            privatekey->encryptedkey().mode());
+        OTPasswordData password(__FUNCTION__);
+        symmetricKey->Decrypt(privatekey->chaincode(), password, *chainCode);
+        proto::AsymmetricKey key{};
+        bool haveKey{false};
+#if OT_CRYPTO_USING_LIBSECP256K1
+        haveKey =
+            static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1())
+                .PrivateToPublic(*privatekey, key);
+#endif
+
+        if (haveKey) {
+            publicKey = Data::Factory(key.key().c_str(), key.key().size());
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to generate private key"
+              << std::endl;
+    }
+
+    success = (CHAIN_CODE_BYTES == chainCode->getMemorySize()) &&
+              (PUBLIC_KEY_BYTES == publicKey->GetSize());
+
+    return output;
+}
+
+const OTData PaymentCode::Pubkey() const
+{
+    auto pubkey = Data::Factory();
+    pubkey->SetSize(PUBLIC_KEY_BYTES);
+
+    if (pubkey_) {
+#if OT_CRYPTO_USING_LIBSECP256K1
+        std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
+            pubkey);
+#endif
+    }
+
+    OT_ASSERT(PUBLIC_KEY_BYTES == pubkey->GetSize());
+
+    return pubkey;
 }
 
 SerializedPaymentCode PaymentCode::Serialize() const
@@ -302,78 +445,6 @@ SerializedPaymentCode PaymentCode::Serialize() const
     return serialized;
 }
 
-const OTIdentifier PaymentCode::ID() const
-{
-
-    std::uint8_t core[65]{};
-
-    auto pubkey = Pubkey();
-    OTPassword::safe_memcpy(
-        &core[0], 33, pubkey->GetPointer(), pubkey->GetSize(), false);
-
-    if (chain_code_) {
-        if (chain_code_->getMemorySize() == 32) {
-            OTPassword::safe_memcpy(
-                &core[33],
-                32,
-                chain_code_->getMemory(),
-                chain_code_->getMemorySize(),
-                false);
-        }
-    }
-
-    auto dataVersion = Data::Factory(core, sizeof(core));
-
-    auto paymentCodeID = Identifier::Factory();
-
-    paymentCodeID->CalculateDigest(dataVersion);
-
-    return paymentCodeID;
-}
-
-bool PaymentCode::Verify(
-    const proto::Credential& master,
-    const proto::Signature& sourceSignature) const
-{
-    if (!proto::Validate<proto::Credential>(
-            master,
-            VERBOSE,
-            proto::KEYMODE_PUBLIC,
-            proto::CREDROLE_MASTERKEY,
-            false)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Invalid master credential syntax." << std::endl;
-
-        return false;
-    }
-
-    bool sameSource = (*this == master.masterdata().source().paymentcode());
-
-    if (!sameSource) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Master credential was not derived from this source."
-              << std::endl;
-
-        return false;
-    }
-
-    if (!pubkey_) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Payment code is missing public key." << std::endl;
-
-        return false;
-    }
-
-    proto::Credential copy;
-    copy.CopyFrom(master);
-
-    auto& signature = *copy.add_signature();
-    signature.CopyFrom(sourceSignature);
-    signature.clear_signature();
-
-    return pubkey_->Verify(proto::ProtoAsData(copy), sourceSignature);
-}
-
 bool PaymentCode::Sign(
     const Credential& credential,
     proto::Signature& sig,
@@ -382,6 +453,20 @@ bool PaymentCode::Sign(
     if (!pubkey_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Payment code not instantiated."
               << std::endl;
+
+        return false;
+    }
+
+    if (0 > index_) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Private key is unavailable (unknown index)." << std::endl;
+
+        return false;
+    }
+
+    if (seed_.empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Private key is unavailable (unknown seed)." << std::endl;
 
         return false;
     }
@@ -444,25 +529,52 @@ bool PaymentCode::Sign(
     return goodSig;
 }
 
-void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
+bool PaymentCode::Verify(
+    const proto::Credential& master,
+    const proto::Signature& sourceSignature) const
 {
-    proto::AsymmetricKey newKey;
-    newKey.set_version(1);
-    newKey.set_type(proto::AKEYTYPE_SECP256K1);
-    newKey.set_mode(proto::KEYMODE_PUBLIC);
-    newKey.set_role(proto::KEYROLE_SIGN);
-    newKey.set_key(pubkey.GetPointer(), pubkey.GetSize());
-    AsymmetricKeyEC* key = dynamic_cast<AsymmetricKeySecp256k1*>(
-        OTAsymmetricKey::KeyFactory(newKey));
+    if (!proto::Validate<proto::Credential>(
+            master,
+            VERBOSE,
+            proto::KEYMODE_PUBLIC,
+            proto::CREDROLE_MASTERKEY,
+            false)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Invalid master credential syntax." << std::endl;
 
-    if (nullptr != key) { pubkey_.reset(key); }
+        return false;
+    }
+
+    bool sameSource = (*this == master.masterdata().source().paymentcode());
+
+    if (!sameSource) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Master credential was not derived from this source."
+              << std::endl;
+
+        return false;
+    }
+
+    if (!pubkey_) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Payment code is missing public key." << std::endl;
+
+        return false;
+    }
+
+    proto::Credential copy;
+    copy.CopyFrom(master);
+
+    auto& signature = *copy.add_signature();
+    signature.CopyFrom(sourceSignature);
+    signature.clear_signature();
+
+    return pubkey_->Verify(proto::ProtoAsData(copy), sourceSignature);
 }
 
 bool PaymentCode::VerifyInternally() const
 {
     return (proto::Validate<proto::PaymentCode>(*Serialize(), SILENT));
 }
-
-PaymentCode::~PaymentCode() {}
 }  // namespace opentxs::implementation
 #endif
