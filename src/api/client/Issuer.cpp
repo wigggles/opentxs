@@ -258,11 +258,12 @@ std::set<OTIdentifier> Issuer::AccountList(
     Lock lock(lock_);
     std::set<OTIdentifier> output;
     auto accountSet = account_map_.find(type);
+    const bool allUnits = unitID.empty();
 
     if (account_map_.end() == accountSet) { return output; }
 
     for (const auto& [unit, accountID] : accountSet->second) {
-        if (unit == unitID) { output.emplace(accountID); }
+        if (allUnits || (unit == unitID)) { output.emplace(accountID); }
     }
 
     return output;

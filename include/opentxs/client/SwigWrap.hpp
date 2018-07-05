@@ -3708,6 +3708,9 @@ public:
     EXPORT static const ui::AccountActivity& AccountActivity(
         const std::string& nymID,
         const std::string& accountID);
+    EXPORT static const ui::AccountSummary& AccountSummary(
+        const std::string& nymID,
+        const int currency);
     EXPORT static const ui::ActivitySummary& ActivitySummary(
         const std::string& nymID);
     EXPORT static const ui::ActivityThread& ActivityThread(

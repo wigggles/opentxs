@@ -49,6 +49,9 @@ public:
     const ui::AccountActivity& AccountActivity(
         const Identifier& nymID,
         const Identifier& accountID) const override;
+    const ui::AccountSummary& AccountSummary(
+        const Identifier& nymID,
+        const proto::ContactItemType currency) const override;
     const ui::ActivitySummary& ActivitySummary(
         const Identifier& nymID) const override;
     const ui::ActivityThread& ActivityThread(
@@ -72,6 +75,10 @@ private:
     using AccountKey = std::pair<OTIdentifier, OTIdentifier>;
     using AccountActivityMap =
         std::map<AccountKey, std::unique_ptr<ui::AccountActivity>>;
+    /** NymID, currency*/
+    using AccountSummaryKey = std::pair<OTIdentifier, proto::ContactItemType>;
+    using AccountSummaryMap =
+        std::map<AccountSummaryKey, std::unique_ptr<ui::AccountSummary>>;
     using ActivitySummaryMap =
         std::map<OTIdentifier, std::unique_ptr<ui::ActivitySummary>>;
     using ActivityThreadID = std::pair<OTIdentifier, OTIdentifier>;
@@ -97,6 +104,7 @@ private:
     const opentxs::network::zeromq::Context& zmq_;
     const Flag& running_;
     mutable AccountActivityMap accounts_{};
+    mutable AccountSummaryMap accounts_summaries_{};
     mutable ActivitySummaryMap activity_summaries_{};
     mutable ContactMap contacts_{};
     mutable ContactListMap contact_lists_{};

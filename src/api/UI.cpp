@@ -51,6 +51,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
+#include "opentxs/ui/AccountSummary.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
 #include "opentxs/ui/ActivityThread.hpp"
 #include "opentxs/ui/Contact.hpp"
@@ -116,6 +117,7 @@ UI::UI(
     , zmq_(zmq)
     , running_(running)
     , accounts_()
+    , accounts_summaries_()
     , activity_summaries_()
     , contacts_()
     , contact_lists_()
@@ -146,6 +148,31 @@ const ui::AccountActivity& UI::AccountActivity(
             storage_,
             nymID,
             accountID));
+    }
+
+    OT_ASSERT(output)
+
+    return *output;
+}
+
+const ui::AccountSummary& UI::AccountSummary(
+    const Identifier& nymID,
+    const proto::ContactItemType currency) const
+{
+    Lock lock(lock_);
+    const AccountSummaryKey key{Identifier::Factory(nymID), currency};
+    auto& output = accounts_summaries_[key];
+
+    if (false == bool(output)) {
+        output.reset(Factory::AccountSummary(
+            zmq_,
+            widget_update_publisher_,
+            wallet_,
+            connection_,
+            storage_,
+            contact_,
+            nymID,
+            currency));
     }
 
     OT_ASSERT(output)

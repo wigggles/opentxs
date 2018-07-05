@@ -54,6 +54,23 @@ public:
         const api::storage::Storage& storage,
         const Identifier& nymID,
         const Identifier& accountID);
+    static ui::AccountSummary* AccountSummary(
+        const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
+        const api::client::Wallet& wallet,
+        const api::network::ZMQ& connection,
+        const api::storage::Storage& storage,
+        const api::ContactManager& contact,
+        const Identifier& nymID,
+        const proto::ContactItemType currency);
+    static ui::AccountSummaryItem* AccountSummaryItem(
+        const ui::implementation::IssuerItemParent& parent,
+        const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
+        const api::client::Wallet& wallet,
+        const api::storage::Storage& storage,
+        const api::ContactManager& contact,
+        const ui::implementation::IssuerItemRowID& id);
     static ui::ActivitySummary* ActivitySummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -151,6 +168,15 @@ public:
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& issuerID);
+    static ui::IssuerItem* IssuerItem(
+        const ui::implementation::AccountSummaryParent& parent,
+        const network::zeromq::Context& zmq,
+        const network::zeromq::PublishSocket& publisher,
+        const api::ContactManager& contact,
+        const api::client::Wallet& wallet,
+        const api::storage::Storage& storage,
+        const proto::ContactItemType currency,
+        const Identifier& id);
     static ui::ActivityThreadItem* MailItem(
         const ui::implementation::ActivityThreadParent& parent,
         const network::zeromq::Context& zmq,

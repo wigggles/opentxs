@@ -1,5 +1,7 @@
 set(cxx-sources
   AccountActivity.cpp
+  AccountSummary.cpp
+  AccountSummaryItem.cpp
   ActivitySummary.cpp
   ActivitySummaryItem.cpp
   ActivityThread.cpp
@@ -11,6 +13,7 @@ set(cxx-sources
   ContactListItem.cpp
   ContactSection.cpp
   ContactSubsection.cpp
+  IssuerItem.cpp
   MailItem.cpp
   MessagableList.cpp
   PayableList.cpp
@@ -25,6 +28,8 @@ set(cxx-sources
 
 set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountActivity.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/AccountSummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ActivityThread.hpp"
@@ -36,6 +41,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactListItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactSection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ContactSubsection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/IssuerItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/ListRow.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/MessagableList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/ui/PayableList.hpp"
@@ -51,6 +57,10 @@ set(cxx-headers
   ${cxx-install-headers}
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountActivity.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/AccountActivityParent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummary.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummaryItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummaryItemBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/AccountSummaryParent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummary.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ActivitySummaryItemBlank.hpp"
@@ -75,6 +85,9 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactSubsection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactSubsectionBlank.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ContactSubsectionParent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/IssuerItem.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/IssuerItemBlank.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/IssuerItemParent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/List.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/MailItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/MessagableList.hpp"
