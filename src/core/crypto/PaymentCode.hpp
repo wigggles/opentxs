@@ -63,7 +63,10 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const override;
 
-    ~PaymentCode();
+    bool AddPrivateKeys(const std::string& seed, const std::uint32_t index)
+        override;
+
+    ~PaymentCode() = default;
 
 private:
     friend opentxs::PaymentCode;
@@ -78,6 +81,10 @@ private:
     bool hasBitmessage_{false};
     std::uint8_t bitmessage_version_{0};
     std::uint8_t bitmessage_stream_{0};
+
+    static std::tuple<bool, std::unique_ptr<OTPassword>, OTData> make_key(
+        const std::string& seed,
+        const std::uint32_t index);
 
     PaymentCode* clone() const override;
     const OTData Pubkey() const;
