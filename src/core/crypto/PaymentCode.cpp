@@ -109,7 +109,7 @@ namespace opentxs::implementation
 PaymentCode::PaymentCode(const std::string& base58)
     : version_(0)
     , seed_("")
-    , index_(0)
+    , index_(-1)
     , pubkey_(nullptr)
     , chain_code_(new OTPassword)
     , hasBitmessage_(false)
@@ -148,7 +148,7 @@ PaymentCode::PaymentCode(const std::string& base58)
 PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
     , seed_("")
-    , index_(0)
+    , index_(-1)
     , pubkey_(nullptr)
     , chain_code_(new OTPassword)
     , hasBitmessage_(paycode.has_bitmessage())
@@ -216,6 +216,22 @@ PaymentCode::PaymentCode(
     }
 }
 
+PaymentCode::PaymentCode(const PaymentCode& rhs)
+    : opentxs::PaymentCode()
+    , version_(rhs.version_)
+    , seed_(rhs.seed_)
+    , index_(rhs.index_)
+    , pubkey_(rhs.pubkey_)
+    , chain_code_(nullptr)
+    , hasBitmessage_(rhs.hasBitmessage_)
+    , bitmessage_version_(rhs.bitmessage_version_)
+    , bitmessage_stream_(rhs.bitmessage_stream_)
+{
+    if (rhs.chain_code_) {
+        chain_code_.reset(new OTPassword(*rhs.chain_code_));
+    }
+}
+
 bool PaymentCode::operator==(const proto::PaymentCode& rhs) const
 {
     SerializedPaymentCode tempPaycode = Serialize();
@@ -226,16 +242,7 @@ bool PaymentCode::operator==(const proto::PaymentCode& rhs) const
     return (LHData == RHData);
 }
 
-PaymentCode* PaymentCode::clone() const
-{
-    return new PaymentCode(
-        seed_,
-        index_,
-        version_,
-        hasBitmessage_,
-        bitmessage_version_,
-        bitmessage_stream_);
-}
+PaymentCode* PaymentCode::clone() const { return new PaymentCode(*this); }
 
 const OTData PaymentCode::Pubkey() const
 {
@@ -382,6 +389,20 @@ bool PaymentCode::Sign(
     if (!pubkey_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Payment code not instantiated."
               << std::endl;
+
+        return false;
+    }
+
+    if (0 > index_) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Private key is unavailable (unknown index)." << std::endl;
+
+        return false;
+    }
+
+    if (seed_.empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Private key is unavailable (unknown seed)." << std::endl;
 
         return false;
     }

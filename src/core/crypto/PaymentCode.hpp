@@ -72,7 +72,7 @@ private:
 
     std::uint8_t version_{1};
     std::string seed_{""};
-    std::uint32_t index_{0};
+    std::int32_t index_{-1};
     std::shared_ptr<AsymmetricKeyEC> pubkey_{nullptr};
     std::unique_ptr<OTPassword> chain_code_{nullptr};
     bool hasBitmessage_{false};
@@ -93,7 +93,7 @@ private:
         const std::uint8_t bitmessageVersion,
         const std::uint8_t bitmessageStream);
     PaymentCode() = delete;
-    PaymentCode(const PaymentCode&) = delete;
+    PaymentCode(const PaymentCode&);
     PaymentCode(PaymentCode&&) = delete;
     PaymentCode& operator=(const PaymentCode&);
     PaymentCode& operator=(PaymentCode&&);
