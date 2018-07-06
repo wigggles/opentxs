@@ -125,7 +125,8 @@ public:
     EXPORT virtual OTIdentifier RegisterNym(
         const Identifier& nymID,
         const Identifier& server,
-        const bool setContactData) const = 0;
+        const bool setContactData,
+        const bool forcePrimary = false) const = 0;
     EXPORT virtual OTIdentifier SetIntroductionServer(
         const ServerContract& contract) const = 0;
     EXPORT virtual OTIdentifier ScheduleDownloadAccount(
