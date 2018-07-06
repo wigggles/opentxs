@@ -96,6 +96,16 @@ TEST_F(Test_PaymentCode, primary_paycodes)
     ASSERT_STREQ(paycode_1.c_str(), nymData_1.PaymentCode(currency).c_str()); // primary but inactive overrides primary active
     ASSERT_STREQ(paycode_2.c_str(), nymData_2.PaymentCode(currency_2).c_str()); // not primary but active defaults to primary
     ASSERT_STREQ(paycode_3.c_str(), nymData_3.PaymentCode(currency_2).c_str()); // not primary nor active defaults to primary
+
+    auto nym0 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_0));
+    auto nym1 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_1));
+    auto nym2 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_2));
+    auto nym3 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_3));
+
+    ASSERT_STREQ(nym0->PaymentCode().c_str(), paycode_0.c_str());
+    ASSERT_STREQ(nym1->PaymentCode().c_str(), paycode_1.c_str());
+    ASSERT_STREQ(nym2->PaymentCode().c_str(), paycode_2.c_str());
+    ASSERT_STREQ(nym3->PaymentCode().c_str(), paycode_3.c_str());
 }
 
 /* Test: by setting primary = true it resets best payment code 
@@ -173,9 +183,9 @@ TEST_F(Test_PaymentCode, asBase58)
     ASSERT_STREQ(paycode_0.c_str(), pcode->asBase58().c_str());    
 }
 
-/* Test: Seed derivation of accounts
+/* Test: Paymentcode's nym ID matches nymidsource
  */ 
-TEST_F(Test_PaymentCode, derivation)
+TEST_F(Test_PaymentCode, paycode_derivation_matches_nymidsource)
 {
     auto nym_0_paycode = PaymentCode::Factory(fingerprint, 0, 1); // seed, nym, paycode version
     auto nym_1_paycode = PaymentCode::Factory(fingerprint, 1, 1); // seed, nym, paycode version
@@ -187,35 +197,15 @@ TEST_F(Test_PaymentCode, derivation)
     ASSERT_STREQ(paycode_2.c_str(), nym_2_paycode->asBase58().c_str());
     ASSERT_STREQ(paycode_3.c_str(), nym_3_paycode->asBase58().c_str());
     
-    nym_0_paycode = PaymentCode::Factory( PaymentCode::Factory(paycode_0).get());
-    ASSERT_STREQ(paycode_0.c_str(), nym_0_paycode->asBase58().c_str());
-
-    nym_1_paycode = PaymentCode::Factory( PaymentCode::Factory(paycode_1).get());
-    ASSERT_STREQ(paycode_1.c_str(), nym_1_paycode->asBase58().c_str());
-
-    nym_2_paycode = PaymentCode::Factory( PaymentCode::Factory(paycode_2).get());
-    ASSERT_STREQ(paycode_2.c_str(), nym_2_paycode->asBase58().c_str());
-
-    nym_3_paycode = PaymentCode::Factory( PaymentCode::Factory(paycode_3).get());
-    ASSERT_STREQ(paycode_3.c_str(), nym_3_paycode->asBase58().c_str());
-
-    opentxs::NymIDSource* nym_source_0 = new NymIDSource(PaymentCode::Factory(paycode_0));
-    opentxs::NymIDSource* nym_source_1 = new NymIDSource(PaymentCode::Factory(paycode_1));
-    opentxs::NymIDSource* nym_source_2 = new NymIDSource(PaymentCode::Factory(paycode_2));
-    opentxs::NymIDSource* nym_source_3 = new NymIDSource(PaymentCode::Factory(paycode_3));
+    auto idsource_0 = new NymIDSource(nym_0_paycode);
+    auto idsource_1 = new NymIDSource(nym_1_paycode);
+    auto idsource_2 = new NymIDSource(nym_2_paycode);
+    auto idsource_3 = new NymIDSource(nym_3_paycode);
     
-    const ConstNym nym0 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_0));
-    ASSERT_STREQ(nymID_0.c_str(), String(nym_source_0->NymID()).Get());
-    ASSERT_EQ(0,nym0->asPublicNym().index());
-    
-    const ConstNym nym1 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_1));
-    ASSERT_STREQ(nymID_1.c_str(), String(nym_source_1->NymID()).Get());
-    
-    const ConstNym nym2 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_2));
-    ASSERT_STREQ(nymID_2.c_str(), String(nym_source_2->NymID()).Get());
-    
-    const ConstNym nym3 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_3));
-    ASSERT_STREQ(nymID_3.c_str(), String(nym_source_3->NymID()).Get());
+    ASSERT_STREQ(nymID_0.c_str(), String(idsource_0->NymID()).Get());
+    ASSERT_STREQ(nymID_1.c_str(), String(idsource_1->NymID()).Get());
+    ASSERT_STREQ(nymID_2.c_str(), String(idsource_2->NymID()).Get());
+    ASSERT_STREQ(nymID_3.c_str(), String(idsource_3->NymID()).Get());
 }
 
 /* Test: Factory methods create the same paycode
@@ -283,50 +273,20 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
 */
 TEST_F(Test_PaymentCode, two_nyms)
 {
-    
-}
-
-/* Test: Paymentcode has index 
-*/
-TEST_F(Test_PaymentCode, indextest)
-{
-  // create nym
     const ConstNym nym_0 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_0));
     const ConstNym nym_1 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_1));
-    const ConstNym nym_2 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_2));
-    const ConstNym nym_3 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_3));
-    proto::HDPath path;
-    EXPECT_TRUE(nym_0.get()->Path(path));
     
-    EXPECT_EQ(2, path.child_size());
-
-    EXPECT_EQ(
-        static_cast<std::uint32_t>(Bip43Purpose::NYM) |
-            static_cast<std::uint32_t>(Bip32Child::HARDENED),
-        path.child(0));
-
-    EXPECT_EQ(
-        0 | static_cast<std::uint32_t>(Bip32Child::HARDENED), path.child(1));
-
-    std::string fingerprint = path.root();
-    serializedAsymmetricKey privatekey = opentxs::OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, 0);
-
-    proto::AsymmetricKey privKey = *privatekey;
-
-    auto paymentcode_0 = PaymentCode::Factory(paycode_0);
-    auto paymentcode_1 = PaymentCode::Factory(paycode_1);
+    auto idsource_0 = new NymIDSource(PaymentCode::Factory(paycode_0));
+    auto idsource_1 = new NymIDSource(PaymentCode::Factory(paycode_1));
     
-    //opentxs::NymIDSource* ns = new NymIDSource(paymentcode);
-    opentxs::NymIDSource* idsource_0 = new NymIDSource(paymentcode_0);
-    opentxs::NymIDSource* idsource_1 = new NymIDSource(paymentcode_1);
     ASSERT_TRUE(bool(idsource_0));
-    
-    //OTIdentifier nymId = ns->NymID();
-    OTIdentifier nym_id_0 = idsource_0->NymID();
+    ASSERT_TRUE(bool(idsource_1));
     
     ASSERT_STREQ(nym_0->ID().str().c_str(), String(idsource_0->NymID()).Get());
     ASSERT_STREQ(nym_1->ID().str().c_str(), String(idsource_1->NymID()).Get());
     
     ASSERT_STRNE(String(idsource_0->NymID()).Get(),"");
+    ASSERT_STRNE(String(idsource_1->NymID()).Get(),"");
 }
+
 }  // namespace
