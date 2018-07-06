@@ -46,6 +46,14 @@
 #ifdef SWIG
 // clang-format off
 %extend opentxs::api::UI {
+    const ui::AccountSummary& AccountSummary(
+        const Identifier& nymID,
+        const int currency) const
+    {
+        return $self->AccountSummary(
+            nymID,
+            static_cast<opentxs::proto::ContactItemType>(currency));
+    }
     const opentxs::ui::PayableList& PayableList(
         const Identifier& nymID,
         const int currency) const
@@ -55,6 +63,7 @@
             static_cast<opentxs::proto::ContactItemType>(currency));
     }
 }
+%ignore opentxs::api::UI::AccountSummary;
 %ignore opentxs::api::UI::PayableList;
 // clang-format on
 #endif  // SWIG
@@ -69,6 +78,9 @@ public:
     EXPORT virtual const ui::AccountActivity& AccountActivity(
         const Identifier& nymID,
         const Identifier& accountID) const = 0;
+    EXPORT virtual const ui::AccountSummary& AccountSummary(
+        const Identifier& nymID,
+        const proto::ContactItemType currency) const = 0;
     EXPORT virtual const ui::ActivitySummary& ActivitySummary(
         const Identifier& nymID) const = 0;
     EXPORT virtual const ui::ActivityThread& ActivityThread(

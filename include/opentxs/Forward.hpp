@@ -144,6 +144,8 @@ class UserCommandProcessor;
 namespace ui
 {
 class AccountActivity;
+class AccountSummary;
+class AccountSummaryItem;
 class ActivityThread;
 class ActivityThreadItem;
 class ActivitySummary;
@@ -155,6 +157,7 @@ class ContactSection;
 class ContactSubsection;
 class ContactList;
 class ContactListItem;
+class IssuerItem;
 class ListRow;
 class MessagableList;
 class PayableList;
@@ -289,6 +292,7 @@ using ExclusiveAccount = Exclusive<Account>;
 
 using SharedAccount = Shared<Account>;
 
+using OTUIAccountSummaryItem = SharedPimpl<ui::AccountSummaryItem>;
 using OTUIActivitySummaryItem = SharedPimpl<ui::ActivitySummaryItem>;
 using OTUIActivityThreadItem = SharedPimpl<ui::ActivityThreadItem>;
 using OTUIBalanceItem = SharedPimpl<ui::BalanceItem>;
@@ -296,6 +300,7 @@ using OTUIContactItem = SharedPimpl<ui::ContactItem>;
 using OTUIContactListItem = SharedPimpl<ui::ContactListItem>;
 using OTUIContactSection = SharedPimpl<ui::ContactSection>;
 using OTUIContactSubsection = SharedPimpl<ui::ContactSubsection>;
+using OTUIIssuerItem = SharedPimpl<ui::IssuerItem>;
 using OTUIPayableListItem = SharedPimpl<ui::PayableListItem>;
 using OTUIProfileItem = SharedPimpl<ui::ProfileItem>;
 using OTUIProfileSection = SharedPimpl<ui::ProfileSection>;
@@ -337,6 +342,7 @@ extern template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 
 extern template struct std::less<opentxs::OTIdentifier>;
 
+extern template class opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ActivityThreadItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::BalanceItem>;
@@ -344,6 +350,7 @@ extern template class opentxs::SharedPimpl<opentxs::ui::ContactItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ContactListItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ContactSection>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ContactSubsection>;
+extern template class opentxs::SharedPimpl<opentxs::ui::IssuerItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::PayableListItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
 extern template class opentxs::SharedPimpl<opentxs::ui::ProfileSection>;

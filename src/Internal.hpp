@@ -121,6 +121,9 @@ namespace implementation
 {
 class AccountActivity;
 class AccountActivityParent;
+class AccountSummary;
+class AccountSummaryItemBlank;
+class AccountSummaryParent;
 class ActivitySummary;
 class ActivitySummaryItemBlank;
 class ActivitySummaryParent;
@@ -139,6 +142,8 @@ class ContactSectionParent;
 class ContactSubsection;
 class ContactSubsectionBlank;
 class ContactSubsectionParent;
+class IssuerItemBlank;
+class IssuerItemParent;
 class MessagableList;
 class PayableList;
 class PayableListItemBlank;
@@ -160,6 +165,22 @@ using AccountActivityRowInterface = opentxs::ui::BalanceItem;
 using AccountActivityRowBlank = BalanceItemBlank;
 /** WorkflowID, state */
 using AccountActivitySortKey = std::chrono::system_clock::time_point;
+
+// Account summary
+using AccountSummaryExternalInterface = opentxs::ui::AccountSummary;
+using AccountSummaryInternalInterface = AccountSummaryParent;
+using AccountSummaryRowID = OTIdentifier;
+using AccountSummaryRowInterface = opentxs::ui::IssuerItem;
+using AccountSummaryRowBlank = IssuerItemBlank;
+using AccountSummarySortKey = std::pair<bool, std::string>;
+
+using IssuerItemExternalInterface = AccountSummaryRowInterface;
+using IssuerItemInternalInterface = IssuerItemParent;
+using IssuerItemRowID = std::pair<OTIdentifier, proto::ContactItemType>;
+using IssuerItemRowInterface = opentxs::ui::AccountSummaryItem;
+using IssuerItemRowBlank = AccountSummaryItemBlank;
+using IssuerItemSortKey = std::string;
+
 // Activity summary
 using ActivitySummaryExternalInterface = opentxs::ui::ActivitySummary;
 using ActivitySummaryInternalInterface = ActivitySummaryParent;

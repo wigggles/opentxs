@@ -131,6 +131,8 @@
 #include <opentxs/network/zeromq/SubscribeSocket.hpp>
 #include <opentxs/network/ServerConnection.hpp>
 #include <opentxs/ui/AccountActivity.hpp>
+#include <opentxs/ui/AccountSummary.hpp>
+#include <opentxs/ui/AccountSummaryItem.hpp>
 #include <opentxs/ui/ActivitySummary.hpp>
 #include <opentxs/ui/ActivitySummaryItem.hpp>
 #include <opentxs/ui/ActivityThread.hpp>
@@ -142,6 +144,7 @@
 #include <opentxs/ui/ContactListItem.hpp>
 #include <opentxs/ui/ContactSection.hpp>
 #include <opentxs/ui/ContactSubsection.hpp>
+#include <opentxs/ui/IssuerItem.hpp>
 #include <opentxs/ui/ListRow.hpp>
 #include <opentxs/ui/MessagableList.hpp>
 #include <opentxs/ui/PayableList.hpp>

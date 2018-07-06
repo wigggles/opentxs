@@ -4128,6 +4128,15 @@ const ui::AccountActivity& SwigWrap::AccountActivity(
         Identifier::Factory(nymID), Identifier::Factory(accountID));
 }
 
+const ui::AccountSummary& SwigWrap::AccountSummary(
+    const std::string& nymID,
+    const int currency)
+{
+    return OT::App().UI().AccountSummary(
+        Identifier::Factory(nymID),
+        static_cast<proto::ContactItemType>(currency));
+}
+
 const ui::ActivityThread& SwigWrap::ActivityThread(
     const std::string& nymID,
     const std::string& threadID)
