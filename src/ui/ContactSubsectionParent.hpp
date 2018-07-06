@@ -48,12 +48,12 @@ namespace opentxs::ui::implementation
 class ContactSubsectionParent
 {
 public:
-    using ContactSubsectionIDType = OTIdentifier;
+    using ContactSubsectionRowID = OTIdentifier;
     using ContactSubsectionSortKey = int;
 
-    virtual bool last(const ContactSubsectionIDType& id) const = 0;
+    virtual bool last(const ContactSubsectionRowID& id) const = 0;
     virtual void reindex_item(
-        const ContactSubsectionIDType& id,
+        const ContactSubsectionRowID& id,
         const ContactSubsectionSortKey& newIndex) const = 0;
     virtual OTIdentifier WidgetID() const = 0;
 

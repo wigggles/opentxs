@@ -43,10 +43,12 @@
 
 namespace opentxs::ui::implementation
 {
-using BalanceItemType =
-    Row<opentxs::ui::BalanceItem, AccountActivityParent, AccountActivityID>;
+using BalanceItemRow =
+    Row<AccountActivityRowInterface,
+        AccountActivityInternalInterface,
+        AccountActivityRowID>;
 
-class BalanceItem : public BalanceItemType
+class BalanceItem : public BalanceItemRow
 {
 public:
     std::string Text() const override;

@@ -73,7 +73,7 @@ ContactItem::ContactItem(
     const api::ContactManager& contact,
     const ContactSubsectionParent& parent,
     const opentxs::ContactItem& item)
-    : ContactItemType(
+    : ContactItemRow(
           parent,
           zmq,
           publisher,

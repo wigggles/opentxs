@@ -170,14 +170,12 @@ ContactSection::ContactSection(
     const api::ContactManager& contact,
     const ContactParent& parent,
     const opentxs::ContactSection& section)
-    : ContactSectionType(
+    : ContactSectionList(
+          Identifier::Factory(parent.ContactID()),
           zmq,
           publisher,
-          contact,
-          {proto::CONTACTSECTION_ERROR, proto::CITEMTYPE_ERROR},
-          Identifier::Factory(parent.ContactID()),
-          new ContactSubsectionBlank)
-    , ContactSectionRowType(parent, section.Type(), true)
+          contact)
+    , ContactSectionRow(parent, section.Type(), true)
 {
     init();
     startup_.reset(new std::thread(&ContactSection::startup, this, section));
@@ -185,7 +183,7 @@ ContactSection::ContactSection(
     OT_ASSERT(startup_)
 }
 
-bool ContactSection::check_type(const ContactSectionIDType type)
+bool ContactSection::check_type(const ContactSectionRowID type)
 {
     try {
         return 1 == allowed_types_.at(type.first).count(type.second);
@@ -195,8 +193,8 @@ bool ContactSection::check_type(const ContactSectionIDType type)
     return false;
 }
 
-void ContactSection::construct_item(
-    const ContactSectionIDType& id,
+void ContactSection::construct_row(
+    const ContactSectionRowID& id,
     const ContactSectionSortKey& index,
     const CustomData& custom) const
 {
@@ -216,17 +214,17 @@ std::string ContactSection::Name(const std::string& lang) const
     return proto::TranslateSectionName(id_, lang);
 }
 
-std::set<ContactSectionIDType> ContactSection::process_section(
+std::set<ContactSectionRowID> ContactSection::process_section(
     const opentxs::ContactSection& section)
 {
     OT_ASSERT(id_ == section.Type())
 
-    std::set<ContactSectionIDType> active{};
+    std::set<ContactSectionRowID> active{};
 
     for (const auto& [type, group] : section) {
         OT_ASSERT(group)
 
-        const ContactSectionIDType key{id_, type};
+        const ContactSectionRowID key{id_, type};
 
         if (check_type(key)) {
             add_item(key, sort_key(key), {group.get()});
@@ -244,7 +242,7 @@ const opentxs::ContactGroup& ContactSection::recover(const void* input)
     return *static_cast<const opentxs::ContactGroup*>(input);
 }
 
-int ContactSection::sort_key(const ContactSectionIDType type)
+int ContactSection::sort_key(const ContactSectionRowID type)
 {
     return sort_keys_.at(type.first).at(type.second);
 }
@@ -255,8 +253,9 @@ void ContactSection::startup(const opentxs::ContactSection section)
     startup_complete_->On();
 }
 
-void ContactSection::update(ContactSectionPimpl& row, const CustomData& custom)
-    const
+void ContactSection::update(
+    ContactSectionRowInterface& row,
+    const CustomData& custom) const
 {
     OT_ASSERT(1 == custom.size())
 

@@ -44,15 +44,12 @@
 namespace opentxs::ui::implementation
 {
 using ContactType = List<
-    opentxs::ui::Contact,
-    ContactParent,
-    opentxs::ui::ContactSection,
-    ContactIDType,
-    ContactPimpl,
-    ContactInner,
-    ContactSortKey,
-    ContactOuter,
-    ContactOuter::const_iterator>;
+    ContactExternalInterface,
+    ContactInternalInterface,
+    ContactRowID,
+    ContactRowInterface,
+    ContactRowBlank,
+    ContactSortKey>;
 
 class Contact : virtual public ContactType
 {
@@ -68,38 +65,26 @@ private:
 
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
+    static const ListenerDefinitions listeners_;
 
     std::string name_;
     std::string payment_code_;
-    OTZMQListenCallback contact_subscriber_callback_;
-    OTZMQSubscribeSocket contact_subscriber_;
 
     static int sort_key(const proto::ContactSectionName type);
     static bool check_type(const proto::ContactSectionName type);
     static const opentxs::ContactSection& recover(const void* input);
 
-    ContactIDType blank_id() const override
-    {
-        return proto::CONTACTSECTION_ERROR;
-    }
-    void construct_item(
-        const ContactIDType& id,
+    void construct_row(
+        const ContactRowID& id,
         const ContactSortKey& index,
         const CustomData& custom) const override;
 
-    bool last(const ContactIDType& id) const override
+    bool last(const ContactRowID& id) const override
     {
         return ContactType::last(id);
     }
-    ContactOuter::const_iterator outer_first() const override
-    {
-        return items_.begin();
-    }
-    ContactOuter::const_iterator outer_end() const override
-    {
-        return items_.end();
-    }
-    void update(ContactPimpl& row, const CustomData& custom) const override;
+    void update(ContactRowInterface& row, const CustomData& custom)
+        const override;
 
     void process_contact(const opentxs::Contact& contact);
     void process_contact(const network::zeromq::Message& message);

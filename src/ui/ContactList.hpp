@@ -43,18 +43,15 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactListType = List<
-    opentxs::ui::ContactList,
-    ContactListParent,
-    opentxs::ui::ContactListItem,
-    ContactListID,
-    ContactListPimpl,
-    ContactListInner,
-    ContactListSortKey,
-    ContactListOuter,
-    ContactListOuter::const_iterator>;
+using ContactListList = List<
+    ContactListExternalInterface,
+    ContactListInternalInterface,
+    ContactListRowID,
+    ContactListRowInterface,
+    ContactListRowBlank,
+    ContactListSortKey>;
 
-class ContactList : virtual public ContactListType
+class ContactList : virtual public ContactListList
 {
 public:
     const Identifier& ID() const override;
@@ -64,28 +61,25 @@ public:
 private:
     friend Factory;
 
+    static const ListenerDefinitions listeners_;
+
     const OTIdentifier owner_contact_id_;
     std::shared_ptr<opentxs::ui::ContactListItem> owner_p_;
     opentxs::ui::ContactListItem& owner_;
-    OTZMQListenCallback contact_subscriber_callback_;
-    OTZMQSubscribeSocket contact_subscriber_;
 
-    ContactListID blank_id() const override;
-    void construct_item(
-        const ContactListID& id,
+    void construct_row(
+        const ContactListRowID& id,
         const ContactListSortKey& index,
         const CustomData& custom) const override;
     std::shared_ptr<const opentxs::ui::ContactListItem> first(
         const Lock& lock) const override;
-    bool last(const ContactListID& id) const override
+    bool last(const ContactListRowID& id) const override
     {
-        return ContactListType::last(id);
+        return ContactListList::last(id);
     }
-    ContactListOuter::const_iterator outer_first() const override;
-    ContactListOuter::const_iterator outer_end() const override;
 
     void add_item(
-        const ContactListID& id,
+        const ContactListRowID& id,
         const ContactListSortKey& index,
         const CustomData& custom) override;
     void process_contact(const network::zeromq::Message& message);

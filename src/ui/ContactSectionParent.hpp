@@ -48,14 +48,14 @@ namespace opentxs::ui::implementation
 class ContactSectionParent
 {
 public:
-    using ContactSectionIDType =
+    using ContactSectionRowID =
         std::pair<proto::ContactSectionName, proto::ContactItemType>;
     using ContactSectionSortKey = int;
 
     virtual std::string ContactID() const = 0;
-    virtual bool last(const ContactSectionIDType& id) const = 0;
+    virtual bool last(const ContactSectionRowID& id) const = 0;
     virtual void reindex_item(
-        const ContactSectionIDType& id,
+        const ContactSectionRowID& id,
         const ContactSectionSortKey& newIndex) const = 0;
     virtual proto::ContactSectionName Type() const = 0;
     virtual OTIdentifier WidgetID() const = 0;

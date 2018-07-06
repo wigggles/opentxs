@@ -87,14 +87,10 @@ public:
 
     void Update(const opentxs::ContactGroup& group) override {}
 
+    ProfileSubsectionBlank() = default;
     ~ProfileSubsectionBlank() = default;
 
-protected:
-    ProfileSubsectionBlank() = default;
-
 private:
-    friend opentxs::ui::implementation::ProfileSection;
-
     ProfileSubsectionBlank(const ProfileSubsectionBlank&) = delete;
     ProfileSubsectionBlank(ProfileSubsectionBlank&&) = delete;
     ProfileSubsectionBlank& operator=(const ProfileSubsectionBlank&) = delete;

@@ -63,12 +63,10 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
+    ActivitySummaryItemBlank() = default;
     ~ActivitySummaryItemBlank() = default;
 
 private:
-    friend opentxs::ui::implementation::ActivitySummary;
-
-    ActivitySummaryItemBlank() = default;
     ActivitySummaryItemBlank(const ActivitySummaryItemBlank&) = delete;
     ActivitySummaryItemBlank(ActivitySummaryItemBlank&&) = delete;
     ActivitySummaryItemBlank& operator=(const ActivitySummaryItemBlank&) =

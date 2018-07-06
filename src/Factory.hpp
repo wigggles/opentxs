@@ -156,7 +156,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ActivityThreadID& id,
+        const ui::implementation::ActivityThreadRowID& id,
         const Identifier& nymID,
         const api::Activity& activity,
         const std::chrono::system_clock::time_point& time,
@@ -168,7 +168,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ActivityThreadID& id,
+        const ui::implementation::ActivityThreadRowID& id,
         const Identifier& nymID,
         const api::Activity& activity,
         const std::chrono::system_clock::time_point& time);
@@ -207,7 +207,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ActivityThreadID& id,
+        const ui::implementation::ActivityThreadRowID& id,
         const Identifier& nymID,
         const api::Activity& activity,
         const std::chrono::system_clock::time_point& time);
@@ -266,13 +266,14 @@ public:
         const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     static api::UI* UI(
-        const network::zeromq::Context& zmq,
-        const api::Activity& activity,
-        const api::ContactManager& contact,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
+        const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
+        const api::Activity& activity,
+        const api::ContactManager& contact,
+        const network::zeromq::Context& zmq,
         const Flag& running);
     static api::client::Wallet* Wallet(
         const api::Native& ot,

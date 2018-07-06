@@ -68,12 +68,10 @@ public:
     {
     }
 
+    BalanceItemBlank() = default;
     ~BalanceItemBlank() = default;
 
 private:
-    friend opentxs::ui::implementation::AccountActivity;
-
-    BalanceItemBlank() = default;
     BalanceItemBlank(const BalanceItemBlank&) = delete;
     BalanceItemBlank(BalanceItemBlank&&) = delete;
     BalanceItemBlank& operator=(const BalanceItemBlank&) = delete;

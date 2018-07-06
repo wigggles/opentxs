@@ -43,10 +43,12 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactItemType =
-    Row<opentxs::ui::ContactItem, ContactSubsectionParent, OTIdentifier>;
+using ContactItemRow =
+    Row<ContactSubsectionRowInterface,
+        ContactSubsectionInternalInterface,
+        ContactSubsectionRowID>;
 
-class ContactItem : public ContactItemType
+class ContactItem : public ContactItemRow
 {
 public:
     std::string ClaimID() const override { return id_->str(); }

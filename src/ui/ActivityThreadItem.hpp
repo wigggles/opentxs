@@ -43,12 +43,12 @@
 
 namespace opentxs::ui::implementation
 {
-using ActivityThreadItemType =
-    Row<opentxs::ui::ActivityThreadItem,
-        ActivityThreadParent,
-        ActivityThreadID>;
+using ActivityThreadItemRow =
+    Row<ActivityThreadRowInterface,
+        ActivityThreadInternalInterface,
+        ActivityThreadRowID>;
 
-class ActivityThreadItem : public ActivityThreadItemType
+class ActivityThreadItem : public ActivityThreadItemRow
 {
 public:
     opentxs::Amount Amount() const override { return 0; }
@@ -79,7 +79,7 @@ protected:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ActivityThreadID& id,
+        const ActivityThreadRowID& id,
         const Identifier& nymID,
         const api::Activity& activity,
         const std::chrono::system_clock::time_point& time,

@@ -51,8 +51,10 @@ public:
 
     virtual operator bool() const = 0;
 
-    virtual void Off() = 0;
-    virtual void On() = 0;
+    /** Returns true if new state differs from previous state */
+    virtual bool Off() = 0;
+    /** Returns true if new state differs from previous state */
+    virtual bool On() = 0;
     /** Returns previous state */
     virtual bool Set(const bool value) = 0;
     /** Returns previous state */

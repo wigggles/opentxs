@@ -56,12 +56,10 @@ public:
 
     void SetName(const std::string& name) override {}
 
+    PayableListItemBlank() = default;
     ~PayableListItemBlank() = default;
 
 private:
-    friend opentxs::ui::implementation::PayableList;
-
-    PayableListItemBlank() = default;
     PayableListItemBlank(const PayableListItemBlank&) = delete;
     PayableListItemBlank(PayableListItemBlank&&) = delete;
     PayableListItemBlank& operator=(const PayableListItemBlank&) = delete;

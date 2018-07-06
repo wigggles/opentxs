@@ -43,16 +43,21 @@
 
 namespace opentxs::ui::implementation
 {
-using AccountActivityType = List<
-    opentxs::ui::AccountActivity,
-    AccountActivityParent,
-    opentxs::ui::BalanceItem,
-    AccountActivityID,
-    AccountActivityPimpl,
-    AccountActivityInner,
-    AccountActivitySortKey,
-    AccountActivityOuter,
-    AccountActivityOuter::const_reverse_iterator>;
+template <>
+struct make_blank<AccountActivityRowID> {
+    static AccountActivityRowID value()
+    {
+        return {Identifier::Factory(), proto::PAYMENTEVENTTYPE_ERROR};
+    }
+};
+
+using AccountActivityList = List<
+    AccountActivityExternalInterface,
+    AccountActivityInternalInterface,
+    AccountActivityRowID,
+    AccountActivityRowInterface,
+    AccountActivityRowBlank,
+    AccountActivitySortKey>;
 
 /** Show the list of Workflows applicable to this account
 
@@ -62,7 +67,7 @@ using AccountActivityType = List<
     their type, but others may have multiple entries corresponding to different
     states.
  */
-class AccountActivity : virtual public AccountActivityType
+class AccountActivity : virtual public AccountActivityList
 {
 public:
     Amount Balance() const override { return balance_.load(); }
@@ -77,6 +82,8 @@ private:
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
     using RowKey = std::pair<proto::PaymentEventType, EventRow>;
 
+    static const ListenerDefinitions listeners_;
+
     const api::client::Sync& sync_;
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;
@@ -84,10 +91,6 @@ private:
     mutable std::atomic<Amount> balance_{0};
     const OTIdentifier account_id_;
     std::shared_ptr<const UnitDefinition> contract_{nullptr};
-    OTZMQListenCallback account_subscriber_callback_;
-    OTZMQListenCallback balance_subscriber_callback_;
-    OTZMQSubscribeSocket account_subscriber_;
-    OTZMQSubscribeSocket balance_subscriber_;
 
     static EventRow extract_event(
         const proto::PaymentEventType event,
@@ -97,29 +100,17 @@ private:
     static const proto::PaymentEvent& recover_event(const void* input);
     static const proto::PaymentWorkflow& recover_workflow(const void* input);
 
-    AccountActivityID blank_id() const override
-    {
-        return {Identifier::Factory(), proto::PAYMENTEVENTTYPE_ERROR};
-    }
-    void construct_item(
-        const AccountActivityID& id,
+    void construct_row(
+        const AccountActivityRowID& id,
         const AccountActivitySortKey& index,
         const CustomData& custom) const override;
-    AccountActivityOuter::const_reverse_iterator outer_first() const override
-    {
-        return items_.rbegin();
-    }
-    AccountActivityOuter::const_reverse_iterator outer_end() const override
-    {
-        return items_.rend();
-    }
-    void update(AccountActivityPimpl& row, const CustomData& custom)
+    void update(AccountActivityRowInterface& row, const CustomData& custom)
         const override;
 
-    void process_balance(const network::zeromq::Message& message) const;
+    void process_balance(const network::zeromq::Message& message);
     void process_workflow(
         const Identifier& workflowID,
-        std::set<AccountActivityID>& active);
+        std::set<AccountActivityRowID>& active);
     void process_workflow(const network::zeromq::Message& message);
     void startup();
 

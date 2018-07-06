@@ -48,7 +48,7 @@
 %extend opentxs::api::UI {
     const opentxs::ui::PayableList& PayableList(
         const Identifier& nymID,
-        int currency) const
+        const int currency) const
     {
         return $self->PayableList(
             nymID,

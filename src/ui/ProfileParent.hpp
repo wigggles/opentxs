@@ -48,7 +48,7 @@ namespace opentxs::ui::implementation
 class ProfileParent
 {
 public:
-    using ContactIDType = proto::ContactSectionName;
+    using ContactRowID = proto::ContactSectionName;
     using ContactSortKey = int;
 
     EXPORT virtual bool AddClaim(
@@ -58,9 +58,9 @@ public:
         const bool primary,
         const bool active) const = 0;
     virtual const Identifier& NymID() const = 0;
-    virtual bool last(const ContactIDType& id) const = 0;
+    virtual bool last(const ContactRowID& id) const = 0;
     virtual void reindex_item(
-        const ContactIDType& id,
+        const ContactRowID& id,
         const ContactSortKey& newIndex) const = 0;
     virtual OTIdentifier WidgetID() const = 0;
 

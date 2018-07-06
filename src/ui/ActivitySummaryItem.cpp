@@ -99,7 +99,10 @@ ActivitySummaryItem::ActivitySummaryItem(
     const Flag& running,
     const Identifier& nymID,
     const Identifier& threadID)
-    : ActivitySummaryItemType(parent, zmq, publisher, contact, threadID, true)
+    : ActivitySummaryItemRow(parent, zmq, publisher, contact, threadID, true)
+    , listeners_{{activity.ThreadPublisher(nymID),
+                 new MessageProcessor<ActivitySummaryItem>(
+                     &ActivitySummaryItem::process_thread)},}
     , activity_(activity)
     , running_(running)
     , nym_id_(Identifier::Factory(nymID))
@@ -111,20 +114,8 @@ ActivitySummaryItem::ActivitySummaryItem(
     , startup_(nullptr)
     , newest_item_thread_(nullptr)
     , newest_item_()
-    , activity_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_thread(message);
-          }))
-    , activity_subscriber_(
-          zmq_.SubscribeSocket(activity_subscriber_callback_.get()))
 {
-    const auto endpoint = activity_.ThreadPublisher(nymID);
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    const auto listening = activity_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&ActivitySummaryItem::startup, this));
 
     OT_ASSERT(startup_)

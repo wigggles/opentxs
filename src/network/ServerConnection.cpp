@@ -55,6 +55,7 @@
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
@@ -78,10 +79,11 @@ namespace opentxs::network
 {
 OTServerConnection ServerConnection::Factory(
     const api::network::ZMQ& zmq,
-    const std::string& serverID)
+    const std::string& serverID,
+    const zeromq::PublishSocket& updates)
 {
     return OTServerConnection(
-        new implementation::ServerConnection(zmq, serverID));
+        new implementation::ServerConnection(zmq, serverID, updates));
 }
 }  // namespace opentxs::network
 
@@ -89,8 +91,10 @@ namespace opentxs::network::implementation
 {
 ServerConnection::ServerConnection(
     const opentxs::api::network::ZMQ& zmq,
-    const std::string& serverID)
+    const std::string& serverID,
+    const zeromq::PublishSocket& updates)
     : zmq_(zmq)
+    , updates_(updates)
     , server_id_(serverID)
     , address_type_(zmq.DefaultAddressType())
     , remote_contract_(OT::App().Wallet().Server(Identifier::Factory(serverID)))
@@ -168,6 +172,15 @@ zeromq::RequestSocket& ServerConnection::get_socket(const Lock& lock)
     return socket_;
 }
 
+void ServerConnection::publish() const
+{
+    const bool state(status_.get());
+    auto message = opentxs::network::zeromq::Message::Factory();
+    message->AddFrame(server_id_);
+    message->AddFrame(Data::Factory(&state, sizeof(state)));
+    updates_.Publish(message);
+}
+
 void ServerConnection::reset_socket(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
@@ -197,15 +210,18 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
 
     switch (status) {
         case SendResult::ERROR: {
-            status_->Off();
+            if (status_->Off()) { publish(); }
+
             reset_socket(lock);
         } break;
         case SendResult::TIMEOUT: {
-            status_->Off();
+            if (status_->Off()) { publish(); }
+
             reset_socket(lock);
         } break;
         case SendResult::VALID_REPLY: {
-            status_->On();
+            if (status_->On()) { publish(); }
+
             reset_timer();
 
             if (0 < input.size()) {
@@ -347,7 +363,7 @@ void ServerConnection::activity_timer()
             if (limit > std::chrono::seconds(0)) {
                 Send(std::string(""));
             } else {
-                status_->Off();
+                if (status_->Off()) { publish(); };
             }
         }
 

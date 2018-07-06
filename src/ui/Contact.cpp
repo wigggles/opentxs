@@ -93,37 +93,23 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
     {proto::CONTACTSECTION_COMMUNICATION, 0},
     {proto::CONTACTSECTION_PROFILE, 1}};
 
+const Widget::ListenerDefinitions Contact::listeners_{
+    {network::zeromq::Socket::ContactUpdateEndpoint,
+     new MessageProcessor<Contact>(&Contact::process_contact)},
+};
+
 Contact::Contact(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& contactID)
-    : ContactType(
-          zmq,
-          publisher,
-          contact,
-          proto::CONTACTSECTION_ERROR,
-          contactID,
-          new ContactSectionBlank)
+    : ContactType(contactID, zmq, publisher, contact)
     , name_(contact.ContactName(contactID))
     , payment_code_()
-    , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_contact(message);
-          }))
-    , contact_subscriber_(
-          zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
 {
     // NOTE nym_id_ is actually the contact id
-
     init();
-    const auto& endpoint = network::zeromq::Socket::ContactUpdateEndpoint;
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    const auto listening = contact_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&Contact::startup, this));
 
     OT_ASSERT(startup_)
@@ -134,8 +120,8 @@ bool Contact::check_type(const proto::ContactSectionName type)
     return 1 == allowed_types_.count(type);
 }
 
-void Contact::construct_item(
-    const ContactIDType& id,
+void Contact::construct_row(
+    const ContactRowID& id,
     const ContactSortKey& index,
     const CustomData& custom) const
 {
@@ -171,7 +157,7 @@ void Contact::process_contact(const opentxs::Contact& contact)
     payment_code_ = contact.PaymentCode();
     lock.unlock();
     UpdateNotify();
-    std::set<ContactIDType> active{};
+    std::set<ContactRowID> active{};
     const auto data = contact.Data();
 
     if (data) {
@@ -235,7 +221,7 @@ void Contact::startup()
     startup_complete_->On();
 }
 
-void Contact::update(ContactPimpl& row, const CustomData& custom) const
+void Contact::update(ContactRowInterface& row, const CustomData& custom) const
 {
     OT_ASSERT(1 == custom.size())
 

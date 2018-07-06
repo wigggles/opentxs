@@ -48,13 +48,13 @@ namespace opentxs::ui::implementation
 class ContactListParent
 {
 public:
-    using ContactListID = OTIdentifier;
+    using ContactListRowID = OTIdentifier;
     using ContactListSortKey = std::string;
 
     virtual const Identifier& ID() const = 0;
-    virtual bool last(const ContactListID& id) const = 0;
+    virtual bool last(const ContactListRowID& id) const = 0;
     virtual void reindex_item(
-        const ContactListID& id,
+        const ContactListRowID& id,
         const ContactListSortKey& newIndex) const = 0;
     virtual OTIdentifier WidgetID() const = 0;
 

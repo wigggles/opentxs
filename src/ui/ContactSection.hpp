@@ -43,22 +43,17 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactSectionType = List<
-    opentxs::ui::ContactSection,
-    ContactSectionParent,
-    opentxs::ui::ContactSubsection,
-    ContactSectionIDType,
-    ContactSectionPimpl,
-    ContactSectionInner,
-    ContactSectionSortKey,
-    ContactSectionOuter,
-    ContactSectionOuter::const_iterator>;
-using ContactSectionRowType = RowType<
-    opentxs::ui::ContactSection,
-    ContactParent,
-    proto::ContactSectionName>;
+using ContactSectionList = List<
+    ContactSectionExternalInterface,
+    ContactSectionInternalInterface,
+    ContactSectionRowID,
+    ContactSectionRowInterface,
+    ContactSectionRowBlank,
+    ContactSectionSortKey>;
+using ContactSectionRow =
+    RowType<ContactRowInterface, ContactInternalInterface, ContactRowID>;
 
-class ContactSection : public ContactSectionType, public ContactSectionRowType
+class ContactSection : public ContactSectionList, public ContactSectionRow
 {
 public:
     std::string ContactID() const override;
@@ -79,35 +74,23 @@ private:
         map<proto::ContactSectionName, std::map<proto::ContactItemType, int>>
             sort_keys_;
 
-    static int sort_key(const ContactSectionIDType type);
-    static bool check_type(const ContactSectionIDType type);
+    static int sort_key(const ContactSectionRowID type);
+    static bool check_type(const ContactSectionRowID type);
     static const opentxs::ContactGroup& recover(const void* input);
 
-    ContactSectionIDType blank_id() const override
-    {
-        return {proto::CONTACTSECTION_ERROR, proto::CITEMTYPE_ERROR};
-    }
-    void construct_item(
-        const ContactSectionIDType& id,
+    void construct_row(
+        const ContactSectionRowID& id,
         const ContactSectionSortKey& index,
         const CustomData& custom) const override;
 
-    bool last(const ContactSectionIDType& id) const override
+    bool last(const ContactSectionRowID& id) const override
     {
-        return ContactSectionType::last(id);
+        return ContactSectionList::last(id);
     }
-    ContactSectionOuter::const_iterator outer_first() const override
-    {
-        return items_.begin();
-    }
-    ContactSectionOuter::const_iterator outer_end() const override
-    {
-        return items_.end();
-    }
-    std::set<ContactSectionIDType> process_section(
+    std::set<ContactSectionRowID> process_section(
         const opentxs::ContactSection& section);
     void startup(const opentxs::ContactSection section);
-    void update(ContactSectionPimpl& row, const CustomData& custom)
+    void update(ContactSectionRowInterface& row, const CustomData& custom)
         const override;
 
     ContactSection(

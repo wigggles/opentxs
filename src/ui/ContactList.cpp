@@ -53,6 +53,7 @@
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/ContactListItem.hpp"
 
+#include "ContactListItemBlank.hpp"
 #include "ContactListParent.hpp"
 #include "List.hpp"
 
@@ -82,19 +83,18 @@ ui::ContactList* Factory::ContactList(
 
 namespace opentxs::ui::implementation
 {
+const Widget::ListenerDefinitions ContactList::listeners_{
+    {network::zeromq::Socket::ContactUpdateEndpoint,
+     new MessageProcessor<ContactList>(&ContactList::process_contact)},
+};
+
 ContactList::ContactList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
     const Identifier& nymID)
-    : ContactListType(
-          zmq,
-          publisher,
-          contact,
-          contact.ContactID(nymID),
-          nymID,
-          nullptr)
-    , owner_contact_id_(Identifier::Factory(last_id_))
+    : ContactListList(nymID, zmq, publisher, contact)
+    , owner_contact_id_(contact.ContactID(nymID))
     , owner_p_(Factory::ContactListItem(
           *this,
           zmq,
@@ -103,32 +103,21 @@ ContactList::ContactList(
           owner_contact_id_,
           "Owner"))
     , owner_(*owner_p_)
-    , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_contact(message);
-          }))
-    , contact_subscriber_(
-          zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
 {
-    OT_ASSERT(!last_id_->empty())
+    last_id_ = owner_contact_id_;
+
+    OT_ASSERT(false == owner_contact_id_->empty())
     OT_ASSERT(owner_p_)
 
-    // WARNING do not attempt to use blank_ in this class
     init();
-    const auto& endpoint = network::zeromq::Socket::ContactUpdateEndpoint;
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    const auto listening = contact_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&ContactList::startup, this));
 
     OT_ASSERT(startup_)
 }
 
 void ContactList::add_item(
-    const ContactListID& id,
+    const ContactListRowID& id,
     const ContactListSortKey& index,
     const CustomData& custom)
 {
@@ -141,10 +130,8 @@ void ContactList::add_item(
     insert_outer(id, index, custom);
 }
 
-ContactListID ContactList::blank_id() const { return Identifier::Factory(); }
-
-void ContactList::construct_item(
-    const ContactListID& id,
+void ContactList::construct_row(
+    const ContactListRowID& id,
     const ContactListSortKey& index,
     const CustomData&) const
 {
@@ -169,16 +156,6 @@ std::shared_ptr<const opentxs::ui::ContactListItem> ContactList::first(
 }
 
 const Identifier& ContactList::ID() const { return owner_contact_id_; }
-
-ContactListOuter::const_iterator ContactList::outer_first() const
-{
-    return items_.begin();
-}
-
-ContactListOuter::const_iterator ContactList::outer_end() const
-{
-    return items_.end();
-}
 
 void ContactList::process_contact(const network::zeromq::Message& message)
 {

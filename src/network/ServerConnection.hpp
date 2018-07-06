@@ -61,6 +61,7 @@ private:
     friend opentxs::network::ServerConnection;
 
     const api::network::ZMQ& zmq_;
+    const zeromq::PublishSocket& updates_;
     const std::string server_id_{};
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
@@ -73,6 +74,7 @@ private:
 
     ServerConnection* clone() const override { return nullptr; }
     std::string endpoint() const;
+    void publish() const;
     void set_curve(const Lock& lock, zeromq::RequestSocket& socket) const;
     void set_proxy(const Lock& lock, zeromq::RequestSocket& socket) const;
     void set_timeouts(const Lock& lock, zeromq::RequestSocket& socket) const;
@@ -85,7 +87,8 @@ private:
 
     ServerConnection(
         const opentxs::api::network::ZMQ& zmq,
-        const std::string& serverID);
+        const std::string& serverID,
+        const zeromq::PublishSocket& updates);
     ServerConnection() = delete;
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;

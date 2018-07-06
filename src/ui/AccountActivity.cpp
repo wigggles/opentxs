@@ -103,6 +103,13 @@ ui::AccountActivity* Factory::AccountActivity(
 
 namespace opentxs::ui::implementation
 {
+const Widget::ListenerDefinitions AccountActivity::listeners_{
+    {network::zeromq::Socket::WorkflowAccountUpdateEndpoint,
+     new MessageProcessor<AccountActivity>(&AccountActivity::process_workflow)},
+    {network::zeromq::Socket::AccountUpdateEndpoint,
+     new MessageProcessor<AccountActivity>(&AccountActivity::process_balance)},
+};
+
 AccountActivity::AccountActivity(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
@@ -113,13 +120,7 @@ AccountActivity::AccountActivity(
     const api::storage::Storage& storage,
     const Identifier& nymID,
     const Identifier& accountID)
-    : AccountActivityType(
-          zmq,
-          publisher,
-          contact,
-          blank_id(),
-          nymID,
-          new BalanceItemBlank)
+    : AccountActivityList(nymID, zmq, publisher, contact)
     , sync_(sync)
     , wallet_(wallet)
     , workflow_(workflow)
@@ -127,43 +128,16 @@ AccountActivity::AccountActivity(
     , balance_(0)
     , account_id_(accountID)
     , contract_(nullptr)
-    , account_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_workflow(message);
-          }))
-    , balance_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_balance(message);
-          }))
-    , account_subscriber_(
-          zmq_.SubscribeSocket(account_subscriber_callback_.get()))
-    , balance_subscriber_(
-          zmq_.SubscribeSocket(balance_subscriber_callback_.get()))
 {
-    OT_ASSERT(blank_p_)
-
     init();
-    auto endpoint = network::zeromq::Socket::WorkflowAccountUpdateEndpoint;
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    auto listening = account_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
-    endpoint = network::zeromq::Socket::AccountUpdateEndpoint;
-    otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
-           << std::endl;
-    listening = balance_subscriber_->Start(endpoint);
-
-    OT_ASSERT(listening)
-
+    setup_listeners(listeners_);
     startup_.reset(new std::thread(&AccountActivity::startup, this));
 
     OT_ASSERT(startup_)
 }
 
-void AccountActivity::construct_item(
-    const AccountActivityID& id,
+void AccountActivity::construct_row(
+    const AccountActivityRowID& id,
     const AccountActivitySortKey& index,
     const CustomData& custom) const
 {
@@ -332,13 +306,16 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
 }
 
 void AccountActivity::process_balance(
-    const opentxs::network::zeromq::Message& message) const
+    const opentxs::network::zeromq::Message& message)
 {
     wait_for_startup();
 
     OT_ASSERT(2 == message.Body().size())
 
-    const std::string id(*message.Body().begin());
+    const auto accountID = Identifier::Factory(message.Body().at(0));
+
+    if (account_id_ != accountID) { return; }
+
     const auto& balance = message.Body().at(1);
 
     OT_ASSERT(balance.size() == sizeof(Amount))
@@ -349,7 +326,7 @@ void AccountActivity::process_balance(
 
 void AccountActivity::process_workflow(
     const Identifier& workflowID,
-    std::set<AccountActivityID>& active)
+    std::set<AccountActivityRowID>& active)
 {
     const auto workflow = workflow_.LoadWorkflow(nym_id_, workflowID);
 
@@ -359,7 +336,7 @@ void AccountActivity::process_workflow(
 
     for (const auto& [type, row] : rows) {
         const auto& [time, event_p] = row;
-        AccountActivityID key{Identifier::Factory(workflowID), type};
+        AccountActivityRowID key{Identifier::Factory(workflowID), type};
         add_item(key, time, {workflow.get(), event_p});
         active.emplace(std::move(key));
     }
@@ -410,7 +387,7 @@ void AccountActivity::startup()
     const auto workflows = workflow_.WorkflowsByAccount(nym_id_, account_id_);
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << workflows.size()
            << " workflows." << std::endl;
-    std::set<AccountActivityID> active{};
+    std::set<AccountActivityRowID> active{};
 
     for (const auto& id : workflows) { process_workflow(id, active); }
 
@@ -422,7 +399,7 @@ void AccountActivity::startup()
 }
 
 void AccountActivity::update(
-    AccountActivityPimpl& row,
+    AccountActivityRowInterface& row,
     const CustomData& custom) const
 {
     OT_ASSERT(2 == custom.size())

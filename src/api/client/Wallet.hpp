@@ -243,8 +243,10 @@ private:
     mutable std::map<std::string, std::mutex> peer_lock_;
     mutable std::mutex nymfile_map_lock_;
     mutable std::map<Identifier, std::mutex> nymfile_lock_;
-    OTZMQPublishSocket nym_publisher_;
     OTZMQPublishSocket account_publisher_;
+    OTZMQPublishSocket issuer_publisher_;
+    OTZMQPublishSocket nym_publisher_;
+    OTZMQPublishSocket server_publisher_;
 
     std::string account_alias(const std::string& accountID) const;
     opentxs::Account* account_factory(
@@ -261,6 +263,7 @@ private:
         AccountLock& row) const;
     std::mutex& nymfile_lock(const Identifier& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
+    void publish_server(const Identifier& id) const;
     void save(
         const std::string id,
         opentxs::Account* in,

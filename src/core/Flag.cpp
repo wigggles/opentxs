@@ -69,9 +69,9 @@ Flag::operator bool() const
 
 Flag* Flag::clone() const { return new Flag(flag_.load()); }
 
-void Flag::Off() { Set(false); }
+bool Flag::Off() { return Set(false); }
 
-void Flag::On() { Set(true); }
+bool Flag::On() { return !Set(true); }
 
 bool Flag::Set(const bool value)
 {

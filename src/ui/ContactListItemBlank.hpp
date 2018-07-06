@@ -60,15 +60,10 @@ public:
 
     void SetName(const std::string& name) override {}
 
+    ContactListItemBlank() = default;
     ~ContactListItemBlank() = default;
 
-protected:
-    ContactListItemBlank() = default;
-
 private:
-    friend opentxs::ui::implementation::MessagableList;
-    friend opentxs::ui::implementation::PayableList;
-
     ContactListItemBlank(const ContactListItemBlank&) = delete;
     ContactListItemBlank(ContactListItemBlank&&) = delete;
     ContactListItemBlank& operator=(const ContactListItemBlank&) = delete;

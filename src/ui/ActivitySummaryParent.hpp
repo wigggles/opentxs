@@ -47,16 +47,12 @@
 
 namespace opentxs::ui::implementation
 {
-using ActivitySummaryID = OTIdentifier;
-using ActivitySummarySortKey =
-    std::pair<std::chrono::system_clock::time_point, std::string>;
-
 class ActivitySummaryParent
 {
 public:
-    virtual bool last(const ActivitySummaryID& id) const = 0;
+    virtual bool last(const ActivitySummaryRowID& id) const = 0;
     virtual void reindex_item(
-        const ActivitySummaryID& id,
+        const ActivitySummaryRowID& id,
         const ActivitySummarySortKey& newIndex) const = 0;
     virtual OTIdentifier WidgetID() const = 0;
 

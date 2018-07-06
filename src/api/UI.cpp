@@ -71,38 +71,49 @@
 namespace opentxs
 {
 api::UI* Factory::UI(
-    const network::zeromq::Context& zmq,
-    const api::Activity& activity,
-    const api::ContactManager& contact,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
+    const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const network::zeromq::Context& zmq,
     const Flag& running)
 {
     return new api::implementation::UI(
-        zmq, activity, contact, sync, wallet, workflow, storage, running);
+        sync,
+        wallet,
+        workflow,
+        connection,
+        storage,
+        activity,
+        contact,
+        zmq,
+        running);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
 UI::UI(
-    const opentxs::network::zeromq::Context& zmq,
-    const api::Activity& activity,
-    const api::ContactManager& contact,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
+    const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
+    const api::Activity& activity,
+    const api::ContactManager& contact,
+    const opentxs::network::zeromq::Context& zmq,
     const Flag& running)
-    : zmq_(zmq)
-    , activity_(activity)
-    , contact_(contact)
-    , sync_(sync)
+    : sync_(sync)
     , wallet_(wallet)
     , workflow_(workflow)
+    , connection_(connection)
     , storage_(storage)
+    , activity_(activity)
+    , contact_(contact)
+    , zmq_(zmq)
     , running_(running)
     , accounts_()
     , activity_summaries_()

@@ -93,14 +93,10 @@ public:
 
     void Update(const opentxs::ContactSection& section) override {}
 
+    ProfileSectionBlank() = default;
     ~ProfileSectionBlank() = default;
 
-protected:
-    ProfileSectionBlank() = default;
-
 private:
-    friend opentxs::ui::implementation::Profile;
-
     ProfileSectionBlank(const ProfileSectionBlank&) = delete;
     ProfileSectionBlank(ProfileSectionBlank&&) = delete;
     ProfileSectionBlank& operator=(const ProfileSectionBlank&) = delete;

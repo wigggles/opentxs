@@ -55,7 +55,8 @@ class ServerConnection
 public:
     EXPORT static OTServerConnection Factory(
         const api::network::ZMQ& zmq,
-        const std::string& serverID);
+        const std::string& serverID,
+        const zeromq::PublishSocket& updates);
 
     EXPORT virtual bool ChangeAddressType(const proto::AddressType type) = 0;
     EXPORT virtual bool ClearProxy() = 0;
@@ -81,6 +82,6 @@ private:
     ServerConnection& operator=(const ServerConnection&) = delete;
     ServerConnection& operator=(ServerConnection&&) = delete;
 };
-}  // namespace opentxs::network
+}  // namespace network
 }  // namespace opentxs
 #endif  // OPENTXS_NETWORK_SERVERCONNECTION_HPP

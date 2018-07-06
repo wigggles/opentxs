@@ -43,23 +43,20 @@
 
 namespace opentxs::ui::implementation
 {
-using ProfileSubsectionType = List<
-    opentxs::ui::ProfileSubsection,
-    ProfileSubsectionParent,
-    opentxs::ui::ProfileItem,
-    ProfileSubsectionIDType,
-    ProfileSubsectionPimpl,
-    ProfileSubsectionInner,
-    ProfileSubsectionSortKey,
-    ProfileSubsectionOuter,
-    ProfileSubsectionOuter::const_iterator>;
-using ProfileSubsectionRowType = RowType<
-    opentxs::ui::ProfileSubsection,
-    ProfileSectionParent,
-    std::pair<proto::ContactSectionName, proto::ContactItemType>>;
+using ProfileSubsectionList = List<
+    ProfileSubsectionExternalInterface,
+    ProfileSubsectionInternalInterface,
+    ProfileSubsectionRowID,
+    ProfileSubsectionRowInterface,
+    ProfileSubsectionRowBlank,
+    ProfileSubsectionSortKey>;
+using ProfileSubsectionRow = RowType<
+    ProfileSectionRowInterface,
+    ProfileSectionInternalInterface,
+    ProfileSectionRowID>;
 
-class ProfileSubsection : public ProfileSubsectionType,
-                          public ProfileSubsectionRowType
+class ProfileSubsection : public ProfileSubsectionList,
+                          public ProfileSubsectionRow
 {
 public:
     bool AddItem(
@@ -85,34 +82,22 @@ public:
 private:
     friend Factory;
 
-    static bool check_type(const ProfileSubsectionIDType type);
+    static bool check_type(const ProfileSubsectionRowID type);
     static const opentxs::ContactItem& recover(const void* input);
 
     const api::client::Wallet& wallet_;
 
-    ProfileSubsectionIDType blank_id() const override
-    {
-        return Identifier::Factory();
-    }
-    void construct_item(
-        const ProfileSubsectionIDType& id,
+    void construct_row(
+        const ProfileSubsectionRowID& id,
         const ProfileSubsectionSortKey& index,
         const CustomData& custom) const override;
 
-    bool last(const ProfileSubsectionIDType& id) const override
+    bool last(const ProfileSubsectionRowID& id) const override
     {
-        return ProfileSubsectionType::last(id);
-    }
-    ProfileSubsectionOuter::const_iterator outer_first() const override
-    {
-        return items_.begin();
-    }
-    ProfileSubsectionOuter::const_iterator outer_end() const override
-    {
-        return items_.end();
+        return ProfileSubsectionList::last(id);
     }
     void process_group(const opentxs::ContactGroup& group);
-    int sort_key(const ProfileSubsectionIDType type) const;
+    int sort_key(const ProfileSubsectionRowID type) const;
     void startup(const opentxs::ContactGroup group);
 
     ProfileSubsection(

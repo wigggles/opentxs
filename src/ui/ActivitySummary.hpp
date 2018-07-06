@@ -43,18 +43,15 @@
 
 namespace opentxs::ui::implementation
 {
-using ActivitySummaryType = List<
-    opentxs::ui::ActivitySummary,
-    ActivitySummaryParent,
-    opentxs::ui::ActivitySummaryItem,
-    ActivitySummaryID,
-    ActivitySummaryPimpl,
-    ActivitySummaryInner,
-    ActivitySummarySortKey,
-    ActivitySummaryOuter,
-    ActivitySummaryOuter::const_reverse_iterator>;
+using ActivitySummaryList = List<
+    ActivitySummaryExternalInterface,
+    ActivitySummaryInternalInterface,
+    ActivitySummaryRowID,
+    ActivitySummaryRowInterface,
+    ActivitySummaryRowBlank,
+    ActivitySummarySortKey>;
 
-class ActivitySummary : virtual public ActivitySummaryType
+class ActivitySummary : virtual public ActivitySummaryList
 {
 public:
     ~ActivitySummary() = default;
@@ -62,18 +59,14 @@ public:
 private:
     friend Factory;
 
+    const ListenerDefinitions listeners_;
     const api::Activity& activity_;
     const Flag& running_;
-    OTZMQListenCallback activity_subscriber_callback_;
-    OTZMQSubscribeSocket activity_subscriber_;
 
-    ActivitySummaryID blank_id() const override;
-    void construct_item(
-        const ActivitySummaryID& id,
+    void construct_row(
+        const ActivitySummaryRowID& id,
         const ActivitySummarySortKey& index,
         const CustomData& custom) const override;
-    ActivitySummaryOuter::const_reverse_iterator outer_first() const override;
-    ActivitySummaryOuter::const_reverse_iterator outer_end() const override;
 
     void process_thread(const std::string& threadID);
     void process_thread(const network::zeromq::Message& message);

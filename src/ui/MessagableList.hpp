@@ -43,18 +43,15 @@
 
 namespace opentxs::ui::implementation
 {
-using MessagableListType = List<
-    opentxs::ui::MessagableList,
-    ContactListParent,
-    opentxs::ui::ContactListItem,
-    MessagableListID,
-    MessagableListPimpl,
-    MessagableListInner,
-    MessagableListSortKey,
-    MessagableListOuter,
-    MessagableListOuter::const_iterator>;
+using MessagableListList = List<
+    MessagableExternalInterface,
+    MessagableInternalInterface,
+    MessagableListRowID,
+    MessagableListRowInterface,
+    MessagableListRowBlank,
+    MessagableListSortKey>;
 
-class MessagableList : virtual public MessagableListType
+class MessagableList : virtual public MessagableListList
 {
 public:
     const Identifier& ID() const override;
@@ -64,27 +61,22 @@ public:
 private:
     friend Factory;
 
+    static const ListenerDefinitions listeners_;
+
     const api::client::Sync& sync_;
     const OTIdentifier owner_contact_id_;
-    OTZMQListenCallback contact_subscriber_callback_;
-    OTZMQSubscribeSocket contact_subscriber_;
-    OTZMQListenCallback nym_subscriber_callback_;
-    OTZMQSubscribeSocket nym_subscriber_;
 
-    MessagableListID blank_id() const override;
-    void construct_item(
-        const MessagableListID& id,
+    void construct_row(
+        const MessagableListRowID& id,
         const MessagableListSortKey& index,
         const CustomData& custom) const override;
-    bool last(const MessagableListID& id) const override
+    bool last(const MessagableListRowID& id) const override
     {
-        return MessagableListType::last(id);
+        return MessagableListList::last(id);
     }
-    MessagableListOuter::const_iterator outer_first() const override;
-    MessagableListOuter::const_iterator outer_end() const override;
 
     void process_contact(
-        const MessagableListID& id,
+        const MessagableListRowID& id,
         const MessagableListSortKey& key);
     void process_contact(const network::zeromq::Message& message);
     void process_nym(const network::zeromq::Message& message);

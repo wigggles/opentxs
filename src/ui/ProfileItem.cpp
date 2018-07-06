@@ -75,7 +75,7 @@ ProfileItem::ProfileItem(
     const api::client::Wallet& wallet,
     const ProfileSubsectionParent& parent,
     const opentxs::ContactItem& item)
-    : ProfileItemType(
+    : ProfileItemRow(
           parent,
           zmq,
           publisher,

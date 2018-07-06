@@ -43,53 +43,93 @@
 
 #include "Widget.hpp"
 
+#include <type_traits>
+#include <utility>
+
 #define STARTUP_WAIT_MILLISECONDS 100
 
 #define LIST_METHOD "opentxs::ui::implementation::List::"
 
 namespace opentxs::ui::implementation
 {
+template <typename T>
+struct make_blank {
+    static T value() { return T{}; }
+};
+template <>
+struct make_blank<OTIdentifier> {
+    static OTIdentifier value() { return Identifier::Factory(); }
+};
+template <typename T>
+struct reverse_display {
+    static const bool value{false};
+};
+template <>
+struct reverse_display<ActivitySummaryInternalInterface> {
+    static const bool value{true};
+};
+template <>
+struct reverse_display<AccountActivityInternalInterface> {
+    static const bool value{true};
+};
+template <typename Map, typename T, typename Enable = void>
+struct sort_order {
+    using iterator = typename Map::const_iterator;
+    static iterator begin(const Map& map) { return map.cbegin(); }
+    static iterator end(const Map& map) { return map.cend(); }
+};
+template <typename Map, typename T>
+struct sort_order<
+    Map,
+    T,
+    typename std::enable_if<reverse_display<T>::value>::type> {
+    using iterator = typename Map::const_reverse_iterator;
+    static iterator begin(const Map& map) { return map.crbegin(); }
+    static iterator end(const Map& map) { return map.crend(); }
+};
+
 template <
-    typename InterfaceType,
-    typename InternalInterfaceType,
-    typename RowType,
-    typename IDType,
-    typename PimplType,
-    typename InnerType,
-    typename SortKeyType,
-    typename OuterType,
-    typename OuterIteratorType>
-class List : virtual public InterfaceType,
-             virtual public InternalInterfaceType,
+    typename ExternalInterface,
+    typename InternalInterface,
+    typename RowID,
+    typename RowInterface,
+    typename RowBlank,
+    typename SortKey>
+class List : virtual public ExternalInterface,
+             virtual public InternalInterface,
              public Widget,
              public Lockable
 {
 public:
-    SharedPimpl<RowType> First() const override
+    using Inner = std::map<RowID, std::shared_ptr<RowInterface>>;
+    using Outer = std::map<SortKey, Inner>;
+    using Sort = sort_order<Outer, InternalInterface>;
+    using OuterIterator = typename Sort::iterator;
+
+    SharedPimpl<RowInterface> First() const override
     {
         Lock lock(lock_);
 
-        return SharedPimpl<RowType>(first(lock));
+        return SharedPimpl<RowInterface>(first(lock));
     }
 
-    virtual bool last(const IDType& id) const override
+    virtual bool last(const RowID& id) const override
     {
         Lock lock(lock_);
 
         return start_.get() && same(id, last_id_);
     }
 
-    SharedPimpl<RowType> Next() const override
+    SharedPimpl<RowInterface> Next() const override
     {
         Lock lock(lock_);
 
-        if (start_.get()) { return SharedPimpl<RowType>(first(lock)); }
+        if (start_.get()) { return SharedPimpl<RowInterface>(first(lock)); }
 
-        return SharedPimpl<RowType>(next(lock));
+        return SharedPimpl<RowInterface>(next(lock));
     }
-    using InternalInterfaceType::reindex_item;
-    void reindex_item(const IDType& id, const SortKeyType& newIndex)
-        const override
+    using InternalInterface::reindex_item;
+    void reindex_item(const RowID& id, const SortKey& newIndex) const override
     {
         Lock lock(lock_);
         const auto& oldIndex = names_.at(id);
@@ -108,31 +148,30 @@ public:
 
 protected:
     using CustomData = std::vector<const void*>;
-    using ReverseType = std::map<IDType, SortKeyType>;
+    using ReverseType = std::map<RowID, SortKey>;
 
     const api::ContactManager& contact_manager_;
     const OTIdentifier nym_id_;
-    mutable OuterType items_;
-    mutable OuterIteratorType outer_;
-    mutable typename InnerType::const_iterator inner_;
+    mutable Outer items_;
+    mutable OuterIterator outer_;
+    mutable typename Inner::const_iterator inner_;
     mutable ReverseType names_;
-    mutable IDType last_id_;
+    mutable RowID last_id_;
     mutable OTFlag have_items_;
     mutable OTFlag start_;
     mutable OTFlag startup_complete_;
     std::unique_ptr<std::thread> startup_{nullptr};
-    const std::shared_ptr<const RowType> blank_p_{nullptr};
-    const RowType& blank_;
+    const std::shared_ptr<const RowInterface> blank_p_{nullptr};
+    const RowInterface& blank_;
     const OTIdentifier widget_id_;
 
-    virtual IDType blank_id() const = 0;
-    virtual void construct_item(
-        const IDType& id,
-        const SortKeyType& index,
+    virtual void construct_row(
+        const RowID& id,
+        const SortKey& index,
         const CustomData& custom) const = 0;
     /** Returns item reference by the inner_ iterator. Does not increment
      *  iterators. */
-    const std::shared_ptr<const RowType> current(const Lock& lock) const
+    const std::shared_ptr<const RowInterface> current(const Lock& lock) const
     {
         OT_ASSERT(verify_lock(lock))
 
@@ -148,13 +187,13 @@ protected:
 
         return item;
     }
-    void delete_inactive(const std::set<IDType>& active) const
+    void delete_inactive(const std::set<RowID>& active) const
     {
         Lock lock(lock_);
         otInfo << LIST_METHOD << __FUNCTION__ << ": Removing "
                << std::to_string(names_.size() - active.size()) << " items."
                << std::endl;
-        std::vector<IDType> deleteIDs{};
+        std::vector<RowID> deleteIDs{};
 
         for (const auto& it : names_) {
             const auto& id = it.first;
@@ -168,7 +207,7 @@ protected:
 
         UpdateNotify();
     }
-    void delete_item(const Lock& lock, const IDType& id) const
+    void delete_item(const Lock& lock, const RowID& id) const
     {
         OT_ASSERT(verify_lock(lock))
 
@@ -192,11 +231,8 @@ protected:
     }
     /** Returns first contact, or blank if none exists. Sets up iterators for
      *  next row
-     *
-     *  WARNING: if blank_p_ is not set, you must override this method in a
-     *  child class
      */
-    virtual std::shared_ptr<const RowType> first(const Lock& lock) const
+    virtual std::shared_ptr<const RowInterface> first(const Lock& lock) const
     {
         OT_ASSERT(verify_lock(lock))
 
@@ -207,12 +243,12 @@ protected:
 
             return next(lock);
         } else {
-            last_id_ = blank_id();
+            last_id_ = make_blank<RowID>::value();
 
             return blank_p_;
         }
     }
-    RowType& find_by_id(const Lock& lock, const IDType& id) const
+    RowInterface& find_by_id(const Lock& lock, const RowID& id) const
     {
         OT_ASSERT(verify_lock(lock))
 
@@ -221,7 +257,9 @@ protected:
             auto& inner = items_.at(key);
             auto item = inner.find(id);
 
-            if (inner.end() == item) { return const_cast<RowType&>(blank_); }
+            if (inner.end() == item) {
+                return const_cast<RowInterface&>(blank_);
+            }
 
             OT_ASSERT(item->second)
 
@@ -229,7 +267,7 @@ protected:
         } catch (const std::out_of_range&) {
         }
 
-        return const_cast<RowType&>(blank_);
+        return const_cast<RowInterface&>(blank_);
     }
 
     /** Searches for the first name with at least one contact and sets
@@ -319,20 +357,20 @@ protected:
         return true;
     }
     /** Returns the next item and increments iterators */
-    const std::shared_ptr<const RowType> next(const Lock& lock) const
+    const std::shared_ptr<const RowInterface> next(const Lock& lock) const
     {
         const auto output = current(lock);
         increment_inner(lock);
 
         return output;
     }
-    virtual OuterIteratorType outer_first() const = 0;
-    virtual OuterIteratorType outer_end() const = 0;
+    OuterIterator outer_first() const { return Sort::begin(items_); }
+    OuterIterator outer_end() const { return Sort::end(items_); }
     void reindex_item(
         const Lock& lock,
-        const IDType& id,
-        const SortKeyType& oldIndex,
-        const SortKeyType& newIndex,
+        const RowID& id,
+        const SortKey& oldIndex,
+        const SortKey& newIndex,
         const CustomData& custom) const
     {
         OT_ASSERT(verify_lock(lock));
@@ -351,7 +389,7 @@ protected:
         // to it
         if (inner_ == item) { increment_inner(lock); }
 
-        std::shared_ptr<PimplType> row = std::move(item->second);
+        std::shared_ptr<RowInterface> row = std::move(item->second);
         const auto deleted = itemMap.erase(id);
 
         OT_ASSERT(1 == deleted)
@@ -363,11 +401,11 @@ protected:
         names_[id] = newIndex;
         items_[newIndex].emplace(id, std::move(row));
     }
-    virtual bool same(const IDType& lhs, const IDType& rhs) const
+    virtual bool same(const RowID& lhs, const RowID& rhs) const
     {
         return (lhs == rhs);
     }
-    virtual void update(PimplType& row, const CustomData& custom) const {}
+    virtual void update(RowInterface& row, const CustomData& custom) const {}
     void valid_iterators() const
     {
         OT_ASSERT(outer_end() != outer_)
@@ -384,22 +422,22 @@ protected:
     }
 
     virtual void add_item(
-        const IDType& id,
-        const SortKeyType& index,
+        const RowID& id,
+        const SortKey& index,
         const CustomData& custom)
     {
         insert_outer(id, index, custom);
     }
     void init() { outer_ = outer_first(); }
     void insert_outer(
-        const IDType& id,
-        const SortKeyType& index,
+        const RowID& id,
+        const SortKey& index,
         const CustomData& custom)
     {
         Lock lock(lock_);
 
         if (0 == names_.count(id)) {
-            construct_item(id, index, custom);
+            construct_row(id, index, custom);
 
             OT_ASSERT(1 == items_.count(index))
             OT_ASSERT(1 == names_.count(id))
@@ -418,12 +456,10 @@ protected:
     }
 
     List(
+        const Identifier& nymID,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
-        const IDType lastID,
-        const Identifier& nymID,
-        RowType* blank)
+        const api::ContactManager& contact)
         : Widget(zmq, publisher)
         , contact_manager_(contact)
         , nym_id_(Identifier::Factory(nymID))
@@ -431,17 +467,16 @@ protected:
         , outer_(items_.begin())
         , inner_(items_.begin()->second.begin())
         , names_()
-        , last_id_(lastID)
+        , last_id_(make_blank<RowID>::value())
         , have_items_(Flag::Factory(false))
         , start_(Flag::Factory(true))
         , startup_complete_(Flag::Factory(false))
         , startup_(nullptr)
-        , blank_p_(blank)
+        , blank_p_(new RowBlank)
         , blank_(*blank_p_)
         , widget_id_(Identifier::Random())
     {
-        // WARNING if you plan on using blank_, check blank_p_ in the child
-        // class constructor
+        OT_ASSERT(blank_p_)
     }
 
 private:
