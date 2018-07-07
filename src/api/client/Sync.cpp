@@ -1761,13 +1761,16 @@ bool Sync::register_nym(
 OTIdentifier Sync::RegisterNym(
     const Identifier& nymID,
     const Identifier& serverID,
-    const bool setContactData) const
+    const bool setContactData,
+    const bool forcePrimary) const
 {
     CHECK_SERVER(nymID, serverID)
 
     start_introduction_server(nymID);
 
-    if (setContactData) { publish_server_registration(nymID, serverID, false); }
+    if (setContactData) {
+        publish_server_registration(nymID, serverID, forcePrimary);
+    }
 
     return ScheduleRegisterNym(nymID, serverID);
 }

@@ -4081,10 +4081,15 @@ std::uint64_t SwigWrap::Refresh_Counter()
 
 std::string SwigWrap::Register_Nym_Public(
     const std::string& nym,
-    const std::string& server)
+    const std::string& server,
+    const bool setContactData,
+    const bool primary)
 {
     const auto taskID = OT::App().API().Sync().RegisterNym(
-        Identifier::Factory(nym), Identifier::Factory(server), true);
+        Identifier::Factory(nym),
+        Identifier::Factory(server),
+        setContactData,
+        primary);
 
     return String(taskID).Get();
 }

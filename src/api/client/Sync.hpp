@@ -129,7 +129,8 @@ public:
     OTIdentifier RegisterNym(
         const Identifier& nymID,
         const Identifier& server,
-        const bool setContactData) const override;
+        const bool setContactData,
+        const bool forcePrimary = false) const override;
     OTIdentifier SetIntroductionServer(
         const ServerContract& contract) const override;
     OTIdentifier ScheduleDownloadAccount(

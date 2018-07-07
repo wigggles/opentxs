@@ -414,7 +414,13 @@ bool ActivityThread::SendDraft() const
         return false;
     }
 
-    if (1 != participants_.size()) {
+    if (participants_.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No recipients." << std::endl;
+
+        return false;
+    }
+
+    if (1 < participants_.size()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Sending to multiple recipient not yet supported."
               << std::endl;

@@ -3692,7 +3692,9 @@ public:
     /// Registers nym and updates public contact data, background thread
     EXPORT static std::string Register_Nym_Public(
         const std::string& nym,
-        const std::string& server);
+        const std::string& server,
+        const bool setContactData = true,
+        const bool primary = false);
 
     EXPORT static std::string Set_Introduction_Server(
         const std::string& contract);
