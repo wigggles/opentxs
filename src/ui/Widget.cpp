@@ -72,10 +72,11 @@ Widget::Widget(
 void Widget::setup_listeners(const ListenerDefinitions& definitions)
 {
     for (const auto& [endpoint, functor] : definitions) {
+        const auto* copy{functor};
         auto& nextCallback =
             callbacks_.emplace_back(network::zeromq::ListenCallback::Factory(
-                [&](const network::zeromq::Message& message) -> void {
-                    (*functor)(this, message);
+                [=](const network::zeromq::Message& message) -> void {
+                    (*copy)(this, message);
                 }));
         auto& socket =
             listeners_.emplace_back(zmq_.SubscribeSocket(nextCallback.get()));
