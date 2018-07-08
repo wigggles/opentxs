@@ -96,12 +96,14 @@ public:
     static void ClientFactory(
         const ArgList& args,
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        OTCaller* externalPasswordCallback = nullptr,
         const bool recover = false);
     static void Join();
     static const opentxs::Flag& Running();
     static void ServerFactory(
         const ArgList& args,
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        OTCaller* externalPasswordCallback = nullptr,
         const bool recover = false);
 
 private:

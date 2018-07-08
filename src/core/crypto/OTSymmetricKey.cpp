@@ -42,7 +42,6 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -56,6 +55,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
+
+#include "api/NativeInternal.hpp"
 
 extern "C" {
 #ifdef _WIN32
@@ -576,7 +577,9 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
                                     // since
                                     // this is for a plain symmetric key.
     // -------------------------------------------------------------------
-    const std::int32_t nCallback = souped_up_pass_cb(
+    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
+    auto* callback = native.GetInternalPasswordCallback();
+    const std::int32_t nCallback = (*callback)(
         pPassUserInput->getPasswordWritable_char(),
         pPassUserInput->getBlockSize(),
         bAskTwice ? 1 : 0,

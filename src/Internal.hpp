@@ -78,6 +78,8 @@ namespace storage
 {
 class StorageInternal;
 }  // namespace storage
+
+class NativeInternal;
 }  // namespace api
 
 namespace network

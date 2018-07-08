@@ -52,44 +52,11 @@
 #include <set>
 #include <string>
 
-#ifdef SWIG
-// clang-format off
-%ignore opentxs::default_pass_cb;
-%ignore opentxs::souped_up_pass_cb;
-%ignore opentxs::SwigWrap::GetPasswordCallback;
-%ignore opentxs::SwigWrap::SetPasswordCallback;
-// clang-format on
-#endif  // SWIG
-
 namespace opentxs
 {
-/** For getting the password from the user, for using his private key. */
-extern "C" {
-typedef std::int32_t OT_OPENSSL_CALLBACK(
-    char* buf,
-    std::int32_t size,
-    std::int32_t rwflag,
-    void* userdata);  // <== Callback type, used for declaring.
-
-EXPORT OT_OPENSSL_CALLBACK default_pass_cb;
-EXPORT OT_OPENSSL_CALLBACK souped_up_pass_cb;
-}
-
-/** Caller must have Callback attached already. */
-EXPORT bool OT_API_Set_PasswordCallback(OTCaller& theCaller);
-
 class SwigWrap
 {
 public:
-    EXPORT static void SetPasswordCallback(OT_OPENSSL_CALLBACK* pCallback);
-    EXPORT static OT_OPENSSL_CALLBACK* GetPasswordCallback();
-    EXPORT static bool IsPasswordCallbackSet()
-    {
-        return (nullptr == s_pwCallback) ? false : true;
-    }
-    EXPORT static bool SetPasswordCaller(OTCaller& theCaller);
-    EXPORT static OTCaller* GetPasswordCaller();
-
     EXPORT static std::int64_t StringToLong(const std::string& strNumber);
     EXPORT static std::string LongToString(const std::int64_t& lNumber);
 
@@ -104,6 +71,7 @@ public:
      Call this once per run of the application.
      */
     EXPORT static bool AppInit(
+        OTCaller* externalPasswordCallback = nullptr,
         const std::uint64_t gcInterval = 0,
         const std::string& storagePlugin = "",
         const std::string& archiveDirectory = "",
@@ -111,6 +79,7 @@ public:
     EXPORT static bool AppRecover(
         const std::string& words,
         const std::string& passphrase,
+        OTCaller* externalPasswordCallback = nullptr,
         const std::uint64_t gcInterval = 0,
         const std::string& storagePlugin = "",
         const std::string& archiveDirectory = "",
@@ -3736,9 +3705,6 @@ public:
     EXPORT static std::string AvailableServers(const std::string& nymID);
 
 private:
-    static OT_OPENSSL_CALLBACK* s_pwCallback;
-    static OTCaller* s_pCaller;
-
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);
     static std::string comma(const std::set<OTIdentifier>& list);

@@ -39,7 +39,7 @@
 
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 
-#include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/api/Native.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -54,6 +54,7 @@
 #include <opentxs/core/util/stacktrace.h>
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/OT.hpp"
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
@@ -63,6 +64,8 @@
 
 #include <cstdint>
 #include <ostream>
+
+#include "api/NativeInternal.hpp"
 
 // BIO_get_mem_data() macro from OpenSSL uses old style cast
 #ifndef _WIN32
@@ -271,20 +274,23 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                           "PEM_read_bio_PUBKEY...)"
                         : "Enter the passphrase for your exported Nym.");
 
-                if (nullptr == pImportPassword)
+                if (nullptr == pImportPassword) {
+                    const auto& native =
+                        dynamic_cast<const api::NativeInternal&>(OT::App());
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio,
                         nullptr,
-                        SwigWrap::GetPasswordCallback(),
+                        native.GetInternalPasswordCallback(),
                         nullptr == pPWData
                             ? &thePWData
                             : const_cast<OTPasswordData*>(pPWData));
-                else
+                } else {
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio,
                         nullptr,
                         0,
                         const_cast<OTPassword*>(pImportPassword));
+                }
 
                 // We don't need the BIO anymore.
                 // Free the BIO and related buffers, filters, etc. (auto with
@@ -348,18 +354,19 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     // the BIO, then it SHOULD stil be safe, right?
     //
     std::int32_t nWriteBio = false;
+    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
 
-    if (nullptr == pImportPassword)
+    if (nullptr == pImportPassword) {
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem,
             &theKey,
             pCipher,
             nullptr,
             0,
-            SwigWrap::GetPasswordCallback(),
+            native.GetInternalPasswordCallback(),
             nullptr == pPWData ? &thePWDataWrite
                                : const_cast<OTPasswordData*>(pPWData));
-    else
+    } else {
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem,
             &theKey,
@@ -369,6 +376,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
             0,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
+    }
 
     if (0 == nWriteBio) {
         otErr << __FUNCTION__
@@ -422,28 +430,30 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                 OTPasswordData thePWData("OTAsymmetricKey_OpenSSL::"
                                          "CopyPrivateKey is calling "
                                          "PEM_read_bio_PUBKEY...");
+                const auto& native =
+                    dynamic_cast<const api::NativeInternal&>(OT::App());
 
-                if (nullptr == pImportPassword)
+                if (nullptr == pImportPassword) {
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio,
                         nullptr,
-                        SwigWrap::GetPasswordCallback(),
+                        native.GetInternalPasswordCallback(),
                         nullptr == pPWData
                             ? &thePWData
                             : const_cast<OTPasswordData*>(pPWData));
-                else
+                } else {
                     pReturnKey = PEM_read_bio_PrivateKey(
                         keyBio,
                         nullptr,
                         0,
                         const_cast<void*>(reinterpret_cast<const void*>(
                             pImportPassword->getPassword())));
-
-            } else
+                }
+            } else {
                 otErr << __FUNCTION__
                       << ": Error: Failed copying memory from "
                          "BIO into Data.\n";
-
+            }
         } else {
             otErr << __FUNCTION__
                   << ": Failed copying private key into memory.\n";
@@ -563,12 +573,14 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                                  "InstantiatePublicKey is calling "
                                  "PEM_read_bio_PUBKEY...");
 
-        if (nullptr == pPWData) pPWData = &thePWData;
+        if (nullptr == pPWData) { pPWData = &thePWData; }
 
+        const auto& native =
+            dynamic_cast<const api::NativeInternal&>(OT::App());
         pReturnKey = PEM_read_bio_PUBKEY(
             keyBio,
             nullptr,
-            SwigWrap::GetPasswordCallback(),
+            native.GetInternalPasswordCallback(),
             const_cast<OTPasswordData*>(pPWData));
 
         backlink->ReleaseKeyLowLevel();  // Release whatever loaded key I might
@@ -638,12 +650,14 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                                  "InstantiatePrivateKey is calling "
                                  "PEM_read_bio_PrivateKey...");
 
-        if (nullptr == pPWData) pPWData = &thePWData;
+        if (nullptr == pPWData) { pPWData = &thePWData; }
 
+        const auto& native =
+            dynamic_cast<const api::NativeInternal&>(OT::App());
         pReturnKey = PEM_read_bio_PrivateKey(
             keyBio,
             nullptr,
-            SwigWrap::GetPasswordCallback(),
+            native.GetInternalPasswordCallback(),
             const_cast<OTPasswordData*>(pPWData));
 
         // Free the BIO and related buffers, filters, etc.
@@ -704,17 +718,18 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
     if (nullptr == pPWData) pPWData = &thePWData;
 
     std::int32_t nWriteBio = 0;
+    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
 
-    if (nullptr == pImportPassword)
+    if (nullptr == pImportPassword) {
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem,
             &theKey,
             EVP_des_ede3_cbc(),  // todo should this algorithm be hardcoded?
             nullptr,
             0,
-            SwigWrap::GetPasswordCallback(),
+            native.GetInternalPasswordCallback(),
             const_cast<OTPasswordData*>(pPWData));
-    else
+    } else {
         nWriteBio = PEM_write_bio_PrivateKey(
             bmem,
             &theKey,
@@ -724,6 +739,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
             0,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
+    }
 
     if (0 == nWriteBio) {
         otErr << __FUNCTION__

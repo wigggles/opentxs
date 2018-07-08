@@ -43,7 +43,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -69,6 +68,8 @@
 #include <cstdint>
 #include <ostream>
 #include <string>
+
+#include "api/NativeInternal.hpp"
 
 // BIO_get_mem_ptr() and BIO_get_mem_data() macros from OpenSSL
 // use old style cast
@@ -330,8 +331,10 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
         if (!pImportPassword)  // pImportPassword is nullptr? Do it normally
                                // then
         {
+            const auto& native =
+                dynamic_cast<const api::NativeInternal&>(OT::App());
             pkey = PEM_read_bio_PrivateKey(
-                bio, nullptr, SwigWrap::GetPasswordCallback(), &thePWData);
+                bio, nullptr, native.GetInternalPasswordCallback(), &thePWData);
         } else  // Otherwise, use pImportPassword instead of the normal
                 // OTCachedKey system.
         {
@@ -414,16 +417,19 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
 
     X509* x509 = nullptr;
 
-    if (nullptr == pImportPassword)
+    if (nullptr == pImportPassword) {
+        const auto& native =
+            dynamic_cast<const api::NativeInternal&>(OT::App());
         x509 = PEM_read_bio_X509(
-            keyBio, nullptr, SwigWrap::GetPasswordCallback(), &thePWData);
-    else
+            keyBio, nullptr, native.GetInternalPasswordCallback(), &thePWData);
+    } else {
         x509 = PEM_read_bio_X509(
             keyBio,
             nullptr,
             0,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
+    }
 
     // TODO security: At some point need to switch to using X509_AUX functions.
     // The current x509 functions will read a trust certificate but discard the
@@ -537,10 +543,13 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
         // cached master key.) So we use the normal password callback.
         //
         else {
-            //          otOut << "RE-ENCRYPT PRIVATE KEY -- READING using WALLET
-            // password.\n";
+            const auto& native =
+                dynamic_cast<const api::NativeInternal&>(OT::App());
             pClearKey = PEM_read_bio_PrivateKey(
-                keyBio, nullptr, SwigWrap::GetPasswordCallback(), &thePWData);
+                keyBio,
+                nullptr,
+                native.GetInternalPasswordCallback(),
+                &thePWData);
         }
 
         if (nullptr != pClearKey) {
@@ -561,23 +570,21 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
             // write a private key to that buffer, from pClearKey
             //
             std::int32_t nWriteBio = 0;
+            const auto& native =
+                dynamic_cast<const api::NativeInternal&>(OT::App());
 
             // If we're importing, that means we just loaded up the (previously)
-            // exported Nym
-            // using theExportedPassphrase, so now we need to save it back again
-            // using the
-            // normal password callback (for importing it to the wallet.)
-            //
+            // exported Nym using theExportedPassphrase, so now we need to save
+            // it back again using the normal password callback (for importing
+            // it to the wallet.)
             if (bImporting) {
-                //              otOut << "RE-ENCRYPT PRIVATE KEY -- WRITING
-                // using WALLET password.\n";
                 nWriteBio = PEM_write_bio_PrivateKey(
                     bmem,
                     pClearKey,
                     pCipher,
                     nullptr,
                     0,
-                    SwigWrap::GetPasswordCallback(),
+                    native.GetInternalPasswordCallback(),
                     &thePWData);
             }
 
@@ -751,17 +758,18 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
                                 : "OTAsymmetricKey_OpenSSL::"
                                   "GetPrivateKey is calling "
                                   "PEM_write_bio_PrivateKey...");
+    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
 
-    if (nullptr == pImportPassword)
+    if (nullptr == pImportPassword) {
         PEM_write_bio_PrivateKey(
             bio_out_pri,
             pPrivateKey,
             pCipher,
             nullptr,
             0,
-            SwigWrap::GetPasswordCallback(),
+            native.GetInternalPasswordCallback(),
             &thePWData);
-    else
+    } else {
         PEM_write_bio_PrivateKey(
             bio_out_pri,
             pPrivateKey,
@@ -771,6 +779,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
             0,
             const_cast<void*>(
                 reinterpret_cast<const void*>(pImportPassword->getPassword())));
+    }
 
     bool privateSuccess = false;
     bool publicSuccess = false;

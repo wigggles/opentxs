@@ -37,11 +37,14 @@
  ************************************************************/
 
 #include "stdafx.hpp"
+#include "Internal.hpp"
+
+#include "opentxs/api/Native.hpp"
+#include "opentxs/core/Log.hpp"
+
+#include "api/NativeInternal.hpp"
 
 #include "opentxs/OT.hpp"
-
-#include "api/Native.hpp"
-#include "opentxs/core/Log.hpp"
 
 namespace opentxs
 {
@@ -58,7 +61,7 @@ const api::Native& OT::App()
 void OT::Cleanup()
 {
     if (nullptr != instance_pointer_) {
-        auto ot = dynamic_cast<api::implementation::Native*>(instance_pointer_);
+        auto ot = dynamic_cast<api::NativeInternal*>(instance_pointer_);
 
         if (nullptr != ot) { ot->shutdown(); }
 
@@ -70,16 +73,17 @@ void OT::Cleanup()
 void OT::ClientFactory(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback,
     const bool recover)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
-    instance_pointer_ = new api::implementation::Native(
-        running_, args, recover, false, gcInterval);
+    instance_pointer_ = Factory::Native(
+        running_, args, recover, false, gcInterval, externalPasswordCallback);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
-    auto ot = dynamic_cast<api::implementation::Native*>(instance_pointer_);
+    auto ot = dynamic_cast<api::NativeInternal*>(instance_pointer_);
 
     OT_ASSERT(nullptr != ot);
 
@@ -98,16 +102,17 @@ const opentxs::Flag& OT::Running() { return running_; }
 void OT::ServerFactory(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback,
     const bool recover)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
-    instance_pointer_ = new api::implementation::Native(
-        running_, args, recover, true, gcInterval);
+    instance_pointer_ = Factory::Native(
+        running_, args, recover, true, gcInterval, externalPasswordCallback);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
-    auto ot = dynamic_cast<api::implementation::Native*>(instance_pointer_);
+    auto ot = dynamic_cast<api::NativeInternal*>(instance_pointer_);
 
     OT_ASSERT(nullptr != ot);
 
