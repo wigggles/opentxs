@@ -636,6 +636,7 @@ bool SwigWrap::networkFailure(const std::string& notaryID)
 }
 
 bool SwigWrap::AppInit(
+    OTCaller* externalPasswordCallback,
     const std::uint64_t gcInterval,
     const std::string& storagePlugin,
     const std::string& archiveDirectory,
@@ -646,7 +647,8 @@ bool SwigWrap::AppInit(
     args[OPENTXS_ARG_BACKUP_DIRECTORY].emplace(archiveDirectory);
     args[OPENTXS_ARG_ENCRYPTED_DIRECTORY].emplace(encryptedDirectory);
 
-    OT::ClientFactory(args, std::chrono::seconds(gcInterval));
+    OT::ClientFactory(
+        args, std::chrono::seconds(gcInterval), externalPasswordCallback);
 
     return true;
 }
@@ -654,6 +656,7 @@ bool SwigWrap::AppInit(
 bool SwigWrap::AppRecover(
     const std::string& words,
     const std::string& passphrase,
+    OTCaller* externalPasswordCallback,
     const std::uint64_t gcInterval,
     const std::string& storagePlugin,
     const std::string& archiveDirectory,
@@ -666,7 +669,8 @@ bool SwigWrap::AppRecover(
     args[OPENTXS_ARG_BACKUP_DIRECTORY].emplace(archiveDirectory);
     args[OPENTXS_ARG_ENCRYPTED_DIRECTORY].emplace(encryptedDirectory);
 
-    OT::ClientFactory(args, std::chrono::seconds(gcInterval), true);
+    OT::ClientFactory(
+        args, std::chrono::seconds(gcInterval), externalPasswordCallback, true);
 
     return true;
 }

@@ -104,6 +104,7 @@ public:
      Call this once per run of the application.
      */
     EXPORT static bool AppInit(
+        OTCaller* externalPasswordCallback = nullptr,
         const std::uint64_t gcInterval = 0,
         const std::string& storagePlugin = "",
         const std::string& archiveDirectory = "",
@@ -111,6 +112,7 @@ public:
     EXPORT static bool AppRecover(
         const std::string& words,
         const std::string& passphrase,
+        OTCaller* externalPasswordCallback = nullptr,
         const std::uint64_t gcInterval = 0,
         const std::string& storagePlugin = "",
         const std::string& archiveDirectory = "",

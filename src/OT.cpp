@@ -70,12 +70,13 @@ void OT::Cleanup()
 void OT::ClientFactory(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback,
     const bool recover)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ = new api::implementation::Native(
-        running_, args, recover, false, gcInterval);
+        running_, args, recover, false, gcInterval, externalPasswordCallback);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
@@ -98,12 +99,13 @@ const opentxs::Flag& OT::Running() { return running_; }
 void OT::ServerFactory(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback,
     const bool recover)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
     instance_pointer_ = new api::implementation::Native(
-        running_, args, recover, true, gcInterval);
+        running_, args, recover, true, gcInterval, externalPasswordCallback);
 
     OT_ASSERT(nullptr != instance_pointer_);
 

@@ -19,6 +19,7 @@ set(cxx-sources
   Libsodium.cpp
   LowLevelKeyGenerator.cpp
   MasterCredential.cpp
+  NullCallback.cpp
   NymParameters.cpp
   OTASCIIArmor.cpp
   OTAsymmetricKey.cpp
@@ -95,6 +96,7 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  NullCallback.hpp
   PaymentCode.hpp
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OpenSSL.hpp"
 )

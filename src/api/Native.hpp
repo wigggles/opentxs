@@ -42,6 +42,8 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Native.hpp"
+#include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -136,13 +138,17 @@ private:
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
     mutable ShutdownCallback* shutdown_callback_{nullptr};
+    std::unique_ptr<OTCallback> null_callback_{nullptr};
+    std::unique_ptr<OTCaller> default_external_password_callback_{nullptr};
+    OTCaller* external_password_callback_{nullptr};
 
     explicit Native(
         Flag& running,
         const ArgList& args,
         const bool recover,
         const bool serverMode,
-        const std::chrono::seconds gcInterval);
+        const std::chrono::seconds gcInterval,
+        OTCaller* externalPasswordCallback = nullptr);
     Native() = delete;
     Native(const Native&) = delete;
     Native(Native&&) = delete;
@@ -153,6 +159,8 @@ private:
         const StorageConfig& config,
         bool& migrate,
         String& previous) const;
+
+    void setup_default_external_password_callback();
 
     void Init_Activity();
     void Init_Api();

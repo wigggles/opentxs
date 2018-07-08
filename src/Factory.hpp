@@ -204,6 +204,7 @@ public:
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const Identifier& nymID);
+    static OTCallback* NullCallback();
     static api::client::Pair* Pair(
         const Flag& running,
         const api::client::Sync& sync,

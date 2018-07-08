@@ -102,7 +102,8 @@ Native::Native(
     const ArgList& args,
     const bool recover,
     const bool serverMode,
-    const std::chrono::seconds gcInterval)
+    const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback)
     : running_(running)
     , recover_(recover)
     , server_mode_(serverMode)
@@ -136,31 +137,42 @@ Native::Native(
     , signal_handler_(nullptr)
     , server_args_(args)
     , shutdown_callback_{nullptr}
+    , null_callback_{nullptr}
+    , default_external_password_callback_{nullptr}
+    , external_password_callback_{externalPasswordCallback}
 {
+    // NOTE: OT_ASSERT is not available until Init() has been called
+
+    if (nullptr == external_password_callback_) {
+        setup_default_external_password_callback();
+    }
+
+    assert(nullptr != external_password_callback_);
+
     for (const auto& [key, arg] : args) {
         if (key == OPENTXS_ARG_WORDS) {
-            OT_ASSERT(2 > arg.size());
-            OT_ASSERT(0 < arg.size());
+            assert(2 > arg.size());
+            assert(0 < arg.size());
             const auto& word = *arg.cbegin();
             word_list_.setPassword(word.c_str(), word.size());
         } else if (key == OPENTXS_ARG_PASSPHRASE) {
-            OT_ASSERT(2 > arg.size());
-            OT_ASSERT(0 < arg.size());
+            assert(2 > arg.size());
+            assert(0 < arg.size());
             const auto& passphrase = *arg.cbegin();
             passphrase_.setPassword(passphrase.c_str(), passphrase.size());
         } else if (key == OPENTXS_ARG_STORAGE_PLUGIN) {
-            OT_ASSERT(2 > arg.size());
-            OT_ASSERT(0 < arg.size());
+            assert(2 > arg.size());
+            assert(0 < arg.size());
             const auto& storagePlugin = *arg.cbegin();
             primary_storage_plugin_ = storagePlugin;
         } else if (key == OPENTXS_ARG_BACKUP_DIRECTORY) {
-            OT_ASSERT(2 > arg.size());
-            OT_ASSERT(0 < arg.size());
+            assert(2 > arg.size());
+            assert(0 < arg.size());
             const auto& backupDirectory = *arg.cbegin();
             archive_directory_ = backupDirectory;
         } else if (key == OPENTXS_ARG_ENCRYPTED_DIRECTORY) {
-            OT_ASSERT(2 > arg.size());
-            OT_ASSERT(0 < arg.size());
+            assert(2 > arg.size());
+            assert(0 < arg.size());
             const auto& encryptedDirectory = *arg.cbegin();
             encrypted_directory_ = encryptedDirectory;
         }
@@ -927,6 +939,26 @@ void Native::set_storage_encryption()
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load storage key "
               << seed << std::endl;
     }
+}
+
+void Native::setup_default_external_password_callback()
+{
+    // NOTE: OT_ASSERT is not available yet because we're too early
+    // in the startup process
+
+    null_callback_.reset(Factory::NullCallback());
+
+    assert(null_callback_);
+
+    default_external_password_callback_.reset(new OTCaller);
+
+    assert(default_external_password_callback_);
+
+    default_external_password_callback_->setCallback(null_callback_.get());
+
+    assert(default_external_password_callback_->isCallbackSet());
+
+    external_password_callback_ = default_external_password_callback_.get();
 }
 
 void Native::shutdown()
