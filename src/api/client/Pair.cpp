@@ -52,6 +52,7 @@
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -177,6 +178,22 @@ bool Pair::AddIssuer(
     update_pairing();
 
     return true;
+}
+
+bool Pair::AddIssuer(
+    const Identifier& localNymID,
+    const Identifier& unitDefinitionID) const
+{
+    const auto contract = wallet_.UnitDefinition(unitDefinitionID);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unit definition contract does not exist." << std::endl;
+
+        return false;
+    }
+
+    return AddIssuer(localNymID, contract->Nym()->ID());
 }
 
 void Pair::check_pairing() const
