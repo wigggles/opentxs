@@ -51,9 +51,11 @@
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTCallback.hpp"
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -105,7 +107,244 @@
 #define SERVER_CONFIG_KEY "server"
 #define STORAGE_CONFIG_KEY "storage"
 
+#ifndef _PASSWORD_LEN
+#define _PASSWORD_LEN 128
+#endif
+
 #define OT_METHOD "opentxs::api::implementation::Native::"
+
+namespace
+{
+// If the password callback isn't set, then it uses the default ("test")
+// password.
+extern "C" std::int32_t default_pass_cb(
+    char* buf,
+    std::int32_t size,
+    [[maybe_unused]] std::int32_t rwflag,
+    void* userdata)
+{
+    std::int32_t len{0};
+    const auto theSize{std::uint32_t(size)};
+    const opentxs::OTPasswordData* pPWData{nullptr};
+    std::string str_userdata;
+
+    if (nullptr != userdata) {
+        pPWData = static_cast<const opentxs::OTPasswordData*>(userdata);
+
+        if (nullptr != pPWData) { str_userdata = pPWData->GetDisplayString(); }
+    } else {
+        str_userdata = "";
+    }
+
+    opentxs::otWarn << __FUNCTION__
+                    << ": Using DEFAULT TEST PASSWORD: 'test' (for \""
+                    << str_userdata << "\")\n";
+
+    const char* tmp_passwd = "test";
+    len = static_cast<std::int32_t>(strlen(tmp_passwd));
+
+    if (len <= 0) {
+        opentxs::otOut << __FUNCTION__ << ": Problem? Returning 0...\n";
+
+        return 0;
+    }
+
+    if (len > size) { len = size; }
+
+    const auto theLength = len;
+
+    opentxs::OTPassword::safe_memcpy(
+        buf,         // destination
+        theSize,     // size of destination buffer.
+        tmp_passwd,  // source
+        theLength);  // length of source.
+
+    return len;
+}
+
+// This is the function that OpenSSL calls when it wants to ask the user for his
+// password. If we return 0, that's bad, that means the password caller and
+// callback failed somehow.
+extern "C" std::int32_t souped_up_pass_cb(
+    char* buf,
+    std::int32_t size,
+    std::int32_t rwflag,
+    void* userdata)
+{
+    OT_ASSERT(nullptr != userdata);
+
+    const auto& native =
+        dynamic_cast<const opentxs::api::NativeInternal&>(opentxs::OT::App());
+    const auto* pPWData = static_cast<const opentxs::OTPasswordData*>(userdata);
+    const std::string str_userdata = pPWData->GetDisplayString();
+    opentxs::OTPassword thePassword;
+    bool bGotPassword = false;
+
+    // Sometimes it's passed in, otherwise we use the global one.
+    const auto providedKey = pPWData->GetCachedKey();
+    auto& cachedKey =
+        (nullptr == providedKey) ? native.Crypto().DefaultKey() : *providedKey;
+    const bool b1 = pPWData->isForNormalNym();
+    const bool b3 = !(cachedKey.isPaused());
+
+    // For example, perhaps we need to collect a password for a symmetric key.
+    // In that case, it has nothing to do with any master key, or any
+    // public/private keys. It ONLY wants to do a simple password collect.
+    const bool bOldSystem = pPWData->isUsingOldSystem();
+
+    // It's for one of the normal Nyms. (NOT the master key.)
+    // If it was for the master key, we'd just pop up the dialog and get the
+    // master passphrase. But since it's for a NORMAL Nym, we have to call
+    // OTCachedKey::GetMasterPassword. IT will pop up the dialog if it needs to,
+    // by recursively calling this in master mode, and then it'll use the user
+    // passphrase from that dialog to derive a key, and use THAT key to unlock
+    // the actual "passphrase" (a random value) which is then passed back to
+    // OpenSSL to use for the Nyms.
+    if (b1 &&  // Normal Nyms, unlike Master passwords, have to look up the
+               // master password first.
+        !bOldSystem && b3)  // ...Unless they are still using the old system, in
+                            // which case they do NOT look up the master
+                            // password...
+    {
+        // Therefore we need to provide the password from an OTSymmetricKey
+        // stored here. (the "actual key" in the OTSymmetricKey IS the password
+        // that we are passing back!)
+
+        // So either the "actual key" is cached on a timer, from some previous
+        // request like this, OR we have to pop up the passphrase dialog, ask
+        // for the passphrase for the OTSymmetricKey, and then use it to GET the
+        // actual key from that OTSymmetricKey. The OTSymmetricKey should be
+        // stored in the OTWallet or Server, which sets a pointer to itself
+        // inside the OTPasswordData class statically, on initialization. That
+        // way, OTPasswordData can use that pointer to get a pointer to the
+        // relevant OTSymmetricKey being used as the MASTER key.
+        opentxs::otLog3 << __FUNCTION__
+                        << ": Using GetMasterPassword() call. \n";
+        bGotPassword = cachedKey.GetMasterPassword(
+            cachedKey,
+            thePassword,
+            str_userdata.c_str());  // bool bVerifyTwice=false
+
+        // NOTE: shouldn't the above call to GetMasterPassword be passing the
+        // rwflag as the final parameter? Just as we see below with the call to
+        // GetPasswordFromConsole. Right? Of course, it DOES generate
+        // internally, if necessary, and thus it forces an "ask twice" in that
+        // situation anyway. (It's that smart.) Actually that's it. The master
+        // already asks twice when it's generating.
+    } else {
+        opentxs::otLog3 << __FUNCTION__ << ": Using OT Password Callback. \n";
+        auto& caller = native.GetPasswordCaller();
+        // The dialog should display this string (so the user knows what he is
+        // authorizing.)
+        caller.SetDisplay(
+            str_userdata.c_str(),
+            static_cast<std::int32_t>(str_userdata.size()));
+
+        if (1 == rwflag) {
+            opentxs::otLog4
+                << __FUNCTION__
+                << ": Using OT Password Callback (asks twice) for \""
+                << str_userdata << "\"...\n";
+            caller.callTwo();
+        } else {
+            opentxs::otLog4 << __FUNCTION__
+                            << ": Using OT Password Callback (asks once) for \""
+                            << str_userdata << "\"...\n";
+            caller.callOne();
+        }
+        /*
+            NOTICE: (For security...)
+
+            We are using an OTPassword object to collect the password from the
+            caller. (We're not passing strings back and forth.) The OTPassword
+            object is where wecan centralize our efforts to scrub the memory
+            clean as soon as we're done with the password. It's also designed to
+            be light (no baggage) and to be passed around easily, with a
+            set-size array for the data.
+
+            Notice I am copying the password directly from the OTPassword
+            object into the buffer provided to me by OpenSSL. When the
+            OTPassword object goes out of scope, then it cleans up
+            automatically.
+        */
+        bGotPassword = caller.GetPassword(thePassword);
+    }
+
+    if (false == bGotPassword) {
+        opentxs::otOut
+            << __FUNCTION__
+            << ": Failure: (false == bGotPassword.) (Returning 0.)\n";
+
+        return 0;
+    }
+
+    opentxs::otInfo << __FUNCTION__ << ": Success!\n";
+    std::int32_t len = thePassword.isPassword() ? thePassword.getPasswordSize()
+                                                : thePassword.getMemorySize();
+
+    if (len < 0) {
+        opentxs::otOut << __FUNCTION__
+                       << ": <0 length password was "
+                          "returned from the API password callback. "
+                          "Returning 0.\n";
+
+        return 0;
+    } else if (len == 0) {
+        const char* szDefault = "test";
+        opentxs::otOut << __FUNCTION__
+                       << ": 0 length password was "
+                          "returned from the API password callback. "
+                          "Substituting default password 'test'.\n";
+
+        if (thePassword.isPassword()) {
+            thePassword.setPassword(
+                szDefault,
+                static_cast<std::int32_t>(
+                    opentxs::String::safe_strlen(szDefault, _PASSWORD_LEN)));
+        } else {
+            thePassword.setMemory(
+                static_cast<const void*>(szDefault),
+                static_cast<std::uint32_t>(
+                    opentxs::String::safe_strlen(szDefault, _PASSWORD_LEN)) +
+                    1);  // setMemory doesn't assume the null
+                         // terminator like setPassword does.
+        }
+
+        len = thePassword.isPassword() ? thePassword.getPasswordSize()
+                                       : thePassword.getMemorySize();
+    }
+
+    auto pMasterPW = pPWData->GetMasterPW();
+
+    if (pPWData->isForCachedKey() && (nullptr != pMasterPW)) {
+        *pMasterPW = thePassword;
+    } else if (nullptr != buf) {
+        if (len > size) { len = size; }
+
+        const auto theSize = static_cast<std::uint32_t>(size);
+        const auto theLength = static_cast<std::uint32_t>(len);
+
+        if (thePassword.isPassword()) {
+            opentxs::OTPassword::safe_memcpy(
+                buf,                              // destination
+                theSize,                          // size of destination buffer.
+                thePassword.getPassword_uint8(),  // source
+                theLength);                       // length of source.
+            buf[theLength] = '\0';                // null terminator.
+        } else {
+            opentxs::OTPassword::safe_memcpy(
+                buf,                            // destination
+                theSize,                        // size of destination buffer.
+                thePassword.getMemory_uint8(),  // source
+                theLength);                     // length of source.
+        }
+    } else {
+        //      OT_FAIL_MSG("This should never happen. (souped_up_pass_cb");
+    }
+
+    return len;
+}
+}  // namespace
 
 namespace opentxs
 {
@@ -315,6 +554,30 @@ String Native::get_primary_storage_plugin(
             return hardcoded;
         }
     }
+}
+
+INTERNAL_PASSWORD_CALLBACK* Native::GetInternalPasswordCallback() const
+{
+#if defined OT_TEST_PASSWORD
+    otInfo << OT_METHOD << __FUNCTION__
+           << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
+              "internal 'C'-based password callback was just "
+              "requested by OT (to pass to OpenSSL). So, returning "
+              "the default_pass_cb password callback, which will "
+              "automatically return "
+              "the 'test' password to OpenSSL, if/when it calls that "
+              "callback function.\n";
+    return &default_pass_cb;
+#else
+    return &souped_up_pass_cb;
+#endif
+}
+
+OTCaller& Native::GetPasswordCaller() const
+{
+    OT_ASSERT(nullptr != external_password_callback_)
+
+    return *external_password_callback_;
 }
 
 void Native::HandleSignals(ShutdownCallback* callback) const

@@ -41,6 +41,14 @@
 
 #include "Internal.hpp"
 
+namespace
+{
+extern "C" {
+INTERNAL_PASSWORD_CALLBACK default_pass_cb;
+INTERNAL_PASSWORD_CALLBACK souped_up_pass_cb;
+}
+}  // namespace
+
 namespace opentxs::api::implementation
 {
 /** \brief Singlton class for providing an interface to process-level resources.
@@ -72,6 +80,9 @@ public:
     const api::client::Wallet& Wallet() const override;
     const api::UI& UI() const override;
     const api::network::ZMQ& ZMQ() const override;
+
+    INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
+    OTCaller& GetPasswordCaller() const override;
 
 private:
     friend Factory;

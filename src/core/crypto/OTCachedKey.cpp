@@ -42,7 +42,6 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
@@ -54,6 +53,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
+
+#include "api/NativeInternal.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
 extern "C" {
@@ -429,25 +430,26 @@ bool OTCachedKey::GetMasterPassword(
             str_display.c_str(), &passUserInput, &passwordPassword);
 
         // It's possible this is the first time this is happening, and the
-        // master key
-        // hasn't even been generated yet. In which case, we generate it here...
-        //
+        // master key hasn't even been generated yet. In which case, we generate
+        // it here...
         bool bGenerated = key_->IsGenerated();
+        const auto& native =
+            dynamic_cast<const api::NativeInternal&>(OT::App());
+        auto* pPasswordCallback = native.GetInternalPasswordCallback();
 
-        if (!bGenerated)  // This Symmetric Key hasn't been generated before....
-        {
+        OT_ASSERT(nullptr != pPasswordCallback)
+
+        if (false == bGenerated) {
 #ifndef OT_NO_PASSWORD
-            OT_OPENSSL_CALLBACK* pPasswordCallback =
-                SwigWrap::GetPasswordCallback();
+            auto got = (*pPasswordCallback)(
+                nullptr,
+                0,
+                bVerifyTwice ? 1 : 0,
+                static_cast<void*>(&thePWData));
 
-            if ((nullptr != pPasswordCallback) &&
-                !(*pPasswordCallback)(
-                    nullptr,
-                    0,
-                    bVerifyTwice ? 1 : 0,
-                    static_cast<void*>(&thePWData))) {
-
+            if (false == got) {
                 otErr << __FUNCTION__ << ": Failed to get password from user!";
+
                 return false;
             }
 #endif  // OT_NO_PASSWORD
@@ -515,27 +517,17 @@ bool OTCachedKey::GetMasterPassword(
                     for (;;)  // bad passphase (as the calculate key returned
                               // nullptr)
                     {
-                        OT_OPENSSL_CALLBACK* pPasswordCallback =
-                            SwigWrap::GetPasswordCallback();
-
-                        if (nullptr == pPasswordCallback) {
-                            otErr
-                                << "\n\n"
-                                << __FUNCTION__
-                                << ": The passphrase callback isn't set. This "
-                                   "is the responsibility of the application "
-                                   "developer\n\n";
-                            return false;
-                        } else if (!(*pPasswordCallback)(
-                                       nullptr,
-                                       0,
-                                       0,  // false
-                                       static_cast<void*>(&thePWData))) {
+                        if (!(*pPasswordCallback)(
+                                nullptr,
+                                0,
+                                0,  // false
+                                static_cast<void*>(&thePWData))) {
                             otErr << "\n\n"
                                   << __FUNCTION__
                                   << ": Failed to get password from user!\n\n";
                             return false;
                         }
+
                         pDerivedKey = key_->CalculateDerivedKeyFromPassphrase(
                             passUserInput);                 // asserts already.
                         if (nullptr != pDerivedKey) break;  // success
@@ -549,21 +541,11 @@ bool OTCachedKey::GetMasterPassword(
                 otOut << "\n Please enter your current password twice, (not a "
                          "new password!!) \n";
 
-                OT_OPENSSL_CALLBACK* pPasswordCallback =
-                    SwigWrap::GetPasswordCallback();
-
-                if (nullptr == pPasswordCallback) {
-                    otErr << "\n\n"
-                          << __FUNCTION__
-                          << ": The passphrase callback isn't set. This "
-                             "is the responsibility of the application "
-                             "developer\n\n";
-                    return false;
-                } else if (!(*pPasswordCallback)(
-                               nullptr,
-                               0,
-                               1,  // true
-                               static_cast<void*>(&thePWData))) {
+                if (!(*pPasswordCallback)(
+                        nullptr,
+                        0,
+                        1,  // true
+                        static_cast<void*>(&thePWData))) {
                     otErr << __FUNCTION__
                           << ": Failed to get password from user!";
                     return false;

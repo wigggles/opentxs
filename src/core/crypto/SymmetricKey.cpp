@@ -40,7 +40,7 @@
 
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 
-#include "opentxs/client/SwigWrap.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
@@ -48,10 +48,14 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/OT.hpp"
 
-#define OT_METHOD "opentxs::SymmetricKey::"
+#include "api/NativeInternal.hpp"
+
 #define OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS 3
 #define OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY 8388608
+
+#define OT_METHOD "opentxs::SymmetricKey::"
 
 namespace opentxs
 {
@@ -537,7 +541,10 @@ bool SymmetricKey::GetPassword(
         OT_ASSERT(master);
 
         master->randomizeMemory(master->getBlockSize());
-        const auto length = souped_up_pass_cb(
+        const auto& native =
+            dynamic_cast<const api::NativeInternal&>(OT::App());
+        auto* callback = native.GetInternalPasswordCallback();
+        const auto length = (*callback)(
             static_cast<char*>(master->getMemoryWritable()),
             master->getBlockSize(),
             0,

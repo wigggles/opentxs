@@ -41,11 +41,26 @@
 
 #include "Internal.hpp"
 
+namespace
+{
+/** Callbacks in this form allow OpenSSL to query opentxs to get key encryption
+ *  and decryption passwords*/
+extern "C" {
+typedef std::int32_t INTERNAL_PASSWORD_CALLBACK(
+    char* buf,
+    std::int32_t size,
+    std::int32_t rwflag,
+    void* userdata);
+}
+}  // namespace
+
 namespace opentxs::api
 {
 class NativeInternal : virtual public Native
 {
 public:
+    virtual INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const = 0;
+    virtual OTCaller& GetPasswordCaller() const = 0;
     virtual void Init() = 0;
     virtual void shutdown() = 0;
 
