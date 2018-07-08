@@ -1231,6 +1231,7 @@ private:
     class Pid;
 
     const api::Activity& activity_;
+    const api::Api& api_;
     const api::Settings& config_;
     const api::ContactManager& contacts_;
     const api::Crypto& crypto_;
@@ -1307,6 +1308,7 @@ private:
 
     OT_API(
         const api::Activity& activity,
+        const api::Api& api,
         const api::Settings& config,
         const api::ContactManager& contacts,
         const api::Crypto& crypto,

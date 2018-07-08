@@ -40,6 +40,7 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -522,6 +523,7 @@ bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 OT_API::OT_API(
     const api::Activity& activity,
+    const api::Api& api,
     const api::Settings& config,
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
@@ -532,6 +534,7 @@ OT_API::OT_API(
     const api::network::ZMQ& zmq,
     const ContextLockCallback& lockCallback)
     : activity_(activity)
+    , api_(api)
     , config_(config)
     , contacts_(contacts)
     , crypto_(crypto)
@@ -11134,9 +11137,10 @@ CommandResult OT_API::registerAccount(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto contract = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
+    const auto added =
+        api_.Pair().AddIssuer(context.Nym()->ID(), INSTRUMENT_DEFINITION_ID);
 
-    if (false == bool(contract)) { return output; }
+    if (false == added) { return output; }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::registerAccount, requestNum);

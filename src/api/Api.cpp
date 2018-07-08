@@ -155,6 +155,7 @@ void Api::Init()
 
     ot_api_.reset(new OT_API(
         activity_,
+        *this,
         config_,
         contacts_,
         crypto_,
