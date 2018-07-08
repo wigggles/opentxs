@@ -204,6 +204,13 @@ public:
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const Identifier& nymID);
+    static api::NativeInternal* Native(
+        Flag& running,
+        const ArgList& args,
+        const bool recover,
+        const bool serverMode,
+        const std::chrono::seconds gcInterval,
+        OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();
     static api::client::Pair* Pair(
         const Flag& running,

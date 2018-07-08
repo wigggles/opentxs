@@ -41,31 +41,12 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTCallback.hpp"
-#include "opentxs/core/crypto/OTCaller.hpp"
-#include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Types.hpp"
-
-#include <atomic>
-#include <cstdint>
-#include <limits>
-#include <list>
-#include <map>
-#include <memory>
-#include <mutex>
-#include <string>
-#include <thread>
-#include <tuple>
-
 namespace opentxs::api::implementation
 {
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
  */
-class Native : virtual public api::Native
+class Native : virtual public opentxs::api::NativeInternal
 {
 public:
     const api::Activity& Activity() const override;
@@ -93,6 +74,7 @@ public:
     const api::network::ZMQ& ZMQ() const override;
 
 private:
+    friend Factory;
     friend class opentxs::OT;
 
     /** Last performed, Interval, Task */
@@ -178,11 +160,11 @@ private:
     void Init_StorageBackup();
     void Init_UI();
     void Init_ZMQ();
-    void Init();
+    void Init() override;
     void Periodic();
     void recover();
     void set_storage_encryption();
-    void shutdown();
+    void shutdown() override;
     void start();
 
     ~Native();

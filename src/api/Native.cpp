@@ -38,8 +38,6 @@
 
 #include "stdafx.hpp"
 
-#include "Native.hpp"
-
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -47,11 +45,15 @@
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/UI.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/OTCallback.hpp"
+#include "opentxs/core/crypto/OTCaller.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -60,6 +62,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
@@ -70,6 +73,7 @@
 #include "opentxs/ui/PayableList.hpp"
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
+#include "opentxs/Types.hpp"
 
 #include "api/crypto/Crypto.hpp"
 #include "api/network/Dht.hpp"
@@ -77,6 +81,7 @@
 #include "api/storage/StorageInternal.hpp"
 #include "api/Activity.hpp"
 #include "api/ContactManager.hpp"
+#include "api/NativeInternal.hpp"
 #include "api/Server.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
@@ -84,16 +89,43 @@
 
 #include <atomic>
 #include <ctime>
+#include <cstdint>
+#include <limits>
+#include <list>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
+#include <tuple>
+
+#include "Native.hpp"
 
 #define CLIENT_CONFIG_KEY "client"
 #define SERVER_CONFIG_KEY "server"
 #define STORAGE_CONFIG_KEY "storage"
 
 #define OT_METHOD "opentxs::api::implementation::Native::"
+
+namespace opentxs
+{
+api::NativeInternal* Factory::Native(
+    Flag& running,
+    const ArgList& args,
+    const bool recover,
+    const bool serverMode,
+    const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback)
+{
+    return new api::implementation::Native(
+        running,
+        args,
+        recover,
+        serverMode,
+        gcInterval,
+        externalPasswordCallback);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
