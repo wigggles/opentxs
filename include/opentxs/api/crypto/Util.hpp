@@ -56,9 +56,6 @@ public:
     virtual bool RandomizeMemory(
         std::uint8_t* szDestination,
         std::uint32_t nNewSize) const = 0;
-    virtual bool GetPasswordFromConsole(
-        OTPassword& theOutput,
-        bool bRepeat = false) const = 0;
 
     virtual ~Util() = default;
 

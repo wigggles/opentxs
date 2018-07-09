@@ -143,16 +143,12 @@ private:
         bool& AEAD,
         bool& ECB) const;
     void Cleanup_Override() const override;
-    bool get_password(OTPassword& theOutput, const char* szPrompt) const;
     void Init_Override() const override;
 
     OpenSSL();
 
 public:
     static std::mutex* s_arrayMutex;
-
-    bool GetPasswordFromConsole(OTPassword& theOutput, bool bRepeat = false)
-        const override;
 
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     OTPassword* InstantiateBinarySecret() const override;
