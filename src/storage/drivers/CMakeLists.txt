@@ -15,6 +15,7 @@ set(cxx-sources
   StorageFS.cpp
   StorageFSGC.cpp
   StorageFSArchive.cpp
+  StorageLMDB.cpp
   StorageMemDB.cpp
   StorageMultiplex.cpp
   StorageSqlite3.cpp
@@ -24,6 +25,7 @@ set(cxx-headers
   StorageFS.hpp
   StorageFSGC.hpp
   StorageFSArchive.hpp
+  StorageLMDB.hpp
   StorageMemDB.hpp
   StorageMultiplex.hpp
   StorageSqlite3.hpp
@@ -60,8 +62,4 @@ set_lib_property(${MODULE_NAME})
 
 if (OT_STORAGE_SQLITE)
   target_include_directories(${MODULE_NAME} PRIVATE ${OT_SQLITE_HEADERS})
-endif()
-
-if (OT_STORAGE_LMDB)
-  target_include_directories(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/lmdbxx)
 endif()

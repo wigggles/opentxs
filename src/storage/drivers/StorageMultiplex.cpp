@@ -153,6 +153,8 @@ void StorageMultiplex::init(
 {
     if (OT_STORAGE_PRIMARY_PLUGIN_MEMDB == primary) {
         init_memdb(plugin);
+    } else if (OT_STORAGE_PRIMARY_PLUGIN_LMDB == primary) {
+        init_lmdb(plugin);
     } else if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == primary) {
         init_sqlite(plugin);
     } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == primary) {
@@ -173,6 +175,21 @@ void StorageMultiplex::init_fs(
         storage_, config_, digest_, random_, primary_bucket_));
 #else
     otErr << OT_METHOD << __FUNCTION__ << ": Filesystem driver not compiled in."
+          << std::endl;
+    OT_FAIL;
+#endif
+}
+
+void StorageMultiplex::init_lmdb(
+    std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
+{
+#if OT_STORAGE_LMDB
+    otInfo << OT_METHOD << __FUNCTION__ << ": Initializing primary LMDB plugin."
+           << std::endl;
+    plugin.reset(Factory::StorageLMDB(
+        storage_, config_, digest_, random_, primary_bucket_));
+#else
+    otErr << OT_METHOD << __FUNCTION__ << ": LMDB driver not compiled in."
           << std::endl;
     OT_FAIL;
 #endif

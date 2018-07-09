@@ -228,6 +228,32 @@ api::storage::StorageInternal* Factory::Storage(
         storageConfig.sqlite3_db_file_,
         notUsed);
 #endif
+#if OT_STORAGE_LMDB
+    config.CheckSet_str(
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("lmdb_primary"),
+        String::Factory(storageConfig.lmdb_primary_bucket_),
+        storageConfig.lmdb_primary_bucket_,
+        notUsed);
+    config.CheckSet_str(
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("lmdb_secondary"),
+        String::Factory(storageConfig.lmdb_secondary_bucket_),
+        storageConfig.lmdb_secondary_bucket_,
+        notUsed);
+    config.CheckSet_str(
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("lmdb_control"),
+        String::Factory(storageConfig.lmdb_control_table_),
+        storageConfig.lmdb_control_table_,
+        notUsed);
+    config.CheckSet_str(
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("lmdb_root_key"),
+        String::Factory(storageConfig.lmdb_root_key_),
+        storageConfig.lmdb_root_key_,
+        notUsed);
+#endif
 
     if (haveGCInterval) {
         storageConfig.gc_interval_ = defaultGcInterval;
@@ -238,6 +264,22 @@ api::storage::StorageInternal* Factory::Storage(
             notUsed);
     } else {
         storageConfig.gc_interval_ = configGcInterval;
+    }
+
+    const std::string defaultPluginName(defaultPlugin.get().Get());
+
+    if (defaultPluginName == OT_STORAGE_PRIMARY_PLUGIN_LMDB) {
+        if (0 <= storage->ConstructAndCreatePath(
+                     path,
+                     dataFolder,
+                     OTFolders::Common().Get(),
+                     "_lmdb",
+                     ".temp",
+                     "")) {
+            path.erase(path.end() - 5, path.end());
+        }
+
+        storageConfig.path_ = path;
     }
 
     config.Set_str(

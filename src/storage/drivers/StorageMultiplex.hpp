@@ -84,6 +84,7 @@ private:
         const std::string& primary,
         std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
     void init_fs(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
+    void init_lmdb(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
     void init_memdb(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
     void init_sqlite(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
     void Init_StorageMultiplex(

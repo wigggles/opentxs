@@ -315,6 +315,14 @@ public:
         const Digest& hash,
         const Random& random,
         const Flag& bucket);
+#if OT_STORAGE_LMDB
+    static opentxs::api::storage::Plugin* StorageLMDB(
+        const api::storage::Storage& storage,
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random,
+        const Flag& bucket);
+#endif
     static opentxs::api::storage::Multiplex* StorageMultiplex(
         const api::storage::Storage& storage,
         const Flag& primaryBucket,
