@@ -5,18 +5,9 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #if OT_STORAGE_FS
-
-#include "StorageFS.hpp"
-
-namespace opentxs
+namespace opentxs::storage::implementation
 {
-
-class StorageConfig;
-class StorageMultiplex;
-
 // Simple filesystem implementation of opentxs::storage
 class StorageFSGC : public StorageFS,
                     public virtual opentxs::api::storage::Driver
@@ -32,7 +23,7 @@ public:
     ~StorageFSGC();
 
 private:
-    friend class StorageMultiplex;
+    friend Factory;
 
     std::string bucket_name(const bool bucket) const;
     std::string calculate_path(
@@ -57,6 +48,5 @@ private:
     StorageFSGC& operator=(const StorageFSGC&) = delete;
     StorageFSGC& operator=(StorageFSGC&&) = delete;
 };
-}  // namespace opentxs
-
+}  // namespace opentxs::storage::implementation
 #endif  // OT_STORAGE_FS

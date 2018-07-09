@@ -5,16 +5,34 @@
 
 #include "stdafx.hpp"
 
-#include "StorageFSGC.hpp"
+#include "Internal.hpp"
 
 #if OT_STORAGE_FS
 #include "storage/StorageConfig.hpp"
 
+#include "StorageFS.hpp"
+
 #include <boost/filesystem.hpp>
+
+#include "StorageFSGC.hpp"
 
 //#define OT_METHOD "opentxs::StorageFSGC::"
 
 namespace opentxs
+{
+opentxs::api::storage::Plugin* Factory::StorageFSGC(
+    const api::storage::Storage& storage,
+    const StorageConfig& config,
+    const Digest& hash,
+    const Random& random,
+    const Flag& bucket)
+{
+    return new opentxs::storage::implementation::StorageFSGC(
+        storage, config, hash, random, bucket);
+}
+}  // namespace opentxs
+
+namespace opentxs::storage::implementation
 {
 StorageFSGC::StorageFSGC(
     const api::storage::Storage& storage,
@@ -98,6 +116,6 @@ std::string StorageFSGC::root_filename() const
 }
 
 StorageFSGC::~StorageFSGC() { Cleanup_StorageFSGC(); }
-}  // namespace opentxs
+}  // namespace opentxs::storage::implementation
 
 #endif

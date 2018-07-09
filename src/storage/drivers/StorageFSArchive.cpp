@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "StorageFSArchive.hpp"
+#include "Internal.hpp"
 
 #if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -16,7 +16,9 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
 
+#include "storage/Plugin.hpp"
 #include "storage/StorageConfig.hpp"
+#include "StorageFS.hpp"
 
 #include <boost/filesystem.hpp>
 #include <boost/iostreams/device/file_descriptor.hpp>
@@ -27,6 +29,7 @@
 #include <fstream>
 #include <ios>
 #include <iostream>
+#include <memory>
 #include <thread>
 #include <vector>
 
@@ -40,13 +43,30 @@ extern "C" {
 #include <unistd.h>
 }
 
+#include "StorageFSArchive.hpp"
+
 #define ROOT_FILE_EXTENSION ".hash"
 
 #define OT_METHOD "opentxs::StorageFSArchive::"
 
 namespace opentxs
 {
+opentxs::api::storage::Plugin* Factory::StorageFSArchive(
+    const api::storage::Storage& storage,
+    const StorageConfig& config,
+    const Digest& hash,
+    const Random& random,
+    const Flag& bucket,
+    const std::string& folder,
+    crypto::key::Symmetric& key)
+{
+    return new opentxs::storage::implementation::StorageFSArchive(
+        storage, config, hash, random, bucket, folder, key);
+}
+}  // namespace opentxs
 
+namespace opentxs::storage::implementation
+{
 StorageFSArchive::StorageFSArchive(
     const api::storage::Storage& storage,
     const StorageConfig& config,
@@ -168,5 +188,5 @@ std::string StorageFSArchive::root_filename() const
 }
 
 StorageFSArchive::~StorageFSArchive() { Cleanup_StorageFSArchive(); }
-}  // namespace opentxs
+}  // namespace opentxs::storage::implementation
 #endif

@@ -5,21 +5,45 @@
 
 #include "stdafx.hpp"
 
-#include "StorageSqlite3.hpp"
+#include "Internal.hpp"
 
 #if OT_STORAGE_SQLITE
 #include "opentxs/core/Log.hpp"
 
+#include "storage/Plugin.hpp"
 #include "storage/StorageConfig.hpp"
 
+extern "C" {
 #include <sqlite3.h>
+}
 
+#include <atomic>
 #include <iostream>
+#include <mutex>
+#include <sstream>
 #include <string>
+#include <tuple>
+#include <vector>
+
+#include "StorageSqlite3.hpp"
 
 #define OT_METHOD "opentxs::StorageSqlite3::"
 
 namespace opentxs
+{
+opentxs::api::storage::Plugin* Factory::StorageSqlite3(
+    const api::storage::Storage& storage,
+    const StorageConfig& config,
+    const Digest& hash,
+    const Random& random,
+    const Flag& bucket)
+{
+    return new opentxs::storage::implementation::StorageSqlite3(
+        storage, config, hash, random, bucket);
+}
+}  // namespace opentxs
+
+namespace opentxs::storage::implementation
 {
 StorageSqlite3::StorageSqlite3(
     const api::storage::Storage& storage,
@@ -331,5 +355,5 @@ bool StorageSqlite3::Upsert(
 }
 
 StorageSqlite3::~StorageSqlite3() { Cleanup_StorageSqlite3(); }
-}  // namespace opentxs
+}  // namespace opentxs::storage::implementation
 #endif

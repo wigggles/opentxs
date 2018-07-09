@@ -361,8 +361,8 @@ private:
     mutable OTFlag primary_bucket_;
     std::vector<std::thread> background_threads_;
     const StorageConfig config_;
-    std::unique_ptr<StorageMultiplex> multiplex_p_;
-    StorageMultiplex& multiplex_;
+    std::unique_ptr<Multiplex> multiplex_p_;
+    Multiplex& multiplex_;
 
     opentxs::storage::Root* root() const;
     const opentxs::storage::Root& Root() const;

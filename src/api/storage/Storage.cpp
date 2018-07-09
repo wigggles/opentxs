@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/storage/Multiplex.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -13,7 +14,6 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/OTStorage.hpp"
 
-#include "storage/drivers/StorageMultiplex.hpp"
 #include "storage/tree/Accounts.hpp"
 #include "storage/tree/Bip47Channels.hpp"
 #include "storage/tree/BlockchainTransactions.hpp"
@@ -268,7 +268,7 @@ Storage::Storage(
     , primary_bucket_(Flag::Factory(false))
     , background_threads_()
     , config_(config)
-    , multiplex_p_(new StorageMultiplex(
+    , multiplex_p_(opentxs::Factory::StorageMultiplex(
           *this,
           primary_bucket_,
           config_,
@@ -697,7 +697,7 @@ void Storage::InitEncryptedBackup(opentxs::crypto::key::Symmetric& key)
 void Storage::InitPlugins()
 {
     bool syncPrimary{false};
-    const auto hash = multiplex_.best_root(syncPrimary);
+    const auto hash = multiplex_.BestRoot(syncPrimary);
 
     if (hash.empty()) { return; }
 
@@ -709,7 +709,7 @@ void Storage::InitPlugins()
 
     OT_ASSERT(root);
 
-    multiplex_.synchronize_plugins(hash, *root, syncPrimary);
+    multiplex_.SynchronizePlugins(hash, *root, syncPrimary);
 }
 
 ObjectList Storage::IssuerList(const std::string& nymID) const
