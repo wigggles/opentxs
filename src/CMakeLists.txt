@@ -314,6 +314,10 @@ if(OT_SHARED)
       target_link_libraries(${MODULE_NAME} PRIVATE ${SQLITE3_LIBRARIES})
   endif()
 
+  if (OT_STORAGE_LMDB)
+      target_link_libraries(${MODULE_NAME} PRIVATE ${LMDB_LIBRARIES})
+  endif()
+
   if (OT_STORAGE_FS)
       target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_IOSTREAMS_LIBRARIES})
   endif()
@@ -377,6 +381,10 @@ if(OT_STATIC)
 
   if (OT_STORAGE_SQLITE AND NOT OT_BUNDLED_SQLITE)
       target_link_libraries(${MODULE_NAME}_static PRIVATE ${SQLITE3_LIBRARIES})
+  endif()
+
+  if (OT_STORAGE_LMDB)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${LMDB_LIBRARIES})
   endif()
 
   if (OT_STORAGE_FS)
