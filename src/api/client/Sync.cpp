@@ -1397,7 +1397,7 @@ std::pair<ThreadStatus, OTIdentifier> Sync::MessageStatus(
 OTIdentifier Sync::PayContact(
     const Identifier& senderNymID,
     const Identifier& contactID,
-    std::shared_ptr<const OTPayment>& payment) const
+    std::shared_ptr<const OTPayment> payment) const
 {
     CHECK_SERVER(senderNymID, contactID)
 
@@ -1926,6 +1926,87 @@ bool Sync::send_transfer(
     }
 
     return finish_task(taskID, false);
+}
+
+OTIdentifier Sync::SendCheque(
+    const Identifier& localNymID,
+    const Identifier& sourceAccountID,
+    const Identifier& recipientContactID,
+    const Amount value,
+    const std::string& memo,
+    const Time validFrom,
+    const Time validTo) const
+{
+    CHECK_ARGS(localNymID, sourceAccountID, recipientContactID)
+
+    if (0 >= value) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid amount" << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    const auto contact = contacts_.Contact(recipientContactID);
+
+    if (false == bool(contact)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid contact" << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    const auto nyms = contact->Nyms(false);
+
+    if (0 == nyms.size()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Contact can not receive cheques" << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    // The first nym in the vector should be the primary, if a primary is set
+    const auto& recipientNymID = nyms[0];
+    auto account = wallet_.Account(sourceAccountID);
+
+    if (false == bool(account)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid account" << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    const auto& notaryID = account.get().GetRealNotaryID();
+    account.Release();
+    std::unique_ptr<Cheque> cheque(ot_api_.WriteCheque(
+        notaryID,
+        value,
+        Clock::to_time_t(validFrom),
+        Clock::to_time_t(validTo),
+        sourceAccountID,
+        localNymID,
+        memo.c_str(),
+        recipientNymID));
+
+    if (false == bool(cheque)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to write cheque"
+              << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    auto payment = std::make_shared<OTPayment>(String(*cheque));
+
+    if (false == bool(cheque)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate payment"
+              << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    if (false == payment->SetTempValues()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid payment" << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    return PayContact(localNymID, recipientContactID, payment);
 }
 
 OTIdentifier Sync::SendTransfer(

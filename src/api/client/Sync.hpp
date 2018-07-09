@@ -116,7 +116,7 @@ public:
     OTIdentifier PayContact(
         const Identifier& senderNymID,
         const Identifier& contactID,
-        std::shared_ptr<const OTPayment>& payment) const override;
+        std::shared_ptr<const OTPayment> payment) const override;
 #if OT_CASH
     OTIdentifier PayContactCash(
         const Identifier& senderNymID,
@@ -159,12 +159,20 @@ public:
     OTIdentifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    OTIdentifier SendCheque(
+        const Identifier& localNymID,
+        const Identifier& sourceAccountID,
+        const Identifier& recipientContactID,
+        const Amount value,
+        const std::string& memo,
+        const Time validFrom,
+        const Time validTo) const override;
     OTIdentifier SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& sourceAccountID,
         const Identifier& targetAccountID,
-        const int64_t value,
+        const Amount value,
         const std::string& memo) const override;
     void StartIntroductionServer(const Identifier& localNymID) const override;
     ThreadStatus Status(const Identifier& taskID) const override;

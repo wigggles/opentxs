@@ -43,11 +43,14 @@
 
 #include "opentxs/Types.hpp"
 
+#include <chrono>
 #include <cstdint>
 #include <tuple>
 #include <memory>
 #include <set>
 
+#define OT_CHEQUE_DAYS 30
+#define OT_CHEQUE_HOURS 24 * OT_CHEQUE_DAYS
 #define DEFAULT_PROCESS_INBOX_ITEMS 5
 
 namespace opentxs
@@ -59,6 +62,9 @@ namespace client
 class Sync
 {
 public:
+    using Clock = std::chrono::system_clock;
+    using Time = Clock::time_point;
+
     EXPORT virtual bool AcceptIncoming(
         const Identifier& nymID,
         const Identifier& accountID,
@@ -112,7 +118,7 @@ public:
     EXPORT virtual OTIdentifier PayContact(
         const Identifier& senderNymID,
         const Identifier& contactID,
-        std::shared_ptr<const OTPayment>& payment) const = 0;
+        std::shared_ptr<const OTPayment> payment) const = 0;
 #if OT_CASH
     EXPORT virtual OTIdentifier PayContactCash(
         const Identifier& senderNymID,
@@ -155,12 +161,21 @@ public:
     EXPORT virtual OTIdentifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual OTIdentifier SendCheque(
+        const Identifier& localNymID,
+        const Identifier& sourceAccountID,
+        const Identifier& recipientContactID,
+        const Amount value,
+        const std::string& memo,
+        const Time validFrom = Clock::now(),
+        const Time validTo =
+            (Clock::now() + std::chrono::hours(OT_CHEQUE_HOURS))) const = 0;
     EXPORT virtual OTIdentifier SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& sourceAccountID,
         const Identifier& targetAccountID,
-        const std::int64_t value,
+        const Amount value,
         const std::string& memo) const = 0;
     EXPORT virtual void StartIntroductionServer(
         const Identifier& localNymID) const = 0;

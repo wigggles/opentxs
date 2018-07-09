@@ -3620,6 +3620,10 @@ public:
         const std::string& senderNymID,
         const std::string& recipientContactID);
 
+    EXPORT static bool Deposit_Cheque(
+        const std::string& nymID,
+        const std::string& chequeID);
+
     EXPORT static std::string Find_Nym(const std::string& nymID);
 
     EXPORT static std::string Find_Nym_Hint(
@@ -3664,6 +3668,13 @@ public:
         const std::string& server,
         const bool setContactData = true,
         const bool primary = false);
+
+    EXPORT static std::string Send_Cheque(
+        const std::string& localNymID,
+        const std::string& sourceAccountID,
+        const std::string& recipientContactID,
+        const std::int64_t value,
+        const std::string& memo);
 
     EXPORT static std::string Set_Introduction_Server(
         const std::string& contract);
