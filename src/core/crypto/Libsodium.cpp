@@ -400,6 +400,15 @@ bool Libsodium::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
     return ExpandSeed(privateKey, notUsed, publicKey);
 }
 
+bool Libsodium::RandomizeMemory(
+    std::uint8_t* szDestination,
+    std::uint32_t nNewSize) const
+{
+    ::randombytes_buf(szDestination, nNewSize);
+
+    return true;
+}
+
 std::size_t Libsodium::SaltSize(const proto::SymmetricKeyType type) const
 {
     switch (type) {
