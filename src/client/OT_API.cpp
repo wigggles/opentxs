@@ -11137,10 +11137,9 @@ CommandResult OT_API::registerAccount(
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    const auto added =
-        api_.Pair().AddIssuer(context.Nym()->ID(), INSTRUMENT_DEFINITION_ID);
+    auto contract = wallet_.UnitDefinition(INSTRUMENT_DEFINITION_ID);
 
-    if (false == added) { return output; }
+    if (false == bool(contract)) { return output; }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::registerAccount, requestNum);

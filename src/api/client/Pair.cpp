@@ -180,7 +180,7 @@ bool Pair::AddIssuer(
     return true;
 }
 
-bool Pair::AddIssuer(
+bool Pair::CheckIssuer(
     const Identifier& localNymID,
     const Identifier& unitDefinitionID) const
 {
@@ -193,7 +193,7 @@ bool Pair::AddIssuer(
         return false;
     }
 
-    return AddIssuer(localNymID, contract->Nym()->ID());
+    return AddIssuer(localNymID, contract->Nym()->ID(), "");
 }
 
 void Pair::check_pairing() const
