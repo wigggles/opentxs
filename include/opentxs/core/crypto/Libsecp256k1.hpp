@@ -86,8 +86,8 @@ private:
     static bool Initialized_;
 
     secp256k1_context* context_{nullptr};
-    Ecdsa& ecdsa_;
-    api::crypto::Util& ssl_;
+    const Ecdsa& ecdsa_;
+    const api::crypto::Util& ssl_;
 
     bool ParsePublicKey(const Data& input, secp256k1_pubkey& output) const;
     void Init_Override() const override;
@@ -103,7 +103,7 @@ private:
         const override;
 
     Libsecp256k1() = delete;
-    explicit Libsecp256k1(api::crypto::Util& ssl, Ecdsa& ecdsa);
+    explicit Libsecp256k1(const api::crypto::Util& ssl, const Ecdsa& ecdsa);
 
 public:
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;

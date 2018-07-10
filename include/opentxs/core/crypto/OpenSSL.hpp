@@ -88,7 +88,6 @@ class OpenSSL : public Crypto
                 public CryptoSymmetric
 #endif
     ,
-                virtual public api::crypto::Util,
                 public CryptoHash
 {
 private:
@@ -153,10 +152,6 @@ public:
     // (To instantiate a text secret, just do this: OTPassword thePass;)
     OTPassword* InstantiateBinarySecret() const override;
     BinarySecret InstantiateBinarySecretSP() const override;
-
-    // RANDOM NUMBERS
-    bool RandomizeMemory(std::uint8_t* szDestination, std::uint32_t nNewSize)
-        const override;
 
     OTPassword* DeriveNewKey(
         const OTPassword& userPassword,

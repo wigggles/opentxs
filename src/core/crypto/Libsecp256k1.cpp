@@ -67,7 +67,7 @@ namespace opentxs
 {
 bool Libsecp256k1::Initialized_ = false;
 
-Libsecp256k1::Libsecp256k1(api::crypto::Util& ssl, Ecdsa& ecdsa)
+Libsecp256k1::Libsecp256k1(const api::crypto::Util& ssl, const Ecdsa& ecdsa)
     : Crypto()
     , context_(secp256k1_context_create(
           SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
@@ -243,7 +243,7 @@ bool Libsecp256k1::ECDH(
     OTPassword& secret) const
 {
 #if OT_CRYPTO_USING_TREZOR
-    return static_cast<TrezorCrypto&>(ecdsa_).ECDH(
+    return static_cast<const TrezorCrypto&>(ecdsa_).ECDH(
         publicKey, privateKey, secret);
 #else
     return false;

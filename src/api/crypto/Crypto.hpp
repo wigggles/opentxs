@@ -142,6 +142,7 @@ private:
     std::unique_ptr<crypto::Encode> encode_;
     std::unique_ptr<crypto::Hash> hash_;
     std::unique_ptr<crypto::Symmetric> symmetric_;
+    const api::crypto::Util& util_;
 
     void init_default_key(const Lock& lock) const;
 

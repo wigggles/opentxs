@@ -41,6 +41,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/CryptoHash.hpp"
@@ -70,7 +71,8 @@ class Libsodium : public Crypto,
                   public CryptoAsymmetric,
                   public CryptoSymmetricNew,
                   public Ecdsa,
-                  public CryptoHash
+                  public CryptoHash,
+                  virtual public api::crypto::Util
 {
     friend class api::implementation::Crypto;
 
@@ -131,6 +133,8 @@ public:
         const size_t keySize,
         std::uint8_t* output) const override;
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
+    bool RandomizeMemory(std::uint8_t* szDestination, std::uint32_t nNewSize)
+        const override;
     bool Sign(
         const Data& plaintext,
         const OTAsymmetricKey& theKey,
