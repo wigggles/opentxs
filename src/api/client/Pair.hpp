@@ -50,7 +50,7 @@ public:
         const Identifier& localNymID,
         const Identifier& issuerNymID,
         const std::string& pairingCode) const override;
-    bool AddIssuer(
+    bool CheckIssuer(
         const Identifier& localNymID,
         const Identifier& unitDefinitionID) const override;
     std::string IssuerDetails(

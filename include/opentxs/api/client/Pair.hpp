@@ -59,7 +59,7 @@ public:
         const Identifier& localNymID,
         const Identifier& issuerNymID,
         const std::string& pairingCode) const = 0;
-    virtual bool AddIssuer(
+    virtual bool CheckIssuer(
         const Identifier& localNymID,
         const Identifier& unitDefinitionID) const = 0;
     virtual std::string IssuerDetails(
