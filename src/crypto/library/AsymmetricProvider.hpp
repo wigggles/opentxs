@@ -36,65 +36,41 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_ASYMMETRICPROVIDER_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_ASYMMETRICPROVIDER_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/Proto.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
 
-#include <set>
-
-namespace opentxs
+namespace opentxs::crypto::implementation
 {
-
-class OTAsymmetricKey;
-class Data;
-class OTPassword;
-class OTPasswordData;
-class OTSignature;
-
-typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
-
-class CryptoAsymmetric
+class AsymmetricProvider : virtual public crypto::AsymmetricProvider
 {
-
 public:
-    static proto::AsymmetricKeyType CurveToKeyType(const EcdsaCurve& curve);
-    static EcdsaCurve KeyTypeToCurve(const proto::AsymmetricKeyType& type);
-
     bool SignContract(
         const String& strContractUnsigned,
         const OTAsymmetricKey& theKey,
         OTSignature& theSignature,  // output
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const;
-    virtual bool VerifyContractSignature(
+        const OTPasswordData* pPWData = nullptr) const override;
+    bool VerifyContractSignature(
         const String& strContractToVerify,
         const OTAsymmetricKey& theKey,
         const OTSignature& theSignature,
         const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const;
+        const OTPasswordData* pPWData = nullptr) const override;
 
-    virtual bool Sign(
-        const Data& plaintext,
-        const OTAsymmetricKey& theKey,
-        const proto::HashType hashType,
-        Data& signature,  // output
-        const OTPasswordData* pPWData = nullptr,
-        const OTPassword* exportPassword = nullptr) const = 0;
-    virtual bool Verify(
-        const Data& plaintext,
-        const OTAsymmetricKey& theKey,
-        const Data& signature,
-        const proto::HashType hashType,
-        const OTPasswordData* pPWData = nullptr) const = 0;
+    virtual ~AsymmetricProvider() = default;
 
-    virtual ~CryptoAsymmetric() = default;
+protected:
+    AsymmetricProvider() = default;
+
+private:
+    AsymmetricProvider(const AsymmetricProvider&) = delete;
+    AsymmetricProvider(AsymmetricProvider&&) = delete;
+    AsymmetricProvider& operator=(const AsymmetricProvider&) = delete;
+    AsymmetricProvider& operator=(AsymmetricProvider&&) = delete;
 };
-
-}  // namespace opentxs
-
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOASYMMETRIC_HPP
+}  // namespace opentxs::crypto::implementation
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_ASYMMETRICPROVIDER_HPP

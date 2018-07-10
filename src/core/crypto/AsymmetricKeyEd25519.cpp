@@ -38,13 +38,16 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 
 namespace opentxs
@@ -70,12 +73,12 @@ AsymmetricKeyEd25519::AsymmetricKeyEd25519(const String& publicKey)
 {
 }
 
-const Ecdsa& AsymmetricKeyEd25519::ECDSA() const
+const crypto::EcdsaProvider& AsymmetricKeyEd25519::ECDSA() const
 {
-    return static_cast<const Libsodium&>(engine());
+    return dynamic_cast<const crypto::Sodium&>(engine());
 }
 
-const CryptoAsymmetric& AsymmetricKeyEd25519::engine() const
+const crypto::AsymmetricProvider& AsymmetricKeyEd25519::engine() const
 {
     return OT::App().Crypto().ED25519();
 }
@@ -109,3 +112,4 @@ bool AsymmetricKeyEd25519::hasCapability(const NymCapability& capability) const
     }
 }
 }  // namespace opentxs
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519

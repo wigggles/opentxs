@@ -42,8 +42,6 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -57,9 +55,11 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -555,7 +555,7 @@ bool Contract::SignContract(
     //
     UpdateContents();
 
-    const CryptoAsymmetric& engine = theKey.engine();
+    const auto& engine = theKey.engine();
 
     if (false ==
         engine.SignContract(
@@ -772,7 +772,7 @@ bool Contract::VerifySignature(
 
     OTPasswordData thePWData("Contract::VerifySignature 2");
 
-    const CryptoAsymmetric& engine = theKey.engine();
+    const auto& engine = theKey.engine();
 
     if (false == engine.VerifyContractSignature(
                      trim(m_xmlUnsigned),
@@ -963,7 +963,7 @@ bool Contract::AddBookendsAroundContent(
     const listOfSignatures& listSignatures)
 {
     String strTemp;
-    String strHashType = CryptoHash::HashTypeToString(hashType);
+    String strHashType = crypto::HashingProvider::HashTypeToString(hashType);
 
     strTemp.Concatenate(
         "-----BEGIN SIGNED %s-----\nHash: %s\n\n",
@@ -1419,7 +1419,8 @@ bool Contract::ParseRawFile()
                         strHashType.ConvertToUpperCase();
 
                         m_strSigHashType =
-                            CryptoHash::StringToHashType(strHashType);
+                            crypto::HashingProvider::StringToHashType(
+                                strHashType);
 
                         if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
                             otOut << "Error in contract " << m_strFilename

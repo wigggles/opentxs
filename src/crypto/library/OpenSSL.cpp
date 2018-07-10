@@ -37,15 +37,14 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OpenSSL.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
@@ -60,13 +59,14 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/OpenSSL.hpp"
 #include "opentxs/OT.hpp"
+
+#include "AsymmetricProvider.hpp"
+#include "OpenSSL_BIO.hpp"
 
 extern "C" {
 #include <netinet/in.h>
-}
-
-extern "C" {
 #include <openssl/bio.h>
 #include <openssl/buffer.h>
 #include <openssl/conf.h>
@@ -75,6 +75,8 @@ extern "C" {
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/opensslconf.h>
+#include <openssl/opensslv.h>
+#include <openssl/ossl_typ.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
 #include <openssl/ssl.h>
@@ -85,10 +87,14 @@ extern "C" {
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 #include <mutex>
 #include <ostream>
+#include <set>
 #include <string>
 #include <thread>
+
+#include "OpenSSL.hpp"
 
 #ifdef __APPLE__
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -108,6 +114,14 @@ void EVP_MD_CTX_free(EVP_MD_CTX* context) { delete context; }
 
 namespace opentxs
 {
+crypto::OpenSSL* Factory::OpenSSL()
+{
+    return new crypto::implementation::OpenSSL;
+}
+}  // namespace opentxs
+
+namespace opentxs::crypto::implementation
+{
 std::mutex* OpenSSL::s_arrayMutex = nullptr;
 
 class OpenSSL::OpenSSLdp
@@ -117,7 +131,7 @@ public:
 
     static const EVP_MD* HashTypeToOpenSSLType(const proto::HashType hashType);
     static const EVP_CIPHER* CipherModeToOpenSSLMode(
-        const CryptoSymmetric::Mode cipher);
+        const LegacySymmetricProvider::Mode cipher);
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     bool SignContractDefaultHash(
@@ -176,8 +190,12 @@ OpenSSL::DigestContext::~DigestContext()
 OpenSSL::DigestContext::operator EVP_MD_CTX*() { return context_; }
 
 OpenSSL::OpenSSL()
-    : Crypto()
-    , dp_(new OpenSSLdp)
+    :
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    AsymmetricProvider()
+    ,
+#endif
+    dp_(new OpenSSLdp)
     , lock_()
 {
 }
@@ -402,24 +420,24 @@ const EVP_MD* OpenSSL::OpenSSLdp::HashTypeToOpenSSLType(
 }
 
 const EVP_CIPHER* OpenSSL::OpenSSLdp::CipherModeToOpenSSLMode(
-    const CryptoSymmetric::Mode cipher)
+    const LegacySymmetricProvider::Mode cipher)
 {
     const EVP_CIPHER* OpenSSLCipher;
 
     switch (cipher) {
-        case CryptoSymmetric::AES_128_CBC:
+        case LegacySymmetricProvider::AES_128_CBC:
             OpenSSLCipher = EVP_aes_128_cbc();
             break;
-        case CryptoSymmetric::AES_256_CBC:
+        case LegacySymmetricProvider::AES_256_CBC:
             OpenSSLCipher = EVP_aes_256_cbc();
             break;
-        case CryptoSymmetric::AES_256_ECB:
+        case LegacySymmetricProvider::AES_256_ECB:
             OpenSSLCipher = EVP_aes_256_ecb();
             break;
-        case CryptoSymmetric::AES_128_GCM:
+        case LegacySymmetricProvider::AES_128_GCM:
             OpenSSLCipher = EVP_aes_128_gcm();
             break;
-        case CryptoSymmetric::AES_256_GCM:
+        case LegacySymmetricProvider::AES_256_GCM:
             OpenSSLCipher = EVP_aes_256_gcm();
             break;
         default:
@@ -502,7 +520,7 @@ void OpenSSL::thread_cleanup() const
     OpenSSL::s_arrayMutex = nullptr;
 }
 
-void OpenSSL::Init_Override() const
+void OpenSSL::Init()
 {
     otWarn << __FUNCTION__
            << ": Setting up OpenSSL:  SSL_library_init, error "
@@ -810,15 +828,9 @@ void OpenSSL::Init_Override() const
  ERR_free_strings(), EVP_cleanup() and CRYPTO_cleanup_all_ex_data().
  */
 
-void OpenSSL::Cleanup_Override() const
+void OpenSSL::Cleanup()
 {
     otLog4 << __FUNCTION__ << ": Cleaning up OpenSSL...\n";
-
-    // In the future if we start using ENGINEs, then do the cleanup here:
-    //#ifndef OPENSSL_NO_ENGINE
-    //  void ENGINE_cleanup(void);
-    //#endif
-    //
 
 #if defined(OPENSSL_THREADS)
     // thread support enabled
@@ -887,7 +899,7 @@ void OpenSSL::Cleanup_Override() const
 
 bool OpenSSL::ArgumentCheck(
     const bool encrypt,
-    const CryptoSymmetric::Mode cipher,
+    const LegacySymmetricProvider::Mode cipher,
     const OTPassword& key,
     const Data& iv,
     const Data& tag,
@@ -897,18 +909,19 @@ bool OpenSSL::ArgumentCheck(
     bool& ECB) const
 {
     AEAD =
-        ((CryptoSymmetric::AES_128_GCM == cipher) ||
-         (CryptoSymmetric::AES_256_GCM == cipher));
-    ECB = (CryptoSymmetric::AES_256_ECB == cipher);
+        ((LegacySymmetricProvider::AES_128_GCM == cipher) ||
+         (LegacySymmetricProvider::AES_256_GCM == cipher));
+    ECB = (LegacySymmetricProvider::AES_256_ECB == cipher);
 
     // Debug logging
-    otLog3 << "Using cipher: " << CryptoSymmetric::ModeToString(cipher) << "\n";
+    otLog3 << "Using cipher: " << LegacySymmetricProvider::ModeToString(cipher)
+           << "\n";
 
     if (ECB) { otLog3 << "...in ECB mode.\n"; }
 
     if (AEAD) { otLog3 << "...in AEAD mode.\n"; }
 
-    otLog3 << "...with a " << (8 * CryptoSymmetric::KeySize(cipher))
+    otLog3 << "...with a " << (8 * LegacySymmetricProvider::KeySize(cipher))
            << "bit key.\n";
 
     otLog3 << "Actual key bytes: " << key.getMemorySize() << "\n";
@@ -919,28 +932,30 @@ bool OpenSSL::ArgumentCheck(
 
     // Validate input parameters
     if (!encrypt) {
-        if (AEAD && (CryptoSymmetric::TagSize(cipher) != tag.GetSize())) {
+        if (AEAD &&
+            (LegacySymmetricProvider::TagSize(cipher) != tag.GetSize())) {
             otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect tag size.\n";
             return false;
         }
     }
 
-    if ((encrypt && ECB) && (inputLength != CryptoSymmetric::KeySize(cipher))) {
+    if ((encrypt && ECB) &&
+        (inputLength != LegacySymmetricProvider::KeySize(cipher))) {
         otErr << "OpenSSL::" << __FUNCTION__
               << ": Input size must be exactly one block for ECB mode.\n";
         return false;
     }
 
-    if (!ECB && (iv.GetSize() != CryptoSymmetric::IVSize(cipher))) {
+    if (!ECB && (iv.GetSize() != LegacySymmetricProvider::IVSize(cipher))) {
         otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect IV size.\n";
         otErr << "Actual IV bytes: " << iv.GetSize() << "\n";
         return false;
     }
 
-    if (key.getMemorySize() != CryptoSymmetric::KeySize(cipher)) {
+    if (key.getMemorySize() != LegacySymmetricProvider::KeySize(cipher)) {
         otErr << "OpenSSL::" << __FUNCTION__
               << ": Incorrect key size. Expected: "
-              << CryptoSymmetric::KeySize(cipher) << "\n";
+              << LegacySymmetricProvider::KeySize(cipher) << "\n";
         otErr << "Actual key bytes: " << key.getMemorySize() << "\n";
         return false;
     }
@@ -969,7 +984,7 @@ bool OpenSSL::Encrypt(
     Data& theEncryptedOutput) const  // OUTPUT. (Ciphertext.)
 {
     return Encrypt(
-        CryptoSymmetric::AES_256_CBC,  // What OT was using before
+        LegacySymmetricProvider::AES_256_CBC,  // What OT was using before
         theRawSymmetricKey,
         theIV,
         szInput,
@@ -978,7 +993,7 @@ bool OpenSSL::Encrypt(
 }
 
 bool OpenSSL::Encrypt(
-    const CryptoSymmetric::Mode cipher,
+    const LegacySymmetricProvider::Mode cipher,
     const OTPassword& key,
     const char* plaintext,
     std::uint32_t plaintextLength,
@@ -991,7 +1006,7 @@ bool OpenSSL::Encrypt(
 }
 
 bool OpenSSL::Encrypt(
-    const CryptoSymmetric::Mode cipher,
+    const LegacySymmetricProvider::Mode cipher,
     const OTPassword& key,
     const Data& iv,
     const char* plaintext,
@@ -1005,7 +1020,7 @@ bool OpenSSL::Encrypt(
 }
 
 bool OpenSSL::Encrypt(
-    const CryptoSymmetric::Mode cipher,
+    const LegacySymmetricProvider::Mode cipher,
     const OTPassword& key,
     const Data& iv,
     const char* plaintext,
@@ -1194,13 +1209,13 @@ bool OpenSSL::Encrypt(
 
     if (AEAD) {
         /* Get the tag */
-        tag.SetSize(CryptoSymmetric::TagSize(cipher));
+        tag.SetSize(LegacySymmetricProvider::TagSize(cipher));
         tag.zeroMemory();
 
         if (!EVP_CIPHER_CTX_ctrl(
                 pCONTEXT,
                 EVP_CTRL_GCM_GET_TAG,
-                CryptoSymmetric::TagSize(cipher),
+                LegacySymmetricProvider::TagSize(cipher),
                 const_cast<void*>(tag.GetPointer()))) {
             otErr << szFunc << ": Could not extract tag.\n";
             return false;
@@ -1233,7 +1248,7 @@ bool OpenSSL::Decrypt(
 // will work.)
 {
     return Decrypt(
-        CryptoSymmetric::AES_256_CBC,  // What OT was using before
+        LegacySymmetricProvider::AES_256_CBC,  // What OT was using before
         theRawSymmetricKey,
         theIV,
         szInput,
@@ -1242,7 +1257,7 @@ bool OpenSSL::Decrypt(
 }
 
 bool OpenSSL::Decrypt(
-    const CryptoSymmetric::Mode cipher,
+    const LegacySymmetricProvider::Mode cipher,
     const OTPassword& key,
     const char* ciphertext,
     std::uint32_t ciphertextLength,
@@ -1255,7 +1270,7 @@ bool OpenSSL::Decrypt(
 }
 
 bool OpenSSL::Decrypt(
-    const CryptoSymmetric::Mode cipher,
+    const LegacySymmetricProvider::Mode cipher,
     const OTPassword& key,
     const Data& iv,
     const char* ciphertext,
@@ -1269,7 +1284,7 @@ bool OpenSSL::Decrypt(
 }
 
 bool OpenSSL::Decrypt(
-    const CryptoSymmetric::Mode cipher,
+    const LegacySymmetricProvider::Mode cipher,
     const OTPassword& key,
     const Data& iv,
     const Data& tag,
@@ -1456,7 +1471,7 @@ bool OpenSSL::Decrypt(
                 context,
 #endif
                 EVP_CTRL_GCM_SET_TAG,
-                CryptoSymmetric::TagSize(cipher),
+                LegacySymmetricProvider::TagSize(cipher),
                 const_cast<void*>(tag.GetPointer()))) {
             otErr << szFunc << ": Could not set tag.\n";
             return false;
@@ -1549,7 +1564,7 @@ bool OpenSSL::Digest(
     std::uint8_t* output) const
 
 {
-    const auto size = CryptoHash::HashSize(hashType);
+    const auto size = HashingProvider::HashSize(hashType);
 
     if ((proto::HASHTYPE_ERROR == hashType) ||
         (proto::HASHTYPE_NONE == hashType) ||
@@ -1557,7 +1572,7 @@ bool OpenSSL::Digest(
         (proto::HASHTYPE_BLAKE2B256 == hashType) ||
         (proto::HASHTYPE_BLAKE2B512 == hashType)) {
         otErr << __FUNCTION__ << ": Error: invalid hash type: "
-              << CryptoHash::HashTypeToString(hashType) << std::endl;
+              << HashingProvider::HashTypeToString(hashType) << std::endl;
 
         return false;
     }
@@ -1616,38 +1631,6 @@ bool OpenSSL::HMAC(
     }
 }
 
-// OpenSSL_BIO
-
-// static
-BIO* OpenSSL_BIO::assertBioNotNull(BIO* pBIO)
-{
-    if (nullptr == pBIO) OT_FAIL;
-    return pBIO;
-}
-
-OpenSSL_BIO::OpenSSL_BIO(BIO* pBIO)
-    : m_refBIO(*assertBioNotNull(pBIO))
-    , bCleanup(true)
-    , bFreeOnly(false)
-{
-}
-
-OpenSSL_BIO::~OpenSSL_BIO()
-{
-    if (bCleanup) {
-        if (bFreeOnly) {
-            BIO_free(&m_refBIO);
-        } else {
-            BIO_free_all(&m_refBIO);
-        }
-    }
-}
-
-OpenSSL_BIO::operator BIO*() const { return (&m_refBIO); }
-
-void OpenSSL_BIO::release() { bCleanup = false; }
-
-void OpenSSL_BIO::setFreeOnly() { bFreeOnly = true; }
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 /*
  128 bytes * 8 bits == 1024 bits key.  (RSA)
@@ -2392,7 +2375,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
     };
 #endif
 
-    String strHashType = CryptoHash::HashTypeToString(hashType);
+    String strHashType = HashingProvider::HashTypeToString(hashType);
 
     EVP_MD* md = nullptr;
 
@@ -2491,7 +2474,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 
     const char* szFunc = "OpenSSL::VerifySignature";
 
-    String strHashType = CryptoHash::HashTypeToString(hashType);
+    String strHashType = HashingProvider::HashTypeToString(hashType);
 
     EVP_MD* md = nullptr;
 
@@ -3745,5 +3728,5 @@ bool OpenSSL::DecryptSessionKey(
     return bFinalized;
 }
 #endif
-}  // namespace opentxs
+}  // namespace opentxs::crypto::implementation
 #endif  // OT_CRYPTO_USING_OPENSSL

@@ -67,16 +67,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include "opentxs/core/crypto/Bip32.hpp"
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/Ecdsa.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
-#endif
-#include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTKeypair.hpp"
@@ -87,6 +78,17 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#endif
+#include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
@@ -327,7 +329,7 @@ KeyCredential::KeyCredential(
     } else {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
         const auto keyType = nymParameters.AsymmetricKeyType();
-        const auto curve = CryptoAsymmetric::KeyTypeToCurve(keyType);
+        const auto curve = crypto::AsymmetricProvider::KeyTypeToCurve(keyType);
 
         if ((EcdsaCurve::ERROR != curve) && nymParameters.Entropy()) {
             m_AuthentKey = DeriveHDKeypair(
@@ -426,19 +428,19 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     if (!privateKey) { return newKeypair; }
 
     privateKey->set_role(role);
-    const Ecdsa* engine = nullptr;
+    const crypto::EcdsaProvider* engine = nullptr;
 
     switch (curve) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (EcdsaCurve::SECP256K1): {
-            engine = static_cast<const Libsecp256k1*>(
+            engine = dynamic_cast<const crypto::Secp256k1*>(
                 &OT::App().Crypto().SECP256K1());
             break;
         }
 #endif
         case (EcdsaCurve::ED25519): {
-            engine =
-                static_cast<const Libsodium*>(&OT::App().Crypto().ED25519());
+            engine = dynamic_cast<const crypto::Sodium*>(
+                &OT::App().Crypto().ED25519());
             break;
         }
         default: {

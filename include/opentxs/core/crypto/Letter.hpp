@@ -41,22 +41,19 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <list>
 #include <map>
 #include <string>
 
 namespace opentxs
-
 {
-class AsymmetricKeyEC;
-class Nym;
-class OTPasswordData;
-class Data;
-
+typedef std::multimap<std::string, OTAsymmetricKey*> mapOfAsymmetricKeys;
+typedef std::tuple<String, String, String, String, std::shared_ptr<OTEnvelope>>
+    symmetricEnvelope;
 typedef std::list<symmetricEnvelope> listOfSessionKeys;
 typedef std::map<proto::AsymmetricKeyType, std::string> listOfEphemeralKeys;
 typedef std::multimap<std::string, const AsymmetricKeyEC*> mapOfECKeys;

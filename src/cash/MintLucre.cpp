@@ -44,15 +44,16 @@
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/core/String.hpp"
-#if OT_CASH_USING_LUCRE
-#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
-#endif
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+
+#if OT_CASH_USING_LUCRE
+#include "crypto/library/OpenSSL_BIO.hpp"
+#endif
 
 #include <openssl/bio.h>
 #include <openssl/bn.h>
@@ -133,8 +134,8 @@ bool MintLucre::AddDenomination(
     SetMonitor(stderr);
 #endif
 
-    OpenSSL_BIO bio = BIO_new(BIO_s_mem());
-    OpenSSL_BIO bioPublic = BIO_new(BIO_s_mem());
+    crypto::implementation::OpenSSL_BIO bio = BIO_new(BIO_s_mem());
+    crypto::implementation::OpenSSL_BIO bioPublic = BIO_new(BIO_s_mem());
 
     // Generate the mint private key information
     Bank bank(nPrimeLength / 8);
@@ -208,9 +209,12 @@ bool MintLucre::SignToken(
 
     LucreDumper setDumper;
 
-    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());       // input
-    OpenSSL_BIO bioRequest = BIO_new(BIO_s_mem());    // input
-    OpenSSL_BIO bioSignature = BIO_new(BIO_s_mem());  // output
+    crypto::implementation::OpenSSL_BIO bioBank =
+        BIO_new(BIO_s_mem());  // input
+    crypto::implementation::OpenSSL_BIO bioRequest =
+        BIO_new(BIO_s_mem());  // input
+    crypto::implementation::OpenSSL_BIO bioSignature =
+        BIO_new(BIO_s_mem());  // output
 
     OTASCIIArmor thePrivate;
     GetPrivate(thePrivate, theToken.GetDenomination());
@@ -316,8 +320,10 @@ bool MintLucre::VerifyToken(
     bool bReturnValue = false;
     LucreDumper setDumper;
 
-    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());  // input
-    OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());  // input
+    crypto::implementation::OpenSSL_BIO bioBank =
+        BIO_new(BIO_s_mem());  // input
+    crypto::implementation::OpenSSL_BIO bioCoin =
+        BIO_new(BIO_s_mem());  // input
 
     // --- copy theCleartextToken to bioCoin so lucre can load it
     BIO_puts(bioCoin, theCleartextToken.Get());

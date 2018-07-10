@@ -36,49 +36,37 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_OPENSSL_BIO_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_OPENSSL_BIO_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/Proto.hpp"
+extern "C" {
+#include <openssl/bio.h>
+}
 
-#include <cstdint>
-
-namespace opentxs
+namespace opentxs::crypto::implementation
 {
-
-class Data;
-class OTPassword;
-class String;
-
-class CryptoHash
+class OpenSSL_BIO
 {
-protected:
-    CryptoHash() = default;
+private:
+    BIO& m_refBIO;
+    bool bCleanup;
+    bool bFreeOnly;
+
+    EXPORT static BIO* assertBioNotNull(BIO* pBIO);
 
 public:
-    static proto::HashType StringToHashType(const String& inputString);
-    static String HashTypeToString(const proto::HashType hashType);
-    static size_t HashSize(const proto::HashType hashType);
+    EXPORT OpenSSL_BIO(BIO* pBIO);
 
-    virtual bool Digest(
-        const proto::HashType hashType,
-        const std::uint8_t* input,
-        const size_t inputSize,
-        std::uint8_t* output) const = 0;
+    EXPORT ~OpenSSL_BIO();
 
-    virtual bool HMAC(
-        const proto::HashType hashType,
-        const std::uint8_t* input,
-        const size_t inputSize,
-        const std::uint8_t* key,
-        const size_t keySize,
-        std::uint8_t* output) const = 0;
+    EXPORT operator BIO*() const;
 
-    virtual ~CryptoHash() = default;
+    EXPORT void release();
+    EXPORT void setFreeOnly();
 };
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOHASH_HPP
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_OPENSSL_BIO_HPP

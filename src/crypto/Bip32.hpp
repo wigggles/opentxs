@@ -36,33 +36,28 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_BIP32_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_BIP32_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/Types.hpp"
+#include "opentxs/crypto/Bip32.hpp"
 
-#include <cstddef>
-#include <cstdint>
-#include <string>
-
-namespace opentxs
+namespace opentxs::crypto::implementation
 {
-
-class CryptoEncoding
+class Bip32 : virtual public opentxs::crypto::Bip32
 {
-protected:
-    CryptoEncoding() = default;
-
 public:
-    virtual std::string Base58CheckEncode(
-        const std::uint8_t* inputStart,
-        const std::size_t& inputSize) const = 0;
-    virtual bool Base58CheckDecode(const std::string&& input, RawData& output)
-        const = 0;
-
-    virtual ~CryptoEncoding() = default;
+    std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
+        const proto::HDPath& path,
+        const BIP44Chain internal,
+        const std::uint32_t index) const;
+    std::string Seed(const std::string& fingerprint = "") const;
+    std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
+        std::string& fingerprint,
+        const std::uint32_t nym) const;
+    std::shared_ptr<proto::AsymmetricKey> GetStorageKey(
+        std::string& seed) const;
 };
-}  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOENCODING_HPP
+}  // namespace opentxs::crypto::implementation
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_BIP32_HPP

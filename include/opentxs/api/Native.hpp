@@ -60,7 +60,9 @@ public:
 
     virtual const class Activity& Activity() const = 0;
     virtual const class Api& API() const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     virtual const class Blockchain& Blockchain() const = 0;
+#endif
     virtual const class Settings& Config(
         const std::string& path = std::string("")) const = 0;
     virtual const class ContactManager& Contact() const = 0;

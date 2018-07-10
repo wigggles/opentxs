@@ -47,12 +47,13 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#if OT_CASH_USING_LUCRE
-#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
-#endif
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
+
+#if OT_CASH_USING_LUCRE
+#include "crypto/library/OpenSSL_BIO.hpp"
+#endif
 
 #include <openssl/bio.h>
 #include <openssl/ossl_typ.h>
@@ -115,8 +116,9 @@ bool Token_Lucre::GenerateTokenRequest(
 
     LucreDumper setDumper;  // todo security.
 
-    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());  // Input. We must supply the
-                                                 // bank's public lucre info
+    crypto::implementation::OpenSSL_BIO bioBank =
+        BIO_new(BIO_s_mem());  // Input. We must supply the
+                               // bank's public lucre info
 
     // This version base64-DECODES the ascii-armored string passed in,
     // and then sets the decoded plaintext string onto the string.
@@ -181,10 +183,11 @@ bool Token_Lucre::GenerateTokenRequest(
     // multiple proto-tokens, you can see this loop as though it always executes
     // just once.
     for (std::int32_t i = 0; i < nFinalTokenCount; i++) {
-        OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());  // These two are output. We
-                                                     // must write these bios,
-                                                     // after
-        OpenSSL_BIO bioPublicCoin = BIO_new(
+        crypto::implementation::OpenSSL_BIO bioCoin =
+            BIO_new(BIO_s_mem());  // These two are output. We
+                                   // must write these bios,
+                                   // after
+        crypto::implementation::OpenSSL_BIO bioPublicCoin = BIO_new(
             BIO_s_mem());  // the operation, back into some form we can use
 
         CoinRequest req(bank);
@@ -273,10 +276,14 @@ bool Token_Lucre::ProcessToken(
     // Lucre
     LucreDumper setDumper;  // todo security.
 
-    OpenSSL_BIO bioBank = BIO_new(BIO_s_mem());            // input
-    OpenSSL_BIO bioSignature = BIO_new(BIO_s_mem());       // input
-    OpenSSL_BIO bioPrivateRequest = BIO_new(BIO_s_mem());  // input
-    OpenSSL_BIO bioCoin = BIO_new(BIO_s_mem());            // output
+    crypto::implementation::OpenSSL_BIO bioBank =
+        BIO_new(BIO_s_mem());  // input
+    crypto::implementation::OpenSSL_BIO bioSignature =
+        BIO_new(BIO_s_mem());  // input
+    crypto::implementation::OpenSSL_BIO bioPrivateRequest =
+        BIO_new(BIO_s_mem());  // input
+    crypto::implementation::OpenSSL_BIO bioCoin =
+        BIO_new(BIO_s_mem());  // output
 
     // Get the bank's public key (decoded into strPublicMint)
     // and put it into bioBank so we can use it with Lucre.

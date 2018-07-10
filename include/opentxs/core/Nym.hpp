@@ -206,11 +206,13 @@ public:
         const proto::ContactItemType currency,
         const bool primary,
         const bool active = true);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPORT bool AddPaymentCode(
         const class PaymentCode& code,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active = true);
+#endif
     EXPORT bool AddPreferredOTServer(const Identifier& id, const bool primary);
     EXPORT bool DeleteClaim(const Identifier& id);
     EXPORT void DisplayStatistics(String& strOutput) const override;

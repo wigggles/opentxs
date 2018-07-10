@@ -42,7 +42,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
-#include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/Proto.hpp"
 
 namespace opentxs
@@ -63,8 +62,8 @@ private:
     explicit AsymmetricKeyEd25519(const String& publicKey);
 
 public:
-    const Ecdsa& ECDSA() const override;
-    const CryptoAsymmetric& engine() const override;
+    const crypto::EcdsaProvider& ECDSA() const override;
+    const crypto::AsymmetricProvider& engine() const override;
     bool hasCapability(const NymCapability& capability) const override;
     void Release_AsymmetricKeyEd25519() {}
     void Release() override;

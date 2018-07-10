@@ -50,7 +50,7 @@ namespace opentxs
 class AsymmetricKeyEC : public OTAsymmetricKey
 {
 private:
-    friend class Ecdsa;
+    friend class crypto::EcdsaProvider;
 
     typedef OTAsymmetricKey ot_super;
 
@@ -73,7 +73,7 @@ protected:
 
 public:
     bool IsEmpty() const override;
-    virtual const Ecdsa& ECDSA() const = 0;
+    virtual const crypto::EcdsaProvider& ECDSA() const = 0;
     bool GetKey(Data& key) const;
     bool GetKey(proto::Ciphertext& key) const;
     bool GetPublicKey(String& strKey) const override;

@@ -39,64 +39,54 @@
 #ifndef OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 #define OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP
 
-#include "opentxs/Forward.hpp"
-
-#if OT_CRYPTO_USING_TREZOR
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/core/crypto/Bip32.hpp"
-#endif
+namespace opentxs::crypto::implementation
+{
+class Trezor final : virtual public crypto::Trezor,
+                     virtual public EncodingProvider
 #if OT_CRYPTO_WITH_BIP39
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoEncoding.hpp"
-#include "opentxs/core/crypto/Ecdsa.hpp"
-#include "opentxs/Types.hpp"
-
-extern "C" {
-#include <trezor-crypto/base58.h>
-#if OT_CRYPTO_WITH_BIP32
-#include <trezor-crypto/bip32.h>
-#endif
-#include <trezor-crypto/ecdsa.h>
-}
-
-#include <cstdint>
-#include <memory>
-#include <string>
-
-namespace opentxs
-{
-class Libsecp256k1;
-class OTPassword;
-
-namespace api
-{
-class Native;
-
-namespace implementation
-{
-class Crypto;
-}  // namespace implementation
-}  // namespace api
-
-class TrezorCrypto : public CryptoEncoding
-#if OT_CRYPTO_WITH_BIP39
-                     ,
+    ,
                      public Bip39
 #endif
 #if OT_CRYPTO_WITH_BIP32
-                     ,
+    ,
                      public Bip32
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-                     ,
-                     public Ecdsa
+    ,
+                     public EcdsaProvider
 #endif
 {
+public:
+#if OT_CRYPTO_WITH_BIP32
+    serializedAsymmetricKey GetChild(
+        const proto::AsymmetricKey& parent,
+        const std::uint32_t index) const override;
+    serializedAsymmetricKey GetHDKey(
+        const EcdsaCurve& curve,
+        const OTPassword& seed,
+        proto::HDPath& path) const override;
+    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
+    std::string SeedToFingerprint(
+        const EcdsaCurve& curve,
+        const OTPassword& seed) const override;
+    serializedAsymmetricKey SeedToPrivateKey(
+        const EcdsaCurve& curve,
+        const OTPassword& seed) const override;
+#endif
+    std::string Base58CheckEncode(
+        const std::uint8_t* inputStart,
+        const std::size_t& inputSize) const override;
+    bool Base58CheckDecode(const std::string&& input, RawData& output)
+        const override;
+    bool RIPEMD160(
+        const std::uint8_t* input,
+        const size_t inputSize,
+        std::uint8_t* output) const override;
+
+    ~Trezor() = default;
+
 private:
-    friend class api::implementation::Crypto;
-    friend class Libsecp256k1;
+    friend Factory;
 
     typedef bool DerivationMode;
     const DerivationMode DERIVE_PRIVATE = true;
@@ -107,7 +97,14 @@ private:
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFC, 0x2F};
 
-    api::Native& native_;
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    bool ECDH(
+        const Data& publicKey,
+        const OTPassword& privateKey,
+        OTPassword& secret) const override;
+    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
+        const override;
+#endif
 
 #if OT_CRYPTO_WITH_BIP39
     bool toWords(const OTPassword& seed, OTPassword& words) const override;
@@ -144,51 +141,12 @@ private:
     bool ValidPrivateKey(const OTPassword& key) const;
 #endif
 
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    bool ECDH(
-        const Data& publicKey,
-        const OTPassword& privateKey,
-        OTPassword& secret) const override;
-    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
-        const override;
-#endif
-
-    TrezorCrypto(api::Native& native);
-    TrezorCrypto() = delete;
-    TrezorCrypto(const TrezorCrypto&) = delete;
-    TrezorCrypto(TrezorCrypto&&) = delete;
-    TrezorCrypto& operator=(const TrezorCrypto&) = delete;
-    TrezorCrypto& operator=(TrezorCrypto&&) = delete;
-
-public:
-#if OT_CRYPTO_WITH_BIP32
-    serializedAsymmetricKey GetChild(
-        const proto::AsymmetricKey& parent,
-        const std::uint32_t index) const override;
-    serializedAsymmetricKey GetHDKey(
-        const EcdsaCurve& curve,
-        const OTPassword& seed,
-        proto::HDPath& path) const override;
-    bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
-    std::string SeedToFingerprint(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const override;
-    serializedAsymmetricKey SeedToPrivateKey(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const override;
-#endif
-    std::string Base58CheckEncode(
-        const std::uint8_t* inputStart,
-        const std::size_t& inputSize) const override;
-    bool Base58CheckDecode(const std::string&& input, RawData& output)
-        const override;
-    bool RIPEMD160(
-        const std::uint8_t* input,
-        const size_t inputSize,
-        std::uint8_t* output) const;
-
-    ~TrezorCrypto() = default;
+    Trezor(const api::Native& native);
+    Trezor() = delete;
+    Trezor(const Trezor&) = delete;
+    Trezor(Trezor&&) = delete;
+    Trezor& operator=(const Trezor&) = delete;
+    Trezor& operator=(Trezor&&) = delete;
 };
-}  // namespace opentxs
-#endif  // OT_CRYPTO_USING_TREZOR
+}  // namespace opentxs::crypto::implementation
 #endif  // OPENTXS_CORE_CRYPTO_TREZOR_CRYPTO_HPP

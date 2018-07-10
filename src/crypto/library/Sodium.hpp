@@ -36,89 +36,18 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
-#define OPENTXS_CORE_CRYPTO_LIBSODIUM_HPP
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SODIUM_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SODIUM_HPP
 
-#include "opentxs/Forward.hpp"
-
-#include "opentxs/api/crypto/Util.hpp"
-#include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
-#include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
-#include "opentxs/core/crypto/Ecdsa.hpp"
-#include "opentxs/Proto.hpp"
-
-#include <cstddef>
-
-namespace opentxs
+namespace opentxs::crypto::implementation
 {
-
-class OTAsymmetricKey;
-class Data;
-class OTPassword;
-class OTPasswordData;
-
-namespace api
+class Sodium final : virtual public crypto::Sodium
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    ,
+                     public AsymmetricProvider,
+                     public EcdsaProvider
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 {
-namespace implementation
-{
-class Crypto;
-}  // namespace implementation
-}  // namespace api
-
-class Libsodium : public Crypto,
-                  public CryptoAsymmetric,
-                  public CryptoSymmetricNew,
-                  public Ecdsa,
-                  public CryptoHash,
-                  virtual public api::crypto::Util
-{
-    friend class api::implementation::Crypto;
-
-private:
-    static const proto::SymmetricMode DEFAULT_MODE{
-        proto::SMODE_CHACHA20POLY1305};
-
-    void Cleanup_Override() const override {}
-    bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const std::uint8_t* key,
-        const std::size_t keySize,
-        std::uint8_t* plaintext) const override;
-    proto::SymmetricMode DefaultMode() const override { return DEFAULT_MODE; }
-    bool Derive(
-        const std::uint8_t* input,
-        const std::size_t inputSize,
-        const std::uint8_t* salt,
-        const std::size_t saltSize,
-        const std::uint64_t operations,
-        const std::uint64_t difficulty,
-        const proto::SymmetricKeyType type,
-        std::uint8_t* output,
-        std::size_t outputSize) const override;
-    bool ECDH(const Data& publicKey, const OTPassword& seed, OTPassword& secret)
-        const override;
-    bool Encrypt(
-        const std::uint8_t* input,
-        const std::size_t inputSize,
-        const std::uint8_t* key,
-        const std::size_t keySize,
-        proto::Ciphertext& ciphertext) const override;
-    bool ExpandSeed(
-        const OTPassword& seed,
-        OTPassword& privateKey,
-        Data& publicKey) const;
-    void Init_Override() const override;
-    std::size_t IvSize(const proto::SymmetricMode mode) const override;
-    std::size_t KeySize(const proto::SymmetricMode mode) const override;
-    bool ScalarBaseMultiply(const OTPassword& seed, Data& publicKey)
-        const override;
-    std::size_t SaltSize(const proto::SymmetricKeyType type) const override;
-    std::size_t TagSize(const proto::SymmetricMode mode) const override;
-
-    Libsodium() = default;
-
 public:
     bool Digest(
         const proto::HashType hashType,
@@ -132,9 +61,12 @@ public:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const override;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool RandomizeMemory(std::uint8_t* szDestination, std::uint32_t nNewSize)
         const override;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool Sign(
         const Data& plaintext,
         const OTAsymmetricKey& theKey,
@@ -152,9 +84,58 @@ public:
         const Data& signature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const override;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-    virtual ~Libsodium() = default;
+    ~Sodium() = default;
+
+private:
+    friend Factory;
+
+    static const proto::SymmetricMode DEFAULT_MODE{
+        proto::SMODE_CHACHA20POLY1305};
+
+    bool Decrypt(
+        const proto::Ciphertext& ciphertext,
+        const std::uint8_t* key,
+        const std::size_t keySize,
+        std::uint8_t* plaintext) const override;
+    proto::SymmetricMode DefaultMode() const override { return DEFAULT_MODE; }
+    bool Derive(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* salt,
+        const std::size_t saltSize,
+        const std::uint64_t operations,
+        const std::uint64_t difficulty,
+        const proto::SymmetricKeyType type,
+        std::uint8_t* output,
+        std::size_t outputSize) const override;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    bool ECDH(const Data& publicKey, const OTPassword& seed, OTPassword& secret)
+        const override;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+    bool Encrypt(
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* key,
+        const std::size_t keySize,
+        proto::Ciphertext& ciphertext) const override;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    bool ExpandSeed(
+        const OTPassword& seed,
+        OTPassword& privateKey,
+        Data& publicKey) const;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+    std::size_t IvSize(const proto::SymmetricMode mode) const override;
+    std::size_t KeySize(const proto::SymmetricMode mode) const override;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    bool ScalarBaseMultiply(const OTPassword& seed, Data& publicKey)
+        const override;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+    std::size_t SaltSize(const proto::SymmetricKeyType type) const override;
+    std::size_t TagSize(const proto::SymmetricMode mode) const override;
+
+    Sodium();
 };
-}  // namespace opentxs
-
-#endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+}  // namespace opentxs::crypto::implementation
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SODIUM_HPP

@@ -38,33 +38,61 @@
 
 #include "stdafx.hpp"
 
-#include "Hash.hpp"
-
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
-#include "opentxs/core/crypto/Libsodium.hpp"
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/core/crypto/OpenSSL.hpp"
-#endif
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/TrezorCrypto.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/EncodingProvider.hpp"
+#include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/crypto/library/Sodium.hpp"
+#if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/crypto/library/OpenSSL.hpp"
+#endif
+#if OT_CRYPTO_USING_TREZOR
+#include "opentxs/crypto/library/Trezor.hpp"
+#endif
 #include "opentxs/OT.hpp"
 
+#include "Hash.hpp"
+
 #define OT_METHOD "opentxs::api::crypto::implementation::Hash::"
+
+namespace opentxs
+{
+api::crypto::Hash* Factory::Hash(
+    api::crypto::Encode& encode,
+    crypto::HashingProvider& ssl,
+    crypto::HashingProvider& sodium
+#if OT_CRYPTO_USING_TREZOR
+    ,
+    crypto::Trezor& bitcoin
+#endif
+)
+{
+    return new api::crypto::implementation::Hash(
+        encode,
+        ssl,
+        sodium
+#if OT_CRYPTO_USING_TREZOR
+        ,
+        bitcoin
+#endif
+    );
+}
+}  // namespace opentxs
 
 namespace opentxs::api::crypto::implementation
 {
 Hash::Hash(
     api::crypto::Encode& encode,
-    CryptoHash& ssl,
-    CryptoHash& sodium
+    opentxs::crypto::HashingProvider& ssl,
+    opentxs::crypto::HashingProvider& sodium
 #if OT_CRYPTO_USING_TREZOR
     ,
-    TrezorCrypto& bitcoin
+    opentxs::crypto::Trezor& bitcoin
 #endif
     )
     : encode_(encode)
@@ -76,7 +104,7 @@ Hash::Hash(
 {
 }
 
-CryptoHash& Hash::SHA2() const
+opentxs::crypto::HashingProvider& Hash::SHA2() const
 {
 #if OT_CRYPTO_SHA2_VIA_OPENSSL
     return ssl_;
@@ -85,16 +113,18 @@ CryptoHash& Hash::SHA2() const
 #endif
 }
 
-CryptoHash& Hash::Sodium() const { return sodium_; }
+opentxs::crypto::HashingProvider& Hash::Sodium() const { return sodium_; }
 
 bool Hash::Allocate(const proto::HashType hashType, OTPassword& input)
 {
-    return input.randomizeMemory(CryptoHash::HashSize(hashType));
+    return input.randomizeMemory(
+        opentxs::crypto::HashingProvider::HashSize(hashType));
 }
 
 bool Hash::Allocate(const proto::HashType hashType, Data& input)
 {
-    return input.Randomize(CryptoHash::HashSize(hashType));
+    return input.Randomize(
+        opentxs::crypto::HashingProvider::HashSize(hashType));
 }
 
 bool Hash::Digest(

@@ -47,8 +47,6 @@
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
 #endif  // OT_CASH
-#include "opentxs/core/crypto/Bip32.hpp"
-#include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -66,6 +64,12 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -792,11 +796,13 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // individually for each seed rather than globally in the
                     // wallet (which assumed only one seed existed).
                     else if (strNodeName.Compare("hd")) {
+#if OT_CRYPTO_SUPPORTED_KEY_HD
                         std::uint32_t index = String::StringToUint(
                             xml->getAttributeValue("index"));
                         // An empty string will load the default seed
                         std::string seed = "";
                         crypto_.BIP39().UpdateIndex(seed, index);
+#endif
                     } else {
                         // unknown element type
                         otErr << __FUNCTION__ << ": unknown element type: "

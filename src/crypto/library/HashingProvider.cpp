@@ -38,18 +38,13 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/CryptoHash.hpp"
-
-#include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
-#include <cstdint>
-#include <string>
+#include "opentxs/crypto/library/HashingProvider.hpp"
 
-namespace opentxs
+namespace opentxs::crypto
 {
-proto::HashType CryptoHash::StringToHashType(const String& inputString)
+proto::HashType HashingProvider::StringToHashType(const String& inputString)
 {
     if (inputString.Compare("NULL"))
         return proto::HASHTYPE_NONE;
@@ -66,7 +61,7 @@ proto::HashType CryptoHash::StringToHashType(const String& inputString)
     return proto::HASHTYPE_ERROR;
 }
 
-String CryptoHash::HashTypeToString(const proto::HashType hashType)
+String HashingProvider::HashTypeToString(const proto::HashType hashType)
 
 {
     String hashTypeString;
@@ -96,7 +91,7 @@ String CryptoHash::HashTypeToString(const proto::HashType hashType)
     return hashTypeString;
 }
 
-size_t CryptoHash::HashSize(const proto::HashType hashType)
+std::size_t HashingProvider::HashSize(const proto::HashType hashType)
 {
     switch (hashType) {
         case proto::HASHTYPE_SHA256: {
@@ -123,4 +118,4 @@ size_t CryptoHash::HashSize(const proto::HashType hashType)
 
     return 0;
 }
-}  // namespace opentxs
+}  // namespace opentxs::crypto

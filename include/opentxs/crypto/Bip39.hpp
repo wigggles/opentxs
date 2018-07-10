@@ -36,38 +36,53 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
-#define OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
+#ifndef OPENTXS_CRYPTO_BIP39_HPP
+#define OPENTXS_CRYPTO_BIP39_HPP
 
 #include "opentxs/Forward.hpp"
 
-extern "C" {
-#include <openssl/bio.h>
-}
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/Proto.hpp"
+
+#include <cstdint>
+#include <memory>
+#include <string>
 
 namespace opentxs
 {
-
-class OpenSSL_BIO
+namespace crypto
 {
-private:
-    BIO& m_refBIO;
-    bool bCleanup;
-    bool bFreeOnly;
-
-    EXPORT static BIO* assertBioNotNull(BIO* pBIO);
-
+class Bip39
+{
 public:
-    EXPORT OpenSSL_BIO(BIO* pBIO);
+    EXPORT virtual std::string DefaultSeed() const = 0;
+    EXPORT virtual std::string ImportSeed(
+        const OTPassword& words,
+        const OTPassword& passphrase) const = 0;
+    EXPORT virtual std::string NewSeed() const = 0;
+    EXPORT virtual std::string Passphrase(
+        const std::string& fingerprint = "") const = 0;
+    EXPORT virtual std::shared_ptr<OTPassword> Seed(
+        std::string& fingerprint,
+        std::uint32_t& index) const = 0;
+    EXPORT virtual bool UpdateIndex(
+        std::string& seed,
+        const std::uint32_t index) const = 0;
+    EXPORT virtual std::string Words(
+        const std::string& fingerprint = "") const = 0;
 
-    EXPORT ~OpenSSL_BIO();
+    EXPORT virtual ~Bip39() = default;
 
-    EXPORT operator BIO*() const;
+protected:
+    Bip39() = default;
 
-    EXPORT void release();
-    EXPORT void setFreeOnly();
+private:
+    Bip39(const Bip39&) = delete;
+    Bip39(Bip39&&) = delete;
+    Bip39& operator=(const Bip39&) = delete;
+    Bip39& operator=(Bip39&&) = delete;
 };
-
+}  // namespace crypto
 }  // namespace opentxs
-
-#endif  // OPENTXS_CORE_CRYPTO_OPENSSL_BIO_HPP
+#endif  // OT_CRYPTO_WITH_BIP39
+#endif  // OPENTXS_CRYPTO_BIP39_HPP

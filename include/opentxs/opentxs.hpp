@@ -47,7 +47,9 @@
 
 #include <opentxs/api/Activity.hpp>
 #include <opentxs/api/Api.hpp>
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/Blockchain.hpp>
+#endif
 #include <opentxs/api/ContactManager.hpp>
 #include <opentxs/api/Native.hpp>
 #include <opentxs/api/UI.hpp>
@@ -77,7 +79,6 @@
 #include <opentxs/core/contract/ServerContract.hpp>
 #include <opentxs/core/contract/UnitDefinition.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
-#include <opentxs/core/crypto/Bip39.hpp>
 #include <opentxs/core/crypto/ContactCredential.hpp>
 #include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTAsymmetricKey.hpp>
@@ -88,7 +89,9 @@
 #include <opentxs/core/crypto/OTPassword.hpp>
 #include <opentxs/core/crypto/OTPasswordData.hpp>
 #include <opentxs/core/crypto/OTSignedFile.hpp>
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include <opentxs/core/crypto/PaymentCode.hpp>
+#endif
 #include <opentxs/core/recurring/OTPaymentPlan.hpp>
 #include <opentxs/core/script/OTScriptable.hpp>
 #include <opentxs/core/script/OTSmartContract.hpp>
@@ -110,6 +113,14 @@
 #include <opentxs/core/OTTransaction.hpp>
 #include <opentxs/core/OTTransactionType.hpp>
 #include <opentxs/core/String.hpp>
+#include <opentxs/crypto/library/AsymmetricProvider.hpp>
+#include <opentxs/crypto/library/EcdsaProvider.hpp>
+#include <opentxs/crypto/library/EncodingProvider.hpp>
+#include <opentxs/crypto/library/HashingProvider.hpp>
+#include <opentxs/crypto/library/LegacySymmetricProvider.hpp>
+#include <opentxs/crypto/library/SymmetricProvider.hpp>
+#include <opentxs/crypto/Bip32.hpp>
+#include <opentxs/crypto/Bip39.hpp>
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/network/zeromq/Context.hpp>

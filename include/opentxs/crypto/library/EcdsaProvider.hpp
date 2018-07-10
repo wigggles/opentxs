@@ -36,107 +36,95 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_ECDSA_HPP
-#define OPENTXS_CORE_CRYPTO_ECDSA_HPP
+#ifndef OPENTXS_CRYPTO_LIBRARY_ECDSAPROVIDER_HPP
+#define OPENTXS_CRYPTO_LIBRARY_ECDSAPROVIDER_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/Proto.hpp"
 
 namespace opentxs
 {
-class AsymmetricKeyEC;
-class Data;
-class OTPassword;
-class OTPasswordData;
-class SymmetricKey;
-
-class Ecdsa
+namespace crypto
 {
-protected:
-    Ecdsa() = default;
-
-    virtual bool AsymmetricKeyToECPubkey(
-        const AsymmetricKeyEC& asymmetricKey,
-        Data& pubkey) const;
-    virtual bool AsymmetricKeyToECPrivkey(
-        const proto::Ciphertext& asymmetricKey,
-        const OTPasswordData& passwordData,
-        OTPassword& privkey) const;
-    virtual bool ECDH(
-        const Data& publicKey,
-        const OTPassword& privateKey,
-        OTPassword& secret) const = 0;
-    virtual bool ScalarBaseMultiply(
-        const OTPassword& privateKey,
-        Data& publicKey) const = 0;
-
+class EcdsaProvider
+{
 public:
-    static bool DecryptPrivateKey(
+    EXPORT static bool DecryptPrivateKey(
         const proto::Ciphertext& encryptedKey,
         const OTPasswordData& password,
         OTPassword& plaintextKey);
-    static bool DecryptPrivateKey(
+    EXPORT static bool DecryptPrivateKey(
         const proto::Ciphertext& encryptedKey,
         const proto::Ciphertext& encryptedChaincode,
         const OTPasswordData& password,
         OTPassword& key,
         OTPassword& chaincode);
-    static bool EncryptPrivateKey(
+    EXPORT static bool EncryptPrivateKey(
         const OTPassword& plaintextKey,
         const OTPasswordData& password,
         proto::Ciphertext& encryptedKey);
-    static bool EncryptPrivateKey(
+    EXPORT static bool EncryptPrivateKey(
         const OTPassword& key,
         const OTPassword& chaincode,
         const OTPasswordData& password,
         proto::Ciphertext& encryptedKey,
         proto::Ciphertext& encryptedChaincode);
 
-    virtual bool AsymmetricKeyToECPrivatekey(
+    EXPORT virtual bool AsymmetricKeyToECPrivatekey(
         const AsymmetricKeyEC& asymmetricKey,
         const OTPasswordData& passwordData,
-        OTPassword& privkey) const;
-    virtual bool DecryptSessionKeyECDH(
+        OTPassword& privkey) const = 0;
+    EXPORT virtual bool DecryptSessionKeyECDH(
         const AsymmetricKeyEC& privateKey,
         const AsymmetricKeyEC& publicKey,
         const OTPasswordData& password,
-        SymmetricKey& sessionKey) const;
-    virtual bool ECPrivatekeyToAsymmetricKey(
+        SymmetricKey& sessionKey) const = 0;
+    EXPORT virtual bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
-        AsymmetricKeyEC& asymmetricKey) const;
-    virtual bool ECPubkeyToAsymmetricKey(
+        AsymmetricKeyEC& asymmetricKey) const = 0;
+    EXPORT virtual bool ECPubkeyToAsymmetricKey(
         const Data& pubkey,
-        AsymmetricKeyEC& asymmetricKey) const;
-    virtual bool EncryptSessionKeyECDH(
+        AsymmetricKeyEC& asymmetricKey) const = 0;
+    EXPORT virtual bool EncryptSessionKeyECDH(
         const AsymmetricKeyEC& privateKey,
         const AsymmetricKeyEC& publicKey,
         const OTPasswordData& passwordData,
         SymmetricKey& sessionKey,
-        OTPassword& newKeyPassword) const;
-    virtual bool ExportECPrivatekey(
+        OTPassword& newKeyPassword) const = 0;
+    EXPORT virtual bool ExportECPrivatekey(
         const OTPassword& privkey,
         const OTPasswordData& password,
-        AsymmetricKeyEC& asymmetricKey) const;
-    virtual bool ImportECPrivatekey(
+        AsymmetricKeyEC& asymmetricKey) const = 0;
+    EXPORT virtual bool ImportECPrivatekey(
         const proto::Ciphertext& asymmetricKey,
         const OTPasswordData& password,
-        OTPassword& privkey) const;
-    virtual bool PrivateToPublic(
+        OTPassword& privkey) const = 0;
+    EXPORT virtual bool PrivateToPublic(
         const proto::AsymmetricKey& privateKey,
-        proto::AsymmetricKey& publicKey) const;
-    bool PrivateToPublic(const proto::Ciphertext& privateKey, Data& publicKey)
-        const;
-    virtual bool RandomKeypair(OTPassword& privateKey, Data& publicKey)
+        proto::AsymmetricKey& publicKey) const = 0;
+    EXPORT virtual bool PrivateToPublic(
+        const proto::Ciphertext& privateKey,
+        Data& publicKey) const = 0;
+    EXPORT virtual bool RandomKeypair(OTPassword& privateKey, Data& publicKey)
         const = 0;
-    virtual bool SeedToCurveKey(
+    EXPORT virtual bool SeedToCurveKey(
         const OTPassword& seed,
         OTPassword& privateKey,
-        Data& publicKey) const;
+        Data& publicKey) const = 0;
 
-    virtual ~Ecdsa() = default;
+    EXPORT virtual ~EcdsaProvider() = default;
+
+protected:
+    EcdsaProvider() = default;
+
+private:
+    EcdsaProvider(const EcdsaProvider&) = delete;
+    EcdsaProvider(EcdsaProvider&&) = delete;
+    EcdsaProvider& operator=(const EcdsaProvider&) = delete;
+    EcdsaProvider& operator=(EcdsaProvider&&) = delete;
 };
+}  // namespace crypto
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_ECDSA_HPP
+#endif  // OPENTXS_CRYPTO_LIBRARY_ECDSAPROVIDER_HPP

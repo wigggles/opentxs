@@ -98,6 +98,22 @@ class ServerAction;
 class Wallet;
 }  // namespace client
 
+namespace crypto
+{
+class AsymmetricProvider;
+class Bip32;
+class Bip39;
+class EcdsaProvider;
+class EncodingProvider;
+class LegacySymmetricProvider;
+class HashingProvider;
+class OpenSSL;
+class Secp256k1;
+class Sodium;
+class SymmetricProvider;
+class Trezor;
+}  // namespace crypto
+
 namespace network
 {
 namespace zeromq
@@ -175,8 +191,6 @@ class AsymmetricKeyEC;
 class Basket;
 class BasketContract;
 class BasketItem;
-class Bip32;
-class Bip39;
 class Cheque;
 class ClientContext;
 class Contact;
@@ -189,13 +203,8 @@ class Contract;
 class CurrencyContract;
 class Credential;
 class CredentialSet;
-class CryptoAsymmetric;
-class CryptoEncoding;
-class CryptoHash;
-class CryptoSymmetric;
-class CryptoSymmetricNew;
+class CryptoSymmetricDecryptOutput;
 class Data;
-class Ecdsa;
 class Flag;
 class Identifier;
 class Item;

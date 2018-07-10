@@ -27,6 +27,7 @@ if(KEYRING_GNOME)
 endif()
 
 add_subdirectory(storage)
+add_subdirectory(crypto)
 add_subdirectory(core)
 add_subdirectory(consensus)
 add_subdirectory(ext)
@@ -79,6 +80,8 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-core-transaction>
   $<TARGET_OBJECTS:opentxs-core-util>
   $<TARGET_OBJECTS:opentxs-core>
+  $<TARGET_OBJECTS:opentxs-crypto-library>
+  $<TARGET_OBJECTS:opentxs-crypto>
   $<TARGET_OBJECTS:opentxs-cron>
   $<TARGET_OBJECTS:opentxs-ext>
   $<TARGET_OBJECTS:opentxs-network-zeromq>

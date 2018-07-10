@@ -41,11 +41,11 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -93,7 +93,7 @@ public:
 
     proto::AsymmetricKeyType keyType() const;
 
-    virtual const CryptoAsymmetric& engine() const = 0;
+    virtual const opentxs::crypto::AsymmetricProvider& engine() const = 0;
     virtual const std::string Path() const;
     virtual bool Path(proto::HDPath& output) const;
 

@@ -50,19 +50,11 @@
 
 namespace opentxs
 {
-
-class CryptoSymmetricNew;
-class OTAsymmetricKeyEC;
-class Data;
-class OTPassword;
-class OTPasswordData;
-class String;
-
 class SymmetricKey
 {
 private:
     /// The library providing the underlying crypto algorithms
-    const CryptoSymmetricNew& engine_;
+    const crypto::SymmetricProvider& engine_;
     const std::uint32_t version_{0};
     const proto::SymmetricKeyType type_{proto::SKEYTYPE_ERROR};
     /// Size of the plaintext key in bytes;
@@ -105,12 +97,12 @@ private:
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
     bool GetPassword(const OTPasswordData& keyPassword, OTPassword& password);
 
-    SymmetricKey(const CryptoSymmetricNew& engine);
+    SymmetricKey(const crypto::SymmetricProvider& engine);
     SymmetricKey(
-        const CryptoSymmetricNew& engine,
+        const crypto::SymmetricProvider& engine,
         const proto::SymmetricKey serialized);
     SymmetricKey(
-        const CryptoSymmetricNew& engine,
+        const crypto::SymmetricProvider& engine,
         const OTPassword& seed,
         const std::string& salt,
         const std::size_t size,
@@ -131,7 +123,7 @@ public:
      *                  appropriate key
      */
     static std::unique_ptr<SymmetricKey> Factory(
-        const CryptoSymmetricNew& engine,
+        const crypto::SymmetricProvider& engine,
         const OTPasswordData& password,
         const proto::SymmetricMode mode = proto::SMODE_ERROR);
 
@@ -142,7 +134,7 @@ public:
      *  \param[in] serialized The symmetric key in protobuf form
      */
     static std::unique_ptr<SymmetricKey> Factory(
-        const CryptoSymmetricNew& engine,
+        const crypto::SymmetricProvider& engine,
         const proto::SymmetricKey serialized);
 
     /** Derive a symmetric key from a seed
@@ -157,7 +149,7 @@ public:
      *  \param[in] type       The KDF to be used for the derivation process
      */
     static std::unique_ptr<SymmetricKey> Factory(
-        const CryptoSymmetricNew& engine,
+        const crypto::SymmetricProvider& engine,
         const OTPassword& seed,
         const std::uint64_t operations,
         const std::uint64_t difficulty,
@@ -171,7 +163,7 @@ public:
      *  \param[in] raw An existing, unencrypted binary or text secret
      */
     static std::unique_ptr<SymmetricKey> Factory(
-        const CryptoSymmetricNew& engine,
+        const crypto::SymmetricProvider& engine,
         const OTPassword& raw);
 
     bool ChangePassword(

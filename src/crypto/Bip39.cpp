@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/Bip39.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -45,30 +45,32 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/Bip32.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
+#include "opentxs/crypto/Bip32.hpp"
 
 #include <memory>
 #include <string>
 
-#define OT_METHOD "opentxs::Bip39::"
+#include "Bip39.hpp"
 
-namespace opentxs
+#define OT_METHOD "opentxs::crypto::implementation::Bip39::"
+
+namespace opentxs::crypto::implementation
 {
-
-Bip39::Bip39(api::Native& native)
-    : native_(native)
-{
-}
-
 const proto::SymmetricMode Bip39::DEFAULT_ENCRYPTION_MODE =
     proto::SMODE_CHACHA20POLY1305;
 const std::string Bip39::DEFAULT_PASSPHRASE = "";
+
+Bip39::Bip39(const api::Native& native)
+    : native_(native)
+{
+}
 
 bool Bip39::DecryptSeed(
     const proto::Seed& seed,
@@ -330,5 +332,5 @@ std::string Bip39::Words(const std::string& fingerprint) const
     return words.getPassword();
 }
 
-}  // namespace opentxs
+}  // namespace opentxs::crypto::implementation
 #endif

@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -46,38 +46,58 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#if OT_CRYPTO_USING_TREZOR
-#include "opentxs/core/crypto/TrezorCrypto.hpp"
-#endif
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
+#if OT_CRYPTO_USING_TREZOR
+#include "opentxs/crypto/library/Trezor.hpp"
+#endif
 #include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
+
+#include "AsymmetricProvider.hpp"
+#include "EcdsaProvider.hpp"
+
+extern "C" {
+#include "secp256k1.h"
+}
 
 #include <cstdint>
 #include <ostream>
 
+#include "Secp256k1.hpp"
+
 namespace opentxs
 {
-bool Libsecp256k1::Initialized_ = false;
+crypto::Secp256k1* Factory::Secp256k1(
+    const api::crypto::Util& util,
+    const crypto::Trezor& ecdsa)
+{
+    return new crypto::implementation::Secp256k1(util, ecdsa);
+}
+}  // namespace opentxs
 
-Libsecp256k1::Libsecp256k1(const api::crypto::Util& ssl, const Ecdsa& ecdsa)
-    : Crypto()
-    , context_(secp256k1_context_create(
+namespace opentxs::crypto::implementation
+{
+bool Secp256k1::Initialized_ = false;
+
+Secp256k1::Secp256k1(const api::crypto::Util& ssl, const crypto::Trezor& ecdsa)
+    : context_(secp256k1_context_create(
           SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
     , ecdsa_(ecdsa)
     , ssl_(ssl)
 {
-    OT_ASSERT_MSG(nullptr != context_, "secp256k1_context_create failed.");
 }
 
-bool Libsecp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
+bool Secp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
 {
     if (nullptr == context_) { return false; }
 
@@ -105,7 +125,7 @@ bool Libsecp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
     return ScalarBaseMultiply(privateKey, publicKey);
 }
 
-bool Libsecp256k1::Sign(
+bool Secp256k1::Sign(
     const Data& plaintext,
     const OTAsymmetricKey& theKey,
     const proto::HashType hashType,
@@ -172,12 +192,12 @@ bool Libsecp256k1::Sign(
     }
 }
 
-bool Libsecp256k1::Verify(
+bool Secp256k1::Verify(
     const Data& plaintext,
     const OTAsymmetricKey& theKey,
     const Data& signature,
     const proto::HashType hashType,
-    __attribute__((unused)) const OTPasswordData* pPWData) const
+    [[maybe_unused]] const OTPasswordData* pPWData) const
 {
     auto hash = Data::Factory();
     ;
@@ -213,7 +233,7 @@ bool Libsecp256k1::Verify(
         &point);
 }
 
-bool Libsecp256k1::DataToECSignature(
+bool Secp256k1::DataToECSignature(
     const Data& inSignature,
     secp256k1_ecdsa_signature& outSignature) const
 {
@@ -237,38 +257,33 @@ bool Libsecp256k1::DataToECSignature(
     return false;
 }
 
-bool Libsecp256k1::ECDH(
+bool Secp256k1::ECDH(
     const Data& publicKey,
     const OTPassword& privateKey,
     OTPassword& secret) const
 {
 #if OT_CRYPTO_USING_TREZOR
-    return static_cast<const TrezorCrypto&>(ecdsa_).ECDH(
+    return static_cast<const Trezor&>(ecdsa_).ECDH(
         publicKey, privateKey, secret);
 #else
     return false;
 #endif
 }
 
-void Libsecp256k1::Init_Override() const
+void Secp256k1::Init()
 {
-    OT_ASSERT_MSG(
-        false == Initialized_,
-        "Libsecp256k1::Init_Override: Tried to initialize twice.");
-    // --------------------------------
+    OT_ASSERT(false == Initialized_);
     std::uint8_t randomSeed[32]{};
     ssl_.RandomizeMemory(randomSeed, 32);
 
-    OT_ASSERT_MSG(
-        nullptr != context_,
-        "Libsecp256k1::Libsecp256k1: secp256k1_context_create failed.");
+    OT_ASSERT(nullptr != context_);
 
-    int __attribute__((unused)) randomize =
+    [[maybe_unused]] int randomize =
         secp256k1_context_randomize(context_, randomSeed);
     Initialized_ = true;
 }
 
-bool Libsecp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
+bool Secp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
     const
 {
     if (nullptr == context_) { return false; }
@@ -280,7 +295,7 @@ bool Libsecp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
         input.GetSize());
 }
 
-bool Libsecp256k1::ScalarBaseMultiply(
+bool Secp256k1::ScalarBaseMultiply(
     const OTPassword& privateKey,
     Data& publicKey) const
 {
@@ -310,7 +325,7 @@ bool Libsecp256k1::ScalarBaseMultiply(
     return true;
 }
 
-Libsecp256k1::~Libsecp256k1()
+Secp256k1::~Secp256k1()
 {
     if (nullptr != context_) {
         secp256k1_context_destroy(context_);
@@ -318,5 +333,5 @@ Libsecp256k1::~Libsecp256k1()
     }
     Initialized_ = false;
 }
-}  // namespace opentxs
+}  // namespace opentxs::crypto::implementation
 #endif

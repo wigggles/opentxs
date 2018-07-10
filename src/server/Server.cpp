@@ -50,10 +50,11 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/crypto/Bip39.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
@@ -65,6 +66,9 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "ConfigLoader.hpp"
@@ -233,7 +237,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     nymParameters.SetNym(0);
     nymParameters.SetDefault(false);
 #else
-    NymParameters nymParameters();
+    NymParameters nymParameters(proto::CREDTYPE_LEGACY);
 #endif
     auto newNym = wallet_.Nym(nymParameters);
 

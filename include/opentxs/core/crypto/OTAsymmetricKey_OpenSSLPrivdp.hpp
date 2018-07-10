@@ -53,6 +53,13 @@ extern "C" {
 
 namespace opentxs
 {
+namespace crypto
+{
+namespace implementation
+{
+class OpenSSL;
+}
+}  // namespace crypto
 
 class OTPasswordData;
 
@@ -64,6 +71,7 @@ private:
                                         // are otherwise private.
     friend class OpenSSL;  // For OpenSSL-specific crypto functions to
                            // access OpenSSL-specific methods.
+    friend crypto::implementation::OpenSSL;
     friend class OTAsymmetricKey_OpenSSL;
 
 public:
@@ -100,10 +108,10 @@ private:
     // INSTANCES...
     // PRIVATE MEMBER DATA
     X509* m_pX509{nullptr};
-    EVP_PKEY* m_pKey{
-        nullptr};  // Instantiated form of key. (For private keys especially,
-                   // we don't want it instantiated for any longer than
-                   // absolutely necessary, when we have to use it.)
+    EVP_PKEY* m_pKey{nullptr};  // Instantiated form of key. (For private keys
+                                // especially, we don't want it instantiated for
+                                // any longer than absolutely necessary, when we
+                                // have to use it.)
     // PRIVATE METHODS
     EVP_PKEY* InstantiateKey(const OTPasswordData* pPWData = nullptr);
     EVP_PKEY* InstantiatePublicKey(const OTPasswordData* pPWData = nullptr);

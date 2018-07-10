@@ -50,13 +50,6 @@
 
 namespace opentxs
 {
-
-class CryptoAsymmetric;
-class OTASCIIArmor;
-class OTCaller;
-class OTPassword;
-class String;
-
 #ifndef OT_KEY_TIMER
 // TODO:
 // 1. Add this value to the config file so it becomes merely a default value
@@ -92,7 +85,7 @@ private:
     explicit OTAsymmetricKey_OpenSSL(const String& publicKey);
 
 public:
-    const CryptoAsymmetric& engine() const override;
+    const crypto::AsymmetricProvider& engine() const override;
     bool IsEmpty() const override;
     /** Don't ever call this. It's only here because it's impossible to get rid
      * of unless and until RSA key support is removed entirely. */

@@ -42,11 +42,11 @@
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
-#endif
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#endif
 #include "opentxs/OT.hpp"
 
 namespace opentxs
@@ -73,12 +73,12 @@ AsymmetricKeySecp256k1::AsymmetricKeySecp256k1(const String& publicKey)
 {
 }
 
-const Ecdsa& AsymmetricKeySecp256k1::ECDSA() const
+const crypto::EcdsaProvider& AsymmetricKeySecp256k1::ECDSA() const
 {
-    return static_cast<const Libsecp256k1&>(engine());
+    return dynamic_cast<const crypto::Secp256k1&>(engine());
 }
 
-const CryptoAsymmetric& AsymmetricKeySecp256k1::engine() const
+const crypto::AsymmetricProvider& AsymmetricKeySecp256k1::engine() const
 
 {
     return OT::App().Crypto().SECP256K1();

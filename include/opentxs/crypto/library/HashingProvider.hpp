@@ -36,65 +36,50 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP
+#ifndef OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP
+#define OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP
 
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 
-#include <cstddef>
+#include <cstdint>
 
 namespace opentxs
 {
-namespace api
-{
 namespace crypto
 {
-namespace implementation
+class HashingProvider
 {
-class Symmetric;
-}  // namespace implementation
-}  // namespace crypto
-}  // namespace api
+public:
+    static proto::HashType StringToHashType(const String& inputString);
+    static String HashTypeToString(const proto::HashType hashType);
+    static std::size_t HashSize(const proto::HashType hashType);
 
-class SymmetricKey;
+    EXPORT virtual bool Digest(
+        const proto::HashType hashType,
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        std::uint8_t* output) const = 0;
+    EXPORT virtual bool HMAC(
+        const proto::HashType hashType,
+        const std::uint8_t* input,
+        const std::size_t inputSize,
+        const std::uint8_t* key,
+        const std::size_t keySize,
+        std::uint8_t* output) const = 0;
 
-class CryptoSymmetricNew
-{
-    friend class SymmetricKey;
-    friend class api::crypto::implementation::Symmetric;
+    EXPORT virtual ~HashingProvider() = default;
 
 protected:
-    virtual bool Decrypt(
-        const proto::Ciphertext& ciphertext,
-        const std::uint8_t* key,
-        const std::size_t keySize,
-        std::uint8_t* plaintext) const = 0;
-    virtual proto::SymmetricMode DefaultMode() const = 0;
-    virtual bool Derive(
-        const std::uint8_t* input,
-        const std::size_t inputSize,
-        const std::uint8_t* salt,
-        const std::size_t saltSize,
-        const std::uint64_t operations,
-        const std::uint64_t difficulty,
-        const proto::SymmetricKeyType type,
-        std::uint8_t* output,
-        std::size_t outputSize) const = 0;
-    virtual bool Encrypt(
-        const std::uint8_t* input,
-        const std::size_t inputSize,
-        const std::uint8_t* key,
-        const std::size_t keySize,
-        proto::Ciphertext& ciphertext) const = 0;
-    virtual std::size_t KeySize(const proto::SymmetricMode mode) const = 0;
-    virtual std::size_t IvSize(const proto::SymmetricMode mode) const = 0;
-    virtual std::size_t SaltSize(const proto::SymmetricKeyType type) const = 0;
-    virtual std::size_t TagSize(const proto::SymmetricMode mode) const = 0;
+    HashingProvider() = default;
 
-    CryptoSymmetricNew() = default;
-    ~CryptoSymmetricNew() = default;
+private:
+    HashingProvider(const HashingProvider&) = delete;
+    HashingProvider(HashingProvider&&) = delete;
+    HashingProvider& operator=(const HashingProvider&) = delete;
+    HashingProvider& operator=(HashingProvider&&) = delete;
 };
+}  // namespace crypto
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICNEW_HPP
+#endif  // OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP

@@ -70,8 +70,12 @@ public:
         const std::string& label) const override;
     std::shared_ptr<const class Contact> NewContact(
         const std::string& label,
-        const Identifier& nymID,
-        const PaymentCode& paymentCode) const override;
+        const Identifier& nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        ,
+        const PaymentCode& paymentCode
+#endif
+        ) const override;
     std::shared_ptr<const class Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,
@@ -101,7 +105,9 @@ private:
 
     void check_identifiers(
         const Identifier& inputNymID,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         const PaymentCode& paymentCode,
+#endif
         bool& haveNymID,
         bool& havePaymentCode,
         OTIdentifier& outputNymID) const;
@@ -132,15 +138,21 @@ private:
     std::shared_ptr<const class Contact> new_contact(
         const rLock& lock,
         const std::string& label,
-        const Identifier& nymID,
-        const PaymentCode& paymentCode) const;
+        const Identifier& nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        ,
+        const PaymentCode& paymentCode
+#endif
+        ) const;
     void refresh_indices(const rLock& lock, class Contact& contact) const;
     void save(class Contact* contact) const;
     void start();
     std::shared_ptr<const class Contact> update_existing_contact(
         const rLock& lock,
         const std::string& label,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         const PaymentCode& code,
+#endif
         const Identifier& contactID) const;
     void update_nym_map(
         const rLock& lock,

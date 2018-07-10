@@ -38,16 +38,15 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"
 
-namespace opentxs
-{
+#include "AsymmetricProvider.hpp"
 
-proto::AsymmetricKeyType CryptoAsymmetric::CurveToKeyType(
+namespace opentxs::crypto
+{
+proto::AsymmetricKeyType AsymmetricProvider::CurveToKeyType(
     const EcdsaCurve& curve)
 {
     proto::AsymmetricKeyType output = proto::AKEYTYPE_ERROR;
@@ -70,7 +69,7 @@ proto::AsymmetricKeyType CryptoAsymmetric::CurveToKeyType(
     return output;
 }
 
-EcdsaCurve CryptoAsymmetric::KeyTypeToCurve(
+EcdsaCurve AsymmetricProvider::KeyTypeToCurve(
     const proto::AsymmetricKeyType& type)
 {
     EcdsaCurve output = EcdsaCurve::ERROR;
@@ -92,8 +91,11 @@ EcdsaCurve CryptoAsymmetric::KeyTypeToCurve(
 
     return output;
 }
+}  // namespace opentxs::crypto
 
-bool CryptoAsymmetric::SignContract(
+namespace opentxs::crypto::implementation
+{
+bool AsymmetricProvider::SignContract(
     const String& strContractUnsigned,
     const OTAsymmetricKey& theKey,
     OTSignature& theSignature,  // output
@@ -111,7 +113,7 @@ bool CryptoAsymmetric::SignContract(
     return success;
 }
 
-bool CryptoAsymmetric::VerifyContractSignature(
+bool AsymmetricProvider::VerifyContractSignature(
     const String& strContractToVerify,
     const OTAsymmetricKey& theKey,
     const OTSignature& theSignature,
@@ -126,5 +128,4 @@ bool CryptoAsymmetric::VerifyContractSignature(
 
     return Verify(plaintext, theKey, signature, hashType, pPWData);
 }
-
-}  // namespace opentxs
+}  // namespace opentxs::crypto::implementation

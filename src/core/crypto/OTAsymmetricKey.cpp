@@ -47,10 +47,6 @@
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #endif
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/core/crypto/Bip32.hpp"
-#endif
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
@@ -64,6 +60,10 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/Bip32.hpp"
+#endif
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 

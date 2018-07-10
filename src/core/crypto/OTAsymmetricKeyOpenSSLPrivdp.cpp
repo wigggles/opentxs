@@ -46,15 +46,16 @@
 #include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
-#endif
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
 #include <opentxs/core/util/stacktrace.h>
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/OT.hpp"
+
+#if OT_CRYPTO_USING_OPENSSL
+#include "crypto/library/OpenSSL_BIO.hpp"
+#endif
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
@@ -211,7 +212,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
     const OTPassword* pImportPassword)
 {
     // Create a new memory buffer on the OpenSSL side
-    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
     OT_ASSERT_MSG(
         nullptr != bmem,
         "OTAsymmetricKey_OpenSSL::CopyPublicKey: ASSERT: nullptr != bmem");
@@ -254,7 +255,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::CopyPublicKey(
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
-                OpenSSL_BIO keyBio = BIO_new_mem_buf(
+                crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
                     static_cast<char*>(
                         const_cast<void*>(theData->GetPointer())),
                     theData->GetSize());
@@ -337,7 +338,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         EVP_des_ede3_cbc();  // todo should this algorithm be hardcoded?
 
     // Create a new memory buffer on the OpenSSL side
-    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
     OT_ASSERT(nullptr != bmem);
 
     EVP_PKEY* pReturnKey = nullptr;
@@ -414,7 +415,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
-                OpenSSL_BIO keyBio = BIO_new_mem_buf(
+                crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
                     static_cast<char*>(
                         const_cast<void*>(theData->GetPointer())),
                     theData->GetSize());
@@ -479,7 +480,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPublicKey(
     ascKey.Release();
 
     // Create a new memory buffer on the OpenSSL side
-    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
     OT_ASSERT_MSG(
         nullptr != bmem,
         "OTAsymmetricKey_OpenSSL::ArmorPublicKey: ASSERT: nullptr != bmem");
@@ -557,7 +558,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
         // Next, copy theData's contents into a new BIO_mem_buf,
         // so OpenSSL can load the key out of it.
         //
-        OpenSSL_BIO keyBio = BIO_new_mem_buf(
+        crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
             static_cast<char*>(const_cast<void*>(theData->GetPointer())),
             theData->GetSize());
         OT_ASSERT_MSG(
@@ -635,7 +636,7 @@ EVP_PKEY* OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::
     // Copy the encrypted binary private key data into an OpenSSL memory BIO...
     //
     if (theData->GetSize() > 0) {
-        OpenSSL_BIO keyBio = BIO_new_mem_buf(
+        crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
             static_cast<char*>(const_cast<void*>(theData->GetPointer())),
             theData->GetSize());  // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(
@@ -707,7 +708,7 @@ bool OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp::ArmorPrivateKey(
     ascKey.Release();
 
     // Create a new memory buffer on the OpenSSL side
-    OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+    crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
     OT_ASSERT(nullptr != bmem);
 
     // write a private key to that buffer, from theKey

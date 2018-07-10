@@ -38,8 +38,6 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/Ecdsa.hpp"
-
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
@@ -47,49 +45,20 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
-namespace opentxs
+#include "EcdsaProvider.hpp"
+
+namespace opentxs::crypto
 {
-bool Ecdsa::AsymmetricKeyToECPrivatekey(
-    const AsymmetricKeyEC& asymmetricKey,
-    const OTPasswordData& passwordData,
-    OTPassword& privkey) const
-{
-    proto::Ciphertext dataPrivkey;
-    const bool havePrivateKey = asymmetricKey.GetKey(dataPrivkey);
-
-    if (!havePrivateKey) { return false; }
-
-    return AsymmetricKeyToECPrivkey(dataPrivkey, passwordData, privkey);
-}
-
-bool Ecdsa::AsymmetricKeyToECPrivkey(
-    const proto::Ciphertext& asymmetricKey,
-    const OTPasswordData& passwordData,
-    OTPassword& privkey) const
-{
-    BinarySecret masterPassword(
-        OT::App().Crypto().AES().InstantiateBinarySecretSP());
-
-    return ImportECPrivatekey(asymmetricKey, passwordData, privkey);
-}
-
-bool Ecdsa::AsymmetricKeyToECPubkey(
-    const AsymmetricKeyEC& asymmetricKey,
-    Data& pubkey) const
-{
-    return asymmetricKey.GetKey(pubkey);
-}
-
-bool Ecdsa::DecryptPrivateKey(
+bool EcdsaProvider::DecryptPrivateKey(
     const proto::Ciphertext& encryptedKey,
     const OTPasswordData& password,
     OTPassword& plaintextKey)
@@ -102,7 +71,7 @@ bool Ecdsa::DecryptPrivateKey(
     return key->Decrypt(encryptedKey, password, plaintextKey);
 }
 
-bool Ecdsa::DecryptPrivateKey(
+bool EcdsaProvider::DecryptPrivateKey(
     const proto::Ciphertext& encryptedKey,
     const proto::Ciphertext& encryptedChaincode,
     const OTPasswordData& password,
@@ -119,7 +88,75 @@ bool Ecdsa::DecryptPrivateKey(
     return (keyDecrypted && chaincodeDecrypted);
 }
 
-bool Ecdsa::DecryptSessionKeyECDH(
+bool EcdsaProvider::EncryptPrivateKey(
+    const OTPassword& plaintextKey,
+    const OTPasswordData& password,
+    proto::Ciphertext& encryptedKey)
+{
+    auto key = OT::App().Crypto().Symmetric().Key(password);
+
+    if (!key) { return false; }
+
+    auto blank = Data::Factory();
+
+    return key->Encrypt(plaintextKey, blank, password, encryptedKey, true);
+}
+
+bool EcdsaProvider::EncryptPrivateKey(
+    const OTPassword& key,
+    const OTPassword& chaincode,
+    const OTPasswordData& password,
+    proto::Ciphertext& encryptedKey,
+    proto::Ciphertext& encryptedChaincode)
+{
+    auto sessionKey = OT::App().Crypto().Symmetric().Key(password);
+
+    if (!sessionKey) { return false; }
+
+    auto blank = Data::Factory();
+    const bool keyEncrypted =
+        sessionKey->Encrypt(key, blank, password, encryptedKey, true);
+    const bool chaincodeEncrypted = sessionKey->Encrypt(
+        chaincode, blank, password, encryptedChaincode, false);
+
+    return (keyEncrypted && chaincodeEncrypted);
+}
+}  // namespace opentxs::crypto
+
+namespace opentxs::crypto::implementation
+{
+bool EcdsaProvider::AsymmetricKeyToECPrivatekey(
+    const AsymmetricKeyEC& asymmetricKey,
+    const OTPasswordData& passwordData,
+    OTPassword& privkey) const
+{
+    proto::Ciphertext dataPrivkey;
+    const bool havePrivateKey = asymmetricKey.GetKey(dataPrivkey);
+
+    if (!havePrivateKey) { return false; }
+
+    return AsymmetricKeyToECPrivkey(dataPrivkey, passwordData, privkey);
+}
+
+bool EcdsaProvider::AsymmetricKeyToECPrivkey(
+    const proto::Ciphertext& asymmetricKey,
+    const OTPasswordData& passwordData,
+    OTPassword& privkey) const
+{
+    BinarySecret masterPassword(
+        OT::App().Crypto().AES().InstantiateBinarySecretSP());
+
+    return ImportECPrivatekey(asymmetricKey, passwordData, privkey);
+}
+
+bool EcdsaProvider::AsymmetricKeyToECPubkey(
+    const AsymmetricKeyEC& asymmetricKey,
+    Data& pubkey) const
+{
+    return asymmetricKey.GetKey(pubkey);
+}
+
+bool EcdsaProvider::DecryptSessionKeyECDH(
     const AsymmetricKeyEC& privateKey,
     const AsymmetricKeyEC& publicKey,
     const OTPasswordData& password,
@@ -159,7 +196,7 @@ bool Ecdsa::DecryptSessionKeyECDH(
     return sessionKey.Unlock(unlockPassword);
 }
 
-bool Ecdsa::ECPrivatekeyToAsymmetricKey(
+bool EcdsaProvider::ECPrivatekeyToAsymmetricKey(
     const OTPassword& privkey,
     const OTPasswordData& passwordData,
     AsymmetricKeyEC& asymmetricKey) const
@@ -167,7 +204,7 @@ bool Ecdsa::ECPrivatekeyToAsymmetricKey(
     return ExportECPrivatekey(privkey, passwordData, asymmetricKey);
 }
 
-bool Ecdsa::ECPubkeyToAsymmetricKey(
+bool EcdsaProvider::ECPubkeyToAsymmetricKey(
     const Data& pubkey,
     AsymmetricKeyEC& asymmetricKey) const
 {
@@ -176,41 +213,7 @@ bool Ecdsa::ECPubkeyToAsymmetricKey(
     return asymmetricKey.SetKey(pubkey);
 }
 
-bool Ecdsa::EncryptPrivateKey(
-    const OTPassword& plaintextKey,
-    const OTPasswordData& password,
-    proto::Ciphertext& encryptedKey)
-{
-    auto key = OT::App().Crypto().Symmetric().Key(password);
-
-    if (!key) { return false; }
-
-    auto blank = Data::Factory();
-
-    return key->Encrypt(plaintextKey, blank, password, encryptedKey, true);
-}
-
-bool Ecdsa::EncryptPrivateKey(
-    const OTPassword& key,
-    const OTPassword& chaincode,
-    const OTPasswordData& password,
-    proto::Ciphertext& encryptedKey,
-    proto::Ciphertext& encryptedChaincode)
-{
-    auto sessionKey = OT::App().Crypto().Symmetric().Key(password);
-
-    if (!sessionKey) { return false; }
-
-    auto blank = Data::Factory();
-    const bool keyEncrypted =
-        sessionKey->Encrypt(key, blank, password, encryptedKey, true);
-    const bool chaincodeEncrypted = sessionKey->Encrypt(
-        chaincode, blank, password, encryptedChaincode, false);
-
-    return (keyEncrypted && chaincodeEncrypted);
-}
-
-bool Ecdsa::EncryptSessionKeyECDH(
+bool EcdsaProvider::EncryptSessionKeyECDH(
     const AsymmetricKeyEC& privateKey,
     const AsymmetricKeyEC& publicKey,
     const OTPasswordData& passwordData,
@@ -264,7 +267,7 @@ bool Ecdsa::EncryptSessionKeyECDH(
     return true;
 }
 
-bool Ecdsa::ExportECPrivatekey(
+bool EcdsaProvider::ExportECPrivatekey(
     const OTPassword& privkey,
     const OTPasswordData& password,
     AsymmetricKeyEC& asymmetricKey) const
@@ -276,7 +279,7 @@ bool Ecdsa::ExportECPrivatekey(
     return asymmetricKey.SetKey(encryptedKey);
 }
 
-bool Ecdsa::ImportECPrivatekey(
+bool EcdsaProvider::ImportECPrivatekey(
     const proto::Ciphertext& asymmetricKey,
     const OTPasswordData& password,
     OTPassword& privkey) const
@@ -284,7 +287,7 @@ bool Ecdsa::ImportECPrivatekey(
     return DecryptPrivateKey(asymmetricKey, password, privkey);
 }
 
-bool Ecdsa::PrivateToPublic(
+bool EcdsaProvider::PrivateToPublic(
     const proto::AsymmetricKey& privateKey,
     proto::AsymmetricKey& publicKey) const
 {
@@ -304,7 +307,7 @@ bool Ecdsa::PrivateToPublic(
     return true;
 }
 
-bool Ecdsa::PrivateToPublic(
+bool EcdsaProvider::PrivateToPublic(
     const proto::Ciphertext& privateKey,
     Data& publicKey) const
 {
@@ -319,14 +322,14 @@ bool Ecdsa::PrivateToPublic(
     return ScalarBaseMultiply(*plaintextKey, publicKey);
 }
 
-bool Ecdsa::SeedToCurveKey(
-    __attribute__((unused)) const OTPassword& seed,
-    __attribute__((unused)) OTPassword& privateKey,
-    __attribute__((unused)) Data& publicKey) const
+bool EcdsaProvider::SeedToCurveKey(
+    [[maybe_unused]] const OTPassword& seed,
+    [[maybe_unused]] OTPassword& privateKey,
+    [[maybe_unused]] Data& publicKey) const
 {
-    otErr << __FUNCTION__ << ": this engine does not support curve25519."
+    otErr << __FUNCTION__ << ": this provider does not support curve25519."
           << std::endl;
 
     return false;
 }
-}  // namespace opentxs
+}  // namespace opentxs::crypto::implementation

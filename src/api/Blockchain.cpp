@@ -38,6 +38,9 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -46,12 +49,12 @@
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
-#include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/Bip32.hpp"
 
 #include <map>
 #include <mutex>
@@ -798,3 +801,4 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
     return output;
 }
 }  // namespace opentxs::api::implementation
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD

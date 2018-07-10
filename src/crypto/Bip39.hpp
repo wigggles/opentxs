@@ -36,54 +36,38 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_BIP39_HPP
-#define OPENTXS_CORE_CRYPTO_BIP39_HPP
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_BIP39_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_BIP39_HPP
 
-#include "opentxs/Forward.hpp"
+#include "opentxs/crypto/Bip39.hpp"
 
-#if OT_CRYPTO_WITH_BIP39
-
-#include "opentxs/Proto.hpp"
-
-#include <cstdint>
-#include <memory>
-#include <string>
-
-namespace opentxs
+namespace opentxs::crypto::implementation
 {
-
-class OTPassword;
-
-namespace api
-{
-class Native;
-}  // namespace api
-
-class Bip39
+class Bip39 : virtual public crypto::Bip39
 {
 public:
-    static const std::string DEFAULT_PASSPHRASE;
-
-    std::string DefaultSeed() const;
+    std::string DefaultSeed() const override;
     std::string ImportSeed(
         const OTPassword& words,
-        const OTPassword& passphrase) const;
-    std::string NewSeed() const;
-    std::string Passphrase(const std::string& fingerprint = "") const;
+        const OTPassword& passphrase) const override;
+    std::string NewSeed() const override;
+    std::string Passphrase(const std::string& fingerprint = "") const override;
     std::shared_ptr<OTPassword> Seed(
         std::string& fingerprint,
-        std::uint32_t& index) const;
-    bool UpdateIndex(std::string& seed, const std::uint32_t index) const;
-    std::string Words(const std::string& fingerprint = "") const;
+        std::uint32_t& index) const override;
+    bool UpdateIndex(std::string& seed, const std::uint32_t index)
+        const override;
+    std::string Words(const std::string& fingerprint = "") const override;
 
     virtual ~Bip39() = default;
 
 protected:
-    Bip39(api::Native& native);
+    const api::Native& native_;
+
+    Bip39(const api::Native& native);
 
 private:
-    api::Native& native_;
-
+    static const std::string DEFAULT_PASSPHRASE;
     static const proto::SymmetricMode DEFAULT_ENCRYPTION_MODE;
 
     bool DecryptSeed(
@@ -112,7 +96,5 @@ private:
     Bip39& operator=(const Bip39&) = delete;
     Bip39& operator=(Bip39&&) = delete;
 };
-}  // namespace opentxs
-
-#endif  // OT_CRYPTO_WITH_BIP39
-#endif  // OPENTXS_CORE_CRYPTO_BIP39_HPP
+}  // namespace opentxs::crypto::implementation
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_BIP39_HPP

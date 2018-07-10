@@ -49,9 +49,6 @@
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -74,6 +71,9 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/OT.hpp"
 
@@ -320,6 +320,7 @@ void Nym::AddOutpayments(Message& theMessage)
     m_dequeOutpayments.push_front(&theMessage);
 }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool Nym::AddPaymentCode(
     const class PaymentCode& code,
     const proto::ContactItemType currency,
@@ -341,6 +342,7 @@ bool Nym::AddPaymentCode(
 
     return set_contact_data(lock, contact_data_->Serialize());
 }
+#endif
 
 bool Nym::AddPhoneNumber(
     const std::string& value,

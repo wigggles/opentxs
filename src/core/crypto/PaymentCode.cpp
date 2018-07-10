@@ -45,11 +45,9 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/Bip32.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -60,6 +58,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -389,9 +389,9 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         proto::AsymmetricKey key{};
         bool haveKey{false};
 #if OT_CRYPTO_USING_LIBSECP256K1
-        haveKey =
-            static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1())
-                .PrivateToPublic(*privatekey, key);
+        haveKey = dynamic_cast<const crypto::Secp256k1&>(
+                      OT::App().Crypto().SECP256K1())
+                      .PrivateToPublic(*privatekey, key);
 #endif
 
         if (haveKey) {
@@ -495,7 +495,7 @@ bool PaymentCode::Sign(
     proto::AsymmetricKey compareKey;
 #if OT_CRYPTO_USING_LIBSECP256K1
     const bool haveKey =
-        static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1())
+        dynamic_cast<const crypto::Secp256k1&>(OT::App().Crypto().SECP256K1())
             .PrivateToPublic(*privatekey, compareKey);
 #endif
 

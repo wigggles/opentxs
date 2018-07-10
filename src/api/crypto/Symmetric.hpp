@@ -41,17 +41,8 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/crypto/Symmetric.hpp"
-
-namespace opentxs
+namespace opentxs::api::crypto::implementation
 {
-namespace api
-{
-namespace crypto
-{
-namespace implementation
-{
-
 class Symmetric : virtual public api::crypto::Symmetric
 {
 public:
@@ -73,21 +64,19 @@ public:
     ~Symmetric() = default;
 
 private:
-    friend class api::implementation::Crypto;
+    friend Factory;
 
-    CryptoSymmetricNew& sodium_;
+    opentxs::crypto::SymmetricProvider& sodium_;
 
-    CryptoSymmetricNew* GetEngine(const proto::SymmetricMode mode) const;
+    opentxs::crypto::SymmetricProvider* GetEngine(
+        const proto::SymmetricMode mode) const;
 
-    Symmetric(CryptoSymmetricNew& sodium);
+    Symmetric(opentxs::crypto::SymmetricProvider& sodium);
     Symmetric() = delete;
     Symmetric(const Symmetric&) = delete;
     Symmetric(Symmetric&&) = delete;
     Symmetric& operator=(const Symmetric&) = delete;
     Symmetric& operator=(Symmetric&&) = delete;
 };
-}  // namespace implementation
-}  // namespace crypto
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation
 #endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP

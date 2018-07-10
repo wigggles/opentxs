@@ -41,16 +41,7 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/crypto/Encode.hpp"
-#include "opentxs/Types.hpp"
-
-namespace opentxs
-{
-namespace api
-{
-namespace crypto
-{
-namespace implementation
+namespace opentxs::api::crypto::implementation
 {
 class Encode : virtual public api::crypto::Encode
 {
@@ -70,11 +61,11 @@ public:
     ~Encode() = default;
 
 private:
-    friend class api::implementation::Crypto;
+    friend Factory;
 
     static const std::uint8_t LineWidth{72};
 
-    CryptoEncoding& base58_;
+    opentxs::crypto::EncodingProvider& base58_;
 
     std::string Base64Encode(
         const std::uint8_t* inputStart,
@@ -83,13 +74,10 @@ private:
     std::string BreakLines(const std::string& input) const;
     std::string IdentifierEncode(const OTPassword& input) const;
 
+    Encode(opentxs::crypto::EncodingProvider& base58);
     Encode() = delete;
-    Encode(CryptoEncoding& base58);
     Encode(const Encode&) = delete;
     Encode& operator=(const Encode&) = delete;
 };
-}  // namespace implementation
-}  // namespace crypto
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation
 #endif  // OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP

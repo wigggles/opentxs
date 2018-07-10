@@ -37,13 +37,14 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/Bip32.hpp"
+#include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/Bip39.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/Bip39.hpp"
 #include "opentxs/OT.hpp"
 
 #include <cstdint>
@@ -54,19 +55,42 @@
 #include <sstream>
 #include <vector>
 
-#define OT_METHOD "opentxs::Bip32::"
+#include "Bip32.hpp"
 
-namespace opentxs
+#define OT_METHOD "opentxs::crypto::implementation::Bip32::"
+
+namespace opentxs::crypto
 {
+std::string Print(const proto::HDPath& node)
+{
+    std::stringstream output{};
+    output << node.root();
 
-serializedAsymmetricKey Bip32::AccountChildKey(
+    for (const auto& child : node.child()) {
+        output << " / ";
+        const auto max = static_cast<std::uint32_t>(Bip32Child::HARDENED);
+
+        if (max > child) {
+            output << std::to_string(child);
+        } else {
+            output << std::to_string(child - max) << "'";
+        }
+    }
+
+    return output.str();
+}
+}  // namespace opentxs::crypto
+
+namespace opentxs::crypto::implementation
+{
+std::shared_ptr<proto::AsymmetricKey> Bip32::AccountChildKey(
     const proto::HDPath& rootPath,
     const BIP44Chain internal,
     const std::uint32_t index) const
 {
     auto path = rootPath;
     auto fingerprint = rootPath.root();
-    serializedAsymmetricKey output;
+    std::shared_ptr<proto::AsymmetricKey> output;
     std::uint32_t notUsed = 0;
     auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, notUsed);
     path.set_root(fingerprint);
@@ -101,11 +125,11 @@ std::string Bip32::Seed(const std::string& fingerprint) const
     return stream.str();
 }
 
-serializedAsymmetricKey Bip32::GetPaymentCode(
+std::shared_ptr<proto::AsymmetricKey> Bip32::GetPaymentCode(
     std::string& fingerprint,
     const std::uint32_t nym) const
 {
-    serializedAsymmetricKey output;
+    std::shared_ptr<proto::AsymmetricKey> output;
     std::uint32_t notUsed = 0;
     auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, notUsed);
 
@@ -126,7 +150,8 @@ serializedAsymmetricKey Bip32::GetPaymentCode(
     return output;
 }
 
-serializedAsymmetricKey Bip32::GetStorageKey(std::string& fingerprint) const
+std::shared_ptr<proto::AsymmetricKey> Bip32::GetStorageKey(
+    std::string& fingerprint) const
 {
     std::uint32_t notUsed = 0;
     auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, notUsed);
@@ -149,24 +174,5 @@ serializedAsymmetricKey Bip32::GetStorageKey(std::string& fingerprint) const
 
     return GetHDKey(EcdsaCurve::SECP256K1, *seed, path);
 }
-
-std::string Print(const proto::HDPath& node)
-{
-    std::stringstream output{};
-    output << node.root();
-
-    for (const auto& child : node.child()) {
-        output << " / ";
-        const auto max = static_cast<std::uint32_t>(Bip32Child::HARDENED);
-
-        if (max > child) {
-            output << std::to_string(child);
-        } else {
-            output << std::to_string(child - max) << "'";
-        }
-    }
-
-    return output.str();
-}
-}  // namespace opentxs
+}  // namespace opentxs::crypto::implementation
 #endif

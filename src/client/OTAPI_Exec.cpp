@@ -61,9 +61,6 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
@@ -99,6 +96,9 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -605,8 +605,17 @@ std::string OTAPI_Exec::CreateNymHD(
         return {};
     }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto code = PaymentCode::Factory(nym->PaymentCode());
-    contacts_.NewContact(name, nym->ID(), code);
+#endif
+    contacts_.NewContact(
+        name,
+        nym->ID()
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            ,
+        code
+#endif
+    );
 
     return nym->ID().str();
 #else

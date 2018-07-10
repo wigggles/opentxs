@@ -43,19 +43,20 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-#include "opentxs/core/crypto/OpenSSL_BIO.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/Ecdsa.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
+
+#include "api/NativeInternal.hpp"
+#include "crypto/library/OpenSSL_BIO.hpp"
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
@@ -68,8 +69,6 @@
 #include <cstdint>
 #include <ostream>
 #include <string>
-
-#include "api/NativeInternal.hpp"
 
 // BIO_get_mem_ptr() and BIO_get_mem_data() macros from OpenSSL
 // use old style cast
@@ -293,11 +292,11 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
 
     // Create a new memory buffer on the OpenSSL side.
     //
-    //    OpenSSL_BIO bio = BIO_new(BIO_s_mem());
-    //  OpenSSL_BIO bio =
+    //    crypto::implementation::OpenSSL_BIO bio = BIO_new(BIO_s_mem());
+    //  crypto::implementation::OpenSSL_BIO bio =
     // BIO_new_mem_buf(static_cast<void*>(const_cast<char*>(strWithBookends.Get())),
     // strWithBookends.GetLength() /*+1*/);
-    OpenSSL_BIO bio = BIO_new_mem_buf(
+    crypto::implementation::OpenSSL_BIO bio = BIO_new_mem_buf(
         static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
     OT_ASSERT_MSG(
         nullptr != bio,
@@ -396,12 +395,13 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
     // took out the +1 on the length since null terminater only
     // needed in string form, not binary form as OpenSSL treats it.
     //
-    OpenSSL_BIO keyBio = BIO_new_mem_buf(
+    crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
         static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
-    //    OpenSSL_BIO keyBio =
+    //    crypto::implementation::OpenSSL_BIO keyBio =
     // BIO_new_mem_buf(static_cast<void*>(const_cast<char*>(strWithBookends.Get())),
     // strWithBookends.GetLength() /*+1*/);
-    //    OpenSSL_BIO keyBio = BIO_new_mem_buf((void*)strCert.Get(),
+    //    crypto::implementation::OpenSSL_BIO keyBio =
+    //    BIO_new_mem_buf((void*)strCert.Get(),
     // strCert.GetLength() /*+1*/);
     OT_ASSERT(nullptr != keyBio);
 
@@ -508,7 +508,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
         // Copy the encrypted binary private key data into an OpenSSL memory
         // BIO...
         //
-        OpenSSL_BIO keyBio = BIO_new_mem_buf(
+        crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
             static_cast<char*>(const_cast<void*>(theData->GetPointer())),
             theData->GetSize());  // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(
@@ -564,7 +564,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
             // to m_p_ascKey
             // using the new passphrase.
             //
-            OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
+            crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
             OT_ASSERT(nullptr != bmem);
 
             // write a private key to that buffer, from pClearKey
@@ -683,7 +683,7 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
         return false;
     }
 
-    OpenSSL_BIO bio_out_x509 =
+    crypto::implementation::OpenSSL_BIO bio_out_x509 =
         BIO_new(BIO_s_mem());  // we now have auto-cleanup
 
     PEM_write_bio_X509(bio_out_x509, x509);
@@ -750,7 +750,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
         return false;
     }
 
-    OpenSSL_BIO bio_out_pri = BIO_new(BIO_s_mem());
+    crypto::implementation::OpenSSL_BIO bio_out_pri = BIO_new(BIO_s_mem());
     bio_out_pri.setFreeOnly();  // only BIO_free(), not BIO_free_all();
 
     OTPasswordData thePWData(
@@ -812,7 +812,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
     return privateSuccess && publicSuccess;
 }
 
-const CryptoAsymmetric& OTAsymmetricKey_OpenSSL::engine() const
+const crypto::AsymmetricProvider& OTAsymmetricKey_OpenSSL::engine() const
 
 {
     return OT::App().Crypto().RSA();
@@ -839,9 +839,10 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
 }
 
 bool OTAsymmetricKey_OpenSSL::TransportKey(
-    Data& publicKey,
-    OTPassword& privateKey) const
+    [[maybe_unused]] Data& publicKey,
+    [[maybe_unused]] OTPassword& privateKey) const
 {
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     OT_ASSERT(nullptr != m_p_ascKey);
 
     if (!IsPrivate()) { return false; }
@@ -853,10 +854,13 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
     OT::App().Crypto().Hash().Digest(StandardHash, key, hash);
     OTPassword seed;
     seed.setMemory(hash->GetPointer(), hash->GetSize());
-    const Ecdsa& engine =
-        static_cast<const Libsodium&>(OT::App().Crypto().ED25519());
+    const crypto::EcdsaProvider& engine =
+        dynamic_cast<const crypto::Sodium&>(OT::App().Crypto().ED25519());
 
     return engine.SeedToCurveKey(seed, privateKey, publicKey);
+#else
+    return false;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 }
 }  // namespace opentxs
 

@@ -49,7 +49,9 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/Blockchain.hpp"
+#endif
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/UI.hpp"
@@ -3032,8 +3034,7 @@ void SwigWrap::Thread_Preload(
         items);
 }
 
-//-----------------------------------------------------------------------------
-
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 std::string SwigWrap::Blockchain_Account(
     const std::string& nymID,
     const std::string& accountID)
@@ -3274,13 +3275,12 @@ std::string SwigWrap::Blockchain_Transaction_base64(const std::string& txid)
 
     return OT::App().Crypto().Encode().DataEncode(transaction);
 }
-
-//-----------------------------------------------------------------------------
+#endif
 
 std::string SwigWrap::Add_Contact(
     const std::string label,
     const std::string& nymID,
-    const std::string& paymentCode)
+    [[maybe_unused]] const std::string& paymentCode)
 {
     const bool noLabel = label.empty();
     const bool noNym = nymID.empty();
@@ -3289,11 +3289,20 @@ std::string SwigWrap::Add_Contact(
     if (noLabel && noNym && noPaymentCode) { return {}; }
 
     auto nym = Identifier::Factory(nymID);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto code = PaymentCode::Factory(paymentCode);
 
     if (nym->empty() && code->VerifyInternally()) { nym = code->ID(); }
+#endif
 
-    auto output = OT::App().Contact().NewContact(label, nym, code);
+    auto output = OT::App().Contact().NewContact(
+        label,
+        nym
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        ,
+        code
+#endif
+    );
 
     if (false == bool(output)) { return {}; }
 

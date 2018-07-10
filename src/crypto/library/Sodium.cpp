@@ -38,35 +38,50 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/Libsodium.hpp"
-
 #include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 
-#include <array>
+#include "AsymmetricProvider.hpp"
+#include "EcdsaProvider.hpp"
 
 extern "C" {
 #include <sodium.h>
 }
 
-#define OT_METHOD "opentxs::Libsodium::"
+#include <array>
+
+#include "Sodium.hpp"
+
+#define OT_METHOD "opentxs::Sodium::"
 
 namespace opentxs
 {
-void Libsodium::Init_Override() const
+crypto::Sodium* Factory::Sodium()
 {
-    auto result = ::sodium_init();
+    return new crypto::implementation::Sodium();
+}
+}  // namespace opentxs
+
+namespace opentxs::crypto::implementation
+{
+Sodium::Sodium()
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    : AsymmetricProvider()
+    , EcdsaProvider()
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+{
+    const auto result = ::sodium_init();
 
     OT_ASSERT(-1 != result);
 }
 
-bool Libsodium::Decrypt(
+bool Sodium::Decrypt(
     const proto::Ciphertext& ciphertext,
     const std::uint8_t* key,
     const std::size_t keySize,
@@ -115,7 +130,7 @@ bool Libsodium::Decrypt(
     return false;
 }
 
-bool Libsodium::Derive(
+bool Sodium::Derive(
     const std::uint8_t* input,
     const std::size_t inputSize,
     const std::uint8_t* salt,
@@ -148,7 +163,7 @@ bool Libsodium::Derive(
                  crypto_pwhash_ALG_ARGON2I13));
 }
 
-bool Libsodium::Digest(
+bool Sodium::Digest(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
@@ -161,7 +176,7 @@ bool Libsodium::Digest(
             return (
                 0 == crypto_generichash(
                          output,
-                         CryptoHash::HashSize(hashType),
+                         HashingProvider::HashSize(hashType),
                          input,
                          inputSize,
                          nullptr,
@@ -183,7 +198,8 @@ bool Libsodium::Digest(
     return false;
 }
 
-bool Libsodium::ECDH(
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+bool Sodium::ECDH(
     const Data& publicKey,
     const OTPassword& seed,
     OTPassword& secret) const
@@ -221,8 +237,9 @@ bool Libsodium::ECDH(
 
     return (0 == output);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-bool Libsodium::Encrypt(
+bool Sodium::Encrypt(
     const std::uint8_t* input,
     const std::size_t inputSize,
     const std::uint8_t* key,
@@ -290,7 +307,8 @@ bool Libsodium::Encrypt(
     return result;
 }
 
-bool Libsodium::ExpandSeed(
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+bool Sodium::ExpandSeed(
     const OTPassword& seed,
     OTPassword& privateKey,
     Data& publicKey) const
@@ -310,8 +328,9 @@ bool Libsodium::ExpandSeed(
 
     return (0 == output);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-bool Libsodium::HMAC(
+bool Sodium::HMAC(
     const proto::HashType hashType,
     const std::uint8_t* input,
     const size_t inputSize,
@@ -326,7 +345,7 @@ bool Libsodium::HMAC(
             return (
                 0 == crypto_generichash(
                          output,
-                         CryptoHash::HashSize(hashType),
+                         HashingProvider::HashSize(hashType),
                          input,
                          inputSize,
                          key,
@@ -362,7 +381,7 @@ bool Libsodium::HMAC(
     return false;
 }
 
-std::size_t Libsodium::IvSize(const proto::SymmetricMode mode) const
+std::size_t Sodium::IvSize(const proto::SymmetricMode mode) const
 {
     switch (mode) {
         case (proto::SMODE_CHACHA20POLY1305): {
@@ -377,7 +396,7 @@ std::size_t Libsodium::IvSize(const proto::SymmetricMode mode) const
     return 0;
 }
 
-std::size_t Libsodium::KeySize(const proto::SymmetricMode mode) const
+std::size_t Sodium::KeySize(const proto::SymmetricMode mode) const
 {
     switch (mode) {
         case (proto::SMODE_CHACHA20POLY1305): {
@@ -392,15 +411,17 @@ std::size_t Libsodium::KeySize(const proto::SymmetricMode mode) const
     return 0;
 }
 
-bool Libsodium::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+bool Sodium::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
 {
     OTPassword notUsed;
     privateKey.randomizeMemory(crypto_sign_SEEDBYTES);
 
     return ExpandSeed(privateKey, notUsed, publicKey);
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-bool Libsodium::RandomizeMemory(
+bool Sodium::RandomizeMemory(
     std::uint8_t* szDestination,
     std::uint32_t nNewSize) const
 {
@@ -409,7 +430,7 @@ bool Libsodium::RandomizeMemory(
     return true;
 }
 
-std::size_t Libsodium::SaltSize(const proto::SymmetricKeyType type) const
+std::size_t Sodium::SaltSize(const proto::SymmetricKeyType type) const
 {
     switch (type) {
         case (proto::SKEYTYPE_ARGON2): {
@@ -425,15 +446,15 @@ std::size_t Libsodium::SaltSize(const proto::SymmetricKeyType type) const
     return 0;
 }
 
-bool Libsodium::ScalarBaseMultiply(const OTPassword& seed, Data& publicKey)
-    const
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+bool Sodium::ScalarBaseMultiply(const OTPassword& seed, Data& publicKey) const
 {
     OTPassword notUsed;
 
     return ExpandSeed(seed, notUsed, publicKey);
 }
 
-bool Libsodium::SeedToCurveKey(
+bool Sodium::SeedToCurveKey(
     const OTPassword& seed,
     OTPassword& privateKey,
     Data& publicKey) const
@@ -483,7 +504,7 @@ bool Libsodium::SeedToCurveKey(
     return true;
 }
 
-bool Libsodium::Sign(
+bool Sodium::Sign(
     const Data& plaintext,
     const OTAsymmetricKey& theKey,
     const proto::HashType hashType,
@@ -493,7 +514,7 @@ bool Libsodium::Sign(
 {
     if (proto::HASHTYPE_BLAKE2B256 != hashType) {
         otErr << __FUNCTION__ << ": Invalid hash function: "
-              << CryptoHash::HashTypeToString(hashType) << std::endl;
+              << HashingProvider::HashTypeToString(hashType) << std::endl;
 
         return false;
     }
@@ -555,8 +576,9 @@ bool Libsodium::Sign(
 
     return false;
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-std::size_t Libsodium::TagSize(const proto::SymmetricMode mode) const
+std::size_t Sodium::TagSize(const proto::SymmetricMode mode) const
 {
     switch (mode) {
         case (proto::SMODE_CHACHA20POLY1305): {
@@ -571,7 +593,8 @@ std::size_t Libsodium::TagSize(const proto::SymmetricMode mode) const
     return 0;
 }
 
-bool Libsodium::Verify(
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+bool Sodium::Verify(
     const Data& plaintext,
     const OTAsymmetricKey& theKey,
     const Data& signature,
@@ -580,7 +603,7 @@ bool Libsodium::Verify(
 {
     if (proto::HASHTYPE_BLAKE2B256 != hashType) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid hash function: "
-              << CryptoHash::HashTypeToString(hashType) << std::endl;
+              << HashingProvider::HashTypeToString(hashType) << std::endl;
 
         return false;
     }
@@ -620,4 +643,5 @@ bool Libsodium::Verify(
 
     return false;
 }
-}  // namespace opentxs
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+}  // namespace opentxs::crypto::implementation

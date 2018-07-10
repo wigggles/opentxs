@@ -36,75 +36,16 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
-#define OPENTXS_CORE_CRYPTO_LIBSECP256K1_HPP
-
-#include "opentxs/Forward.hpp"
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SECP256K1_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SECP256K1_HPP
 
 #if OT_CRYPTO_USING_LIBSECP256K1
-
-#include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/Ecdsa.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/Proto.hpp"
-
-extern "C" {
-#include "secp256k1.h"
-}
-
-namespace opentxs
+namespace opentxs::crypto::implementation
 {
-class OTAsymmetricKey;
-class Data;
-class OTPassword;
-class OTPasswordData;
-class Nym;
-
-namespace api
+class Secp256k1 final : virtual public crypto::Secp256k1,
+                        public AsymmetricProvider,
+                        public EcdsaProvider
 {
-namespace implementation
-{
-class Crypto;
-}  // namespace implementation
-
-namespace crypto
-{
-class Util;
-}  // namespace crypto
-}  // namespace api
-
-class Libsecp256k1 : public Crypto, public CryptoAsymmetric, public Ecdsa
-{
-    friend class api::implementation::Crypto;
-
-private:
-    static const int PrivateKeySize = 32;
-    static const int PublicKeySize = 33;
-    static bool Initialized_;
-
-    secp256k1_context* context_{nullptr};
-    const Ecdsa& ecdsa_;
-    const api::crypto::Util& ssl_;
-
-    bool ParsePublicKey(const Data& input, secp256k1_pubkey& output) const;
-    void Init_Override() const override;
-    void Cleanup_Override() const override{};
-    bool ECDH(
-        const Data& publicKey,
-        const OTPassword& privateKey,
-        OTPassword& secret) const override;
-    bool DataToECSignature(
-        const Data& inSignature,
-        secp256k1_ecdsa_signature& outSignature) const;
-    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
-        const override;
-
-    Libsecp256k1() = delete;
-    explicit Libsecp256k1(const api::crypto::Util& ssl, const Ecdsa& ecdsa);
-
 public:
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
     bool Sign(
@@ -121,9 +62,35 @@ public:
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const override;
 
-    virtual ~Libsecp256k1();
-};
-}  // namespace opentxs
+    void Init() override;
 
+    ~Secp256k1();
+
+private:
+    friend Factory;
+
+    static const int PrivateKeySize = 32;
+    static const int PublicKeySize = 33;
+    static bool Initialized_;
+
+    secp256k1_context* context_{nullptr};
+    const crypto::Trezor& ecdsa_;
+    const api::crypto::Util& ssl_;
+
+    bool ParsePublicKey(const Data& input, secp256k1_pubkey& output) const;
+    bool ECDH(
+        const Data& publicKey,
+        const OTPassword& privateKey,
+        OTPassword& secret) const override;
+    bool DataToECSignature(
+        const Data& inSignature,
+        secp256k1_ecdsa_signature& outSignature) const;
+    bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
+        const override;
+
+    Secp256k1(const api::crypto::Util& ssl, const crypto::Trezor& ecdsa);
+    Secp256k1() = delete;
+};
+}  // namespace opentxs::crypto::implementation
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
-#endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SECP256K1_HPP

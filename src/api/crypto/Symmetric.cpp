@@ -38,24 +38,34 @@
 
 #include "stdafx.hpp"
 
-#include "Symmetric.hpp"
-
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/core/crypto/SymmetricKey.hpp"
+#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
 
 #include <string>
 
+#include "Symmetric.hpp"
+
+namespace opentxs
+{
+api::crypto::Symmetric* Factory::Symmetric(crypto::SymmetricProvider& sodium)
+{
+    return new api::crypto::implementation::Symmetric(sodium);
+}
+}  // namespace opentxs
+
 namespace opentxs::api::crypto::implementation
 {
-Symmetric::Symmetric(CryptoSymmetricNew& sodium)
+Symmetric::Symmetric(opentxs::crypto::SymmetricProvider& sodium)
     : sodium_(sodium)
 {
 }
 
-CryptoSymmetricNew* Symmetric::GetEngine(const proto::SymmetricMode mode) const
+opentxs::crypto::SymmetricProvider* Symmetric::GetEngine(
+    const proto::SymmetricMode mode) const
 {
-    CryptoSymmetricNew* engine = nullptr;
+    opentxs::crypto::SymmetricProvider* engine = nullptr;
 
     // Add support for other crypto engines here
     switch (mode) {

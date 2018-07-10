@@ -125,20 +125,29 @@ ContactManager::ContactNameMap ContactManager::build_name_map(
 
 void ContactManager::check_identifiers(
     const Identifier& inputNymID,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     const PaymentCode& paymentCode,
+#endif
     bool& haveNymID,
     bool& havePaymentCode,
     OTIdentifier& outputNymID) const
 {
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     if (paymentCode.VerifyInternally()) { havePaymentCode = true; }
+#else
+    havePaymentCode = false;
+#endif
 
     if (false == inputNymID.empty()) {
         haveNymID = true;
         outputNymID = Identifier::Factory(inputNymID);
-    } else if (havePaymentCode) {
+    }
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    else if (havePaymentCode) {
         haveNymID = true;
         outputNymID = Identifier::Factory(paymentCode.ID());
     }
+#endif
 }
 
 std::shared_ptr<const class Contact> ContactManager::contact(
@@ -239,8 +248,18 @@ void ContactManager::import_contacts(const rLock& lock)
                 case proto::CITEMTYPE_ORGANIZATION:
                 case proto::CITEMTYPE_BUSINESS:
                 case proto::CITEMTYPE_GOVERNMENT: {
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
                     auto code = PaymentCode::Factory(nym->PaymentCode());
-                    new_contact(lock, nym->Alias(), nymID, code);
+#endif
+                    new_contact(
+                        lock,
+                        nym->Alias(),
+                        nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+                        ,
+                        code
+#endif
+                    );
                 } break;
                 case proto::CITEMTYPE_ERROR:
                 case proto::CITEMTYPE_SERVER:
@@ -424,8 +443,12 @@ std::unique_ptr<Editor<class Contact>> ContactManager::mutable_Contact(
 std::shared_ptr<const class Contact> ContactManager::new_contact(
     const rLock& lock,
     const std::string& label,
-    const Identifier& nymID,
-    const PaymentCode& code) const
+    const Identifier& nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    ,
+    const PaymentCode& code
+#endif
+    ) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -434,7 +457,14 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
     bool haveNymID{false};
     bool havePaymentCode{false};
     auto inputNymID = Identifier::Factory();
-    check_identifiers(nymID, code, haveNymID, havePaymentCode, inputNymID);
+    check_identifiers(
+        nymID,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        code,
+#endif
+        haveNymID,
+        havePaymentCode,
+        inputNymID);
 
     if (haveNymID) {
         const auto contactID = storage_.ContactOwnerNym(nymID.str());
@@ -442,7 +472,12 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
         if (false == contactID.empty()) {
 
             return update_existing_contact(
-                lock, label, code, Identifier::Factory(contactID));
+                lock,
+                label,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+                code,
+#endif
+                Identifier::Factory(contactID));
         }
     }
 
@@ -470,7 +505,9 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
         update_nym_map(lock, nymID, mContact, true);
     }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     if (code.VerifyInternally()) { mContact.AddPaymentCode(code, true); }
+#endif
 
     output.reset();
 
@@ -487,12 +524,24 @@ std::shared_ptr<const class Contact> ContactManager::NewContact(
 
 std::shared_ptr<const class Contact> ContactManager::NewContact(
     const std::string& label,
-    const Identifier& nymID,
-    const PaymentCode& paymentCode) const
+    const Identifier& nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    ,
+    const PaymentCode& paymentCode
+#endif
+    ) const
 {
     rLock lock(lock_);
 
-    return new_contact(lock, label, nymID, paymentCode);
+    return new_contact(
+        lock,
+        label,
+        nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        ,
+        paymentCode
+#endif
+    );
 }
 
 std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
@@ -640,9 +689,18 @@ std::shared_ptr<const class Contact> ContactManager::Update(
         otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
               << " is not associated with a contact. Creating a new contact."
               << std::endl;
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         auto code = PaymentCode::Factory(nym->PaymentCode());
-
-        return new_contact(lock, Contact::ExtractLabel(*nym), nymID, code);
+#endif
+        return new_contact(
+            lock,
+            Contact::ExtractLabel(*nym),
+            nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            ,
+            code
+#endif
+        );
     }
 
     {
@@ -667,7 +725,9 @@ std::shared_ptr<const class Contact> ContactManager::Update(
 std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
     const rLock& lock,
     const std::string& label,
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     const PaymentCode& code,
+#endif
     const Identifier& contactID) const
 {
     if (false == verify_write_lock(lock)) {
@@ -690,7 +750,9 @@ std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
         contact->SetLabel(label);
     }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     contact->AddPaymentCode(code, true);
+#endif
     save(contact.get());
 
     return contact;

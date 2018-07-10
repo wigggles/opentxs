@@ -459,9 +459,17 @@ void Activity::MigrateLegacyThreads() const
                 const auto nymCount = thread->participant().size();
 
                 if (1 == nymCount) {
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
                     auto paymentCode = PaymentCode::Factory("");
+#endif
                     auto newContact = contact_.NewContact(
-                        "", Identifier::Factory(originalThreadID), paymentCode);
+                        "",
+                        Identifier::Factory(originalThreadID)
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+                            ,
+                        paymentCode
+#endif
+                    );
 
                     OT_ASSERT(newContact);
 
@@ -488,14 +496,25 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     // Contact does not yet exist. Create it.
     std::string label;
     auto nym = wallet_.Nym(nymID);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto code = PaymentCode::Factory("");
+#endif
 
     if (nym) {
         label = nym->Claims().Name();
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         code = PaymentCode::Factory(nym->PaymentCode());
+#endif
     }
 
-    return contact_.NewContact(label, nymID, code);
+    return contact_.NewContact(
+        label,
+        nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        ,
+        code
+#endif
+    );
 }
 
 std::shared_ptr<const std::string> Activity::PaymentText(

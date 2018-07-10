@@ -42,12 +42,12 @@
 
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/CryptoSymmetricNew.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
 #include "api/NativeInternal.hpp"
@@ -59,7 +59,7 @@
 
 namespace opentxs
 {
-SymmetricKey::SymmetricKey(const CryptoSymmetricNew& engine)
+SymmetricKey::SymmetricKey(const crypto::SymmetricProvider& engine)
     : engine_(engine)
     , version_(1)
     , type_(proto::SKEYTYPE_RAW)
@@ -67,7 +67,7 @@ SymmetricKey::SymmetricKey(const CryptoSymmetricNew& engine)
 }
 
 SymmetricKey::SymmetricKey(
-    const CryptoSymmetricNew& engine,
+    const crypto::SymmetricProvider& engine,
     const proto::SymmetricKey serialized)
     : engine_(engine)
     , version_(serialized.version())
@@ -81,7 +81,7 @@ SymmetricKey::SymmetricKey(
 }
 
 SymmetricKey::SymmetricKey(
-    const CryptoSymmetricNew& engine,
+    const crypto::SymmetricProvider& engine,
     const OTPassword& seed,
     const std::string& salt,
     const std::size_t size,
@@ -131,7 +131,7 @@ SymmetricKey::SymmetricKey(
 }
 
 std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
-    const CryptoSymmetricNew& engine,
+    const crypto::SymmetricProvider& engine,
     const OTPasswordData& password,
     const proto::SymmetricMode mode)
 {
@@ -160,7 +160,7 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
 }
 
 std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
-    const CryptoSymmetricNew& engine,
+    const crypto::SymmetricProvider& engine,
     const proto::SymmetricKey serialized)
 {
     std::unique_ptr<SymmetricKey> output;
@@ -172,7 +172,7 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
 }
 
 std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
-    const CryptoSymmetricNew& engine,
+    const crypto::SymmetricProvider& engine,
     const OTPassword& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
@@ -194,7 +194,7 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
 }
 
 std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
-    const CryptoSymmetricNew& engine,
+    const crypto::SymmetricProvider& engine,
     const OTPassword& raw)
 {
     std::unique_ptr<SymmetricKey> output;

@@ -36,55 +36,49 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_BIP32_HPP
-#define OPENTXS_CORE_CRYPTO_BIP32_HPP
+#ifndef OPENTXS_CRYPTO_BIP32_HPP
+#define OPENTXS_CRYPTO_BIP32_HPP
 
 #include "opentxs/Forward.hpp"
 
-#if OT_CRYPTO_WITH_BIP32
-
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
+#include <memory>
 #include <string>
 
-namespace opentxs
+namespace opentxs::crypto
 {
-class OTPassword;
-
 std::string Print(const proto::HDPath& node);
 
 class Bip32
 {
 public:
-    virtual std::string SeedToFingerprint(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const = 0;
-    virtual serializedAsymmetricKey SeedToPrivateKey(
-        const EcdsaCurve& curve,
-        const OTPassword& seed) const = 0;
-    virtual serializedAsymmetricKey GetChild(
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
+        const proto::HDPath& path,
+        const BIP44Chain internal,
+        const std::uint32_t index) const = 0;
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetChild(
         const proto::AsymmetricKey& parent,
         const std::uint32_t index) const = 0;
-    virtual serializedAsymmetricKey GetHDKey(
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
         proto::HDPath& path) const = 0;
-
-    serializedAsymmetricKey AccountChildKey(
-        const proto::HDPath& path,
-        const BIP44Chain internal,
-        const std::uint32_t index) const;
-    std::string Seed(const std::string& fingerprint = "") const;
-    serializedAsymmetricKey GetPaymentCode(
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
         std::string& fingerprint,
-        const std::uint32_t nym) const;
-    serializedAsymmetricKey GetStorageKey(std::string& seed) const;
+        const std::uint32_t nym) const = 0;
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> GetStorageKey(
+        std::string& seed) const = 0;
+    EXPORT virtual std::string Seed(
+        const std::string& fingerprint = "") const = 0;
+    EXPORT virtual std::string SeedToFingerprint(
+        const EcdsaCurve& curve,
+        const OTPassword& seed) const = 0;
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> SeedToPrivateKey(
+        const EcdsaCurve& curve,
+        const OTPassword& seed) const = 0;
 };
-}  // namespace opentxs
-
-#endif  // OT_CRYPTO_WITH_BIP32
-#endif  // OPENTXS_CORE_CRYPTO_BIP32_HPP
+}  // namespace opentxs::crypto
+#endif  // OPENTXS_CRYPTO_BIP32_HPP

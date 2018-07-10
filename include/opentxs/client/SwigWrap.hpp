@@ -3390,6 +3390,7 @@ public:
         const std::uint32_t start,
         const std::uint32_t items);
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     // Wrapped Blockchain methods
 
     /**  Retrieve a blockchain account
@@ -3567,7 +3568,7 @@ public:
      */
     EXPORT static std::string Blockchain_Transaction_base64(
         const std::string& txid);
-
+#endif
     // Wrapped ContactManager methods
 
     EXPORT static std::string Add_Contact(
