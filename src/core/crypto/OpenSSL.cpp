@@ -279,43 +279,6 @@ void ot_openssl_locking_callback(
 }
 }  // extern "C"
 
-bool OpenSSL::RandomizeMemory(
-    std::uint8_t* szDestination,
-    std::uint32_t nNewSize) const
-{
-    Lock lock(lock_);
-
-    OT_ASSERT(nullptr != szDestination);
-    OT_ASSERT(nNewSize > 0);
-
-    /*
-     RAND_bytes() returns 1 on success, 0 otherwise. The error code can be
-     obtained by ERR_get_error(3).
-     RAND_pseudo_bytes() returns 1 if the bytes generated are cryptographically
-     strong, 0 otherwise.
-     Both functions return -1 if they are not supported by the current RAND
-     method.
-     */
-    const std::int32_t nRAND_bytes =
-        RAND_bytes(szDestination, static_cast<std::int32_t>(nNewSize));
-
-    if ((-1) == nRAND_bytes) {
-        otErr
-            << __FUNCTION__
-            << ": ERROR: RAND_bytes is apparently not supported by the current "
-               "RAND method. OpenSSL: "
-            << ERR_error_string(ERR_get_error(), nullptr) << "\n";
-        return false;
-    } else if (0 == nRAND_bytes) {
-        otErr << __FUNCTION__
-              << ": Failed: The PRNG is apparently not seeded. OpenSSL error: "
-              << ERR_error_string(ERR_get_error(), nullptr) << "\n";
-        return false;
-    }
-
-    return true;
-}
-
 OTPassword* OpenSSL::DeriveNewKey(
     const OTPassword& userPassword,
     const Data& dataSalt,

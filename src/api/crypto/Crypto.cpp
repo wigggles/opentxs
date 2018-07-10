@@ -94,7 +94,12 @@ Crypto::Crypto(api::Native& native)
 #endif
     , ed25519_(new Curve25519)
     , ssl_(new SSLImplementation)
+    , util_(*ed25519_)
 {
+    OT_ASSERT(bitcoincrypto_)
+    OT_ASSERT(ed25519_)
+    OT_ASSERT(ssl_)
+
     Init();
 }
 
@@ -216,7 +221,7 @@ const crypto::Hash& Crypto::Hash() const
 void Crypto::Init()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    secp256k1_.reset(new secp256k1(*ssl_, *bitcoincrypto_));
+    secp256k1_.reset(new secp256k1(util_, *bitcoincrypto_));
 #endif
     encode_.reset(new api::crypto::implementation::Encode(*bitcoincrypto_));
     hash_.reset(new api::crypto::implementation::Hash(
@@ -322,12 +327,7 @@ const crypto::Symmetric& Crypto::Symmetric() const
     return *symmetric_;
 }
 
-const crypto::Util& Crypto::Util() const
-{
-    OT_ASSERT(nullptr != ssl_);
-
-    return *ssl_;
-}
+const crypto::Util& Crypto::Util() const { return util_; }
 
 std::unique_ptr<SymmetricKey> Crypto::GetStorageKey(__attribute__((unused))
                                                     std::string& seed) const
