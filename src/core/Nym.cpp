@@ -1197,7 +1197,7 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey() const
 // Return value is the count of public keys found that matched the metadata on
 // the signature.
 std::int32_t Nym::GetPublicKeysBySignature(
-    listOfAsymmetricKeys& listOutput,
+    crypto::key::Keypair::Keys& listOutput,
     const OTSignature& theSignature,
     char cKeyType) const
 {

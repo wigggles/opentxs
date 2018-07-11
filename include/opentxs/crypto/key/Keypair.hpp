@@ -41,8 +41,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -52,90 +50,79 @@
 
 namespace opentxs
 {
-class LowLevelKeyGenerator;
-
 namespace crypto
 {
 namespace key
 {
-typedef std::list<Asymmetric*> listOfAsymmetricKeys;
-
-/** Encapsulates public/private key (though often there may only be a public key
- * present, unless the nym belongs to you.) */
 class Keypair
 {
-    friend opentxs::LowLevelKeyGenerator;
-
-private:
-    EXPORT Keypair() {}
-    std::shared_ptr<Asymmetric> m_pkeyPublic;   // This nym's public
-                                                // key
-    std::shared_ptr<Asymmetric> m_pkeyPrivate;  // This nym's
-                                                // private key
-    proto::KeyRole role_{proto::KEYROLE_ERROR};
-
 public:
-    EXPORT bool MakeNewKeypair(const NymParameters& nymParameters);
-    EXPORT bool ReEncrypt(const OTPassword& theExportPassword, bool bImporting);
-    // a Nym to/from the wallet.
-    EXPORT bool CalculateID(Identifier& theOutput) const;
+    using Keys = std::list<const Asymmetric*>;
 
-    // PRIVATE KEY functions
-    EXPORT bool HasPrivateKey() const;
-
-    // Return the private key as an Asymmetric object
-    // TODO this violates encapsulation and should be deprecated
-    EXPORT const Asymmetric& GetPrivateKey() const;
-
-    EXPORT bool hasCapability(const NymCapability& capability) const;
-
-    // PUBLIC KEY functions
-    EXPORT bool HasPublicKey() const;
-    // Return the public key as an Asymmetric object
-    // TODO this violates encapsulation and should be deprecated
-    EXPORT const Asymmetric& GetPublicKey() const;
-    // Get a public key as an opentxs::String.
-    // This form is used in all cases except for the NymIDSource
-    // of a self-signed MasterCredential
-    EXPORT bool GetPublicKey(String& strKey) const;
-
-    // TODO this violates encapsulation and should be deprecated
-    EXPORT std::int32_t GetPublicKeyBySignature(
-        listOfAsymmetricKeys& listOutput,  // inclusive means, return keys when
-                                           // theSignature has no metadata.
-        const OTSignature& theSignature,
-        bool bInclusive = false) const;
-    EXPORT Keypair(
+    EXPORT static OTKeypair Factory(
         const NymParameters& nymParameters,
         const proto::KeyRole role = proto::KEYROLE_ERROR);
-    EXPORT Keypair(
+    EXPORT static OTKeypair Factory(
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey);
-    EXPORT explicit Keypair(const proto::AsymmetricKey& serializedPubkey);
-    EXPORT ~Keypair();
+    EXPORT static OTKeypair Factory(
+        const proto::AsymmetricKey& serializedPubkey);
 
-    std::shared_ptr<proto::AsymmetricKey> Serialize(
-        bool privateKey = false) const;
-    bool Verify(const Data& plaintext, const proto::Signature& sig) const;
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const;
-
+    EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
+    EXPORT virtual const Asymmetric& GetPrivateKey() const = 0;
+    EXPORT virtual const Asymmetric& GetPublicKey() const = 0;
+    EXPORT virtual bool GetPublicKey(String& strKey) const = 0;
+    // inclusive means, return keys when theSignature has no metadata.
+    EXPORT virtual std::int32_t GetPublicKeyBySignature(
+        Keys& listOutput,
+        const OTSignature& theSignature,
+        bool bInclusive = false) const = 0;
+    EXPORT virtual bool hasCapability(
+        const NymCapability& capability) const = 0;
+    EXPORT virtual bool HasPrivateKey() const = 0;
+    EXPORT virtual bool HasPublicKey() const = 0;
+    EXPORT virtual bool ReEncrypt(
+        const OTPassword& theExportPassword,
+        bool bImporting) = 0;
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize(
+        bool privateKey = false) const = 0;
     template <class C>
-    bool SignProto(
+    EXPORT bool SignProto(
         C& serialized,
         proto::Signature& signature,
         const String& credID = String(""),
         const OTPasswordData* pPWData = nullptr) const
     {
-        if (!m_pkeyPrivate) {
-            otErr << __FUNCTION__ << ": Missing private key. Can not "
-                  << "sign." << std::endl;
+        if (false == HasPrivateKey()) {
+            otErr << "opentxs::crypto::key::Keypair::" << __FUNCTION__
+                  << ": Missing private key. Can not sign." << std::endl;
 
             return false;
         }
 
-        return m_pkeyPrivate->SignProto<C>(
+        return GetPrivateKey().SignProto<C>(
             serialized, signature, credID, pPWData);
     }
+    EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
+        const = 0;
+    EXPORT virtual bool Verify(
+        const Data& plaintext,
+        const proto::Signature& sig) const = 0;
+
+    EXPORT virtual ~Keypair() = default;
+
+protected:
+    Keypair() = default;
+
+private:
+    friend OTKeypair;
+
+    virtual Keypair* clone() const = 0;
+
+    Keypair(const Keypair&) = delete;
+    Keypair(Keypair&&) = delete;
+    Keypair& operator=(const Keypair&) = delete;
+    Keypair& operator=(Keypair&&) = delete;
 };
 }  // namespace key
 }  // namespace crypto

@@ -230,7 +230,7 @@ public:
         return *m_MasterCredential;
     }
     EXPORT std::int32_t GetPublicKeysBySignature(
-        listOfAsymmetricKeys& listOutput,
+        crypto::key::Keypair::Keys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;  // 'S' (signing key) or 'E' (encryption
                                      // key) or 'A' (authentication key)

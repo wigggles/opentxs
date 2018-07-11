@@ -72,6 +72,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 #endif
+#include "crypto/key/Keypair.hpp"
 
 #include <cstdint>
 #include <ostream>
@@ -281,10 +282,12 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 }
 
 bool LowLevelKeyGenerator::SetOntoKeypair(
-    crypto::key::Keypair& theKeypair,
+    crypto::key::Keypair& input,
     OTPasswordData& passwordData)
 {
     if (!pkeyData_) { return false; }
+
+    auto& keypair = dynamic_cast<crypto::key::implementation::Keypair&>(input);
 
     switch (pkeyData_->nymParameterType()) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -295,18 +298,18 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
-            OT_ASSERT(theKeypair.m_pkeyPublic);
-            OT_ASSERT(theKeypair.m_pkeyPrivate);
+            OT_ASSERT(keypair.m_pkeyPublic);
+            OT_ASSERT(keypair.m_pkeyPrivate);
 
             // Since we are in ed25519-specific code, we have to make sure these
             // are ed25519-specific keys.
             std::shared_ptr<crypto::key::Ed25519> pPublicKey =
                 std::dynamic_pointer_cast<crypto::key::Ed25519>(
-                    theKeypair.m_pkeyPublic);
+                    keypair.m_pkeyPublic);
 
             std::shared_ptr<crypto::key::Ed25519> pPrivateKey =
                 std::dynamic_pointer_cast<crypto::key::Ed25519>(
-                    theKeypair.m_pkeyPrivate);
+                    keypair.m_pkeyPrivate);
 
             if (!pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
@@ -344,18 +347,18 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
-            OT_ASSERT(theKeypair.m_pkeyPublic);
-            OT_ASSERT(theKeypair.m_pkeyPrivate);
+            OT_ASSERT(keypair.m_pkeyPublic);
+            OT_ASSERT(keypair.m_pkeyPrivate);
 
             // Since we are in secp256k1-specific code, we have to make sure
             // these are secp256k1-specific keys.
             std::shared_ptr<crypto::key::Secp256k1> pPublicKey =
                 std::dynamic_pointer_cast<crypto::key::Secp256k1>(
-                    theKeypair.m_pkeyPublic);
+                    keypair.m_pkeyPublic);
 
             std::shared_ptr<crypto::key::Secp256k1> pPrivateKey =
                 std::dynamic_pointer_cast<crypto::key::Secp256k1>(
-                    theKeypair.m_pkeyPrivate);
+                    keypair.m_pkeyPrivate);
 
             if (!pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
@@ -391,18 +394,18 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 static_cast<
                     LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp&>(*dp);
 
-            OT_ASSERT(theKeypair.m_pkeyPublic);
-            OT_ASSERT(theKeypair.m_pkeyPrivate);
+            OT_ASSERT(keypair.m_pkeyPublic);
+            OT_ASSERT(keypair.m_pkeyPrivate);
 
             // Since we are in OpenSSL-specific code, we have to make sure these
             // are OpenSSL-specific keys.
             std::shared_ptr<crypto::key::RSA> pPublicKey =
                 std::dynamic_pointer_cast<crypto::key::RSA>(
-                    theKeypair.m_pkeyPublic);
+                    keypair.m_pkeyPublic);
 
             std::shared_ptr<crypto::key::RSA> pPrivateKey =
                 std::dynamic_pointer_cast<crypto::key::RSA>(
-                    theKeypair.m_pkeyPrivate);
+                    keypair.m_pkeyPrivate);
 
             if (!pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "

@@ -26,6 +26,7 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  Keypair.hpp
   RSA_private.hpp
 )
 

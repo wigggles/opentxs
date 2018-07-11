@@ -233,14 +233,10 @@ bool Letter::Seal(
             dynamic_cast<const crypto::Secp256k1&>(
                 OT::App().Crypto().SECP256K1());
 #endif
-        std::unique_ptr<crypto::key::Keypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::SECP256K1);
-        dhKeypair.reset(
-            new crypto::key::Keypair(parameters, proto::KEYROLE_ENCRYPT));
-
-        OT_ASSERT(dhKeypair);
-
+        auto dhKeypair =
+            crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
 
@@ -285,14 +281,10 @@ bool Letter::Seal(
     if (haveRecipientsED25519) {
         const crypto::EcdsaProvider& engine =
             dynamic_cast<const crypto::Sodium&>(OT::App().Crypto().ED25519());
-        std::unique_ptr<crypto::key::Keypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
-        dhKeypair.reset(
-            new crypto::key::Keypair(parameters, proto::KEYROLE_ENCRYPT));
-
-        OT_ASSERT(dhKeypair);
-
+        auto dhKeypair =
+            crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
 

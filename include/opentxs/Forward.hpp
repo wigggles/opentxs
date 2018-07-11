@@ -285,6 +285,7 @@ class TransactionStatement;
 class UnitDefinition;
 
 using OTData = Pimpl<Data>;
+using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
 using OTIdentifier = Pimpl<Identifier>;
 using OTPaymentCode = Pimpl<PaymentCode>;
@@ -336,6 +337,7 @@ struct less<opentxs::OTIdentifier> {
 // extern template class opentxs::Pimpl<opentxs::Data>;
 // extern template class opentxs::Pimpl<opentxs::Flag>;
 extern template class opentxs::Pimpl<opentxs::Identifier>;
+// extern template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
 extern template class opentxs::Pimpl<opentxs::PaymentCode>;
 extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
 // extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;

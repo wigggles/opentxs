@@ -45,6 +45,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -74,7 +75,6 @@ typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
 typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
-typedef std::list<crypto::key::Asymmetric*> listOfAsymmetricKeys;
 typedef bool CredentialIndexModeFlag;
 
 class Nym : public opentxs::NymFile, public Lockable
@@ -159,7 +159,7 @@ public:
     // 'E' (encryption key) OR
     // 'A' (authentication key)
     EXPORT std::int32_t GetPublicKeysBySignature(
-        listOfAsymmetricKeys& listOutput,
+        crypto::key::Keypair::Keys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;
     EXPORT const crypto::key::Asymmetric& GetPublicSignKey() const;

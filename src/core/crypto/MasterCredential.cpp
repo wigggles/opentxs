@@ -172,7 +172,7 @@ MasterCredential::MasterCredential(
             "non self-signed credentials not yet implemented");
 
         source = std::make_shared<NymIDSource>(
-            nymParameters, *(m_SigningKey->GetPublicKey().Serialize()));
+            nymParameters, *(signing_key_->GetPublicKey().Serialize()));
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
@@ -272,11 +272,7 @@ bool MasterCredential::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
         case (NymCapability::SIGN_CHILDCRED): {
-            if (m_SigningKey) {
-                return m_SigningKey->hasCapability(capability);
-            }
-
-            break;
+            return signing_key_->hasCapability(capability);
         }
         default: {
         }
@@ -287,25 +283,20 @@ bool MasterCredential::hasCapability(const NymCapability& capability) const
 
 bool MasterCredential::Path(proto::HDPath& output) const
 {
-    if (false == bool(m_SigningKey)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": No signing key." << std::endl;
-
-        return false;
-    }
-
-    if (false == m_SigningKey->HasPrivateKey()) {
+    if (false == signing_key_->HasPrivateKey()) {
         otErr << OT_METHOD << __FUNCTION__ << ": No private key." << std::endl;
 
         return false;
     }
 
-    const bool found = m_SigningKey->GetPrivateKey().Path(output);
+    const bool found = signing_key_->GetPrivateKey().Path(output);
     output.mutable_child()->RemoveLast();
+
     return found;
 }
 
 std::string MasterCredential::Path() const
 {
-    return m_SigningKey->GetPrivateKey().Path();
+    return signing_key_->GetPrivateKey().Path();
 }
 }  // namespace opentxs

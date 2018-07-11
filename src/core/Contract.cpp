@@ -669,7 +669,7 @@ bool Contract::VerifySigAuthent(
 {
 
     OTPasswordData thePWData("Contract::VerifySigAuthent 1");
-    listOfAsymmetricKeys listOutput;
+    crypto::key::Keypair::Keys listOutput;
 
     const std::int32_t nCount = theNym.GetPublicKeysBySignature(
         listOutput, theSignature, 'A');  // 'A' for authentication key.
@@ -677,7 +677,7 @@ bool Contract::VerifySigAuthent(
     if (nCount > 0)  // Found some (potentially) matching keys...
     {
         for (auto& it : listOutput) {
-            crypto::key::Asymmetric* pKey = it;
+            auto pKey = it;
             OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(
@@ -719,7 +719,7 @@ bool Contract::VerifySignature(
 {
 
     OTPasswordData thePWData("Contract::VerifySignature 1");
-    listOfAsymmetricKeys listOutput;
+    crypto::key::Keypair::Keys listOutput;
 
     const std::int32_t nCount = theNym.GetPublicKeysBySignature(
         listOutput, theSignature, 'S');  // 'S' for signing key.
@@ -727,7 +727,7 @@ bool Contract::VerifySignature(
     if (nCount > 0)  // Found some (potentially) matching keys...
     {
         for (auto& it : listOutput) {
-            crypto::key::Asymmetric* pKey = it;
+            auto pKey = it;
             OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(

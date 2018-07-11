@@ -117,7 +117,7 @@ bool CredentialSet::Path(proto::HDPath& output) const
 }
 
 std::int32_t CredentialSet::GetPublicKeysBySignature(
-    listOfAsymmetricKeys& listOutput,
+    crypto::key::Keypair::Keys& listOutput,
     const OTSignature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
                           // or 'A' (authentication key)
@@ -741,8 +741,6 @@ const crypto::key::Keypair& CredentialSet::GetAuthKeypair(
 
         if (nullptr == pKey) continue;
 
-        OT_ASSERT(pKey->m_AuthentKey);
-
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
@@ -755,7 +753,7 @@ const crypto::key::Keypair& CredentialSet::GetAuthKeypair(
         // the revoked list. Therefore, let's return the key! (Any other future
         // smart criteria might go here before taking this final step...)
         //
-        return *(pKey->m_AuthentKey);
+        return pKey->authentication_key_;
     }
 
     // Didn't find any child credentials we can use? For now, we'll return the
@@ -766,9 +764,8 @@ const crypto::key::Keypair& CredentialSet::GetAuthKeypair(
     // only child credentials should be
     // able to do actions.
     // Capiche?
-    //
-    OT_ASSERT(m_MasterCredential->m_AuthentKey);
-    return *(m_MasterCredential->m_AuthentKey);
+
+    return m_MasterCredential->authentication_key_;
 }
 
 const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
@@ -785,8 +782,6 @@ const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
 
         if (nullptr == pKey) continue;
 
-        OT_ASSERT(pKey->m_EncryptKey);
-
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
@@ -798,8 +793,8 @@ const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
         // At this point we know it's a key credential, and we know it's not on
         // the revoked list. Therefore, let's return the key! (Any other future
         // smart criteria might go here before taking this final step...)
-        //
-        return *(pKey->m_EncryptKey);
+
+        return pKey->encryption_key_;
     }
 
     // Didn't find any child credentials we can use? For now, we'll return the
@@ -811,8 +806,8 @@ const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
     // able to do actions.
     // Capiche?
     //
-    OT_ASSERT(m_MasterCredential->m_EncryptKey);
-    return *(m_MasterCredential->m_EncryptKey);
+
+    return m_MasterCredential->encryption_key_;
 }
 
 const crypto::key::Keypair& CredentialSet::GetSignKeypair(
@@ -829,8 +824,6 @@ const crypto::key::Keypair& CredentialSet::GetSignKeypair(
 
         if (nullptr == pKey) continue;
 
-        OT_ASSERT(pKey->m_SigningKey);
-
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
@@ -843,7 +836,7 @@ const crypto::key::Keypair& CredentialSet::GetSignKeypair(
         // the revoked list. Therefore, let's return the key! (Any other future
         // smart criteria might go here before taking this final step...)
         //
-        return *(pKey->m_SigningKey);
+        return pKey->signing_key_;
     }
 
     // Didn't find any child credentials we can use? For now, we'll return the
@@ -855,8 +848,7 @@ const crypto::key::Keypair& CredentialSet::GetSignKeypair(
     // able to do actions.
     // Capiche?
     //
-    OT_ASSERT(m_MasterCredential->m_SigningKey);
-    return *(m_MasterCredential->m_SigningKey);
+    return m_MasterCredential->signing_key_;
 }
 
 // NOTE: Until we figure out the rule by which we decide WHICH authentication
