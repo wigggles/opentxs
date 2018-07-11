@@ -74,7 +74,7 @@ typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
 typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
-typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+typedef std::list<crypto::key::Asymmetric*> listOfAsymmetricKeys;
 typedef bool CredentialIndexModeFlag;
 
 class Nym : public opentxs::NymFile, public Lockable
@@ -148,11 +148,11 @@ public:
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
         std::int32_t* pnReturnIndex = nullptr) const override;
     EXPORT std::int32_t GetOutpaymentsCount() const override;
-    EXPORT const OTAsymmetricKey& GetPrivateAuthKey() const;
-    EXPORT const OTAsymmetricKey& GetPrivateEncrKey() const;
-    EXPORT const OTAsymmetricKey& GetPrivateSignKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicAuthKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicEncrKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateAuthKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateEncrKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateSignKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPublicAuthKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPublicEncrKey() const;
     // OT uses the signature's metadata to narrow down its search for the
     // correct public key.
     // 'S' (signing key) or
@@ -162,7 +162,7 @@ public:
         listOfAsymmetricKeys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;
-    EXPORT const OTAsymmetricKey& GetPublicSignKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPublicSignKey() const;
     EXPORT const std::vector<OTIdentifier> GetRevokedCredentialIDs() const;
     EXPORT const std::int64_t& GetUsageCredits() const override
     {
@@ -406,11 +406,11 @@ private:
         const std::string& str_id,
         Identifier& theOutput) const;
     template <typename T>
-    const OTAsymmetricKey& get_private_auth_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_private_auth_key(const T& lock) const;
     template <typename T>
-    const OTAsymmetricKey& get_private_sign_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_private_sign_key(const T& lock) const;
     template <typename T>
-    const OTAsymmetricKey& get_public_sign_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_public_sign_key(const T& lock) const;
     bool has_capability(const eLock& lock, const NymCapability& capability)
         const;
     void init_claims(const eLock& lock) const;

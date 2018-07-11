@@ -42,13 +42,16 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/Proto.hpp"
 
 namespace opentxs
+{
+namespace crypto
+{
+namespace key
 {
 #ifndef OT_KEY_TIMER
 // TODO:
@@ -72,17 +75,17 @@ namespace opentxs
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif  // OT_KEY_TIMER
 
-class OTAsymmetricKey_OpenSSL : public OTAsymmetricKey
+class RSA : public Asymmetric
 {
 private:
-    typedef OTAsymmetricKey ot_super;
-    friend class OTAsymmetricKey;  // For the factory.
+    typedef Asymmetric ot_super;
+    friend class Asymmetric;  // For the factory.
     /** base64-encoded, string form of key. (Encrypted too, for private keys.
      * Should store it in this form most of the time.) m_p_ascKey is the most
      * basic value. m_pKey is derived from it, for example. */
     OTASCIIArmor* m_p_ascKey = nullptr;
-    explicit OTAsymmetricKey_OpenSSL(const proto::AsymmetricKey& serializedKey);
-    explicit OTAsymmetricKey_OpenSSL(const String& publicKey);
+    explicit RSA(const proto::AsymmetricKey& serializedKey);
+    explicit RSA(const String& publicKey);
 
 public:
     const crypto::AsymmetricProvider& engine() const override;
@@ -104,7 +107,7 @@ public:
         const OTPassword* pImportPassword = nullptr);
     virtual bool GetPrivateKey(
         String& strOutput,
-        const OTAsymmetricKey* pPubkey,
+        const Asymmetric* pPubkey,
         const String* pstrReason = nullptr,
         const OTPassword* pImportPassword = nullptr) const;
 
@@ -115,30 +118,32 @@ public:
         const OTPassword& theExportPassword,
         bool bImporting) const override;
 
-    class OTAsymmetricKey_OpenSSLPrivdp;
+    class d;
 
-    OTAsymmetricKey_OpenSSLPrivdp* dp;
+    d* dp;
 
     proto::HashType SigHashType() const override
     {
         return proto::HASHTYPE_SHA256;
     }
 
-    serializedAsymmetricKey Serialize() const override;
+    std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
 
 protected:
-    OTAsymmetricKey_OpenSSL();
-    explicit OTAsymmetricKey_OpenSSL(const proto::KeyRole role);
+    RSA();
+    explicit RSA(const proto::KeyRole role);
 
 public:
-    virtual ~OTAsymmetricKey_OpenSSL();
+    virtual ~RSA();
     void Release() override;
     void Release_AsymmetricKey_OpenSSL();
 
 protected:
     void ReleaseKeyLowLevel_Hook() const override;
 };
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #endif  // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEYOPENSSL_HPP

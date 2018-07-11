@@ -340,7 +340,7 @@ public:
         const Nym& theNym,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignWithKey(
-        const OTAsymmetricKey& theKey,
+        const crypto::key::Asymmetric& theKey,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(
         const Nym& theNym,
@@ -353,7 +353,7 @@ public:
         OTSignature& theSignature,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(
-        const OTAsymmetricKey& theKey,
+        const crypto::key::Asymmetric& theKey,
         OTSignature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr);
@@ -385,7 +385,7 @@ public:
         const Nym& theNym,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT virtual bool VerifyWithKey(
-        const OTAsymmetricKey& theKey,
+        const crypto::key::Asymmetric& theKey,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT bool VerifySignature(
         const Nym& theNym,
@@ -398,7 +398,7 @@ public:
         const OTSignature& theSignature,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT bool VerifySignature(
-        const OTAsymmetricKey& theKey,
+        const crypto::key::Asymmetric& theKey,
         const OTSignature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;

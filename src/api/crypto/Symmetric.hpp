@@ -46,14 +46,14 @@ namespace opentxs::api::crypto::implementation
 class Symmetric : virtual public api::crypto::Symmetric
 {
 public:
-    std::unique_ptr<SymmetricKey> Key(
+    std::unique_ptr<opentxs::crypto::key::Symmetric> Key(
         const OTPasswordData& password,
         const proto::SymmetricMode mode =
             proto::SMODE_CHACHA20POLY1305) const override;
-    std::unique_ptr<SymmetricKey> Key(
+    std::unique_ptr<opentxs::crypto::key::Symmetric> Key(
         const proto::SymmetricKey& serialized,
         const proto::SymmetricMode mode) const override;
-    std::unique_ptr<SymmetricKey> Key(
+    std::unique_ptr<opentxs::crypto::key::Symmetric> Key(
         const OTPassword& seed,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,

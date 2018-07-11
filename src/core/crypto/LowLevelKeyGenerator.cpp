@@ -42,33 +42,36 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
-#endif
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/core/crypto/mkcert.hpp"
 #endif
 #include "opentxs/core/crypto/NymParameters.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-#ifdef __APPLE__
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-#endif
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/Data.hpp"
 #endif
 #include "opentxs/core/Log.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/Ed25519.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/Keypair.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#endif
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #endif
 #include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "crypto/key/RSA_private.hpp"
+#ifdef __APPLE__
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+#endif
 
 #include <cstdint>
 #include <ostream>
@@ -278,7 +281,7 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
 }
 
 bool LowLevelKeyGenerator::SetOntoKeypair(
-    OTKeypair& theKeypair,
+    crypto::key::Keypair& theKeypair,
     OTPasswordData& passwordData)
 {
     if (!pkeyData_) { return false; }
@@ -297,24 +300,24 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             // Since we are in ed25519-specific code, we have to make sure these
             // are ed25519-specific keys.
-            std::shared_ptr<AsymmetricKeyEd25519> pPublicKey =
-                std::dynamic_pointer_cast<AsymmetricKeyEd25519>(
+            std::shared_ptr<crypto::key::Ed25519> pPublicKey =
+                std::dynamic_pointer_cast<crypto::key::Ed25519>(
                     theKeypair.m_pkeyPublic);
 
-            std::shared_ptr<AsymmetricKeyEd25519> pPrivateKey =
-                std::dynamic_pointer_cast<AsymmetricKeyEd25519>(
+            std::shared_ptr<crypto::key::Ed25519> pPrivateKey =
+                std::dynamic_pointer_cast<crypto::key::Ed25519>(
                     theKeypair.m_pkeyPrivate);
 
             if (!pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
-                      << "AsymmetricKeyEd25519 failed." << std::endl;
+                      << "crypto::key::Ed25519 failed." << std::endl;
 
                 return false;
             }
 
             if (!pPrivateKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of private key to "
-                      << "AsymmetricKeyEd25519 failed." << std::endl;
+                      << "crypto::key::Ed25519 failed." << std::endl;
 
                 return false;
             }
@@ -346,24 +349,26 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             // Since we are in secp256k1-specific code, we have to make sure
             // these are secp256k1-specific keys.
-            std::shared_ptr<AsymmetricKeySecp256k1> pPublicKey =
-                std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(
+            std::shared_ptr<crypto::key::Secp256k1> pPublicKey =
+                std::dynamic_pointer_cast<crypto::key::Secp256k1>(
                     theKeypair.m_pkeyPublic);
 
-            std::shared_ptr<AsymmetricKeySecp256k1> pPrivateKey =
-                std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(
+            std::shared_ptr<crypto::key::Secp256k1> pPrivateKey =
+                std::dynamic_pointer_cast<crypto::key::Secp256k1>(
                     theKeypair.m_pkeyPrivate);
 
             if (!pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
-                      << "OTAsymmetricKeySecp256k1 failed." << std::endl;
+                      << "crypto::key::AsymmetricSecp256k1 failed."
+                      << std::endl;
 
                 return false;
             }
 
             if (!pPrivateKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of private key to "
-                      << "OTAsymmetricKeySecp256k1 failed." << std::endl;
+                      << "crypto::key::AsymmetricSecp256k1 failed."
+                      << std::endl;
 
                 return false;
             }
@@ -391,23 +396,23 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             // Since we are in OpenSSL-specific code, we have to make sure these
             // are OpenSSL-specific keys.
-            std::shared_ptr<OTAsymmetricKey_OpenSSL> pPublicKey =
-                std::dynamic_pointer_cast<OTAsymmetricKey_OpenSSL>(
+            std::shared_ptr<crypto::key::RSA> pPublicKey =
+                std::dynamic_pointer_cast<crypto::key::RSA>(
                     theKeypair.m_pkeyPublic);
 
-            std::shared_ptr<OTAsymmetricKey_OpenSSL> pPrivateKey =
-                std::dynamic_pointer_cast<OTAsymmetricKey_OpenSSL>(
+            std::shared_ptr<crypto::key::RSA> pPrivateKey =
+                std::dynamic_pointer_cast<crypto::key::RSA>(
                     theKeypair.m_pkeyPrivate);
 
             if (!pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
-                      << "OTAsymmetricKey_OpenSSL failed." << std::endl;
+                      << "crypto::key::RSA failed." << std::endl;
 
                 return false;
             }
             if (!pPrivateKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of private key to "
-                      << "OTAsymmetricKey_OpenSSL failed." << std::endl;
+                      << "crypto::key::RSA failed." << std::endl;
 
                 return false;
             }

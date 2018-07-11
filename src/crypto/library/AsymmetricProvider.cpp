@@ -97,7 +97,7 @@ namespace opentxs::crypto::implementation
 {
 bool AsymmetricProvider::SignContract(
     const String& strContractUnsigned,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     OTSignature& theSignature,  // output
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
@@ -115,7 +115,7 @@ bool AsymmetricProvider::SignContract(
 
 bool AsymmetricProvider::VerifyContractSignature(
     const String& strContractToVerify,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     const OTSignature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const

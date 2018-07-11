@@ -55,8 +55,11 @@
 
 namespace opentxs
 {
-typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
-typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;
+namespace crypto
+{
+namespace key
+{
+typedef std::list<Asymmetric*> listOfAsymmetricKeys;
 
 #ifndef OT_KEY_TIMER
 // TODO:
@@ -80,11 +83,11 @@ typedef std::shared_ptr<proto::AsymmetricKey> serializedAsymmetricKey;
 // FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
 #endif  // OT_KEY_TIMER
 
-class OTAsymmetricKey
+class Asymmetric
 {
 private:
-    OTAsymmetricKey(const OTAsymmetricKey&);
-    OTAsymmetricKey& operator=(const OTAsymmetricKey&);
+    Asymmetric(const Asymmetric&);
+    Asymmetric& operator=(const Asymmetric&);
 
 public:
     static String KeyTypeToString(const proto::AsymmetricKeyType keyType);
@@ -98,28 +101,28 @@ public:
     virtual bool Path(proto::HDPath& output) const;
 
 private:
-    static OTAsymmetricKey* KeyFactory(
+    static Asymmetric* KeyFactory(
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role);
 
 protected:
     proto::AsymmetricKeyType m_keyType = proto::AKEYTYPE_ERROR;
     proto::KeyRole role_ = proto::KEYROLE_ERROR;
-    OTAsymmetricKey(
+    Asymmetric(
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role);
 
 public:
     /** Caller IS responsible to delete! */
-    EXPORT static OTAsymmetricKey* KeyFactory(
+    EXPORT static Asymmetric* KeyFactory(
         const proto::AsymmetricKeyType keyType,
         const String& pubkey);
     /** Caller IS responsible to delete! */
-    EXPORT static OTAsymmetricKey* KeyFactory(
+    EXPORT static Asymmetric* KeyFactory(
         const NymParameters& nymParameters,
         const proto::KeyRole role);
     /** Caller IS responsible to delete! */
-    EXPORT static OTAsymmetricKey* KeyFactory(
+    EXPORT static Asymmetric* KeyFactory(
         const proto::AsymmetricKey& serializedKey);
 
 protected:
@@ -159,13 +162,13 @@ protected:
     void ReleaseKeyLowLevel();                         // call this.
     virtual void ReleaseKeyLowLevel_Hook() const = 0;  // override this.
     // CONSTRUCTION (PROTECTED)
-    explicit OTAsymmetricKey(const proto::AsymmetricKey& serializedKey);
-    EXPORT OTAsymmetricKey();
+    explicit Asymmetric(const proto::AsymmetricKey& serializedKey);
+    EXPORT Asymmetric();
 
 public:
     OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
     bool operator==(const proto::AsymmetricKey&) const;
-    EXPORT virtual ~OTAsymmetricKey();
+    EXPORT virtual ~Asymmetric();
     virtual void Release();
     void Release_AsymmetricKey();
     void ReleaseKey();
@@ -225,13 +228,13 @@ public:
     // key and then recover your PLAINTEXT password! Maybe he'll go use it on a
     // thousand websites!
     //
-    // Next: How to protect the session key (an OTSymmetricKey) from being
-    // found? First: destroy it often. Make a new session key EVERY time the
-    // timeout happens. Also: use it in protected memory as before. This could
-    // ALWAYS have a timeout of 0! If it's in ssh-agent, what more can you do?
-    // At least OT will make this configurable, and will be pretty damned secure
-    // in its own right. Ultimately the best solution here is an extern hardware
-    // such as a smart card.
+    // Next: How to protect the session key (an LegacySymmetric)
+    // from being found? First: destroy it often. Make a new session key EVERY
+    // time the timeout happens. Also: use it in protected memory as before.
+    // This could ALWAYS have a timeout of 0! If it's in ssh-agent, what more
+    // can you do? At least OT will make this configurable, and will be pretty
+    // damned secure in its own right. Ultimately the best solution here is an
+    // extern hardware such as a smart card.
 
     /** Only works for public keys. */
     virtual bool CalculateID(Identifier& theOutput) const;
@@ -239,7 +242,7 @@ public:
     virtual bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const = 0;
-    virtual serializedAsymmetricKey Serialize() const;
+    virtual std::shared_ptr<proto::AsymmetricKey> Serialize() const;
     virtual bool Verify(const Data& plaintext, const proto::Signature& sig)
         const;
     virtual proto::HashType SigHashType() const { return StandardHash; }
@@ -292,7 +295,7 @@ public:
         return goodSig;
     }
 };
-
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_HPP

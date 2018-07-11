@@ -42,10 +42,12 @@
 #include "opentxs/api/storage/Plugin.hpp"
 #if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #endif
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#if OT_STORAGE_FS
+#include "opentxs/crypto/key/Symmetric.hpp"
+#endif
 
 #if OT_STORAGE_FS
 #include "StorageFSGC.hpp"
@@ -218,7 +220,7 @@ void StorageMultiplex::InitBackup()
     if (config_.fs_backup_directory_.empty()) { return; }
 
 #if OT_STORAGE_FS
-    std::unique_ptr<SymmetricKey> null(nullptr);
+    std::unique_ptr<crypto::key::Symmetric> null(nullptr);
     backup_plugins_.emplace_back(new StorageFSArchive(
         storage_,
         config_,
@@ -232,8 +234,8 @@ void StorageMultiplex::InitBackup()
 #endif
 }
 
-void StorageMultiplex::InitEncryptedBackup(__attribute__((unused))
-                                           std::unique_ptr<SymmetricKey>& key)
+void StorageMultiplex::InitEncryptedBackup(
+    __attribute__((unused)) std::unique_ptr<crypto::key::Symmetric>& key)
 {
     if (config_.fs_encrypted_backup_directory_.empty()) { return; }
 

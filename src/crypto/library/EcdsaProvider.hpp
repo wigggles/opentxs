@@ -49,31 +49,31 @@ class EcdsaProvider : virtual public crypto::EcdsaProvider
 {
 public:
     bool AsymmetricKeyToECPrivatekey(
-        const AsymmetricKeyEC& asymmetricKey,
+        const crypto::key::EllipticCurve& asymmetricKey,
         const OTPasswordData& passwordData,
         OTPassword& privkey) const override;
     bool DecryptSessionKeyECDH(
-        const AsymmetricKeyEC& privateKey,
-        const AsymmetricKeyEC& publicKey,
+        const crypto::key::EllipticCurve& privateKey,
+        const crypto::key::EllipticCurve& publicKey,
         const OTPasswordData& password,
-        SymmetricKey& sessionKey) const override;
+        crypto::key::Symmetric& sessionKey) const override;
     bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
-        AsymmetricKeyEC& asymmetricKey) const override;
+        crypto::key::EllipticCurve& asymmetricKey) const override;
     bool ECPubkeyToAsymmetricKey(
         const Data& pubkey,
-        AsymmetricKeyEC& asymmetricKey) const override;
+        crypto::key::EllipticCurve& asymmetricKey) const override;
     bool EncryptSessionKeyECDH(
-        const AsymmetricKeyEC& privateKey,
-        const AsymmetricKeyEC& publicKey,
+        const crypto::key::EllipticCurve& privateKey,
+        const crypto::key::EllipticCurve& publicKey,
         const OTPasswordData& passwordData,
-        SymmetricKey& sessionKey,
+        crypto::key::Symmetric& sessionKey,
         OTPassword& newKeyPassword) const override;
     bool ExportECPrivatekey(
         const OTPassword& privkey,
         const OTPasswordData& password,
-        AsymmetricKeyEC& asymmetricKey) const override;
+        crypto::key::EllipticCurve& asymmetricKey) const override;
     bool ImportECPrivatekey(
         const proto::Ciphertext& asymmetricKey,
         const OTPasswordData& password,
@@ -92,7 +92,7 @@ public:
 
 protected:
     bool AsymmetricKeyToECPubkey(
-        const AsymmetricKeyEC& asymmetricKey,
+        const crypto::key::EllipticCurve& asymmetricKey,
         Data& pubkey) const;
     bool AsymmetricKeyToECPrivkey(
         const proto::Ciphertext& asymmetricKey,

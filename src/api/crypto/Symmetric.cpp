@@ -39,7 +39,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 
@@ -77,7 +77,7 @@ opentxs::crypto::SymmetricProvider* Symmetric::GetEngine(
     return engine;
 }
 
-std::unique_ptr<SymmetricKey> Symmetric::Key(
+std::unique_ptr<opentxs::crypto::key::Symmetric> Symmetric::Key(
     const OTPasswordData& password,
     const proto::SymmetricMode mode) const
 {
@@ -85,10 +85,10 @@ std::unique_ptr<SymmetricKey> Symmetric::Key(
 
     OT_ASSERT(nullptr != engine);
 
-    return SymmetricKey::Factory(*engine, password, mode);
+    return opentxs::crypto::key::Symmetric::Factory(*engine, password, mode);
 }
 
-std::unique_ptr<SymmetricKey> Symmetric::Key(
+std::unique_ptr<opentxs::crypto::key::Symmetric> Symmetric::Key(
     const proto::SymmetricKey& serialized,
     const proto::SymmetricMode mode) const
 {
@@ -96,10 +96,10 @@ std::unique_ptr<SymmetricKey> Symmetric::Key(
 
     OT_ASSERT(nullptr != engine);
 
-    return SymmetricKey::Factory(*engine, serialized);
+    return opentxs::crypto::key::Symmetric::Factory(*engine, serialized);
 }
 
-std::unique_ptr<SymmetricKey> Symmetric::Key(
+std::unique_ptr<opentxs::crypto::key::Symmetric> Symmetric::Key(
     const OTPassword& seed,
     const std::uint64_t operations,
     const std::uint64_t difficulty,
@@ -110,7 +110,7 @@ std::unique_ptr<SymmetricKey> Symmetric::Key(
 
     OT_ASSERT(nullptr != engine);
 
-    return SymmetricKey::Factory(
+    return opentxs::crypto::key::Symmetric::Factory(
         *engine, seed, operations, difficulty, engine->KeySize(mode), type);
 }
 }  // namespace opentxs::api::crypto::implementation

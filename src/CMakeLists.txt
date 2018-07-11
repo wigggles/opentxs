@@ -80,6 +80,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-core-transaction>
   $<TARGET_OBJECTS:opentxs-core-util>
   $<TARGET_OBJECTS:opentxs-core>
+  $<TARGET_OBJECTS:opentxs-crypto-key>
   $<TARGET_OBJECTS:opentxs-crypto-library>
   $<TARGET_OBJECTS:opentxs-crypto>
   $<TARGET_OBJECTS:opentxs-cron>

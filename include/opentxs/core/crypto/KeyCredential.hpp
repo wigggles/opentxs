@@ -42,8 +42,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -65,7 +65,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -75,13 +75,7 @@
 
 namespace opentxs
 {
-
-class OTAsymmetricKey;
-class CredentialSet;
-class OTPassword;
-class OTPasswordData;
-
-typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+typedef std::list<crypto::key::Asymmetric*> listOfAsymmetricKeys;
 
 /// KeyCredential
 /// A form of Credential that contains 3 key pairs: signing,
@@ -110,7 +104,7 @@ private:
     bool VerifySignedBySelf(const Lock& lock) const;
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::shared_ptr<OTKeypair> DeriveHDKeypair(
+    std::shared_ptr<crypto::key::Keypair> DeriveHDKeypair(
         const OTPassword& seed,
         const std::string& fingerprint,
         const std::uint32_t nym,
@@ -143,9 +137,9 @@ protected:
         const proto::Credential& serializedCred);
 
 public:
-    std::shared_ptr<OTKeypair> m_SigningKey;
-    std::shared_ptr<OTKeypair> m_AuthentKey;
-    std::shared_ptr<OTKeypair> m_EncryptKey;
+    std::shared_ptr<crypto::key::Keypair> m_SigningKey;
+    std::shared_ptr<crypto::key::Keypair> m_AuthentKey;
+    std::shared_ptr<crypto::key::Keypair> m_EncryptKey;
 
     bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting);
     EXPORT std::int32_t GetPublicKeysBySignature(
@@ -174,7 +168,7 @@ public:
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const OTPasswordData* pPWData = nullptr) const
     {
-        const OTKeypair* keyToUse = nullptr;
+        const crypto::key::Keypair* keyToUse = nullptr;
 
         switch (key) {
             case (proto::KEYROLE_AUTH):

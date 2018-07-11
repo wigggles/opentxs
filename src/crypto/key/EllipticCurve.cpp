@@ -38,7 +38,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -59,11 +59,11 @@ extern "C" {
 #include <sodium/crypto_box.h>
 }
 
-#define OT_METHOD "opentxs::AsymmetricKeyEC::"
+#define OT_METHOD "opentxs::crypto::key::EllipticCurve::"
 
-namespace opentxs
+namespace opentxs::crypto::key
 {
-AsymmetricKeyEC::AsymmetricKeyEC(
+EllipticCurve::EllipticCurve(
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role)
     : ot_super(keyType, role)
@@ -74,7 +74,7 @@ AsymmetricKeyEC::AsymmetricKeyEC(
 {
 }
 
-AsymmetricKeyEC::AsymmetricKeyEC(const proto::AsymmetricKey& serializedKey)
+EllipticCurve::EllipticCurve(const proto::AsymmetricKey& serializedKey)
     : ot_super(serializedKey)
     , key_(Data::Factory())
     , encrypted_key_(nullptr)
@@ -105,10 +105,10 @@ AsymmetricKeyEC::AsymmetricKeyEC(const proto::AsymmetricKey& serializedKey)
     }
 }
 
-AsymmetricKeyEC::AsymmetricKeyEC(
+EllipticCurve::EllipticCurve(
     const proto::AsymmetricKeyType keyType,
     const String& publicKey)
-    : AsymmetricKeyEC(keyType, proto::KEYROLE_ERROR)
+    : EllipticCurve(keyType, proto::KEYROLE_ERROR)
 {
     m_keyType = proto::AKEYTYPE_SECP256K1;
     auto key = OT::App().Crypto().Encode().DataDecode(publicKey.Get());
@@ -116,7 +116,7 @@ AsymmetricKeyEC::AsymmetricKeyEC(
     SetKey(dataKey);
 }
 
-bool AsymmetricKeyEC::GetKey(Data& key) const
+bool EllipticCurve::GetKey(Data& key) const
 {
     if (key_->empty()) { return false; }
 
@@ -125,7 +125,7 @@ bool AsymmetricKeyEC::GetKey(Data& key) const
     return true;
 }
 
-bool AsymmetricKeyEC::GetKey(proto::Ciphertext& key) const
+bool EllipticCurve::GetKey(proto::Ciphertext& key) const
 {
     if (encrypted_key_) {
         key.CopyFrom(*encrypted_key_);
@@ -136,7 +136,7 @@ bool AsymmetricKeyEC::GetKey(proto::Ciphertext& key) const
     return false;
 }
 
-bool AsymmetricKeyEC::GetPublicKey(String& strKey) const
+bool EllipticCurve::GetPublicKey(String& strKey) const
 {
     strKey.reset();
     strKey.Set(OT::App().Crypto().Encode().DataEncode(key_.get()).c_str());
@@ -144,7 +144,7 @@ bool AsymmetricKeyEC::GetPublicKey(String& strKey) const
     return true;
 }
 
-bool AsymmetricKeyEC::GetPublicKey(Data& key) const
+bool EllipticCurve::GetPublicKey(Data& key) const
 {
     if (false == key_->empty()) {
         key.Assign(key_->GetPointer(), key_->GetSize());
@@ -157,9 +157,9 @@ bool AsymmetricKeyEC::GetPublicKey(Data& key) const
     return ECDSA().PrivateToPublic(*encrypted_key_, key);
 }
 
-bool AsymmetricKeyEC::IsEmpty() const { return key_->empty(); }
+bool EllipticCurve::IsEmpty() const { return key_->empty(); }
 
-const std::string AsymmetricKeyEC::Path() const
+const std::string EllipticCurve::Path() const
 {
     String path = "";
 
@@ -186,7 +186,7 @@ const std::string AsymmetricKeyEC::Path() const
     return path.Get();
 }
 
-bool AsymmetricKeyEC::Path(proto::HDPath& output) const
+bool EllipticCurve::Path(proto::HDPath& output) const
 {
     if (path_) {
         output = *path_;
@@ -200,7 +200,7 @@ bool AsymmetricKeyEC::Path(proto::HDPath& output) const
     return false;
 }
 
-bool AsymmetricKeyEC::ReEncryptPrivateKey(
+bool EllipticCurve::ReEncryptPrivateKey(
     const OTPassword& theExportPassword,
     bool bImporting) const
 {
@@ -250,7 +250,7 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
             if (bImporting) {
                 thePWData.ClearOverride();
                 reencrypted = ECDSA().ECPrivatekeyToAsymmetricKey(
-                    pClearKey, thePWData, *const_cast<AsymmetricKeyEC*>(this));
+                    pClearKey, thePWData, *const_cast<EllipticCurve*>(this));
             }
 
             // Else if we're exporting, that means we just loaded up the Nym
@@ -260,7 +260,7 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
             else {
                 thePWData.SetOverride(theExportPassword);
                 reencrypted = ECDSA().ExportECPrivatekey(
-                    pClearKey, thePWData, *const_cast<AsymmetricKeyEC*>(this));
+                    pClearKey, thePWData, *const_cast<EllipticCurve*>(this));
             }
 
             if (!reencrypted) {
@@ -281,18 +281,18 @@ bool AsymmetricKeyEC::ReEncryptPrivateKey(
     return bReturnVal;
 }
 
-void AsymmetricKeyEC::Release()
+void EllipticCurve::Release()
 {
-    Release_AsymmetricKeyEC();  // My own cleanup is performed here.
+    Release_EllipticCurve();  // My own cleanup is performed here.
 
     // Next give the base class a chance to do the same...
     ot_super::Release();  // since I've overridden the base class, I call it
                           // now...
 }
 
-serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
+std::shared_ptr<proto::AsymmetricKey> EllipticCurve::Serialize() const
 {
-    serializedAsymmetricKey serializedKey = ot_super::Serialize();
+    std::shared_ptr<proto::AsymmetricKey> serializedKey = ot_super::Serialize();
 
     if (IsPrivate()) {
         serializedKey->set_mode(proto::KEYMODE_PRIVATE);
@@ -315,7 +315,7 @@ serializedAsymmetricKey AsymmetricKeyEC::Serialize() const
     return serializedKey;
 }
 
-bool AsymmetricKeyEC::SetKey(const Data& key)
+bool EllipticCurve::SetKey(const Data& key)
 {
     ReleaseKeyLowLevel();
     m_bIsPublicKey = true;
@@ -325,7 +325,7 @@ bool AsymmetricKeyEC::SetKey(const Data& key)
     return true;
 }
 
-bool AsymmetricKeyEC::SetKey(std::unique_ptr<proto::Ciphertext>& key)
+bool EllipticCurve::SetKey(std::unique_ptr<proto::Ciphertext>& key)
 {
     ReleaseKeyLowLevel();
     m_bIsPublicKey = false;
@@ -335,8 +335,7 @@ bool AsymmetricKeyEC::SetKey(std::unique_ptr<proto::Ciphertext>& key)
     return true;
 }
 
-bool AsymmetricKeyEC::TransportKey(Data& publicKey, OTPassword& privateKey)
-    const
+bool EllipticCurve::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
     if (!IsPrivate()) { return false; }
 
@@ -348,5 +347,5 @@ bool AsymmetricKeyEC::TransportKey(Data& publicKey, OTPassword& privateKey)
     return ECDSA().SeedToCurveKey(seed, privateKey, publicKey);
 }
 
-AsymmetricKeyEC::~AsymmetricKeyEC() {}
-}  // namespace opentxs
+EllipticCurve::~EllipticCurve() {}
+}  // namespace opentxs::crypto::key

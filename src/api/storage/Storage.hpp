@@ -369,7 +369,8 @@ private:
     void Cleanup_Storage();
     void CollectGarbage() const;
     void InitBackup() override;
-    void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key) override;
+    void InitEncryptedBackup(
+        std::unique_ptr<opentxs::crypto::key::Symmetric>& key) override;
     void InitPlugins();
     Editor<opentxs::storage::Root> mutable_Root() const;
     void RunMapPublicNyms(NymLambda lambda) const;

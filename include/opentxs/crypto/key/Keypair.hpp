@@ -42,7 +42,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -52,18 +52,26 @@
 
 namespace opentxs
 {
-typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
+class LowLevelKeyGenerator;
+
+namespace crypto
+{
+namespace key
+{
+typedef std::list<Asymmetric*> listOfAsymmetricKeys;
 
 /** Encapsulates public/private key (though often there may only be a public key
  * present, unless the nym belongs to you.) */
-class OTKeypair
+class Keypair
 {
-    friend class LowLevelKeyGenerator;
+    friend opentxs::LowLevelKeyGenerator;
 
 private:
-    EXPORT OTKeypair() {}
-    std::shared_ptr<OTAsymmetricKey> m_pkeyPublic;   // This nym's public key
-    std::shared_ptr<OTAsymmetricKey> m_pkeyPrivate;  // This nym's private key
+    EXPORT Keypair() {}
+    std::shared_ptr<Asymmetric> m_pkeyPublic;   // This nym's public
+                                                // key
+    std::shared_ptr<Asymmetric> m_pkeyPrivate;  // This nym's
+                                                // private key
     proto::KeyRole role_{proto::KEYROLE_ERROR};
 
 public:
@@ -75,17 +83,17 @@ public:
     // PRIVATE KEY functions
     EXPORT bool HasPrivateKey() const;
 
-    // Return the private key as an OTAsymmetricKey object
+    // Return the private key as an Asymmetric object
     // TODO this violates encapsulation and should be deprecated
-    EXPORT const OTAsymmetricKey& GetPrivateKey() const;
+    EXPORT const Asymmetric& GetPrivateKey() const;
 
     EXPORT bool hasCapability(const NymCapability& capability) const;
 
     // PUBLIC KEY functions
     EXPORT bool HasPublicKey() const;
-    // Return the public key as an OTAsymmetricKey object
+    // Return the public key as an Asymmetric object
     // TODO this violates encapsulation and should be deprecated
-    EXPORT const OTAsymmetricKey& GetPublicKey() const;
+    EXPORT const Asymmetric& GetPublicKey() const;
     // Get a public key as an opentxs::String.
     // This form is used in all cases except for the NymIDSource
     // of a self-signed MasterCredential
@@ -97,16 +105,17 @@ public:
                                            // theSignature has no metadata.
         const OTSignature& theSignature,
         bool bInclusive = false) const;
-    EXPORT OTKeypair(
+    EXPORT Keypair(
         const NymParameters& nymParameters,
         const proto::KeyRole role = proto::KEYROLE_ERROR);
-    EXPORT OTKeypair(
+    EXPORT Keypair(
         const proto::AsymmetricKey& serializedPubkey,
         const proto::AsymmetricKey& serializedPrivkey);
-    EXPORT explicit OTKeypair(const proto::AsymmetricKey& serializedPubkey);
-    EXPORT ~OTKeypair();
+    EXPORT explicit Keypair(const proto::AsymmetricKey& serializedPubkey);
+    EXPORT ~Keypair();
 
-    serializedAsymmetricKey Serialize(bool privateKey = false) const;
+    std::shared_ptr<proto::AsymmetricKey> Serialize(
+        bool privateKey = false) const;
     bool Verify(const Data& plaintext, const proto::Signature& sig) const;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const;
 
@@ -128,5 +137,7 @@ public:
             serialized, signature, credID, pPWData);
     }
 };
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_OTKEYPAIR_HPP

@@ -822,7 +822,8 @@ bool Server::DropMessageToNymbox(
         //
         ConstNym nymRecipient = wallet_.Nym(RECIPIENT_NYM_ID);
 
-        const OTAsymmetricKey& thePubkey = nymRecipient->GetPublicEncrKey();
+        const crypto::key::Asymmetric& thePubkey =
+            nymRecipient->GetPublicEncrKey();
         // Wrap the message up into an envelope and attach it to theMsgAngel.
         //
         OTEnvelope theEnvelope;

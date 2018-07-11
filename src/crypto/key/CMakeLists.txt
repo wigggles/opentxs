@@ -1,23 +1,32 @@
 #// clang-format off
-add_subdirectory(key)
-add_subdirectory(library)
-
-set(MODULE_NAME opentxs-crypto)
+set(MODULE_NAME opentxs-crypto-key)
 
 set(cxx-sources
-  Bip32.cpp
-  Bip39.cpp
+  Asymmetric.cpp
+  Ed25519.cpp
+  EllipticCurve.cpp
+  Keypair.cpp
+  LegacySymmetric.cpp
+  RSA.cpp
+  RSA_private.cpp
+  Secp256k1.cpp
+  Symmetric.cpp
 )
 
 set(cxx-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/crypto/Bip32.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/crypto/Bip39.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Asymmetric.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/EllipticCurve.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Ed25519.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Keypair.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/LegacySymmetric.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/RSA.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Secp256k1.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/key/Symmetric.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
-  Bip32.hpp
-  Bip39.hpp
+  RSA_private.hpp
 )
 
 if(WIN32)
@@ -47,7 +56,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/crypto
+        DESTINATION include/opentxs/crypto/key
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

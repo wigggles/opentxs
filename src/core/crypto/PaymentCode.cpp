@@ -45,19 +45,20 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
-#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#endif
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/OT.hpp"
@@ -326,8 +327,8 @@ void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
     newKey.set_mode(proto::KEYMODE_PUBLIC);
     newKey.set_role(proto::KEYROLE_SIGN);
     newKey.set_key(pubkey.GetPointer(), pubkey.GetSize());
-    AsymmetricKeyEC* key = dynamic_cast<AsymmetricKeySecp256k1*>(
-        OTAsymmetricKey::KeyFactory(newKey));
+    crypto::key::EllipticCurve* key = dynamic_cast<crypto::key::Secp256k1*>(
+        crypto::key::Asymmetric::KeyFactory(newKey));
 
     if (nullptr != key) { pubkey_.reset(key); }
 }
@@ -372,7 +373,7 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         false, new OTPassword, Data::Factory()};
     auto& [success, chainCode, publicKey] = output;
     auto fingerprint{seed};
-    serializedAsymmetricKey privatekey =
+    std::shared_ptr<proto::AsymmetricKey> privatekey =
         OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, index);
 
     OT_ASSERT(seed == fingerprint)
@@ -415,7 +416,7 @@ const OTData PaymentCode::Pubkey() const
 
     if (pubkey_) {
 #if OT_CRYPTO_USING_LIBSECP256K1
-        std::dynamic_pointer_cast<AsymmetricKeySecp256k1>(pubkey_)->GetKey(
+        std::dynamic_pointer_cast<crypto::key::Secp256k1>(pubkey_)->GetKey(
             pubkey);
 #endif
     }
@@ -472,7 +473,7 @@ bool PaymentCode::Sign(
     }
 
     std::string fingerprint = seed_;
-    serializedAsymmetricKey privatekey =
+    std::shared_ptr<proto::AsymmetricKey> privatekey =
         OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, index_);
 
     if (fingerprint != seed_) {
@@ -513,8 +514,8 @@ bool PaymentCode::Sign(
         return false;
     }
 
-    std::unique_ptr<OTAsymmetricKey> signingKey(
-        OTAsymmetricKey::KeyFactory(*privatekey));
+    std::unique_ptr<crypto::key::Asymmetric> signingKey(
+        crypto::key::Asymmetric::KeyFactory(*privatekey));
 
     serializedCredential serialized =
         credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);

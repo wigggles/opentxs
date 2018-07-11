@@ -37,25 +37,25 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
+#include "opentxs/crypto/key/RSA.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 
 #include "api/NativeInternal.hpp"
+#include "crypto/key/RSA_private.hpp"
 #include "crypto/library/OpenSSL_BIO.hpp"
 
 #include <openssl/bio.h>
@@ -80,13 +80,12 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-namespace opentxs
+namespace opentxs::crypto::key
 {
-
-OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
-    : OTAsymmetricKey(proto::AKEYTYPE_LEGACY, proto::KEYROLE_ERROR)
+RSA::RSA()
+    : Asymmetric(proto::AKEYTYPE_LEGACY, proto::KEYROLE_ERROR)
     , m_p_ascKey(nullptr)
-    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    , dp(new d())
 {
 
     dp->backlink = this;
@@ -95,10 +94,10 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL()
     dp->m_pKey = nullptr;
 }
 
-OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::KeyRole role)
-    : OTAsymmetricKey(proto::AKEYTYPE_LEGACY, role)
+RSA::RSA(const proto::KeyRole role)
+    : Asymmetric(proto::AKEYTYPE_LEGACY, role)
     , m_p_ascKey(nullptr)
-    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    , dp(new d())
 {
 
     dp->backlink = this;
@@ -107,11 +106,10 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const proto::KeyRole role)
     dp->m_pKey = nullptr;
 }
 
-OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(
-    const proto::AsymmetricKey& serializedKey)
-    : OTAsymmetricKey(serializedKey)
+RSA::RSA(const proto::AsymmetricKey& serializedKey)
+    : Asymmetric(serializedKey)
     , m_p_ascKey(new OTASCIIArmor)
-    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    , dp(new d())
 {
 
     dp->backlink = this;
@@ -132,10 +130,10 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(
     }
 }
 
-OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const String& publicKey)
-    : OTAsymmetricKey()
+RSA::RSA(const String& publicKey)
+    : Asymmetric()
     , m_p_ascKey(nullptr)
-    , dp(new OTAsymmetricKey_OpenSSLPrivdp())
+    , dp(new d())
 {
 
     dp->backlink = this;
@@ -148,7 +146,7 @@ OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSL(const String& publicKey)
     SetPublicKey(publicKey);
 }
 
-OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
+RSA::~RSA()
 {
     // Release the ascii-armored version of the key (safe to store in this
     // form.)
@@ -167,34 +165,31 @@ OTAsymmetricKey_OpenSSL::~OTAsymmetricKey_OpenSSL()
                                  // because the original need was for wiping
                                  // m_pKey when a private key timed out.
     dp->m_pX509 = nullptr;       // ReleaseKeyLowLevel is used all over
-    // OTAsymmetricKey.cpp for the purpose of wiping that
+    // Asymmetric.cpp for the purpose of wiping that
     // private key. The same need didn't exist with the x509
     // so it was never coded that way. As long as it's
     // cleaned up here in the destructor, seems good enough?
     // YOU MIGHT ASK... Why is m_pKey cleaned up here in the destructor, and
     // ALSO in ReleaseKeyLowLevel_Hook ?
     // The answer is because if we call ReleaseKeyLowLevel_Hook from
-    // OTAsymmetricKey's destructor (down that chain)
+    // Asymmetric's destructor (down that chain)
     // then it will fail at runtime, since it is a pure virtual method. Since we
     // still want the ABILITY to use ReleaseKeyLowLevel_Hook
     // (For cases where the destructor is not being used) and since we still
     // want it to ALSO work when destructing, the
     // easiest/quickest/simplest way is to put the code into
-    // OTAsymmetricKey_OpenSSL's destructor directly, as well
-    // as OTAsymmetricKey_OpenSSL's override of ReleaseKeyLowLevel_Hook. Then go
-    // into OTAsymmetricKey's destructor and
+    // RSA's destructor directly, as well
+    // as RSA's override of ReleaseKeyLowLevel_Hook. Then go
+    // into Asymmetric's destructor and
     // make sure the full call path through there doesn't involve any virtual
     // functions.
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::IsEmpty() const
-{
-    return (nullptr == m_p_ascKey);
-}
+bool RSA::IsEmpty() const { return (nullptr == m_p_ascKey); }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::GetPublicKey(String& strKey) const
+bool RSA::GetPublicKey(String& strKey) const
 {
     if (nullptr != m_p_ascKey) {
         strKey.Concatenate(
@@ -204,14 +199,14 @@ bool OTAsymmetricKey_OpenSSL::GetPublicKey(String& strKey) const
             m_p_ascKey->Get());
         return true;
     } else
-        otErr << "OTAsymmetricKey_OpenSSL::GetPublicKey: Error: no "
+        otErr << "RSA::GetPublicKey: Error: no "
                  "public key.\n";
 
     return false;
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::SetPublicKey(const String& strKey)
+bool RSA::SetPublicKey(const String& strKey)
 {
     ReleaseKeyLowLevel();  // In case the key is already loaded, we release it
                            // here. (Since it's being replaced, it's now the
@@ -232,7 +227,7 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKey(const String& strKey)
         m_p_ascKey->Set(theArmor);
         return true;
     } else
-        otErr << "OTAsymmetricKey_OpenSSL::SetPublicKey: Error: failed loading "
+        otErr << "RSA::SetPublicKey: Error: failed loading "
                  "ascii-armored contents from bookended string:\n\n"
               << strKey << "\n\n";
 
@@ -240,7 +235,7 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKey(const String& strKey)
 }
 
 // virtual
-void OTAsymmetricKey_OpenSSL::Release()
+void RSA::Release()
 {
     Release_AsymmetricKey_OpenSSL();  // My own cleanup is performed here.
 
@@ -249,12 +244,12 @@ void OTAsymmetricKey_OpenSSL::Release()
                           // now...
 }
 
-void OTAsymmetricKey_OpenSSL::Release_AsymmetricKey_OpenSSL()
+void RSA::Release_AsymmetricKey_OpenSSL()
 {
     // Release any dynamically allocated members here. (Normally.)
 }
 
-void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
+void RSA::ReleaseKeyLowLevel_Hook() const
 {
     // Release the instantiated OpenSSL key (unsafe to store in this form.)
     //
@@ -264,7 +259,7 @@ void OTAsymmetricKey_OpenSSL::ReleaseKeyLowLevel_Hook() const
 
 // Load the private key from a .pem formatted cert string
 //
-bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
+bool RSA::SetPrivateKey(
     const String& strCert,              // Contains certificate and private key.
     const String* pstrReason,           // This reason is what displays on the
                                         // passphrase dialog.
@@ -300,7 +295,7 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
         static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
     OT_ASSERT_MSG(
         nullptr != bio,
-        "OTAsymmetricKey_OpenSSL::"
+        "RSA::"
         "SetPrivateKey: Assert: nullptr != "
         "bio \n");
 
@@ -372,7 +367,7 @@ bool OTAsymmetricKey_OpenSSL::SetPrivateKey(
     }
 }
 
-bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
+bool RSA::SetPublicKeyFromPrivateKey(
     const String& strCert,
     const String* pstrReason,
     const OTPassword* pImportPassword)
@@ -481,7 +476,7 @@ bool OTAsymmetricKey_OpenSSL::SetPublicKeyFromPrivateKey(
 
 // Used when importing / exporting Nym to/from the wallet.
 //
-bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
+bool RSA::ReEncryptPrivateKey(
     const OTPassword& theExportPassword,
     bool bImporting) const
 {
@@ -513,7 +508,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
             theData->GetSize());  // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(
             nullptr != keyBio,
-            "OTAsymmetricKey_OpenSSL::"
+            "RSA::"
             "ReEncryptPrivateKey: Assert: nullptr != "
             "keyBio \n");
 
@@ -670,7 +665,7 @@ bool OTAsymmetricKey_OpenSSL::ReEncryptPrivateKey(
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::SaveCertToString(
+bool RSA::SaveCertToString(
     String& strOutput,
     const String* pstrReason,
     const OTPassword* pImportPassword) const
@@ -708,9 +703,8 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
         EVP_PKEY* pPublicKey = X509_get_pubkey(x509);
         if (nullptr != pPublicKey) {
             OTPasswordData thePWData(
-                nullptr == pstrReason
-                    ? "OTAsymmetricKey_OpenSSL::SaveCertToString"
-                    : pstrReason->Get());
+                nullptr == pstrReason ? "RSA::SaveCertToString"
+                                      : pstrReason->Get());
 
             dp->SetKeyAsCopyOf(*pPublicKey, false, &thePWData, pImportPassword);
             EVP_PKEY_free(pPublicKey);
@@ -726,9 +720,9 @@ bool OTAsymmetricKey_OpenSSL::SaveCertToString(
 }
 
 // virtual
-bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
+bool RSA::GetPrivateKey(
     String& strOutput,
-    const OTAsymmetricKey* pPubkey,
+    const Asymmetric* pPubkey,
     const String* pstrReason,
     const OTPassword* pImportPassword) const
 {
@@ -755,7 +749,7 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
 
     OTPasswordData thePWData(
         (nullptr != pstrReason) ? pstrReason->Get()
-                                : "OTAsymmetricKey_OpenSSL::"
+                                : "RSA::"
                                   "GetPrivateKey is calling "
                                   "PEM_write_bio_PrivateKey...");
     const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
@@ -801,9 +795,8 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
         otErr << __FUNCTION__ << ": Error : key length is not 1 or more!";
     }
 
-    publicSuccess =
-        dynamic_cast<const OTAsymmetricKey_OpenSSL*>(pPubkey)->SaveCertToString(
-            publicKey, pstrReason, pImportPassword);
+    publicSuccess = dynamic_cast<const RSA*>(pPubkey)->SaveCertToString(
+        publicKey, pstrReason, pImportPassword);
 
     if (publicSuccess) {
         strOutput.Format(
@@ -812,16 +805,16 @@ bool OTAsymmetricKey_OpenSSL::GetPrivateKey(
     return privateSuccess && publicSuccess;
 }
 
-const crypto::AsymmetricProvider& OTAsymmetricKey_OpenSSL::engine() const
+const crypto::AsymmetricProvider& RSA::engine() const
 
 {
     return OT::App().Crypto().RSA();
 }
 
-serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
+std::shared_ptr<proto::AsymmetricKey> RSA::Serialize() const
 
 {
-    serializedAsymmetricKey serializedKey = ot_super::Serialize();
+    std::shared_ptr<proto::AsymmetricKey> serializedKey = ot_super::Serialize();
 
     auto dataKey = Data::Factory();
     OT_ASSERT(m_p_ascKey);
@@ -838,7 +831,7 @@ serializedAsymmetricKey OTAsymmetricKey_OpenSSL::Serialize() const
     return serializedKey;
 }
 
-bool OTAsymmetricKey_OpenSSL::TransportKey(
+bool RSA::TransportKey(
     [[maybe_unused]] Data& publicKey,
     [[maybe_unused]] OTPassword& privateKey) const
 {
@@ -862,6 +855,6 @@ bool OTAsymmetricKey_OpenSSL::TransportKey(
     return false;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 }
-}  // namespace opentxs
+}  // namespace opentxs::crypto::key
 
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

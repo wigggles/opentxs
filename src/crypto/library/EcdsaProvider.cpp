@@ -43,13 +43,13 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
@@ -126,7 +126,7 @@ bool EcdsaProvider::EncryptPrivateKey(
 namespace opentxs::crypto::implementation
 {
 bool EcdsaProvider::AsymmetricKeyToECPrivatekey(
-    const AsymmetricKeyEC& asymmetricKey,
+    const crypto::key::EllipticCurve& asymmetricKey,
     const OTPasswordData& passwordData,
     OTPassword& privkey) const
 {
@@ -150,17 +150,17 @@ bool EcdsaProvider::AsymmetricKeyToECPrivkey(
 }
 
 bool EcdsaProvider::AsymmetricKeyToECPubkey(
-    const AsymmetricKeyEC& asymmetricKey,
+    const crypto::key::EllipticCurve& asymmetricKey,
     Data& pubkey) const
 {
     return asymmetricKey.GetKey(pubkey);
 }
 
 bool EcdsaProvider::DecryptSessionKeyECDH(
-    const AsymmetricKeyEC& privateKey,
-    const AsymmetricKeyEC& publicKey,
+    const crypto::key::EllipticCurve& privateKey,
+    const crypto::key::EllipticCurve& publicKey,
     const OTPasswordData& password,
-    SymmetricKey& sessionKey) const
+    crypto::key::Symmetric& sessionKey) const
 {
     auto publicDHKey = Data::Factory();
 
@@ -199,14 +199,14 @@ bool EcdsaProvider::DecryptSessionKeyECDH(
 bool EcdsaProvider::ECPrivatekeyToAsymmetricKey(
     const OTPassword& privkey,
     const OTPasswordData& passwordData,
-    AsymmetricKeyEC& asymmetricKey) const
+    crypto::key::EllipticCurve& asymmetricKey) const
 {
     return ExportECPrivatekey(privkey, passwordData, asymmetricKey);
 }
 
 bool EcdsaProvider::ECPubkeyToAsymmetricKey(
     const Data& pubkey,
-    AsymmetricKeyEC& asymmetricKey) const
+    crypto::key::EllipticCurve& asymmetricKey) const
 {
     if (pubkey.empty()) { return false; }
 
@@ -214,10 +214,10 @@ bool EcdsaProvider::ECPubkeyToAsymmetricKey(
 }
 
 bool EcdsaProvider::EncryptSessionKeyECDH(
-    const AsymmetricKeyEC& privateKey,
-    const AsymmetricKeyEC& publicKey,
+    const crypto::key::EllipticCurve& privateKey,
+    const crypto::key::EllipticCurve& publicKey,
     const OTPasswordData& passwordData,
-    SymmetricKey& sessionKey,
+    crypto::key::Symmetric& sessionKey,
     OTPassword& newKeyPassword) const
 {
     auto dhPublicKey = Data::Factory();
@@ -270,7 +270,7 @@ bool EcdsaProvider::EncryptSessionKeyECDH(
 bool EcdsaProvider::ExportECPrivatekey(
     const OTPassword& privkey,
     const OTPasswordData& password,
-    AsymmetricKeyEC& asymmetricKey) const
+    crypto::key::EllipticCurve& asymmetricKey) const
 {
     std::unique_ptr<proto::Ciphertext> encryptedKey(new proto::Ciphertext);
 

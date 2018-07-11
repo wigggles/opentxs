@@ -45,11 +45,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
-#endif
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -59,9 +54,16 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "opentxs/crypto/key/RSA.hpp"
+#endif
 #include "opentxs/crypto/library/OpenSSL.hpp"
 #include "opentxs/OT.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "crypto/key/RSA_private.hpp"
+#endif
 #include "AsymmetricProvider.hpp"
 #include "OpenSSL_BIO.hpp"
 
@@ -1663,7 +1665,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // Here, we convert the EVP_PKEY that was passed in, to an RSA key for
     // signing.
     //
-    RSA* pRsaKey = EVP_PKEY_get1_RSA(const_cast<EVP_PKEY*>(pkey));
+    auto* pRsaKey = EVP_PKEY_get1_RSA(const_cast<EVP_PKEY*>(pkey));
 
     if (!pRsaKey) {
         otErr << szFunc << ": EVP_PKEY_get1_RSA failed with error "
@@ -1756,7 +1758,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
 
     // RSA_private_encrypt
     //    std::int32_t RSA_private_encrypt(int32_t flen, std::uint8_t* from,
-    //                            std::uint8_t *to, RSA* rsa, std::int32_t
+    //                            std::uint8_t *to, key::RSA* rsa, std::int32_t
     //                            padding);
     // RSA_private_encrypt() signs the *flen* bytes at *from* (usually a message
     // digest with
@@ -1816,7 +1818,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // Here, we convert the EVP_PKEY that was passed in, to an RSA key for
     // signing.
-    RSA* pRsaKey = EVP_PKEY_get1_RSA(const_cast<EVP_PKEY*>(pkey));
+    auto* pRsaKey = EVP_PKEY_get1_RSA(const_cast<EVP_PKEY*>(pkey));
 
     if (!pRsaKey) {
         otErr << szFunc << ": EVP_PKEY_get1_RSA failed with error "
@@ -1868,7 +1870,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         RSA_NO_PADDING);
 
     // std::int32_t RSA_public_decrypt(int32_t flen, std::uint8_t* from,
-    //                            std::uint8_t *to, RSA* rsa, std::int32_t
+    //                            std::uint8_t *to, key::RSA* rsa, std::int32_t
     //                            padding);
 
     // RSA_public_decrypt() recovers the message digest from the *flen* bytes
@@ -2002,10 +2004,10 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
      std::int32_t RSA_sign(int32_t type, const std::uint8_t* m, std::uint32_t
      m_len, uint8_t*
-     sigret, std::uint32_t* siglen, RSA* rsa);
+     sigret, std::uint32_t* siglen, key::RSA* rsa);
      std::int32_t RSA_verify(int32_t type, const std::uint8_t* m, std::uint32_t
      m_len, uint8_t*
-     sigbuf, std::uint32_t siglen, RSA* rsa);
+     sigbuf, std::uint32_t siglen, key::RSA* rsa);
 
      DESCRIPTION
 
@@ -2192,7 +2194,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
      > Hi all :x
      > I encountered an error when using function RSA_private_encrypt with
      > RSA_NO_PADDING option.
-     > I had an std::uint8_t array a with length = 20, RSA* r,
+     > I had an std::uint8_t array a with length = 20, key::RSA* r,
      > std::uint8_t* sig = (uint8_t*) malloc(RSA_size(r)) and then I invoked
      > function std::int32_t i = RSA_private_encrypt(20,a ,sign,r,RSA_NO_PADDING
      );
@@ -2545,16 +2547,15 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 
 bool OpenSSL::Sign(
     const Data& plaintext,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     const proto::HashType hashType,
     Data& signature,  // output
     const OTPasswordData* pPWData,
     __attribute__((unused)) const OTPassword* exportPassword) const
 {
 
-    OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
-    OTAsymmetricKey_OpenSSL* pTempOpenSSLKey =
-        dynamic_cast<OTAsymmetricKey_OpenSSL*>(&theTempKey);
+    key::Asymmetric& theTempKey = const_cast<key::Asymmetric&>(theKey);
+    key::RSA* pTempOpenSSLKey = dynamic_cast<key::RSA*>(&theTempKey);
     OT_ASSERT(nullptr != pTempOpenSSLKey);
 
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
@@ -2573,14 +2574,13 @@ bool OpenSSL::Sign(
 
 bool OpenSSL::Verify(
     const Data& plaintext,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     const Data& signature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
-    OTAsymmetricKey& theTempKey = const_cast<OTAsymmetricKey&>(theKey);
-    OTAsymmetricKey_OpenSSL* pTempOpenSSLKey =
-        dynamic_cast<OTAsymmetricKey_OpenSSL*>(&theTempKey);
+    key::Asymmetric& theTempKey = const_cast<key::Asymmetric&>(theKey);
+    key::RSA* pTempOpenSSLKey = dynamic_cast<key::RSA*>(&theTempKey);
     OT_ASSERT(nullptr != pTempOpenSSLKey);
 
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
@@ -2780,12 +2780,11 @@ bool OpenSSL::EncryptSessionKey(
                 ++nKeyIndex;  // 0 on first iteration.
                 m_nLastPopulatedIndex = nKeyIndex;
 
-                OTAsymmetricKey* pTempPublicKey =
+                key::Asymmetric* pTempPublicKey =
                     it.second;  // first is the NymID
                 OT_ASSERT(nullptr != pTempPublicKey);
 
-                OTAsymmetricKey_OpenSSL* pPublicKey =
-                    dynamic_cast<OTAsymmetricKey_OpenSSL*>(pTempPublicKey);
+                key::RSA* pPublicKey = dynamic_cast<key::RSA*>(pTempPublicKey);
                 OT_ASSERT(nullptr != pPublicKey);
 
                 EVP_PKEY* public_key =
@@ -3000,11 +2999,11 @@ bool OpenSSL::EncryptSessionKey(
         ++ii;  // 0 on first iteration.
 
         std::string str_nym_id = it.first;
-        //        OTAsymmetricKey * pTempPublicKey = it->second;
+        //        key::Asymmetric * pTempPublicKey = it->second;
         //        OT_ASSERT(nullptr != pTempPublicKey);
 
-        //        OTAsymmetricKey_OpenSSL * pPublicKey =
-        // dynamic_cast<OTAsymmetricKey_OpenSSL*>(pTempPublicKey);
+        //        RSA * pPublicKey =
+        // dynamic_cast<key::RSA*>(pTempPublicKey);
         //        OT_ASSERT(nullptr != pPublicKey);
 
         //        OTIdentifier theNymID;
@@ -3186,11 +3185,10 @@ bool OpenSSL::DecryptSessionKey(
     String strNymID;
     theRecipient.GetIdentifier(strNymID);
 
-    OTAsymmetricKey& theTempPrivateKey =
-        const_cast<OTAsymmetricKey&>(theRecipient.GetPrivateEncrKey());
+    key::Asymmetric& theTempPrivateKey =
+        const_cast<key::Asymmetric&>(theRecipient.GetPrivateEncrKey());
 
-    OTAsymmetricKey_OpenSSL* pPrivateKey =
-        dynamic_cast<OTAsymmetricKey_OpenSSL*>(&theTempPrivateKey);
+    key::RSA* pPrivateKey = dynamic_cast<key::RSA*>(&theTempPrivateKey);
 
     EVP_PKEY* private_key = nullptr;
     if (nullptr != pPrivateKey) {
@@ -3218,7 +3216,7 @@ bool OpenSSL::DecryptSessionKey(
         const char* m_szFunc;
         EVP_CIPHER_CTX& m_ctx;  // reference to openssl cipher context.
 #endif
-        OTAsymmetricKey& m_privateKey;  // reference to OTAsymmetricKey object.
+        key::Asymmetric& m_privateKey;  // reference to OTAsymmetricKey object.
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
         bool& m_bFinalized;
 #endif
@@ -3228,14 +3226,14 @@ bool OpenSSL::DecryptSessionKey(
         _OTEnv_Open(
             const char* param_szFunc,
             EVP_CIPHER_CTX& theCTX,
-            OTAsymmetricKey& param_privateKey,
+            key::Asymmetric& param_privateKey,
             bool& param_Finalized)
             : m_szFunc(param_szFunc)
             , m_ctx(theCTX)
             , m_privateKey(param_privateKey)
             , m_bFinalized(param_Finalized)
 #else
-        _OTEnv_Open(OTAsymmetricKey& param_privateKey, bool&)
+        _OTEnv_Open(key::Asymmetric& param_privateKey, bool&)
             : m_privateKey(param_privateKey)
 #endif
         {

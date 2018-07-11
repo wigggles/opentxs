@@ -35,81 +35,67 @@
  *   for more details.
  *
  ************************************************************/
-
 #include "stdafx.hpp"
 
-#include "Internal.hpp"
+#include "opentxs/crypto/key/Secp256k1.hpp"
 
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
-#include "opentxs/crypto/library/Sodium.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#endif
 #include "opentxs/OT.hpp"
 
-namespace opentxs
+namespace opentxs::crypto::key
 {
-AsymmetricKeyEd25519::AsymmetricKeyEd25519()
-    : ot_super(proto::AKEYTYPE_ED25519, proto::KEYROLE_ERROR)
-{
-}
-
-AsymmetricKeyEd25519::AsymmetricKeyEd25519(const proto::KeyRole role)
-    : ot_super(proto::AKEYTYPE_ED25519, role)
+Secp256k1::Secp256k1()
+    : ot_super(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR)
 {
 }
 
-AsymmetricKeyEd25519::AsymmetricKeyEd25519(
-    const proto::AsymmetricKey& serializedKey)
+Secp256k1::Secp256k1(const proto::KeyRole role)
+    : ot_super(proto::AKEYTYPE_SECP256K1, role)
+{
+}
+
+Secp256k1::Secp256k1(const proto::AsymmetricKey& serializedKey)
     : ot_super(serializedKey)
 {
 }
 
-AsymmetricKeyEd25519::AsymmetricKeyEd25519(const String& publicKey)
-    : ot_super(proto::AKEYTYPE_ED25519, publicKey)
+Secp256k1::Secp256k1(const String& publicKey)
+    : ot_super(proto::AKEYTYPE_SECP256K1, publicKey)
 {
 }
 
-const crypto::EcdsaProvider& AsymmetricKeyEd25519::ECDSA() const
+const crypto::EcdsaProvider& Secp256k1::ECDSA() const
 {
-    return dynamic_cast<const crypto::Sodium&>(engine());
+    return dynamic_cast<const crypto::Secp256k1&>(engine());
 }
 
-const crypto::AsymmetricProvider& AsymmetricKeyEd25519::engine() const
+const crypto::AsymmetricProvider& Secp256k1::engine() const
+
 {
-    return OT::App().Crypto().ED25519();
+    return OT::App().Crypto().SECP256K1();
 }
 
-void AsymmetricKeyEd25519::Release()
+void Secp256k1::Release()
 {
-    Release_AsymmetricKeyEd25519();  // My own cleanup is performed here.
+    Release_Secp256k1();  // My own cleanup is performed here.
 
     // Next give the base class a chance to do the same...
     ot_super::Release();  // since I've overridden the base class, I call it
                           // now...
 }
 
-AsymmetricKeyEd25519::~AsymmetricKeyEd25519()
+Secp256k1::~Secp256k1()
 {
-    Release_AsymmetricKeyEd25519();
+    Release_Secp256k1();
 
     ReleaseKeyLowLevel_Hook();
 }
-
-bool AsymmetricKeyEd25519::hasCapability(const NymCapability& capability) const
-{
-    switch (capability) {
-        case (NymCapability::AUTHENTICATE_CONNECTION): {
-
-            return true;
-        }
-        default: {
-            return ot_super::hasCapability(capability);
-        }
-    }
-}
-}  // namespace opentxs
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+}  // namespace opentxs::crypto::key
+#endif

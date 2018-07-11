@@ -51,8 +51,9 @@
 //
 // Non-key Credentials are not yet implemented.
 //
-// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each KeyCredential has 3 crypto::key::Keypairs: encryption, signing, and
+// authentication. Each crypto::key::Keypair has 2 crypto::key::Asymmetrics
+// (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -69,8 +70,6 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -78,17 +77,19 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#endif
+#include "opentxs/crypto/library/Sodium.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/crypto/Bip39.hpp"
 #endif
-#include "opentxs/crypto/library/EcdsaProvider.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/crypto/library/Secp256k1.hpp"
-#endif
-#include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
@@ -280,9 +281,10 @@ KeyCredential::KeyCredential(
         proto::AsymmetricKey privateAuth =
             serializedCred.privatecredential().key(proto::KEYROLE_AUTH - 1);
 
-        m_AuthentKey = std::make_shared<OTKeypair>(publicAuth, privateAuth);
+        m_AuthentKey =
+            std::make_shared<crypto::key::Keypair>(publicAuth, privateAuth);
     } else {
-        m_AuthentKey = std::make_shared<OTKeypair>(publicAuth);
+        m_AuthentKey = std::make_shared<crypto::key::Keypair>(publicAuth);
     }
 
     // Encrypt key
@@ -293,10 +295,10 @@ KeyCredential::KeyCredential(
         proto::AsymmetricKey privateEncrypt =
             serializedCred.privatecredential().key(proto::KEYROLE_ENCRYPT - 1);
 
-        m_EncryptKey =
-            std::make_shared<OTKeypair>(publicEncrypt, privateEncrypt);
+        m_EncryptKey = std::make_shared<crypto::key::Keypair>(
+            publicEncrypt, privateEncrypt);
     } else {
-        m_EncryptKey = std::make_shared<OTKeypair>(publicEncrypt);
+        m_EncryptKey = std::make_shared<crypto::key::Keypair>(publicEncrypt);
     }
 
     // Sign key
@@ -307,9 +309,10 @@ KeyCredential::KeyCredential(
         proto::AsymmetricKey privateSign =
             serializedCred.privatecredential().key(proto::KEYROLE_SIGN - 1);
 
-        m_SigningKey = std::make_shared<OTKeypair>(publicSign, privateSign);
+        m_SigningKey =
+            std::make_shared<crypto::key::Keypair>(publicSign, privateSign);
     } else {
-        m_SigningKey = std::make_shared<OTKeypair>(publicSign);
+        m_SigningKey = std::make_shared<crypto::key::Keypair>(publicSign);
     }
 }
 
@@ -320,12 +323,12 @@ KeyCredential::KeyCredential(
     : ot_super(wallet, theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
 {
     if (proto::CREDTYPE_HD != nymParameters.credentialType()) {
-        m_AuthentKey =
-            std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_AUTH);
-        m_EncryptKey =
-            std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_ENCRYPT);
-        m_SigningKey =
-            std::make_shared<OTKeypair>(nymParameters, proto::KEYROLE_SIGN);
+        m_AuthentKey = std::make_shared<crypto::key::Keypair>(
+            nymParameters, proto::KEYROLE_AUTH);
+        m_EncryptKey = std::make_shared<crypto::key::Keypair>(
+            nymParameters, proto::KEYROLE_ENCRYPT);
+        m_SigningKey = std::make_shared<crypto::key::Keypair>(
+            nymParameters, proto::KEYROLE_SIGN);
     } else {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
         const auto keyType = nymParameters.AsymmetricKeyType();
@@ -379,7 +382,7 @@ bool KeyCredential::New(const NymParameters& nymParameters)
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
+std::shared_ptr<crypto::key::Keypair> KeyCredential::DeriveHDKeypair(
     const OTPassword& seed,
     const std::string& fingerprint,
     const std::uint32_t nym,
@@ -422,7 +425,7 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
             break;
     }
 
-    std::shared_ptr<OTKeypair> newKeypair;
+    std::shared_ptr<crypto::key::Keypair> newKeypair;
     auto privateKey = OT::App().Crypto().BIP32().GetHDKey(curve, seed, keyPath);
 
     if (!privateKey) { return newKeypair; }
@@ -453,7 +456,8 @@ std::shared_ptr<OTKeypair> KeyCredential::DeriveHDKeypair(
     const bool haveKey = engine->PrivateToPublic(*privateKey, publicKey);
 
     if (haveKey) {
-        newKeypair = std::make_shared<OTKeypair>(publicKey, *privateKey);
+        newKeypair =
+            std::make_shared<crypto::key::Keypair>(publicKey, *privateKey);
     }
 
     return newKeypair;
@@ -501,8 +505,8 @@ bool KeyCredential::addKeytoSerializedKeyCredential(
     const bool getPrivate,
     const proto::KeyRole role) const
 {
-    serializedAsymmetricKey key;
-    std::shared_ptr<OTKeypair> pKey;
+    std::shared_ptr<proto::AsymmetricKey> key;
+    std::shared_ptr<crypto::key::Keypair> pKey;
 
     switch (role) {
         case proto::KEYROLE_AUTH:
@@ -579,7 +583,7 @@ bool KeyCredential::Verify(
     const proto::Signature& sig,
     const proto::KeyRole key) const
 {
-    const OTKeypair* keyToUse = nullptr;
+    const crypto::key::Keypair* keyToUse = nullptr;
 
     switch (key) {
         case (proto::KEYROLE_AUTH):

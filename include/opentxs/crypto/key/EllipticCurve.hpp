@@ -41,18 +41,22 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 
 #include <memory>
 
 namespace opentxs
 {
-class AsymmetricKeyEC : public OTAsymmetricKey
+namespace crypto
+{
+namespace key
+{
+class EllipticCurve : public Asymmetric
 {
 private:
     friend class crypto::EcdsaProvider;
 
-    typedef OTAsymmetricKey ot_super;
+    typedef Asymmetric ot_super;
 
 protected:
     OTData key_;
@@ -60,12 +64,12 @@ protected:
     std::shared_ptr<proto::HDPath> path_{nullptr};
     std::unique_ptr<proto::Ciphertext> chain_code_{nullptr};
 
-    AsymmetricKeyEC() = delete;
-    explicit AsymmetricKeyEC(
+    EllipticCurve() = delete;
+    explicit EllipticCurve(
         const proto::AsymmetricKeyType keyType,
         const proto::KeyRole role);
-    explicit AsymmetricKeyEC(const proto::AsymmetricKey& serializedKey);
-    explicit AsymmetricKeyEC(
+    explicit EllipticCurve(const proto::AsymmetricKey& serializedKey);
+    explicit EllipticCurve(
         const proto::AsymmetricKeyType keyType,
         const String& publicKey);
 
@@ -84,16 +88,16 @@ public:
     bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const override;
-    void Release_AsymmetricKeyEC() {}
+    void Release_EllipticCurve() {}
     void Release() override;
     bool SetKey(const Data& key);
     bool SetKey(std::unique_ptr<proto::Ciphertext>& key);
-    serializedAsymmetricKey Serialize() const override;
+    std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
 
-    virtual ~AsymmetricKeyEC();
+    virtual ~EllipticCurve();
 };
-
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYEC_HPP

@@ -43,7 +43,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -51,6 +50,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/Trezor.hpp"
@@ -167,11 +167,11 @@ std::string Trezor::SeedToFingerprint(
     return "";
 }
 
-serializedAsymmetricKey Trezor::SeedToPrivateKey(
+std::shared_ptr<proto::AsymmetricKey> Trezor::SeedToPrivateKey(
     const EcdsaCurve& curve,
     const OTPassword& seed) const
 {
-    serializedAsymmetricKey derivedKey;
+    std::shared_ptr<proto::AsymmetricKey> derivedKey;
     auto node = InstantiateHDNode(curve, seed);
 
     OT_ASSERT_MSG(node, "Derivation of root node failed.");
@@ -194,7 +194,7 @@ serializedAsymmetricKey Trezor::SeedToPrivateKey(
     return derivedKey;
 }
 
-serializedAsymmetricKey Trezor::GetChild(
+std::shared_ptr<proto::AsymmetricKey> Trezor::GetChild(
     const proto::AsymmetricKey& parent,
     const std::uint32_t index) const
 {
@@ -205,7 +205,7 @@ serializedAsymmetricKey Trezor::GetChild(
     } else {
         hdnode_public_ckd(node.get(), index);
     }
-    serializedAsymmetricKey key =
+    std::shared_ptr<proto::AsymmetricKey> key =
         HDNodeToSerialized(parent.type(), *node, Trezor::DERIVE_PRIVATE);
 
     return key;
@@ -257,14 +257,14 @@ std::unique_ptr<HDNode> Trezor::DeriveChild(
     }
 }
 
-serializedAsymmetricKey Trezor::GetHDKey(
+std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
     const EcdsaCurve& curve,
     const OTPassword& seed,
     proto::HDPath& path) const
 {
     otInfo << OT_METHOD << __FUNCTION__ << ": Deriving child:\n"
            << Print(path) << std::endl;
-    serializedAsymmetricKey output{nullptr};
+    std::shared_ptr<proto::AsymmetricKey> output{nullptr};
     auto node = DeriveChild(curve, seed, path);
 
     if (!node) {
@@ -284,12 +284,13 @@ serializedAsymmetricKey Trezor::GetHDKey(
     return output;
 }
 
-serializedAsymmetricKey Trezor::HDNodeToSerialized(
+std::shared_ptr<proto::AsymmetricKey> Trezor::HDNodeToSerialized(
     const proto::AsymmetricKeyType& type,
     const HDNode& node,
     const DerivationMode privateVersion) const
 {
-    serializedAsymmetricKey key = std::make_shared<proto::AsymmetricKey>();
+    std::shared_ptr<proto::AsymmetricKey> key =
+        std::make_shared<proto::AsymmetricKey>();
 
     key->set_version(1);
     key->set_type(type);

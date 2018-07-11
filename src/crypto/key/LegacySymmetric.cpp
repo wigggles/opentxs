@@ -38,14 +38,13 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -54,6 +53,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
@@ -70,11 +70,11 @@ extern "C" {
 #include <cstdint>
 #include <ostream>
 
-#define OT_METHOD "opentxs::OTSymmetricKey::"
+#define OT_METHOD "opentxs::crypto::key::LegacySymmetric::"
 
-namespace opentxs
+namespace opentxs::crypto::key
 {
-OTSymmetricKey::OTSymmetricKey()
+LegacySymmetric::LegacySymmetric()
     : m_bIsGenerated(false)
     , has_hash_check_(Flag::Factory(false))
     , m_nKeySize(CryptoConfig::SymmetricKeySize() * 8)
@@ -86,17 +86,17 @@ OTSymmetricKey::OTSymmetricKey()
 {
 }
 
-OTSymmetricKey::OTSymmetricKey(const OTPassword& thePassword)
-    : OTSymmetricKey()
+LegacySymmetric::LegacySymmetric(const OTPassword& thePassword)
+    : LegacySymmetric()
 {
     GenerateKey(thePassword);
 }
-void OTSymmetricKey::GetIdentifier(Identifier& theIdentifier) const
+void LegacySymmetric::GetIdentifier(Identifier& theIdentifier) const
 {
     Lock lock(lock_);
     theIdentifier.CalculateDigest(encrypted_key_.get());
 }
-void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
+void LegacySymmetric::GetIdentifier(String& strIdentifier) const
 {
     Lock lock(lock_);
     auto theIdentifier = Identifier::Factory();
@@ -107,7 +107,7 @@ void OTSymmetricKey::GetIdentifier(String& strIdentifier) const
 
 // Changes the passphrase on an existing symmetric key.
 //
-bool OTSymmetricKey::ChangePassphrase(
+bool LegacySymmetric::ChangePassphrase(
     const OTPassword& oldPassphrase,
     const OTPassword& newPassphrase)
 {
@@ -170,7 +170,7 @@ bool OTSymmetricKey::ChangePassphrase(
     // the new salt, the iteration
     // count, and the new password that was passed in. We will store the salt
     // and iteration count inside this
-    // OTSymmetricKey object, and we'll store an encrypted copy of the
+    // LegacySymmetric object, and we'll store an encrypted copy of the
     // ActualKey, encrypted to pNewDerivedKey.
     // We'll also store the new IV, which is used while encrypting the actual
     // key, and which must be used again
@@ -198,7 +198,7 @@ bool OTSymmetricKey::ChangePassphrase(
     return m_bIsGenerated;
 }
 
-// Generates this OTSymmetricKey based on an OTPassword. The generated key is
+// Generates this LegacySymmetric based on an OTPassword. The generated key is
 // stored in encrypted form, based on a derived key from that password.
 //
 
@@ -210,7 +210,7 @@ bool OTSymmetricKey::ChangePassphrase(
 // ppDerivedKey: CALLER RESPONSIBLE TO DELETE.  (optional arg.)
 
 // Output. If you want, I can pass this back to you.
-bool OTSymmetricKey::GenerateKey(
+bool LegacySymmetric::GenerateKey(
     const OTPassword& thePassphrase,
     OTPassword** ppDerivedKey)
 {
@@ -270,7 +270,7 @@ bool OTSymmetricKey::GenerateKey(
     // salt, the iteration
     // count, and the password that was passed in. We will store the salt and
     // iteration count inside this
-    // OTSymmetricKey object, and we'll store an encrypted copy of the
+    // LegacySymmetric object, and we'll store an encrypted copy of the
     // ActualKey, encrypted to pDerivedKey.
     // We'll also store the IV, which is generated while encrypting the actual
     // key, and which must be used
@@ -302,7 +302,7 @@ bool OTSymmetricKey::GenerateKey(
     return m_bIsGenerated;
 }
 
-bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
+bool LegacySymmetric::GenerateHashCheck(const OTPassword& thePassphrase)
 {
     OT_ASSERT(m_uIterationCount > 1000);
 
@@ -367,7 +367,7 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
 
 // Done:  add a "get Key" function which takes the OTPassword, generates the
 // derived key using salt already on
-// OTSymmetricKey object, then decrypts the encrypted symmetric key (using
+// LegacySymmetric object, then decrypts the encrypted symmetric key (using
 // derived key) and returns clear symmetric
 // key back as another OTPassword object.
 
@@ -385,7 +385,7 @@ bool OTSymmetricKey::GenerateHashCheck(const OTPassword& thePassphrase)
 //
 // CALLER IS RESPONSIBLE TO DELETE.
 //
-OTPassword* OTSymmetricKey::calculate_derived_key_from_passphrase(
+OTPassword* LegacySymmetric::calculate_derived_key_from_passphrase(
     const Lock& lock,
     const OTPassword& thePassphrase,
     bool bCheckForHashCheck) const
@@ -416,7 +416,7 @@ OTPassword* OTSymmetricKey::calculate_derived_key_from_passphrase(
         thePassphrase, salt_.get(), m_uIterationCount, tmpDataHashCheck);
 }
 
-OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
+OTPassword* LegacySymmetric::CalculateDerivedKeyFromPassphrase(
     const OTPassword& thePassphrase,
     bool bCheckForHashCheck) const
 {
@@ -426,7 +426,7 @@ OTPassword* OTSymmetricKey::CalculateDerivedKeyFromPassphrase(
         lock, thePassphrase, bCheckForHashCheck);
 }
 
-OTPassword* OTSymmetricKey::calculate_new_derived_key_from_passphrase(
+OTPassword* LegacySymmetric::calculate_new_derived_key_from_passphrase(
     const Lock& lock,
     const OTPassword& thePassphrase)
 {
@@ -451,7 +451,7 @@ OTPassword* OTSymmetricKey::calculate_new_derived_key_from_passphrase(
     return pDerivedKey.release();
 }
 
-OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
+OTPassword* LegacySymmetric::CalculateNewDerivedKeyFromPassphrase(
     const OTPassword& thePassphrase)
 {
     Lock lock(lock_);
@@ -459,7 +459,7 @@ OTPassword* OTSymmetricKey::CalculateNewDerivedKeyFromPassphrase(
     return calculate_new_derived_key_from_passphrase(lock, thePassphrase);
 }
 
-bool OTSymmetricKey::get_raw_key_from_passphrase(
+bool LegacySymmetric::get_raw_key_from_passphrase(
     const Lock& lock,
     const OTPassword& thePassphrase,
     OTPassword& theRawKeyOutput,
@@ -483,14 +483,14 @@ bool OTSymmetricKey::get_raw_key_from_passphrase(
 
     // Below this point, pDerivedKey contains a derived symmetric key, from the
     // salt, the iteration count, and the password that was passed in. The salt
-    // and iteration count were both stored inside this OTSymmetricKey object
+    // and iteration count were both stored inside this LegacySymmetric object
     // since this key was originally generated, and we store an encrypted copy
     // of the ActualKey already, as well-- it's encrypted to the Derived Key.
     // (We also store the IV from that encryption bit.)
     return get_raw_key_from_derived_key(lock, *pDerivedKey, theRawKeyOutput);
 }
 
-bool OTSymmetricKey::GetRawKeyFromPassphrase(
+bool LegacySymmetric::GetRawKeyFromPassphrase(
     const OTPassword& thePassphrase,
     OTPassword& theRawKeyOutput,
     OTPassword* pDerivedKey) const
@@ -501,7 +501,7 @@ bool OTSymmetricKey::GetRawKeyFromPassphrase(
         lock, thePassphrase, theRawKeyOutput, pDerivedKey);
 }
 
-bool OTSymmetricKey::get_raw_key_from_derived_key(
+bool LegacySymmetric::get_raw_key_from_derived_key(
     const Lock& lock,
     const OTPassword& theDerivedKey,
     OTPassword& theRawKeyOutput) const
@@ -541,7 +541,7 @@ bool OTSymmetricKey::get_raw_key_from_derived_key(
     return bDecryptedKey;
 }
 
-bool OTSymmetricKey::GetRawKeyFromDerivedKey(
+bool LegacySymmetric::GetRawKeyFromDerivedKey(
     const OTPassword& theDerivedKey,
     OTPassword& theRawKeyOutput) const
 {
@@ -552,7 +552,7 @@ bool OTSymmetricKey::GetRawKeyFromDerivedKey(
 // The highest-level possible interface (used by the API)
 //
 // static  NOTE: this version circumvents the master key.
-OTPassword* OTSymmetricKey::GetPassphraseFromUser(
+OTPassword* LegacySymmetric::GetPassphraseFromUser(
     const String* pstrDisplay,
     bool bAskTwice)  // returns a
                      // text
@@ -567,7 +567,7 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
     // Below this point, pPassUserInput must be returned, or deleted. (Or it
     // will leak.)
 
-    const char* szDisplay = "OTSymmetricKey::GetPassphraseFromUser";
+    const char* szDisplay = "LegacySymmetric::GetPassphraseFromUser";
     OTPasswordData thePWData(
         (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
     // -------------------------------------------------------------------
@@ -606,7 +606,7 @@ OTPassword* OTSymmetricKey::GetPassphraseFromUser(
 }
 
 // static
-bool OTSymmetricKey::CreateNewKey(
+bool LegacySymmetric::CreateNewKey(
     String& strOutput,
     const String* pstrDisplay,
     const OTPassword* pAlreadyHavePW)
@@ -629,10 +629,10 @@ bool OTSymmetricKey::CreateNewKey(
                          // user. (Now let's generate the key...)
     {
         otLog3 << __FUNCTION__
-               << ": Calling OTSymmetricKey theKey.GenerateKey()...\n";
-        OTSymmetricKey theKey(*pPassUserInput);
+               << ": Calling LegacySymmetric theKey.GenerateKey()...\n";
+        LegacySymmetric theKey(*pPassUserInput);
         const bool bGenerated = theKey.IsGenerated();
-        //      otOut << "%s: Finished calling OTSymmetricKey
+        //      otOut << "%s: Finished calling LegacySymmetric
         // theKey.GenerateKey()...\n", __FUNCTION__);
 
         if (bGenerated && theKey.SerializeTo(strOutput))
@@ -649,7 +649,7 @@ bool OTSymmetricKey::CreateNewKey(
 }
 
 // static
-bool OTSymmetricKey::Encrypt(
+bool LegacySymmetric::Encrypt(
     const String& strKey,
     const String& strPlaintext,
     String& strOutput,
@@ -664,7 +664,7 @@ bool OTSymmetricKey::Encrypt(
         return false;
     }
 
-    OTSymmetricKey theKey;
+    LegacySymmetric theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
         otWarn << __FUNCTION__
@@ -685,8 +685,8 @@ bool OTSymmetricKey::Encrypt(
 }
 
 // static
-bool OTSymmetricKey::Encrypt(
-    const OTSymmetricKey& theKey,
+bool LegacySymmetric::Encrypt(
+    const LegacySymmetric& theKey,
     const String& strPlaintext,
     String& strOutput,
     const String* pstrDisplay,
@@ -730,7 +730,7 @@ bool OTSymmetricKey::Encrypt(
 
         if (theEnvelope.Encrypt(
                 strPlaintext,
-                const_cast<OTSymmetricKey&>(theKey),
+                const_cast<LegacySymmetric&>(theKey),
                 *pPassUserInput) &&
             theEnvelope.GetCiphertext(ascOutput)) {
             bSuccess = true;
@@ -755,7 +755,7 @@ bool OTSymmetricKey::Encrypt(
 }
 
 // static
-bool OTSymmetricKey::Decrypt(
+bool LegacySymmetric::Decrypt(
     const String& strKey,
     String& strCiphertext,
     String& strOutput,
@@ -770,7 +770,7 @@ bool OTSymmetricKey::Decrypt(
         return false;
     }
 
-    OTSymmetricKey theKey;
+    LegacySymmetric theKey;
 
     if (!theKey.SerializeFrom(strKey)) {
         otWarn << __FUNCTION__
@@ -786,8 +786,8 @@ bool OTSymmetricKey::Decrypt(
 }
 
 // static
-bool OTSymmetricKey::Decrypt(
-    const OTSymmetricKey& theKey,
+bool LegacySymmetric::Decrypt(
+    const LegacySymmetric& theKey,
     const String& strCiphertext,
     String& strOutput,
     const String* pstrDisplay,
@@ -852,7 +852,7 @@ bool OTSymmetricKey::Decrypt(
 // position, and let the CALLER reset first, if that's his
 // intention.
 //
-bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
+bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -1094,7 +1094,7 @@ bool OTSymmetricKey::serialize_from(const Lock& lock, Data& theInput)
     return true;
 }
 
-bool OTSymmetricKey::serialize_from(
+bool LegacySymmetric::serialize_from(
     const Lock& lock,
     const OTASCIIArmor& ascInput)
 {
@@ -1108,21 +1108,21 @@ bool OTSymmetricKey::serialize_from(
     return false;
 }
 
-bool OTSymmetricKey::SerializeFrom(Data& theInput)
+bool LegacySymmetric::SerializeFrom(Data& theInput)
 {
     Lock lock(lock_);
 
     return serialize_from(lock, theInput);
 }
 
-bool OTSymmetricKey::SerializeFrom(const OTASCIIArmor& ascInput)
+bool LegacySymmetric::SerializeFrom(const OTASCIIArmor& ascInput)
 {
     Lock lock(lock_);
 
     return serialize_from(lock, ascInput);
 }
 
-bool OTSymmetricKey::SerializeFrom(const String& strInput, bool bEscaped)
+bool LegacySymmetric::SerializeFrom(const String& strInput, bool bEscaped)
 {
     Lock lock(lock_);
     OTASCIIArmor ascInput;
@@ -1137,7 +1137,7 @@ bool OTSymmetricKey::SerializeFrom(const String& strInput, bool bEscaped)
     return false;
 }
 
-bool OTSymmetricKey::serialize_to(const Lock& lock, OTASCIIArmor& ascOutput)
+bool LegacySymmetric::serialize_to(const Lock& lock, OTASCIIArmor& ascOutput)
     const
 {
     auto theOutput = Data::Factory();
@@ -1151,7 +1151,7 @@ bool OTSymmetricKey::serialize_to(const Lock& lock, OTASCIIArmor& ascOutput)
     return false;
 }
 
-bool OTSymmetricKey::serialize_to(const Lock& lock, Data& theOutput) const
+bool LegacySymmetric::serialize_to(const Lock& lock, Data& theOutput) const
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -1224,21 +1224,21 @@ bool OTSymmetricKey::serialize_to(const Lock& lock, Data& theOutput) const
     return true;
 }
 
-bool OTSymmetricKey::SerializeTo(Data& theOutput) const
+bool LegacySymmetric::SerializeTo(Data& theOutput) const
 {
     Lock lock(lock_);
 
     return serialize_to(lock, theOutput);
 }
 
-bool OTSymmetricKey::SerializeTo(OTASCIIArmor& ascOutput) const
+bool LegacySymmetric::SerializeTo(OTASCIIArmor& ascOutput) const
 {
     Lock lock(lock_);
 
     return serialize_to(lock, ascOutput);
 }
 
-bool OTSymmetricKey::SerializeTo(String& strOutput, bool bEscaped) const
+bool LegacySymmetric::SerializeTo(String& strOutput, bool bEscaped) const
 {
     Lock lock(lock_);
     OTASCIIArmor ascOutput;
@@ -1251,9 +1251,9 @@ bool OTSymmetricKey::SerializeTo(String& strOutput, bool bEscaped) const
     return false;
 }
 
-void OTSymmetricKey::Release() { Release_SymmetricKey(); }
+void LegacySymmetric::Release() { Release_SymmetricKey(); }
 
-void OTSymmetricKey::Release_SymmetricKey()
+void LegacySymmetric::Release_SymmetricKey()
 {
     m_bIsGenerated = false;
     m_uIterationCount = CryptoConfig::IterationCount();
@@ -1263,5 +1263,5 @@ void OTSymmetricKey::Release_SymmetricKey()
     encrypted_key_->Release();
 }
 
-OTSymmetricKey::~OTSymmetricKey() { Release_SymmetricKey(); }
-}  // namespace opentxs
+LegacySymmetric::~LegacySymmetric() { Release_SymmetricKey(); }
+}  // namespace opentxs::crypto::key

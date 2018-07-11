@@ -72,31 +72,31 @@ public:
         proto::Ciphertext& encryptedChaincode);
 
     EXPORT virtual bool AsymmetricKeyToECPrivatekey(
-        const AsymmetricKeyEC& asymmetricKey,
+        const crypto::key::EllipticCurve& asymmetricKey,
         const OTPasswordData& passwordData,
         OTPassword& privkey) const = 0;
     EXPORT virtual bool DecryptSessionKeyECDH(
-        const AsymmetricKeyEC& privateKey,
-        const AsymmetricKeyEC& publicKey,
+        const crypto::key::EllipticCurve& privateKey,
+        const crypto::key::EllipticCurve& publicKey,
         const OTPasswordData& password,
-        SymmetricKey& sessionKey) const = 0;
+        crypto::key::Symmetric& sessionKey) const = 0;
     EXPORT virtual bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,
         const OTPasswordData& passwordData,
-        AsymmetricKeyEC& asymmetricKey) const = 0;
+        crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool ECPubkeyToAsymmetricKey(
         const Data& pubkey,
-        AsymmetricKeyEC& asymmetricKey) const = 0;
+        crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool EncryptSessionKeyECDH(
-        const AsymmetricKeyEC& privateKey,
-        const AsymmetricKeyEC& publicKey,
+        const crypto::key::EllipticCurve& privateKey,
+        const crypto::key::EllipticCurve& publicKey,
         const OTPasswordData& passwordData,
-        SymmetricKey& sessionKey,
+        crypto::key::Symmetric& sessionKey,
         OTPassword& newKeyPassword) const = 0;
     EXPORT virtual bool ExportECPrivatekey(
         const OTPassword& privkey,
         const OTPasswordData& password,
-        AsymmetricKeyEC& asymmetricKey) const = 0;
+        crypto::key::EllipticCurve& asymmetricKey) const = 0;
     EXPORT virtual bool ImportECPrivatekey(
         const proto::Ciphertext& asymmetricKey,
         const OTPasswordData& password,

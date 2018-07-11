@@ -40,7 +40,7 @@
 
 #include "opentxs/core/crypto/NymParameters.hpp"
 
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 
 #include <cstdint>
 #include <memory>

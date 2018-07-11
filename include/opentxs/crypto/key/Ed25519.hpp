@@ -41,36 +41,39 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/Proto.hpp"
 
 namespace opentxs
 {
-
-class String;
-
-class AsymmetricKeyEd25519 : public AsymmetricKeyEC
+namespace crypto
+{
+namespace key
+{
+class Ed25519 : public EllipticCurve
 {
 private:
-    typedef AsymmetricKeyEC ot_super;
-    friend class OTAsymmetricKey;  // For the factory.
+    typedef EllipticCurve ot_super;
+    friend class Asymmetric;  // For the factory.
     friend class LowLevelKeyGenerator;
 
-    AsymmetricKeyEd25519();
-    explicit AsymmetricKeyEd25519(const proto::KeyRole role);
-    explicit AsymmetricKeyEd25519(const proto::AsymmetricKey& serializedKey);
-    explicit AsymmetricKeyEd25519(const String& publicKey);
+    Ed25519();
+    explicit Ed25519(const proto::KeyRole role);
+    explicit Ed25519(const proto::AsymmetricKey& serializedKey);
+    explicit Ed25519(const String& publicKey);
 
 public:
     const crypto::EcdsaProvider& ECDSA() const override;
     const crypto::AsymmetricProvider& engine() const override;
     bool hasCapability(const NymCapability& capability) const override;
-    void Release_AsymmetricKeyEd25519() {}
+    void Release_Ed25519() {}
     void Release() override;
 
-    virtual ~AsymmetricKeyEd25519();
+    virtual ~Ed25519();
 };
-
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
-
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYED25519_HPP

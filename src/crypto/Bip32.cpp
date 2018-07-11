@@ -42,8 +42,8 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/Bip39.hpp"
 #include "opentxs/OT.hpp"
 

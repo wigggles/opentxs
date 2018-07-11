@@ -39,11 +39,10 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-
-#include "OTAsymmetricKeyOpenSSL.hpp"
+#include "opentxs/crypto/key/RSA.hpp"
 
 extern "C" {
 #include <openssl/pem.h>
@@ -51,33 +50,19 @@ extern "C" {
 #include <openssl/x509v3.h>
 }
 
-namespace opentxs
+namespace opentxs::crypto::key
 {
-namespace crypto
-{
-namespace implementation
-{
-class OpenSSL;
-}
-}  // namespace crypto
-
-class OTPasswordData;
-
-class OTAsymmetricKey_OpenSSL::OTAsymmetricKey_OpenSSLPrivdp
+class RSA::d
 {
 private:
-    friend class LowLevelKeyGenerator;  // For access to OpenSSL-specific calls
-                                        // that
-                                        // are otherwise private.
-    friend class OpenSSL;  // For OpenSSL-specific crypto functions to
-                           // access OpenSSL-specific methods.
+    friend opentxs::LowLevelKeyGenerator;
     friend crypto::implementation::OpenSSL;
-    friend class OTAsymmetricKey_OpenSSL;
+    friend class RSA;
 
 public:
-    OTAsymmetricKey_OpenSSL* backlink;
+    RSA* backlink;
     // cppcheck-suppress uninitMemberVar
-    explicit OTAsymmetricKey_OpenSSLPrivdp()
+    explicit d()
         : backlink(0)
     {
     }
@@ -132,6 +117,6 @@ private:
     X509* GetX509() const { return m_pX509; }
     void SetX509(X509* x509);
 };
-}  // namespace opentxs
+}  // namespace opentxs::crypto::key
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #endif  // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP

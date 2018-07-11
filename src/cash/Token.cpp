@@ -569,7 +569,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     return bSaved;
 }
 
-// OTSymmetricKey:
+// crypto::key::LegacySymmetric:
 // static bool CreateNewKey(OTString & strOutput, const OTString *
 // pstrDisplay=nullptr, const OTPassword * pAlreadyHavePW=nullptr);
 //
@@ -585,14 +585,14 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 // const OTPassword * pAlreadyHavePW=nullptr);
 
 // OTEnvelope:
-// bool Encrypt(const OTString & theInput,        OTSymmetricKey & theKey, const
-// OTPassword & thePassword);
-// bool Decrypt(      OTString & theOutput, const OTSymmetricKey & theKey, const
-// OTPassword & thePassword);
+// bool Encrypt(const OTString & theInput,        crypto::key::LegacySymmetric &
+// theKey, const OTPassword & thePassword); bool Decrypt(      OTString &
+// theOutput, const crypto::key::LegacySymmetric & theKey, const OTPassword &
+// thePassword);
 
 // OTNym_or_SymmetricKey:
 // const OTPseudonym    * GetNym()      const { return m_pNym;      }
-// const OTSymmetricKey * GetKey()      const { return m_pKey;      }
+// const crypto::key::LegacySymmetric * GetKey()      const { return m_pKey; }
 // const OTPassword     * GetPassword() const { return m_pPassword; } // for
 // symmetric key (optional)
 // bool  IsNym()       const { return (nullptr != m_pNym);      }
@@ -603,16 +603,12 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
 /*
  NOTE: OTNym_or_SymmetricKey is passed in here as a reference.
- Normally, you might pass in a Nym, or a SymmetricKey, and OTNym_or_SymmetricKey
- is able to construct itself from either one. This can be convenient. However,
- if
- you don't use an OTPassword when you construct the OTNym_or_SymmetricKey, and
- it needs
- one internally for its symmetric key, then it will create one and store it, and
- delete it
- upon destruction.
- Therefore it can be useful to pass the SAME OTNym_or_SymmetricKey into a
- function multiple
+ Normally, you might pass in a Nym, or a crypto::key::LegacySymmetric, and
+ OTNym_or_SymmetricKey is able to construct itself from either one. This can be
+ convenient. However, if you don't use an OTPassword when you construct the
+ OTNym_or_SymmetricKey, and it needs one internally for its symmetric key, then
+ it will create one and store it, and delete it upon destruction. Therefore it
+ can be useful to pass the SAME OTNym_or_SymmetricKey into a function multiple
  times (say, during a loop) since it is storing its password internally, and
  this makes that PW
  available to every call, without having to create it EACH TIME (forcing user to

@@ -42,36 +42,41 @@
 #include "opentxs/Forward.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/Proto.hpp"
 
 namespace opentxs
 {
+class LowLevelKeyGenerator;
 
-class String;
-
-class AsymmetricKeySecp256k1 : public AsymmetricKeyEC
+namespace crypto
+{
+namespace key
+{
+class Secp256k1 : public EllipticCurve
 {
 private:
-    typedef AsymmetricKeyEC ot_super;
-    friend class OTAsymmetricKey;  // For the factory.
-    friend class LowLevelKeyGenerator;
+    typedef EllipticCurve ot_super;
 
-    AsymmetricKeySecp256k1();
-    explicit AsymmetricKeySecp256k1(const proto::KeyRole role);
-    explicit AsymmetricKeySecp256k1(const proto::AsymmetricKey& serializedKey);
-    explicit AsymmetricKeySecp256k1(const String& publicKey);
+    friend Asymmetric;
+    friend opentxs::LowLevelKeyGenerator;
+
+    Secp256k1();
+    explicit Secp256k1(const proto::KeyRole role);
+    explicit Secp256k1(const proto::AsymmetricKey& serializedKey);
+    explicit Secp256k1(const String& publicKey);
 
 public:
     const crypto::EcdsaProvider& ECDSA() const override;
     const crypto::AsymmetricProvider& engine() const override;
-    void Release_AsymmetricKeySecp256k1(){};
+    void Release_Secp256k1(){};
     void Release() override;
 
-    virtual ~AsymmetricKeySecp256k1();
+    virtual ~Secp256k1();
 };
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #endif  // OPENTXS_CORE_CRYPTO_ASYMMETRICKEYSECP256K1_HPP

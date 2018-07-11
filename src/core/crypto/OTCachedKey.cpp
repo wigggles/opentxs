@@ -43,14 +43,14 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTKeyring.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
@@ -114,8 +114,9 @@ bool OTCachedKey::ChangeUserPassphrase()
 
     // Returns a text OTPassword, or nullptr.
     std::shared_ptr<OTPassword> pOldUserPassphrase(
-        OTSymmetricKey::GetPassphraseFromUser(&strReason1));  // bool bAskTwice
-                                                              // = false
+        crypto::key::LegacySymmetric::GetPassphraseFromUser(
+            &strReason1));  // bool bAskTwice
+                            // = false
 
     if (!pOldUserPassphrase) {
         otErr << __FUNCTION__
@@ -128,7 +129,7 @@ bool OTCachedKey::ChangeUserPassphrase()
 
     // Returns a text OTPassword, or nullptr.
     std::shared_ptr<OTPassword> pNewUserPassphrase(
-        OTSymmetricKey::GetPassphraseFromUser(
+        crypto::key::LegacySymmetric::GetPassphraseFromUser(
             &strReason2, true));  // bool bAskTwice = false by default.
 
     if (!pNewUserPassphrase) {
@@ -287,7 +288,7 @@ bool OTCachedKey::GetMasterPassword(
     OTPassword* pDerivedKey = nullptr;
     std::unique_ptr<OTPassword> theDerivedAngel;
 
-    if (!key_) { key_.reset(new OTSymmetricKey); }
+    if (!key_) { key_.reset(new crypto::key::LegacySymmetric); }
 
     OT_ASSERT(key_);
 
@@ -357,7 +358,8 @@ bool OTCachedKey::GetMasterPassword(
             // stored as the SECRET, here! (UPDATE: Yes!)
             //    (i.e. in other processes such as Mac Keychain or Gnome.)
             // 3. Done. Need to add ability for OTIdentifier to hash
-            // OTSymmetricKey, so we can use it for strUser above. DONE.
+            // crypto::key::LegacySymmetric, so we can use it for strUser above.
+            // DONE.
             //
             // UPDATE: the master key cached inside OT (on a timer) is not the
             // derived key, but the master key itself
@@ -483,7 +485,7 @@ bool OTCachedKey::GetMasterPassword(
                 otErr << __FUNCTION__
                       << ": FYI: Derived key is still nullptr "
                          "after calling "
-                         "OTSymmetricKey::GenerateKey.\n";
+                         "crypto::key::LegacySymmetric::GenerateKey.\n";
         } else  // key_->IsGenerated() == true. (Symmetric Key is
                 // already generated.)
         {
@@ -574,13 +576,14 @@ bool OTCachedKey::GetMasterPassword(
         // successfully did,
         //
 
-        if (bGenerated)  // If SymmetricKey (*this) is already generated.
+        if (bGenerated)  // If crypto::key::LegacySymmetric (*this) is already
+                         // generated.
         {
             otInfo << OT_METHOD << __FUNCTION__
                    << ": Calling key_->GetRawKeyFromPassphrase()...\n";
 
             // Once we have the user's password, then we use it to GetKey from
-            // the OTSymmetricKey (which
+            // the crypto::key::LegacySymmetric (which
             // is encrypted) and that retrieves the cleartext master password
             // which we set here and also
             // return a copy of.
@@ -791,7 +794,7 @@ void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
 
     OT_ASSERT(ascCachedKey.Exists());
 
-    key_.reset(new OTSymmetricKey);
+    key_.reset(new crypto::key::LegacySymmetric);
 
     OT_ASSERT(key_);
 

@@ -322,7 +322,7 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
     EXPECT_TRUE(nym.get()->Path(path));
 
     std::string fingerprint = path.root();
-    serializedAsymmetricKey privatekey =
+    auto privatekey =
         opentxs::OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, 10);
     proto::AsymmetricKey privKey = *privatekey;
     ASSERT_TRUE(bool(privatekey));

@@ -52,7 +52,6 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -64,6 +63,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
@@ -277,7 +277,7 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
     //
     for (auto& it : m_mapExtraKeys) {
         const std::string str_id = it.first;
-        std::shared_ptr<OTSymmetricKey> pKey = it.second;
+        std::shared_ptr<crypto::key::LegacySymmetric> pKey = it.second;
 
         String strKeyID(str_id.c_str());
         OTASCIIArmor ascKeyID;
@@ -313,7 +313,7 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
 // encrypted to the master key in the wallet, so you never actually have to type
 // a password to use it, except when the master key itself has expired.
 //
-std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
+std::shared_ptr<crypto::key::LegacySymmetric> OTWallet::getOrCreateExtraKey(
     const std::string& str_KeyID,
     const std::string* pReason)
 {
@@ -324,7 +324,8 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
     // Once it's decrypted, we'll use this key for encrypting/decrypting
     // the sql*lite DB data on the client side.
     //
-    std::shared_ptr<OTSymmetricKey> pExtraKey = getExtraKey(str_KeyID);
+    std::shared_ptr<crypto::key::LegacySymmetric> pExtraKey =
+        getExtraKey(str_KeyID);
 
     // (If it doesn't exist, let's just create it here.)
     //
@@ -342,9 +343,10 @@ std::shared_ptr<OTSymmetricKey> OTWallet::getOrCreateExtraKey(
             (nullptr == pReason) ? "" : pReason->c_str());
         String strNewKeyOutput;
 
-        if (bGotMasterPW && OTSymmetricKey::CreateNewKey(
+        if (bGotMasterPW && crypto::key::LegacySymmetric::CreateNewKey(
                                 strNewKeyOutput, nullptr, &master_password)) {
-            std::shared_ptr<OTSymmetricKey> pNewExtraKey(new OTSymmetricKey);
+            std::shared_ptr<crypto::key::LegacySymmetric> pNewExtraKey(
+                new crypto::key::LegacySymmetric);
             Lock lock(lock_);
 
             if (pNewExtraKey && pNewExtraKey->SerializeFrom(strNewKeyOutput) &&
@@ -376,15 +378,18 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(
 
     for (auto& it : m_mapExtraKeys) {
         const std::string str_id = it.first;
-        std::shared_ptr<OTSymmetricKey> pOldKey = it.second;
+        std::shared_ptr<crypto::key::LegacySymmetric> pOldKey = it.second;
         auto thePayload = Data::Factory();
 
         if (pOldKey && pOldKey->SerializeTo(thePayload)) {
-            std::shared_ptr<OTSymmetricKey> pNewKey(new OTSymmetricKey);
+            std::shared_ptr<crypto::key::LegacySymmetric> pNewKey(
+                new crypto::key::LegacySymmetric);
 
             if (pNewKey && pNewKey->SerializeFrom(thePayload))
                 mapChanged.insert(
-                    std::pair<std::string, std::shared_ptr<OTSymmetricKey>>(
+                    std::pair<
+                        std::string,
+                        std::shared_ptr<crypto::key::LegacySymmetric>>(
                         str_id, pNewKey));
             else
                 return false;
@@ -398,7 +403,7 @@ bool OTWallet::ChangePassphrasesOnExtraKeys(
     // map and copy mapChanged into it.
     //
     for (auto& it : mapChanged) {
-        std::shared_ptr<OTSymmetricKey> pNewKey = it.second;
+        std::shared_ptr<crypto::key::LegacySymmetric> pNewKey = it.second;
 
         if (pNewKey) {
             if (!pNewKey->ChangePassphrase(oldPassphrase, newPassphrase))
@@ -428,7 +433,7 @@ bool OTWallet::Encrypt_ByKeyID(
 
     std::string str_Reason((nullptr != pstrDisplay) ? pstrDisplay->Get() : "");
 
-    std::shared_ptr<OTSymmetricKey> pKey =
+    std::shared_ptr<crypto::key::LegacySymmetric> pKey =
         getOrCreateExtraKey(key_id, &str_Reason);
 
     if (pKey) {
@@ -437,7 +442,7 @@ bool OTWallet::Encrypt_ByKeyID(
 
         if (cachedKey.GetMasterPassword(cachedKey, master_password)) {
 
-            return OTSymmetricKey::Encrypt(
+            return crypto::key::LegacySymmetric::Encrypt(
                 *pKey,
                 strPlaintext,
                 strOutput,
@@ -457,7 +462,7 @@ bool OTWallet::Decrypt_ByKeyID(
 {
     if (key_id.empty() || !strCiphertext.Exists()) { return false; }
 
-    std::shared_ptr<OTSymmetricKey> pKey = getExtraKey(key_id);
+    std::shared_ptr<crypto::key::LegacySymmetric> pKey = getExtraKey(key_id);
 
     if (pKey) {
         auto& cachedKey = crypto_.DefaultKey();
@@ -465,7 +470,7 @@ bool OTWallet::Decrypt_ByKeyID(
 
         if (cachedKey.GetMasterPassword(cachedKey, master_password)) {
 
-            return OTSymmetricKey::Decrypt(
+            return crypto::key::LegacySymmetric::Decrypt(
                 *pKey, strCiphertext, strOutput, pstrDisplay, &master_password);
         }
     }
@@ -473,29 +478,29 @@ bool OTWallet::Decrypt_ByKeyID(
     return false;
 }
 
-std::shared_ptr<OTSymmetricKey> OTWallet::getExtraKey(
+std::shared_ptr<crypto::key::LegacySymmetric> OTWallet::getExtraKey(
     const std::string& str_id) const
 {
     Lock lock(lock_);
 
-    if (str_id.empty()) return std::shared_ptr<OTSymmetricKey>();
+    if (str_id.empty()) return std::shared_ptr<crypto::key::LegacySymmetric>();
 
     auto it = m_mapExtraKeys.find(str_id);
 
     if (it != m_mapExtraKeys.end())  // It's already there (can't add it.)
     {
-        std::shared_ptr<OTSymmetricKey> pKey = it->second;
+        std::shared_ptr<crypto::key::LegacySymmetric> pKey = it->second;
 
         return pKey;
     }
 
-    return std::shared_ptr<OTSymmetricKey>();
+    return std::shared_ptr<crypto::key::LegacySymmetric>();
 }
 
 bool OTWallet::add_extra_key(
     const Lock& lock,
     const std::string& str_id,
-    std::shared_ptr<OTSymmetricKey> pKey)
+    std::shared_ptr<crypto::key::LegacySymmetric> pKey)
 {
     OT_ASSERT(verify_lock(lock))
 
@@ -507,14 +512,15 @@ bool OTWallet::add_extra_key(
         return false;
 
     m_mapExtraKeys.insert(
-        std::pair<std::string, std::shared_ptr<OTSymmetricKey>>(str_id, pKey));
+        std::pair<std::string, std::shared_ptr<crypto::key::LegacySymmetric>>(
+            str_id, pKey));
 
     return true;
 }
 
 bool OTWallet::addExtraKey(
     const std::string& str_id,
-    std::shared_ptr<OTSymmetricKey> pKey)
+    std::shared_ptr<crypto::key::LegacySymmetric> pKey)
 {
     Lock lock(lock_);
 
@@ -738,8 +744,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         else if (Contract::LoadEncodedTextField(
                                      xml, ascSymmetricKey)) {
-                            std::shared_ptr<OTSymmetricKey> pKey(
-                                new OTSymmetricKey);
+                            std::shared_ptr<crypto::key::LegacySymmetric> pKey(
+                                new crypto::key::LegacySymmetric);
 
                             if (!pKey || !pKey->SerializeFrom(ascSymmetricKey))
                                 otErr

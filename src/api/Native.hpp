@@ -129,7 +129,7 @@ private:
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
 #if OT_CRYPTO_WITH_BIP39
-    std::unique_ptr<SymmetricKey> storage_encryption_key_;
+    std::unique_ptr<opentxs::crypto::key::Symmetric> storage_encryption_key_;
 #endif
     std::unique_ptr<api::Server> server_;
     std::unique_ptr<api::UI> ui_;

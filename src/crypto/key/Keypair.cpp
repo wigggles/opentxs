@@ -52,7 +52,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each OTKeypair has 2 Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -62,11 +62,10 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OTKeypair.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
@@ -76,6 +75,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -103,37 +103,34 @@
 // and a sub contract. Add ability to save / load with this data. Then go from
 // there.
 
-namespace opentxs
+namespace opentxs::crypto::key
 {
-
-OTKeypair::OTKeypair(
-    const NymParameters& nymParameters,
-    const proto::KeyRole role)
-    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(nymParameters, role))
-    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(nymParameters, role))
+Keypair::Keypair(const NymParameters& nymParameters, const proto::KeyRole role)
+    : m_pkeyPublic(Asymmetric::KeyFactory(nymParameters, role))
+    , m_pkeyPrivate(Asymmetric::KeyFactory(nymParameters, role))
     , role_(role)
 {
     MakeNewKeypair(nymParameters);
 }
 
-OTKeypair::OTKeypair(
+Keypair::Keypair(
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey)
-    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
-    , m_pkeyPrivate(OTAsymmetricKey::KeyFactory(serializedPrivkey))
+    : m_pkeyPublic(Asymmetric::KeyFactory(serializedPubkey))
+    , m_pkeyPrivate(Asymmetric::KeyFactory(serializedPrivkey))
 {
     role_ = m_pkeyPrivate->Role();
 }
 
-OTKeypair::OTKeypair(const proto::AsymmetricKey& serializedPubkey)
-    : m_pkeyPublic(OTAsymmetricKey::KeyFactory(serializedPubkey))
+Keypair::Keypair(const proto::AsymmetricKey& serializedPubkey)
+    : m_pkeyPublic(Asymmetric::KeyFactory(serializedPubkey))
 {
     role_ = m_pkeyPublic->Role();
 }
 
-OTKeypair::~OTKeypair() {}
+Keypair::~Keypair() {}
 
-bool OTKeypair::HasPublicKey() const
+bool Keypair::HasPublicKey() const
 {
     OT_ASSERT(m_pkeyPublic);
 
@@ -141,7 +138,7 @@ bool OTKeypair::HasPublicKey() const
                                       // in it, or tried to.
 }
 
-bool OTKeypair::HasPrivateKey() const
+bool Keypair::HasPrivateKey() const
 {
     OT_ASSERT(m_pkeyPrivate);
 
@@ -149,33 +146,33 @@ bool OTKeypair::HasPrivateKey() const
                                         // key in it, or tried to.
 }
 
-// Return the public key as an OTAsymmetricKey object
+// Return the public key as an Asymmetric object
 // TODO this violates encapsulation and should be deprecated
-const OTAsymmetricKey& OTKeypair::GetPublicKey() const
+const Asymmetric& Keypair::GetPublicKey() const
 {
     OT_ASSERT(m_pkeyPublic);
 
     return (*m_pkeyPublic);
 }
 
-// Return the private key as an OTAsymmetricKey object
+// Return the private key as an Asymmetric object
 // TODO this violates encapsulation and should be deprecated
-const OTAsymmetricKey& OTKeypair::GetPrivateKey() const
+const Asymmetric& Keypair::GetPrivateKey() const
 {
     OT_ASSERT(m_pkeyPrivate);
 
     return (*m_pkeyPrivate);
 }
 
-bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters)
+bool Keypair::MakeNewKeypair(const NymParameters& nymParameters)
 {
     if (!m_pkeyPrivate) {
         m_pkeyPrivate.reset(
-            OTAsymmetricKey::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
+            Asymmetric::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
     }
     if (!m_pkeyPublic) {
         m_pkeyPublic.reset(
-            OTAsymmetricKey::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
+            Asymmetric::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
     }
 
     LowLevelKeyGenerator lowLevelKeys(nymParameters);
@@ -200,21 +197,21 @@ bool OTKeypair::MakeNewKeypair(const NymParameters& nymParameters)
 // Get a public key as an opentxs::String.
 // This form is used in all cases except for the NymIDSource
 // of a self-signed MasterCredential
-bool OTKeypair::GetPublicKey(String& strKey) const
+bool Keypair::GetPublicKey(String& strKey) const
 {
     OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->GetPublicKey(strKey);
 }
 
-bool OTKeypair::CalculateID(Identifier& theOutput) const
+bool Keypair::CalculateID(Identifier& theOutput) const
 {
     OT_ASSERT(m_pkeyPublic);
 
     return m_pkeyPublic->CalculateID(theOutput);  // Only works for public keys.
 }
 
-std::int32_t OTKeypair::GetPublicKeyBySignature(
+std::int32_t Keypair::GetPublicKeyBySignature(
     listOfAsymmetricKeys& listOutput,  // Inclusive means, return the key even
                                        // when theSignature has no metadata.
     const OTSignature& theSignature,
@@ -257,7 +254,7 @@ std::int32_t OTKeypair::GetPublicKeyBySignature(
 
 // Used when importing/exporting a Nym to/from the wallet.
 //
-bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
+bool Keypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
 {
 
     OT_ASSERT(m_pkeyPublic);
@@ -325,7 +322,7 @@ bool OTKeypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
     return (bReEncrypted);
 }
 
-serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
+std::shared_ptr<proto::AsymmetricKey> Keypair::Serialize(bool privateKey) const
 {
     OT_ASSERT(m_pkeyPublic);
 
@@ -337,7 +334,7 @@ serializedAsymmetricKey OTKeypair::Serialize(bool privateKey) const
     }
 }
 
-bool OTKeypair::Verify(const Data& plaintext, const proto::Signature& sig) const
+bool Keypair::Verify(const Data& plaintext, const proto::Signature& sig) const
 {
     if (!m_pkeyPublic) {
         otErr << __FUNCTION__ << ": Missing public key. Can not verify.\n";
@@ -348,17 +345,17 @@ bool OTKeypair::Verify(const Data& plaintext, const proto::Signature& sig) const
     return m_pkeyPublic->Verify(plaintext, sig);
 }
 
-bool OTKeypair::TransportKey(Data& publicKey, OTPassword& privateKey) const
+bool Keypair::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
     OT_ASSERT(m_pkeyPrivate);
 
     return m_pkeyPrivate->TransportKey(publicKey, privateKey);
 }
 
-bool OTKeypair::hasCapability(const NymCapability& capability) const
+bool Keypair::hasCapability(const NymCapability& capability) const
 {
     if (m_pkeyPrivate) { return m_pkeyPrivate->hasCapability(capability); }
 
     return false;
 }
-}  // namespace opentxs
+}  // namespace opentxs::crypto::key

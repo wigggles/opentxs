@@ -69,7 +69,7 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool Sign(
         const Data& plaintext,
-        const OTAsymmetricKey& theKey,
+        const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
         const OTPasswordData* pPWData = nullptr,
@@ -80,7 +80,7 @@ public:
         Data& publicKey) const override;
     bool Verify(
         const Data& plaintext,
-        const OTAsymmetricKey& theKey,
+        const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const override;

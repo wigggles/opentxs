@@ -49,10 +49,6 @@
 
 namespace opentxs
 {
-class StorageConfig;
-class String;
-class SymmetricKey;
-
 namespace api
 {
 namespace storage
@@ -144,7 +140,7 @@ private:
         const bool migrate,
         const String& previous);
     void InitBackup();
-    void InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key);
+    void InitEncryptedBackup(std::unique_ptr<crypto::key::Symmetric>& key);
     void migrate_primary(const std::string& from, const std::string& to);
     opentxs::api::storage::Driver& Primary();
     void synchronize_plugins(

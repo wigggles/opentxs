@@ -38,17 +38,21 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Ed25519.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "AsymmetricProvider.hpp"
 #include "EcdsaProvider.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
 extern "C" {
 #include <sodium.h>
@@ -506,7 +510,7 @@ bool Sodium::SeedToCurveKey(
 
 bool Sodium::Sign(
     const Data& plaintext,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     const proto::HashType hashType,
     Data& signature,
     const OTPasswordData* pPWData,
@@ -525,8 +529,8 @@ bool Sodium::Sign(
     // FIXME
     OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
 
-    const AsymmetricKeyEC* key =
-        dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
+    const crypto::key::EllipticCurve* key =
+        dynamic_cast<const key::Ed25519*>(&theKey);
 
     if (nullptr == key) { return false; }
 
@@ -541,7 +545,7 @@ bool Sodium::Sign(
     if (!havePrivateKey) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Can not extract ed25519 private key seed "
-              << "from OTAsymmetricKey." << std::endl;
+              << "from Asymmetric." << std::endl;
 
         return false;
     }
@@ -596,7 +600,7 @@ std::size_t Sodium::TagSize(const proto::SymmetricMode mode) const
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 bool Sodium::Verify(
     const Data& plaintext,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     const Data& signature,
     const proto::HashType hashType,
     __attribute__((unused)) const OTPasswordData* pPWData) const
@@ -608,8 +612,8 @@ bool Sodium::Verify(
         return false;
     }
 
-    const AsymmetricKeyEC* key =
-        dynamic_cast<const AsymmetricKeyEd25519*>(&theKey);
+    const crypto::key::EllipticCurve* key =
+        dynamic_cast<const key::Ed25519*>(&theKey);
 
     if (nullptr == key) { return false; }
 
@@ -619,7 +623,8 @@ bool Sodium::Verify(
 
     if (!havePublicKey) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Can not extract ed25519 public key from OTAsymmetricKey."
+              << ": Can not extract ed25519 public key from "
+                 "Asymmetric."
               << std::endl;
 
         return false;

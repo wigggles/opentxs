@@ -64,7 +64,7 @@ public:
     // Low level.
     EXPORT bool addExtraKey(
         const std::string& str_id,
-        std::shared_ptr<OTSymmetricKey> pKey);
+        std::shared_ptr<crypto::key::LegacySymmetric> pKey);
 #if OT_CASH
     // While waiting on server response to a withdrawal, we keep the private
     // coin data here so we can unblind the response. This information is so
@@ -102,9 +102,9 @@ public:
         const String* pstrDisplay = nullptr,
         bool bBookends = true);
     // Low level.
-    EXPORT std::shared_ptr<OTSymmetricKey> getExtraKey(
+    EXPORT std::shared_ptr<crypto::key::LegacySymmetric> getExtraKey(
         const std::string& str_id) const;
-    EXPORT std::shared_ptr<OTSymmetricKey> getOrCreateExtraKey(
+    EXPORT std::shared_ptr<crypto::key::LegacySymmetric> getOrCreateExtraKey(
         const std::string& str_KeyID,
         const std::string* pReason = nullptr);  // Use this one.
 #if OT_CASH
@@ -131,7 +131,7 @@ private:
     friend OT_API;
 
     using mapOfSymmetricKeys =
-        std::map<std::string, std::shared_ptr<OTSymmetricKey>>;
+        std::map<std::string, std::shared_ptr<crypto::key::LegacySymmetric>>;
 
     const api::Crypto& crypto_;
     const api::client::Wallet& wallet_;
@@ -177,7 +177,7 @@ private:
     bool add_extra_key(
         const Lock& lock,
         const std::string& str_id,
-        std::shared_ptr<OTSymmetricKey> pKey);
+        std::shared_ptr<crypto::key::LegacySymmetric> pKey);
     void release(const Lock& lock);
     bool save_contract(const Lock& lock, String& strContract);
     bool save_wallet(const Lock& lock, const char* szFilename = nullptr);

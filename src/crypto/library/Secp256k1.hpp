@@ -50,14 +50,14 @@ public:
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
     bool Sign(
         const Data& plaintext,
-        const OTAsymmetricKey& theKey,
+        const key::Asymmetric& theKey,
         const proto::HashType hashType,
         Data& signature,  // output
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr) const override;
     bool Verify(
         const Data& plaintext,
-        const OTAsymmetricKey& theKey,
+        const key::Asymmetric& theKey,
         const Data& signature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const override;

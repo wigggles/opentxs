@@ -55,7 +55,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -71,6 +70,7 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/crypto/Bip39.hpp"
 #endif
@@ -1025,7 +1025,7 @@ std::int32_t Nym::GetOutpaymentsCount() const
     return static_cast<std::int32_t>(m_dequeOutpayments.size());
 }
 
-const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
+const crypto::key::Asymmetric& Nym::GetPrivateAuthKey() const
 {
     sLock lock(shared_lock_);
 
@@ -1033,7 +1033,7 @@ const OTAsymmetricKey& Nym::GetPrivateAuthKey() const
 }
 
 template <typename T>
-const OTAsymmetricKey& Nym::get_private_auth_key(const T& lock) const
+const crypto::key::Asymmetric& Nym::get_private_auth_key(const T& lock) const
 {
     OT_ASSERT(!m_mapCredentialSets.empty());
 
@@ -1078,7 +1078,7 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
     strCredList.Concatenate("%s", str_result.c_str());
 }
 
-const OTAsymmetricKey& Nym::GetPrivateEncrKey() const
+const crypto::key::Asymmetric& Nym::GetPrivateEncrKey() const
 {
     sLock lock(shared_lock_);
 
@@ -1103,7 +1103,7 @@ const OTAsymmetricKey& Nym::GetPrivateEncrKey() const
     return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);  // success
 }
 
-const OTAsymmetricKey& Nym::GetPrivateSignKey() const
+const crypto::key::Asymmetric& Nym::GetPrivateSignKey() const
 {
     sLock lock(shared_lock_);
 
@@ -1111,7 +1111,7 @@ const OTAsymmetricKey& Nym::GetPrivateSignKey() const
 }
 
 template <typename T>
-const OTAsymmetricKey& Nym::get_private_sign_key(const T& lock) const
+const crypto::key::Asymmetric& Nym::get_private_sign_key(const T& lock) const
 {
     OT_ASSERT(!m_mapCredentialSets.empty());
 
@@ -1136,7 +1136,7 @@ const OTAsymmetricKey& Nym::get_private_sign_key(const T& lock) const
     return pCredential->GetPrivateSignKey(&m_listRevokedIDs);  // success
 }
 
-const OTAsymmetricKey& Nym::GetPublicAuthKey() const
+const crypto::key::Asymmetric& Nym::GetPublicAuthKey() const
 {
     sLock lock(shared_lock_);
 
@@ -1161,7 +1161,7 @@ const OTAsymmetricKey& Nym::GetPublicAuthKey() const
     return pCredential->GetPublicAuthKey(&m_listRevokedIDs);  // success
 }
 
-const OTAsymmetricKey& Nym::GetPublicEncrKey() const
+const crypto::key::Asymmetric& Nym::GetPublicEncrKey() const
 {
     sLock lock(shared_lock_);
 
@@ -1219,7 +1219,7 @@ std::int32_t Nym::GetPublicKeysBySignature(
     return nCount;
 }
 
-const OTAsymmetricKey& Nym::GetPublicSignKey() const
+const crypto::key::Asymmetric& Nym::GetPublicSignKey() const
 {
     sLock lock(shared_lock_);
 
@@ -1227,7 +1227,7 @@ const OTAsymmetricKey& Nym::GetPublicSignKey() const
 }
 
 template <typename T>
-const OTAsymmetricKey& Nym::get_public_sign_key(const T& lock) const
+const crypto::key::Asymmetric& Nym::get_public_sign_key(const T& lock) const
 {
     OT_ASSERT(!m_mapCredentialSets.empty());
 
@@ -1556,7 +1556,7 @@ bool Nym::load_signed_nymfile(const T& lock, const Nym& SIGNER_NYM)
         return false;
     }
 
-    const OTAsymmetricKey* publicSignKey = nullptr;
+    const crypto::key::Asymmetric* publicSignKey = nullptr;
     if (SIGNER_NYM.ID() == ID()) {
         publicSignKey = &get_public_sign_key(lock);
     } else {
@@ -1721,7 +1721,7 @@ bool Nym::ReEncryptPrivateCredentials(
                 : (bImporting ? "Enter passphrase for the Nym being imported."
                               : "Enter passphrase for exported Nym."));
         // Circumvents the cached key.
-        pExportPassphrase = OTSymmetricKey::GetPassphraseFromUser(
+        pExportPassphrase = crypto::key::LegacySymmetric::GetPassphraseFromUser(
             &strDisplay, !bImporting);  // bAskTwice is true when exporting
                                         // (since the export passphrase is being
                                         // created at that time.)
@@ -2180,7 +2180,7 @@ bool Nym::save_signed_nymfile(const T& lock, const Nym& SIGNER_NYM)
     // contents of the Nym itself, saved to a string inside the OTSignedFile
     // object.
 
-    const OTAsymmetricKey* privateSignKey = nullptr;
+    const crypto::key::Asymmetric* privateSignKey = nullptr;
     if (SIGNER_NYM.ID() == ID()) {
         privateSignKey = &get_private_sign_key(lock);
     } else {

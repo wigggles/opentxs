@@ -64,7 +64,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials

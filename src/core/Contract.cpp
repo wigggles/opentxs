@@ -43,7 +43,6 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
@@ -56,6 +55,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/OT.hpp"
@@ -450,7 +450,7 @@ bool Contract::SignContractAuthent(
 // ready yet to signing anything with.
 //
 bool Contract::SignWithKey(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature;
@@ -508,7 +508,7 @@ bool Contract::SignWithKey(
 // the signature.
 // (Simple.) So I will put the Signature Metadata into its own class, so not
 // only a signature
-// can use it, but also the OTAsymmetricKey class can use it and also
+// can use it, but also the crypto::key::Asymmetric class can use it and also
 // Credential can use it.
 // Then Contract just uses it if it's there. Also we don't have to pass it in
 // here as separate
@@ -533,7 +533,7 @@ bool Contract::SignWithKey(
 // It is NOT attached to the contract.  This is just a utility function.
 //
 bool Contract::SignContract(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     OTSignature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData)
@@ -629,7 +629,7 @@ bool Contract::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
 }
 
 bool Contract::VerifyWithKey(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     const OTPasswordData* pPWData) const
 {
     for (auto& it : m_listSignatures) {
@@ -677,7 +677,7 @@ bool Contract::VerifySigAuthent(
     if (nCount > 0)  // Found some (potentially) matching keys...
     {
         for (auto& it : listOutput) {
-            OTAsymmetricKey* pKey = it;
+            crypto::key::Asymmetric* pKey = it;
             OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(
@@ -727,7 +727,7 @@ bool Contract::VerifySignature(
     if (nCount > 0)  // Found some (potentially) matching keys...
     {
         for (auto& it : listOutput) {
-            OTAsymmetricKey* pKey = it;
+            crypto::key::Asymmetric* pKey = it;
             OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(
@@ -757,7 +757,7 @@ bool Contract::VerifySignature(
 }
 
 bool Contract::VerifySignature(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     const OTSignature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const

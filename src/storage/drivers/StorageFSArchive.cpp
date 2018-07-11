@@ -42,10 +42,10 @@
 #if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
 
 #include "storage/StorageConfig.hpp"
@@ -86,7 +86,7 @@ StorageFSArchive::StorageFSArchive(
     const Random& random,
     const Flag& bucket,
     const std::string& folder,
-    std::unique_ptr<SymmetricKey>& key)
+    std::unique_ptr<crypto::key::Symmetric>& key)
     : ot_super(storage, config, hash, random, folder, bucket)
     , encryption_key_(key.release())
     , encrypted_(bool(encryption_key_))

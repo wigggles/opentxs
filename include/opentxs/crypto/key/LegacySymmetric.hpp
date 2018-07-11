@@ -49,13 +49,17 @@
 
 namespace opentxs
 {
+namespace crypto
+{
+namespace key
+{
 // This class stores the iteration count, the salt, and the encrypted key.
 // These are all generated or set when you call GenerateKey.
 
 // Note: this calculates its ID based only on encrypted_key_,
 // and does NOT include salt, IV, iteration count, etc when
 // generating the hash for the ID.
-class OTSymmetricKey : Lockable
+class LegacySymmetric : Lockable
 {
 public:
     // The highest-level possible interface (used by the API)
@@ -91,7 +95,7 @@ public:
         const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Encrypt(
-        const OTSymmetricKey& theKey,
+        const LegacySymmetric& theKey,
         const String& strPlaintext,
         String& strOutput,
         const String* pstrDisplay = nullptr,
@@ -99,7 +103,7 @@ public:
         const OTPassword* pAlreadyHavePW = nullptr);
 
     EXPORT static bool Decrypt(
-        const OTSymmetricKey& theKey,
+        const LegacySymmetric& theKey,
         const String& strCiphertext,
         String& strOutput,
         const String* pstrDisplay = nullptr,
@@ -150,7 +154,7 @@ public:
     EXPORT bool GetRawKeyFromDerivedKey(
         const OTPassword& theDerivedKey,
         OTPassword& theRawKeyOutput) const;
-    // Generates this OTSymmetricKey based on an OTPassword. The generated key
+    // Generates this LegacySymmetric based on an OTPassword. The generated key
     // is
     // stored in encrypted form, based on a derived key from that password.
     //
@@ -165,15 +169,15 @@ public:
     EXPORT bool ChangePassphrase(
         const OTPassword& oldPassphrase,
         const OTPassword& newPassphrase);
-    // For old SymmetricKey's that do not yet have a hash-check.
+    // For old symmetric keys that do not yet have a hash-check.
     // This will generate a hash check for them.
     //
     EXPORT bool GenerateHashCheck(const OTPassword& thePassphrase);
 
-    EXPORT OTSymmetricKey();
-    EXPORT OTSymmetricKey(const OTPassword& thePassword);
+    EXPORT LegacySymmetric();
+    EXPORT LegacySymmetric(const OTPassword& thePassword);
 
-    EXPORT virtual ~OTSymmetricKey();
+    EXPORT virtual ~LegacySymmetric();
     EXPORT virtual void Release();
 
     EXPORT void Release_SymmetricKey();
@@ -220,5 +224,7 @@ private:
     bool serialize_from(const Lock& lock, Data& theInput);
     bool serialize_from(const Lock& lock, const OTASCIIArmor& ascInput);
 };
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_OTSYMMETRICKEY_HPP

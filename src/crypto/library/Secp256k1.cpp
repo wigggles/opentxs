@@ -44,10 +44,8 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -55,6 +53,8 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 #if OT_CRYPTO_USING_TREZOR
@@ -127,7 +127,7 @@ bool Secp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
 
 bool Secp256k1::Sign(
     const Data& plaintext,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     const proto::HashType hashType,
     Data& signature,  // output
     const OTPasswordData* pPWData,
@@ -149,8 +149,8 @@ bool Secp256k1::Sign(
     // FIXME
     OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
 
-    const AsymmetricKeyEC* key =
-        dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
+    const crypto::key::EllipticCurve* key =
+        dynamic_cast<const crypto::key::Secp256k1*>(&theKey);
 
     if (nullptr == key) { return false; }
 
@@ -186,7 +186,8 @@ bool Secp256k1::Sign(
         }
     } else {
         otErr << __FUNCTION__ << ": "
-              << "Can not extract ecdsa private key from OTAsymmetricKey.\n";
+              << "Can not extract ecdsa private key from "
+                 "Asymmetric.\n";
 
         return false;
     }
@@ -194,7 +195,7 @@ bool Secp256k1::Sign(
 
 bool Secp256k1::Verify(
     const Data& plaintext,
-    const OTAsymmetricKey& theKey,
+    const key::Asymmetric& theKey,
     const Data& signature,
     const proto::HashType hashType,
     [[maybe_unused]] const OTPasswordData* pPWData) const
@@ -206,8 +207,8 @@ bool Secp256k1::Verify(
 
     if (!haveDigest) { return false; }
 
-    const AsymmetricKeyEC* key =
-        dynamic_cast<const AsymmetricKeySecp256k1*>(&theKey);
+    const crypto::key::EllipticCurve* key =
+        dynamic_cast<const crypto::key::Secp256k1*>(&theKey);
 
     if (nullptr == key) { return false; }
 

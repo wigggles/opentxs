@@ -47,11 +47,6 @@
 
 namespace opentxs
 {
-
-class OTAsymmetricKey;
-class OTPasswordData;
-class String;
-
 /** Useful for storing a std::set of longs, serializing to/from comma-separated
  * string, And easily being able to add/remove/verify the individual transaction
  * numbers that are there. (Used by OTTransaction::blank and

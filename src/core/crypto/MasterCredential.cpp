@@ -52,7 +52,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -68,8 +68,6 @@
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
@@ -78,8 +76,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NymIDSource.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <memory>
 #include <ostream>

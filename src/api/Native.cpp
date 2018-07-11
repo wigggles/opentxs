@@ -58,7 +58,6 @@
 #include "opentxs/core/crypto/OTCaller.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
@@ -68,6 +67,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/crypto/Bip39.hpp"
 #endif
@@ -210,18 +210,20 @@ extern "C" std::int32_t souped_up_pass_cb(
                             // which case they do NOT look up the master
                             // password...
     {
-        // Therefore we need to provide the password from an OTSymmetricKey
-        // stored here. (the "actual key" in the OTSymmetricKey IS the password
-        // that we are passing back!)
+        // Therefore we need to provide the password from an
+        // crypto::key::LegacySymmetric stored here. (the "actual key" in the
+        // crypto::key::LegacySymmetric IS the password that we are passing
+        // back!)
 
         // So either the "actual key" is cached on a timer, from some previous
         // request like this, OR we have to pop up the passphrase dialog, ask
-        // for the passphrase for the OTSymmetricKey, and then use it to GET the
-        // actual key from that OTSymmetricKey. The OTSymmetricKey should be
-        // stored in the OTWallet or Server, which sets a pointer to itself
-        // inside the OTPasswordData class statically, on initialization. That
-        // way, OTPasswordData can use that pointer to get a pointer to the
-        // relevant OTSymmetricKey being used as the MASTER key.
+        // for the passphrase for the crypto::key::LegacySymmetric, and then use
+        // it to GET the actual key from that crypto::key::LegacySymmetric. The
+        // crypto::key::Symmetric should be stored in the OTWallet or Server,
+        // which sets a pointer to itself inside the OTPasswordData class
+        // statically, on initialization. That way, OTPasswordData can use that
+        // pointer to get a pointer to the relevant crypto::key::LegacySymmetric
+        // being used as the MASTER key.
         opentxs::otLog3 << __FUNCTION__
                         << ": Using GetMasterPassword() call. \n";
         bGotPassword = cachedKey.GetMasterPassword(

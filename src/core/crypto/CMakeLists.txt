@@ -1,7 +1,4 @@
 set(cxx-sources
-  AsymmetricKeyEC.cpp
-  AsymmetricKeyEd25519.cpp
-  AsymmetricKeySecp256k1.cpp
   ChildKeyCredential.cpp
   ContactCredential.cpp
   Credential.cpp
@@ -15,31 +12,22 @@ set(cxx-sources
   NullCallback.cpp
   NymParameters.cpp
   OTASCIIArmor.cpp
-  OTAsymmetricKey.cpp
-  OTAsymmetricKeyOpenSSL.cpp
-  OTAsymmetricKeyOpenSSLPrivdp.cpp
   OTCachedKey.cpp
   OTCallback.cpp
   OTCaller.cpp
   OTEnvelope.cpp
-  OTKeypair.cpp
   OTKeyring.cpp
   OTNymOrSymmetricKey.cpp
   OTPassword.cpp
   OTPasswordData.cpp
   OTSignatureMetadata.cpp
   OTSignedFile.cpp
-  OTSymmetricKey.cpp
   PaymentCode.cpp
-  SymmetricKey.cpp
   VerificationCredential.cpp
   mkcert.cpp
 )
 
 set(cxx-install-headers
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/AsymmetricKeyEC.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/ChildKeyCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/ContactCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/Credential.hpp"
@@ -52,14 +40,10 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/mkcert.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/NymParameters.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTASCIIArmor.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTAsymmetricKey.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTAsymmetricKeyOpenSSL.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTAsymmetricKey_OpenSSLPrivdp.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTCachedKey.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTCallback.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTCaller.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTEnvelope.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTKeypair.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTKeyring.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTPasswordData.hpp"
@@ -67,9 +51,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSignature.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSignatureMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSignedFile.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSymmetricKey.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/PaymentCode.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/SymmetricKey.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/VerificationCredential.hpp"
 )
 

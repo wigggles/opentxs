@@ -50,13 +50,13 @@ class AsymmetricProvider : virtual public crypto::AsymmetricProvider
 public:
     bool SignContract(
         const String& strContractUnsigned,
-        const OTAsymmetricKey& theKey,
+        const key::Asymmetric& theKey,
         OTSignature& theSignature,  // output
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const override;
     bool VerifyContractSignature(
         const String& strContractToVerify,
-        const OTAsymmetricKey& theKey,
+        const key::Asymmetric& theKey,
         const OTSignature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const override;

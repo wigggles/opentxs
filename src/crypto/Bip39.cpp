@@ -47,10 +47,10 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 

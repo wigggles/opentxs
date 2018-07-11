@@ -50,7 +50,11 @@
 
 namespace opentxs
 {
-class SymmetricKey
+namespace crypto
+{
+namespace key
+{
+class Symmetric
 {
 private:
     /// The library providing the underlying crypto algorithms
@@ -97,11 +101,11 @@ private:
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
     bool GetPassword(const OTPasswordData& keyPassword, OTPassword& password);
 
-    SymmetricKey(const crypto::SymmetricProvider& engine);
-    SymmetricKey(
+    Symmetric(const crypto::SymmetricProvider& engine);
+    Symmetric(
         const crypto::SymmetricProvider& engine,
         const proto::SymmetricKey serialized);
-    SymmetricKey(
+    Symmetric(
         const crypto::SymmetricProvider& engine,
         const OTPassword& seed,
         const std::string& salt,
@@ -109,9 +113,9 @@ private:
         const std::uint64_t operations,
         const std::uint64_t difficulty,
         const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
-    SymmetricKey() = delete;
-    SymmetricKey(const SymmetricKey&) = delete;
-    SymmetricKey& operator=(const SymmetricKey&) = delete;
+    Symmetric() = delete;
+    Symmetric(const Symmetric&) = delete;
+    Symmetric& operator=(const Symmetric&) = delete;
 
 public:
     /** Derive a new, random symmetric key
@@ -122,7 +126,7 @@ public:
      *  \param[in] mode The symmetric algorithm for which to generate an
      *                  appropriate key
      */
-    static std::unique_ptr<SymmetricKey> Factory(
+    static std::unique_ptr<Symmetric> Factory(
         const crypto::SymmetricProvider& engine,
         const OTPasswordData& password,
         const proto::SymmetricMode mode = proto::SMODE_ERROR);
@@ -133,7 +137,7 @@ public:
      *                    instance
      *  \param[in] serialized The symmetric key in protobuf form
      */
-    static std::unique_ptr<SymmetricKey> Factory(
+    static std::unique_ptr<Symmetric> Factory(
         const crypto::SymmetricProvider& engine,
         const proto::SymmetricKey serialized);
 
@@ -148,7 +152,7 @@ public:
      *                        key
      *  \param[in] type       The KDF to be used for the derivation process
      */
-    static std::unique_ptr<SymmetricKey> Factory(
+    static std::unique_ptr<Symmetric> Factory(
         const crypto::SymmetricProvider& engine,
         const OTPassword& seed,
         const std::uint64_t operations,
@@ -162,7 +166,7 @@ public:
      *                    instance
      *  \param[in] raw An existing, unencrypted binary or text secret
      */
-    static std::unique_ptr<SymmetricKey> Factory(
+    static std::unique_ptr<Symmetric> Factory(
         const crypto::SymmetricProvider& engine,
         const OTPassword& raw);
 
@@ -227,7 +231,9 @@ public:
 
     bool Unlock(const OTPasswordData& keyPassword);
 
-    ~SymmetricKey() = default;
+    ~Symmetric() = default;
 };
+}  // namespace key
+}  // namespace crypto
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP

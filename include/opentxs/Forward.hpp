@@ -100,6 +100,18 @@ class Wallet;
 
 namespace crypto
 {
+namespace key
+{
+class Asymmetric;
+class Ed25519;
+class EllipticCurve;
+class Keypair;
+class LegacySymmetric;
+class RSA;
+class Secp256k1;
+class Symmetric;
+}  // namespace key
+
 class AsymmetricProvider;
 class Bip32;
 class Bip39;
@@ -187,7 +199,6 @@ class ProfileSubsection;
 class Account;
 class AccountList;
 class AccountVisitor;
-class AsymmetricKeyEC;
 class Basket;
 class BasketContract;
 class BasketItem;
@@ -227,7 +238,6 @@ class OT;
 class OT_API;
 class OTAPI_Exec;
 class OTASCIIArmor;
-class OTAsymmetricKey;
 class OTCachedKey;
 class OTCallback;
 class OTCaller;
@@ -237,7 +247,6 @@ class OTCronItem;
 class OTDataFolder;
 class OTEnvelope;
 class OTFolders;
-class OTKeypair;
 class OTMarket;
 class OTNym_or_SymmetricKey;
 class OTOffer;
@@ -251,7 +260,6 @@ class OTRecordList;
 class OTSignature;
 class OTSignatureMetadata;
 class OTSmartContract;
-class OTSymmetricKey;
 class OTTrackable;
 class OTTrade;
 class OTTransaction;
@@ -269,7 +277,6 @@ class Signals;
 class StorageDriver;
 class StoragePlugin;
 class String;
-class SymmetricKey;
 class Tag;
 #if OT_CASH
 class Token;

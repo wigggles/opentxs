@@ -43,7 +43,6 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #endif
@@ -51,6 +50,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/crypto/library/OpenSSL.hpp"
@@ -352,8 +352,8 @@ const crypto::Symmetric& Crypto::Symmetric() const
 
 const crypto::Util& Crypto::Util() const { return util_; }
 
-std::unique_ptr<SymmetricKey> Crypto::GetStorageKey(__attribute__((unused))
-                                                    std::string& seed) const
+std::unique_ptr<opentxs::crypto::key::Symmetric> Crypto::GetStorageKey(
+    __attribute__((unused)) std::string& seed) const
 {
 #if OT_CRYPTO_WITH_BIP39
     auto serialized = BIP32().GetStorageKey(seed);

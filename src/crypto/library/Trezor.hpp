@@ -58,10 +58,10 @@ class Trezor final : virtual public crypto::Trezor,
 {
 public:
 #if OT_CRYPTO_WITH_BIP32
-    serializedAsymmetricKey GetChild(
+    std::shared_ptr<proto::AsymmetricKey> GetChild(
         const proto::AsymmetricKey& parent,
         const std::uint32_t index) const override;
-    serializedAsymmetricKey GetHDKey(
+    std::shared_ptr<proto::AsymmetricKey> GetHDKey(
         const EcdsaCurve& curve,
         const OTPassword& seed,
         proto::HDPath& path) const override;
@@ -69,7 +69,7 @@ public:
     std::string SeedToFingerprint(
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;
-    serializedAsymmetricKey SeedToPrivateKey(
+    std::shared_ptr<proto::AsymmetricKey> SeedToPrivateKey(
         const EcdsaCurve& curve,
         const OTPassword& seed) const override;
 #endif
@@ -134,7 +134,7 @@ private:
         proto::HDPath& path) const;
     std::unique_ptr<HDNode> SerializedToHDNode(
         const proto::AsymmetricKey& serialized) const;
-    serializedAsymmetricKey HDNodeToSerialized(
+    std::shared_ptr<proto::AsymmetricKey> HDNodeToSerialized(
         const proto::AsymmetricKeyType& type,
         const HDNode& node,
         const DerivationMode privateVersion) const;

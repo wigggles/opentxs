@@ -38,14 +38,14 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/SymmetricKey.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
@@ -55,18 +55,18 @@
 #define OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS 3
 #define OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY 8388608
 
-#define OT_METHOD "opentxs::SymmetricKey::"
+#define OT_METHOD "opentxs::crypto::key::Symmetric::"
 
-namespace opentxs
+namespace opentxs::crypto::key
 {
-SymmetricKey::SymmetricKey(const crypto::SymmetricProvider& engine)
+Symmetric::Symmetric(const crypto::SymmetricProvider& engine)
     : engine_(engine)
     , version_(1)
     , type_(proto::SKEYTYPE_RAW)
 {
 }
 
-SymmetricKey::SymmetricKey(
+Symmetric::Symmetric(
     const crypto::SymmetricProvider& engine,
     const proto::SymmetricKey serialized)
     : engine_(engine)
@@ -80,7 +80,7 @@ SymmetricKey::SymmetricKey(
 {
 }
 
-SymmetricKey::SymmetricKey(
+Symmetric::Symmetric(
     const crypto::SymmetricProvider& engine,
     const OTPassword& seed,
     const std::string& salt,
@@ -130,13 +130,13 @@ SymmetricKey::SymmetricKey(
     OT_ASSERT(derived);
 }
 
-std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
+std::unique_ptr<Symmetric> Symmetric::Factory(
     const crypto::SymmetricProvider& engine,
     const OTPasswordData& password,
     const proto::SymmetricMode mode)
 {
-    std::unique_ptr<SymmetricKey> output;
-    output.reset(new SymmetricKey(engine));
+    std::unique_ptr<Symmetric> output;
+    output.reset(new Symmetric(engine));
 
     if (!output) { return output; }
 
@@ -159,19 +159,19 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     return output;
 }
 
-std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
+std::unique_ptr<Symmetric> Symmetric::Factory(
     const crypto::SymmetricProvider& engine,
     const proto::SymmetricKey serialized)
 {
-    std::unique_ptr<SymmetricKey> output;
+    std::unique_ptr<Symmetric> output;
     const bool valid = proto::Validate(serialized, VERBOSE);
 
-    if (valid) { output.reset(new SymmetricKey(engine, serialized)); }
+    if (valid) { output.reset(new Symmetric(engine, serialized)); }
 
     return output;
 }
 
-std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
+std::unique_ptr<Symmetric> Symmetric::Factory(
     const crypto::SymmetricProvider& engine,
     const OTPassword& seed,
     const std::uint64_t operations,
@@ -179,7 +179,7 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     const std::size_t size,
     const proto::SymmetricKeyType type)
 {
-    std::unique_ptr<SymmetricKey> output;
+    std::unique_ptr<Symmetric> output;
     std::string salt{};
     Allocate(engine.SaltSize(type), salt, false);
 
@@ -188,20 +188,20 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     const std::uint64_t mem =
         (0 == difficulty) ? OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY : difficulty;
 
-    output.reset(new SymmetricKey(engine, seed, salt, size, ops, mem, type));
+    output.reset(new Symmetric(engine, seed, salt, size, ops, mem, type));
 
     return output;
 }
 
-std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
+std::unique_ptr<Symmetric> Symmetric::Factory(
     const crypto::SymmetricProvider& engine,
     const OTPassword& raw)
 {
-    std::unique_ptr<SymmetricKey> output;
+    std::unique_ptr<Symmetric> output;
 
     if (!raw.isMemory()) { return output; }
 
-    output.reset(new SymmetricKey(engine));
+    output.reset(new Symmetric(engine));
 
     if (!output) { return output; }
 
@@ -212,14 +212,14 @@ std::unique_ptr<SymmetricKey> SymmetricKey::Factory(
     return output;
 }
 
-bool SymmetricKey::Allocate(const std::size_t size, Data& container)
+bool Symmetric::Allocate(const std::size_t size, Data& container)
 {
     container.SetSize(size);
 
     return (size == container.GetSize());
 }
 
-bool SymmetricKey::Allocate(
+bool Symmetric::Allocate(
     const std::size_t size,
     std::string& container,
     const bool random)
@@ -235,7 +235,7 @@ bool SymmetricKey::Allocate(
     return (size == container.size());
 }
 
-bool SymmetricKey::Allocate(
+bool Symmetric::Allocate(
     const std::size_t size,
     OTPassword& container,
     const bool text)
@@ -253,7 +253,7 @@ bool SymmetricKey::Allocate(
     return (size == static_cast<std::uint32_t>(result));
 }
 
-bool SymmetricKey::ChangePassword(
+bool Symmetric::ChangePassword(
     const OTPasswordData& oldPassword,
     const OTPassword& newPassword)
 {
@@ -270,7 +270,7 @@ bool SymmetricKey::ChangePassword(
     return false;
 }
 
-bool SymmetricKey::Decrypt(
+bool Symmetric::Decrypt(
     const proto::Ciphertext& input,
     const OTPasswordData& keyPassword,
     std::uint8_t* plaintext)
@@ -293,7 +293,7 @@ bool SymmetricKey::Decrypt(
     return output;
 }
 
-bool SymmetricKey::Decrypt(
+bool Symmetric::Decrypt(
     const proto::Ciphertext& ciphertext,
     const OTPasswordData& keyPassword,
     std::string& plaintext)
@@ -311,7 +311,7 @@ bool SymmetricKey::Decrypt(
         reinterpret_cast<std::uint8_t*>(const_cast<char*>(plaintext.data()))));
 }
 
-bool SymmetricKey::Decrypt(
+bool Symmetric::Decrypt(
     const proto::Ciphertext& ciphertext,
     const OTPasswordData& keyPassword,
     Data& plaintext)
@@ -329,7 +329,7 @@ bool SymmetricKey::Decrypt(
         static_cast<std::uint8_t*>(const_cast<void*>(plaintext.GetPointer()))));
 }
 
-bool SymmetricKey::Decrypt(
+bool Symmetric::Decrypt(
     const proto::Ciphertext& ciphertext,
     const OTPasswordData& keyPassword,
     OTPassword& plaintext)
@@ -352,7 +352,7 @@ bool SymmetricKey::Decrypt(
     return (Decrypt(ciphertext, keyPassword, output));
 }
 
-bool SymmetricKey::Encrypt(
+bool Symmetric::Encrypt(
     const std::uint8_t* input,
     const std::size_t inputSize,
     const std::uint8_t* iv,
@@ -405,7 +405,7 @@ bool SymmetricKey::Encrypt(
         ciphertext);
 }
 
-bool SymmetricKey::Encrypt(
+bool Symmetric::Encrypt(
     const OTPassword& plaintext,
     const Data& iv,
     const OTPasswordData& keyPassword,
@@ -439,7 +439,7 @@ bool SymmetricKey::Encrypt(
     return success;
 }
 
-bool SymmetricKey::Encrypt(
+bool Symmetric::Encrypt(
     const String& plaintext,
     const Data& iv,
     const OTPasswordData& keyPassword,
@@ -462,7 +462,7 @@ bool SymmetricKey::Encrypt(
     return success;
 }
 
-bool SymmetricKey::Encrypt(
+bool Symmetric::Encrypt(
     const std::string& plaintext,
     const Data& iv,
     const OTPasswordData& keyPassword,
@@ -485,7 +485,7 @@ bool SymmetricKey::Encrypt(
     return success;
 }
 
-bool SymmetricKey::EncryptKey(
+bool Symmetric::EncryptKey(
     const OTPassword& plaintextKey,
     const OTPasswordData& keyPassword,
     const proto::SymmetricKeyType type)
@@ -511,7 +511,7 @@ bool SymmetricKey::EncryptKey(
         if (!Allocate(saltSize, *salt_, true)) { return false; }
     }
 
-    SymmetricKey secondaryKey(
+    Symmetric secondaryKey(
         engine_,
         key,
         *salt_,
@@ -527,7 +527,7 @@ bool SymmetricKey::EncryptKey(
         *encrypted_key_);
 }
 
-bool SymmetricKey::GetPassword(
+bool Symmetric::GetPassword(
     const OTPasswordData& keyPassword,
     OTPassword& password)
 {
@@ -560,7 +560,7 @@ bool SymmetricKey::GetPassword(
     }
 }
 
-OTIdentifier SymmetricKey::ID()
+OTIdentifier Symmetric::ID()
 {
     OTPasswordData keyPassword("");
 
@@ -580,7 +580,7 @@ OTIdentifier SymmetricKey::ID()
     return output;
 }
 
-bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
+bool Symmetric::Serialize(proto::SymmetricKey& output) const
 {
     output.set_version(version_);
     output.set_type(type_);
@@ -597,7 +597,7 @@ bool SymmetricKey::Serialize(proto::SymmetricKey& output) const
     return proto::Validate(output, VERBOSE);
 }
 
-bool SymmetricKey::Unlock(const OTPasswordData& keyPassword)
+bool Symmetric::Unlock(const OTPasswordData& keyPassword)
 {
     if (false == bool(encrypted_key_)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Master key not loaded."
@@ -630,7 +630,7 @@ bool SymmetricKey::Unlock(const OTPasswordData& keyPassword)
         return false;
     }
 
-    SymmetricKey secondaryKey(
+    Symmetric secondaryKey(
         engine_,
         key,
         *salt_,
@@ -644,4 +644,4 @@ bool SymmetricKey::Unlock(const OTPasswordData& keyPassword)
         secondaryKey.plaintext_key_->getMemorySize(),
         static_cast<std::uint8_t*>(plaintext_key_->getMemoryWritable()));
 }
-}  // namespace opentxs
+}  // namespace opentxs::crypto::key

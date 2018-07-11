@@ -48,7 +48,6 @@
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -60,6 +59,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -195,7 +195,8 @@ bool Purse::GenerateInternalKey()
         return false;
     }
 
-    //  OTSymmetricKey *   m_pSymmetricKey;    // If this purse contains its own
+    //  crypto::key::LegacySymmetric *   m_pSymmetricKey;    // If this purse
+    //  contains its own
     // symmetric key (instead of using an owner Nym)...
     //  OTCachedKey    *   m_pCachedKey;       // ...then it will have a master
     // key as well, for unlocking that symmetric key, and managing timeouts.
@@ -231,10 +232,10 @@ bool Purse::GenerateInternalKey()
         return false;
     }
 
-    m_pSymmetricKey =
-        new OTSymmetricKey(thePassphrase);  // Creates the symmetric key here
-                                            // based on the passphrase from
-                                            // purse's master key.
+    m_pSymmetricKey = new crypto::key::LegacySymmetric(
+        thePassphrase);  // Creates the symmetric key here
+                         // based on the passphrase from
+                         // purse's master key.
     OT_ASSERT(nullptr != m_pSymmetricKey);
 
     if (!m_pSymmetricKey->IsGenerated()) {
@@ -1164,12 +1165,13 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //
         // (It's only now that I bother instantiating.)
         //
-        OTSymmetricKey* pSymmetricKey = new OTSymmetricKey;
+        crypto::key::LegacySymmetric* pSymmetricKey =
+            new crypto::key::LegacySymmetric;
         OT_ASSERT_MSG(
             nullptr != pSymmetricKey,
             "Purse::ProcessXMLNode: "
             "Assert: nullptr != new "
-            "OTSymmetricKey \n");
+            "crypto::key::LegacySymmetric \n");
 
         // NOTE: In the event of any error, need to delete pSymmetricKey before
         // returning.
