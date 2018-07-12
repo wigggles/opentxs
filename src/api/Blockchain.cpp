@@ -413,20 +413,18 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    std::unique_ptr<opentxs::crypto::key::Asymmetric> key{nullptr};
-    std::unique_ptr<opentxs::crypto::key::Secp256k1> ecKey{nullptr};
-    key.reset(opentxs::crypto::key::Asymmetric::KeyFactory(*serialized));
+    const auto key{opentxs::crypto::key::Asymmetric::Factory(*serialized)};
+    const opentxs::crypto::key::Secp256k1* ecKey{
+        dynamic_cast<const opentxs::crypto::key::Secp256k1*>(&key.get())};
 
-    if (false == bool(key)) {
+    if (false == bool(key.get())) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate key."
               << std::endl;
 
         return {};
     }
 
-    ecKey.reset(dynamic_cast<opentxs::crypto::key::Secp256k1*>(key.release()));
-
-    if (false == bool(ecKey)) {
+    if (nullptr == ecKey) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect key type."
               << std::endl;
 

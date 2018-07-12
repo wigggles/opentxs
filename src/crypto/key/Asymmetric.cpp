@@ -38,8 +38,6 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/crypto/key/Asymmetric.hpp"
-
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
@@ -55,19 +53,20 @@
 #include "opentxs/core/String.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
-#endif  // OT_CRYPTO_WITH_BIP32
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#endif
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/key/Ed25519.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/crypto/key/RSA.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+#endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
+
+#include "Null.hpp"
 
 #include <cstdint>
 #include <cstring>
@@ -75,76 +74,38 @@
 #include <ostream>
 #include <string>
 
-#define OT_METHOD "opentxs::crypto::key::Asymmetric::"
+#include "Asymmetric.hpp"
+
+template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
+
+#define OT_METHOD "opentxs::crypto::key::implementation::Asymmetric::"
 
 namespace opentxs::crypto::key
 {
-// static
-Asymmetric* Asymmetric::KeyFactory(
-    const proto::AsymmetricKeyType keyType,
-    const proto::KeyRole role)
+OTAsymmetricKey Asymmetric::Factory()
 {
-    Asymmetric* pKey = nullptr;
-
-    switch (keyType) {
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-        case (proto::AKEYTYPE_ED25519): {
-            pKey = new Ed25519(role);
-
-            break;
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-        case (proto::AKEYTYPE_SECP256K1): {
-            pKey = new Secp256k1(role);
-
-            break;
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-        case (proto::AKEYTYPE_LEGACY): {
-            pKey = new RSA(role);
-
-            break;
-        }
-#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-        default: {
-            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
-                  << "support for this key type." << std::endl;
-        }
-    }
-
-    return pKey;
+    return OTAsymmetricKey(new implementation::Null);
 }
 
-// static
-Asymmetric* Asymmetric::KeyFactory(
+OTAsymmetricKey Asymmetric::Factory(
     const proto::AsymmetricKeyType keyType,
     const String& pubkey)  // Caller IS responsible to
                            // delete!
 {
-    Asymmetric* pKey = nullptr;
-
     switch (keyType) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (proto::AKEYTYPE_ED25519): {
-            pKey = new Ed25519(pubkey);
-
-            break;
+            return OTAsymmetricKey(Factory::Ed25519Key(pubkey));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
-            pKey = new Secp256k1(pubkey);
-
-            break;
+            return OTAsymmetricKey(Factory::Secp256k1Key(pubkey));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY): {
-            pKey = new RSA(pubkey);
-
-            break;
+            return OTAsymmetricKey(Factory::RSAKey(pubkey));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
@@ -153,47 +114,39 @@ Asymmetric* Asymmetric::KeyFactory(
         }
     }
 
-    return pKey;
+    return OTAsymmetricKey(new implementation::Null);
 }
 
-// static
-Asymmetric* Asymmetric::KeyFactory(
+OTAsymmetricKey Asymmetric::Factory(
     const NymParameters& nymParameters,
     const proto::KeyRole role)  // Caller IS responsible to delete!
 {
-    auto keyType = nymParameters.AsymmetricKeyType();
+    const auto keyType = nymParameters.AsymmetricKeyType();
 
-    return KeyFactory(keyType, role);
+    return OTAsymmetricKey(
+        implementation::Asymmetric::KeyFactory(keyType, role));
 }
 
-Asymmetric* Asymmetric::KeyFactory(
+OTAsymmetricKey Asymmetric::Factory(
     const proto::AsymmetricKey& serializedKey)  // Caller IS responsible to
                                                 // delete!
 {
-    auto keyType = serializedKey.type();
-
-    Asymmetric* pKey = nullptr;
+    const auto keyType = serializedKey.type();
 
     switch (keyType) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (proto::AKEYTYPE_ED25519): {
-            pKey = new Ed25519(serializedKey);
-
-            break;
+            return OTAsymmetricKey(Factory::Ed25519Key(serializedKey));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (proto::AKEYTYPE_SECP256K1): {
-            pKey = new Secp256k1(serializedKey);
-
-            break;
+            return OTAsymmetricKey(Factory::Secp256k1Key(serializedKey));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (proto::AKEYTYPE_LEGACY): {
-            pKey = new RSA(serializedKey);
-
-            break;
+            return OTAsymmetricKey(Factory::RSAKey(serializedKey));
         }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
         default: {
@@ -202,7 +155,87 @@ Asymmetric* Asymmetric::KeyFactory(
         }
     }
 
-    return pKey;
+    return OTAsymmetricKey(new implementation::Null);
+}
+
+String Asymmetric::KeyTypeToString(const proto::AsymmetricKeyType keyType)
+
+{
+    String keytypeString;
+
+    switch (keyType) {
+        case proto::AKEYTYPE_LEGACY:
+            keytypeString = "legacy";
+            break;
+        case proto::AKEYTYPE_SECP256K1:
+            keytypeString = "secp256k1";
+            break;
+        case proto::AKEYTYPE_ED25519:
+            keytypeString = "ed25519";
+            break;
+        default:
+            keytypeString = "error";
+    }
+    return keytypeString;
+}
+
+proto::AsymmetricKeyType Asymmetric::StringToKeyType(const String& keyType)
+{
+    if (keyType.Compare("legacy")) return proto::AKEYTYPE_LEGACY;
+    if (keyType.Compare("secp256k1")) return proto::AKEYTYPE_SECP256K1;
+    if (keyType.Compare("ed25519")) return proto::AKEYTYPE_ED25519;
+
+    return proto::AKEYTYPE_ERROR;
+}
+}  // namespace opentxs::crypto::key
+
+namespace opentxs::crypto::key::implementation
+{
+Asymmetric::Asymmetric(
+    const proto::AsymmetricKeyType keyType,
+    const proto::KeyRole role,
+    const bool publicKey,
+    const bool privateKey)
+    : m_keyType{keyType}
+    , role_{role}
+    , m_bIsPublicKey{publicKey}
+    , m_bIsPrivateKey{privateKey}
+    , m_timer{}
+    , m_pMetadata{new OTSignatureMetadata}
+{
+    OT_ASSERT(nullptr != m_pMetadata);
+}
+
+Asymmetric::Asymmetric()
+    : Asymmetric(proto::AKEYTYPE_ERROR, proto::KEYROLE_ERROR, false, false)
+{
+}
+
+Asymmetric::Asymmetric(
+    const proto::AsymmetricKeyType keyType,
+    const proto::KeyRole role)
+    : Asymmetric(keyType, role, false, false)
+{
+}
+
+Asymmetric::Asymmetric(const proto::AsymmetricKey& key)
+    : Asymmetric(
+          key.type(),
+          key.role(),
+          proto::KEYMODE_PUBLIC == key.mode(),
+          proto::KEYMODE_PRIVATE == key.mode())
+{
+}
+
+Asymmetric::operator bool() const { return m_bIsPublicKey || m_bIsPrivateKey; }
+
+bool Asymmetric::operator==(const proto::AsymmetricKey& rhs) const
+{
+    std::shared_ptr<proto::AsymmetricKey> tempKey = Serialize();
+    auto LHData = SerializeKeyToData(*tempKey);
+    auto RHData = SerializeKeyToData(rhs);
+
+    return (LHData == RHData);
 }
 
 bool Asymmetric::CalculateID(Identifier& theOutput) const  // Only works
@@ -239,212 +272,100 @@ bool Asymmetric::CalculateID(Identifier& theOutput) const  // Only works
     return true;
 }
 
-Asymmetric::Asymmetric()
-    : m_bIsPublicKey(false)
-    , m_bIsPrivateKey(false)
-    , m_pMetadata(new OTSignatureMetadata)
+Asymmetric* Asymmetric::clone() const
 {
+    auto output = KeyFactory(m_keyType, role_);
+
+    OT_ASSERT(nullptr != output)
+
+    auto* key = dynamic_cast<Asymmetric*>(output);
+
+    OT_ASSERT(nullptr != key)
+
+    key->m_bIsPublicKey = m_bIsPublicKey;
+    key->m_bIsPrivateKey = m_bIsPrivateKey;
+
+    return key;
 }
 
-Asymmetric::Asymmetric(
+bool Asymmetric::hasCapability(const NymCapability& capability) const
+{
+    switch (capability) {
+        case (NymCapability::SIGN_CHILDCRED): {
+        }
+        case (NymCapability::SIGN_MESSAGE): {
+        }
+        case (NymCapability::ENCRYPT_MESSAGE): {
+
+            return true;
+        }
+        default: {
+        }
+    }
+
+    return false;
+}
+
+// static
+key::Asymmetric* Asymmetric::KeyFactory(
     const proto::AsymmetricKeyType keyType,
     const proto::KeyRole role)
-    : m_keyType(keyType)
-    , role_(role)
-    , m_bIsPublicKey(false)
-    , m_bIsPrivateKey(false)
-    , m_pMetadata(new OTSignatureMetadata)
 {
-}
+    key::Asymmetric* pKey = nullptr;
 
-Asymmetric::Asymmetric(const proto::AsymmetricKey& serializedKey)
-    : Asymmetric(serializedKey.type(), serializedKey.role())
-{
-    if (proto::KEYMODE_PUBLIC == serializedKey.mode()) {
-        SetAsPublic();
-    } else if (proto::KEYMODE_PRIVATE == serializedKey.mode()) {
-        SetAsPrivate();
+    switch (keyType) {
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        case (proto::AKEYTYPE_ED25519): {
+            pKey = Factory::Ed25519Key(role);
+
+            break;
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        case (proto::AKEYTYPE_SECP256K1): {
+            pKey = Factory::Secp256k1Key(role);
+
+            break;
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        case (proto::AKEYTYPE_LEGACY): {
+            pKey = Factory::RSAKey(role);
+
+            break;
+        }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+        default: {
+            otErr << __FUNCTION__ << ": Open-Transactions isn't built with "
+                  << "support for this key type." << std::endl;
+        }
     }
+
+    return pKey;
 }
 
-Asymmetric::~Asymmetric()
+proto::AsymmetricKeyType Asymmetric::keyType() const { return m_keyType; }
+
+const std::string Asymmetric::Path() const
 {
-    //    Release_AsymmetricKey(); // ******
+    otErr << OT_METHOD << __FUNCTION__ << ": Incorrect key type." << std::endl;
 
-    m_timer.clear();  // Since ReleaseKeyLowLevel is no longer called here (via
-                      // Release_AsymmetricKey) then
-    // m_timer.clear() was no longer getting called, so I added it here to
-    // rectify that. See below NOTE for
-    // more details.
-    //
-    // NOTE: It's very unusual that the above is commented out, since my normal
-    // convention is to
-    // call this function both in the destructor, as well as in the Release()
-    // method for any given
-    // class.
-    // Here's why it's commented out, in this case. Because all it does is call
-    // ReleaseKeyLowLevel,
-    // which calls ReleaseKeyLowLevel_Hook, which is pure virtual and is what
-    // allows the
-    // RSA class to clean up its OpenSSL-specific private
-    // members.
-    // We CANNOT call a pure virtual method from a destructor (which is where we
-    // currently are)
-    // and so we cannot call Release_AsymmetricKey without removing that pure
-    // virtual call. The
-    // problem is, ReleaseKeyLowLevel USES that pure virtual call all over this
-    // file (i.e. in many
-    // other places BESIDES the destructor) and so we cannot just remove the
-    // pure virtual call it
-    // uses which is, in fact, the entire purpose it's being called in the first
-    // place. So what I
-    // did was, I changed RSA to directly clean up its
-    // OpenSSL-specific key data,
-    // and it just ALSO has the hook override doing the same thing. This way
-    // Release_AsymmetricKey
-    // can continue to be used by ReleaseKeyLowLevel all over this file, as it
-    // was designed, using
-    // the hook and the override, yet also this destructor will continue to work
-    // perfectly... because
-    // Release_AsymmetricKey() is commented out above, we won't have any runtime
-    // errors from trying to
-    // run a pure virtual method from a destructor. And because
-    // RSA now cleans itself
-    // up in its own destructor automatically, we have no need whatsoever to
-    // call a virtual function here
-    // to clean it up. So it's commented out.
-    // Makes sense? Of course we didn't have any virtuality before
-    // RSA was added,
-    // since Asymmetric previously had no subclasses at all. But
-    // that has changed recently, so that it is now an abstract interface, so
-    // that someday a GPG implementation, or NaCl implementation can someday be
-    // added.
-
-    if (nullptr != m_pMetadata) delete m_pMetadata;
-    m_pMetadata = nullptr;
+    return "";
 }
 
-void Asymmetric::Release_AsymmetricKey()
+bool Asymmetric::Path(proto::HDPath&) const
 {
+    otErr << OT_METHOD << __FUNCTION__ << ": Incorrect key type." << std::endl;
 
-    // Release the ascii-armored version of the key (safe to store in this
-    // form.)
-    //
-
-    // Release the instantiated key (unsafe to store in this form.)
-    //
-    ReleaseKeyLowLevel();
+    return false;
 }
 
-void Asymmetric::ReleaseKeyLowLevel()
+void Asymmetric::Release()
 {
     ReleaseKeyLowLevel_Hook();
 
     m_timer.clear();
 }
-
-// High-level, used only by programmatic user, not by this class internally.
-void Asymmetric::ReleaseKey()
-{
-    // Todo: someday put a timer inside this class, so it doesn't REALLY release
-    // the
-    // key until the Timer has expired.
-    // NOTE: marking this as "todo" because I won't necessarily want it done
-    // this way. This
-    // solution would keep the actual private key loaded in OpenSSL, meaning I'd
-    // have to take
-    // over the OpenSSL memory management to make it into a safe solution
-    // (though I probably
-    // have to do that anyway.)
-    // A better solution might be to have a random session key used for
-    // protecting a hashed
-    // version of the passphrase, and then ALWAYS destroying the key as fast as
-    // possible,
-    // instead using the hashed passphrase within the bounds of a timer, with
-    // the hashed passphrase
-    // being decrypted JUST before use and then destroyed, just as the private
-    // key is destroyed.
-    // I might also wish such a thing was stored not just in OT protected
-    // memory, but in a standard
-    // *API* for protected memory, such as ssh-agent or the Mac Keychain.
-    // However, that can easily
-    // be just an option to be added later, meaning I can go ahead and code my
-    // hashed password solution
-    // in the meantime. But will that be coded here at the
-    // Asymmetric level? Or at the Nym level, or at the static Nym
-    // level, or the app level? Hmm...
-    //
-    // Security:
-    // UPDATE: Since the above solution is coming at some point anyway, I'm
-    // going ahead and adding a
-    // Timer version that works at this level (Asymmetric.)  The
-    // reason is because it will be quick and easy, and will give me the
-    // functionality I need for now, until I code all the stuff above. Just keep
-    // in mind: This is good enough for now, but it WILL result in the private
-    // key staying loaded in memory until the timer runs out, meaning if an
-    // attacker has access to the RAM on the local machine, if I haven't
-    // replaced the OpenSSL memory management, then that is a security issue.
-    //
-    // TODO (remove theTimer entirely. OTCachedKey replaces already.)
-    // I set this timer because the above required a password. But now that
-    // master key is working,
-    // the above would flow through even WITHOUT the user typing his passphrase
-    // (since master key still
-    // not timed out.) Resulting in THIS timer being reset!  Todo: I already
-    // shortened this timer to 30
-    // seconds, but need to phase it down to 0 and then remove it entirely!
-    // Master key takes over now!
-    //
-
-    //  if (m_timer.getElapsedTimeInSec() > OT_KEY_TIMER)
-    ReleaseKeyLowLevel();
-
-    // Programmatic user (developer) may call ReleaseKey, but then we don't
-    // actually release it until it's
-    // been at least X minutes.
-}
-
-void Asymmetric::Release()
-{
-    Release_AsymmetricKey();  // My own cleanup is done here.
-
-    // Next give the base class a chance to do the same...
-    //    ot_super::Release(); // THERE IS NO base class in this case. But
-    // normally this would be here for most classes.
-}
-
-String Asymmetric::KeyTypeToString(const proto::AsymmetricKeyType keyType)
-
-{
-    String keytypeString;
-
-    switch (keyType) {
-        case proto::AKEYTYPE_LEGACY:
-            keytypeString = "legacy";
-            break;
-        case proto::AKEYTYPE_SECP256K1:
-            keytypeString = "secp256k1";
-            break;
-        case proto::AKEYTYPE_ED25519:
-            keytypeString = "ed25519";
-            break;
-        default:
-            keytypeString = "error";
-    }
-    return keytypeString;
-}
-
-proto::AsymmetricKeyType Asymmetric::StringToKeyType(const String& keyType)
-
-{
-    if (keyType.Compare("legacy")) return proto::AKEYTYPE_LEGACY;
-    if (keyType.Compare("secp256k1")) return proto::AKEYTYPE_SECP256K1;
-    if (keyType.Compare("ed25519")) return proto::AKEYTYPE_ED25519;
-
-    return proto::AKEYTYPE_ERROR;
-}
-
-proto::AsymmetricKeyType Asymmetric::keyType() const { return m_keyType; }
 
 std::shared_ptr<proto::AsymmetricKey> Asymmetric::Serialize() const
 
@@ -463,30 +384,6 @@ OTData Asymmetric::SerializeKeyToData(
     const proto::AsymmetricKey& serializedKey) const
 {
     return proto::ProtoAsData(serializedKey);
-}
-
-bool Asymmetric::operator==(const proto::AsymmetricKey& rhs) const
-{
-    std::shared_ptr<proto::AsymmetricKey> tempKey = Serialize();
-    auto LHData = SerializeKeyToData(*tempKey);
-    auto RHData = SerializeKeyToData(rhs);
-
-    return (LHData == RHData);
-}
-
-bool Asymmetric::Verify(const Data& plaintext, const proto::Signature& sig)
-    const
-{
-    if (IsPrivate()) {
-        otErr << "You must use public keys to verify signatures.\n";
-        return false;
-    }
-
-    auto signature = Data::Factory();
-    signature->Assign(sig.signature().c_str(), sig.signature().size());
-
-    return engine().Verify(
-        plaintext, *this, signature, sig.hashtype(), nullptr);
 }
 
 bool Asymmetric::Sign(
@@ -519,30 +416,27 @@ bool Asymmetric::Sign(
     return goodSig;
 }
 
-const std::string Asymmetric::Path() const { return ""; }
-
-bool Asymmetric::Path(proto::HDPath&) const
+bool Asymmetric::Verify(const Data& plaintext, const proto::Signature& sig)
+    const
 {
-    otErr << OT_METHOD << __FUNCTION__ << ": Incorrect key type." << std::endl;
-
-    return false;
-}
-
-bool Asymmetric::hasCapability(const NymCapability& capability) const
-{
-    switch (capability) {
-        case (NymCapability::SIGN_CHILDCRED): {
-        }
-        case (NymCapability::SIGN_MESSAGE): {
-        }
-        case (NymCapability::ENCRYPT_MESSAGE): {
-
-            return true;
-        }
-        default: {
-        }
+    if (IsPrivate()) {
+        otErr << "You must use public keys to verify signatures.\n";
+        return false;
     }
 
-    return false;
+    auto signature = Data::Factory();
+    signature->Assign(sig.signature().c_str(), sig.signature().size());
+
+    return engine().Verify(
+        plaintext, *this, signature, sig.hashtype(), nullptr);
 }
-}  // namespace opentxs::crypto::key
+
+Asymmetric::~Asymmetric()
+{
+    m_timer.clear();
+
+    if (nullptr != m_pMetadata) { delete m_pMetadata; }
+
+    m_pMetadata = nullptr;
+}
+}  // namespace opentxs::crypto::key::implementation

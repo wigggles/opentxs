@@ -110,8 +110,8 @@ OTKeypair Keypair::Factory(const proto::AsymmetricKey& serializedPubkey)
 namespace opentxs::crypto::key::implementation
 {
 Keypair::Keypair(const NymParameters& nymParameters, const proto::KeyRole role)
-    : m_pkeyPublic{Asymmetric::KeyFactory(nymParameters, role)}
-    , m_pkeyPrivate{Asymmetric::KeyFactory(nymParameters, role)}
+    : m_pkeyPublic{Asymmetric::Factory(nymParameters, role)}
+    , m_pkeyPrivate{Asymmetric::Factory(nymParameters, role)}
     , role_{role}
 {
     make_new_keypair(nymParameters);
@@ -120,15 +120,15 @@ Keypair::Keypair(const NymParameters& nymParameters, const proto::KeyRole role)
 Keypair::Keypair(
     const proto::AsymmetricKey& serializedPubkey,
     const proto::AsymmetricKey& serializedPrivkey)
-    : m_pkeyPublic{Asymmetric::KeyFactory(serializedPubkey)}
-    , m_pkeyPrivate{Asymmetric::KeyFactory(serializedPrivkey)}
+    : m_pkeyPublic{Asymmetric::Factory(serializedPubkey)}
+    , m_pkeyPrivate{Asymmetric::Factory(serializedPrivkey)}
     , role_{m_pkeyPrivate->Role()}
 {
 }
 
 Keypair::Keypair(const proto::AsymmetricKey& serializedPubkey)
-    : m_pkeyPublic{Asymmetric::KeyFactory(serializedPubkey)}
-    , m_pkeyPrivate{nullptr}
+    : m_pkeyPublic{Asymmetric::Factory(serializedPubkey)}
+    , m_pkeyPrivate{Asymmetric::Factory()}
     , role_{m_pkeyPublic->Role()}
 {
 }
@@ -143,7 +143,7 @@ Keypair::Keypair(const Keypair& rhs)
 
 bool Keypair::CalculateID(Identifier& theOutput) const
 {
-    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic.get());
 
     return m_pkeyPublic->CalculateID(theOutput);  // Only works for public keys.
 }
@@ -154,18 +154,18 @@ Keypair* Keypair::clone() const { return new Keypair(*this); }
 // TODO this violates encapsulation and should be deprecated
 const Asymmetric& Keypair::GetPrivateKey() const
 {
-    OT_ASSERT(m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate.get());
 
-    return (*m_pkeyPrivate);
+    return m_pkeyPrivate;
 }
 
 // Return the public key as an Asymmetric object
 // TODO this violates encapsulation and should be deprecated
 const Asymmetric& Keypair::GetPublicKey() const
 {
-    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic.get());
 
-    return (*m_pkeyPublic);
+    return m_pkeyPublic;
 }
 
 // Get a public key as an opentxs::String.
@@ -173,7 +173,7 @@ const Asymmetric& Keypair::GetPublicKey() const
 // of a self-signed MasterCredential
 bool Keypair::GetPublicKey(String& strKey) const
 {
-    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic.get());
 
     return m_pkeyPublic->GetPublicKey(strKey);
 }
@@ -184,8 +184,11 @@ std::int32_t Keypair::GetPublicKeyBySignature(
     const OTSignature& theSignature,
     bool bInclusive) const
 {
-    OT_ASSERT(m_pkeyPublic);
-    OT_ASSERT(nullptr != m_pkeyPublic->m_pMetadata);
+    OT_ASSERT(m_pkeyPublic.get());
+
+    const auto* metadata = m_pkeyPublic->GetMetadata();
+
+    OT_ASSERT(nullptr != metadata);
 
     // We know that EITHER exact metadata matches must occur, and the signature
     // MUST have metadata, (bInclusive=false)
@@ -206,14 +209,12 @@ std::int32_t Keypair::GetPublicKeyBySignature(
     //
     // If the signature has no metadata, or if m_pkeyPublic has no metadata, or
     // if they BOTH have metadata, and their metadata is a MATCH...
-    if (!theSignature.getMetaData().HasMetadata() ||
-        !m_pkeyPublic->m_pMetadata->HasMetadata() ||
-        (m_pkeyPublic->m_pMetadata->HasMetadata() &&
-         theSignature.getMetaData().HasMetadata() &&
-         (theSignature.getMetaData() == *(m_pkeyPublic->m_pMetadata)))) {
+    if (!theSignature.getMetaData().HasMetadata() || !metadata->HasMetadata() ||
+        (metadata->HasMetadata() && theSignature.getMetaData().HasMetadata() &&
+         (theSignature.getMetaData() == *(metadata)))) {
         // ...Then add m_pkeyPublic as a possible match, to listOutput.
         //
-        listOutput.push_back(m_pkeyPublic.get());
+        listOutput.push_back(&m_pkeyPublic.get());
         return 1;
     }
     return 0;
@@ -221,14 +222,16 @@ std::int32_t Keypair::GetPublicKeyBySignature(
 
 bool Keypair::hasCapability(const NymCapability& capability) const
 {
-    if (m_pkeyPrivate) { return m_pkeyPrivate->hasCapability(capability); }
+    if (m_pkeyPrivate.get()) {
+        return m_pkeyPrivate->hasCapability(capability);
+    }
 
     return false;
 }
 
 bool Keypair::HasPrivateKey() const
 {
-    OT_ASSERT(m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate.get());
 
     return m_pkeyPrivate->IsPrivate();  // This means it actually has a private
                                         // key in it, or tried to.
@@ -236,7 +239,7 @@ bool Keypair::HasPrivateKey() const
 
 bool Keypair::HasPublicKey() const
 {
-    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic.get());
 
     return m_pkeyPublic->IsPublic();  // This means it actually has a public key
                                       // in it, or tried to.
@@ -244,15 +247,6 @@ bool Keypair::HasPublicKey() const
 
 bool Keypair::make_new_keypair(const NymParameters& nymParameters)
 {
-    if (!m_pkeyPrivate) {
-        m_pkeyPrivate.reset(
-            Asymmetric::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
-    }
-    if (!m_pkeyPublic) {
-        m_pkeyPublic.reset(
-            Asymmetric::KeyFactory(nymParameters, proto::KEYROLE_ERROR));
-    }
-
     LowLevelKeyGenerator lowLevelKeys(nymParameters);
 
     if (!lowLevelKeys.MakeNewKeypair()) {
@@ -275,9 +269,8 @@ bool Keypair::make_new_keypair(const NymParameters& nymParameters)
 bool Keypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
 {
 
-    OT_ASSERT(m_pkeyPublic);
-    OT_ASSERT(m_pkeyPrivate);
-
+    OT_ASSERT(m_pkeyPublic.get());
+    OT_ASSERT(m_pkeyPrivate.get());
     OT_ASSERT(HasPublicKey());
     OT_ASSERT(HasPrivateKey());
 
@@ -342,10 +335,11 @@ bool Keypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
 
 std::shared_ptr<proto::AsymmetricKey> Keypair::Serialize(bool privateKey) const
 {
-    OT_ASSERT(m_pkeyPublic);
+    OT_ASSERT(m_pkeyPublic.get());
 
     if (privateKey) {
-        OT_ASSERT(m_pkeyPrivate);
+        OT_ASSERT(m_pkeyPrivate.get());
+
         return m_pkeyPrivate->Serialize();
     } else {
         return m_pkeyPublic->Serialize();
@@ -354,14 +348,14 @@ std::shared_ptr<proto::AsymmetricKey> Keypair::Serialize(bool privateKey) const
 
 bool Keypair::TransportKey(Data& publicKey, OTPassword& privateKey) const
 {
-    OT_ASSERT(m_pkeyPrivate);
+    OT_ASSERT(m_pkeyPrivate.get());
 
     return m_pkeyPrivate->TransportKey(publicKey, privateKey);
 }
 
 bool Keypair::Verify(const Data& plaintext, const proto::Signature& sig) const
 {
-    if (!m_pkeyPublic) {
+    if (!m_pkeyPublic.get()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Missing public key. Can not verify.\n";
 

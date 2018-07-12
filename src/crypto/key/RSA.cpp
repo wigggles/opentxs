@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/crypto/key/RSA.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -47,12 +47,15 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/RSA.hpp"
 #include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include "api/NativeInternal.hpp"
 #include "crypto/key/RSA_private.hpp"
@@ -70,6 +73,8 @@
 #include <ostream>
 #include <string>
 
+#include "RSA.hpp"
+
 // BIO_get_mem_ptr() and BIO_get_mem_data() macros from OpenSSL
 // use old style cast
 #ifndef _WIN32
@@ -80,45 +85,56 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-namespace opentxs::crypto::key
+namespace opentxs
+{
+crypto::key::RSA* Factory::RSAKey(const proto::AsymmetricKey& input)
+{
+    return new crypto::key::implementation::RSA(input);
+}
+
+crypto::key::RSA* Factory::RSAKey(const String& input)
+{
+    return new crypto::key::implementation::RSA(input);
+}
+
+crypto::key::RSA* Factory::RSAKey(const proto::KeyRole input)
+{
+    return new crypto::key::implementation::RSA(input);
+}
+}  // namespace opentxs
+
+namespace opentxs::crypto::key::implementation
 {
 RSA::RSA()
     : Asymmetric(proto::AKEYTYPE_LEGACY, proto::KEYROLE_ERROR)
-    , m_p_ascKey(nullptr)
     , dp(new d())
+    , m_p_ascKey(nullptr)
 {
-
     dp->backlink = this;
-
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 }
 
 RSA::RSA(const proto::KeyRole role)
     : Asymmetric(proto::AKEYTYPE_LEGACY, role)
-    , m_p_ascKey(nullptr)
     , dp(new d())
+    , m_p_ascKey(nullptr)
 {
-
     dp->backlink = this;
-
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
 }
 
 RSA::RSA(const proto::AsymmetricKey& serializedKey)
     : Asymmetric(serializedKey)
-    , m_p_ascKey(new OTASCIIArmor)
     , dp(new d())
+    , m_p_ascKey(new OTASCIIArmor)
 {
 
     dp->backlink = this;
-
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
-
     m_keyType = proto::AKEYTYPE_LEGACY;
-
     const auto dataKey =
         Data::Factory(serializedKey.key().c_str(), serializedKey.key().size());
     m_p_ascKey->SetData(dataKey.get());
@@ -132,57 +148,34 @@ RSA::RSA(const proto::AsymmetricKey& serializedKey)
 
 RSA::RSA(const String& publicKey)
     : Asymmetric()
-    , m_p_ascKey(nullptr)
     , dp(new d())
+    , m_p_ascKey(nullptr)
 {
 
     dp->backlink = this;
-
     dp->m_pX509 = nullptr;
     dp->m_pKey = nullptr;
-
     m_keyType = proto::AKEYTYPE_LEGACY;
-
     SetPublicKey(publicKey);
 }
 
-RSA::~RSA()
+RSA* RSA::clone() const
 {
-    // Release the ascii-armored version of the key (safe to store in this
-    // form.)
-    //
-    if (nullptr != m_p_ascKey) delete m_p_ascKey;
-    m_p_ascKey = nullptr;
+    auto output = ot_super::clone();
 
-    Release_AsymmetricKey_OpenSSL();
+    OT_ASSERT(nullptr != output)
 
-    ReleaseKeyLowLevel_Hook();
+    auto* key = dynamic_cast<RSA*>(output);
 
-    if (nullptr != dp->m_pX509)  // Todo: figure out if I should put a copy of
-                                 // this into ReleaseKeyLowLevel_Hook as we are
-                                 // with m_pKey.
-        X509_free(dp->m_pX509);  // FYI: the reason it's not there already is
-                                 // because the original need was for wiping
-                                 // m_pKey when a private key timed out.
-    dp->m_pX509 = nullptr;       // ReleaseKeyLowLevel is used all over
-    // Asymmetric.cpp for the purpose of wiping that
-    // private key. The same need didn't exist with the x509
-    // so it was never coded that way. As long as it's
-    // cleaned up here in the destructor, seems good enough?
-    // YOU MIGHT ASK... Why is m_pKey cleaned up here in the destructor, and
-    // ALSO in ReleaseKeyLowLevel_Hook ?
-    // The answer is because if we call ReleaseKeyLowLevel_Hook from
-    // Asymmetric's destructor (down that chain)
-    // then it will fail at runtime, since it is a pure virtual method. Since we
-    // still want the ABILITY to use ReleaseKeyLowLevel_Hook
-    // (For cases where the destructor is not being used) and since we still
-    // want it to ALSO work when destructing, the
-    // easiest/quickest/simplest way is to put the code into
-    // RSA's destructor directly, as well
-    // as RSA's override of ReleaseKeyLowLevel_Hook. Then go
-    // into Asymmetric's destructor and
-    // make sure the full call path through there doesn't involve any virtual
-    // functions.
+    OT_ASSERT(nullptr != key)
+
+    if (nullptr != m_p_ascKey) {
+        if (nullptr != key->m_p_ascKey) { delete key->m_p_ascKey; }
+
+        key->m_p_ascKey = new OTASCIIArmor(*m_p_ascKey);
+    }
+
+    return key;
 }
 
 // virtual
@@ -208,9 +201,7 @@ bool RSA::GetPublicKey(String& strKey) const
 // virtual
 bool RSA::SetPublicKey(const String& strKey)
 {
-    ReleaseKeyLowLevel();  // In case the key is already loaded, we release it
-                           // here. (Since it's being replaced, it's now the
-                           // wrong key anyway.)
+    Release();
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
 
@@ -249,7 +240,7 @@ void RSA::Release_AsymmetricKey_OpenSSL()
     // Release any dynamically allocated members here. (Normally.)
 }
 
-void RSA::ReleaseKeyLowLevel_Hook() const
+void RSA::ReleaseKeyLowLevel_Hook()
 {
     // Release the instantiated OpenSSL key (unsafe to store in this form.)
     //
@@ -722,7 +713,7 @@ bool RSA::SaveCertToString(
 // virtual
 bool RSA::GetPrivateKey(
     String& strOutput,
-    const Asymmetric* pPubkey,
+    const key::Asymmetric* pPubkey,
     const String* pstrReason,
     const OTPassword* pImportPassword) const
 {
@@ -855,6 +846,44 @@ bool RSA::TransportKey(
     return false;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 }
-}  // namespace opentxs::crypto::key
 
+RSA::~RSA()
+{
+    // Release the ascii-armored version of the key (safe to store in this
+    // form.)
+    //
+    if (nullptr != m_p_ascKey) delete m_p_ascKey;
+    m_p_ascKey = nullptr;
+
+    Release_AsymmetricKey_OpenSSL();
+
+    ReleaseKeyLowLevel_Hook();
+
+    if (nullptr != dp->m_pX509)  // Todo: figure out if I should put a copy of
+                                 // this into ReleaseKeyLowLevel_Hook as we are
+                                 // with m_pKey.
+        X509_free(dp->m_pX509);  // FYI: the reason it's not there already is
+                                 // because the original need was for wiping
+                                 // m_pKey when a private key timed out.
+    dp->m_pX509 = nullptr;       // ReleaseKeyLowLevel is used all over
+    // Asymmetric.cpp for the purpose of wiping that
+    // private key. The same need didn't exist with the x509
+    // so it was never coded that way. As long as it's
+    // cleaned up here in the destructor, seems good enough?
+    // YOU MIGHT ASK... Why is m_pKey cleaned up here in the destructor, and
+    // ALSO in ReleaseKeyLowLevel_Hook ?
+    // The answer is because if we call ReleaseKeyLowLevel_Hook from
+    // Asymmetric's destructor (down that chain)
+    // then it will fail at runtime, since it is a pure virtual method. Since we
+    // still want the ABILITY to use ReleaseKeyLowLevel_Hook
+    // (For cases where the destructor is not being used) and since we still
+    // want it to ALSO work when destructing, the
+    // easiest/quickest/simplest way is to put the code into
+    // RSA's destructor directly, as well
+    // as RSA's override of ReleaseKeyLowLevel_Hook. Then go
+    // into Asymmetric's destructor and
+    // make sure the full call path through there doesn't involve any virtual
+    // functions.
+}
+}  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

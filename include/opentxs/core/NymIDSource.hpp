@@ -86,7 +86,7 @@ public:
 private:
     std::uint32_t version_ = 0;
     proto::SourceType type_ = proto::SOURCETYPE_ERROR;
-    std::shared_ptr<crypto::key::Asymmetric> pubkey_;
+    OTAsymmetricKey pubkey_;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     OTPaymentCode payment_code_;
 #endif

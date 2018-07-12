@@ -154,7 +154,8 @@ bool Letter::SortRecipients(
                 secp256k1Recipients.insert(
                     std::pair<std::string, const crypto::key::EllipticCurve*>(
                         it.first,
-                        static_cast<const crypto::key::Secp256k1*>(it.second)));
+                        dynamic_cast<const crypto::key::Secp256k1*>(
+                            it.second)));
             } break;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
@@ -162,7 +163,7 @@ bool Letter::SortRecipients(
                 ed25519Recipients.insert(
                     std::pair<std::string, const crypto::key::EllipticCurve*>(
                         it.first,
-                        static_cast<const crypto::key::Ed25519*>(it.second)));
+                        dynamic_cast<const crypto::key::Ed25519*>(it.second)));
             } break;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -226,6 +227,9 @@ bool Letter::Seal(
         }
     }
 
+    [[maybe_unused]] auto dhRawKey = crypto::key::Asymmetric::Factory();
+    [[maybe_unused]] const crypto::key::EllipticCurve* dhPrivateKey { nullptr };
+
     if (haveRecipientsECDSA) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_USING_LIBSECP256K1
@@ -239,12 +243,12 @@ bool Letter::Seal(
             crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
+        dhRawKey =
+            crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
+        dhPrivateKey =
+            dynamic_cast<const crypto::key::Secp256k1*>(&dhRawKey.get());
 
-        std::unique_ptr<crypto::key::EllipticCurve> dhPrivateKey;
-        dhPrivateKey.reset(static_cast<crypto::key::Secp256k1*>(
-            crypto::key::Asymmetric::KeyFactory(*dhKeypair->Serialize(true))));
-
-        OT_ASSERT(dhPrivateKey);
+        OT_ASSERT(nullptr != dhPrivateKey);
 
         // Individually encrypt the session key to each recipient and add
         // the encrypted key to the global list of session keys for this
@@ -287,12 +291,12 @@ bool Letter::Seal(
             crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
+        dhRawKey =
+            crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
+        dhPrivateKey =
+            dynamic_cast<const crypto::key::Ed25519*>(&dhRawKey.get());
 
-        std::unique_ptr<crypto::key::EllipticCurve> dhPrivateKey;
-        dhPrivateKey.reset(static_cast<crypto::key::Ed25519*>(
-            crypto::key::Asymmetric::KeyFactory(*dhKeypair->Serialize(true))));
-
-        OT_ASSERT(dhPrivateKey);
+        OT_ASSERT(nullptr != dhPrivateKey);
 
         // Individually encrypt the session key to each recipient and add
         // the encrypted key to the global list of session keys for this
@@ -359,11 +363,11 @@ bool Letter::Open(
 
         if (secp256k1) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-            ecKey = static_cast<const crypto::key::Secp256k1*>(&privateKey);
+            ecKey = dynamic_cast<const crypto::key::Secp256k1*>(&privateKey);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         } else if (ed25519) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-            ecKey = static_cast<const crypto::key::Ed25519*>(&privateKey);
+            ecKey = dynamic_cast<const crypto::key::Ed25519*>(&privateKey);
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
         }
 
@@ -392,23 +396,25 @@ bool Letter::Open(
             return false;
         }
 
-        [[maybe_unused]] std::unique_ptr<crypto::key::EllipticCurve>
-            dhPublicKey;
+        const auto dhRawKey = crypto::key::Asymmetric::Factory(ephemeralPubkey);
+        const crypto::key::EllipticCurve* dhPublicKey{nullptr};
 
         if (secp256k1) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-            dhPublicKey.reset(static_cast<crypto::key::Secp256k1*>(
-                crypto::key::Asymmetric::KeyFactory(ephemeralPubkey)));
+            dhPublicKey =
+                dynamic_cast<const crypto::key::Secp256k1*>(&dhRawKey.get());
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         } else if (ed25519) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-            dhPublicKey.reset(static_cast<crypto::key::Ed25519*>(
-                crypto::key::Asymmetric::KeyFactory(ephemeralPubkey)));
+            dhPublicKey =
+                dynamic_cast<const crypto::key::Ed25519*>(&dhRawKey.get());
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
         }
 
-        // The only way to know which session key (might) belong to us to try
-        // them all
+        OT_ASSERT(nullptr != dhPublicKey)
+
+        // The only way to know which session key (might) belong to us to
+        // try them all
         for (auto& it : serialized.sessionkey()) {
             key = OT::App().Crypto().Symmetric().Key(
                 it, serialized.ciphertext().mode());

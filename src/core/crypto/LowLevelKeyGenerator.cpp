@@ -48,6 +48,7 @@
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Timer.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/core/Data.hpp"
 #endif
@@ -56,6 +57,9 @@
 #include "opentxs/crypto/key/Ed25519.hpp"
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #include "opentxs/crypto/key/Keypair.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "opentxs/crypto/key/RSA.hpp"
+#endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif
@@ -73,6 +77,7 @@
 #endif
 #endif
 #include "crypto/key/Keypair.hpp"
+#include "crypto/key/RSA.hpp"
 
 #include <cstdint>
 #include <ostream>
@@ -298,27 +303,21 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
-            OT_ASSERT(keypair.m_pkeyPublic);
-            OT_ASSERT(keypair.m_pkeyPrivate);
-
             // Since we are in ed25519-specific code, we have to make sure these
             // are ed25519-specific keys.
-            std::shared_ptr<crypto::key::Ed25519> pPublicKey =
-                std::dynamic_pointer_cast<crypto::key::Ed25519>(
-                    keypair.m_pkeyPublic);
+            auto* pPublicKey = dynamic_cast<crypto::key::Ed25519*>(
+                &keypair.m_pkeyPublic.get());
+            auto* pPrivateKey = dynamic_cast<crypto::key::Ed25519*>(
+                &keypair.m_pkeyPrivate.get());
 
-            std::shared_ptr<crypto::key::Ed25519> pPrivateKey =
-                std::dynamic_pointer_cast<crypto::key::Ed25519>(
-                    keypair.m_pkeyPrivate);
-
-            if (!pPublicKey) {
+            if (nullptr == pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
                       << "crypto::key::Ed25519 failed." << std::endl;
 
                 return false;
             }
 
-            if (!pPrivateKey) {
+            if (nullptr == pPrivateKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of private key to "
                       << "crypto::key::Ed25519 failed." << std::endl;
 
@@ -327,10 +326,9 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             pPublicKey->SetAsPublic();
             pPrivateKey->SetAsPrivate();
-
-            bool pubkeySet =
+            const bool pubkeySet =
                 engine.ECPubkeyToAsymmetricKey(ldp.publicKey_, *pPublicKey);
-            bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
+            const bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
                 ldp.privateKey_, passwordData, *pPrivateKey);
 
             return (pubkeySet && privkeySet);
@@ -347,20 +345,14 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
-            OT_ASSERT(keypair.m_pkeyPublic);
-            OT_ASSERT(keypair.m_pkeyPrivate);
-
             // Since we are in secp256k1-specific code, we have to make sure
             // these are secp256k1-specific keys.
-            std::shared_ptr<crypto::key::Secp256k1> pPublicKey =
-                std::dynamic_pointer_cast<crypto::key::Secp256k1>(
-                    keypair.m_pkeyPublic);
+            auto* pPublicKey = dynamic_cast<crypto::key::Secp256k1*>(
+                &keypair.m_pkeyPublic.get());
+            auto* pPrivateKey = dynamic_cast<crypto::key::Secp256k1*>(
+                &keypair.m_pkeyPrivate.get());
 
-            std::shared_ptr<crypto::key::Secp256k1> pPrivateKey =
-                std::dynamic_pointer_cast<crypto::key::Secp256k1>(
-                    keypair.m_pkeyPrivate);
-
-            if (!pPublicKey) {
+            if (nullptr == pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
                       << "crypto::key::AsymmetricSecp256k1 failed."
                       << std::endl;
@@ -368,7 +360,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 return false;
             }
 
-            if (!pPrivateKey) {
+            if (nullptr == pPrivateKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of private key to "
                       << "crypto::key::AsymmetricSecp256k1 failed."
                       << std::endl;
@@ -378,10 +370,9 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 
             pPublicKey->SetAsPublic();
             pPrivateKey->SetAsPrivate();
-
-            bool pubkeySet =
+            const bool pubkeySet =
                 engine.ECPubkeyToAsymmetricKey(ldp.publicKey_, *pPublicKey);
-            bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
+            const bool privkeySet = engine.ECPrivatekeyToAsymmetricKey(
                 ldp.privateKey_, passwordData, *pPrivateKey);
 
             return (pubkeySet && privkeySet);
@@ -394,26 +385,20 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
                 static_cast<
                     LowLevelKeyGenerator::LowLevelKeyGeneratorOpenSSLdp&>(*dp);
 
-            OT_ASSERT(keypair.m_pkeyPublic);
-            OT_ASSERT(keypair.m_pkeyPrivate);
-
             // Since we are in OpenSSL-specific code, we have to make sure these
             // are OpenSSL-specific keys.
-            std::shared_ptr<crypto::key::RSA> pPublicKey =
-                std::dynamic_pointer_cast<crypto::key::RSA>(
-                    keypair.m_pkeyPublic);
+            auto* pPublicKey = dynamic_cast<crypto::key::implementation::RSA*>(
+                &keypair.m_pkeyPublic.get());
+            auto* pPrivateKey = dynamic_cast<crypto::key::implementation::RSA*>(
+                &keypair.m_pkeyPrivate.get());
 
-            std::shared_ptr<crypto::key::RSA> pPrivateKey =
-                std::dynamic_pointer_cast<crypto::key::RSA>(
-                    keypair.m_pkeyPrivate);
-
-            if (!pPublicKey) {
+            if (nullptr == pPublicKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of public key to "
                       << "crypto::key::RSA failed." << std::endl;
 
                 return false;
             }
-            if (!pPrivateKey) {
+            if (nullptr == pPrivateKey) {
                 otErr << __FUNCTION__ << ": dynamic_cast of private key to "
                       << "crypto::key::RSA failed." << std::endl;
 
@@ -426,7 +411,6 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
             pPublicKey->dp->SetKeyAsCopyOf(*ldp.m_pKey);
             pPublicKey->dp->SetX509(ldp.m_pX509);
             ldp.m_pX509 = nullptr;
-
             pPrivateKey->SetAsPrivate();
             pPrivateKey->dp->SetKeyAsCopyOf(*ldp.m_pKey, true);
             EVP_PKEY_free(ldp.m_pKey);

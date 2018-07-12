@@ -49,6 +49,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/stacktrace.h"
+#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -62,6 +63,7 @@
 #include "opentxs/OT.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
+#include "crypto/key/RSA.hpp"
 #include "crypto/key/RSA_private.hpp"
 #endif
 #include "AsymmetricProvider.hpp"
@@ -2554,8 +2556,9 @@ bool OpenSSL::Sign(
     __attribute__((unused)) const OTPassword* exportPassword) const
 {
 
-    key::Asymmetric& theTempKey = const_cast<key::Asymmetric&>(theKey);
-    key::RSA* pTempOpenSSLKey = dynamic_cast<key::RSA*>(&theTempKey);
+    auto& theTempKey = const_cast<key::Asymmetric&>(theKey);
+    auto* pTempOpenSSLKey =
+        dynamic_cast<key::implementation::RSA*>(&theTempKey);
     OT_ASSERT(nullptr != pTempOpenSSLKey);
 
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
@@ -2579,8 +2582,9 @@ bool OpenSSL::Verify(
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
-    key::Asymmetric& theTempKey = const_cast<key::Asymmetric&>(theKey);
-    key::RSA* pTempOpenSSLKey = dynamic_cast<key::RSA*>(&theTempKey);
+    auto& theTempKey = const_cast<key::Asymmetric&>(theKey);
+    auto* pTempOpenSSLKey =
+        dynamic_cast<key::implementation::RSA*>(&theTempKey);
     OT_ASSERT(nullptr != pTempOpenSSLKey);
 
     const EVP_PKEY* pkey = pTempOpenSSLKey->dp->GetKey(pPWData);
@@ -2784,7 +2788,8 @@ bool OpenSSL::EncryptSessionKey(
                     it.second;  // first is the NymID
                 OT_ASSERT(nullptr != pTempPublicKey);
 
-                key::RSA* pPublicKey = dynamic_cast<key::RSA*>(pTempPublicKey);
+                auto* pPublicKey =
+                    dynamic_cast<key::implementation::RSA*>(pTempPublicKey);
                 OT_ASSERT(nullptr != pPublicKey);
 
                 EVP_PKEY* public_key =
@@ -3187,8 +3192,8 @@ bool OpenSSL::DecryptSessionKey(
 
     key::Asymmetric& theTempPrivateKey =
         const_cast<key::Asymmetric&>(theRecipient.GetPrivateEncrKey());
-
-    key::RSA* pPrivateKey = dynamic_cast<key::RSA*>(&theTempPrivateKey);
+    auto* pPrivateKey =
+        dynamic_cast<key::implementation::RSA*>(&theTempPrivateKey);
 
     EVP_PKEY* private_key = nullptr;
     if (nullptr != pPrivateKey) {

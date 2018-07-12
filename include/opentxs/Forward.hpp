@@ -284,6 +284,7 @@ class Token;
 class TransactionStatement;
 class UnitDefinition;
 
+using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
 using OTData = Pimpl<Data>;
 using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
@@ -334,6 +335,7 @@ struct less<opentxs::OTIdentifier> {
 };
 }  // namespace std
 
+// extern template class opentxs::Pimpl<crypto::key::Asymmetric>;
 // extern template class opentxs::Pimpl<opentxs::Data>;
 // extern template class opentxs::Pimpl<opentxs::Flag>;
 extern template class opentxs::Pimpl<opentxs::Identifier>;

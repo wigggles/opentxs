@@ -158,6 +158,10 @@ public:
         const ui::implementation::ContactSectionParent& parent,
         const ContactGroup& group);
     static api::Crypto* Crypto(const api::Native& native);
+    static crypto::key::Ed25519* Ed25519Key(
+        const proto::AsymmetricKey& serializedKey);
+    static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
+    static crypto::key::Ed25519* Ed25519Key(const proto::KeyRole role);
     static api::crypto::Encode* Encode(crypto::EncodingProvider& base58);
     static api::crypto::Hash* Hash(
         api::crypto::Encode& encode,
@@ -282,9 +286,16 @@ public:
         const api::client::Wallet& wallet,
         const ui::implementation::ProfileSectionParent& parent,
         const ContactGroup& group);
+    static crypto::key::RSA* RSAKey(const proto::AsymmetricKey& serializedKey);
+    static crypto::key::RSA* RSAKey(const String& publicKey);
+    static crypto::key::RSA* RSAKey(const proto::KeyRole role);
     static crypto::Secp256k1* Secp256k1(
         const api::crypto::Util& util,
         const crypto::Trezor& ecdsa);
+    static crypto::key::Secp256k1* Secp256k1Key(
+        const proto::AsymmetricKey& serializedKey);
+    static crypto::key::Secp256k1* Secp256k1Key(const String& publicKey);
+    static crypto::key::Secp256k1* Secp256k1Key(const proto::KeyRole role);
     static api::client::ServerAction* ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,

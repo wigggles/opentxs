@@ -38,18 +38,19 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
@@ -59,9 +60,11 @@ extern "C" {
 #include <sodium/crypto_box.h>
 }
 
-#define OT_METHOD "opentxs::crypto::key::EllipticCurve::"
+#include "EllipticCurve.hpp"
 
-namespace opentxs::crypto::key
+#define OT_METHOD "opentxs::crypto::key::implementation::EllipticCurve::"
+
+namespace opentxs::crypto::key::implementation
 {
 EllipticCurve::EllipticCurve(
     const proto::AsymmetricKeyType keyType,
@@ -114,6 +117,31 @@ EllipticCurve::EllipticCurve(
     auto key = OT::App().Crypto().Encode().DataDecode(publicKey.Get());
     auto dataKey = Data::Factory(key.data(), key.size());
     SetKey(dataKey);
+}
+
+EllipticCurve* EllipticCurve::clone() const
+{
+    auto output = ot_super::clone();
+
+    OT_ASSERT(nullptr != output)
+
+    auto* key = dynamic_cast<EllipticCurve*>(output);
+
+    OT_ASSERT(nullptr != key)
+
+    key->key_ = key_;
+
+    if (encrypted_key_) {
+        key->encrypted_key_.reset(new proto::Ciphertext(*encrypted_key_));
+    }
+
+    if (path_) { key->path_.reset(new proto::HDPath(*path_)); }
+
+    if (chain_code_) {
+        key->chain_code_.reset(new proto::Ciphertext(*chain_code_));
+    }
+
+    return key;
 }
 
 bool EllipticCurve::GetKey(Data& key) const
@@ -281,15 +309,6 @@ bool EllipticCurve::ReEncryptPrivateKey(
     return bReturnVal;
 }
 
-void EllipticCurve::Release()
-{
-    Release_EllipticCurve();  // My own cleanup is performed here.
-
-    // Next give the base class a chance to do the same...
-    ot_super::Release();  // since I've overridden the base class, I call it
-                          // now...
-}
-
 std::shared_ptr<proto::AsymmetricKey> EllipticCurve::Serialize() const
 {
     std::shared_ptr<proto::AsymmetricKey> serializedKey = ot_super::Serialize();
@@ -317,7 +336,6 @@ std::shared_ptr<proto::AsymmetricKey> EllipticCurve::Serialize() const
 
 bool EllipticCurve::SetKey(const Data& key)
 {
-    ReleaseKeyLowLevel();
     m_bIsPublicKey = true;
     m_bIsPrivateKey = false;
     key_ = key;
@@ -327,7 +345,6 @@ bool EllipticCurve::SetKey(const Data& key)
 
 bool EllipticCurve::SetKey(std::unique_ptr<proto::Ciphertext>& key)
 {
-    ReleaseKeyLowLevel();
     m_bIsPublicKey = false;
     m_bIsPrivateKey = true;
     encrypted_key_.swap(key);
@@ -346,6 +363,4 @@ bool EllipticCurve::TransportKey(Data& publicKey, OTPassword& privateKey) const
 
     return ECDSA().SeedToCurveKey(seed, privateKey, publicKey);
 }
-
-EllipticCurve::~EllipticCurve() {}
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs::crypto::key::implementation

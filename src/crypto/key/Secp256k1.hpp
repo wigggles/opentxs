@@ -36,36 +36,33 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CRYPTO_KEY_ED25519_HPP
-#define OPENTXS_CRYPTO_KEY_ED25519_HPP
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_KEY_SECP256K1_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_KEY_SECP256K1_HPP
 
-#include "opentxs/Forward.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "EllipticCurve.hpp"
 
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/crypto/key/EllipticCurve.hpp"
-
-namespace opentxs
+namespace opentxs::crypto::key::implementation
 {
-namespace crypto
-{
-namespace key
-{
-class Ed25519 : virtual public EllipticCurve
+class Secp256k1 final : virtual public key::Secp256k1, public EllipticCurve
 {
 public:
-    EXPORT virtual ~Ed25519() = default;
+    const crypto::EcdsaProvider& ECDSA() const override;
+    const crypto::AsymmetricProvider& engine() const override;
 
-protected:
-    Ed25519() = default;
+    ~Secp256k1() = default;
 
 private:
-    Ed25519(const Ed25519&) = delete;
-    Ed25519(Ed25519&&) = delete;
-    Ed25519& operator=(const Ed25519&) = delete;
-    Ed25519& operator=(Ed25519&&) = delete;
+    using ot_super = EllipticCurve;
+
+    friend key::Asymmetric;
+    friend opentxs::Factory;
+
+    Secp256k1();
+    explicit Secp256k1(const proto::KeyRole role);
+    explicit Secp256k1(const proto::AsymmetricKey& serializedKey);
+    explicit Secp256k1(const String& publicKey);
 };
-}  // namespace key
-}  // namespace crypto
-}  // namespace opentxs
-#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#endif  // OPENTXS_CRYPTO_KEY_ED25519_HPP
+}  // namespace opentxs::crypto::key::implementation
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_KEY_SECP256K1_HPP

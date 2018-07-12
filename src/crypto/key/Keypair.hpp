@@ -71,8 +71,8 @@ private:
     friend opentxs::LowLevelKeyGenerator;
     friend key::Keypair;
 
-    std::shared_ptr<Asymmetric> m_pkeyPublic{nullptr};
-    std::shared_ptr<Asymmetric> m_pkeyPrivate{nullptr};
+    OTAsymmetricKey m_pkeyPublic;
+    OTAsymmetricKey m_pkeyPrivate;
     const proto::KeyRole role_{proto::KEYROLE_ERROR};
 
     Keypair* clone() const override;

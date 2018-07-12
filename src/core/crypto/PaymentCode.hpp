@@ -76,7 +76,8 @@ private:
     std::uint8_t version_{1};
     std::string seed_{""};
     std::int32_t index_{-1};
-    std::shared_ptr<crypto::key::EllipticCurve> pubkey_{nullptr};
+    OTAsymmetricKey asymmetric_key_;
+    const crypto::key::Secp256k1* pubkey_{nullptr};
     std::unique_ptr<OTPassword> chain_code_{nullptr};
     bool hasBitmessage_{false};
     std::uint8_t bitmessage_version_{0};

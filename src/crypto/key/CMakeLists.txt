@@ -26,8 +26,14 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  Asymmetric.hpp
+  Ed25519.hpp
+  EllipticCurve.hpp
   Keypair.hpp
+  Null.hpp
+  RSA.hpp
   RSA_private.hpp
+  Secp256k1.hpp
 )
 
 if(WIN32)

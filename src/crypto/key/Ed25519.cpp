@@ -41,16 +41,36 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/crypto/key/Ed25519.hpp"
-
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Ed25519.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/Sodium.hpp"
 #include "opentxs/OT.hpp"
 
-namespace opentxs::crypto::key
+#include "Ed25519.hpp"
+
+namespace opentxs
+{
+crypto::key::Ed25519* Factory::Ed25519Key(const proto::AsymmetricKey& input)
+{
+    return new crypto::key::implementation::Ed25519(input);
+}
+
+crypto::key::Ed25519* Factory::Ed25519Key(const String& input)
+{
+    return new crypto::key::implementation::Ed25519(input);
+}
+
+crypto::key::Ed25519* Factory::Ed25519Key(const proto::KeyRole input)
+{
+    return new crypto::key::implementation::Ed25519(input);
+}
+}  // namespace opentxs
+
+namespace opentxs::crypto::key::implementation
 {
 Ed25519::Ed25519()
     : ot_super(proto::AKEYTYPE_ED25519, proto::KEYROLE_ERROR)
@@ -82,22 +102,6 @@ const crypto::AsymmetricProvider& Ed25519::engine() const
     return OT::App().Crypto().ED25519();
 }
 
-void Ed25519::Release()
-{
-    Release_Ed25519();  // My own cleanup is performed here.
-
-    // Next give the base class a chance to do the same...
-    ot_super::Release();  // since I've overridden the base class, I call it
-                          // now...
-}
-
-Ed25519::~Ed25519()
-{
-    Release_Ed25519();
-
-    ReleaseKeyLowLevel_Hook();
-}
-
 bool Ed25519::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
@@ -110,5 +114,5 @@ bool Ed25519::hasCapability(const NymCapability& capability) const
         }
     }
 }
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519

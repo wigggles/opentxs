@@ -55,6 +55,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/EllipticCurve.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif
@@ -136,6 +137,7 @@ PaymentCode::PaymentCode(const std::string& base58)
     : version_(0)
     , seed_("")
     , index_(-1)
+    , asymmetric_key_{crypto::key::Asymmetric::Factory()}
     , pubkey_(nullptr)
     , chain_code_(new OTPassword)
     , hasBitmessage_(false)
@@ -175,6 +177,7 @@ PaymentCode::PaymentCode(const proto::PaymentCode& paycode)
     : version_(paycode.version())
     , seed_("")
     , index_(-1)
+    , asymmetric_key_{crypto::key::Asymmetric::Factory()}
     , pubkey_(nullptr)
     , chain_code_(new OTPassword)
     , hasBitmessage_(paycode.has_bitmessage())
@@ -208,6 +211,7 @@ PaymentCode::PaymentCode(
     : version_(version)
     , seed_(seed)
     , index_(nym)
+    , asymmetric_key_{crypto::key::Asymmetric::Factory()}
     , pubkey_(nullptr)
     , chain_code_(nullptr)
     , hasBitmessage_(bitmessage)
@@ -227,12 +231,20 @@ PaymentCode::PaymentCode(const PaymentCode& rhs)
     , version_(rhs.version_)
     , seed_(rhs.seed_)
     , index_(rhs.index_)
+    , asymmetric_key_{crypto::key::Asymmetric::Factory()}
     , pubkey_(rhs.pubkey_)
     , chain_code_(nullptr)
     , hasBitmessage_(rhs.hasBitmessage_)
     , bitmessage_version_(rhs.bitmessage_version_)
     , bitmessage_stream_(rhs.bitmessage_stream_)
 {
+    if (rhs.asymmetric_key_.get()) {
+        asymmetric_key_ = rhs.asymmetric_key_;
+        pubkey_ = dynamic_cast<crypto::key::Secp256k1*>(&asymmetric_key_.get());
+
+        OT_ASSERT(nullptr != pubkey_)
+    }
+
     if (rhs.chain_code_) {
         chain_code_.reset(new OTPassword(*rhs.chain_code_));
     }
@@ -327,10 +339,15 @@ void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
     newKey.set_mode(proto::KEYMODE_PUBLIC);
     newKey.set_role(proto::KEYROLE_SIGN);
     newKey.set_key(pubkey.GetPointer(), pubkey.GetSize());
-    crypto::key::EllipticCurve* key = dynamic_cast<crypto::key::Secp256k1*>(
-        crypto::key::Asymmetric::KeyFactory(newKey));
+    asymmetric_key_ = crypto::key::Asymmetric::Factory(newKey);
 
-    if (nullptr != key) { pubkey_.reset(key); }
+    if (asymmetric_key_.get()) {
+        pubkey_ = dynamic_cast<crypto::key::Secp256k1*>(&asymmetric_key_.get());
+
+        OT_ASSERT(nullptr != pubkey_)
+    } else {
+        pubkey_ = nullptr;
+    }
 }
 
 const OTIdentifier PaymentCode::ID() const
@@ -414,12 +431,7 @@ const OTData PaymentCode::Pubkey() const
     auto pubkey = Data::Factory();
     pubkey->SetSize(PUBLIC_KEY_BYTES);
 
-    if (pubkey_) {
-#if OT_CRYPTO_USING_LIBSECP256K1
-        std::dynamic_pointer_cast<crypto::key::Secp256k1>(pubkey_)->GetKey(
-            pubkey);
-#endif
-    }
+    if (nullptr != pubkey_) { pubkey_->GetKey(pubkey); }
 
     OT_ASSERT(PUBLIC_KEY_BYTES == pubkey->GetSize());
 
@@ -431,7 +443,7 @@ SerializedPaymentCode PaymentCode::Serialize() const
     SerializedPaymentCode serialized = std::make_shared<proto::PaymentCode>();
     serialized->set_version(version_);
 
-    if (pubkey_) {
+    if (nullptr != pubkey_) {
         auto pubkey = Pubkey();
         serialized->set_key(pubkey->GetPointer(), pubkey->GetSize());
     }
@@ -440,6 +452,7 @@ SerializedPaymentCode PaymentCode::Serialize() const
         serialized->set_chaincode(
             chain_code_->getMemory(), chain_code_->getMemorySize());
     }
+
     serialized->set_bitmessageversion(bitmessage_version_);
     serialized->set_bitmessagestream(bitmessage_stream_);
 
@@ -451,7 +464,7 @@ bool PaymentCode::Sign(
     proto::Signature& sig,
     const OTPasswordData* pPWData) const
 {
-    if (!pubkey_) {
+    if (nullptr == pubkey_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Payment code not instantiated."
               << std::endl;
 
@@ -514,17 +527,13 @@ bool PaymentCode::Sign(
         return false;
     }
 
-    std::unique_ptr<crypto::key::Asymmetric> signingKey(
-        crypto::key::Asymmetric::KeyFactory(*privatekey));
-
+    const auto signingKey = crypto::key::Asymmetric::Factory(*privatekey);
     serializedCredential serialized =
         credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_NYMIDSOURCE);
-
-    bool goodSig =
+    const bool goodSig =
         signingKey->SignProto(*serialized, signature, String(ID()), pPWData);
-
     sig.CopyFrom(signature);
 
     return goodSig;
@@ -556,7 +565,7 @@ bool PaymentCode::Verify(
         return false;
     }
 
-    if (!pubkey_) {
+    if (nullptr == pubkey_) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Payment code is missing public key." << std::endl;
 
@@ -565,7 +574,6 @@ bool PaymentCode::Verify(
 
     proto::Credential copy;
     copy.CopyFrom(master);
-
     auto& signature = *copy.add_signature();
     signature.CopyFrom(sourceSignature);
     signature.clear_signature();

@@ -37,19 +37,42 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "opentxs/crypto/key/Secp256k1.hpp"
+#include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #endif
 #include "opentxs/OT.hpp"
 
-namespace opentxs::crypto::key
+#include "Secp256k1.hpp"
+
+namespace opentxs
+{
+crypto::key::Secp256k1* Factory::Secp256k1Key(const proto::AsymmetricKey& input)
+{
+    return new crypto::key::implementation::Secp256k1(input);
+}
+
+crypto::key::Secp256k1* Factory::Secp256k1Key(const String& input)
+{
+    return new crypto::key::implementation::Secp256k1(input);
+}
+
+crypto::key::Secp256k1* Factory::Secp256k1Key(const proto::KeyRole input)
+{
+    return new crypto::key::implementation::Secp256k1(input);
+}
+}  // namespace opentxs
+
+namespace opentxs::crypto::key::implementation
 {
 Secp256k1::Secp256k1()
     : ot_super(proto::AKEYTYPE_SECP256K1, proto::KEYROLE_ERROR)
@@ -81,21 +104,5 @@ const crypto::AsymmetricProvider& Secp256k1::engine() const
 {
     return OT::App().Crypto().SECP256K1();
 }
-
-void Secp256k1::Release()
-{
-    Release_Secp256k1();  // My own cleanup is performed here.
-
-    // Next give the base class a chance to do the same...
-    ot_super::Release();  // since I've overridden the base class, I call it
-                          // now...
-}
-
-Secp256k1::~Secp256k1()
-{
-    Release_Secp256k1();
-
-    ReleaseKeyLowLevel_Hook();
-}
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs::crypto::key::implementation
 #endif

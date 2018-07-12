@@ -39,10 +39,8 @@
 #ifndef OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP
 #define OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP
 
-#include "Internal.hpp"
-
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "opentxs/crypto/key/RSA.hpp"
+#include "RSA.hpp"
 
 extern "C" {
 #include <openssl/pem.h>
@@ -50,7 +48,7 @@ extern "C" {
 #include <openssl/x509v3.h>
 }
 
-namespace opentxs::crypto::key
+namespace opentxs::crypto::key::implementation
 {
 class RSA::d
 {
@@ -117,6 +115,6 @@ private:
     X509* GetX509() const { return m_pX509; }
     void SetX509(X509* x509);
 };
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #endif  // OPENTXS_CORE_CRYPTO_OTASYMMETRICKEY_OPENSSLPRIVDP_HPP

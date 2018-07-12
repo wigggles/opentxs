@@ -67,15 +67,14 @@ namespace opentxs
 NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     : version_(serializedSource.version())
     , type_(serializedSource.type())
-    , pubkey_(nullptr)
+    , pubkey_(crypto::key::Asymmetric::Factory())
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     , payment_code_(PaymentCode::Factory(""))
 #endif
 {
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY: {
-            pubkey_.reset(
-                crypto::key::Asymmetric::KeyFactory(serializedSource.key()));
+            pubkey_ = crypto::key::Asymmetric::Factory(serializedSource.key());
 
             break;
         }
@@ -102,19 +101,20 @@ NymIDSource::NymIDSource(
     proto::AsymmetricKey& pubkey)
     : version_(1)
     , type_(nymParameters.SourceType())
-    , pubkey_(nullptr)
+    , pubkey_(crypto::key::Asymmetric::Factory(pubkey))
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     , payment_code_(PaymentCode::Factory(""))
 #endif
+
 {
-    pubkey_.reset(crypto::key::Asymmetric::KeyFactory(pubkey));
+    OT_ASSERT(pubkey_.get());
 }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 NymIDSource::NymIDSource(const PaymentCode& source)
     : version_(1)
     , type_(proto::SOURCETYPE_BIP47)
-    , pubkey_(nullptr)
+    , pubkey_(crypto::key::Asymmetric::Factory())
     , payment_code_(PaymentCode::Factory(source))
 {
 }
@@ -194,6 +194,8 @@ serializedNymIDSource NymIDSource::Serialize() const
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
+            OT_ASSERT(pubkey_.get())
+
             key = pubkey_->Serialize();
             key->set_role(proto::KEYROLE_SIGN);
             *(source->mutable_key()) = *key;
@@ -226,7 +228,7 @@ bool NymIDSource::Verify(
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
-            if (!pubkey_) { return false; }
+            if (!pubkey_.get()) { return false; }
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
@@ -331,7 +333,7 @@ String NymIDSource::Description() const
 
     switch (type_) {
         case (proto::SOURCETYPE_PUBKEY):
-            if (pubkey_) {
+            if (pubkey_.get()) {
                 pubkey_->CalculateID(keyID);
                 description = String(keyID);
             }

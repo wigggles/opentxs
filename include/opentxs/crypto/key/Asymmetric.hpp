@@ -41,7 +41,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/util/Timer.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -61,203 +60,54 @@ namespace key
 {
 typedef std::list<Asymmetric*> listOfAsymmetricKeys;
 
-#ifndef OT_KEY_TIMER
-// TODO:
-// 1. Add this value to the config file so it becomes merely a default value
-// here.
-// 2. This timer solution isn't the full solution but only a stopgap measure.
-// See notes in ReleaseKeyLowLevel for more -- ultimate solution will involve
-// the callback itself, and some kind of encrypted storage of hashed passwords,
-// using session keys, as well as an option to use ssh-agent and other standard
-// APIs for protected memory.
-//
-// UPDATE: Am in the process now of adding the actual Master key. Therefore
-// OT_MASTER_KEY_TIMEOUT was added for the actual mechanism, while OT_KEY_TIMER
-// (a stopgap measure) was set to 0, which makes it of no effect. Probably
-// OT_KEY_TIMER will be removed entirely (we'll see.)
-#define OT_KEY_TIMER 30
-// TODO: Next release, as users get converted to file format 2.0 (master key)
-// then reduce this timer from 30 to 0. (30 is just to help them convert.)
-//#define OT_KEY_TIMER 0
-//#define OT_MASTER_KEY_TIMEOUT 300  // This is in OTEnvelope.h
-// FYI: 1800 seconds is 30 minutes, 300 seconds is 5 mins.
-#endif  // OT_KEY_TIMER
-
 class Asymmetric
 {
-private:
-    Asymmetric(const Asymmetric&);
-    Asymmetric& operator=(const Asymmetric&);
-
 public:
-    static String KeyTypeToString(const proto::AsymmetricKeyType keyType);
-
-    static proto::AsymmetricKeyType StringToKeyType(const String& keyType);
-
-    proto::AsymmetricKeyType keyType() const;
-
-    virtual const opentxs::crypto::AsymmetricProvider& engine() const = 0;
-    virtual const std::string Path() const;
-    virtual bool Path(proto::HDPath& output) const;
-
-private:
-    static Asymmetric* KeyFactory(
-        const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role);
-
-protected:
-    proto::AsymmetricKeyType m_keyType = proto::AKEYTYPE_ERROR;
-    proto::KeyRole role_ = proto::KEYROLE_ERROR;
-    Asymmetric(
-        const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role);
-
-public:
-    /** Caller IS responsible to delete! */
-    EXPORT static Asymmetric* KeyFactory(
+    EXPORT static OTAsymmetricKey Factory();
+    EXPORT static OTAsymmetricKey Factory(
         const proto::AsymmetricKeyType keyType,
         const String& pubkey);
-    /** Caller IS responsible to delete! */
-    EXPORT static Asymmetric* KeyFactory(
+    EXPORT static OTAsymmetricKey Factory(
         const NymParameters& nymParameters,
         const proto::KeyRole role);
-    /** Caller IS responsible to delete! */
-    EXPORT static Asymmetric* KeyFactory(
+    EXPORT static OTAsymmetricKey Factory(
         const proto::AsymmetricKey& serializedKey);
-
-protected:
-    bool m_bIsPublicKey = false;
-    bool m_bIsPrivateKey = false;
-    Timer m_timer;  // Useful for keeping track how long since I last entered my
-                    // passphrase...
-public:
-    /** Just access this directly, like a struct. (Check for nullptr.) */
-    OTSignatureMetadata* m_pMetadata{nullptr};
-
-    // To use m_metadata, call m_metadata.HasMetadata(). If it's true, then you
-    // can see these values:
-    //    char m_metadata::Getproto::AsymmetricKeyType()             // Can be
-    //    A, E, or S
-    //    (authentication, encryption, or signing. Also, E would be unusual.)
-    //    char m_metadata::FirstCharNymID()         // Can be any letter from
-    //    base62 alphabet. Represents first letter of a Nym's ID.
-    //    char m_metadata::FirstCharMasterCredID()  // Can be any letter from
-    //    base62 alphabet. Represents first letter of a Master Credential ID
-    //    (for that Nym.)
-    //    char m_metadata::FirstCharChildCredID()     // Can be any letter from
-    //    base62 alphabet. Represents first letter of a Credential ID (signed by
-    //    that Master.)
-    //
-    // Here's how metadata works: It's optional. You can set it, or not. If it's
-    // there, OT will add it to the signature on the contract itself, when this
-    // key is used to sign something. (OTSignature has the same
-    // OTSignatureMetadata struct.) Later on when verifying the signature, the
-    // metadata is used to speed up the lookup/verification process so we don't
-    // have to verify the signature against every single child key credential
-    // available for that Nym. In practice, however, we are adding metadata to
-    // every single signature (except possibly cash...) (And we will make it
-    // mandatory for Nyms who use credentials.)
-
-protected:
-    void ReleaseKeyLowLevel();                         // call this.
-    virtual void ReleaseKeyLowLevel_Hook() const = 0;  // override this.
-    // CONSTRUCTION (PROTECTED)
-    explicit Asymmetric(const proto::AsymmetricKey& serializedKey);
-    EXPORT Asymmetric();
-
-public:
-    OTData SerializeKeyToData(const proto::AsymmetricKey& rhs) const;
-    bool operator==(const proto::AsymmetricKey&) const;
-    EXPORT virtual ~Asymmetric();
-    virtual void Release();
-    void Release_AsymmetricKey();
-    void ReleaseKey();
-
-    // PUBLIC METHODS
-    virtual bool hasCapability(const NymCapability& capability) const;
-    virtual bool IsEmpty() const = 0;
-    inline bool IsPublic() const { return m_bIsPublicKey; }
-    inline bool IsPrivate() const { return m_bIsPrivateKey; }
-    /** Don't use this, normally it's not necessary. */
-    inline void SetAsPublic()
-    {
-        m_bIsPublicKey = true;
-        m_bIsPrivateKey = false;
-    }
-    /** (Only if you really know what you are doing.) */
-    inline void SetAsPrivate()
-    {
-        m_bIsPublicKey = false;
-        m_bIsPrivateKey = true;
-    }
-    const proto::KeyRole& Role() { return role_; }
-    // We're moving to a system where the actual key isn't kept loaded in memory
-    // except under 2 circumstances: 1. We are using it currently, and we're
-    // going to destroy it when we're done with it. 2. A timer is running, and
-    // until the 10 minutes are up, the private key is available. But:
-    // Presumably it's stored in PROTECTED MEMORY, either with specific tricks
-    // used to prevent swapping and to zero after we're done, and to prevent
-    // core dumps, or it's stored in ssh-agent or some similar standard API
-    // (gpg-agent, keychain Mac Keychain, etc) or Windows protected memory etc
-    // etc. Inside OT I can also give the option to go with our own security
-    // tricks (listed above...) or to keep the timer length at 0, forcing the
-    // password to be entered over and over again. IDEA: When the user enters
-    // the passphrase for a specific Nym, hash it (so your plaintext passphrase
-    // isn't stored in memory anywhere) and then USE that hash as the passphrase
-    // on the actual key. (Meaning also that the user will not be able to use
-    // his passphrase outside of OT, until he EXPORTS the Nym, since he would
-    // also have to hash the passphrase before manipulating the raw key file.)
-    // At this point, we have the hash of the user's passphrase, which is what
-    // we actually use for opening his private key (which is also normally kept
-    // in an encrypted form, on the hard drive AND in RAM!!) So everything from
-    // above still applies: I don't want to reveal that hash, so I store it
-    // using tricks to secure the memory (I have to do this part anyway, ANYTIME
-    // I touch certain forms of data), or in ssh-agent, and so on, except a
-    // timer can be set after the user first enters his passphrase. For ultimate
-    // security, just set the timer to 0 and type your passphrase every single
-    // time. But instead let's say you set it to 10 minutes. I don't want to
-    // store that password hash, either. (The hash protects the plaintext
-    // password, but the hash IS the ACTUAL password, so while the plaintext PW
-    // is protected, the actual one is still not.) Therefore I will select some
-    // random data from OpenSSL for use as a TEMPORARY password, a session key,
-    // and then encrypt all the hashes to that session key. This way, the actual
-    // passphrases (hashed version) do NOT appear in memory, AND NEITHER DO the
-    // plaintext versions! You might ask, well then why not just encrypt the
-    // plaintext passphrase itself and use that? The answer is, to prevent
-    // making it recoverable. You don't even want someone to get that session
-    // key and then recover your PLAINTEXT password! Maybe he'll go use it on a
-    // thousand websites!
-    //
-    // Next: How to protect the session key (an LegacySymmetric)
-    // from being found? First: destroy it often. Make a new session key EVERY
-    // time the timeout happens. Also: use it in protected memory as before.
-    // This could ALWAYS have a timeout of 0! If it's in ssh-agent, what more
-    // can you do? At least OT will make this configurable, and will be pretty
-    // damned secure in its own right. Ultimately the best solution here is an
-    // extern hardware such as a smart card.
+    EXPORT static String KeyTypeToString(
+        const proto::AsymmetricKeyType keyType);
+    EXPORT static proto::AsymmetricKeyType StringToKeyType(
+        const String& keyType);
 
     /** Only works for public keys. */
-    virtual bool CalculateID(Identifier& theOutput) const;
-    virtual bool GetPublicKey(String& strKey) const = 0;
-    virtual bool ReEncryptPrivateKey(
+    EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
+    EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
+        const = 0;
+    EXPORT virtual const OTSignatureMetadata* GetMetadata() const = 0;
+    EXPORT virtual bool GetPublicKey(String& strKey) const = 0;
+    EXPORT virtual bool hasCapability(
+        const NymCapability& capability) const = 0;
+    EXPORT virtual bool IsEmpty() const = 0;
+    EXPORT virtual bool IsPrivate() const = 0;
+    EXPORT virtual bool IsPublic() const = 0;
+    EXPORT virtual proto::AsymmetricKeyType keyType() const = 0;
+    EXPORT virtual const std::string Path() const = 0;
+    EXPORT virtual bool Path(proto::HDPath& output) const = 0;
+    EXPORT virtual bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const = 0;
-    virtual std::shared_ptr<proto::AsymmetricKey> Serialize() const;
-    virtual bool Verify(const Data& plaintext, const proto::Signature& sig)
-        const;
-    virtual proto::HashType SigHashType() const { return StandardHash; }
-    virtual bool Sign(
+    EXPORT virtual const proto::KeyRole& Role() const = 0;
+    EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize() const = 0;
+    EXPORT virtual OTData SerializeKeyToData(
+        const proto::AsymmetricKey& rhs) const = 0;
+    EXPORT virtual proto::HashType SigHashType() const = 0;
+    EXPORT virtual bool Sign(
         const Data& plaintext,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
         const String& credID = String(""),
-        const proto::SignatureRole role = proto::SIGROLE_ERROR) const;
-    virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
-        const = 0;
-
+        const proto::SignatureRole role = proto::SIGROLE_ERROR) const = 0;
     template <class C>
-    bool SignProto(
+    EXPORT bool SignProto(
         C& serialized,
         proto::Signature& signature,
         const String& credID = String(""),
@@ -294,6 +144,37 @@ public:
 
         return goodSig;
     }
+    EXPORT virtual bool TransportKey(Data& publicKey, OTPassword& privateKey)
+        const = 0;
+    EXPORT virtual bool Verify(
+        const Data& plaintext,
+        const proto::Signature& sig) const = 0;
+
+    // Only used for RSA keys
+    EXPORT[[deprecated]] virtual void Release() = 0;
+    EXPORT[[deprecated]] virtual void ReleaseKey() = 0;
+    /** Don't use this, normally it's not necessary. */
+    EXPORT virtual void SetAsPublic() = 0;
+    /** (Only if you really know what you are doing.) */
+    EXPORT virtual void SetAsPrivate() = 0;
+
+    EXPORT virtual operator bool() const = 0;
+    EXPORT virtual bool operator==(const proto::AsymmetricKey&) const = 0;
+
+    EXPORT virtual ~Asymmetric() = default;
+
+protected:
+    Asymmetric() = default;
+
+private:
+    friend OTAsymmetricKey;
+
+    virtual Asymmetric* clone() const = 0;
+
+    Asymmetric(const Asymmetric&) = delete;
+    Asymmetric(Asymmetric&&) = delete;
+    Asymmetric& operator=(const Asymmetric&) = delete;
+    Asymmetric& operator=(Asymmetric&&) = delete;
 };
 }  // namespace key
 }  // namespace crypto

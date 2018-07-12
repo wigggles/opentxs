@@ -37,7 +37,7 @@
  ************************************************************/
 #include "stdafx.hpp"
 
-#include "RSA_private.hpp"
+#include "Internal.hpp"
 
 #include "opentxs/api/Native.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
@@ -53,6 +53,7 @@
 #include "opentxs/crypto/key/RSA.hpp"
 #include "opentxs/OT.hpp"
 
+#include "api/NativeInternal.hpp"
 #if OT_CRYPTO_USING_OPENSSL
 #include "crypto/library/OpenSSL_BIO.hpp"
 #endif
@@ -66,7 +67,7 @@
 #include <cstdint>
 #include <ostream>
 
-#include "api/NativeInternal.hpp"
+#include "RSA_private.hpp"
 
 // BIO_get_mem_data() macro from OpenSSL uses old style cast
 #ifndef _WIN32
@@ -77,7 +78,7 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
-namespace opentxs::crypto::key
+namespace opentxs::crypto::key::implementation
 {
 void RSA::d::SetX509(X509* x509)
 {
@@ -164,9 +165,9 @@ const EVP_PKEY* RSA::d::GetKey(const OTPasswordData* pPWData)
     }
 
     if (backlink->m_timer.getElapsedTimeInSec() > OT_KEY_TIMER)
-        backlink->ReleaseKeyLowLevel();  // This releases the actual loaded key,
-                                         // but not the ascii-armored, encrypted
-                                         // version of it.
+        backlink->Release();  // This releases the actual loaded key,
+                              // but not the ascii-armored, encrypted
+                              // version of it.
     // (Thus forcing a reload, and thus forcing the passphrase to be entered
     // again.)
 
@@ -568,8 +569,8 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
             native.GetInternalPasswordCallback(),
             const_cast<OTPasswordData*>(pPWData));
 
-        backlink->ReleaseKeyLowLevel();  // Release whatever loaded key I might
-                                         // have already had.
+        backlink->Release();  // Release whatever loaded key I might
+                              // have already had.
 
         if (nullptr != pReturnKey) {
             m_pKey = pReturnKey;
@@ -645,7 +646,7 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
             const_cast<OTPasswordData*>(pPWData));
 
         // Free the BIO and related buffers, filters, etc.
-        backlink->ReleaseKeyLowLevel();
+        backlink->Release();
 
         if (nullptr != pReturnKey) {
             m_pKey = pReturnKey;
@@ -786,6 +787,6 @@ bool RSA::d::ArmorPrivateKey(
 
     return bReturnVal;
 }
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs::crypto::key::implementation
 
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA

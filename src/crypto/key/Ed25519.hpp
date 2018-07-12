@@ -36,36 +36,39 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CRYPTO_KEY_ED25519_HPP
-#define OPENTXS_CRYPTO_KEY_ED25519_HPP
-
-#include "opentxs/Forward.hpp"
+#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_KEY_ED25519_HPP
+#define IMPLEMENTATION_OPENTXS_CRYPTO_KEY_ED25519_HPP
 
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-#include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "EllipticCurve.hpp"
 
-namespace opentxs
+namespace opentxs::crypto::key::implementation
 {
-namespace crypto
-{
-namespace key
-{
-class Ed25519 : virtual public EllipticCurve
+class Ed25519 final : virtual public key::Ed25519,
+                      public implementation::EllipticCurve
 {
 public:
-    EXPORT virtual ~Ed25519() = default;
+    const crypto::EcdsaProvider& ECDSA() const override;
+    const crypto::AsymmetricProvider& engine() const override;
+    bool hasCapability(const NymCapability& capability) const override;
 
-protected:
-    Ed25519() = default;
+    ~Ed25519() = default;
 
 private:
+    using ot_super = implementation::EllipticCurve;
+
+    friend opentxs::Factory;
+    friend LowLevelKeyGenerator;
+
+    Ed25519();
+    explicit Ed25519(const proto::KeyRole role);
+    explicit Ed25519(const proto::AsymmetricKey& serializedKey);
+    explicit Ed25519(const String& publicKey);
     Ed25519(const Ed25519&) = delete;
     Ed25519(Ed25519&&) = delete;
     Ed25519& operator=(const Ed25519&) = delete;
     Ed25519& operator=(Ed25519&&) = delete;
 };
-}  // namespace key
-}  // namespace crypto
-}  // namespace opentxs
+}  // namespace opentxs::crypto::key::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#endif  // OPENTXS_CRYPTO_KEY_ED25519_HPP
+#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_KEY_ED25519_HPP

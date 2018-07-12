@@ -51,51 +51,28 @@ namespace crypto
 {
 namespace key
 {
-class EllipticCurve : public Asymmetric
+class EllipticCurve : virtual public Asymmetric
 {
-private:
-    friend class crypto::EcdsaProvider;
+public:
+    virtual const crypto::EcdsaProvider& ECDSA() const = 0;
+    virtual bool GetKey(Data& key) const = 0;
+    virtual bool GetKey(proto::Ciphertext& key) const = 0;
+    using Asymmetric::GetPublicKey;
+    virtual bool GetPublicKey(Data& key) const = 0;
 
-    typedef Asymmetric ot_super;
+    virtual bool SetKey(const Data& key) = 0;
+    virtual bool SetKey(std::unique_ptr<proto::Ciphertext>& key) = 0;
+
+    virtual ~EllipticCurve() = default;
 
 protected:
-    OTData key_;
-    std::unique_ptr<proto::Ciphertext> encrypted_key_{nullptr};
-    std::shared_ptr<proto::HDPath> path_{nullptr};
-    std::unique_ptr<proto::Ciphertext> chain_code_{nullptr};
+    EllipticCurve() = default;
 
-    EllipticCurve() = delete;
-    explicit EllipticCurve(
-        const proto::AsymmetricKeyType keyType,
-        const proto::KeyRole role);
-    explicit EllipticCurve(const proto::AsymmetricKey& serializedKey);
-    explicit EllipticCurve(
-        const proto::AsymmetricKeyType keyType,
-        const String& publicKey);
-
-    void ReleaseKeyLowLevel_Hook() const override {}
-
-public:
-    bool IsEmpty() const override;
-    virtual const crypto::EcdsaProvider& ECDSA() const = 0;
-    bool GetKey(Data& key) const;
-    bool GetKey(proto::Ciphertext& key) const;
-    bool GetPublicKey(String& strKey) const override;
-    bool GetPublicKey(Data& key) const;
-    using ot_super::Path;
-    const std::string Path() const override;
-    bool Path(proto::HDPath& output) const override;
-    bool ReEncryptPrivateKey(
-        const OTPassword& theExportPassword,
-        bool bImporting) const override;
-    void Release_EllipticCurve() {}
-    void Release() override;
-    bool SetKey(const Data& key);
-    bool SetKey(std::unique_ptr<proto::Ciphertext>& key);
-    std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
-    bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
-
-    virtual ~EllipticCurve();
+private:
+    EllipticCurve(const EllipticCurve&) = delete;
+    EllipticCurve(EllipticCurve&&) = delete;
+    EllipticCurve& operator=(const EllipticCurve&) = delete;
+    EllipticCurve& operator=(EllipticCurve&&) = delete;
 };
 }  // namespace key
 }  // namespace crypto

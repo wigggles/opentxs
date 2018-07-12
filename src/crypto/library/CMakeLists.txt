@@ -29,6 +29,7 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/Sodium.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/Trezor.hpp"
   AsymmetricProvider.hpp
+  AsymmetricProviderNull.hpp
   EcdsaProvider.hpp
   OpenSSL.hpp
   OpenSSL_BIO.hpp

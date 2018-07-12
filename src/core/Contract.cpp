@@ -540,10 +540,9 @@ bool Contract::SignContract(
 {
     // We assume if there's any important metadata, it will already
     // be on the key, so we just copy it over to the signature.
-    //
-    if (nullptr != theKey.m_pMetadata) {
-        theSignature.getMetaData() = *(theKey.m_pMetadata);
-    }
+    const auto* metadata = theKey.GetMetadata();
+
+    if (nullptr != metadata) { theSignature.getMetaData() = *(metadata); }
 
     // Update the contents, (not always necessary, many contracts are read-only)
     // This is where we provide an overridable function for the child classes
@@ -634,17 +633,21 @@ bool Contract::VerifyWithKey(
 {
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
+
         OT_ASSERT(nullptr != pSig);
 
-        if (theKey.m_pMetadata && theKey.m_pMetadata->HasMetadata() &&
+        const auto* metadata = theKey.GetMetadata();
+
+        if ((nullptr != metadata) && metadata->HasMetadata() &&
             pSig->getMetaData().HasMetadata()) {
             // Since key and signature both have metadata, we can use it
             // to skip signatures which don't match this key.
             //
-            if (pSig->getMetaData() != *(theKey.m_pMetadata)) continue;
+            if (pSig->getMetaData() != *(metadata)) continue;
         }
 
         OTPasswordData thePWData("Contract::VerifyWithKey");
+
         if (VerifySignature(
                 theKey,
                 *pSig,
@@ -762,16 +765,16 @@ bool Contract::VerifySignature(
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
+    const auto* metadata = theKey.GetMetadata();
+
     // See if this key could possibly have even signed this signature.
     // (The metadata may eliminate it as a possibility.)
-    //
-    if ((nullptr != theKey.m_pMetadata) && theKey.m_pMetadata->HasMetadata() &&
+    if ((nullptr != metadata) && metadata->HasMetadata() &&
         theSignature.getMetaData().HasMetadata()) {
-        if (theSignature.getMetaData() != *(theKey.m_pMetadata)) return false;
+        if (theSignature.getMetaData() != *(metadata)) return false;
     }
 
     OTPasswordData thePWData("Contract::VerifySignature 2");
-
     const auto& engine = theKey.engine();
 
     if (false == engine.VerifyContractSignature(
