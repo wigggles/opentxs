@@ -3443,6 +3443,12 @@ bool SwigWrap::Deposit_Cheque(
                     Identifier::Factory(nymID), ids);
 }
 
+bool SwigWrap::Deposit_Cheques(const std::string& nymID)
+{
+    return 0 <
+           OT::App().API().Sync().DepositCheques(Identifier::Factory(nymID));
+}
+
 std::string SwigWrap::Find_Nym(const std::string& nymID)
 {
     return OT::App().API().Sync().FindNym(Identifier::Factory(nymID))->str();
