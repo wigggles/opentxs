@@ -3624,6 +3624,8 @@ public:
         const std::string& nymID,
         const std::string& chequeID);
 
+    EXPORT static bool Deposit_Cheques(const std::string& nymID);
+
     EXPORT static std::string Find_Nym(const std::string& nymID);
 
     EXPORT static std::string Find_Nym_Hint(
