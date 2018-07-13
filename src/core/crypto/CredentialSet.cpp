@@ -51,8 +51,9 @@
 //
 // Non-key Credentials are not yet implemented.
 //
-// Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each KeyCredential has 3 crypto::key::Keypairs: encryption, signing, and
+// authentication. Each crypto::key::Keypair has 2 crypto::key::Asymmetrics
+// (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -72,7 +73,6 @@
 #include "opentxs/core/crypto/KeyCredential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -84,6 +84,7 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -116,7 +117,7 @@ bool CredentialSet::Path(proto::HDPath& output) const
 }
 
 std::int32_t CredentialSet::GetPublicKeysBySignature(
-    listOfAsymmetricKeys& listOutput,
+    crypto::key::Keypair::Keys& listOutput,
     const OTSignature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
                           // or 'A' (authentication key)
@@ -726,7 +727,7 @@ const std::string CredentialSet::GetChildCredentialIDByIndex(
     return nullptr;
 }
 
-const OTKeypair& CredentialSet::GetAuthKeypair(
+const crypto::key::Keypair& CredentialSet::GetAuthKeypair(
     const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapCredentials) {
@@ -740,8 +741,6 @@ const OTKeypair& CredentialSet::GetAuthKeypair(
 
         if (nullptr == pKey) continue;
 
-        OT_ASSERT(pKey->m_AuthentKey);
-
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
@@ -754,7 +753,7 @@ const OTKeypair& CredentialSet::GetAuthKeypair(
         // the revoked list. Therefore, let's return the key! (Any other future
         // smart criteria might go here before taking this final step...)
         //
-        return *(pKey->m_AuthentKey);
+        return pKey->authentication_key_;
     }
 
     // Didn't find any child credentials we can use? For now, we'll return the
@@ -765,12 +764,11 @@ const OTKeypair& CredentialSet::GetAuthKeypair(
     // only child credentials should be
     // able to do actions.
     // Capiche?
-    //
-    OT_ASSERT(m_MasterCredential->m_AuthentKey);
-    return *(m_MasterCredential->m_AuthentKey);
+
+    return m_MasterCredential->authentication_key_;
 }
 
-const OTKeypair& CredentialSet::GetEncrKeypair(
+const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
     const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapCredentials) {
@@ -784,8 +782,6 @@ const OTKeypair& CredentialSet::GetEncrKeypair(
 
         if (nullptr == pKey) continue;
 
-        OT_ASSERT(pKey->m_EncryptKey);
-
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
@@ -797,8 +793,8 @@ const OTKeypair& CredentialSet::GetEncrKeypair(
         // At this point we know it's a key credential, and we know it's not on
         // the revoked list. Therefore, let's return the key! (Any other future
         // smart criteria might go here before taking this final step...)
-        //
-        return *(pKey->m_EncryptKey);
+
+        return pKey->encryption_key_;
     }
 
     // Didn't find any child credentials we can use? For now, we'll return the
@@ -810,11 +806,11 @@ const OTKeypair& CredentialSet::GetEncrKeypair(
     // able to do actions.
     // Capiche?
     //
-    OT_ASSERT(m_MasterCredential->m_EncryptKey);
-    return *(m_MasterCredential->m_EncryptKey);
+
+    return m_MasterCredential->encryption_key_;
 }
 
-const OTKeypair& CredentialSet::GetSignKeypair(
+const crypto::key::Keypair& CredentialSet::GetSignKeypair(
     const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapCredentials) {
@@ -828,8 +824,6 @@ const OTKeypair& CredentialSet::GetSignKeypair(
 
         if (nullptr == pKey) continue;
 
-        OT_ASSERT(pKey->m_SigningKey);
-
         // See if pKey, with ID str_cred_id, is on plistRevokedIDs...
         //
         if (nullptr != plistRevokedIDs) {
@@ -842,7 +836,7 @@ const OTKeypair& CredentialSet::GetSignKeypair(
         // the revoked list. Therefore, let's return the key! (Any other future
         // smart criteria might go here before taking this final step...)
         //
-        return *(pKey->m_SigningKey);
+        return pKey->signing_key_;
     }
 
     // Didn't find any child credentials we can use? For now, we'll return the
@@ -854,8 +848,7 @@ const OTKeypair& CredentialSet::GetSignKeypair(
     // able to do actions.
     // Capiche?
     //
-    OT_ASSERT(m_MasterCredential->m_SigningKey);
-    return *(m_MasterCredential->m_SigningKey);
+    return m_MasterCredential->signing_key_;
 }
 
 // NOTE: Until we figure out the rule by which we decide WHICH authentication
@@ -865,37 +858,37 @@ const OTKeypair& CredentialSet::GetSignKeypair(
 // We'll also weed out any that appear on plistRevokedIDs, if it's passed in.
 // (Optional.)
 
-const OTAsymmetricKey& CredentialSet::GetPublicAuthKey(
+const crypto::key::Asymmetric& CredentialSet::GetPublicAuthKey(
     const String::List* plistRevokedIDs) const
 {
     return GetAuthKeypair(plistRevokedIDs).GetPublicKey();
 }
 
-const OTAsymmetricKey& CredentialSet::GetPublicEncrKey(
+const crypto::key::Asymmetric& CredentialSet::GetPublicEncrKey(
     const String::List* plistRevokedIDs) const
 {
     return GetEncrKeypair(plistRevokedIDs).GetPublicKey();
 }
 
-const OTAsymmetricKey& CredentialSet::GetPublicSignKey(
+const crypto::key::Asymmetric& CredentialSet::GetPublicSignKey(
     const String::List* plistRevokedIDs) const
 {
     return GetSignKeypair(plistRevokedIDs).GetPublicKey();
 }
 
-const OTAsymmetricKey& CredentialSet::GetPrivateAuthKey(
+const crypto::key::Asymmetric& CredentialSet::GetPrivateAuthKey(
     const String::List* plistRevokedIDs) const
 {
     return GetAuthKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
-const OTAsymmetricKey& CredentialSet::GetPrivateEncrKey(
+const crypto::key::Asymmetric& CredentialSet::GetPrivateEncrKey(
     const String::List* plistRevokedIDs) const
 {
     return GetEncrKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
-const OTAsymmetricKey& CredentialSet::GetPrivateSignKey(
+const crypto::key::Asymmetric& CredentialSet::GetPrivateSignKey(
     const String::List* plistRevokedIDs) const
 {
     return GetSignKeypair(plistRevokedIDs).GetPrivateKey();

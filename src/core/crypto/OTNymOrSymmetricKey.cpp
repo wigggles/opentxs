@@ -42,12 +42,12 @@
 
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 
 extern "C" {
 #if defined(OPENTXS_HAVE_NETINET_IN_H)
@@ -157,10 +157,10 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 }
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
-    const OTSymmetricKey& theKey,
+    const crypto::key::LegacySymmetric& theKey,
     const String* pstrDisplay)  // construct with key
     : m_pNym(nullptr)
-    , m_pKey(const_cast<OTSymmetricKey*>(&theKey))
+    , m_pKey(const_cast<crypto::key::LegacySymmetric*>(&theKey))
     , m_pPassword(nullptr)
     , m_bCleanupPassword(false)
     , m_pstrDisplay(pstrDisplay)
@@ -168,11 +168,11 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 }
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
-    const OTSymmetricKey& theKey,
+    const crypto::key::LegacySymmetric& theKey,
     const OTPassword& thePassword,  // construct with key and password.
     const String* pstrDisplay)
     : m_pNym(nullptr)
-    , m_pKey(const_cast<OTSymmetricKey*>(&theKey))
+    , m_pKey(const_cast<crypto::key::LegacySymmetric*>(&theKey))
     , m_pPassword(const_cast<OTPassword*>(&thePassword))
     , m_bCleanupPassword(false)
     , m_pstrDisplay(pstrDisplay)
@@ -300,7 +300,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(
 
             // returns a text OTPassword, or nullptr.
             //
-            pPassword = OTSymmetricKey::GetPassphraseFromUser(
+            pPassword = crypto::key::LegacySymmetric::GetPassphraseFromUser(
                 (nullptr == m_pstrDisplay)
                     ? &strDisplay
                     : m_pstrDisplay);  // bool bAskTwice=false
@@ -369,7 +369,7 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(
 
             // returns a text OTPassword, or nullptr.
             //
-            pPassword = OTSymmetricKey::GetPassphraseFromUser(
+            pPassword = crypto::key::LegacySymmetric::GetPassphraseFromUser(
                 (nullptr == m_pstrDisplay)
                     ? &strDisplay
                     : m_pstrDisplay);  // bool bAskTwice=false

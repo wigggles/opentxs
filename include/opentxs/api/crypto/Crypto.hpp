@@ -53,7 +53,6 @@ namespace opentxs
 {
 namespace api
 {
-
 class Crypto
 {
 public:
@@ -78,29 +77,33 @@ public:
     EXPORT virtual const crypto::Util& Util() const = 0;
 
     // Asymmetric encryption engines
-    EXPORT virtual const CryptoAsymmetric& ED25519() const = 0;
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    EXPORT virtual const opentxs::crypto::AsymmetricProvider& ED25519()
+        const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-    EXPORT virtual const CryptoAsymmetric& RSA() const = 0;
-#endif
+    EXPORT virtual const opentxs::crypto::AsymmetricProvider& RSA() const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    EXPORT virtual const CryptoAsymmetric& SECP256K1() const = 0;
-#endif
+    EXPORT virtual const opentxs::crypto::AsymmetricProvider& SECP256K1()
+        const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 
     // Symmetric encryption engines
     EXPORT virtual const crypto::Symmetric& Symmetric() const = 0;
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-    EXPORT virtual const CryptoSymmetric& AES() const = 0;
-#endif
+    EXPORT virtual const opentxs::crypto::LegacySymmetricProvider& AES()
+        const = 0;
+#endif  // OT_CRYPTO_SUPPORTED_ALGO_AES
 #if OT_CRYPTO_WITH_BIP32
-    EXPORT virtual const Bip32& BIP32() const = 0;
-#endif
+    EXPORT virtual const opentxs::crypto::Bip32& BIP32() const = 0;
+#endif  // OT_CRYPTO_WITH_BIP32
 #if OT_CRYPTO_WITH_BIP39
-    EXPORT virtual const Bip39& BIP39() const = 0;
-#endif
+    EXPORT virtual const opentxs::crypto::Bip39& BIP39() const = 0;
+#endif  // OT_CRYPTO_WITH_BIP39
 
-    EXPORT virtual std::unique_ptr<SymmetricKey> GetStorageKey(
-        std::string& seed) const = 0;
+    EXPORT virtual OTSymmetricKey GetStorageKey(std::string& seed) const = 0;
 
     EXPORT virtual ~Crypto() = default;
 

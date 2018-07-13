@@ -105,11 +105,13 @@ public:
         const bool active);
     bool AddNym(const std::shared_ptr<const Nym>& nym, const bool primary);
     bool AddNym(const Identifier& nymID, const bool primary);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddPaymentCode(
         const class PaymentCode& code,
         const bool primary,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC,
         const bool active = true);
+#endif
     bool AddPhoneNumber(
         const std::string& value,
         const bool primary,

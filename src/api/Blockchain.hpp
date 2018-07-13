@@ -39,8 +39,7 @@
 #ifndef OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP
 #define OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP
 
-#include "Internal.hpp"
-
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace opentxs::api::implementation
 {
 class Blockchain : virtual public api::Blockchain
@@ -143,4 +142,5 @@ private:
     Blockchain& operator=(Blockchain&&) = delete;
 };
 }  // namespace opentxs::api::implementation
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif  // OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP

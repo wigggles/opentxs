@@ -41,28 +41,19 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/crypto/Symmetric.hpp"
-
-namespace opentxs
+namespace opentxs::api::crypto::implementation
 {
-namespace api
-{
-namespace crypto
-{
-namespace implementation
-{
-
 class Symmetric : virtual public api::crypto::Symmetric
 {
 public:
-    std::unique_ptr<SymmetricKey> Key(
+    OTSymmetricKey Key(
         const OTPasswordData& password,
         const proto::SymmetricMode mode =
             proto::SMODE_CHACHA20POLY1305) const override;
-    std::unique_ptr<SymmetricKey> Key(
+    OTSymmetricKey Key(
         const proto::SymmetricKey& serialized,
         const proto::SymmetricMode mode) const override;
-    std::unique_ptr<SymmetricKey> Key(
+    OTSymmetricKey Key(
         const OTPassword& seed,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,
@@ -73,21 +64,19 @@ public:
     ~Symmetric() = default;
 
 private:
-    friend class api::implementation::Crypto;
+    friend Factory;
 
-    CryptoSymmetricNew& sodium_;
+    opentxs::crypto::SymmetricProvider& sodium_;
 
-    CryptoSymmetricNew* GetEngine(const proto::SymmetricMode mode) const;
+    opentxs::crypto::SymmetricProvider* GetEngine(
+        const proto::SymmetricMode mode) const;
 
-    Symmetric(CryptoSymmetricNew& sodium);
+    Symmetric(opentxs::crypto::SymmetricProvider& sodium);
     Symmetric() = delete;
     Symmetric(const Symmetric&) = delete;
     Symmetric(Symmetric&&) = delete;
     Symmetric& operator=(const Symmetric&) = delete;
     Symmetric& operator=(Symmetric&&) = delete;
 };
-}  // namespace implementation
-}  // namespace crypto
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation
 #endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICENGINE_HPP

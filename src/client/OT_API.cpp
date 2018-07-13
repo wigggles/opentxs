@@ -65,12 +65,6 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/core/crypto/Bip32.hpp"
-#endif
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -81,7 +75,6 @@
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
@@ -113,6 +106,13 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/ServerConnection.hpp"
@@ -1560,7 +1560,8 @@ bool OT_API::Wallet_ImportNym(
     // created at that time.) But here during importing, we just ask once,
     // since the passphrase is being used, not created.
     std::unique_ptr<OTPassword> pExportPassphrase(
-        OTSymmetricKey::GetPassphraseFromUser(&strDisplay, false));
+        crypto::key::LegacySymmetric::GetPassphraseFromUser(&strDisplay,
+    false));
 
     if (nullptr == pExportPassphrase) {
         otErr << OT_METHOD << __FUNCTION__
@@ -4648,22 +4649,20 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                                                   // its own built-in symmetric
                                                   // key.
         {
-            OTSymmetricKey* pSymmetricKey = thePurse.GetInternalKey();
-            OT_ASSERT(nullptr != pSymmetricKey);
+            auto& pSymmetricKey = thePurse.GetInternalKey();
+
+            OT_ASSERT(pSymmetricKey);
+
             const bool bGotPassphrase = thePurse.GetPassphrase(
                 thePassword, thePWData2.GetDisplayString());
 
-            if (!bGotPassphrase)
+            if (!bGotPassphrase) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Authentication failed, or otherwise failed "
                          "retrieving secret from user.\n";
-            // Below this point, we know thePassword is good, and we know
-            // pSymmetricKey is good.
-            // Therefore...
-            //
-            else {
+            } else {
                 pOwner = new OTNym_or_SymmetricKey(
-                    *pSymmetricKey,
+                    pSymmetricKey,
                     thePassword,
                     pstrDisplay2);  // Can't put
                                     // &strReason
@@ -4797,22 +4796,20 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                                   // its own built-in symmetric
                                                   // key.
         {
-            OTSymmetricKey* pSymmetricKey = thePurse.GetInternalKey();
-            OT_ASSERT(nullptr != pSymmetricKey);
+            auto& pSymmetricKey = thePurse.GetInternalKey();
+
+            OT_ASSERT(pSymmetricKey);
+
             const bool bGotPassphrase = thePurse.GetPassphrase(
                 thePassword, thePWData.GetDisplayString());
 
-            if (!bGotPassphrase)
+            if (!bGotPassphrase) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Authentication failed, or otherwise failed "
                          "retrieving secret from user.\n";
-            // Below this point, we know thePassword is good, and we know
-            // pSymmetricKey is good.
-            // Therefore...
-            //
-            else {
+            } else {
                 pOwner = new OTNym_or_SymmetricKey(
-                    *pSymmetricKey,
+                    pSymmetricKey,
                     thePassword,
                     pstrDisplay);  // Can't put
                                    // &strReason
@@ -11604,7 +11601,8 @@ CommandResult OT_API::sendNymInstrument(
         return output;
     }
 
-    const OTAsymmetricKey& recipientPubkey = recipientNym->GetPublicEncrKey();
+    const crypto::key::Asymmetric& recipientPubkey =
+        recipientNym->GetPublicEncrKey();
     String strInstrumentForRecipient;
     String strInstrumentForSender;
     const bool bGotPaymentContents =

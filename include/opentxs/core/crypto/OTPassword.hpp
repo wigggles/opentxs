@@ -104,14 +104,12 @@ namespace opentxs
 // written for.
 // Now I'm adding the ability to store binary data in here, not just a
 // text-based password.
-// That way, OTSymmetricKey can store its plain key in an OTPassword. Well,
-// it actually stores
-// its key in an encrypted format, but whenever, for what brief moments that
-// key is decrypted and
-// USED, the decrypted form of it will be stored in an OTPassword (in binary
-// mode.)
-// This is basically just to save me from duplicating work that's already
-// done here in OTPassword.
+// That way, crypto::key::LegacySymmetric can store its plain key in an
+// OTPassword. Well, it actually stores its key in an encrypted format, but
+// whenever, for what brief moments that key is decrypted and USED, the
+// decrypted form of it will be stored in an OTPassword (in binary mode.) This
+// is basically just to save me from duplicating work that's already done here
+// in OTPassword.
 //
 class OTPassword
 {
@@ -193,7 +191,7 @@ public:
     EXPORT static OTPassword* CreateTextBuffer();
 
     // There are certain weird cases, like in
-    // OTSymmetricKey::GetPassphraseFromUser,
+    // crypto::key::LegacySymmetric::GetPassphraseFromUser,
     // where we set the password using the getPassword_writable, and it's
     // properly
     // null-terminated, yet this instance still doesn't know its actual size

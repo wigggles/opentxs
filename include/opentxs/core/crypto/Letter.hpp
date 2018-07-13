@@ -41,25 +41,24 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <list>
 #include <map>
 #include <string>
 
 namespace opentxs
-
 {
-class AsymmetricKeyEC;
-class Nym;
-class OTPasswordData;
-class Data;
-
+typedef std::multimap<std::string, crypto::key::Asymmetric*>
+    mapOfAsymmetricKeys;
+typedef std::tuple<String, String, String, String, std::shared_ptr<OTEnvelope>>
+    symmetricEnvelope;
 typedef std::list<symmetricEnvelope> listOfSessionKeys;
 typedef std::map<proto::AsymmetricKeyType, std::string> listOfEphemeralKeys;
-typedef std::multimap<std::string, const AsymmetricKeyEC*> mapOfECKeys;
+typedef std::multimap<std::string, const crypto::key::EllipticCurve*>
+    mapOfECKeys;
 
 /** A letter is a contract that contains the contents of an OTEnvelope along
  *  with some necessary metadata.
@@ -69,7 +68,7 @@ class Letter
 private:
     static bool AddRSARecipients(
         const mapOfAsymmetricKeys& recipients,
-        const SymmetricKey& sessionKey,
+        const crypto::key::Symmetric& sessionKey,
         proto::Envelope envelope);
     static bool DefaultPassword(OTPasswordData& password);
     static bool SortRecipients(

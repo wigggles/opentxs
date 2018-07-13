@@ -49,12 +49,12 @@
 #include "opentxs/core/contract/peer/OutBailmentRequest.hpp"
 #include "opentxs/core/contract/peer/StoreSecret.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
 namespace opentxs

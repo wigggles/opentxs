@@ -42,8 +42,8 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -65,7 +65,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -75,14 +75,6 @@
 
 namespace opentxs
 {
-
-class OTAsymmetricKey;
-class CredentialSet;
-class OTPassword;
-class OTPasswordData;
-
-typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
-
 /// KeyCredential
 /// A form of Credential that contains 3 key pairs: signing,
 /// authentication, and encryption.
@@ -109,17 +101,6 @@ private:
         const CredentialModeFlag asPrivate = PRIVATE_VERSION) const;
     bool VerifySignedBySelf(const Lock& lock) const;
 
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::shared_ptr<OTKeypair> DeriveHDKeypair(
-        const OTPassword& seed,
-        const std::string& fingerprint,
-        const std::uint32_t nym,
-        const std::uint32_t credset,
-        const std::uint32_t credindex,
-        const EcdsaCurve& curve,
-        const proto::KeyRole role);
-#endif
-
 protected:
     serializedCredential serialize(
         const Lock& lock,
@@ -143,13 +124,13 @@ protected:
         const proto::Credential& serializedCred);
 
 public:
-    std::shared_ptr<OTKeypair> m_SigningKey;
-    std::shared_ptr<OTKeypair> m_AuthentKey;
-    std::shared_ptr<OTKeypair> m_EncryptKey;
+    OTKeypair signing_key_;
+    OTKeypair authentication_key_;
+    OTKeypair encryption_key_;
 
     bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting);
     EXPORT std::int32_t GetPublicKeysBySignature(
-        listOfAsymmetricKeys& listOutput,
+        crypto::key::Keypair::Keys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;  // 'S' (signing key) or
                                      // 'E' (encryption key)
@@ -174,14 +155,14 @@ public:
         proto::KeyRole key = proto::KEYROLE_SIGN,
         const OTPasswordData* pPWData = nullptr) const
     {
-        const OTKeypair* keyToUse = nullptr;
+        const crypto::key::Keypair* keyToUse{nullptr};
 
         switch (key) {
             case (proto::KEYROLE_AUTH):
-                keyToUse = m_AuthentKey.get();
+                keyToUse = &authentication_key_.get();
                 break;
             case (proto::KEYROLE_SIGN):
-                keyToUse = m_SigningKey.get();
+                keyToUse = &signing_key_.get();
                 break;
             case (proto::KEYROLE_ERROR):
             case (proto::KEYROLE_ENCRYPT):
@@ -198,7 +179,24 @@ public:
 
         return false;
     }
+
+private:
+    static OTKeypair deserialize_key(
+        const int index,
+        const proto::Credential& credential);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    static OTKeypair derive_hd_keypair(
+        const OTPassword& seed,
+        const std::string& fingerprint,
+        const std::uint32_t nym,
+        const std::uint32_t credset,
+        const std::uint32_t credindex,
+        const EcdsaCurve& curve,
+        const proto::KeyRole role);
+#endif
+    static OTKeypair new_key(
+        const proto::KeyRole role,
+        const NymParameters& nymParameters);
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP

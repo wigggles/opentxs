@@ -45,6 +45,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/NymFile.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -74,7 +75,6 @@ typedef std::deque<Message*> dequeOfMail;
 typedef std::deque<std::int64_t> dequeOfTransNums;
 typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 typedef std::map<std::string, CredentialSet*> mapOfCredentialSets;
-typedef std::list<OTAsymmetricKey*> listOfAsymmetricKeys;
 typedef bool CredentialIndexModeFlag;
 
 class Nym : public opentxs::NymFile, public Lockable
@@ -148,21 +148,21 @@ public:
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
         std::int32_t* pnReturnIndex = nullptr) const override;
     EXPORT std::int32_t GetOutpaymentsCount() const override;
-    EXPORT const OTAsymmetricKey& GetPrivateAuthKey() const;
-    EXPORT const OTAsymmetricKey& GetPrivateEncrKey() const;
-    EXPORT const OTAsymmetricKey& GetPrivateSignKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicAuthKey() const;
-    EXPORT const OTAsymmetricKey& GetPublicEncrKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateAuthKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateEncrKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateSignKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPublicAuthKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPublicEncrKey() const;
     // OT uses the signature's metadata to narrow down its search for the
     // correct public key.
     // 'S' (signing key) or
     // 'E' (encryption key) OR
     // 'A' (authentication key)
     EXPORT std::int32_t GetPublicKeysBySignature(
-        listOfAsymmetricKeys& listOutput,
+        crypto::key::Keypair::Keys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;
-    EXPORT const OTAsymmetricKey& GetPublicSignKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPublicSignKey() const;
     EXPORT const std::vector<OTIdentifier> GetRevokedCredentialIDs() const;
     EXPORT const std::int64_t& GetUsageCredits() const override
     {
@@ -206,11 +206,13 @@ public:
         const proto::ContactItemType currency,
         const bool primary,
         const bool active = true);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     EXPORT bool AddPaymentCode(
         const class PaymentCode& code,
         const proto::ContactItemType currency,
         const bool primary,
         const bool active = true);
+#endif
     EXPORT bool AddPreferredOTServer(const Identifier& id, const bool primary);
     EXPORT bool DeleteClaim(const Identifier& id);
     EXPORT void DisplayStatistics(String& strOutput) const override;
@@ -404,11 +406,11 @@ private:
         const std::string& str_id,
         Identifier& theOutput) const;
     template <typename T>
-    const OTAsymmetricKey& get_private_auth_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_private_auth_key(const T& lock) const;
     template <typename T>
-    const OTAsymmetricKey& get_private_sign_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_private_sign_key(const T& lock) const;
     template <typename T>
-    const OTAsymmetricKey& get_public_sign_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_public_sign_key(const T& lock) const;
     bool has_capability(const eLock& lock, const NymCapability& capability)
         const;
     void init_claims(const eLock& lock) const;

@@ -61,17 +61,12 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -97,8 +92,13 @@
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -605,8 +605,17 @@ std::string OTAPI_Exec::CreateNymHD(
         return {};
     }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto code = PaymentCode::Factory(nym->PaymentCode());
-    contacts_.NewContact(name, nym->ID(), code);
+#endif
+    contacts_.NewContact(
+        name,
+        nym->ID()
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+            ,
+        code
+#endif
+    );
 
     return nym->ID().str();
 #else
@@ -3523,7 +3532,7 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
     String strOutput;
     std::string strDisplay = "OTAPI: Creating a new symmetric key.";
     const String otstrDisplay(strDisplay);
-    const bool bSuccess = OTSymmetricKey::CreateNewKey(
+    const bool bSuccess = crypto::key::LegacySymmetric::CreateNewKey(
         strOutput, &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return {};
@@ -3534,9 +3543,11 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
 }
 
 // OTEnvelope:
-//     bool Encrypt(const OTString& theInput, OTSymmetricKey& theKey,
+//     bool Encrypt(const OTString& theInput, crypto::key::LegacySymmetric&
+//     theKey,
 // const OTPassword& thePassword);
-//     bool Decrypt(OTString& theOutput, const OTSymmetricKey& theKey,
+//     bool Decrypt(OTString& theOutput, const crypto::key::LegacySymmetric&
+//     theKey,
 // const OTPassword& thePassword);
 
 // Returns the CIPHERTEXT_ENVELOPE (the Envelope encrypted with the Symmetric
@@ -3558,7 +3569,7 @@ std::string OTAPI_Exec::SymmetricEncrypt(
     String strOutput;
     std::string strDisplay = "OTAPI: Password-protecting a plaintext.";
     const String otstrDisplay(strDisplay);
-    const bool bSuccess = OTSymmetricKey::Encrypt(
+    const bool bSuccess = crypto::key::LegacySymmetric::Encrypt(
         strKey,
         strPlaintext,
         strOutput,
@@ -3590,7 +3601,7 @@ std::string OTAPI_Exec::SymmetricDecrypt(
     std::string strDisplay =
         "OTAPI: Decrypting a password-protected ciphertext.";
     const String otstrDisplay(strDisplay);
-    const bool bSuccess = OTSymmetricKey::Decrypt(
+    const bool bSuccess = crypto::key::LegacySymmetric::Decrypt(
         strKey, strCiphertext, strOutput, &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return {};

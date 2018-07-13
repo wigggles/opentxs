@@ -42,10 +42,10 @@
 #if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Proto.hpp"
 
 #include "storage/StorageConfig.hpp"
@@ -86,9 +86,9 @@ StorageFSArchive::StorageFSArchive(
     const Random& random,
     const Flag& bucket,
     const std::string& folder,
-    std::unique_ptr<SymmetricKey>& key)
+    crypto::key::Symmetric& key)
     : ot_super(storage, config, hash, random, folder, bucket)
-    , encryption_key_(key.release())
+    , encryption_key_(key)
     , encrypted_(bool(encryption_key_))
 {
     Init_StorageFSArchive();
@@ -165,7 +165,7 @@ std::string StorageFSArchive::prepare_read(const std::string& input) const
     std::string output{};
     OTPasswordData reason("");
 
-    if (false == encryption_key_->Decrypt(ciphertext, reason, output)) {
+    if (false == encryption_key_.Decrypt(ciphertext, reason, output)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to decrypt value."
               << std::endl;
     }
@@ -183,7 +183,7 @@ std::string StorageFSArchive::prepare_write(const std::string& plaintext) const
     auto iv = Data::Factory();
     OTPasswordData reason("");
     const bool encrypted =
-        encryption_key_->Encrypt(plaintext, iv, reason, ciphertext, false);
+        encryption_key_.Encrypt(plaintext, iv, reason, ciphertext, false);
 
     if (false == encrypted) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to encrypt value."

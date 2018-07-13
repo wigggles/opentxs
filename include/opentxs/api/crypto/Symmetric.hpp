@@ -55,14 +55,14 @@ namespace crypto
 class Symmetric
 {
 public:
-    virtual std::unique_ptr<SymmetricKey> Key(
+    virtual OTSymmetricKey Key(
         const OTPasswordData& password,
         const proto::SymmetricMode mode =
             proto::SMODE_CHACHA20POLY1305) const = 0;
-    virtual std::unique_ptr<SymmetricKey> Key(
+    virtual OTSymmetricKey Key(
         const proto::SymmetricKey& serialized,
         const proto::SymmetricMode mode) const = 0;
-    virtual std::unique_ptr<SymmetricKey> Key(
+    virtual OTSymmetricKey Key(
         const OTPassword& seed,
         const std::uint64_t operations = 0,
         const std::uint64_t difficulty = 0,

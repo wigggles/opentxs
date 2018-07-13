@@ -43,14 +43,6 @@
 
 namespace opentxs
 {
-
-class OTEnvelope;
-class Identifier;
-class OTPassword;
-class Nym;
-class String;
-class OTSymmetricKey;
-
 // There are certain cases where we want the option to pass a Nym OR a
 // symmetric key, and the function should be able to handle either.
 // This class is used to make that possible.
@@ -60,7 +52,7 @@ class OTNym_or_SymmetricKey
 private:
     Nym* m_pNym;
 
-    OTSymmetricKey* m_pKey{nullptr};
+    crypto::key::LegacySymmetric* m_pKey{nullptr};
     OTPassword* m_pPassword{nullptr};  // optional. Goes with m_pKey.
 
     // m_pPassword is usually not owned. But if we create it and keep it around
@@ -77,7 +69,7 @@ private:
 
 public:
     EXPORT Nym* GetNym() const { return m_pNym; }
-    EXPORT OTSymmetricKey* GetKey() const { return m_pKey; }
+    EXPORT crypto::key::LegacySymmetric* GetKey() const { return m_pKey; }
     EXPORT OTPassword* GetPassword() const
     {
         return m_pPassword;
@@ -96,9 +88,9 @@ public:
     EXPORT bool CompareID(const OTNym_or_SymmetricKey& rhs) const;
 
     // Seal / Open is for public / private key crypto. (With OTPseudonym and
-    // OTAsymmetricKey.)
+    // crypto::key::Asymmetric.)
     // Whereas Encrypt/Decrypt is for symmetric key crypto (With
-    // OTSymmetricKey.)
+    // crypto::key::LegacySymmetric.)
     EXPORT bool Seal_or_Encrypt(
         OTEnvelope& outputEnvelope,
         const String& strInput,
@@ -116,10 +108,10 @@ public:
         const Nym& theNym,
         const String* pstrDisplay = nullptr);
     EXPORT OTNym_or_SymmetricKey(
-        const OTSymmetricKey& theKey,
+        const crypto::key::LegacySymmetric& theKey,
         const String* pstrDisplay = nullptr);
     EXPORT OTNym_or_SymmetricKey(
-        const OTSymmetricKey& theKey,
+        const crypto::key::LegacySymmetric& theKey,
         const OTPassword& thePassword,
         const String* pstrDisplay = nullptr);
 

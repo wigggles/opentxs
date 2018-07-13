@@ -338,7 +338,7 @@ std::uint32_t Storage::HashType() const { return HASH_TYPE; }
 
 void Storage::InitBackup() { multiplex_.InitBackup(); }
 
-void Storage::InitEncryptedBackup(std::unique_ptr<SymmetricKey>& key)
+void Storage::InitEncryptedBackup(opentxs::crypto::key::Symmetric& key)
 {
     multiplex_.InitEncryptedBackup(key);
 }

@@ -46,13 +46,13 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/OT.hpp"
 
 template class opentxs::Pimpl<opentxs::Identifier>;
@@ -123,7 +123,7 @@ OTIdentifier Identifier::Factory(const Cheque& cheque)
     return output;
 }
 
-OTIdentifier Identifier::Factory(const OTSymmetricKey& key)
+OTIdentifier Identifier::Factory(const crypto::key::LegacySymmetric& key)
 {
     return OTIdentifier(new Identifier(key));
 }
@@ -210,11 +210,11 @@ Identifier::Identifier(const Nym& theNym)
     (const_cast<Nym&>(theNym)).GetIdentifier(*this);
 }
 
-Identifier::Identifier(const OTSymmetricKey& theKey)
+Identifier::Identifier(const crypto::key::LegacySymmetric& theKey)
     : ot_super()  // Get the Symmetric Key's ID into *this. (It's a hash of the
                   // encrypted form of the symmetric key.)
 {
-    (const_cast<OTSymmetricKey&>(theKey)).GetIdentifier(*this);
+    (const_cast<crypto::key::LegacySymmetric&>(theKey)).GetIdentifier(*this);
 }
 
 Identifier::Identifier(const OTCachedKey& theKey)

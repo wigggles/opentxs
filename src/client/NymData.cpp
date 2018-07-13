@@ -43,7 +43,9 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
+#endif
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -116,6 +118,7 @@ bool NymData::AddEmail(
     return nym().AddEmail(value, primary, active);
 }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool NymData::AddPaymentCode(
     const std::string& code,
     const proto::ContactItemType currency,
@@ -133,6 +136,7 @@ bool NymData::AddPaymentCode(
 
     return nym().AddPaymentCode(paymentCode, currency, primary, active);
 }
+#endif
 
 bool NymData::AddPhoneNumber(
     const std::string& value,

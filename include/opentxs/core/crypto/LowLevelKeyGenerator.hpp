@@ -95,7 +95,9 @@ public:
     explicit LowLevelKeyGenerator(const NymParameters& pkeyData);
 
     bool MakeNewKeypair();
-    bool SetOntoKeypair(OTKeypair& theKeypair, OTPasswordData& passwordData);
+    bool SetOntoKeypair(
+        crypto::key::Keypair& theKeypair,
+        OTPasswordData& passwordData);
 
     ~LowLevelKeyGenerator();
 };

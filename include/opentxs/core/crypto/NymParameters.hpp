@@ -42,10 +42,10 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/crypto/Credential.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/core/crypto/OTPassword.hpp"
 #endif
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 

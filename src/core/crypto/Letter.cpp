@@ -44,26 +44,10 @@
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/AsymmetricKeyEC.hpp"
-#include "opentxs/core/crypto/AsymmetricKeyEd25519.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
-#endif
-#include "opentxs/core/crypto/CryptoHash.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#include "opentxs/core/crypto/Ecdsa.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
-#endif
-#include "opentxs/core/crypto/Libsodium.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OpenSSL.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/SymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -73,6 +57,26 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/Ed25519.hpp"
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#include "opentxs/crypto/key/EllipticCurve.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#endif
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/crypto/library/HashingProvider.hpp"
+#if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/crypto/library/OpenSSL.hpp"
+#endif
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#endif
+#include "opentxs/crypto/library/Sodium.hpp"
+#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
@@ -85,14 +89,14 @@
 namespace opentxs
 {
 bool Letter::AddRSARecipients(
-    __attribute__((unused)) const mapOfAsymmetricKeys& recipients,
-    __attribute__((unused)) const SymmetricKey& sessionKey,
-    __attribute__((unused)) proto::Envelope envelope)
+    [[maybe_unused]] const mapOfAsymmetricKeys& recipients,
+    [[maybe_unused]] const crypto::key::Symmetric& sessionKey,
+    [[maybe_unused]] proto::Envelope envelope)
 {
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_USING_OPENSSL
-    const OpenSSL& engine =
-        static_cast<const OpenSSL&>(OT::App().Crypto().RSA());
+    const crypto::OpenSSL& engine =
+        dynamic_cast<const crypto::OpenSSL&>(OT::App().Crypto().RSA());
 #endif
 
     // Encrypt the session key to all RSA recipients and add the
@@ -139,34 +143,41 @@ bool Letter::DefaultPassword(OTPasswordData& password)
 
 bool Letter::SortRecipients(
     const mapOfAsymmetricKeys& recipients,
-    mapOfAsymmetricKeys& RSARecipients,
-    __attribute__((unused)) mapOfECKeys& secp256k1Recipients,
-    mapOfECKeys& ed25519Recipients)
+    [[maybe_unused]] mapOfAsymmetricKeys& RSARecipients,
+    [[maybe_unused]] mapOfECKeys& secp256k1Recipients,
+    [[maybe_unused]] mapOfECKeys& ed25519Recipients)
 {
     for (auto& it : recipients) {
         switch (it.second->keyType()) {
-            case proto::AKEYTYPE_SECP256K1:
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+            case proto::AKEYTYPE_SECP256K1: {
                 secp256k1Recipients.insert(
-                    std::pair<std::string, const AsymmetricKeyEC*>(
+                    std::pair<std::string, const crypto::key::EllipticCurve*>(
                         it.first,
-                        static_cast<const AsymmetricKeySecp256k1*>(it.second)));
-#endif
-                break;
-            case proto::AKEYTYPE_ED25519:
+                        dynamic_cast<const crypto::key::Secp256k1*>(
+                            it.second)));
+            } break;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+            case proto::AKEYTYPE_ED25519: {
                 ed25519Recipients.insert(
-                    std::pair<std::string, const AsymmetricKeyEC*>(
+                    std::pair<std::string, const crypto::key::EllipticCurve*>(
                         it.first,
-                        static_cast<const AsymmetricKeyEd25519*>(it.second)));
-                break;
-            case proto::AKEYTYPE_LEGACY:
-                RSARecipients.insert(std::pair<std::string, OTAsymmetricKey*>(
-                    it.first, it.second));
-                break;
-            default:
+                        dynamic_cast<const crypto::key::Ed25519*>(it.second)));
+            } break;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+            case proto::AKEYTYPE_LEGACY: {
+                RSARecipients.insert(
+                    std::pair<std::string, crypto::key::Asymmetric*>(
+                        it.first, it.second));
+            } break;
+#endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
+            default: {
                 otErr << __FUNCTION__ << ": Unknown recipient type."
                       << std::endl;
                 return false;
+            }
         }
     }
 
@@ -191,7 +202,8 @@ bool Letter::Seal(
     }
 
     const bool haveRecipientsECDSA = (0 < secp256k1Recipients.size());
-    const bool haveRecipientsED25519 = (0 < ed25519Recipients.size());
+    [[maybe_unused]] const bool haveRecipientsED25519 =
+        (0 < ed25519Recipients.size());
 
     OTPasswordData defaultPassword("");
     DefaultPassword(defaultPassword);
@@ -210,32 +222,33 @@ bool Letter::Seal(
     }
 
     if (0 < RSARecipients.size()) {
-        if (!AddRSARecipients(RSARecipients, *sessionKey, output)) {
+        if (!AddRSARecipients(RSARecipients, sessionKey, output)) {
             return false;
         }
     }
 
+    [[maybe_unused]] auto dhRawKey = crypto::key::Asymmetric::Factory();
+    [[maybe_unused]] const crypto::key::EllipticCurve* dhPrivateKey { nullptr };
+
     if (haveRecipientsECDSA) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_USING_LIBSECP256K1
-        const Ecdsa& engine =
-            static_cast<const Libsecp256k1&>(OT::App().Crypto().SECP256K1());
+        const crypto::EcdsaProvider& engine =
+            dynamic_cast<const crypto::Secp256k1&>(
+                OT::App().Crypto().SECP256K1());
 #endif
-        std::unique_ptr<OTKeypair> dhKeypair;
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::SECP256K1);
-        dhKeypair.reset(new OTKeypair(parameters, proto::KEYROLE_ENCRYPT));
-
-        OT_ASSERT(dhKeypair);
-
+        auto dhKeypair =
+            crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
+        dhRawKey =
+            crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
+        dhPrivateKey =
+            dynamic_cast<const crypto::key::Secp256k1*>(&dhRawKey.get());
 
-        std::unique_ptr<AsymmetricKeyEC> dhPrivateKey;
-        dhPrivateKey.reset(static_cast<AsymmetricKeySecp256k1*>(
-            OTAsymmetricKey::KeyFactory(*dhKeypair->Serialize(true))));
-
-        OT_ASSERT(dhPrivateKey);
+        OT_ASSERT(nullptr != dhPrivateKey);
 
         // Individually encrypt the session key to each recipient and add
         // the encrypted key to the global list of session keys for this
@@ -246,7 +259,7 @@ bool Letter::Seal(
                 *dhPrivateKey,
                 *it.second,
                 defaultPassword,
-                *sessionKey,
+                sessionKey,
                 newKeyPassword);
 
             if (haveSessionKey) {
@@ -261,31 +274,29 @@ bool Letter::Seal(
         }
 #else
         otErr << __FUNCTION__ << ": Attempting to Seal to "
-              << "secp256k1 recipients without Libsecp256k1 support."
+              << "secp256k1 recipients without crypto::Secp256k1 support."
               << std::endl;
 
         return false;
 #endif
     }
 
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
     if (haveRecipientsED25519) {
-        const Ecdsa& engine =
-            static_cast<const Libsodium&>(OT::App().Crypto().ED25519());
-        std::unique_ptr<OTKeypair> dhKeypair;
+        const crypto::EcdsaProvider& engine =
+            dynamic_cast<const crypto::Sodium&>(OT::App().Crypto().ED25519());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
-        dhKeypair.reset(new OTKeypair(parameters, proto::KEYROLE_ENCRYPT));
-
-        OT_ASSERT(dhKeypair);
-
+        auto dhKeypair =
+            crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
         auto& newDhKey = *output.add_dhkey();
         newDhKey = *dhKeypair->Serialize(false);
+        dhRawKey =
+            crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
+        dhPrivateKey =
+            dynamic_cast<const crypto::key::Ed25519*>(&dhRawKey.get());
 
-        std::unique_ptr<AsymmetricKeyEC> dhPrivateKey;
-        dhPrivateKey.reset(static_cast<AsymmetricKeyEd25519*>(
-            OTAsymmetricKey::KeyFactory(*dhKeypair->Serialize(true))));
-
-        OT_ASSERT(dhPrivateKey);
+        OT_ASSERT(nullptr != dhPrivateKey);
 
         // Individually encrypt the session key to each recipient and add
         // the encrypted key to the global list of session keys for this
@@ -296,7 +307,7 @@ bool Letter::Seal(
                 *dhPrivateKey,
                 *it.second,
                 defaultPassword,
-                *sessionKey,
+                sessionKey,
                 newKeyPassword);
 
             if (haveSessionKey) {
@@ -310,6 +321,7 @@ bool Letter::Seal(
             }
         }
     }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
     auto temp = proto::ProtoAsData(output);
     dataOutput.Assign(temp->GetPointer(), temp->GetSize());
@@ -335,7 +347,8 @@ bool Letter::Open(
 
     // Attempt to decrypt the session key
     bool haveSessionKey = false;
-    const OTAsymmetricKey& privateKey = theRecipient.GetPrivateEncrKey();
+    const crypto::key::Asymmetric& privateKey =
+        theRecipient.GetPrivateEncrKey();
     const auto privateKeyType = privateKey.keyType();
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     const bool rsa = privateKeyType == proto::AKEYTYPE_LEGACY;
@@ -343,17 +356,19 @@ bool Letter::Open(
     const bool ed25519 = (privateKeyType == proto::AKEYTYPE_ED25519);
     const bool secp256k1 = (privateKeyType == proto::AKEYTYPE_SECP256K1);
     const bool ec = (ed25519 || secp256k1);
-    std::unique_ptr<SymmetricKey> key;
+    auto key = crypto::key::Symmetric::Factory();
 
     if (ec) {
-        const AsymmetricKeyEC* ecKey = nullptr;
+        const crypto::key::EllipticCurve* ecKey = nullptr;
 
         if (secp256k1) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-            ecKey = static_cast<const AsymmetricKeySecp256k1*>(&privateKey);
-#endif
+            ecKey = dynamic_cast<const crypto::key::Secp256k1*>(&privateKey);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         } else if (ed25519) {
-            ecKey = static_cast<const AsymmetricKeyEd25519*>(&privateKey);
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+            ecKey = dynamic_cast<const crypto::key::Ed25519*>(&privateKey);
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
         }
 
         if (nullptr == ecKey) {
@@ -381,24 +396,30 @@ bool Letter::Open(
             return false;
         }
 
-        std::unique_ptr<AsymmetricKeyEC> dhPublicKey;
+        const auto dhRawKey = crypto::key::Asymmetric::Factory(ephemeralPubkey);
+        const crypto::key::EllipticCurve* dhPublicKey{nullptr};
+
         if (secp256k1) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-            dhPublicKey.reset(static_cast<AsymmetricKeySecp256k1*>(
-                OTAsymmetricKey::KeyFactory(ephemeralPubkey)));
-#endif
+            dhPublicKey =
+                dynamic_cast<const crypto::key::Secp256k1*>(&dhRawKey.get());
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         } else if (ed25519) {
-            dhPublicKey.reset(static_cast<AsymmetricKeyEd25519*>(
-                OTAsymmetricKey::KeyFactory(ephemeralPubkey)));
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+            dhPublicKey =
+                dynamic_cast<const crypto::key::Ed25519*>(&dhRawKey.get());
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
         }
 
-        // The only way to know which session key (might) belong to us to try
-        // them all
+        OT_ASSERT(nullptr != dhPublicKey)
+
+        // The only way to know which session key (might) belong to us to
+        // try them all
         for (auto& it : serialized.sessionkey()) {
             key = OT::App().Crypto().Symmetric().Key(
                 it, serialized.ciphertext().mode());
             haveSessionKey = ecKey->ECDSA().DecryptSessionKeyECDH(
-                *ecKey, *dhPublicKey, keyPassword, *key);
+                *ecKey, *dhPublicKey, keyPassword, key);
 
             if (haveSessionKey) { break; }
         }
@@ -407,8 +428,8 @@ bool Letter::Open(
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
     if (rsa) {
 #if OT_CRYPTO_USING_OPENSSL
-        const OpenSSL& engine =
-            static_cast<const OpenSSL&>(OT::App().Crypto().RSA());
+        const crypto::OpenSSL& engine =
+            dynamic_cast<const crypto::OpenSSL&>(OT::App().Crypto().RSA());
 #endif
         auto serializedKey = Data::Factory(
             serialized.rsakey().data(), serialized.rsakey().size());

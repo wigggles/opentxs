@@ -59,7 +59,9 @@ class Native : virtual public opentxs::api::NativeInternal
 public:
     const api::Activity& Activity() const override;
     const api::Api& API() const override;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     const api::Blockchain& Blockchain() const override;
+#endif
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
     const api::ContactManager& Contact() const override;
@@ -114,7 +116,9 @@ private:
     mutable TaskList periodic_task_list;
     std::unique_ptr<api::Activity> activity_;
     std::unique_ptr<api::Api> api_;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::Blockchain> blockchain_;
+#endif
     mutable ConfigMap config_;
     std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<api::Crypto> crypto_;
@@ -124,7 +128,9 @@ private:
     std::unique_ptr<api::client::Wallet> wallet_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
-    std::unique_ptr<SymmetricKey> storage_encryption_key_;
+#if OT_CRYPTO_WITH_BIP39
+    OTSymmetricKey storage_encryption_key_;
+#endif
     std::unique_ptr<api::Server> server_;
     std::unique_ptr<api::UI> ui_;
     OTZMQContext zmq_context_;
@@ -157,7 +163,9 @@ private:
 
     void Init_Activity();
     void Init_Api();
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     void Init_Blockchain();
+#endif
     void Init_Config();
     void Init_Contacts();
     void Init_Contracts();

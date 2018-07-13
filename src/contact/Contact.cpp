@@ -48,7 +48,9 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
+#endif
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -364,6 +366,7 @@ bool Contact::AddNym(const Identifier& nymID, const bool primary)
     return true;
 }
 
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool Contact::AddPaymentCode(
     const class PaymentCode& code,
     const bool primary,
@@ -398,6 +401,7 @@ bool Contact::AddPaymentCode(
 
     return true;
 }
+#endif
 
 bool Contact::AddPhoneNumber(
     const std::string& value,

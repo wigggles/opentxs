@@ -52,7 +52,6 @@
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
@@ -72,6 +71,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 
 #include "Macros.hpp"
 #include "MainFile.hpp"
@@ -416,15 +416,14 @@ bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
     proto::AsymmetricKeyType keytypeAuthent =
         static_cast<proto::AsymmetricKeyType>(msgIn.keytypeAuthent_);
 
-    std::unique_ptr<OTAsymmetricKey> nymAuthentKey{nullptr};
-    nymAuthentKey.reset(
-        OTAsymmetricKey::KeyFactory(keytypeAuthent, msgIn.m_strNymPublicKey));
+    auto nymAuthentKey = crypto::key::Asymmetric::Factory(
+        keytypeAuthent, msgIn.m_strNymPublicKey);
 
-    if (false == bool(nymAuthentKey)) { return false; }
+    if (false == bool(nymAuthentKey.get())) { return false; }
 
     // Not all contracts are signed with the authentication key, but messages
     // are.
-    if (!msgIn.VerifyWithKey(*nymAuthentKey)) {
+    if (!msgIn.VerifyWithKey(nymAuthentKey)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Signature verification failed!"
               << std::endl;
 

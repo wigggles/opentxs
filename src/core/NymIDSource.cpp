@@ -44,7 +44,6 @@
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -54,8 +53,9 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <memory>
@@ -67,14 +67,14 @@ namespace opentxs
 NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     : version_(serializedSource.version())
     , type_(serializedSource.type())
-    , pubkey_(nullptr)
+    , pubkey_(crypto::key::Asymmetric::Factory())
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     , payment_code_(PaymentCode::Factory(""))
 #endif
 {
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY: {
-            pubkey_.reset(OTAsymmetricKey::KeyFactory(serializedSource.key()));
+            pubkey_ = crypto::key::Asymmetric::Factory(serializedSource.key());
 
             break;
         }
@@ -101,19 +101,20 @@ NymIDSource::NymIDSource(
     proto::AsymmetricKey& pubkey)
     : version_(1)
     , type_(nymParameters.SourceType())
-    , pubkey_(nullptr)
+    , pubkey_(crypto::key::Asymmetric::Factory(pubkey))
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     , payment_code_(PaymentCode::Factory(""))
 #endif
+
 {
-    pubkey_.reset(OTAsymmetricKey::KeyFactory(pubkey));
+    OT_ASSERT(pubkey_.get());
 }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 NymIDSource::NymIDSource(const PaymentCode& source)
     : version_(1)
     , type_(proto::SOURCETYPE_BIP47)
-    , pubkey_(nullptr)
+    , pubkey_(crypto::key::Asymmetric::Factory())
     , payment_code_(PaymentCode::Factory(source))
 {
 }
@@ -186,13 +187,15 @@ serializedNymIDSource NymIDSource::Serialize() const
     source->set_version(version_);
     source->set_type(type_);
 
-    serializedAsymmetricKey key;
+    std::shared_ptr<proto::AsymmetricKey> key;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     SerializedPaymentCode paycode;
 #endif
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
+            OT_ASSERT(pubkey_.get())
+
             key = pubkey_->Serialize();
             key->set_role(proto::KEYROLE_SIGN);
             *(source->mutable_key()) = *key;
@@ -221,11 +224,11 @@ bool NymIDSource::Verify(
     serializedCredential serializedMaster;
     bool isSelfSigned, sameSource;
     std::unique_ptr<proto::AsymmetricKey> signingKey;
-    serializedAsymmetricKey sourceKey;
+    std::shared_ptr<proto::AsymmetricKey> sourceKey;
 
     switch (type_) {
         case proto::SOURCETYPE_PUBKEY:
-            if (!pubkey_) { return false; }
+            if (!pubkey_.get()) { return false; }
 
             isSelfSigned =
                 (proto::SOURCEPROOFTYPE_SELF_SIGNATURE ==
@@ -330,7 +333,7 @@ String NymIDSource::Description() const
 
     switch (type_) {
         case (proto::SOURCETYPE_PUBKEY):
-            if (pubkey_) {
+            if (pubkey_.get()) {
                 pubkey_->CalculateID(keyID);
                 description = String(keyID);
             }

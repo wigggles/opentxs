@@ -63,7 +63,6 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -85,10 +84,11 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/Types.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/Proto.hpp"
+#include "opentxs/Types.hpp"
 
 #include <cinttypes>
 #include <cstdint>

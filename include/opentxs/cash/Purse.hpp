@@ -45,6 +45,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 
 #include <cstdint>
 #include <deque>
@@ -52,14 +53,6 @@
 
 namespace opentxs
 {
-class Nym;
-class OTASCIIArmor;
-class OTCachedKey;
-class OTNym_or_SymmetricKey;
-class OTPassword;
-class OTSymmetricKey;
-class Token;
-
 // A token has no Nym ID, or Account ID, or even a traceable TokenID (the
 // tokenID only becomes relevant after it is spent.) But a purse can be stuffed
 // full of tokens, and can be saved by accountID as filename, and can have its
@@ -117,7 +110,9 @@ protected:
                                      // what the correct NymID is, or it won't
                                      // work.) This bool tells us whether the ID
                                      // is attached, or not.
-    OTSymmetricKey* m_pSymmetricKey{nullptr};  // If this purse contains its own
+    OTLegacySymmetricKey m_pSymmetricKey{
+        crypto::key::LegacySymmetric::Blank()};  // If this purse
+                                                 // contains its own
     // symmetric key (instead of using an
     // owner Nym)...
     // ...then it will have a master key as well, for unlocking that symmetric
@@ -161,7 +156,10 @@ public:
     /** Create internal symmetric key for password-protected purse. */
     EXPORT bool GenerateInternalKey();
     /** symmetric key for this purse.*/
-    EXPORT OTSymmetricKey* GetInternalKey() { return m_pSymmetricKey; }
+    EXPORT crypto::key::LegacySymmetric& GetInternalKey()
+    {
+        return m_pSymmetricKey;
+    }
     /** stores the passphrase for the symmetric key.*/
     EXPORT const OTCachedKey& GetInternalMaster();
     /** Retrieves the passphrase for this purse (which is cached by the master

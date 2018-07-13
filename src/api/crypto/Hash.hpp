@@ -41,17 +41,8 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/crypto/Hash.hpp"
-
-namespace opentxs
+namespace opentxs::api::crypto::implementation
 {
-namespace api
-{
-namespace crypto
-{
-namespace implementation
-{
-
 class Hash : public api::crypto::Hash
 {
 public:
@@ -78,13 +69,13 @@ public:
     ~Hash() = default;
 
 private:
-    friend class api::implementation::Crypto;
+    friend Factory;
 
     api::crypto::Encode& encode_;
-    CryptoHash& ssl_;
-    CryptoHash& sodium_;
+    opentxs::crypto::HashingProvider& ssl_;
+    opentxs::crypto::HashingProvider& sodium_;
 #if OT_CRYPTO_USING_TREZOR
-    TrezorCrypto& bitcoin_;
+    opentxs::crypto::Trezor& bitcoin_;
 #endif
 
     static bool Allocate(const proto::HashType hashType, OTPassword& input);
@@ -97,11 +88,11 @@ private:
         std::uint8_t* output) const;
     Hash(
         api::crypto::Encode& encode,
-        CryptoHash& ssl,
-        CryptoHash& sodium
+        opentxs::crypto::HashingProvider& ssl,
+        opentxs::crypto::HashingProvider& sodium
 #if OT_CRYPTO_USING_TREZOR
         ,
-        TrezorCrypto& bitcoin
+        opentxs::crypto::Trezor& bitcoin
 #endif
     );
     bool HMAC(
@@ -111,16 +102,13 @@ private:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const;
-    CryptoHash& SHA2() const;
-    CryptoHash& Sodium() const;
+    opentxs::crypto::HashingProvider& SHA2() const;
+    opentxs::crypto::HashingProvider& Sodium() const;
 
     Hash(const Hash&) = delete;
     Hash(Hash&&) = delete;
     Hash& operator=(const Hash&) = delete;
     Hash& operator=(Hash&&) = delete;
 };
-}  // namespace implementation
-}  // namespace crypto
-}  // namespace api
-}  // namespace opentxs
+}  // namespace opentxs::api::crypto::implementation
 #endif  // OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP

@@ -38,6 +38,9 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -45,13 +48,15 @@
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Blockchain.hpp"
-#include "opentxs/core/crypto/AsymmetricKeySecp256k1.hpp"
-#include "opentxs/core/crypto/Bip32.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#endif
+#include "opentxs/crypto/Bip32.hpp"
 
 #include <map>
 #include <mutex>
@@ -408,20 +413,18 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    std::unique_ptr<OTAsymmetricKey> key{nullptr};
-    std::unique_ptr<AsymmetricKeySecp256k1> ecKey{nullptr};
-    key.reset(OTAsymmetricKey::KeyFactory(*serialized));
+    const auto key{opentxs::crypto::key::Asymmetric::Factory(*serialized)};
+    const opentxs::crypto::key::Secp256k1* ecKey{
+        dynamic_cast<const opentxs::crypto::key::Secp256k1*>(&key.get())};
 
-    if (false == bool(key)) {
+    if (false == bool(key.get())) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate key."
               << std::endl;
 
         return {};
     }
 
-    ecKey.reset(dynamic_cast<AsymmetricKeySecp256k1*>(key.release()));
-
-    if (false == bool(ecKey)) {
+    if (nullptr == ecKey) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect key type."
               << std::endl;
 
@@ -798,3 +801,4 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
     return output;
 }
 }  // namespace opentxs::api::implementation
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD

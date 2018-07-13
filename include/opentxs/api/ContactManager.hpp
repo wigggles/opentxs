@@ -72,8 +72,12 @@ public:
         const std::string& label) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> NewContact(
         const std::string& label,
-        const Identifier& nymID,
-        const PaymentCode& paymentCode) const = 0;
+        const Identifier& nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        ,
+        const PaymentCode& paymentCode
+#endif
+        ) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> NewContactFromAddress(
         const std::string& address,
         const std::string& label,

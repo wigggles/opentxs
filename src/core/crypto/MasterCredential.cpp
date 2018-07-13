@@ -52,7 +52,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -68,8 +68,6 @@
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
-#include "opentxs/core/crypto/OTKeypair.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
@@ -78,8 +76,10 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NymIDSource.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <memory>
 #include <ostream>
@@ -172,7 +172,7 @@ MasterCredential::MasterCredential(
             "non self-signed credentials not yet implemented");
 
         source = std::make_shared<NymIDSource>(
-            nymParameters, *(m_SigningKey->GetPublicKey().Serialize()));
+            nymParameters, *(signing_key_->GetPublicKey().Serialize()));
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
 
@@ -272,11 +272,7 @@ bool MasterCredential::hasCapability(const NymCapability& capability) const
 {
     switch (capability) {
         case (NymCapability::SIGN_CHILDCRED): {
-            if (m_SigningKey) {
-                return m_SigningKey->hasCapability(capability);
-            }
-
-            break;
+            return signing_key_->hasCapability(capability);
         }
         default: {
         }
@@ -287,25 +283,20 @@ bool MasterCredential::hasCapability(const NymCapability& capability) const
 
 bool MasterCredential::Path(proto::HDPath& output) const
 {
-    if (false == bool(m_SigningKey)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": No signing key." << std::endl;
-
-        return false;
-    }
-
-    if (false == m_SigningKey->HasPrivateKey()) {
+    if (false == signing_key_->HasPrivateKey()) {
         otErr << OT_METHOD << __FUNCTION__ << ": No private key." << std::endl;
 
         return false;
     }
 
-    const bool found = m_SigningKey->GetPrivateKey().Path(output);
+    const bool found = signing_key_->GetPrivateKey().Path(output);
     output.mutable_child()->RemoveLast();
+
     return found;
 }
 
 std::string MasterCredential::Path() const
 {
-    return m_SigningKey->GetPrivateKey().Path();
+    return signing_key_->GetPrivateKey().Path();
 }
 }  // namespace opentxs

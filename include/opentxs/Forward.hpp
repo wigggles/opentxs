@@ -98,6 +98,34 @@ class ServerAction;
 class Wallet;
 }  // namespace client
 
+namespace crypto
+{
+namespace key
+{
+class Asymmetric;
+class Ed25519;
+class EllipticCurve;
+class Keypair;
+class LegacySymmetric;
+class RSA;
+class Secp256k1;
+class Symmetric;
+}  // namespace key
+
+class AsymmetricProvider;
+class Bip32;
+class Bip39;
+class EcdsaProvider;
+class EncodingProvider;
+class LegacySymmetricProvider;
+class HashingProvider;
+class OpenSSL;
+class Secp256k1;
+class Sodium;
+class SymmetricProvider;
+class Trezor;
+}  // namespace crypto
+
 namespace network
 {
 namespace zeromq
@@ -171,12 +199,9 @@ class ProfileSubsection;
 class Account;
 class AccountList;
 class AccountVisitor;
-class AsymmetricKeyEC;
 class Basket;
 class BasketContract;
 class BasketItem;
-class Bip32;
-class Bip39;
 class Cheque;
 class ClientContext;
 class Contact;
@@ -189,13 +214,8 @@ class Contract;
 class CurrencyContract;
 class Credential;
 class CredentialSet;
-class CryptoAsymmetric;
-class CryptoEncoding;
-class CryptoHash;
-class CryptoSymmetric;
-class CryptoSymmetricNew;
+class CryptoSymmetricDecryptOutput;
 class Data;
-class Ecdsa;
 class Flag;
 class Identifier;
 class Item;
@@ -218,7 +238,6 @@ class OT;
 class OT_API;
 class OTAPI_Exec;
 class OTASCIIArmor;
-class OTAsymmetricKey;
 class OTCachedKey;
 class OTCallback;
 class OTCaller;
@@ -228,7 +247,6 @@ class OTCronItem;
 class OTDataFolder;
 class OTEnvelope;
 class OTFolders;
-class OTKeypair;
 class OTMarket;
 class OTNym_or_SymmetricKey;
 class OTOffer;
@@ -242,7 +260,6 @@ class OTRecordList;
 class OTSignature;
 class OTSignatureMetadata;
 class OTSmartContract;
-class OTSymmetricKey;
 class OTTrackable;
 class OTTrade;
 class OTTransaction;
@@ -260,7 +277,6 @@ class Signals;
 class StorageDriver;
 class StoragePlugin;
 class String;
-class SymmetricKey;
 class Tag;
 #if OT_CASH
 class Token;
@@ -268,11 +284,15 @@ class Token;
 class TransactionStatement;
 class UnitDefinition;
 
+using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
 using OTData = Pimpl<Data>;
+using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
 using OTIdentifier = Pimpl<Identifier>;
+using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQFrame = Pimpl<network::zeromq::Frame>;
@@ -317,11 +337,9 @@ struct less<opentxs::OTIdentifier> {
 };
 }  // namespace std
 
-// extern template class opentxs::Pimpl<opentxs::Data>;
-// extern template class opentxs::Pimpl<opentxs::Flag>;
-extern template class opentxs::Pimpl<opentxs::Identifier>;
-extern template class opentxs::Pimpl<opentxs::PaymentCode>;
-extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
+// extern template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
+extern template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
+// extern template class opentxs::Pimpl<opentxs::crypto::key::LegacySymmetric>;
 // extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
@@ -339,6 +357,12 @@ extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
+extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
+// extern template class opentxs::Pimpl<opentxs::Data>;
+// extern template class opentxs::Pimpl<opentxs::Flag>;
+extern template class opentxs::Pimpl<opentxs::Identifier>;
+// extern template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
+extern template class opentxs::Pimpl<opentxs::PaymentCode>;
 
 extern template struct std::less<opentxs::OTIdentifier>;
 

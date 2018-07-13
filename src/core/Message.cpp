@@ -43,7 +43,6 @@
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -55,8 +54,9 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
-#include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -1066,12 +1066,12 @@ public:
 
         pAuthentKeyTag->add_attribute(
             "type",
-            OTAsymmetricKey::KeyTypeToString(
+            crypto::key::Asymmetric::KeyTypeToString(
                 static_cast<proto::AsymmetricKeyType>(m.keytypeAuthent_))
                 .Get());
         pEncryptKeyTag->add_attribute(
             "type",
-            OTAsymmetricKey::KeyTypeToString(
+            crypto::key::Asymmetric::KeyTypeToString(
                 static_cast<proto::AsymmetricKeyType>(m.keytypeEncrypt_))
                 .Get());
 
@@ -1119,7 +1119,8 @@ public:
                 if (str_type.size() > 0)  // Success finding key type.
                 {
                     m.keytypeAuthent_ =
-                        OTAsymmetricKey::StringToKeyType(String(str_type));
+                        crypto::key::Asymmetric::StringToKeyType(
+                            String(str_type));
                 }
             }
             // -----------------------------------------------
@@ -1157,7 +1158,8 @@ public:
                 if (str_type.size() > 0)  // Success finding key type.
                 {
                     m.keytypeEncrypt_ =
-                        OTAsymmetricKey::StringToKeyType(String(str_type));
+                        crypto::key::Asymmetric::StringToKeyType(
+                            String(str_type));
                 }
             }
         }

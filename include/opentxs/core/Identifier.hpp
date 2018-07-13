@@ -78,7 +78,7 @@ public:
     EXPORT static OTIdentifier Factory(const Nym& nym);
     EXPORT static OTIdentifier Factory(const Contract& contract);
     EXPORT static OTIdentifier Factory(const Cheque& cheque);
-    EXPORT static OTIdentifier Factory(const OTSymmetricKey& key);
+    EXPORT static OTIdentifier Factory(const crypto::key::LegacySymmetric& key);
     EXPORT static OTIdentifier Factory(const OTCachedKey& key);
     EXPORT static OTIdentifier Factory(
         const proto::ContactItemType type,
@@ -137,7 +137,7 @@ public:
     explicit Identifier(const String& rhs);
     explicit Identifier(const Nym& nym);
     explicit Identifier(const Contract& contract);
-    explicit Identifier(const OTSymmetricKey& key);
+    explicit Identifier(const crypto::key::LegacySymmetric& key);
     explicit Identifier(const OTCachedKey& key);
     explicit Identifier(
         const proto::ContactItemType type,

@@ -82,6 +82,14 @@ class StorageInternal;
 class NativeInternal;
 }  // namespace api
 
+namespace crypto
+{
+namespace implementation
+{
+class OpenSSL;
+}  // namespace implementation
+}  // namespace crypto
+
 namespace network
 {
 namespace zeromq
@@ -280,6 +288,7 @@ class DhtConfig;
 class Libsecp256k1;
 #endif
 class Libsodium;
+class LowLevelKeyGenerator;
 #if OT_CRYPTO_USING_OPENSSL
 class OpenSSL;
 #endif

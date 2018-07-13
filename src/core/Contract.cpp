@@ -42,10 +42,7 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoHash.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
@@ -57,9 +54,12 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
-#include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -450,7 +450,7 @@ bool Contract::SignContractAuthent(
 // ready yet to signing anything with.
 //
 bool Contract::SignWithKey(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     const OTPasswordData* pPWData)
 {
     OTSignature* pSig = new OTSignature;
@@ -508,7 +508,7 @@ bool Contract::SignWithKey(
 // the signature.
 // (Simple.) So I will put the Signature Metadata into its own class, so not
 // only a signature
-// can use it, but also the OTAsymmetricKey class can use it and also
+// can use it, but also the crypto::key::Asymmetric class can use it and also
 // Credential can use it.
 // Then Contract just uses it if it's there. Also we don't have to pass it in
 // here as separate
@@ -533,17 +533,16 @@ bool Contract::SignWithKey(
 // It is NOT attached to the contract.  This is just a utility function.
 //
 bool Contract::SignContract(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     OTSignature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData)
 {
     // We assume if there's any important metadata, it will already
     // be on the key, so we just copy it over to the signature.
-    //
-    if (nullptr != theKey.m_pMetadata) {
-        theSignature.getMetaData() = *(theKey.m_pMetadata);
-    }
+    const auto* metadata = theKey.GetMetadata();
+
+    if (nullptr != metadata) { theSignature.getMetaData() = *(metadata); }
 
     // Update the contents, (not always necessary, many contracts are read-only)
     // This is where we provide an overridable function for the child classes
@@ -555,7 +554,7 @@ bool Contract::SignContract(
     //
     UpdateContents();
 
-    const CryptoAsymmetric& engine = theKey.engine();
+    const auto& engine = theKey.engine();
 
     if (false ==
         engine.SignContract(
@@ -629,22 +628,26 @@ bool Contract::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
 }
 
 bool Contract::VerifyWithKey(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     const OTPasswordData* pPWData) const
 {
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
+
         OT_ASSERT(nullptr != pSig);
 
-        if (theKey.m_pMetadata && theKey.m_pMetadata->HasMetadata() &&
+        const auto* metadata = theKey.GetMetadata();
+
+        if ((nullptr != metadata) && metadata->HasMetadata() &&
             pSig->getMetaData().HasMetadata()) {
             // Since key and signature both have metadata, we can use it
             // to skip signatures which don't match this key.
             //
-            if (pSig->getMetaData() != *(theKey.m_pMetadata)) continue;
+            if (pSig->getMetaData() != *(metadata)) continue;
         }
 
         OTPasswordData thePWData("Contract::VerifyWithKey");
+
         if (VerifySignature(
                 theKey,
                 *pSig,
@@ -669,7 +672,7 @@ bool Contract::VerifySigAuthent(
 {
 
     OTPasswordData thePWData("Contract::VerifySigAuthent 1");
-    listOfAsymmetricKeys listOutput;
+    crypto::key::Keypair::Keys listOutput;
 
     const std::int32_t nCount = theNym.GetPublicKeysBySignature(
         listOutput, theSignature, 'A');  // 'A' for authentication key.
@@ -677,7 +680,7 @@ bool Contract::VerifySigAuthent(
     if (nCount > 0)  // Found some (potentially) matching keys...
     {
         for (auto& it : listOutput) {
-            OTAsymmetricKey* pKey = it;
+            auto pKey = it;
             OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(
@@ -719,7 +722,7 @@ bool Contract::VerifySignature(
 {
 
     OTPasswordData thePWData("Contract::VerifySignature 1");
-    listOfAsymmetricKeys listOutput;
+    crypto::key::Keypair::Keys listOutput;
 
     const std::int32_t nCount = theNym.GetPublicKeysBySignature(
         listOutput, theSignature, 'S');  // 'S' for signing key.
@@ -727,7 +730,7 @@ bool Contract::VerifySignature(
     if (nCount > 0)  // Found some (potentially) matching keys...
     {
         for (auto& it : listOutput) {
-            OTAsymmetricKey* pKey = it;
+            auto pKey = it;
             OT_ASSERT(nullptr != pKey);
 
             if (VerifySignature(
@@ -757,22 +760,22 @@ bool Contract::VerifySignature(
 }
 
 bool Contract::VerifySignature(
-    const OTAsymmetricKey& theKey,
+    const crypto::key::Asymmetric& theKey,
     const OTSignature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
+    const auto* metadata = theKey.GetMetadata();
+
     // See if this key could possibly have even signed this signature.
     // (The metadata may eliminate it as a possibility.)
-    //
-    if ((nullptr != theKey.m_pMetadata) && theKey.m_pMetadata->HasMetadata() &&
+    if ((nullptr != metadata) && metadata->HasMetadata() &&
         theSignature.getMetaData().HasMetadata()) {
-        if (theSignature.getMetaData() != *(theKey.m_pMetadata)) return false;
+        if (theSignature.getMetaData() != *(metadata)) return false;
     }
 
     OTPasswordData thePWData("Contract::VerifySignature 2");
-
-    const CryptoAsymmetric& engine = theKey.engine();
+    const auto& engine = theKey.engine();
 
     if (false == engine.VerifyContractSignature(
                      trim(m_xmlUnsigned),
@@ -963,7 +966,7 @@ bool Contract::AddBookendsAroundContent(
     const listOfSignatures& listSignatures)
 {
     String strTemp;
-    String strHashType = CryptoHash::HashTypeToString(hashType);
+    String strHashType = crypto::HashingProvider::HashTypeToString(hashType);
 
     strTemp.Concatenate(
         "-----BEGIN SIGNED %s-----\nHash: %s\n\n",
@@ -1419,7 +1422,8 @@ bool Contract::ParseRawFile()
                         strHashType.ConvertToUpperCase();
 
                         m_strSigHashType =
-                            CryptoHash::StringToHashType(strHashType);
+                            crypto::HashingProvider::StringToHashType(
+                                strHashType);
 
                         if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
                             otOut << "Error in contract " << m_strFilename

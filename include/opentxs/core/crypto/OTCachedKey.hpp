@@ -67,8 +67,8 @@ class Crypto;
 /**
 This class handles the functionality of caching the master key for X seconds as
 an OTPassword, and then deleting it. It also caches the encrypted version in an
-OTSymmetricKey, which can be unlocked to an OTPassword again for X more seconds
-(by entering the passphrase...)
+crypto::key::LegacySymmetric, which can be unlocked to an OTPassword again for X
+more seconds (by entering the passphrase...)
 
 How does OTCachedKey work, in a nutshell?
 
@@ -177,16 +177,16 @@ public:
     /** For Nyms, which have a global master key serving as their "passphrase"
      * (for that wallet), The password callback uses OTCachedKey::It() to get
      * the instance, and then GetMasterPassword to get the passphrase for any
-     * individual Nym. Otherwise, OTCachedKey::It(OTSymmetricKey *) looks up a
-     * cached master key based on the ID of the key passed in. For example,
-     * OTPurse has a symmetric key and master key (optionally, vs using a Nym.)
-     * The symmetric key contains the actual key for the tokens, and the master
-     * key is used for the passphrase, which may be cached, or may have timed
-     * out, and then re-retrieved from the user (either way). The purse, rather
-     * than using the global master key to get the passphrase, (which _would_
-     * happen if the purse is encrypted to a nym) will instead use its own
-     * internal master key to get its passphrase (also retrieving from the user
-     * if necessary.) */
+     * individual Nym. Otherwise, OTCachedKey::It(crypto::key::LegacySymmetric
+     * *) looks up a cached master key based on the ID of the key passed in. For
+     * example, OTPurse has a symmetric key and master key (optionally, vs using
+     * a Nym.) The symmetric key contains the actual key for the tokens, and the
+     * master key is used for the passphrase, which may be cached, or may have
+     * timed out, and then re-retrieved from the user (either way). The purse,
+     * rather than using the global master key to get the passphrase, (which
+     * _would_ happen if the purse is encrypted to a nym) will instead use its
+     * own internal master key to get its passphrase (also retrieving from the
+     * user if necessary.) */
     EXPORT bool GetMasterPassword(
         const OTCachedKey& passwordPassword,
         OTPassword& theOutput,
@@ -210,7 +210,7 @@ public:
     /* These two functions are used by the Server or OTWallet that
      * actually keeps the master key. The owner sets the master key pointer on
      * initialization, and then later when the password callback code in
-     * OTAsymmetricKey needs to access the master key, it can use
+     * crypto::key::Asymmetric needs to access the master key, it can use
      * GetMasterPassword to access it. */
     EXPORT void SetCachedKey(const OTASCIIArmor& ascCachedKey);
     EXPORT void SetTimeoutSeconds(const std::int64_t nTimeoutSeconds);
@@ -245,7 +245,7 @@ private:
      */
     mutable std::unique_ptr<OTPassword> master_password_;
     /** Encrypted form of the master key. Serialized by OTWallet or Server. */
-    mutable std::unique_ptr<OTSymmetricKey> key_;
+    mutable OTLegacySymmetricKey key_;
     mutable String secret_id_{""};
 
     void release_thread() const;

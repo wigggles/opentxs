@@ -43,19 +43,20 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
+#include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/Letter.hpp"
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTAsymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSymmetricKey.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
+#include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
 extern "C" {
@@ -100,12 +101,12 @@ bool OTEnvelope::SetCiphertext(const OTASCIIArmor& theArmoredText)
 
 // Encrypt theInput as envelope using symmetric crypto, using a random AES key
 // that's
-// kept encrypted in an OTSymmetricKey (encrypted using another key derived from
-// thePassword.)
+// kept encrypted in an crypto::key::LegacySymmetric (encrypted using another
+// key derived from thePassword.)
 
 bool OTEnvelope::Encrypt(
     const String& theInput,
-    OTSymmetricKey& theKey,
+    crypto::key::LegacySymmetric& theKey,
     const OTPassword& thePassword)
 {
     OT_ASSERT(
@@ -226,7 +227,7 @@ bool OTEnvelope::Encrypt(
 
 bool OTEnvelope::Decrypt(
     String& theOutput,
-    const OTSymmetricKey& theKey,
+    const crypto::key::LegacySymmetric& theKey,
     const OTPassword& thePassword)
 {
     const char* szFunc = "OTEnvelope::Decrypt";
@@ -395,8 +396,9 @@ EXPORT bool OTEnvelope::Seal(
     mapOfAsymmetricKeys recipientKeys;
 
     for (auto& it : recipients) {
-        recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-            "", const_cast<OTAsymmetricKey*>(&(it->GetPublicEncrKey()))));
+        recipientKeys.insert(std::pair<std::string, crypto::key::Asymmetric*>(
+            "",
+            const_cast<crypto::key::Asymmetric*>(&(it->GetPublicEncrKey()))));
     }
 
     if (!recipientKeys.empty()) {
@@ -412,12 +414,12 @@ bool OTEnvelope::Seal(const Nym& theRecipient, const String& theInput)
 }
 
 bool OTEnvelope::Seal(
-    const OTAsymmetricKey& RecipPubKey,
+    const crypto::key::Asymmetric& RecipPubKey,
     const String& theInput)
 {
     mapOfAsymmetricKeys recipientKeys;
-    recipientKeys.insert(std::pair<std::string, OTAsymmetricKey*>(
-        "", const_cast<OTAsymmetricKey*>(&RecipPubKey)));
+    recipientKeys.insert(std::pair<std::string, crypto::key::Asymmetric*>(
+        "", const_cast<crypto::key::Asymmetric*>(&RecipPubKey)));
 
     return Seal(recipientKeys, theInput);
 }

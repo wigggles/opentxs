@@ -40,29 +40,35 @@
 
 #include "Crypto.hpp"
 
-#if OT_CRYPTO_WITH_BIP32
-#include "opentxs/core/crypto/Bip32.hpp"
-#endif
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/core/crypto/Bip39.hpp"
-#endif
-#include "opentxs/core/crypto/CryptoAsymmetric.hpp"
-#include "opentxs/core/crypto/CryptoSymmetric.hpp"
-#if OT_CRYPTO_USING_LIBSECP256K1
-#include "opentxs/core/crypto/Libsecp256k1.hpp"
-#endif
-#include "opentxs/core/crypto/Libsodium.hpp"
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/core/crypto/OpenSSL.hpp"
-#endif
-#include "opentxs/core/crypto/SymmetricKey.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/core/crypto/OTCachedKey.hpp"
-#include "opentxs/core/crypto/TrezorCrypto.hpp"
 #endif
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/crypto/library/OpenSSL.hpp"
+#endif
+#include "opentxs/crypto/library/SymmetricProvider.hpp"
+#if OT_CRYPTO_USING_LIBSECP256K1
+#include "opentxs/crypto/library/Secp256k1.hpp"
+#endif
+#include "opentxs/crypto/library/Sodium.hpp"
+#if OT_CRYPTO_USING_TREZOR
+#include "opentxs/crypto/library/Trezor.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP32
+#include "opentxs/crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/crypto/Bip39.hpp"
+#endif
 
 #include <functional>
 #include <ostream>
@@ -75,36 +81,51 @@ extern "C" {
 #endif
 }
 
-#include "Encode.hpp"
-#include "Hash.hpp"
-#include "Symmetric.hpp"
-
 #define OT_METHOD "opentxs::Crypto::"
+
+namespace opentxs
+{
+api::Crypto* Factory::Crypto(const api::Native& native)
+{
+    return new api::implementation::Crypto(native);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
-
-Crypto::Crypto(api::Native& native)
+Crypto::Crypto(const api::Native& native)
     : native_(native)
     , cached_key_lock_()
     , primary_key_(nullptr)
     , cached_keys_()
 #if OT_CRYPTO_USING_TREZOR
-    , bitcoincrypto_(new TrezorCrypto(native_))
+    , bitcoincrypto_(Factory::Trezor(native_))
 #endif
-    , ed25519_(new Curve25519)
-    , ssl_(new SSLImplementation)
+    , ed25519_(Factory::Sodium())
+#if OT_CRYPTO_USING_OPENSSL
+    , ssl_(Factory::OpenSSL())
+#endif
     , util_(*ed25519_)
+#if OT_CRYPTO_USING_LIBSECP256K1
+    , secp256k1_(Factory::Secp256k1(util_, *bitcoincrypto_))
+#endif
 {
+#if OT_CRYPTO_USING_TREZOR
     OT_ASSERT(bitcoincrypto_)
+#endif
     OT_ASSERT(ed25519_)
+#if OT_CRYPTO_USING_OPENSSL
     OT_ASSERT(ssl_)
+#endif
+#if OT_CRYPTO_USING_LIBSECP256K1
+    OT_ASSERT(secp256k1_)
+#endif
 
     Init();
 }
 
 #if OT_CRYPTO_SUPPORTED_ALGO_AES
-const CryptoSymmetric& Crypto::AES() const
+const opentxs::crypto::LegacySymmetricProvider& Crypto::AES() const
 {
     OT_ASSERT(nullptr != ssl_);
 
@@ -113,7 +134,7 @@ const CryptoSymmetric& Crypto::AES() const
 #endif
 
 #if OT_CRYPTO_WITH_BIP32
-const Bip32& Crypto::BIP32() const
+const opentxs::crypto::Bip32& Crypto::BIP32() const
 {
     OT_ASSERT(nullptr != bitcoincrypto_);
 
@@ -122,7 +143,7 @@ const Bip32& Crypto::BIP32() const
 #endif
 
 #if OT_CRYPTO_WITH_BIP39
-const Bip39& Crypto::BIP39() const
+const opentxs::crypto::Bip39& Crypto::BIP39() const
 {
     OT_ASSERT(nullptr != bitcoincrypto_);
 
@@ -170,10 +191,9 @@ const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
 
 void Crypto::Cleanup()
 {
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    secp256k1_->Cleanup();
-#endif
+#if OT_CRYPTO_USING_OPENSSL
     ssl_->Cleanup();
+#endif
 }
 
 const OTCachedKey& Crypto::DefaultKey() const
@@ -197,12 +217,14 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
     return Editor<OTCachedKey>(cached_key_lock_, primary_key_.get(), callback);
 }
 
-const CryptoAsymmetric& Crypto::ED25519() const
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+const opentxs::crypto::AsymmetricProvider& Crypto::ED25519() const
 {
     OT_ASSERT(nullptr != ed25519_);
 
     return *ed25519_;
 }
+#endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
 const crypto::Encode& Crypto::Encode() const
 {
@@ -221,10 +243,10 @@ const crypto::Hash& Crypto::Hash() const
 void Crypto::Init()
 {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    secp256k1_.reset(new secp256k1(util_, *bitcoincrypto_));
+    secp256k1_.reset(Factory::Secp256k1(util_, *bitcoincrypto_));
 #endif
-    encode_.reset(new api::crypto::implementation::Encode(*bitcoincrypto_));
-    hash_.reset(new api::crypto::implementation::Hash(
+    encode_.reset(Factory::Encode(*bitcoincrypto_));
+    hash_.reset(Factory::Hash(
         *encode_,
         *ssl_,
         *ed25519_
@@ -233,7 +255,7 @@ void Crypto::Init()
         *bitcoincrypto_
 #endif
         ));
-    symmetric_.reset(new api::crypto::implementation::Symmetric(*ed25519_));
+    symmetric_.reset(Factory::Symmetric(*ed25519_));
 
     otWarn << OT_METHOD << __FUNCTION__
            << ": Setting up rlimits, and crypto libraries...\n";
@@ -251,13 +273,14 @@ void Crypto::Init()
     }
 #endif
 
+#if OT_CRYPTO_USING_OPENSSL
     ssl_->Init();
+#endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     // WARNING: The below call to secp256k1_->Init() DEPENDS on the fact
     // that the above call to ssl_->Init() happened FIRST.
     secp256k1_->Init();
 #endif
-    ed25519_->Init();
 }
 
 void Crypto::init_default_key(const Lock&) const
@@ -281,7 +304,7 @@ const OTCachedKey& Crypto::LoadDefaultKey(const OTASCIIArmor& serialized) const
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-const CryptoAsymmetric& Crypto::RSA() const
+const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
 {
     OT_ASSERT(nullptr != ssl_);
 
@@ -290,7 +313,7 @@ const CryptoAsymmetric& Crypto::RSA() const
 #endif
 
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-const CryptoAsymmetric& Crypto::SECP256K1() const
+const opentxs::crypto::AsymmetricProvider& Crypto::SECP256K1() const
 {
     OT_ASSERT(nullptr != secp256k1_);
 
@@ -329,8 +352,8 @@ const crypto::Symmetric& Crypto::Symmetric() const
 
 const crypto::Util& Crypto::Util() const { return util_; }
 
-std::unique_ptr<SymmetricKey> Crypto::GetStorageKey(__attribute__((unused))
-                                                    std::string& seed) const
+OTSymmetricKey Crypto::GetStorageKey(__attribute__((unused))
+                                     std::string& seed) const
 {
 #if OT_CRYPTO_WITH_BIP39
     auto serialized = BIP32().GetStorageKey(seed);
@@ -339,7 +362,7 @@ std::unique_ptr<SymmetricKey> Crypto::GetStorageKey(__attribute__((unused))
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load encryption key."
               << std::endl;
 
-        return {};
+        return opentxs::crypto::key::Symmetric::Factory();
     }
 
     OTPassword keySource{};
@@ -349,11 +372,13 @@ std::unique_ptr<SymmetricKey> Crypto::GetStorageKey(__attribute__((unused))
     const bool decrypted =
         sessionKey->Decrypt(serialized->encryptedkey(), blank, keySource);
 
-    if (false == decrypted) { return {}; }
+    if (false == decrypted) {
+        return opentxs::crypto::key::Symmetric::Factory();
+    }
 
     return Symmetric().Key(keySource);
 #else
-    return {};
+    return opentxs::crypto::key::Symmetric::Factory();
 #endif
 }
 

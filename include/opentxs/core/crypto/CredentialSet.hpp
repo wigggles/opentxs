@@ -68,7 +68,7 @@
 // Non-key Credentials are not yet implemented.
 //
 // Each KeyCredential has 3 OTKeypairs: encryption, signing, and authentication.
-// Each OTKeypair has 2 OTAsymmetricKeys (public and private.)
+// Each OTKeypair has 2 crypto::key::Asymmetrics (public and private.)
 //
 // A MasterCredential must be a KeyCredential, and is only used to sign
 // ChildCredentials
@@ -230,27 +230,27 @@ public:
         return *m_MasterCredential;
     }
     EXPORT std::int32_t GetPublicKeysBySignature(
-        listOfAsymmetricKeys& listOutput,
+        crypto::key::Keypair::Keys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;  // 'S' (signing key) or 'E' (encryption
                                      // key) or 'A' (authentication key)
-    EXPORT const OTAsymmetricKey& GetPublicAuthKey(
+    EXPORT const crypto::key::Asymmetric& GetPublicAuthKey(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTAsymmetricKey& GetPublicEncrKey(
+    EXPORT const crypto::key::Asymmetric& GetPublicEncrKey(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTAsymmetricKey& GetPublicSignKey(
+    EXPORT const crypto::key::Asymmetric& GetPublicSignKey(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTAsymmetricKey& GetPrivateSignKey(
+    EXPORT const crypto::key::Asymmetric& GetPrivateSignKey(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTAsymmetricKey& GetPrivateEncrKey(
+    EXPORT const crypto::key::Asymmetric& GetPrivateEncrKey(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTAsymmetricKey& GetPrivateAuthKey(
+    EXPORT const crypto::key::Asymmetric& GetPrivateAuthKey(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTKeypair& GetAuthKeypair(
+    EXPORT const crypto::key::Keypair& GetAuthKeypair(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTKeypair& GetEncrKeypair(
+    EXPORT const crypto::key::Keypair& GetEncrKeypair(
         const String::List* plistRevokedIDs = nullptr) const;
-    EXPORT const OTKeypair& GetSignKeypair(
+    EXPORT const crypto::key::Keypair& GetSignKeypair(
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT void ClearChildCredentials();
     EXPORT ~CredentialSet();

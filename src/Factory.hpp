@@ -157,8 +157,21 @@ public:
         const api::ContactManager& contact,
         const ui::implementation::ContactSectionParent& parent,
         const ContactGroup& group);
-    static api::Settings* Settings();
-    static api::Settings* Settings(const String& path);
+    static api::Crypto* Crypto(const api::Native& native);
+    static crypto::key::Ed25519* Ed25519Key(
+        const proto::AsymmetricKey& serializedKey);
+    static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
+    static crypto::key::Ed25519* Ed25519Key(const proto::KeyRole role);
+    static api::crypto::Encode* Encode(crypto::EncodingProvider& base58);
+    static api::crypto::Hash* Hash(
+        api::crypto::Encode& encode,
+        crypto::HashingProvider& ssl,
+        crypto::HashingProvider& sodium
+#if OT_CRYPTO_USING_TREZOR
+        ,
+        crypto::Trezor& bitcoin
+#endif
+    );
     static api::Identity* Identity(const api::client::Wallet& wallet);
     static api::client::Issuer* Issuer(
         const api::client::Wallet& wallet,
@@ -212,6 +225,7 @@ public:
         const std::chrono::seconds gcInterval,
         OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();
+    static crypto::OpenSSL* OpenSSL();
     static api::client::Pair* Pair(
         const Flag& running,
         const api::client::Sync& sync,
@@ -272,12 +286,25 @@ public:
         const api::client::Wallet& wallet,
         const ui::implementation::ProfileSectionParent& parent,
         const ContactGroup& group);
+    static crypto::key::RSA* RSAKey(const proto::AsymmetricKey& serializedKey);
+    static crypto::key::RSA* RSAKey(const String& publicKey);
+    static crypto::key::RSA* RSAKey(const proto::KeyRole role);
+    static crypto::Secp256k1* Secp256k1(
+        const api::crypto::Util& util,
+        const crypto::Trezor& ecdsa);
+    static crypto::key::Secp256k1* Secp256k1Key(
+        const proto::AsymmetricKey& serializedKey);
+    static crypto::key::Secp256k1* Secp256k1Key(const String& publicKey);
+    static crypto::key::Secp256k1* Secp256k1Key(const proto::KeyRole role);
     static api::client::ServerAction* ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const ContextLockCallback& lockCallback);
+    static api::Settings* Settings();
+    static api::Settings* Settings(const String& path);
+    static crypto::Sodium* Sodium();
     static api::storage::StorageInternal* Storage(
         const Flag& running,
         const StorageConfig& config,
@@ -286,6 +313,7 @@ public:
         const String& previous,
         const Digest& hash,
         const Random& random);
+    static api::crypto::Symmetric* Symmetric(crypto::SymmetricProvider& sodium);
     static api::client::Sync* Sync(
         const Flag& running,
         const OT_API& otapi,
@@ -299,6 +327,7 @@ public:
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
+    static crypto::Trezor* Trezor(const api::Native& native);
     static api::UI* UI(
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,

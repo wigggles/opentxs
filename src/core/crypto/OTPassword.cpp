@@ -111,12 +111,11 @@ void* ot_secure_memset(void* v, std::uint8_t c, std::uint32_t n)
 // lock / unlock functions
 // at that time (below). Also change so that the contents are dynamically
 // allocated.
-// NOTE: Given that OTSymmetricKey works with OTPassword, this is a bit circular
-// in logic. Therefore might
-// need to add a function to OTEnvelope so that it takes a const char * instead
-// of an OTPassword, in order
-// to handle this specific case! Might also need to duplicate some code between
-// OTSymmetricKey and OTPassword
+// NOTE: Given that crypto::key::LegacySymmetric works with OTPassword, this is
+// a bit circular in logic. Therefore might need to add a function to OTEnvelope
+// so that it takes a const char * instead of an OTPassword, in order to handle
+// this specific case! Might also need to duplicate some code between
+// crypto::key::LegacySymmetric and OTPassword
 // in order to make sure both have the same protections. I'll see if there's a
 // way to do this without duplication,
 // as I get deeper into it.
@@ -630,14 +629,13 @@ std::int32_t OTPassword::setPassword_uint8(
 
 // OTPassword::SetSize   (Low-level)
 //
-// There are certain weird cases, like in OTSymmetricKey::GetPassphraseFromUser,
-// where we set the password using the getPassword_writable, and it's properly
-// null-terminated, yet this instance still doesn't know its actual size (even
-// though
-// the size is known.) Therefore I added this call in order to set the size in
-// those odd cases where it's necessary. That being said, YOU should normally
-// NEVER
-// need to use this function, so just pretend it doesn't exist.
+// There are certain weird cases, like in
+// crypto::key::LegacySymmetric::GetPassphraseFromUser, where we set the
+// password using the getPassword_writable, and it's properly null-terminated,
+// yet this instance still doesn't know its actual size (even though the size is
+// known.) Therefore I added this call in order to set the size in those odd
+// cases where it's necessary. That being said, YOU should normally NEVER need
+// to use this function, so just pretend it doesn't exist.
 //
 // This adds a null terminator, IF we're in text mode (not binary mode.)
 //
