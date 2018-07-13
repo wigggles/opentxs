@@ -51,6 +51,8 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#include "opentxs/crypto/key/Secp256k1.hpp"
+#include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/Trezor.hpp"
@@ -64,6 +66,7 @@
 #if OT_CRYPTO_WITH_BIP39
 #include "crypto/Bip39.hpp"
 #endif
+#include "AsymmetricProvider.hpp"
 #include "EcdsaProvider.hpp"
 
 extern "C" {
@@ -593,6 +596,109 @@ bool Trezor::RIPEMD160(
     ripemd160(input, inputSize, output);
 
     return true;
+}
+
+bool Trezor::Sign(
+    const Data& plaintext,
+    const key::Asymmetric& theKey,
+    const proto::HashType hashType,
+    Data& signature,
+    const OTPasswordData* pPWData,
+    const OTPassword* exportPassword) const
+{
+    auto hash = Data::Factory();
+    bool haveDigest =
+        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+
+    if (!haveDigest) {
+        otErr << __FUNCTION__ << ": Failed to obtain the contract hash."
+              << std::endl;
+
+        return false;
+    }
+    OTPassword privKey;
+    bool havePrivateKey;
+
+    // FIXME
+    OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
+
+    const crypto::key::EllipticCurve* key =
+        dynamic_cast<const crypto::key::Secp256k1*>(&theKey);
+
+    if (nullptr == key) { return false; }
+
+    if (nullptr == pPWData) {
+        OTPasswordData passwordData(
+            "Please enter your password to sign this document.");
+        havePrivateKey =
+            AsymmetricKeyToECPrivatekey(*key, passwordData, privKey);
+    } else {
+        havePrivateKey = AsymmetricKeyToECPrivatekey(*key, *pPWData, privKey);
+    }
+
+    if (havePrivateKey) {
+        std::array<std::uint8_t, 64> blank;
+        signature.Assign(blank.data(), blank.size());
+
+        const bool signatureCreated =
+            (0 == ecdsa_sign_digest(
+                      secp256k1_->params,
+                      static_cast<const std::uint8_t*>(privKey.getMemory()),
+                      static_cast<const std::uint8_t*>(hash->GetPointer()),
+                      static_cast<std::uint8_t*>(
+                          const_cast<void*>(signature.GetPointer())),
+                      nullptr,
+                      nullptr));
+
+        if (signatureCreated) {
+
+            return true;
+        } else {
+            otErr << __FUNCTION__ << ": "
+                  << "Call to ecdsa_sign_digest() failed.\n";
+
+            return false;
+        }
+    } else {
+        otErr << __FUNCTION__ << ": "
+              << "Can not extract ecdsa private key from "
+                 "Asymmetric.\n";
+
+        return false;
+    }
+}
+
+bool Trezor::Verify(
+    const Data& plaintext,
+    const key::Asymmetric& theKey,
+    const Data& signature,
+    const proto::HashType hashType,
+    const OTPasswordData* pPWData) const
+{
+    auto hash = Data::Factory();
+    bool haveDigest =
+        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+
+    if (!haveDigest) { return false; }
+
+    const crypto::key::EllipticCurve* key =
+        dynamic_cast<const crypto::key::Secp256k1*>(&theKey);
+
+    if (nullptr == key) { return false; }
+
+    auto ecdsaPubkey = Data::Factory();
+    const bool havePublicKey = AsymmetricKeyToECPubkey(*key, ecdsaPubkey);
+
+    if (!havePublicKey) { return false; }
+
+    const bool output =
+        (0 == ecdsa_verify_digest(
+                  secp256k1_->params,
+                  static_cast<const std::uint8_t*>(ecdsaPubkey->GetPointer()),
+                  static_cast<const std::uint8_t*>(signature.GetPointer()),
+                  static_cast<const std::uint8_t*>(hash->GetPointer())));
+
+    return output;
 }
 }  // namespace opentxs::crypto::implementation
 #endif  // OT_CRYPTO_USING_TREZOR

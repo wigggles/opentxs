@@ -201,7 +201,6 @@ bool Secp256k1::Verify(
     [[maybe_unused]] const OTPasswordData* pPWData) const
 {
     auto hash = Data::Factory();
-    ;
     bool haveDigest =
         OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
 

@@ -232,11 +232,8 @@ bool Letter::Seal(
 
     if (haveRecipientsECDSA) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_USING_LIBSECP256K1
-        const crypto::EcdsaProvider& engine =
-            dynamic_cast<const crypto::Secp256k1&>(
-                OT::App().Crypto().SECP256K1());
-#endif
+        const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
+            OT::App().Crypto().SECP256K1());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::SECP256K1);
         auto dhKeypair =
@@ -284,7 +281,8 @@ bool Letter::Seal(
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     if (haveRecipientsED25519) {
         const crypto::EcdsaProvider& engine =
-            dynamic_cast<const crypto::Sodium&>(OT::App().Crypto().ED25519());
+            dynamic_cast<const crypto::EcdsaProvider&>(
+                OT::App().Crypto().ED25519());
         NymParameters parameters(proto::CREDTYPE_LEGACY);
         parameters.setNymParameterType(NymParameterType::ED25519);
         auto dhKeypair =

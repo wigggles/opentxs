@@ -53,6 +53,7 @@ class Trezor final : virtual public crypto::Trezor,
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     ,
+                     public AsymmetricProvider,
                      public EcdsaProvider
 #endif
 {
@@ -82,6 +83,20 @@ public:
         const std::uint8_t* input,
         const size_t inputSize,
         std::uint8_t* output) const override;
+
+    bool Sign(
+        const Data& plaintext,
+        const key::Asymmetric& theKey,
+        const proto::HashType hashType,
+        Data& signature,  // output
+        const OTPasswordData* pPWData = nullptr,
+        const OTPassword* exportPassword = nullptr) const override;
+    bool Verify(
+        const Data& plaintext,
+        const key::Asymmetric& theKey,
+        const Data& signature,
+        const proto::HashType hashType,
+        const OTPasswordData* pPWData = nullptr) const override;
 
     ~Trezor() = default;
 

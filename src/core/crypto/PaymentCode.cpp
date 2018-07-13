@@ -60,7 +60,7 @@
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #endif
 #include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/crypto/library/Secp256k1.hpp"
+#include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/Bip32.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
@@ -406,11 +406,9 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         symmetricKey->Decrypt(privatekey->chaincode(), password, *chainCode);
         proto::AsymmetricKey key{};
         bool haveKey{false};
-#if OT_CRYPTO_USING_LIBSECP256K1
-        haveKey = dynamic_cast<const crypto::Secp256k1&>(
+        haveKey = dynamic_cast<const crypto::EcdsaProvider&>(
                       OT::App().Crypto().SECP256K1())
                       .PrivateToPublic(*privatekey, key);
-#endif
 
         if (haveKey) {
             publicKey = Data::Factory(key.key().c_str(), key.key().size());
@@ -507,11 +505,9 @@ bool PaymentCode::Sign(
     auto existingKeyData = Data::Factory();
     auto compareKeyData = Data::Factory();
     proto::AsymmetricKey compareKey;
-#if OT_CRYPTO_USING_LIBSECP256K1
-    const bool haveKey =
-        dynamic_cast<const crypto::Secp256k1&>(OT::App().Crypto().SECP256K1())
-            .PrivateToPublic(*privatekey, compareKey);
-#endif
+    const bool haveKey = dynamic_cast<const crypto::EcdsaProvider&>(
+                             OT::App().Crypto().SECP256K1())
+                             .PrivateToPublic(*privatekey, compareKey);
 
     if (!haveKey) { return false; }
 

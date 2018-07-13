@@ -397,16 +397,18 @@ OTKeypair KeyCredential::derive_hd_keypair(
     switch (curve) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (EcdsaCurve::SECP256K1): {
-            engine = dynamic_cast<const crypto::Secp256k1*>(
+            engine = dynamic_cast<const crypto::EcdsaProvider*>(
                 &OT::App().Crypto().SECP256K1());
             break;
         }
 #endif
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (EcdsaCurve::ED25519): {
-            engine = dynamic_cast<const crypto::Sodium*>(
+            engine = dynamic_cast<const crypto::EcdsaProvider*>(
                 &OT::App().Crypto().ED25519());
             break;
         }
+#endif
         default: {
         }
     }
