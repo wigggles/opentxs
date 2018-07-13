@@ -95,8 +95,6 @@ else()
   option(OT_SCRIPT_USING_CHAI  "Use chaiscript" ON)
 endif()
 
-option(OT_INTERNAL_LIBSECP   "Use bundled version of libsecp256k1" OFF)
-
 # SWIG Bindings
 if(ANDROID)
   option(JAVA                "Build with Java binding" ON)
@@ -191,9 +189,6 @@ message(STATUS "Default Python binding: ${PYTHON}")
 
 message(STATUS "Script engines-------------------------------")
 message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
-
-message(STATUS "Dependencies---------------------------------")
-message(STATUS "Internal Libsecp256k1:  ${OT_INTERNAL_LIBSECP}")
 
 #-----------------------------------------------------------------------------
 # Collect all binaries into bin subdirectory
@@ -294,9 +289,6 @@ find_package(Protobuf REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(Sodium REQUIRED)
 find_package(ZeroMQ 4 REQUIRED)
-if(OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
-  find_package(GMP REQUIRED)
-endif()
 if(OT_DHT)
   find_package(OPENDHT 0.6 REQUIRED)
   find_package(GnuTLS REQUIRED)
@@ -309,7 +301,7 @@ if(OT_STORAGE_FS)
   find_package(Boost REQUIRED iostreams)
   find_package(Boost REQUIRED system)
 endif()
-if (NOT OT_INTERNAL_LIBSECP)
+if (OT_CRYPTO_SUPPORTED_KEY_SECP256K1 OR OT_CRYPTO_SUPPORTED_SOURCE_BIP47)
   find_package(Libsecp256k1 REQUIRED)
 endif()
 if (OT_CRYPTO_USING_LIBBITCOIN)
@@ -657,26 +649,12 @@ endfunction(set_lib_property)
 
 add_subdirectory(deps)
 
-if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
-    include_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/include)
-    link_directories(${CMAKE_CURRENT_BINARY_DIR}/deps/lib)
-endif()
-
 if(NOT APPLE)
   add_definitions(-D_XOPEN_SOURCE=700)
 endif()
 
 add_subdirectory(src)
 add_subdirectory(wrappers)
-
-if (OT_CRYPTO_USING_LIBSECP256K1 AND OT_INTERNAL_LIBSECP)
-    add_dependencies(opentxs-cron libsecp256k1)
-    add_dependencies(opentxs-recurring libsecp256k1)
-    add_dependencies(opentxs-script libsecp256k1)
-    add_dependencies(opentxs-trade libsecp256k1)
-    add_dependencies(opentxs-storage libsecp256k1)
-    add_dependencies(opentxs-network libsecp256k1)
-endif()
 
 if (GTEST_FOUND AND NOT ANDROID)
   add_subdirectory(tests)
