@@ -195,28 +195,25 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
     switch (pkeyData_->nymParameterType()) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (NymParameterType::ED25519): {
-            const crypto::Sodium& engine = dynamic_cast<const crypto::Sodium&>(
+            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
                 OT::App().Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
             return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
-        }
+        } break;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1): {
-#if OT_CRYPTO_USING_LIBSECP256K1
-            const crypto::Secp256k1& engine =
-                dynamic_cast<const crypto::Secp256k1&>(
-                    OT::App().Crypto().SECP256K1());
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
+            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
+                OT::App().Crypto().SECP256K1());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);
 
             return engine.RandomKeypair(ldp.privateKey_, ldp.publicKey_);
-        }
+        } break;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
         case (NymParameterType::RSA): {
@@ -274,10 +271,8 @@ bool LowLevelKeyGenerator::MakeNewKeypair()
             ldp.m_pX509 = x509;
 
             return true;
-#else
-            break;
 #endif
-        }
+        } break;
 #endif
         default: {
 
@@ -297,7 +292,7 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
     switch (pkeyData_->nymParameterType()) {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (NymParameterType::ED25519): {
-            const crypto::Sodium& engine = dynamic_cast<const crypto::Sodium&>(
+            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
                 OT::App().Crypto().ED25519());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
@@ -336,11 +331,8 @@ bool LowLevelKeyGenerator::SetOntoKeypair(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (NymParameterType::SECP256K1): {
-#if OT_CRYPTO_USING_LIBSECP256K1
-            const crypto::Secp256k1& engine =
-                dynamic_cast<const crypto::Secp256k1&>(
-                    OT::App().Crypto().SECP256K1());
-#endif  // OT_CRYPTO_USING_LIBSECP256K1
+            const auto& engine = dynamic_cast<const crypto::EcdsaProvider&>(
+                OT::App().Crypto().SECP256K1());
             LowLevelKeyGenerator::LowLevelKeyGeneratorECdp& ldp =
                 static_cast<LowLevelKeyGenerator::LowLevelKeyGeneratorECdp&>(
                     *dp);

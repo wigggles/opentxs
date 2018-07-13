@@ -242,9 +242,9 @@ const crypto::Hash& Crypto::Hash() const
 
 void Crypto::Init()
 {
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
     secp256k1_.reset(Factory::Secp256k1(util_, *bitcoincrypto_));
-#endif
+#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     encode_.reset(Factory::Encode(*bitcoincrypto_));
     hash_.reset(Factory::Hash(
         *encode_,
@@ -253,7 +253,7 @@ void Crypto::Init()
 #if OT_CRYPTO_USING_TREZOR
         ,
         *bitcoincrypto_
-#endif
+#endif  // OT_CRYPTO_USING_TREZOR
         ));
     symmetric_.reset(Factory::Symmetric(*ed25519_));
 
@@ -276,7 +276,7 @@ void Crypto::Init()
 #if OT_CRYPTO_USING_OPENSSL
     ssl_->Init();
 #endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_USING_LIBSECP256K1
     // WARNING: The below call to secp256k1_->Init() DEPENDS on the fact
     // that the above call to ssl_->Init() happened FIRST.
     secp256k1_->Init();
@@ -315,9 +315,15 @@ const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 const opentxs::crypto::AsymmetricProvider& Crypto::SECP256K1() const
 {
+#if OT_CRYPTO_USING_LIBSECP256K1
     OT_ASSERT(nullptr != secp256k1_);
 
     return *secp256k1_;
+#else
+    OT_ASSERT(nullptr != bitcoincrypto_);
+
+    return *bitcoincrypto_;
+#endif
 }
 #endif
 

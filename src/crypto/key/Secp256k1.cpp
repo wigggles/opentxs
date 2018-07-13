@@ -96,7 +96,7 @@ Secp256k1::Secp256k1(const String& publicKey)
 
 const crypto::EcdsaProvider& Secp256k1::ECDSA() const
 {
-    return dynamic_cast<const crypto::Secp256k1&>(engine());
+    return dynamic_cast<const crypto::EcdsaProvider&>(engine());
 }
 
 const crypto::AsymmetricProvider& Secp256k1::engine() const

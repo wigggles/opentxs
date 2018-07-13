@@ -51,10 +51,10 @@ public:
     std::string SeedA_;
     std::string SeedB_;
     std::string SeedC_;
-    std::string SeedD_;  
+    std::string SeedD_;
     std::string AliceID, BobID, EveID, FrankID;
     std::string Alice, Bob;
-  
+
     Test_CreateNymHD()
         // these fingerprints are deterministic so we can share them among tests
         : SeedA_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
@@ -71,13 +71,17 @@ public:
         , SeedD_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
               "federal dilemma rare",
               ""))
-        ,
-        Alice(opentxs::OT::App().API().Exec().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL,
-                                                          "Alice", SeedA_, 0))
+        , Alice(opentxs::OT::App().API().Exec().CreateNymHD(
+              proto::CITEMTYPE_INDIVIDUAL,
+              "Alice",
+              SeedA_,
+              0))
         , AliceID("ot24XFA1wKynjaAB59dx7PwEzGg37U8Q2yXG")
-        ,
-        Bob(opentxs::OT::App().API().Exec().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL,
-                                                        "Bob", SeedB_, 0))
+        , Bob(opentxs::OT::App().API().Exec().CreateNymHD(
+              proto::CITEMTYPE_INDIVIDUAL,
+              "Bob",
+              SeedB_,
+              0))
         , BobID("ot274uRuN1VezD47R7SqAH27s2WKP1U5jKWk")
         , EveID("otwz4jCuiVg7UF2i1NgCSvTWeDS29EAHeL6")
         , FrankID("ot2BqchYuY5r747PnGK3SuM4A8bCLtuGASqY")
@@ -87,9 +91,9 @@ public:
 
 TEST_F(Test_CreateNymHD, TestNym_DeterministicIDs)
 {
-  
-  EXPECT_STREQ(AliceID.c_str(), Alice.c_str());
-  EXPECT_STREQ(BobID.c_str(), Bob.c_str());
+
+    EXPECT_STREQ(AliceID.c_str(), Alice.c_str());
+    EXPECT_STREQ(BobID.c_str(), Bob.c_str());
 }
 
 TEST_F(Test_CreateNymHD, TestNym_ABCD)
@@ -227,44 +231,44 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
 
 TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
 {
-  auto NymID1 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID1 = opentxs::OT::App().API().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedC_, 0);
 
-  auto NymID2 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID2 = opentxs::OT::App().API().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedC_, 0);
 
-  const ConstNym Nym1 = opentxs::OT::App().Wallet().Nym(Identifier(NymID1));
-  const ConstNym Nym2 = opentxs::OT::App().Wallet().Nym(Identifier(NymID2));
-    
-  proto::HDPath path1, path2;
-  EXPECT_TRUE(Nym1.get()->Path(path1));
-  EXPECT_TRUE(Nym2.get()->Path(path2));
+    const ConstNym Nym1 = opentxs::OT::App().Wallet().Nym(Identifier(NymID1));
+    const ConstNym Nym2 = opentxs::OT::App().Wallet().Nym(Identifier(NymID2));
 
-  const auto nym1Index = path1.child(1);
-  const auto nym2Index = path2.child(1);
+    proto::HDPath path1, path2;
+    EXPECT_TRUE(Nym1.get()->Path(path1));
+    EXPECT_TRUE(Nym2.get()->Path(path2));
 
-  ASSERT_EQ(nym1Index, nym2Index);
+    const auto nym1Index = path1.child(1);
+    const auto nym2Index = path2.child(1);
+
+    ASSERT_EQ(nym1Index, nym2Index);
 }
 
 TEST_F(Test_CreateNymHD, TestNym_NegativeIndex)
 {
-  auto NymID1 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID1 = opentxs::OT::App().API().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedD_, -1);
 
-  auto NymID2 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID2 = opentxs::OT::App().API().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedD_, -1);
 
-  const ConstNym Nym1 = opentxs::OT::App().Wallet().Nym(Identifier(NymID1));
-  const ConstNym Nym2 = opentxs::OT::App().Wallet().Nym(Identifier(NymID2));
-    
-  proto::HDPath path1, path2;
-  EXPECT_TRUE(Nym1.get()->Path(path1));
-  EXPECT_TRUE(Nym2.get()->Path(path2));
+    const ConstNym Nym1 = opentxs::OT::App().Wallet().Nym(Identifier(NymID1));
+    const ConstNym Nym2 = opentxs::OT::App().Wallet().Nym(Identifier(NymID2));
 
-  const auto nym1Index = path1.child(1);
-  const auto nym2Index = path2.child(1);
+    proto::HDPath path1, path2;
+    EXPECT_TRUE(Nym1.get()->Path(path1));
+    EXPECT_TRUE(Nym2.get()->Path(path2));
 
-  ASSERT_NE(nym1Index, nym2Index);
+    const auto nym1Index = path1.child(1);
+    const auto nym2Index = path2.child(1);
+
+    ASSERT_NE(nym1Index, nym2Index);
 }
 
 }  // namespace

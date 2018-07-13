@@ -1,9 +1,9 @@
 
-set(name unittests-opentxs-core-crypto)
+set(name unittests-opentxs-crypto)
 
 set(cxx-sources
         main.cpp
-        Test_PaymentCode.cpp
+        Test_AsymmetricProvider.cpp
         ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
         )
 

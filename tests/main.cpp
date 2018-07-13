@@ -39,9 +39,9 @@
 #include <gtest/gtest.h>
 #include "OTTestEnvironment.hpp"
 
-int main(int argc, char **argv) {
-  ::testing::AddGlobalTestEnvironment(new OTTestEnvironment());
-  ::testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
+int main(int argc, char** argv)
+{
+    ::testing::AddGlobalTestEnvironment(new OTTestEnvironment());
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
-
