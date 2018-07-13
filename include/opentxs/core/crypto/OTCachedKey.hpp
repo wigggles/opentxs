@@ -245,7 +245,7 @@ private:
      */
     mutable std::unique_ptr<OTPassword> master_password_;
     /** Encrypted form of the master key. Serialized by OTWallet or Server. */
-    mutable std::unique_ptr<crypto::key::LegacySymmetric> key_;
+    mutable OTLegacySymmetricKey key_;
     mutable String secret_id_{""};
 
     void release_thread() const;

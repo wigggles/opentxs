@@ -50,6 +50,8 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -58,6 +60,7 @@
 #include "opentxs/OT.hpp"
 
 #include "api/NativeInternal.hpp"
+#include "LegacySymmetricNull.hpp"
 
 extern "C" {
 #ifdef _WIN32
@@ -67,12 +70,327 @@ extern "C" {
 #include <netinet/in.h>
 #endif
 }
+
+#include <atomic>
 #include <cstdint>
 #include <ostream>
+
+#include "LegacySymmetric.hpp"
 
 #define OT_METHOD "opentxs::crypto::key::LegacySymmetric::"
 
 namespace opentxs::crypto::key
+{
+OTLegacySymmetricKey LegacySymmetric::Blank()
+{
+    return OTLegacySymmetricKey{new implementation::LegacySymmetricNull};
+}
+
+OTLegacySymmetricKey LegacySymmetric::Factory()
+{
+    return OTLegacySymmetricKey{new implementation::LegacySymmetric};
+}
+
+OTLegacySymmetricKey LegacySymmetric::Factory(const OTPassword& thePassword)
+{
+    return OTLegacySymmetricKey{
+        new implementation::LegacySymmetric(thePassword)};
+}
+
+bool LegacySymmetric::CreateNewKey(
+    String& strOutput,
+    const String* pstrDisplay,
+    const OTPassword* pAlreadyHavePW)
+{
+    std::unique_ptr<OTPassword> pPassUserInput;
+
+    if (nullptr == pAlreadyHavePW) {
+        const char* szDisplay = "Creating new symmetric key.";
+        const String strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+
+        pPassUserInput.reset(GetPassphraseFromUser(
+            &strDisplay, true));  // bAskTwice=false by default.
+    } else
+        pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
+
+    bool bSuccess = false;
+
+    if (pPassUserInput)  // Success retrieving the passphrase from the
+                         // user. (Now let's generate the key...)
+    {
+        otLog3 << __FUNCTION__
+               << ": Calling LegacySymmetric theKey.GenerateKey()...\n";
+        implementation::LegacySymmetric theKey(*pPassUserInput);
+        const bool bGenerated = theKey.IsGenerated();
+
+        if (bGenerated && theKey.SerializeTo(strOutput))
+            bSuccess = true;
+        else
+            otWarn << __FUNCTION__
+                   << ": Sorry, unable to generate key. (Failure.)\n";
+    } else
+        otWarn
+            << __FUNCTION__
+            << ": Sorry, unable to retrieve password from user. (Failure.)\n";
+
+    return bSuccess;
+}
+
+bool LegacySymmetric::Decrypt(
+    const String& strKey,
+    String& strCiphertext,
+    String& strOutput,
+    const String* pstrDisplay,
+    const OTPassword* pAlreadyHavePW)
+{
+
+    if (!strKey.Exists()) {
+        otWarn
+            << __FUNCTION__
+            << ": Nonexistent: The symmetric key. Please supply. (Failure.)\n";
+        return false;
+    }
+
+    implementation::LegacySymmetric theKey;
+
+    if (!theKey.SerializeFrom(strKey)) {
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
+        return false;
+    }
+
+    // By this point, we know we have a ciphertext envelope and a symmetric Key.
+    //
+    return Decrypt(
+        theKey, strCiphertext, strOutput, pstrDisplay, pAlreadyHavePW);
+}
+
+bool LegacySymmetric::Decrypt(
+    const LegacySymmetric& theKey,
+    const String& strCiphertext,
+    String& strOutput,
+    const String* pstrDisplay,
+    const OTPassword* pAlreadyHavePW)
+{
+    if (!theKey.IsGenerated()) {
+        otWarn << __FUNCTION__
+               << ": Failure: theKey.IsGenerated() was false. (The calling "
+                  "code probably should have checked for that...)\n";
+        return false;
+    }
+
+    OTASCIIArmor ascArmor;
+    const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
+        ascArmor, strCiphertext);  // str_bookend="-----BEGIN" by default
+
+    if (!bLoadedArmor || !ascArmor.Exists()) {
+        otErr << __FUNCTION__ << ": Failure loading ciphertext envelope:\n\n"
+              << strCiphertext << "\n\n";
+        return false;
+    }
+
+    // By this point, we know we have a ciphertext envelope and a symmetric Key.
+    //
+    std::unique_ptr<OTPassword> pPassUserInput;
+
+    if (nullptr == pAlreadyHavePW) {
+        const char* szDisplay = "Decrypting a password-protected ciphertext.";
+        const String strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+
+        pPassUserInput.reset(
+            GetPassphraseFromUser(&strDisplay));  // bAskTwice=false by default.
+    }
+
+    bool bSuccess = false;
+
+    if (pPassUserInput ||  // Success retrieving the passphrase from the
+        pAlreadyHavePW)    // user, or passphrase was provided out of scope.
+    {
+        OTEnvelope theEnvelope(ascArmor);
+
+        if (theEnvelope.Decrypt(
+                strOutput,
+                theKey,
+                pPassUserInput ? *pPassUserInput : *pAlreadyHavePW)) {
+            bSuccess = true;
+        } else {
+            otWarn << __FUNCTION__ << ": Failed trying to decrypt. (Sorry.)\n";
+        }
+    } else
+        otWarn
+            << __FUNCTION__
+            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
+
+    return bSuccess;
+}
+
+// static
+bool LegacySymmetric::Encrypt(
+    const String& strKey,
+    const String& strPlaintext,
+    String& strOutput,
+    const String* pstrDisplay,
+    bool bBookends,
+    const OTPassword* pAlreadyHavePW)
+{
+    if (!strKey.Exists() || !strPlaintext.Exists()) {
+        otWarn << __FUNCTION__
+               << ": Nonexistent: either the key or the "
+                  "plaintext. Please supply. (Failure.)\n";
+        return false;
+    }
+
+    implementation::LegacySymmetric theKey;
+
+    if (!theKey.SerializeFrom(strKey)) {
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
+        return false;
+    }
+
+    // By this point, we know we have a plaintext and a symmetric Key.
+    //
+    return Encrypt(
+        theKey,
+        strPlaintext,
+        strOutput,
+        pstrDisplay,
+        bBookends,
+        pAlreadyHavePW);
+}
+
+// static
+bool LegacySymmetric::Encrypt(
+    const LegacySymmetric& theKey,
+    const String& strPlaintext,
+    String& strOutput,
+    const String* pstrDisplay,
+    bool bBookends,
+    const OTPassword* pAlreadyHavePW)
+{
+    if (!theKey.IsGenerated()) {
+        otWarn << __FUNCTION__
+               << ": Failure: theKey.IsGenerated() was false. (The calling "
+                  "code probably should have checked that key already...)\n";
+        return false;
+    }
+
+    if (!strPlaintext.Exists()) {
+        otWarn << __FUNCTION__
+               << ": Plaintext is empty. Please supply. (Failure.)\n";
+        return false;
+    }
+
+    // By this point, we know we have a plaintext and a symmetric Key.
+    //
+    std::unique_ptr<OTPassword> pPassUserInput;
+
+    if (nullptr == pAlreadyHavePW) {
+        const char* szDisplay = "Password-protecting a plaintext.";
+        const String strDisplay(
+            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+
+        pPassUserInput.reset(
+            GetPassphraseFromUser(&strDisplay));  // bAskTwice=false by default.
+    } else
+        pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
+
+    OTASCIIArmor ascOutput;
+    bool bSuccess = false;
+
+    if (nullptr != pPassUserInput)  // Success retrieving the passphrase from
+                                    // the user. (Now let's encrypt...)
+    {
+        OTEnvelope theEnvelope;
+
+        if (theEnvelope.Encrypt(
+                strPlaintext,
+                const_cast<LegacySymmetric&>(theKey),
+                *pPassUserInput) &&
+            theEnvelope.GetCiphertext(ascOutput)) {
+            bSuccess = true;
+
+            if (bBookends) {
+                return ascOutput.WriteArmoredString(
+                    strOutput,
+                    "SYMMETRIC MSG",  // todo hardcoding.
+                    false);           // bEscaped=false
+            } else {
+                strOutput.Set(ascOutput.Get());
+            }
+        } else {
+            otWarn << __FUNCTION__ << ": Failed trying to encrypt. (Sorry.)\n";
+        }
+    } else
+        otWarn
+            << __FUNCTION__
+            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
+
+    return bSuccess;
+}
+
+// The highest-level possible interface (used by the API)
+//
+// NOTE: this version circumvents the master key.
+OTPassword* LegacySymmetric::GetPassphraseFromUser(
+    const String* pstrDisplay,
+    bool bAskTwice)  // returns a
+                     // text
+                     // OTPassword,
+                     // or nullptr.
+{
+    OTPassword* pPassUserInput =
+        OTPassword::CreateTextBuffer();  // already asserts.
+    //  pPassUserInput->zeroMemory(); // This was causing the password to come
+    // out blank.
+    //
+    // Below this point, pPassUserInput must be returned, or deleted. (Or it
+    // will leak.)
+
+    const char* szDisplay = "LegacySymmetric::GetPassphraseFromUser";
+    OTPasswordData thePWData(
+        (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+    // -------------------------------------------------------------------
+    //
+    // OLD SYSTEM! (NO MASTER KEY INVOLVEMENT.)
+    //
+    thePWData.setUsingOldSystem();  // So the cached key doesn't interfere,
+                                    // since
+                                    // this is for a plain symmetric key.
+    // -------------------------------------------------------------------
+    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
+    auto* callback = native.GetInternalPasswordCallback();
+    const std::int32_t nCallback = (*callback)(
+        pPassUserInput->getPasswordWritable_char(),
+        pPassUserInput->getBlockSize(),
+        bAskTwice ? 1 : 0,
+        static_cast<void*>(&thePWData));
+    const std::uint32_t uCallback = static_cast<uint32_t>(nCallback);
+    if ((nCallback > 0) &&  // Success retrieving the passphrase from the user.
+        pPassUserInput->SetSize(uCallback)) {
+        //      otOut << "%s: Retrieved passphrase (blocksize %d, actual size
+        //      %d) from "
+        //               "user: %s\n", __FUNCTION__,
+        //               pPassUserInput->getBlockSize(), nCallback,
+        //               pPassUserInput->getPassword());
+        return pPassUserInput;  // Caller MUST delete!
+    } else {
+        delete pPassUserInput;
+        pPassUserInput = nullptr;
+        otOut
+            << __FUNCTION__
+            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
+    }
+
+    return nullptr;
+}
+}  // namespace opentxs::crypto::key
+
+namespace opentxs::crypto::key::implementation
 {
 LegacySymmetric::LegacySymmetric()
     : m_bIsGenerated(false)
@@ -86,16 +404,37 @@ LegacySymmetric::LegacySymmetric()
 {
 }
 
+LegacySymmetric::LegacySymmetric(const LegacySymmetric& rhs)
+    : key::LegacySymmetric()
+    , Lockable()
+    , m_bIsGenerated(rhs.m_bIsGenerated)
+    , has_hash_check_(Flag::Factory(rhs.has_hash_check_.get()))
+    , m_nKeySize(rhs.m_nKeySize)
+    , m_uIterationCount(rhs.m_uIterationCount)
+    , salt_(Data::Factory(rhs.salt_))
+    , iv_(Data::Factory(rhs.salt_))
+    , encrypted_key_(Data::Factory(rhs.encrypted_key_))
+    , hash_check_(Data::Factory(rhs.hash_check_))
+{
+}
+
 LegacySymmetric::LegacySymmetric(const OTPassword& thePassword)
     : LegacySymmetric()
 {
     GenerateKey(thePassword);
 }
+
+LegacySymmetric* LegacySymmetric::clone() const
+{
+    return new LegacySymmetric(*this);
+}
+
 void LegacySymmetric::GetIdentifier(Identifier& theIdentifier) const
 {
     Lock lock(lock_);
     theIdentifier.CalculateDigest(encrypted_key_.get());
 }
+
 void LegacySymmetric::GetIdentifier(String& strIdentifier) const
 {
     Lock lock(lock_);
@@ -549,302 +888,6 @@ bool LegacySymmetric::GetRawKeyFromDerivedKey(
 
     return get_raw_key_from_derived_key(lock, theDerivedKey, theRawKeyOutput);
 }
-// The highest-level possible interface (used by the API)
-//
-// static  NOTE: this version circumvents the master key.
-OTPassword* LegacySymmetric::GetPassphraseFromUser(
-    const String* pstrDisplay,
-    bool bAskTwice)  // returns a
-                     // text
-                     // OTPassword,
-                     // or nullptr.
-{
-    OTPassword* pPassUserInput =
-        OTPassword::CreateTextBuffer();  // already asserts.
-    //  pPassUserInput->zeroMemory(); // This was causing the password to come
-    // out blank.
-    //
-    // Below this point, pPassUserInput must be returned, or deleted. (Or it
-    // will leak.)
-
-    const char* szDisplay = "LegacySymmetric::GetPassphraseFromUser";
-    OTPasswordData thePWData(
-        (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
-    // -------------------------------------------------------------------
-    //
-    // OLD SYSTEM! (NO MASTER KEY INVOLVEMENT.)
-    //
-    thePWData.setUsingOldSystem();  // So the cached key doesn't interfere,
-                                    // since
-                                    // this is for a plain symmetric key.
-    // -------------------------------------------------------------------
-    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
-    auto* callback = native.GetInternalPasswordCallback();
-    const std::int32_t nCallback = (*callback)(
-        pPassUserInput->getPasswordWritable_char(),
-        pPassUserInput->getBlockSize(),
-        bAskTwice ? 1 : 0,
-        static_cast<void*>(&thePWData));
-    const std::uint32_t uCallback = static_cast<uint32_t>(nCallback);
-    if ((nCallback > 0) &&  // Success retrieving the passphrase from the user.
-        pPassUserInput->SetSize(uCallback)) {
-        //      otOut << "%s: Retrieved passphrase (blocksize %d, actual size
-        //      %d) from "
-        //               "user: %s\n", __FUNCTION__,
-        //               pPassUserInput->getBlockSize(), nCallback,
-        //               pPassUserInput->getPassword());
-        return pPassUserInput;  // Caller MUST delete!
-    } else {
-        delete pPassUserInput;
-        pPassUserInput = nullptr;
-        otOut
-            << __FUNCTION__
-            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
-    }
-
-    return nullptr;
-}
-
-// static
-bool LegacySymmetric::CreateNewKey(
-    String& strOutput,
-    const String* pstrDisplay,
-    const OTPassword* pAlreadyHavePW)
-{
-    std::unique_ptr<OTPassword> pPassUserInput;
-
-    if (nullptr == pAlreadyHavePW) {
-        const char* szDisplay = "Creating new symmetric key.";
-        const String strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
-
-        pPassUserInput.reset(GetPassphraseFromUser(
-            &strDisplay, true));  // bAskTwice=false by default.
-    } else
-        pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
-
-    bool bSuccess = false;
-
-    if (pPassUserInput)  // Success retrieving the passphrase from the
-                         // user. (Now let's generate the key...)
-    {
-        otLog3 << __FUNCTION__
-               << ": Calling LegacySymmetric theKey.GenerateKey()...\n";
-        LegacySymmetric theKey(*pPassUserInput);
-        const bool bGenerated = theKey.IsGenerated();
-        //      otOut << "%s: Finished calling LegacySymmetric
-        // theKey.GenerateKey()...\n", __FUNCTION__);
-
-        if (bGenerated && theKey.SerializeTo(strOutput))
-            bSuccess = true;
-        else
-            otWarn << __FUNCTION__
-                   << ": Sorry, unable to generate key. (Failure.)\n";
-    } else
-        otWarn
-            << __FUNCTION__
-            << ": Sorry, unable to retrieve password from user. (Failure.)\n";
-
-    return bSuccess;
-}
-
-// static
-bool LegacySymmetric::Encrypt(
-    const String& strKey,
-    const String& strPlaintext,
-    String& strOutput,
-    const String* pstrDisplay,
-    bool bBookends,
-    const OTPassword* pAlreadyHavePW)
-{
-    if (!strKey.Exists() || !strPlaintext.Exists()) {
-        otWarn << __FUNCTION__
-               << ": Nonexistent: either the key or the "
-                  "plaintext. Please supply. (Failure.)\n";
-        return false;
-    }
-
-    LegacySymmetric theKey;
-
-    if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__
-               << ": Failed trying to load symmetric key from "
-                  "string. (Returning false.)\n";
-        return false;
-    }
-
-    // By this point, we know we have a plaintext and a symmetric Key.
-    //
-    return Encrypt(
-        theKey,
-        strPlaintext,
-        strOutput,
-        pstrDisplay,
-        bBookends,
-        pAlreadyHavePW);
-}
-
-// static
-bool LegacySymmetric::Encrypt(
-    const LegacySymmetric& theKey,
-    const String& strPlaintext,
-    String& strOutput,
-    const String* pstrDisplay,
-    bool bBookends,
-    const OTPassword* pAlreadyHavePW)
-{
-    if (!theKey.IsGenerated()) {
-        otWarn << __FUNCTION__
-               << ": Failure: theKey.IsGenerated() was false. (The calling "
-                  "code probably should have checked that key already...)\n";
-        return false;
-    }
-
-    if (!strPlaintext.Exists()) {
-        otWarn << __FUNCTION__
-               << ": Plaintext is empty. Please supply. (Failure.)\n";
-        return false;
-    }
-
-    // By this point, we know we have a plaintext and a symmetric Key.
-    //
-    std::unique_ptr<OTPassword> pPassUserInput;
-
-    if (nullptr == pAlreadyHavePW) {
-        const char* szDisplay = "Password-protecting a plaintext.";
-        const String strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
-
-        pPassUserInput.reset(
-            GetPassphraseFromUser(&strDisplay));  // bAskTwice=false by default.
-    } else
-        pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
-
-    OTASCIIArmor ascOutput;
-    bool bSuccess = false;
-
-    if (nullptr != pPassUserInput)  // Success retrieving the passphrase from
-                                    // the user. (Now let's encrypt...)
-    {
-        OTEnvelope theEnvelope;
-
-        if (theEnvelope.Encrypt(
-                strPlaintext,
-                const_cast<LegacySymmetric&>(theKey),
-                *pPassUserInput) &&
-            theEnvelope.GetCiphertext(ascOutput)) {
-            bSuccess = true;
-
-            if (bBookends) {
-                return ascOutput.WriteArmoredString(
-                    strOutput,
-                    "SYMMETRIC MSG",  // todo hardcoding.
-                    false);           // bEscaped=false
-            } else {
-                strOutput.Set(ascOutput.Get());
-            }
-        } else {
-            otWarn << __FUNCTION__ << ": Failed trying to encrypt. (Sorry.)\n";
-        }
-    } else
-        otWarn
-            << __FUNCTION__
-            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
-
-    return bSuccess;
-}
-
-// static
-bool LegacySymmetric::Decrypt(
-    const String& strKey,
-    String& strCiphertext,
-    String& strOutput,
-    const String* pstrDisplay,
-    const OTPassword* pAlreadyHavePW)
-{
-
-    if (!strKey.Exists()) {
-        otWarn
-            << __FUNCTION__
-            << ": Nonexistent: The symmetric key. Please supply. (Failure.)\n";
-        return false;
-    }
-
-    LegacySymmetric theKey;
-
-    if (!theKey.SerializeFrom(strKey)) {
-        otWarn << __FUNCTION__
-               << ": Failed trying to load symmetric key from "
-                  "string. (Returning false.)\n";
-        return false;
-    }
-
-    // By this point, we know we have a ciphertext envelope and a symmetric Key.
-    //
-    return Decrypt(
-        theKey, strCiphertext, strOutput, pstrDisplay, pAlreadyHavePW);
-}
-
-// static
-bool LegacySymmetric::Decrypt(
-    const LegacySymmetric& theKey,
-    const String& strCiphertext,
-    String& strOutput,
-    const String* pstrDisplay,
-    const OTPassword* pAlreadyHavePW)
-{
-    if (!theKey.IsGenerated()) {
-        otWarn << __FUNCTION__
-               << ": Failure: theKey.IsGenerated() was false. (The calling "
-                  "code probably should have checked for that...)\n";
-        return false;
-    }
-
-    OTASCIIArmor ascArmor;
-    const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
-        ascArmor, strCiphertext);  // str_bookend="-----BEGIN" by default
-
-    if (!bLoadedArmor || !ascArmor.Exists()) {
-        otErr << __FUNCTION__ << ": Failure loading ciphertext envelope:\n\n"
-              << strCiphertext << "\n\n";
-        return false;
-    }
-
-    // By this point, we know we have a ciphertext envelope and a symmetric Key.
-    //
-    std::unique_ptr<OTPassword> pPassUserInput;
-
-    if (nullptr == pAlreadyHavePW) {
-        const char* szDisplay = "Decrypting a password-protected ciphertext.";
-        const String strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
-
-        pPassUserInput.reset(
-            GetPassphraseFromUser(&strDisplay));  // bAskTwice=false by default.
-    }
-
-    bool bSuccess = false;
-
-    if (pPassUserInput ||  // Success retrieving the passphrase from the
-        pAlreadyHavePW)    // user, or passphrase was provided out of scope.
-    {
-        OTEnvelope theEnvelope(ascArmor);
-
-        if (theEnvelope.Decrypt(
-                strOutput,
-                theKey,
-                pPassUserInput ? *pPassUserInput : *pAlreadyHavePW)) {
-            bSuccess = true;
-        } else {
-            otWarn << __FUNCTION__ << ": Failed trying to decrypt. (Sorry.)\n";
-        }
-    } else
-        otWarn
-            << __FUNCTION__
-            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
-
-    return bSuccess;
-}
 
 // Notice I don't theInput.reset(), because what if this
 // key was being read from a larger file containing several
@@ -1264,4 +1307,4 @@ void LegacySymmetric::Release_SymmetricKey()
 }
 
 LegacySymmetric::~LegacySymmetric() { Release_SymmetricKey(); }
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs::crypto::key::implementation

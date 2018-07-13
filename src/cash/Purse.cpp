@@ -59,7 +59,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -174,7 +173,7 @@ const OTCachedKey& Purse::GetInternalMaster()
 bool Purse::GenerateInternalKey()
 {
     if (IsPasswordProtected() ||
-        (nullptr != m_pSymmetricKey) ||  // GetInternalKey())
+        (m_pSymmetricKey.get()) ||  // GetInternalKey())
         (m_pCachedKey)) {
         otOut << __FUNCTION__
               << ": Failed: internal Key  or master key already exists. "
@@ -232,17 +231,18 @@ bool Purse::GenerateInternalKey()
         return false;
     }
 
-    m_pSymmetricKey = new crypto::key::LegacySymmetric(
+    m_pSymmetricKey = crypto::key::LegacySymmetric::Factory(
         thePassphrase);  // Creates the symmetric key here
                          // based on the passphrase from
                          // purse's master key.
-    OT_ASSERT(nullptr != m_pSymmetricKey);
+
+    OT_ASSERT(m_pSymmetricKey.get());
 
     if (!m_pSymmetricKey->IsGenerated()) {
         otOut << __FUNCTION__ << ": Failed: generating m_pSymmetricKey.\n";
-        delete m_pSymmetricKey;
-        m_pSymmetricKey = nullptr;
+        m_pSymmetricKey = crypto::key::LegacySymmetric::Blank();
         m_pCachedKey.reset();
+
         return false;
     }
 
@@ -730,27 +730,10 @@ Purse::~Purse() { Release_Purse(); }
 
 void Purse::Release_Purse()
 {
-    // This sets m_lTotalValue to 0 already.
     ReleaseTokens();
-    //  m_lTotalValue = 0;
-
     m_bPasswordProtected = false;
     m_bIsNymIDIncluded = false;
-
-    // the Temp Nym is when a purse contains its own Nym, created just
-    // for that purse, so that it can be password protected instead of using
-    // one of the real Nyms in your wallet.
-    //
-    if (nullptr != m_pSymmetricKey) {
-        delete m_pSymmetricKey;
-        m_pSymmetricKey = nullptr;
-    }
-
-    //  if (m_pCachedKey)
-    //  {
-    //      delete m_pCachedKey;
-    //      m_pCachedKey = nullptr;
-    //  }
+    m_pSymmetricKey = crypto::key::LegacySymmetric::Blank();
 }
 
 void Purse::Release()
@@ -761,12 +744,6 @@ void Purse::Release()
 
     InitPurse();
 }
-
-/*
- OTIdentifier    m_NymID;    // Optional
- OTIdentifier    m_NotaryID;    // Mandatory
- OTIdentifier    m_InstrumentDefinitionID;    // Mandatory
- */
 
 bool Purse::LoadContract() { return LoadPurse(); }
 
@@ -945,7 +922,7 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
                 << __FUNCTION__
                 << ": Error: m_pCachedKey is unexpectedly nullptr, even though "
                    "m_bPasswordProtected is true!\n";
-        else if (nullptr == m_pSymmetricKey)
+        else if (!m_pSymmetricKey.get())
             otErr << __FUNCTION__
                   << ": Error: m_pSymmetricKey is unexpectedly "
                      "nullptr, even though "
@@ -1146,16 +1123,14 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // Let's see if the internal key is already loaded somehow... (Shouldn't
         // be...)
         //
-        if (nullptr != m_pSymmetricKey) {
+        if (m_pSymmetricKey.get()) {
             otErr << szFunc
                   << ": WARNING: While loading internal Key for a purse, "
                      "noticed the pointer was ALREADY set! (I'm deleting old "
                      "one to make room, "
                      "and then allowing this one to load instead...)\n";
-            //          return (-1); // error condition
-
-            delete m_pSymmetricKey;
-            m_pSymmetricKey = nullptr;
+            m_pSymmetricKey = crypto::key::LegacySymmetric::Blank();
+            ;
         }
 
         // By this point, I've loaded up the string containing the encrypted
@@ -1164,26 +1139,19 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // m_pSymmetricKey is nullptr.
         //
         // (It's only now that I bother instantiating.)
-        //
-        crypto::key::LegacySymmetric* pSymmetricKey =
-            new crypto::key::LegacySymmetric;
+        auto pSymmetricKey = crypto::key::LegacySymmetric::Factory();
+
         OT_ASSERT_MSG(
-            nullptr != pSymmetricKey,
+            pSymmetricKey.get(),
             "Purse::ProcessXMLNode: "
             "Assert: nullptr != new "
             "crypto::key::LegacySymmetric \n");
 
-        // NOTE: In the event of any error, need to delete pSymmetricKey before
-        // returning.
-        // (Or it will leak.)
-        //
         if (!pSymmetricKey->SerializeFrom(ascValue)) {
             otErr
                 << szFunc
                 << ": Error: While loading internal Key for a purse, failed "
                    "serializing from stored string! (Failed loading purse.)\n";
-            delete pSymmetricKey;
-            pSymmetricKey = nullptr;
             return (-1);
         }
 

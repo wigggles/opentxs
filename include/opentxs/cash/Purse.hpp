@@ -45,6 +45,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/LegacySymmetric.hpp"
 
 #include <cstdint>
 #include <deque>
@@ -109,8 +110,9 @@ protected:
                                      // what the correct NymID is, or it won't
                                      // work.) This bool tells us whether the ID
                                      // is attached, or not.
-    crypto::key::LegacySymmetric* m_pSymmetricKey{nullptr};  // If this purse
-                                                             // contains its own
+    OTLegacySymmetricKey m_pSymmetricKey{
+        crypto::key::LegacySymmetric::Blank()};  // If this purse
+                                                 // contains its own
     // symmetric key (instead of using an
     // owner Nym)...
     // ...then it will have a master key as well, for unlocking that symmetric
@@ -154,7 +156,7 @@ public:
     /** Create internal symmetric key for password-protected purse. */
     EXPORT bool GenerateInternalKey();
     /** symmetric key for this purse.*/
-    EXPORT crypto::key::LegacySymmetric* GetInternalKey()
+    EXPORT crypto::key::LegacySymmetric& GetInternalKey()
     {
         return m_pSymmetricKey;
     }

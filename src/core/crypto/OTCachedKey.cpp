@@ -82,7 +82,7 @@ OTCachedKey::OTCachedKey(const std::int32_t nTimeoutSeconds)
     , timeout_(nTimeoutSeconds)
     , thread_(nullptr)
     , master_password_(nullptr)
-    , key_(nullptr)
+    , key_(crypto::key::LegacySymmetric::Factory())
 {
 }
 
@@ -103,7 +103,7 @@ bool OTCachedKey::ChangeUserPassphrase()
 {
     Lock lock(general_lock_);
 
-    if (false == bool(key_)) {
+    if (false == bool(key_.get())) {
         otErr << __FUNCTION__
               << ": The Master Key does not appear yet to "
                  "exist. Try creating a Nym first.\n";
@@ -178,7 +178,7 @@ bool OTCachedKey::GetIdentifier(Identifier& theIdentifier) const
 {
     Lock lock(general_lock_);
 
-    if (key_) {
+    if (key_.get()) {
         if (key_->IsGenerated()) {
             key_->GetIdentifier(theIdentifier);
 
@@ -288,9 +288,9 @@ bool OTCachedKey::GetMasterPassword(
     OTPassword* pDerivedKey = nullptr;
     std::unique_ptr<OTPassword> theDerivedAngel;
 
-    if (!key_) { key_.reset(new crypto::key::LegacySymmetric); }
+    if (!key_.get()) { key_ = crypto::key::LegacySymmetric::Factory(); }
 
-    OT_ASSERT(key_);
+    OT_ASSERT(key_.get());
 
     if (!key_->IsGenerated())  // doesn't already exist.
     {
@@ -616,7 +616,7 @@ bool OTCachedKey::GetMasterPassword(
                 //
                 if (IsUsingSystemKeyring() && (nullptr != pDerivedKey)) {
 
-                    secret_id_ = String(Identifier::Factory(*key_));
+                    secret_id_ = String(Identifier::Factory(key_));
                     OTKeyring::StoreSecret(
                         secret_id_,
                         *pDerivedKey,  // (Input) Derived Key BEING STORED.
@@ -694,7 +694,7 @@ bool OTCachedKey::HasHashCheck() const
 {
     Lock lock(general_lock_);
 
-    if (key_) { return key_->HasHashCheck(); }
+    if (key_.get()) { return key_->HasHashCheck(); }
 
     return false;
 }
@@ -703,7 +703,7 @@ bool OTCachedKey::IsGenerated() const
 {
     Lock lock(general_lock_);
 
-    if (key_) { return key_->IsGenerated(); }
+    if (key_.get()) { return key_->IsGenerated(); }
 
     return false;
 }
@@ -756,7 +756,7 @@ void OTCachedKey::reset_master_password()
     master_password_.reset();
     inner.unlock();
 
-    if (key_) {
+    if (key_.get()) {
         if (IsUsingSystemKeyring()) { OTKeyring::DeleteSecret(secret_id_, ""); }
     }
 }
@@ -774,7 +774,7 @@ bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
 {
     Lock lock(general_lock_);
 
-    if (key_) { return key_->SerializeFrom(ascInput); }
+    if (key_.get()) { return key_->SerializeFrom(ascInput); }
 
     return false;
 }
@@ -783,7 +783,7 @@ bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput) const
 {
     Lock lock(general_lock_);
 
-    if (key_) { return key_->SerializeTo(ascOutput); }
+    if (key_.get()) { return key_->SerializeTo(ascOutput); }
 
     return false;
 }
@@ -794,9 +794,9 @@ void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
 
     OT_ASSERT(ascCachedKey.Exists());
 
-    key_.reset(new crypto::key::LegacySymmetric);
+    key_ = crypto::key::LegacySymmetric::Factory();
 
-    OT_ASSERT(key_);
+    OT_ASSERT(key_.get());
 
     key_->SerializeFrom(ascCachedKey);
 }

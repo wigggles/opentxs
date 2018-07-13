@@ -30,6 +30,8 @@ set(cxx-headers
   Ed25519.hpp
   EllipticCurve.hpp
   Keypair.hpp
+  LegacySymmetric.hpp
+  LegacySymmetricNull.hpp
   Null.hpp
   RSA.hpp
   RSA_private.hpp

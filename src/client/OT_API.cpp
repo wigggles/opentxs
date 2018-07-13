@@ -4649,23 +4649,20 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                                                   // its own built-in symmetric
                                                   // key.
         {
-            crypto::key::LegacySymmetric* pSymmetricKey =
-                thePurse.GetInternalKey();
-            OT_ASSERT(nullptr != pSymmetricKey);
+            auto& pSymmetricKey = thePurse.GetInternalKey();
+
+            OT_ASSERT(pSymmetricKey);
+
             const bool bGotPassphrase = thePurse.GetPassphrase(
                 thePassword, thePWData2.GetDisplayString());
 
-            if (!bGotPassphrase)
+            if (!bGotPassphrase) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Authentication failed, or otherwise failed "
                          "retrieving secret from user.\n";
-            // Below this point, we know thePassword is good, and we know
-            // pSymmetricKey is good.
-            // Therefore...
-            //
-            else {
+            } else {
                 pOwner = new OTNym_or_SymmetricKey(
-                    *pSymmetricKey,
+                    pSymmetricKey,
                     thePassword,
                     pstrDisplay2);  // Can't put
                                     // &strReason
@@ -4799,23 +4796,20 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                                                   // its own built-in symmetric
                                                   // key.
         {
-            crypto::key::LegacySymmetric* pSymmetricKey =
-                thePurse.GetInternalKey();
-            OT_ASSERT(nullptr != pSymmetricKey);
+            auto& pSymmetricKey = thePurse.GetInternalKey();
+
+            OT_ASSERT(pSymmetricKey);
+
             const bool bGotPassphrase = thePurse.GetPassphrase(
                 thePassword, thePWData.GetDisplayString());
 
-            if (!bGotPassphrase)
+            if (!bGotPassphrase) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Authentication failed, or otherwise failed "
                          "retrieving secret from user.\n";
-            // Below this point, we know thePassword is good, and we know
-            // pSymmetricKey is good.
-            // Therefore...
-            //
-            else {
+            } else {
                 pOwner = new OTNym_or_SymmetricKey(
-                    *pSymmetricKey,
+                    pSymmetricKey,
                     thePassword,
                     pstrDisplay);  // Can't put
                                    // &strReason

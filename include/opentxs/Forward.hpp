@@ -289,6 +289,7 @@ using OTData = Pimpl<Data>;
 using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
 using OTIdentifier = Pimpl<Identifier>;
+using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
@@ -338,6 +339,7 @@ struct less<opentxs::OTIdentifier> {
 
 // extern template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
 extern template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
+// extern template class opentxs::Pimpl<opentxs::crypto::key::LegacySymmetric>;
 // extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
