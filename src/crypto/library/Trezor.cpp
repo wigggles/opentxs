@@ -58,6 +58,14 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
+#if OT_CRYPTO_WITH_BIP32
+#include "crypto/Bip32.hpp"
+#endif
+#if OT_CRYPTO_WITH_BIP39
+#include "crypto/Bip39.hpp"
+#endif
+#include "EcdsaProvider.hpp"
+
 extern "C" {
 #if OT_CRYPTO_WITH_BIP39
 #include <trezor-crypto/bip39.h>
@@ -71,14 +79,6 @@ extern "C" {
 #include <trezor-crypto/ecdsa.h>
 #include <trezor-crypto/ripemd160.h>
 }
-
-#if OT_CRYPTO_WITH_BIP32
-#include "crypto/Bip32.hpp"
-#endif
-#if OT_CRYPTO_WITH_BIP39
-#include "crypto/Bip39.hpp"
-#endif
-#include "EcdsaProvider.hpp"
 
 #include <array>
 #include <cstdint>
@@ -543,6 +543,7 @@ std::string Trezor::Base58CheckEncode(
     const std::size_t outputSize = ::base58_encode_check(
         inputStart,
         inputSize,
+        HASHER_SHA2D,
         const_cast<char*>(output.c_str()),
         output.size());
 
@@ -567,8 +568,8 @@ bool Trezor::Base58CheckDecode(const std::string&& input, RawData& output) const
 
     std::size_t outputSize = inputSize;
     output.resize(outputSize, 0x0);
-    outputSize =
-        ::base58_decode_check(input.data(), output.data(), output.size());
+    outputSize = ::base58_decode_check(
+        input.data(), HASHER_SHA2D, output.data(), output.size());
 
     if (0 == outputSize) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Decoding failed."
