@@ -65,7 +65,7 @@ public:
 private:
     friend class StorageMultiplex;
 
-    const std::unique_ptr<crypto::key::Symmetric> encryption_key_;
+    crypto::key::Symmetric& encryption_key_;
     const bool encrypted_{false};
 
     std::string calculate_path(
@@ -86,7 +86,7 @@ private:
         const Random& random,
         const Flag& bucket,
         const std::string& folder,
-        std::unique_ptr<crypto::key::Symmetric>& key);
+        crypto::key::Symmetric& key);
     StorageFSArchive() = delete;
     StorageFSArchive(const StorageFSArchive&) = delete;
     StorageFSArchive(StorageFSArchive&&) = delete;

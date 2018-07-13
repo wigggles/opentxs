@@ -34,6 +34,8 @@ set(cxx-headers
   RSA.hpp
   RSA_private.hpp
   Secp256k1.hpp
+  Symmetric.hpp
+  SymmetricNull.hpp
 )
 
 if(WIN32)

@@ -82,6 +82,7 @@ StorageMultiplex::StorageMultiplex(
     , backup_plugins_()
     , digest_(hash)
     , random_(random)
+    , null_(crypto::key::Symmetric::Factory())
 {
     Init_StorageMultiplex(primary, migrate, previous);
 }
@@ -220,7 +221,6 @@ void StorageMultiplex::InitBackup()
     if (config_.fs_backup_directory_.empty()) { return; }
 
 #if OT_STORAGE_FS
-    std::unique_ptr<crypto::key::Symmetric> null(nullptr);
     backup_plugins_.emplace_back(new StorageFSArchive(
         storage_,
         config_,
@@ -228,14 +228,14 @@ void StorageMultiplex::InitBackup()
         random_,
         primary_bucket_,
         config_.fs_backup_directory_,
-        null));
+        null_));
 #else
     return;
 #endif
 }
 
-void StorageMultiplex::InitEncryptedBackup(
-    __attribute__((unused)) std::unique_ptr<crypto::key::Symmetric>& key)
+void StorageMultiplex::InitEncryptedBackup([
+    [maybe_unused]] crypto::key::Symmetric& key)
 {
     if (config_.fs_encrypted_backup_directory_.empty()) { return; }
 

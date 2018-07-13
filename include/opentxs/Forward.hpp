@@ -291,6 +291,7 @@ using OTFlag = Pimpl<Flag>;
 using OTIdentifier = Pimpl<Identifier>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQFrame = Pimpl<network::zeromq::Frame>;
@@ -335,13 +336,8 @@ struct less<opentxs::OTIdentifier> {
 };
 }  // namespace std
 
-// extern template class opentxs::Pimpl<crypto::key::Asymmetric>;
-// extern template class opentxs::Pimpl<opentxs::Data>;
-// extern template class opentxs::Pimpl<opentxs::Flag>;
-extern template class opentxs::Pimpl<opentxs::Identifier>;
-// extern template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
-extern template class opentxs::Pimpl<opentxs::PaymentCode>;
-extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
+// extern template class opentxs::Pimpl<opentxs::crypto::key::Asymmetric>;
+extern template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
 // extern template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::ListenCallback>;
@@ -359,6 +355,12 @@ extern template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 extern template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 // extern template class
 // opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>;
+extern template class opentxs::Pimpl<opentxs::network::ServerConnection>;
+// extern template class opentxs::Pimpl<opentxs::Data>;
+// extern template class opentxs::Pimpl<opentxs::Flag>;
+extern template class opentxs::Pimpl<opentxs::Identifier>;
+// extern template class opentxs::Pimpl<opentxs::crypto::key::Keypair>;
+extern template class opentxs::Pimpl<opentxs::PaymentCode>;
 
 extern template struct std::less<opentxs::OTIdentifier>;
 

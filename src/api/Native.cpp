@@ -410,7 +410,7 @@ Native::Native(
     , zeromq_(nullptr)
     , periodic_(nullptr)
 #if OT_CRYPTO_WITH_BIP39
-    , storage_encryption_key_(nullptr)
+    , storage_encryption_key_(opentxs::crypto::key::Symmetric::Factory())
 #endif
     , server_(nullptr)
     , ui_(nullptr)
@@ -1120,7 +1120,7 @@ void Native::Init_StorageBackup()
     storage_->InitBackup();
 
 #if OT_CRYPTO_WITH_BIP39
-    if (storage_encryption_key_) {
+    if (storage_encryption_key_.get()) {
         storage_->InitEncryptedBackup(storage_encryption_key_);
     }
 #endif
@@ -1246,9 +1246,9 @@ void Native::set_storage_encryption()
 
     storage_encryption_key_ = crypto_->GetStorageKey(seed);
 
-    if (storage_encryption_key_) {
+    if (storage_encryption_key_.get()) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Obtained storage key "
-               << String(storage_encryption_key_->ID()) << std::endl;
+               << storage_encryption_key_->ID()->str() << std::endl;
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load storage key "
               << seed << std::endl;

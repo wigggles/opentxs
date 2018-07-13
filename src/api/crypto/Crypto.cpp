@@ -352,8 +352,8 @@ const crypto::Symmetric& Crypto::Symmetric() const
 
 const crypto::Util& Crypto::Util() const { return util_; }
 
-std::unique_ptr<opentxs::crypto::key::Symmetric> Crypto::GetStorageKey(
-    __attribute__((unused)) std::string& seed) const
+OTSymmetricKey Crypto::GetStorageKey(__attribute__((unused))
+                                     std::string& seed) const
 {
 #if OT_CRYPTO_WITH_BIP39
     auto serialized = BIP32().GetStorageKey(seed);
@@ -362,7 +362,7 @@ std::unique_ptr<opentxs::crypto::key::Symmetric> Crypto::GetStorageKey(
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load encryption key."
               << std::endl;
 
-        return {};
+        return opentxs::crypto::key::Symmetric::Factory();
     }
 
     OTPassword keySource{};
@@ -372,11 +372,13 @@ std::unique_ptr<opentxs::crypto::key::Symmetric> Crypto::GetStorageKey(
     const bool decrypted =
         sessionKey->Decrypt(serialized->encryptedkey(), blank, keySource);
 
-    if (false == decrypted) { return {}; }
+    if (false == decrypted) {
+        return opentxs::crypto::key::Symmetric::Factory();
+    }
 
     return Symmetric().Key(keySource);
 #else
-    return {};
+    return opentxs::crypto::key::Symmetric::Factory();
 #endif
 }
 

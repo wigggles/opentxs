@@ -49,8 +49,7 @@ class StorageInternal : virtual public Storage
 {
 public:
     virtual void InitBackup() = 0;
-    virtual void InitEncryptedBackup(
-        std::unique_ptr<opentxs::crypto::key::Symmetric>& key) = 0;
+    virtual void InitEncryptedBackup(opentxs::crypto::key::Symmetric& key) = 0;
     virtual void start() = 0;
 
     virtual ~StorageInternal() override = default;

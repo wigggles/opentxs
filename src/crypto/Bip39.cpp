@@ -85,7 +85,7 @@ bool Bip39::DecryptSeed(
 
     auto key = native_.Crypto().Symmetric().Key(cwords.key(), cwords.mode());
 
-    OT_ASSERT(key);
+    OT_ASSERT(key.get());
     OT_ASSERT(words.isPassword());
 
     const bool haveWords = key->Decrypt(seed.words(), reason, words);
@@ -134,7 +134,7 @@ std::string Bip39::SaveSeed(
     auto key =
         native_.Crypto().Symmetric().Key(reason, DEFAULT_ENCRYPTION_MODE);
 
-    OT_ASSERT(key);
+    OT_ASSERT(key.get());
 
     proto::Seed serialized;
     serialized.set_version(2);

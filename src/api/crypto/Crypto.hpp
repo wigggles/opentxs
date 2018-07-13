@@ -99,8 +99,7 @@ public:
     EXPORT const opentxs::crypto::Bip39& BIP39() const override;
 #endif  // OT_CRYPTO_WITH_BIP39
 
-    std::unique_ptr<opentxs::crypto::key::Symmetric> GetStorageKey(
-        std::string& seed) const override;
+    OTSymmetricKey GetStorageKey(std::string& seed) const override;
 
     ~Crypto();
 

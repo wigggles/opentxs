@@ -66,7 +66,7 @@ bool EcdsaProvider::DecryptPrivateKey(
     auto key = OT::App().Crypto().Symmetric().Key(
         encryptedKey.key(), encryptedKey.mode());
 
-    if (!key) { return false; }
+    if (!key.get()) { return false; }
 
     return key->Decrypt(encryptedKey, password, plaintextKey);
 }
@@ -95,7 +95,7 @@ bool EcdsaProvider::EncryptPrivateKey(
 {
     auto key = OT::App().Crypto().Symmetric().Key(password);
 
-    if (!key) { return false; }
+    if (!key.get()) { return false; }
 
     auto blank = Data::Factory();
 
@@ -111,7 +111,7 @@ bool EcdsaProvider::EncryptPrivateKey(
 {
     auto sessionKey = OT::App().Crypto().Symmetric().Key(password);
 
-    if (!sessionKey) { return false; }
+    if (!sessionKey.get()) { return false; }
 
     auto blank = Data::Factory();
     const bool keyEncrypted =

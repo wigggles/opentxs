@@ -222,7 +222,7 @@ bool Letter::Seal(
     }
 
     if (0 < RSARecipients.size()) {
-        if (!AddRSARecipients(RSARecipients, *sessionKey, output)) {
+        if (!AddRSARecipients(RSARecipients, sessionKey, output)) {
             return false;
         }
     }
@@ -259,7 +259,7 @@ bool Letter::Seal(
                 *dhPrivateKey,
                 *it.second,
                 defaultPassword,
-                *sessionKey,
+                sessionKey,
                 newKeyPassword);
 
             if (haveSessionKey) {
@@ -307,7 +307,7 @@ bool Letter::Seal(
                 *dhPrivateKey,
                 *it.second,
                 defaultPassword,
-                *sessionKey,
+                sessionKey,
                 newKeyPassword);
 
             if (haveSessionKey) {
@@ -356,7 +356,7 @@ bool Letter::Open(
     const bool ed25519 = (privateKeyType == proto::AKEYTYPE_ED25519);
     const bool secp256k1 = (privateKeyType == proto::AKEYTYPE_SECP256K1);
     const bool ec = (ed25519 || secp256k1);
-    std::unique_ptr<crypto::key::Symmetric> key;
+    auto key = crypto::key::Symmetric::Factory();
 
     if (ec) {
         const crypto::key::EllipticCurve* ecKey = nullptr;
@@ -419,7 +419,7 @@ bool Letter::Open(
             key = OT::App().Crypto().Symmetric().Key(
                 it, serialized.ciphertext().mode());
             haveSessionKey = ecKey->ECDSA().DecryptSessionKeyECDH(
-                *ecKey, *dhPublicKey, keyPassword, *key);
+                *ecKey, *dhPublicKey, keyPassword, key);
 
             if (haveSessionKey) { break; }
         }

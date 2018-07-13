@@ -38,26 +38,131 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/crypto/key/Symmetric.hpp"
-
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
+#include "opentxs/Proto.hpp"
 
 #include "api/NativeInternal.hpp"
+#include "SymmetricNull.hpp"
+
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+
+#include "Symmetric.hpp"
+
+template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
 
 #define OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS 3
 #define OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY 8388608
 
-#define OT_METHOD "opentxs::crypto::key::Symmetric::"
+#define OT_METHOD "opentxs::crypto::key::implementation::Symmetric::"
 
 namespace opentxs::crypto::key
+{
+OTSymmetricKey Symmetric::Factory()
+{
+    return OTSymmetricKey{new implementation::SymmetricNull};
+}
+
+OTSymmetricKey Symmetric::Factory(
+    const crypto::SymmetricProvider& engine,
+    const OTPasswordData& password,
+    const proto::SymmetricMode mode)
+{
+    std::unique_ptr<implementation::Symmetric> output;
+    output.reset(new implementation::Symmetric(engine));
+
+    if (!output) { return OTSymmetricKey(output.release()); }
+
+    proto::SymmetricMode realMode = proto::SMODE_ERROR;
+
+    if (mode == realMode) {
+        realMode = engine.DefaultMode();
+    } else {
+        realMode = mode;
+    }
+
+    const auto size = output->engine_.KeySize(realMode);
+    output->key_size_ = size;
+    OTPassword key;
+
+    if (!output->Allocate(size, key, false)) {
+        return OTSymmetricKey(output.release());
+    }
+
+    output->EncryptKey(key, password);
+
+    return OTSymmetricKey(output.release());
+}
+
+OTSymmetricKey Symmetric::Factory(
+    const crypto::SymmetricProvider& engine,
+    const proto::SymmetricKey serialized)
+{
+    std::unique_ptr<implementation::Symmetric> output;
+    const bool valid = proto::Validate(serialized, VERBOSE);
+
+    if (valid) {
+        output.reset(new implementation::Symmetric(engine, serialized));
+    }
+
+    return OTSymmetricKey(output.release());
+}
+
+OTSymmetricKey Symmetric::Factory(
+    const crypto::SymmetricProvider& engine,
+    const OTPassword& seed,
+    const std::uint64_t operations,
+    const std::uint64_t difficulty,
+    const std::size_t size,
+    const proto::SymmetricKeyType type)
+{
+    std::unique_ptr<implementation::Symmetric> output;
+    std::string salt{};
+    implementation::Symmetric::Allocate(engine.SaltSize(type), salt, false);
+
+    const std::uint64_t ops =
+        (0 == operations) ? OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS : operations;
+    const std::uint64_t mem =
+        (0 == difficulty) ? OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY : difficulty;
+
+    output.reset(new implementation::Symmetric(
+        engine, seed, salt, size, ops, mem, type));
+
+    return OTSymmetricKey(output.release());
+}
+
+OTSymmetricKey Symmetric::Factory(
+    const crypto::SymmetricProvider& engine,
+    const OTPassword& raw)
+{
+    std::unique_ptr<implementation::Symmetric> output;
+
+    if (!raw.isMemory()) { return OTSymmetricKey(output.release()); }
+
+    output.reset(new implementation::Symmetric(engine));
+
+    if (!output) { return OTSymmetricKey(output.release()); }
+
+    OTPasswordData password("Encrypting a symmetric key.");
+    output->EncryptKey(raw, password);
+    output->key_size_ = raw.getMemorySize();
+
+    return OTSymmetricKey(output.release());
+}
+}  // namespace opentxs::crypto::key
+
+namespace opentxs::crypto::key::implementation
 {
 Symmetric::Symmetric(const crypto::SymmetricProvider& engine)
     : engine_(engine)
@@ -130,86 +235,27 @@ Symmetric::Symmetric(
     OT_ASSERT(derived);
 }
 
-std::unique_ptr<Symmetric> Symmetric::Factory(
-    const crypto::SymmetricProvider& engine,
-    const OTPasswordData& password,
-    const proto::SymmetricMode mode)
+Symmetric::Symmetric(const Symmetric& rhs)
+    : key::Symmetric()
+    , engine_{rhs.engine_}
+    , version_{rhs.version_}
+    , type_{rhs.type_}
+    , key_size_{rhs.key_size_}
+    , salt_{nullptr}
+    , operations_{rhs.operations_}
+    , difficulty_{rhs.difficulty_}
+    , plaintext_key_{nullptr}
+    , encrypted_key_{nullptr}
 {
-    std::unique_ptr<Symmetric> output;
-    output.reset(new Symmetric(engine));
+    if (rhs.salt_) { salt_.reset(new std::string(*rhs.salt_)); }
 
-    if (!output) { return output; }
-
-    proto::SymmetricMode realMode = proto::SMODE_ERROR;
-
-    if (mode == realMode) {
-        realMode = engine.DefaultMode();
-    } else {
-        realMode = mode;
+    if (rhs.plaintext_key_) {
+        plaintext_key_.reset(new OTPassword(*rhs.plaintext_key_));
     }
 
-    const auto size = output->engine_.KeySize(realMode);
-    output->key_size_ = size;
-    OTPassword key;
-
-    if (!output->Allocate(size, key, false)) { return output; }
-
-    output->EncryptKey(key, password);
-
-    return output;
-}
-
-std::unique_ptr<Symmetric> Symmetric::Factory(
-    const crypto::SymmetricProvider& engine,
-    const proto::SymmetricKey serialized)
-{
-    std::unique_ptr<Symmetric> output;
-    const bool valid = proto::Validate(serialized, VERBOSE);
-
-    if (valid) { output.reset(new Symmetric(engine, serialized)); }
-
-    return output;
-}
-
-std::unique_ptr<Symmetric> Symmetric::Factory(
-    const crypto::SymmetricProvider& engine,
-    const OTPassword& seed,
-    const std::uint64_t operations,
-    const std::uint64_t difficulty,
-    const std::size_t size,
-    const proto::SymmetricKeyType type)
-{
-    std::unique_ptr<Symmetric> output;
-    std::string salt{};
-    Allocate(engine.SaltSize(type), salt, false);
-
-    const std::uint64_t ops =
-        (0 == operations) ? OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS : operations;
-    const std::uint64_t mem =
-        (0 == difficulty) ? OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY : difficulty;
-
-    output.reset(new Symmetric(engine, seed, salt, size, ops, mem, type));
-
-    return output;
-}
-
-std::unique_ptr<Symmetric> Symmetric::Factory(
-    const crypto::SymmetricProvider& engine,
-    const OTPassword& raw)
-{
-    std::unique_ptr<Symmetric> output;
-
-    if (!raw.isMemory()) { return output; }
-
-    output.reset(new Symmetric(engine));
-
-    if (!output) { return output; }
-
-    OTPasswordData password("Encrypting a symmetric key.");
-    output->EncryptKey(raw, password);
-    output->key_size_ = raw.getMemorySize();
-
-    return output;
+    if (rhs.encrypted_key_) {
+        encrypted_key_.reset(new proto::Ciphertext(*rhs.encrypted_key_));
+    }
 }
 
 bool Symmetric::Allocate(const std::size_t size, Data& container)
@@ -269,6 +315,8 @@ bool Symmetric::ChangePassword(
 
     return false;
 }
+
+Symmetric* Symmetric::clone() const { return new Symmetric(*this); }
 
 bool Symmetric::Decrypt(
     const proto::Ciphertext& input,
@@ -644,4 +692,4 @@ bool Symmetric::Unlock(const OTPasswordData& keyPassword)
         secondaryKey.plaintext_key_->getMemorySize(),
         static_cast<std::uint8_t*>(plaintext_key_->getMemoryWritable()));
 }
-}  // namespace opentxs::crypto::key
+}  // namespace opentxs::crypto::key::implementation

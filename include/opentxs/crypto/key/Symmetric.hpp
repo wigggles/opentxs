@@ -36,16 +36,14 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
-#define OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
+#ifndef OPENTXS_CRYPTO_KEY_SYMMETRIC_HPP
+#define OPENTXS_CRYPTO_KEY_SYMMETRIC_HPP
 
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/Proto.hpp"
 
-#include <cstddef>
 #include <cstdint>
-#include <memory>
 #include <string>
 
 namespace opentxs
@@ -56,68 +54,10 @@ namespace key
 {
 class Symmetric
 {
-private:
-    /// The library providing the underlying crypto algorithms
-    const crypto::SymmetricProvider& engine_;
-    const std::uint32_t version_{0};
-    const proto::SymmetricKeyType type_{proto::SKEYTYPE_ERROR};
-    /// Size of the plaintext key in bytes;
-    std::size_t key_size_{0};
-    std::unique_ptr<std::string> salt_;
-    std::uint64_t operations_{0};
-    std::uint64_t difficulty_{0};
-
-    /// The unencrypted, fully-derived version of the key which is provided to
-    /// encryption functions.
-    std::unique_ptr<OTPassword> plaintext_key_;
-    /// The encrypted form of the plaintext key
-    std::unique_ptr<proto::Ciphertext> encrypted_key_;
-
-    static bool Allocate(const std::size_t size, Data& container);
-    static bool Allocate(
-        const std::size_t size,
-        std::string& container,
-        const bool random);
-    bool Allocate(
-        const std::size_t size,
-        OTPassword& container,
-        const bool text = false);
-    bool Decrypt(
-        const proto::Ciphertext& input,
-        const OTPasswordData& keyPassword,
-        std::uint8_t* plaintext);
-    bool Encrypt(
-        const std::uint8_t* input,
-        const std::size_t inputSize,
-        const std::uint8_t* iv,
-        const std::size_t ivSize,
-        const proto::SymmetricMode mode,
-        const OTPasswordData& keyPassword,
-        proto::Ciphertext& ciphertext,
-        const bool text = false);
-    bool EncryptKey(
-        const OTPassword& plaintextKey,
-        const OTPasswordData& keyPassword,
-        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
-    bool GetPassword(const OTPasswordData& keyPassword, OTPassword& password);
-
-    Symmetric(const crypto::SymmetricProvider& engine);
-    Symmetric(
-        const crypto::SymmetricProvider& engine,
-        const proto::SymmetricKey serialized);
-    Symmetric(
-        const crypto::SymmetricProvider& engine,
-        const OTPassword& seed,
-        const std::string& salt,
-        const std::size_t size,
-        const std::uint64_t operations,
-        const std::uint64_t difficulty,
-        const proto::SymmetricKeyType type = proto::SKEYTYPE_ARGON2);
-    Symmetric() = delete;
-    Symmetric(const Symmetric&) = delete;
-    Symmetric& operator=(const Symmetric&) = delete;
-
 public:
+    /** Generate a blank, invalid key */
+    EXPORT static OTSymmetricKey Factory();
+
     /** Derive a new, random symmetric key
      *
      *  \param[in] engine A reference to the crypto library to be bound to the
@@ -126,7 +66,7 @@ public:
      *  \param[in] mode The symmetric algorithm for which to generate an
      *                  appropriate key
      */
-    static std::unique_ptr<Symmetric> Factory(
+    EXPORT static OTSymmetricKey Factory(
         const crypto::SymmetricProvider& engine,
         const OTPasswordData& password,
         const proto::SymmetricMode mode = proto::SMODE_ERROR);
@@ -137,7 +77,7 @@ public:
      *                    instance
      *  \param[in] serialized The symmetric key in protobuf form
      */
-    static std::unique_ptr<Symmetric> Factory(
+    EXPORT static OTSymmetricKey Factory(
         const crypto::SymmetricProvider& engine,
         const proto::SymmetricKey serialized);
 
@@ -152,7 +92,7 @@ public:
      *                        key
      *  \param[in] type       The KDF to be used for the derivation process
      */
-    static std::unique_ptr<Symmetric> Factory(
+    EXPORT static OTSymmetricKey Factory(
         const crypto::SymmetricProvider& engine,
         const OTPassword& seed,
         const std::uint64_t operations,
@@ -166,13 +106,13 @@ public:
      *                    instance
      *  \param[in] raw An existing, unencrypted binary or text secret
      */
-    static std::unique_ptr<Symmetric> Factory(
+    EXPORT static OTSymmetricKey Factory(
         const crypto::SymmetricProvider& engine,
         const OTPassword& raw);
 
-    bool ChangePassword(
+    EXPORT virtual bool ChangePassword(
         const OTPasswordData& oldPassword,
-        const OTPassword& newPassword);
+        const OTPassword& newPassword) = 0;
 
     /** Decrypt ciphertext using the symmetric key
      *
@@ -180,18 +120,18 @@ public:
      *  \param[in] keyPassword The password needed to decrypt the key
      *  \param[out] plaintext The encrypted output
      */
-    bool Decrypt(
+    EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const OTPasswordData& keyPassword,
-        std::string& plaintext);
-    bool Decrypt(
+        std::string& plaintext) = 0;
+    EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const OTPasswordData& keyPassword,
-        Data& plaintext);
-    bool Decrypt(
+        Data& plaintext) = 0;
+    EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const OTPasswordData& keyPassword,
-        OTPassword& plaintext);
+        OTPassword& plaintext) = 0;
 
     /** Encrypt plaintext using the symmetric key
      *
@@ -203,37 +143,52 @@ public:
      *                       embedded in the ciphertext
      *  \param[in] mode The symmetric algorithm to use for encryption
      */
-    bool Encrypt(
+    EXPORT virtual bool Encrypt(
         const std::string& plaintext,
         const Data& iv,
         const OTPasswordData& keyPassword,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR);
-    bool Encrypt(
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
+    EXPORT virtual bool Encrypt(
         const String& plaintext,
         const Data& iv,
         const OTPasswordData& keyPassword,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR);
-    bool Encrypt(
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
+    EXPORT virtual bool Encrypt(
         const OTPassword& plaintext,
         const Data& iv,
         const OTPasswordData& keyPassword,
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
-        const proto::SymmetricMode mode = proto::SMODE_ERROR);
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
 
-    OTIdentifier ID();
+    EXPORT virtual OTIdentifier ID() = 0;
 
-    bool Serialize(proto::SymmetricKey& output) const;
+    EXPORT virtual bool Serialize(proto::SymmetricKey& output) const = 0;
 
-    bool Unlock(const OTPasswordData& keyPassword);
+    EXPORT virtual bool Unlock(const OTPasswordData& keyPassword) = 0;
 
-    ~Symmetric() = default;
+    EXPORT virtual operator bool() const = 0;
+
+    EXPORT virtual ~Symmetric() = default;
+
+protected:
+    Symmetric() = default;
+
+private:
+    friend OTSymmetricKey;
+
+    virtual Symmetric* clone() const = 0;
+
+    Symmetric(const Symmetric&) = delete;
+    Symmetric(Symmetric&&) = delete;
+    Symmetric& operator=(const Symmetric&) = delete;
+    Symmetric& operator=(Symmetric&&) = delete;
 };
 }  // namespace key
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_SYMMETRICKEY_HPP
+#endif  // OPENTXS_CRYPTO_KEY_SYMMETRIC_HPP
