@@ -53,17 +53,15 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     // create nym and account
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const auto Alice =
-        opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Alice", "", 30);
+    const auto Alice = opentxs::OT::App().API().Exec().CreateNymHD(
+        INDIVIDUAL, "Alice", "", 30);
     std::cout << "Created Alice's Nym: " << Alice << " !!\n";
     const auto Bob =
         opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Bob", "", 40);
     std::cout << "Created Bob's Nym: " << Bob << " !!\n";
 
     OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(
-        Identifier(Alice),
-        BlockchainAccountType::BIP44,
-        proto::CITEMTYPE_BTC);
+        Identifier(Alice), BlockchainAccountType::BIP44, proto::CITEMTYPE_BTC);
     std::shared_ptr<proto::Bip44Account> AliceAccount =
         OT::App().Blockchain().Account(Identifier(Alice), AliceAccountID);
 
@@ -79,7 +77,10 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     const std::string label = "Address label";
     std::unique_ptr<proto::Bip44Address> AccountAddress =
         opentxs::OT::App().Blockchain().AllocateAddress(
-            Identifier(Alice), Identifier(AliceAccountID), label, proto::CITEMTYPE_BTC);
+            Identifier(Alice),
+            Identifier(AliceAccountID),
+            label,
+            proto::CITEMTYPE_BTC);
     proto::Bip44Address Address = *AccountAddress.get();
     std::cout << "\nCreated Address " << Address.address() << " (length "
               << Address.address().length() << ")!!\n";
@@ -90,7 +91,11 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     //
 
     bool assigned = opentxs::OT::App().Blockchain().AssignAddress(
-        Identifier(Alice), Identifier(AliceAccountID), 0, Identifier(Bob), proto::CITEMTYPE_BTC);
+        Identifier(Alice),
+        Identifier(AliceAccountID),
+        0,
+        Identifier(Bob),
+        proto::CITEMTYPE_BTC);
 
     std::cout << "Assigned address: " << assigned << " !!\n";
     EXPECT_TRUE(assigned);
@@ -98,7 +103,10 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     // Check assignment
     std::unique_ptr<proto::Bip44Address> AddrPtr =
         opentxs::OT::App().Blockchain().LoadAddress(
-            Identifier(Alice), Identifier(AliceAccountID), 0, proto::CITEMTYPE_BTC);
+            Identifier(Alice),
+            Identifier(AliceAccountID),
+            0,
+            proto::CITEMTYPE_BTC);
 
     EXPECT_TRUE(bool(AddrPtr));
 

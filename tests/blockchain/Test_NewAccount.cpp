@@ -48,20 +48,18 @@ namespace
 TEST(Test_NewAccount, TestNymDoesNotExist)
 {
     const std::string nym = "Inexistent Nym";
-    const std::string Result =
-        String(OT::App().Blockchain().NewAccount(
-                   Identifier(nym),
-                   BlockchainAccountType::BIP32,
-                   proto::CITEMTYPE_BTC))
-            .Get();
+    const std::string Result = String(OT::App().Blockchain().NewAccount(
+                                          Identifier(nym),
+                                          BlockchainAccountType::BIP32,
+                                          proto::CITEMTYPE_BTC))
+                                   .Get();
     EXPECT_STREQ(Result.c_str(), "");
 
-    const std::string Result2 =
-        String(OT::App().Blockchain().NewAccount(
-                   Identifier(nym),
-                   BlockchainAccountType::BIP32,
-                   proto::CITEMTYPE_BTC))
-            .Get();
+    const std::string Result2 = String(OT::App().Blockchain().NewAccount(
+                                           Identifier(nym),
+                                           BlockchainAccountType::BIP32,
+                                           proto::CITEMTYPE_BTC))
+                                    .Get();
     EXPECT_STREQ(Result2.c_str(), "");
 }
 
@@ -90,15 +88,11 @@ TEST(Test_NewAccount, TestSeedRoot)
     EXPECT_STRNE(Nym0.c_str(), Nym1.c_str());
 
     OTIdentifier Acc0ID = OT::App().Blockchain().NewAccount(
-        Identifier(Nym0),
-        BlockchainAccountType::BIP32,
-        proto::CITEMTYPE_BTC);
+        Identifier(Nym0), BlockchainAccountType::BIP32, proto::CITEMTYPE_BTC);
 
     std::cout << "Created Nym 0's Account: " << String(Acc0ID).Get() << " !!\n";
     OTIdentifier Acc1ID = OT::App().Blockchain().NewAccount(
-        Identifier(Nym1),
-        BlockchainAccountType::BIP32,
-        proto::CITEMTYPE_BTC);
+        Identifier(Nym1), BlockchainAccountType::BIP32, proto::CITEMTYPE_BTC);
 
     std::cout << "Created Nym 1's Account: " << String(Acc1ID).Get() << " !!\n";
 
@@ -245,9 +239,7 @@ TEST(Test_NewAccount, TestSeedPassphrase)
     EXPECT_STRNE(alias.c_str(), Nym0.c_str());
 
     OTIdentifier AccountID = OT::App().Blockchain().NewAccount(
-        Identifier(Nym0),
-        BlockchainAccountType::BIP32,
-        proto::CITEMTYPE_BTC);
+        Identifier(Nym0), BlockchainAccountType::BIP32, proto::CITEMTYPE_BTC);
     std::shared_ptr<proto::Bip44Account> Acc =
         OT::App().Blockchain().Account(Identifier(Nym0), AccountID);
     // std::string rootKey =
