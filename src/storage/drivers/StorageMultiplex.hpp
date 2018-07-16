@@ -42,6 +42,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/storage/Driver.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/Types.hpp"
 
 #include <memory>
