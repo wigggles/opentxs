@@ -12,14 +12,18 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#if OT_CRYPTO_USING_LIBBITCOIN
+#include "opentxs/crypto/library/Bitcoin.hpp"
+#endif
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
+#include "opentxs/crypto/library/Ripemd160.hpp"
 #include "opentxs/crypto/library/Sodium.hpp"
-#if OT_CRYPTO_USING_OPENSSL
-#include "opentxs/crypto/library/OpenSSL.hpp"
-#endif
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/crypto/library/Trezor.hpp"
+#endif
+#if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/crypto/library/OpenSSL.hpp"
 #endif
 #include "opentxs/OT.hpp"
 
@@ -30,12 +34,12 @@
 namespace opentxs
 {
 api::crypto::Hash* Factory::Hash(
-    api::crypto::Encode& encode,
-    crypto::HashingProvider& ssl,
-    crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR
+    const api::crypto::Encode& encode,
+    const crypto::HashingProvider& ssl,
+    const crypto::HashingProvider& sodium
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
     ,
-    crypto::Trezor& bitcoin
+    const crypto::Ripemd160& bitcoin
 #endif
 )
 {
@@ -43,7 +47,7 @@ api::crypto::Hash* Factory::Hash(
         encode,
         ssl,
         sodium
-#if OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
         ,
         bitcoin
 #endif
@@ -54,24 +58,24 @@ api::crypto::Hash* Factory::Hash(
 namespace opentxs::api::crypto::implementation
 {
 Hash::Hash(
-    api::crypto::Encode& encode,
-    opentxs::crypto::HashingProvider& ssl,
-    opentxs::crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR
+    const api::crypto::Encode& encode,
+    const opentxs::crypto::HashingProvider& ssl,
+    const opentxs::crypto::HashingProvider& sodium
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
     ,
-    opentxs::crypto::Trezor& bitcoin
+    const opentxs::crypto::Ripemd160& bitcoin
 #endif
     )
     : encode_(encode)
     , ssl_(ssl)
     , sodium_(sodium)
-#if OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
     , bitcoin_(bitcoin)
 #endif
 {
 }
 
-opentxs::crypto::HashingProvider& Hash::SHA2() const
+const opentxs::crypto::HashingProvider& Hash::SHA2() const
 {
 #if OT_CRYPTO_SHA2_VIA_OPENSSL
     return ssl_;
@@ -80,7 +84,7 @@ opentxs::crypto::HashingProvider& Hash::SHA2() const
 #endif
 }
 
-opentxs::crypto::HashingProvider& Hash::Sodium() const { return sodium_; }
+const opentxs::crypto::HashingProvider& Hash::Sodium() const { return sodium_; }
 
 bool Hash::Allocate(const proto::HashType hashType, OTPassword& input)
 {
@@ -111,8 +115,12 @@ bool Hash::Digest(
             return Sodium().Digest(hashType, input, inputSize, output);
         }
         case (proto::HASHTYPE_RIMEMD160): {
-#if OT_CRYPTO_USING_TREZOR
-            return bitcoin_.RIPEMD160(input, inputSize, output);
+#if OT_CRYPTO_USING_LIBBITCOIN
+            return dynamic_cast<const opentxs::crypto::Bitcoin&>(bitcoin_)
+                .RIPEMD160(input, inputSize, output);
+#elif OT_CRYPTO_USING_TREZOR
+            return dynamic_cast<const opentxs::crypto::Trezor&>(bitcoin_)
+                .RIPEMD160(input, inputSize, output);
 #endif
         }
         default: {

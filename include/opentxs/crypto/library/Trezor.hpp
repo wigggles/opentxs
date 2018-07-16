@@ -12,6 +12,7 @@
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/EncodingProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
+#include "opentxs/crypto/library/Ripemd160.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
@@ -21,7 +22,8 @@
 
 namespace opentxs::crypto
 {
-class Trezor : virtual public EncodingProvider
+class Trezor : virtual public EncodingProvider,
+               virtual public Ripemd160
 #if OT_CRYPTO_WITH_BIP39
     ,
                virtual public Bip39
@@ -43,10 +45,6 @@ public:
         const OTPassword& privateKey,
         OTPassword& secret) const = 0;
 #endif
-    EXPORT virtual bool RIPEMD160(
-        const std::uint8_t* input,
-        const size_t inputSize,
-        std::uint8_t* output) const = 0;
 
     EXPORT virtual ~Trezor() = default;
 

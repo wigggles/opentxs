@@ -77,17 +77,26 @@ private:
     mutable std::mutex cached_key_lock_;
     mutable std::unique_ptr<OTCachedKey> primary_key_;
     mutable std::map<OTIdentifier, std::unique_ptr<OTCachedKey>> cached_keys_;
+#if OT_CRYPTO_USING_LIBBITCOIN
+    std::unique_ptr<opentxs::crypto::Bitcoin> bitcoin_;
+#endif  // OT_CRYPTO_USING_LIBBITCOIN
 #if OT_CRYPTO_USING_TREZOR
-    std::unique_ptr<opentxs::crypto::Trezor> bitcoincrypto_;
+    std::unique_ptr<opentxs::crypto::Trezor> trezor_;
 #endif  // OT_CRYPTO_USING_TREZOR
-    std::unique_ptr<opentxs::crypto::Sodium> ed25519_;
+    std::unique_ptr<opentxs::crypto::Sodium> sodium_;
 #if OT_CRYPTO_USING_OPENSSL
     std::unique_ptr<opentxs::crypto::OpenSSL> ssl_;
 #endif  // OT_CRYPTO_USING_OPENSSL
     const api::crypto::Util& util_;
+    const opentxs::crypto::EcdsaProvider& secp256k1_helper_;
+    const opentxs::crypto::EncodingProvider& base58_;
+    const opentxs::crypto::Ripemd160& ripemd160_;
+    const opentxs::crypto::Bip32& bip32_;
+    const opentxs::crypto::Bip39& bip39_;
 #if OT_CRYPTO_USING_LIBSECP256K1
     std::unique_ptr<opentxs::crypto::Secp256k1> secp256k1_;
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
+    const opentxs::crypto::AsymmetricProvider& secp256k1_provider_;
     std::unique_ptr<crypto::Encode> encode_;
     std::unique_ptr<crypto::Hash> hash_;
     std::unique_ptr<crypto::Symmetric> symmetric_;

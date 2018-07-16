@@ -85,6 +85,7 @@ class Symmetric;
 class AsymmetricProvider;
 class Bip32;
 class Bip39;
+class Bitcoin;
 class EcdsaProvider;
 class EncodingProvider;
 class LegacySymmetricProvider;

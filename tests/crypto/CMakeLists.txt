@@ -8,6 +8,7 @@ set(name unittests-opentxs-crypto)
 set(cxx-sources
         main.cpp
         Test_AsymmetricProvider.cpp
+        Test_BitcoinProviders.cpp
         ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
         )
 

@@ -231,6 +231,10 @@ message(STATUS "Bundled opentxs-proto:  ${OT_BUNDLED_OPENTXS_PROTO}")
 
 message(STATUS "---------------------------------------------")
 
+if(OT_CRYPTO_USING_LIBBITCOIN)
+  message(WARNING "The OT_CRYPTO_USING_LIBBITCOIN option is for development use only. Your build will not work with this option enabled.")
+endif()
+
 #-----------------------------------------------------------------------------
 # Collect all binaries into bin subdirectory
 
@@ -570,8 +574,8 @@ if(OT_CRYPTO_SUPPORTED_KEY_HD)
   if (NOT OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
     message(FATAL_ERROR "HD key support requires secp256k1 key support")
   endif()
-  if (NOT OT_CRYPTO_USING_TREZOR)
-    message(FATAL_ERROR "HD key support requires trezor-crypto")
+  if (NOT (OT_CRYPTO_USING_TREZOR OR OT_CRYPTO_USING_LIBBITCOIN))
+    message(FATAL_ERROR "HD key support requires trezor-crypto or libbitcoin")
   endif()
   set(HD_EXPORT 1)
 else()
@@ -599,8 +603,8 @@ else()
 endif()
 
 if (OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-  if (NOT (OT_CRYPTO_USING_LIBSECP256K1 OR OT_CRYPTO_USING_TREZOR))
-    message(FATAL_ERROR "secp256k1 key support requires libsecp256k1 or trezor-crypto")
+  if (NOT (OT_CRYPTO_USING_LIBSECP256K1 OR OT_CRYPTO_USING_TREZOR OR OT_CRYPTO_USING_LIBBITCOIN))
+    message(FATAL_ERROR "no provider for secp256k1 support configured")
   endif()
   set(SECP256K1_EXPORT 1)
 else()
@@ -632,24 +636,26 @@ else()
   set(LIBSECP256K1_EXPORT 0)
 endif()
 
+if (NOT (OT_CRYPTO_USING_TREZOR OR OT_CRYPTO_USING_LIBBITCOIN))
+  message(FATAL_ERROR "trezor-crypto or libbitcoin support is required for base58 encoding")
+endif()
+
 if(OT_CRYPTO_USING_TREZOR)
-    set(TREZORCRYPTO_EXPORT 1)
-  if (OT_CRYPTO_SUPPORTED_KEY_HD OR OT_CRYPTO_SUPPORTED_KEY_SECP256K1)
-    set(BIP32_EXPORT 1)
-    set(BIP39_EXPORT 1)
-  else()
-    set(BIP32_EXPORT 0)
-    set(BIP39_EXPORT 0)
-  endif()
+  set(TREZORCRYPTO_EXPORT 1)
 else()
   set(TREZORCRYPTO_EXPORT 0)
+endif()
+
+if (OT_CRYPTO_SUPPORTED_KEY_HD)
+  set(BIP32_EXPORT 1)
+  set(BIP39_EXPORT 1)
+else()
   set(BIP32_EXPORT 0)
   set(BIP39_EXPORT 0)
-  message(FATAL_ERROR "trezor-crypto support is required for base58 encoding")
 endif()
 
 if(OT_CRYPTO_USING_LIBBITCOIN)
-    set(LIBBITCOIN_EXPORT 1)
+  set(LIBBITCOIN_EXPORT 1)
 else()
   set(LIBBITCOIN_EXPORT 0)
 endif()
@@ -751,6 +757,12 @@ add_subdirectory(deps)
 if(NOT APPLE)
   add_definitions(-D_XOPEN_SOURCE=700)
 endif()
+
+include_directories(
+  ${CMAKE_CURRENT_BINARY_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 add_subdirectory(src)
 add_subdirectory(wrappers)

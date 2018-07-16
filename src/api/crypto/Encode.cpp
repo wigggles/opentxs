@@ -9,9 +9,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/crypto/library/EncodingProvider.hpp"
-#if OT_CRYPTO_USING_TREZOR
-#include "opentxs/crypto/library/Trezor.hpp"
-#endif
 #include "opentxs/Types.hpp"
 
 #include "base64/base64.h"
@@ -23,7 +20,7 @@
 
 namespace opentxs
 {
-api::crypto::Encode* Factory::Encode(crypto::EncodingProvider& base58)
+api::crypto::Encode* Factory::Encode(const crypto::EncodingProvider& base58)
 {
     return new api::crypto::implementation::Encode(base58);
 }
@@ -31,7 +28,7 @@ api::crypto::Encode* Factory::Encode(crypto::EncodingProvider& base58)
 
 namespace opentxs::api::crypto::implementation
 {
-Encode::Encode(opentxs::crypto::EncodingProvider& base58)
+Encode::Encode(const opentxs::crypto::EncodingProvider& base58)
     : base58_(base58)
 {
 }

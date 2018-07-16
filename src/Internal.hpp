@@ -53,6 +53,8 @@ class StorageInternal;
 
 namespace crypto
 {
+class Ripemd160;
+
 namespace implementation
 {
 class OpenSSL;

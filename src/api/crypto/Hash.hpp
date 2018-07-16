@@ -38,11 +38,11 @@ public:
 private:
     friend opentxs::Factory;
 
-    api::crypto::Encode& encode_;
-    opentxs::crypto::HashingProvider& ssl_;
-    opentxs::crypto::HashingProvider& sodium_;
-#if OT_CRYPTO_USING_TREZOR
-    opentxs::crypto::Trezor& bitcoin_;
+    const api::crypto::Encode& encode_;
+    const opentxs::crypto::HashingProvider& ssl_;
+    const opentxs::crypto::HashingProvider& sodium_;
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+    const opentxs::crypto::Ripemd160& bitcoin_;
 #endif
 
     static bool Allocate(const proto::HashType hashType, OTPassword& input);
@@ -54,12 +54,12 @@ private:
         const size_t inputSize,
         std::uint8_t* output) const;
     Hash(
-        api::crypto::Encode& encode,
-        opentxs::crypto::HashingProvider& ssl,
-        opentxs::crypto::HashingProvider& sodium
-#if OT_CRYPTO_USING_TREZOR
+        const api::crypto::Encode& encode,
+        const opentxs::crypto::HashingProvider& ssl,
+        const opentxs::crypto::HashingProvider& sodium
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
         ,
-        opentxs::crypto::Trezor& bitcoin
+        const opentxs::crypto::Ripemd160& bitcoin
 #endif
     );
     bool HMAC(
@@ -69,8 +69,8 @@ private:
         const std::uint8_t* key,
         const size_t keySize,
         std::uint8_t* output) const;
-    opentxs::crypto::HashingProvider& SHA2() const;
-    opentxs::crypto::HashingProvider& Sodium() const;
+    const opentxs::crypto::HashingProvider& SHA2() const;
+    const opentxs::crypto::HashingProvider& Sodium() const;
 
     Hash(const Hash&) = delete;
     Hash(Hash&&) = delete;
