@@ -45,9 +45,6 @@
 #endif
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#if OT_STORAGE_FS
-#include "opentxs/crypto/key/Symmetric.hpp"
-#endif
 
 #if OT_STORAGE_FS
 #include "StorageFSGC.hpp"
