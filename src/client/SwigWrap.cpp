@@ -1115,6 +1115,14 @@ std::string SwigWrap::GetAccountWallet_NymID(const std::string& THE_ID)
     return OT::App().API().Exec().GetAccountWallet_NymID(THE_ID);
 }
 
+std::string SwigWrap::GetAccountsByCurrency(const int currency)
+{
+    const auto accounts = OT::App().DB().AccountsByUnit(
+        static_cast<proto::ContactItemType>(currency));
+
+    return comma(accounts);
+}
+
 std::string SwigWrap::WriteCheque(
     const std::string& NOTARY_ID,
     const std::int64_t& CHEQUE_AMOUNT,

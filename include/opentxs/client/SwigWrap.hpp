@@ -811,6 +811,7 @@ public:
         const std::string& ACCOUNT_ID);  // returns Notary ID of the account
     EXPORT static std::string GetAccountWallet_NymID(
         const std::string& ACCOUNT_ID);  // returns Nym ID of the account
+    EXPORT static std::string GetAccountsByCurrency(const int currency);
 
     /** Returns OT_BOOL. Verifies any asset account (intermediary files) against
     its own last signed receipt.
