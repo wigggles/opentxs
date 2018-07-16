@@ -3433,6 +3433,64 @@ std::string SwigWrap::Nym_to_Contact(const std::string& nymID)
 
 //-----------------------------------------------------------------------------
 
+std::string SwigWrap::Bailment_Instructions(const std::string& account)
+{
+    const auto& db = OT::App().DB();
+    const auto& wallet = OT::App().Wallet();
+    const auto accountID = Identifier::Factory(account);
+
+    if (accountID->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid account" << std::endl;
+
+        return {};
+    }
+
+    const auto nymID = db.AccountOwner(accountID);
+
+    if (nymID->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym" << std::endl;
+
+        return {};
+    }
+
+    const auto issuerID = db.AccountIssuer(accountID);
+
+    if (issuerID->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid issuer" << std::endl;
+
+        return {};
+    }
+
+    if (0 == wallet.IssuerList(nymID).count(issuerID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing issuer" << std::endl;
+
+        return {};
+    }
+
+    auto editor = OT::App().Wallet().mutable_Issuer(nymID, issuerID);
+    auto& issuer = editor.It();
+
+    const auto unit = db.AccountContract(accountID);
+    const auto instructions = issuer.BailmentInstructions(unit, true);
+
+    if (0 == instructions.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": No bailment instructions yet"
+              << std::endl;
+
+        return {};
+    }
+
+    const auto& [requestID, reply] = *instructions.begin();
+    const auto& output = reply.instructions();
+    issuer.SetUsed(proto::PEERREQUEST_BAILMENT, requestID);
+    otErr << OT_METHOD << __FUNCTION__ << ": Deposit address: " << output
+          << std::endl;
+
+    return output;
+}
+
+//-----------------------------------------------------------------------------
+
 std::uint8_t SwigWrap::Can_Message(
     const std::string& senderNymID,
     const std::string& recipientContactID)

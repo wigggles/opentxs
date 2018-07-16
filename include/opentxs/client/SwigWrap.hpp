@@ -3615,6 +3615,11 @@ public:
         const std::string& contactID,
         const std::string& name);
 
+    // Wrapped Pair methods
+
+    EXPORT static std::string Bailment_Instructions(
+        const std::string& accountID);
+
     // Wrapped Sync methods
 
     EXPORT static std::uint8_t Can_Message(
