@@ -117,7 +117,6 @@
             primary,
             active);
     }
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     bool AddPaymentCode(
         const std::string& code,
         const int currency,
@@ -130,7 +129,6 @@
             primary,
             active);
     }
-#endif
     bool AddSocialMediaProfile(
         const std::string& value,
         const int type,

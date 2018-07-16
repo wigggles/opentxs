@@ -118,13 +118,13 @@ bool NymData::AddEmail(
     return nym().AddEmail(value, primary, active);
 }
 
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 bool NymData::AddPaymentCode(
-    const std::string& code,
-    const proto::ContactItemType currency,
-    const bool primary,
-    const bool active)
+    [[maybe_unused]] const std::string& code,
+    [[maybe_unused]] const proto::ContactItemType currency,
+    [[maybe_unused]] const bool primary,
+    [[maybe_unused]] const bool active)
 {
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     auto paymentCode = PaymentCode::Factory(code);
 
     if (false == paymentCode->VerifyInternally()) {
@@ -135,8 +135,10 @@ bool NymData::AddPaymentCode(
     }
 
     return nym().AddPaymentCode(paymentCode, currency, primary, active);
-}
 #endif
+
+    return false;
+}
 
 bool NymData::AddPhoneNumber(
     const std::string& value,
