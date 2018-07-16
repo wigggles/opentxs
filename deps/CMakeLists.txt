@@ -31,7 +31,6 @@ if (TREZORCRYPTO_EXPORT)
         trezor-crypto/aes/aeskey.c
         trezor-crypto/aes/aes_modes.c
         trezor-crypto/aes/aestab.c
-        trezor-crypto/aes/aestst.c
         trezor-crypto/chacha20poly1305/chacha20poly1305.c
         trezor-crypto/chacha20poly1305/chacha_merged.c
         trezor-crypto/chacha20poly1305/poly1305-donna.c
@@ -77,7 +76,6 @@ if (TREZORCRYPTO_EXPORT)
         trezor-crypto/aes/aes.h
         trezor-crypto/aes/aesopt.h
         trezor-crypto/aes/aestab.h
-        trezor-crypto/aes/aestst.h
         trezor-crypto/aes/brg_types.h
         trezor-crypto/chacha20poly1305/chacha20poly1305.h
         trezor-crypto/chacha20poly1305/ecrypt-config.h
