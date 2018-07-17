@@ -131,7 +131,8 @@ std::string ServerContract::EffectiveName() const
 {
     OT_ASSERT(nym_)
 
-    const auto output = nym_->Name();
+    const auto nym = OT::App().Wallet().Nym(nym_->ID());
+    const auto output = nym->Name();
 
     if (output.empty()) { return name_; }
 

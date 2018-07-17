@@ -1185,37 +1185,50 @@ ConstNym Wallet::Nym(
     return nullptr;
 }
 
-ConstNym Wallet::Nym(const proto::CredentialIndex& publicNym) const
+ConstNym Wallet::Nym(const proto::CredentialIndex& serialized) const
 {
-    const auto& id = publicNym.nymid();
-    auto nymID = Identifier::Factory(id);
+    const auto& id = serialized.nymid();
+    const auto nymID = Identifier::Factory(id);
 
-    auto constNym = Nym(Identifier::Factory(nymID));
+    if (nymID->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym id" << std::endl;
 
-    if (constNym) {
-        if (constNym->Revision() >= publicNym.revision()) { return constNym; }
-    } else {
-
-        auto candidate = new class Nym(*this, nymID);
-
-        if (candidate) {
-            candidate->LoadCredentialIndex(publicNym);
-
-            if (candidate->VerifyPseudonym()) {
-                candidate->WriteCredentials();
-                SaveCredentialIDs(*candidate);
-                nym_publisher_->Publish(id);
-
-                Lock mapLock(nym_map_lock_);
-                auto& pMapNym = nym_map_[id].second;
-                pMapNym.reset(candidate);
-                return ConstNym(pMapNym);
-            }
-        }
-        constNym.reset(candidate);
+        return {};
     }
 
-    return constNym;
+    auto existing = Nym(nymID);
+
+    if (existing && (existing->Revision() >= serialized.revision())) {
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Incoming nym is not newer than existing nym" << std::endl;
+
+        return existing;
+    } else {
+        std::unique_ptr<opentxs::Nym> candidate(new opentxs::Nym(*this, nymID));
+
+        OT_ASSERT(candidate)
+
+        candidate->LoadCredentialIndex(serialized);
+
+        if (candidate->VerifyPseudonym()) {
+            otWarn << OT_METHOD << __FUNCTION__ << ": Saving updated nym " << id
+                   << std::endl;
+            candidate->WriteCredentials();
+            SaveCredentialIDs(*candidate);
+            Lock mapLock(nym_map_lock_);
+            auto& mapNym = nym_map_[id].second;
+            // TODO update existing nym rather than destroying it
+            mapNym.reset(candidate.release());
+            nym_publisher_->Publish(id);
+
+            return mapNym;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Incoming nym is not valid"
+                  << std::endl;
+        }
+    }
+
+    return existing;
 }
 
 ConstNym Wallet::Nym(

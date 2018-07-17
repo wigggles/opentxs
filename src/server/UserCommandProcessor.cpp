@@ -47,7 +47,9 @@
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
+#include "opentxs/client/NymData.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -526,9 +528,10 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
     const bool isAdmin = haveAdmin && (overrideNym == requestingNym);
 
     if (isAdmin) {
-        auto& serverNym = const_cast<Nym&>(server_.GetServerNym());
-        reply.SetSuccess(serverNym.AddClaim(claim));
-        auto nym = wallet_.Nym(serverNym.asPublicNym());
+        auto nym = wallet_.mutable_Nym(server_.GetServerNym().ID());
+        otErr << "Before:\n" << std::string(nym.Claims()) << std::endl;
+        nym.AddClaim(claim);
+        otErr << "After:\n" << std::string(nym.Claims()) << std::endl;
     }
 
     return true;
