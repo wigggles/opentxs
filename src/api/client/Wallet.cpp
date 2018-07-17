@@ -2062,28 +2062,41 @@ ConstServerContract Wallet::Server(
 }
 
 ConstServerContract Wallet::Server(
-    std::unique_ptr<class ServerContract>& contract) const
+    std::unique_ptr<ServerContract>& contract) const
 {
-    if (contract) {
-        const auto& id = contract->ID();
-        const auto server = id->str();
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Null server contract"
+              << std::endl;
 
-        if (contract->Validate()) {
-            if (ot_.DB().Store(contract->Contract(), contract->Alias())) {
-                Lock mapLock(server_map_lock_);
-                server_map_[server].reset(contract.release());
-                mapLock.unlock();
-                publish_server(id);
-            }
-        }
-
-        return Server(Identifier::Factory(server));
+        return {};
     }
 
-    otErr << OT_METHOD << __FUNCTION__ << ": Invalid server contract"
-          << std::endl;
+    if (false == contract->Validate()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid server contract"
+              << std::endl;
 
-    return {};
+        return {};
+    }
+
+    const auto& id = contract->ID();
+    const auto server = id->str();
+    const auto serverNymName = contract->EffectiveName();
+
+    if (serverNymName != contract->Name()) {
+        contract->SetAlias(serverNymName);
+    }
+
+    if (ot_.DB().Store(contract->Contract(), contract->Alias())) {
+        Lock mapLock(server_map_lock_);
+        server_map_[server].reset(contract.release());
+        mapLock.unlock();
+        publish_server(id);
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save server contract"
+              << std::endl;
+    }
+
+    return Server(Identifier::Factory(server));
 }
 
 ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
@@ -2113,8 +2126,8 @@ ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
     }
 
     if (nym) {
-        std::unique_ptr<ServerContract> candidate(
-            ServerContract::Factory(nym, contract));
+        std::unique_ptr<ServerContract> candidate{
+            ServerContract::Factory(nym, contract)};
 
         if (candidate) {
             if (candidate->Validate()) {
@@ -2124,7 +2137,10 @@ ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
                     serverID->Assign(candidate->ID());
                 }
 
-                if (ot_.DB().Store(candidate->Contract(), candidate->Alias())) {
+                const auto stored = ot_.DB().Store(
+                    candidate->Contract(), candidate->EffectiveName());
+
+                if (stored) {
                     Lock mapLock(server_map_lock_);
                     server_map_[server].reset(candidate.release());
                     mapLock.unlock();

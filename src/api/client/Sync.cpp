@@ -732,6 +732,48 @@ bool Sync::check_server_contract(const Identifier& serverID) const
     return false;
 }
 
+OTIdentifier Sync::check_server_name(const ServerContext& context) const
+{
+    const auto null = Identifier::Factory();
+    const auto& nymID = context.Nym()->ID();
+    const auto& serverID = context.Server();
+    const auto server = wallet_.Server(serverID);
+
+    OT_ASSERT(server)
+
+    const auto myName = server->Alias();
+    const auto hisName = server->EffectiveName();
+
+    if (myName == hisName) { return null; }
+
+    auto action = server_action_.AddServerClaim(
+        nymID,
+        serverID,
+        proto::CONTACTSECTION_SCOPE,
+        proto::CITEMTYPE_SERVER,
+        myName,
+        true);
+    action->Run();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+
+            return Identifier::Factory(context.RemoteNym().ID());
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to rename server nym" << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while renaming server nym on server "
+              << serverID.str() << std::endl;
+    }
+
+    return null;
+}
+
 bool Sync::deposit_cheque(
     const Identifier& taskID,
     const Identifier& nymID,
@@ -2216,12 +2258,22 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
         // If this server was added by a pairing operation that included
         // a server password then request admin permissions on the server
-        needAdmin =
-            context->HaveAdminPassword() && (false == context->isAdmin());
+        const auto haveAdmin = context->isAdmin();
+        needAdmin = context->HaveAdminPassword() && (false == haveAdmin);
 
         if (needAdmin) {
             serverPassword.setPassword(context->AdminPassword());
             get_admin(nymID, serverID, serverPassword);
+        }
+
+        SHUTDOWN()
+
+        if (haveAdmin) {
+            const auto id = check_server_name(*context);
+
+            if (false == id->empty()) {
+                queue.check_nym_.Push(Identifier::Random(), id);
+            }
         }
 
         SHUTDOWN()

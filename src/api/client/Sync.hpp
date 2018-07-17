@@ -278,6 +278,7 @@ private:
         const Identifier& serverID,
         std::shared_ptr<const ServerContext>& context) const;
     bool check_server_contract(const Identifier& serverID) const;
+    OTIdentifier check_server_name(const ServerContext& context) const;
     bool deposit_cheque(
         const Identifier& taskID,
         const Identifier& nymID,

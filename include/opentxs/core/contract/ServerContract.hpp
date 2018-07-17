@@ -65,6 +65,33 @@ public:
         std::uint32_t>  // version
         Endpoint;
 
+    static ServerContract* Create(
+        const ConstNym& nym,
+        const std::list<Endpoint>& endpoints,
+        const std::string& terms,
+        const std::string& name);
+    static ServerContract* Factory(
+        const ConstNym& nym,
+        const proto::ServerContract& serialized);
+
+    bool ConnectInfo(
+        std::string& strHostname,
+        std::uint32_t& nPort,
+        const proto::AddressType& preferred = proto::ADDRESSTYPE_IPV4) const;
+    proto::ServerContract Contract() const;
+    std::string EffectiveName() const;
+    std::string Name() const override { return name_; }
+    proto::ServerContract PublicContract() const;
+    bool Statistics(String& strContents) const;
+    const unsigned char* PublicTransportKey() const;
+    OTData Serialize() const override;
+    const Data& TransportKey() const;
+    std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
+
+    void SetAlias(const std::string& alias) override;
+
+    ~ServerContract() = default;
+
 private:
     typedef Signable ot_super;
 
@@ -87,34 +114,6 @@ private:
     ServerContract(
         const ConstNym& nym,
         const proto::ServerContract& serialized);
-
-public:
-    static ServerContract* Create(
-        const ConstNym& nym,
-        const std::list<Endpoint>& endpoints,
-        const std::string& terms,
-        const std::string& name);
-    static ServerContract* Factory(
-        const ConstNym& nym,
-        const proto::ServerContract& serialized);
-
-    bool ConnectInfo(
-        std::string& strHostname,
-        std::uint32_t& nPort,
-        const proto::AddressType& preferred = proto::ADDRESSTYPE_IPV4) const;
-    proto::ServerContract Contract() const;
-    proto::ServerContract PublicContract() const;
-    bool Statistics(String& strContents) const;
-    const unsigned char* PublicTransportKey() const;
-    const Data& TransportKey() const;
-    std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
-
-    std::string Name() const override { return name_; }
-    OTData Serialize() const override;
-
-    void SetAlias(const std::string& alias) override;
-
-    ~ServerContract() = default;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
