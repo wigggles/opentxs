@@ -53,9 +53,10 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
+#define OT_METHOD "opentxs::ServerContract::"
+
 namespace opentxs
 {
-
 ServerContract::ServerContract(const ConstNym& nym)
     : ot_super(nym)
     , listen_params_()
@@ -119,11 +120,22 @@ ServerContract* ServerContract::Create(
 
         contract->alias_ = contract->name_;
     } else {
-        otErr << __FUNCTION__ << ": Failed to create server contract."
-              << std::endl;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to create server contract." << std::endl;
     }
 
     return contract;
+}
+
+std::string ServerContract::EffectiveName() const
+{
+    OT_ASSERT(nym_)
+
+    const auto output = nym_->Name();
+
+    if (output.empty()) { return name_; }
+
+    return output;
 }
 
 ServerContract* ServerContract::Factory(
@@ -318,7 +330,8 @@ bool ServerContract::update_signature(const Lock& lock)
     if (success) {
         signatures_.emplace_front(new proto::Signature(signature));
     } else {
-        otErr << __FUNCTION__ << ": failed to create signature." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": failed to create signature."
+              << std::endl;
     }
 
     return success;
@@ -331,7 +344,7 @@ bool ServerContract::validate(const Lock& lock) const
     if (nym_) { validNym = nym_->VerifyPseudonym(); }
 
     if (!validNym) {
-        otErr << __FUNCTION__ << ": Invalid nym." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym." << std::endl;
 
         return false;
     }
@@ -339,13 +352,14 @@ bool ServerContract::validate(const Lock& lock) const
     const bool validSyntax = proto::Validate(contract(lock), VERBOSE);
 
     if (!validSyntax) {
-        otErr << __FUNCTION__ << ": Invalid syntax." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid syntax." << std::endl;
 
         return false;
     }
 
     if (1 > signatures_.size()) {
-        otErr << __FUNCTION__ << ": Missing signature." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing signature."
+              << std::endl;
 
         return false;
     }
@@ -356,7 +370,8 @@ bool ServerContract::validate(const Lock& lock) const
     if (signature) { validSig = verify_signature(lock, *signature); }
 
     if (!validSig) {
-        otErr << __FUNCTION__ << ": Invalid signature." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature."
+              << std::endl;
 
         return false;
     }

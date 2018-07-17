@@ -91,6 +91,7 @@ private:
 
     void process_connection(const network::zeromq::Message& message);
     void process_issuer(const network::zeromq::Message& message);
+    void process_nym(const network::zeromq::Message& message);
     void process_server(const network::zeromq::Message& message);
     void refresh_accounts();
     void startup();

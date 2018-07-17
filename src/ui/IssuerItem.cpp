@@ -94,6 +94,8 @@ const Widget::ListenerDefinitions IssuerItem::listeners_{
      new MessageProcessor<IssuerItem>(&IssuerItem::process_issuer)},
     {network::zeromq::Socket::ServerUpdateEndpoint,
      new MessageProcessor<IssuerItem>(&IssuerItem::process_server)},
+    {network::zeromq::Socket::NymDownloadEndpoint,
+     new MessageProcessor<IssuerItem>(&IssuerItem::process_nym)},
 };
 
 IssuerItem::IssuerItem(
@@ -184,6 +186,27 @@ void IssuerItem::process_issuer(const network::zeromq::Message& message)
     if (id_ != issuerID) { return; }
 
     refresh_accounts();
+}
+
+void IssuerItem::process_nym(const network::zeromq::Message& message)
+{
+    OT_ASSERT(1 == message.Body().size());
+
+    const auto nymID =
+        Identifier::Factory(std::string(*message.Body().begin()));
+
+    const auto serverID = issuer_->PrimaryServer();
+
+    if (serverID->empty()) { return; }
+
+    auto server = wallet_.Server(serverID);
+
+    if (false == bool(server)) { return; }
+
+    if (server->Nym()->ID() == nymID.get()) {
+        UpdateNotify();
+        // TODO call reindex_item on parent AccountSummary object
+    }
 }
 
 void IssuerItem::process_server(const network::zeromq::Message& message)
