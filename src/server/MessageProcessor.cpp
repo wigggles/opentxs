@@ -80,7 +80,7 @@ MessageProcessor::MessageProcessor(
           [this](const network::zeromq::Message& incoming) -> OTZMQMessage {
               return this->processSocket(incoming);
           }))
-    , reply_socket_(context.ReplySocket(reply_socket_callback_.get()))
+    , reply_socket_(context.ReplySocket(reply_socket_callback_.get(), false))
     , thread_(nullptr)
 {
 }

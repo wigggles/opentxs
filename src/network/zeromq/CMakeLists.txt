@@ -2,6 +2,7 @@ set(cxx-sources
   Context.cpp
   CurveClient.cpp
   CurveServer.cpp
+  DealerSocket.cpp
   Frame.cpp
   FrameIterator.cpp
   FrameSection.cpp
@@ -20,6 +21,7 @@ set(cxx-sources
   ReplyCallback.cpp
   ReplySocket.cpp
   RequestSocket.cpp
+  RouterSocket.cpp
   Socket.cpp
   SubscribeSocket.cpp
 )
@@ -33,6 +35,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Context.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveServer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/DealerSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Frame.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ListenCallbackSwig.hpp
@@ -48,6 +51,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/ReplyCallback.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ReplySocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/RequestSocket.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/RouterSocket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Socket.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/SubscribeSocket.hpp
 )

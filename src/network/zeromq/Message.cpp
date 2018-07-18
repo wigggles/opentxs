@@ -173,6 +173,24 @@ FrameIterator Message::end() const
     return FrameIterator(this, messages_.size());
 }
 
+// This function is only called by RouterSocket.  It makes sure that if a
+// message has two or more frames, and no delimiter, then a delimiter is
+// inserted after the first frame.
+void Message::EnsureDelimiter()
+{
+    if (1 < messages_.size() && !hasDivider()) {
+        auto it = messages_.begin();
+        messages_.emplace(++it, Frame::Factory());
+    }
+    // These cases should never happen.  When this function is called, there
+    // should always be at least two frames.
+    else if (0 < messages_.size() && !hasDivider()) {
+        messages_.emplace(messages_.begin(), Frame::Factory());
+    } else if (!hasDivider()) {
+        messages_.emplace_back(Frame::Factory());
+    }
+}
+
 std::size_t Message::findDivider() const
 {
     std::size_t divider = 0;
@@ -210,6 +228,15 @@ const FrameSection Message::Header() const
 FrameIterator Message::Header_begin() const { return Header().begin(); }
 
 FrameIterator Message::Header_end() const { return Header().end(); }
+
+void Message::PrependEmptyFrame()
+{
+    OTZMQFrame message = Frame::Factory();
+
+    auto it = messages_.emplace(messages_.begin(), message);
+
+    OT_ASSERT(messages_.end() != it);
+}
 
 std::size_t Message::size() const { return messages_.size(); }
 

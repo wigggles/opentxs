@@ -131,6 +131,7 @@ namespace network
 namespace zeromq
 {
 class Context;
+class DealerSocket;
 class FrameIterator;
 class FrameSection;
 class ListenCallback;
@@ -145,6 +146,7 @@ class PushSocket;
 class ReplyCallback;
 class ReplySocket;
 class RequestSocket;
+class RouterSocket;
 class Socket;
 class SubscribeSocket;
 }  // namespace zeromq
@@ -294,6 +296,7 @@ using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
+using OTZMQDealerSocket = Pimpl<network::zeromq::DealerSocket>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQFrame = Pimpl<network::zeromq::Frame>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
@@ -306,6 +309,7 @@ using OTZMQPushSocket = Pimpl<network::zeromq::PushSocket>;
 using OTZMQReplyCallback = Pimpl<network::zeromq::ReplyCallback>;
 using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
+using OTZMQRouterSocket = Pimpl<network::zeromq::RouterSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
 
 using ExclusiveAccount = Exclusive<Account>;

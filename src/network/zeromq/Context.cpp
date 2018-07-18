@@ -41,6 +41,7 @@
 #include "Context.hpp"
 
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/DealerSocket.hpp"
 #include "opentxs/network/zeromq/PairSocket.hpp"
 #include "opentxs/network/zeromq/Proxy.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
@@ -48,6 +49,7 @@
 #include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
+#include "opentxs/network/zeromq/RouterSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 
 #include "PairEventListener.hpp"
@@ -76,6 +78,13 @@ Context::Context()
 Context::operator void*() const { return context_; }
 
 Context* Context::clone() const { return new Context; }
+
+OTZMQDealerSocket Context::DealerSocket(
+    const ListenCallback& callback,
+    const bool client) const
+{
+    return DealerSocket::Factory(*this, client, callback);
+}
 
 OTZMQSubscribeSocket Context::PairEventListener(
     const PairEventCallback& callback) const
@@ -132,14 +141,23 @@ OTZMQPushSocket Context::PushSocket(const bool client) const
     return PushSocket::Factory(*this, client);
 }
 
-OTZMQReplySocket Context::ReplySocket(const ReplyCallback& callback) const
+OTZMQReplySocket Context::ReplySocket(
+    const ReplyCallback& callback,
+    const bool client) const
 {
-    return ReplySocket::Factory(*this, callback);
+    return ReplySocket::Factory(*this, client, callback);
 }
 
 OTZMQRequestSocket Context::RequestSocket() const
 {
     return RequestSocket::Factory(*this);
+}
+
+OTZMQRouterSocket Context::RouterSocket(
+    const ListenCallback& callback,
+    const bool client) const
+{
+    return RouterSocket::Factory(*this, client, callback);
 }
 
 OTZMQSubscribeSocket Context::SubscribeSocket(

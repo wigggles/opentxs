@@ -44,32 +44,29 @@ using namespace opentxs;
 
 namespace
 {
-class Test_ReplySocket : public ::testing::Test
+class Test_DealerSocket : public ::testing::Test
 {
 public:
     static OTZMQContext context_;
+
+//    const std::string testMessage_{"zeromq test message"};
 };
 
-OTZMQContext Test_ReplySocket::context_{network::zeromq::Context::Factory()};
+OTZMQContext Test_DealerSocket::context_{network::zeromq::Context::Factory()};
 
 }  // namespace
 
-TEST(ReplySocket, ReplySocket_Factory)
+TEST(DealerSocket, DealerSocket_Factory)
 {
-    ASSERT_NE(nullptr, &Test_ReplySocket::context_.get());
+    ASSERT_NE(nullptr, &Test_DealerSocket::context_.get());
 
-    auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input) -> OTZMQMessage {
-            return network::zeromq::Message::Factory();
-        });
+    auto dealerSocket = network::zeromq::DealerSocket::Factory(
+        Test_DealerSocket::context_,
+		true,
+        network::zeromq::ListenCallback::Factory());
 
-    ASSERT_NE(nullptr, &replyCallback.get());
-
-    auto replySocket = network::zeromq::ReplySocket::Factory(
-        Test_ReplySocket::context_, false, replyCallback);
-
-    ASSERT_NE(nullptr, &replySocket.get());
-    ASSERT_EQ(SocketType::Reply, replySocket->Type());
+    ASSERT_NE(nullptr, &dealerSocket.get());
+    ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
 }
 
-// TODO: Add tests for other public member functions: SetCurve
+// TODO: Add tests for other public member functions: SetCurve, SetSocksProxy

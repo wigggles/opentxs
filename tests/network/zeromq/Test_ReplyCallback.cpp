@@ -44,32 +44,45 @@ using namespace opentxs;
 
 namespace
 {
-class Test_ReplySocket : public ::testing::Test
+class Test_ReplyCallback : public ::testing::Test
 {
 public:
-    static OTZMQContext context_;
+    const std::string testMessage_{"zeromq test message"};
 };
-
-OTZMQContext Test_ReplySocket::context_{network::zeromq::Context::Factory()};
 
 }  // namespace
 
-TEST(ReplySocket, ReplySocket_Factory)
+TEST(ReplyCallback, ReplyCallback_Factory)
 {
-    ASSERT_NE(nullptr, &Test_ReplySocket::context_.get());
-
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
-            return network::zeromq::Message::Factory();
+            return network::zeromq::Message::ReplyFactory(input);
+        });
+
+    ASSERT_NE(nullptr, &replyCallback.get());
+}
+
+TEST_F(Test_ReplyCallback, ReplyCallback_Process)
+{
+    auto replyCallback = network::zeromq::ReplyCallback::Factory(
+        [this](const network::zeromq::Message& input) -> OTZMQMessage {
+            const std::string& inputString = *input.Body().begin();
+            EXPECT_EQ(testMessage_, inputString);
+
+            auto reply = network::zeromq::Message::ReplyFactory(input);
+            reply->AddFrame(inputString);
+            return reply;
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket = network::zeromq::ReplySocket::Factory(
-        Test_ReplySocket::context_, false, replyCallback);
+    auto testMessage = network::zeromq::Message::Factory();
+    testMessage->AddFrame(testMessage_);
 
-    ASSERT_NE(nullptr, &replySocket.get());
-    ASSERT_EQ(SocketType::Reply, replySocket->Type());
+    ASSERT_NE(nullptr, &testMessage.get());
+
+    auto message = replyCallback->Process(testMessage);
+
+    const std::string& messageString = *message->Body().begin();
+    ASSERT_EQ(testMessage_, messageString);
 }
-
-// TODO: Add tests for other public member functions: SetCurve

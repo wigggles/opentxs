@@ -67,6 +67,9 @@ public:
     Frame& AddFrame(const std::string& input) override;
     Frame& at(const std::size_t index) override;
 
+    void EnsureDelimiter() override;
+    void PrependEmptyFrame() override;
+
     ~Message() = default;
 
 private:
