@@ -13,7 +13,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/ui/ActivityThreadItem.hpp"
 
-#include "ActivityThreadParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include <memory>
@@ -23,16 +23,16 @@
 
 namespace opentxs
 {
-ui::ActivityThreadItem* Factory::MailItem(
-    const ui::implementation::ActivityThreadParent& parent,
+ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
+    const ui::implementation::ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ui::implementation::ActivityThreadRowID& id,
     const Identifier& nymID,
+    const ui::implementation::ActivityThreadRowID& rowID,
+    const ui::implementation::ActivityThreadSortKey& sortKey,
+    const ui::implementation::CustomData& custom,
     const api::Activity& activity,
-    const std::chrono::system_clock::time_point& time,
-    const std::string& text,
     const bool loading,
     const bool pending)
 {
@@ -41,42 +41,51 @@ ui::ActivityThreadItem* Factory::MailItem(
         zmq,
         publisher,
         contact,
-        id,
         nymID,
+        rowID,
+        sortKey,
+        custom,
         activity,
-        time,
-        text,
         loading,
         pending);
 }
 
-ui::ActivityThreadItem* Factory::MailItem(
-    const ui::implementation::ActivityThreadParent& parent,
+ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
+    const ui::implementation::ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ui::implementation::ActivityThreadRowID& id,
     const Identifier& nymID,
-    const api::Activity& activity,
-    const std::chrono::system_clock::time_point& time)
+    const ui::implementation::ActivityThreadRowID& rowID,
+    const ui::implementation::ActivityThreadSortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const api::Activity& activity)
 {
     return new ui::implementation::MailItem(
-        parent, zmq, publisher, contact, id, nymID, activity, time);
+        parent,
+        zmq,
+        publisher,
+        contact,
+        nymID,
+        rowID,
+        sortKey,
+        custom,
+        activity);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 MailItem::MailItem(
-    const ActivityThreadParent& parent,
+    const ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ActivityThreadRowID& id,
     const Identifier& nymID,
+    const ActivityThreadRowID& rowID,
+    const ActivityThreadSortKey& sortKey,
+    const CustomData& custom,
     const api::Activity& activity,
-    const std::chrono::system_clock::time_point& time,
-    const std::string& text,
     const bool loading,
     const bool pending)
     : ActivityThreadItem(
@@ -84,11 +93,11 @@ MailItem::MailItem(
           zmq,
           publisher,
           contact,
-          id,
           nymID,
+          rowID,
+          sortKey,
+          custom,
           activity,
-          time,
-          text,
           loading,
           pending)
     , load_(nullptr)
@@ -98,24 +107,25 @@ MailItem::MailItem(
 }
 
 MailItem::MailItem(
-    const ActivityThreadParent& parent,
+    const ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ActivityThreadRowID& id,
     const Identifier& nymID,
-    const api::Activity& activity,
-    const std::chrono::system_clock::time_point& time)
+    const ActivityThreadRowID& rowID,
+    const ActivityThreadSortKey& sortKey,
+    const CustomData& custom,
+    const api::Activity& activity)
     : MailItem(
           parent,
           zmq,
           publisher,
           contact,
-          id,
           nymID,
+          rowID,
+          sortKey,
+          custom,
           activity,
-          time,
-          "",
           true,
           false)
 {

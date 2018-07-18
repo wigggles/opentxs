@@ -17,7 +17,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 
-#include "AccountActivityParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include <memory>
@@ -35,33 +35,34 @@ template class opentxs::SharedPimpl<opentxs::ui::BalanceItem>;
 
 namespace opentxs
 {
-ui::BalanceItem* Factory::BalanceItem(
-    const ui::implementation::AccountActivityParent& parent,
+ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
+    const ui::implementation::AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
+    const ui::implementation::AccountActivityRowID& rowID,
+    const ui::implementation::AccountActivitySortKey& sortKey,
+    const ui::implementation::CustomData& custom,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
-    const proto::PaymentWorkflow& workflow,
-    const proto::PaymentEvent& event,
     const Identifier& nymID,
     const Identifier& accountID)
 {
-    switch (workflow.type()) {
+    switch (ui::implementation::BalanceItem::recover_workflow(custom).type()) {
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-
             return new ui::implementation::ChequeBalanceItem(
                 parent,
                 zmq,
                 publisher,
                 contact,
+                rowID,
+                sortKey,
+                custom,
                 sync,
                 wallet,
-                workflow,
-                event,
                 nymID,
                 accountID);
         }
@@ -79,43 +80,39 @@ ui::BalanceItem* Factory::BalanceItem(
 namespace opentxs::ui::implementation
 {
 BalanceItem::BalanceItem(
-    const ui::implementation::AccountActivityParent& parent,
+    const AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
+    const AccountActivityRowID& rowID,
+    const AccountActivitySortKey& sortKey,
+    const CustomData& custom,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
-    const proto::PaymentWorkflow& workflow,
-    const proto::PaymentEvent& event,
     const Identifier& nymID,
     const Identifier& accountID)
-    : BalanceItemRow(
-          parent,
-          zmq,
-          publisher,
-          contact,
-          {Identifier::Factory(workflow.id()), event.type()},
-          true)
+    : BalanceItemRow(parent, zmq, publisher, contact, rowID, true)
     , sync_(sync)
     , wallet_(wallet)
     , nym_id_(Identifier::Factory(nymID))
-    , type_(extract_type(workflow))
+    , type_(extract_type(recover_workflow(custom)))
     , text_("")
-    , time_()
+    , time_(sortKey)
     , startup_(nullptr)
     , account_id_(Identifier::Factory(accountID))
 {
 }
 
 ChequeBalanceItem::ChequeBalanceItem(
-    const AccountActivityParent& parent,
+    const AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
+    const AccountActivityRowID& rowID,
+    const AccountActivitySortKey& sortKey,
+    const CustomData& custom,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
-    const proto::PaymentWorkflow& workflow,
-    const proto::PaymentEvent& event,
     const Identifier& nymID,
     const Identifier& accountID)
     : BalanceItem(
@@ -123,16 +120,16 @@ ChequeBalanceItem::ChequeBalanceItem(
           zmq,
           publisher,
           contact,
+          rowID,
+          sortKey,
+          custom,
           sync,
           wallet,
-          workflow,
-          event,
           nymID,
           accountID)
     , cheque_(nullptr)
 {
-    startup_.reset(
-        new std::thread(&ChequeBalanceItem::startup, this, workflow, event));
+    startup_.reset(new std::thread(&ChequeBalanceItem::startup, this, custom));
 
     OT_ASSERT(startup_)
 }
@@ -158,6 +155,38 @@ StorageBox BalanceItem::extract_type(const proto::PaymentWorkflow& workflow)
     }
 }
 
+const proto::PaymentEvent& BalanceItem::recover_event(const CustomData& custom)
+{
+    OT_ASSERT(2 == custom.size())
+
+    const auto& input = custom.at(1);
+
+    OT_ASSERT(nullptr != input)
+
+    return *static_cast<const proto::PaymentEvent*>(input);
+}
+
+const proto::PaymentWorkflow& BalanceItem::recover_workflow(
+    const CustomData& custom)
+{
+    OT_ASSERT(2 == custom.size())
+
+    const auto& input = custom.at(0);
+
+    OT_ASSERT(nullptr != input)
+
+    return *static_cast<const proto::PaymentWorkflow*>(input);
+}
+
+void BalanceItem::reindex(
+    const implementation::AccountActivitySortKey& key,
+    const implementation::CustomData&)
+{
+    eLock lock(shared_lock_);
+    time_ = key;
+    lock.unlock();
+}
+
 std::string BalanceItem::Text() const
 {
     sLock lock(shared_lock_);
@@ -179,8 +208,6 @@ BalanceItem::~BalanceItem()
         startup_.reset();
     }
 }
-
-opentxs::Amount ChequeBalanceItem::Amount() const { return effective_amount(); }
 
 std::string ChequeBalanceItem::DisplayAmount() const
 {
@@ -275,10 +302,20 @@ std::string ChequeBalanceItem::Memo() const
     return {};
 }
 
-void ChequeBalanceItem::startup(
-    const proto::PaymentWorkflow workflow,
-    const proto::PaymentEvent event)
+void ChequeBalanceItem::reindex(
+    const implementation::AccountActivitySortKey& key,
+    const implementation::CustomData& custom)
 {
+    BalanceItem::reindex(key, custom);
+    startup(custom);
+}
+
+void ChequeBalanceItem::startup(const CustomData& custom)
+{
+    OT_ASSERT(2 == custom.size())
+
+    const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
+    const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
     cheque_ = api::client::Workflow::InstantiateCheque(workflow).second;
 
@@ -365,13 +402,7 @@ void ChequeBalanceItem::startup(
 
     lock.lock();
     text_ = text;
-    time_ = std::chrono::system_clock::from_time_t(event.time());
-}
-
-void ChequeBalanceItem::Update(
-    const proto::PaymentWorkflow& workflow,
-    const proto::PaymentEvent& event)
-{
-    startup(workflow, event);
+    lock.unlock();
+    UpdateNotify();
 }
 }  // namespace opentxs::ui::implementation

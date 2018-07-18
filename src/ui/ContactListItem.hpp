@@ -10,10 +10,10 @@
 
 namespace opentxs::ui::implementation
 {
-using ContactListItemType =
-    Row<opentxs::ui::ContactListItem, ContactListParent, OTIdentifier>;
+using ContactListItemRow =
+    Row<ContactListRowInternal, ContactListInternalInterface, ContactListRowID>;
 
-class ContactListItem : public ContactListItemType
+class ContactListItem : public ContactListItemRow
 {
 public:
     std::string ContactID() const override;
@@ -21,24 +21,20 @@ public:
     std::string ImageURI() const override;
     std::string Section() const override;
 
-    void SetName(const std::string& name) override;
+    void reindex(const ContactListSortKey&, const CustomData&) override;
 
     virtual ~ContactListItem() = default;
 
 protected:
-    std::string name_{""};
-    OTZMQListenCallback contact_subscriber_callback_;
-    OTZMQSubscribeSocket contact_subscriber_;
-
-    virtual void process_contact(const network::zeromq::Message& message);
+    ContactListSortKey key_{""};
 
     ContactListItem(
-        const ContactListParent& parent,
+        const ContactListInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const Identifier& id,
-        const std::string& name);
+        const ContactListRowID& rowID,
+        const ContactListSortKey& key);
 
 private:
     friend Factory;

@@ -11,10 +11,11 @@
 #include "opentxs/ui/ContactListItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 namespace opentxs::ui::implementation
 {
-class ContactListItemBlank : virtual public ui::ContactListItem,
-                             virtual public opentxs::ui::Widget
+class ContactListItemBlank : public ContactListRowInternal
 {
 public:
     std::string ContactID() const override { return {}; }
@@ -25,7 +26,7 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
-    void SetName(const std::string& name) override {}
+    void reindex(const ContactListSortKey&, const CustomData&) override {}
 
     ContactListItemBlank() = default;
     ~ContactListItemBlank() = default;

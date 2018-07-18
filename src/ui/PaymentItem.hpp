@@ -12,7 +12,7 @@
 
 namespace opentxs::ui::implementation
 {
-class PaymentItem : virtual public ActivityThreadItem
+class PaymentItem final : public ActivityThreadItem
 {
 public:
     opentxs::Amount Amount() const override;
@@ -32,14 +32,15 @@ private:
     void load();
 
     PaymentItem(
-        const ActivityThreadParent& parent,
+        const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ActivityThreadRowID& id,
         const Identifier& nymID,
-        const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time);
+        const ActivityThreadRowID& rowID,
+        const ActivityThreadSortKey& sortKey,
+        const CustomData& custom,
+        const api::Activity& activity);
     PaymentItem() = delete;
     PaymentItem(const PaymentItem&) = delete;
     PaymentItem(PaymentItem&&) = delete;

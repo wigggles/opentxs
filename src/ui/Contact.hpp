@@ -15,10 +15,11 @@ using ContactType = List<
     ContactInternalInterface,
     ContactRowID,
     ContactRowInterface,
+    ContactRowInternal,
     ContactRowBlank,
     ContactSortKey>;
 
-class Contact : virtual public ContactType
+class Contact : public ContactType
 {
 public:
     std::string ContactID() const override;
@@ -39,7 +40,6 @@ private:
 
     static int sort_key(const proto::ContactSectionName type);
     static bool check_type(const proto::ContactSectionName type);
-    static const opentxs::ContactSection& recover(const void* input);
 
     void construct_row(
         const ContactRowID& id,
@@ -50,8 +50,7 @@ private:
     {
         return ContactType::last(id);
     }
-    void update(ContactRowInterface& row, const CustomData& custom)
-        const override;
+    void update(ContactRowInterface& row, const CustomData& custom) const;
 
     void process_contact(const opentxs::Contact& contact);
     void process_contact(const network::zeromq::Message& message);

@@ -23,20 +23,24 @@ using IssuerItemList = List<
     IssuerItemInternalInterface,
     IssuerItemRowID,
     IssuerItemRowInterface,
+    IssuerItemRowInternal,
     IssuerItemRowBlank,
     IssuerItemSortKey>;
 using IssuerItemRow = RowType<
-    AccountSummaryRowInterface,
+    AccountSummaryRowInternal,
     AccountSummaryInternalInterface,
     AccountSummaryRowID>;
 
-class IssuerItem : public IssuerItemList, public IssuerItemRow
+class IssuerItem final : public IssuerItemList, public IssuerItemRow
 {
 public:
-    bool ConnectionState() const override;
-    std::string Debug() const override;
+    bool ConnectionState() const override { return connection_.load(); }
+    std::string Debug() const override { return *issuer_; }
     std::string Name() const override;
-    bool Trusted() const override;
+    bool Trusted() const override { return issuer_->Paired(); }
+
+    void reindex(const AccountSummarySortKey& key, const CustomData& custom)
+        override;
 
     ~IssuerItem() = default;
 
@@ -47,6 +51,8 @@ private:
 
     const api::client::Wallet& wallet_;
     const api::storage::Storage& storage_;
+    AccountSummarySortKey key_;
+    const std::string& name_;
     std::atomic<bool> connection_{false};
     const std::shared_ptr<const api::client::Issuer> issuer_{nullptr};
     const proto::ContactItemType currency_;
@@ -56,10 +62,8 @@ private:
         const IssuerItemSortKey& index,
         const CustomData& custom) const override;
 
-    void process_connection(const network::zeromq::Message& message);
-    void process_issuer(const network::zeromq::Message& message);
-    void process_nym(const network::zeromq::Message& message);
-    void process_server(const network::zeromq::Message& message);
+    void process_account(const Identifier& accountID);
+    void process_account(const network::zeromq::Message& message);
     void refresh_accounts();
     void startup();
 
@@ -68,10 +72,12 @@ private:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
+        const AccountSummaryRowID& rowID,
+        const AccountSummarySortKey& sortKey,
+        const CustomData& custom,
         const api::client::Wallet& wallet,
         const api::storage::Storage& storage,
-        const proto::ContactItemType currency,
-        const Identifier& id);
+        const proto::ContactItemType currency);
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;
     IssuerItem(IssuerItem&&) = delete;

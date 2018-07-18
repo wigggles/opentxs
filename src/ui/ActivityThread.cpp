@@ -26,7 +26,7 @@
 #include "opentxs/Types.hpp"
 
 #include "ActivityThreadItemBlank.hpp"
-#include "ActivityThreadParent.hpp"
+#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -163,10 +163,9 @@ std::string ActivityThread::comma(const std::set<std::string>& list) const
 void ActivityThread::construct_row(
     const ActivityThreadRowID& id,
     const ActivityThreadSortKey& index,
-    const CustomData&) const
+    const CustomData& custom) const
 {
     names_.emplace(id, index);
-    const auto& time = std::get<0>(index);
     const auto& box = std::get<1>(id);
 
     switch (box) {
@@ -179,10 +178,11 @@ void ActivityThread::construct_row(
                     zmq_,
                     publisher_,
                     contact_manager_,
-                    id,
                     nym_id_,
-                    activity_,
-                    time));
+                    id,
+                    index,
+                    custom,
+                    activity_));
         } break;
         case StorageBox::DRAFT: {
             items_[index].emplace(
@@ -192,11 +192,11 @@ void ActivityThread::construct_row(
                     zmq_,
                     publisher_,
                     contact_manager_,
-                    id,
                     nym_id_,
+                    id,
+                    index,
+                    custom,
                     activity_,
-                    time,
-                    draft_,
                     false,
                     true));
         } break;
@@ -209,10 +209,11 @@ void ActivityThread::construct_row(
                     zmq_,
                     publisher_,
                     contact_manager_,
-                    id,
                     nym_id_,
-                    activity_,
-                    time));
+                    id,
+                    index,
+                    custom,
+                    activity_));
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
@@ -284,7 +285,6 @@ void ActivityThread::load_thread(const proto::StorageThread& thread)
 
     for (const auto& item : thread.item()) { process_item(item); }
 
-    UpdateNotify();
     startup_complete_->On();
 }
 
@@ -323,8 +323,8 @@ ActivityThreadRowID ActivityThread::process_item(
                                  Identifier::Factory(item.account())};
     const ActivityThreadSortKey key{std::chrono::seconds(item.time()),
                                     item.index()};
-    add_item(id, key, {});
-    UpdateNotify();
+    const CustomData custom{new std::string};
+    add_item(id, key, custom);
 
     return id;
 }
@@ -410,9 +410,9 @@ bool ActivityThread::SendDraft() const
         taskID, StorageBox::DRAFT, Identifier::Factory()};
     const ActivityThreadSortKey key{std::chrono::system_clock::now(), 0};
     draft_tasks_.insert(id);
+    const CustomData custom{new std::string(draft_)};
     draft_.clear();
-    const_cast<ActivityThread&>(*this).add_item(id, key, {});
-    UpdateNotify();
+    const_cast<ActivityThread&>(*this).add_item(id, key, custom);
 
     return true;
 }

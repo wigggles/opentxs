@@ -14,17 +14,17 @@ template <typename InterfaceType, typename ParentType, typename IdentifierType>
 class RowType : virtual public InterfaceType
 {
 public:
-    bool Last() const override { return parent_.last(id_); }
+    bool Last() const override { return parent_.last(row_id_); }
     bool Valid() const override { return valid_; }
 
 protected:
     const ParentType& parent_;
-    const IdentifierType id_;
+    const IdentifierType row_id_;
     const bool valid_{false};
 
     RowType(const ParentType& parent, const IdentifierType id, const bool valid)
         : parent_(parent)
-        , id_(id)
+        , row_id_(id)
         , valid_(valid)
     {
     }

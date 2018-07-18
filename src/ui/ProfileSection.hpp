@@ -15,12 +15,13 @@ using ProfileSectionList = List<
     ProfileSectionInternalInterface,
     ProfileSectionRowID,
     ProfileSectionRowInterface,
+    ProfileSectionRowInternal,
     ProfileSectionRowBlank,
     ProfileSectionSortKey>;
 using ProfileSectionRow =
-    RowType<ProfileRowInterface, ProfileInternalInterface, ProfileRowID>;
+    RowType<ProfileRowInternal, ProfileInternalInterface, ProfileRowID>;
 
-class ProfileSection : public ProfileSectionList, public ProfileSectionRow
+class ProfileSection final : public ProfileSectionList, public ProfileSectionRow
 {
 public:
     bool AddClaim(
@@ -31,7 +32,7 @@ public:
     bool Delete(const int type, const std::string& claimID) const override;
     ItemTypeList Items(const std::string& lang) const override;
     std::string Name(const std::string& lang) const override;
-    const Identifier& NymID() const override;
+    const Identifier& NymID() const override { return nym_id_; }
     bool SetActive(
         const int type,
         const std::string& claimID,
@@ -44,9 +45,9 @@ public:
         const int type,
         const std::string& claimID,
         const std::string& value) const override;
-    proto::ContactSectionName Type() const override { return id_; }
+    proto::ContactSectionName Type() const override { return row_id_; }
 
-    void Update(const opentxs::ContactSection& section) override;
+    void reindex(const ProfileSortKey& key, const CustomData& custom) override;
 
     ~ProfileSection() = default;
 
@@ -55,7 +56,6 @@ private:
 
     static int sort_key(const ProfileSectionRowID type);
     static bool check_type(const ProfileSectionRowID type);
-    static const opentxs::ContactGroup& recover(const void* input);
 
     const api::client::Wallet& wallet_;
 
@@ -70,17 +70,17 @@ private:
     }
     std::set<ProfileSectionRowID> process_section(
         const opentxs::ContactSection& section);
-    void startup(const opentxs::ContactSection section);
-    void update(ProfileSectionRowInterface& row, const CustomData& custom)
-        const override;
+    void startup(const CustomData& custom);
 
     ProfileSection(
+        const ProfileInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const api::client::Wallet& wallet,
-        const ProfileParent& parent,
-        const opentxs::ContactSection& section);
+        const ProfileRowID& rowID,
+        const ProfileSortKey& key,
+        const CustomData& custom,
+        const api::client::Wallet& wallet);
     ProfileSection() = delete;
     ProfileSection(const ProfileSection&) = delete;
     ProfileSection(ProfileSection&&) = delete;

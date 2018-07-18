@@ -11,7 +11,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ContactItem.hpp"
 
-#include "ContactSubsectionParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include "ContactItem.hpp"
@@ -20,36 +20,45 @@ template class opentxs::SharedPimpl<opentxs::ui::ContactItem>;
 
 namespace opentxs
 {
-ui::ContactItem* Factory::ContactItemWidget(
+ui::implementation::ContactSubsectionRowInternal* Factory::ContactItemWidget(
+    const ui::implementation::ContactSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ui::implementation::ContactSubsectionParent& parent,
-    const ContactItem& item)
+    const ui::implementation::ContactSubsectionRowID& rowID,
+    const ui::implementation::ContactSubsectionSortKey& sortKey,
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ContactItem(
-        zmq, publisher, contact, parent, item);
+        parent, zmq, publisher, contact, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ContactItem::ContactItem(
+    const ContactSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ContactSubsectionParent& parent,
-    const opentxs::ContactItem& item)
-    : ContactItemRow(
-          parent,
-          zmq,
-          publisher,
-          contact,
-          Identifier::Factory(item.ID()),
-          true)
-    , active_(item.isActive())
-    , primary_(item.isPrimary())
-    , value_(item.Value())
+    const ContactSubsectionRowID& rowID,
+    const ContactSubsectionSortKey& sortKey,
+    const CustomData& custom)
+    : ContactItemRow(parent, zmq, publisher, contact, rowID, true)
+    , item_{new opentxs::ContactItem(
+          extract_custom<opentxs::ContactItem>(custom))}
 {
+    OT_ASSERT(item_);
+}
+
+void ContactItem::reindex(
+    const ContactSubsectionSortKey&,
+    const CustomData& custom)
+{
+    eLock lock(shared_lock_);
+    item_.reset(
+        new opentxs::ContactItem(extract_custom<opentxs::ContactItem>(custom)));
+
+    OT_ASSERT(item_);
 }
 }  // namespace opentxs::ui::implementation

@@ -15,19 +15,25 @@ using ContactSectionList = List<
     ContactSectionInternalInterface,
     ContactSectionRowID,
     ContactSectionRowInterface,
+    ContactSectionRowInternal,
     ContactSectionRowBlank,
     ContactSectionSortKey>;
 using ContactSectionRow =
-    RowType<ContactRowInterface, ContactInternalInterface, ContactRowID>;
+    RowType<ContactRowInternal, ContactInternalInterface, ContactRowID>;
 
-class ContactSection : public ContactSectionList, public ContactSectionRow
+class ContactSection final : public ContactSectionList, public ContactSectionRow
 {
 public:
-    std::string ContactID() const override;
-    std::string Name(const std::string& lang) const override;
-    proto::ContactSectionName Type() const override { return id_; }
+    std::string ContactID() const override { return nym_id_->str(); }
+    std::string Name(const std::string& lang) const override
+    {
+        return proto::TranslateSectionName(row_id_, lang);
+    }
+    proto::ContactSectionName Type() const override { return row_id_; }
 
-    void Update(const opentxs::ContactSection& section) override;
+    void reindex(
+        const implementation::ContactSortKey& key,
+        const implementation::CustomData& custom) override;
 
     ~ContactSection() = default;
 
@@ -43,7 +49,6 @@ private:
 
     static int sort_key(const ContactSectionRowID type);
     static bool check_type(const ContactSectionRowID type);
-    static const opentxs::ContactGroup& recover(const void* input);
 
     void construct_row(
         const ContactSectionRowID& id,
@@ -56,16 +61,16 @@ private:
     }
     std::set<ContactSectionRowID> process_section(
         const opentxs::ContactSection& section);
-    void startup(const opentxs::ContactSection section);
-    void update(ContactSectionRowInterface& row, const CustomData& custom)
-        const override;
+    void startup(const CustomData custom);
 
     ContactSection(
+        const ContactInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ContactParent& parent,
-        const opentxs::ContactSection& section);
+        const ContactRowID& rowID,
+        const ContactSortKey& key,
+        const CustomData& custom);
     ContactSection() = delete;
     ContactSection(const ContactSection&) = delete;
     ContactSection(ContactSection&&) = delete;

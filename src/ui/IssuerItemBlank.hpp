@@ -11,12 +11,13 @@
 #include "opentxs/ui/IssuerItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 #include "AccountSummaryItemBlank.hpp"
 
 namespace opentxs::ui::implementation
 {
-class IssuerItemBlank : virtual public ui::IssuerItem,
-                        virtual public opentxs::ui::Widget
+class IssuerItemBlank final : public AccountSummaryRowInternal
 {
 public:
     // IssuerItem
@@ -34,6 +35,10 @@ public:
             std::make_shared<AccountSummaryItemBlank>()};
     }
     bool Trusted() const override { return {}; }
+
+    void reindex(const AccountSummarySortKey&, const CustomData&) override {}
+
+    bool last(const IssuerItemRowID&) const override { return false; }
 
     // ListRow
     bool Last() const override { return {}; }

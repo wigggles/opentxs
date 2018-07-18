@@ -45,10 +45,6 @@ public:
     EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
     EXPORT virtual StorageBox Type() const = 0;
 
-    virtual void Update(
-        const proto::PaymentWorkflow& workflow,
-        const proto::PaymentEvent& event) = 0;
-
     EXPORT virtual ~BalanceItem() = default;
 
 protected:

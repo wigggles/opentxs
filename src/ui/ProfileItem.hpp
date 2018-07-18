@@ -13,21 +13,44 @@ template class opentxs::SharedPimpl<opentxs::ui::ProfileItem>;
 namespace opentxs::ui::implementation
 {
 using ProfileItemRow =
-    Row<ProfileSubsectionRowInterface,
+    Row<ProfileSubsectionRowInternal,
         ProfileSubsectionInternalInterface,
         ProfileSubsectionRowID>;
 
-class ProfileItem : public ProfileItemRow
+class ProfileItem final : public ProfileItemRow
 {
 public:
-    std::string ClaimID() const override { return id_->str(); }
+    std::string ClaimID() const override
+    {
+        sLock lock(shared_lock_);
+
+        return row_id_->str();
+    }
     bool Delete() const override;
-    bool IsActive() const override { return active_; }
-    bool IsPrimary() const override { return primary_; }
+    bool IsActive() const override
+    {
+        sLock lock(shared_lock_);
+
+        return item_->isActive();
+    }
+    bool IsPrimary() const override
+    {
+        sLock lock(shared_lock_);
+
+        return item_->isPrimary();
+    }
     bool SetActive(const bool& active) const override;
     bool SetPrimary(const bool& primary) const override;
     bool SetValue(const std::string& value) const override;
-    std::string Value() const override { return value_; }
+    std::string Value() const override
+    {
+        sLock lock(shared_lock_);
+
+        return item_->Value();
+    }
+
+    void reindex(const ProfileSubsectionSortKey& key, const CustomData& custom)
+        override;
 
     ~ProfileItem() = default;
 
@@ -35,22 +58,20 @@ private:
     friend Factory;
 
     const api::client::Wallet& wallet_;
-    const bool active_{false};
-    const bool primary_{false};
-    const std::string value_{""};
-    const std::time_t start_{0};
-    const std::time_t end_{0};
+    std::unique_ptr<opentxs::ContactItem> item_{nullptr};
 
     bool add_claim(const Claim& claim) const;
     Claim as_claim() const;
 
     ProfileItem(
+        const ProfileSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const api::client::Wallet& wallet,
-        const ProfileSubsectionParent& parent,
-        const opentxs::ContactItem& item);
+        const ProfileSubsectionRowID& rowID,
+        const ProfileSubsectionSortKey& sortKey,
+        const CustomData& custom,
+        const api::client::Wallet& wallet);
     ProfileItem() = delete;
     ProfileItem(const ProfileItem&) = delete;
     ProfileItem(ProfileItem&&) = delete;

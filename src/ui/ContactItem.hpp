@@ -11,33 +11,56 @@
 namespace opentxs::ui::implementation
 {
 using ContactItemRow =
-    Row<ContactSubsectionRowInterface,
+    Row<ContactSubsectionRowInternal,
         ContactSubsectionInternalInterface,
         ContactSubsectionRowID>;
 
-class ContactItem : public ContactItemRow
+class ContactItem final : public ContactItemRow
 {
 public:
-    std::string ClaimID() const override { return id_->str(); }
-    bool IsActive() const override { return active_; }
-    bool IsPrimary() const override { return primary_; }
-    std::string Value() const override { return value_; }
+    std::string ClaimID() const override
+    {
+        sLock lock(shared_lock_);
+
+        return row_id_->str();
+    }
+    bool IsActive() const override
+    {
+        sLock lock(shared_lock_);
+
+        return item_->isActive();
+    }
+    bool IsPrimary() const override
+    {
+        sLock lock(shared_lock_);
+
+        return item_->isPrimary();
+    }
+    std::string Value() const override
+    {
+        sLock lock(shared_lock_);
+
+        return item_->Value();
+    }
+
+    void reindex(const ContactSubsectionSortKey& key, const CustomData& custom)
+        override;
 
     ~ContactItem() = default;
 
 private:
     friend Factory;
 
-    const bool active_{false};
-    const bool primary_{false};
-    const std::string value_{""};
+    std::unique_ptr<opentxs::ContactItem> item_{nullptr};
 
     ContactItem(
+        const ContactSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ContactSubsectionParent& parent,
-        const opentxs::ContactItem& item);
+        const ContactSubsectionRowID& rowID,
+        const ContactSubsectionSortKey& sortKey,
+        const CustomData& custom);
     ContactItem() = delete;
     ContactItem(const ContactItem&) = delete;
     ContactItem(ContactItem&&) = delete;

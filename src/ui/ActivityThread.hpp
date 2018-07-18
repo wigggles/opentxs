@@ -54,14 +54,15 @@ struct make_blank<ActivityThreadRowID> {
 };
 
 using ActivityThreadList = List<
-    opentxs::ui::ActivityThread,
-    ActivityThreadParent,
+    ActivityThreadExternalInterface,
+    ActivityThreadInternalInterface,
     ActivityThreadRowID,
     ActivityThreadRowInterface,
+    ActivityThreadRowInternal,
     ActivityThreadRowBlank,
     ActivityThreadSortKey>;
 
-class ActivityThread : virtual public ActivityThreadList
+class ActivityThread final : public ActivityThreadList
 {
 public:
     std::string DisplayName() const override;

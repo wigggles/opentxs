@@ -20,9 +20,8 @@
 #include "opentxs/ui/ProfileItem.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
 
+#include "InternalUI.hpp"
 #include "List.hpp"
-#include "ProfileSectionParent.hpp"
-#include "ProfileSubsectionParent.hpp"
 #include "ProfileItemBlank.hpp"
 #include "RowType.hpp"
 
@@ -41,34 +40,43 @@ template class opentxs::SharedPimpl<opentxs::ui::ProfileSubsection>;
 
 namespace opentxs
 {
-ui::ProfileSubsection* Factory::ProfileSubsectionWidget(
+ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
+    const ui::implementation::ProfileSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const api::client::Wallet& wallet,
-    const ui::implementation::ProfileSectionParent& parent,
-    const ContactGroup& group)
+    const ui::implementation::ProfileSectionRowID& rowID,
+    const ui::implementation::ProfileSectionSortKey& key,
+    const ui::implementation::CustomData& custom,
+    const api::client::Wallet& wallet)
 {
     return new ui::implementation::ProfileSubsection(
-        zmq, publisher, contact, wallet, parent, group);
+        parent, zmq, publisher, contact, rowID, key, custom, wallet);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ProfileSubsection::ProfileSubsection(
+    const ProfileSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const api::client::Wallet& wallet,
-    const ProfileSectionParent& parent,
-    const opentxs::ContactGroup& group)
-    : ProfileSubsectionList(parent.NymID(), zmq, publisher, contact)
-    , ProfileSubsectionRow(parent, {parent.Type(), group.Type()}, true)
+    const ProfileSectionRowID& rowID,
+    const ProfileSectionSortKey& key,
+    const CustomData& custom,
+    const api::client::Wallet& wallet)
+    : ProfileSubsectionList(
+          parent.WidgetID(),
+          parent.NymID(),
+          zmq,
+          publisher,
+          contact)
+    , ProfileSubsectionRow(parent, rowID, true)
     , wallet_(wallet)
 {
     init();
-    startup_.reset(new std::thread(&ProfileSubsection::startup, this, group));
+    startup_.reset(new std::thread(&ProfileSubsection::startup, this, custom));
 
     OT_ASSERT(startup_)
 }
@@ -78,7 +86,7 @@ bool ProfileSubsection::AddItem(
     const bool primary,
     const bool active) const
 {
-    return parent_.AddClaim(id_.second, value, primary, active);
+    return parent_.AddClaim(row_id_.second, value, primary, active);
 }
 
 void ProfileSubsection::construct_row(
@@ -92,12 +100,14 @@ void ProfileSubsection::construct_row(
     items_[index].emplace(
         id,
         Factory::ProfileItemWidget(
+            *this,
             zmq_,
             publisher_,
             contact_manager_,
-            wallet_,
-            *this,
-            recover(custom[0])));
+            id,
+            index,
+            custom,
+            wallet_));
 }
 
 bool ProfileSubsection::Delete(const std::string& claimID) const
@@ -112,33 +122,33 @@ bool ProfileSubsection::Delete(const std::string& claimID) const
 
 std::string ProfileSubsection::Name(const std::string& lang) const
 {
-    return proto::TranslateItemType(id_.second, lang);
+    return proto::TranslateItemType(row_id_.second, lang);
 }
 
-void ProfileSubsection::process_group(const opentxs::ContactGroup& group)
+std::set<ProfileSubsectionRowID> ProfileSubsection::process_group(
+    const opentxs::ContactGroup& group)
 {
-    OT_ASSERT(id_.second == group.Type())
+    OT_ASSERT(row_id_.second == group.Type())
 
-    Lock lock(lock_);
-    names_.clear();
-    items_.clear();
-    init();
-    lock.unlock();
+    std::set<ProfileSubsectionRowID> active{};
 
     for (const auto& [id, claim] : group) {
         OT_ASSERT(claim)
 
-        add_item(id, sort_key(id), {claim.get()});
+        CustomData custom{new opentxs::ContactItem(*claim)};
+        add_item(id, sort_key(id), custom);
+        active.emplace(id);
     }
 
-    UpdateNotify();
+    return active;
 }
 
-const opentxs::ContactItem& ProfileSubsection::recover(const void* input)
+void ProfileSubsection::reindex(
+    const ProfileSectionSortKey&,
+    const CustomData& custom)
 {
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const opentxs::ContactItem*>(input);
+    delete_inactive(
+        process_group(extract_custom<opentxs::ContactGroup>(custom)));
 }
 
 bool ProfileSubsection::SetActive(const std::string& claimID, const bool active)
@@ -181,14 +191,9 @@ int ProfileSubsection::sort_key(const ProfileSubsectionRowID) const
     return static_cast<int>(items_.size());
 }
 
-void ProfileSubsection::startup(const opentxs::ContactGroup group)
+void ProfileSubsection::startup(const CustomData& custom)
 {
-    process_group(group);
+    process_group(extract_custom<opentxs::ContactGroup>(custom));
     startup_complete_->On();
-}
-
-void ProfileSubsection::Update(const opentxs::ContactGroup& group)
-{
-    process_group(group);
 }
 }  // namespace opentxs::ui::implementation

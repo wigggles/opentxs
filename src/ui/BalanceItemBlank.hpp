@@ -11,10 +11,11 @@
 #include "opentxs/ui/BalanceItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 namespace opentxs::ui::implementation
 {
-class BalanceItemBlank : virtual public ui::BalanceItem,
-                         virtual public opentxs::ui::Widget
+class BalanceItemBlank final : public AccountActivityRowInternal
 {
 public:
     opentxs::Amount Amount() const override { return {}; }
@@ -30,8 +31,9 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
-    void Update(const proto::PaymentWorkflow&, const proto::PaymentEvent&)
-        override
+    void reindex(
+        const implementation::AccountActivitySortKey&,
+        const implementation::CustomData&) override
     {
     }
 

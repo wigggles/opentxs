@@ -22,7 +22,6 @@
 #include "opentxs/ui/MessagableList.hpp"
 
 #include "ContactListItemBlank.hpp"
-#include "ContactListParent.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -39,7 +38,7 @@
 
 namespace opentxs
 {
-ui::MessagableList* Factory::MessagableList(
+ui::implementation::MessagableExternalInterface* Factory::MessagableList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,

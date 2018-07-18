@@ -19,61 +19,51 @@
 
 #include <locale>
 
-#include "ContactListParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include "ContactListItem.hpp"
 
 template class opentxs::SharedPimpl<opentxs::ui::ContactListItem>;
 
+//#define OT_METHOD "opentxs::ui::implementation::ContactListItem::"
+
 namespace opentxs
 {
-ui::ContactListItem* Factory::ContactListItem(
-    const ui::implementation::ContactListParent& parent,
+ui::internal::ContactListItem* Factory::ContactListItem(
+    const ui::implementation::ContactListInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const Identifier& id,
-    const std::string& name)
+    const ui::implementation::ContactListRowID& rowID,
+    const ui::implementation::ContactListSortKey& key)
 {
     return new ui::implementation::ContactListItem(
-        parent, zmq, publisher, contact, id, name);
+        parent, zmq, publisher, contact, rowID, key);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ContactListItem::ContactListItem(
-    const ContactListParent& parent,
+    const ContactListInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const Identifier& id,
-    const std::string& name)
-    : ContactListItemType(parent, zmq, publisher, contact, id, true)
-    , name_(name)
-    , contact_subscriber_callback_(network::zeromq::ListenCallback::Factory(
-          [this](const network::zeromq::Message& message) -> void {
-              this->process_contact(message);
-          }))
-    , contact_subscriber_(
-          zmq_.SubscribeSocket(contact_subscriber_callback_.get()))
+    const ContactListRowID& rowID,
+    const ContactListSortKey& key)
+    : ContactListItemRow(parent, zmq, publisher, contact, rowID, true)
+    , key_(key)
 {
-    const auto listening = contact_subscriber_->Start(
-        network::zeromq::Socket::ContactUpdateEndpoint);
-
-    OT_ASSERT(listening)
-
-    UpdateNotify();
 }
 
-std::string ContactListItem::ContactID() const { return id_->str(); }
+std::string ContactListItem::ContactID() const { return row_id_->str(); }
 
 std::string ContactListItem::DisplayName() const
 {
     Lock lock(lock_);
 
-    return name_;
+    return key_;
 }
 
 std::string ContactListItem::ImageURI() const
@@ -83,37 +73,24 @@ std::string ContactListItem::ImageURI() const
     return {};
 }
 
-void ContactListItem::process_contact(const network::zeromq::Message& message)
-{
-    OT_ASSERT(1 == message.Body().size());
-
-    const OTIdentifier contactID =
-        Identifier::Factory({std::string(*message.Body().begin())});
-
-    if (id_ != contactID) { return; }
-
-    Lock lock(lock_);
-    name_ = contact_.ContactName(id_);
-}
-
 std::string ContactListItem::Section() const
 {
     Lock lock(lock_);
 
-    if (id_ == parent_.ID()) { return {"ME"}; }
+    if (row_id_ == parent_.ID()) { return {"ME"}; }
 
-    if (name_.empty()) { return {" "}; }
+    if (key_.empty()) { return {" "}; }
 
-    std::locale loc;
+    std::locale locale;
     std::string output{" "};
-    output[0] = std::toupper(name_[0], loc);
+    output[0] = std::toupper(key_[0], locale);
 
     return output;
 }
 
-void ContactListItem::SetName(const std::string& name)
+void ContactListItem::reindex(const ContactListSortKey& key, const CustomData&)
 {
     Lock lock(lock_);
-    name_ = name;
+    key_ = key;
 }
 }  // namespace opentxs::ui::implementation

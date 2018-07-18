@@ -15,6 +15,18 @@
 
 namespace opentxs::ui::implementation
 {
+template <typename T>
+T extract_custom(const CustomData& custom, const std::size_t index = 0)
+{
+    OT_ASSERT((index + 1) <= custom.size())
+
+    std::unique_ptr<const T> output{static_cast<const T*>(custom.at(0))};
+
+    OT_ASSERT(output)
+
+    return *output;
+}
+
 class Widget : virtual public opentxs::ui::Widget
 {
 public:
@@ -75,6 +87,7 @@ protected:
 
     const network::zeromq::Context& zmq_;
     const network::zeromq::PublishSocket& publisher_;
+    const OTIdentifier widget_id_;
 
     void setup_listeners(const ListenerDefinitions& definitions);
     void UpdateNotify() const;
@@ -88,7 +101,6 @@ protected:
         const network::zeromq::PublishSocket& publisher);
 
 private:
-    const OTIdentifier widget_id_;
     std::vector<OTZMQListenCallback> callbacks_;
     std::vector<OTZMQSubscribeSocket> listeners_;
 

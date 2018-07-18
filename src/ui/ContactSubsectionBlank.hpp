@@ -11,10 +11,11 @@
 #include "opentxs/ui/ContactSubsection.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 namespace opentxs::ui::implementation
 {
-class ContactSubsectionBlank : virtual public ui::ContactSubsection,
-                               virtual public opentxs::ui::Widget
+class ContactSubsectionBlank final : public ContactSectionRowInternal
 {
 public:
     std::string Name(const std::string& lang) const override { return {}; }
@@ -35,7 +36,8 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
-    void Update(const opentxs::ContactGroup& group) override {}
+    void reindex(const ContactSectionSortKey&, const CustomData&) override {}
+    bool last(const ContactSubsectionRowID&) const override { return false; }
 
     ContactSubsectionBlank() = default;
     ~ContactSubsectionBlank() = default;

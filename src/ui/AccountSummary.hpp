@@ -15,10 +15,11 @@ using AccountSummaryList = List<
     AccountSummaryInternalInterface,
     AccountSummaryRowID,
     AccountSummaryRowInterface,
+    AccountSummaryRowInternal,
     AccountSummaryRowBlank,
     AccountSummarySortKey>;
 
-class AccountSummary : virtual public AccountSummaryList
+class AccountSummary final : public AccountSummaryList
 {
 public:
     proto::ContactItemType Currency() const override { return currency_; }
@@ -35,8 +36,9 @@ private:
     const api::network::ZMQ& connection_;
     const api::storage::Storage& storage_;
     const proto::ContactItemType currency_;
-    std::set<OTIdentifier> threads_;
-    std::map<OTIdentifier, OTIdentifier> server_thread_map_;
+    std::set<OTIdentifier> issuers_;
+    std::map<OTIdentifier, OTIdentifier> server_issuer_map_;
+    std::map<OTIdentifier, OTIdentifier> nym_server_map_;
 
     void construct_row(
         const AccountSummaryRowID& id,
@@ -46,9 +48,12 @@ private:
     AccountSummarySortKey extract_key(
         const Identifier& nymID,
         const Identifier& issuerID);
+    void process_connection(const network::zeromq::Message& message);
     void process_issuer(const Identifier& issuerID);
     void process_issuer(const network::zeromq::Message& message);
+    void process_nym(const network::zeromq::Message& message);
     void process_server(const network::zeromq::Message& message);
+    void process_server(const OTIdentifier& serverID);
     void startup();
 
     AccountSummary(

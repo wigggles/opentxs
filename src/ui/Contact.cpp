@@ -23,8 +23,8 @@
 #include "opentxs/ui/Contact.hpp"
 #include "opentxs/ui/ContactSection.hpp"
 
-#include "ContactParent.hpp"
 #include "ContactSectionBlank.hpp"
+#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -40,7 +40,7 @@
 
 namespace opentxs
 {
-ui::Contact* Factory::ContactWidget(
+ui::implementation::ContactExternalInterface* Factory::ContactWidget(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
@@ -92,13 +92,11 @@ void Contact::construct_row(
     const ContactSortKey& index,
     const CustomData& custom) const
 {
-    OT_ASSERT(1 == custom.size())
-
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ContactSectionWidget(
-            zmq_, publisher_, contact_manager_, *this, recover(custom[0])));
+            *this, zmq_, publisher_, contact_manager_, id, index, custom));
 }
 
 std::string Contact::ContactID() const { return nym_id_->str(); }
@@ -132,7 +130,8 @@ void Contact::process_contact(const opentxs::Contact& contact)
             auto& type = section.first;
 
             if (check_type(type)) {
-                add_item(type, sort_key(type), {section.second.get()});
+                CustomData custom{new opentxs::ContactSection(*section.second)};
+                add_item(type, sort_key(type), custom);
                 active.emplace(type);
             }
         }
@@ -141,7 +140,6 @@ void Contact::process_contact(const opentxs::Contact& contact)
     }
 
     delete_inactive(active);
-    UpdateNotify();
 }
 
 void Contact::process_contact(const network::zeromq::Message& message)
@@ -164,13 +162,6 @@ void Contact::process_contact(const network::zeromq::Message& message)
     process_contact(*contact);
 }
 
-const opentxs::ContactSection& Contact::recover(const void* input)
-{
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const opentxs::ContactSection*>(input);
-}
-
 int Contact::sort_key(const proto::ContactSectionName type)
 {
     return sort_keys_.at(type);
@@ -186,12 +177,5 @@ void Contact::startup()
 
     process_contact(*contact);
     startup_complete_->On();
-}
-
-void Contact::update(ContactRowInterface& row, const CustomData& custom) const
-{
-    OT_ASSERT(1 == custom.size())
-
-    row.Update(recover(custom[0]));
 }
 }  // namespace opentxs::ui::implementation

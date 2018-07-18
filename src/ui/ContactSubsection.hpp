@@ -15,21 +15,23 @@ using ContactSubsectionList = List<
     ContactSubsectionInternalInterface,
     ContactSubsectionRowID,
     ContactSubsectionRowInterface,
+    ContactSubsectionRowInternal,
     ContactSubsectionRowBlank,
     ContactSubsectionSortKey>;
 using ContactSubsectionRow = RowType<
-    ContactSectionRowInterface,
+    ContactSectionRowInternal,
     ContactSectionInternalInterface,
     ContactSectionRowID>;
 
-class ContactSubsection : public ContactSubsectionList,
-                          public ContactSubsectionRow
+class ContactSubsection final : public ContactSubsectionList,
+                                public ContactSubsectionRow
 {
 public:
     std::string Name(const std::string& lang) const override;
-    proto::ContactItemType Type() const override { return id_.second; }
+    proto::ContactItemType Type() const override { return row_id_.second; }
 
-    void Update(const opentxs::ContactGroup& group) override;
+    void reindex(const ContactSectionSortKey& key, const CustomData& custom)
+        override;
 
     ~ContactSubsection() = default;
 
@@ -37,7 +39,6 @@ private:
     friend Factory;
 
     static bool check_type(const ContactSubsectionRowID type);
-    static const opentxs::ContactItem& recover(const void* input);
 
     void construct_row(
         const ContactSubsectionRowID& id,
@@ -48,16 +49,19 @@ private:
     {
         return ContactSubsectionList::last(id);
     }
-    void process_group(const opentxs::ContactGroup& group);
+    std::set<ContactSubsectionRowID> process_group(
+        const opentxs::ContactGroup& group);
     int sort_key(const ContactSubsectionRowID type) const;
-    void startup(const opentxs::ContactGroup group);
+    void startup(const CustomData custom);
 
     ContactSubsection(
+        const ContactSectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ContactSectionParent& parent,
-        const opentxs::ContactGroup& group);
+        const ContactSectionRowID& rowID,
+        const ContactSectionSortKey& key,
+        const CustomData& custom);
     ContactSubsection() = delete;
     ContactSubsection(const ContactSubsection&) = delete;
     ContactSubsection(ContactSubsection&&) = delete;

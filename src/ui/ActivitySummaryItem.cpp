@@ -20,7 +20,7 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
-#include "ActivitySummaryParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include <memory>
@@ -40,103 +40,70 @@ template class opentxs::SharedPimpl<opentxs::ui::ActivitySummaryItem>;
 
 namespace opentxs
 {
-ui::ActivitySummaryItem* Factory::ActivitySummaryItem(
-    const ui::implementation::ActivitySummaryParent& parent,
+ui::implementation::ActivitySummaryRowInternal* Factory::ActivitySummaryItem(
+    const ui::implementation::ActivitySummaryInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::Activity& activity,
     const api::ContactManager& contact,
-    const Flag& running,
     const Identifier& nymID,
-    const Identifier& threadID)
+    const ui::implementation::ActivitySummaryRowID& rowID,
+    const ui::implementation::ActivitySummarySortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const Flag& running)
 {
     return new ui::implementation::ActivitySummaryItem(
-        parent, zmq, publisher, activity, contact, running, nymID, threadID);
+        parent,
+        zmq,
+        publisher,
+        activity,
+        contact,
+        nymID,
+        rowID,
+        sortKey,
+        custom,
+        running);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ActivitySummaryItem::ActivitySummaryItem(
-    const ActivitySummaryParent& parent,
+    const ActivitySummaryInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::Activity& activity,
     const api::ContactManager& contact,
-    const Flag& running,
     const Identifier& nymID,
-    const Identifier& threadID)
-    : ActivitySummaryItemRow(parent, zmq, publisher, contact, threadID, true)
-    , listeners_{{activity.ThreadPublisher(nymID),
-                 new MessageProcessor<ActivitySummaryItem>(
-                     &ActivitySummaryItem::process_thread)},}
+    const ActivitySummaryRowID& rowID,
+    const ActivitySummarySortKey& sortKey,
+    const CustomData& custom,
+    const Flag& running)
+    : ActivitySummaryItemRow(parent, zmq, publisher, contact, rowID, true)
     , activity_(activity)
     , running_(running)
     , nym_id_(Identifier::Factory(nymID))
+    , key_{sortKey}
     , thread_()
-    , display_name_("")
+    , display_name_{std::get<1>(key_)}
     , text_("")
     , type_(StorageBox::UNKNOWN)
     , time_()
-    , startup_(nullptr)
     , newest_item_thread_(nullptr)
     , newest_item_()
 {
-    setup_listeners(listeners_);
-    startup_.reset(new std::thread(&ActivitySummaryItem::startup, this));
-
-    OT_ASSERT(startup_)
-
+    startup(custom, newest_item_);
     newest_item_thread_.reset(
         new std::thread(&ActivitySummaryItem::get_text, this));
 
     OT_ASSERT(newest_item_thread_)
 }
 
-bool ActivitySummaryItem::check_thread(const proto::StorageThread& thread) const
-{
-    if (1 > thread.item_size()) { return false; }
-
-    if (1 != thread.participant_size()) { OT_FAIL }
-
-    if (thread.id() != thread.participant(0)) { OT_FAIL }
-
-    return true;
-}
-
-std::string ActivitySummaryItem::display_name(
-    const proto::StorageThread& thread) const
-{
-    std::set<std::string> names{};
-
-    for (const auto& participant : thread.participant()) {
-        auto name = contact_.ContactName(Identifier::Factory(participant));
-
-        if (name.empty()) {
-            names.emplace(participant);
-        } else {
-            names.emplace(std::move(name));
-        }
-    }
-
-    if (names.empty()) { return thread.id(); }
-
-    std::stringstream stream{};
-
-    for (const auto& name : names) { stream << name << ", "; }
-
-    std::string output = stream.str();
-
-    if (0 < output.size()) { output.erase(output.size() - 2, 2); }
-
-    return output;
-}
-
 std::string ActivitySummaryItem::DisplayName() const
 {
     sLock lock(shared_lock_);
 
-    if (display_name_.empty()) { return contact_.ContactName(id_); }
+    if (display_name_.empty()) { return contact_.ContactName(row_id_); }
 
     return display_name_;
 }
@@ -205,59 +172,25 @@ std::string ActivitySummaryItem::ImageURI() const
     return {};
 }
 
-const proto::StorageThreadItem& ActivitySummaryItem::newest_item(
-    const proto::StorageThread& thread) const
+void ActivitySummaryItem::reindex(
+    const ActivitySummarySortKey& key,
+    const CustomData& custom)
 {
-    const proto::StorageThreadItem* output{nullptr};
-
-    for (const auto& item : thread.item()) {
-        if (nullptr == output) {
-            output = &item;
-
-            continue;
-        }
-
-        if (item.time() > output->time()) {
-            output = &item;
-
-            continue;
-        }
-    }
-
-    OT_ASSERT(nullptr != output)
-
-    return *output;
+    eLock lock(shared_lock_);
+    key_ = key;
+    lock.unlock();
+    startup(custom, newest_item_);
 }
 
-void ActivitySummaryItem::process_thread(
-    const network::zeromq::Message& message)
+void ActivitySummaryItem::startup(
+    const CustomData& custom,
+    UniqueQueue<ItemLocator>& queue)
 {
-    OT_ASSERT(1 == message.Body().size())
-
-    const std::string id(*message.Body().begin());
-    otWarn << OT_METHOD << __FUNCTION__ << ": Thread " << id << " has updated.."
-           << std::endl;
-    const auto threadID = Identifier::Factory(id);
-
-    OT_ASSERT(false == threadID->empty())
-
-    if (id_ != threadID) {
-        otWarn << OT_METHOD << __FUNCTION__ << ": Update not relevant to me ("
-               << id_->str() << ")" << std::endl;
-
-        return;
-    }
-
-    startup();
-}
-
-void ActivitySummaryItem::startup()
-{
-    auto thread = activity_.Thread(nym_id_, id_);
-
-    OT_ASSERT(thread);
-
-    update(*thread);
+    const auto id = extract_custom<std::string>(custom, 0);
+    const auto box = extract_custom<StorageBox>(custom, 1);
+    const auto account = extract_custom<std::string>(custom, 2);
+    ItemLocator locator{id, box, account};
+    queue.Push(Identifier::Random(), locator);
 }
 
 std::string ActivitySummaryItem::Text() const
@@ -267,7 +200,7 @@ std::string ActivitySummaryItem::Text() const
     return text_;
 }
 
-std::string ActivitySummaryItem::ThreadID() const { return id_->str(); }
+std::string ActivitySummaryItem::ThreadID() const { return row_id_->str(); }
 
 std::chrono::system_clock::time_point ActivitySummaryItem::Timestamp() const
 {
@@ -283,42 +216,11 @@ StorageBox ActivitySummaryItem::Type() const
     return type_;
 }
 
-void ActivitySummaryItem::update(const proto::StorageThread& thread)
-{
-    eLock lock(shared_lock_, std::defer_lock);
-    const bool haveItems = check_thread(thread);
-    const auto displayName = display_name(thread);
-    lock.lock();
-    display_name_ = displayName;
-    lock.unlock();
-
-    if (false == haveItems) { return; }
-
-    const auto& item = newest_item(thread);
-    const auto time = std::chrono::system_clock::time_point(
-        std::chrono::seconds(item.time()));
-    const auto box = static_cast<StorageBox>(item.box());
-    lock.lock();
-    time_ = time;
-    text_ = "";
-    type_ = box;
-    lock.unlock();
-    ItemLocator locator{item.id(), box, item.account()};
-    newest_item_.Push(Identifier::Random(), locator);
-    parent_.reindex_item(id_, {time, displayName});
-    UpdateNotify();
-}
-
 ActivitySummaryItem::~ActivitySummaryItem()
 {
     if (newest_item_thread_ && newest_item_thread_->joinable()) {
         newest_item_thread_->join();
         newest_item_thread_.reset();
-    }
-
-    if (startup_ && startup_->joinable()) {
-        startup_->join();
-        startup_.reset();
     }
 }
 }  // namespace opentxs::ui::implementation

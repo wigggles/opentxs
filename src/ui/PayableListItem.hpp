@@ -12,8 +12,8 @@
 
 namespace opentxs::ui::implementation
 {
-class PayableListItem : virtual public opentxs::ui::PayableListItem,
-                        public ContactListItem
+class PayableListItem final : public PayableListRowInternal,
+                              public ContactListItem
 {
 public:
     std::string PaymentCode() const override;
@@ -28,15 +28,16 @@ private:
     std::string payment_code_{""};
     const proto::ContactItemType currency_;
 
-    void process_contact(const network::zeromq::Message& message) override;
+    void reindex(const ContactListSortKey& key, const CustomData& custom)
+        override;
 
     PayableListItem(
-        const ContactListParent& parent,
+        const PayableInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const Identifier& id,
-        const std::string& name,
+        const PayableListRowID& rowID,
+        const PayableListSortKey& key,
         const std::string& paymentcode,
         const proto::ContactItemType& currency);
     PayableListItem() = delete;

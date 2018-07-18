@@ -47,6 +47,10 @@
     "PM8TJS2JxQ5ztXUpBBRnpTbcUXbUHy2T1abfrb3KkAAtMEGNbey4oumH7Hc578WgQJhPjBxt" \
     "eQ5GHHToTYHE3A1w6p7tU6KSoFmWBVbFGjKPisZDbP97"
 #define BOB_NYM_NAME "Bob"
+#define CHRIS_PAYMENT_CODE                                                     \
+    "PM8TJfV1DQD6VScd5AWsSax8RgK9cUREe939M1d85MwGCKJukyghX6B5E7kqcCyEYu6Tu1Zv" \
+    "dG8aWh6w8KGhSfjgL8fBKuZS6aUjhV9xLV1R16CcgWhw"
+#define CHRIS_NYM_NAME "Chris"
 
 using namespace opentxs;
 
@@ -84,6 +88,9 @@ public:
     const OTPaymentCode bob_payment_code_{
         PaymentCode::Factory(BOB_PAYMENT_CODE)};
     OTIdentifier bob_contact_id_{Identifier::Factory()};
+    const OTPaymentCode chris_payment_code_{
+        PaymentCode::Factory(CHRIS_PAYMENT_CODE)};
+    OTIdentifier chris_contact_id_{Identifier::Factory()};
 
     static OTZMQSubscribeSocket setup_listener(
         const network::zeromq::ListenCallback& callback)
@@ -116,40 +123,106 @@ public:
 
         while (false == shutdown_.load()) {
             switch (GetCounter(contact_widget_id_)) {
-                case 0:
-                case 1: {
-                    const auto first = contact_list_.First();
-
-                    ASSERT_EQ(true, first.get().Valid());
-                    EXPECT_EQ(true, first.get().Last());
-                    EXPECT_EQ(
-                        true,
-                        (DEFAULT_ME_NAME == first.get().DisplayName()) ||
-                            (ALICE_NYM_NAME == first.get().DisplayName()));
-
-                    if (ALICE_NYM_NAME == first.get().DisplayName()) {
-                        IncrementCounter(contact_widget_id_);
-                    }
+                // The transition between update counter 0 and update counter 1
+                // happens based on a background thread running in the
+                // ContactList object. Therefore it's not possible to test the
+                // expected state in case 0 because the values could change
+                // between when we hit the case label and read the value
+                case 0: {
                 } break;
-                case 2: {
-                    const auto first = contact_list_.First();
+                case 1: {
+                    const auto me = contact_list_.First();
 
-                    ASSERT_EQ(true, first.get().Valid());
-                    EXPECT_EQ(first.get().DisplayName(), ALICE_NYM_NAME);
+                    // A ContactList has a valid First object as soon as it has
+                    // been constructed
+                    ASSERT_EQ(true, me.get().Valid());
+
+                    // We haven't added Bob yet
+                    EXPECT_EQ(true, me.get().Last());
+
+                    // Our nym name should have loaded by now
+                    EXPECT_EQ(me.get().DisplayName(), ALICE_NYM_NAME);
+
+                    // Signal the main thread to add the next contact
+                    IncrementCounter(contact_widget_id_);
+                } break;
+                // contact_list_ will not be in a deterministic state until
+                // case 3
+                case 2: {
                 } break;
                 case 3: {
-                    const auto first = contact_list_.First();
+                    const auto me = contact_list_.First();
 
-                    ASSERT_EQ(true, first.get().Valid());
-                    ASSERT_EQ(false, first.get().Last());
+                    ASSERT_EQ(true, me.get().Valid());
+
+                    // Bob has been added
+                    ASSERT_EQ(false, me.get().Last());
 
                     const auto bob = contact_list_.Next();
 
                     ASSERT_EQ(true, bob.get().Valid());
+
+                    // Chris has not been added yet
                     ASSERT_EQ(true, bob.get().Last());
                     EXPECT_EQ(bob.get().DisplayName(), BOB_NYM_NAME);
 
-                    otErr << "Test complete" << std::endl;
+                    // Signal the main thread to add the next contact
+                    IncrementCounter(contact_widget_id_);
+                } break;
+                // contact_list_ will not be in a deterministic state until
+                // case 5
+                case 4: {
+                } break;
+                case 5: {
+                    const auto me = contact_list_.First();
+
+                    ASSERT_EQ(true, me.get().Valid());
+                    ASSERT_EQ(false, me.get().Last());
+
+                    const auto bob = contact_list_.Next();
+
+                    ASSERT_EQ(true, bob.get().Valid());
+
+                    // Chris has been added
+                    ASSERT_EQ(false, bob.get().Last());
+
+                    const auto chris = contact_list_.Next();
+
+                    ASSERT_EQ(true, chris.get().Valid());
+
+                    // A fourth contact has not been added
+                    ASSERT_EQ(true, chris.get().Last());
+                    EXPECT_EQ(chris.get().DisplayName(), CHRIS_NYM_NAME);
+
+                    IncrementCounter(contact_widget_id_);
+                } break;
+                case 6: {
+                    // Ensure returning to First() before reaching the end of
+                    // the list behaves as expected
+
+                    // Me
+                    auto line = contact_list_.First();
+
+                    ASSERT_EQ(true, line.get().Valid());
+                    ASSERT_EQ(false, line.get().Last());
+
+                    // Bob
+                    line = contact_list_.Next();
+
+                    ASSERT_EQ(true, line.get().Valid());
+                    ASSERT_EQ(false, line.get().Last());
+
+                    // Me
+                    line = contact_list_.First();
+                    // Bob
+                    line = contact_list_.Next();
+                    // Chris
+                    line = contact_list_.Next();
+
+                    ASSERT_EQ(true, line.get().Valid());
+                    ASSERT_EQ(true, line.get().Last());
+                    EXPECT_EQ(line.get().DisplayName(), CHRIS_NYM_NAME);
+
                     IncrementCounter(contact_widget_id_);
                 } break;
                 default: {
@@ -178,5 +251,14 @@ TEST_F(Test_ContactList, Contact_List)
     bob_contact_id_ = Identifier::Factory(bob->ID());
 
     ASSERT_EQ(false, bob_contact_id_->empty());
+
+    while (GetCounter(contact_widget_id_) < 4) { ; }
+
+    const auto chris = OT::App().Contact().NewContact(
+        CHRIS_NYM_NAME, chris_payment_code_->ID(), chris_payment_code_);
+
+    ASSERT_EQ(true, bool(chris));
+
+    chris_contact_id_ = Identifier::Factory(chris->ID());
 }
 }  // namespace

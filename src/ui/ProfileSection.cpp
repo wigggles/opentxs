@@ -19,9 +19,8 @@
 #include "opentxs/ui/ProfileSection.hpp"
 #include "opentxs/ui/ProfileSubsection.hpp"
 
+#include "InternalUI.hpp"
 #include "List.hpp"
-#include "ProfileParent.hpp"
-#include "ProfileSectionParent.hpp"
 #include "ProfileSubsectionBlank.hpp"
 #include "RowType.hpp"
 
@@ -40,16 +39,18 @@ template class opentxs::SharedPimpl<opentxs::ui::ProfileSection>;
 
 namespace opentxs
 {
-ui::ProfileSection* Factory::ProfileSectionWidget(
+ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
+    const ui::implementation::ProfileInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const api::client::Wallet& wallet,
-    const ui::implementation::ProfileParent& parent,
-    const opentxs::ContactSection& section)
+    const ui::implementation::ProfileRowID& rowID,
+    const ui::implementation::ProfileSortKey& key,
+    const ui::implementation::CustomData& custom,
+    const api::client::Wallet& wallet)
 {
     return new ui::implementation::ProfileSection(
-        zmq, publisher, contact, wallet, parent, section);
+        parent, zmq, publisher, contact, rowID, key, custom, wallet);
 }
 }  // namespace opentxs
 
@@ -154,18 +155,25 @@ ProfileSection::ItemTypeList ProfileSection::AllowedItems(
 namespace opentxs::ui::implementation
 {
 ProfileSection::ProfileSection(
+    const ProfileInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const api::client::Wallet& wallet,
-    const ProfileParent& parent,
-    const opentxs::ContactSection& section)
-    : ProfileSectionList(parent.NymID(), zmq, publisher, contact)
-    , ProfileSectionRow(parent, section.Type(), true)
+    const ProfileRowID& rowID,
+    const ProfileSortKey& key,
+    const CustomData& custom,
+    const api::client::Wallet& wallet)
+    : ProfileSectionList(
+          parent.WidgetID(),
+          parent.NymID(),
+          zmq,
+          publisher,
+          contact)
+    , ProfileSectionRow(parent, rowID, true)
     , wallet_(wallet)
 {
     init();
-    startup_.reset(new std::thread(&ProfileSection::startup, this, section));
+    startup_.reset(new std::thread(&ProfileSection::startup, this, custom));
 
     OT_ASSERT(startup_)
 }
@@ -176,7 +184,7 @@ bool ProfileSection::AddClaim(
     const bool primary,
     const bool active) const
 {
-    return parent_.AddClaim(id_, type, value, primary, active);
+    return parent_.AddClaim(row_id_, type, value, primary, active);
 }
 
 bool ProfileSection::check_type(const ProfileSectionRowID type)
@@ -194,24 +202,24 @@ void ProfileSection::construct_row(
     const ProfileSectionSortKey& index,
     const CustomData& custom) const
 {
-    OT_ASSERT(1 == custom.size())
-
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ProfileSubsectionWidget(
+            *this,
             zmq_,
             publisher_,
             contact_manager_,
-            wallet_,
-            *this,
-            recover(custom[0])));
+            id,
+            index,
+            custom,
+            wallet_));
 }
 
 bool ProfileSection::Delete(const int type, const std::string& claimID) const
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{id_,
+    const ProfileSectionRowID key{row_id_,
                                   static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
@@ -220,33 +228,32 @@ bool ProfileSection::Delete(const int type, const std::string& claimID) const
     return group.Delete(claimID);
 }
 
-const Identifier& ProfileSection::NymID() const { return nym_id_; }
-
 ProfileSection::ItemTypeList ProfileSection::Items(
     const std::string& lang) const
 {
-    return AllowedItems(id_, lang);
+    return AllowedItems(row_id_, lang);
 }
 
 std::string ProfileSection::Name(const std::string& lang) const
 {
-    return proto::TranslateSectionName(id_, lang);
+    return proto::TranslateSectionName(row_id_, lang);
 }
 
 std::set<ProfileSectionRowID> ProfileSection::process_section(
     const opentxs::ContactSection& section)
 {
-    OT_ASSERT(id_ == section.Type())
+    OT_ASSERT(row_id_ == section.Type())
 
     std::set<ProfileSectionRowID> active{};
 
     for (const auto& [type, group] : section) {
         OT_ASSERT(group)
 
-        const ProfileSectionRowID key{id_, type};
+        const ProfileSectionRowID key{row_id_, type};
 
         if (check_type(key)) {
-            add_item(key, sort_key(key), {group.get()});
+            CustomData custom{new opentxs::ContactGroup(*group)};
+            add_item(key, sort_key(key), custom);
             active.emplace(key);
         }
     }
@@ -254,11 +261,10 @@ std::set<ProfileSectionRowID> ProfileSection::process_section(
     return active;
 }
 
-const opentxs::ContactGroup& ProfileSection::recover(const void* input)
+void ProfileSection::reindex(const ProfileSortKey&, const CustomData& custom)
 {
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const opentxs::ContactGroup*>(input);
+    delete_inactive(
+        process_section(extract_custom<opentxs::ContactSection>(custom)));
 }
 
 bool ProfileSection::SetActive(
@@ -267,7 +273,7 @@ bool ProfileSection::SetActive(
     const bool active) const
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{id_,
+    const ProfileSectionRowID key{row_id_,
                                   static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
@@ -282,7 +288,7 @@ bool ProfileSection::SetPrimary(
     const bool primary) const
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{id_,
+    const ProfileSectionRowID key{row_id_,
                                   static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
@@ -297,7 +303,7 @@ bool ProfileSection::SetValue(
     const std::string& value) const
 {
     Lock lock(lock_);
-    const ProfileSectionRowID key{id_,
+    const ProfileSectionRowID key{row_id_,
                                   static_cast<proto::ContactItemType>(type)};
     auto& group = find_by_id(lock, key);
 
@@ -311,24 +317,9 @@ int ProfileSection::sort_key(const ProfileSectionRowID type)
     return sort_keys_.at(type.first).at(type.second);
 }
 
-void ProfileSection::startup(const opentxs::ContactSection section)
+void ProfileSection::startup(const CustomData& custom)
 {
-    process_section(section);
+    process_section(extract_custom<opentxs::ContactSection>(custom));
     startup_complete_->On();
-}
-
-void ProfileSection::update(
-    ProfileSectionRowInterface& row,
-    const CustomData& custom) const
-{
-    OT_ASSERT(1 == custom.size())
-
-    row.Update(recover(custom[0]));
-}
-
-void ProfileSection::Update(const opentxs::ContactSection& section)
-{
-    const auto active = process_section(section);
-    delete_inactive(active);
 }
 }  // namespace opentxs::ui::implementation

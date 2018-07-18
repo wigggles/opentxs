@@ -15,10 +15,11 @@ using PayableListList = List<
     PayableInternalInterface,
     PayableListRowID,
     PayableListRowInterface,
+    PayableListRowInternal,
     PayableListRowBlank,
     PayableListSortKey>;
 
-class PayableList : virtual public PayableListList
+class PayableList final : public PayableListList
 {
 public:
     const Identifier& ID() const override;
