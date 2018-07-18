@@ -36,52 +36,58 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_DEALERSOCKET_HPP
+#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_DEALERSOCKET_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/DealerSocket.hpp"
 
-#include "CurveServer.hpp"
+#include "CurveClient.hpp"
 #include "Receiver.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class ReplySocket : virtual public zeromq::ReplySocket,
-                    public Socket,
-                    CurveServer,
-                    Receiver
+class DealerSocket : virtual public zeromq::DealerSocket,
+                     public Socket,
+                     CurveClient,
+                     Receiver
 {
 public:
-    bool SetCurve(const OTPassword& key) const override;
+    bool Send(opentxs::Data& message) const override;
+    bool Send(const std::string& message) const override;
+    bool Send(zeromq::Message& message) const override;
+    bool SetCurve(const ServerContract& contract) const override;
+    bool SetSocksProxy(const std::string& proxy) const override;
     bool Start(const std::string& endpoint) const override;
 
-    ~ReplySocket();
+    virtual ~DealerSocket();
+
+protected:
+    const ListenCallback& callback_;
+
+    DealerSocket(
+        const zeromq::Context& context,
+        const bool client,
+        const zeromq::ListenCallback& callback);
 
 private:
-    friend opentxs::network::zeromq::ReplySocket;
+    friend opentxs::network::zeromq::DealerSocket;
     typedef Socket ot_super;
-
-    const ReplyCallback& callback_;
 
     const bool client_{false};
 
-    ReplySocket* clone() const override;
+    DealerSocket* clone() const override;
     bool have_callback() const override;
 
     void process_incoming(const Lock& lock, Message& message) override;
 
-    ReplySocket(
-        const zeromq::Context& context,
-        const bool client,
-        const ReplyCallback& callback);
-    ReplySocket() = delete;
-    ReplySocket(const ReplySocket&) = delete;
-    ReplySocket(ReplySocket&&) = delete;
-    ReplySocket& operator=(const ReplySocket&) = delete;
-    ReplySocket& operator=(ReplySocket&&) = delete;
+    DealerSocket() = delete;
+    DealerSocket(const DealerSocket&) = delete;
+    DealerSocket(DealerSocket&&) = delete;
+    DealerSocket& operator=(const DealerSocket&) = delete;
+    DealerSocket& operator=(DealerSocket&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_REPLYSOCKET_HPP
+#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_DEALERSOCKET_HPP

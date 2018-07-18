@@ -53,9 +53,12 @@ public:
     const std::string testMessage_{"zeromq test message"};
     const std::string testMessage2_{"zeromq test message 2"};
     const std::string testMessage3_{"zeromq test message 3"};
-    const std::string endpoint_{"inproc://opentxs/text/request_reply_test"};
+
+    const std::string endpoint_{"inproc://opentxs/test/request_reply_test"};
+    const std::string endpoint2_{"inproc://opentxs/test/request_reply_test2"};
 
     void requestSocketThread(const std::string& msg);
+    void replySocketThread(const std::string& endpoint);
 };
 
 OTZMQContext Test_RequestReply::context_{network::zeromq::Context::Factory()};
@@ -84,6 +87,48 @@ void Test_RequestReply::requestSocketThread(const std::string& msg)
     ASSERT_EQ(msg, messageString);
 }
 
+void Test_RequestReply::replySocketThread(const std::string& endpoint)
+{
+    ASSERT_NE(nullptr, &Test_RequestReply::context_.get());
+
+    bool replyReturned{false};
+
+    auto replyCallback = network::zeromq::ReplyCallback::Factory(
+        [this, &replyReturned](
+            const network::zeromq::Message& input) -> OTZMQMessage {
+            const std::string& inputString = *input.Body().begin();
+            bool match =
+                inputString == testMessage2_ || inputString == testMessage3_;
+            EXPECT_TRUE(match);
+
+            auto reply = network::zeromq::Message::ReplyFactory(input);
+            reply->AddFrame(inputString);
+            replyReturned = true;
+            return reply;
+        });
+
+    ASSERT_NE(nullptr, &replyCallback.get());
+
+    auto replySocket = network::zeromq::ReplySocket::Factory(
+        Test_RequestReply::context_, false, replyCallback);
+
+    ASSERT_NE(nullptr, &replySocket.get());
+    ASSERT_EQ(SocketType::Reply, replySocket->Type());
+
+    replySocket->SetTimeouts(
+        std::chrono::milliseconds(0),
+        std::chrono::milliseconds(30000),
+        std::chrono::milliseconds(-1));
+    replySocket->Start(endpoint);
+
+    auto end = std::time(nullptr) + 15;
+    while (!replyReturned && std::time(nullptr) < end) {
+        Log::Sleep(std::chrono::milliseconds(100));
+    }
+
+    EXPECT_TRUE(replyReturned);
+}
+
 }  // namespace
 
 TEST_F(Test_RequestReply, Request_Reply)
@@ -103,7 +148,7 @@ TEST_F(Test_RequestReply, Request_Reply)
     ASSERT_NE(nullptr, &replyCallback.get());
 
     auto replySocket = network::zeromq::ReplySocket::Factory(
-        Test_RequestReply::context_, replyCallback);
+        Test_RequestReply::context_, false, replyCallback);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -134,7 +179,7 @@ TEST_F(Test_RequestReply, Request_Reply)
     ASSERT_EQ(testMessage_, messageString);
 }
 
-TEST_F(Test_RequestReply, Request_Reply_2_Threads)
+TEST_F(Test_RequestReply, Request_2_Reply_1)
 {
     ASSERT_NE(nullptr, &Test_RequestReply::context_.get());
 
@@ -153,7 +198,7 @@ TEST_F(Test_RequestReply, Request_Reply_2_Threads)
     ASSERT_NE(nullptr, &replyCallback.get());
 
     auto replySocket = network::zeromq::ReplySocket::Factory(
-        Test_RequestReply::context_, replyCallback);
+        Test_RequestReply::context_, false, replyCallback);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -173,24 +218,75 @@ TEST_F(Test_RequestReply, Request_Reply_2_Threads)
     requestSocketThread2.join();
 }
 
+TEST_F(Test_RequestReply, Request_1_Reply_2)
+{
+    ASSERT_NE(nullptr, &Test_RequestReply::context_.get());
+
+    std::thread replySocketThread1(
+        &Test_RequestReply::replySocketThread, this, endpoint_);
+    std::thread replySocketThread2(
+        &Test_RequestReply::replySocketThread, this, endpoint2_);
+
+    auto requestSocket =
+        network::zeromq::RequestSocket::Factory(Test_RequestReply::context_);
+
+    ASSERT_NE(nullptr, &requestSocket.get());
+    ASSERT_EQ(SocketType::Request, requestSocket->Type());
+
+    requestSocket->SetTimeouts(
+        std::chrono::milliseconds(0),
+        std::chrono::milliseconds(-1),
+        std::chrono::milliseconds(30000));
+    requestSocket->Start(endpoint_);
+    requestSocket->Start(endpoint2_);
+
+    auto [result, message] = requestSocket->SendRequest(testMessage2_);
+
+    ASSERT_EQ(result, SendResult::VALID_REPLY);
+
+    std::string messageString = *message->Body().begin();
+    ASSERT_EQ(testMessage2_, messageString);
+
+    auto [result2, message2] = requestSocket->SendRequest(testMessage3_);
+
+    ASSERT_EQ(result2, SendResult::VALID_REPLY);
+
+    messageString = *message2->Body().begin();
+    ASSERT_EQ(testMessage3_, messageString);
+
+    replySocketThread1.join();
+    replySocketThread2.join();
+}
+
 TEST_F(Test_RequestReply, Request_Reply_Multipart)
 {
     ASSERT_NE(nullptr, &Test_RequestReply::context_.get());
 
     auto replyCallback = network::zeromq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
-            const std::string& inputString = *input.Body().begin();
-            EXPECT_EQ(testMessage_, inputString);
+            EXPECT_EQ(4, input.size());
+            EXPECT_EQ(1, input.Header().size());
+            EXPECT_EQ(2, input.Body().size());
+
+            for (const std::string& frame : input.Header()) {
+                EXPECT_EQ(testMessage_, frame);
+            }
+
+            for (const std::string& frame : input.Body()) {
+                bool match = frame == testMessage2_ || frame == testMessage3_;
+
+                EXPECT_TRUE(match);
+            }
 
             auto reply = network::zeromq::Message::ReplyFactory(input);
-            reply->AddFrame(inputString);
+            for (const auto& frame : input.Body()) { reply->AddFrame(frame); }
             return reply;
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
     auto replySocket = network::zeromq::ReplySocket::Factory(
-        Test_RequestReply::context_, replyCallback);
+        Test_RequestReply::context_, false, replyCallback);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -213,10 +309,21 @@ TEST_F(Test_RequestReply, Request_Reply_Multipart)
         std::chrono::milliseconds(30000));
     requestSocket->Start(endpoint_);
 
-    auto [result, message] = requestSocket->SendRequest(testMessage_);
+    auto multipartMessage = network::zeromq::Message::Factory(testMessage_);
+    multipartMessage->AddFrame();
+    multipartMessage->AddFrame(testMessage2_);
+    multipartMessage->AddFrame(testMessage3_);
+
+    auto [result, message] = requestSocket->SendRequest(multipartMessage);
 
     ASSERT_EQ(result, SendResult::VALID_REPLY);
 
-    const std::string& messageString = *message->Body().begin();
-    ASSERT_EQ(testMessage_, messageString);
+    const std::string& messageHeader = *message->Header().begin();
+
+    ASSERT_EQ(testMessage_, messageHeader);
+
+    for (const std::string& frame : message->Body()) {
+        bool match = frame == testMessage2_ || frame == testMessage3_;
+        ASSERT_TRUE(match);
+    }
 }

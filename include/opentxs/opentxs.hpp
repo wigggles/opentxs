@@ -137,6 +137,7 @@
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/network/zeromq/Context.hpp>
+#include <opentxs/network/zeromq/DealerSocket.hpp>
 #include <opentxs/network/zeromq/FrameIterator.hpp>
 #include <opentxs/network/zeromq/FrameSection.hpp>
 #include <opentxs/network/zeromq/ListenCallback.hpp>
@@ -151,6 +152,7 @@
 #include <opentxs/network/zeromq/ReplyCallback.hpp>
 #include <opentxs/network/zeromq/ReplySocket.hpp>
 #include <opentxs/network/zeromq/RequestSocket.hpp>
+#include <opentxs/network/zeromq/RouterSocket.hpp>
 #include <opentxs/network/zeromq/Socket.hpp>
 #include <opentxs/network/zeromq/SubscribeSocket.hpp>
 #include <opentxs/network/ServerConnection.hpp>

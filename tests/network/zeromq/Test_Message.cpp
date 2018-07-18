@@ -228,6 +228,72 @@ TEST(Message, end)
     ASSERT_EQ(3, std::distance(multipartMessage->begin(), it2));
 }
 
+TEST(Message, EnsureDelimiter)
+{
+	// Empty message.
+	auto message = network::zeromq::Message::Factory();
+	
+	ASSERT_EQ(0, message->size());
+	
+	message->EnsureDelimiter(); // Adds delimiter.
+	
+	ASSERT_EQ(1, message->size());
+	
+	message->AddFrame();
+	
+	ASSERT_EQ(2, message->size());
+	
+	message->EnsureDelimiter(); // Doesn't add delimiter
+	
+	ASSERT_EQ(2, message->size());
+	
+	// Message body only.
+	auto message2 = network::zeromq::Message::Factory("msg");
+	
+	ASSERT_EQ(1, message2->size());
+	
+	message2->EnsureDelimiter(); // Inserts delimiter.
+	
+	ASSERT_EQ(2, message2->size());
+	ASSERT_EQ(0, message2->Header().size());
+	ASSERT_EQ(1, message2->Body().size());
+	
+	message2->EnsureDelimiter(); // Doesn't add delimiter.
+	
+	ASSERT_EQ(2, message2->size());
+	ASSERT_EQ(0, message2->Header().size());
+	ASSERT_EQ(1, message2->Body().size());
+	
+	// Header and message body.
+	auto message3 = network::zeromq::Message::Factory("header");
+	message3->AddFrame();
+	message3->AddFrame("body");
+	
+	ASSERT_EQ(3, message3->size());
+	ASSERT_EQ(1, message3->Header().size());
+	ASSERT_EQ(1, message3->Body().size());
+	
+	message3->EnsureDelimiter(); // Doesn't add delimiter.
+	
+	ASSERT_EQ(3, message3->size());
+	ASSERT_EQ(1, message3->Header().size());
+	ASSERT_EQ(1, message3->Body().size());
+	
+	// Message body with 2 frames.
+	auto message4 = network::zeromq::Message::Factory("frame1");
+	message4->AddFrame("frame2");
+	
+	ASSERT_EQ(2, message4->size());
+	ASSERT_EQ(0, message4->Header().size());
+	ASSERT_EQ(2, message4->Body().size());
+	
+	message4->EnsureDelimiter();
+	
+	ASSERT_EQ(3, message4->size());
+	ASSERT_EQ(1, message4->Header().size());
+	ASSERT_EQ(1, message4->Body().size());
+}
+
 TEST(Message, Header)
 {
     auto multipartMessage = network::zeromq::Message::Factory();
@@ -290,6 +356,35 @@ TEST(Message, Header_end)
     network::zeromq::FrameIterator headerEnd = multipartMessage->Header_end();
     auto header = multipartMessage->Header();
     ASSERT_EQ(header.end(), headerEnd);
+}
+
+TEST(Message, PrependEmptyFrame)
+{
+    auto message = network::zeromq::Message::Factory("msg body");
+
+    ASSERT_EQ(1, message->size());
+
+    message->PrependEmptyFrame();
+
+    ASSERT_EQ(2, message->size());
+    ASSERT_EQ(0, message->Header().size());
+    ASSERT_EQ(1, message->Body().size());
+
+    auto message2 = network::zeromq::Message::Factory();
+
+    message2->AddFrame("msg header");
+    message2->AddFrame();
+    message2->AddFrame("msg body");
+
+    ASSERT_EQ(3, message2->size());
+    ASSERT_EQ(1, message2->Header().size());
+    ASSERT_EQ(1, message2->Body().size());
+
+    message2->PrependEmptyFrame();
+
+    ASSERT_EQ(4, message2->size());
+    ASSERT_EQ(0, message2->Header().size());
+    ASSERT_EQ(3, message2->Body().size());
 }
 
 TEST(Message, size)

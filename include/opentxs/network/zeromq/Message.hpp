@@ -87,6 +87,9 @@ public:
     EXPORT virtual Frame& AddFrame(const std::string& input) = 0;
     EXPORT virtual Frame& at(const std::size_t index) = 0;
 
+    EXPORT virtual void EnsureDelimiter() = 0;
+    EXPORT virtual void PrependEmptyFrame() = 0;
+
     EXPORT virtual ~Message() = default;
 
 protected:

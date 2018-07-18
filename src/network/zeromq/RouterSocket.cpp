@@ -38,62 +38,91 @@
 
 #include "stdafx.hpp"
 
-#include "ReplySocket.hpp"
+#include "RouterSocket.hpp"
 
 #include "opentxs/core/Log.hpp"
-#include "opentxs/network/zeromq/ReplyCallback.hpp"
-#include "opentxs/network/zeromq/Frame.hpp"
-#include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
 
-template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::RouterSocket>;
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::ReplySocket::"
+#define OT_METHOD "opentxs::network::zeromq::implementation::RouterSocket::"
 
 namespace opentxs::network::zeromq
 {
-OTZMQReplySocket ReplySocket::Factory(
+OTZMQRouterSocket RouterSocket::Factory(
     const class Context& context,
     const bool client,
-    const ReplyCallback& callback)
+    const ListenCallback& callback)
 {
-    return OTZMQReplySocket(
-        new implementation::ReplySocket(context, client, callback));
+    return OTZMQRouterSocket(
+        new implementation::RouterSocket(context, client, callback));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-ReplySocket::ReplySocket(
+RouterSocket::RouterSocket(
     const zeromq::Context& context,
     const bool client,
-    const ReplyCallback& callback)
-    : ot_super(context, SocketType::Reply)
-    , CurveServer(lock_, socket_)
+    const zeromq::ListenCallback& callback)
+    : ot_super(context, SocketType::Router)
+    , CurveClient(lock_, socket_)
     , Receiver(lock_, socket_, true)
     , callback_(callback)
     , client_(client)
 {
 }
 
-ReplySocket* ReplySocket::clone() const
+RouterSocket* RouterSocket::clone() const
 {
-    return new ReplySocket(context_, client_, callback_);
+    return new RouterSocket(context_, client_, callback_);
 }
 
-bool ReplySocket::have_callback() const { return true; }
+bool RouterSocket::have_callback() const { return true; }
 
-void ReplySocket::process_incoming(const Lock&, Message& message)
+void RouterSocket::process_incoming(const Lock& lock, Message& message)
 {
-    auto output = callback_.Process(message);
-    Message& reply = output;
+    OT_ASSERT(verify_lock(lock))
+
+    otWarn << OT_METHOD << __FUNCTION__
+           << ": Incoming messaged received. Triggering callback." << std::endl;
+
+    // RouterSocket prepends an identity frame to the message.  This makes sure
+    // there is an empty frame between the identity frame(s) and the frames that
+    // make up the rest of the message.
+    message.EnsureDelimiter();
+
+    callback_.Process(message);
+    otWarn << "Done." << std::endl;
+}
+
+bool RouterSocket::Send(opentxs::Data& input) const
+{
+    return Send(Message::Factory(input));
+}
+
+bool RouterSocket::Send(const std::string& input) const
+{
+    auto copy = input;
+
+    return Send(Message::Factory(copy));
+}
+
+bool RouterSocket::Send(zeromq::Message& message) const
+{
+    OT_ASSERT(nullptr != socket_);
+
+    Lock lock(lock_);
     bool sent{true};
-    const auto parts = reply.size();
+    const auto parts = message.size();
     std::size_t counter{0};
 
-    for (auto& frame : reply) {
+    for (auto& frame : message) {
         int flags{0};
 
         if (++counter < parts) { flags = ZMQ_SNDMORE; }
@@ -103,23 +132,23 @@ void ReplySocket::process_incoming(const Lock&, Message& message)
 
     if (false == sent) {
         otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno())
-              << "\nRequest: "
-              // TODO: Determine which part of the Message to display.
-              // << std::string(message)
-              << "(Message)"
-              // << "\nReply: " << std::string(reply) << std::endl;
-              << "\nReply: "
-              << "(Message)" << std::endl;
+              << zmq_strerror(zmq_errno()) << std::endl;
     }
+
+    return (false != sent);
 }
 
-bool ReplySocket::SetCurve(const OTPassword& key) const
+bool RouterSocket::SetCurve(const ServerContract& contract) const
 {
-    return set_curve(key);
+    return set_curve(contract);
 }
 
-bool ReplySocket::Start(const std::string& endpoint) const
+bool RouterSocket::SetSocksProxy(const std::string& proxy) const
+{
+    return set_socks_proxy(proxy);
+}
+
+bool RouterSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
@@ -132,5 +161,5 @@ bool ReplySocket::Start(const std::string& endpoint) const
     }
 }
 
-ReplySocket::~ReplySocket() {}
+RouterSocket::~RouterSocket() {}
 }  // namespace opentxs::network::zeromq::implementation

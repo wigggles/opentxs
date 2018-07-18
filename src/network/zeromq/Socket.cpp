@@ -89,6 +89,8 @@ const std::map<SocketType, int> Socket::types_{
     {SocketType::Pull, ZMQ_PULL},
     {SocketType::Push, ZMQ_PUSH},
     {SocketType::Pair, ZMQ_PAIR},
+    {SocketType::Dealer, ZMQ_DEALER},
+    {SocketType::Router, ZMQ_ROUTER},
 };
 
 Socket::Socket(const zeromq::Context& context, const SocketType type)

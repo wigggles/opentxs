@@ -1,22 +1,31 @@
-# Copyright (c) Monetas AG, 2014
 
 set(name unittests-opentxs-network-zeromq)
 
 set(cxx-sources
+  ${PROJECT_SOURCE_DIR}/tests/main.cpp
+  Test_DealerReply.cpp
+  Test_DealerRouter.cpp
+  Test_DealerSocket.cpp
   Test_Frame.cpp
-  Test_Message.cpp
   Test_FrameIterator.cpp
   Test_FrameSection.cpp
-  Test_ReplySocket.cpp
-  Test_RequestSocket.cpp
-  Test_RequestReply.cpp
+  Test_Message.cpp
   Test_PublishSocket.cpp
-  Test_SubscribeSocket.cpp
   Test_PublishSubscribe.cpp
+  Test_ReplyCallback.cpp
+  Test_ReplySocket.cpp
+  Test_RequestReply.cpp
+  Test_RequestRouter.cpp
+  Test_RequestSocket.cpp
+  Test_RouterDealer.cpp
+  Test_RouterSocket.cpp
+  Test_SubscribeSocket.cpp
+  ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 
 include_directories(
   ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/tests
   ${GTEST_INCLUDE_DIRS}
 )
 
