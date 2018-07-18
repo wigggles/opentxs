@@ -2268,13 +2268,12 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
         SHUTDOWN()
 
-        if (haveAdmin) {
-            const auto id = check_server_name(*context);
+        if (haveAdmin) { check_server_name(*context); }
 
-            if (false == id->empty()) {
-                queue.check_nym_.Push(Identifier::Random(), id);
-            }
-        }
+        SHUTDOWN()
+
+        // Always download server nym in case it has been renamed
+        queue.check_nym_.Push(Identifier::Random(), context->RemoteNym().ID());
 
         SHUTDOWN()
 
