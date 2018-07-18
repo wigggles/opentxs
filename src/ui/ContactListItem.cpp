@@ -96,6 +96,8 @@ ContactListItem::ContactListItem(
         network::zeromq::Socket::ContactUpdateEndpoint);
 
     OT_ASSERT(listening)
+
+    UpdateNotify();
 }
 
 std::string ContactListItem::ContactID() const { return id_->str(); }
