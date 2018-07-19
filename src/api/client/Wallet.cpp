@@ -1290,7 +1290,7 @@ Editor<class NymFile> Wallet::mutable_Nymfile(
 std::mutex& Wallet::nymfile_lock(const Identifier& nymID) const
 {
     Lock map_lock(nymfile_map_lock_);
-    auto& output = nymfile_lock_[nymID];
+    auto& output = nymfile_lock_[Identifier::Factory(nymID)];
     map_lock.unlock();
 
     return output;

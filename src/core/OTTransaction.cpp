@@ -6319,8 +6319,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                       << __FUNCTION__ << ":\n"
                       << strCheque << "\n";
             } else if (theCheque.HasRecipient()) {
-                theReturnID =
-                    Identifier::Factory(theCheque.GetRecipientNymID());
+                theReturnID.Assign(theCheque.GetRecipientNymID());
                 bSuccess = true;
             } else {
                 theReturnID.SetString(
@@ -6452,10 +6451,9 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                       << strCheque << "\n";
             } else {
                 if (OTTransaction::chequeReceipt == GetType())
-                    theReturnID = theCheque.GetSenderAcctID();
+                    theReturnID.Assign(theCheque.GetSenderAcctID());
                 else
-                    theReturnID =
-                        Identifier::Factory(theCheque.GetRemitterAcctID());
+                    theReturnID.Assign(theCheque.GetRemitterAcctID());
 
                 bSuccess = true;
             }
@@ -6466,8 +6464,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
             if (pOriginalItem->GetType() != Item::transfer) {
                 otErr << "Wrong item type attached to pending transfer\n";
             } else {
-                theReturnID =
-                    Identifier::Factory(pOriginalItem->GetPurportedAccountID());
+                theReturnID.Assign(pOriginalItem->GetPurportedAccountID());
                 bSuccess = true;
             }
             break;
@@ -6561,8 +6558,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
                 otErr << "Wrong item type attached to transferReceipt\n";
                 return false;
             } else {
-                theReturnID =
-                    Identifier::Factory(pOriginalItem->GetPurportedAccountID());
+                theReturnID.Assign(pOriginalItem->GetPurportedAccountID());
                 bSuccess = true;
             }
         } break;
@@ -6597,8 +6593,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
             if (pOriginalItem->GetType() != Item::transfer) {
                 otErr << "Wrong item type attached to pending transfer\n";
             } else {
-                theReturnID =
-                    Identifier::Factory(pOriginalItem->GetDestinationAcctID());
+                theReturnID.Assign(pOriginalItem->GetDestinationAcctID());
                 bSuccess = true;
             }
             break;

@@ -99,6 +99,10 @@ private:
         const proto::HDPath& path);
 
 public:
+    Identifier& operator=(const Identifier& rhs);
+    Identifier& operator=(Identifier&& rhs);
+
+private:
     Identifier();
     explicit Identifier(const std::string& rhs);
     explicit Identifier(const String& rhs);
@@ -110,9 +114,6 @@ public:
         const proto::ContactItemType type,
         const proto::HDPath& path);
     Identifier(const Identifier& rhs);
-
-    Identifier& operator=(const Identifier& rhs);
-    Identifier& operator=(Identifier&& rhs);
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTIDENTIFIER_HPP

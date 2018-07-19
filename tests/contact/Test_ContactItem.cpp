@@ -45,13 +45,14 @@ TEST_F(Test_ContactItem, first_constructor)
         NULL_START,
         NULL_END);
 
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testContactItemNym",
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
-        NULL_START,
-        NULL_END,
-        "testValue"));
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testContactItemNym",
+            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+            NULL_START,
+            NULL_END,
+            "testValue")));
     ASSERT_EQ(identifier, contactItem1.ID());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
@@ -99,13 +100,14 @@ TEST_F(Test_ContactItem, second_constructor)
             NULL_END,
             {opentxs::proto::CITEMATTR_ACTIVE}));
 
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testContactItemNym",
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
-        NULL_START,
-        NULL_END,
-        "testValue"));
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testContactItemNym",
+            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+            NULL_START,
+            NULL_END,
+            "testValue")));
     ASSERT_EQ(identifier, contactItem1.ID());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
@@ -139,13 +141,14 @@ TEST_F(Test_ContactItem, third_constructor)
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
         data);
 
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testContactItemNym",
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
-        NULL_START,
-        NULL_END,
-        "testValue"));
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testContactItemNym",
+            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+            NULL_START,
+            NULL_END,
+            "testValue")));
     ASSERT_EQ(identifier, contactItem1.ID());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, contactItem1.Version());
     ASSERT_EQ(
@@ -185,13 +188,14 @@ TEST_F(Test_ContactItem, move_constructor)
     opentxs::ContactItem movedContactItem(
         std::move<opentxs::ContactItem>(contactItem_.SetPrimary(true)));
 
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
-        NULL_START,
-        NULL_END,
-        "testValue"));
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+            NULL_START,
+            NULL_END,
+            "testValue")));
     ASSERT_EQ(identifier, movedContactItem.ID());
     ASSERT_EQ(CONTACT_CONTACT_DATA_VERSION, movedContactItem.Version());
     ASSERT_EQ(
@@ -254,13 +258,14 @@ TEST_F(Test_ContactItem, operator_proto_not_equal)
 
 TEST_F(Test_ContactItem, public_accessors)
 {
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
-        opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
-        NULL_START,
-        NULL_END,
-        "testValue"));
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,
+            opentxs::proto::ContactItemType::CITEMTYPE_EMPLOYEE,
+            NULL_START,
+            NULL_END,
+            "testValue")));
     ASSERT_EQ(identifier, contactItem_.ID());
     ASSERT_EQ(
         opentxs::proto::ContactSectionName::CONTACTSECTION_IDENTIFIER,

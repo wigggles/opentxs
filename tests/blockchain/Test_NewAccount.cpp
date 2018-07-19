@@ -16,14 +16,14 @@ TEST(Test_NewAccount, TestNymDoesNotExist)
 {
     const std::string nym = "Inexistent Nym";
     const std::string Result = String(OT::App().Blockchain().NewAccount(
-                                          Identifier(nym),
+                                          Identifier::Factory(nym),
                                           BlockchainAccountType::BIP32,
                                           proto::CITEMTYPE_BTC))
                                    .Get();
     EXPECT_STREQ(Result.c_str(), "");
 
     const std::string Result2 = String(OT::App().Blockchain().NewAccount(
-                                           Identifier(nym),
+                                           Identifier::Factory(nym),
                                            BlockchainAccountType::BIP32,
                                            proto::CITEMTYPE_BTC))
                                     .Get();
@@ -55,21 +55,25 @@ TEST(Test_NewAccount, TestSeedRoot)
     EXPECT_STRNE(Nym0.c_str(), Nym1.c_str());
 
     OTIdentifier Acc0ID = OT::App().Blockchain().NewAccount(
-        Identifier(Nym0), BlockchainAccountType::BIP32, proto::CITEMTYPE_BTC);
+        Identifier::Factory(Nym0),
+        BlockchainAccountType::BIP32,
+        proto::CITEMTYPE_BTC);
 
     std::cout << "Created Nym 0's Account: " << String(Acc0ID).Get() << " !!\n";
     OTIdentifier Acc1ID = OT::App().Blockchain().NewAccount(
-        Identifier(Nym1), BlockchainAccountType::BIP32, proto::CITEMTYPE_BTC);
+        Identifier::Factory(Nym1),
+        BlockchainAccountType::BIP32,
+        proto::CITEMTYPE_BTC);
 
     std::cout << "Created Nym 1's Account: " << String(Acc1ID).Get() << " !!\n";
 
     // Test difference in index on BIP32 implies a different account
     EXPECT_STRNE(String(Acc0ID).Get(), String(Acc1ID).Get());
     std::shared_ptr<proto::Bip44Account> Acc0 =
-        OT::App().Blockchain().Account(Identifier(Nym0), Acc0ID);
+        OT::App().Blockchain().Account(Identifier::Factory(Nym0), Acc0ID);
     ASSERT_TRUE(bool(Acc0));
     std::shared_ptr<proto::Bip44Account> Acc1 =
-        OT::App().Blockchain().Account(Identifier(Nym1), Acc1ID);
+        OT::App().Blockchain().Account(Identifier::Factory(Nym1), Acc1ID);
     ASSERT_TRUE(bool(Acc1));
 
     proto::Bip44Account& Acc_0 = *Acc0.get();
@@ -97,19 +101,21 @@ TEST(Test_NewAccount, TestNymsDiff)
     std::cout << "Created Bob: " << BobNymID << " \n";
 
     OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(
-        Identifier(AliceNymID),
+        Identifier::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
 
     OTIdentifier BobAccountID = OT::App().Blockchain().NewAccount(
-        Identifier(BobNymID),
+        Identifier::Factory(BobNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
 
     std::shared_ptr<proto::Bip44Account> AliceAccount =
-        OT::App().Blockchain().Account(Identifier(AliceNymID), AliceAccountID);
+        OT::App().Blockchain().Account(
+            Identifier::Factory(AliceNymID), AliceAccountID);
     std::shared_ptr<proto::Bip44Account> BobAccount =
-        OT::App().Blockchain().Account(Identifier(BobNymID), BobAccountID);
+        OT::App().Blockchain().Account(
+            Identifier::Factory(BobNymID), BobAccountID);
 
     ASSERT_TRUE(bool(AliceAccount));
     ASSERT_TRUE(bool(BobAccount));
@@ -137,14 +143,14 @@ TEST(Test_NewAccount, TestNym_AccountIdempotence)
 
     const std::string CharlyBIP32AccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Charly),
+                   Identifier::Factory(Charly),
                    BlockchainAccountType::BIP32,
                    proto::CITEMTYPE_BTC))
             .Get();
 
     const std::string CharlyBIP44AccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Charly),
+                   Identifier::Factory(Charly),
                    BlockchainAccountType::BIP44,
                    proto::CITEMTYPE_BTC))
             .Get();
@@ -153,7 +159,7 @@ TEST(Test_NewAccount, TestNym_AccountIdempotence)
 
     const std::string CharlyBIP44DupAccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Charly),
+                   Identifier::Factory(Charly),
                    BlockchainAccountType::BIP44,
                    proto::CITEMTYPE_BTC))
             .Get();
@@ -172,14 +178,14 @@ TEST(Test_NewAccount, TestChainDiff)
 
     const std::string AliceBTCAccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Alice),
+                   Identifier::Factory(Alice),
                    BlockchainAccountType::BIP32,
                    proto::CITEMTYPE_BTC))
             .Get();
 
     const std::string AliceLTCAccountID =
         String(OT::App().Blockchain().NewAccount(
-                   Identifier(Alice),
+                   Identifier::Factory(Alice),
                    BlockchainAccountType::BIP44,
                    proto::CITEMTYPE_LTC))
             .Get();
@@ -206,9 +212,11 @@ TEST(Test_NewAccount, TestSeedPassphrase)
     EXPECT_STRNE(alias.c_str(), Nym0.c_str());
 
     OTIdentifier AccountID = OT::App().Blockchain().NewAccount(
-        Identifier(Nym0), BlockchainAccountType::BIP32, proto::CITEMTYPE_BTC);
+        Identifier::Factory(Nym0),
+        BlockchainAccountType::BIP32,
+        proto::CITEMTYPE_BTC);
     std::shared_ptr<proto::Bip44Account> Acc =
-        OT::App().Blockchain().Account(Identifier(Nym0), AccountID);
+        OT::App().Blockchain().Account(Identifier::Factory(Nym0), AccountID);
     // std::string rootKey =
     // "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KXp1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6";
 

@@ -51,13 +51,13 @@ public:
               fingerprint,
               3))
         , nymData_0(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier(nymID_0)))
+              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_0)))
         , nymData_1(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier(nymID_1)))
+              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_1)))
         , nymData_2(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier(nymID_2)))
+              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_2)))
         , nymData_3(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier(nymID_3)))
+              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_3)))
         , paycode_0(
               "PM8TJhB2CxWDqR8c5y4kWoJwSGRNYaVATdJM85kqfn2dZ9TdSihbFJraQzjYUMYx"
               "bsrnMfjPK6oZFAPQ1tWqzwTfKbtunvLFCzDJFVXVGbUAKxhsz7P5")
@@ -113,10 +113,10 @@ TEST_F(Test_PaymentCode, primary_paycodes)
         nymData_3.PaymentCode(currency_2).c_str());  // not primary nor active
                                                      // defaults to primary
 
-    auto nym0 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_0));
-    auto nym1 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_1));
-    auto nym2 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_2));
-    auto nym3 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_3));
+    auto nym0 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
+    auto nym1 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_1));
+    auto nym2 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_2));
+    auto nym3 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_3));
 
     ASSERT_STREQ(nym0->PaymentCode().c_str(), paycode_0.c_str());
     ASSERT_STREQ(nym1->PaymentCode().c_str(), paycode_1.c_str());
@@ -259,7 +259,7 @@ TEST_F(Test_PaymentCode, factory)
 
     // Factory 3: std:
     proto::HDPath path;
-    const ConstNym nym = opentxs::OT::App().Wallet().Nym(Identifier(nymID_0));
+    const ConstNym nym = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
     EXPECT_TRUE(nym.get()->Path(path));
     std::string fingerprint = path.root();
 
@@ -284,7 +284,7 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
     std::uint8_t bitmessage_version = 0;
     std::uint8_t bitmessage_stream = 0;
 
-    const ConstNym nym = opentxs::OT::App().Wallet().Nym(Identifier(nymID_0));
+    const ConstNym nym = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
     proto::HDPath path;
     EXPECT_TRUE(nym.get()->Path(path));
 
@@ -299,8 +299,8 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
  */
 TEST_F(Test_PaymentCode, two_nyms)
 {
-    const ConstNym nym_0 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_0));
-    const ConstNym nym_1 = opentxs::OT::App().Wallet().Nym(Identifier(nymID_1));
+    const ConstNym nym_0 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
+    const ConstNym nym_1 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_1));
 
     auto idsource_0 = new NymIDSource(PaymentCode::Factory(paycode_0));
     auto idsource_1 = new NymIDSource(PaymentCode::Factory(paycode_1));

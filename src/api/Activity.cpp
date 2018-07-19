@@ -321,7 +321,12 @@ std::string Activity::Mail(
         box);
 
     if (saved) {
-        std::thread preload(&Activity::preload, this, nym, id, box);
+        std::thread preload(
+            &Activity::preload,
+            this,
+            Identifier::Factory(nym),
+            Identifier::Factory(id),
+            box);
         preload.detach();
         publish(nym, threadID);
 
@@ -582,7 +587,11 @@ void Activity::preload(
 void Activity::PreloadActivity(const Identifier& nymID, const std::size_t count)
     const
 {
-    std::thread preload(&Activity::activity_preload_thread, this, nymID, count);
+    std::thread preload(
+        &Activity::activity_preload_thread,
+        this,
+        Identifier::Factory(nymID),
+        count);
     preload.detach();
 }
 

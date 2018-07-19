@@ -2339,7 +2339,7 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
     if (false == admin) { adjustment = 0; }
 
     const auto targetNymID = Identifier::Factory(msgIn.m_strNymID2);
-    Identifier nymID;
+    OTIdentifier nymID = Identifier::Factory();
 
     if (targetNymID == adminNymID) {
         nymID = adminNymID;
@@ -2519,7 +2519,7 @@ bool UserCommandProcessor::hash_check(
     Identifier& nymboxHash) const
 {
     if (context.HaveLocalNymboxHash()) {
-        nymboxHash = Identifier::Factory(context.LocalNymboxHash());
+        nymboxHash.SetString(context.LocalNymboxHash()->str());
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Continuing without server side nymbox hash." << std::endl;

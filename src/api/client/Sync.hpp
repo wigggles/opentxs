@@ -11,7 +11,7 @@
 namespace std
 {
 using PAYMENTTASK =
-    pair<opentxs::Identifier, shared_ptr<const opentxs::OTPayment>>;
+    pair<opentxs::OTIdentifier, shared_ptr<const opentxs::OTPayment>>;
 
 template <>
 struct less<PAYMENTTASK> {
@@ -26,9 +26,9 @@ struct less<PAYMENTTASK> {
         const auto& rID = std::get<0>(rhs);
         const auto& rPayment = std::get<1>(rhs);
 
-        if (lID.str() < rID.str()) { return true; }
+        if (lID->str() < rID->str()) { return true; }
 
-        if (rID.str() < lID.str()) { return false; }
+        if (rID->str() < lID->str()) { return false; }
 
         if (lPayment.get() < rPayment.get()) { return true; }
 
@@ -152,25 +152,26 @@ private:
     friend Factory;
 
     /** ContextID: localNymID, serverID */
-    using ContextID = std::pair<Identifier, Identifier>;
+    using ContextID = std::pair<OTIdentifier, OTIdentifier>;
     /** MessageTask: recipientID, message */
-    using MessageTask = std::pair<Identifier, std::string>;
+    using MessageTask = std::pair<OTIdentifier, std::string>;
     /** PaymentTask: recipientID, payment */
-    using PaymentTask = std::pair<Identifier, std::shared_ptr<const OTPayment>>;
+    using PaymentTask =
+        std::pair<OTIdentifier, std::shared_ptr<const OTPayment>>;
 #if OT_CASH
     /** PayCashTask: recipientID, recipientCopyOfPurse, senderCopyOfPurse */
     using PayCashTask = std::tuple<
-        Identifier,
+        OTIdentifier,
         std::shared_ptr<const Purse>,
         std::shared_ptr<const Purse>>;
 #endif  // OT_CASH
     /** DepositPaymentTask: accountID, payment */
     using DepositPaymentTask =
-        std::pair<Identifier, std::shared_ptr<const OTPayment>>;
+        std::pair<OTIdentifier, std::shared_ptr<const OTPayment>>;
     /** SendTransferTask: localNymID, serverID, sourceAccountID, targetAccountID
      */
     using SendTransferTask =
-        std::tuple<Identifier, Identifier, uint64_t, std::string>;
+        std::tuple<OTIdentifier, OTIdentifier, uint64_t, std::string>;
 
     struct OperationQueue {
         UniqueQueue<OTIdentifier> check_nym_;

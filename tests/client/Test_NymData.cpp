@@ -15,11 +15,12 @@ class Test_NymData : public ::testing::Test
 public:
     Test_NymData()
         : nymData_(opentxs::OT::App().Wallet().mutable_Nym(
-              opentxs::Identifier(opentxs::OT::App().API().Exec().CreateNymHD(
-                  opentxs::proto::CITEMTYPE_INDIVIDUAL,
-                  "testNym",
-                  "",
-                  -1))))
+              opentxs::Identifier::Factory(
+                  opentxs::OT::App().API().Exec().CreateNymHD(
+                      opentxs::proto::CITEMTYPE_INDIVIDUAL,
+                      "testNym",
+                      "",
+                      -1))))
     {
     }
 
@@ -84,16 +85,17 @@ TEST_F(Test_NymData, AddContract)
         nymData_.AddContract("", opentxs::proto::CITEMTYPE_USD, false, false);
     ASSERT_FALSE(added);
 
-    const opentxs::Identifier identifier1(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::CONTACTSECTION_CONTRACT,
-        opentxs::proto::CITEMTYPE_USD,
-        NULL_START,
-        NULL_END,
-        "instrumentDefinitionID1"));
+    const opentxs::OTIdentifier identifier1(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::proto::CITEMTYPE_USD,
+            NULL_START,
+            NULL_END,
+            "instrumentDefinitionID1")));
 
     added = nymData_.AddContract(
-        identifier1.str(), opentxs::proto::CITEMTYPE_USD, false, false);
+        identifier1->str(), opentxs::proto::CITEMTYPE_USD, false, false);
     ASSERT_TRUE(added);
 }
 
@@ -137,15 +139,16 @@ TEST_F(Test_NymData, AddPhoneNumber)
 
 TEST_F(Test_NymData, AddPreferredOTServer)
 {
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::CONTACTSECTION_COMMUNICATION,
-        opentxs::proto::CITEMTYPE_OPENTXS,
-        NULL_START,
-        NULL_END,
-        "localhost"));
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            NULL_START,
+            NULL_END,
+            "localhost")));
 
-    auto added = nymData_.AddPreferredOTServer(identifier.str(), false);
+    auto added = nymData_.AddPreferredOTServer(identifier->str(), false);
     ASSERT_TRUE(added);
 
     added = nymData_.AddPreferredOTServer("", false);
@@ -228,13 +231,14 @@ TEST_F(Test_NymData, DeleteClaim)
     auto added = nymData_.AddClaim(claim);
     ASSERT_TRUE(added);
 
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::CONTACTSECTION_CONTRACT,
-        opentxs::proto::CITEMTYPE_USD,
-        NULL_START,
-        NULL_END,
-        "claimValue"));
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::proto::CITEMTYPE_USD,
+            NULL_START,
+            NULL_END,
+            "claimValue")));
     auto deleted = nymData_.DeleteClaim(identifier);
     ASSERT_TRUE(deleted);
 }
@@ -266,16 +270,17 @@ TEST_F(Test_NymData, EmailAddresses)
 
 TEST_F(Test_NymData, HaveContract)
 {
-    const opentxs::Identifier identifier1(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::CONTACTSECTION_CONTRACT,
-        opentxs::proto::CITEMTYPE_USD,
-        NULL_START,
-        NULL_END,
-        "instrumentDefinitionID1"));
+    const opentxs::OTIdentifier identifier1(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::proto::CITEMTYPE_USD,
+            NULL_START,
+            NULL_END,
+            "instrumentDefinitionID1")));
 
     auto added = nymData_.AddContract(
-        identifier1.str(), opentxs::proto::CITEMTYPE_USD, false, false);
+        identifier1->str(), opentxs::proto::CITEMTYPE_USD, false, false);
     ASSERT_TRUE(added);
 
     auto haveContract = nymData_.HaveContract(
@@ -294,16 +299,17 @@ TEST_F(Test_NymData, HaveContract)
         identifier1, opentxs::proto::CITEMTYPE_USD, false, false);
     ASSERT_TRUE(haveContract);
 
-    const opentxs::Identifier identifier2(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::CONTACTSECTION_CONTRACT,
-        opentxs::proto::CITEMTYPE_USD,
-        NULL_START,
-        NULL_END,
-        "instrumentDefinitionID2"));
+    const opentxs::OTIdentifier identifier2(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::CONTACTSECTION_CONTRACT,
+            opentxs::proto::CITEMTYPE_USD,
+            NULL_START,
+            NULL_END,
+            "instrumentDefinitionID2")));
 
     added = nymData_.AddContract(
-        identifier2.str(), opentxs::proto::CITEMTYPE_USD, false, false);
+        identifier2->str(), opentxs::proto::CITEMTYPE_USD, false, false);
     ASSERT_TRUE(added);
 
     haveContract = nymData_.HaveContract(
@@ -376,19 +382,20 @@ TEST_F(Test_NymData, PreferredOTServer)
     auto preferred = nymData_.PreferredOTServer();
     ASSERT_TRUE(preferred.empty());
 
-    const opentxs::Identifier identifier(opentxs::ContactCredential::ClaimID(
-        "testNym",
-        opentxs::proto::CONTACTSECTION_COMMUNICATION,
-        opentxs::proto::CITEMTYPE_OPENTXS,
-        NULL_START,
-        NULL_END,
-        "localhost"));
-    auto added = nymData_.AddPreferredOTServer(identifier.str(), true);
+    const opentxs::OTIdentifier identifier(
+        opentxs::Identifier::Factory(opentxs::ContactCredential::ClaimID(
+            "testNym",
+            opentxs::proto::CONTACTSECTION_COMMUNICATION,
+            opentxs::proto::CITEMTYPE_OPENTXS,
+            NULL_START,
+            NULL_END,
+            "localhost")));
+    auto added = nymData_.AddPreferredOTServer(identifier->str(), true);
     ASSERT_TRUE(added);
 
     preferred = nymData_.PreferredOTServer();
     ASSERT_TRUE(!preferred.empty());
-    ASSERT_STREQ(identifier.str().c_str(), preferred.c_str());
+    ASSERT_STREQ(identifier->str().c_str(), preferred.c_str());
 }
 
 TEST_F(Test_NymData, PrintContactData)
