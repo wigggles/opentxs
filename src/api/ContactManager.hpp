@@ -81,6 +81,7 @@ public:
         const std::string& label,
         const proto::ContactItemType currency =
             proto::CITEMTYPE_BTC) const override;
+    OTIdentifier NymToContact(const Identifier& nymID) const override;
     std::shared_ptr<const class Contact> Update(
         const proto::CredentialIndex& nym) const override;
 

@@ -489,32 +489,9 @@ std::shared_ptr<const Contact> Activity::nym_to_contact(
     const std::string& id) const
 {
     const auto nymID = Identifier::Factory(id);
-    auto contactID = contact_.ContactID(nymID);
+    const auto contactID = contact_.NymToContact(nymID);
 
-    if (false == contactID->empty()) { return contact_.Contact(contactID); }
-
-    // Contact does not yet exist. Create it.
-    std::string label;
-    auto nym = wallet_.Nym(nymID);
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = PaymentCode::Factory("");
-#endif
-
-    if (nym) {
-        label = nym->Claims().Name();
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        code = PaymentCode::Factory(nym->PaymentCode());
-#endif
-    }
-
-    return contact_.NewContact(
-        label,
-        nymID
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        ,
-        code
-#endif
-    );
+    return contact_.Contact(contactID);
 }
 
 std::shared_ptr<const std::string> Activity::PaymentText(
