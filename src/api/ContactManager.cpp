@@ -580,6 +580,40 @@ std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
     return newContact;
 }
 
+OTIdentifier ContactManager::NymToContact(const Identifier& nymID) const
+{
+    const auto contactID = ContactID(nymID);
+
+    if (false == contactID->empty()) { return contactID; }
+
+    // Contact does not yet exist. Create it.
+    std::string label{""};
+    auto nym = wallet_.Nym(nymID);
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    auto code = PaymentCode::Factory("");
+#endif
+
+    if (nym) {
+        label = nym->Claims().Name();
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        code = PaymentCode::Factory(nym->PaymentCode());
+#endif
+    }
+
+    const auto contact = NewContact(
+        label,
+        nymID
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+        ,
+        code
+#endif
+    );
+
+    if (contact) { return Identifier::Factory(contact->ID()); }
+
+    return Identifier::Factory();
+}
+
 ContactManager::ContactMap::iterator ContactManager::obtain_contact(
     const rLock& lock,
     const Identifier& id) const

@@ -150,6 +150,9 @@ bool OTClient::add_item_to_workflow(
 
     Cheque cheque;
     cheque.LoadContractFromString(payment.Payment());
+    // We already made sure a contact exists for the sender of the message, but
+    // it's possible the sender of the cheque is a different nym
+    contacts_.NymToContact(cheque.GetSenderNymID());
     const auto workflow =
         workflow_.ReceiveCheque(nym.ID(), cheque, transportItem);
 
@@ -2642,8 +2645,18 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     // transit purposes only in there).
                     //
                     if (pMessage->LoadContractFromString(strOTMessage)) {
-                        auto recipientNymId =
+                        const auto recipientNymId =
                             Identifier::Factory(pMessage->m_strNymID2);
+                        const auto senderNymID =
+                            Identifier::Factory(pMessage->m_strNymID);
+
+                        if (senderNymID->empty()) {
+                            otErr << OT_METHOD << __FUNCTION__
+                                  << ": Missing sender nym ID" << std::endl;
+                        } else {
+                            contacts_.NymToContact(senderNymID);
+                        }
+
                         if (recipientNymId == nymID) {
                             const auto peerObject = PeerObject::Factory(
                                 context.Nym(), pMessage->m_ascPayload);

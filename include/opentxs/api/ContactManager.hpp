@@ -59,6 +59,7 @@ public:
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Contact(
         const Identifier& id) const = 0;
+    /** Returns the contact ID for a nym, if it exists */
     EXPORT virtual OTIdentifier ContactID(const Identifier& nymID) const = 0;
     EXPORT virtual ObjectList ContactList() const = 0;
     EXPORT virtual std::string ContactName(
@@ -82,6 +83,8 @@ public:
         const std::string& address,
         const std::string& label,
         const proto::ContactItemType currency = proto::CITEMTYPE_BTC) const = 0;
+    /** Returns an existing contact ID if it exists, or creates a new one */
+    EXPORT virtual OTIdentifier NymToContact(const Identifier& nymID) const = 0;
     EXPORT virtual std::shared_ptr<const class Contact> Update(
         const proto::CredentialIndex& nym) const = 0;
 

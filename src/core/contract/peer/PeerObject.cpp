@@ -61,11 +61,17 @@ PeerObject::PeerObject(
     : type_(serialized.type())
     , version_(serialized.version())
 {
+    ConstNym objectNym{nullptr};
+
+    if (serialized.has_nym()) {
+        objectNym = OT::App().Wallet().Nym(serialized.nym());
+        OT::App().Contact().Update(serialized.nym());
+    }
+
     if (signerNym) {
         nym_ = signerNym;
-    } else if (serialized.has_nym()) {
-        nym_ = OT::App().Wallet().Nym(serialized.nym());
-        OT::App().Contact().Update(serialized.nym());
+    } else if (objectNym) {
+        nym_ = objectNym;
     }
 
     switch (serialized.type()) {
