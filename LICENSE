@@ -37,8 +37,6 @@
  ************************************************************/
 
 
-
-
 A few relevant notes, followed by contributor credits:
 
 
@@ -76,37 +74,37 @@ Exodus 23:2
 Luke 22:25
 
 "Then came also publicans to be baptized, and said unto Him,
-    'Master, what shall we do?' 
-  And He said to them, 
-    'Exact no more than that which is appointed you.' 
-  And the soldiers likewise demanded of Him, saying, 
+    'Master, what shall we do?'
+  And He said to them,
+    'Exact no more than that which is appointed you.'
+  And the soldiers likewise demanded of Him, saying,
     'And what shall we do?'
-  And He said to them, 
-    'Do violence to no man, 
+  And He said to them,
+    'Do violence to no man,
       neither accuse any falsely;
        and be content with your wages.'"
 Luke 3:12-14
 
 "You shall not have different weights in your bag, a great and a small.
   You shall not have different measures in your house, a great and a small.
- But you shall have a perfect and just weight, a perfect and just measure 
-  you shall have: That your days may be lengthened in the land which the 
+ But you shall have a perfect and just weight, a perfect and just measure
+  you shall have: That your days may be lengthened in the land which the
    LORD your God gives you."
-Deuteronomy 25:13  
+Deuteronomy 25:13
 
 "Different weights, and different measures, both of them are alike
  abomination to the LORD."
 Proverbs 20:10
 
 "And it shall come to pass, if you listen diligently
- to the voice of the Lord your God, 
-  to observe and to do all his commandments 
-   which I command you today, 
- that the Lord your God will set you on high, 
+ to the voice of the Lord your God,
+  to observe and to do all his commandments
+   which I command you today,
+ that the Lord your God will set you on high,
   above all nations of the earth"
 Deuteronomy 28:1
 
-"Righteousness exalts a nation." 
+"Righteousness exalts a nation."
 Proverbs 14:34
 
 "Tell the righteous it will be well with them,
@@ -118,15 +116,15 @@ Isaiah 3:10
 Proverbs 29:7
 
 "My people are destroyed for lack of knowledge:
-   because you have rejected knowledge, 
-  I will also reject you, 
-   that you shall be no priest to me: 
-    seeing you have forgotten the law of your God, 
+   because you have rejected knowledge,
+  I will also reject you,
+   that you shall be no priest to me:
+    seeing you have forgotten the law of your God,
   I will also forget your children."
 Hosea 4:6
 
 "Come now you rich,
-  weep and howl for your miseries 
+  weep and howl for your miseries
   which are coming upon you.
  Your riches have rotted
   Your gold and your silver have rusted
@@ -144,27 +142,27 @@ Hosea 4:6
 James 5:1-6
 
 "...And you had turned, and had done right in my sight, in
-   proclaiming liberty, every man to his neighbor; and you had made a 
+   proclaiming liberty, every man to his neighbor; and you had made a
     covenant before me in the house which is called by my name.
 "But you turned and polluted my name, and caused every man his
-   servant, and every man his handmaid, whom you had set at liberty, to 
-    return, and brought them into subjection, to be your servants and 
+   servant, and every man his handmaid, whom you had set at liberty, to
+    return, and brought them into subjection, to be your servants and
      handmaids.
 "Therefore, (thus says the Lord) You have not hearkened unto me,
    in proclaiming a liberty, every one to his brother, and every man to his
-    neighbor: behold, I proclaim a liberty for you, says the Lord, to the 
-     sword, to the pestilence, and to the famine; and I will make you to be 
+    neighbor: behold, I proclaim a liberty for you, says the Lord, to the
+     sword, to the pestilence, and to the famine; and I will make you to be
       removed into all the kingdoms of the earth."
 Jeremiah 34:15-17
 
 "In the last days... everyone will
   sit under their own vine,
-   and under their own fig tree, 
-    and no one will make them afraid, 
+   and under their own fig tree,
+    and no one will make them afraid,
    for the LORD Almighty has spoken."
 Micah 4:1-4
 
-"Because the creature itself also shall be delivered 
+"Because the creature itself also shall be delivered
   from the bondage of corruption
  into the glorious liberty of the children of God."
 Romans 8:21
@@ -248,8 +246,8 @@ possible. But the thing displeased Samuel when they said, give us a
 king to judge us; and Samuel prayed unto the Lord, and the Lord said
 unto Samuel, "Listen to the voice of the people in all that they say
 to you, for they have not rejected you, but they have rejected me,
-THEN I SHOULD NOT REIGN OVER THEM. According to all the works which 
-they have done since the day; wherewith they brought them up out of 
+THEN I SHOULD NOT REIGN OVER THEM. According to all the works which
+they have done since the day; wherewith they brought them up out of
 Egypt, even unto this day; wherewith they have forsaken me and served
 other Gods; so do they also unto you.
 
@@ -330,23 +328,23 @@ Popery of government.
 
 
  More detailed credits regarding the other contributors:
- 
+
 
 
 
  * ====================================================================
- * 
+ *
  * LUCRE -- Anonymous Electronic Tokens v1.8
  * Copyright (c) 1999, 2000, 2009 Ben Laurie.  All rights reserved.
- * 
+ *
  * OFFICIAL SITE:	http://anoncvs.aldigital.co.uk/lucre/
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  *
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer. 
+ *    notice, this list of conditions and the following disclaimer.
  *
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in
@@ -394,7 +392,7 @@ people who work on the project.)
 
 OpenSSL is based on the excellent SSLeay library developed by:
         Eric A. Young and Tim J. Hudson.
-        
+
 The OpenSSL toolkit is licensed under a Apache-style licence which
 basically means that you are free to get and use it for commercial and
 non-commercial purposes.
@@ -412,13 +410,13 @@ Mark J. Cox	mark@openssl.org	mark@awe.com	UK	49A563D9
 Ralf S. Engelschall	rse@openssl.org	rse@engelschall.com	DE	26BB437D
 Dr. Stephen Henson steve@openssl.org shenson@drh-consultancy.demon.co.uk UK	F295C759
 Lutz Jänicke	jaenicke@openssl.org	lutz@lutz-jaenicke.de	DE	9C58A66D
-Nils Larsch	nils@openssl.org	nils@larsch.net	DE	
+Nils Larsch	nils@openssl.org	nils@larsch.net	DE
 Ben Laurie	ben@openssl.org	ben@algroup.co.uk	UK	2118CF83
 Richard Levitte	levitte@openssl.org	richard@levitte.org	SE	F709453B
 Bodo Möller	bodo@openssl.org	bmoeller@acm.org	DE	5A6A9B85
-Ulf Möller	ulf@openssl.org	mail@ulfm.de	DE	
-Andy Polyakov	appro@openssl.org	appro@fy.chalmers.se	SE	
-Geoff Thorpe	geoff@openssl.org	geoff@geoffthorpe.net	QC	
+Ulf Möller	ulf@openssl.org	mail@ulfm.de	DE
+Andy Polyakov	appro@openssl.org	appro@fy.chalmers.se	SE
+Geoff Thorpe	geoff@openssl.org	geoff@geoffthorpe.net	QC
 
 OpenSSL Emeritae - old members now off doing other things (in alphabetical order):
 Individual	OpenSSL Email	Personal Email	Location
@@ -434,13 +432,13 @@ Paul C. Sutton	paul@openssl.org	paul@awe.com	UK
  * An implementation of conversion from PGP public key format to OpenSSL
  * equivalent Support of RSA, DSA and Elgamal public keys
  *
- * Copyright (c) 2010 Mounir IDRASSI            http://www.idrix.fr 
+ * Copyright (c) 2010 Mounir IDRASSI            http://www.idrix.fr
  * Used with permission.
  *
- * This program is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY  or FITNESS FOR A PARTICULAR PURPOSE.
- * 
+ *
  */
 
 // -------------------------------------------
@@ -456,10 +454,10 @@ Paul C. Sutton	paul@openssl.org	paul@awe.com	UK
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
- * are met: 
- *  
+ * are met:
+ *
  *     * Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer. 
+ *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above
  * copyright notice, this list of conditions and the following disclaimer
  * in the documentation and/or other materials provided with the
@@ -485,7 +483,7 @@ Paul C. Sutton	paul@openssl.org	paul@awe.com	UK
  * of the input file used when generating it.  This code is not
  * standalone and requires a support library to be linked with it.  This
  * support library is itself covered by the above license.
- * 
+ *
  */
 
 // -------------------------------------------
@@ -506,7 +504,7 @@ met:
     copyright notice, this list of conditions and the following
     disclaimer in the documentation and/or other materials provided
     with the distribution.
-  * Neither the name of Jason Turner nor Jonathan Turner nor the 
+  * Neither the name of Jason Turner nor Jonathan Turner nor the
     name of contributors may be used to endorse or promote products derived
     from this software without specific prior written permission.
 
@@ -528,7 +526,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
  irrXML  ---  (XML Parser)
 
-The irrXML license is based on the zlib license. Basically, this means you 
+The irrXML license is based on the zlib license. Basically, this means you
 can do with irrXML whatever you want:
 
 Copyright (C) 2002-2005 Nikolaus Gebhardt
@@ -555,8 +553,8 @@ misrepresented as being the original software.
 
 History
 
-As lots of references in this documentation and the source show, this xml 
-parser has originally been a part of the 
+As lots of references in this documentation and the source show, this xml
+parser has originally been a part of the
 <A HREF="http://irrlicht.sourceforge.net" >Irrlicht Engine</A>. But because
 the parser has become very useful with the latest release, people asked for
 a separate version of it, to be able to use it in non Irrlicht projects.
@@ -602,7 +600,7 @@ With irrXML 1.0, this has now been done.
  *
  * With updates from Michael D Peters (mpeters at sandia.gov)
  * and Boyan Asenov.
- * 
+ *
  */
 
 
@@ -616,7 +614,7 @@ HONORABLE MENTIONS
 /*
   It seems appropriate to mention a few other people who deserve mentioning.
 
-  A moment of silence for "Jolly Good Fellow" Bernard von NotHaus, 
+  A moment of silence for "Jolly Good Fellow" Bernard von NotHaus,
   the founder of NORFED who was recently (and wrongfully) convicted of
   "domestic terrorism."
 
@@ -641,22 +639,22 @@ HONORABLE MENTIONS
   accomplishments.
   May this software protect future innovators from persecution,
   in a diversity of jurisdictions.
-  
+
  // -----------------------------------------------
 
   Aaron Swartz, in the depths of depression, was driven to suicide by
   unfair prosecution. He didn't beat, rob, or murder anyone. He was
   someone who fought for the good of all mankind. His girlfriend,
   Taren Stinebrickner-Kauffman, said of him:
-  
+
   "I've never met anyone so single-minded about changing the world."
 
  // -----------------------------------------------
 
   To all hackers who DDoS -- please consider building something instead.
-  
+
   "Strike the root."
-  
+
   (You won't do anyone any good in prison.)
 
  // -----------------------------------------------
@@ -665,16 +663,16 @@ HONORABLE MENTIONS
 
   Kudos to David Wagner, and Ben Laurie, who brought us Lucre.
 
-  Kudos to Ian Grigg for his many advancements in financial cryptography.  
+  Kudos to Ian Grigg for his many advancements in financial cryptography.
   Check out his website at http://iang.org/
 
   J. Orlin Grabbe and his writings have been inspirational. He will be
   missed. His DMT as well as critiques of it were useful to me.
   http://www.orlingrabbe.com/
-  
+
   Thank you to Richard Stallman: His concept of of the GPL license has
   made an historic and immeasurable contribution to human liberty.
-  
+
   Thank you also to Satoshi Nakamoto, for developing the world's first
   censorship-resistant digital asset and currency (Bitcoin.)
 
@@ -689,12 +687,12 @@ HONORABLE MENTIONS
   idea of separation of powers. Check out https://Loom.cc for more info.
 
   Andrew McMeikan's PKTP, which can be found here:  http://pktp.co.cc/
- 
+
   Ryan Fugger's Ripple project: http://ripple-project.org/
 
   Jim Bell, of course. His story is partially the reason for this software.
   I still don't understand why he was stink-bombing IRS offices instead of
-  writing code. But he definitely made his mark. 
+  writing code. But he definitely made his mark.
 
   Tim May for writing the Cyphernomicon. (Google it.)
 
@@ -747,7 +745,7 @@ Mozilla Public License Version 2.0
     means any form of the work other than Source Code Form.
 
 1.7. "Larger Work"
-    means a work that combines Covered Software with other material, in 
+    means a work that combines Covered Software with other material, in
     a separate file or files, that is not Covered Software.
 
 1.8. "License"

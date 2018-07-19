@@ -1,3 +1,8 @@
+# Copyright (c) 2018 The Open-Transactions developers
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 ## Work in progress
 ##
 message("** Csharp Wrapper")
@@ -16,35 +21,35 @@ include_directories(
 
 
 # Setup our csharp build area for the managed API assembly
-set(CSHARP_SOURCE_DIRECTORY 
-  ${CMAKE_CURRENT_BINARY_DIR}/otx_sharp 
+set(CSHARP_SOURCE_DIRECTORY
+  ${CMAKE_CURRENT_BINARY_DIR}/otx_sharp
   CACHE INTERNAL "")
 
-set(CSHARP_BINARY_DIRECTORY 
-  ${CSHARP_SOURCE_DIRECTORY}/bin 
+set(CSHARP_BINARY_DIRECTORY
+  ${CSHARP_SOURCE_DIRECTORY}/bin
   CACHE INTERNAL "")
 
-file(MAKE_DIRECTORY ${CSHARP_SOURCE_DIRECTORY})  
-file(MAKE_DIRECTORY ${CSHARP_BINARY_DIRECTORY})  
+file(MAKE_DIRECTORY ${CSHARP_SOURCE_DIRECTORY})
+file(MAKE_DIRECTORY ${CSHARP_BINARY_DIRECTORY})
 set(CMAKE_SWIG_OUTDIR ${CSHARP_SOURCE_DIRECTORY})
 
 
 # Setup our csharp build parameters
 set(CMAKE_SWIG_FLAGS "")
 if(UNIX)
-  set(CMAKE_SWIG_FLAGS 
+  set(CMAKE_SWIG_FLAGS
     -dllimport \"lib${OTX_WRAPPER_NAME}.so\")
 elseif(WIN32)
   message(FATAL ERROR "C# bindings for Windows are currently not supported." )
 endif()
 
-set(CMAKE_SWIG_FLAGS 
-  -namespace \"OpenTransactions.OTAPI\" 
-  ${CMAKE_SWIG_GLOBAL_FLAGS} 
+set(CMAKE_SWIG_FLAGS
+  -namespace \"OpenTransactions.OTAPI\"
+  ${CMAKE_SWIG_GLOBAL_FLAGS}
   ${CMAKE_SWIG_FLAGS})
 
-set(CMAKE_SWIG_FLAGS 
-  -I${CMAKE_SOURCE_DIR} 
+set(CMAKE_SWIG_FLAGS
+  -I${CMAKE_SOURCE_DIR}
   ${CMAKE_SWIG_FLAGS})
 
 set_source_files_properties(OTX_.i PROPERTIES CPLUSPLUS on)
@@ -69,10 +74,10 @@ configure_file(
   @ONLY
 )
 
-csharp_add_library( 
+csharp_add_library(
   ${MANAGED_ASSEMBLY}
-  "" 
-  ${CSHARP_SOURCE_DIRECTORY}/*.cs 
+  ""
+  ${CSHARP_SOURCE_DIRECTORY}/*.cs
 )
 
 add_dependencies(${MANAGED_ASSEMBLY}
@@ -80,7 +85,7 @@ add_dependencies(${MANAGED_ASSEMBLY}
 set_lib_property(${MOD_NAME})
 
 # Install
-install(TARGETS ${MOD_NAME} 
+install(TARGETS ${MOD_NAME}
   DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT csharp)
 
 install(FILES
