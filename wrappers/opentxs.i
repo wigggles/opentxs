@@ -94,6 +94,8 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/network/zeromq/ReplySocket.hpp"
 %include "../../include/opentxs/network/zeromq/RequestSocket.hpp"
 %include "../../include/opentxs/network/zeromq/PairSocket.hpp"
+%include "../../include/opentxs/network/zeromq/DealerSocket.hpp"
+%include "../../include/opentxs/network/zeromq/RouterSocket.hpp"
 %include "../../include/opentxs/network/zeromq/Context.hpp"
 %include "../../include/opentxs/client/SwigWrap.hpp"
 
