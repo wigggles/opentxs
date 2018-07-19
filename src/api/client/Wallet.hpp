@@ -209,7 +209,7 @@ private:
     mutable std::mutex peer_map_lock_;
     mutable std::map<std::string, std::mutex> peer_lock_;
     mutable std::mutex nymfile_map_lock_;
-    mutable std::map<Identifier, std::mutex> nymfile_lock_;
+    mutable std::map<OTIdentifier, std::mutex> nymfile_lock_;
     OTZMQPublishSocket account_publisher_;
     OTZMQPublishSocket issuer_publisher_;
     OTZMQPublishSocket nym_publisher_;

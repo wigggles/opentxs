@@ -564,7 +564,7 @@ bool Nym::deserialize_nymfile(
     OT_ASSERT(nullptr != xml);
     std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
     const auto serverMode = OT::App().ServerMode();
-    Identifier serverID{};
+    OTIdentifier serverID{Identifier::Factory()};
 
     if (serverMode) { serverID = OT::App().Server().ID(); }
 
@@ -873,7 +873,7 @@ void Nym::GetIdentifier(Identifier& theIdentifier) const
 {
     sLock lock(shared_lock_);
 
-    theIdentifier = m_nymID;
+    theIdentifier.Assign(m_nymID);
 }
 
 // sets argument based on internal member

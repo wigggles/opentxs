@@ -2143,13 +2143,17 @@ void Sync::StartIntroductionServer(const Identifier& localNymID) const
 
 void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 {
-    const auto& [nymID, serverID] = id;
+    const auto& [strNymID, strServerID] =
+        id;  // THESE ARE STRINGS. (See ContextID definition)
+
+    const auto nymID = Identifier::Factory(strNymID);
+    const auto serverID = Identifier::Factory(strServerID);
 
     // Make sure the server contract is available
     while (running_) {
         if (check_server_contract(serverID)) {
             otInfo << OT_METHOD << __FUNCTION__ << ": Server contract "
-                   << serverID.str() << " exists." << std::endl;
+                   << serverID->str() << " exists." << std::endl;
 
             break;
         }
@@ -2164,8 +2168,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     // Make sure the nym has registered for the first time on the server
     while (running_) {
         if (check_registration(nymID, serverID, context)) {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
-                   << " has registered on server " << serverID.str()
+            otInfo << OT_METHOD << __FUNCTION__ << ": Nym " << nymID->str()
+                   << " has registered on server " << serverID->str()
                    << " at least once." << std::endl;
 
             break;
@@ -2189,14 +2193,15 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     auto targetNymID = Identifier::Factory();
     auto nullID = Identifier::Factory();
     OTPassword serverPassword;
-    MessageTask message;
-    PaymentTask payment;
+    MessageTask message{Identifier::Factory(), ""};
+    PaymentTask payment{Identifier::Factory(), {}};
 #if OT_CASH
-    PayCashTask cash_payment;
+    PayCashTask cash_payment{Identifier::Factory(), {}, {}};
 #endif  // OT_CASH
-    DepositPaymentTask deposit;
+    DepositPaymentTask deposit{Identifier::Factory(), {}};
     UniqueQueue<DepositPaymentTask> depositPaymentRetry;
-    SendTransferTask transfer;
+    SendTransferTask transfer{
+        Identifier::Factory(), Identifier::Factory(), {}, {}};
 
     // Primary loop
     while (running_) {
@@ -2355,7 +2360,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
             const auto& [recipientID, text] = message;
 
-            if (recipientID.empty()) {
+            if (recipientID->empty()) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": How did an empty recipient nymID get in here?"
                       << std::endl;
@@ -2373,7 +2378,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
             auto& [recipientID, pPayment] = payment;
 
-            if (recipientID.empty()) {
+            if (recipientID->empty()) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": How did an empty recipient nymID get in here?"
                       << std::endl;
@@ -2392,7 +2397,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
             auto& [recipientID, pRecipientPurse, pSenderPurse] = cash_payment;
 
-            if (recipientID.empty()) {
+            if (recipientID->empty()) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": How did an empty recipient nymID get in here?"
                       << std::endl;
@@ -2413,7 +2418,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         // Download the nymbox, if this operation has been scheduled
         if (queue.download_nymbox_.Pop(taskID, downloadNymbox)) {
             otWarn << OT_METHOD << __FUNCTION__ << ": Downloading nymbox for "
-                   << nymID.str() << " on " << serverID.str() << std::endl;
+                   << nymID->str() << " on " << serverID->str() << std::endl;
             registerNym |= !download_nymbox(taskID, nymID, serverID);
         }
 
@@ -2431,8 +2436,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                 continue;
             } else {
                 otWarn << OT_METHOD << __FUNCTION__ << ": Downloading account "
-                       << accountID->str() << " for " << nymID.str() << " on "
-                       << serverID.str() << std::endl;
+                       << accountID->str() << " for " << nymID->str() << " on "
+                       << serverID->str() << std::endl;
             }
 
             registerNym |=
@@ -2452,7 +2457,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                 continue;
             } else {
                 otWarn << OT_METHOD << __FUNCTION__ << ": Creating account for "
-                       << unitID->str() << " on " << serverID.str()
+                       << unitID->str() << " on " << serverID->str()
                        << std::endl;
             }
 

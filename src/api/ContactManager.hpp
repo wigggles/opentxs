@@ -59,8 +59,8 @@ private:
 
     using ContactLock = std::pair<std::mutex, std::shared_ptr<class Contact>>;
     using Address = std::pair<proto::ContactItemType, std::string>;
-    using ContactMap = std::map<Identifier, ContactLock>;
-    using ContactNameMap = std::map<Identifier, std::string>;
+    using ContactMap = std::map<OTIdentifier, ContactLock>;
+    using ContactNameMap = std::map<OTIdentifier, std::string>;
 
     const api::storage::Storage& storage_;
     const api::client::Wallet& wallet_;

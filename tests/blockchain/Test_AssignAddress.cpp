@@ -28,9 +28,12 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     std::cout << "Created Bob's Nym: " << Bob << " !!\n";
 
     OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(
-        Identifier(Alice), BlockchainAccountType::BIP44, proto::CITEMTYPE_BTC);
+        Identifier::Factory(Alice),
+        BlockchainAccountType::BIP44,
+        proto::CITEMTYPE_BTC);
     std::shared_ptr<proto::Bip44Account> AliceAccount =
-        OT::App().Blockchain().Account(Identifier(Alice), AliceAccountID);
+        OT::App().Blockchain().Account(
+            Identifier::Factory(Alice), AliceAccountID);
 
     // std::cout << "Created Account " << String(AliceAccount).Get() << " !!\n";
     // std::cout << "\nCreated Address " << Address.address() << " (length " <<
@@ -44,8 +47,8 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     const std::string label = "Address label";
     std::unique_ptr<proto::Bip44Address> AccountAddress =
         opentxs::OT::App().Blockchain().AllocateAddress(
-            Identifier(Alice),
-            Identifier(AliceAccountID),
+            Identifier::Factory(Alice),
+            Identifier::Factory(AliceAccountID),
             label,
             proto::CITEMTYPE_BTC);
     proto::Bip44Address Address = *AccountAddress.get();
@@ -58,10 +61,10 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     //
 
     bool assigned = opentxs::OT::App().Blockchain().AssignAddress(
-        Identifier(Alice),
-        Identifier(AliceAccountID),
+        Identifier::Factory(Alice),
+        Identifier::Factory(AliceAccountID),
         0,
-        Identifier(Bob),
+        Identifier::Factory(Bob),
         proto::CITEMTYPE_BTC);
 
     std::cout << "Assigned address: " << assigned << " !!\n";
@@ -70,8 +73,8 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     // Check assignment
     std::unique_ptr<proto::Bip44Address> AddrPtr =
         opentxs::OT::App().Blockchain().LoadAddress(
-            Identifier(Alice),
-            Identifier(AliceAccountID),
+            Identifier::Factory(Alice),
+            Identifier::Factory(AliceAccountID),
             0,
             proto::CITEMTYPE_BTC);
 

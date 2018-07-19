@@ -84,7 +84,7 @@ ContactManager::ContactNameMap ContactManager::build_name_map(
     ContactNameMap output;
 
     for (const auto& [id, alias] : storage.ContactList()) {
-        output.emplace(id, alias);
+        output.emplace(Identifier::Factory(id), alias);
     }
 
     return output;
