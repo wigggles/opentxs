@@ -50,6 +50,8 @@
 
 using namespace opentxs;
 
+template class opentxs::Pimpl<opentxs::PaymentCode>;
+
 namespace
 {
 class Test_ContactList : public ::testing::Test
