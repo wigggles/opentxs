@@ -169,6 +169,9 @@ public:
         const std::string& name,
         const std::string& symbol,
         const std::string& terms) const override;
+    proto::ContactItemType CurrencyTypeBasedOnUnitType(
+        const Identifier& contractID) const override;
+
 
     ~Wallet();
 

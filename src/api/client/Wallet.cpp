@@ -561,6 +561,13 @@ bool Wallet::UpdateAccount(
     return true;
 }
 
+
+proto::ContactItemType Wallet::CurrencyTypeBasedOnUnitType(
+    const Identifier& contractID) const
+{
+    return extract_unit(contractID);
+}
+
 proto::ContactItemType Wallet::extract_unit(const Identifier& contractID) const
 {
     const auto contract = UnitDefinition(contractID);
