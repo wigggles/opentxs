@@ -243,8 +243,10 @@ TEST_F(Test_DealerRouter, Dealer_2_Router_1)
     ASSERT_NE(nullptr, &Test_DealerRouter::context_.get());
 
     std::map<std::string, OTZMQMessage> replyMessages{
-        std::pair(testMessage2_, network::zeromq::Message::Factory()),
-        std::pair(testMessage3_, network::zeromq::Message::Factory())};
+        std::pair<std::string, OTZMQMessage>
+            (testMessage2_, network::zeromq::Message::Factory()),
+        std::pair<std::string, OTZMQMessage>
+            (testMessage3_, network::zeromq::Message::Factory())};
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
         [this, &replyMessages](const network::zeromq::Message& input) -> void {
