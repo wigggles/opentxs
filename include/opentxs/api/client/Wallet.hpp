@@ -639,6 +639,9 @@ public:
         const std::string& symbol,
         const std::string& terms) const = 0;
 
+    virtual proto::ContactItemType CurrencyTypeBasedOnUnitType(
+        const Identifier& contractID) const = 0;
+
     virtual ~Wallet() = default;
 
 protected:
