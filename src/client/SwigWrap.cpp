@@ -1090,57 +1090,6 @@ std::string SwigWrap::GetAccountsByCurrency(const int currency)
     return comma(accounts);
 }
 
-std::set<int> SwigWrap::GetCurrencyTypesForLocalAccounts()
-{
-    std::set<int> set_currency;
-    ObjectList account_list = OT::App().DB().AccountList();
-
-    for (const auto& [id, alias] : account_list) {
-        const auto account_id = Identifier::Factory(id);
-        const auto currency_type = OT::App().DB().AccountUnit(account_id);
-        set_currency.insert(static_cast<int>(currency_type));
-    }
-
-    return set_currency;
-}
-
-std::set<std::string> SwigWrap::GetContractIdsForCurrencyType(
-    const int currency)
-{
-    std::set<std::string> set_unit_type_ids;
-    ObjectList account_list = OT::App().DB().AccountList();
-
-    for (const auto& [id, alias] : account_list) {
-        const auto account_id = Identifier::Factory(id);
-        const auto currency_type = OT::App().DB().AccountUnit(account_id);
-
-        if (currency_type == currency)
-        {
-            OTIdentifier unit_type_id =
-                OT::App().DB().AccountContract(account_id);
-            set_unit_type_ids.insert(unit_type_id->str());
-        }
-    }
-
-    return set_unit_type_ids;
-
-}
-
-std::set<std::string> SwigWrap::GetAccountIdsForContractId(
-    const std::string& ASSET_ID)
-{
-    const auto unit_type_id = Identifier::Factory(ASSET_ID);
-    std::set<std::string> set_account_id_str;
-    std::set<OTIdentifier> set_account_ids =
-        OT::App().DB().AccountsByContract(unit_type_id);
-
-    for (const auto & account_id : set_account_ids) {
-        set_account_id_str.insert(account_id->str());
-    }
-
-    return set_account_id_str;
-}
-
 std::string SwigWrap::WriteCheque(
     const std::string& NOTARY_ID,
     const std::int64_t& CHEQUE_AMOUNT,

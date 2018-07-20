@@ -779,11 +779,6 @@ public:
     EXPORT static std::string GetAccountWallet_NymID(
         const std::string& ACCOUNT_ID);  // returns Nym ID of the account
     EXPORT static std::string GetAccountsByCurrency(const int currency);
-    EXPORT static std::set<int> GetCurrencyTypesForLocalAccounts();
-    EXPORT static std::set<std::string> GetContractIdsForCurrencyType(
-        const int currency);
-    EXPORT static std::set<std::string> GetAccountIdsForContractId(
-        const std::string& ASSET_ID);
 
     /** Returns OT_BOOL. Verifies any asset account (intermediary files) against
     its own last signed receipt.
