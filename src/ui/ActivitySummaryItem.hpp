@@ -11,11 +11,11 @@
 namespace opentxs::ui::implementation
 {
 using ActivitySummaryItemRow =
-    Row<ActivitySummaryRowInterface,
+    Row<ActivitySummaryRowInternal,
         ActivitySummaryInternalInterface,
         ActivitySummaryRowID>;
 
-class ActivitySummaryItem : virtual public ActivitySummaryItemRow
+class ActivitySummaryItem final : public ActivitySummaryItemRow
 {
 public:
     std::string DisplayName() const override;
@@ -25,6 +25,9 @@ public:
     std::chrono::system_clock::time_point Timestamp() const override;
     StorageBox Type() const override;
 
+    void reindex(const ActivitySummarySortKey& key, const CustomData& custom)
+        override;
+
     ~ActivitySummaryItem();
 
 private:
@@ -32,39 +35,34 @@ private:
     // id, box, account
     using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
 
-    const ListenerDefinitions listeners_;
     const api::Activity& activity_;
     const Flag& running_;
     const OTIdentifier nym_id_;
+    ActivitySummarySortKey key_;
     std::shared_ptr<proto::StorageThread> thread_{nullptr};
-    std::string display_name_{""};
+    std::string& display_name_;
     std::string text_{""};
     StorageBox type_{StorageBox::UNKNOWN};
     std::chrono::system_clock::time_point time_;
-    std::unique_ptr<std::thread> startup_{nullptr};
     std::unique_ptr<std::thread> newest_item_thread_{nullptr};
     UniqueQueue<ItemLocator> newest_item_;
 
-    bool check_thread(const proto::StorageThread& thread) const;
-    std::string display_name(const proto::StorageThread& thread) const;
     std::string find_text(const ItemLocator& locator) const;
-    const proto::StorageThreadItem& newest_item(
-        const proto::StorageThread& thread) const;
 
     void get_text();
-    void process_thread(const network::zeromq::Message& message);
-    void startup();
-    void update(const proto::StorageThread& thread);
+    void startup(const CustomData& custom, UniqueQueue<ItemLocator>& queue);
 
     ActivitySummaryItem(
-        const ActivitySummaryParent& parent,
+        const ActivitySummaryInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::Activity& activity,
         const api::ContactManager& contact,
-        const Flag& running,
         const Identifier& nymID,
-        const Identifier& threadID);
+        const ActivitySummaryRowID& rowID,
+        const ActivitySummarySortKey& sortKey,
+        const CustomData& custom,
+        const Flag& running);
     ActivitySummaryItem(const ActivitySummaryItem&) = delete;
     ActivitySummaryItem(ActivitySummaryItem&&) = delete;
     ActivitySummaryItem& operator=(const ActivitySummaryItem&) = delete;

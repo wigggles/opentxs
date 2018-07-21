@@ -24,8 +24,8 @@
 #include "opentxs/ui/IssuerItem.hpp"
 #include "opentxs/Types.hpp"
 
+#include "InternalUI.hpp"
 #include "IssuerItemBlank.hpp"
-#include "AccountSummaryParent.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -39,13 +39,13 @@
 
 #include "AccountSummary.hpp"
 
-#define DEFAULT_ISSUER_NAME "Stash Node Pro"
+#define DEFAULT_ISSUER_NAME "Connecting to Stash Node..."
 
 #define OT_METHOD "opentxs::ui::implementation::AccountSummary::"
 
 namespace opentxs
 {
-ui::AccountSummary* Factory::AccountSummary(
+ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Wallet& wallet,
@@ -63,12 +63,14 @@ ui::AccountSummary* Factory::AccountSummary(
 namespace opentxs::ui::implementation
 {
 const Widget::ListenerDefinitions AccountSummary::listeners_{
-    {network::zeromq::Socket::ContactUpdateEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_server)},
     {network::zeromq::Socket::IssuerUpdateEndpoint,
      new MessageProcessor<AccountSummary>(&AccountSummary::process_issuer)},
     {network::zeromq::Socket::ServerUpdateEndpoint,
      new MessageProcessor<AccountSummary>(&AccountSummary::process_server)},
+    {network::zeromq::Socket::ConnectionStatusEndpoint,
+     new MessageProcessor<AccountSummary>(&AccountSummary::process_connection)},
+    {network::zeromq::Socket::NymDownloadEndpoint,
+     new MessageProcessor<AccountSummary>(&AccountSummary::process_nym)},
 };
 
 AccountSummary::AccountSummary(
@@ -81,12 +83,13 @@ AccountSummary::AccountSummary(
     const Identifier& nymID,
     const proto::ContactItemType currency)
     : AccountSummaryList(nymID, zmq, publisher, contact)
-    , wallet_(wallet)
-    , connection_(connection)
+    , wallet_{wallet}
+    , connection_{connection}
     , storage_{storage}
-    , currency_(currency)
-    , threads_()
-    , server_thread_map_()
+    , currency_{currency}
+    , issuers_{}
+    , server_issuer_map_{}
+    , nym_server_map_{}
 {
     init();
     setup_listeners(listeners_);
@@ -98,7 +101,7 @@ AccountSummary::AccountSummary(
 void AccountSummary::construct_row(
     const AccountSummaryRowID& id,
     const AccountSummarySortKey& index,
-    const CustomData&) const
+    const CustomData& custom) const
 {
     items_[index].emplace(
         id,
@@ -107,10 +110,12 @@ void AccountSummary::construct_row(
             zmq_,
             publisher_,
             contact_manager_,
+            id,
+            index,
+            custom,
             wallet_,
             storage_,
-            currency_,
-            id));
+            currency_));
     names_.emplace(id, index);
 }
 
@@ -129,10 +134,15 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (serverID->empty()) { return output; }
 
-    server_thread_map_.emplace(serverID, Identifier::Factory(issuerID));
     auto server = wallet_.Server(serverID);
 
     if (false == bool(server)) { return output; }
+
+    const auto& serverNymID = server->Nym()->ID();
+    eLock lock(shared_lock_);
+    nym_server_map_.emplace(serverNymID, serverID);
+    server_issuer_map_.emplace(serverID, Identifier::Factory(issuerID));
+    lock.unlock();
 
     switch (connection_.Status(serverID->str())) {
         case ConnectionState::ACTIVE: {
@@ -149,10 +159,22 @@ AccountSummarySortKey AccountSummary::extract_key(
     return output;
 }
 
+void AccountSummary::process_connection(const network::zeromq::Message& message)
+{
+    wait_for_startup();
+
+    OT_ASSERT(2 == message.Body().size());
+
+    const auto serverID = Identifier::Factory(message.Body().at(0));
+
+    return process_server(serverID);
+}
+
 void AccountSummary::process_issuer(const Identifier& issuerID)
 {
-    threads_.emplace(Identifier::Factory(issuerID));
-    add_item(issuerID, extract_key(nym_id_, issuerID), {});
+    issuers_.emplace(Identifier::Factory(issuerID));
+    const CustomData custom{};
+    add_item(issuerID, extract_key(nym_id_, issuerID), custom);
 }
 
 void AccountSummary::process_issuer(const network::zeromq::Message& message)
@@ -174,6 +196,26 @@ void AccountSummary::process_issuer(const network::zeromq::Message& message)
     if (0 == existing) { process_issuer(issuerID); }
 }
 
+void AccountSummary::process_nym(const network::zeromq::Message& message)
+{
+    wait_for_startup();
+
+    OT_ASSERT(1 == message.Body().size());
+
+    const auto nymID =
+        Identifier::Factory(std::string(*message.Body().begin()));
+
+    sLock lock(shared_lock_);
+    const auto it = nym_server_map_.find(nymID);
+
+    if (nym_server_map_.end() == it) { return; }
+
+    const auto serverID = it->second;
+    lock.unlock();
+
+    process_server(serverID);
+}
+
 void AccountSummary::process_server(const network::zeromq::Message& message)
 {
     wait_for_startup();
@@ -182,14 +224,23 @@ void AccountSummary::process_server(const network::zeromq::Message& message)
 
     const auto serverID =
         Identifier::Factory(std::string(*message.Body().begin()));
-    sLock lock(shared_lock_);
-    const auto it = server_thread_map_.find(serverID);
 
-    if (server_thread_map_.end() == it) { return; }
+    OT_ASSERT(false == serverID->empty())
+
+    process_server(serverID);
+}
+
+void AccountSummary::process_server(const OTIdentifier& serverID)
+{
+    sLock lock(shared_lock_);
+    const auto it = server_issuer_map_.find(serverID);
+
+    if (server_issuer_map_.end() == it) { return; }
 
     const auto issuerID = it->second;
     lock.unlock();
-    add_item(issuerID, extract_key(nym_id_, issuerID), {});
+    const CustomData custom{};
+    add_item(issuerID, extract_key(nym_id_, issuerID), custom);
 }
 
 void AccountSummary::startup()

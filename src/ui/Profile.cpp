@@ -25,8 +25,8 @@
 #include "opentxs/ui/Profile.hpp"
 #include "opentxs/ui/ProfileSection.hpp"
 
+#include "InternalUI.hpp"
 #include "List.hpp"
-#include "ProfileParent.hpp"
 #include "ProfileSectionBlank.hpp"
 
 #include <map>
@@ -183,18 +183,18 @@ void Profile::construct_row(
     const ContactSortKey& index,
     const CustomData& custom) const
 {
-    OT_ASSERT(1 == custom.size())
-
     names_.emplace(id, index);
     items_[index].emplace(
         id,
         Factory::ProfileSectionWidget(
+            *this,
             zmq_,
             publisher_,
             contact_manager_,
-            wallet_,
-            *this,
-            recover(custom[0])));
+            id,
+            index,
+            custom,
+            wallet_));
 }
 
 bool Profile::Delete(
@@ -250,13 +250,13 @@ void Profile::process_nym(const Nym& nym)
         auto& type = section.first;
 
         if (check_type(type)) {
+            CustomData custom{new opentxs::ContactSection(*section.second)};
             add_item(type, sort_key(type), {section.second.get()});
             active.emplace(type);
         }
     }
 
     delete_inactive(active);
-    UpdateNotify();
 }
 
 void Profile::process_nym(const network::zeromq::Message& message)
@@ -277,13 +277,6 @@ void Profile::process_nym(const network::zeromq::Message& message)
     OT_ASSERT(nym)
 
     process_nym(*nym);
-}
-
-const opentxs::ContactSection& Profile::recover(const void* input)
-{
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const opentxs::ContactSection*>(input);
 }
 
 bool Profile::SetActive(
@@ -343,12 +336,5 @@ void Profile::startup()
 
     process_nym(*nym);
     startup_complete_->On();
-}
-
-void Profile::update(ProfileRowInterface& row, const CustomData& custom) const
-{
-    OT_ASSERT(1 == custom.size())
-
-    row.Update(recover(custom[0]));
 }
 }  // namespace opentxs::ui::implementation

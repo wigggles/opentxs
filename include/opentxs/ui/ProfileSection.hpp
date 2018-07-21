@@ -126,8 +126,6 @@ public:
         const std::string& value) const = 0;
     EXPORT virtual proto::ContactSectionName Type() const = 0;
 
-    virtual void Update(const opentxs::ContactSection& section) = 0;
-
     EXPORT virtual ~ProfileSection() = default;
 
 protected:

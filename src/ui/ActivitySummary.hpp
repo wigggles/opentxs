@@ -15,10 +15,11 @@ using ActivitySummaryList = List<
     ActivitySummaryInternalInterface,
     ActivitySummaryRowID,
     ActivitySummaryRowInterface,
+    ActivitySummaryRowInternal,
     ActivitySummaryRowBlank,
     ActivitySummarySortKey>;
 
-class ActivitySummary : virtual public ActivitySummaryList
+class ActivitySummary final : public ActivitySummaryList
 {
 public:
     ~ActivitySummary() = default;
@@ -30,10 +31,15 @@ private:
     const api::Activity& activity_;
     const Flag& running_;
 
+    static const proto::StorageThreadItem& newest_item(
+        const proto::StorageThread& thread,
+        CustomData& custom);
+
     void construct_row(
         const ActivitySummaryRowID& id,
         const ActivitySummarySortKey& index,
         const CustomData& custom) const override;
+    std::string display_name(const proto::StorageThread& thread) const;
 
     void process_thread(const std::string& threadID);
     void process_thread(const network::zeromq::Message& message);

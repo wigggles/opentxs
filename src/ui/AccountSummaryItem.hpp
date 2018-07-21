@@ -11,9 +11,9 @@
 namespace opentxs::ui::implementation
 {
 using AccountSummaryItemRow =
-    Row<IssuerItemRowInterface, IssuerItemInternalInterface, IssuerItemRowID>;
+    Row<IssuerItemRowInternal, IssuerItemInternalInterface, IssuerItemRowID>;
 
-class AccountSummaryItem : public AccountSummaryItemRow
+class AccountSummaryItem final : public AccountSummaryItemRow
 {
 public:
     std::string AccountID() const override { return account_id_.str(); }
@@ -21,32 +21,32 @@ public:
     std::string DisplayBalance() const override;
     std::string Name() const override;
 
+    void reindex(const IssuerItemSortKey& key, const CustomData& custom)
+        override;
+
     ~AccountSummaryItem() = default;
 
 private:
     friend Factory;
-
-    static const Widget::ListenerDefinitions listeners_;
 
     const api::client::Wallet& wallet_;
     const api::storage::Storage& storage_;
     const Identifier& account_id_;
     const proto::ContactItemType& currency_;
     mutable std::atomic<Amount> balance_{0};
-    std::string name_{""};
-    std::shared_ptr<const UnitDefinition> contract_{nullptr};
-
-    void process_account(const network::zeromq::Message& message);
-    void update();
+    IssuerItemSortKey name_{""};
+    mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
 
     AccountSummaryItem(
-        const IssuerItemParent& parent,
+        const IssuerItemInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Wallet& wallet,
-        const api::storage::Storage& storage,
         const api::ContactManager& contact,
-        const IssuerItemRowID& id);
+        const IssuerItemRowID& rowID,
+        const IssuerItemSortKey& sortKey,
+        const CustomData& custom,
+        const api::client::Wallet& wallet,
+        const api::storage::Storage& storage);
     AccountSummaryItem() = delete;
     AccountSummaryItem(const AccountSummaryItem&) = delete;
     AccountSummaryItem(AccountSummaryItem&&) = delete;

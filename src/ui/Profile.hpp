@@ -15,10 +15,11 @@ using ProfileList = List<
     ProfileInternalInterface,
     ProfileRowID,
     ProfileRowInterface,
+    ProfileRowInternal,
     ProfileRowBlank,
     ProfileSortKey>;
 
-class Profile : virtual public ProfileList
+class Profile final : public ProfileList
 {
 public:
     bool AddClaim(
@@ -69,7 +70,6 @@ private:
 
     static int sort_key(const proto::ContactSectionName type);
     static bool check_type(const proto::ContactSectionName type);
-    static const opentxs::ContactSection& recover(const void* input);
     static std::string nym_name(
         const api::client::Wallet& wallet,
         const Identifier& nymID);
@@ -83,8 +83,6 @@ private:
     {
         return ProfileList::last(id);
     }
-    void update(ProfileRowInterface& row, const CustomData& custom)
-        const override;
 
     void process_nym(const Nym& nym);
     void process_nym(const network::zeromq::Message& message);

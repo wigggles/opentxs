@@ -12,7 +12,7 @@
 
 namespace opentxs::ui::implementation
 {
-class MailItem : virtual public ActivityThreadItem
+class MailItem final : public ActivityThreadItem
 {
 public:
     ~MailItem();
@@ -25,26 +25,27 @@ private:
     void load();
 
     MailItem(
-        const ActivityThreadParent& parent,
+        const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ActivityThreadRowID& id,
         const Identifier& nymID,
+        const ActivityThreadRowID& rowID,
+        const ActivityThreadSortKey& sortKey,
+        const CustomData& custom,
         const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time,
-        const std::string& text,
         const bool loading,
         const bool pending);
     MailItem(
-        const ActivityThreadParent& parent,
+        const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ActivityThreadRowID& id,
         const Identifier& nymID,
-        const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time);
+        const ActivityThreadRowID& rowID,
+        const ActivityThreadSortKey& sortKey,
+        const CustomData& custom,
+        const api::Activity& activity);
     MailItem() = delete;
     MailItem(const MailItem&) = delete;
     MailItem(MailItem&&) = delete;

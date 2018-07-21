@@ -19,9 +19,8 @@
 #include "opentxs/ui/ContactItem.hpp"
 #include "opentxs/ui/ContactSubsection.hpp"
 
-#include "ContactSectionParent.hpp"
-#include "ContactSubsectionParent.hpp"
 #include "ContactItemBlank.hpp"
+#include "InternalUI.hpp"
 #include "List.hpp"
 #include "RowType.hpp"
 
@@ -40,35 +39,40 @@ template class opentxs::SharedPimpl<opentxs::ui::ContactSubsection>;
 
 namespace opentxs
 {
-ui::ContactSubsection* Factory::ContactSubsectionWidget(
+ui::implementation::ContactSectionRowInternal* Factory::ContactSubsectionWidget(
+    const ui::implementation::ContactSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ui::implementation::ContactSectionParent& parent,
-    const ContactGroup& group)
+    const ui::implementation::ContactSectionRowID& rowID,
+    const ui::implementation::ContactSectionSortKey& key,
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ContactSubsection(
-        zmq, publisher, contact, parent, group);
+        parent, zmq, publisher, contact, rowID, key, custom);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ContactSubsection::ContactSubsection(
+    const ContactSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ContactSectionParent& parent,
-    const opentxs::ContactGroup& group)
+    const ContactSectionRowID& rowID,
+    const ContactSectionSortKey& key,
+    const CustomData& custom)
     : ContactSubsectionList(
+          parent.WidgetID(),
           Identifier::Factory(parent.ContactID()),
           zmq,
           publisher,
           contact)
-    , ContactSubsectionRow(parent, {parent.Type(), group.Type()}, true)
+    , ContactSubsectionRow(parent, rowID, true)
 {
     init();
-    startup_.reset(new std::thread(&ContactSubsection::startup, this, group));
+    startup_.reset(new std::thread(&ContactSubsection::startup, this, custom));
 
     OT_ASSERT(startup_)
 }
@@ -84,38 +88,38 @@ void ContactSubsection::construct_row(
     items_[index].emplace(
         id,
         Factory::ContactItemWidget(
-            zmq_, publisher_, contact_manager_, *this, recover(custom[0])));
+            *this, zmq_, publisher_, contact_manager_, id, index, custom));
 }
 
 std::string ContactSubsection::Name(const std::string& lang) const
 {
-    return proto::TranslateItemType(id_.second, lang);
+    return proto::TranslateItemType(row_id_.second, lang);
 }
 
-void ContactSubsection::process_group(const opentxs::ContactGroup& group)
+std::set<ContactSubsectionRowID> ContactSubsection::process_group(
+    const opentxs::ContactGroup& group)
 {
-    OT_ASSERT(id_.second == group.Type())
+    OT_ASSERT(row_id_.second == group.Type())
 
-    Lock lock(lock_);
-    names_.clear();
-    items_.clear();
-    init();
-    lock.unlock();
+    std::set<ContactSubsectionRowID> active{};
 
     for (const auto& [id, claim] : group) {
         OT_ASSERT(claim)
 
-        add_item(id, sort_key(id), {claim.get()});
+        CustomData custom{new opentxs::ContactItem(*claim)};
+        add_item(id, sort_key(id), custom);
+        active.emplace(id);
     }
 
-    UpdateNotify();
+    return active;
 }
 
-const opentxs::ContactItem& ContactSubsection::recover(const void* input)
+void ContactSubsection::reindex(
+    const ContactSectionSortKey&,
+    const CustomData& custom)
 {
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const opentxs::ContactItem*>(input);
+    delete_inactive(
+        process_group(extract_custom<opentxs::ContactGroup>(custom)));
 }
 
 int ContactSubsection::sort_key(const ContactSubsectionRowID) const
@@ -123,14 +127,9 @@ int ContactSubsection::sort_key(const ContactSubsectionRowID) const
     return static_cast<int>(items_.size());
 }
 
-void ContactSubsection::startup(const opentxs::ContactGroup group)
+void ContactSubsection::startup(const CustomData custom)
 {
-    process_group(group);
+    process_group(extract_custom<opentxs::ContactGroup>(custom));
     startup_complete_->On();
-}
-
-void ContactSubsection::Update(const opentxs::ContactGroup& group)
-{
-    process_group(group);
 }
 }  // namespace opentxs::ui::implementation

@@ -11,16 +11,24 @@
 namespace opentxs::ui::implementation
 {
 using BalanceItemRow =
-    Row<AccountActivityRowInterface,
+    Row<AccountActivityRowInternal,
         AccountActivityInternalInterface,
         AccountActivityRowID>;
 
 class BalanceItem : public BalanceItemRow
 {
 public:
+    static const proto::PaymentEvent& recover_event(const CustomData& custom);
+    static const proto::PaymentWorkflow& recover_workflow(
+        const CustomData& custom);
+
     std::string Text() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
     StorageBox Type() const override { return type_; }
+
+    void reindex(
+        const implementation::AccountActivitySortKey& key,
+        const implementation::CustomData& custom) override;
 
     virtual ~BalanceItem() override;
 
@@ -35,19 +43,16 @@ protected:
 
     static StorageBox extract_type(const proto::PaymentWorkflow& workflow);
 
-    virtual void startup(
-        const proto::PaymentWorkflow workflow,
-        const proto::PaymentEvent event) = 0;
-
     BalanceItem(
-        const AccountActivityParent& parent,
+        const AccountActivityInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
+        const AccountActivityRowID& rowID,
+        const AccountActivitySortKey& sortKey,
+        const CustomData& custom,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
-        const proto::PaymentWorkflow& workflow,
-        const proto::PaymentEvent& event,
         const Identifier& nymID,
         const Identifier& accountID);
 
@@ -63,13 +68,13 @@ private:
 class ChequeBalanceItem : public BalanceItem
 {
 public:
-    opentxs::Amount Amount() const override;
+    opentxs::Amount Amount() const override { return effective_amount(); }
     std::string DisplayAmount() const override;
     std::string Memo() const override;
 
-    void Update(
-        const proto::PaymentWorkflow& workflow,
-        const proto::PaymentEvent& event) override;
+    void reindex(
+        const implementation::AccountActivitySortKey& key,
+        const implementation::CustomData& custom) override;
 
     ~ChequeBalanceItem() override = default;
 
@@ -82,19 +87,18 @@ private:
     bool get_contract() const;
     std::string get_contact_name(const Identifier& nymID) const;
 
-    void startup(
-        const proto::PaymentWorkflow workflow,
-        const proto::PaymentEvent event) override;
+    void startup(const CustomData& custom);
 
     ChequeBalanceItem(
-        const AccountActivityParent& parent,
+        const AccountActivityInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
+        const AccountActivityRowID& rowID,
+        const AccountActivitySortKey& sortKey,
+        const CustomData& custom,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
-        const proto::PaymentWorkflow& workflow,
-        const proto::PaymentEvent& event,
         const Identifier& nymID,
         const Identifier& accountID);
 

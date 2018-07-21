@@ -55,10 +55,9 @@ void Widget::setup_listeners(const ListenerDefinitions& definitions)
 
 void Widget::UpdateNotify() const
 {
-    auto id(widget_id_->str());
-    publisher_.Publish(id);
-    otErr << OT_METHOD << __FUNCTION__ << ": widget " << id << " updated"
-          << std::endl;
+    publisher_.Publish(widget_id_->str());
+    otErr << OT_METHOD << __FUNCTION__ << ": widget " << widget_id_->str()
+          << " updated" << std::endl;
 }
 
 OTIdentifier Widget::WidgetID() const

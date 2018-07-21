@@ -22,7 +22,7 @@
 #include "opentxs/ui/ActivitySummaryItem.hpp"
 
 #include "ActivitySummaryItemBlank.hpp"
-#include "ActivitySummaryParent.hpp"
+#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -40,7 +40,7 @@
 
 namespace opentxs
 {
-ui::ActivitySummary* Factory::ActivitySummary(
+ui::implementation::ActivitySummaryExternalInterface* Factory::ActivitySummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::Activity& activity,
@@ -81,7 +81,7 @@ ActivitySummary::ActivitySummary(
 void ActivitySummary::construct_row(
     const ActivitySummaryRowID& id,
     const ActivitySummarySortKey& index,
-    const CustomData&) const
+    const CustomData& custom) const
 {
     items_[index].emplace(
         id,
@@ -91,23 +91,85 @@ void ActivitySummary::construct_row(
             publisher_,
             activity_,
             contact_manager_,
-            running_,
             nym_id_,
-            id));
+            id,
+            index,
+            custom,
+            running_));
     names_.emplace(id, index);
+}
+
+std::string ActivitySummary::display_name(
+    const proto::StorageThread& thread) const
+{
+    std::set<std::string> names{};
+
+    for (const auto& participant : thread.participant()) {
+        auto name =
+            contact_manager_.ContactName(Identifier::Factory(participant));
+
+        if (name.empty()) {
+            names.emplace(participant);
+        } else {
+            names.emplace(std::move(name));
+        }
+    }
+
+    if (names.empty()) { return thread.id(); }
+
+    std::stringstream stream{};
+
+    for (const auto& name : names) { stream << name << ", "; }
+
+    std::string output = stream.str();
+
+    if (0 < output.size()) { output.erase(output.size() - 2, 2); }
+
+    return output;
+}
+
+const proto::StorageThreadItem& ActivitySummary::newest_item(
+    const proto::StorageThread& thread,
+    CustomData& custom)
+{
+    const proto::StorageThreadItem* output{nullptr};
+
+    for (const auto& item : thread.item()) {
+        if (nullptr == output) {
+            output = &item;
+
+            continue;
+        }
+
+        if (item.time() > output->time()) {
+            output = &item;
+
+            continue;
+        }
+    }
+
+    OT_ASSERT(nullptr != output)
+
+    custom.emplace_back(new std::string(output->id()));
+    custom.emplace_back(new StorageBox(static_cast<StorageBox>(output->box())));
+    custom.emplace_back(new std::string(output->account()));
+
+    return *output;
 }
 
 void ActivitySummary::process_thread(const std::string& id)
 {
     const auto threadID = Identifier::Factory(id);
-    // It's hypothetically possible for a thread id to not be a contact id
-    // However multi-participant threads are not yet implemented yet so this
-    // will work most of the time. Even when it doesn't work it should just
-    // degrade to an empty string, which is fine for the short delay until the
-    // name gets set properly.
-    const auto name = contact_manager_.ContactName(threadID);
-    const ActivitySummarySortKey index{{}, name};
-    add_item(threadID, index, {});
+    const auto thread = activity_.Thread(nym_id_, threadID);
+
+    OT_ASSERT(thread);
+
+    CustomData custom{};
+    const auto name = display_name(*thread);
+    const auto time = std::chrono::system_clock::time_point(
+        std::chrono::seconds(newest_item(*thread, custom).time()));
+    const ActivitySummarySortKey index{time, name};
+    add_item(threadID, index, custom);
 }
 
 void ActivitySummary::process_thread(const network::zeromq::Message& message)

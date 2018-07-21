@@ -11,17 +11,18 @@
 #include "opentxs/ui/ProfileSubsection.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 namespace opentxs::ui::implementation
 {
-class ProfileSubsectionBlank : virtual public ui::ProfileSubsection,
-                               virtual public opentxs::ui::Widget
+class ProfileSubsectionBlank final : public ProfileSectionRowInternal
 {
 public:
     bool AddItem(const std::string&, const bool, const bool) const override
     {
         return false;
     }
-    bool Delete(const std::string& claimID) const override { return false; }
+    bool Delete(const std::string&) const override { return false; }
     OTUIProfileItem First() const override
     {
         const std::shared_ptr<const ui::ProfileItem> empty;
@@ -29,7 +30,7 @@ public:
         return OTUIProfileItem{empty};
     }
     bool Last() const override { return true; }
-    std::string Name(const std::string& lang) const override { return {}; }
+    std::string Name(const std::string&) const override { return {}; }
     OTUIProfileItem Next() const override
     {
         const std::shared_ptr<const ui::ProfileItem> empty;
@@ -52,12 +53,17 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
-    void Update(const opentxs::ContactGroup& group) override {}
+    void reindex(const ProfileSortKey&, const CustomData&) override {}
+    bool last(const ProfileSubsectionRowID&) const override { return false; }
+    const Identifier& NymID() const override { return nym_id_; }
+    proto::ContactSectionName Section() const override { return {}; }
 
     ProfileSubsectionBlank() = default;
     ~ProfileSubsectionBlank() = default;
 
 private:
+    const OTIdentifier nym_id_{Identifier::Factory()};
+
     ProfileSubsectionBlank(const ProfileSubsectionBlank&) = delete;
     ProfileSubsectionBlank(ProfileSubsectionBlank&&) = delete;
     ProfileSubsectionBlank& operator=(const ProfileSubsectionBlank&) = delete;

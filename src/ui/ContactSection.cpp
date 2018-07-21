@@ -19,9 +19,8 @@
 #include "opentxs/ui/ContactSection.hpp"
 #include "opentxs/ui/ContactSubsection.hpp"
 
-#include "ContactParent.hpp"
-#include "ContactSectionParent.hpp"
 #include "ContactSubsectionBlank.hpp"
+#include "InternalUI.hpp"
 #include "List.hpp"
 #include "RowType.hpp"
 
@@ -40,15 +39,17 @@ template class opentxs::SharedPimpl<opentxs::ui::ContactSection>;
 
 namespace opentxs
 {
-ui::ContactSection* Factory::ContactSectionWidget(
+ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
+    const ui::implementation::ContactInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ui::implementation::ContactParent& parent,
-    const opentxs::ContactSection& section)
+    const ui::implementation::ContactRowID& rowID,
+    const ui::implementation::ContactSortKey& key,
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ContactSection(
-        zmq, publisher, contact, parent, section);
+        parent, zmq, publisher, contact, rowID, key, custom);
 }
 }  // namespace opentxs
 
@@ -132,20 +133,23 @@ const std::map<proto::ContactSectionName, std::map<proto::ContactItemType, int>>
     };
 
 ContactSection::ContactSection(
+    const ContactInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const ContactParent& parent,
-    const opentxs::ContactSection& section)
+    const ContactRowID& rowID,
+    const ContactSortKey& key,
+    const CustomData& custom)
     : ContactSectionList(
+          parent.WidgetID(),
           Identifier::Factory(parent.ContactID()),
           zmq,
           publisher,
           contact)
-    , ContactSectionRow(parent, section.Type(), true)
+    , ContactSectionRow(parent, rowID, true)
 {
     init();
-    startup_.reset(new std::thread(&ContactSection::startup, this, section));
+    startup_.reset(new std::thread(&ContactSection::startup, this, custom));
 
     OT_ASSERT(startup_)
 }
@@ -171,30 +175,24 @@ void ContactSection::construct_row(
     items_[index].emplace(
         id,
         Factory::ContactSubsectionWidget(
-            zmq_, publisher_, contact_manager_, *this, recover(custom[0])));
-}
-
-std::string ContactSection::ContactID() const { return nym_id_->str(); }
-
-std::string ContactSection::Name(const std::string& lang) const
-{
-    return proto::TranslateSectionName(id_, lang);
+            *this, zmq_, publisher_, contact_manager_, id, index, custom));
 }
 
 std::set<ContactSectionRowID> ContactSection::process_section(
     const opentxs::ContactSection& section)
 {
-    OT_ASSERT(id_ == section.Type())
+    OT_ASSERT(row_id_ == section.Type())
 
     std::set<ContactSectionRowID> active{};
 
     for (const auto& [type, group] : section) {
         OT_ASSERT(group)
 
-        const ContactSectionRowID key{id_, type};
+        const ContactSectionRowID key{row_id_, type};
 
         if (check_type(key)) {
-            add_item(key, sort_key(key), {group.get()});
+            CustomData custom{new opentxs::ContactGroup(*group)};
+            add_item(key, sort_key(key), custom);
             active.emplace(key);
         }
     }
@@ -202,11 +200,12 @@ std::set<ContactSectionRowID> ContactSection::process_section(
     return active;
 }
 
-const opentxs::ContactGroup& ContactSection::recover(const void* input)
+void ContactSection::reindex(
+    const implementation::ContactSortKey&,
+    const implementation::CustomData& custom)
 {
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const opentxs::ContactGroup*>(input);
+    delete_inactive(
+        process_section(extract_custom<opentxs::ContactSection>(custom)));
 }
 
 int ContactSection::sort_key(const ContactSectionRowID type)
@@ -214,24 +213,9 @@ int ContactSection::sort_key(const ContactSectionRowID type)
     return sort_keys_.at(type.first).at(type.second);
 }
 
-void ContactSection::startup(const opentxs::ContactSection section)
+void ContactSection::startup(const CustomData custom)
 {
-    process_section(section);
+    process_section(extract_custom<opentxs::ContactSection>(custom));
     startup_complete_->On();
-}
-
-void ContactSection::update(
-    ContactSectionRowInterface& row,
-    const CustomData& custom) const
-{
-    OT_ASSERT(1 == custom.size())
-
-    row.Update(recover(custom[0]));
-}
-
-void ContactSection::Update(const opentxs::ContactSection& section)
-{
-    const auto active = process_section(section);
-    delete_inactive(active);
 }
 }  // namespace opentxs::ui::implementation

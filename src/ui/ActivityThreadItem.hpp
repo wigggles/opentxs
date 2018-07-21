@@ -11,7 +11,7 @@
 namespace opentxs::ui::implementation
 {
 using ActivityThreadItemRow =
-    Row<ActivityThreadRowInterface,
+    Row<ActivityThreadRowInternal,
         ActivityThreadInternalInterface,
         ActivityThreadRowID>;
 
@@ -20,13 +20,16 @@ class ActivityThreadItem : public ActivityThreadItemRow
 public:
     opentxs::Amount Amount() const override { return 0; }
     std::string DisplayAmount() const override { return {}; }
-    bool Loading() const override;
+    bool Loading() const override { return loading_.get(); }
     bool MarkRead() const override;
     std::string Memo() const override { return {}; }
-    bool Pending() const override;
+    bool Pending() const override { return pending_.get(); }
     std::string Text() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
-    StorageBox Type() const override;
+    StorageBox Type() const override { return box_; }
+
+    void reindex(const ActivityThreadSortKey& key, const CustomData& custom)
+        override;
 
     virtual ~ActivityThreadItem() = default;
 
@@ -42,15 +45,15 @@ protected:
     OTFlag pending_;
 
     ActivityThreadItem(
-        const ActivityThreadParent& parent,
+        const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ActivityThreadRowID& id,
         const Identifier& nymID,
+        const ActivityThreadRowID& rowID,
+        const ActivityThreadSortKey& sortKey,
+        const CustomData& custom,
         const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time,
-        const std::string& text,
         const bool loading,
         const bool pending);
 

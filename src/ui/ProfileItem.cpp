@@ -13,48 +13,43 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/ui/ProfileItem.hpp"
 
-#include "ProfileSubsectionParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include "ProfileItem.hpp"
 
 namespace opentxs
 {
-ui::ProfileItem* Factory::ProfileItemWidget(
+ui::implementation::ProfileSubsectionRowInternal* Factory::ProfileItemWidget(
+    const ui::implementation::ProfileSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const api::client::Wallet& wallet,
-    const ui::implementation::ProfileSubsectionParent& parent,
-    const ContactItem& item)
+    const ui::implementation::ProfileSubsectionRowID& rowID,
+    const ui::implementation::ProfileSubsectionSortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const api::client::Wallet& wallet)
 {
     return new ui::implementation::ProfileItem(
-        zmq, publisher, contact, wallet, parent, item);
+        parent, zmq, publisher, contact, rowID, sortKey, custom, wallet);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ProfileItem::ProfileItem(
+    const ProfileSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const api::client::Wallet& wallet,
-    const ProfileSubsectionParent& parent,
-    const opentxs::ContactItem& item)
-    : ProfileItemRow(
-          parent,
-          zmq,
-          publisher,
-          contact,
-          Identifier::Factory(item.ID()),
-          true)
+    const ProfileSubsectionRowID& rowID,
+    const ProfileSubsectionSortKey& sortKey,
+    const CustomData& custom,
+    const api::client::Wallet& wallet)
+    : ProfileItemRow(parent, zmq, publisher, contact, rowID, true)
     , wallet_(wallet)
-    , active_(item.isActive())
-    , primary_(item.isPrimary())
-    , value_(item.Value())
-    , start_(item.Start())
-    , end_(item.End())
+    , item_{new opentxs::ContactItem(
+          extract_custom<opentxs::ContactItem>(custom))}
 {
 }
 
@@ -67,18 +62,21 @@ bool ProfileItem::add_claim(const Claim& claim) const
 
 Claim ProfileItem::as_claim() const
 {
+    sLock lock(shared_lock_);
     Claim output{};
     auto& [id, section, type, value, start, end, attributes] = output;
     id = "";
     section = parent_.Section();
     type = parent_.Type();
-    value = value_;
-    start = start_;
-    end = end_;
+    value = item_->Value();
+    start = item_->Start();
+    end = item_->End();
 
-    if (primary_) { attributes.emplace(proto::CITEMATTR_PRIMARY); }
+    if (item_->isPrimary()) { attributes.emplace(proto::CITEMATTR_PRIMARY); }
 
-    if (primary_ || active_) { attributes.emplace(proto::CITEMATTR_ACTIVE); }
+    if (item_->isPrimary() || item_->isActive()) {
+        attributes.emplace(proto::CITEMATTR_ACTIVE);
+    }
 
     return output;
 }
@@ -87,7 +85,18 @@ bool ProfileItem::Delete() const
 {
     auto nym = wallet_.mutable_Nym(parent_.NymID());
 
-    return nym.DeleteClaim(id_);
+    return nym.DeleteClaim(row_id_);
+}
+
+void ProfileItem::reindex(
+    const ProfileSubsectionSortKey&,
+    const CustomData& custom)
+{
+    eLock lock(shared_lock_);
+    item_.reset(
+        new opentxs::ContactItem(extract_custom<opentxs::ContactItem>(custom)));
+
+    OT_ASSERT(item_);
 }
 
 bool ProfileItem::SetActive(const bool& active) const

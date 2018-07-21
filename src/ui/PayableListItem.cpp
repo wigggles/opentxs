@@ -16,7 +16,7 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/PayableListItem.hpp"
 
-#include "ContactListParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include "PayableListItem.hpp"
@@ -25,33 +25,33 @@ template class opentxs::SharedPimpl<opentxs::ui::PayableListItem>;
 
 namespace opentxs
 {
-ui::PayableListItem* Factory::PayableListItem(
-    const ui::implementation::ContactListParent& parent,
+ui::internal::PayableListItem* Factory::PayableListItem(
+    const ui::implementation::PayableInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const Identifier& id,
-    const std::string& name,
+    const ui::implementation::PayableListRowID& rowID,
+    const ui::implementation::PayableListSortKey& key,
     const std::string& paymentcode,
     const proto::ContactItemType& currency)
 {
     return new ui::implementation::PayableListItem(
-        parent, zmq, publisher, contact, id, name, paymentcode, currency);
+        parent, zmq, publisher, contact, rowID, key, paymentcode, currency);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 PayableListItem::PayableListItem(
-    const ContactListParent& parent,
+    const PayableInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
-    const Identifier& id,
-    const std::string& name,
+    const PayableListRowID& rowID,
+    const PayableListSortKey& key,
     const std::string& paymentcode,
     const proto::ContactItemType& currency)
-    : ot_super(parent, zmq, publisher, contact, id, name)
+    : ot_super(parent, zmq, publisher, contact, rowID, key)
     , payment_code_(paymentcode)
     , currency_(currency)
 {
@@ -64,10 +64,12 @@ std::string PayableListItem::PaymentCode() const
     return payment_code_;
 }
 
-void PayableListItem::process_contact(const network::zeromq::Message& message)
+void PayableListItem::reindex(
+    const ContactListSortKey& key,
+    const CustomData& custom)
 {
-    ot_super::process_contact(message);
-    const auto contact = contact_.Contact(id_);
+    ot_super::reindex(key, custom);
+    const auto contact = contact_.Contact(row_id_);
 
     OT_ASSERT(contact);
 

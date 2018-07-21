@@ -15,10 +15,11 @@ using MessagableListList = List<
     MessagableInternalInterface,
     MessagableListRowID,
     MessagableListRowInterface,
+    MessagableListRowInternal,
     MessagableListRowBlank,
     MessagableListSortKey>;
 
-class MessagableList : virtual public MessagableListList
+class MessagableList final : public MessagableListList
 {
 public:
     const Identifier& ID() const override;

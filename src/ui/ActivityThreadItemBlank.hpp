@@ -11,10 +11,11 @@
 #include "opentxs/ui/ActivityThreadItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 namespace opentxs::ui::implementation
 {
-class ActivityThreadItemBlank : virtual public ui::ActivityThreadItem,
-                                virtual public opentxs::ui::Widget
+class ActivityThreadItemBlank final : public ActivityThreadRowInternal
 {
 public:
     opentxs::Amount Amount() const override { return 0; }
@@ -32,6 +33,8 @@ public:
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
+
+    void reindex(const ActivityThreadSortKey&, const CustomData&) override {}
 
     ActivityThreadItemBlank() = default;
     ~ActivityThreadItemBlank() = default;

@@ -11,7 +11,8 @@ namespace opentxs
 class Factory
 {
 public:
-    static ui::AccountActivity* AccountActivity(
+    static ui::implementation::AccountActivityExternalInterface*
+    AccountActivity(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
@@ -21,7 +22,7 @@ public:
         const api::storage::Storage& storage,
         const Identifier& nymID,
         const Identifier& accountID);
-    static ui::AccountSummary* AccountSummary(
+    static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Wallet& wallet,
@@ -30,30 +31,35 @@ public:
         const api::ContactManager& contact,
         const Identifier& nymID,
         const proto::ContactItemType currency);
-    static ui::AccountSummaryItem* AccountSummaryItem(
-        const ui::implementation::IssuerItemParent& parent,
+    static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
+        const ui::implementation::IssuerItemInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Wallet& wallet,
-        const api::storage::Storage& storage,
         const api::ContactManager& contact,
-        const ui::implementation::IssuerItemRowID& id);
-    static ui::ActivitySummary* ActivitySummary(
+        const ui::implementation::IssuerItemRowID& rowID,
+        const ui::implementation::IssuerItemSortKey& sortKey,
+        const ui::implementation::CustomData& custom,
+        const api::client::Wallet& wallet,
+        const api::storage::Storage& storage);
+    static ui::implementation::ActivitySummaryExternalInterface*
+    ActivitySummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::Activity& activity,
         const api::ContactManager& contact,
         const Flag& running,
         const Identifier& nymID);
-    static ui::ActivitySummaryItem* ActivitySummaryItem(
-        const ui::implementation::ActivitySummaryParent& parent,
+    static ui::implementation::ActivitySummaryRowInternal* ActivitySummaryItem(
+        const ui::implementation::ActivitySummaryInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::Activity& activity,
         const api::ContactManager& contact,
-        const Flag& running,
         const Identifier& nymID,
-        const Identifier& threadID);
+        const ui::implementation::ActivitySummaryRowID& rowID,
+        const ui::implementation::ActivitySummarySortKey& sortKey,
+        const ui::implementation::CustomData& custom,
+        const Flag& running);
     static ui::ActivityThread* ActivityThread(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -72,15 +78,16 @@ public:
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zmq);
-    static ui::BalanceItem* BalanceItem(
-        const ui::implementation::AccountActivityParent& parent,
+    static ui::implementation::AccountActivityRowInternal* BalanceItem(
+        const ui::implementation::AccountActivityInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
+        const ui::implementation::AccountActivityRowID& rowID,
+        const ui::implementation::AccountActivitySortKey& sortKey,
+        const ui::implementation::CustomData& custom,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
-        const proto::PaymentWorkflow& workflow,
-        const proto::PaymentEvent& event,
         const Identifier& nymID,
         const Identifier& accountID);
     static api::Blockchain* Blockchain(
@@ -89,41 +96,48 @@ public:
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet);
     static api::client::Cash* Cash();
-    static ui::ContactList* ContactList(
+    static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const Identifier& nymID);
-    static ui::ContactListItem* ContactListItem(
-        const ui::implementation::ContactListParent& parent,
+    static ui::implementation::ContactListRowInternal* ContactListItem(
+        const ui::implementation::ContactListInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const Identifier& id,
-        const std::string& name);
-    static ui::Contact* ContactWidget(
+        const ui::implementation::ContactListRowID& rowID,
+        const ui::implementation::ContactListSortKey& key);
+    static ui::implementation::ContactExternalInterface* ContactWidget(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const Identifier& contactID);
-    static ui::ContactItem* ContactItemWidget(
+    static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
+        const ui::implementation::ContactSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ContactSubsectionParent& parent,
-        const ContactItem& item);
-    static ui::ContactSection* ContactSectionWidget(
+        const ui::implementation::ContactSubsectionRowID& rowID,
+        const ui::implementation::ContactSubsectionSortKey& sortKey,
+        const ui::implementation::CustomData& custom);
+    static ui::implementation::ContactRowInternal* ContactSectionWidget(
+        const ui::implementation::ContactInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ContactParent& parent,
-        const ContactSection& section);
-    static ui::ContactSubsection* ContactSubsectionWidget(
+        const ui::implementation::ContactRowID& rowID,
+        const ui::implementation::ContactSortKey& key,
+        const ui::implementation::CustomData& custom);
+    static ui::implementation::ContactSectionRowInternal*
+    ContactSubsectionWidget(
+        const ui::implementation::ContactSectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ContactSectionParent& parent,
-        const ContactGroup& group);
+        const ui::implementation::ContactSectionRowID& rowID,
+        const ui::implementation::ContactSectionSortKey& key,
+        const ui::implementation::CustomData& custom);
     static api::Crypto* Crypto(const api::Native& native);
     static crypto::key::Ed25519* Ed25519Key(
         const proto::AsymmetricKey& serializedKey);
@@ -148,37 +162,40 @@ public:
         const api::client::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& issuerID);
-    static ui::IssuerItem* IssuerItem(
-        const ui::implementation::AccountSummaryParent& parent,
+    static ui::implementation::AccountSummaryRowInternal* IssuerItem(
+        const ui::implementation::AccountSummaryInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
+        const ui::implementation::AccountSummaryRowID& rowID,
+        const ui::implementation::AccountSummarySortKey& sortKey,
+        const ui::implementation::CustomData& custom,
         const api::client::Wallet& wallet,
         const api::storage::Storage& storage,
-        const proto::ContactItemType currency,
-        const Identifier& id);
-    static ui::ActivityThreadItem* MailItem(
-        const ui::implementation::ActivityThreadParent& parent,
+        const proto::ContactItemType currency);
+    static ui::implementation::ActivityThreadRowInternal* MailItem(
+        const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ActivityThreadRowID& id,
         const Identifier& nymID,
+        const ui::implementation::ActivityThreadRowID& rowID,
+        const ui::implementation::ActivityThreadSortKey& sortKey,
+        const ui::implementation::CustomData& custom,
         const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time,
-        const std::string& text,
         const bool loading,
         const bool pending);
-    static ui::ActivityThreadItem* MailItem(
-        const ui::implementation::ActivityThreadParent& parent,
+    static ui::implementation::ActivityThreadRowInternal* MailItem(
+        const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ActivityThreadRowID& id,
         const Identifier& nymID,
-        const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time);
-    static ui::MessagableList* MessagableList(
+        const ui::implementation::ActivityThreadRowID& rowID,
+        const ui::implementation::ActivityThreadSortKey& sortKey,
+        const ui::implementation::CustomData& custom,
+        const api::Activity& activity);
+    static ui::implementation::MessagableExternalInterface* MessagableList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
@@ -201,58 +218,66 @@ public:
         const OT_API& otapi,
         const OTAPI_Exec& exec,
         const network::zeromq::Context& context);
-    static ui::PayableList* PayableList(
+    static ui::implementation::PayableExternalInterface* PayableList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const Identifier& nymID,
         const proto::ContactItemType& currency);
-    static ui::PayableListItem* PayableListItem(
-        const ui::implementation::ContactListParent& parent,
+    static ui::implementation::PayableListRowInternal* PayableListItem(
+        const ui::implementation::PayableInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const Identifier& id,
-        const std::string& name,
+        const ui::implementation::PayableListRowID& rowID,
+        const ui::implementation::PayableListSortKey& key,
         const std::string& paymentcode,
         const proto::ContactItemType& currency);
-    static ui::ActivityThreadItem* PaymentItem(
-        const ui::implementation::ActivityThreadParent& parent,
+    static ui::implementation::ActivityThreadRowInternal* PaymentItem(
+        const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const ui::implementation::ActivityThreadRowID& id,
         const Identifier& nymID,
-        const api::Activity& activity,
-        const std::chrono::system_clock::time_point& time);
-    static ui::Profile* ProfileWidget(
+        const ui::implementation::ActivityThreadRowID& rowID,
+        const ui::implementation::ActivityThreadSortKey& sortKey,
+        const ui::implementation::CustomData& custom,
+        const api::Activity& activity);
+    static ui::implementation::ProfileExternalInterface* ProfileWidget(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
         const api::client::Wallet& wallet,
         const Identifier& nymID);
-    static ui::ProfileItem* ProfileItemWidget(
+    static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
+        const ui::implementation::ProfileSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const api::client::Wallet& wallet,
-        const ui::implementation::ProfileSubsectionParent& parent,
-        const ContactItem& item);
-    static ui::ProfileSection* ProfileSectionWidget(
+        const ui::implementation::ProfileSubsectionRowID& rowID,
+        const ui::implementation::ProfileSubsectionSortKey& sortKey,
+        const ui::implementation::CustomData& custom,
+        const api::client::Wallet& wallet);
+    static ui::implementation::ProfileRowInternal* ProfileSectionWidget(
+        const ui::implementation::ProfileInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const api::client::Wallet& wallet,
-        const ui::implementation::ProfileParent& parent,
-        const ContactSection& section);
-    static ui::ProfileSubsection* ProfileSubsectionWidget(
+        const ui::implementation::ProfileRowID& rowID,
+        const ui::implementation::ProfileSortKey& key,
+        const ui::implementation::CustomData& custom,
+        const api::client::Wallet& wallet);
+    static ui::implementation::ProfileSectionRowInternal*
+    ProfileSubsectionWidget(
+        const ui::implementation::ProfileSectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const api::client::Wallet& wallet,
-        const ui::implementation::ProfileSectionParent& parent,
-        const ContactGroup& group);
+        const ui::implementation::ProfileSectionRowID& rowID,
+        const ui::implementation::ProfileSectionSortKey& key,
+        const ui::implementation::CustomData& custom,
+        const api::client::Wallet& wallet);
     static crypto::key::RSA* RSAKey(const proto::AsymmetricKey& serializedKey);
     static crypto::key::RSA* RSAKey(const String& publicKey);
     static crypto::key::RSA* RSAKey(const proto::KeyRole role);

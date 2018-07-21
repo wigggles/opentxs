@@ -15,15 +15,16 @@ using ProfileSubsectionList = List<
     ProfileSubsectionInternalInterface,
     ProfileSubsectionRowID,
     ProfileSubsectionRowInterface,
+    ProfileSubsectionRowInternal,
     ProfileSubsectionRowBlank,
     ProfileSubsectionSortKey>;
 using ProfileSubsectionRow = RowType<
-    ProfileSectionRowInterface,
+    ProfileSectionRowInternal,
     ProfileSectionInternalInterface,
     ProfileSectionRowID>;
 
-class ProfileSubsection : public ProfileSubsectionList,
-                          public ProfileSubsectionRow
+class ProfileSubsection final : public ProfileSubsectionList,
+                                public ProfileSubsectionRow
 {
 public:
     bool AddItem(
@@ -33,16 +34,17 @@ public:
     bool Delete(const std::string& claimID) const override;
     std::string Name(const std::string& lang) const override;
     const Identifier& NymID() const override { return nym_id_; }
-    proto::ContactSectionName Section() const override { return id_.first; }
+    proto::ContactSectionName Section() const override { return row_id_.first; }
     bool SetActive(const std::string& claimID, const bool active)
         const override;
     bool SetPrimary(const std::string& claimID, const bool primary)
         const override;
     bool SetValue(const std::string& claimID, const std::string& value)
         const override;
-    proto::ContactItemType Type() const override { return id_.second; }
+    proto::ContactItemType Type() const override { return row_id_.second; }
 
-    void Update(const opentxs::ContactGroup& group) override;
+    void reindex(const ProfileSectionSortKey& key, const CustomData& custom)
+        override;
 
     ~ProfileSubsection() = default;
 
@@ -50,7 +52,6 @@ private:
     friend Factory;
 
     static bool check_type(const ProfileSubsectionRowID type);
-    static const opentxs::ContactItem& recover(const void* input);
 
     const api::client::Wallet& wallet_;
 
@@ -63,17 +64,20 @@ private:
     {
         return ProfileSubsectionList::last(id);
     }
-    void process_group(const opentxs::ContactGroup& group);
+    std::set<ProfileSubsectionRowID> process_group(
+        const opentxs::ContactGroup& group);
     int sort_key(const ProfileSubsectionRowID type) const;
-    void startup(const opentxs::ContactGroup group);
+    void startup(const CustomData& custom);
 
     ProfileSubsection(
+        const ProfileSectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::ContactManager& contact,
-        const api::client::Wallet& wallet,
-        const ProfileSectionParent& parent,
-        const opentxs::ContactGroup& group);
+        const ProfileSectionRowID& rowID,
+        const ProfileSectionSortKey& key,
+        const CustomData& custom,
+        const api::client::Wallet& wallet);
     ProfileSubsection() = delete;
     ProfileSubsection(const ProfileSubsection&) = delete;
     ProfileSubsection(ProfileSubsection&&) = delete;

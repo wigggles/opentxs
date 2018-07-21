@@ -24,7 +24,6 @@
 #include "opentxs/ui/PayableList.hpp"
 
 #include "PayableListItemBlank.hpp"
-#include "ContactListParent.hpp"
 #include "List.hpp"
 
 #include <map>

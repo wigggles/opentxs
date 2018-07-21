@@ -15,13 +15,14 @@ using ContactListList = List<
     ContactListInternalInterface,
     ContactListRowID,
     ContactListRowInterface,
+    ContactListRowInternal,
     ContactListRowBlank,
     ContactListSortKey>;
 
-class ContactList : virtual public ContactListList
+class ContactList final : public ContactListList
 {
 public:
-    const Identifier& ID() const override;
+    const Identifier& ID() const override { return owner_contact_id_; }
 
     ~ContactList() = default;
 
@@ -31,14 +32,13 @@ private:
     static const ListenerDefinitions listeners_;
 
     const OTIdentifier owner_contact_id_;
-    std::shared_ptr<opentxs::ui::ContactListItem> owner_p_;
-    opentxs::ui::ContactListItem& owner_;
+    std::shared_ptr<ContactListRowInternal> owner_;
 
     void construct_row(
         const ContactListRowID& id,
         const ContactListSortKey& index,
         const CustomData& custom) const override;
-    std::shared_ptr<const opentxs::ui::ContactListItem> first(
+    std::shared_ptr<const ContactListRowInternal> first(
         const Lock& lock) const override;
     bool last(const ContactListRowID& id) const override
     {

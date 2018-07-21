@@ -25,7 +25,7 @@
 #include "opentxs/ui/BalanceItem.hpp"
 
 #include "BalanceItemBlank.hpp"
-#include "AccountActivityParent.hpp"
+#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <atomic>
@@ -44,7 +44,7 @@
 
 namespace opentxs
 {
-ui::AccountActivity* Factory::AccountActivity(
+ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
@@ -117,10 +117,11 @@ void AccountActivity::construct_row(
             zmq_,
             publisher_,
             contact_manager_,
+            id,
+            index,
+            custom,
             sync_,
             wallet_,
-            recover_workflow(custom[0]),
-            recover_event(custom[1]),
             nym_id_,
             account_id_));
     names_.emplace(id, index);
@@ -304,7 +305,9 @@ void AccountActivity::process_workflow(
     for (const auto& [type, row] : rows) {
         const auto& [time, event_p] = row;
         AccountActivityRowID key{Identifier::Factory(workflowID), type};
-        add_item(key, time, {workflow.get(), event_p});
+        CustomData custom{new proto::PaymentWorkflow(*workflow),
+                          new proto::PaymentEvent(*event_p)};
+        add_item(key, time, custom);
         active.emplace(std::move(key));
     }
 }
@@ -323,21 +326,6 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
     if (account_id_ == accountID) { startup(); }
 }
 
-const proto::PaymentEvent& AccountActivity::recover_event(const void* input)
-{
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const proto::PaymentEvent*>(input);
-}
-
-const proto::PaymentWorkflow& AccountActivity::recover_workflow(
-    const void* input)
-{
-    OT_ASSERT(nullptr != input)
-
-    return *static_cast<const proto::PaymentWorkflow*>(input);
-}
-
 void AccountActivity::startup()
 {
     auto account = wallet_.Account(account_id_);
@@ -352,27 +340,11 @@ void AccountActivity::startup()
 
     account.Release();
     const auto workflows = workflow_.WorkflowsByAccount(nym_id_, account_id_);
-    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << workflows.size()
-           << " workflows." << std::endl;
     std::set<AccountActivityRowID> active{};
 
     for (const auto& id : workflows) { process_workflow(id, active); }
 
     delete_inactive(active);
-    UpdateNotify();
     startup_complete_->On();
-    otWarn << OT_METHOD << __FUNCTION__ << ": Loaded " << names_.size()
-           << " events." << std::endl;
-}
-
-void AccountActivity::update(
-    AccountActivityRowInterface& row,
-    const CustomData& custom) const
-{
-    OT_ASSERT(2 == custom.size())
-
-    const auto& workflow = recover_workflow(custom[0]);
-    const auto& event = recover_event(custom[1]);
-    row.Update(workflow, event);
 }
 }  // namespace opentxs::ui::implementation

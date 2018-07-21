@@ -21,7 +21,7 @@
 #include "opentxs/ui/ContactListItem.hpp"
 
 #include "ContactListItemBlank.hpp"
-#include "ContactListParent.hpp"
+#include "InternalUI.hpp"
 #include "List.hpp"
 
 #include <map>
@@ -38,7 +38,7 @@
 
 namespace opentxs
 {
-ui::ContactList* Factory::ContactList(
+ui::implementation::ContactListExternalInterface* Factory::ContactList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::ContactManager& contact,
@@ -62,19 +62,16 @@ ContactList::ContactList(
     const Identifier& nymID)
     : ContactListList(nymID, zmq, publisher, contact)
     , owner_contact_id_(contact.ContactID(nymID))
-    , owner_p_(Factory::ContactListItem(
-          *this,
-          zmq,
-          publisher_,
-          contact,
-          owner_contact_id_,
-          "Owner"))
-    , owner_(*owner_p_)
+    , owner_(nullptr)
 {
+    owner_.reset(Factory::ContactListItem(
+        *this, zmq, publisher_, contact, owner_contact_id_, "Owner"));
+
+    OT_ASSERT(owner_)
+
     last_id_ = owner_contact_id_;
 
     OT_ASSERT(false == owner_contact_id_->empty())
-    OT_ASSERT(owner_p_)
 
     init();
     setup_listeners(listeners_);
@@ -88,13 +85,17 @@ void ContactList::add_item(
     const ContactListSortKey& index,
     const CustomData& custom)
 {
+    otErr << OT_METHOD << __FUNCTION__ << ": Widget ID: " << WidgetID()->str()
+          << std::endl;
+
     if (owner_contact_id_ == id) {
-        owner_.SetName(index);
+        owner_->reindex(index, custom);
+        UpdateNotify();
 
         return;
     }
 
-    insert_outer(id, index, custom);
+    ContactListList::add_item(id, index, custom);
 }
 
 void ContactList::construct_row(
@@ -110,7 +111,7 @@ void ContactList::construct_row(
 }
 
 /** Returns owner contact. Sets up iterators for next row */
-std::shared_ptr<const opentxs::ui::ContactListItem> ContactList::first(
+std::shared_ptr<const ContactListRowInternal> ContactList::first(
     const Lock& lock) const
 {
     OT_ASSERT(verify_lock(lock))
@@ -119,10 +120,8 @@ std::shared_ptr<const opentxs::ui::ContactListItem> ContactList::first(
     start_->Set(!have_items_.get());
     last_id_ = owner_contact_id_;
 
-    return owner_p_;
+    return owner_;
 }
-
-const Identifier& ContactList::ID() const { return owner_contact_id_; }
 
 void ContactList::process_contact(const network::zeromq::Message& message)
 {

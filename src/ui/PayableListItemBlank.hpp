@@ -15,13 +15,16 @@
 
 namespace opentxs::ui::implementation
 {
-class PayableListItemBlank : virtual public ui::PayableListItem,
-                             virtual public ContactListItemBlank
+class PayableListItemBlank final : public PayableListRowInternal,
+                                   public ContactListItemBlank
 {
 public:
     std::string PaymentCode() const override { return {}; }
 
-    void SetName(const std::string& name) override {}
+    void reindex(const PayableListSortKey&, const implementation::CustomData&)
+        override
+    {
+    }
 
     PayableListItemBlank() = default;
     ~PayableListItemBlank() = default;

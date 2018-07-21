@@ -11,10 +11,11 @@
 #include "opentxs/ui/AccountSummaryItem.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 namespace opentxs::ui::implementation
 {
-class AccountSummaryItemBlank : virtual public ui::AccountSummaryItem,
-                                virtual public opentxs::ui::Widget
+class AccountSummaryItemBlank final : public IssuerItemRowInternal
 {
 public:
     // AccountSummaryItem
@@ -22,6 +23,12 @@ public:
     Amount Balance() const override { return {}; };
     std::string DisplayBalance() const override { return {}; };
     std::string Name() const override { return {}; };
+
+    void reindex(
+        const implementation::IssuerItemSortKey& key,
+        const implementation::CustomData& custom) override
+    {
+    }
 
     // ListRow
     bool Last() const override { return {}; }

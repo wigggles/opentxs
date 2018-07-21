@@ -20,7 +20,7 @@
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
 #include "opentxs/ui/AccountSummaryItem.hpp"
 
-#include "IssuerItemParent.hpp"
+#include "InternalUI.hpp"
 #include "Row.hpp"
 
 #include <atomic>
@@ -31,50 +31,61 @@ template class opentxs::SharedPimpl<opentxs::ui::AccountSummaryItem>;
 
 namespace opentxs
 {
-ui::AccountSummaryItem* Factory::AccountSummaryItem(
-    const ui::implementation::IssuerItemParent& parent,
+ui::implementation::IssuerItemRowInternal* Factory::AccountSummaryItem(
+    const ui::implementation::IssuerItemInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Wallet& wallet,
-    const api::storage::Storage& storage,
     const api::ContactManager& contact,
-    const ui::implementation::IssuerItemRowID& id)
+    const ui::implementation::IssuerItemRowID& rowID,
+    const ui::implementation::IssuerItemSortKey& sortKey,
+    const ui::implementation::CustomData& custom,
+    const api::client::Wallet& wallet,
+    const api::storage::Storage& storage)
 {
     return new ui::implementation::AccountSummaryItem(
-        parent, zmq, publisher, wallet, storage, contact, id);
+        parent,
+        zmq,
+        publisher,
+        contact,
+        rowID,
+        sortKey,
+        custom,
+        wallet,
+        storage);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions AccountSummaryItem::listeners_{
-    {network::zeromq::Socket::AccountUpdateEndpoint,
-     new MessageProcessor<AccountSummaryItem>(
-         &AccountSummaryItem::process_account)}};
-
 AccountSummaryItem::AccountSummaryItem(
-    const IssuerItemParent& parent,
+    const IssuerItemInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Wallet& wallet,
-    const api::storage::Storage& storage,
     const api::ContactManager& contact,
-    const IssuerItemRowID& id)
-    : AccountSummaryItemRow(parent, zmq, publisher, contact, id, true)
+    const IssuerItemRowID& rowID,
+    const IssuerItemSortKey& sortKey,
+    const CustomData& custom,
+    const api::client::Wallet& wallet,
+    const api::storage::Storage& storage)
+    : AccountSummaryItemRow(parent, zmq, publisher, contact, rowID, true)
     , wallet_{wallet}
     , storage_{storage}
-    , account_id_{std::get<0>(id_).get()}
-    , currency_{std::get<1>(id_)}
-    , balance_{0}
-    , name_{""}
-    , contract_{nullptr}
+    , account_id_{std::get<0>(row_id_).get()}
+    , currency_{std::get<1>(row_id_)}
+    , balance_{extract_custom<Amount>(custom)}
+    , name_{sortKey}
+    , contract_{wallet_.UnitDefinition(storage_.AccountContract(account_id_))}
 {
-    setup_listeners(listeners_);
-    update();
 }
 
 std::string AccountSummaryItem::DisplayBalance() const
 {
+    if (false == bool(contract_)) {
+        eLock lock(shared_lock_);
+        contract_ =
+            wallet_.UnitDefinition(storage_.AccountContract(account_id_));
+    }
+
     sLock lock(shared_lock_);
 
     if (contract_) {
@@ -98,34 +109,12 @@ std::string AccountSummaryItem::Name() const
     return name_;
 }
 
-void AccountSummaryItem::process_account(
-    const network::zeromq::Message& message)
+void AccountSummaryItem::reindex(
+    const IssuerItemSortKey& key,
+    const CustomData& custom)
 {
-    OT_ASSERT(2 == message.Body().size())
-
-    const auto accountID = Identifier::Factory(message.Body().at(0));
-
-    if (account_id_ == accountID) { update(); }
-}
-
-void AccountSummaryItem::update()
-{
-    auto account = wallet_.Account(account_id_);
-
-    if (account) {
-        String name{""};
-        account.get().GetName(name);
-        balance_.store(account.get().GetBalance());
-        eLock lock(shared_lock_);
-
-        if (false == bool(contract_)) {
-            contract_ =
-                wallet_.UnitDefinition(storage_.AccountContract(account_id_));
-        }
-
-        name_ = std::string(name.Get());
-        lock.unlock();
-        UpdateNotify();
-    }
+    balance_.store(extract_custom<Amount>(custom));
+    eLock lock(shared_lock_);
+    name_ = key;
 }
 }  // namespace opentxs::ui::implementation

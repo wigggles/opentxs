@@ -13,7 +13,7 @@
 
 namespace opentxs::ui::implementation
 {
-class ProfileItemBlank : virtual public ui::ProfileItem
+class ProfileItemBlank final : public ProfileSubsectionRowInternal
 {
 public:
     std::string ClaimID() const override { return {}; }
@@ -27,6 +27,11 @@ public:
     bool SetValue(const std::string& value) const override { return false; }
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
+
+    void reindex(const ProfileSubsectionSortKey& key, const CustomData& custom)
+        override
+    {
+    }
 
     ProfileItemBlank() = default;
     ~ProfileItemBlank() = default;

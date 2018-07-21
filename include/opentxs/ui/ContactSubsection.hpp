@@ -42,8 +42,6 @@ public:
         const = 0;
     EXPORT virtual proto::ContactItemType Type() const = 0;
 
-    virtual void Update(const opentxs::ContactGroup& group) = 0;
-
     EXPORT virtual ~ContactSubsection() = default;
 
 protected:

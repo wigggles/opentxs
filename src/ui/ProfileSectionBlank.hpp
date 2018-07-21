@@ -11,10 +11,11 @@
 #include "opentxs/ui/ProfileSection.hpp"
 #include "opentxs/ui/Widget.hpp"
 
+#include "InternalUI.hpp"
+
 namespace opentxs::ui::implementation
 {
-class ProfileSectionBlank : virtual public ui::ProfileSection,
-                            virtual public opentxs::ui::Widget
+class ProfileSectionBlank final : public ProfileRowInternal
 {
 public:
     bool AddClaim(
@@ -58,12 +59,20 @@ public:
     bool Valid() const override { return false; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
-    void Update(const opentxs::ContactSection& section) override {}
+    void reindex(
+        const implementation::ProfileSortKey& key,
+        const implementation::CustomData& custom) override
+    {
+    }
+    bool last(const ProfileSectionRowID&) const override { return false; }
+    const Identifier& NymID() const override { return nym_id_; }
 
     ProfileSectionBlank() = default;
     ~ProfileSectionBlank() = default;
 
 private:
+    const OTIdentifier nym_id_{Identifier::Factory()};
+
     ProfileSectionBlank(const ProfileSectionBlank&) = delete;
     ProfileSectionBlank(ProfileSectionBlank&&) = delete;
     ProfileSectionBlank& operator=(const ProfileSectionBlank&) = delete;

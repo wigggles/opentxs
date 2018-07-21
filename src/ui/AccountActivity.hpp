@@ -23,6 +23,7 @@ using AccountActivityList = List<
     AccountActivityInternalInterface,
     AccountActivityRowID,
     AccountActivityRowInterface,
+    AccountActivityRowInternal,
     AccountActivityRowBlank,
     AccountActivitySortKey>;
 
@@ -34,7 +35,7 @@ using AccountActivityList = List<
     their type, but others may have multiple entries corresponding to different
     states.
  */
-class AccountActivity : virtual public AccountActivityList
+class AccountActivity final : public AccountActivityList
 {
 public:
     Amount Balance() const override { return balance_.load(); }
@@ -64,15 +65,11 @@ private:
         const proto::PaymentWorkflow& workflow);
     static std::vector<RowKey> extract_rows(
         const proto::PaymentWorkflow& workflow);
-    static const proto::PaymentEvent& recover_event(const void* input);
-    static const proto::PaymentWorkflow& recover_workflow(const void* input);
 
     void construct_row(
         const AccountActivityRowID& id,
         const AccountActivitySortKey& index,
         const CustomData& custom) const override;
-    void update(AccountActivityRowInterface& row, const CustomData& custom)
-        const override;
 
     void process_balance(const network::zeromq::Message& message);
     void process_workflow(

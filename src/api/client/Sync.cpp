@@ -563,7 +563,9 @@ Messagability Sync::can_message(
         return Messagability::MISSING_RECIPIENT;
     }
 
-    const auto claims = recipientNym->Claims();
+    OT_ASSERT(recipientNym)
+
+    const auto& claims = recipientNym->Claims();
     serverID = Identifier::Factory(claims.PreferredOTServer());
 
     // TODO maybe some of the other nyms in this contact do specify a server

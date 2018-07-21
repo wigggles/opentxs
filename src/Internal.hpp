@@ -94,157 +94,185 @@ class Units;
 
 namespace ui
 {
+namespace internal
+{
+struct AccountActivity;
+struct AccountSummary;
+struct AccountSummaryItem;
+struct ActivityThread;
+struct ActivityThreadItem;
+struct ActivitySummary;
+struct ActivitySummaryItem;
+struct BalanceItem;
+struct Contact;
+struct ContactItem;
+struct ContactList;
+struct ContactListItem;
+struct ContactSection;
+struct ContactSubsection;
+struct IssuerItem;
+struct PayableListItem;
+struct Profile;
+struct ProfileItem;
+struct ProfileSection;
+struct ProfileSubsection;
+}  // namespace internal
+
 namespace implementation
 {
 class AccountActivity;
-class AccountActivityParent;
 class AccountSummary;
 class AccountSummaryItemBlank;
-class AccountSummaryParent;
 class ActivitySummary;
 class ActivitySummaryItemBlank;
-class ActivitySummaryParent;
 class ActivityThread;
 class ActivityThreadItemBlank;
-class ActivityThreadParent;
 class BalanceItemBlank;
 class Contact;
 class ContactItemBlank;
 class ContactListItemBlank;
-class ContactListParent;
-class ContactParent;
 class ContactSection;
 class ContactSectionBlank;
-class ContactSectionParent;
 class ContactSubsection;
 class ContactSubsectionBlank;
-class ContactSubsectionParent;
 class IssuerItemBlank;
-class IssuerItemParent;
 class MessagableList;
 class PayableList;
 class PayableListItemBlank;
 class Profile;
 class ProfileItemBlank;
-class ProfileParent;
 class ProfileSection;
 class ProfileSectionBlank;
-class ProfileSectionParent;
 class ProfileSubsection;
 class ProfileSubsectionBlank;
-class ProfileSubsectionParent;
+
+using CustomData = std::vector<const void*>;
 
 // Account activity
-using AccountActivityExternalInterface = opentxs::ui::AccountActivity;
-using AccountActivityInternalInterface = AccountActivityParent;
+using AccountActivityExternalInterface = ui::AccountActivity;
+using AccountActivityInternalInterface = ui::internal::AccountActivity;
 using AccountActivityRowID = std::pair<OTIdentifier, proto::PaymentEventType>;
-using AccountActivityRowInterface = opentxs::ui::BalanceItem;
+using AccountActivityRowInterface = ui::BalanceItem;
+using AccountActivityRowInternal = ui::internal::BalanceItem;
 using AccountActivityRowBlank = BalanceItemBlank;
 /** WorkflowID, state */
 using AccountActivitySortKey = std::chrono::system_clock::time_point;
 
 // Account summary
-using AccountSummaryExternalInterface = opentxs::ui::AccountSummary;
-using AccountSummaryInternalInterface = AccountSummaryParent;
+using AccountSummaryExternalInterface = ui::AccountSummary;
+using AccountSummaryInternalInterface = ui::internal::AccountSummary;
 using AccountSummaryRowID = OTIdentifier;
-using AccountSummaryRowInterface = opentxs::ui::IssuerItem;
+using AccountSummaryRowInterface = ui::IssuerItem;
+using AccountSummaryRowInternal = ui::internal::IssuerItem;
 using AccountSummaryRowBlank = IssuerItemBlank;
 using AccountSummarySortKey = std::pair<bool, std::string>;
 
 using IssuerItemExternalInterface = AccountSummaryRowInterface;
-using IssuerItemInternalInterface = IssuerItemParent;
+using IssuerItemInternalInterface = ui::internal::IssuerItem;
 using IssuerItemRowID = std::pair<OTIdentifier, proto::ContactItemType>;
-using IssuerItemRowInterface = opentxs::ui::AccountSummaryItem;
+using IssuerItemRowInterface = ui::AccountSummaryItem;
+using IssuerItemRowInternal = ui::internal::AccountSummaryItem;
 using IssuerItemRowBlank = AccountSummaryItemBlank;
 using IssuerItemSortKey = std::string;
 
 // Activity summary
-using ActivitySummaryExternalInterface = opentxs::ui::ActivitySummary;
-using ActivitySummaryInternalInterface = ActivitySummaryParent;
+using ActivitySummaryExternalInterface = ui::ActivitySummary;
+using ActivitySummaryInternalInterface = ui::internal::ActivitySummary;
 using ActivitySummaryRowID = OTIdentifier;
-using ActivitySummaryRowInterface = opentxs::ui::ActivitySummaryItem;
+using ActivitySummaryRowInterface = ui::ActivitySummaryItem;
+using ActivitySummaryRowInternal = ui::internal::ActivitySummaryItem;
 using ActivitySummaryRowBlank = ActivitySummaryItemBlank;
 using ActivitySummarySortKey =
     std::pair<std::chrono::system_clock::time_point, std::string>;
 
 // Activity thread
-using ActivityThreadExternalInterface = opentxs::ui::ActivityThread;
-using ActivityThreadInternalInterface = ActivityThreadParent;
+using ActivityThreadExternalInterface = ui::ActivityThread;
+using ActivityThreadInternalInterface = ui::internal::ActivityThread;
 /** item id, box, accountID */
 using ActivityThreadRowID = std::tuple<OTIdentifier, StorageBox, OTIdentifier>;
-using ActivityThreadRowInterface = opentxs::ui::ActivityThreadItem;
+using ActivityThreadRowInterface = ui::ActivityThreadItem;
+using ActivityThreadRowInternal = ui::internal::ActivityThreadItem;
 using ActivityThreadRowBlank = ActivityThreadItemBlank;
 /** timestamp, index */
 using ActivityThreadSortKey =
     std::pair<std::chrono::system_clock::time_point, std::uint64_t>;
 
 // Contact
-using ContactExternalInterface = opentxs::ui::Contact;
-using ContactInternalInterface = ContactParent;
+using ContactExternalInterface = ui::Contact;
+using ContactInternalInterface = ui::internal::Contact;
 using ContactRowID = proto::ContactSectionName;
-using ContactRowInterface = opentxs::ui::ContactSection;
+using ContactRowInterface = ui::ContactSection;
+using ContactRowInternal = ui::internal::ContactSection;
 using ContactRowBlank = ContactSectionBlank;
 using ContactSortKey = int;
 
 using ContactSectionExternalInterface = ContactRowInterface;
-using ContactSectionInternalInterface = ContactSectionParent;
+using ContactSectionInternalInterface = ui::internal::ContactSection;
 using ContactSectionRowID =
     std::pair<proto::ContactSectionName, proto::ContactItemType>;
-using ContactSectionRowInterface = opentxs::ui::ContactSubsection;
+using ContactSectionRowInterface = ui::ContactSubsection;
+using ContactSectionRowInternal = ui::internal::ContactSubsection;
 using ContactSectionRowBlank = ContactSubsectionBlank;
 using ContactSectionSortKey = int;
 
 using ContactSubsectionExternalInterface = ContactSectionRowInterface;
-using ContactSubsectionInternalInterface = ContactSubsectionParent;
+using ContactSubsectionInternalInterface = ui::internal::ContactSubsection;
 using ContactSubsectionRowID = OTIdentifier;
-using ContactSubsectionRowInterface = opentxs::ui::ContactItem;
+using ContactSubsectionRowInterface = ui::ContactItem;
+using ContactSubsectionRowInternal = ui::internal::ContactItem;
 using ContactSubsectionRowBlank = ContactItemBlank;
 using ContactSubsectionSortKey = int;
 
 // Contact list
-using ContactListExternalInterface = opentxs::ui::ContactList;
-using ContactListInternalInterface = ContactListParent;
+using ContactListExternalInterface = ui::ContactList;
+using ContactListInternalInterface = ui::internal::ContactList;
 using ContactListRowID = OTIdentifier;
-using ContactListRowInterface = opentxs::ui::ContactListItem;
+using ContactListRowInterface = ui::ContactListItem;
+using ContactListRowInternal = ui::internal::ContactListItem;
 using ContactListRowBlank = ContactListItemBlank;
 using ContactListSortKey = std::string;
 
 // Messagable list
-using MessagableExternalInterface = opentxs::ui::MessagableList;
+using MessagableExternalInterface = ui::MessagableList;
 using MessagableInternalInterface = ContactListInternalInterface;
 using MessagableListRowID = ContactListRowID;
 using MessagableListRowInterface = ContactListRowInterface;
+using MessagableListRowInternal = ContactListRowInternal;
 using MessagableListRowBlank = ContactListRowBlank;
 using MessagableListSortKey = std::string;
 
 // Payable list
-using PayableExternalInterface = opentxs::ui::PayableList;
+using PayableExternalInterface = ui::PayableList;
 using PayableInternalInterface = ContactListInternalInterface;
 using PayableListRowID = ContactListRowID;
-using PayableListRowInterface = opentxs::ui::PayableListItem;
+using PayableListRowInterface = ui::PayableListItem;
+using PayableListRowInternal = ui::internal::PayableListItem;
 using PayableListRowBlank = PayableListItemBlank;
 using PayableListSortKey = std::string;
 
 // Profile
-using ProfileExternalInterface = opentxs::ui::Profile;
-using ProfileInternalInterface = ProfileParent;
+using ProfileExternalInterface = ui::Profile;
+using ProfileInternalInterface = ui::internal::Profile;
 using ProfileRowID = proto::ContactSectionName;
-using ProfileRowInterface = opentxs::ui::ProfileSection;
+using ProfileRowInterface = ui::ProfileSection;
+using ProfileRowInternal = ui::internal::ProfileSection;
 using ProfileRowBlank = ProfileSectionBlank;
 using ProfileSortKey = int;
 
 using ProfileSectionExternalInterface = ProfileRowInterface;
-using ProfileSectionInternalInterface = ProfileSectionParent;
+using ProfileSectionInternalInterface = ui::internal::ProfileSection;
 using ProfileSectionRowID =
     std::pair<proto::ContactSectionName, proto::ContactItemType>;
-using ProfileSectionRowInterface = opentxs::ui::ProfileSubsection;
+using ProfileSectionRowInterface = ui::ProfileSubsection;
+using ProfileSectionRowInternal = ui::internal::ProfileSubsection;
 using ProfileSectionRowBlank = ProfileSubsectionBlank;
 using ProfileSectionSortKey = int;
 
 using ProfileSubsectionExternalInterface = ProfileSectionRowInterface;
-using ProfileSubsectionInternalInterface = ProfileSubsectionParent;
+using ProfileSubsectionInternalInterface = ui::internal::ProfileSubsection;
 using ProfileSubsectionRowID = OTIdentifier;
-using ProfileSubsectionRowInterface = opentxs::ui::ProfileItem;
+using ProfileSubsectionRowInterface = ui::ProfileItem;
+using ProfileSubsectionRowInternal = ui::internal::ProfileItem;
 using ProfileSubsectionRowBlank = ProfileItemBlank;
 using ProfileSubsectionSortKey = int;
 }  // namespace implementation
