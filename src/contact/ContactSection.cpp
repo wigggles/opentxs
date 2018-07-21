@@ -63,7 +63,7 @@ ContactSection::ContactSection(
 
 ContactSection ContactSection::operator+(const ContactSection& rhs) const
 {
-    auto map = groups_;
+    auto map{groups_};
 
     for (auto& it : rhs.groups_) {
         auto& rhsID = it.first;
@@ -80,12 +80,16 @@ ContactSection ContactSection::operator+(const ContactSection& rhs) const
             OT_ASSERT(group);
 
             group.reset(new ContactGroup(*group + *rhsGroup));
+
+            OT_ASSERT(group);
         } else {
             map[rhsID] = rhsGroup;
+
+            OT_ASSERT(map[rhsID]);
         }
     }
 
-    std::uint32_t version = std::max(version_, rhs.Version());
+    const auto version = std::max(version_, rhs.Version());
 
     return ContactSection(nym_, version, version, section_, map);
 }

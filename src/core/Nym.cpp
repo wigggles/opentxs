@@ -336,6 +336,8 @@ bool Nym::AddPreferredOTServer(const Identifier& id, const bool primary)
 
     if (false == bool(contact_data_)) { init_claims(lock); }
 
+    OT_ASSERT(contact_data_)
+
     contact_data_.reset(
         new ContactData(contact_data_->AddPreferredOTServer(id, primary)));
 
@@ -1305,6 +1307,8 @@ void Nym::init_claims(const eLock& lock) const
             serialized.reset();
         }
     }
+
+    OT_ASSERT(contact_data_)
 }
 
 bool Nym::LoadCredentialIndex(const serializedCredentialIndex& index)

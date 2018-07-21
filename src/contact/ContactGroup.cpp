@@ -46,7 +46,7 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
 
     if (primary_->empty()) { primary = Identifier::Factory(rhs.primary_); }
 
-    auto map = items_;
+    auto map{items_};
 
     for (const auto& it : rhs.items_) {
         const auto& item = it.second;
@@ -65,6 +65,8 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
         } else {
             map[id] = item;
         }
+
+        OT_ASSERT(map[id])
     }
 
     return ContactGroup(nym_, section_, type_, map);

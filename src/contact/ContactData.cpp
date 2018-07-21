@@ -47,7 +47,7 @@ ContactData::ContactData(
 
 ContactData ContactData::operator+(const ContactData& rhs) const
 {
-    auto map = sections_;
+    auto map{sections_};
 
     for (auto& it : rhs.sections_) {
         auto& rhsID = it.first;
@@ -64,12 +64,16 @@ ContactData ContactData::operator+(const ContactData& rhs) const
             OT_ASSERT(section);
 
             section.reset(new ContactSection(*section + *rhsSection));
+
+            OT_ASSERT(section);
         } else {
             map[rhsID] = rhsSection;
+
+            OT_ASSERT(map[rhsID]);
         }
     }
 
-    std::uint32_t version = std::max(version_, rhs.Version());
+    const auto version = std::max(version_, rhs.Version());
 
     return ContactData(nym_, version, version, map);
 }
@@ -173,7 +177,7 @@ ContactData ContactData::AddItem(const std::shared_ptr<ContactItem>& item) const
     OT_ASSERT(item);
 
     const auto& sectionID = item->Section();
-    auto map = sections_;
+    auto map{sections_};
     auto it = map.find(sectionID);
 
     auto version = proto::RequiredVersion(sectionID, item->Type(), version_);
