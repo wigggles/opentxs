@@ -150,8 +150,6 @@ void Data::Assign(const void* data, const std::size_t& size)
     }
 }
 
-Data* Data::Data::clone() const { return new Data(*this); }
-
 void Data::concatenate(const Vector& data)
 {
     for (const auto& byte : data) { data_.emplace_back(byte); }
@@ -168,21 +166,10 @@ void Data::Concatenate(const void* data, const std::size_t& size)
     concatenate(temp.data_);
 }
 
-bool Data::empty() const { return data_.empty(); }
-
-const void* Data::GetPointer() const { return data_.data(); }
-
-std::size_t Data::GetSize() const { return data_.size(); }
-
 void Data::Initialize()
 {
-    data_.empty();
+    data_.clear();
     reset();
-}
-
-bool Data::IsEmpty() const  // Deprecated.
-{
-    return empty();
 }
 
 // First use reset() to set the internal position to 0. Then you pass in the
@@ -225,8 +212,6 @@ void Data::Release()
     zeroMemory();
     Initialize();
 }
-
-void Data::reset() { position_ = 0; }
 
 void Data::SetSize(const std::size_t& size)
 {
