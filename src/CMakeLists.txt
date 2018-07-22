@@ -29,6 +29,7 @@ if(KEYRING_GNOME)
   set(keyring libgnome-keyring.so)
 endif()
 
+add_subdirectory(iterator)
 add_subdirectory(storage)
 add_subdirectory(crypto)
 add_subdirectory(core)
@@ -88,6 +89,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-crypto>
   $<TARGET_OBJECTS:opentxs-cron>
   $<TARGET_OBJECTS:opentxs-ext>
+  $<TARGET_OBJECTS:opentxs-iterator>
   $<TARGET_OBJECTS:opentxs-network-zeromq>
   $<TARGET_OBJECTS:opentxs-network>
   $<TARGET_OBJECTS:opentxs-recurring>

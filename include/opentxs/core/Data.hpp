@@ -8,13 +8,21 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/iterator/Bidirectional.hpp"
+
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <vector>
 
 #ifdef SWIG
 // clang-format off
+%ignore opentxs::Data::at;
+%ignore opentxs::Data::begin;
+%ignore opentxs::Data::cbegin;
+%ignore opentxs::Data::cend;
 %ignore opentxs::Data::Concatenate;
+%ignore opentxs::Data::end;
 %ignore opentxs::Data::GetPointer;
 %ignore opentxs::Data::OTfread;
 %ignore opentxs::Pimpl<opentxs::Data>::Pimpl(opentxs::Data const &);
@@ -40,6 +48,10 @@ OTData& operator+=(OTData& lhs, const OTData& rhs);
 class Data
 {
 public:
+    using iterator = opentxs::iterator::Bidirectional<Data, std::byte>;
+    using const_iterator =
+        opentxs::iterator::Bidirectional<const Data, const std::byte>;
+
     EXPORT static Pimpl<opentxs::Data> Factory();
     EXPORT static Pimpl<opentxs::Data> Factory(const Data& rhs);
 #ifndef SWIG
@@ -53,24 +65,41 @@ public:
     EXPORT virtual bool operator==(const Data& rhs) const = 0;
     EXPORT virtual bool operator!=(const Data& rhs) const = 0;
     EXPORT virtual std::string asHex() const = 0;
+    EXPORT virtual const std::byte& at(const std::size_t position) const = 0;
+    EXPORT virtual const_iterator begin() const = 0;
+    EXPORT virtual const_iterator cbegin() const = 0;
+    EXPORT virtual const_iterator cend() const = 0;
+    EXPORT virtual const void* data() const = 0;
     EXPORT virtual bool empty() const = 0;
-    EXPORT virtual const void* GetPointer() const = 0;
-    EXPORT virtual std::size_t GetSize() const = 0;
+    EXPORT virtual const_iterator end() const = 0;
+#ifndef SWIG
+    [[deprecated]] EXPORT virtual const void* GetPointer() const = 0;
+#endif
+#ifndef SWIG
+    [[deprecated]] EXPORT virtual std::size_t GetSize() const = 0;
+#endif
 #ifndef SWIG
     [[deprecated]] EXPORT virtual bool IsEmpty() const = 0;
 #endif
+    EXPORT virtual std::size_t size() const = 0;
 
     EXPORT virtual Data& operator+=(const Data& rhs) = 0;
     EXPORT virtual void Assign(const Data& source) = 0;
 #ifndef SWIG
     EXPORT virtual void Assign(const void* data, const std::size_t& size) = 0;
 #endif
+    EXPORT virtual std::byte& at(const std::size_t position) = 0;
+    EXPORT virtual iterator begin() = 0;
+    EXPORT virtual void* data() = 0;
     EXPORT virtual void Concatenate(
         const void* data,
         const std::size_t& size) = 0;
-    EXPORT virtual std::size_t OTfread(
+#ifndef SWIG
+    [[deprecated]] EXPORT virtual std::size_t OTfread(
         std::uint8_t* data,
         const std::size_t& size) = 0;
+#endif
+    EXPORT virtual iterator end() = 0;
     EXPORT virtual bool Randomize(const std::size_t& size) = 0;
     EXPORT virtual void Release() = 0;
     EXPORT virtual void reset() = 0;

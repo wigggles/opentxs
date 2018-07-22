@@ -103,6 +103,7 @@
 #include <opentxs/crypto/Bip39.hpp>
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
+#include <opentxs/iterator/Bidirectional.hpp>
 #include <opentxs/network/zeromq/Context.hpp>
 #include <opentxs/network/zeromq/DealerSocket.hpp>
 #include <opentxs/network/zeromq/FrameIterator.hpp>
