@@ -33,7 +33,7 @@ public:
     SharedPimpl& operator=(const SharedPimpl& rhs) noexcept = default;
     SharedPimpl& operator=(SharedPimpl&& rhs) noexcept = default;
 
-#ifdef SWIG
+#ifndef SWIG
     operator const C&() const noexcept { return *pimpl_; }
 #endif
 
