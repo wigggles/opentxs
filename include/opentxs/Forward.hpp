@@ -261,6 +261,7 @@ using OTIdentifier = Pimpl<Identifier>;
 using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTString = Pimpl<String>;
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQDealerSocket = Pimpl<network::zeromq::DealerSocket>;
