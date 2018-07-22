@@ -9,7 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/contract/Signable.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Proto.hpp"
@@ -54,7 +54,7 @@ public:
     static serializedCredential ExtractArmoredCredential(
         const String& stringCredential);
     static serializedCredential ExtractArmoredCredential(
-        const OTASCIIArmor& armoredCredential);
+        const Armored& armoredCredential);
     static std::unique_ptr<Credential> Factory(
         const api::client::Wallet& wallet,
         CredentialSet& parent,

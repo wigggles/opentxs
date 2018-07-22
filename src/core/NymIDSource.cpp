@@ -10,13 +10,13 @@
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -58,8 +58,8 @@ NymIDSource::NymIDSource(const proto::NymIDSource& serializedSource)
     }
 }
 
-NymIDSource::NymIDSource(const String& stringSource)
-    : NymIDSource(*ExtractArmoredSource(stringSource))
+NymIDSource::NymIDSource(const String& source)
+    : NymIDSource(*ExtractArmoredSource(Armored(source)))
 {
 }
 
@@ -273,14 +273,14 @@ bool NymIDSource::Sign(
 String NymIDSource::asString() const
 {
     auto dataSource = asData();
-    OTASCIIArmor armoredSource(dataSource);
+    Armored armoredSource(dataSource);
 
     return armoredSource.Get();
 }
 
 // static
 serializedNymIDSource NymIDSource::ExtractArmoredSource(
-    const OTASCIIArmor& armoredSource)
+    const Armored& armoredSource)
 {
     auto dataSource = Data::Factory(armoredSource);
 

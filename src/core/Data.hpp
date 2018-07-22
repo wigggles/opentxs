@@ -44,7 +44,7 @@ protected:
 
     Data() = default;
     explicit Data(const void* data, std::size_t size);
-    explicit Data(const OTASCIIArmor& source);
+    explicit Data(const Armored& source);
     explicit Data(const std::vector<unsigned char>& sourceVector);
     Data(const Data& rhs);
     Data(Data&& rhs);

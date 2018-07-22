@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
@@ -307,13 +307,13 @@ public:
     inline std::int64_t GetNewOutboxTransNum() const
     {
         return m_lNewOutboxTransNum;
-    }                        // See above comment in protected section.
-    OTASCIIArmor m_ascNote;  // a text field for the user. Cron may also store
+    }                   // See above comment in protected section.
+    Armored m_ascNote;  // a text field for the user. Cron may also store
     // receipt data here. Also inbox reports go here for
     // balance agreement
-    OTASCIIArmor m_ascAttachment;  // the digital cash token is sent here,
-                                   // signed, and returned here. (or purse of
-                                   // tokens.)
+    Armored m_ascAttachment;  // the digital cash token is sent here,
+                              // signed, and returned here. (or purse of
+                              // tokens.)
     // As well as a cheque, or a voucher, or a server update on a market offer,
     // or a nym full of transactions for balance agreement.
     // Call this on the server side, on a balanceStatement item, to verify

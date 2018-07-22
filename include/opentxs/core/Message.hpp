@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
@@ -150,15 +150,15 @@ public:
                              // messages from
                              // being intercepted and repeated by attackers.
 
-    OTASCIIArmor m_ascInReferenceTo;  // If the server responds to a user
-                                      // command, he sends
+    Armored m_ascInReferenceTo;  // If the server responds to a user
+                                 // command, he sends
     // it back to the user here in ascii armored format.
-    OTASCIIArmor m_ascPayload;  // If the reply needs to include a payload (such
-                                // as a new account
+    Armored m_ascPayload;  // If the reply needs to include a payload (such
+                           // as a new account
     // or a message envelope or request from another user etc) then
     // it can be put here in ascii-armored format.
-    OTASCIIArmor m_ascPayload2;  // Sometimes one payload just isn't enough.
-    OTASCIIArmor m_ascPayload3;  // Sometimes two payload just isn't enough.
+    Armored m_ascPayload2;  // Sometimes one payload just isn't enough.
+    Armored m_ascPayload3;  // Sometimes two payload just isn't enough.
 
     // This list of request numbers is stored for optimization, so client/server
     // can communicate about
@@ -179,21 +179,18 @@ public:
     // m_lNewRequestNum;
     std::int64_t m_lDepth{0};  // For Market-related messages... (Plus for usage
                                // credits.) Also used by getBoxReceipt
-    std::int64_t m_lTransactionNum{
-        0};  // For Market-related messages... Also used by
-             // getBoxReceipt
+    std::int64_t m_lTransactionNum{0};  // For Market-related messages... Also
+                                        // used by getBoxReceipt
 
     std::int32_t keytypeAuthent_ = 0;
     std::int32_t keytypeEncrypt_ = 0;
     std::uint8_t enum_{0};
     std::uint32_t enum2_{0};
 
-    bool m_bSuccess{
-        false};  // When the server replies to the client, this may be true
-                 // or false
-    bool m_bBool{
-        false};  // Some commands need to send a bool. This variable is for
-                 // those.
+    bool m_bSuccess{false};  // When the server replies to the client, this may
+                             // be true or false
+    bool m_bBool{false};  // Some commands need to send a bool. This variable is
+                          // for those.
     std::int64_t m_lTime{0};  // Timestamp when the message was signed.
 
     static OTMessageStrategyManager messageStrategyManager;

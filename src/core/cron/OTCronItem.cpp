@@ -11,7 +11,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
@@ -19,6 +18,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
@@ -289,7 +289,7 @@ bool OTCronItem::EraseActiveCronReceipt(
             numlist.Output(strNumlist);
 
             String strFinal;
-            OTASCIIArmor ascTemp(strNumlist);
+            Armored ascTemp(strNumlist);
 
             if (false == ascTemp.WriteArmoredString(
                              strFinal, "ACTIVE CRON ITEMS"))  // todo hardcoding
@@ -398,7 +398,7 @@ bool OTCronItem::SaveActiveCronReceipt(
 
         if (numlist.Output(strNumlist)) {
             String strFinal;
-            OTASCIIArmor ascTemp(strNumlist);
+            Armored ascTemp(strNumlist);
 
             if (false == ascTemp.WriteArmoredString(
                              strFinal, "ACTIVE CRON ITEMS"))  // todo hardcoding
@@ -428,7 +428,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     }
 
     String strFinal;
-    OTASCIIArmor ascTemp(m_strRawFile);
+    Armored ascTemp(m_strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
@@ -483,7 +483,7 @@ bool OTCronItem::SaveCronReceipt()
     }
 
     String strFinal;
-    OTASCIIArmor ascTemp(m_strRawFile);
+    Armored ascTemp(m_strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {

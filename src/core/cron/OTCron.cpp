@@ -8,7 +8,6 @@
 #include "opentxs/core/cron/OTCron.hpp"
 
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -16,6 +15,7 @@
 #include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/util/Timer.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -96,7 +96,7 @@ bool OTCron::SaveCron()
 // Returns a list of all the offers that a specific Nym has on all the markets.
 //
 bool OTCron::GetNym_OfferList(
-    OTASCIIArmor& ascOutput,
+    Armored& ascOutput,
     const Identifier& NYM_ID,
     std::int32_t& nOfferCount)
 {
@@ -173,7 +173,7 @@ bool OTCron::GetNym_OfferList(
     return false;
 }
 
-bool OTCron::GetMarketList(OTASCIIArmor& ascOutput, std::int32_t& nMarketCount)
+bool OTCron::GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount)
 {
     nMarketCount = 0;  // This parameter is set to zero here, and incremented in
                        // the loop below.
@@ -518,9 +518,9 @@ void OTCron::UpdateContents()
         OT_ASSERT(nullptr != pItem);
 
         time64_t tDateAdded = it.first;
-        String strItem(*pItem);  // Extract the cron item contract into string
-                                 // form.
-        OTASCIIArmor ascItem(strItem);  // Base64-encode that for storage.
+        String strItem(*pItem);    // Extract the cron item contract into string
+                                   // form.
+        Armored ascItem(strItem);  // Base64-encode that for storage.
 
         TagPtr tagCronItem(new Tag("cronItem", ascItem.Get()));
         tagCronItem->add_attribute("dateAdded", formatTimestamp(tDateAdded));

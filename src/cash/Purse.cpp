@@ -10,7 +10,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Token.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
@@ -19,6 +18,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -244,7 +244,7 @@ bool Purse::Merge(
             nullptr != pToken,
             "Purse::Merge: Assert: nullptr != Pop(theOldNym) \n");
 
-        const OTASCIIArmor& ascTokenID = pToken->GetSpendable();
+        const Armored& ascTokenID = pToken->GetSpendable();
 
         std::list<mapOfTokenPointers::iterator> listOfTokenMapIterators;
 
@@ -256,7 +256,7 @@ bool Purse::Merge(
             Token* pTempToken = it->second;
             OT_ASSERT(nullptr != pTempToken);
 
-            const OTASCIIArmor& ascTempTokenID = pTempToken->GetSpendable();
+            const Armored& ascTempTokenID = pTempToken->GetSpendable();
 
             // It's already there. Delete the one that's already there.
             // (That way we can add it after, whether it was there originally or
@@ -295,7 +295,7 @@ bool Purse::Merge(
             nullptr != pToken,
             "Purse::Merge: Assert: nullptr != theNewPurse.Pop(theNewNym) \n");
 
-        const OTASCIIArmor& ascTokenID = pToken->GetSpendable();
+        const Armored& ascTokenID = pToken->GetSpendable();
 
         std::list<mapOfTokenPointers::iterator> listOfTokenMapIterators;
 
@@ -306,7 +306,7 @@ bool Purse::Merge(
             Token* pTempToken = it->second;
             OT_ASSERT(nullptr != pTempToken);
 
-            const OTASCIIArmor& ascTempTokenID = pTempToken->GetSpendable();
+            const Armored& ascTempTokenID = pTempToken->GetSpendable();
 
             // It's already there. Delete the one that's already there.
             // (That way we can add it after, whether it was there originally or
@@ -825,7 +825,7 @@ bool Purse::SavePurse(
     }
 
     String strFinal;
-    OTASCIIArmor ascTemp(strRawFile);
+    Armored ascTemp(strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
@@ -908,7 +908,7 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
                          "generated key! Even though "
                          "m_bPasswordProtected is true.\n";
             else {
-                OTASCIIArmor ascCachedKey, ascSymmetricKey;
+                Armored ascCachedKey, ascSymmetricKey;
 
                 if (!m_pCachedKey->SerializeTo(ascCachedKey) ||
                     !ascCachedKey.Exists() ||
@@ -916,7 +916,7 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
                     !ascSymmetricKey.Exists())
                     otErr << __FUNCTION__
                           << ": Error: m_pCachedKey or m_pSymmetricKey failed "
-                             "trying to serialize to OTASCIIArmor.\n";
+                             "trying to serialize to Armored.\n";
                 else {
                     // ascInternalKey is good by this point.
                     // Therefore, let's serialize it...
@@ -1077,7 +1077,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        OTASCIIArmor ascValue;
+        Armored ascValue;
 
         if (!Contract::LoadEncodedTextField(xml, ascValue) ||
             !ascValue.Exists()) {
@@ -1154,7 +1154,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        OTASCIIArmor ascValue;
+        Armored ascValue;
 
         if (!Contract::LoadEncodedTextField(xml, ascValue) ||
             !ascValue.Exists()) {
@@ -1225,7 +1225,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (strNodeName.Compare("token")) {
-        OTASCIIArmor* pArmor = new OTASCIIArmor;
+        Armored* pArmor = new Armored;
         OT_ASSERT(nullptr != pArmor);
 
         if (!Contract::LoadEncodedTextField(xml, *pArmor) ||
@@ -1295,7 +1295,7 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
 
     // Grab a pointer to the first armored token on the deque.
     //
-    const OTASCIIArmor* pArmor = m_dequeTokens.front();
+    const Armored* pArmor = m_dequeTokens.front();
     // ---------------
     // Copy the token contents into an Envelope.
     OTEnvelope theEnvelope(*pArmor);
@@ -1359,7 +1359,7 @@ Token* Purse::Pop(OTNym_or_SymmetricKey theOwner)
     // Grab a pointer to the ascii-armored token, and remove it from the deque.
     // (And delete it.)
     //
-    OTASCIIArmor* pArmor = m_dequeTokens.front();
+    Armored* pArmor = m_dequeTokens.front();
     m_dequeTokens.pop_front();
     delete pArmor;
     pArmor = nullptr;
@@ -1396,7 +1396,7 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
     m_tEarliestValidTo = OT_TIME_ZERO;
 
     for (auto& it : m_dequeTokens) {
-        OTASCIIArmor* pArmor = it;
+        Armored* pArmor = it;
         OT_ASSERT(nullptr != pArmor);
 
         OTEnvelope theEnvelope(*pArmor);
@@ -1460,7 +1460,7 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
             theOwner.Seal_or_Encrypt(theEnvelope, strToken, &strDisplay);
 
         if (bSuccess) {
-            OTASCIIArmor* pArmor = new OTASCIIArmor(theEnvelope);
+            Armored* pArmor = new Armored(theEnvelope);
 
             m_dequeTokens.push_front(pArmor);
 
@@ -1524,7 +1524,7 @@ bool Purse::IsEmpty() const { return m_dequeTokens.empty(); }
 void Purse::ReleaseTokens()
 {
     while (!m_dequeTokens.empty()) {
-        OTASCIIArmor* pArmor = m_dequeTokens.front();
+        Armored* pArmor = m_dequeTokens.front();
         m_dequeTokens.pop_front();
         delete pArmor;
     }

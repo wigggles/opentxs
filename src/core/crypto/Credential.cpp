@@ -42,9 +42,9 @@
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
@@ -490,7 +490,7 @@ std::string Credential::asString(const bool asPrivate) const
     String stringCredential;
     credenial = Serialized(asPrivate, WITH_SIGNATURES);
     dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
-    OTASCIIArmor armoredCredential(dataCredential);
+    Armored armoredCredential(dataCredential);
     armoredCredential.WriteArmoredString(stringCredential, "Credential");
 
     return stringCredential.Get();
@@ -500,7 +500,7 @@ std::string Credential::asString(const bool asPrivate) const
 serializedCredential Credential::ExtractArmoredCredential(
     const String& stringCredential)
 {
-    OTASCIIArmor armoredCredential;
+    Armored armoredCredential;
     String strTemp(stringCredential);
     armoredCredential.LoadFromString(strTemp);
 
@@ -509,7 +509,7 @@ serializedCredential Credential::ExtractArmoredCredential(
 
 // static
 serializedCredential Credential::ExtractArmoredCredential(
-    const OTASCIIArmor& armoredCredential)
+    const Armored& armoredCredential)
 {
     auto dataCredential = Data::Factory(armoredCredential);
     serializedCredential serializedCred = std::make_shared<proto::Credential>();

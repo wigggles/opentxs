@@ -5,9 +5,9 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 
 #include <cstdio>
@@ -43,7 +43,7 @@ OTData Data::Factory(const void* data, std::size_t size)
     return OTData(new implementation::Data(data, size));
 }
 
-OTData Data::Factory(const OTASCIIArmor& source)
+OTData Data::Factory(const Armored& source)
 {
     return OTData(new implementation::Data(source));
 }
@@ -55,7 +55,7 @@ OTData Data::Factory(const std::vector<unsigned char>& source)
 
 namespace implementation
 {
-Data::Data(const OTASCIIArmor& source)
+Data::Data(const Armored& source)
 {
     if (source.Exists()) { source.GetData(*this); }
 }

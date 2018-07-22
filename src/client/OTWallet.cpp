@@ -15,7 +15,6 @@
 #include "opentxs/cash/Purse.hpp"
 #endif  // OT_CASH
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -23,6 +22,7 @@
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -215,7 +215,7 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
 
     // Name is in the clear in memory,
     // and base64 in storage.
-    OTASCIIArmor ascName;
+    Armored ascName;
 
     if (m_strName.Exists()) {
         ascName.SetString(m_strName, false);  // linebreaks == false
@@ -228,7 +228,7 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
 
     if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
-        OTASCIIArmor ascMasterContents;
+        Armored ascMasterContents;
 
         if (cachedKey.SerializeTo(ascMasterContents)) {
             tag.add_tag("cachedKey", ascMasterContents.Get());
@@ -284,7 +284,7 @@ bool OTWallet::save_wallet(const Lock& lock, const char* szFilename)
         // Try to save the wallet to local storage.
         //
         String strFinal;
-        OTASCIIArmor ascTemp(strContract);
+        Armored ascTemp(strContract);
 
         if (false ==
             ascTemp.WriteArmoredString(strFinal, "WALLET"))  // todo hardcoding.
@@ -424,8 +424,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     break;
                 case irr::io::EXN_ELEMENT: {
                     if (strNodeName.Compare("wallet")) {
-                        OTASCIIArmor ascWalletName =
-                            xml->getAttributeValue("name");
+                        Armored ascWalletName = xml->getAttributeValue("name");
 
                         if (ascWalletName.Exists())
                             ascWalletName.GetString(
@@ -441,7 +440,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otWarn << "\nLoading wallet: " << m_strName
                                << ", version: " << m_strVersion << "\n";
                     } else if (strNodeName.Compare("cachedKey")) {
-                        OTASCIIArmor ascCachedKey;
+                        Armored ascCachedKey;
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             // We successfully loaded the cachedKey from file,
@@ -464,8 +463,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otWarn << "Loading cachedKey:\n"
                                << ascCachedKey << "\n";
                     } else if (strNodeName.Compare("account")) {
-                        OTASCIIArmor ascAcctName =
-                            xml->getAttributeValue("name");
+                        Armored ascAcctName = xml->getAttributeValue("name");
 
                         if (ascAcctName.Exists())
                             ascAcctName.GetString(

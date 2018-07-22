@@ -29,7 +29,6 @@
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -40,6 +39,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -1767,7 +1767,7 @@ void OTClient::ProcessIncomingTransaction(
     String strTransaction;
     pTransaction->SaveContractRaw(strTransaction);
     String strFinal;
-    OTASCIIArmor ascTemp(strTransaction);
+    Armored ascTemp(strTransaction);
 
     // todo hardcoding.
     if (false == ascTemp.WriteArmoredString(strFinal, "TRANSACTION")) {
@@ -5339,7 +5339,7 @@ bool OTClient::processServerReplyProcessBox(
                 }
 
                 String strFinal;
-                OTASCIIArmor ascTemp(strTransaction);
+                Armored ascTemp(strTransaction);
 
                 if (false == ascTemp.WriteArmoredString(
                                  strFinal, "TRANSACTION"))  // todo hardcoding.

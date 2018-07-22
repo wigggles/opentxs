@@ -29,7 +29,7 @@ public:
     EXPORT virtual const OTCachedKey& CachedKey(
         const OTCachedKey& source) const = 0;
     EXPORT virtual const OTCachedKey& LoadDefaultKey(
-        const OTASCIIArmor& serialized) const = 0;
+        const Armored& serialized) const = 0;
     EXPORT virtual void SetTimeout(
         const std::chrono::seconds& timeout) const = 0;
     EXPORT virtual void SetSystemKeyring(const bool useKeyring) const = 0;

@@ -28,7 +28,7 @@ public:
     EXPORT const OTCachedKey& CachedKey(
         const OTCachedKey& source) const override;
     EXPORT const OTCachedKey& LoadDefaultKey(
-        const OTASCIIArmor& serialized) const override;
+        const Armored& serialized) const override;
     EXPORT void SetTimeout(const std::chrono::seconds& timeout) const override;
     EXPORT void SetSystemKeyring(const bool useKeyring) const override;
 

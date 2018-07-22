@@ -9,7 +9,12 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/cash/MintLucre.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -17,11 +22,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -129,13 +129,13 @@ bool Mint::Expired() const
 void Mint::ReleaseDenominations()
 {
     while (!m_mapPublic.empty()) {
-        OTASCIIArmor* pArmor = m_mapPublic.begin()->second;
+        Armored* pArmor = m_mapPublic.begin()->second;
         m_mapPublic.erase(m_mapPublic.begin());
         delete pArmor;
         pArmor = nullptr;
     }
     while (!m_mapPrivate.empty()) {
-        OTASCIIArmor* pArmor = m_mapPrivate.begin()->second;
+        Armored* pArmor = m_mapPrivate.begin()->second;
         m_mapPrivate.erase(m_mapPrivate.begin());
         delete pArmor;
         pArmor = nullptr;
@@ -377,7 +377,7 @@ bool Mint::SaveMint(const char* szAppend)
     }
 
     String strFinal;
-    OTASCIIArmor ascTemp(strRawFile);
+    Armored ascTemp(strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
@@ -460,10 +460,10 @@ bool Mint::VerifyContractID() const
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPrivate(OTASCIIArmor& theArmor, std::int64_t lDenomination)
+bool Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination)
 {
     for (auto& it : m_mapPrivate) {
-        OTASCIIArmor* pArmor = it.second;
+        Armored* pArmor = it.second;
         OT_ASSERT_MSG(
             nullptr != pArmor, "nullptr mint pointer in Mint::GetPrivate.\n");
         // if this denomination (say, 50) matches the one passed in
@@ -477,10 +477,10 @@ bool Mint::GetPrivate(OTASCIIArmor& theArmor, std::int64_t lDenomination)
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPublic(OTASCIIArmor& theArmor, std::int64_t lDenomination)
+bool Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination)
 {
     for (auto& it : m_mapPublic) {
-        OTASCIIArmor* pArmor = it.second;
+        Armored* pArmor = it.second;
         OT_ASSERT_MSG(
             nullptr != pArmor, "nullptr mint pointer in Mint::GetPublic.\n");
         // if this denomination (say, 50) matches the one passed in
@@ -523,7 +523,7 @@ std::int64_t Mint::GetDenomination(std::int32_t nIndex)
 
     for (auto it = m_mapPublic.begin(); it != m_mapPublic.end();
          ++it, nIterateIndex++) {
-        OTASCIIArmor* pArmor = it->second;
+        Armored* pArmor = it->second;
         OT_ASSERT_MSG(
             nullptr != pArmor,
             "nullptr mint pointer in Mint::GetDenomination.\n");
@@ -565,7 +565,7 @@ void Mint::UpdateContents()
                                          // SetSavePrivateKeys() to set it true.
 
             for (auto& it : m_mapPrivate) {
-                OTASCIIArmor* pArmor = it.second;
+                Armored* pArmor = it.second;
                 OT_ASSERT_MSG(
                     nullptr != pArmor,
                     "nullptr private mint pointer "
@@ -580,7 +580,7 @@ void Mint::UpdateContents()
             }
         }
         for (auto& it : m_mapPublic) {
-            OTASCIIArmor* pArmor = it.second;
+            Armored* pArmor = it.second;
             OT_ASSERT_MSG(
                 nullptr != pArmor,
                 "nullptr public mint pointer in Mint::UpdateContents.\n");
@@ -662,7 +662,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         std::int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 
-        OTASCIIArmor* pArmor = new OTASCIIArmor;
+        Armored* pArmor = new Armored;
 
         OT_ASSERT(nullptr != pArmor);
 
@@ -684,7 +684,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         std::int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 
-        OTASCIIArmor* pArmor = new OTASCIIArmor;
+        Armored* pArmor = new Armored;
 
         OT_ASSERT(nullptr != pArmor);
 

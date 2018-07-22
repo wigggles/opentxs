@@ -7,9 +7,9 @@
 
 #include "opentxs/core/Cheque.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
@@ -123,7 +123,7 @@ void Cheque::UpdateContents()
     tag.add_attribute("validTo", to);
 
     if (m_strMemo.Exists() && m_strMemo.GetLength() > 2) {
-        OTASCIIArmor ascMemo(m_strMemo);
+        Armored ascMemo(m_strMemo);
         tag.add_tag("memo", ascMemo.Get());
     }
 

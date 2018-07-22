@@ -723,7 +723,7 @@ public:
 
     EXPORT CommandResult queryInstrumentDefinitions(
         ServerContext& context,
-        const OTASCIIArmor& ENCODED_MAP) const;
+        const Armored& ENCODED_MAP) const;
 
     EXPORT CommandResult registerAccount(
         ServerContext& context,

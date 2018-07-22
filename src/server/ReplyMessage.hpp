@@ -18,7 +18,7 @@
 
 namespace opentxs
 {
-class OTASCIIArmor;
+class Armored;
 class ClientContext;
 class Message;
 
@@ -67,7 +67,7 @@ public:
     void SetOutboxHash(const Identifier& hash);
     bool SetPayload(const String& payload);
     bool SetPayload(const Data& payload);
-    void SetPayload(const OTASCIIArmor& payload);
+    void SetPayload(const Armored& payload);
     bool SetPayload2(const String& payload);
     bool SetPayload3(const String& payload);
     void SetRequestNumber(const RequestNumber number);

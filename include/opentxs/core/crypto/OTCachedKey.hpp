@@ -138,7 +138,7 @@ public:
         const char* szDisplay = nullptr,
         std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 
-    EXPORT explicit OTCachedKey(const OTASCIIArmor& ascCachedKey);
+    EXPORT explicit OTCachedKey(const Armored& ascCachedKey);
     EXPORT bool GetIdentifier(Identifier& theIdentifier) const;
     EXPORT bool GetIdentifier(String& strIdentifier) const;
     /** For Nyms, which have a global master key serving as their "passphrase"
@@ -163,7 +163,7 @@ public:
     EXPORT bool IsGenerated() const;
     EXPORT bool isPaused() const;
     EXPORT bool IsUsingSystemKeyring() const;
-    EXPORT bool SerializeTo(OTASCIIArmor& ascOutput) const;
+    EXPORT bool SerializeTo(Armored& ascOutput) const;
 
     /** GetMasterPassword USES the User Passphrase to decrypt the cached key and
      * return a decrypted plaintext of that cached symmetric key. Whereas
@@ -173,13 +173,13 @@ public:
     EXPORT bool ChangeUserPassphrase();
     EXPORT bool Pause();
     EXPORT void Reset();
-    EXPORT bool SerializeFrom(const OTASCIIArmor& ascInput);
+    EXPORT bool SerializeFrom(const Armored& ascInput);
     /* These two functions are used by the Server or OTWallet that
      * actually keeps the master key. The owner sets the master key pointer on
      * initialization, and then later when the password callback code in
      * crypto::key::Asymmetric needs to access the master key, it can use
      * GetMasterPassword to access it. */
-    EXPORT void SetCachedKey(const OTASCIIArmor& ascCachedKey);
+    EXPORT void SetCachedKey(const Armored& ascCachedKey);
     EXPORT void SetTimeoutSeconds(const std::int64_t nTimeoutSeconds);
     EXPORT void UseSystemKeyring(const bool bUsing = true);
     EXPORT bool Unpause();

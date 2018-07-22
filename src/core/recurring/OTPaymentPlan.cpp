@@ -12,12 +12,12 @@
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/recurring/OTAgreement.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
@@ -259,13 +259,13 @@ void OTPaymentPlan::UpdateContents()
 
     // OTAgreement
     if (m_strConsideration.Exists()) {
-        OTASCIIArmor ascTemp(m_strConsideration);
+        Armored ascTemp(m_strConsideration);
         tag.add_tag("consideration", ascTemp.Get());
     }
 
     // OTAgreement
     if (m_strMerchantSignedCopy.Exists()) {
-        OTASCIIArmor ascTemp(m_strMerchantSignedCopy);
+        Armored ascTemp(m_strMerchantSignedCopy);
         tag.add_tag("merchantSignedCopy", ascTemp.Get());
     }
 

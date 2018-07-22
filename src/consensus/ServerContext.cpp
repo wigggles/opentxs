@@ -10,7 +10,7 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
@@ -308,7 +308,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
 std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     InitializeServerCommand(
         const MessageType type,
-        const OTASCIIArmor& payload,
+        const Armored& payload,
         const Identifier& accountID,
         const RequestNumber provided,
         const bool withAcknowledgments,

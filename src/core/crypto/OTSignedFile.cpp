@@ -7,8 +7,8 @@
 
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -56,7 +56,7 @@ void OTSignedFile::UpdateContents()
     }
 
     if (m_strSignedFilePayload.Exists()) {
-        OTASCIIArmor ascPayload(m_strSignedFilePayload);
+        Armored ascPayload(m_strSignedFilePayload);
         tag.add_tag("filePayload", ascPayload.Get());
     }
 

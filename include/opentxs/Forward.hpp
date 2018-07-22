@@ -127,6 +127,7 @@ class ZMQ;
 namespace OTDB
 {
 class OfferListNym;
+class OTPacker;
 class TradeListMarket;
 }  // namespace OTDB
 
@@ -168,6 +169,7 @@ class ProfileSubsection;
 class Account;
 class AccountList;
 class AccountVisitor;
+class Armored;
 class Basket;
 class BasketContract;
 class BasketItem;
@@ -206,7 +208,6 @@ class NymParameters;
 class OT;
 class OT_API;
 class OTAPI_Exec;
-class OTASCIIArmor;
 class OTCachedKey;
 class OTCallback;
 class OTCaller;
@@ -253,6 +254,7 @@ class Token;
 class TransactionStatement;
 class UnitDefinition;
 
+using OTArmored = Pimpl<Armored>;
 using OTAsymmetricKey = Pimpl<crypto::key::Asymmetric>;
 using OTData = Pimpl<Data>;
 using OTKeypair = Pimpl<crypto::key::Keypair>;
@@ -261,6 +263,7 @@ using OTIdentifier = Pimpl<Identifier>;
 using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTString = Pimpl<String>;
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQDealerSocket = Pimpl<network::zeromq::DealerSocket>;

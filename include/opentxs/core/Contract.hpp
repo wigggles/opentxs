@@ -126,13 +126,13 @@ public:
         const listOfSignatures& listSignatures);
     EXPORT static bool LoadEncodedTextField(
         irr::io::IrrXMLReader*& xml,
-        OTASCIIArmor& ascOutput);
+        Armored& ascOutput);
     EXPORT static bool LoadEncodedTextField(
         irr::io::IrrXMLReader*& xml,
         String& strOutput);
     static bool LoadEncodedTextFieldByName(
         irr::io::IrrXMLReader*& xml,
-        OTASCIIArmor& ascOutput,
+        Armored& ascOutput,
         const char* szName,
         String::Map* pmapExtraVars = nullptr);
     static bool LoadEncodedTextFieldByName(

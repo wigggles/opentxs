@@ -7,8 +7,8 @@
 
 #include "opentxs/consensus/TransactionStatement.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -132,7 +132,7 @@ TransactionStatement::operator String() const
         NumList issuedList(issued_);
         String issued;
         issuedList.Output(issued);
-        TagPtr issuedTag(new Tag("issuedNums", OTASCIIArmor(issued).Get()));
+        TagPtr issuedTag(new Tag("issuedNums", Armored(issued).Get()));
         issuedTag->add_attribute("notaryID", notary_);
         serialized.add_tag(issuedTag);
     }
@@ -142,7 +142,7 @@ TransactionStatement::operator String() const
         String available;
         availableList.Output(available);
         TagPtr availableTag(
-            new Tag("transactionNums", OTASCIIArmor(available).Get()));
+            new Tag("transactionNums", Armored(available).Get()));
         availableTag->add_attribute("notaryID", notary_);
         serialized.add_tag(availableTag);
     }

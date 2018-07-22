@@ -23,12 +23,12 @@ class OTEnvelope
 {
 public:
     EXPORT OTEnvelope();
-    EXPORT explicit OTEnvelope(const OTASCIIArmor& theArmoredText);
+    EXPORT explicit OTEnvelope(const Armored& theArmoredText);
 
     /** Retrieve ciphertext in ascii armored form */
-    EXPORT bool GetCiphertext(OTASCIIArmor& theArmoredText) const;
+    EXPORT bool GetCiphertext(Armored& theArmoredText) const;
     /** Load ascii armored ciphertext */
-    EXPORT bool SetCiphertext(const OTASCIIArmor& theArmoredText);
+    EXPORT bool SetCiphertext(const Armored& theArmoredText);
 
     EXPORT bool Encrypt(
         const String& theInput,

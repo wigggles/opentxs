@@ -36,7 +36,7 @@ namespace opentxs
 // The interface of this class is that of a simple stack. Imagine a stack of
 // poker chips.
 
-typedef std::deque<OTASCIIArmor*> dequeOfTokens;
+typedef std::deque<Armored*> dequeOfTokens;
 
 class Purse : public Contract
 {

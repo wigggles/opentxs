@@ -161,7 +161,7 @@ extern OTDB::mapOfFunctions* pFunctionMap;  // This is a pointer so I can
                                             // control
                                             // what order it is created in, on
                                             // startup.
-}
+}  // namespace details
 
 // All of the class hierarchy under Storable is based on OT data design. (Not
 // packing and such implementation details.)
@@ -492,7 +492,7 @@ public:
         const std::string& oneStr = "",
         const std::string& twoStr = "",
         const std::string& threeStr = "");
-    // Store/Retrieve a Storable object inside an OTASCIIArmor object.
+    // Store/Retrieve a Storable object inside an Armored object.
 
     EXPORT std::string EncodeObject(Storable& theContents);
 
@@ -617,7 +617,7 @@ EXPORT Storable* QueryObject(
     const std::string& twoStr = "",
     const std::string& threeStr = "");
 
-// Store/Retrieve a Storable object inside an OTASCIIArmor object.
+// Store/Retrieve a Storable object inside an Armored object.
 EXPORT std::string EncodeObject(Storable& theContents);
 
 // Use %newobject OTDB::Storage::DecodeObject();

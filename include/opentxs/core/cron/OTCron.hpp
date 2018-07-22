@@ -115,11 +115,9 @@ public:
         const std::int64_t& lScale);
     /** This is informational only. It returns OTStorage-type data objects,
      * packed in a string. */
-    EXPORT bool GetMarketList(
-        OTASCIIArmor& ascOutput,
-        std::int32_t& nMarketCount);
+    EXPORT bool GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount);
     EXPORT bool GetNym_OfferList(
-        OTASCIIArmor& ascOutput,
+        Armored& ascOutput,
         const Identifier& NYM_ID,
         std::int32_t& nOfferCount);
     // TRANSACTION NUMBERS

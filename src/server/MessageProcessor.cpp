@@ -8,8 +8,8 @@
 #include "MessageProcessor.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
@@ -118,7 +118,7 @@ bool MessageProcessor::processMessage(
 {
     if (messageString.size() < 1) { return true; }
 
-    OTASCIIArmor armored;
+    Armored armored;
     armored.MemSet(messageString.data(), messageString.size());
     String serialized;
     armored.GetString(serialized);
@@ -162,7 +162,7 @@ bool MessageProcessor::processMessage(
         return true;
     }
 
-    OTASCIIArmor armoredReply(serializedReply);
+    Armored armoredReply(serializedReply);
 
     if (false == armoredReply.Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to armor reply."

@@ -11,11 +11,11 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -148,8 +148,8 @@ bool LegacySymmetric::Decrypt(
         return false;
     }
 
-    OTASCIIArmor ascArmor;
-    const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
+    Armored ascArmor;
+    const bool bLoadedArmor = Armored::LoadFromString(
         ascArmor, strCiphertext);  // str_bookend="-----BEGIN" by default
 
     if (!bLoadedArmor || !ascArmor.Exists()) {
@@ -266,7 +266,7 @@ bool LegacySymmetric::Encrypt(
     } else
         pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
-    OTASCIIArmor ascOutput;
+    Armored ascOutput;
     bool bSuccess = false;
 
     if (nullptr != pPassUserInput)  // Success retrieving the passphrase from
@@ -1104,9 +1104,7 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     return true;
 }
 
-bool LegacySymmetric::serialize_from(
-    const Lock& lock,
-    const OTASCIIArmor& ascInput)
+bool LegacySymmetric::serialize_from(const Lock& lock, const Armored& ascInput)
 {
     auto theInput = Data::Factory();
 
@@ -1125,7 +1123,7 @@ bool LegacySymmetric::SerializeFrom(Data& theInput)
     return serialize_from(lock, theInput);
 }
 
-bool LegacySymmetric::SerializeFrom(const OTASCIIArmor& ascInput)
+bool LegacySymmetric::SerializeFrom(const Armored& ascInput)
 {
     Lock lock(lock_);
 
@@ -1135,7 +1133,7 @@ bool LegacySymmetric::SerializeFrom(const OTASCIIArmor& ascInput)
 bool LegacySymmetric::SerializeFrom(const String& strInput, bool bEscaped)
 {
     Lock lock(lock_);
-    OTASCIIArmor ascInput;
+    Armored ascInput;
 
     if (strInput.Exists() && ascInput.LoadFromString(
                                  const_cast<String&>(strInput),
@@ -1147,8 +1145,7 @@ bool LegacySymmetric::SerializeFrom(const String& strInput, bool bEscaped)
     return false;
 }
 
-bool LegacySymmetric::serialize_to(const Lock& lock, OTASCIIArmor& ascOutput)
-    const
+bool LegacySymmetric::serialize_to(const Lock& lock, Armored& ascOutput) const
 {
     auto theOutput = Data::Factory();
 
@@ -1241,7 +1238,7 @@ bool LegacySymmetric::SerializeTo(Data& theOutput) const
     return serialize_to(lock, theOutput);
 }
 
-bool LegacySymmetric::SerializeTo(OTASCIIArmor& ascOutput) const
+bool LegacySymmetric::SerializeTo(Armored& ascOutput) const
 {
     Lock lock(lock_);
 
@@ -1251,7 +1248,7 @@ bool LegacySymmetric::SerializeTo(OTASCIIArmor& ascOutput) const
 bool LegacySymmetric::SerializeTo(String& strOutput, bool bEscaped) const
 {
     Lock lock(lock_);
-    OTASCIIArmor ascOutput;
+    Armored ascOutput;
 
     if (serialize_to(lock, ascOutput))
 

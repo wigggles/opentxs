@@ -19,9 +19,9 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -184,7 +184,7 @@ bool OTKeyring::Windows_StoreSecret(
         otErr << __FUNCTION__
               << ": Error: Output of Win32 CryptProtectData was empty.\n";
     } else {
-        OTASCIIArmor ascData(theOutput);
+        Armored ascData(theOutput);
         const OTString strFoldername("win32_data");  // todo hardcoding.
 
         if (ascData.Exists())
@@ -206,7 +206,7 @@ bool OTKeyring::Windows_RetrieveSecret(
     OT_ASSERT(strUser.Exists());
 
     OTString strFoldername("win32_data");  // todo hardcoding.
-    OTASCIIArmor ascFileContents;
+    Armored ascFileContents;
     bool bLoaded =
         (strFoldername.Exists() &&
          ascFileContents.LoadFromFile(strFoldername, strUser) &&
@@ -226,7 +226,7 @@ bool OTKeyring::Windows_RetrieveSecret(
     if (theCipherblob.IsEmpty()) {
         otErr << __FUNCTION__
               << ": Error: Data is empty after decoding "
-                 "OTASCIIArmor (that wasn't empty.)\n";
+                 "Armored (that wasn't empty.)\n";
     } else {
         DATA_BLOB input;
         input.pbData = const_cast<BYTE*>(
@@ -687,7 +687,7 @@ bool OTKeyring::Gnome_StoreSecret(
     OT_ASSERT(thePassword.getMemorySize() > 0);
 
     Data theData(thePassword.getMemory(), thePassword.getMemorySize());
-    OTASCIIArmor ascData(theData);
+    Armored ascData(theData);
     theData.zeroMemory();  // security reasons.
 
     OTString strOutput;
@@ -832,7 +832,7 @@ bool OTKeyring::Gnome_RetrieveSecret(
             gnome_keyring_free_password(gchar_p_password);
             gchar_p_password = nullptr;
 
-            OTASCIIArmor ascData;
+            Armored ascData;
             const bool bLoaded =
                 strData.Exists() && ascData.LoadFromString(strData);
             strData.zeroMemory();
@@ -848,7 +848,7 @@ bool OTKeyring::Gnome_RetrieveSecret(
                 if (thePayload.IsEmpty())
                     otErr << __FUNCTION__
                           << ": Failed trying to decode secret "
-                             "Data from OTASCIIArmor "
+                             "Data from Armored "
                           << "from Gnome Keyring contents:\n\n"
                           << strData.Get() << "\n\n";
                 else {
@@ -1021,7 +1021,7 @@ bool OTKeyring::KWallet_StoreSecret(
         const QString qstrKey(strUser.Get());
 
         Data theData(thePassword.getMemory(), thePassword.getMemorySize());
-        OTASCIIArmor ascData(theData);
+        Armored ascData(theData);
         theData.zeroMemory();  // security reasons.
 
         OTString strOutput;
@@ -1076,7 +1076,7 @@ bool OTKeyring::KWallet_RetrieveSecret(
                                         // isn't zero'd here.
 
             OTString strData(str_password);
-            OTASCIIArmor ascData;
+            Armored ascData;
 
             const bool bLoaded =
                 strData.Exists() && ascData.LoadFromString(strData);
@@ -1092,7 +1092,7 @@ bool OTKeyring::KWallet_RetrieveSecret(
                 if (thePayload.IsEmpty())
                     otErr << __FUNCTION__
                           << ": Failed trying to decode secret "
-                             "Data from OTASCIIArmor from "
+                             "Data from Armored from "
                              "KWallet contents.\n";
                 else {
                     thePassword.setMemory(
@@ -1183,7 +1183,7 @@ bool OTKeyring::FlatFile_StoreSecret(
         const std::string str_ExactPath(strExactPath.Get());
 
         Data theData(thePassword.getMemory(), thePassword.getMemorySize());
-        OTASCIIArmor ascData(theData);
+        Armored ascData(theData);
         theData.zeroMemory();  // security reasons.
 
         // Save the password
@@ -1224,7 +1224,7 @@ bool OTKeyring::FlatFile_RetrieveSecret(
 
         // Get the password
         //
-        OTASCIIArmor ascData;
+        Armored ascData;
 
         if (!ascData.LoadFromExactPath(str_ExactPath))
             otErr << "OTKeyring::FlatFile_RetrieveSecret: "
@@ -1236,7 +1236,7 @@ bool OTKeyring::FlatFile_RetrieveSecret(
             if (thePayload.IsEmpty())
                 otErr << __FUNCTION__
                       << ": Failed trying to decode secret "
-                         "Data from OTASCIIArmor from "
+                         "Data from Armored from "
                          "flat file contents.\n";
             else {
                 thePassword.setMemory(

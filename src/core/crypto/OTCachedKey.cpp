@@ -9,11 +9,11 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTKeyring.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
@@ -53,7 +53,7 @@ OTCachedKey::OTCachedKey(const std::int32_t nTimeoutSeconds)
 {
 }
 
-OTCachedKey::OTCachedKey(const OTASCIIArmor& ascCachedKey)
+OTCachedKey::OTCachedKey(const Armored& ascCachedKey)
     : OTCachedKey(OT_MASTER_KEY_TIMEOUT)
 {
     OT_ASSERT(ascCachedKey.Exists());
@@ -737,7 +737,7 @@ void OTCachedKey::reset_master_password()
 
 // Apparently SerializeFrom (as of this writing) is only used in OTEnvelope.cpp
 // whereas SetCachedKey (above) is used in OTWallet and Server.
-bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
+bool OTCachedKey::SerializeFrom(const Armored& ascInput)
 {
     Lock lock(general_lock_);
 
@@ -746,7 +746,7 @@ bool OTCachedKey::SerializeFrom(const OTASCIIArmor& ascInput)
     return false;
 }
 
-bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput) const
+bool OTCachedKey::SerializeTo(Armored& ascOutput) const
 {
     Lock lock(general_lock_);
 
@@ -755,7 +755,7 @@ bool OTCachedKey::SerializeTo(OTASCIIArmor& ascOutput) const
     return false;
 }
 
-void OTCachedKey::SetCachedKey(const OTASCIIArmor& ascCachedKey)
+void OTCachedKey::SetCachedKey(const Armored& ascCachedKey)
 {
     Lock lock(general_lock_);
 

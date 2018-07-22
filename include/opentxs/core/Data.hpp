@@ -46,7 +46,7 @@ public:
     EXPORT static Pimpl<opentxs::Data> Factory(
         const void* data,
         std::size_t size);
-    EXPORT static OTData Factory(const OTASCIIArmor& source);
+    EXPORT static OTData Factory(const Armored& source);
     EXPORT static OTData Factory(const std::vector<unsigned char>& source);
 #endif
 

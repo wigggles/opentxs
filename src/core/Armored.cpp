@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -29,9 +29,10 @@
 #include <stdexcept>
 #include <string>
 
+template class opentxs::Pimpl<opentxs::Armored>;
+
 namespace opentxs
 {
-
 const char* OT_BEGIN_ARMORED = "-----BEGIN OT ARMORED";
 const char* OT_END_ARMORED = "-----END OT ARMORED";
 
@@ -41,23 +42,8 @@ const char* OT_END_ARMORED_escaped = "- -----END OT ARMORED";
 const char* OT_BEGIN_SIGNED = "-----BEGIN SIGNED";
 const char* OT_BEGIN_SIGNED_escaped = "- -----BEGIN SIGNED";
 
-// Let's say you don't know if the input string is raw base64, or if it has
-// bookends
-// on it like -----BEGIN BLAH BLAH ...
-// And if it DOES have Bookends, you don't know if they are escaped:  -
-// -----BEGIN ...
-// Let's say you just want an easy function that will figure that crap out, and
-// load the
-// contents up properly into an OTASCIIArmor object. (That's what this function
-// will do.)
-//
-// str_bookend is a default.
-// So you could make it more specific like, -----BEGIN ENCRYPTED KEY (or
-// whatever.)
-//
-// static
-bool OTASCIIArmor::LoadFromString(
-    OTASCIIArmor& ascArmor,
+bool Armored::LoadFromString(
+    Armored& ascArmor,
     const String& strInput,
     std::string str_bookend)
 {
@@ -76,9 +62,7 @@ bool OTASCIIArmor::LoadFromString(
                                                               // have JUST the
                                                               // coded part.
         {
-            //          otErr << "%s: Failure loading string into OTASCIIArmor
-            // object:\n\n%s\n\n",
-            //                        __FUNCTION__, strInput.Get());
+
             return false;
         }
     } else
@@ -86,56 +70,59 @@ bool OTASCIIArmor::LoadFromString(
 
     return true;
 }
+}  // namespace opentxs
 
+namespace opentxs
+{
 // initializes blank.
-OTASCIIArmor::OTASCIIArmor()
+Armored::Armored()
     : String()
 {
 }
 
 // encodes
-OTASCIIArmor::OTASCIIArmor(const String& strValue)
-    : String(/*Don't pass here, since we're encoding.*/)
+Armored::Armored(const String& strValue)
+    : Armored()
 {
     SetString(strValue);
 }
 
 // encodes
-OTASCIIArmor::OTASCIIArmor(const Data& theValue)
-    : String()
+Armored::Armored(const Data& theValue)
+    : Armored()
 {
     SetData(theValue);
 }
 
-// Copies (already encoded)
-OTASCIIArmor::OTASCIIArmor(const OTASCIIArmor& strValue)
-    : String(dynamic_cast<const String&>(strValue))
-{
-}
-
-// assumes envelope contains encrypted data;
-// grabs that data in base64-form onto *this.
-OTASCIIArmor::OTASCIIArmor(const OTEnvelope& theEnvelope)
-    : String()
+// assumes envelope contains encrypted data; grabs that data in base64-form onto
+// *this.
+Armored::Armored(const OTEnvelope& theEnvelope)
+    : Armored()
 {
     theEnvelope.GetCiphertext(*this);
 }
 
 // copies (already encoded)
-OTASCIIArmor::OTASCIIArmor(const char* szValue)
+Armored::Armored(const char* szValue)
     : String(szValue)
 {
 }
 
+// Copies (already encoded)
+Armored::Armored(const Armored& strValue)
+    : String(dynamic_cast<const String&>(strValue))
+{
+}
+
 // copies, assumes already encoded.
-OTASCIIArmor& OTASCIIArmor::operator=(const char* szValue)
+Armored& Armored::operator=(const char* szValue)
 {
     Set(szValue);
     return *this;
 }
 
 // encodes
-OTASCIIArmor& OTASCIIArmor::operator=(const String& strValue)
+Armored& Armored::operator=(const String& strValue)
 {
     if ((&strValue) != (&(dynamic_cast<const String&>(*this)))) {
         SetString(strValue);
@@ -144,14 +131,14 @@ OTASCIIArmor& OTASCIIArmor::operator=(const String& strValue)
 }
 
 // encodes
-OTASCIIArmor& OTASCIIArmor::operator=(const Data& theValue)
+Armored& Armored::operator=(const Data& theValue)
 {
     SetData(theValue);
     return *this;
 }
 
 // assumes is already encoded and just copies the encoded text
-OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
+Armored& Armored::operator=(const Armored& strValue)
 {
     if ((&strValue) != this)  // prevent self-assignment
     {
@@ -160,11 +147,12 @@ OTASCIIArmor& OTASCIIArmor::operator=(const OTASCIIArmor& strValue)
     return *this;
 }
 
-// Source for these two functions: http://panthema.net/2007/0328-ZLibString.html
+Armored* Armored::clone() const { return new Armored(*this); }
 
+// Source for these two functions: http://panthema.net/2007/0328-ZLibString.html
 /** Compress a STL string using zlib with given compression level and return
  * the binary data. */
-std::string OTASCIIArmor::compress_string(
+std::string Armored::compress_string(
     const std::string& str,
     std::int32_t compressionlevel = Z_BEST_COMPRESSION) const
 {
@@ -206,7 +194,7 @@ std::string OTASCIIArmor::compress_string(
 }
 
 /** Decompress an STL string using zlib and return the original data. */
-std::string OTASCIIArmor::decompress_string(const std::string& str) const
+std::string Armored::decompress_string(const std::string& str) const
 {
     z_stream zs;  // z_stream is zlib's control structure
     memset(&zs, 0, sizeof(zs));
@@ -247,9 +235,8 @@ std::string OTASCIIArmor::decompress_string(const std::string& str) const
 }
 
 // Base64-decode
-bool OTASCIIArmor::GetData(
-    Data& theData,
-    bool bLineBreaks) const  // linebreaks=true
+bool Armored::GetData(Data& theData,
+                      bool bLineBreaks) const  // linebreaks=true
 {
     theData.Release();
 
@@ -263,28 +250,8 @@ bool OTASCIIArmor::GetData(
     return (0 < decoded.size());
 }
 
-// Base64-encode
-bool OTASCIIArmor::SetData(const Data& theData, bool bLineBreaks)
-{
-    Release();
-
-    if (theData.GetSize() < 1) return true;
-
-    auto string = OT::App().Crypto().Encode().DataEncode(theData);
-
-    if (string.empty()) {
-        otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;
-
-        return false;
-    }
-
-    Set(string.data(), string.size());
-
-    return true;
-}
-
 // Base64-decode and decompress
-bool OTASCIIArmor::GetString(String& strData, bool bLineBreaks) const
+bool Armored::GetString(String& strData, bool bLineBreaks) const
 {
     strData.Release();
 
@@ -312,84 +279,9 @@ bool OTASCIIArmor::GetString(String& strData, bool bLineBreaks) const
     return true;
 }
 
-// Compress and Base64-encode
-bool OTASCIIArmor::SetString(const String& strData, bool bLineBreaks)  //=true
-{
-    Release();
-
-    if (strData.GetLength() < 1) return true;
-
-    std::string str_compressed = compress_string(strData.Get());
-
-    // "Success"
-    if (str_compressed.size() == 0) {
-        otErr << "OTASCIIArmor::" << __FUNCTION__ << ": compression failed."
-              << std::endl;
-
-        return false;
-    }
-
-    auto pString = OT::App().Crypto().Encode().DataEncode(str_compressed);
-
-    if (pString.empty()) {
-        otErr << "OTASCIIArmor::" << __FUNCTION__ << ": Base64Encode failed."
-              << std::endl;
-
-        return false;
-    }
-
-    Set(pString.data(), pString.size());
-
-    return true;
-}
-
 // This code reads up the file, discards the bookends, and saves only the
 // gibberish itself.
-bool OTASCIIArmor::LoadFromFile(
-    const String& foldername,
-    const String& filename)
-{
-    OT_ASSERT(foldername.Exists());
-    OT_ASSERT(filename.Exists());
-
-    if (!OTDB::Exists(foldername.Get(), filename.Get())) {
-        otErr << "OTASCIIArmor::LoadFromFile: File does not exist: "
-              << foldername << "" << Log::PathSeparator() << "" << filename
-              << "\n";
-        return false;
-    }
-
-    String strFileContents(
-        OTDB::QueryPlainString(foldername.Get(), filename.Get()));  // <===
-                                                                    // LOADING
-                                                                    // FROM DATA
-                                                                    // STORE.
-
-    if (strFileContents.GetLength() < 2) {
-        otErr << "OTASCIIArmor::LoadFromFile: Error reading file: "
-              << foldername << Log::PathSeparator() << filename << "\n";
-        return false;
-    }
-
-    return LoadFromString(strFileContents);
-}
-
-bool OTASCIIArmor::LoadFromExactPath(const std::string& filename)
-{
-    std::ifstream fin(filename.c_str(), std::ios::binary);
-
-    if (!fin.is_open()) {
-        otWarn << "OTASCIIArmor::LoadFromExactPath: Failed opening file: "
-               << filename << "\n";
-        return false;
-    }
-
-    return LoadFrom_ifstream(fin);
-}
-
-// This code reads up the file, discards the bookends, and saves only the
-// gibberish itself.
-bool OTASCIIArmor::LoadFrom_ifstream(std::ifstream& fin)
+bool Armored::LoadFrom_ifstream(std::ifstream& fin)
 {
     std::stringstream buffer;
     buffer << fin.rdbuf();
@@ -402,136 +294,51 @@ bool OTASCIIArmor::LoadFrom_ifstream(std::ifstream& fin)
     return LoadFromString(theString);
 }
 
-bool OTASCIIArmor::SaveToExactPath(const std::string& filename)
+bool Armored::LoadFromExactPath(const std::string& filename)
 {
-    std::ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
+    std::ifstream fin(filename.c_str(), std::ios::binary);
 
-    if (!fout.is_open()) {
-        otWarn << "OTASCIIArmor::SaveToExactPath: Failed opening file: "
+    if (!fin.is_open()) {
+        otWarn << "Armored::LoadFromExactPath: Failed opening file: "
                << filename << "\n";
         return false;
     }
 
-    return SaveTo_ofstream(fout);
+    return LoadFrom_ifstream(fin);
 }
 
-bool OTASCIIArmor::SaveTo_ofstream(std::ofstream& fout)
-{
-    String strOutput;
-    std::string str_type("DATA");  // -----BEGIN OT ARMORED DATA-----
-
-    if (WriteArmoredString(strOutput, str_type) && strOutput.Exists()) {
-        // WRITE IT TO THE FILE
-        //
-        fout << strOutput;
-
-        if (fout.fail()) {
-            otErr << __FUNCTION__ << ": Failed saving to file.\n Contents:\n\n"
-                  << strOutput << "\n\n";
-            return false;
-        }
-
-        return true;
-    }
-
-    return false;
-}
-
-// const char * OT_BEGIN_ARMORED   = "-----BEGIN OT ARMORED";
-// const char * OT_END_ARMORED     =   "-----END OT ARMORED";
-
-bool OTASCIIArmor::WriteArmoredFile(
-    const String& foldername,
-    const String& filename,
-    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
-    std::string str_type,  // There's no default, to force you to enter the
-                           // right
-                           // string.
-    bool bEscaped) const
+// This code reads up the file, discards the bookends, and saves only the
+// gibberish itself.
+bool Armored::LoadFromFile(const String& foldername, const String& filename)
 {
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
 
-    String strOutput;
-
-    if (WriteArmoredString(strOutput, str_type, bEscaped) &&
-        strOutput.Exists()) {
-        // WRITE IT TO THE FILE
-        // StorePlainString will attempt to create all the folders leading up to
-        // the path
-        // for the output file.
-        //
-        bool bSaved = OTDB::StorePlainString(
-            strOutput.Get(), foldername.Get(), filename.Get());
-
-        if (!bSaved) {
-            otErr << "OTASCIIArmor::WriteArmoredFile"
-                  << ": Failed saving to file: %s%s%s\n\n Contents:\n\n"
-                  << strOutput << "\n\n",
-                foldername.Get(), Log::PathSeparator(), filename.Get();
-            return false;
-        }
-
-        return true;
+    if (!OTDB::Exists(foldername.Get(), filename.Get())) {
+        otErr << "Armored::LoadFromFile: File does not exist: " << foldername
+              << "" << Log::PathSeparator() << "" << filename << "\n";
+        return false;
     }
 
-    return false;
+    String strFileContents(
+        OTDB::QueryPlainString(foldername.Get(), filename.Get()));  // <===
+                                                                    // LOADING
+                                                                    // FROM DATA
+                                                                    // STORE.
+
+    if (strFileContents.GetLength() < 2) {
+        otErr << "Armored::LoadFromFile: Error reading file: " << foldername
+              << Log::PathSeparator() << filename << "\n";
+        return false;
+    }
+
+    return LoadFromString(strFileContents);
 }
 
-// const char * OT_BEGIN_ARMORED   = "-----BEGIN OT ARMORED";
-// const char * OT_END_ARMORED     =   "-----END OT ARMORED";
-
-bool OTASCIIArmor::WriteArmoredString(
-    String& strOutput,
-    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
-    std::string str_type,  // There's no default, to force you to enter the
-                           // right
-                           // string.
-    bool bEscaped) const
-{
-    const char* szEscape = "- ";
-
-    String strTemp;
-    strTemp.Format(
-        "%s%s %s-----\n"  // "%s-----BEGIN OT ARMORED %s-----\n"
-        "Version: Open Transactions %s\n"
-        "Comment: "
-        "http://opentransactions.org\n\n"  // todo
-        // hardcoding.
-        "%s\n"
-        "%s%s %s-----\n\n",  // "%s-----END OT ARMORED %s-----\n"
-        bEscaped ? szEscape : "",
-        OT_BEGIN_ARMORED,
-        str_type.c_str(),  // "%s%s %s-----\n"
-        Log::Version(),    // "Version: Open Transactions %s\n"
-        /* No variable */  // "Comment:
-        // http://github.com/FellowTraveler/Open-Transactions/wiki\n\n",
-        Get(),  //  "%s"     <==== CONTENTS OF THIS OBJECT BEING
-                // WRITTEN...
-        bEscaped ? szEscape : "",
-        OT_END_ARMORED,
-        str_type.c_str());  // "%s%s %s-----\n"
-
-    strOutput.Concatenate("%s", strTemp.Get());
-
-    return true;
-}
-
-// This code reads up the string, discards the bookends, and saves only the
-// gibberish itself.
-// the bEscaped option allows you to load a normal ASCII-Armored file if off,
-// and allows
-// you to load an escaped ASCII-armored file (such as inside the contracts when
-// the public keys
-// are escaped with a "- " before the rest of the ------- starts.)
-//
-bool OTASCIIArmor::LoadFromString(
+bool Armored::LoadFromString(
     String& theStr,  // input
     bool bEscaped,
-    const  // This szOverride sub-string determines
-    // where the content starts, when loading.
-    std::string str_override)  // Default is
-                               // "-----BEGIN"
+    const std::string str_override)
 {
     // Should never be 0 size, as default is "-----BEGIN"
     // But if you want to load a private key, try "-----BEGIN ENCRYPTED PRIVATE"
@@ -636,20 +443,177 @@ bool OTASCIIArmor::LoadFromString(
     theStr.reset();
 
     if (!bHaveEnteredContentMode) {
-        otErr << "Error in OTASCIIArmor::LoadFromString: EOF before "
+        otErr << "Error in Armored::LoadFromString: EOF before "
                  "ascii-armored "
                  "content found, in:\n\n"
               << theStr << "\n\n";
         return false;
     } else if (bContentMode) {
-        otErr
-            << "Error in OTASCIIArmor::LoadFromString: EOF while still reading "
-               "content, in:\n\n"
-            << theStr << "\n\n";
+        otErr << "Error in Armored::LoadFromString: EOF while still reading "
+                 "content, in:\n\n"
+              << theStr << "\n\n";
         return false;
     } else
         return true;
 }
 
-OTASCIIArmor::~OTASCIIArmor() {}
+// Base64-encode
+bool Armored::SetData(const Data& theData, bool bLineBreaks)
+{
+    Release();
+
+    if (theData.GetSize() < 1) return true;
+
+    auto string = OT::App().Crypto().Encode().DataEncode(theData);
+
+    if (string.empty()) {
+        otErr << __FUNCTION__ << "Base64Encode failed" << std::endl;
+
+        return false;
+    }
+
+    Set(string.data(), string.size());
+
+    return true;
+}
+
+bool Armored::SaveTo_ofstream(std::ofstream& fout)
+{
+    String strOutput;
+    std::string str_type("DATA");  // -----BEGIN OT ARMORED DATA-----
+
+    if (WriteArmoredString(strOutput, str_type) && strOutput.Exists()) {
+        // WRITE IT TO THE FILE
+        //
+        fout << strOutput;
+
+        if (fout.fail()) {
+            otErr << __FUNCTION__ << ": Failed saving to file.\n Contents:\n\n"
+                  << strOutput << "\n\n";
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool Armored::SaveToExactPath(const std::string& filename)
+{
+    std::ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
+
+    if (!fout.is_open()) {
+        otWarn << "Armored::SaveToExactPath: Failed opening file: " << filename
+               << "\n";
+        return false;
+    }
+
+    return SaveTo_ofstream(fout);
+}
+
+// Compress and Base64-encode
+bool Armored::SetString(const String& strData, bool bLineBreaks)  //=true
+{
+    Release();
+
+    if (strData.GetLength() < 1) return true;
+
+    std::string str_compressed = compress_string(strData.Get());
+
+    // "Success"
+    if (str_compressed.size() == 0) {
+        otErr << "Armored::" << __FUNCTION__ << ": compression failed."
+              << std::endl;
+
+        return false;
+    }
+
+    auto pString = OT::App().Crypto().Encode().DataEncode(str_compressed);
+
+    if (pString.empty()) {
+        otErr << "Armored::" << __FUNCTION__ << ": Base64Encode failed."
+              << std::endl;
+
+        return false;
+    }
+
+    Set(pString.data(), pString.size());
+
+    return true;
+}
+
+bool Armored::WriteArmoredFile(
+    const String& foldername,
+    const String& filename,
+    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
+    std::string str_type,  // There's no default, to force you to enter the
+                           // right
+                           // string.
+    bool bEscaped) const
+{
+    OT_ASSERT(foldername.Exists());
+    OT_ASSERT(filename.Exists());
+
+    String strOutput;
+
+    if (WriteArmoredString(strOutput, str_type, bEscaped) &&
+        strOutput.Exists()) {
+        // WRITE IT TO THE FILE
+        // StorePlainString will attempt to create all the folders leading up to
+        // the path
+        // for the output file.
+        //
+        bool bSaved = OTDB::StorePlainString(
+            strOutput.Get(), foldername.Get(), filename.Get());
+
+        if (!bSaved) {
+            otErr << "Armored::WriteArmoredFile"
+                  << ": Failed saving to file: %s%s%s\n\n Contents:\n\n"
+                  << strOutput << "\n\n",
+                foldername.Get(), Log::PathSeparator(), filename.Get();
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+bool Armored::WriteArmoredString(
+    String& strOutput,
+    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
+    std::string str_type,  // There's no default, to force you to enter the
+                           // right
+                           // string.
+    bool bEscaped) const
+{
+    const char* szEscape = "- ";
+
+    String strTemp;
+    strTemp.Format(
+        "%s%s %s-----\n"  // "%s-----BEGIN OT ARMORED %s-----\n"
+        "Version: Open Transactions %s\n"
+        "Comment: "
+        "http://opentransactions.org\n\n"  // todo
+        // hardcoding.
+        "%s\n"
+        "%s%s %s-----\n\n",  // "%s-----END OT ARMORED %s-----\n"
+        bEscaped ? szEscape : "",
+        OT_BEGIN_ARMORED,
+        str_type.c_str(),  // "%s%s %s-----\n"
+        Log::Version(),    // "Version: Open Transactions %s\n"
+        /* No variable */  // "Comment:
+        // http://github.com/FellowTraveler/Open-Transactions/wiki\n\n",
+        Get(),  //  "%s"     <==== CONTENTS OF THIS OBJECT BEING
+                // WRITTEN...
+        bEscaped ? szEscape : "",
+        OT_END_ARMORED,
+        str_type.c_str());  // "%s%s %s-----\n"
+
+    strOutput.Concatenate("%s", strTemp.Get());
+
+    return true;
+}
 }  // namespace opentxs

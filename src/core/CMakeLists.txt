@@ -19,6 +19,7 @@ set(cxx-sources
   Account.cpp
   AccountList.cpp
   AccountVisitor.cpp
+  Armored.cpp
   Cheque.cpp
   Contract.cpp
   Data.cpp
@@ -44,6 +45,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Account.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/AccountList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/AccountVisitor.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Armored.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Cheque.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Contract.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data.hpp"

@@ -11,11 +11,11 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -96,7 +96,7 @@ RSA::RSA(const proto::KeyRole role)
 RSA::RSA(const proto::AsymmetricKey& serializedKey)
     : Asymmetric(serializedKey)
     , dp(new d())
-    , m_p_ascKey(new OTASCIIArmor)
+    , m_p_ascKey(new Armored)
 {
 
     dp->backlink = this;
@@ -140,7 +140,7 @@ RSA* RSA::clone() const
     if (nullptr != m_p_ascKey) {
         if (nullptr != key->m_p_ascKey) { delete key->m_p_ascKey; }
 
-        key->m_p_ascKey = new OTASCIIArmor(*m_p_ascKey);
+        key->m_p_ascKey = new Armored(*m_p_ascKey);
     }
 
     return key;
@@ -174,13 +174,13 @@ bool RSA::SetPublicKey(const String& strKey)
     m_bIsPrivateKey = false;
 
     if (nullptr == m_p_ascKey) {
-        m_p_ascKey = new OTASCIIArmor;
+        m_p_ascKey = new Armored;
         OT_ASSERT(nullptr != m_p_ascKey);
     }
 
     // This reads the string into the Armor and removes the bookends. (-----
     // BEGIN ...)
-    OTASCIIArmor theArmor;
+    Armored theArmor;
 
     if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
         m_p_ascKey->Set(theArmor);

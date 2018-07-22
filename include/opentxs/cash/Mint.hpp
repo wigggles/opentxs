@@ -17,7 +17,7 @@
 
 namespace opentxs
 {
-typedef std::map<std::int64_t, OTASCIIArmor*> mapOfArmor;
+typedef std::map<std::int64_t, Armored*> mapOfArmor;
 
 class Mint : public Contract
 {
@@ -133,8 +133,8 @@ public:
 
     // The denomination indicated here is the actual denomination...1, 5, 20,
     // 50, 100, etc
-    bool GetPrivate(OTASCIIArmor& theArmor, std::int64_t lDenomination);
-    bool GetPublic(OTASCIIArmor& theArmor, std::int64_t lDenomination);
+    bool GetPrivate(Armored& theArmor, std::int64_t lDenomination);
+    bool GetPublic(Armored& theArmor, std::int64_t lDenomination);
 
     std::int64_t GetDenomination(std::int32_t nIndex);
     std::int64_t GetLargestDenomination(std::int64_t lAmount);

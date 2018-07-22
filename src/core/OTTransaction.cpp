@@ -12,7 +12,6 @@
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
@@ -22,6 +21,7 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -2616,7 +2616,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     }
 
     String strFinal;
-    OTASCIIArmor ascTemp;
+    Armored ascTemp;
 
     if (m_strRawFile.Exists()) {
         ascTemp.SetString(m_strRawFile);
@@ -2714,7 +2714,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     // Try to save the box receipt to local storage.
     //
     String strFinal;
-    OTASCIIArmor ascTemp(m_strRawFile);
+    Armored ascTemp(m_strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
@@ -4232,7 +4232,7 @@ void OTTransaction::UpdateContents()
             String strItem;
             pItem->SaveContractRaw(strItem);
 
-            OTASCIIArmor ascItem;
+            Armored ascItem;
             ascItem.SetString(strItem, true);  // linebreaks = true
 
             tag.add_tag("item", ascItem.Get());
