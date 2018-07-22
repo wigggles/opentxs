@@ -462,7 +462,7 @@ std::int32_t OTAPI_Exec::NumList_Count(const std::string& strNumList) const
 
 bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
 {
-    return Identifier::validateID(strPurportedID);
+    return Identifier::Validate(strPurportedID);
 }
 
 std::string OTAPI_Exec::NymIDFromPaymentCode(

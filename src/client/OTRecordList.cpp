@@ -152,7 +152,7 @@ std::string OTNameLookup::GetNymName(
             OT::App().Contact().ContactID(Identifier::Factory(str_id));
         const String strContactId{contactId};
 
-        if (Identifier::validateID(strContactId.Get())) {
+        if (Identifier::Validate(strContactId.Get())) {
             const auto pContact = OT::App().Contact().Contact(contactId);
             if (pContact && !(pContact->Label().empty())) {
                 display_label = pContact->Label();

@@ -5,8 +5,6 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/Identifier.hpp"
-
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -17,10 +15,18 @@
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/OT.hpp"
+
+#include "Data.hpp"
+
+#include <set>
+#include <map>
+
+#include "Identifier.hpp"
 
 template class opentxs::Pimpl<opentxs::Identifier>;
 template class std::set<opentxs::OTIdentifier>;
@@ -55,36 +61,39 @@ bool operator<(const OTIdentifier& lhs, const OTIdentifier& rhs)
     return lhs.get() < rhs.get();
 }
 
-OTIdentifier Identifier::Factory() { return OTIdentifier(new Identifier()); }
+OTIdentifier Identifier::Factory()
+{
+    return OTIdentifier(new implementation::Identifier());
+}
 
 OTIdentifier Identifier::Factory(const Identifier& rhs)
 {
-    return OTIdentifier(new Identifier(rhs));
+    return OTIdentifier(rhs.clone());
 }
 
 OTIdentifier Identifier::Factory(const std::string& rhs)
 {
-    return OTIdentifier(new Identifier(rhs));
+    return OTIdentifier(new implementation::Identifier(rhs));
 }
 
 OTIdentifier Identifier::Factory(const String& rhs)
 {
-    return OTIdentifier(new Identifier(rhs));
+    return OTIdentifier(new implementation::Identifier(rhs));
 }
 
 OTIdentifier Identifier::Factory(const Nym& nym)
 {
-    return OTIdentifier(new Identifier(nym));
+    return OTIdentifier(new implementation::Identifier(nym));
 }
 
 OTIdentifier Identifier::Factory(const Contract& contract)
 {
-    return OTIdentifier(new Identifier(contract));
+    return OTIdentifier(new implementation::Identifier(contract));
 }
 
 OTIdentifier Identifier::Factory(const Cheque& cheque)
 {
-    auto output = OTIdentifier(new Identifier());
+    OTIdentifier output{new implementation::Identifier()};
     output->CalculateDigest(String(cheque));
 
     return output;
@@ -92,24 +101,24 @@ OTIdentifier Identifier::Factory(const Cheque& cheque)
 
 OTIdentifier Identifier::Factory(const crypto::key::LegacySymmetric& key)
 {
-    return OTIdentifier(new Identifier(key));
+    return OTIdentifier(new implementation::Identifier(key));
 }
 
 OTIdentifier Identifier::Factory(const OTCachedKey& key)
 {
-    return OTIdentifier(new Identifier(key));
+    return OTIdentifier(new implementation::Identifier(key));
 }
 
 OTIdentifier Identifier::Factory(
     const proto::ContactItemType type,
     const proto::HDPath& path)
 {
-    return OTIdentifier(new Identifier(type, path));
+    return OTIdentifier(new implementation::Identifier(type, path));
 }
 
 OTIdentifier Identifier::Random()
 {
-    auto output = OTIdentifier(new Identifier);
+    OTIdentifier output{new implementation::Identifier};
     auto nonce = Data::Factory();
     OT::App().Crypto().Encode().Nonce(32, nonce);
     output->CalculateDigest(nonce);
@@ -117,39 +126,28 @@ OTIdentifier Identifier::Random()
     return output;
 }
 
-// static
-bool Identifier::validateID(const std::string& strPurportedID)
+bool Identifier::Validate(const std::string& input)
 {
-    if (strPurportedID.empty()) { return false; }
-    Identifier theID(strPurportedID);
+    if (input.empty()) { return false; }
 
-    return (0 < theID.GetSize());
+    const auto id = Factory(input);
+
+    return (0 < id->GetSize());
 }
+}  // namespace opentxs
 
-proto::HashType Identifier::IDToHashType(const ID type)
+namespace opentxs::implementation
 {
-    switch (type) {
-        case (ID::SHA256): {
-            return proto::HASHTYPE_SHA256;
-        }
-        case (ID::BLAKE2B): {
-            return proto::HASHTYPE_BLAKE2B160;
-        }
-        default: {
-            return proto::HASHTYPE_NONE;
-        }
-    }
-}
-
 Identifier::Identifier()
     : ot_super()
 {
 }
 
-Identifier::Identifier(const Identifier& theID)
+Identifier::Identifier(const Identifier& rhs)
     : opentxs::Data()
-    , ot_super(theID)
-    , type_(theID.Type())
+    , opentxs::Identifier()
+    , ot_super(rhs)
+    , type_(rhs.Type())
 {
 }
 
@@ -208,52 +206,37 @@ Identifier::Identifier(
     CalculateDigest(path_to_data(type, path), DefaultType);
 }
 
-Identifier& Identifier::operator=(const Identifier& rhs)
-{
-    Assign(rhs);
-    type_ = rhs.type_;
-
-    return *this;
-}
-
-Identifier& Identifier::operator=(Identifier&& rhs)
-{
-    swap(rhs);
-
-    return *this;
-}
-
-bool Identifier::operator==(const Identifier& s2) const
+bool Identifier::operator==(const opentxs::Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.Compare(ots2);
 }
 
-bool Identifier::operator!=(const Identifier& s2) const
+bool Identifier::operator!=(const opentxs::Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return !(ots1.Compare(ots2));
 }
 
-bool Identifier::operator>(const Identifier& s2) const
+bool Identifier::operator>(const opentxs::Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator>(ots2);
 }
 
-bool Identifier::operator<(const Identifier& s2) const
+bool Identifier::operator<(const opentxs::Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator<(ots2);
 }
 
-bool Identifier::operator<=(const Identifier& s2) const
+bool Identifier::operator<=(const opentxs::Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator<=(ots2);
 }
 
-bool Identifier::operator>=(const Identifier& s2) const
+bool Identifier::operator>=(const opentxs::Identifier& s2) const
 {
     const String ots1(*this), ots2(s2);
     return ots1.operator>=(ots2);
@@ -275,7 +258,54 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
         IDToHashType(type_), dataInput, *this);
 }
 
-Identifier* Identifier::clone() const { return new Identifier(*this); }
+// This Identifier is stored in binary form.
+// But what if you want a pretty string version of it?
+// Just call this function.
+void Identifier::GetString(String& id) const
+{
+    auto data = Data::Factory();
+    data->Assign(&type_, sizeof(type_));
+
+    OT_ASSERT(1 == data->GetSize());
+
+    if (0 == GetSize()) { return; }
+
+    data->Concatenate(GetPointer(), GetSize());
+
+    String output("ot");
+    output.Concatenate(
+        String(OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
+    id.swap(output);
+}
+
+proto::HashType Identifier::IDToHashType(const ID type)
+{
+    switch (type) {
+        case (ID::SHA256): {
+            return proto::HASHTYPE_SHA256;
+        }
+        case (ID::BLAKE2B): {
+            return proto::HASHTYPE_BLAKE2B160;
+        }
+        default: {
+            return proto::HASHTYPE_NONE;
+        }
+    }
+}
+
+OTData Identifier::path_to_data(
+    const proto::ContactItemType type,
+    const proto::HDPath& path)
+{
+    auto output = Data::Factory(static_cast<const void*>(&type), sizeof(type));
+    output += Data::Factory(path.root().c_str(), path.root().size());
+
+    for (const auto& child : path.child()) {
+        output += Data::Factory(&child, sizeof(child));
+    }
+
+    return output;
+}
 
 // SET (binary id) FROM ENCODED STRING
 void Identifier::SetString(const String& encoded)
@@ -318,26 +348,6 @@ void Identifier::SetString(const std::string& encoded)
     }
 }
 
-// This Identifier is stored in binary form.
-// But what if you want a pretty string version of it?
-// Just call this function.
-void Identifier::GetString(String& id) const
-{
-    auto data = Data::Factory();
-    data->Assign(&type_, sizeof(type_));
-
-    OT_ASSERT(1 == data->GetSize());
-
-    if (0 == GetSize()) { return; }
-
-    data->Concatenate(GetPointer(), GetSize());
-
-    String output("ot");
-    output.Concatenate(
-        String(OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
-    id.swap(output);
-}
-
 std::string Identifier::str() const
 {
     auto data = Data::Factory();
@@ -354,24 +364,12 @@ std::string Identifier::str() const
     return output;
 }
 
-OTData Identifier::path_to_data(
-    const proto::ContactItemType type,
-    const proto::HDPath& path)
+void Identifier::swap(opentxs::Identifier& rhs)
 {
-    auto output = Data::Factory(static_cast<const void*>(&type), sizeof(type));
-    output += Data::Factory(path.root().c_str(), path.root().size());
-
-    for (const auto& child : path.child()) {
-        output += Data::Factory(&child, sizeof(child));
-    }
-
-    return output;
+    auto& input = dynamic_cast<Identifier&>(rhs);
+    ot_super::swap(input);
+    const auto type{type_};
+    type_ = input.type_;
+    input.type_ = type;
 }
-
-void Identifier::swap(Identifier&& rhs)
-{
-    ot_super::swap(rhs);
-    type_ = rhs.type_;
-    rhs.type_ = ID::ERROR;
-}
-}  // namespace opentxs
+}  // namespace opentxs::implementation

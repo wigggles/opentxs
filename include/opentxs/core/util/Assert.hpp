@@ -114,8 +114,7 @@
 #define OT_VERIFY_ID_STR(STD_STR_OF_ID)                                        \
                                                                                \
     OT_ASSERT_MSG(                                                             \
-        (!(STD_STR_OF_ID).empty() &&                                           \
-         (Identifier::validateID((STD_STR_OF_ID)))),                           \
+        (!(STD_STR_OF_ID).empty() && (Identifier::Validate((STD_STR_OF_ID)))), \
         OT_OTHER_ID_FORMAT(STD_STR_OF_ID))
 // -------------------------------------------------------
 // OT_VERIFY_BOUNDS
