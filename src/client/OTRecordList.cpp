@@ -88,241 +88,6 @@ namespace opentxs
 //#define MC_UI_TEXT_TO "<font color='grey'>To:</font> %s"
 //#define MC_UI_TEXT_FROM "<font color='grey'>From:</font> %s"
 
-bool OT_API_Set_AddrBookCallback(OTLookupCaller& theCaller)  // OTLookupCaller
-                                                             // must have
-{  // OTNameLookup attached already.
-    if (!theCaller.isCallbackSet()) {
-        otErr << __FUNCTION__
-              << ": ERROR:\nOTLookupCaller::setCallback() "
-                 "MUST be called first, with an OTNameLookup-extended "
-                 "class passed to it,\n"
-                 "before then invoking this function (and passing that "
-                 "OTLookupCaller as a parameter "
-                 "into this function.)\n";
-        return false;
-    }
-
-    otWarn << __FUNCTION__
-           << ": FYI, calling "
-              "OTRecordList::setAddrBookCaller(theCaller) now... "
-              "(which is where "
-              "OT internally sets its pointer to the Java caller "
-              "object, which must have been passed in as a "
-              "parameter to this function.\n";
-
-    const bool bSuccess = OTRecordList::setAddrBookCaller(theCaller);
-
-    otWarn << __FUNCTION__
-           << ": RESULT of call to OTRecordList::setAddrBookCaller: "
-           << (bSuccess ? "SUCCESS" : "FAILURE") << "";
-
-    return bSuccess;
-}
-
-// OTNameLookup CLASS
-
-OTNameLookup::~OTNameLookup()
-{
-    // Note: Though the Java app will instantiate NameLookup once (its own
-    // version/subclass of it)
-    // and pass that instance to C++ so that OTRecordList can make calls to it
-    // from inside OT, that
-    // doesn't mean that C++ apps like Moneychanger won't make as many instances
-    // as they want.
-    //
-    // Bottom line? No error message necessary here like we have with the
-    // password callback.
-    //
-    //    otErr << "OTNameLookup::~OTNameLookup:  (This should only happen ONCE
-    // ONLY -- as the application is closing.)\n";
-    //    std::cout << "OTNameLookup::~OTNameLookup()" << std:: endl;
-}
-
-// virtual
-std::string OTNameLookup::GetNymName(
-    const std::string& str_id,  // Nym ID
-    const std::string) const
-{
-    if (str_id.empty()) return {};
-    // ---------------------------
-    std::string display_label{SwigWrap::GetNym_Name(str_id)};
-
-    if (display_label.empty()) {
-        const auto contactId =  // Lookup ContactID based on Nym Id.
-            OT::App().Contact().ContactID(Identifier::Factory(str_id));
-        const String strContactId{contactId};
-
-        if (Identifier::Validate(strContactId.Get())) {
-            const auto pContact = OT::App().Contact().Contact(contactId);
-            if (pContact && !(pContact->Label().empty())) {
-                display_label = pContact->Label();
-            }
-        }
-    }
-    if (!display_label.empty()) { return display_label; }
-    // ---------------------------
-    return {};
-}
-
-// virtual
-std::string OTNameLookup::GetContactName(
-    const std::string& str_id) const  // Contact
-                                      // ID
-{
-    if (str_id.empty()) return {};
-
-    const auto pContact =
-        OT::App().Contact().Contact(opentxs::Identifier::Factory(str_id));
-
-    if (!pContact || pContact->Label().empty()) return {};
-
-    return pContact->Label();
-}
-
-// virtual
-std::string OTNameLookup::GetAcctName(
-    const std::string& str_id,
-    const std::string,
-    const std::string,
-    const std::string) const
-{
-    if (str_id.empty()) return {};
-
-    return SwigWrap::GetAccountWallet_Name(str_id);
-}
-
-// virtual
-std::string OTNameLookup::GetAddressName(const std::string&) const
-{
-    return {};  // There are no native OT lookups for a Bitmessage address.
-                // (Only useful when overriding.)
-}
-
-// virtual
-void OTNameLookup::notifyOfSuccessfulNotarization(
-    const std::string& str_acct_id,
-    const std::string p_nym_id,
-    const std::string p_msg_notary_id,
-    const std::string p_pmnt_notary_id,
-    const std::string p_txn_contents,
-    TransactionNumber lTransactionNum,
-    TransactionNumber lTransNumForDisplay) const
-{
-    // (Only useful when overriding.)
-}
-
-// OTLookupCaller CLASS
-
-OTLookupCaller::~OTLookupCaller()
-{
-    otOut << "OTLookupCaller::~OTLookupCaller: (This should only "
-             "happen as the application is closing.)\n";
-
-    delCallback();
-}
-
-void OTLookupCaller::delCallback()
-{
-    //    if (nullptr != _callback)  // TODO this may be a memory leak.
-    //        delete _callback;    // But I know we're currently crashing from
-    // deleting same object twice.
-    // And since the object comes from Java, who am I to delete it? Let Java
-    // clean it up.
-    if (isCallbackSet())
-        otOut << "OTLookupCaller::delCallback: WARNING: setting existing "
-                 "callback object pointer to nullptr. "
-                 "(This message doesn't trigger if it was already nullptr.)\n";
-    _callback = nullptr;
-}
-
-void OTLookupCaller::setCallback(OTNameLookup* cb)
-{
-    otOut << "OTLookupCaller::setCallback: Attempting to set the "
-             "OTNameLookup pointer...\n";
-
-    if (nullptr == cb) {
-        otOut << "OTLookupCaller::setCallback: ERROR: nullptr "
-                 "OTNameLookup object passed in. (Returning.)\n";
-        return;
-    }
-
-    delCallback();  // Sets _callback to nullptr, but LOGS first, if it was
-                    // already
-                    // set.
-    _callback = cb;
-    otOut << "OTLookupCaller::setCallback: FYI, the OTNameLookup "
-             "pointer was set.\n";
-}
-
-bool OTLookupCaller::isCallbackSet() const
-{
-    return (nullptr == _callback) ? false : true;
-}
-
-std::string OTLookupCaller::GetNymName(
-    const std::string& str_id,  // NymID
-    const std::string notary_id) const
-{
-    if (isCallbackSet()) {
-        otWarn << "OTLookupCaller::GetNymName: FYI, Executing address "
-                  "book callback...\n";
-        return _callback->GetNymName(str_id, notary_id);
-    } else {
-        otOut << "OTLookupCaller::GetNymName: "
-                 "WARNING: Failed attempt to trigger address book "
-                 "callback, due to \"it hasn't been set yet.\"\n";
-    }
-    return "";
-}
-
-std::string OTLookupCaller::GetContactName(
-    const std::string& str_id) const  // ContactId
-{
-    if (isCallbackSet()) {
-        otWarn << "OTLookupCaller::GetContactName: FYI, Executing address "
-                  "book callback...\n";
-        return _callback->GetContactName(str_id);
-    } else {
-        otOut << "OTLookupCaller::GetContactName: "
-                 "WARNING: Failed attempt to trigger address book "
-                 "callback, due to \"it hasn't been set yet.\"\n";
-    }
-    return "";
-}
-
-std::string OTLookupCaller::GetAcctName(
-    const std::string& str_id,  // AcctID
-    const std::string p_nym_id,
-    const std::string p_notary_id,
-    const std::string p_instrument_definition_id) const
-{
-    if (isCallbackSet()) {
-        otWarn << "OTLookupCaller::GetAcctName: FYI, Executing address "
-                  "book callback...\n";
-        return _callback->GetAcctName(
-            str_id, p_nym_id, p_notary_id, p_instrument_definition_id);
-    } else {
-        otOut << "OTLookupCaller::GetAcctName: "
-                 "WARNING: Failed attempt to trigger address book "
-                 "callback, due to \"it hasn't been set yet.\"\n";
-    }
-    return "";
-}
-
-std::string OTLookupCaller::GetAddressName(const std::string& str_address) const
-{
-    if (isCallbackSet()) {
-        otWarn << "OTLookupCaller::GetAddressName: FYI, Executing "
-                  "address book callback...\n";
-        return _callback->GetAddressName(str_address);
-    } else {
-        otOut << "OTLookupCaller::GetAddressName: "
-                 "WARNING: Failed attempt to trigger address book "
-                 "callback, due to \"it hasn't been set yet.\"\n";
-    }
-    return "";
-}
-
 // ---------------------------
 // static
 
@@ -331,50 +96,6 @@ const std::string OTRecordList::s_message_type("message");
 
 std::string OTRecordList::s_strTextTo(MC_UI_TEXT_TO);      // "To: %s"
 std::string OTRecordList::s_strTextFrom(MC_UI_TEXT_FROM);  // "From: %s"
-
-OTLookupCaller* OTRecordList::s_pCaller = nullptr;
-
-// Takes ownership. UPDATE: doesn't, since he assumes the Java side
-// created it and will therefore delete it when the time comes.
-// I keep a pointer, but I don't delete the thing. Let Java do it.
-//
-// static
-bool OTRecordList::setAddrBookCaller(OTLookupCaller& theCaller)
-{
-    otLog3 << __FUNCTION__
-           << ": Attempting to set the address book caller... \n";
-
-    if (!theCaller.isCallbackSet()) {
-        otErr << __FUNCTION__
-              << ": ERROR: OTLookupCaller::setCallback() "
-                 "MUST be called first, with an OTNameLookup-extended "
-                 "object passed to it,\n"
-                 "BEFORE calling this function with that OTLookupCaller. "
-                 "(Returning false.)\n";
-        return false;
-    }
-
-    if (nullptr != s_pCaller) {
-        otErr
-            << __FUNCTION__
-            << ": WARNING: Setting the address book caller again, even though "
-               "it was apparently ALREADY set... (Meaning Java has probably "
-               "erroneously called this twice, "
-               "possibly passing the same OTLookupCaller both times.)\n";
-        //      delete s_pCaller; // Let Java delete it.
-    }
-
-    s_pCaller = &theCaller;
-    otWarn << __FUNCTION__
-           << ": FYI, Successfully set the address book caller object from "
-              "Java (or from another SWIG language.) Returning true.\n";
-
-    return true;
-}
-// static
-OTLookupCaller* OTRecordList::getAddrBookCaller() { return s_pCaller; }
-
-// SETUP:
 
 // Set the default server here.
 
@@ -1933,22 +1654,14 @@ bool OTRecordList::DoesAcceptCashAutomatically() const
 }
 
 void OTRecordList::notifyOfSuccessfulNotarization(
-    const std::string& str_acct_id,
-    const std::string p_nym_id,
-    const std::string p_msg_notary_id,
-    const std::string p_pmnt_notary_id,
-    const std::string p_txn_contents,
-    TransactionNumber lTransactionNum,
-    TransactionNumber lTransNumForDisplay) const
+    const std::string&,
+    const std::string,
+    const std::string,
+    const std::string,
+    const std::string,
+    TransactionNumber,
+    TransactionNumber) const
 {
-    m_pLookup->notifyOfSuccessfulNotarization(
-        str_acct_id,
-        p_nym_id,
-        p_msg_notary_id,
-        p_pmnt_notary_id,
-        p_txn_contents,
-        lTransactionNum,
-        lTransNumForDisplay);
 }
 
 typedef std::map<std::int32_t, OTPayment*> mapOfPayments;
@@ -2317,16 +2030,6 @@ bool OTRecordList::PerformAutoAccept()
                                     //
                                     if (display_number <= 0)
                                         display_number = lPaymentBoxTransNum;
-                                    // ------------------------------------------------------
-                                    m_pLookup->notifyOfSuccessfulNotarization(
-                                        str_account_id,
-                                        strAcctNymID.Get(),
-                                        str_msg_notary_id,  // MESSAGE NOTARY
-                                        strAcctNotaryID.Get(),  // PAYMENT
-                                                                // NOTARY
-                                        str_server_response,
-                                        lPaymentBoxTransNum,
-                                        display_number);
                                 }
                                 break;
                             }
@@ -2611,7 +2314,6 @@ bool OTRecordList::PerformAutoAccept()
 
 bool OTRecordList::Populate()
 {
-    OT_ASSERT(nullptr != m_pLookup);
     ClearContents();
     // Loop through all the accounts.
     //
@@ -2857,16 +2559,10 @@ bool OTRecordList::Populate()
                 // second item in the map's pair. (Just like I already did with
                 // the instrument definition.)
                 //
-                String strName(
-                    m_pLookup->GetNymName(str_outpmt_recipientID, *it_server)),
-                    strNameTemp;
+                String strNameTemp;
                 std::string str_name;
-
-                if (strName.Exists())
-                    strNameTemp.Format(OTRecordList::textTo(), strName.Get());
-                else
-                    strNameTemp.Format(
-                        OTRecordList::textTo(), str_outpmt_recipientID.c_str());
+                strNameTemp.Format(
+                    OTRecordList::textTo(), str_outpmt_recipientID.c_str());
 
                 str_name = strNameTemp.Get();
                 String strMemo;
@@ -3015,18 +2711,10 @@ bool OTRecordList::Populate()
                     // item in the map's pair. (Just like I already did with the
                     // instrument definition.)
                     //
-                    String strName(
-                        m_pLookup->GetNymName(str_mail_senderID, *it_server)),
-                        strNameTemp;
+                    String strNameTemp;
                     std::string str_name;
-
-                    if (strName.Exists())
-                        strNameTemp.Format(
-                            OTRecordList::textFrom(), strName.Get());
-                    else
-                        strNameTemp.Format(
-                            OTRecordList::textFrom(),
-                            str_mail_senderID.c_str());
+                    strNameTemp.Format(
+                        OTRecordList::textFrom(), str_mail_senderID.c_str());
 
                     str_name = strNameTemp.Get();
                     const std::string* p_str_asset_type =
@@ -3143,18 +2831,10 @@ bool OTRecordList::Populate()
                     // item in the map's pair. (Just like I already did with the
                     // instrument definition.)
                     //
-                    String strName(m_pLookup->GetNymName(
-                        str_mail_recipientID, *it_server)),
-                        strNameTemp;
+                    String strNameTemp;
                     std::string str_name;
-
-                    if (strName.Exists())
-                        strNameTemp.Format(
-                            OTRecordList::textTo(), strName.Get());
-                    else
-                        strNameTemp.Format(
-                            OTRecordList::textTo(),
-                            str_mail_recipientID.c_str());
+                    strNameTemp.Format(
+                        OTRecordList::textTo(), str_mail_recipientID.c_str());
 
                     str_name = strNameTemp.Get();
                     const std::string* p_str_asset_type =
@@ -3284,19 +2964,10 @@ bool OTRecordList::Populate()
                         if (pBoxTrans->GetSenderNymIDForDisplay(theSenderID)) {
                             const String strSenderID(theSenderID);
                             str_sender_nym_id = strSenderID.Get();
-
-                            String strName(m_pLookup->GetNymName(
-                                str_sender_nym_id, it_server)),
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(),
-                                    str_sender_nym_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textFrom(),
+                                str_sender_nym_id.c_str());
                             str_name = strNameTemp.Get();
                         }
 
@@ -3727,19 +3398,10 @@ bool OTRecordList::Populate()
                                     const std::string str_recipient_id(
                                         strRecipientID.Get());
 
-                                    String strName(m_pLookup->GetNymName(
-                                        str_recipient_id, it_server)),
-                                        strNameTemp;
-
-                                    if (strName.Exists())
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            strName.Get());
-                                    else
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            str_recipient_id.c_str());
-
+                                    String strNameTemp;
+                                    strNameTemp.Format(
+                                        OTRecordList::textTo(),
+                                        str_recipient_id.c_str());
                                     str_name = strNameTemp.Get();
                                     str_other_nym_id = str_recipient_id;
 
@@ -3772,19 +3434,10 @@ bool OTRecordList::Populate()
                                 } else
                                     bOutgoing = false;
 
-                                String strName(m_pLookup->GetNymName(
-                                    str_sender_id, it_server)),
-                                    strNameTemp;
-
-                                if (strName.Exists())
-                                    strNameTemp.Format(
-                                        OTRecordList::textFrom(),
-                                        strName.Get());
-                                else
-                                    strNameTemp.Format(
-                                        OTRecordList::textFrom(),
-                                        str_sender_id.c_str());
-
+                                String strNameTemp;
+                                strNameTemp.Format(
+                                    OTRecordList::textFrom(),
+                                    str_sender_id.c_str());
                                 str_name = strNameTemp.Get();
                                 str_other_nym_id = str_sender_id;
 
@@ -3828,18 +3481,10 @@ bool OTRecordList::Populate()
                                                        // then it must have been
                                                        // outgoing.
 
-                                String strName(m_pLookup->GetNymName(
-                                    str_recipient_id, it_server)),
-                                    strNameTemp;
-
-                                if (strName.Exists())
-                                    strNameTemp.Format(
-                                        OTRecordList::textTo(), strName.Get());
-                                else
-                                    strNameTemp.Format(
-                                        OTRecordList::textTo(),
-                                        str_recipient_id.c_str());
-
+                                String strNameTemp;
+                                strNameTemp.Format(
+                                    OTRecordList::textTo(),
+                                    str_recipient_id.c_str());
                                 str_name = strNameTemp.Get();
                                 str_other_nym_id = str_recipient_id;
                                 if (pBoxTrans->GetRecipientAcctIDForDisplay(
@@ -4332,19 +3977,10 @@ bool OTRecordList::Populate()
                                     const std::string str_recipient_id(
                                         strRecipientID.Get());
 
-                                    String strName(m_pLookup->GetNymName(
-                                        str_recipient_id, it_server)),
-                                        strNameTemp;
-
-                                    if (strName.Exists())
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            strName.Get());
-                                    else
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            str_recipient_id.c_str());
-
+                                    String strNameTemp;
+                                    strNameTemp.Format(
+                                        OTRecordList::textTo(),
+                                        str_recipient_id.c_str());
                                     str_name = strNameTemp.Get();
                                     str_other_nym_id = str_recipient_id;
 
@@ -4372,19 +4008,10 @@ bool OTRecordList::Populate()
                                 else
                                     bOutgoing = false;
 
-                                String strName(m_pLookup->GetNymName(
-                                    str_sender_id, it_server)),
-                                    strNameTemp;
-
-                                if (strName.Exists())
-                                    strNameTemp.Format(
-                                        OTRecordList::textFrom(),
-                                        strName.Get());
-                                else
-                                    strNameTemp.Format(
-                                        OTRecordList::textFrom(),
-                                        str_sender_id.c_str());
-
+                                String strNameTemp;
+                                strNameTemp.Format(
+                                    OTRecordList::textFrom(),
+                                    str_sender_id.c_str());
                                 str_name = strNameTemp.Get();
                                 str_other_nym_id = str_sender_id;
 
@@ -4426,18 +4053,10 @@ bool OTRecordList::Populate()
                                                        // then it must have been
                                                        // outgoing.
 
-                                String strName(m_pLookup->GetNymName(
-                                    str_recipient_id, it_server)),
-                                    strNameTemp;
-
-                                if (strName.Exists())
-                                    strNameTemp.Format(
-                                        OTRecordList::textTo(), strName.Get());
-                                else
-                                    strNameTemp.Format(
-                                        OTRecordList::textTo(),
-                                        str_recipient_id.c_str());
-
+                                String strNameTemp;
+                                strNameTemp.Format(
+                                    OTRecordList::textTo(),
+                                    str_recipient_id.c_str());
                                 str_name = strNameTemp.Get();
                                 str_other_nym_id = str_recipient_id;
 
@@ -4945,32 +4564,8 @@ bool OTRecordList::Populate()
 
                             str_other_acct_id = str_sender_acct_id;
 
-                            String strName(m_pLookup->GetAcctName(
-                                str_other_acct_id,
-                                str_other_nym_id,  // nym ID if known
-                                *pstr_notary_id,   // server ID if known.
-                                *pstr_instrument_definition_id)),  // instrument
-                                                                   // definition
-                                                                   // id if
-                                                                   // known.
-                                strNameTemp;
+                            String strNameTemp;
 
-                            if (strName.Exists()) {
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(), strName.Get());
-                                str_name = strNameTemp.Get();
-                            } else if (!str_other_nym_id.empty()) {
-                                String strNymName(m_pLookup->GetNymName(
-                                    str_other_nym_id, *it_server)),
-                                    strNymNameTemp;
-
-                                if (strNymName.Exists()) {
-                                    strNymNameTemp.Format(
-                                        OTRecordList::textFrom(),
-                                        strNymName.Get());
-                                    str_name = strNameTemp.Get();
-                                }
-                            }
                             if (str_name.empty()) {
                                 strNameTemp.Format(
                                     OTRecordList::textFrom(),
@@ -4982,19 +4577,10 @@ bool OTRecordList::Populate()
                         {
                             const String strSenderID(theSenderID);
                             const std::string str_sender_id(strSenderID.Get());
-
-                            String strName(m_pLookup->GetNymName(
-                                str_sender_id, *it_server)),
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(),
-                                    str_sender_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textFrom(),
+                                str_sender_id.c_str());
                             str_name = strNameTemp.Get();
                             str_other_nym_id = str_sender_id;
                         } else {
@@ -5022,21 +4608,13 @@ bool OTRecordList::Populate()
                             const String strRecipientID(theRecipientID);
                             const std::string str_recipient_nym_id(
                                 strRecipientID.Get());
-
-                            String strName(m_pLookup->GetNymName(
-                                str_recipient_nym_id, *it_server)),
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(),
-                                    str_recipient_nym_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textTo(),
+                                str_recipient_nym_id.c_str());
                             str_name = strNameTemp.Get();
                             str_other_nym_id = str_recipient_nym_id;
+
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                     theRecipientAcctID)) {
                                 const String strRecipientAcctID(
@@ -5048,25 +4626,10 @@ bool OTRecordList::Populate()
                             const String strRecipientAcctID(theRecipientAcctID);
                             const std::string str_recipient_acct_id(
                                 strRecipientAcctID.Get());
-
-                            String strName(m_pLookup->GetAcctName(
-                                str_recipient_acct_id,
-                                "",               // nym ID if known
-                                *pstr_notary_id,  // server ID if known.
-                                *pstr_instrument_definition_id)),  // instrument
-                                                                   // definition
-                                                                   // id if
-                                                                   // known.
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(),
-                                    str_recipient_acct_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textTo(),
+                                str_recipient_acct_id.c_str());
                             str_name = strNameTemp.Get();
                             str_other_acct_id = str_recipient_acct_id;
                         }
@@ -5212,19 +4775,9 @@ bool OTRecordList::Populate()
                         const String strRecipientID(theRecipientID);
                         const std::string str_recipient_id(
                             strRecipientID.Get());
-
-                        String strName(m_pLookup->GetNymName(
-                            str_recipient_id, *it_server)),
-                            strNameTemp;
-
-                        if (strName.Exists())
-                            strNameTemp.Format(
-                                OTRecordList::textTo(), strName.Get());
-                        else
-                            strNameTemp.Format(
-                                OTRecordList::textTo(),
-                                str_recipient_id.c_str());
-
+                        String strNameTemp;
+                        strNameTemp.Format(
+                            OTRecordList::textTo(), str_recipient_id.c_str());
                         str_name = strNameTemp.Get();
                         str_other_nym_id = str_recipient_id;
                         if (pBoxTrans->GetRecipientAcctIDForDisplay(
@@ -5237,24 +4790,10 @@ bool OTRecordList::Populate()
                         const String strRecipientAcctID(theRecipientAcctID);
                         const std::string str_recipient_acct_id(
                             strRecipientAcctID.Get());
-
-                        String strName(m_pLookup->GetAcctName(
-                            str_recipient_acct_id,
-                            "",               // nym ID if known
-                            *pstr_notary_id,  // server ID if known.
-                            *pstr_instrument_definition_id)),  // instrument
-                            // definition id if
-                            // known.
-                            strNameTemp;
-
-                        if (strName.Exists())
-                            strNameTemp.Format(
-                                OTRecordList::textTo(), strName.Get());
-                        else
-                            strNameTemp.Format(
-                                OTRecordList::textTo(),
-                                str_recipient_acct_id.c_str());
-
+                        String strNameTemp;
+                        strNameTemp.Format(
+                            OTRecordList::textTo(),
+                            str_recipient_acct_id.c_str());
                         str_name = strNameTemp.Get();
                         str_other_acct_id = str_recipient_acct_id;
                     }
@@ -5474,44 +5013,10 @@ bool OTRecordList::Populate()
                                 // by the recipient, obviously...)
                                 //
                                 if (!pBoxTrans->IsCancelled()) {
-                                    String strName(m_pLookup->GetAcctName(
-                                        str_recip_acct_id,
-                                        // NOTE: we CANNOT pass
-                                        // str_recip_nym_id here with
-                                        // str_recip_acct_id
-                                        // if it's a cancelled instrument,
-                                        // since in that case, the SENDER
-                                        // ACCT
-                                        // is ALSO the RECIPIENT ACCT. So
-                                        // this logic is ONLY correct since
-                                        // we
-                                        // are inside the block of if
-                                        // (!pBoxTrans->IsCancelled())
-                                        // (Otherwise we'd be training the
-                                        // address book to falsely believe
-                                        // that
-                                        // the recipient Nym is the owner of
-                                        // the sender acct.)
-                                        bGotRecipientNymIDForDisplay
-                                            ? str_recip_nym_id
-                                            : "",         // nym ID if known
-                                        *pstr_notary_id,  // server ID if
-                                                          // known.
-                                        *pstr_instrument_definition_id)),  // asset
-                                                                           // ID
-                                                                           // if
-                                        // known.
-                                        strNameTemp;
-
-                                    if (strName.Exists())
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            strName.Get());
-                                    else
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            str_recip_acct_id.c_str());
-
+                                    String strNameTemp;
+                                    strNameTemp.Format(
+                                        OTRecordList::textTo(),
+                                        str_recip_acct_id.c_str());
                                     str_name =
                                         strNameTemp.Get();  // We don't want to
                                                             // see our own name
@@ -5528,19 +5033,10 @@ bool OTRecordList::Populate()
                                 str_other_nym_id = str_recipient_id;
 
                                 if (str_name.empty()) {
-                                    String strName(m_pLookup->GetNymName(
-                                        str_recipient_id, *it_server)),
-                                        strNameTemp;
-
-                                    if (strName.Exists())
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            strName.Get());
-                                    else
-                                        strNameTemp.Format(
-                                            OTRecordList::textTo(),
-                                            str_recipient_id.c_str());
-
+                                    String strNameTemp;
+                                    strNameTemp.Format(
+                                        OTRecordList::textTo(),
+                                        str_recipient_id.c_str());
                                     str_name = strNameTemp.Get();
                                 }
                             }
@@ -5555,24 +5051,10 @@ bool OTRecordList::Populate()
                                 const String strSenderNymID(theSenderID);
                                 str_other_nym_id = strSenderNymID.Get();
                             }
-                            String strName(m_pLookup->GetAcctName(
-                                str_sender_acct_id,
-                                str_other_nym_id,  // nym ID if known
-                                *pstr_notary_id,   // server ID if known.
-                                *pstr_instrument_definition_id)),  // instrument
-                                                                   // definition
-                                                                   // id if
-                                                                   // known.
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(),
-                                    str_sender_acct_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textFrom(),
+                                str_sender_acct_id.c_str());
                             str_name = strNameTemp.Get();
                             str_other_acct_id = str_sender_acct_id;
                         }
@@ -5604,24 +5086,10 @@ bool OTRecordList::Populate()
                             // (Therefore it must be outgoing.)
                             bOutgoing = true;
 
-                            String strName(m_pLookup->GetAcctName(
-                                str_recipient_acct_id,
-                                str_other_nym_id,  // nym ID if known
-                                *pstr_notary_id,   // server ID if known.
-                                *pstr_instrument_definition_id)),  // instrument
-                                                                   // definition
-                                                                   // id if
-                                                                   // known.
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(),
-                                    str_recipient_acct_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textTo(),
+                                str_recipient_acct_id.c_str());
                             str_name = strNameTemp.Get();
                             str_other_acct_id = str_recipient_acct_id;
                         }
@@ -5652,21 +5120,13 @@ bool OTRecordList::Populate()
                                 const String strRecipientID(theRecipientID);
                                 const std::string str_recipient_id(
                                     strRecipientID.Get());
-
-                                String strName(m_pLookup->GetNymName(
-                                    str_recipient_id, *it_server)),
-                                    strNameTemp;
-
-                                if (strName.Exists())
-                                    strNameTemp.Format(
-                                        OTRecordList::textTo(), strName.Get());
-                                else
-                                    strNameTemp.Format(
-                                        OTRecordList::textTo(),
-                                        str_recipient_id.c_str());
-
+                                String strNameTemp;
+                                strNameTemp.Format(
+                                    OTRecordList::textTo(),
+                                    str_recipient_id.c_str());
                                 str_name = strNameTemp.Get();
                                 str_other_nym_id = str_recipient_id;
+
                                 if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                         theRecipientAcctID)) {
                                     const String strRecipientAcctID(
@@ -5680,21 +5140,13 @@ bool OTRecordList::Populate()
                         {  // In this case, some OTHER Nym is the sender, so it
                             // must have been incoming. (And bOutgoing is
                             // already false.)
-
-                            String strName(m_pLookup->GetNymName(
-                                str_sender_id, *it_server)),
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textFrom(),
-                                    str_sender_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textFrom(),
+                                str_sender_id.c_str());
                             str_name = strNameTemp.Get();
                             str_other_nym_id = str_sender_id;
+
                             if (pBoxTrans->GetSenderAcctIDForDisplay(
                                     theSenderAcctID)) {
                                 const String strSenderAcctID(theSenderAcctID);
@@ -5720,21 +5172,13 @@ bool OTRecordList::Populate()
                             // sender.
                             // (Therefore it must be outgoing.)
                             bOutgoing = true;
-
-                            String strName(m_pLookup->GetNymName(
-                                str_recipient_id, *it_server)),
-                                strNameTemp;
-
-                            if (strName.Exists())
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(), strName.Get());
-                            else
-                                strNameTemp.Format(
-                                    OTRecordList::textTo(),
-                                    str_recipient_id.c_str());
-
+                            String strNameTemp;
+                            strNameTemp.Format(
+                                OTRecordList::textTo(),
+                                str_recipient_id.c_str());
                             str_name = strNameTemp.Get();
                             str_other_nym_id = str_recipient_id;
+
                             if (pBoxTrans->GetRecipientAcctIDForDisplay(
                                     theRecipientAcctID)) {
                                 const String strRecipientAcctID(
@@ -5941,9 +5385,6 @@ void OTRecordList::AddSpecialMsg(
     // (Just like I already did with the instrument definition.)
     //
     std::string str_other_name;
-
-    if (!str_other_address.empty())
-        str_other_name = m_pLookup->GetAddressName(str_other_address);
     String strNameTemp;
     std::string str_name("");
 
@@ -6030,34 +5471,8 @@ void OTRecordList::AddSpecialMsg(
     m_contents.push_back(sp_Record);
 }
 
-// This one expects that s_pCaller is not nullptr.
-//
 OTRecordList::OTRecordList()
-    : m_pLookup(nullptr)
-    , wallet_(OT::App().Wallet())
-    , m_bRunFast(false)
-    , m_bAutoAcceptCheques(false)
-    , m_bAutoAcceptReceipts(false)
-    , m_bAutoAcceptTransfers(false)
-    , m_bAutoAcceptCash(false)
-    , m_bIgnoreMail(false)
-{
-    OT_ASSERT_MSG(
-        (nullptr != s_pCaller),
-        "Address Book Caller was nullptr! "
-        "On app startup, did you forget to call "
-        "OT_API_Set_AddrBookCallback ?\n");
-    OT_ASSERT_MSG(
-        (s_pCaller->isCallbackSet()),
-        "Address Book Callback was nullptr! "
-        "On app startup, did you forget to call "
-        "OT_API_Set_AddrBookCallback ?\n");
-    m_pLookup = s_pCaller->getCallback();  // <==========
-}
-
-OTRecordList::OTRecordList(const OTNameLookup& theLookup)
-    : m_pLookup(&theLookup)
-    , wallet_(OT::App().Wallet())
+    : wallet_(OT::App().Wallet())
     , m_bRunFast(false)
     , m_bAutoAcceptCheques(false)
     , m_bAutoAcceptReceipts(false)
@@ -6067,15 +5482,7 @@ OTRecordList::OTRecordList(const OTNameLookup& theLookup)
 {
 }
 
-OTRecordList::~OTRecordList()
-{
-    //  if (nullptr != m_pLookup) // NO DELETE! We assume whatever client app is
-    // using OTRecordList, will
-    //      delete m_pLookup;  // delete its own address book lookup class when
-    // it is good and ready.
-
-    m_pLookup = nullptr;
-}
+OTRecordList::~OTRecordList() {}
 
 // Clears m_contents (NOT nyms, accounts, servers, or instrument definitions.)
 

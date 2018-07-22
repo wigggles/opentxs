@@ -21,105 +21,6 @@
 
 namespace opentxs
 {
-/** For address book lookups. Your client app inherits this and provides addr
- * storage/lookup through this simple interface. OTRecordList then calls it. */
-class OTNameLookup
-{
-public:
-    EXPORT OTNameLookup() {}
-    EXPORT virtual ~OTNameLookup();
-    EXPORT virtual std::string GetNymName(
-        const std::string& str_id,  // NymID
-        const std::string p_notary_id) const;
-    EXPORT virtual std::string GetContactName(
-        const std::string& str_id) const;  // ContactId
-    EXPORT virtual std::string GetAcctName(
-        const std::string& str_id,  // AcctID
-        const std::string p_nym_id,
-        const std::string p_notary_id,
-        const std::string p_instrument_definition_id) const;
-    /** Used for Bitmessage and other special addresses. */
-    EXPORT virtual std::string GetAddressName(
-        const std::string& str_address) const;
-    // Let's say that OTRecordList just deposited a cheque. (Which it does
-    // automatically.) Or let's say the user just asked it to activate a smart
-    // contract. Whatever. RecordList will call this and pass the server's
-    // "success" transaction contents, along with whatever other useful IDs it's
-    // gleaned.
-    // That way, when Moneychanger overrides notifyOfSuccessfulNotarization,
-    // Moneychanger will get a notification whenever the recordlist has
-    // deposited a cheque. Then Moneychanger can take the cheque deposit
-    // (transaction reply from server) and add it to its internal database, in
-    // its payment table.
-    EXPORT virtual void notifyOfSuccessfulNotarization(
-        const std::string& str_acct_id,
-        const std::string p_nym_id,
-        const std::string p_msg_notary_id,
-        const std::string p_pmnt_notary_id,
-        const std::string p_txn_contents,
-        TransactionNumber lTransactionNum,
-        TransactionNumber lTransNumForDisplay) const;
-};
-
-/*
- // OVERLOAD THE ABOVE CLASS; make a subclass that does an address book lookup
- however is appropriate for your client.
- //
- class OTNameLookupIPhone : public OTNameLookup
- {
- public:
-    virtual std::string GetNymName(const std::string& str_id) const;
-    virtual std::string GetAcctName(const std::string& str_id) const;
-    virtual std::string GetAddressName(const std::string& str_id) const; //
- Used for Bitmessage and other special addresses.
- };
- */
-
-// ---------------------------------------------------------------------
-
-// Client app makes an instance of its own subclass of OTNameLookup.
-// Client app also makes an instance of OTLookupCaller (below.)
-// Client app then gives the caller a pointer to the namelookup.
-// Client app then passes the caller to OT via OT_API_Set_AddrBookCallback.
-// OTRecord and OTRecordList then call the caller.
-class OTLookupCaller
-{
-protected:
-    OTNameLookup* _callback;
-
-public:
-    EXPORT OTLookupCaller()
-        : _callback(nullptr)
-    {
-    }
-    EXPORT ~OTLookupCaller();
-
-    EXPORT OTNameLookup* getCallback() { return _callback; }
-    EXPORT void delCallback();
-    EXPORT void setCallback(OTNameLookup* cb);
-    EXPORT bool isCallbackSet() const;
-
-    EXPORT std::string GetNymName(
-        const std::string& str_id,  // NymID
-        const std::string notary_id) const;
-
-    EXPORT virtual std::string GetContactName(
-        const std::string& str_id  // ContactId
-        ) const;
-
-    EXPORT std::string GetAcctName(
-        const std::string& str_id,  // AcctID
-        const std::string p_nym_id,
-        const std::string p_notary_id,
-        const std::string p_instrument_definition_id) const;
-
-    EXPORT std::string GetAddressName(const std::string& str_address) const;
-};
-
-EXPORT bool OT_API_Set_AddrBookCallback(
-    OTLookupCaller& theCaller);  // OTLookupCaller must have OTNameLookup
-                                 // attached already.
-
 typedef std::weak_ptr<OTRecord> weak_ptr_OTRecord;
 typedef std::shared_ptr<OTRecord> shared_ptr_OTRecord;
 
@@ -133,7 +34,6 @@ public:
     enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
 
 private:
-    const OTNameLookup* m_pLookup{nullptr};
     const api::client::Wallet& wallet_;
     // Defaults to false. If you set it true, it will run a lot faster. (And
     // give you less data.)
@@ -153,16 +53,8 @@ private:
     static const std::string s_blank;
     static const std::string s_message_type;
 
-public:  // ADDRESS BOOK CALLBACK
-    static bool setAddrBookCaller(OTLookupCaller& theCaller);
-    static OTLookupCaller* getAddrBookCaller();
-
-protected:  // ADDRESS BOOK CALLER
-    static OTLookupCaller* s_pCaller;
-
 public:
-    EXPORT OTRecordList();  // This one expects that s_pCaller is not nullptr.
-    EXPORT explicit OTRecordList(const OTNameLookup& theLookup);
+    EXPORT OTRecordList();
     EXPORT ~OTRecordList();
 
     EXPORT static bool accept_from_paymentbox(
