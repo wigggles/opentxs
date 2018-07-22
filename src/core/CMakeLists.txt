@@ -47,7 +47,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Cheque.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Contract.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Data_imp.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Flag.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Helpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Identifier.hpp"
@@ -73,7 +72,9 @@ set(cxx-install-headers
 set(cxx-headers
   "${cxx-install-headers}"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/UniqueQueue.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Data.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Flag.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Identifier.hpp"
 )
 
 include_directories(${ProtobufIncludePath})

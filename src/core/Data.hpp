@@ -3,16 +3,12 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_DATA_IMPLEMENTATION_HPP
-#define OPENTXS_CORE_DATA_IMPLEMENTATION_HPP
+#ifndef IMPLEMENTATION_OPENTXS_CORE_DATA_HPP
+#define IMPLEMENTATION_OPENTXS_CORE_DATA_HPP
 
-#include "opentxs/Forward.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/core/Data.hpp"
-
-namespace opentxs
-{
-namespace implementation
+namespace opentxs::implementation
 {
 class Data : virtual public opentxs::Data
 {
@@ -66,5 +62,4 @@ private:
     void concatenate(const Vector& data);
 };
 }  // namespace opentxs::implementation
-}  // namespace opentxs
-#endif  // OPENTXS_CORE_DATA_IMPLEMENTATION_HPP
+#endif  // IMPLEMENTATION_OPENTXS_CORE_DATA_HPP

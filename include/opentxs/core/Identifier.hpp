@@ -3,117 +3,118 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTIDENTIFIER_HPP
-#define OPENTXS_CORE_OTIDENTIFIER_HPP
+#ifndef OPENTXS_CORE_IDENTIFIER_HPP
+#define OPENTXS_CORE_IDENTIFIER_HPP
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/Data_imp.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
-#include <iosfwd>
 #include <string>
-#include <set>
-#include <map>
+
+#ifdef SWIG
+// clang-format off
+%ignore opentxs::Pimpl<opentxs::Identifier>::Pimpl(opentxs::Identifier const &);
+%ignore opentxs::Pimpl<opentxs::Identifier>::operator opentxs::Identifier&;
+%ignore opentxs::Pimpl<opentxs::Identifier>::operator const opentxs::Identifier &;
+%rename(identifierCompareEqual) opentxs::Identifier::operator==(const Identifier& rhs) const;
+%rename(identifierCompareNotEqual) opentxs::Identifier::operator!=(const Identifier& rhs) const;
+%rename(identifierCompareGreaterThan) opentxs::Identifier::operator>(const Identifier& rhs) const;
+%rename(identifierCompareLessThan) opentxs::Identifier::operator<(const Identifier& rhs) const;
+%rename(identifierCompareGreaterOrEqual) opentxs::Identifier::operator>=(const Identifier& rhs) const;
+%rename(identifierCompareLessOrEqual) opentxs::Identifier::operator<=(const Identifier& rhs) const;
+%template(OTIdentifier) opentxs::Pimpl<opentxs::Identifier>;
+// clang-format on
+#endif
 
 namespace opentxs
 {
 bool operator==(
-    const opentxs::OTIdentifier& lhs,
+    const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
 bool operator!=(
-    const opentxs::OTIdentifier& lhs,
+    const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
 bool operator<(
-    const opentxs::OTIdentifier& lhs,
-    const opentxs::OTIdentifier& rhs);
+    const opentxs::Pimpl<opentxs::Identifier>& lhs,
+    const opentxs::Pimpl<opentxs::Identifier>& rhs);
 
 /** An Identifier is basically a 256 bit hash value. This class makes it easy to
  * convert IDs back and forth to strings. */
-class Identifier : virtual public implementation::Data
+class Identifier : virtual public Data
 {
-private:
-    using ot_super = opentxs::implementation::Data;
-
 public:
-    EXPORT static OTIdentifier Random();
-    EXPORT static OTIdentifier Factory();
-    EXPORT static OTIdentifier Factory(const Identifier& rhs);
-    EXPORT static OTIdentifier Factory(const std::string& rhs);
-    EXPORT static OTIdentifier Factory(const String& rhs);
-    EXPORT static OTIdentifier Factory(const Nym& nym);
-    EXPORT static OTIdentifier Factory(const Contract& contract);
-    EXPORT static OTIdentifier Factory(const Cheque& cheque);
-    EXPORT static OTIdentifier Factory(const crypto::key::LegacySymmetric& key);
-    EXPORT static OTIdentifier Factory(const OTCachedKey& key);
-    EXPORT static OTIdentifier Factory(
+    using ot_super = opentxs::Data;
+
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Random();
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory();
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const Identifier& rhs);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const std::string& rhs);
+#ifndef SWIG
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const String& rhs);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(const Nym& nym);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const Contract& contract);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const Cheque& cheque);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const crypto::key::LegacySymmetric& key);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const OTCachedKey& key);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const proto::ContactItemType type,
         const proto::HDPath& path);
-
-    EXPORT friend std::ostream& operator<<(std::ostream& os, const String& obj);
-    EXPORT static bool validateID(const std::string& strPurportedID);
+#endif
+    EXPORT static bool Validate(const std::string& id);
 
     using ot_super::operator==;
-    EXPORT bool operator==(const Identifier& s2) const;
+    EXPORT virtual bool operator==(const Identifier& rhs) const = 0;
     using ot_super::operator!=;
-    EXPORT bool operator!=(const Identifier& s2) const;
-    EXPORT bool operator>(const Identifier& s2) const;
-    EXPORT bool operator<(const Identifier& s2) const;
-    EXPORT bool operator<=(const Identifier& s2) const;
-    EXPORT bool operator>=(const Identifier& s2) const;
+    EXPORT virtual bool operator!=(const Identifier& rhs) const = 0;
+    EXPORT virtual bool operator>(const Identifier& rhs) const = 0;
+    EXPORT virtual bool operator<(const Identifier& rhs) const = 0;
+    EXPORT virtual bool operator<=(const Identifier& rhs) const = 0;
+    EXPORT virtual bool operator>=(const Identifier& rhs) const = 0;
 
-    EXPORT void GetString(String& theStr) const;
-    EXPORT std::string str() const;
+#ifndef SWIG
+    EXPORT virtual void GetString(String& theStr) const = 0;
+#endif
+    EXPORT virtual std::string str() const = 0;
+    EXPORT virtual const ID& Type() const = 0;
 
-    EXPORT bool CalculateDigest(
-        const opentxs::Data& dataInput,
-        const ID type = DefaultType);
-    EXPORT bool CalculateDigest(
-        const String& strInput,
-        const ID type = DefaultType);
-    /** If someone passes in the pretty string of alphanumeric digits, convert
-     * it to the actual binary hash and set it internally. */
-    EXPORT void SetString(const std::string& encoded);
-    EXPORT void SetString(const String& encoded);
+    EXPORT virtual bool CalculateDigest(
+        const Data& input,
+        const ID type = ID::BLAKE2B) = 0;
+#ifndef SWIG
+    EXPORT virtual bool CalculateDigest(
+        const String& input,
+        const ID type = ID::BLAKE2B) = 0;
+#endif
+    EXPORT virtual void SetString(const std::string& encoded) = 0;
+#ifndef SWIG
+    EXPORT virtual void SetString(const String& encoded) = 0;
+#endif
     using ot_super::swap;
-    void swap(Identifier&& rhs);
-    /** theStr will contain pretty hex string after call. */
-    EXPORT const ID& Type() const { return type_; }
+    EXPORT virtual void swap(Identifier& rhs) = 0;
 
     EXPORT virtual ~Identifier() = default;
 
-private:
-    friend OTIdentifier;
-
-    static const ID DefaultType{ID::BLAKE2B};
-    static const size_t MinimumSize{10};
-
-    ID type_{DefaultType};
-
-    Identifier* clone() const;
-
-    static proto::HashType IDToHashType(const ID type);
-    static OTData path_to_data(
-        const proto::ContactItemType type,
-        const proto::HDPath& path);
-
-public:
-    Identifier& operator=(const Identifier& rhs);
-    Identifier& operator=(Identifier&& rhs);
+protected:
+    Identifier() = default;
 
 private:
-    Identifier();
-    explicit Identifier(const std::string& rhs);
-    explicit Identifier(const String& rhs);
-    explicit Identifier(const Nym& nym);
-    explicit Identifier(const Contract& contract);
-    explicit Identifier(const crypto::key::LegacySymmetric& key);
-    explicit Identifier(const OTCachedKey& key);
-    explicit Identifier(
-        const proto::ContactItemType type,
-        const proto::HDPath& path);
-    Identifier(const Identifier& rhs);
+    friend opentxs::Pimpl<opentxs::Identifier>;
+
+    virtual Identifier* clone() const = 0;
+
+    Identifier(const Identifier&) = delete;
+    Identifier(Identifier&&) = delete;
+    Identifier& operator=(const Identifier&) = delete;
+    Identifier& operator=(Identifier&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTIDENTIFIER_HPP
+#endif  // OPENTXS_CORE_IDENTIFIER_HPP

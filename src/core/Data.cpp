@@ -5,15 +5,16 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/Data_imp.hpp"
-
 #include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Data.hpp"
 
 #include <cstdio>
 #include <iomanip>
 #include <sstream>
+
+#include "Data.hpp"
 
 template class opentxs::Pimpl<opentxs::Data>;
 
