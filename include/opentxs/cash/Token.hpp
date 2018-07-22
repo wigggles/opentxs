@@ -10,8 +10,8 @@
 
 #if OT_CASH
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Instrument.hpp"
 
@@ -28,7 +28,7 @@ class OTNym_or_SymmetricKey;
 class Purse;
 class String;
 
-typedef std::map<std::int32_t, OTASCIIArmor*> mapOfPrototokens;
+typedef std::map<std::int32_t, Armored*> mapOfPrototokens;
 
 /*
 Here's a rough sketch of the protocol:
@@ -88,16 +88,15 @@ protected:
     bool m_bPasswordProtected{false};  // this token might be encrypted to a
                                        // passphrase, instead of a Nym.
 
-    OTASCIIArmor m_ascSpendable;  // This is the final, signed, unblinded token
-                                  // ID, ready to be spent. (But still in
-                                  // envelope form, encrypted and
-                                  // ascii-armored.)
-    OTASCIIArmor m_Signature;     // This is the Mint's signature on the blinded
-                                  // prototoken.
+    Armored m_ascSpendable;  // This is the final, signed, unblinded token
+                             // ID, ready to be spent. (But still in
+                             // envelope form, encrypted and
+                             // ascii-armored.)
+    Armored m_Signature;     // This is the Mint's signature on the blinded
+                             // prototoken.
 
-    std::int64_t m_lDenomination{
-        0};  // The actual value of the token is between issuer
-             // and trader.
+    std::int64_t m_lDenomination{0};  // The actual value of the token is
+                                      // between issuer and trader.
     // The token must have a denomination so we know which Mint Key to verify it
     // with.
 
@@ -111,9 +110,8 @@ protected:
 
     std::int32_t m_nTokenCount{0};  // Official token count is stored here for
     // serialization, etc. The maps' size should match.
-    std::int32_t m_nChosenIndex{
-        0};  // When the client submits N prototokens, the
-             // server randomly chooses one to sign.
+    std::int32_t m_nChosenIndex{0};  // When the client submits N prototokens,
+                                     // the server randomly chooses one to sign.
     // (The server opens the other (N-1) prototokens to verify the amount is
     // correct and that the IDs are random enough.) Expiration dates are
     // necessary because otherwise the spent token database must be stored
@@ -131,9 +129,8 @@ protected:
     // Tokens (and Mints) also have a SERIES:
     std::int32_t m_nSeries{0};
     tokenState m_State{errorToken};
-    bool m_bSavePrivateKeys{
-        false};  // Determines whether it serializes private keys 1
-                 // time (yes if true)
+    bool m_bSavePrivateKeys{false};  // Determines whether it serializes private
+                                     // keys 1 time (yes if true)
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     void InitToken();
     bool ChooseIndex(std::int32_t nIndex);
@@ -187,8 +184,8 @@ public:
         OTNym_or_SymmetricKey& oldOwner,
         OTNym_or_SymmetricKey& newOwner);
 
-    inline const OTASCIIArmor& GetSpendable() const { return m_ascSpendable; }
-    inline void SetSpendable(const OTASCIIArmor& theArmor)
+    inline const Armored& GetSpendable() const { return m_ascSpendable; }
+    inline void SetSpendable(const Armored& theArmor)
     {
         m_ascSpendable.Set(theArmor);
     }
@@ -244,9 +241,9 @@ public:
     /** Spent Token Database */
     EXPORT bool RecordTokenAsSpent(String& theCleartextToken);
     EXPORT void SetSignature(
-        const OTASCIIArmor& theSignature,
+        const Armored& theSignature,
         std::int32_t nTokenIndex);
-    EXPORT bool GetSignature(OTASCIIArmor& theSignature) const;
+    EXPORT bool GetSignature(Armored& theSignature) const;
     /** The actual denomination of the token is determined by whether or not it
      * verifies when the server uses the private verify info for THAT
      * denomination. So if you set the denomination here wrong, all that does is
@@ -263,11 +260,9 @@ public:
     // send a single blinded proto-token. Index is always 0, and Count is always
     // 1. But this does mean OTToken supports digital cash schemes that involve
     // multiple prototokens -- even though Lucre is not one of those.
-    EXPORT bool GetPrototoken(
-        OTASCIIArmor& ascPrototoken,
-        std::int32_t nTokenIndex);
+    EXPORT bool GetPrototoken(Armored& ascPrototoken, std::int32_t nTokenIndex);
     EXPORT bool GetPrivatePrototoken(
-        OTASCIIArmor& ascPrototoken,
+        Armored& ascPrototoken,
         std::int32_t nTokenIndex);
 };
 }  // namespace opentxs

@@ -30,7 +30,6 @@
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -47,6 +46,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -1211,7 +1211,7 @@ std::string OTAPI_Exec::GetServer_Contract(
     if (!pServer) { return {}; }
 
     auto serialized = pServer->Serialize();
-    OTASCIIArmor armored(serialized);
+    Armored armored(serialized);
     String strOutput;
     armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
 
@@ -3337,7 +3337,7 @@ Returns the base64-encoded string, or "".
 
 Internally:
 OTString        strPlain(strPlaintext);
-OTASCIIArmor    ascEncoded(thePlaintext);    // ascEncoded now contains the
+Armored    ascEncoded(thePlaintext);    // ascEncoded now contains the
 OT-encoded string.
 return            ascEncoded.Get();            // We return it.
 */
@@ -3373,7 +3373,7 @@ This will base64-decode, uncompress, and unpack an OT-encoded string.
 Returns the plaintext string, or "".
 
 Internally:
-OTASCIIArmor    ascEncoded(strEncoded);
+Armored    ascEncoded(strEncoded);
 OTString        strPlain(ascEncoded);    // strPlain now contains the decoded
 plaintext string.
 return            strPlain.Get();            // We return it.
@@ -3410,7 +3410,7 @@ OTString        strPlain(strPlaintext);
 OTEnvelope        theEnvelope;
 if (theEnvelope.Seal(RECIPIENT_NYM, strPlain)) {    // Now it's encrypted (in
 binary form, inside the envelope), to the recipient's nym.
-OTASCIIArmor    ascCiphertext(theEnvelope);        // ascCiphertext now contains
+Armored    ascCiphertext(theEnvelope);        // ascCiphertext now contains
 the base64-encoded ciphertext (as a string.)
 return ascCiphertext.Get();
 }
@@ -3451,7 +3451,7 @@ Returns the plaintext string, or "".
 Internally the C++ code is:
 OTEnvelope        theEnvelope;                    // Here is the envelope
 object. (The ciphertext IS the data for an OTEnvelope.)
-OTASCIIArmor    ascCiphertext(strCiphertext);    // The base64-encoded
+Armored    ascCiphertext(strCiphertext);    // The base64-encoded
 ciphertext passed in. Next we'll try to attach it to envelope object...
 if (theEnvelope.SetAsciiArmoredData(ascCiphertext)) {    // ...so that we can
 open it using the appropriate Nym, into a plain string object:
@@ -6857,7 +6857,7 @@ std::string OTAPI_Exec::LoadServerContract(
               << NOTARY_ID << "\n";
     } else  // success
     {
-        OTASCIIArmor armored(pContract->Serialize());
+        Armored armored(pContract->Serialize());
         String strOutput;
         armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
         return strOutput.Get();
@@ -10093,7 +10093,7 @@ std::string OTAPI_Exec::Token_GetID(
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
-        const OTASCIIArmor& ascSpendable =
+        const Armored& ascSpendable =
             pToken->GetSpendable();  // encrypted version of Token ID, used as
                                      // an
                                      // "ID" on client side.

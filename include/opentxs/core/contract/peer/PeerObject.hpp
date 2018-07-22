@@ -41,7 +41,7 @@ public:
         const proto::PeerObject& serialized);
     static std::unique_ptr<PeerObject> Factory(
         const ConstNym& recipientNym,
-        const OTASCIIArmor& encrypted);
+        const Armored& encrypted);
 
     const ConstNym& Nym() const { return nym_; }
     const std::shared_ptr<PeerRequest>& Request() const { return request_; }

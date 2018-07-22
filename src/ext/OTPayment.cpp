@@ -10,13 +10,13 @@
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
 #endif  // OT_CASH
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -2052,7 +2052,7 @@ void OTPayment::UpdateContents()
     tag.add_attribute("type", GetTypeString());
 
     if (m_strPayment.Exists()) {
-        const OTASCIIArmor ascContents(m_strPayment);
+        const Armored ascContents(m_strPayment);
 
         if (ascContents.Exists()) {
             tag.add_tag("contents", ascContents.Get());

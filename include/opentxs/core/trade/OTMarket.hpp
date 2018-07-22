@@ -111,11 +111,11 @@ public:
     bool RemoveOffer(const std::int64_t& lTransactionNum);
     // returns general information about offers on the market
     EXPORT bool GetOfferList(
-        OTASCIIArmor& ascOutput,
+        Armored& ascOutput,
         std::int64_t lDepth,
         std::int32_t& nOfferCount);
     EXPORT bool GetRecentTradeList(
-        OTASCIIArmor& ascOutput,
+        Armored& ascOutput,
         std::int32_t& nTradeCount);
 
     // Returns more detailed information about offers for a specific Nym.

@@ -47,7 +47,6 @@
 #include <opentxs/core/contract/UnitDefinition.hpp>
 #include <opentxs/core/cron/OTCronItem.hpp>
 #include <opentxs/core/crypto/ContactCredential.hpp>
-#include <opentxs/core/crypto/OTASCIIArmor.hpp>
 #include <opentxs/core/crypto/OTCachedKey.hpp>
 #include <opentxs/core/crypto/OTCallback.hpp>
 #include <opentxs/core/crypto/OTCaller.hpp>
@@ -67,6 +66,7 @@
 #include <opentxs/core/util/OTPaths.hpp>
 #include <opentxs/core/util/Timer.hpp>
 #include <opentxs/core/Account.hpp>
+#include <opentxs/core/Armored.hpp>
 #include <opentxs/core/Cheque.hpp>
 #include <opentxs/core/Data.hpp>
 #include <opentxs/core/Identifier.hpp>

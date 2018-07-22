@@ -11,13 +11,13 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/AccountList.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -68,7 +68,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
 
     if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
-        OTASCIIArmor ascMasterContents;
+        Armored ascMasterContents;
 
         if (cachedKey.SerializeTo(ascMasterContents)) {
             tag.add_tag("cachedKey", ascMasterContents.Get());
@@ -139,7 +139,7 @@ bool MainFile::SaveMainFile()
     // Try to save the notary server's main datafile to local storage...
     //
     String strFinal;
-    OTASCIIArmor ascTemp(strMainFile);
+    Armored ascTemp(strMainFile);
 
     if (false == ascTemp.WriteArmoredString(strFinal, "NOTARY"))  // todo
                                                                   // hardcoding.
@@ -219,7 +219,7 @@ bool MainFile::CreateMainFile(
         Log::Error("Failed trying to store the new notaryServer.xml file.\n");
         return false;
     }
-    OTASCIIArmor ascCachedKey;
+    Armored ascCachedKey;
     ascCachedKey.Set(strCachedKey.c_str());
     auto& cachedKey = crypto_.LoadDefaultKey(ascCachedKey);
 
@@ -352,7 +352,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                     else if (
                         strNodeName.Compare("masterKey") ||
                         strNodeName.Compare("cachedKey")) {
-                        OTASCIIArmor ascCachedKey;
+                        Armored ascCachedKey;
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             // We successfully loaded the masterKey from file,

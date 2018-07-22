@@ -12,6 +12,13 @@
 #if OT_CASH_USING_LUCRE
 #include "opentxs/cash/TokenLucre.hpp"
 #endif
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Instrument.hpp"
@@ -20,13 +27,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
-#include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTFolders.hpp"
-#include "opentxs/core/util/Tag.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -202,20 +202,20 @@ Token::~Token()
 void Token::ReleasePrototokens()
 {
     for (auto& it : m_mapPublic) {
-        OTASCIIArmor* pPrototoken = it.second;
+        Armored* pPrototoken = it.second;
         OT_ASSERT_MSG(
             nullptr != pPrototoken,
-            "nullptr OTASCIIArmor pointer in Token::ReleasePrototokens.");
+            "nullptr Armored pointer in Token::ReleasePrototokens.");
 
         delete pPrototoken;
         pPrototoken = nullptr;
     }
 
     for (auto& it : m_mapPrivate) {
-        OTASCIIArmor* pPrototoken = it.second;
+        Armored* pPrototoken = it.second;
         OT_ASSERT_MSG(
             nullptr != pPrototoken,
-            "nullptr OTASCIIArmor pointer in Token::ReleasePrototokens.");
+            "nullptr Armored pointer in Token::ReleasePrototokens.");
 
         delete pPrototoken;
         pPrototoken = nullptr;
@@ -511,7 +511,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     // The success of that operation is also now the success of this one.
 
     String strFinal;
-    OTASCIIArmor ascTemp(m_strRawFile);
+    Armored ascTemp(m_strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
@@ -722,7 +722,7 @@ void Token::UpdateContents()
         tagProtoPurse->add_attribute("chosenIndex", formatInt(m_nChosenIndex));
 
         for (auto& it : m_mapPublic) {
-            OTASCIIArmor* pPrototoken = it.second;
+            Armored* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
             tagProtoPurse->add_tag("prototoken", pPrototoken->Get());
         }
@@ -736,7 +736,7 @@ void Token::UpdateContents()
         TagPtr tagPrivateProtoPurse(new Tag("privateProtopurse"));
 
         for (auto& it : m_mapPrivate) {
-            OTASCIIArmor* pPrototoken = it.second;
+            Armored* pPrototoken = it.second;
             OT_ASSERT(nullptr != pPrototoken);
             tagPrivateProtoPurse->add_tag(
                 "privatePrototoken", pPrototoken->Get());
@@ -850,7 +850,7 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (strNodeName.Compare("prototoken")) {
-        OTASCIIArmor* pArmoredPrototoken = new OTASCIIArmor;
+        Armored* pArmoredPrototoken = new Armored;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
         if (!Contract::LoadEncodedTextField(xml, *pArmoredPrototoken) ||
@@ -873,7 +873,7 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (strNodeName.Compare("privatePrototoken")) {
-        OTASCIIArmor* pArmoredPrototoken = new OTASCIIArmor;
+        Armored* pArmoredPrototoken = new Armored;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
         if (!Contract::LoadEncodedTextField(xml, *pArmoredPrototoken) ||
@@ -912,14 +912,14 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
  */
 
-bool Token::GetPrototoken(OTASCIIArmor& ascPrototoken, std::int32_t nTokenIndex)
+bool Token::GetPrototoken(Armored& ascPrototoken, std::int32_t nTokenIndex)
 {
     // out of bounds. For a count 10 element array, index 10 is out of bounds.
     // thus if attempted index is equal or larger to the count, out of bounds.
     if (nTokenIndex >= m_nTokenCount) { return false; }
 
     for (auto& it : m_mapPublic) {
-        OTASCIIArmor* pPrototoken = it.second;
+        Armored* pPrototoken = it.second;
         OT_ASSERT(nullptr != pPrototoken);
 
         const bool bSuccess = (nTokenIndex == it.first);
@@ -934,7 +934,7 @@ bool Token::GetPrototoken(OTASCIIArmor& ascPrototoken, std::int32_t nTokenIndex)
 }
 
 bool Token::GetPrivatePrototoken(
-    OTASCIIArmor& ascPrototoken,
+    Armored& ascPrototoken,
     std::int32_t nTokenIndex)
 {
     // out of bounds. For a count 10 element array, index 10 is out of bounds.
@@ -942,7 +942,7 @@ bool Token::GetPrivatePrototoken(
     if (nTokenIndex >= m_nTokenCount) { return false; }
 
     for (auto& it : m_mapPrivate) {
-        OTASCIIArmor* pPrototoken = it.second;
+        Armored* pPrototoken = it.second;
         OT_ASSERT(nullptr != pPrototoken);
 
         bool bSuccess = (nTokenIndex == it.first);
@@ -990,9 +990,7 @@ inline bool Token::ChooseIndex(const std::int32_t nIndex)
 
 // The Mint has signed the token, and is sending it back to the client.
 // (we're near Lucre step 3 with this function)
-void Token::SetSignature(
-    const OTASCIIArmor& theSignature,
-    std::int32_t nTokenIndex)
+void Token::SetSignature(const Armored& theSignature, std::int32_t nTokenIndex)
 {
     // The server sets the signature, and then sends the token back to the
     // client. We release all these prototokens before doing so, because there's
@@ -1021,7 +1019,7 @@ void Token::SetSignature(
     m_State = Token::signedToken;
 }
 
-bool Token::GetSignature(OTASCIIArmor& theSignature) const
+bool Token::GetSignature(Armored& theSignature) const
 {
     theSignature = m_Signature;
 

@@ -87,7 +87,7 @@ public:
     network::ServerConnection& Connection();
     std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
         const MessageType type,
-        const OTASCIIArmor& payload,
+        const Armored& payload,
         const Identifier& accountID,
         const RequestNumber provided,
         const bool withAcknowledgments = true,

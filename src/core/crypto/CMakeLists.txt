@@ -16,7 +16,6 @@ set(cxx-sources
   MasterCredential.cpp
   NullCallback.cpp
   NymParameters.cpp
-  OTASCIIArmor.cpp
   OTCachedKey.cpp
   OTCallback.cpp
   OTCaller.cpp
@@ -44,7 +43,6 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/MasterCredential.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/mkcert.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/NymParameters.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTASCIIArmor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTCachedKey.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTCallback.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTCaller.hpp"

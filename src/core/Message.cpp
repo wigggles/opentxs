@@ -9,10 +9,10 @@
 
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -437,7 +437,7 @@ void Message::UpdateContents()
     if (m_AcknowledgedReplies.Count() > 0) {
         String strAck;
         if (m_AcknowledgedReplies.Output(strAck) && strAck.Exists()) {
-            const OTASCIIArmor ascTemp(strAck);
+            const Armored ascTemp(strAck);
             if (ascTemp.Exists()) { tag.add_tag("ackReplies", ascTemp.Get()); }
         }
     }
@@ -738,7 +738,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
+            Armored ascTextExpected;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -860,7 +860,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
+            Armored ascTextExpected;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -977,7 +977,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
+            Armored ascTextExpected;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -1056,7 +1056,7 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         // -------------------------------------------------
         const char* pElementExpected = "publicAuthentKey";
-        OTASCIIArmor ascTextExpected;
+        Armored ascTextExpected;
 
         String::Map temp_MapAttributesAuthent;
         temp_MapAttributesAuthent.insert(std::pair<std::string, std::string>(
@@ -1260,7 +1260,7 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "inReferenceTo";
-        OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+        Armored& ascTextExpected = m.m_ascInReferenceTo;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -1353,7 +1353,7 @@ public:
 
         if (m.m_bSuccess) {
             const char* pElementExpected = "nymfile";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -1366,7 +1366,7 @@ public:
         }
 
         const char* pElementExpected = "inReferenceTo";
-        OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+        Armored& ascTextExpected = m.m_ascInReferenceTo;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -1452,7 +1452,7 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "inReferenceTo";
-        OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+        Armored& ascTextExpected = m.m_ascInReferenceTo;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -1548,7 +1548,7 @@ public:
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
-        OTASCIIArmor ascTextExpected;
+        Armored ascTextExpected;
         const char* pElementExpected = nullptr;
 
         if (!m.m_bSuccess) {
@@ -1728,7 +1728,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "messagePayload";
-        OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+        Armored& ascTextExpected = m.m_ascPayload;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -1785,7 +1785,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "messagePayload";
-        OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+        Armored& ascTextExpected = m.m_ascPayload;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -1897,7 +1897,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "messagePayload";
-        OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+        Armored& ascTextExpected = m.m_ascPayload;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -2041,7 +2041,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "instrumentDefinition";
-        OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+        Armored& ascTextExpected = m.m_ascPayload;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -2114,7 +2114,7 @@ public:
 
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2129,7 +2129,7 @@ public:
 
         if (m.m_bSuccess) {
             const char* pElementExpected = "issuerAccount";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2202,7 +2202,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
         const char* pElementExpected = "stringMap";
-        OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+        Armored& ascTextExpected = m.m_ascPayload;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -2267,7 +2267,7 @@ public:
 
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2281,7 +2281,7 @@ public:
 
         if (m.m_bSuccess) {
             const char* pElementExpected = "stringMap";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2345,7 +2345,7 @@ public:
 
         {
             const char* pElementExpected = "currencyBasket";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2417,7 +2417,7 @@ public:
 
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2538,7 +2538,7 @@ public:
 
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2552,7 +2552,7 @@ public:
 
         if (m.m_bSuccess) {
             const char* pElementExpected = "newAccount";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2727,7 +2727,7 @@ public:
 
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2741,7 +2741,7 @@ public:
 
         if (m.m_bSuccess) {
             const char* pElementExpected = "boxReceipt";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2856,7 +2856,7 @@ public:
 
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2927,7 +2927,7 @@ public:
 
         {
             const char* pElementExpected = "accountLedger";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -2993,7 +2993,7 @@ public:
         // At this point, we do not send the REASON WHY if it failed.
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3007,7 +3007,7 @@ public:
         if (m.m_bSuccess) {  // Successful message (should contain
                              // responseLedger).
             const char* pElementExpected = "responseLedger";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3200,7 +3200,7 @@ public:
         else
             pElementExpected = "inReferenceTo";
 
-        OTASCIIArmor ascTextExpected;
+        Armored ascTextExpected;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -3445,7 +3445,7 @@ public:
         else
             pElementExpected = "inReferenceTo";
 
-        OTASCIIArmor ascTextExpected;
+        Armored ascTextExpected;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -3557,7 +3557,7 @@ public:
         else
             pElementExpected = "inReferenceTo";
 
-        OTASCIIArmor ascTextExpected;
+        Armored ascTextExpected;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -3621,7 +3621,7 @@ public:
 
         {
             const char* pElementExpected = "processLedger";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3687,7 +3687,7 @@ public:
         // At this point, we do not send the REASON WHY if it failed.
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3701,7 +3701,7 @@ public:
 
         if (m.m_bSuccess) {  // Success.
             const char* pElementExpected = "responseLedger";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3769,7 +3769,7 @@ public:
 
         {
             const char* pElementExpected = "processLedger";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3832,7 +3832,7 @@ public:
         // At this point, we do not send the REASON WHY if it failed.
         {
             const char* pElementExpected = "inReferenceTo";
-            OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+            Armored& ascTextExpected = m.m_ascInReferenceTo;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3846,7 +3846,7 @@ public:
 
         if (m.m_bSuccess) {  // Success
             const char* pElementExpected = "responseLedger";
-            OTASCIIArmor& ascTextExpected = m.m_ascPayload;
+            Armored& ascTextExpected = m.m_ascPayload;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3924,7 +3924,7 @@ public:
 
         if (strHasParam.Compare("true")) {
             const char* pElementExpected = "parameter";
-            OTASCIIArmor ascTextExpected;
+            Armored ascTextExpected;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -3984,7 +3984,7 @@ public:
 
         const char* pElementExpected = "inReferenceTo";
 
-        OTASCIIArmor ascTextExpected;
+        Armored ascTextExpected;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -4067,7 +4067,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            OTASCIIArmor ascTextExpected;
+            Armored ascTextExpected;
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -4191,7 +4191,7 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "inReferenceTo";
-        OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+        Armored& ascTextExpected = m.m_ascInReferenceTo;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -4285,7 +4285,7 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
         const char* pElementExpected = "inReferenceTo";
-        OTASCIIArmor& ascTextExpected = m.m_ascInReferenceTo;
+        Armored& ascTextExpected = m.m_ascInReferenceTo;
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {

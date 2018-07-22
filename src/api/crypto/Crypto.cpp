@@ -143,7 +143,7 @@ const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
     auto& output = cached_keys_[id];
 
     if (false == bool(output)) {
-        OTASCIIArmor serialized{};
+        Armored serialized{};
         const bool haveSerialized = source.SerializeTo(serialized);
 
         OT_ASSERT(haveSerialized);
@@ -257,7 +257,7 @@ void Crypto::init_default_key(const Lock&) const
     }
 }
 
-const OTCachedKey& Crypto::LoadDefaultKey(const OTASCIIArmor& serialized) const
+const OTCachedKey& Crypto::LoadDefaultKey(const Armored& serialized) const
 {
     Lock lock(cached_key_lock_);
 

@@ -10,7 +10,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -209,7 +209,7 @@ NetworkReplyRaw ServerConnection::Send(const std::string& input)
 
 NetworkReplyString ServerConnection::Send(const String& message)
 {
-    OTASCIIArmor envelope(message);
+    Armored envelope(message);
     NetworkReplyString output{SendResult::ERROR, nullptr};
     auto& status = output.first;
     auto& reply = output.second;
@@ -223,7 +223,7 @@ NetworkReplyString ServerConnection::Send(const String& message)
     status = rawOutput.first;
 
     if (SendResult::VALID_REPLY == status) {
-        OTASCIIArmor armored;
+        Armored armored;
         armored.Set(rawOutput.second->c_str());
 
         if (false == armored.GetString(*reply)) {

@@ -25,7 +25,7 @@ class NymIDSource
 {
 public:
     static serializedNymIDSource ExtractArmoredSource(
-        const OTASCIIArmor& armoredSource);
+        const Armored& armoredSource);
 
     String asString() const;
     String Description() const;

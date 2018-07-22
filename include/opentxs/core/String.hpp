@@ -45,8 +45,7 @@ public:
     using Map = std::map<std::string, std::string>;
 
     EXPORT static opentxs::Pimpl<opentxs::String> Factory();
-    EXPORT static opentxs::Pimpl<opentxs::String> Factory(
-        const OTASCIIArmor& value);
+    EXPORT static opentxs::Pimpl<opentxs::String> Factory(const Armored& value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(
         const OTSignature& value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(
@@ -144,8 +143,10 @@ protected:
     virtual void Release_String();
 
 private:
+    friend OTString;
     friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
+    String* clone() const;
     /** Only call this right after calling Initialize() or Release(). Also, this
      * function ASSUMES the new_string pointer is good. */
     void LowLevelSet(const char* data, std::uint32_t enforcedMaxLength);
@@ -154,7 +155,7 @@ private:
     void LowLevelSetStr(const String& buffer);
 
 public:
-    EXPORT explicit String(const OTASCIIArmor& value);
+    EXPORT explicit String(const Armored& value);
     EXPORT explicit String(const OTSignature& value);
     EXPORT explicit String(const Contract& value);
     EXPORT explicit String(const Identifier& value);

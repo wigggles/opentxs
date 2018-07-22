@@ -33,7 +33,6 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #if defined(OT_KEYRING_FLATFILE)
@@ -62,6 +61,7 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -927,7 +927,7 @@ bool OT_API::Wallet_ChangePassphrase() const
         return false;
     }
 
-    OTASCIIArmor ascBackup;
+    Armored ascBackup;
     cachedKey.SerializeTo(ascBackup);  // Just in case!
 
     const bool bSuccess = cachedKey.ChangeUserPassphrase();
@@ -1274,7 +1274,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
 
     OT_ASSERT(nym->HasCapability(NymCapability::SIGN_CHILDCRED));
 
-    OTASCIIArmor ascCredentials, ascCredList;
+    Armored ascCredentials, ascCredList;
     String strCertfile;
     bool bSavedCert = false;
 
@@ -1374,7 +1374,7 @@ bool OT_API::Wallet_ExportNym(const Identifier& NYM_ID, String& strOutput) const
     bool bReturnVal = (str_Encoded.size() > 0);
 
     if (bReturnVal) {
-        OTASCIIArmor ascTemp;
+        Armored ascTemp;
         ascTemp.Set(str_Encoded.c_str());
         strOutput.Release();
         bReturnVal = ascTemp.WriteArmoredString(
@@ -1407,12 +1407,12 @@ bool OT_API::Wallet_ImportNym(
     /*Lock lock(lock_);
 
     // By this point, pWallet is a good pointer.  (No need to cleanup.)
-    OTASCIIArmor ascArmor;
-    const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
+    Armored ascArmor;
+    const bool bLoadedArmor = Armored::LoadFromString(
         ascArmor, FILE_CONTENTS);  // str_bookend="-----BEGIN" by default
     if (!bLoadedArmor || !ascArmor.Exists()) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Failure loading string into OTASCIIArmor object:\n\n"
+              << ": Failure loading string into Armored object:\n\n"
               << FILE_CONTENTS << "\n\n";
         return false;
     }
@@ -1566,7 +1566,7 @@ bool OT_API::Wallet_ImportNym(
     // found "credlist"
     //
     if (theMap.end() != it_credlist) {
-        OTASCIIArmor ascCredList;
+        Armored ascCredList;
         String strCredList;
         if (it_credlist->second.size() > 0) {
             ascCredList.Set(it_credlist->second.c_str());
@@ -1577,7 +1577,7 @@ bool OT_API::Wallet_ImportNym(
         if (strCredList.Exists() &&
             (theMap.end() != it_credentials))  // and found "credentials"
         {
-            OTASCIIArmor ascCredentials;
+            Armored ascCredentials;
             if (it_credentials->second.size() > 0) {
                 ascCredentials.Set(it_credentials->second.c_str());
                 std::unique_ptr<OTDB::Storable> pPrivateStorable(
@@ -1778,7 +1778,7 @@ time64_t OT_API::GetTime() const { return OTTimeGetCurrentTime(); }
 
  Internally:
  OTString        strPlain(szPlaintext);
- OTASCIIArmor    ascEncoded(thePlaintext);    // ascEncoded now contains the
+ Armored    ascEncoded(thePlaintext);    // ascEncoded now contains the
  OT-encoded string.
  return            ascEncoded.Get();            // We return it.
  */
@@ -1787,7 +1787,7 @@ bool OT_API::Encode(
     String& strOutput,
     bool bLineBreaks) const
 {
-    OTASCIIArmor ascArmor;
+    Armored ascArmor;
     bool bSuccess = ascArmor.SetString(strPlaintext, bLineBreaks);  // encodes.
 
     if (bSuccess) {
@@ -1807,7 +1807,7 @@ bool OT_API::Encode(
  Returns the plaintext string, or nullptr.
 
  Internally:
- OTASCIIArmor    ascEncoded(szEncoded);
+ Armored    ascEncoded(szEncoded);
  OTString        strPlain(ascEncoded);    // strPlain now contains the decoded
  plaintext string.
  return            strPlain.Get();            // We return it.
@@ -1817,12 +1817,12 @@ bool OT_API::Decode(
     String& strOutput,
     bool bLineBreaks) const
 {
-    OTASCIIArmor ascArmor;
-    const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
+    Armored ascArmor;
+    const bool bLoadedArmor = Armored::LoadFromString(
         ascArmor, strEncoded);  // str_bookend="-----BEGIN" by default
     if (!bLoadedArmor || !ascArmor.Exists()) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Failure loading string into OTASCIIArmor object:\n\n"
+              << ": Failure loading string into Armored object:\n\n"
               << strEncoded << "\n\n";
         return false;
     }
@@ -1844,7 +1844,7 @@ bool OT_API::Decode(
  OTEnvelope        theEnvelope;
  if (theEnvelope.Seal(RECIPIENT_NYM, strPlain)) {    // Now it's encrypted (in
  binary form, inside the envelope), to the recipient's nym.
-    OTASCIIArmor    ascCiphertext(theEnvelope);        // ascCiphertext now
+    Armored    ascCiphertext(theEnvelope);        // ascCiphertext now
  contains the base64-encoded ciphertext (as a string.)
     return ascCiphertext.Get();
  }
@@ -1860,7 +1860,7 @@ bool OT_API::Encrypt(
     bool bSuccess = theEnvelope.Seal(*pRecipientNym, strPlaintext);
 
     if (bSuccess) {
-        OTASCIIArmor ascCiphertext(theEnvelope);
+        Armored ascCiphertext(theEnvelope);
         strOutput.Release();
 
         bSuccess = ascCiphertext.WriteArmoredString(
@@ -1881,7 +1881,7 @@ bool OT_API::Encrypt(
  Internally the C++ code is:
  OTEnvelope        theEnvelope;                    // Here is the envelope
  object. (The ciphertext IS the data for an OTEnvelope.)
- OTASCIIArmor    ascCiphertext(szCiphertext);    // The base64-encoded
+ Armored    ascCiphertext(szCiphertext);    // The base64-encoded
  ciphertext passed in. Next we'll try to attach it to envelope object...
  if (theEnvelope.SetAsciiArmoredData(ascCiphertext)) {    // ...so that we can
  open it using the appropriate Nym, into a plain string object:
@@ -1904,12 +1904,12 @@ bool OT_API::Decrypt(
     if (false == bool(pRecipientNym)) { return false; }
 
     OTEnvelope theEnvelope;
-    OTASCIIArmor ascCiphertext;
-    const bool bLoadedArmor = OTASCIIArmor::LoadFromString(
+    Armored ascCiphertext;
+    const bool bLoadedArmor = Armored::LoadFromString(
         ascCiphertext, strCiphertext);  // str_bookend="-----BEGIN" by default
     if (!bLoadedArmor || !ascCiphertext.Exists()) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Failure loading string into OTASCIIArmor object:\n\n"
+              << ": Failure loading string into Armored object:\n\n"
               << strCiphertext << "\n\n";
         return false;
     }
@@ -7874,7 +7874,7 @@ CommandResult OT_API::issueBasket(
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::issueBasket,
-        OTASCIIArmor(proto::ProtoAsData(basket)),
+        Armored(proto::ProtoAsData(basket)),
         Identifier::Factory(),
         requestNum);
     requestNum = newRequestNumber;
@@ -8317,7 +8317,7 @@ CommandResult OT_API::exchangeBasket(
     ledger.SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -8562,7 +8562,7 @@ CommandResult OT_API::notarizeWithdrawal(
     ledger.SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -8784,7 +8784,7 @@ CommandResult OT_API::notarizeDeposit(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9053,7 +9053,7 @@ CommandResult OT_API::payDividend(
     ledger.SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         DIVIDEND_FROM_accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9203,7 +9203,7 @@ CommandResult OT_API::withdrawVoucher(
     ledger.SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9549,7 +9549,7 @@ CommandResult OT_API::depositCheque(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9691,7 +9691,7 @@ CommandResult OT_API::depositPaymentPlan(
     ledger.SignContract(nym);
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9724,7 +9724,7 @@ CommandResult OT_API::triggerClause(
     transactionNum = transactionNumber;
     status = SendResult::ERROR;
     reply.reset();
-    OTASCIIArmor payload{};
+    Armored payload{};
 
     // Optional string parameter. Available as "param_string" inside the script.
     if ((nullptr != pStrParam) && (pStrParam->Exists())) {
@@ -10017,7 +10017,7 @@ CommandResult OT_API::activateSmartContract(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -10164,7 +10164,7 @@ CommandResult OT_API::cancelCronItem(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         ASSET_ACCOUNT_ID,
         requestNum);
     requestNum = newRequestNumber;
@@ -10486,7 +10486,7 @@ CommandResult OT_API::issueMarketOffer(
     ledger.SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         ASSET_ACCOUNT_ID,
         requestNum);
     requestNum = newRequestNumber;
@@ -10776,7 +10776,7 @@ CommandResult OT_API::notarizeTransfer(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        OTASCIIArmor(String(ledger)),
+        Armored(String(ledger)),
         ACCT_FROM,
         requestNum);
     requestNum = newRequestNumber;
@@ -10914,10 +10914,7 @@ CommandResult OT_API::processInbox(
     }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
-        MessageType::processInbox,
-        OTASCIIArmor(ACCT_LEDGER),
-        accountID,
-        requestNum);
+        MessageType::processInbox, Armored(ACCT_LEDGER), accountID, requestNum);
     requestNum = newRequestNumber;
 
     if (false == bool(message)) { return output; }
@@ -11057,7 +11054,7 @@ CommandResult OT_API::getMint(
 // puts issuer's receipts in that spot.)
 CommandResult OT_API::queryInstrumentDefinitions(
     ServerContext& context,
-    const OTASCIIArmor& ENCODED_MAP) const
+    const Armored& ENCODED_MAP) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));

@@ -11,7 +11,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -20,6 +19,7 @@
 #include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -157,9 +157,9 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        String strOffer(*pOffer);  // Extract the offer contract into string
-                                   // form.
-        OTASCIIArmor ascOffer(strOffer);  // Base64-encode that for storage.
+        String strOffer(*pOffer);    // Extract the offer contract into string
+                                     // form.
+        Armored ascOffer(strOffer);  // Base64-encode that for storage.
 
         TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
         tagOffer->add_attribute(
@@ -172,9 +172,9 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        String strOffer(*pOffer);  // Extract the offer contract into string
-                                   // form.
-        OTASCIIArmor ascOffer(strOffer);  // Base64-encode that for storage.
+        String strOffer(*pOffer);    // Extract the offer contract into string
+                                     // form.
+        Armored ascOffer(strOffer);  // Base64-encode that for storage.
 
         TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
         tagOffer->add_attribute(
@@ -305,9 +305,7 @@ bool OTMarket::GetNym_OfferList(
     return true;
 }
 
-bool OTMarket::GetRecentTradeList(
-    OTASCIIArmor& ascOutput,
-    std::int32_t& nTradeCount)
+bool OTMarket::GetRecentTradeList(Armored& ascOutput, std::int32_t& nTradeCount)
 {
     nTradeCount = 0;  // Output the count of trades in the list being returned.
                       // (If success..)
@@ -378,7 +376,7 @@ bool OTMarket::GetRecentTradeList(
 // OTDB::OfferListMarket
 //
 bool OTMarket::GetOfferList(
-    OTASCIIArmor& ascOutput,
+    Armored& ascOutput,
     std::int64_t lDepth,
     std::int32_t& nOfferCount)
 {

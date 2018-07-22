@@ -8,7 +8,6 @@
 #include "opentxs/core/script/OTParty.hpp"
 
 #include "opentxs/consensus/ServerContext.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTPartyAccount.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
@@ -17,6 +16,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
@@ -1473,7 +1473,7 @@ void OTParty::Serialize(
     }
 
     if (!bCalculatingID && m_strMySignedCopy.Exists()) {
-        OTASCIIArmor ascTemp(m_strMySignedCopy);
+        Armored ascTemp(m_strMySignedCopy);
         pTag->add_tag("mySignedCopy", ascTemp.Get());
     }
 

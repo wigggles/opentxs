@@ -11,8 +11,8 @@
 #include <opentxs-proto/Check.hpp>
 // IWYU pragma: end_exports
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 
 #include <iostream>
@@ -59,7 +59,7 @@ template <class T>
 String ProtoAsArmored(const T& serialized, const String& header)
 {
     auto data = ProtoAsData<T>(serialized);
-    OTASCIIArmor armored(data);
+    Armored armored(data);
     String output;
     armored.WriteArmoredString(output, header.Get());
 
@@ -91,7 +91,7 @@ T DataToProto(const Data& input)
 template <class T>
 T StringToProto(const String& input)
 {
-    OTASCIIArmor armored;
+    Armored armored;
     String unconstInput(input);
 
     if (!armored.LoadFromString(unconstInput)) {

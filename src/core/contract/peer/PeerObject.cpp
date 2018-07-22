@@ -10,9 +10,9 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -173,7 +173,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
 
 std::unique_ptr<PeerObject> PeerObject::Factory(
     const ConstNym& recipientNym,
-    const OTASCIIArmor& encrypted)
+    const Armored& encrypted)
 {
     ConstNym notUsed{nullptr};
     std::unique_ptr<PeerObject> output;

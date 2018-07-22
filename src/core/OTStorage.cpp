@@ -7,9 +7,9 @@
 
 #include "opentxs/core/OTStorage.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStoragePB.hpp"
@@ -703,7 +703,7 @@ Storable* QueryObject(
         theObjectType, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
 }
 
-// Store/Retrieve a Storable object to/from an OTASCIIArmor object.
+// Store/Retrieve a Storable object to/from an Armored object.
 
 std::string EncodeObject(Storable& theContents)
 {
@@ -2350,7 +2350,7 @@ std::string Storage::EncodeObject(Storable& theContents)
     }
 
     const auto theData = Data::Factory(pNewData, nNewSize);
-    const OTASCIIArmor theArmor(theData.get());
+    const Armored theArmor(theData.get());
 
     strReturnValue.assign(theArmor.Get(), theArmor.GetLength());
 
@@ -2387,7 +2387,7 @@ Storable* Storage::DecodeObject(
 
     // Below this point, responsible for pBuffer AND pStorable.
 
-    OTASCIIArmor theArmor;
+    Armored theArmor;
     theArmor.Set(strInput.c_str(), static_cast<std::uint32_t>(strInput.size()));
     const auto thePayload = Data::Factory(theArmor);
 

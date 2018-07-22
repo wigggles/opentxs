@@ -39,11 +39,11 @@ public:
     //
     static bool ArmorPrivateKey(
         EVP_PKEY& theKey,
-        OTASCIIArmor& ascKey,
+        Armored& ascKey,
         Timer& theTimer,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* pImportPassword = nullptr);
-    static bool ArmorPublicKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey);
+    static bool ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey);
     static EVP_PKEY* CopyPublicKey(
         EVP_PKEY& theKey,
         const OTPasswordData* pPWData = nullptr,

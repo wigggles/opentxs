@@ -253,7 +253,7 @@ public:
 
     internally:
     OTString    strPlain(strPlaintext);
-    OTASCIIArmor    ascEncoded(thePlaintext);    // ascEncoded now contains the
+    Armored    ascEncoded(thePlaintext);    // ascEncoded now contains the
     OT-encoded string.
     return    ascEncoded.Get();    // We return it.
     */
@@ -270,7 +270,7 @@ public:
     Returns the plainext string, or nullptr.
 
     internally:
-    OTASCIIArmor    ascEncoded(strEncoded);
+    Armored    ascEncoded(strEncoded);
     OTString    strPlain(ascEncoded);    // strPlain now contains the decoded
     plainext string.
     return    strPlain.Get();    // We return it.
@@ -293,7 +293,7 @@ public:
     OTEnvelope    theEnvelope;
     if (theEnvelope.Seal(RECIPIENT_NYM, strPlain)) {    // Now it's encrypted
     (in binary form, inside the envelope), to the recipient's nym.
-    OTASCIIArmor    ascCiphertext(theEnvelope);    // ascCiphertext now contains
+    Armored    ascCiphertext(theEnvelope);    // ascCiphertext now contains
     the base64-encoded ciphertext (as a string.)
     return ascCiphertext.Get();
     }
@@ -314,7 +314,7 @@ public:
     internally the C++ code is:
     OTEnvelope    theEnvelope;    // Here is the envelope object. (The
     ciphertext IS the data for an OTEnvelope.)
-    OTASCIIArmor    ascCiphertext(strCiphertext);    // The base64-encoded
+    Armored    ascCiphertext(strCiphertext);    // The base64-encoded
     ciphertext passed in. Next we'll try to attach it to envelope object...
     if (theEnvelope.SetAsciiArmoredData(ascCiphertext)) {    // ...so that we
     can open it using the appropriate Nym, into a plain string object:

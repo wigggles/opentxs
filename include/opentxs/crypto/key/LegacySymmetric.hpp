@@ -91,7 +91,7 @@ public:
     EXPORT virtual bool HasHashCheck() const = 0;
     EXPORT virtual bool IsGenerated() const = 0;
     EXPORT virtual bool SerializeTo(Data& theOutput) const = 0;
-    EXPORT virtual bool SerializeTo(OTASCIIArmor& ascOutput) const = 0;
+    EXPORT virtual bool SerializeTo(Armored& ascOutput) const = 0;
     EXPORT virtual bool SerializeTo(String& strOutput, bool bEscaped = false)
         const = 0;
 
@@ -113,7 +113,7 @@ public:
                                                    // this back to you.
     EXPORT virtual void Release() = 0;
     EXPORT virtual bool SerializeFrom(Data& theInput) = 0;
-    EXPORT virtual bool SerializeFrom(const OTASCIIArmor& ascInput) = 0;
+    EXPORT virtual bool SerializeFrom(const Armored& ascInput) = 0;
     EXPORT virtual bool SerializeFrom(
         const String& strInput,
         bool bEscaped = false) = 0;

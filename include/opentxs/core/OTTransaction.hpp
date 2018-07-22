@@ -146,7 +146,7 @@ actual box receipt.
 
  DOES NOT SAVE:
  listOfItems    m_listItems;        // the various items in this transaction.
- OTASCIIArmor   m_ascCancellationRequest; // used by finalReceipt
+ Armored   m_ascCancellationRequest; // used by finalReceipt
 //    OTIdentifier    m_ID;            // Account ID. This is in Contract
 (parent class). Here we use it for the REAL ACCOUNT ID (set before loading.)
  OTIdentifier    m_AcctID;        // Compare m_AcctID to m_ID after loading it
@@ -157,7 +157,7 @@ transaction, based on expected NotaryID.
 portion. (Compare to m_NotaryID upon loading.)
  OTIdentifier    m_AcctNymID;        // NymID of the user who created this
 item. (In the future, this item
- OTASCIIArmor    m_ascInReferenceTo;    // This item may be in reference to a
+ Armored    m_ascInReferenceTo;    // This item may be in reference to a
 different item
 
  Normally we only save the "purported" values. But in "save to ledger" function
@@ -748,7 +748,7 @@ protected:
     listOfItems m_listItems;  // the various items in this transaction.
 
     TransactionNumber m_lClosingTransactionNo{0};  // used by finalReceipt
-    OTASCIIArmor m_ascCancellationRequest;         // used by finalReceipt
+    Armored m_ascCancellationRequest;              // used by finalReceipt
 
     // ONLY the "replyNotice" transaction uses this field.
     // When replyNotices are dropped into your Nymbox (server notices

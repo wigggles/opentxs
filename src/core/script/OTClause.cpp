@@ -7,8 +7,8 @@
 
 #include "opentxs/core/script/OTClause.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -67,7 +67,7 @@ const char* OTClause::GetCode() const
 
 void OTClause::Serialize(Tag& parent) const
 {
-    OTASCIIArmor ascCode;
+    Armored ascCode;
 
     if (m_strCode.GetLength() > 2)
         ascCode.SetString(m_strCode);

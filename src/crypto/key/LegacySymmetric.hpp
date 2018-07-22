@@ -39,7 +39,7 @@ public:
     bool HasHashCheck() const override { return has_hash_check_.get(); }
     bool IsGenerated() const override { return m_bIsGenerated; }
     bool SerializeTo(Data& theOutput) const override;
-    bool SerializeTo(OTASCIIArmor& ascOutput) const override;
+    bool SerializeTo(Armored& ascOutput) const override;
     bool SerializeTo(String& strOutput, bool bEscaped = false) const override;
 
     // Must not have a hash-check yet!
@@ -60,7 +60,7 @@ public:
                                                         // pass this back to
                                                         // you.
     bool SerializeFrom(Data& theInput) override;
-    bool SerializeFrom(const OTASCIIArmor& ascInput) override;
+    bool SerializeFrom(const Armored& ascInput) override;
     bool SerializeFrom(const String& strInput, bool bEscaped = false) override;
 
     operator bool() const override { return true; }
@@ -107,14 +107,14 @@ private:
         const OTPassword& thePassphrase,
         OTPassword& theRawKeyOutput,
         OTPassword* pDerivedKey = nullptr) const;
-    bool serialize_to(const Lock& lock, OTASCIIArmor& ascOutput) const;
+    bool serialize_to(const Lock& lock, Armored& ascOutput) const;
     bool serialize_to(const Lock& lock, Data& theOutput) const;
 
     OTPassword* calculate_new_derived_key_from_passphrase(
         const Lock& lock,
         const OTPassword& thePassphrase);
     bool serialize_from(const Lock& lock, Data& theInput);
-    bool serialize_from(const Lock& lock, const OTASCIIArmor& ascInput);
+    bool serialize_from(const Lock& lock, const Armored& ascInput);
 
     LegacySymmetric(const LegacySymmetric&);
     LegacySymmetric(LegacySymmetric&&) = delete;

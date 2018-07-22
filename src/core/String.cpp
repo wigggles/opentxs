@@ -7,11 +7,11 @@
 
 #include "opentxs/core/String.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/StringUtils.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -33,6 +33,8 @@
 #include <string>
 #include <utility>
 
+template class opentxs::Pimpl<opentxs::String>;
+
 namespace opentxs
 {
 std::ostream& operator<<(std::ostream& os, const String& obj)
@@ -43,7 +45,7 @@ std::ostream& operator<<(std::ostream& os, const String& obj)
 
 OTString String::Factory() { return OTString(new String()); }
 
-OTString String::Factory(const OTASCIIArmor& value)
+OTString String::Factory(const Armored& value)
 {
     return OTString(new String(value));
 }
@@ -331,7 +333,7 @@ String::String(const Contract& theValue)
 
 // This version base64-DECODES the ascii-armored string passed in,
 // and then sets the decoded plaintext string onto this object.
-String::String(const OTASCIIArmor& strValue)
+String::String(const Armored& strValue)
     : String()
 {
     if (strValue.Exists()) strValue.GetString(*this);
@@ -449,6 +451,8 @@ bool String::At(std::uint32_t lIndex, char& c) const
         return false;
 }
 
+String* String::clone() const { return new String(*this); }
+
 // Compare is simple.  True if they match, False if they don't match.
 bool String::Compare(const char* strCompare) const
 {
@@ -538,7 +542,7 @@ void String::ConvertToUpperCase()
 }
 
 // If this string starts with -----BEGIN OT ARMORED...
-// Then this function will load it up into an OTASCIIArmor (removing
+// Then this function will load it up into an Armored (removing
 // the bookends) and then decode it back into this string. This code
 // has been repeated around so I'm doing this as a refactoring exercise.
 //
@@ -578,7 +582,7 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
 
     if (bArmored)  // it's armored, we have to decode it first.
     {
-        OTASCIIArmor ascTemp;
+        Armored ascTemp;
         if (false == (ascTemp.LoadFromString(
                          *this,
                          bArmoredAndALSOescaped,  // if it IS escaped or not,

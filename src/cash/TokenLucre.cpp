@@ -10,13 +10,13 @@
 #include "opentxs/cash/DigitalCash.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Token.hpp"
+#include "opentxs/core/crypto/OTEnvelope.hpp"
+#include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
-#include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/util/Assert.hpp"
 
 #if OT_CASH_USING_LUCRE
 #include "crypto/library/OpenSSL_BIO.hpp"
@@ -89,8 +89,8 @@ bool Token_Lucre::GenerateTokenRequest(
 
     // This version base64-DECODES the ascii-armored string passed in,
     // and then sets the decoded plaintext string onto the string.
-    // OTString::OTString(const OTASCIIArmor & strValue)
-    OTASCIIArmor ascPublicMint;
+    // OTString::OTString(const Armored & strValue)
+    Armored ascPublicMint;
 
     theMint.GetPublic(ascPublicMint, lDenomination);
     //    otErr << "DEBUG: OTToken  public asc: \n%s\n", ascPublicMint.Get());
@@ -187,8 +187,8 @@ bool Token_Lucre::GenerateTokenRequest(
             String strPrivateCoin;
             strPrivateCoin.Set(privateCoinBuffer, privatecoinLen);
 
-            OTASCIIArmor* pArmoredPublic = new OTASCIIArmor(strPublicCoin);
-            OTASCIIArmor* pArmoredPrivate = new OTASCIIArmor;
+            Armored* pArmoredPublic = new Armored(strPublicCoin);
+            Armored* pArmoredPrivate = new Armored;
 
             OT_ASSERT_MSG(
                 ((nullptr != pArmoredPublic) && (nullptr != pArmoredPrivate)),
@@ -255,7 +255,7 @@ bool Token_Lucre::ProcessToken(
     // Get the bank's public key (decoded into strPublicMint)
     // and put it into bioBank so we can use it with Lucre.
     //
-    OTASCIIArmor ascPublicMint;
+    Armored ascPublicMint;
     theMint.GetPublic(ascPublicMint, GetDenomination());
     String strPublicMint(ascPublicMint);
     BIO_puts(bioBank, strPublicMint.Get());
@@ -268,8 +268,8 @@ bool Token_Lucre::ProcessToken(
 
     // I need the Private coin request also. (Only the client has this private
     // coin request data.)
-    OTASCIIArmor thePrototoken;  // The server sets m_nChosenIndex when it signs
-                                 // the token.
+    Armored thePrototoken;  // The server sets m_nChosenIndex when it signs
+                            // the token.
     bool bFoundToken =
         theRequest.GetPrivatePrototoken(thePrototoken, m_nChosenIndex);
 

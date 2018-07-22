@@ -8,36 +8,36 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
+#include "opentxs/core/Armored.hpp"
 
 namespace opentxs
 {
 
 class String;
 
-class OTSignature : public OTASCIIArmor
+class OTSignature : public Armored
 {
 public:
     OTSignature()
-        : OTASCIIArmor()
+        : Armored()
     {
     }
 
     virtual ~OTSignature() {}
 
     explicit OTSignature(const String& value)
-        : OTASCIIArmor(value)
+        : Armored(value)
     {
     }
 
-    explicit OTSignature(const OTASCIIArmor& value)
-        : OTASCIIArmor(value)
+    explicit OTSignature(const Armored& value)
+        : Armored(value)
     {
     }
 
     explicit OTSignature(const char* value)
-        : OTASCIIArmor(value)
+        : Armored(value)
     {
     }
 

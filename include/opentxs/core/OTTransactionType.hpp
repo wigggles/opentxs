@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/Types.hpp"
@@ -547,7 +547,7 @@ protected:
     // (See originType comment.)
     originType m_originType{originType::not_applicable};
     // This item may be in reference to a different item.
-    OTASCIIArmor m_ascInReferenceTo;
+    Armored m_ascInReferenceTo;
     bool m_bLoadSecurely{true};  // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction

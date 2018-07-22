@@ -11,13 +11,13 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -605,7 +605,7 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
     }
 
     String strFinal;
-    OTASCIIArmor ascTemp(strRawFile);
+    Armored ascTemp(strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
@@ -1740,7 +1740,7 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
             String strTransaction;
 
             pTransaction->SaveContractRaw(strTransaction);
-            OTASCIIArmor ascTransaction;
+            Armored ascTransaction;
             ascTransaction.SetString(strTransaction, true);  // linebreaks =
                                                              // true
 
@@ -2171,7 +2171,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //
     else if (strNodeName.Compare("transaction")) {
         String strTransaction;
-        OTASCIIArmor ascTransaction;
+        Armored ascTransaction;
 
         // go to the next node and read the text.
         //        xml->read(); // <==================
@@ -2184,7 +2184,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (irr::io::EXN_TEXT == xml->getNodeType()) {
             // the ledger contains a series of transactions.
-            // Each transaction is initially stored as an OTASCIIArmor string.
+            // Each transaction is initially stored as an Armored string.
             const String strLoopNodeData = xml->getNodeData();
 
             if (strLoopNodeData.Exists())

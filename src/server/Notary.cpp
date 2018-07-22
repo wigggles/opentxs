@@ -1197,7 +1197,7 @@ void Notary::NotarizeWithdrawal(
                                 __FUNCTION__);
                             break;
                         } else {
-                            OTASCIIArmor theArmorReturnVal(theStringReturnVal);
+                            Armored theArmorReturnVal(theStringReturnVal);
 
                             pToken->ReleaseSignatures();  // this releases the
                                                           // normal signatures,

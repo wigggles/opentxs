@@ -10,13 +10,13 @@
 #include "opentxs/cash/DigitalCash.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Token.hpp"
-#include "opentxs/core/String.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/core/String.hpp"
 
 #if OT_CASH_USING_LUCRE
 #include "crypto/library/OpenSSL_BIO.hpp"
@@ -70,7 +70,7 @@ bool MintLucre::AddDenomination(
     bool bReturnValue = false;
 
     // Let's make sure it doesn't already exist
-    OTASCIIArmor theArmor;
+    Armored theArmor;
     if (GetPublic(theArmor, lDenomination)) {
         otErr << "Error: Denomination public already exists in "
                  "OTMint::AddDenomination\n";
@@ -131,8 +131,8 @@ bool MintLucre::AddDenomination(
         String strPrivateBank;
         strPrivateBank.Set(privateBankBuffer, privatebankLen);
 
-        OTASCIIArmor* pPublic = new OTASCIIArmor;
-        OTASCIIArmor* pPrivate = new OTASCIIArmor;
+        Armored* pPublic = new Armored;
+        Armored* pPrivate = new Armored;
 
         OT_ASSERT(nullptr != pPublic);
         OT_ASSERT(nullptr != pPrivate);
@@ -183,7 +183,7 @@ bool MintLucre::SignToken(
     crypto::implementation::OpenSSL_BIO bioSignature =
         BIO_new(BIO_s_mem());  // output
 
-    OTASCIIArmor thePrivate;
+    Armored thePrivate;
     GetPrivate(thePrivate, theToken.GetDenomination());
 
     // The Mint private info is encrypted in
@@ -202,7 +202,7 @@ bool MintLucre::SignToken(
     Bank bank(bioBank);
 
     // I need the request. the prototoken.
-    OTASCIIArmor ascPrototoken;
+    Armored ascPrototoken;
     bool bFoundToken = theToken.GetPrototoken(ascPrototoken, nTokenIndex);
 
     if (bFoundToken) {
@@ -297,7 +297,7 @@ bool MintLucre::VerifyToken(
 
     // --- The Mint private info is encrypted in m_mapPrivate[lDenomination].
     // So I need to extract that first before I can use it.
-    OTASCIIArmor theArmor;
+    Armored theArmor;
     GetPrivate(theArmor, lDenomination);
     OTEnvelope theEnvelope(theArmor);
 

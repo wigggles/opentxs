@@ -9,12 +9,12 @@
 
 #include "opentxs/api/Native.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Timer.hpp"
-#include <opentxs/core/util/stacktrace.h>
+#include "opentxs/core/util/stacktrace.h"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
@@ -90,7 +90,7 @@ void RSA::d::SetKeyAsCopyOf(
     backlink->m_bIsPrivateKey = bIsPrivateKey;
 
     if (nullptr == backlink->m_p_ascKey) {
-        backlink->m_p_ascKey = new OTASCIIArmor;
+        backlink->m_p_ascKey = new Armored;
         OT_ASSERT(nullptr != backlink->m_p_ascKey);
     } else {
         backlink->m_p_ascKey->Release();
@@ -426,7 +426,7 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
 //
 // OpenSSL loaded key ===> ASCII-Armored export of same key.
 //
-bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, OTASCIIArmor& ascKey)
+bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
 {
     bool bReturnVal = false;
 
@@ -650,7 +650,7 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
 
 bool RSA::d::ArmorPrivateKey(
     EVP_PKEY& theKey,
-    OTASCIIArmor& ascKey,
+    Armored& ascKey,
     Timer& theTimer,
     const OTPasswordData* pPWData,
     const OTPassword* pImportPassword)

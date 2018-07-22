@@ -18,13 +18,13 @@
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
@@ -393,7 +393,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     auto& cachedKey = crypto_.DefaultKey();
 
     if (cachedKey.IsGenerated()) {
-        OTASCIIArmor ascMasterContents;
+        Armored ascMasterContents;
 
         if (cachedKey.SerializeTo(ascMasterContents)) {
             strCachedKey.assign(
@@ -414,7 +414,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     if (false == nymData.SetCommonName(pContract->ID()->str())) { OT_FAIL }
 
     const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
-    OTASCIIArmor ascContract(signedContract.get());
+    Armored ascContract(signedContract.get());
     opentxs::String strBookended;
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(strBookended.Get(), SERVER_CONTRACT_FILE);

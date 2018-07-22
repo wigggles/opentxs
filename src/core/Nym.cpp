@@ -18,7 +18,6 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignedFile.hpp"
@@ -26,6 +25,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -616,14 +616,14 @@ bool Nym::deserialize_nymfile(
                     }
                 } else if (strNodeName.Compare("nymIDSource")) {
                     //                  otLog3 << "Loading nymIDSource...\n");
-                    OTASCIIArmor ascDescription =
+                    Armored ascDescription =
                         xml->getAttributeValue("Description");  // optional.
                     if (ascDescription.Exists())
                         ascDescription.GetString(
                             m_strDescription,
                             false);  // bLineBreaks=true by default.
 
-                    OTASCIIArmor stringSource;
+                    Armored stringSource;
                     if (!Contract::LoadEncodedTextField(xml, stringSource)) {
                         otErr
                             << "Error in " << __FILE__ << " line " << __LINE__
@@ -687,7 +687,7 @@ bool Nym::deserialize_nymfile(
                             << "This nym MISSING asset account ID when loading "
                                "nym record.\n";
                 } else if (strNodeName.Compare("outpaymentsMessage")) {
-                    OTASCIIArmor armorMail;
+                    Armored armorMail;
                     String strMessage;
 
                     xml->read();
@@ -2020,7 +2020,7 @@ bool Nym::serialize_nymfile(const T& lock, String& strNym) const
 
             String strOutpayments(*pMessage);
 
-            OTASCIIArmor ascOutpayments;
+            Armored ascOutpayments;
 
             if (strOutpayments.Exists())
                 ascOutpayments.SetString(strOutpayments);
@@ -2106,7 +2106,7 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
 
     // Name is in the clear in memory,
     // and base64 in storage.
-    OTASCIIArmor ascName;
+    Armored ascName;
     if (!alias_.empty()) {
         ascName.SetString(String(alias_), false);  // linebreaks == false
     }
@@ -2231,7 +2231,7 @@ void Nym::SerializeNymIDSource(Tag& parent) const
         TagPtr pTag(new Tag("nymIDSource", source_->asString().Get()));
 
         if (m_strDescription.Exists()) {
-            OTASCIIArmor ascDescription;
+            Armored ascDescription;
             ascDescription.SetString(
                 m_strDescription,
                 false);  // bLineBreaks=true by default.

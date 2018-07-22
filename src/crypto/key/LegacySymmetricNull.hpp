@@ -35,7 +35,7 @@ public:
     bool HasHashCheck() const override { return false; }
     bool IsGenerated() const override { return false; }
     bool SerializeTo(Data&) const override { return false; }
-    bool SerializeTo(OTASCIIArmor&) const override { return false; }
+    bool SerializeTo(Armored&) const override { return false; }
     bool SerializeTo(String&, bool = false) const override { return false; }
 
     OTPassword* CalculateNewDerivedKeyFromPassphrase(const OTPassword&) override
@@ -52,7 +52,7 @@ public:
         return false;
     }
     bool SerializeFrom(Data&) override { return false; }
-    bool SerializeFrom(const OTASCIIArmor&) override { return false; }
+    bool SerializeFrom(const Armored&) override { return false; }
     bool SerializeFrom(const String& strInput, bool = false) override
     {
         return false;

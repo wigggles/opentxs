@@ -10,7 +10,7 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
@@ -261,7 +261,7 @@ bool ReplyMessage::SetPayload(const Data& payload)
     return message_.m_ascPayload.SetData(payload);
 }
 
-void ReplyMessage::SetPayload(const OTASCIIArmor& payload)
+void ReplyMessage::SetPayload(const Armored& payload)
 {
     message_.m_ascPayload = payload;
 }

@@ -20,7 +20,6 @@
 #include "opentxs/core/contract/basket/BasketContract.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/script/OTParty.hpp"
 #include "opentxs/core/script/OTScriptable.hpp"
@@ -29,6 +28,7 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Account.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
@@ -895,7 +895,7 @@ bool UserCommandProcessor::cmd_get_market_list(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_list);
 
-    OTASCIIArmor output{};
+    Armored output{};
     std::int32_t count{0};
     reply.SetSuccess(server_.Cron().GetMarketList(output, count));
 
@@ -928,7 +928,7 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
 
     if (nullptr == market) { return false; }
 
-    OTASCIIArmor output{};
+    Armored output{};
     std::int32_t nOfferCount{0};
     reply.SetSuccess(market->GetOfferList(output, depth, nOfferCount));
 
@@ -958,7 +958,7 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
 
     if (nullptr == market) { return false; }
 
-    OTASCIIArmor output;
+    Armored output;
     std::int32_t count = 0;
     reply.SetSuccess(market->GetRecentTradeList(output, count));
 
@@ -1003,7 +1003,7 @@ bool UserCommandProcessor::cmd_get_nym_market_offers(ReplyMessage& reply) const
 
     const auto& nymID = reply.Context().RemoteNym().ID();
 
-    OTASCIIArmor output{};
+    Armored output{};
     std::int32_t count{0};
     reply.SetSuccess(server_.Cron().GetNym_OfferList(output, nymID, count));
 

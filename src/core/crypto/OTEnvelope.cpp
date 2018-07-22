@@ -12,10 +12,10 @@
 #include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/Letter.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -46,20 +46,20 @@ OTEnvelope::OTEnvelope()
 {
 }
 
-OTEnvelope::OTEnvelope(const OTASCIIArmor& theArmoredText)
+OTEnvelope::OTEnvelope(const Armored& theArmoredText)
     : ciphertext_(Data::Factory())
 {
     SetCiphertext(theArmoredText);
 }
 
-bool OTEnvelope::GetCiphertext(OTASCIIArmor& theArmoredText) const
+bool OTEnvelope::GetCiphertext(Armored& theArmoredText) const
 {
     if (ciphertext_->empty()) { return false; }
 
     return theArmoredText.SetData(ciphertext_.get(), true);
 }
 
-bool OTEnvelope::SetCiphertext(const OTASCIIArmor& theArmoredText)
+bool OTEnvelope::SetCiphertext(const Armored& theArmoredText)
 {
     ciphertext_ = Data::Factory();
 

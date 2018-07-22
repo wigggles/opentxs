@@ -9,13 +9,13 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -1025,7 +1025,7 @@ bool Contract::WriteContract(
     }
 
     String strFinal;
-    OTASCIIArmor ascTemp(m_strRawFile);
+    Armored ascTemp(m_strRawFile);
 
     if (false ==
         ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
@@ -1686,7 +1686,7 @@ bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
 // static
 bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
 {
-    OTASCIIArmor ascOutput;
+    Armored ascOutput;
 
     if (Contract::LoadEncodedTextField(xml, ascOutput) &&
         ascOutput.GetLength() > 2) {
@@ -1697,7 +1697,7 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
 }
 
 // static
-bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, OTASCIIArmor& ascOutput)
+bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
 {
     OT_ASSERT_MSG(
         nullptr != xml,
@@ -1773,7 +1773,7 @@ bool Contract::LoadEncodedTextFieldByName(
 {
     OT_ASSERT(nullptr != szName);
 
-    OTASCIIArmor ascOutput;
+    Armored ascOutput;
 
     if (Contract::LoadEncodedTextFieldByName(
             xml, ascOutput, szName, pmapExtraVars) &&
@@ -1788,7 +1788,7 @@ bool Contract::LoadEncodedTextFieldByName(
 // static
 bool Contract::LoadEncodedTextFieldByName(
     IrrXMLReader*& xml,
-    OTASCIIArmor& ascOutput,
+    Armored& ascOutput,
     const char* szName,
     String::Map* pmapExtraVars)
 {

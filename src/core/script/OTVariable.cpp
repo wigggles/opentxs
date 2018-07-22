@@ -7,10 +7,10 @@
 
 #include "opentxs/core/script/OTVariable.hpp"
 
-#include "opentxs/core/crypto/OTASCIIArmor.hpp"
 #include "opentxs/core/script/OTScript.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/Tag.hpp"
+#include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -60,7 +60,7 @@ void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
             str_type = "string";
             if ((false == bCalculatingID) && (m_str_Value.size() > 0)) {
                 String strVal(m_str_Value.c_str());
-                OTASCIIArmor ascVal(strVal);
+                Armored ascVal(strVal);
                 pTag->add_attribute("value", "exists");
                 pTag->set_text(ascVal.Get());
             } else {
