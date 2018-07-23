@@ -36,4 +36,5 @@ TEST(RouterSocket, RouterSocket_Factory)
     ASSERT_EQ(SocketType::Router, dealerSocket->Type());
 }
 
-// TODO: Add tests for other public member functions: SetCurve, SetSocksProxy
+// TODO: Add tests for other public member functions: SetPublicKey,
+// SetSocksProxy

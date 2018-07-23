@@ -32,4 +32,4 @@ TEST(PublishSocket, PublishSocket_Factory)
     ASSERT_EQ(SocketType::Publish, publishSocket->Type());
 }
 
-// TODO: Add tests for other public member functions: SetCurve
+// TODO: Add tests for other public member functions: SetPrivateKey

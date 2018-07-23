@@ -39,4 +39,4 @@ TEST(ReplySocket, ReplySocket_Factory)
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
 }
 
-// TODO: Add tests for other public member functions: SetCurve
+// TODO: Add tests for other public member functions: SetPrivateKey

@@ -38,7 +38,7 @@ ListenCallback* ListenCallback::clone() const
     return new ListenCallback(callback_);
 }
 
-void ListenCallback::Process(const zeromq::Message& message) const
+void ListenCallback::Process(zeromq::Message& message) const
 {
     callback_(message);
 }

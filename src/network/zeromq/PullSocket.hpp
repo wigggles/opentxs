@@ -10,12 +10,16 @@
 
 #include "opentxs/network/zeromq/PullSocket.hpp"
 
+#include "CurveServer.hpp"
 #include "Receiver.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class PullSocket : virtual public zeromq::PullSocket, public Socket, Receiver
+class PullSocket : virtual public zeromq::PullSocket,
+                   public Socket,
+                   CurveServer,
+                   Receiver
 {
 public:
     bool Start(const std::string& endpoint) const override;

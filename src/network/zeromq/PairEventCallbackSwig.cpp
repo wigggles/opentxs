@@ -45,7 +45,7 @@ PairEventCallbackSwig* PairEventCallbackSwig::clone() const
     return new PairEventCallbackSwig(callback_);
 }
 
-void PairEventCallbackSwig::Process(const zeromq::Message& message) const
+void PairEventCallbackSwig::Process(zeromq::Message& message) const
 {
     OT_ASSERT(nullptr != callback_)
     OT_ASSERT(1 == message.Body().size());

@@ -9,11 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/CurveServer.hpp"
 
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::ReplySocket::Factory;
-%ignore opentxs::network::zeromq::ReplySocket::SetCurve;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::Pimpl(opentxs::network::zeromq::ReplySocket const &);
 %ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator opentxs::network::zeromq::ReplySocket&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>::operator const opentxs::network::zeromq::ReplySocket &;
@@ -29,15 +29,13 @@ namespace network
 {
 namespace zeromq
 {
-class ReplySocket : virtual public Socket
+class ReplySocket : virtual public Socket, virtual public CurveServer
 {
 public:
     EXPORT static OTZMQReplySocket Factory(
         const class Context& context,
         const bool client,
         const ReplyCallback& callback);
-
-    EXPORT virtual bool SetCurve(const OTPassword& key) const = 0;
 
     EXPORT virtual ~ReplySocket() = default;
 

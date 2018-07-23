@@ -101,11 +101,6 @@ bool DealerSocket::Send(zeromq::Message& message) const
     return (false != sent);
 }
 
-bool DealerSocket::SetCurve(const ServerContract& contract) const
-{
-    return set_curve(contract);
-}
-
 bool DealerSocket::SetSocksProxy(const std::string& proxy) const
 {
     return set_socks_proxy(proxy);

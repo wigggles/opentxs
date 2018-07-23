@@ -73,11 +73,6 @@ PublishSocket* PublishSocket::clone() const
     return new PublishSocket(context_);
 }
 
-bool PublishSocket::SetCurve(const OTPassword& key) const
-{
-    return set_curve(key);
-}
-
 bool PublishSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);

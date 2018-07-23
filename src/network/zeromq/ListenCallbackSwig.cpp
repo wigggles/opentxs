@@ -41,7 +41,7 @@ ListenCallbackSwig* ListenCallbackSwig::clone() const
     return new ListenCallbackSwig(callback_);
 }
 
-void ListenCallbackSwig::Process(const zeromq::Message& message) const
+void ListenCallbackSwig::Process(zeromq::Message& message) const
 {
     OT_ASSERT(nullptr != callback_)
 

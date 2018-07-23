@@ -49,7 +49,7 @@ void Test_PublishSubscribe::subscribeSocketThread(
     ASSERT_NE(nullptr, &Test_PublishSubscribe::context_.get());
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this, msgs](const network::zeromq::Message& input) -> void {
+        [this, msgs](network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
             bool found = msgs.count(inputString);
             EXPECT_TRUE(found);
@@ -134,7 +134,7 @@ TEST_F(Test_PublishSubscribe, Publish_Subscribe)
     publishSocket->Start(endpoint_);
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
             ++callbackFinishedCount_;
@@ -233,7 +233,7 @@ TEST_F(Test_PublishSubscribe, Publish_2_Subscribe_1)
     ASSERT_EQ(2, publishThreadStartedCount_);
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
             bool match =
                 inputString == testMessage_ || inputString == testMessage2_;

@@ -16,6 +16,7 @@ set(cxx-sources
   Test_Message.cpp
   Test_PublishSocket.cpp
   Test_PublishSubscribe.cpp
+  Test_PushPull.cpp
   Test_ReplyCallback.cpp
   Test_ReplySocket.cpp
   Test_RequestReply.cpp

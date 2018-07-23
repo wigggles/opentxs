@@ -566,15 +566,18 @@ const std::vector<OTIdentifier> Nym::GetMasterCredentialIDs() const
     return ids;
 }
 
-const crypto::key::Asymmetric& Nym::GetPrivateAuthKey() const
+const crypto::key::Asymmetric& Nym::GetPrivateAuthKey(
+    proto::AsymmetricKeyType keytype) const
 {
     sLock lock(shared_lock_);
 
-    return get_private_auth_key(lock);
+    return get_private_auth_key(lock, keytype);
 }
 
 template <typename T>
-const crypto::key::Asymmetric& Nym::get_private_auth_key(const T& lock) const
+const crypto::key::Asymmetric& Nym::get_private_auth_key(
+    const T& lock,
+    proto::AsymmetricKeyType keytype) const
 {
     OT_ASSERT(!m_mapCredentialSets.empty());
 
@@ -595,7 +598,8 @@ const crypto::key::Asymmetric& Nym::get_private_auth_key(const T& lock) const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPrivateAuthKey(&m_listRevokedIDs);  // success
+    return pCredential->GetPrivateAuthKey(
+        keytype, &m_listRevokedIDs);  // success
 }
 
 void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
@@ -619,7 +623,8 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
     strCredList.Concatenate("%s", str_result.c_str());
 }
 
-const crypto::key::Asymmetric& Nym::GetPrivateEncrKey() const
+const crypto::key::Asymmetric& Nym::GetPrivateEncrKey(
+    proto::AsymmetricKeyType keytype) const
 {
     sLock lock(shared_lock_);
 
@@ -641,18 +646,23 @@ const crypto::key::Asymmetric& Nym::GetPrivateEncrKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPrivateEncrKey(&m_listRevokedIDs);  // success
+    return pCredential->GetPrivateEncrKey(
+        keytype,
+        &m_listRevokedIDs);  // success
 }
 
-const crypto::key::Asymmetric& Nym::GetPrivateSignKey() const
+const crypto::key::Asymmetric& Nym::GetPrivateSignKey(
+    proto::AsymmetricKeyType keytype) const
 {
     sLock lock(shared_lock_);
 
-    return get_private_sign_key(lock);
+    return get_private_sign_key(lock, keytype);
 }
 
 template <typename T>
-const crypto::key::Asymmetric& Nym::get_private_sign_key(const T& lock) const
+const crypto::key::Asymmetric& Nym::get_private_sign_key(
+    const T& lock,
+    proto::AsymmetricKeyType keytype) const
 {
     OT_ASSERT(!m_mapCredentialSets.empty());
 
@@ -674,10 +684,13 @@ const crypto::key::Asymmetric& Nym::get_private_sign_key(const T& lock) const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPrivateSignKey(&m_listRevokedIDs);  // success
+    return pCredential->GetPrivateSignKey(
+        keytype,
+        &m_listRevokedIDs);  // success
 }
 
-const crypto::key::Asymmetric& Nym::GetPublicAuthKey() const
+const crypto::key::Asymmetric& Nym::GetPublicAuthKey(
+    proto::AsymmetricKeyType keytype) const
 {
     sLock lock(shared_lock_);
 
@@ -699,10 +712,13 @@ const crypto::key::Asymmetric& Nym::GetPublicAuthKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPublicAuthKey(&m_listRevokedIDs);  // success
+    return pCredential->GetPublicAuthKey(
+        keytype,
+        &m_listRevokedIDs);  // success
 }
 
-const crypto::key::Asymmetric& Nym::GetPublicEncrKey() const
+const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
+    proto::AsymmetricKeyType keytype) const
 {
     sLock lock(shared_lock_);
 
@@ -723,7 +739,9 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey() const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPublicEncrKey(&m_listRevokedIDs);  // success
+    return pCredential->GetPublicEncrKey(
+        keytype,
+        &m_listRevokedIDs);  // success
 }
 
 // This is being called by:
@@ -760,15 +778,18 @@ std::int32_t Nym::GetPublicKeysBySignature(
     return nCount;
 }
 
-const crypto::key::Asymmetric& Nym::GetPublicSignKey() const
+const crypto::key::Asymmetric& Nym::GetPublicSignKey(
+    proto::AsymmetricKeyType keytype) const
 {
     sLock lock(shared_lock_);
 
-    return get_public_sign_key(lock);
+    return get_public_sign_key(lock, keytype);
 }
 
 template <typename T>
-const crypto::key::Asymmetric& Nym::get_public_sign_key(const T& lock) const
+const crypto::key::Asymmetric& Nym::get_public_sign_key(
+    const T& lock,
+    proto::AsymmetricKeyType keytype) const
 {
     OT_ASSERT(!m_mapCredentialSets.empty());
 
@@ -790,7 +811,9 @@ const crypto::key::Asymmetric& Nym::get_public_sign_key(const T& lock) const
     }
     if (nullptr == pCredential) OT_FAIL;
 
-    return pCredential->GetPublicSignKey(&m_listRevokedIDs);  // success
+    return pCredential->GetPublicSignKey(
+        keytype,
+        &m_listRevokedIDs);  // success
 }
 
 CredentialSet* Nym::GetRevokedCredential(const String& strID)

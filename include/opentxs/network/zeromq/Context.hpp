@@ -34,6 +34,9 @@ class Context
 public:
     EXPORT static Pimpl<opentxs::network::zeromq::Context> Factory();
 
+    EXPORT static std::string EncodePrivateZ85(
+        const opentxs::crypto::key::Ed25519& key);
+
     EXPORT virtual operator void*() const = 0;
 
     EXPORT virtual Pimpl<network::zeromq::DealerSocket> DealerSocket(

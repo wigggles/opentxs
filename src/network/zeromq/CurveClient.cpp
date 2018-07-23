@@ -22,23 +22,47 @@
 namespace opentxs::network::zeromq::implementation
 {
 CurveClient::CurveClient(std::mutex& lock, void* socket)
-    : curve_lock_(lock)
-    , curve_socket_(socket)
+    : client_curve_lock_(lock)
+    , client_curve_socket_(socket)
 {
 }
 
-bool CurveClient::set_curve(const ServerContract& contract) const
+bool CurveClient::SetPublicKey(const ServerContract& contract) const
 {
-    Lock lock(curve_lock_);
-
-    if (false == set_remote_key(lock, contract)) { return false; }
-
-    return set_local_keys(lock);
+    return set_public_key(contract);
 }
 
-bool CurveClient::set_local_keys(const Lock&) const
+bool CurveClient::SetPublicKey(const Data& key) const
 {
-    OT_ASSERT(nullptr != curve_socket_);
+    return set_public_key(key);
+}
+
+bool CurveClient::set_public_key(const ServerContract& contract) const
+{
+    Lock lock(client_curve_lock_);
+
+    const auto& key = contract.TransportKey();
+
+    if (CURVE_KEY_BYTES != key.GetSize()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid server key."
+              << std::endl;
+
+        return false;
+    }
+
+    return set_public_key(key);
+}
+
+bool CurveClient::set_public_key(const Data& key) const
+{
+    if (false == set_remote_key(key)) { return false; }
+
+    return set_local_keys();
+}
+
+bool CurveClient::set_local_keys() const
+{
+    OT_ASSERT(nullptr != client_curve_socket_);
 
     std::array<char, CURVE_KEY_Z85_BYTES + 1> publicKey{};
     std::array<char, CURVE_KEY_Z85_BYTES + 1> secretKey{};
@@ -54,7 +78,7 @@ bool CurveClient::set_local_keys(const Lock&) const
     }
 
     set = zmq_setsockopt(
-        curve_socket_, ZMQ_CURVE_PUBLICKEY, pubkey, publicKey.size());
+        client_curve_socket_, ZMQ_CURVE_PUBLICKEY, pubkey, publicKey.size());
 
     if (0 != set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to set public key."
@@ -64,7 +88,7 @@ bool CurveClient::set_local_keys(const Lock&) const
     }
 
     set = zmq_setsockopt(
-        curve_socket_, ZMQ_CURVE_SECRETKEY, privkey, secretKey.size());
+        client_curve_socket_, ZMQ_CURVE_SECRETKEY, privkey, secretKey.size());
 
     if (0 != set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to set private key."
@@ -76,22 +100,15 @@ bool CurveClient::set_local_keys(const Lock&) const
     return true;
 }
 
-bool CurveClient::set_remote_key(const Lock&, const ServerContract& contract)
-    const
+bool CurveClient::set_remote_key(const Data& key) const
 {
-    OT_ASSERT(nullptr != curve_socket_);
-
-    const auto& key = contract.TransportKey();
-
-    if (CURVE_KEY_BYTES != key.size()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid server key."
-              << std::endl;
-
-        return false;
-    }
+    OT_ASSERT(nullptr != client_curve_socket_);
 
     const auto set = zmq_setsockopt(
-        curve_socket_, ZMQ_CURVE_SERVERKEY, key.data(), key.size());
+        client_curve_socket_,
+        ZMQ_CURVE_SERVERKEY,
+        key.data(),
+        key.size());
 
     if (0 != set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to set server key."
@@ -103,5 +120,5 @@ bool CurveClient::set_remote_key(const Lock&, const ServerContract& contract)
     return true;
 }
 
-CurveClient::~CurveClient() { curve_socket_ = nullptr; }
+CurveClient::~CurveClient() { client_curve_socket_ = nullptr; }
 }  // namespace opentxs::network::zeromq::implementation

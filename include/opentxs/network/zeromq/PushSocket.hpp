@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/CurveClient.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -28,7 +29,7 @@ namespace network
 {
 namespace zeromq
 {
-class PushSocket : virtual public Socket
+class PushSocket : virtual public Socket, virtual public CurveClient
 {
 public:
     EXPORT static Pimpl<opentxs::network::zeromq::PushSocket> Factory(

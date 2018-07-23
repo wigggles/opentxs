@@ -39,6 +39,7 @@ public:
         const std::uint8_t bitmessageStream = 0);
 
     EXPORT virtual bool operator==(const proto::PaymentCode& rhs) const = 0;
+    EXPORT virtual operator const crypto::key::Asymmetric&() const = 0;
 
     EXPORT virtual const OTIdentifier ID() const = 0;
     EXPORT virtual const std::string asBase58() const = 0;

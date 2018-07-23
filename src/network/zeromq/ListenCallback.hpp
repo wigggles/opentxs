@@ -15,7 +15,7 @@ namespace opentxs::network::zeromq::implementation
 class ListenCallback : virtual public zeromq::ListenCallback
 {
 public:
-    void Process(const zeromq::Message& message) const override;
+    void Process(zeromq::Message& message) const override;
 
     ~ListenCallback();
 

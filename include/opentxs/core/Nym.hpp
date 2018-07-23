@@ -83,11 +83,16 @@ public:
     EXPORT const std::vector<OTIdentifier> GetMasterCredentialIDs() const;
     EXPORT void GetIdentifier(Identifier& theIdentifier) const;
     EXPORT void GetIdentifier(String& theIdentifier) const;
-    EXPORT const crypto::key::Asymmetric& GetPrivateAuthKey() const;
-    EXPORT const crypto::key::Asymmetric& GetPrivateEncrKey() const;
-    EXPORT const crypto::key::Asymmetric& GetPrivateSignKey() const;
-    EXPORT const crypto::key::Asymmetric& GetPublicAuthKey() const;
-    EXPORT const crypto::key::Asymmetric& GetPublicEncrKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateAuthKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateEncrKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
+    EXPORT const crypto::key::Asymmetric& GetPrivateSignKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
+    EXPORT const crypto::key::Asymmetric& GetPublicAuthKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
+    EXPORT const crypto::key::Asymmetric& GetPublicEncrKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
     // OT uses the signature's metadata to narrow down its search for the
     // correct public key.
     // 'S' (signing key) or
@@ -97,7 +102,8 @@ public:
         crypto::key::Keypair::Keys& listOutput,
         const OTSignature& theSignature,
         char cKeyType = '0') const;
-    EXPORT const crypto::key::Asymmetric& GetPublicSignKey() const;
+    EXPORT const crypto::key::Asymmetric& GetPublicSignKey(
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
     EXPORT const std::vector<OTIdentifier> GetRevokedCredentialIDs() const;
     EXPORT bool HasCapability(const NymCapability& capability) const;
     EXPORT const Identifier& ID() const { return m_nymID; }
@@ -242,11 +248,17 @@ private:
     String::List m_listRevokedIDs;
 
     template <typename T>
-    const crypto::key::Asymmetric& get_private_auth_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_private_auth_key(
+        const T& lock,
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
     template <typename T>
-    const crypto::key::Asymmetric& get_private_sign_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_private_sign_key(
+        const T& lock,
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
     template <typename T>
-    const crypto::key::Asymmetric& get_public_sign_key(const T& lock) const;
+    const crypto::key::Asymmetric& get_public_sign_key(
+        const T& lock,
+        proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
     bool has_capability(const eLock& lock, const NymCapability& capability)
         const;
     void init_claims(const eLock& lock) const;

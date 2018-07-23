@@ -23,7 +23,6 @@ public:
     MultipartSendResult SendRequest(opentxs::Data& message) const override;
     MultipartSendResult SendRequest(const std::string& message) const override;
     MultipartSendResult SendRequest(zeromq::Message& message) const override;
-    bool SetCurve(const ServerContract& contract) const override;
     bool SetSocksProxy(const std::string& proxy) const override;
     bool Start(const std::string& endpoint) const override;
 

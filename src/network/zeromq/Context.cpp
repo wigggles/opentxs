@@ -7,7 +7,9 @@
 
 #include "Context.hpp"
 
+#include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/crypto/key/Ed25519.hpp"
 #include "opentxs/network/zeromq/DealerSocket.hpp"
 #include "opentxs/network/zeromq/PairSocket.hpp"
 #include "opentxs/network/zeromq/Proxy.hpp"
@@ -31,6 +33,32 @@ OTZMQContext Context::Factory()
 {
     return OTZMQContext(new implementation::Context());
 }
+
+std::string Context::EncodePrivateZ85(const opentxs::crypto::key::Ed25519& key)
+{
+    opentxs::OTData data = opentxs::Data::Factory();
+    auto retrieved = key.GetKey(data);
+
+    OT_ASSERT(retrieved);
+
+    size_t buffer_size = data->size() + data->size() / 4 + 1;
+    char* buffer = new char[buffer_size];
+
+    OT_ASSERT(nullptr != buffer);
+
+    char* p = nullptr;
+    p = zmq_z85_encode(
+        buffer, static_cast<const uint8_t*>(data->data()), data->size());
+
+    OT_ASSERT(nullptr != p);
+
+    std::string encoded{p};
+
+    delete[] buffer;
+
+    return encoded;
+}
+
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation

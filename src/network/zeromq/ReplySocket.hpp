@@ -22,7 +22,6 @@ class ReplySocket : virtual public zeromq::ReplySocket,
                     Receiver
 {
 public:
-    bool SetCurve(const OTPassword& key) const override;
     bool Start(const std::string& endpoint) const override;
 
     ~ReplySocket();

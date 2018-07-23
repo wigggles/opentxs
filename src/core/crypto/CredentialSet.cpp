@@ -362,6 +362,7 @@ String CredentialSet::MasterAsString() const
     }
 }
 
+
 // When exporting a Nym, you don't want his private keys encrypted to the
 // cached key for the wallet, so you have to load them up, and then pause
 // OTCachedKey, and then save them to string again, re-encrypting them to
@@ -682,6 +683,7 @@ const std::string CredentialSet::GetChildCredentialIDByIndex(
 }
 
 const crypto::key::Keypair& CredentialSet::GetAuthKeypair(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapCredentials) {
@@ -709,7 +711,7 @@ const crypto::key::Keypair& CredentialSet::GetAuthKeypair(
         // future smart criteria might go here before taking this final
         // step...)
         //
-        return pKey->authentication_key_;
+        return pKey->GetKeypair(keytype, proto::KEYROLE_AUTH);
     }
 
     // Didn't find any child credentials we can use? For now, we'll return
@@ -722,6 +724,7 @@ const crypto::key::Keypair& CredentialSet::GetAuthKeypair(
 }
 
 const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapCredentials) {
@@ -749,7 +752,7 @@ const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
         // future smart criteria might go here before taking this final
         // step...)
 
-        return pKey->encryption_key_;
+        return pKey->GetKeypair(keytype, proto::KEYROLE_ENCRYPT);
     }
 
     // Didn't find any child credentials we can use? For now, we'll return
@@ -763,6 +766,7 @@ const crypto::key::Keypair& CredentialSet::GetEncrKeypair(
 }
 
 const crypto::key::Keypair& CredentialSet::GetSignKeypair(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
     for (const auto& it : m_mapCredentials) {
@@ -790,7 +794,7 @@ const crypto::key::Keypair& CredentialSet::GetSignKeypair(
         // future smart criteria might go here before taking this final
         // step...)
         //
-        return pKey->signing_key_;
+        return pKey->GetKeypair(keytype, proto::KEYROLE_SIGN);
     }
 
     // Didn't find any child credentials we can use? For now, we'll return
@@ -809,39 +813,45 @@ const crypto::key::Keypair& CredentialSet::GetSignKeypair(
 // (Optional.)
 
 const crypto::key::Asymmetric& CredentialSet::GetPublicAuthKey(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
-    return GetAuthKeypair(plistRevokedIDs).GetPublicKey();
+    return GetAuthKeypair(keytype, plistRevokedIDs).GetPublicKey();
 }
 
 const crypto::key::Asymmetric& CredentialSet::GetPublicEncrKey(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
-    return GetEncrKeypair(plistRevokedIDs).GetPublicKey();
+    return GetEncrKeypair(keytype, plistRevokedIDs).GetPublicKey();
 }
 
 const crypto::key::Asymmetric& CredentialSet::GetPublicSignKey(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
-    return GetSignKeypair(plistRevokedIDs).GetPublicKey();
+    return GetSignKeypair(keytype, plistRevokedIDs).GetPublicKey();
 }
 
 const crypto::key::Asymmetric& CredentialSet::GetPrivateAuthKey(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
-    return GetAuthKeypair(plistRevokedIDs).GetPrivateKey();
+    return GetAuthKeypair(keytype, plistRevokedIDs).GetPrivateKey();
 }
 
 const crypto::key::Asymmetric& CredentialSet::GetPrivateEncrKey(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
-    return GetEncrKeypair(plistRevokedIDs).GetPrivateKey();
+    return GetEncrKeypair(keytype, plistRevokedIDs).GetPrivateKey();
 }
 
 const crypto::key::Asymmetric& CredentialSet::GetPrivateSignKey(
+    proto::AsymmetricKeyType keytype,
     const String::List* plistRevokedIDs) const
 {
-    return GetSignKeypair(plistRevokedIDs).GetPrivateKey();
+    return GetSignKeypair(keytype, plistRevokedIDs).GetPrivateKey();
 }
 
 void CredentialSet::ClearChildCredentials() { m_mapCredentials.clear(); }

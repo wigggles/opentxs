@@ -35,7 +35,7 @@ void Test_DealerReply::dealerSocketThread(const std::string& msg)
     bool replyProcessed{false};
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyProcessed](const network::zeromq::Message& input) -> void {
+        [this, &replyProcessed](network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
             bool match =
                 inputString == testMessage2_ || inputString == testMessage3_;
@@ -110,7 +110,7 @@ TEST_F(Test_DealerReply, Dealer_Reply)
     bool replyProcessed{false};
 
     auto dealerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyProcessed](const network::zeromq::Message& input) -> void {
+        [this, &replyProcessed](network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
 
             EXPECT_EQ(testMessage_, inputString);
@@ -239,7 +239,7 @@ TEST_F(Test_DealerReply, Dealer_Reply_Multipart)
     bool replyProcessed{false};
 
     auto dealerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyProcessed](const network::zeromq::Message& input) -> void {
+        [this, &replyProcessed](network::zeromq::Message& input) -> void {
             // ReplySocket puts the delimiter frame back when it sends the
             // reply.
             ASSERT_EQ(5, input.size());

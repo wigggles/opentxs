@@ -41,7 +41,7 @@ void Test_DealerRouter::dealerSocketThread(const std::string& msg)
     bool replyProcessed{false};
 
     auto dealerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyProcessed](const network::zeromq::Message& input) -> void {
+        [this, &replyProcessed](network::zeromq::Message& input) -> void {
             EXPECT_EQ(2, input.size());
 
             const std::string& inputString = *input.Body().begin();
@@ -85,7 +85,7 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
     auto replyMessage = network::zeromq::Message::Factory();
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](const network::zeromq::Message& input) -> void {
+        [this, &replyMessage](network::zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
 
             const std::string& inputString = *input.Body().begin();
@@ -130,7 +130,7 @@ TEST_F(Test_DealerRouter, Dealer_Router)
     auto replyMessage = network::zeromq::Message::Factory();
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](const network::zeromq::Message& input) -> void {
+        [this, &replyMessage](network::zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
             const std::string& inputString = *input.Body().begin();
 
@@ -157,7 +157,7 @@ TEST_F(Test_DealerRouter, Dealer_Router)
     bool replyProcessed{false};
 
     auto dealerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyProcessed](const network::zeromq::Message& input) -> void {
+        [this, &replyProcessed](network::zeromq::Message& input) -> void {
             EXPECT_EQ(2, input.size());
             const std::string& inputString = *input.Body().begin();
 
@@ -216,7 +216,7 @@ TEST_F(Test_DealerRouter, Dealer_2_Router_1)
             testMessage3_, network::zeromq::Message::Factory())};
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessages](const network::zeromq::Message& input) -> void {
+        [this, &replyMessages](network::zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
 
             const std::string& inputString = *input.Body().begin();
@@ -343,7 +343,7 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
     auto replyMessage = network::zeromq::Message::Factory();
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](const network::zeromq::Message& input) -> void {
+        [this, &replyMessage](network::zeromq::Message& input) -> void {
             EXPECT_EQ(5, input.size());
             // Original header + identity frame.
             EXPECT_EQ(2, input.Header().size());
@@ -382,7 +382,7 @@ TEST_F(Test_DealerRouter, Dealer_Router_Multipart)
     bool replyProcessed{false};
 
     auto dealerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyProcessed](const network::zeromq::Message& input) -> void {
+        [this, &replyProcessed](network::zeromq::Message& input) -> void {
             EXPECT_EQ(4, input.size());
             EXPECT_EQ(1, input.Header().size());
             EXPECT_EQ(2, input.Body().size());

@@ -9,11 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/CurveClient.hpp"
 
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::RequestSocket::Factory;
-%ignore opentxs::network::zeromq::RequestSocket::SetCurve;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::Pimpl(opentxs::network::zeromq::RequestSocket const &);
 %ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator opentxs::network::zeromq::RequestSocket&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>::operator const opentxs::network::zeromq::RequestSocket &;
@@ -30,7 +30,7 @@ namespace network
 {
 namespace zeromq
 {
-class RequestSocket : virtual public Socket
+class RequestSocket : virtual public Socket, virtual public CurveClient
 {
 public:
     EXPORT static OTZMQRequestSocket Factory(const class Context& context);
@@ -47,7 +47,6 @@ public:
         opentxs::SendResult,
         opentxs::Pimpl<opentxs::network::zeromq::Message>>
     SendRequest(opentxs::network::zeromq::Message& message) const = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
     EXPORT virtual ~RequestSocket() = default;

@@ -270,7 +270,7 @@ void ServerConnection::set_curve(
 {
     OT_ASSERT(verify_lock(lock));
 
-    const auto set = socket.SetCurve(*remote_contract_);
+    const auto set = socket.SetPublicKey(*remote_contract_);
 
     OT_ASSERT(set);
 }

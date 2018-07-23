@@ -135,11 +135,6 @@ Socket::MultipartSendResult RequestSocket::SendRequest(
     return output;
 }
 
-bool RequestSocket::SetCurve(const ServerContract& contract) const
-{
-    return set_curve(contract);
-}
-
 bool RequestSocket::SetSocksProxy(const std::string& proxy) const
 {
     return set_socks_proxy(proxy);

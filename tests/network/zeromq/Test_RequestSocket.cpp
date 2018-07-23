@@ -34,4 +34,5 @@ TEST(RequestSocket, RequestSocket_Factory)
     ASSERT_EQ(SocketType::Request, requestSocket->Type());
 }
 
-// TODO: Add tests for other public member functions: SetCurve, SetSocksProxy
+// TODO: Add tests for other public member functions: SetPublicKey,
+// SetSocksProxy

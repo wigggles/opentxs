@@ -27,7 +27,7 @@ OTZMQContext Test_SubscribeSocket::context_{
 TEST(SubscribeSocket, ListenCallback_Factory)
 {
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](network::zeromq::Message& input) -> void {
 
         });
 
@@ -37,7 +37,7 @@ TEST(SubscribeSocket, ListenCallback_Factory)
 TEST_F(Test_SubscribeSocket, ListenCallback_Process)
 {
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> void {
+        [this](network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
             EXPECT_EQ(testMessage_, inputString);
         });
@@ -56,7 +56,7 @@ TEST_F(Test_SubscribeSocket, SubscribeSocket_Factory)
     ASSERT_NE(nullptr, &Test_SubscribeSocket::context_.get());
 
     auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](const network::zeromq::Message& input) -> OTZMQMessage {
+        [this](network::zeromq::Message& input) -> OTZMQMessage {
             return network::zeromq::Message::Factory();
         });
 
@@ -69,4 +69,5 @@ TEST_F(Test_SubscribeSocket, SubscribeSocket_Factory)
     ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
 }
 
-// TODO: Add tests for other public member functions: SetCurve, SetSocksProxy
+// TODO: Add tests for other public member functions: SetPublicKey,
+// SetSocksProxy

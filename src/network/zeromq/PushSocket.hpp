@@ -10,11 +10,12 @@
 
 #include "opentxs/network/zeromq/PushSocket.hpp"
 
+#include "CurveClient.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class PushSocket : virtual public zeromq::PushSocket, public Socket
+class PushSocket : virtual public zeromq::PushSocket, public Socket, CurveClient
 {
 public:
     bool Push(const std::string& data) const override;

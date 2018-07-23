@@ -105,11 +105,6 @@ bool RouterSocket::Send(zeromq::Message& message) const
     return (false != sent);
 }
 
-bool RouterSocket::SetCurve(const ServerContract& contract) const
-{
-    return set_curve(contract);
-}
-
 bool RouterSocket::SetSocksProxy(const std::string& proxy) const
 {
     return set_socks_proxy(proxy);

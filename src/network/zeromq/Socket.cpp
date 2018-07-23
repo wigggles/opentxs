@@ -18,7 +18,7 @@
 #define ISSUER_UPDATE_ENDPOINT "inproc://opentxs/issuerupdate/1"
 #define NYM_UPDATE_ENDPOINT "inproc://opentxs/nymupdate/1"
 #define PAIR_EVENT_ENDPOINT "inproc://opentxs/pairevent/1"
-#define PAIR_ENDPOINT_PREFIX "inproc://opentxs//pair/"
+#define PAIR_ENDPOINT_PREFIX "inproc://opentxs/1/pair/"
 #define PENDING_BAILMENT_ENDPOINT                                              \
     "inproc://opentxs/peerrequest/pendingbailment/1"
 #define SERVER_UPDATE_ENDPOINT "inproc://opentxs/serverupdate/1"
