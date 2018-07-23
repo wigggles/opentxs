@@ -35,6 +35,7 @@ private:
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& connection_;
     const api::storage::Storage& storage_;
+    const api::Legacy& legacy_;
     const proto::ContactItemType currency_;
     std::set<OTIdentifier> issuers_;
     std::map<OTIdentifier, OTIdentifier> server_issuer_map_;
@@ -63,6 +64,7 @@ private:
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
         const api::ContactManager& contact,
+        const api::Legacy& legacy,
         const Identifier& nymID,
         const proto::ContactItemType currency);
     AccountSummary() = delete;

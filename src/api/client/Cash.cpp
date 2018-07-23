@@ -258,9 +258,9 @@ std::int32_t Cash::withdraw_and_export_cash_low_level(
     // By this point, exportedCash and retainedCopy should both be valid.
 
     std::shared_ptr<const Purse> pRecipientCopy(
-        Purse::PurseFactory(String(exportedCash)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(exportedCash)));
     std::shared_ptr<const Purse> pSenderCopy(
-        Purse::PurseFactory(String(retainedCopy)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(retainedCopy)));
 
     OT_ASSERT(pRecipientCopy);
     OT_ASSERT(pSenderCopy);
@@ -328,9 +328,9 @@ std::int32_t Cash::send_cash(
     // By this point, exportedCash and retainedCopy should both be valid.
 
     std::shared_ptr<const Purse> recipientCopy(
-        Purse::PurseFactory(String(exportedCash)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(exportedCash)));
     std::shared_ptr<const Purse> senderCopy(
-        Purse::PurseFactory(String(retainedCopy)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(retainedCopy)));
 
     OT_ASSERT(recipientCopy);
     OT_ASSERT(senderCopy);
@@ -560,7 +560,8 @@ std::int32_t Cash::deposit_purse_low_level(
         return -1;
     }
 
-    std::unique_ptr<Purse> purse(Purse::PurseFactory(String(newPurse)));
+    std::unique_ptr<Purse> purse(
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(newPurse)));
 
     OT_ASSERT(purse);
 

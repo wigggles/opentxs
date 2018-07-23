@@ -264,7 +264,9 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
 // currently only "user" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
-bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
+bool UnitDefinition::VisitAccountRecords(
+    const std::string& dataFolder,
+    AccountVisitor& visitor) const
 {
     Lock lock(lock_);
 
@@ -312,7 +314,7 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
             } else {
                 const auto& wallet = OT::App().Wallet();
                 const auto accountID = Identifier::Factory(str_acct_id);
-                auto account = wallet.Account(accountID);
+                auto account = wallet.Account(dataFolder, accountID);
 
                 if (false == bool(account)) {
                     otErr << OT_METHOD << __FUNCTION__

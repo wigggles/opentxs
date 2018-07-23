@@ -7,6 +7,7 @@
 
 #include "opentxs/core/cron/OTCron.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -54,7 +55,7 @@ std::int32_t OTCron::__cron_max_items_per_nym =
 Timer OTCron::tCron(true);
 
 OTCron::OTCron(const api::Legacy& legacy)
-    : Contract()
+    : Contract(legacy.ServerDataFolder())
     , legacy_{legacy}
     , m_mapMarkets()
     , m_mapCronItems()
@@ -396,7 +397,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "value.\n";
             return (-1);  // error condition
         } else {
-            OTCronItem* pItem = OTCronItem::NewCronItem(strData);
+            OTCronItem* pItem = OTCronItem::NewCronItem(data_folder_, strData);
 
             if (nullptr == pItem) {
                 otErr << "Unable to create cron item from data in cron file.\n";
@@ -463,7 +464,11 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // LoadMarket() needs this info to do its thing.
         OTMarket* pMarket = new OTMarket(
-            m_NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale);
+            data_folder_,
+            m_NOTARY_ID,
+            INSTRUMENT_DEFINITION_ID,
+            CURRENCY_ID,
+            lScale);
 
         OT_ASSERT(nullptr != pMarket);
 
@@ -995,7 +1000,11 @@ OTMarket* OTCron::GetOrCreateMarket(
     const std::int64_t& lScale)
 {
     OTMarket* pMarket = new OTMarket(
-        GetNotaryID(), INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale);
+        data_folder_,
+        GetNotaryID(),
+        INSTRUMENT_DEFINITION_ID,
+        CURRENCY_ID,
+        lScale);
 
     OT_ASSERT(nullptr != pMarket);
 

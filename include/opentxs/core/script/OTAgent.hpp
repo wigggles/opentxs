@@ -15,18 +15,6 @@
 
 namespace opentxs
 {
-
-class Account;
-class Context;
-class Identifier;
-class Nym;
-class OTAgent;
-class OTParty;
-class OTPartyAccount;
-class OTSmartContract;
-class ServerContext;
-class Tag;
-
 // Agent is always either the Owner Nym acting in his own interests,
 // or is an employee Nym acting actively in a role on behalf of an Entity formed
 // by contract
@@ -309,6 +297,7 @@ public:
         String* pstrAttachment = nullptr);
 
     bool DropServerNoticeToNymbox(
+        const std::string& dataFolder,
         bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
         const Nym& theServerNym,
         const Identifier& theNotaryID,

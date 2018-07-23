@@ -33,6 +33,7 @@ set(cxx-sources
   Message.cpp
   NumList.cpp
   Nym.cpp
+  NymFile.cpp
   NymIDSource.cpp
   OTStorage.cpp
   OTStringXML.cpp
@@ -78,6 +79,7 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/Data.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Flag.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Identifier.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/NymFile.hpp"
 )
 
 if(KEYRING_GNOME)

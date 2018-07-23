@@ -23,18 +23,18 @@ private:
 
 public:
     ClientContext(
+        const api::client::Wallet& wallet,
         const api::Legacy& legacy,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server,
-        std::mutex& nymfileLock);
+        const Identifier& server);
     ClientContext(
+        const api::client::Wallet& wallet,
         const api::Legacy& legacy,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server,
-        std::mutex& nymfileLock);
+        const Identifier& server);
 
     bool hasOpenTransactions() const;
     std::size_t IssuedNumbers(const std::set<TransactionNumber>& exclude) const;

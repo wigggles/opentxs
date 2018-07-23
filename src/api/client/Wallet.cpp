@@ -11,7 +11,6 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Api.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -40,6 +39,7 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Types.hpp"
 
+#include "core/InternalCore.hpp"
 #include "Exclusive.tpp"
 #include "Shared.tpp"
 
@@ -128,6 +128,7 @@ Wallet::Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq)
 
 Wallet::AccountLock& Wallet::account(
     const Lock& lock,
+    const std::string& dataFolder,
     const Identifier& account,
     const bool create) const
 {
@@ -160,7 +161,7 @@ Wallet::AccountLock& Wallet::account(
     if (loaded) {
         otInfo << OT_METHOD << __FUNCTION__ << ": Account " << account.str()
                << " loaded from storage." << std::endl;
-        pAccount.reset(account_factory(account, alias, serialized));
+        pAccount.reset(account_factory(dataFolder, account, alias, serialized));
 
         OT_ASSERT(pAccount);
     } else {
@@ -170,7 +171,7 @@ Wallet::AccountLock& Wallet::account(
                        << ": Trying to load account " << account.str()
                        << " via legacy method." << std::endl;
                 const auto legacy = load_legacy_account(
-                    account, ot_.Server().ID(), rowLock, row);
+                    dataFolder, account, ot_.Server().ID(), rowLock, row);
 
                 if (legacy) { return row; }
             }
@@ -182,12 +183,14 @@ Wallet::AccountLock& Wallet::account(
     return row;
 }
 
-SharedAccount Wallet::Account(const Identifier& accountID) const
+SharedAccount Wallet::Account(
+    const std::string& dataFolder,
+    const Identifier& accountID) const
 {
     Lock mapLock(account_map_lock_);
 
     try {
-        auto& row = account(mapLock, accountID, false);
+        auto& row = account(mapLock, dataFolder, accountID, false);
         // WTF clang? This is perfectly valid c++17. Fix your shit.
         // auto& [rowMutex, pAccount] = row;
         auto& rowMutex = std::get<0>(row);
@@ -212,12 +215,13 @@ std::string Wallet::account_alias(const std::string& accountID) const
 }
 
 opentxs::Account* Wallet::account_factory(
+    const std::string& dataFolder,
     const Identifier& accountID,
     const std::string& alias,
     const std::string& serialized) const
 {
     std::unique_ptr<OTTransactionType> deserialized{
-        OTTransactionType::TransactionFactory(serialized.c_str())};
+        OTTransactionType::TransactionFactory(dataFolder, serialized.c_str())};
 
     if (false == bool(deserialized)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to deserialize account."
@@ -281,10 +285,11 @@ OTIdentifier Wallet::AccountPartialMatch(const std::string& hint) const
 }
 
 ExclusiveAccount Wallet::CreateAccount(
+    const std::string& dataFolder,
     const Identifier& ownerNymID,
     const Identifier& notaryID,
     const Identifier& instrumentDefinitionID,
-    const class Nym& signer,
+    const opentxs::Nym& signer,
     Account::AccountType type,
     TransactionNumber stash) const
 {
@@ -303,6 +308,7 @@ ExclusiveAccount Wallet::CreateAccount(
     try {
         std::unique_ptr<opentxs::Account> newAccount(
             opentxs::Account::GenerateNewAccount(
+                dataFolder,
                 signer.ID(),
                 notaryID,
                 signer,
@@ -314,7 +320,7 @@ ExclusiveAccount Wallet::CreateAccount(
         OT_ASSERT(newAccount)
 
         const auto& accountID = newAccount->GetRealAccountID();
-        auto& row = account(mapLock, accountID, true);
+        auto& row = account(mapLock, dataFolder, accountID, true);
         // WTF clang? This is perfectly valid c++17. Fix your shit.
         // auto& [rowMutex, pAccount] = row;
         auto& rowMutex = std::get<0>(row);
@@ -365,12 +371,14 @@ ExclusiveAccount Wallet::CreateAccount(
     return {};
 }
 
-bool Wallet::DeleteAccount(const Identifier& accountID) const
+bool Wallet::DeleteAccount(
+    const std::string& dataFolder,
+    const Identifier& accountID) const
 {
     Lock mapLock(account_map_lock_);
 
     try {
-        auto& row = account(mapLock, accountID, false);
+        auto& row = account(mapLock, dataFolder, accountID, false);
         // WTF clang? This is perfectly valid c++17. Fix your shit.
         // auto& [rowMutex, pAccount] = row;
         auto& rowMutex = std::get<0>(row);
@@ -394,14 +402,16 @@ bool Wallet::DeleteAccount(const Identifier& accountID) const
     return false;
 }
 
-SharedAccount Wallet::IssuerAccount(const Identifier& unitID) const
+SharedAccount Wallet::IssuerAccount(
+    const std::string& dataFolder,
+    const Identifier& unitID) const
 {
     const auto accounts = ot_.DB().AccountsByContract(unitID);
     Lock mapLock(account_map_lock_);
 
     try {
         for (const auto& accountID : accounts) {
-            auto& row = account(mapLock, accountID, false);
+            auto& row = account(mapLock, dataFolder, accountID, false);
             // WTF clang? This is perfectly valid c++17. Fix your shit.
             // auto& [rowMutex, pAccount] = row;
             auto& rowMutex = std::get<0>(row);
@@ -422,12 +432,14 @@ SharedAccount Wallet::IssuerAccount(const Identifier& unitID) const
     return {};
 }
 
-ExclusiveAccount Wallet::mutable_Account(const Identifier& accountID) const
+ExclusiveAccount Wallet::mutable_Account(
+    const std::string& dataFolder,
+    const Identifier& accountID) const
 {
     Lock mapLock(account_map_lock_);
 
     try {
-        auto& row = account(mapLock, accountID, false);
+        auto& row = account(mapLock, dataFolder, accountID, false);
         // WTF clang? This is perfectly valid c++17. Fix your shit.
         // auto& [rowMutex, pAccount] = row;
         auto& rowMutex = std::get<0>(row);
@@ -460,7 +472,7 @@ bool Wallet::UpdateAccount(
     const String& serialized) const
 {
     Lock mapLock(account_map_lock_);
-    auto& row = account(mapLock, accountID, true);
+    auto& row = account(mapLock, context.LegacyDataFolder(), accountID, true);
     // WTF clang? This is perfectly valid c++17. Fix your shit.
     // auto& [rowMutex, pAccount] = row;
     auto& rowMutex = std::get<0>(row);
@@ -469,8 +481,11 @@ bool Wallet::UpdateAccount(
     mapLock.unlock();
     const auto& localNym = *context.Nym();
     std::unique_ptr<opentxs::Account> newAccount{nullptr};
-    newAccount.reset(
-        new opentxs::Account(localNym.ID(), accountID, context.Server()));
+    newAccount.reset(new opentxs::Account(
+        context.LegacyDataFolder(),
+        localNym.ID(),
+        accountID,
+        context.Server()));
 
     if (false == bool(newAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to construct account"
@@ -608,7 +623,7 @@ proto::ContactItemType Wallet::extract_unit(
     }
 }
 
-std::shared_ptr<class Context> Wallet::context(
+std::shared_ptr<opentxs::Context> Wallet::context(
     const Identifier& localNymID,
     const Identifier& remoteNymID) const
 {
@@ -666,25 +681,25 @@ std::shared_ptr<class Context> Wallet::context(
             auto& zmq = ot_.ZMQ();
             const auto& server = serialized->servercontext().serverid();
             auto& connection = zmq.Server(server);
-            entry.reset(new class ServerContext(
+            entry.reset(new opentxs::ServerContext(
+                *this,
                 ot_.Legacy(),
                 *serialized,
                 localNym,
                 remoteNym,
-                connection,
-                nymfile_lock(localNymID)));
+                connection));
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
             OT_ASSERT(ot_.ServerMode());
 
             const auto& serverID = ot_.Server().ID();
-            entry.reset(new class ClientContext(
+            entry.reset(new opentxs::ClientContext(
+                *this,
                 ot_.Legacy(),
                 *serialized,
                 localNym,
                 remoteNym,
-                serverID,
-                nymfile_lock(remoteNymID)));
+                serverID));
         } break;
         default: {
             return nullptr;
@@ -709,7 +724,7 @@ std::shared_ptr<class Context> Wallet::context(
     return entry;
 }
 
-std::shared_ptr<const class Context> Wallet::Context(
+std::shared_ptr<const opentxs::Context> Wallet::Context(
     const Identifier& notaryID,
     const Identifier& clientNymID) const
 {
@@ -727,7 +742,7 @@ std::shared_ptr<const class Context> Wallet::Context(
     return context(local, remote);
 }
 
-std::shared_ptr<const class ClientContext> Wallet::ClientContext(
+std::shared_ptr<const opentxs::ClientContext> Wallet::ClientContext(
     const Identifier&,  // Not used for now.
     const Identifier& remoteNymID) const
 {
@@ -735,12 +750,12 @@ std::shared_ptr<const class ClientContext> Wallet::ClientContext(
 
     const auto& serverNymID = ot_.Server().NymID();
     auto base = context(serverNymID, remoteNymID);
-    auto output = std::dynamic_pointer_cast<const class ClientContext>(base);
+    auto output = std::dynamic_pointer_cast<const opentxs::ClientContext>(base);
 
     return output;
 }
 
-std::shared_ptr<const class ServerContext> Wallet::ServerContext(
+std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
     const Identifier& localNymID,
     const Identifier& remoteID) const
 {
@@ -748,12 +763,12 @@ std::shared_ptr<const class ServerContext> Wallet::ServerContext(
     auto remoteNymID = ServerToNym(serverID);
     auto base = context(localNymID, remoteNymID);
 
-    auto output = std::dynamic_pointer_cast<const class ServerContext>(base);
+    auto output = std::dynamic_pointer_cast<const opentxs::ServerContext>(base);
 
     return output;
 }
 
-Editor<class Context> Wallet::mutable_Context(
+Editor<opentxs::Context> Wallet::mutable_Context(
     const Identifier& notaryID,
     const Identifier& clientNymID) const
 {
@@ -770,15 +785,15 @@ Editor<class Context> Wallet::mutable_Context(
     }
 
     auto base = context(local, remote);
-    std::function<void(class Context*)> callback =
-        [&](class Context* in) -> void { this->save(in); };
+    std::function<void(opentxs::Context*)> callback =
+        [&](opentxs::Context* in) -> void { this->save(in); };
 
     OT_ASSERT(base);
 
-    return Editor<class Context>(base.get(), callback);
+    return Editor<opentxs::Context>(base.get(), callback);
 }
 
-Editor<class ClientContext> Wallet::mutable_ClientContext(
+Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
     const Identifier&,  // Not used for now.
     const Identifier& remoteNymID) const
 {
@@ -788,8 +803,8 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
     const auto& serverNymID = ot_.Server().NymID();
     Lock lock(context_map_lock_);
     auto base = context(serverNymID, remoteNymID);
-    std::function<void(class Context*)> callback =
-        [&](class Context* in) -> void { this->save(in); };
+    std::function<void(opentxs::Context*)> callback =
+        [&](opentxs::Context* in) -> void { this->save(in); };
 
     if (base) {
         OT_ASSERT(proto::CONSENSUSTYPE_CLIENT == base->Type());
@@ -806,21 +821,21 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
         // Create a new Context
         const ContextID contextID = {serverNymID.str(), remoteNymID.str()};
         auto& entry = context_map_[contextID];
-        entry.reset(new class ClientContext(
-            ot_.Legacy(), local, remote, serverID, nymfile_lock(remoteNymID)));
+        entry.reset(new opentxs::ClientContext(
+            *this, ot_.Legacy(), local, remote, serverID));
         base = entry;
     }
 
     OT_ASSERT(base);
 
-    auto child = dynamic_cast<class ClientContext*>(base.get());
+    auto child = dynamic_cast<opentxs::ClientContext*>(base.get());
 
     OT_ASSERT(nullptr != child);
 
-    return Editor<class ClientContext>(child, callback);
+    return Editor<opentxs::ClientContext>(child, callback);
 }
 
-Editor<class ServerContext> Wallet::mutable_ServerContext(
+Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
     const Identifier& localNymID,
     const Identifier& remoteID) const
 {
@@ -831,8 +846,8 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
 
     auto base = context(localNymID, remoteNymID);
 
-    std::function<void(class Context*)> callback =
-        [&](class Context* in) -> void { this->save(in); };
+    std::function<void(opentxs::Context*)> callback =
+        [&](opentxs::Context* in) -> void { this->save(in); };
 
     if (base) {
         OT_ASSERT(proto::CONSENSUSTYPE_SERVER == base->Type());
@@ -851,26 +866,23 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
         auto& entry = context_map_[contextID];
         auto& zmq = ot_.ZMQ();
         auto& connection = zmq.Server(serverID->str());
-        entry.reset(new class ServerContext(
-            ot_.Legacy(),
-            localNym,
-            remoteNym,
-            serverID,
-            connection,
-            nymfile_lock(localNymID)));
+        entry.reset(new opentxs::ServerContext(
+            *this, ot_.Legacy(), localNym, remoteNym, serverID, connection));
         base = entry;
     }
 
     OT_ASSERT(base);
 
-    auto child = dynamic_cast<class ServerContext*>(base.get());
+    auto child = dynamic_cast<opentxs::ServerContext*>(base.get());
 
     OT_ASSERT(nullptr != child);
 
-    return Editor<class ServerContext>(child, callback);
+    return Editor<opentxs::ServerContext>(child, callback);
 }
 
-bool Wallet::ImportAccount(std::unique_ptr<opentxs::Account>& imported) const
+bool Wallet::ImportAccount(
+    const std::string& dataFolder,
+    std::unique_ptr<opentxs::Account>& imported) const
 {
     if (false == bool(imported)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid account" << std::endl;
@@ -882,7 +894,7 @@ bool Wallet::ImportAccount(std::unique_ptr<opentxs::Account>& imported) const
     Lock mapLock(account_map_lock_);
 
     try {
-        auto& row = account(mapLock, accountID, true);
+        auto& row = account(mapLock, dataFolder, accountID, true);
         // WTF clang? This is perfectly valid c++17. Fix your shit.
         // auto& [rowMutex, pAccount] = row;
         auto& rowMutex = std::get<0>(row);
@@ -1026,6 +1038,7 @@ bool Wallet::IsLocalNym(const std::string& id) const
 }
 
 bool Wallet::load_legacy_account(
+    const std::string& dataFolder,
     const Identifier& accountID,
     const Identifier& notaryID,
     const eLock& lock,
@@ -1038,7 +1051,8 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(verify_lock(lock, rowMutex))
 
-    pAccount.reset(Account::LoadExistingAccount(accountID, notaryID));
+    pAccount.reset(
+        Account::LoadExistingAccount(dataFolder, accountID, notaryID));
 
     if (false == bool(pAccount)) { return false; }
 
@@ -1136,7 +1150,7 @@ ConstNym Wallet::Nym(
 
         if (loaded) {
             auto& pNym = nym_map_[nym].second;
-            pNym.reset(new class Nym(*this, id));
+            pNym.reset(new opentxs::Nym(*this, id));
 
             if (pNym) {
                 if (pNym->LoadCredentialIndex(*serialized)) {
@@ -1222,11 +1236,12 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& serialized) const
 }
 
 ConstNym Wallet::Nym(
+    const std::string& dataFolder,
     const NymParameters& nymParameters,
     const proto::ContactItemType type,
     const std::string name) const
 {
-    std::unique_ptr<class Nym> pNym(new class Nym(*this, nymParameters));
+    std::shared_ptr<opentxs::Nym> pNym(new opentxs::Nym(*this, nymParameters));
 
     OT_ASSERT(pNym);
 
@@ -1239,15 +1254,13 @@ ConstNym Wallet::Nym(
             pNym->SetAlias(name);
         }
 
-        pNym->SaveSignedNymfile(*pNym);
-
         SaveCredentialIDs(*pNym);
-
+        auto nymfile = mutable_nymfile(dataFolder, pNym, pNym, pNym->ID(), "");
         Lock mapLock(nym_map_lock_);
         auto& pMapNym = nym_map_[pNym->ID().str()].second;
-        pMapNym.reset(pNym.release());
+        pMapNym = pNym;
 
-        return ConstNym(pMapNym);
+        return pNym;
     } else {
         return nullptr;
     }
@@ -1276,38 +1289,64 @@ NymData Wallet::mutable_Nym(const Identifier& id) const
     return NymData(it->second.first, it->second.second, callback);
 }
 
-std::unique_ptr<const class NymFile> Wallet::Nymfile(
+std::unique_ptr<const opentxs::NymFile> Wallet::Nymfile(
+    const std::string& dataFolder,
     const Identifier& id,
     const OTPasswordData& reason) const
 {
     Lock lock(nymfile_lock(id));
-    std::unique_ptr<class NymFile> output{nullptr};
-    output.reset(
-        Nym::LoadPrivateNym(id, false, nullptr, nullptr, &reason, nullptr));
+    const auto targetNym = Nym(id);
+    const auto signerNym = signer_nym(id);
 
-    return output;
+    if (false == bool(targetNym)) { return {}; }
+    if (false == bool(signerNym)) { return {}; }
+
+    auto nymfile = std::unique_ptr<opentxs::internal::NymFile>(
+        Factory::NymFile(targetNym, signerNym, dataFolder));
+
+    OT_ASSERT(nymfile)
+
+    if (false == nymfile->LoadSignedNymFile()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failure calling load_signed_nymfile: " << id.str()
+              << std::endl;
+
+        return {};
+    }
+
+    return nymfile;
 }
 
-Editor<class NymFile> Wallet::mutable_Nymfile(
+Editor<opentxs::NymFile> Wallet::mutable_Nymfile(
+    const std::string& dataFolder,
     const Identifier& id,
     const OTPasswordData& reason) const
 {
-    auto nym = std::unique_ptr<opentxs::Nym>(new opentxs::Nym(*this, id));
-
-    OT_ASSERT(nym)
-
+    const auto targetNym = Nym(id);
     const auto signerNym = signer_nym(id);
 
-    OT_ASSERT(signerNym)
+    return mutable_nymfile(dataFolder, targetNym, signerNym, id, reason);
+}
 
-    if (false == nym->LoadSignedNymfile(*signerNym)) {
-        nym->SaveSignedNymfile(*signerNym);
-    }
+Editor<opentxs::NymFile> Wallet::mutable_nymfile(
+    const std::string& dataFolder,
+    const std::shared_ptr<const opentxs::Nym>& targetNym,
+    const std::shared_ptr<const opentxs::Nym>& signerNym,
+    const Identifier& id,
+    const OTPasswordData& reason) const
+{
+    auto nymfile = std::unique_ptr<opentxs::internal::NymFile>(
+        Factory::NymFile(targetNym, signerNym, dataFolder));
 
-    std::function<void(class NymFile*, Lock&)> callback =
-        [&](class NymFile* in, Lock& lock) -> void { this->save(in, lock); };
+    OT_ASSERT(nymfile)
 
-    return Editor<class NymFile>(nymfile_lock(id), nym.release(), callback);
+    if (false == nymfile->LoadSignedNymFile()) { nymfile->SaveSignedNymFile(); }
+
+    std::function<void(opentxs::NymFile*, Lock&)> callback =
+        [&](opentxs::NymFile* in, Lock& lock) -> void { this->save(in, lock); };
+
+    return Editor<opentxs::NymFile>(
+        nymfile_lock(id), nymfile.release(), callback);
 }
 
 std::mutex& Wallet::nymfile_lock(const Identifier& nymID) const
@@ -1867,7 +1906,8 @@ void Wallet::save(
 
         OT_ASSERT(loaded)
 
-        in.reset(account_factory(accountID, alias, serialized));
+        in.reset(
+            account_factory(in->data_folder_, accountID, alias, serialized));
 
         OT_ASSERT(in);
 
@@ -1916,7 +1956,7 @@ void Wallet::save(
     OT_ASSERT(saved)
 }
 
-void Wallet::save(class Context* context) const
+void Wallet::save(opentxs::Context* context) const
 {
     if (nullptr == context) { return; }
 
@@ -1950,22 +1990,21 @@ void Wallet::save(NymData* nymData, const Lock& lock) const
     SaveCredentialIDs(nymData->nym());
 }
 
-void Wallet::save(class NymFile* nymfile, const Lock& lock) const
+void Wallet::save(opentxs::NymFile* nymfile, const Lock& lock) const
 {
     OT_ASSERT(nullptr != nymfile);
     OT_ASSERT(lock.owns_lock())
 
-    class Nym* nym = dynamic_cast<class Nym*>(nymfile);
+    auto* internal = dynamic_cast<opentxs::internal::NymFile*>(nymfile);
 
-    OT_ASSERT(nullptr != nym);
+    OT_ASSERT(nullptr != internal)
 
-    auto signerNym = signer_nym(nym->ID());
-    const auto saved = nym->SaveSignedNymfile(*signerNym);
+    const auto saved = internal->SaveSignedNymFile();
 
     OT_ASSERT(saved);
 }
 
-bool Wallet::SaveCredentialIDs(const class Nym& nym) const
+bool Wallet::SaveCredentialIDs(const opentxs::Nym& nym) const
 {
     serializedCredentialIndex index =
         nym.SerializeCredentialIndex(CREDENTIAL_INDEX_MODE_ONLY_IDS);
@@ -1995,7 +2034,8 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias) const
     return ot_.DB().SetNymAlias(id.str(), alias);
 }
 
-std::shared_ptr<const class Nym> Wallet::signer_nym(const Identifier& id) const
+std::shared_ptr<const opentxs::Nym> Wallet::signer_nym(
+    const Identifier& id) const
 {
     if (ot_.ServerMode()) { return Nym(ot_.Server().NymID()); }
 
@@ -2333,7 +2373,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
 }
 
 ConstUnitDefinition Wallet::UnitDefinition(
-    std::unique_ptr<class UnitDefinition>& contract) const
+    std::unique_ptr<opentxs::UnitDefinition>& contract) const
 {
     std::string unit = contract->ID()->str();
 
@@ -2359,7 +2399,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     if (!nym && contract.has_publicnym()) { nym = Nym(contract.publicnym()); }
 
     if (nym) {
-        std::unique_ptr<class UnitDefinition> candidate(
+        std::unique_ptr<opentxs::UnitDefinition> candidate(
             UnitDefinition::Factory(nym, contract));
 
         if (candidate) {
@@ -2391,7 +2431,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     auto nym = Nym(Identifier::Factory(nymid));
 
     if (nym) {
-        std::unique_ptr<class UnitDefinition> contract;
+        std::unique_ptr<opentxs::UnitDefinition> contract;
         contract.reset(UnitDefinition::Create(
             nym, shortname, name, symbol, terms, tla, power, fraction));
         if (contract) {
@@ -2421,7 +2461,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
     auto nym = Nym(Identifier::Factory(nymid));
 
     if (nym) {
-        std::unique_ptr<class UnitDefinition> contract;
+        std::unique_ptr<opentxs::UnitDefinition> contract;
         contract.reset(
             UnitDefinition::Create(nym, shortname, name, symbol, terms));
         if (contract) {

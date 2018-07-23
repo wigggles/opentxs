@@ -202,7 +202,8 @@ void OTWallet::DisplayStatistics(String& strOutput) const
 
     for (const auto& it : storage_.AccountList()) {
         const auto& accountID = it.first;
-        const auto account = wallet_.Account(Identifier::Factory(accountID));
+        const auto account = wallet_.Account(
+            legacy_.ClientDataFolder(), Identifier::Factory(accountID));
         account.get().DisplayStatistics(strOutput);
         strOutput.Concatenate(
             "-------------------------------------------------\n\n");
@@ -485,11 +486,14 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                    NOTARY_ID = Identifier::Factory(NotaryID);
                         std::unique_ptr<Account> pAccount(
                             Account::LoadExistingAccount(
-                                ACCOUNT_ID, NOTARY_ID));
+                                legacy_.ClientDataFolder(),
+                                ACCOUNT_ID,
+                                NOTARY_ID));
 
                         if (pAccount) {
                             pAccount->SetName(AcctName);
-                            wallet_.ImportAccount(pAccount);
+                            wallet_.ImportAccount(
+                                legacy_.ClientDataFolder(), pAccount);
                         } else {
                             otErr
                                 << __FUNCTION__

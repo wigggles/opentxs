@@ -4,6 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 set(cxx-sources
+  Activity.cpp
   Cash.cpp
   Issuer.cpp
   Pair.cpp
@@ -19,8 +20,10 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Activity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Cash.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Issuer.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/InternalClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Pair.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sync.hpp

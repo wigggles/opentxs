@@ -7,11 +7,11 @@
 
 #include "opentxs/client/OTAPI_Exec.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
@@ -518,7 +518,7 @@ std::string OTAPI_Exec::CreateNymLegacy(
     nymParameters = std::make_shared<NymParameters>(proto::CREDTYPE_LEGACY);
 #endif
 
-    ConstNym pNym = wallet_.Nym(*nymParameters);
+    ConstNym pNym = wallet_.Nym(legacy_.ClientDataFolder(), *nymParameters);
     if (false == bool(pNym))  // Creation failed.
     {
         otOut << OT_METHOD << __FUNCTION__
@@ -566,7 +566,8 @@ std::string OTAPI_Exec::CreateNymHD(
         nymParameters.SetNym(index);
     }
 
-    ConstNym nym = wallet_.Nym(nymParameters, type, name);
+    ConstNym nym =
+        wallet_.Nym(legacy_.ClientDataFolder(), nymParameters, type, name);
 
     if (nullptr == nym) {
         otOut << OT_METHOD << __FUNCTION__ << ": Failed trying to create Nym."
@@ -645,8 +646,8 @@ std::string OTAPI_Exec::GetActiveCronItem(
     std::string str_return;
     const std::int64_t lTransactionNum = lTransNum;
 
-    std::unique_ptr<OTCronItem> pCronItem(
-        OTCronItem::LoadActiveCronReceipt(lTransactionNum, notaryID));
+    std::unique_ptr<OTCronItem> pCronItem(OTCronItem::LoadActiveCronReceipt(
+        legacy_.ClientDataFolder(), lTransactionNum, notaryID));
     if (nullptr != pCronItem) {
         const String strCronItem(*pCronItem);
 
@@ -1044,7 +1045,8 @@ std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
         return {};
     }
 
-    std::unique_ptr<Contract> pContract(::InstantiateContract(strContract));
+    std::unique_ptr<Contract> pContract(
+        ::InstantiateContract(legacy_.ClientDataFolder(), strContract));
 
     if (!pContract) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1082,7 +1084,8 @@ std::string OTAPI_Exec::CalculateContractID(
         return {};
     }
 
-    Contract* pContract = ::InstantiateContract(strContract);
+    Contract* pContract =
+        ::InstantiateContract(legacy_.ClientDataFolder(), strContract);
     std::unique_ptr<Contract> theAngel(pContract);
 
     if (nullptr != pContract) {
@@ -1608,7 +1611,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         "OTAPI_Exec::Wallet_CanRemoveAccount: Null ACCOUNT_ID passed in.");
 
     const auto theAccountID = Identifier::Factory(ACCOUNT_ID);
-    auto account = wallet_.Account(theAccountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), theAccountID);
 
     if (false == bool(account)) {
 
@@ -2002,7 +2005,7 @@ std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
 
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         String strOutput;
@@ -2070,7 +2073,7 @@ std::string OTAPI_Exec::GetNym_InboxHash(
 
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         auto theHash = Identifier::Factory();
@@ -2117,7 +2120,7 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
 
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         auto theHash = Identifier::Factory();
@@ -2326,7 +2329,7 @@ std::int32_t OTAPI_Exec::GetNym_OutpaymentsCount(
 
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
     if (false == bool(pNym)) return OT_ERROR;
     return pNym->GetOutpaymentsCount();
 }
@@ -2350,7 +2353,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
@@ -2365,7 +2368,8 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
         if (pMessage->m_ascPayload.Exists() &&
             pMessage->m_ascPayload.GetString(strPayment) &&
             strPayment.Exists()) {
-            OTPayment thePayment(strPayment);
+            OTPayment thePayment(legacy_.ClientDataFolder(), strPayment);
+
             if (thePayment.IsValid()) {
                 std::string pBuf = strPayment.Get();
                 return pBuf;
@@ -2394,7 +2398,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
@@ -2428,7 +2432,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
 
@@ -2466,8 +2470,8 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(
     }
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    Editor<class NymFile> pNym =
-        wallet_.mutable_Nymfile(theNymID, __FUNCTION__);
+    Editor<class NymFile> pNym = wallet_.mutable_Nymfile(
+        legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
 
     if (pNym.It().RemoveOutpaymentsByIndex(nIndex)) {
         // save Nym to local storage, since a payment outmail was erased.
@@ -2511,7 +2515,7 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(theNymID, __FUNCTION__);
+        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
     if (false == bool(pNym)) return false;
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
@@ -2554,7 +2558,7 @@ std::int64_t OTAPI_Exec::Instrmnt_GetAmount(
         return -1;
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2586,7 +2590,7 @@ std::int64_t OTAPI_Exec::Instrmnt_GetTransNum(
         return -1;
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2620,7 +2624,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
         return OTTimeGetTimeFromSeconds(-1);
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2656,7 +2660,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(
         return OTTimeGetTimeFromSeconds(-1);
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2692,7 +2696,7 @@ std::string OTAPI_Exec::Instrmnt_GetType(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2731,7 +2735,7 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2771,7 +2775,7 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2812,7 +2816,7 @@ std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2854,7 +2858,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2895,7 +2899,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2936,7 +2940,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2977,7 +2981,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -3018,7 +3022,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -3059,7 +3063,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    OTPayment thePayment(strInstrument);
+    OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
 
     if (!thePayment.IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -3310,7 +3314,7 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Name: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(theID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
 
     if (false == bool(account)) { return {}; }
 
@@ -3824,7 +3828,7 @@ std::int64_t OTAPI_Exec::GetAccountWallet_Balance(
         "OTAPI_Exec::GetAccountWallet_Balance: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(theID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
     return (account) ? account.get().GetBalance() : OT_ERROR_AMOUNT;
 }
 
@@ -3836,7 +3840,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Type: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(theID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
 
     if (false == bool(account)) return {};
 
@@ -3851,7 +3855,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(theID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
 
     if (false == bool(account)) return {};
 
@@ -3872,7 +3876,7 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(theID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
 
     if (false == bool(account)) return {};
 
@@ -3889,7 +3893,7 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
     OT_VERIFY_ID_STR(THE_ID);
 
     const auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(theID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
 
     if (false == bool(account)) return {};
 
@@ -4296,7 +4300,7 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
     const auto theSenderAcctID = Identifier::Factory(SENDER_ACCT_ID);
     const auto theRecipientNymID = Identifier::Factory(RECIPIENT_NYM_ID);
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{legacy_.ClientDataFolder()};
     const String strPlan(PAYMENT_PLAN);
 
     if (!strPlan.Exists() ||
@@ -5188,7 +5192,8 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5245,7 +5250,8 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5276,7 +5282,8 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     // FYI, this block comes from
     // OTScriptable::VerifyThisAgainstAllPartiesSignedCopies.
     std::unique_ptr<OTScriptable> pPartySignedCopy(
-        OTScriptable::InstantiateScriptable(pParty->GetMySignedCopy()));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), pParty->GetMySignedCopy()));
 
     if (nullptr == pPartySignedCopy) {
         const std::string current_party_name(pParty->GetPartyName());
@@ -5321,7 +5328,8 @@ std::int32_t OTAPI_Exec::Smart_GetPartyCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << " Failed trying to load smart contract from string:\n\n"
@@ -5339,7 +5347,8 @@ std::int32_t OTAPI_Exec::Smart_GetBylawCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5359,7 +5368,8 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5390,7 +5400,8 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5422,7 +5433,8 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5452,7 +5464,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5481,7 +5494,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5510,7 +5524,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5539,7 +5554,8 @@ std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5569,7 +5585,8 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5613,7 +5630,8 @@ std::string OTAPI_Exec::Clause_GetContents(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5654,7 +5672,8 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5697,7 +5716,8 @@ std::string OTAPI_Exec::Variable_GetType(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5741,7 +5761,8 @@ std::string OTAPI_Exec::Variable_GetAccess(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5785,7 +5806,8 @@ std::string OTAPI_Exec::Variable_GetContents(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5836,7 +5858,8 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5869,7 +5892,8 @@ std::int32_t OTAPI_Exec::Hook_GetClauseCount(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5910,7 +5934,8 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5957,7 +5982,8 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5990,7 +6016,8 @@ std::string OTAPI_Exec::Callback_GetClause(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6028,7 +6055,8 @@ std::int32_t OTAPI_Exec::Party_GetAcctCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (nullptr == pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6057,7 +6085,8 @@ std::int32_t OTAPI_Exec::Party_GetAgentCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6089,7 +6118,8 @@ std::string OTAPI_Exec::Party_GetID(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6119,7 +6149,8 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6163,7 +6194,8 @@ std::string OTAPI_Exec::Party_GetAcctID(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6207,7 +6239,8 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6253,7 +6286,8 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6296,7 +6330,8 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6341,7 +6376,8 @@ std::string OTAPI_Exec::Party_GetAgentID(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(strContract));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
     if (!pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6450,7 +6486,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     const auto theNymID = Identifier::Factory(NYM_ID);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
     const String strMsg(THE_MESSAGE);
 
     if (!strMsg.Exists()) {
@@ -6472,7 +6508,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         // is so we can get the server ID off of it.
         //
         std::unique_ptr<OTCronItem> pCronItem(
-            OTCronItem::NewCronItem(strCronItem));
+            OTCronItem::NewCronItem(legacy_.ClientDataFolder(), strCronItem));
         if (nullptr == pCronItem) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Failed trying to load message from string.";
@@ -6513,7 +6549,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
                  "from a basket currency exchange request...\n";
         if (!wallet_.IsLocalNym(NYM_ID)) { return false; }
 
-        Basket theRequestBasket;
+        Basket theRequestBasket{legacy_.ClientDataFolder()};
 
         if (theRequestBasket.LoadContractFromString(strBasket)) {
             if (!theRequestBasket.IsExchanging()) {
@@ -6526,8 +6562,9 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             // Now we need to find the account ID (so we can find the server
             // ID...)
             //
-            auto account =
-                wallet_.Account(theRequestBasket.GetRequestAccountID());
+            auto account = wallet_.Account(
+                legacy_.ClientDataFolder(),
+                theRequestBasket.GetRequestAccountID());
 
             if (false == bool(account)) {
                 const String strAcctID(theRequestBasket.GetRequestAccountID());
@@ -7484,7 +7521,8 @@ std::int32_t OTAPI_Exec::Ledger_GetCount(
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     String strLedger(THE_LEDGER);
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7516,7 +7554,8 @@ std::string OTAPI_Exec::Ledger_GetTransactionNums(
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     String strLedger(THE_LEDGER);
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7612,7 +7651,8 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     // -------------------------------------------------------
     String strLedger(THE_LEDGER);
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
     //  std::set<std::int64_t> setUnloaded;
 
     if (!theLedger.LoadLedgerFromString(strLedger)
@@ -7681,7 +7721,8 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7846,7 +7887,8 @@ std::string OTAPI_Exec::Ledger_GetInstrument_lowlevel(
     // ----------------------------------------------------
     OT_VERIFY_STD_STR(THE_LEDGER);
     String strLedger(THE_LEDGER);
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)
         //      || !theLedger.LoadBoxReceipts(&setUnloaded)    // This is
@@ -7942,7 +7984,8 @@ std::int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
 
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
     String strLedger(THE_LEDGER);
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7983,7 +8026,8 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
     // ----------------------------------------------
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7998,8 +8042,8 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     // ----------------------------------------------
     // At this point, I know theLedger loaded successfully.
     //
-    std::unique_ptr<OTTransaction> pTransaction{
-        new OTTransaction(theNymID, theAccountID, theNotaryID)};
+    std::unique_ptr<OTTransaction> pTransaction{new OTTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID)};
 
     if (false == bool(pTransaction)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error allocating memory: "
@@ -8063,7 +8107,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
                theAcctID = Identifier::Factory(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
-    Ledger responseLedger(theNymID, theAcctID, theNotaryID);
+    Ledger responseLedger(
+        legacy_.ClientDataFolder(), theNymID, theAcctID, theNotaryID);
 
     if (!responseLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAcctID);
@@ -8080,7 +8125,8 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     // generate on his behalf.)
     //
     String strTransaction(THE_TRANSACTION);
-    OTTransaction originalTransaction(theNymID, theAcctID, theNotaryID);
+    OTTransaction originalTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAcctID, theNotaryID);
 
     if (!originalTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAcctID);
@@ -8176,7 +8222,8 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     // -------------------------------------------------------
     // By this point, pNym is a good pointer, and is on the wallet.
     // (No need to cleanup.)
-    Ledger responseLedger(theNymID, theAcctID, theNotaryID);
+    Ledger responseLedger(
+        legacy_.ClientDataFolder(), theNymID, theAcctID, theNotaryID);
 
     if (!responseLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAcctID);
@@ -8251,7 +8298,8 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return {}; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8290,8 +8338,8 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
             (Item::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
             pItem->GetAttachment(strVoucher);
+            Cheque theVoucher{legacy_.ClientDataFolder()};
 
-            Cheque theVoucher;
             if (theVoucher.LoadContractFromString(strVoucher))  // Todo
                                                                 // additional
                                                                 // verification
@@ -8332,7 +8380,8 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return {}; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8414,7 +8463,8 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8512,7 +8562,8 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return {}; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8595,7 +8646,8 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return {}; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8684,7 +8736,8 @@ std::string OTAPI_Exec::Pending_GetNote(
     String strTransaction(THE_TRANSACTION);
     if (!wallet_.IsLocalNym(NYM_ID)) { return {}; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8744,7 +8797,10 @@ std::string OTAPI_Exec::Pending_GetNote(
         return {};
     }
     std::unique_ptr<Item> pItem(Item::CreateItemFromString(
-        strReference, theNotaryID, pTransaction->GetReferenceToNum()));
+        pTransaction->DataFolder(),
+        strReference,
+        theNotaryID,
+        pTransaction->GetReferenceToNum()));
 
     if (nullptr == pItem) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8792,7 +8848,8 @@ std::int64_t OTAPI_Exec::Transaction_GetAmount(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return OT_ERROR_AMOUNT; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8870,7 +8927,8 @@ std::int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return -1; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8908,7 +8966,8 @@ std::string OTAPI_Exec::Transaction_GetType(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return {}; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryIDv);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryIDv);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8955,7 +9014,8 @@ std::int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return -1; }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strNymID(theNymID);
@@ -9002,7 +9062,8 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 
     if (!wallet_.IsLocalNym(NYM_ID)) { return OTTimeGetTimeFromSeconds(-1); }
 
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9047,7 +9108,8 @@ std::int32_t OTAPI_Exec::Transaction_GetSuccess(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9127,7 +9189,8 @@ std::int32_t OTAPI_Exec::Transaction_IsCanceled(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9220,7 +9283,8 @@ std::int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need to
     // cleanup.)
-    OTTransaction theTransaction(theNymID, theAccountID, theNotaryID);
+    OTTransaction theTransaction(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theTransaction.LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9306,10 +9370,8 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     const auto theNotaryID = Identifier::Factory(NOTARY_ID),
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
-
     String strMessage(THE_MESSAGE);
-
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -9338,7 +9400,8 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
         return OT_ERROR;
     }
 
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -9411,7 +9474,11 @@ bool OTAPI_Exec::SavePurse(
                theNymID = Identifier::Factory(NYM_ID);
     const String strPurse(THE_PURSE);
     bool bSuccess = false;
-    Purse thePurse(theNotaryID, theInstrumentDefinitionID, theNymID);
+    Purse thePurse(
+        legacy_.ClientDataFolder(),
+        theNotaryID,
+        theInstrumentDefinitionID,
+        theNymID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
         // NOTE: no need to verify the server / instrument definition id here,
@@ -9500,7 +9567,8 @@ std::int64_t OTAPI_Exec::Purse_GetTotalValue(
                theInstrumentDefinitionID =
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID);
     String strPurse(THE_PURSE);
-    Purse thePurse(theNotaryID, theInstrumentDefinitionID);
+    Purse thePurse(
+        legacy_.ClientDataFolder(), theNotaryID, theInstrumentDefinitionID);
 
     if (!thePurse.LoadContractFromString(strPurse)) {
         String strInstrumentDefinitionID(theInstrumentDefinitionID);
@@ -9530,7 +9598,8 @@ std::int32_t OTAPI_Exec::Purse_Count(
                theInstrumentDefinitionID =
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE);
-    Purse thePurse(theNotaryID, theInstrumentDefinitionID);
+    Purse thePurse(
+        legacy_.ClientDataFolder(), theNotaryID, theInstrumentDefinitionID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse) &&
         (thePurse.GetNotaryID() == theNotaryID) &&
@@ -9554,7 +9623,7 @@ bool OTAPI_Exec::Purse_HasPassword(
 
     const auto theNotaryID = Identifier::Factory(NOTARY_ID);
     const String strPurse(THE_PURSE);
-    Purse thePurse(theNotaryID);
+    Purse thePurse(legacy_.ClientDataFolder(), theNotaryID);
 
     if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse) &&
         (thePurse.GetNotaryID() == theNotaryID)) {
@@ -10091,8 +10160,11 @@ std::string OTAPI_Exec::Token_GetID(
     String strOutput("0");
 
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
+    std::unique_ptr<Token> pToken(Token::TokenFactory(
+        legacy_.ClientDataFolder(),
+        strToken,
+        theNotaryID,
+        theInstrumentDefinitionID));
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10127,8 +10199,11 @@ std::int64_t OTAPI_Exec::Token_GetDenomination(
     String strOutput("0");
 
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
+    std::unique_ptr<Token> pToken(Token::TokenFactory(
+        legacy_.ClientDataFolder(),
+        strToken,
+        theNotaryID,
+        theInstrumentDefinitionID));
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10157,8 +10232,11 @@ std::int32_t OTAPI_Exec::Token_GetSeries(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
+    std::unique_ptr<Token> pToken(Token::TokenFactory(
+        legacy_.ClientDataFolder(),
+        strToken,
+        theNotaryID,
+        theInstrumentDefinitionID));
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
         return pToken->GetSeries();
@@ -10185,8 +10263,11 @@ time64_t OTAPI_Exec::Token_GetValidFrom(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
+    std::unique_ptr<Token> pToken(Token::TokenFactory(
+        legacy_.ClientDataFolder(),
+        strToken,
+        theNotaryID,
+        theInstrumentDefinitionID));
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10214,8 +10295,11 @@ time64_t OTAPI_Exec::Token_GetValidTo(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(
-        Token::TokenFactory(strToken, theNotaryID, theInstrumentDefinitionID));
+    std::unique_ptr<Token> pToken(Token::TokenFactory(
+        legacy_.ClientDataFolder(),
+        strToken,
+        theNotaryID,
+        theInstrumentDefinitionID));
 
     if (pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10232,7 +10316,8 @@ std::string OTAPI_Exec::Token_GetInstrumentDefinitionID(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(Token::TokenFactory(strToken));
+    std::unique_ptr<Token> pToken(
+        Token::TokenFactory(legacy_.ClientDataFolder(), strToken));
 
     if (pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10251,7 +10336,8 @@ std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
     String strOutput;
 
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> pToken(Token::TokenFactory(strToken));
+    std::unique_ptr<Token> pToken(
+        Token::TokenFactory(legacy_.ClientDataFolder(), strToken));
 
     if (pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10427,7 +10513,7 @@ std::int64_t OTAPI_Exec::Message_GetUsageCredits(
     }
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10803,7 +10889,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
                theInstrumentDefinitionID =
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID),
                theAssetAcctID = Identifier::Factory(ASSET_ACCT_ID);
-    Basket theBasket;
+    Basket theBasket{legacy_.ClientDataFolder()};
 
     bool bAdded = false;
 
@@ -10946,7 +11032,8 @@ void OTAPI_Exec::FlushSentMessages(
     const auto theNotaryID = Identifier::Factory(NOTARY_ID),
                theNymID = Identifier::Factory(NYM_ID);
     const String strLedger(THE_NYMBOX);
-    Ledger theLedger(theNymID, theNymID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theNymID, theNotaryID);
     if (strLedger.Exists() && theLedger.LoadContractFromString(strLedger))
         ot_api_.FlushSentMessages(
             bHarvestingForRetry, theNotaryID, theNymID, theLedger);
@@ -10980,12 +11067,13 @@ bool OTAPI_Exec::ResyncNymWithServer(
 
     auto context = wallet_.mutable_ServerContext(theNymID, theNotaryID);
 
-    auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
+    auto nymfile = context.It().mutable_Nymfile(legacy_.ClientDataFolder(),
+    __FUNCTION__);
 
     ConstNym pNym = context.It().Nym();
     if (false == bool(pNym)) { return false; }
 
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!theMessage.LoadContractFromString(strMessage)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -11037,9 +11125,8 @@ bool OTAPI_Exec::ResyncNymWithServer(
 
     bool unused;
     std::unique_ptr<class Nym> theMessageNym =
-        Nym::DeserializeNymfile(strMessageNym, unused);
-    if (nullptr == theMessageNym) {
-        otErr << OT_METHOD << __FUNCTION__
+        Nym::DeserializeNymfile(legacy_.ClientDataFolder(), strMessageNym,
+    unused); if (nullptr == theMessageNym) { otErr << OT_METHOD << __FUNCTION__
               << ": Failed loading theMessageNym from a "
                  "string. String contents:\n\n"
               << strMessageNym << "\n\n";
@@ -11080,7 +11167,7 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() || !theMessage.LoadContractFromString(strMessage))
         return {};
@@ -11102,7 +11189,7 @@ std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() || !theMessage.LoadContractFromString(strMessage))
         return {};
@@ -11124,7 +11211,7 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -11169,7 +11256,7 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -11214,7 +11301,7 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -11263,7 +11350,7 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
 
     String strMessage(THE_MESSAGE);
 
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -11307,7 +11394,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -11356,7 +11443,7 @@ std::int32_t OTAPI_Exec::Message_GetSuccess(
 {
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
     String strMessage(THE_MESSAGE);
 
     if (!strMessage.Exists()) {
@@ -11422,7 +11509,7 @@ std::int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() || !theMessage.LoadContractFromString(strMessage))
         return OT_ERROR;
@@ -11452,7 +11539,7 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 
     String strMessage(THE_MESSAGE);
 
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -11481,7 +11568,8 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
         return OT_ERROR;
     }
 
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadContractFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -11540,7 +11628,7 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
 
     String strMessage(THE_MESSAGE);
 
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
 
     if (!strMessage.Exists() ||
         !theMessage.LoadContractFromString(strMessage)) {
@@ -11569,7 +11657,8 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
         return OT_ERROR;
     }
 
-    Ledger theLedger(theNymID, theAccountID, theNotaryID);
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), theNymID, theAccountID, theNotaryID);
 
     if (!theLedger.LoadContractFromString(strLedger)) {
         String strAcctID(theAccountID);

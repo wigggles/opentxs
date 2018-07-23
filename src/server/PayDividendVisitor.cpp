@@ -111,7 +111,8 @@ bool PayDividendVisitor::Trigger(
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    Cheque theVoucher(theNotaryID, Identifier::Factory());
+    Cheque theVoucher(
+        legacy_.ServerDataFolder(), theNotaryID, Identifier::Factory());
 
     // 10 minutes ==    600 Seconds
     // 1 hour    ==     3600 Seconds
@@ -180,7 +181,7 @@ bool PayDividendVisitor::Trigger(
             // Send the voucher to the payments inbox of the recipient.
             //
             const String strVoucher(theVoucher);
-            OTPayment thePayment(strVoucher);
+            OTPayment thePayment(legacy_.ServerDataFolder(), strVoucher);
 
             // calls DropMessageToNymbox
             bSent = theServer.SendInstrumentToNym(
@@ -214,7 +215,8 @@ bool PayDividendVisitor::Trigger(
         // came from.
         //
         if (!bSent) {
-            Cheque theReturnVoucher(theNotaryID, Identifier::Factory());
+            Cheque theReturnVoucher(
+                legacy_.ServerDataFolder(), theNotaryID, Identifier::Factory());
 
             const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
                 lPayoutAmount,          // The amount of the cheque.
@@ -245,7 +247,8 @@ bool PayDividendVisitor::Trigger(
                 // sender.
                 //
                 const String strReturnVoucher(theReturnVoucher);
-                OTPayment theReturnPayment(strReturnVoucher);
+                OTPayment theReturnPayment(
+                    legacy_.ServerDataFolder(), strReturnVoucher);
 
                 // calls DropMessageToNymbox
                 bSent = theServer.SendInstrumentToNym(

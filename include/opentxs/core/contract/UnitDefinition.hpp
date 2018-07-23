@@ -93,7 +93,9 @@ public:
     // removes the account from the list. (When account is deleted.)
     EXPORT bool EraseAccountRecord(const Identifier& theAcctID) const;
 
-    EXPORT bool VisitAccountRecords(AccountVisitor& visitor) const;
+    EXPORT bool VisitAccountRecords(
+        const std::string& dataFolder,
+        AccountVisitor& visitor) const;
 
     EXPORT static std::string formatLongAmount(
         std::int64_t lValue,

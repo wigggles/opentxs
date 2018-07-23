@@ -74,8 +74,8 @@ char const* const __TypeStringsPayment[] = {
     // payment is removed when the notice is received into the record box.
     "ERROR_STATE"};
 
-OTPayment::OTPayment()
-    : Contract()
+OTPayment::OTPayment(const std::string& dataFolder)
+    : Contract(dataFolder)
     , m_strPayment()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
@@ -99,8 +99,8 @@ OTPayment::OTPayment()
     InitPayment();
 }
 
-OTPayment::OTPayment(const String& strPayment)
-    : Contract()
+OTPayment::OTPayment(const std::string& dataFolder, const String& strPayment)
+    : Contract(dataFolder)
     , m_strPayment()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
@@ -421,7 +421,8 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
             return false;
         }
         // -------------------------------------------
-        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        std::unique_ptr<OTPayment> pCronItemPayment(
+            new OTPayment(data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -745,7 +746,8 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
             return false;
         }
         // -------------------------------------------
-        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        std::unique_ptr<OTPayment> pCronItemPayment(
+            new OTPayment(data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -872,7 +874,8 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
             return false;
         }
         // -------------------------------------------
-        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        std::unique_ptr<OTPayment> pCronItemPayment(
+            new OTPayment(data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -992,7 +995,8 @@ bool OTPayment::GetClosingNum(
             return false;
         }
         // -------------------------------------------
-        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        std::unique_ptr<OTPayment> pCronItemPayment(
+            new OTPayment(data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -1108,7 +1112,8 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
             return false;
         }
         // -------------------------------------------
-        std::unique_ptr<OTPayment> pCronItemPayment(new OTPayment(strCronItem));
+        std::unique_ptr<OTPayment> pCronItemPayment(
+            new OTPayment(data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -1672,7 +1677,7 @@ OTTrackable* OTPayment::Instantiate() const
         case CHEQUE:
         case VOUCHER:
         case INVOICE:
-            pContract = ::InstantiateContract(m_strPayment);
+            pContract = ::InstantiateContract(data_folder_, m_strPayment);
 
             if (nullptr != pContract) {
                 pCheque = dynamic_cast<Cheque*>(pContract);
@@ -1694,7 +1699,7 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case PAYMENT_PLAN:
-            pContract = ::InstantiateContract(m_strPayment);
+            pContract = ::InstantiateContract(data_folder_, m_strPayment);
 
             if (nullptr != pContract) {
                 pPaymentPlan = dynamic_cast<OTPaymentPlan*>(pContract);
@@ -1716,7 +1721,7 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case SMART_CONTRACT:
-            pContract = ::InstantiateContract(m_strPayment);
+            pContract = ::InstantiateContract(data_folder_, m_strPayment);
 
             if (nullptr != pContract) {
                 pSmartContract = dynamic_cast<OTSmartContract*>(pContract);
@@ -1791,7 +1796,7 @@ OTTransaction* OTPayment::InstantiateNotice() const
 {
     if (m_strPayment.Exists() && (OTPayment::NOTICE == GetType())) {
         OTTransactionType* pType =
-            OTTransactionType::TransactionFactory(m_strPayment);
+            OTTransactionType::TransactionFactory(data_folder_, m_strPayment);
 
         if (nullptr == pType) {
             otErr << __FUNCTION__
@@ -1834,7 +1839,7 @@ OTTransaction* OTPayment::InstantiateNotice() const
 Purse* OTPayment::InstantiatePurse() const
 {
     if (OTPayment::PURSE == GetType()) {
-        return Purse::PurseFactory(m_strPayment);
+        return Purse::PurseFactory(data_folder_, m_strPayment);
     } else
         otErr << __FUNCTION__
               << ": Failure: This payment object "

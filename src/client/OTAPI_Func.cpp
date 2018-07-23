@@ -1503,14 +1503,15 @@ void OTAPI_Func::run()
             if (cash_) {
                 OT_ASSERT(purse_)
 
-                payment_ = std::make_unique<OTPayment>(String(*purse_));
+                payment_ = std::make_unique<OTPayment>(
+                    legacy_.ClientDataFolder(), String(*purse_));
             }
 
             OT_ASSERT(payment_)
 
             String serialized;
             payment_->GetPaymentContents(serialized);
-            OTPayment payment(serialized);
+            OTPayment payment(legacy_.ClientDataFolder(), serialized);
 
             if (!payment.IsValid() || !payment.SetTempValues()) {
                 otOut << OT_METHOD << __FUNCTION__
@@ -1524,7 +1525,8 @@ void OTAPI_Func::run()
                 OT_ASSERT(senderPurse_)
 
                 const String& senderPurseString = String(*senderPurse_);
-                OTPayment theSenderPayment(senderPurseString);
+                OTPayment theSenderPayment(
+                    legacy_.ClientDataFolder(), senderPurseString);
 
                 if (!theSenderPayment.IsValid() ||
                     !theSenderPayment.SetTempValues()) {
@@ -1554,7 +1556,7 @@ void OTAPI_Func::run()
 
             if (request_ && payment.IsCheque()) {
                 bool workflowUpdated{false};
-                Cheque cheque;
+                Cheque cheque{legacy_.ClientDataFolder()};
                 const auto loaded =
                     cheque.LoadContractFromString(payment.Payment());
 

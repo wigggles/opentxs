@@ -39,8 +39,44 @@
 
 namespace opentxs
 {
-
 enum { TradeProcessIntervalSeconds = 10 };
+
+OTTrade::OTTrade(const std::string& dataFolder)
+    : ot_super(dataFolder)
+    , currencyTypeID_(Identifier::Factory())
+    , currencyAcctID_(Identifier::Factory())
+    , offer_(nullptr)
+    , hasTradeActivated_(false)
+    , stopPrice_(0)
+    , stopSign_(0)
+    , stopActivated_(false)
+    , tradesAlreadyDone_(0)
+    , marketOffer_()
+{
+    InitTrade();
+}
+
+OTTrade::OTTrade(
+    const std::string& dataFolder,
+    const Identifier& notaryID,
+    const Identifier& instrumentDefinitionID,
+    const Identifier& assetAcctId,
+    const Identifier& nymID,
+    const Identifier& currencyId,
+    const Identifier& currencyAcctId)
+    : ot_super(dataFolder, notaryID, instrumentDefinitionID, assetAcctId, nymID)
+    , currencyTypeID_(Identifier::Factory(currencyId))
+    , currencyAcctID_(Identifier::Factory(currencyAcctId))
+    , offer_(nullptr)
+    , hasTradeActivated_(false)
+    , stopPrice_(0)
+    , stopSign_(0)
+    , stopActivated_(false)
+    , tradesAlreadyDone_(0)
+    , marketOffer_()
+{
+    InitTrade();
+}
 
 // This class is like: you are placing an order to do a trade.
 // Your order will continue processing until it is complete.
@@ -358,7 +394,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         return nullptr;
     }
 
-    OTOffer* offer = new OTOffer;
+    OTOffer* offer = new OTOffer{data_folder_};
     OT_ASSERT(offer != nullptr);
 
     // Trying to load the offer from the trader's original signed request
@@ -618,7 +654,7 @@ void OTTrade::onRemovalFromCron()
             return;
         }
 
-        std::unique_ptr<OTOffer> offer(new OTOffer);
+        std::unique_ptr<OTOffer> offer(new OTOffer{data_folder_});
 
         // Trying to load the offer from the trader's original signed request
         // (So I can use it to lookup the Market ID, so I can see if the offer
@@ -1110,58 +1146,6 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
     return true;
 }
 
-OTTrade::OTTrade()
-    : ot_super()
-    , currencyTypeID_(Identifier::Factory())
-    , currencyAcctID_(Identifier::Factory())
-    , offer_(nullptr)
-    , hasTradeActivated_(false)
-    , stopPrice_(0)
-    , stopSign_(0)
-    , stopActivated_(false)
-    , tradesAlreadyDone_(0)
-    , marketOffer_()
-{
-    //    offer_            = nullptr;    // NOT responsible to clean this up.
-    // Just keeping the pointer for convenience.
-    // You might ask, "but what if it goes bad?" Actually only THIS object
-    // should ever decide that.
-    // Only the Trade object decides when to add or remove an offer from any
-    // market.
-
-    InitTrade();
-}
-
-OTTrade::OTTrade(
-    const Identifier& notaryID,
-    const Identifier& instrumentDefinitionID,
-    const Identifier& assetAcctId,
-    const Identifier& nymID,
-    const Identifier& currencyId,
-    const Identifier& currencyAcctId)
-    : ot_super(notaryID, instrumentDefinitionID, assetAcctId, nymID)
-    , currencyTypeID_(Identifier::Factory(currencyId))
-    , currencyAcctID_(Identifier::Factory(currencyAcctId))
-    , offer_(nullptr)
-    , hasTradeActivated_(false)
-    , stopPrice_(0)
-    , stopSign_(0)
-    , stopActivated_(false)
-    , tradesAlreadyDone_(0)
-    , marketOffer_()
-{
-    //    offer_            = nullptr;    // NOT responsible to clean this up.
-    // Just keeping the pointer for convenience.
-    // You might ask, "but what if it goes bad?" Actually only THIS object
-    // should ever decide that.
-    // Only the Trade object decides when to add or remove an offer from any
-    // market.
-
-    InitTrade();
-}
-
-OTTrade::~OTTrade() { Release_Trade(); }
-
 // the framework will call this at the right time.
 void OTTrade::Release_Trade()
 {
@@ -1206,4 +1190,5 @@ void OTTrade::InitTrade()
                                  // as well, not just stop orders.
 }
 
+OTTrade::~OTTrade() { Release_Trade(); }
 }  // namespace opentxs

@@ -250,11 +250,11 @@ Message* OTMessageOutbuffer::GetSentMessage(
             // Even if the outgoing message was stored, we still act like it
             // "doesn't exist" if it doesn't appear on the official list.
             // The list is what matters -- the message is just the contents
-            // referenced
-            // by that list.
+            // referencedby that list.
+            Message* pMsg = new Message{legacy_.ClientDataFolder()};
 
-            Message* pMsg = new Message;
             OT_ASSERT(nullptr != pMsg);
+
             std::unique_ptr<Message> theMsgAngel(pMsg);
 
             if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
@@ -473,7 +473,8 @@ void OTMessageOutbuffer::Clear(
 
         // Make sure any messages being erased here, are also erased from local
         // storage.
-        std::unique_ptr<Message> storedMessage(new Message);
+        std::unique_ptr<Message> storedMessage(
+            new Message{legacy_.ClientDataFolder()});
 
         OT_ASSERT(storedMessage);
 
@@ -612,7 +613,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     // Now that we've updated the numlist in local storage, let's
     // erase the sent message itself...
     //
-    Message* pMsg = new Message;
+    Message* pMsg = new Message{legacy_.ClientDataFolder()};
     OT_ASSERT(nullptr != pMsg);
     std::unique_ptr<Message> theMsgAngel(pMsg);
 

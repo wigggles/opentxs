@@ -75,46 +75,20 @@ public:
     EXPORT void CancelCheque();  // You still need to re-sign the cheque after
                                  // doing this.
 
-    // From OTTrackable (parent class of this)
-    /*
-     // A cheque can be written offline, provided you have a transaction
-     // number handy to write it with. (Necessary to prevent double-spending.)
-     inline       std::int64_t              GetTransactionNum() const  { return
-     m_lTransactionNum; }
-     inline const Identifier&    GetSenderAcctID()           { return
-     m_SENDER_ACCT_ID; }
-     inline const Identifier&    GetSenderNymID()           { return
-     m_SENDER_NYM_ID; }
-     */
-
-    // From OTInstrument (parent class of OTTrackable, parent class of this)
-    /*
-     OTInstrument(const Identifier& NOTARY_ID, const Identifier&
-     INSTRUMENT_DEFINITION_ID)
-     : Contract()
-
-     inline const Identifier& GetInstrumentDefinitionID()  const { return
-     m_InstrumentDefinitionID; }
-     inline const Identifier& GetNotaryID() const { return m_NotaryID;    }
-
-     inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
-     inline time64_t GetValidTo()        const { return m_VALID_TO;   }
-
-     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
-     / TO dates.
-     */
-    EXPORT Cheque();
-    EXPORT Cheque(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT virtual ~Cheque();
-
     void InitCheque();
     void Release() override;
     void Release_Cheque();
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this is where the token saves its
                                      // contents
+
+    EXPORT Cheque(const std::string& dataFolder);
+    EXPORT Cheque(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+
+    EXPORT virtual ~Cheque();
 
 protected:
     Amount m_lAmount{0};
@@ -131,6 +105,8 @@ protected:
 
 private:  // Private prevents erroneous use by other classes.
     typedef OTTrackable ot_super;
+
+    Cheque() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTCHEQUE_HPP

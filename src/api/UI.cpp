@@ -46,6 +46,7 @@ api::UI* Factory::UI(
     const api::storage::Storage& storage,
     const api::Activity& activity,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const network::zeromq::Context& zmq,
     const Flag& running)
 {
@@ -57,6 +58,7 @@ api::UI* Factory::UI(
         storage,
         activity,
         contact,
+        legacy,
         zmq,
         running);
 }
@@ -72,6 +74,7 @@ UI::UI(
     const api::storage::Storage& storage,
     const api::Activity& activity,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const opentxs::network::zeromq::Context& zmq,
     const Flag& running)
     : sync_(sync)
@@ -81,6 +84,7 @@ UI::UI(
     , storage_(storage)
     , activity_(activity)
     , contact_(contact)
+    , legacy_(legacy)
     , zmq_(zmq)
     , running_(running)
     , accounts_()
@@ -113,6 +117,7 @@ const ui::AccountActivity& UI::AccountActivity(
             workflow_,
             contact_,
             storage_,
+            legacy_,
             nymID,
             accountID));
     }
@@ -138,6 +143,7 @@ const ui::AccountSummary& UI::AccountSummary(
             connection_,
             storage_,
             contact_,
+            legacy_,
             nymID,
             currency));
     }

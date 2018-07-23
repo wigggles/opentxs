@@ -329,7 +329,7 @@ OTPassword* LegacySymmetric::GetPassphraseFromUser(
                                     // since
                                     // this is for a plain symmetric key.
     // -------------------------------------------------------------------
-    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
+    const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
     auto* callback = native.GetInternalPasswordCallback();
     const std::int32_t nCallback = (*callback)(
         pPassUserInput->getPasswordWritable_char(),

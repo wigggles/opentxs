@@ -21,7 +21,7 @@ namespace opentxs::api::implementation
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
  */
-class Native : virtual public opentxs::api::NativeInternal
+class Native : virtual public api::internal::Native
 {
 public:
     const api::Activity& Activity() const override;
@@ -82,7 +82,7 @@ private:
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
-    std::unique_ptr<api::Activity> activity_;
+    std::unique_ptr<api::client::internal::Activity> activity_;
     std::unique_ptr<api::Api> api_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::Blockchain> blockchain_;

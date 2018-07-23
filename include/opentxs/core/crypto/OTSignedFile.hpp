@@ -18,8 +18,39 @@ namespace opentxs
 
 class OTSignedFile : public Contract
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Contract ot_super;
+public:
+    // These assume SetFilename() was already called,
+    // or at least one of the constructors that uses it.
+    //
+    EXPORT explicit OTSignedFile(const std::string& dataFolder);
+    EXPORT explicit OTSignedFile(
+        const std::string& dataFolder,
+        const String& LOCAL_SUBDIR,
+        const String& FILE_NAME);
+    EXPORT explicit OTSignedFile(
+        const std::string& dataFolder,
+        const char* LOCAL_SUBDIR,
+        const String& FILE_NAME);
+    EXPORT explicit OTSignedFile(
+        const std::string& dataFolder,
+        const char* LOCAL_SUBDIR,
+        const char* FILE_NAME);
+
+    EXPORT bool LoadFile();
+    EXPORT bool SaveFile();
+    bool VerifyFile();  // Returns true or false, whether actual subdir/file
+                        // matches purported subdir/file.
+    // (You should still verify the signature on it as well, if you are doing
+    // this.)
+    void SetFilename(const String& LOCAL_SUBDIR, const String& FILE_NAME);
+    EXPORT String& GetFilePayload();
+    EXPORT void SetFilePayload(const String& strArg);
+    EXPORT String& GetSignerNymID();
+    EXPORT void SetSignerNymID(const String& strArg);
+    EXPORT virtual ~OTSignedFile();
+    void Release() override;
+    void Release_SignedFile();
+    void UpdateContents() override;
 
 protected:
     String m_strSignedFilePayload;  // This class exists to wrap another and
@@ -57,31 +88,10 @@ protected:
 
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-public:
-    // These assume SetFilename() was already called,
-    // or at least one of the constructors that uses it.
-    //
-    EXPORT OTSignedFile();
-    OTSignedFile(const String& LOCAL_SUBDIR, const String& FILE_NAME);
-    OTSignedFile(const char* LOCAL_SUBDIR, const String& FILE_NAME);
-    EXPORT OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME);
-    EXPORT bool LoadFile();
-    EXPORT bool SaveFile();
-    bool VerifyFile();  // Returns true or false, whether actual subdir/file
-                        // matches purported subdir/file.
-    // (You should still verify the signature on it as well, if you are doing
-    // this.)
-    void SetFilename(const String& LOCAL_SUBDIR, const String& FILE_NAME);
-    EXPORT String& GetFilePayload();
-    EXPORT void SetFilePayload(const String& strArg);
-    EXPORT String& GetSignerNymID();
-    EXPORT void SetSignerNymID(const String& strArg);
-    EXPORT virtual ~OTSignedFile();
-    void Release() override;
-    void Release_SignedFile();
-    void UpdateContents() override;
+private:  // Private prevents erroneous use by other classes.
+    typedef Contract ot_super;
+
+    OTSignedFile() = delete;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP

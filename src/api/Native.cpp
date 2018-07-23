@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -50,10 +51,10 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
+#include "api/client/InternalClient.hpp"
 #include "api/network/Dht.hpp"
 #include "api/network/ZMQ.hpp"
 #include "api/storage/StorageInternal.hpp"
-#include "api/Activity.hpp"
 #include "api/ContactManager.hpp"
 #include "api/NativeInternal.hpp"
 #include "network/DhtConfig.hpp"
@@ -145,7 +146,7 @@ extern "C" std::int32_t souped_up_pass_cb(
     OT_ASSERT(nullptr != userdata);
 
     const auto& native =
-        dynamic_cast<const opentxs::api::NativeInternal&>(opentxs::OT::App());
+        dynamic_cast<const opentxs::api::internal::Native&>(opentxs::OT::App());
     const auto* pPWData = static_cast<const opentxs::OTPasswordData*>(userdata);
     const std::string str_userdata = pPWData->GetDisplayString();
     opentxs::OTPassword thePassword;
@@ -321,7 +322,7 @@ extern "C" std::int32_t souped_up_pass_cb(
 
 namespace opentxs
 {
-api::NativeInternal* Factory::Native(
+api::internal::Native* Factory::Native(
     Flag& running,
     const ArgList& args,
     const bool recover,
@@ -591,7 +592,7 @@ void Native::Init()
     Init_Identity();  // requires Init_Contracts()
     Init_Contacts();  // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
     Init_Activity();  // requires Init_Storage(), Init_Contacts(),
-                      // Init_Contracts()
+                       // Init_Contracts(), Init_Legacy()
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
                         // Init_Contracts(), Init_Activity()
@@ -601,7 +602,7 @@ void Native::Init()
                  // Init_ZMQ(), Init_Contacts() Init_Activity()
     if (!server_mode_) {
         Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api(),
-                    // Init_Storage(), Init_ZMQ()
+                    // Init_Storage(), Init_ZMQ(), Init_Legacy()
     }
 
     if (recover_) { recover(); }
@@ -615,12 +616,13 @@ void Native::Init()
 
 void Native::Init_Activity()
 {
+    OT_ASSERT(legacy_);
     OT_ASSERT(contacts_);
     OT_ASSERT(wallet_);
     OT_ASSERT(storage_);
 
-    activity_.reset(new api::implementation::Activity(
-        *contacts_, *storage_, *wallet_, zmq_context_));
+    activity_.reset(Factory::Activity(
+        *legacy_, *contacts_, *storage_, *wallet_, zmq_context_));
 }
 
 void Native::Init_Api()
@@ -1093,6 +1095,7 @@ void Native::Init_UI()
     OT_ASSERT(activity_)
     OT_ASSERT(api_)
     OT_ASSERT(contacts_)
+    OT_ASSERT(legacy_)
     OT_ASSERT(storage_)
     OT_ASSERT(wallet_)
     OT_ASSERT(zeromq_)
@@ -1105,6 +1108,7 @@ void Native::Init_UI()
         *storage_,
         *activity_,
         *contacts_,
+        *legacy_,
         zmq_context_,
         running_));
 
@@ -1288,9 +1292,6 @@ void Native::shutdown()
 void Native::start()
 {
     OT_ASSERT(activity_);
-
-    auto& activity = dynamic_cast<api::implementation::Activity&>(*activity_);
-
     OT_ASSERT(contacts_);
 
     if (false == server_mode_) {
@@ -1315,7 +1316,7 @@ void Native::start()
 
     storage_->UpgradeNyms();
     dynamic_cast<ContactManager&>(*contacts_).start();
-    activity.MigrateLegacyThreads();
+    activity_->MigrateLegacyThreads();
     Init_Periodic();
 
     if (server_mode_) {

@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
@@ -13,7 +14,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Api.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"

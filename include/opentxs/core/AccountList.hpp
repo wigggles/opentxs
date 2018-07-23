@@ -19,10 +19,6 @@
 
 namespace opentxs
 {
-
-class Nym;
-class Tag;
-
 /** The server needs to store a list of accounts, by instrument definition ID,
  * to store the backing funds for vouchers. The below class is useful for that.
  * It's also useful for the same purpose for stashes, in smart contracts.
@@ -31,9 +27,6 @@ class Tag;
 class AccountList
 {
 public:
-    AccountList();
-    explicit AccountList(Account::AccountType acctType);
-    ~AccountList();
     std::int32_t GetCountAccountIDs() const
     {
         return static_cast<std::int32_t>(mapAcctIDs_.size());
@@ -55,14 +48,24 @@ public:
                                // created here. Otherwise set to false;
         std::int64_t stashTransNum = 0);
 
+    AccountList(const std::string& dataFolder);
+    explicit AccountList(
+        const std::string& dataFolder,
+        Account::AccountType acctType);
+
+    ~AccountList();
+
 private:
     typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
 
     const api::client::Wallet& wallet_;
     Account::AccountType acctType_;
+    const std::string data_folder_{""};
 
     /** AcctIDs as second mapped by ASSET TYPE ID as first. */
     String::Map mapAcctIDs_;
+
+    AccountList() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_ACCOUNTLIST_HPP

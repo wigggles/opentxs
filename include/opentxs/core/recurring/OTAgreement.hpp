@@ -371,6 +371,7 @@ public:
 
      */
     EXPORT bool SendNoticeToAllParties(
+        const std::string& dataFolder,
         bool bSuccessMsg,
         const Nym& theServerNym,
         const Identifier& theNotaryID,
@@ -384,6 +385,7 @@ public:
 
     // Nym receives an OTItem::acknowledgment or OTItem::rejection.
     EXPORT static bool DropServerNoticeToNymbox(
+        const std::string& dataFolder,
         bool bSuccessMsg,
         const Nym& theServerNym,
         const Identifier& NOTARY_ID,
@@ -396,11 +398,13 @@ public:
         String* pstrAttachment,
         const Identifier& actualNymID);
 
-    OTAgreement();
+    OTAgreement(const std::string& dataFolder);
     OTAgreement(
+        const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     OTAgreement(
+        const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,
@@ -422,8 +426,9 @@ public:
     void UpdateContents() override;  // Before transmission or serialization,
                                      // this
                                      // is where the ledger saves its contents
+
+private:
+    OTAgreement() = delete;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_OTAGREEMENT_HPP

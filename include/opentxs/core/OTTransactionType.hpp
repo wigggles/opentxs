@@ -20,14 +20,123 @@ namespace opentxs
 // OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
 class OTTransactionType : public Contract
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Contract ot_super;
+public:
+    EXPORT void GetNumList(NumList& theOutput);
+    EXPORT static OTTransactionType* TransactionFactory(
+        const std::string& dataFolder,
+        String strInput);
+    bool Contains(const String& strContains);  // Allows you to string-search
+                                               // the raw contract.
+    EXPORT bool Contains(const char* szContains);  // Allows you to
+                                                   // string-search
+                                                   // the raw contract.
+    // OTAccount, OTTransaction, OTItem, and OTLedger are all derived from
+    // this class (OTTransactionType). Therefore they can all quickly identify
+    // whether one of the other components belongs to the same account.
+    //
+    bool IsSameAccount(const OTTransactionType& rhs) const;
+
+    // This means, "I don't know the 'Real' IDs when I'm about to load this
+    // contract, so just
+    // read the purported IDs (the ones inside the contract itself) and set the
+    // real IDs to match."
+    //
+    // (Normally you'd set the real IDs, then load into purported, then compare
+    // the two, to make
+    // sure your file hasn't been swapped. The only time you circumvent that, is
+    // when you know
+    // the IDs are correct, or when you have no "real" ID other than what is in
+    // the file itself.)
+    //
+    void SetLoadInsecure() { m_bLoadSecurely = false; }
+
+    // Someday I'll add EntityID and RoleID here (in lieu of NymID,
+    // in cases when the account is owned by an Entity and not a Nym.)
+    //
+    inline const Identifier& GetNymID() const { return m_AcctNymID; }
+    inline void SetNymID(const Identifier& theID) { m_AcctNymID = theID; }
+
+    // Used for: Load an account based on this ID
+    inline const Identifier& GetRealAccountID() const { return m_ID; }
+    inline void SetRealAccountID(const Identifier& theID) { m_ID = theID; }
+
+    // Used for: Verify this ID on a transaction to make sure it matches the one
+    // above.
+    inline const Identifier& GetPurportedAccountID() const { return m_AcctID; }
+    inline void SetPurportedAccountID(const Identifier& theID)
+    {
+        m_AcctID = theID;
+    }
+
+    // Used for: Load or save a filename based on this ID.
+    inline const Identifier& GetRealNotaryID() const { return m_NotaryID; }
+    inline void SetRealNotaryID(const Identifier& theID) { m_NotaryID = theID; }
+
+    // Used for: Load or save the ID in the file contents into/out of this ID.
+    inline const Identifier& GetPurportedNotaryID() const
+    {
+        return m_AcctNotaryID;
+    }
+    inline void SetPurportedNotaryID(const Identifier& theID)
+    {
+        m_AcctNotaryID = theID;
+    }
+
+    // Compares the m_AcctID from the xml portion of the contract
+    // with m_ID (supposedly the same number.)
+    // Also Verifies the NotaryID, since this object type is all about the both
+    // of those IDs.
+    EXPORT bool VerifyContractID() const override;
+
+    // This calls VerifyContractID() as well as VerifySignature()
+    // Use this instead of Contract::VerifyContract, which expects/uses a
+    // pubkey from inside the contract.
+    virtual bool VerifyAccount(const Nym& theNym);
+
+    void InitTransactionType();
+    void Release() override;
+    void Release_TransactionType();
+
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    //    virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+    //    void UpdateContents(); // I don't think I need this here. My parent
+    // and child classes do well enough.
+
+    // need to know the transaction number of this transaction? Call this.
+    EXPORT std::int64_t GetTransactionNum() const;
+    void SetTransactionNum(std::int64_t lTransactionNum);
+
+    EXPORT virtual void CalculateNumberOfOrigin();    // Calculates number of
+                                                      // origin.
+    EXPORT virtual std::int64_t GetNumberOfOrigin();  // Calculates IF
+                                                      // NECESSARY.
+
+    EXPORT std::int64_t GetRawNumberOfOrigin() const;  // Gets WITHOUT
+                                                       // calculating.
+
+    EXPORT void SetNumberOfOrigin(std::int64_t lTransactionNum);
+    EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
+
+    EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
+    // --------------------------------------------------------
+    originType GetOriginType() const;  // NOTE: used for GUI display purposes
+                                       // only.
+    void SetOriginType(originType theOriginType);  // (For paymentReceipts and
+                                                   // finalReceipts.)
+
+    static originType GetOriginTypeFromString(const String& strOriginType);
+
+    const char* GetOriginTypeString() const;
+    // --------------------------------------------------------
+    EXPORT std::int64_t GetReferenceToNum() const;
+    EXPORT void SetReferenceToNum(std::int64_t lTransactionNum);
+
+    EXPORT void GetReferenceString(String& theStr) const;
+    EXPORT void SetReferenceString(const String& theStr);
+
+    virtual ~OTTransactionType();
 
 protected:
-    // keeping constructor protected in order to force people to use the other
-    // constructors and therefore provide the requisite IDs.
-    OTTransactionType();
-
     // Basically what I want here is, SERVER ID and ACCOUNT ID. That way,
     // all the child classes can also have a server ID and account ID, and
     // they can compare to the internal ones to make sure they match. This
@@ -580,77 +689,6 @@ protected:
     // OTItem as well, so when I accept transaction
     // numbers, I am able to list them in the accept item.
 
-public:
-    EXPORT void GetNumList(NumList& theOutput);
-    EXPORT static OTTransactionType* TransactionFactory(String strInput);
-    bool Contains(const String& strContains);  // Allows you to string-search
-                                               // the raw contract.
-    EXPORT bool Contains(const char* szContains);  // Allows you to
-                                                   // string-search
-                                                   // the raw contract.
-    // OTAccount, OTTransaction, OTItem, and OTLedger are all derived from
-    // this class (OTTransactionType). Therefore they can all quickly identify
-    // whether one of the other components belongs to the same account.
-    //
-    bool IsSameAccount(const OTTransactionType& rhs) const;
-
-    // This means, "I don't know the 'Real' IDs when I'm about to load this
-    // contract, so just
-    // read the purported IDs (the ones inside the contract itself) and set the
-    // real IDs to match."
-    //
-    // (Normally you'd set the real IDs, then load into purported, then compare
-    // the two, to make
-    // sure your file hasn't been swapped. The only time you circumvent that, is
-    // when you know
-    // the IDs are correct, or when you have no "real" ID other than what is in
-    // the file itself.)
-    //
-    void SetLoadInsecure() { m_bLoadSecurely = false; }
-
-    // Someday I'll add EntityID and RoleID here (in lieu of NymID,
-    // in cases when the account is owned by an Entity and not a Nym.)
-    //
-    inline const Identifier& GetNymID() const { return m_AcctNymID; }
-    inline void SetNymID(const Identifier& theID) { m_AcctNymID = theID; }
-
-    // Used for: Load an account based on this ID
-    inline const Identifier& GetRealAccountID() const { return m_ID; }
-    inline void SetRealAccountID(const Identifier& theID) { m_ID = theID; }
-
-    // Used for: Verify this ID on a transaction to make sure it matches the one
-    // above.
-    inline const Identifier& GetPurportedAccountID() const { return m_AcctID; }
-    inline void SetPurportedAccountID(const Identifier& theID)
-    {
-        m_AcctID = theID;
-    }
-
-    // Used for: Load or save a filename based on this ID.
-    inline const Identifier& GetRealNotaryID() const { return m_NotaryID; }
-    inline void SetRealNotaryID(const Identifier& theID) { m_NotaryID = theID; }
-
-    // Used for: Load or save the ID in the file contents into/out of this ID.
-    inline const Identifier& GetPurportedNotaryID() const
-    {
-        return m_AcctNotaryID;
-    }
-    inline void SetPurportedNotaryID(const Identifier& theID)
-    {
-        m_AcctNotaryID = theID;
-    }
-
-    // Compares the m_AcctID from the xml portion of the contract
-    // with m_ID (supposedly the same number.)
-    // Also Verifies the NotaryID, since this object type is all about the both
-    // of those IDs.
-    EXPORT bool VerifyContractID() const override;
-
-    // This calls VerifyContractID() as well as VerifySignature()
-    // Use this instead of Contract::VerifyContract, which expects/uses a
-    // pubkey from inside the contract.
-    virtual bool VerifyAccount(const Nym& theNym);
-
     // The parameters to the constructor are supposed to be the ACTUAL account
     // ID and server ID.
     // Whereas the child classes contain their own copies of those IDs which
@@ -662,60 +700,24 @@ public:
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
     explicit OTTransactionType(
+        const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
         originType theOriginType = originType::not_applicable);
     explicit OTTransactionType(
+        const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
         std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable);
+    OTTransactionType(const std::string& dataFolder);
 
-    void InitTransactionType();
-    virtual ~OTTransactionType();
-    void Release() override;
-    void Release_TransactionType();
+private:
+    typedef Contract ot_super;
 
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    //    virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-    //    void UpdateContents(); // I don't think I need this here. My parent
-    // and child classes do well enough.
-
-    // need to know the transaction number of this transaction? Call this.
-    EXPORT std::int64_t GetTransactionNum() const;
-    void SetTransactionNum(std::int64_t lTransactionNum);
-
-    EXPORT virtual void CalculateNumberOfOrigin();    // Calculates number of
-                                                      // origin.
-    EXPORT virtual std::int64_t GetNumberOfOrigin();  // Calculates IF
-                                                      // NECESSARY.
-
-    EXPORT std::int64_t GetRawNumberOfOrigin() const;  // Gets WITHOUT
-                                                       // calculating.
-
-    EXPORT void SetNumberOfOrigin(std::int64_t lTransactionNum);
-    EXPORT void SetNumberOfOrigin(OTTransactionType& setFrom);
-
-    EXPORT bool VerifyNumberOfOrigin(OTTransactionType& compareTo);
-    // --------------------------------------------------------
-    originType GetOriginType() const;  // NOTE: used for GUI display purposes
-                                       // only.
-    void SetOriginType(originType theOriginType);  // (For paymentReceipts and
-                                                   // finalReceipts.)
-
-    static originType GetOriginTypeFromString(const String& strOriginType);
-
-    const char* GetOriginTypeString() const;
-    // --------------------------------------------------------
-    EXPORT std::int64_t GetReferenceToNum() const;
-    EXPORT void SetReferenceToNum(std::int64_t lTransactionNum);
-
-    EXPORT void GetReferenceString(String& theStr) const;
-    EXPORT void SetReferenceString(const String& theStr);
+    OTTransactionType() = delete;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_OTTRANSACTIONTYPE_HPP

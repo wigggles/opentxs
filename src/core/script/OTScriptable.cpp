@@ -60,8 +60,18 @@
 
 namespace opentxs
 {
+OTScriptable::OTScriptable(const std::string& dataFolder)
+    : Contract(dataFolder)
+    , m_bCalculatingID(false)
+    ,  // This is not serialized.
+    m_bSpecifyInstrumentDefinitionID(false)
+    , m_bSpecifyParties(false)  // These are.
+{
+}
 
-OTScriptable* OTScriptable::InstantiateScriptable(const String& strInput)
+OTScriptable* OTScriptable::InstantiateScriptable(
+    const std::string& dataFolder,
+    const String& strInput)
 {
     static char buf[45] = "";
 
@@ -111,7 +121,7 @@ OTScriptable* OTScriptable::InstantiateScriptable(const String& strInput)
                  "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                            // chars long.
     {
-        pItem = new OTSmartContract;
+        pItem = new OTSmartContract{dataFolder};
         OT_ASSERT(nullptr != pItem);
     }
 
@@ -710,6 +720,7 @@ bool OTScriptable::SendNoticeToAllParties(
         if (0 != pParty->GetOpeningTransNo()) {
             if (false ==
                 pParty->SendNoticeToParty(
+                    data_folder_,
                     bSuccessMsg,  // "success" notice? or "failure" notice?
                     theServerNym,
                     theNotaryID,
@@ -1132,8 +1143,8 @@ bool OTScriptable::VerifyPartyAuthorization(
     // the original signature, no matter WHO is authorized now. Otherwise your
     // entire contract falls apart.
 
-    OTScriptable* pPartySignedCopy =
-        OTScriptable::InstantiateScriptable(theParty.GetMySignedCopy());
+    OTScriptable* pPartySignedCopy = OTScriptable::InstantiateScriptable(
+        data_folder_, theParty.GetMySignedCopy());
     std::unique_ptr<OTScriptable> theCopyAngel;
 
     if (nullptr == pPartySignedCopy) {
@@ -1314,8 +1325,8 @@ bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
     // the original signature, no matter WHO is authorized now. Otherwise your
     // entire contract falls apart.
 
-    OTScriptable* pPartySignedCopy =
-        OTScriptable::InstantiateScriptable(pParty->GetMySignedCopy());
+    OTScriptable* pPartySignedCopy = OTScriptable::InstantiateScriptable(
+        data_folder_, pParty->GetMySignedCopy());
     std::unique_ptr<OTScriptable> theCopyAngel;
 
     if (nullptr == pPartySignedCopy) {
@@ -1878,7 +1889,8 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 
         if (pParty->GetMySignedCopy().Exists()) {
             OTScriptable* pPartySignedCopy =
-                OTScriptable::InstantiateScriptable(pParty->GetMySignedCopy());
+                OTScriptable::InstantiateScriptable(
+                    data_folder_, pParty->GetMySignedCopy());
             std::unique_ptr<OTScriptable> theCopyAngel;
 
             if (nullptr == pPartySignedCopy) {
@@ -2440,6 +2452,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                               << "s: Expected openingTransNo in party.\n";
 
                     OTParty* pParty = new OTParty(
+                        data_folder_,
                         strName.Exists() ? strName.Get() : "PARTY_ERROR_NAME",
                         strOwnerType.Compare("nym") ? true : false,
                         strOwnerID.Get(),
@@ -3433,15 +3446,6 @@ void OTScriptable::Release()
 
     Contract::Release();  // since I've overridden the base class, I call it
                           // now...
-}
-
-OTScriptable::OTScriptable()
-    : Contract()
-    , m_bCalculatingID(false)
-    ,  // This is not serialized.
-    m_bSpecifyInstrumentDefinitionID(false)
-    , m_bSpecifyParties(false)  // These are.
-{
 }
 
 OTScriptable::~OTScriptable() { Release_Scriptable(); }

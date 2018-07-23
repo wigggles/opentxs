@@ -33,72 +33,11 @@ namespace opentxs
 // price.
 // (Map would only allow a single item on the map for each price.)
 typedef std::multimap<std::int64_t, OTOffer*> mapOfOffers;
-
 // The same offers are also mapped (uniquely) to transaction number.
 typedef std::map<std::int64_t, OTOffer*> mapOfOffersTrnsNum;
 
 class OTMarket : public Contract
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Contract ot_super;
-
-private:
-    OTCron* m_pCron{nullptr};  // The Cron object that owns this Market.
-
-    OTDB::TradeListMarket* m_pTradeList{nullptr};
-
-    mapOfOffers m_mapBids;  // The buyers, ordered by price limit
-    mapOfOffers m_mapAsks;  // The sellers, ordered by price limit
-
-    mapOfOffersTrnsNum m_mapOffers;  // All of the offers on a single list,
-                                     // ordered by transaction number.
-
-    OTIdentifier m_NOTARY_ID;  // Always store this in any object that's
-                               // associated with a specific server.
-
-    // Every market involves a certain instrument definition being traded in a
-    // certain
-    // currency.
-    OTIdentifier m_INSTRUMENT_DEFINITION_ID;  // This is the GOLD market. (Say.)
-                                              // | (GOLD
-                                              // for
-    OTIdentifier m_CURRENCY_TYPE_ID;  // Gold is trading for DOLLARS.        |
-                                      // DOLLARS, for example.)
-
-    // Each Offer on the market must have a minimum increment that this divides
-    // equally into.
-    // (There is a "gold for dollars, minimum 1 oz" market, a "gold for dollars,
-    // min 500 oz" market, etc.)
-    std::int64_t m_lScale{0};
-
-    std::int64_t m_lLastSalePrice{0};
-    std::string m_strLastSaleDate;
-
-    // The server stores a map of markets, one for each unique combination of
-    // instrument definitions. That's what this market class represents: one
-    // instrument definition being traded and priced in another. It could be
-    // wheat for dollars, wheat for yen, or gold for dollars, or gold for wheat,
-    // or gold for oil, or oil for wheat.  REALLY, THE TWO ARE JUST ARBITRARY
-    // ASSET TYPES. But in order to keep terminology clear, I will refer to one
-    // as the "instrument definition" and the other as the "currency type" so
-    // that it stays VERY clear which instrument definition is up for sale, and
-    // which instrument definition (currency type) it is being priced in. Other
-    // than that, the two are technically interchangeable.
-
-    void rollback_four_accounts(
-        Account& p1,
-        bool b1,
-        const std::int64_t& a1,
-        Account& p2,
-        bool b2,
-        const std::int64_t& a2,
-        Account& p3,
-        bool b3,
-        const std::int64_t& a3,
-        Account& p4,
-        bool b4,
-        const std::int64_t& a4);
-
 public:
     bool ValidateOfferForMarket(OTOffer& theOffer, String* pReason = nullptr);
 
@@ -185,15 +124,6 @@ public:
 
     const std::string& GetLastSaleDate() { return m_strLastSaleDate; }
     std::int64_t GetTotalAvailableAssets();
-    OTMarket();
-    OTMarket(const char* szFilename);
-    OTMarket(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_TYPE_ID,
-        const std::int64_t& lScale);
-
-    virtual ~OTMarket();
 
     void GetIdentifier(Identifier& theIdentifier) const override;
 
@@ -211,10 +141,80 @@ public:
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the ledger saves its contents
+                                     // this is where the ledger saves its
+                                     // contents
+
+    OTMarket(const std::string& dataFolder);
+    OTMarket(const std::string& dataFolder, const char* szFilename);
+    OTMarket(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& CURRENCY_TYPE_ID,
+        const std::int64_t& lScale);
+
+    virtual ~OTMarket();
+
+private:
+    typedef Contract ot_super;
+
+    OTCron* m_pCron{nullptr};  // The Cron object that owns this Market.
+
+    OTDB::TradeListMarket* m_pTradeList{nullptr};
+
+    mapOfOffers m_mapBids;  // The buyers, ordered by price limit
+    mapOfOffers m_mapAsks;  // The sellers, ordered by price limit
+
+    mapOfOffersTrnsNum m_mapOffers;  // All of the offers on a single list,
+                                     // ordered by transaction number.
+
+    OTIdentifier m_NOTARY_ID;  // Always store this in any object that's
+                               // associated with a specific server.
+
+    // Every market involves a certain instrument definition being traded in a
+    // certain
+    // currency.
+    OTIdentifier m_INSTRUMENT_DEFINITION_ID;  // This is the GOLD market. (Say.)
+                                              // | (GOLD
+                                              // for
+    OTIdentifier m_CURRENCY_TYPE_ID;  // Gold is trading for DOLLARS.        |
+                                      // DOLLARS, for example.)
+
+    // Each Offer on the market must have a minimum increment that this divides
+    // equally into.
+    // (There is a "gold for dollars, minimum 1 oz" market, a "gold for dollars,
+    // min 500 oz" market, etc.)
+    std::int64_t m_lScale{0};
+
+    std::int64_t m_lLastSalePrice{0};
+    std::string m_strLastSaleDate;
+
+    // The server stores a map of markets, one for each unique combination of
+    // instrument definitions. That's what this market class represents: one
+    // instrument definition being traded and priced in another. It could be
+    // wheat for dollars, wheat for yen, or gold for dollars, or gold for wheat,
+    // or gold for oil, or oil for wheat.  REALLY, THE TWO ARE JUST ARBITRARY
+    // ASSET TYPES. But in order to keep terminology clear, I will refer to one
+    // as the "instrument definition" and the other as the "currency type" so
+    // that it stays VERY clear which instrument definition is up for sale, and
+    // which instrument definition (currency type) it is being priced in. Other
+    // than that, the two are technically interchangeable.
+
+    void rollback_four_accounts(
+        Account& p1,
+        bool b1,
+        const std::int64_t& a1,
+        Account& p2,
+        bool b2,
+        const std::int64_t& a2,
+        Account& p3,
+        bool b3,
+        const std::int64_t& a3,
+        Account& p4,
+        bool b4,
+        const std::int64_t& a4);
+
+    OTMarket() = delete;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_TRADE_OTMARKET_HPP

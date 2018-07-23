@@ -36,8 +36,9 @@
 
 namespace
 {
-
-opentxs::Contract* InstantiateContract(opentxs::String strInput)
+opentxs::Contract* InstantiateContract(
+    const std::string& dataFolder,
+    opentxs::String strInput)
 {
 
     using namespace opentxs;
@@ -53,7 +54,7 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
                 "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                           // chars long.
         {
-            pContract.reset(new OTSmartContract());
+            pContract.reset(new OTSmartContract(dataFolder));
             OT_ASSERT(pContract);
         }
 
@@ -61,51 +62,54 @@ opentxs::Contract* InstantiateContract(opentxs::String strInput)
                 "-----BEGIN SIGNED PAYMENT PLAN-----"))  // this string is 35
                                                          // chars long.
         {
-            pContract.reset(new OTPaymentPlan());
+            pContract.reset(new OTPaymentPlan(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRADE-----"))  // this string is 28
                                                          // chars long.
         {
-            pContract.reset(new OTTrade());
+            pContract.reset(new OTTrade(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED OFFER-----")) {
-            pContract.reset(new OTOffer());
+            pContract.reset(new OTOffer(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
-            pContract.reset(new Cheque());
+            pContract.reset(new Cheque(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
-            pContract.reset(new Cheque());
+            pContract.reset(new Cheque(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
-            pContract.reset(new Cheque());
+            pContract.reset(new Cheque(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
-            pContract.reset(new Message());
+            pContract.reset(new Message(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
 #if OT_CASH
-            pContract.reset(Mint::MintFactory());
+            pContract.reset(Mint::MintFactory(dataFolder));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
-            pContract.reset(new OTSignedFile());
+            pContract.reset(new OTSignedFile(dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
 #if OT_CASH
-            pContract.reset(Token::LowLevelInstantiate(strFirstLine));
+            pContract.reset(
+                Token::LowLevelInstantiate(dataFolder, strFirstLine));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
 #if OT_CASH
-            pContract.reset(Token::LowLevelInstantiate(strFirstLine));
+            pContract.reset(
+                Token::LowLevelInstantiate(dataFolder, strFirstLine));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
 #if OT_CASH
-            pContract.reset(Token::LowLevelInstantiate(strFirstLine));
+            pContract.reset(
+                Token::LowLevelInstantiate(dataFolder, strFirstLine));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         }

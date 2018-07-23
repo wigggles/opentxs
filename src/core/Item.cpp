@@ -41,6 +41,105 @@
 
 namespace opentxs
 {
+// this one is private (I hope to keep it that way.)
+// probvably not actually. If I end up back here, it's because
+// sometimes I dont' WANT to assign the stuff, but leave it blank
+// because I'm about to load it.
+Item::Item(const std::string& dataFolder)
+    : OTTransactionType(dataFolder)
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
+    , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
+{
+    InitItem();
+}
+
+// From owner we can get acct ID, server ID, and transaction Num
+Item::Item(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const OTTransaction& theOwner)
+    : OTTransactionType(
+          dataFolder,
+          theNymID,
+          theOwner.GetRealAccountID(),
+          theOwner.GetRealNotaryID(),
+          theOwner.GetTransactionNum(),
+          theOwner.GetOriginType())
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
+    , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
+{
+    InitItem();
+}
+
+// From owner we can get acct ID, server ID, and transaction Num
+Item::Item(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const Item& theOwner)
+    : OTTransactionType(
+          dataFolder,
+          theNymID,
+          theOwner.GetRealAccountID(),
+          theOwner.GetRealNotaryID(),
+          theOwner.GetTransactionNum(),
+          theOwner.GetOriginType())
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
+    , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
+{
+    InitItem();
+}
+
+Item::Item(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const OTTransaction& theOwner,
+    Item::itemType theType,
+    const Identifier& pDestinationAcctID)
+    : OTTransactionType(
+          dataFolder,
+          theNymID,
+          theOwner.GetRealAccountID(),
+          theOwner.GetRealNotaryID(),
+          theOwner.GetTransactionNum(),
+          theOwner.GetOriginType())
+    , m_AcctToID(Identifier::Factory())
+    , m_lAmount(0)
+    , m_listItems()
+    , m_Type(error_state)
+    , m_Status(Item::request)
+    , m_lNewOutboxTransNum(0)
+    , m_lClosingTransactionNo(0)
+{
+    InitItem();
+
+    m_Type = theType;  // This has to be below the InitItem() call that appears
+                       // just above
+
+    // Most transactions items don't HAVE a "to" account, just a primary
+    // account.
+    // (If you deposit, or withdraw, you don't need a "to" account.)
+    // But for the ones that do, you can pass the "to" account's ID in
+    // as a pointer, and we'll set that too....
+    if (!pDestinationAcctID.empty()) {
+        m_AcctToID = Identifier::Factory(pDestinationAcctID);
+    }
+}
+
 // Server-side.
 //
 // By the time this is called, I know that the item, AND this balance item
@@ -819,7 +918,7 @@ void Item::CalculateNumberOfOrigin()
 
         case depositCheque:  // this item is a request to deposit a cheque.
         {
-            Cheque theCheque;
+            Cheque theCheque{data_folder_};
             String strAttachment;
             GetAttachment(strAttachment);
 
@@ -856,7 +955,10 @@ void Item::CalculateNumberOfOrigin()
             // of origin as its transaction number.
             //
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum()));
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
 
             if (((m_Type == atDepositCheque) &&
@@ -1012,8 +1114,12 @@ Item* Item::CreateItemFromTransaction(
     Item::itemType theType,
     const Identifier& pDestinationAcctID)
 {
-    Item* pItem =
-        new Item(theOwner.GetNymID(), theOwner, theType, pDestinationAcctID);
+    Item* pItem = new Item(
+        theOwner.DataFolder(),
+        theOwner.GetNymID(),
+        theOwner,
+        theType,
+        pDestinationAcctID);
 
     if (pItem) {
         pItem->SetPurportedAccountID(theOwner.GetPurportedAccountID());
@@ -1031,6 +1137,7 @@ Item* Item::CreateItemFromTransaction(
 // we need
 // to verify that the user ID is actually the owner of the AccountID. TOdo that.
 Item* Item::CreateItemFromString(
+    const std::string& dataFolder,
     const String& strItem,
     const Identifier& theNotaryID,
     std::int64_t lTransactionNumber)
@@ -1041,7 +1148,7 @@ Item* Item::CreateItemFromString(
         return nullptr;
     }
 
-    Item* pItem = new Item;
+    Item* pItem = new Item(dataFolder);
 
     // So when it loads its own server ID, we can compare to this one.
     pItem->SetRealNotaryID(theNotaryID);
@@ -1094,97 +1201,6 @@ void Item::InitItem()
     m_strContractType = "TRANSACTION ITEM";  // CONTRACT, MESSAGE, TRANSACTION,
                                              // LEDGER, TRANSACTION ITEM
 }
-
-// this one is private (I hope to keep it that way.)
-// probvably not actually. If I end up back here, it's because
-// sometimes I dont' WANT to assign the stuff, but leave it blank
-// because I'm about to load it.
-Item::Item()
-    : OTTransactionType()
-    , m_AcctToID(Identifier::Factory())
-    , m_lAmount(0)
-    , m_listItems()
-    , m_Type(error_state)
-    , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
-{
-    InitItem();
-}
-
-// From owner we can get acct ID, server ID, and transaction Num
-Item::Item(const Identifier& theNymID, const OTTransaction& theOwner)
-    : OTTransactionType(
-          theNymID,
-          theOwner.GetRealAccountID(),
-          theOwner.GetRealNotaryID(),
-          theOwner.GetTransactionNum(),
-          theOwner.GetOriginType())
-    , m_AcctToID(Identifier::Factory())
-    , m_lAmount(0)
-    , m_listItems()
-    , m_Type(error_state)
-    , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
-{
-    InitItem();
-}
-
-// From owner we can get acct ID, server ID, and transaction Num
-Item::Item(const Identifier& theNymID, const Item& theOwner)
-    : OTTransactionType(
-          theNymID,
-          theOwner.GetRealAccountID(),
-          theOwner.GetRealNotaryID(),
-          theOwner.GetTransactionNum(),
-          theOwner.GetOriginType())
-    , m_AcctToID(Identifier::Factory())
-    , m_lAmount(0)
-    , m_listItems()
-    , m_Type(error_state)
-    , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
-{
-    InitItem();
-}
-
-Item::Item(
-    const Identifier& theNymID,
-    const OTTransaction& theOwner,
-    Item::itemType theType,
-    const Identifier& pDestinationAcctID)
-    : OTTransactionType(
-          theNymID,
-          theOwner.GetRealAccountID(),
-          theOwner.GetRealNotaryID(),
-          theOwner.GetTransactionNum(),
-          theOwner.GetOriginType())
-    , m_AcctToID(Identifier::Factory())
-    , m_lAmount(0)
-    , m_listItems()
-    , m_Type(error_state)
-    , m_Status(Item::request)
-    , m_lNewOutboxTransNum(0)
-    , m_lClosingTransactionNo(0)
-{
-    InitItem();
-
-    m_Type = theType;  // This has to be below the InitItem() call that appears
-                       // just above
-
-    // Most transactions items don't HAVE a "to" account, just a primary
-    // account.
-    // (If you deposit, or withdraw, you don't need a "to" account.)
-    // But for the ones that do, you can pass the "to" account's ID in
-    // as a pointer, and we'll set that too....
-    if (!pDestinationAcctID.empty()) {
-        m_AcctToID = Identifier::Factory(pDestinationAcctID);
-    }
-}
-
-Item::~Item() { Release_Item(); }
 
 void Item::Release()
 {
@@ -1500,9 +1516,10 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // case.
             // That's okay, because I'm setting it below with
             // pItem->SetTransactionNum...
-            Item* pItem = new Item(GetNymID(), *this);  // But I've also got
-                                                        // ITEM types with
-                                                        // the same names...
+            Item* pItem =
+                new Item(data_folder_, GetNymID(), *this);  // But I've also got
+                                                            // ITEM types with
+                                                            // the same names...
             // That way, it will translate the string and set the type
             // correctly.
             OT_ASSERT(nullptr != pItem);  // That way I can use each item to
@@ -1973,4 +1990,5 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
     m_xmlUnsigned.Concatenate("%s", str_result.c_str());
 }
 
+Item::~Item() { Release_Item(); }
 }  // namespace opentxs

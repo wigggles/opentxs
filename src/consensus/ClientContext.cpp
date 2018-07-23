@@ -19,30 +19,30 @@
 namespace opentxs
 {
 ClientContext::ClientContext(
+    const api::client::Wallet& wallet,
     const api::Legacy& legacy,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server,
-    std::mutex& nymfileLock)
-    : ot_super(legacy, CURRENT_VERSION, local, remote, server, nymfileLock)
+    const Identifier& server)
+    : ot_super(wallet, legacy, CURRENT_VERSION, local, remote, server)
 {
 }
 
 ClientContext::ClientContext(
+    const api::client::Wallet& wallet,
     const api::Legacy& legacy,
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server,
-    std::mutex& nymfileLock)
+    const Identifier& server)
     : ot_super(
+          wallet,
           legacy,
           CURRENT_VERSION,
           serialized,
           local,
           remote,
-          server,
-          nymfileLock)
+          server)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {

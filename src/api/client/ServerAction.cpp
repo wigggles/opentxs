@@ -271,7 +271,8 @@ ServerAction::Action ServerAction::CreateMarketOffer(
 {
     auto notaryID = Identifier::Factory();
     auto nymID = Identifier::Factory();
-    const auto assetAccount = wallet_.Account(assetAccountID);
+    const auto assetAccount =
+        wallet_.Account(legacy_.ClientDataFolder(), assetAccountID);
 
     if (assetAccount) {
         nymID = assetAccount.get().GetNymID();
@@ -1054,8 +1055,10 @@ ServerAction::Action ServerAction::SendCash(
     if (recipientCopy) strRecip = String(*recipientCopy);
     if (senderCopy) strSend = String(*senderCopy);
 
-    std::unique_ptr<const Purse> pRecip(Purse::PurseFactory(strRecip));
-    std::unique_ptr<const Purse> pSend(Purse::PurseFactory(strSend));
+    std::unique_ptr<const Purse> pRecip(
+        Purse::PurseFactory(legacy_.ClientDataFolder(), strRecip));
+    std::unique_ptr<const Purse> pSend(
+        Purse::PurseFactory(legacy_.ClientDataFolder(), strSend));
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
@@ -1107,8 +1110,8 @@ ServerAction::Action ServerAction::SendPayment(
         OT_FAIL;
     }
 
-    std::unique_ptr<const OTPayment> pPayment =
-        std::make_unique<const OTPayment>(strPayment);
+    auto pPayment = std::make_unique<const OTPayment>(
+        legacy_.ClientDataFolder(), strPayment);
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,

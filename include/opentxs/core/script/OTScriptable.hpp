@@ -18,19 +18,6 @@
 
 namespace opentxs
 {
-
-class Account;
-class Nym;
-class OTAgent;
-class OTBylaw;
-class OTClause;
-class OTParty;
-class OTPartyAccount;
-class OTScript;
-class OTVariable;
-class ServerContext;
-class Tag;
-
 typedef std::map<std::string, OTBylaw*> mapOfBylaws;
 typedef std::map<std::string, OTClause*> mapOfClauses;
 typedef std::map<std::string, OTParty*> mapOfParties;
@@ -41,111 +28,6 @@ std::vector<std::int64_t> stringToVector(const std::string& s);
 
 class OTScriptable : public Contract
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Contract ot_super;
-
-    static bool is_ot_namechar_invalid(char c);
-
-protected:
-    // This is how we know the opening numbers for each signer, IN THE ORDER
-    // that they signed.
-    std::vector<std::int64_t> openingNumsInOrderOfSigning_;
-
-    mapOfParties m_mapParties;  // The parties to the contract. Could be Nyms,
-                                // or
-                                // other entities. May be rep'd by an Agent.
-    mapOfBylaws m_mapBylaws;    // The Bylaws for this contract.
-
-    // While calculating the ID of smart contracts (and presumably other
-    // scriptables)
-    // we remove specifics such as instrument definitions, asset accounts, Nym
-    // IDs,
-    // stashes, etc.
-    // We override Contract::CalculateContractID(), where we set
-    // m_bCalculatingID to
-    // true (it's normally false). Then we call UpdateContents(), which knows to
-    // produce
-    // an empty version of the contract if m_bCalculatingID is true. Then we
-    // hash that
-    // in order to get the contract ID, and then we set m_bCalculatingID back to
-    // false
-    // again.
-    //
-    // HOWEVER, there may be more options than with baskets (which also use the
-    // above
-    // trick. Should the smart contract specify a specific instrument
-    // definition, or should
-    // it leave
-    // the instrument definition blank?  Should it specify certain parties, or
-    // should it
-    // leave the
-    // parties blank? I think the accounts should always be blank for
-    // calculating ID.
-    // And the agents should. And stashes which should be blank in new contracts
-    // (always.)
-    // But for instrument definitions and parties, shouldn't people be able to
-    // specify, for
-    // a smart
-    // contract template, whether the instrument definitions are part of the
-    // contract or
-    // whether they
-    // are left blank?
-    // Furthermore, doesn't this mean that variables need to ALWAYS store their
-    // INITIAL
-    // value, since they can change over time? We DO want to figure the
-    // variable's initial
-    // value into the contract ID, but we do NOT want to figure the variable's
-    // CURRENT value
-    // into that ID (because then comparing the IDs will fail once the variables
-    // change.)
-    //
-    // Therefore, there needs to be a variable on the scriptable itself which
-    // determines
-    // the template type of the scriptable: m_bSpecifyInstrumentDefinitionID and
-    // m_bSpecifyParties, which
-    // must each be saved individually on OTScriptable.
-    //
-    // Agents should be entirely removed during contract ID calculating process,
-    // since
-    // the Parties can already be specified, and since they can choose their
-    // agents at the
-    // time of signing -- which are otherwise irrelevant since only the parties
-    // are liable.
-    //
-    // Accounts, conversely, CAN exist on the contract while calculating its ID,
-    // but the
-    // actual account IDs will be left blank and the instrument definition IDs
-    // will be left
-    // blank
-    // if m_bSpecifyInstrumentDefinitionID is false. (Just as Parties' Owner IDs
-    // will be left
-    // blank
-    // if m_bSpecifyParties is false.)
-    //
-    // Transaction numbers on parties AND accounts should be set to 0 during
-    // calculation
-    // of contract ID. Agent name should be left blank on both of those as well.
-    //
-    // On OTParty, signed copy can be excluded. All agents can be excluded.
-    // Authorizing agent
-    // can be excluded and Owner ID is conditional on m_bSpecifyParties. (Party
-    // name is kept.)
-    // m_bPartyIsNym is conditional and so is m_lOpeningTransNo.
-    //
-    bool m_bCalculatingID{false};  // NOT serialized. Used during ID
-                                   // calculation.
-
-    bool m_bSpecifyInstrumentDefinitionID{false};  // Serialized. See above
-                                                   // note.
-    bool m_bSpecifyParties{false};  // Serialized. See above note.
-
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-
-    String m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
-                        // us to use it in the OTScriptable methods where any
-                        // smart contract would normally want to log its
-                        // transaction #, not just the clause name.)
 public:
     EXPORT const std::vector<std::int64_t>& openingNumsInOrderOfSigning() const
     {
@@ -326,7 +208,9 @@ public:
 
     EXPORT virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
     EXPORT virtual bool Compare(OTScriptable& rhs) const;
-    EXPORT static OTScriptable* InstantiateScriptable(const String& strInput);
+    EXPORT static OTScriptable* InstantiateScriptable(
+        const std::string& dataFolder,
+        const String& strInput);
 
     // Make sure a string contains only alpha, numeric, or '_'
     // And make sure it's not blank. This is for script variable names, clause
@@ -346,8 +230,6 @@ public:
     //
     static std::string GetTime();  // Returns a string, containing seconds as
                                    // std::int32_t. (Time in seconds.)
-    OTScriptable();
-    virtual ~OTScriptable();
 
     void UpdateContentsToTag(Tag& parent, bool bCalculatingID) const;
     EXPORT void CalculateContractID(Identifier& newID) const override;
@@ -355,8 +237,118 @@ public:
     void Release() override;
     void Release_Scriptable();
     void UpdateContents() override;
+
+    virtual ~OTScriptable();
+
+protected:
+    // This is how we know the opening numbers for each signer, IN THE ORDER
+    // that they signed.
+    std::vector<std::int64_t> openingNumsInOrderOfSigning_;
+
+    mapOfParties m_mapParties;  // The parties to the contract. Could be Nyms,
+                                // or
+                                // other entities. May be rep'd by an Agent.
+    mapOfBylaws m_mapBylaws;    // The Bylaws for this contract.
+
+    // While calculating the ID of smart contracts (and presumably other
+    // scriptables)
+    // we remove specifics such as instrument definitions, asset accounts, Nym
+    // IDs,
+    // stashes, etc.
+    // We override Contract::CalculateContractID(), where we set
+    // m_bCalculatingID to
+    // true (it's normally false). Then we call UpdateContents(), which knows to
+    // produce
+    // an empty version of the contract if m_bCalculatingID is true. Then we
+    // hash that
+    // in order to get the contract ID, and then we set m_bCalculatingID back to
+    // false
+    // again.
+    //
+    // HOWEVER, there may be more options than with baskets (which also use the
+    // above
+    // trick. Should the smart contract specify a specific instrument
+    // definition, or should
+    // it leave
+    // the instrument definition blank?  Should it specify certain parties, or
+    // should it
+    // leave the
+    // parties blank? I think the accounts should always be blank for
+    // calculating ID.
+    // And the agents should. And stashes which should be blank in new contracts
+    // (always.)
+    // But for instrument definitions and parties, shouldn't people be able to
+    // specify, for
+    // a smart
+    // contract template, whether the instrument definitions are part of the
+    // contract or
+    // whether they
+    // are left blank?
+    // Furthermore, doesn't this mean that variables need to ALWAYS store their
+    // INITIAL
+    // value, since they can change over time? We DO want to figure the
+    // variable's initial
+    // value into the contract ID, but we do NOT want to figure the variable's
+    // CURRENT value
+    // into that ID (because then comparing the IDs will fail once the variables
+    // change.)
+    //
+    // Therefore, there needs to be a variable on the scriptable itself which
+    // determines
+    // the template type of the scriptable: m_bSpecifyInstrumentDefinitionID and
+    // m_bSpecifyParties, which
+    // must each be saved individually on OTScriptable.
+    //
+    // Agents should be entirely removed during contract ID calculating process,
+    // since
+    // the Parties can already be specified, and since they can choose their
+    // agents at the
+    // time of signing -- which are otherwise irrelevant since only the parties
+    // are liable.
+    //
+    // Accounts, conversely, CAN exist on the contract while calculating its ID,
+    // but the
+    // actual account IDs will be left blank and the instrument definition IDs
+    // will be left
+    // blank
+    // if m_bSpecifyInstrumentDefinitionID is false. (Just as Parties' Owner IDs
+    // will be left
+    // blank
+    // if m_bSpecifyParties is false.)
+    //
+    // Transaction numbers on parties AND accounts should be set to 0 during
+    // calculation
+    // of contract ID. Agent name should be left blank on both of those as well.
+    //
+    // On OTParty, signed copy can be excluded. All agents can be excluded.
+    // Authorizing agent
+    // can be excluded and Owner ID is conditional on m_bSpecifyParties. (Party
+    // name is kept.)
+    // m_bPartyIsNym is conditional and so is m_lOpeningTransNo.
+    //
+    bool m_bCalculatingID{false};  // NOT serialized. Used during ID
+                                   // calculation.
+
+    bool m_bSpecifyInstrumentDefinitionID{false};  // Serialized. See above
+                                                   // note.
+    bool m_bSpecifyParties{false};  // Serialized. See above note.
+
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+
+    String m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
+                        // us to use it in the OTScriptable methods where any
+                        // smart contract would normally want to log its
+                        // transaction #, not just the clause name.)
+
+    OTScriptable(const std::string& dataFolder);
+
+private:
+    typedef Contract ot_super;
+
+    static bool is_ot_namechar_invalid(char c);
+
+    OTScriptable() = delete;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP

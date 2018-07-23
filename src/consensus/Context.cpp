@@ -24,15 +24,15 @@
 namespace opentxs
 {
 Context::Context(
+    const api::client::Wallet& wallet,
     const api::Legacy& legacy,
     const std::uint32_t targetVersion,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server,
-    std::mutex& nymfileLock)
+    const Identifier& server)
     : ot_super(local, targetVersion)
+    , wallet_(wallet)
     , legacy_(legacy)
-    , nymfile_lock_(nymfileLock)
     , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)
     , available_transaction_numbers_()
@@ -46,16 +46,16 @@ Context::Context(
 }
 
 Context::Context(
+    const api::client::Wallet& wallet,
     const api::Legacy& legacy,
     const std::uint32_t targetVersion,
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    const Identifier& server,
-    std::mutex& nymfileLock)
+    const Identifier& server)
     : ot_super(local, serialized.version())
+    , wallet_(wallet)
     , legacy_(legacy)
-    , nymfile_lock_(nymfileLock)
     , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)
     , available_transaction_numbers_()
@@ -285,12 +285,9 @@ OTIdentifier Context::LocalNymboxHash() const
 
 Editor<class NymFile> Context::mutable_Nymfile(const OTPasswordData& reason)
 {
-    std::function<void(class NymFile*, Lock&)> callback =
-        [&](class NymFile* in, Lock& lock) -> void { this->save(in, lock); };
-    auto nym = Nym::LoadPrivateNym(
-        nym_->ID(), false, nullptr, nullptr, &reason, nullptr);
+    OT_ASSERT(nym_)
 
-    return Editor<class NymFile>(nymfile_lock_, nym, callback);
+    return wallet_.mutable_Nymfile(LegacyDataFolder(), nym_->ID(), reason);
 }
 
 std::string Context::Name() const
@@ -311,17 +308,12 @@ bool Context::NymboxHashMatch() const
     return (local_nymbox_hash_ == remote_nymbox_hash_);
 }
 
-std::unique_ptr<const class NymFile> Context::Nymfile(
+std::unique_ptr<const opentxs::NymFile> Context::Nymfile(
     const OTPasswordData& reason) const
 {
     OT_ASSERT(nym_);
 
-    Lock lock(nymfile_lock_);
-    std::unique_ptr<class NymFile> output{nullptr};
-    output.reset(Nym::LoadPrivateNym(
-        nym_->ID(), false, nullptr, nullptr, &reason, nullptr));
-
-    return output;
+    return wallet_.Nymfile(LegacyDataFolder(), nym_->ID(), reason);
 }
 
 bool Context::RecoverAvailableNumber(const TransactionNumber& number)
@@ -381,22 +373,6 @@ void Context::Reset()
     available_transaction_numbers_.clear();
     issued_transaction_numbers_.clear();
     request_number_.store(0);
-}
-
-void Context::save(class NymFile* nymfile, const Lock& lock) const
-{
-    OT_ASSERT(nym_);
-    OT_ASSERT(nullptr != nymfile);
-    OT_ASSERT(lock.mutex() == &nymfile_lock_)
-    OT_ASSERT(lock.owns_lock())
-
-    class Nym* nym = dynamic_cast<class Nym*>(nymfile);
-
-    OT_ASSERT(nullptr != nym);
-
-    const auto saved = nym->SaveSignedNymfile(*nym_);
-
-    OT_ASSERT(saved);
 }
 
 proto::Context Context::serialize(

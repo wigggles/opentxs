@@ -59,8 +59,11 @@ char const* const __TypeStringsAccount[] = {
     "err_acct"};
 
 // Used for generating accounts, thus no accountID needed.
-Account::Account(const Identifier& nymID, const Identifier& notaryID)
-    : OTTransactionType()
+Account::Account(
+    const std::string& dataFolder,
+    const Identifier& nymID,
+    const Identifier& notaryID)
+    : OTTransactionType(dataFolder)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -76,8 +79,8 @@ Account::Account(const Identifier& nymID, const Identifier& notaryID)
     SetPurportedNotaryID(notaryID);
 }
 
-Account::Account()
-    : OTTransactionType()
+Account::Account(const std::string& dataFolder)
+    : OTTransactionType(dataFolder)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -91,11 +94,12 @@ Account::Account()
 }
 
 Account::Account(
+    const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& accountId,
     const Identifier& notaryID,
     const String& name)
-    : OTTransactionType(nymID, accountId, notaryID)
+    : OTTransactionType(dataFolder, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -110,10 +114,11 @@ Account::Account(
 }
 
 Account::Account(
+    const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& accountId,
     const Identifier& notaryID)
-    : OTTransactionType(nymID, accountId, notaryID)
+    : OTTransactionType(dataFolder, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -125,8 +130,6 @@ Account::Account(
 {
     InitAccount();
 }
-
-Account::~Account() { Release_Account(); }
 
 char const* Account::_GetTypeString(AccountType accountType)
 {
@@ -143,7 +146,7 @@ bool Account::LoadContractFromString(const String& theStr)
 Ledger* Account::LoadInbox(const Nym& nym) const
 {
     std::unique_ptr<Ledger> box{
-        new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+        new Ledger(data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -161,7 +164,7 @@ Ledger* Account::LoadInbox(const Nym& nym) const
 Ledger* Account::LoadOutbox(const Nym& nym) const
 {
     std::unique_ptr<Ledger> box{
-        new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+        new Ledger(data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -235,7 +238,8 @@ bool Account::GetInboxHash(Identifier& output)
     } else if (
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
-        Ledger inbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+        Ledger inbox(
+            data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
             SetInboxHash(output);
@@ -258,7 +262,8 @@ bool Account::GetOutboxHash(Identifier& output)
     } else if (
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
-        Ledger outbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+        Ledger outbox(
+            data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
             SetOutboxHash(output);
@@ -390,10 +395,8 @@ bool Account::VerifyOwnerByID(const Identifier& nymId) const
     return nymId == m_AcctNymID;
 }
 
-// Let's say you don't have or know the NymID, and you just want to load the
-// damn thing up.
-// Then call this function. It will set nymID and server ID for you.
 Account* Account::LoadExistingAccount(
+    const std::string& dataFolder,
     const Identifier& accountId,
     const Identifier& notaryID)
 {
@@ -415,7 +418,7 @@ Account* Account::LoadExistingAccount(
         return nullptr;
     }
 
-    std::unique_ptr<Account> account{new Account};
+    std::unique_ptr<Account> account{new Account{dataFolder}};
 
     OT_ASSERT(account);
 
@@ -443,6 +446,7 @@ Account* Account::LoadExistingAccount(
 }
 
 Account* Account::GenerateNewAccount(
+    const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& notaryID,
     const Nym& serverNym,
@@ -451,7 +455,7 @@ Account* Account::GenerateNewAccount(
     Account::AccountType acctType,
     std::int64_t stashTransNum)
 {
-    std::unique_ptr<Account> output(new Account(nymID, notaryID));
+    std::unique_ptr<Account> output(new Account(dataFolder, nymID, notaryID));
 
     if (output) {
         if (false == output->GenerateNewAccount(
@@ -942,4 +946,5 @@ void Account::Release()
     OTTransactionType::Release();
 }
 
+Account::~Account() { Release_Account(); }
 }  // namespace opentxs

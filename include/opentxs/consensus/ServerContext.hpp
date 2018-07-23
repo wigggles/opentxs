@@ -50,19 +50,19 @@ public:
     };
 
     ServerContext(
+        const api::client::Wallet& wallet,
         const api::Legacy& legacy,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
-        network::ServerConnection& connection,
-        std::mutex& nymfileLock);
+        network::ServerConnection& connection);
     ServerContext(
+        const api::client::Wallet& wallet,
         const api::Legacy& legacy,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        network::ServerConnection& connection,
-        std::mutex& nymfileLock);
+        network::ServerConnection& connection);
 
     const std::string& AdminPassword() const;
     bool AdminAttempted() const;

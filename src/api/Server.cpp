@@ -92,7 +92,7 @@ Server::Server(
           wallet_))
     , server_(*server_p_)
     , message_processor_p_(
-          new server::MessageProcessor(server_, context, running_))
+          new server::MessageProcessor(legacy_, server_, context, running_))
     , message_processor_(*message_processor_p_)
 #if OT_CASH
     , mint_thread_(nullptr)
@@ -334,8 +334,11 @@ std::shared_ptr<Mint> Server::load_private_mint(
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    std::shared_ptr<Mint> mint(
-        Mint::MintFactory(String(ID()), String(NymID()), unitID.c_str()));
+    std::shared_ptr<Mint> mint(Mint::MintFactory(
+        legacy_.ServerDataFolder(),
+        String(ID()),
+        String(NymID()),
+        unitID.c_str()));
 
     OT_ASSERT(mint);
 
@@ -349,7 +352,8 @@ std::shared_ptr<Mint> Server::load_public_mint(
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    std::shared_ptr<Mint> mint(Mint::MintFactory(String(ID()), unitID.c_str()));
+    std::shared_ptr<Mint> mint(Mint::MintFactory(
+        legacy_.ServerDataFolder(), String(ID()), unitID.c_str()));
 
     OT_ASSERT(mint);
 

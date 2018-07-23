@@ -106,17 +106,19 @@ void Contract::SetIdentifier(const Identifier& theID)
     m_ID = Identifier::Factory(theID);
 }
 
-Contract::Contract()
-    : Contract("", "", "", "")
+Contract::Contract(const std::string& dataFolder)
+    : Contract(dataFolder, "", "", "", "")
 {
 }
 
 Contract::Contract(
+    const std::string& dataFolder,
     const String& name,
     const String& foldername,
     const String& filename,
     const String& strID)
-    : m_strName(name)
+    : data_folder_(dataFolder)
+    , m_strName(name)
     , m_strFoldername(foldername)
     , m_strFilename(filename)
     , m_ID(Identifier::Factory(strID))
@@ -134,13 +136,13 @@ Contract::Contract(
 {
 }
 
-Contract::Contract(const String& strID)
-    : Contract("", "", "", strID)
+Contract::Contract(const std::string& dataFolder, const String& strID)
+    : Contract(dataFolder, "", "", "", strID)
 {
 }
 
-Contract::Contract(const Identifier& theID)
-    : Contract(String(theID))
+Contract::Contract(const std::string& dataFolder, const Identifier& theID)
+    : Contract(dataFolder, String(theID))
 {
 }
 

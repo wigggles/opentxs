@@ -404,8 +404,8 @@ OTTransaction* LoadBoxReceipt(
     // Finally, try to load the transaction from that string and see if
     // successful.
     //
-    OTTransactionType* pTransType =
-        OTTransactionType::TransactionFactory(strRawFile);
+    OTTransactionType* pTransType = OTTransactionType::TransactionFactory(
+        theAbbrev.DataFolder(), strRawFile);
 
     if (nullptr == pTransType) {
         otErr << __FUNCTION__

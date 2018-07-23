@@ -52,42 +52,6 @@ namespace opentxs
 
 class OTTrade : public OTCronItem
 {
-private:
-    typedef OTCronItem ot_super;
-
-    OTIdentifier currencyTypeID_;  // GOLD (Asset) is trading for DOLLARS
-                                   // (Currency).
-    OTIdentifier currencyAcctID_;  // My Dollar account, used for paying for
-                                   // my Gold (say) trades.
-
-    OTOffer* offer_{nullptr};  // The pointer to the Offer (NOT responsible for
-                               // cleaning this up!!!
-    // The offer is owned by the market and I only keep a pointer here for
-    // convenience.
-
-    bool hasTradeActivated_{false};  // Has the offer yet been first added to a
-                                     // market?
-
-    std::int64_t stopPrice_{0};  // The price limit that activates the STOP
-                                 // order.
-    char stopSign_{0x0};         // Value is 0, or '<', or '>'.
-    bool stopActivated_{false};  // If the Stop Order has already activated, I
-                                 // need to know that.
-
-    std::int32_t tradesAlreadyDone_{0};  // How many trades have already
-                                         // processed through this order? We
-                                         // keep track.
-
-    String marketOffer_;  // The market offer associated with this trade.
-
-protected:
-    void onFinalReceipt(
-        OTCronItem& origCronItem,
-        const std::int64_t& newTransactionNumber,
-        ConstNym originator,
-        ConstNym remover) override;
-    void onRemovalFromCron() override;
-
 public:
     originType GetOriginType() const override
     {
@@ -176,16 +140,6 @@ public:
 
     bool VerifyNymAsAgentForAccount(const Nym& nym, const Account& account)
         const override;
-    EXPORT OTTrade();
-    EXPORT OTTrade(
-        const Identifier& notaryID,
-        const Identifier& instrumentDefinitionID,
-        const Identifier& assetAcctId,
-        const Identifier& nymID,
-        const Identifier& currencyId,
-        const Identifier& currencyAcctId);
-    EXPORT virtual ~OTTrade();
-
     void InitTrade();
 
     void Release_Trade();
@@ -195,10 +149,58 @@ public:
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the ledger saves its contents
+                                     // this is where the ledger saves its
+                                     // contents
+
+    EXPORT OTTrade(const std::string& dataFolder);
+    EXPORT OTTrade(
+        const std::string& dataFolder,
+        const Identifier& notaryID,
+        const Identifier& instrumentDefinitionID,
+        const Identifier& assetAcctId,
+        const Identifier& nymID,
+        const Identifier& currencyId,
+        const Identifier& currencyAcctId);
+
+    EXPORT virtual ~OTTrade();
+
+protected:
+    void onFinalReceipt(
+        OTCronItem& origCronItem,
+        const std::int64_t& newTransactionNumber,
+        ConstNym originator,
+        ConstNym remover) override;
+    void onRemovalFromCron() override;
+
+private:
+    typedef OTCronItem ot_super;
+
+    OTIdentifier currencyTypeID_;  // GOLD (Asset) is trading for DOLLARS
+                                   // (Currency).
+    OTIdentifier currencyAcctID_;  // My Dollar account, used for paying for
+                                   // my Gold (say) trades.
+
+    OTOffer* offer_{nullptr};  // The pointer to the Offer (NOT responsible for
+                               // cleaning this up!!!
+    // The offer is owned by the market and I only keep a pointer here for
+    // convenience.
+
+    bool hasTradeActivated_{false};  // Has the offer yet been first added to a
+                                     // market?
+
+    std::int64_t stopPrice_{0};  // The price limit that activates the STOP
+                                 // order.
+    char stopSign_{0x0};         // Value is 0, or '<', or '>'.
+    bool stopActivated_{false};  // If the Stop Order has already activated, I
+                                 // need to know that.
+
+    std::int32_t tradesAlreadyDone_{0};  // How many trades have already
+                                         // processed through this order? We
+                                         // keep track.
+
+    String marketOffer_;  // The market offer associated with this trade.
+
+    OTTrade() = delete;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_TRADE_OTTRADE_HPP

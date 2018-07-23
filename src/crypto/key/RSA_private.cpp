@@ -234,7 +234,7 @@ EVP_PKEY* RSA::d::CopyPublicKey(
 
                 if (nullptr == pImportPassword) {
                     const auto& native =
-                        dynamic_cast<const api::NativeInternal&>(OT::App());
+                        dynamic_cast<const api::internal::Native&>(OT::App());
                     pReturnKey = PEM_read_bio_PUBKEY(
                         keyBio,
                         nullptr,
@@ -311,7 +311,7 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
     // the BIO, then it SHOULD stil be safe, right?
     //
     std::int32_t nWriteBio = false;
-    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
+    const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
 
     if (nullptr == pImportPassword) {
         nWriteBio = PEM_write_bio_PrivateKey(
@@ -387,7 +387,7 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
                                          "CopyPrivateKey is calling "
                                          "PEM_read_bio_PUBKEY...");
                 const auto& native =
-                    dynamic_cast<const api::NativeInternal&>(OT::App());
+                    dynamic_cast<const api::internal::Native&>(OT::App());
 
                 if (nullptr == pImportPassword) {
                     pReturnKey = PEM_read_bio_PrivateKey(
@@ -528,7 +528,7 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
         if (nullptr == pPWData) { pPWData = &thePWData; }
 
         const auto& native =
-            dynamic_cast<const api::NativeInternal&>(OT::App());
+            dynamic_cast<const api::internal::Native&>(OT::App());
         pReturnKey = PEM_read_bio_PUBKEY(
             keyBio,
             nullptr,
@@ -604,7 +604,7 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
         if (nullptr == pPWData) { pPWData = &thePWData; }
 
         const auto& native =
-            dynamic_cast<const api::NativeInternal&>(OT::App());
+            dynamic_cast<const api::internal::Native&>(OT::App());
         pReturnKey = PEM_read_bio_PrivateKey(
             keyBio,
             nullptr,
@@ -669,7 +669,7 @@ bool RSA::d::ArmorPrivateKey(
     if (nullptr == pPWData) pPWData = &thePWData;
 
     std::int32_t nWriteBio = 0;
-    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
+    const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
 
     if (nullptr == pImportPassword) {
         nWriteBio = PEM_write_bio_PrivateKey(

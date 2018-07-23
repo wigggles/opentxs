@@ -51,6 +51,7 @@ private:
 
     const api::client::Wallet& wallet_;
     const api::storage::Storage& storage_;
+    const api::Legacy& legacy_;
     AccountSummarySortKey key_;
     const std::string& name_;
     std::atomic<bool> connection_{false};
@@ -77,6 +78,7 @@ private:
         const CustomData& custom,
         const api::client::Wallet& wallet,
         const api::storage::Storage& storage,
+        const api::Legacy& legacy,
         const proto::ContactItemType currency);
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;

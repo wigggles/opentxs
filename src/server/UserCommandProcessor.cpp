@@ -269,7 +269,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     // list, we will want to save (at the end.)
     auto numlist_ack_reply = reply.Acknowledged();
     const auto nymID = Identifier::Factory(context.RemoteNym().ID());
-    Ledger nymbox(nymID, nymID, context.Server());
+    Ledger nymbox(legacy_.ServerDataFolder(), nymID, nymID, context.Server());
 
     if (nymbox.LoadNymbox() && nymbox.VerifySignature(server_.GetServerNym())) {
         bool bIsDirtyNymbox = false;
@@ -446,14 +446,17 @@ bool UserCommandProcessor::check_server_lock(const Identifier& nymID)
 
 bool UserCommandProcessor::check_usage_credits(ReplyMessage& reply) const
 {
-    const auto& nym = reply.Context().RemoteNym();
+    const auto nymfile = reply.Context().Nymfile("");
+
+    OT_ASSERT(nymfile);
+
     const bool creditsRequired = ServerSettings::__admin_usage_credits;
-    const bool needsCredits = nym.GetUsageCredits() >= 0;
+    const bool needsCredits = nymfile->GetUsageCredits() >= 0;
     const bool checkCredits =
-        creditsRequired && needsCredits && (false == isAdmin(nym.ID()));
+        creditsRequired && needsCredits && (false == isAdmin(nymfile->ID()));
 
     if (checkCredits) {
-        auto nymFile = wallet_.mutable_Nymfile(nym.ID(), __FUNCTION__);
+        auto nymFile = reply.Context().mutable_Nymfile("");
         const auto& credits = nymFile.It().GetUsageCredits();
 
         if (0 == credits) {
@@ -538,7 +541,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     const auto& context = reply.Context();
     const auto& serverNym = *context.Nym();
-    auto account = wallet_.mutable_Account(accountID);
+    auto account =
+        wallet_.mutable_Account(legacy_.ServerDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error loading account "
@@ -616,12 +620,14 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     }
 
     reply.SetSuccess(true);
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = wallet_.mutable_Nymfile(
+        legacy_.ServerDataFolder(),
+        reply.Context().RemoteNym().ID(),
+        __FUNCTION__);
     auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.erase(String(accountID).Get());
     account.Release();
-    wallet_.DeleteAccount(accountID);
+    wallet_.DeleteAccount(legacy_.ServerDataFolder(), accountID);
     reply.DropToNymbox(false);
 
     return true;
@@ -634,8 +640,10 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
 // fails.)
 bool UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const
 {
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = wallet_.mutable_Nymfile(
+        legacy_.ServerDataFolder(),
+        reply.Context().RemoteNym().ID(),
+        __FUNCTION__);
     const auto& msgIn = reply.Original();
     auto& context = reply.Context();
 
@@ -715,7 +723,8 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
-    auto account = wallet_.mutable_Account(accountID);
+    auto account =
+        wallet_.mutable_Account(legacy_.ServerDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load account "
@@ -1141,7 +1150,7 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
     bool bSuccess = true;
     bool bSavedNymbox = false;
     const auto& serverID = context.Server();
-    Ledger theLedger(nymID, nymID, serverID);
+    Ledger theLedger(legacy_.ServerDataFolder(), nymID, nymID, serverID);
     NumList theNumlist;
 
     for (std::int32_t i = 0; i < ISSUE_NUMBER_BATCH; i++) {
@@ -1269,6 +1278,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // map on the server for later reference.
     for (auto& it : *serialized.mutable_basket()->mutable_item()) {
         auto newAccount = wallet_.CreateAccount(
+            legacy_.ServerDataFolder(),
             serverNymID,
             serverID,
             Identifier::Factory(it.unit()),
@@ -1334,7 +1344,13 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // basket work.
 
     auto basketAccount = wallet_.CreateAccount(
-        serverNymID, serverID, contractID, *serverNym, Account::basket, 0);
+        legacy_.ServerDataFolder(),
+        serverNymID,
+        serverID,
+        contractID,
+        *serverNym,
+        Account::basket,
+        0);
 
     if (false == bool(basketAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1376,9 +1392,15 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     const auto& serverNymID = serverNym.ID();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
-    std::unique_ptr<Ledger> input(new Ledger(nymID, accountID, serverID));
+    std::unique_ptr<Ledger> input(
+        new Ledger(legacy_.ServerDataFolder(), nymID, accountID, serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        serverNymID, accountID, serverID, Ledger::message, false));
+        legacy_.ServerDataFolder(),
+        serverNymID,
+        accountID,
+        serverID,
+        Ledger::message,
+        false));
 
     OT_ASSERT(input);
     OT_ASSERT(responseLedger);
@@ -1483,9 +1505,15 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     const auto& nym = reply.Context().RemoteNym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
-    std::unique_ptr<Ledger> input(new Ledger(nymID, accountID, serverID));
+    std::unique_ptr<Ledger> input(
+        new Ledger(legacy_.ServerDataFolder(), nymID, accountID, serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        serverNymID, accountID, serverID, Ledger::message, false));
+        legacy_.ServerDataFolder(),
+        serverNymID,
+        accountID,
+        serverID,
+        Ledger::message,
+        false));
 
     OT_ASSERT(input);
     OT_ASSERT(responseLedger);
@@ -1504,7 +1532,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    auto account = wallet_.mutable_Account(accountID);
+    auto account =
+        wallet_.mutable_Account(legacy_.ServerDataFolder(), accountID);
 
     if (false == bool(account)) { return false; }
 
@@ -1618,9 +1647,15 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     auto nymboxHash = Identifier::Factory();
-    std::unique_ptr<Ledger> input(new Ledger(nymID, nymID, serverID));
+    std::unique_ptr<Ledger> input(
+        new Ledger(legacy_.ServerDataFolder(), nymID, nymID, serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        serverNymID, nymID, serverID, Ledger::message, false));
+        legacy_.ServerDataFolder(),
+        serverNymID,
+        nymID,
+        serverID,
+        Ledger::message,
+        false));
 
     OT_ASSERT(input);
     OT_ASSERT(responseLedger);
@@ -1760,7 +1795,13 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     const auto contractID =
         Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
     auto account = wallet_.CreateAccount(
-        nymID, serverID, contractID, serverNym, Account::user, 0);
+        legacy_.ServerDataFolder(),
+        nymID,
+        serverID,
+        contractID,
+        serverNym,
+        Account::user,
+        0);
 
     // If we successfully create the account, then bundle it in the message XML
     // payload
@@ -1795,10 +1836,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     auto accountID = Identifier::Factory();
     account.get().GetIdentifier(accountID);
-
-    Ledger outbox(nymID, accountID, serverID);
-    Ledger inbox(nymID, accountID, serverID);
-
+    Ledger outbox(legacy_.ServerDataFolder(), nymID, accountID, serverID);
+    Ledger inbox(legacy_.ServerDataFolder(), nymID, accountID, serverID);
     bool inboxLoaded = inbox.LoadInbox();
     bool outboxLoaded = outbox.LoadOutbox();
 
@@ -1853,8 +1892,10 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     reply.SetSuccess(true);
     reply.SetAccount(String(accountID));
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = wallet_.mutable_Nymfile(
+        legacy_.ServerDataFolder(),
+        reply.Context().RemoteNym().ID(),
+        __FUNCTION__);
     auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.insert(String(accountID).Get());
     reply.SetPayload(String(account.get()));
@@ -1955,7 +1996,13 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     auto account = wallet_.CreateAccount(
-        nymID, serverID, contractID, serverNym, Account::issuer, 0);
+        legacy_.ServerDataFolder(),
+        nymID,
+        serverID,
+        contractID,
+        serverNym,
+        Account::issuer,
+        0);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1972,8 +2019,8 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     Log::Output(0, "Generating inbox/outbox for new issuer acct. \n");
 
-    Ledger outbox(nymID, accountID, serverID);
-    Ledger inbox(nymID, accountID, serverID);
+    Ledger outbox(legacy_.ServerDataFolder(), nymID, accountID, serverID);
+    Ledger inbox(legacy_.ServerDataFolder(), nymID, accountID, serverID);
 
     bool inboxLoaded = inbox.LoadInbox();
     bool outboxLoaded = outbox.LoadOutbox();
@@ -2027,8 +2074,10 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     reply.SetSuccess(true);
     account.Release();
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = wallet_.mutable_Nymfile(
+        legacy_.ServerDataFolder(),
+        reply.Context().RemoteNym().ID(),
+        __FUNCTION__);
     auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.insert(accountID->str());
     reply.DropToNymbox(false);
@@ -2095,7 +2144,11 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
           << std::endl;
 
     auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
-    Ledger theNymbox(sender_nym->ID(), sender_nym->ID(), NOTARY_ID);
+    Ledger theNymbox(
+        legacy_.ServerDataFolder(),
+        sender_nym->ID(),
+        sender_nym->ID(),
+        NOTARY_ID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
     if (bSuccessLoadingNymbox) {
@@ -2124,12 +2177,12 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
     otErr << OT_METHOD << __FUNCTION__
           << ": Success registering Nym credentials." << std::endl;
     String strNymContents;
-    sender_nym->SerializeNymfile(strNymContents);
+    // This will save the nymfile.
+    auto nymfile = wallet_.mutable_Nymfile(
+        legacy_.ServerDataFolder(), sender_nym->ID(), __FUNCTION__);
+    nymfile.It().SerializeNymFile(strNymContents);
     reply.SetPayload(strNymContents);
     reply.SetSuccess(true);
-    // This will save the nymfile.
-    auto mutableSenderNym =
-        wallet_.mutable_Nymfile(sender_nym->ID(), __FUNCTION__);
 
     return true;
 }
@@ -2358,7 +2411,8 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
         nymID = targetNymID;
     }
 
-    auto nymfile = wallet_.mutable_Nymfile(targetNymID, __FUNCTION__);
+    auto nymfile = wallet_.mutable_Nymfile(
+        legacy_.ServerDataFolder(), targetNymID, __FUNCTION__);
 
     auto nymbox = load_nymbox(targetNymID, serverID, serverNym, true);
 
@@ -2395,7 +2449,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
     const Identifier& server,
     const Nym& serverNym) const
 {
-    std::unique_ptr<Ledger> nymbox(new Ledger(nymID, nymID, server));
+    std::unique_ptr<Ledger> nymbox(
+        new Ledger(legacy_.ServerDataFolder(), nymID, nymID, server));
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2438,7 +2493,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    Ledger theNymbox(nymID, nymID, serverID);
+    Ledger theNymbox(context.LegacyDataFolder(), nymID, nymID, serverID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
     if (true == bSuccessLoadingNymbox) {
@@ -2581,7 +2636,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
     }
 
     std::unique_ptr<Ledger> inbox;
-    inbox.reset(new Ledger(nymID, accountID, serverID));
+    inbox.reset(
+        new Ledger(legacy_.ServerDataFolder(), nymID, accountID, serverID));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2619,7 +2675,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
     const bool verifyAccount) const
 {
     std::unique_ptr<Ledger> nymbox;
-    nymbox.reset(new Ledger(nymID, nymID, serverID));
+    nymbox.reset(
+        new Ledger(legacy_.ServerDataFolder(), nymID, nymID, serverID));
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2667,7 +2724,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
     }
 
     std::unique_ptr<Ledger> outbox;
-    outbox.reset(new Ledger(nymID, accountID, serverID));
+    outbox.reset(
+        new Ledger(legacy_.ServerDataFolder(), nymID, accountID, serverID));
 
     if (false == bool(outbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2884,7 +2942,11 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
 
     String strNymContents;
     const auto& nym = reply.Context().RemoteNym();
-    nym.SerializeNymfile(strNymContents);
+    auto nymfile = reply.Context().Nymfile("");
+
+    OT_ASSERT(nymfile)
+
+    nymfile->SerializeNymFile(strNymContents);
     reply.SetPayload(strNymContents);
     auto& context = reply.Context();
     const auto& serverNym = *context.Nym();

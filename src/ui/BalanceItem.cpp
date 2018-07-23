@@ -9,6 +9,7 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -45,6 +46,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::CustomData& custom,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
+    const api::Legacy& legacy,
     const Identifier& nymID,
     const Identifier& accountID)
 {
@@ -63,6 +65,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
                 custom,
                 sync,
                 wallet,
+                legacy,
                 nymID,
                 accountID);
         }
@@ -113,6 +116,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     const CustomData& custom,
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
+    const api::Legacy& legacy,
     const Identifier& nymID,
     const Identifier& accountID)
     : BalanceItem(
@@ -127,6 +131,7 @@ ChequeBalanceItem::ChequeBalanceItem(
           wallet,
           nymID,
           accountID)
+    , legacy_(legacy)
     , cheque_(nullptr)
 {
     startup_.reset(new std::thread(&ChequeBalanceItem::startup, this, custom));
@@ -317,7 +322,9 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
-    cheque_ = api::client::Workflow::InstantiateCheque(workflow).second;
+    cheque_ = api::client::Workflow::InstantiateCheque(
+                  legacy_.ClientDataFolder(), workflow)
+                  .second;
 
     OT_ASSERT(cheque_)
 

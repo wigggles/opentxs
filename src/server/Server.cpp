@@ -208,16 +208,16 @@ void Server::CreateMainFile(bool& mainFileExists)
 #else
     NymParameters nymParameters(proto::CREDTYPE_LEGACY);
 #endif
-    auto newNym = wallet_.Nym(nymParameters);
+    m_nymServer = wallet_.Nym(legacy_.ServerDataFolder(), nymParameters);
 
-    if (false == bool(newNym)) {
+    if (false == bool(m_nymServer)) {
         Log::vError("Error: Failed to create server nym\n");
         OT_FAIL;
     }
 
-    if (!newNym->VerifyPseudonym()) { OT_FAIL; }
+    if (!m_nymServer->VerifyPseudonym()) { OT_FAIL; }
 
-    const OTIdentifier nymID = newNym->ID();
+    const OTIdentifier nymID = m_nymServer->ID();
 
     const std::string defaultTerms = "This is an example server contract.";
     const std::string& userTerms = mint_.GetUserTerms();
@@ -406,14 +406,21 @@ void Server::CreateMainFile(bool& mainFileExists)
         OT_FAIL;
     }
 
-    newNym.reset();
+    OT_ASSERT(m_nymServer)
 
-    auto nymData = wallet_.mutable_Nym(nymID);
-    if (false == nymData.SetScope(proto::CITEMTYPE_SERVER, name, true)) {
-        OT_FAIL
+    {
+        auto nymData = wallet_.mutable_Nym(nymID);
+
+        if (false == nymData.SetScope(proto::CITEMTYPE_SERVER, name, true)) {
+            OT_FAIL
+        }
+
+        if (false == nymData.SetCommonName(pContract->ID()->str())) { OT_FAIL }
     }
 
-    if (false == nymData.SetCommonName(pContract->ID()->str())) { OT_FAIL }
+    m_nymServer = wallet_.Nym(nymID);
+
+    OT_ASSERT(m_nymServer)
 
     const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
     Armored ascContract(signedContract.get());
@@ -755,7 +762,7 @@ bool Server::DropMessageToNymbox(
     const Message* message{nullptr};
 
     if (nullptr == pMsg) {
-        theMsgAngel.reset(new Message);
+        theMsgAngel.reset(new Message{legacy_.ServerDataFolder()});
 
         if (nullptr != szCommand)
             theMsgAngel->m_strCommand = szCommand;
@@ -830,6 +837,7 @@ bool Server::DropMessageToNymbox(
     //
     const String strInMessage(*message);
     Ledger theLedger(
+        legacy_.ServerDataFolder(),
         RECIPIENT_NYM_ID,
         RECIPIENT_NYM_ID,
         NOTARY_ID);  // The recipient's Nymbox.

@@ -5,9 +5,9 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -91,6 +91,7 @@ std::string Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
 }
 
 Workflow::Cheque Workflow::InstantiateCheque(
+    const std::string& dataFolder,
     const proto::PaymentWorkflow& workflow)
 {
     Cheque output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
@@ -101,7 +102,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            cheque.reset(new opentxs::Cheque);
+            cheque.reset(new opentxs::Cheque{dataFolder});
 
             OT_ASSERT(cheque)
 
@@ -843,7 +844,7 @@ Workflow::Cheque Workflow::LoadCheque(
         return {};
     }
 
-    return InstantiateCheque(*workflow);
+    return InstantiateCheque(legacy_.ClientDataFolder(), *workflow);
 }
 
 Workflow::Cheque Workflow::LoadChequeByWorkflow(
@@ -863,7 +864,7 @@ Workflow::Cheque Workflow::LoadChequeByWorkflow(
         return {};
     }
 
-    return InstantiateCheque(*workflow);
+    return InstantiateCheque(legacy_.ClientDataFolder(), *workflow);
 }
 
 std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(

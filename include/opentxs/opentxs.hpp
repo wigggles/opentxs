@@ -12,15 +12,7 @@
 
 #include <opentxs/Forward.hpp>
 
-#include <opentxs/api/Activity.hpp>
-#include <opentxs/api/Api.hpp>
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include <opentxs/api/Blockchain.hpp>
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#include <opentxs/api/ContactManager.hpp>
-#include <opentxs/api/Legacy.hpp>
-#include <opentxs/api/Native.hpp>
-#include <opentxs/api/UI.hpp>
+#include <opentxs/api/client/Activity.hpp>
 #include <opentxs/api/client/Cash.hpp>
 #include <opentxs/api/client/Issuer.hpp>
 #include <opentxs/api/client/Pair.hpp>
@@ -30,6 +22,14 @@
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/storage/Storage.hpp>
+#include <opentxs/api/Api.hpp>
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include <opentxs/api/Blockchain.hpp>
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
+#include <opentxs/api/ContactManager.hpp>
+#include <opentxs/api/Legacy.hpp>
+#include <opentxs/api/Native.hpp>
+#include <opentxs/api/UI.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OTRecordList.hpp>

@@ -9,7 +9,6 @@ add_subdirectory(network)
 add_subdirectory(storage)
 
 set(cxx-sources
-  Activity.cpp
   Api.cpp
   Blockchain.cpp
   ContactManager.cpp
@@ -27,7 +26,6 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Activity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Api.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Blockchain.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ContactManager.hpp

@@ -43,8 +43,105 @@ template class std::shared_ptr<const opentxs::Purse>;
 
 namespace opentxs
 {
-
 typedef std::map<std::string, Token*> mapOfTokenPointers;
+
+// private, used by factory.
+Purse::Purse(const std::string& dataFolder)
+    : Contract(dataFolder)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_lTotalValue(0)
+    , m_bPasswordProtected(false)
+    , m_bIsNymIDIncluded(false)
+    , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
+    , m_tLatestValidFrom(OT_TIME_ZERO)
+    , m_tEarliestValidTo(OT_TIME_ZERO)
+{
+    InitPurse();
+}
+
+Purse::Purse(const std::string& dataFolder, const Purse& thePurse)
+    : Contract(dataFolder)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(thePurse.GetNotaryID()))
+    , m_InstrumentDefinitionID(
+          Identifier::Factory(thePurse.GetInstrumentDefinitionID()))
+    , m_lTotalValue(0)
+    , m_bPasswordProtected(false)
+    , m_bIsNymIDIncluded(false)
+    , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
+    , m_tLatestValidFrom(OT_TIME_ZERO)
+    , m_tEarliestValidTo(OT_TIME_ZERO)
+{
+    InitPurse();
+}
+
+// Don't use this unless you really don't have the instrument definition handy.
+// Perhaps you know you're about to read this purse from a string and you
+// know the instrument definition is in there anyway. So you use this
+// constructor.
+Purse::Purse(const std::string& dataFolder, const Identifier& NOTARY_ID)
+    : Contract(dataFolder)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_lTotalValue(0)
+    , m_bPasswordProtected(false)
+    , m_bIsNymIDIncluded(false)
+    , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
+    , m_tLatestValidFrom(OT_TIME_ZERO)
+    , m_tEarliestValidTo(OT_TIME_ZERO)
+{
+    InitPurse();
+}
+
+Purse::Purse(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
+    : Contract(dataFolder)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
+    , m_lTotalValue(0)
+    , m_bPasswordProtected(false)
+    , m_bIsNymIDIncluded(false)
+    , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
+    , m_tLatestValidFrom(OT_TIME_ZERO)
+    , m_tEarliestValidTo(OT_TIME_ZERO)
+{
+    InitPurse();
+}
+
+Purse::Purse(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& NYM_ID)
+    : Contract(dataFolder)
+    , m_dequeTokens()
+    , m_NymID(Identifier::Factory(NYM_ID))
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
+    , m_lTotalValue(0)
+    , m_bPasswordProtected(false)
+    , m_bIsNymIDIncluded(false)
+    , m_pSymmetricKey(nullptr)
+    , m_pCachedKey(nullptr)
+    , m_tLatestValidFrom(OT_TIME_ZERO)
+    , m_tEarliestValidTo(OT_TIME_ZERO)
+{
+    InitPurse();
+}
 
 bool Purse::GetNymID(Identifier& theOutput) const
 {
@@ -419,6 +516,7 @@ bool Purse::Merge(
 // static -- class factory.
 //
 Purse* Purse::LowLevelInstantiate(
+    const std::string& dataFolder,
     const String& strFirstLine,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
@@ -430,13 +528,14 @@ Purse* Purse::LowLevelInstantiate(
     // todo
     // hardcoding.
     {
-        pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pPurse = new Purse(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
 }
 
 Purse* Purse::LowLevelInstantiate(
+    const std::string& dataFolder,
     const String& strFirstLine,
     const Identifier& NOTARY_ID)
 {
@@ -447,13 +546,15 @@ Purse* Purse::LowLevelInstantiate(
     // todo
     // hardcoding.
     {
-        pPurse = new Purse(NOTARY_ID);
+        pPurse = new Purse(dataFolder, NOTARY_ID);
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
 }
 
-Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
+Purse* Purse::LowLevelInstantiate(
+    const std::string& dataFolder,
+    const String& strFirstLine)
 {
     Purse* pPurse = nullptr;
     if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
@@ -462,7 +563,7 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
     // todo
     // hardcoding.
     {
-        pPurse = new Purse;
+        pPurse = new Purse{dataFolder};
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
@@ -473,6 +574,7 @@ Purse* Purse::LowLevelInstantiate(const String& strFirstLine)
 // Checks the notaryID / InstrumentDefinitionID, so you don't have to.
 //
 Purse* Purse::PurseFactory(
+    const std::string& dataFolder,
     String strInput,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
@@ -483,7 +585,7 @@ Purse* Purse::PurseFactory(
 
     if (bProcessed) {
         Purse* pPurse = Purse::LowLevelInstantiate(
-            strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+            dataFolder, strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;
@@ -529,14 +631,18 @@ Purse* Purse::PurseFactory(
 
 // Checks the notaryID, so you don't have to.
 //
-Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID)
+Purse* Purse::PurseFactory(
+    const std::string& dataFolder,
+    String strInput,
+    const Identifier& NOTARY_ID)
 {
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine, NOTARY_ID);
+        Purse* pPurse =
+            Purse::LowLevelInstantiate(dataFolder, strFirstLine, NOTARY_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;
@@ -563,7 +669,7 @@ Purse* Purse::PurseFactory(String strInput, const Identifier& NOTARY_ID)
     return nullptr;
 }
 
-Purse* Purse::PurseFactory(String strInput)
+Purse* Purse::PurseFactory(const std::string& dataFolder, String strInput)
 {
     //  const char * szFunc = "Purse::PurseFactory";
 
@@ -572,7 +678,7 @@ Purse* Purse::PurseFactory(String strInput)
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(strFirstLine);
+        Purse* pPurse = Purse::LowLevelInstantiate(dataFolder, strFirstLine);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;
@@ -587,102 +693,6 @@ Purse* Purse::PurseFactory(String strInput)
     return nullptr;
 }
 
-// private, used by factory.
-Purse::Purse()
-    : Contract()
-    , m_dequeTokens()
-    , m_NymID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory())
-    , m_InstrumentDefinitionID(Identifier::Factory())
-    , m_lTotalValue(0)
-    , m_bPasswordProtected(false)
-    , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
-    , m_pCachedKey(nullptr)
-    , m_tLatestValidFrom(OT_TIME_ZERO)
-    , m_tEarliestValidTo(OT_TIME_ZERO)
-{
-    InitPurse();
-}
-
-Purse::Purse(const Purse& thePurse)
-    : Contract()
-    , m_dequeTokens()
-    , m_NymID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory(thePurse.GetNotaryID()))
-    , m_InstrumentDefinitionID(
-          Identifier::Factory(thePurse.GetInstrumentDefinitionID()))
-    , m_lTotalValue(0)
-    , m_bPasswordProtected(false)
-    , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
-    , m_pCachedKey(nullptr)
-    , m_tLatestValidFrom(OT_TIME_ZERO)
-    , m_tEarliestValidTo(OT_TIME_ZERO)
-{
-    InitPurse();
-}
-
-// Don't use this unless you really don't have the instrument definition handy.
-// Perhaps you know you're about to read this purse from a string and you
-// know the instrument definition is in there anyway. So you use this
-// constructor.
-Purse::Purse(const Identifier& NOTARY_ID)
-    : Contract()
-    , m_dequeTokens()
-    , m_NymID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory(NOTARY_ID))
-    , m_InstrumentDefinitionID(Identifier::Factory())
-    , m_lTotalValue(0)
-    , m_bPasswordProtected(false)
-    , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
-    , m_pCachedKey(nullptr)
-    , m_tLatestValidFrom(OT_TIME_ZERO)
-    , m_tEarliestValidTo(OT_TIME_ZERO)
-{
-    InitPurse();
-}
-
-Purse::Purse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-    : Contract()
-    , m_dequeTokens()
-    , m_NymID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory(NOTARY_ID))
-    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
-    , m_lTotalValue(0)
-    , m_bPasswordProtected(false)
-    , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
-    , m_pCachedKey(nullptr)
-    , m_tLatestValidFrom(OT_TIME_ZERO)
-    , m_tEarliestValidTo(OT_TIME_ZERO)
-{
-    InitPurse();
-}
-
-Purse::Purse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& NYM_ID)
-    : Contract()
-    , m_dequeTokens()
-    , m_NymID(Identifier::Factory(NYM_ID))
-    , m_NotaryID(Identifier::Factory(NOTARY_ID))
-    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
-    , m_lTotalValue(0)
-    , m_bPasswordProtected(false)
-    , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
-    , m_pCachedKey(nullptr)
-    , m_tLatestValidFrom(OT_TIME_ZERO)
-    , m_tEarliestValidTo(OT_TIME_ZERO)
-{
-    InitPurse();
-}
-
 void Purse::InitPurse()
 {
     m_strContractType.Set("PURSE");
@@ -692,8 +702,6 @@ void Purse::InitPurse()
     m_bPasswordProtected = false;
     m_bIsNymIDIncluded = false;
 }
-
-Purse::~Purse() { Release_Purse(); }
 
 void Purse::Release_Purse()
 {
@@ -1532,4 +1540,5 @@ void Purse::ReleaseTokens()
     m_lTotalValue = 0;
 }
 
+Purse::~Purse() { Release_Purse(); }
 }  // namespace opentxs

@@ -557,7 +557,7 @@ bool Symmetric::GetPassword(
 
         master->randomizeMemory(master->getBlockSize());
         const auto& native =
-            dynamic_cast<const api::NativeInternal&>(OT::App());
+            dynamic_cast<const api::internal::Native&>(OT::App());
         auto* callback = native.GetInternalPasswordCallback();
         const auto length = (*callback)(
             static_cast<char*>(master->getMemoryWritable()),

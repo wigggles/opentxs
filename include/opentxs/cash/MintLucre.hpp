@@ -25,19 +25,6 @@ class Token;
 
 class MintLucre : public Mint
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Mint ot_super;
-    friend class Mint;  // for the factory.
-protected:
-    MintLucre();
-    EXPORT MintLucre(
-        const String& strNotaryID,
-        const String& strInstrumentDefinitionID);
-    EXPORT MintLucre(
-        const String& strNotaryID,
-        const String& strServerNymID,
-        const String& strInstrumentDefinitionID);
-
 public:
     bool AddDenomination(
         const Nym& theNotary,
@@ -54,7 +41,22 @@ public:
         String& theCleartextToken,
         std::int64_t lDenomination) override;
 
-    EXPORT virtual ~MintLucre();
+    EXPORT ~MintLucre() = default;
+
+private:
+    typedef Mint ot_super;
+    friend Mint;  // for the factory.
+
+    MintLucre(const std::string& dataFolder);
+    EXPORT MintLucre(
+        const std::string& dataFolder,
+        const String& strNotaryID,
+        const String& strInstrumentDefinitionID);
+    EXPORT MintLucre(
+        const std::string& dataFolder,
+        const String& strNotaryID,
+        const String& strServerNymID,
+        const String& strInstrumentDefinitionID);
 };
 }  // namespace opentxs
 #endif  // OT_CASH_USING_LUCRE

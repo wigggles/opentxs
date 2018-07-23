@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -45,6 +46,7 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const ui::implementation::CustomData& custom,
     const api::client::Wallet& wallet,
     const api::storage::Storage& storage,
+    const api::Legacy& legacy,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::IssuerItem(
@@ -57,6 +59,7 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
         custom,
         wallet,
         storage,
+        legacy,
         currency);
 }
 }  // namespace opentxs
@@ -78,11 +81,13 @@ IssuerItem::IssuerItem(
     [[maybe_unused]] const CustomData& custom,
     const api::client::Wallet& wallet,
     const api::storage::Storage& storage,
+    const api::Legacy& legacy,
     const proto::ContactItemType currency)
     : IssuerItemList(parent.WidgetID(), parent.NymID(), zmq, publisher, contact)
     , IssuerItemRow(parent, Identifier::Factory(rowID), true)
     , wallet_{wallet}
     , storage_{storage}
+    , legacy_{legacy}
     , key_{sortKey}
     , name_{std::get<1>(key_)}
     , connection_{std::get<0>(key_)}
@@ -127,7 +132,7 @@ std::string IssuerItem::Name() const
 
 void IssuerItem::process_account(const Identifier& accountID)
 {
-    const auto account = wallet_.Account(accountID);
+    const auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) { return; }
 

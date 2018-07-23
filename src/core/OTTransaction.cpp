@@ -52,6 +52,257 @@
 
 namespace opentxs
 {
+// private and hopefully not needed
+OTTransaction::OTTransaction(const std::string& dataFolder)
+    : OTTransactionType(dataFolder)
+    , m_pParent(nullptr)
+    , m_bIsAbbreviated(false)
+    , m_lAbbrevAmount(0)
+    , m_lDisplayAmount(0)
+    , m_lInRefDisplay(0)
+    , m_Hash(Identifier::Factory())
+    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_Type(error_state)
+    , m_listItems()
+    , m_lClosingTransactionNo(0)
+    , m_ascCancellationRequest()
+    , m_lRequestNumber(0)
+    , m_bReplyTransSuccess(false)
+    , m_bCancelled(false)
+{
+    InitTransaction();
+}
+
+// Let's say you never knew their NymID, you just loaded the inbox based on
+// AccountID.
+// Now you want to add a transaction to that inbox. Just pass the inbox into the
+// transaction constructor (below) and it will get the rest of the info it needs
+// off of
+// the inbox itself (which you presumably just read from a file or socket.)
+//
+OTTransaction::OTTransaction(const Ledger& theOwner)
+    : OTTransactionType(
+          theOwner.DataFolder(),
+          theOwner.GetNymID(),
+          theOwner.GetPurportedAccountID(),
+          theOwner.GetPurportedNotaryID())
+    , m_pParent(&theOwner)
+    , m_bIsAbbreviated(false)
+    , m_lAbbrevAmount(0)
+    , m_lDisplayAmount(0)
+    , m_lInRefDisplay(0)
+    , m_Hash(Identifier::Factory())
+    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_Type(error_state)
+    , m_listItems()
+    , m_lClosingTransactionNo(0)
+    , m_ascCancellationRequest()
+    , m_lRequestNumber(0)
+    , m_bReplyTransSuccess(false)
+    , m_bCancelled(false)
+{
+    InitTransaction();
+}
+
+// By calling this function, I'm saying "I know the real account ID and Server
+// ID, and here
+// they are, and feel free to compare them with whatever YOU load up, which
+// we'll leave
+// blank for now unless you generate a transaction, or load one up,
+
+// ==> or maybe I might need to add a constructor where another transaction or a
+// ledger is passed in.
+//      Then it can grab whatever it needs from those. I'm doing something
+// similar in OTItem
+OTTransaction::OTTransaction(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    originType theOriginType /*=originType::not_applicable*/)
+    : OTTransactionType(
+          dataFolder,
+          theNymID,
+          theAccountID,
+          theNotaryID,
+          theOriginType)
+    , m_pParent(nullptr)
+    , m_bIsAbbreviated(false)
+    , m_lAbbrevAmount(0)
+    , m_lDisplayAmount(0)
+    , m_lInRefDisplay(0)
+    , m_Hash(Identifier::Factory())
+    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_Type(error_state)
+    , m_listItems()
+    , m_lClosingTransactionNo(0)
+    , m_ascCancellationRequest()
+    , m_lRequestNumber(0)
+    , m_bReplyTransSuccess(false)
+    , m_bCancelled(false)
+{
+    InitTransaction();
+
+    //  m_AcctID    = theID; // these must be loaded or generated. NOT set in
+    //  constructor, for security reasons. m_NotaryID    = theNotaryID; // There
+    //  are only here in ghostly form as a WARNING to you!
+}
+
+OTTransaction::OTTransaction(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    std::int64_t lTransactionNum,
+    originType theOriginType /*=originType::not_applicable*/)
+    : OTTransactionType(
+          dataFolder,
+          theNymID,
+          theAccountID,
+          theNotaryID,
+          lTransactionNum,
+          theOriginType)
+    , m_pParent(nullptr)
+    , m_bIsAbbreviated(false)
+    , m_lAbbrevAmount(0)
+    , m_lDisplayAmount(0)
+    , m_lInRefDisplay(0)
+    , m_Hash(Identifier::Factory())
+    , m_DATE_SIGNED(OT_TIME_ZERO)
+    , m_Type(error_state)
+    , m_listItems()
+    , m_lClosingTransactionNo(0)
+    , m_ascCancellationRequest()
+    , m_lRequestNumber(0)
+    , m_bReplyTransSuccess(false)
+    , m_bCancelled(false)
+{
+    InitTransaction();
+
+    //  m_lTransactionNum = lTransactionNum; // This is set in the constructor,
+    //  as are m_ID and m_NotaryID m_AcctID    = theID; // these must be loaded
+    //  or generated. NOT set in constructor, for security reasons. m_NotaryID
+    //  = theNotaryID; // There are only here in ghostly form as a WARNING to
+    //  you!
+}
+
+// This CONSTRUCTOR is used for instantiating "abbreviated" transactions,
+// each of which separately load their full contents from a separate datafile
+// not during loading but during the subsequent verification process.
+// See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
+//
+OTTransaction::OTTransaction(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    const std::int64_t& lNumberOfOrigin,
+    originType theOriginType,
+    const std::int64_t& lTransactionNum,
+    const std::int64_t& lInRefTo,
+    const std::int64_t& lInRefDisplay,
+    time64_t the_DATE_SIGNED,
+    OTTransaction::transactionType theType,
+    const String& strHash,
+    const std::int64_t& lAdjustment,
+    const std::int64_t& lDisplayValue,
+    const std::int64_t& lClosingNum,
+    const std::int64_t& lRequestNum,
+    bool bReplyTransSuccess,
+    NumList* pNumList)
+    : OTTransactionType(
+          dataFolder,
+          theNymID,
+          theAccountID,
+          theNotaryID,
+          lTransactionNum,
+          theOriginType)
+    , m_pParent(nullptr)
+    , m_bIsAbbreviated(true)
+    , m_lAbbrevAmount(lAdjustment)
+    , m_lDisplayAmount(lDisplayValue)
+    , m_lInRefDisplay(lInRefDisplay)
+    , m_Hash(Identifier::Factory(strHash))
+    , m_DATE_SIGNED(the_DATE_SIGNED)
+    , m_Type(theType)
+    , m_listItems()
+    , m_lClosingTransactionNo(lClosingNum)
+    , m_ascCancellationRequest()
+    , m_lRequestNumber(lRequestNum)
+    , m_bReplyTransSuccess(bReplyTransSuccess)
+    , m_bCancelled(false)
+{
+    InitTransaction();
+
+    // This gets zeroed out in InitTransaction() above. But since we set it in
+    // this
+    // constructor, I'm setting it back again.
+    // Then why call it? I don't know, convention? For the sake of future
+    // subclasses?
+    //
+    m_bIsAbbreviated = true;
+    m_DATE_SIGNED = the_DATE_SIGNED;
+    m_Type =
+        theType;  // This one is same story as date signed. Setting it back.
+    m_lClosingTransactionNo = lClosingNum;
+    m_lAbbrevAmount = lAdjustment;
+    m_lDisplayAmount = lDisplayValue;
+    m_lInRefDisplay = lInRefDisplay;
+
+    m_lRequestNumber = lRequestNum;             // for replyNotice
+    m_bReplyTransSuccess = bReplyTransSuccess;  // for replyNotice
+
+    m_Hash->SetString(strHash);
+    m_lTransactionNum = lTransactionNum;  // This is set in OTTransactionType's
+    // constructor, as are m_ID and m_NotaryID
+
+    SetReferenceToNum(lInRefTo);
+    SetNumberOfOrigin(lNumberOfOrigin);
+
+    // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported AcctID and
+    // purported NotaryID.
+    // (AFTER the constructor has executed, in OTLedger::ProcessXMLNode();
+    //
+    // WHY? Normally you set the "real" IDs at construction, and then set the
+    // "purported" IDs
+    // when loading from string. But this constructor (only this one) is
+    // actually used when
+    // loading abbreviated receipts as you load their inbox/outbox/nymbox.
+    // Abbreviated receipts are not like real transactions, which have notaryID,
+    // AcctID, nymID,
+    // and signature attached, and the whole thing is base64-encoded and then
+    // added to the ledger
+    // as part of a list of contained objects. Rather, with abbreviated
+    // receipts, there are a series
+    // of XML records loaded up as PART OF the ledger itself. None of these
+    // individual XML records
+    // has its own signature, or its own record of the main IDs -- those are
+    // assumed to be on the parent
+    // ledger.
+    // That's the whole point: abbreviated records don't store redundant info,
+    // and don't each have their
+    // own signature, because we want them to be as small as possible inside
+    // their parent ledger.
+    // Therefore I will pass in the parent ledger's "real" IDs at construction,
+    // and immediately thereafter
+    // set the parent ledger's "purported" IDs onto the abbreviated transaction.
+    // That way, VerifyContractID()
+    // will still work and do its job properly with these abbreviated records.
+
+    // Note: I'm going to go ahead and set it in here for now. This is a special
+    // constructor (abbreviated receipt constructor)
+    // todo: come back to this during security sweep.
+    //
+    SetRealAccountID(theAccountID);
+    SetPurportedAccountID(theAccountID);
+
+    SetRealNotaryID(theNotaryID);
+    SetPurportedNotaryID(theNotaryID);
+
+    SetNymID(theNymID);
+
+    if (nullptr != pNumList) m_Numlist = *pNumList;
+}
 
 // Todo: eliminate this function since there is already a list of strings at
 // the top of Helpers.hpp, and a list of enums at the top of this header file.
@@ -664,6 +915,10 @@ bool OTTransaction::HarvestOpeningNumber(
                     class _getRecipientOpeningNum
                     {
                     public:
+                        _getRecipientOpeningNum(const std::string& dataFolder)
+                            : data_folder_(dataFolder)
+                        {
+                        }
                         std::int64_t Run(OTTransaction& theTransaction)
                         {
                             Item* pItem =
@@ -673,7 +928,7 @@ bool OTTransaction::HarvestOpeningNumber(
                                 // transaction item.
                                 //
                                 String strPaymentPlan;
-                                OTPaymentPlan thePlan;
+                                OTPaymentPlan thePlan{data_folder_};
                                 pItem->GetAttachment(strPaymentPlan);
 
                                 if (strPaymentPlan.Exists() &&
@@ -694,6 +949,9 @@ bool OTTransaction::HarvestOpeningNumber(
                                          "transaction.\n";
                             return 0;
                         }
+
+                    private:
+                        const std::string& data_folder_;
                     };  // class _getRecipientOpeningNum
 
                     // If the server reply message was unambiguously a FAIL,
@@ -701,7 +959,8 @@ bool OTTransaction::HarvestOpeningNumber(
                     // transaction therefore never even had a chance to run.)
                     //
                     if (bReplyWasFailure && !bHarvestingForRetry) {
-                        _getRecipientOpeningNum getRecipientOpeningNum;
+                        _getRecipientOpeningNum getRecipientOpeningNum(
+                            context.LegacyDataFolder());
                         const std::int64_t lRecipientOpeningNum =
                             getRecipientOpeningNum.Run(*this);
 
@@ -749,7 +1008,8 @@ bool OTTransaction::HarvestOpeningNumber(
                             // means the recipient's opening number is
                             // DEFINITELY STILL GOOD.
                             //
-                            _getRecipientOpeningNum getRecipientOpeningNum;
+                            _getRecipientOpeningNum getRecipientOpeningNum(
+                                context.LegacyDataFolder());
                             const std::int64_t lRecipientOpeningNum =
                                 getRecipientOpeningNum.Run(*this);
 
@@ -804,7 +1064,8 @@ bool OTTransaction::HarvestOpeningNumber(
                 } else  // Load up the smart contract...
                 {
                     String strSmartContract;
-                    OTSmartContract theSmartContract(GetPurportedNotaryID());
+                    OTSmartContract theSmartContract(
+                        data_folder_, GetPurportedNotaryID());
                     pItem->GetAttachment(strSmartContract);
 
                     // If we failed to load the smart contract...
@@ -916,7 +1177,7 @@ bool OTTransaction::HarvestClosingNumbers(
                 } else  // pItem is good. Let's load up the OTCronIteam
                         // object...
                 {
-                    OTTrade theTrade;
+                    OTTrade theTrade{data_folder_};
                     String strTrade;
                     pItem->GetAttachment(strTrade);
 
@@ -1025,7 +1286,7 @@ bool OTTransaction::HarvestClosingNumbers(
                         // object...
                 {
                     String strPaymentPlan;
-                    OTPaymentPlan thePlan;
+                    OTPaymentPlan thePlan(context.LegacyDataFolder());
                     pItem->GetAttachment(strPaymentPlan);
 
                     // First load the payment plan up...
@@ -1129,7 +1390,8 @@ bool OTTransaction::HarvestClosingNumbers(
                 } else  // Load up the smart contract...
                 {
                     String strSmartContract;
-                    OTSmartContract theSmartContract(GetPurportedNotaryID());
+                    OTSmartContract theSmartContract(
+                        data_folder_, GetPurportedNotaryID());
                     pItem->GetAttachment(strSmartContract);
 
                     // If we failed to load the smart contract...
@@ -1432,7 +1694,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     String strTransaction(strFileContents.c_str());
     std::unique_ptr<OTTransactionType> pContents(
-        OTTransactionType::TransactionFactory(strTransaction));
+        OTTransactionType::TransactionFactory(data_folder_, strTransaction));
 
     if (nullptr == pContents) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load "
@@ -1516,6 +1778,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         }
 
         pTransactionItem = Item::CreateItemFromString(
+            pResponseTransactionItem->DataFolder(),
             strBalanceItem,
             GetRealNotaryID(),
             pResponseTransactionItem->GetReferenceToNum());
@@ -1540,7 +1803,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         pItemWithIssuedList = pTransactionItem;
     }
 
-    auto account = OT::App().Wallet().Account(GetRealAccountID());
+    auto account = OT::App().Wallet().Account(data_folder_, GetRealAccountID());
 
     if (false == bool(account)) {
         otOut << "Failed loading or verifying account for THE_NYM in "
@@ -1589,6 +1852,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     }
 
     pBalanceItem = Item::CreateItemFromString(
+        pResponseBalanceItem->DataFolder(),
         strBalanceItem,
         GetRealNotaryID(),
         pResponseBalanceItem->GetReferenceToNum());
@@ -2885,132 +3149,6 @@ bool OTTransaction::VerifyItems(const Nym& theNym)
     return true;
 }
 
-// private and hopefully not needed
-//
-OTTransaction::OTTransaction()
-    : OTTransactionType()
-    , m_pParent(nullptr)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
-    , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(error_state)
-    , m_listItems()
-    , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
-{
-    InitTransaction();
-}
-
-// Let's say you never knew their NymID, you just loaded the inbox based on
-// AccountID.
-// Now you want to add a transaction to that inbox. Just pass the inbox into the
-// transaction constructor (below) and it will get the rest of the info it needs
-// off of
-// the inbox itself (which you presumably just read from a file or socket.)
-//
-OTTransaction::OTTransaction(const Ledger& theOwner)
-    : OTTransactionType(
-          theOwner.GetNymID(),
-          theOwner.GetPurportedAccountID(),
-          theOwner.GetPurportedNotaryID())
-    , m_pParent(&theOwner)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
-    , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(error_state)
-    , m_listItems()
-    , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
-{
-    InitTransaction();
-}
-
-// By calling this function, I'm saying "I know the real account ID and Server
-// ID, and here
-// they are, and feel free to compare them with whatever YOU load up, which
-// we'll leave
-// blank for now unless you generate a transaction, or load one up,
-
-// ==> or maybe I might need to add a constructor where another transaction or a
-// ledger is passed in.
-//      Then it can grab whatever it needs from those. I'm doing something
-// similar in OTItem
-OTTransaction::OTTransaction(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
-    originType theOriginType /*=originType::not_applicable*/)
-    : OTTransactionType(theNymID, theAccountID, theNotaryID, theOriginType)
-    , m_pParent(nullptr)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
-    , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(error_state)
-    , m_listItems()
-    , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
-{
-    InitTransaction();
-
-    //  m_AcctID    = theID; // these must be loaded or generated. NOT set in
-    //  constructor, for security reasons. m_NotaryID    = theNotaryID; // There
-    //  are only here in ghostly form as a WARNING to you!
-}
-
-OTTransaction::OTTransaction(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
-    std::int64_t lTransactionNum,
-    originType theOriginType /*=originType::not_applicable*/)
-    : OTTransactionType(
-          theNymID,
-          theAccountID,
-          theNotaryID,
-          lTransactionNum,
-          theOriginType)
-    , m_pParent(nullptr)
-    , m_bIsAbbreviated(false)
-    , m_lAbbrevAmount(0)
-    , m_lDisplayAmount(0)
-    , m_lInRefDisplay(0)
-    , m_Hash(Identifier::Factory())
-    , m_DATE_SIGNED(OT_TIME_ZERO)
-    , m_Type(error_state)
-    , m_listItems()
-    , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
-    , m_lRequestNumber(0)
-    , m_bReplyTransSuccess(false)
-    , m_bCancelled(false)
-{
-    InitTransaction();
-
-    //  m_lTransactionNum = lTransactionNum; // This is set in the constructor,
-    //  as are m_ID and m_NotaryID m_AcctID    = theID; // these must be loaded
-    //  or generated. NOT set in constructor, for security reasons. m_NotaryID
-    //  = theNotaryID; // There are only here in ghostly form as a WARNING to
-    //  you!
-}
-
 // all common OTTransaction stuff goes here.
 // (I don't like constructor loops, prefer to use a separate function they all
 // call.)
@@ -3024,122 +3162,6 @@ void OTTransaction::InitTransaction()
     m_lClosingTransactionNo = 0;
     m_lRequestNumber = 0;
     m_bReplyTransSuccess = false;
-}
-
-// This CONSTRUCTOR is used for instantiating "abbreviated" transactions,
-// each of which separately load their full contents from a separate datafile
-// not during loading but during the subsequent verification process.
-// See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
-//
-OTTransaction::OTTransaction(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
-    const std::int64_t& lNumberOfOrigin,
-    originType theOriginType,
-    const std::int64_t& lTransactionNum,
-    const std::int64_t& lInRefTo,
-    const std::int64_t& lInRefDisplay,
-    time64_t the_DATE_SIGNED,
-    OTTransaction::transactionType theType,
-    const String& strHash,
-    const std::int64_t& lAdjustment,
-    const std::int64_t& lDisplayValue,
-    const std::int64_t& lClosingNum,
-    const std::int64_t& lRequestNum,
-    bool bReplyTransSuccess,
-    NumList* pNumList)
-    : OTTransactionType(
-          theNymID,
-          theAccountID,
-          theNotaryID,
-          lTransactionNum,
-          theOriginType)
-    , m_pParent(nullptr)
-    , m_bIsAbbreviated(true)
-    , m_lAbbrevAmount(lAdjustment)
-    , m_lDisplayAmount(lDisplayValue)
-    , m_lInRefDisplay(lInRefDisplay)
-    , m_Hash(Identifier::Factory(strHash))
-    , m_DATE_SIGNED(the_DATE_SIGNED)
-    , m_Type(theType)
-    , m_listItems()
-    , m_lClosingTransactionNo(lClosingNum)
-    , m_ascCancellationRequest()
-    , m_lRequestNumber(lRequestNum)
-    , m_bReplyTransSuccess(bReplyTransSuccess)
-    , m_bCancelled(false)
-{
-    InitTransaction();
-
-    // This gets zeroed out in InitTransaction() above. But since we set it in
-    // this
-    // constructor, I'm setting it back again.
-    // Then why call it? I don't know, convention? For the sake of future
-    // subclasses?
-    //
-    m_bIsAbbreviated = true;
-    m_DATE_SIGNED = the_DATE_SIGNED;
-    m_Type =
-        theType;  // This one is same story as date signed. Setting it back.
-    m_lClosingTransactionNo = lClosingNum;
-    m_lAbbrevAmount = lAdjustment;
-    m_lDisplayAmount = lDisplayValue;
-    m_lInRefDisplay = lInRefDisplay;
-
-    m_lRequestNumber = lRequestNum;             // for replyNotice
-    m_bReplyTransSuccess = bReplyTransSuccess;  // for replyNotice
-
-    m_Hash->SetString(strHash);
-    m_lTransactionNum = lTransactionNum;  // This is set in OTTransactionType's
-    // constructor, as are m_ID and m_NotaryID
-
-    SetReferenceToNum(lInRefTo);
-    SetNumberOfOrigin(lNumberOfOrigin);
-
-    // NOTE: For THIS CONSTRUCTOR ONLY, we DO set the purported AcctID and
-    // purported NotaryID.
-    // (AFTER the constructor has executed, in OTLedger::ProcessXMLNode();
-    //
-    // WHY? Normally you set the "real" IDs at construction, and then set the
-    // "purported" IDs
-    // when loading from string. But this constructor (only this one) is
-    // actually used when
-    // loading abbreviated receipts as you load their inbox/outbox/nymbox.
-    // Abbreviated receipts are not like real transactions, which have notaryID,
-    // AcctID, nymID,
-    // and signature attached, and the whole thing is base64-encoded and then
-    // added to the ledger
-    // as part of a list of contained objects. Rather, with abbreviated
-    // receipts, there are a series
-    // of XML records loaded up as PART OF the ledger itself. None of these
-    // individual XML records
-    // has its own signature, or its own record of the main IDs -- those are
-    // assumed to be on the parent
-    // ledger.
-    // That's the whole point: abbreviated records don't store redundant info,
-    // and don't each have their
-    // own signature, because we want them to be as small as possible inside
-    // their parent ledger.
-    // Therefore I will pass in the parent ledger's "real" IDs at construction,
-    // and immediately thereafter
-    // set the parent ledger's "purported" IDs onto the abbreviated transaction.
-    // That way, VerifyContractID()
-    // will still work and do its job properly with these abbreviated records.
-
-    // Note: I'm going to go ahead and set it in here for now. This is a special
-    // constructor (abbreviated receipt constructor)
-    // todo: come back to this during security sweep.
-    //
-    SetRealAccountID(theAccountID);
-    SetPurportedAccountID(theAccountID);
-
-    SetRealNotaryID(theNotaryID);
-    SetPurportedNotaryID(theNotaryID);
-
-    SetNymID(theNymID);
-
-    if (nullptr != pNumList) m_Numlist = *pNumList;
 }
 
 // bool GenerateTransaction(const Identifier& theAccountID, const
@@ -3163,6 +3185,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
     std::int64_t lTransactionNum /*=0*/)
 {
     OTTransaction* pTransaction = GenerateTransaction(
+        theOwner.DataFolder(),
         theOwner.GetNymID(),
         theOwner.GetPurportedAccountID(),
         theOwner.GetPurportedNotaryID(),
@@ -3176,6 +3199,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
 
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
+    const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
@@ -3184,7 +3208,12 @@ OTTransaction* OTTransaction::GenerateTransaction(
     std::int64_t lTransactionNum /*=0*/)
 {
     OTTransaction* pTransaction = new OTTransaction(
-        theNymID, theAccountID, theNotaryID, lTransactionNum, theOriginType);
+        dataFolder,
+        theNymID,
+        theAccountID,
+        theNotaryID,
+        lTransactionNum,
+        theOriginType);
     OT_ASSERT(nullptr != pTransaction);
 
     pTransaction->m_Type = theType;
@@ -4057,7 +4086,7 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "field without value.\n";
             return (-1);  // error condition
         } else {
-            Item* pItem = new Item(GetNymID(), *this);
+            Item* pItem = new Item(data_folder_, GetNymID(), *this);
             OT_ASSERT(nullptr != pItem);
 
             if (!m_bLoadSecurely) pItem->SetLoadInsecure();
@@ -5338,7 +5367,10 @@ std::int64_t OTTransaction::GetReceiptAmount()
             GetReferenceString(strReference);
 
             pOriginalItem = Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum());
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -5374,7 +5406,7 @@ std::int64_t OTTransaction::GetReceiptAmount()
             }
 
             String strAttachment;
-            Cheque theCheque;
+            Cheque theCheque{data_folder_};
 
             // Get the cheque from the Item and load it up into a Cheque
             // object.
@@ -5608,7 +5640,10 @@ void OTTransaction::CalculateNumberOfOrigin()
             // as its transaction number.
             //
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum()));
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum()));
             OT_ASSERT(nullptr != pOriginalItem);
 
             if (Item::depositCheque != pOriginalItem->GetType()) {
@@ -5745,7 +5780,7 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay()
             GetReferenceString(strRef);
             if (strRef.Exists()) {
                 std::unique_ptr<OTCronItem> pCronItem(
-                    OTCronItem::NewCronItem(strRef));
+                    OTCronItem::NewCronItem(data_folder_, strRef));
 
                 if (pCronItem) {
                     lReferenceNum = pCronItem->GetTransactionNum();
@@ -5868,7 +5903,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
             }
 
             std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(strUpdatedCronItem));
+                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -5923,7 +5958,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
             }
 
             std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(strUpdatedCronItem));
+                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -5981,7 +6016,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
             //          above.) GetReferenceString(strReference);   // (Already
             //          done above.)
 
-            Message theSentMsg;
+            Message theSentMsg{data_folder_};
 
             if (strReference.Exists() &&
                 theSentMsg.LoadContractFromString(strReference)) {
@@ -6006,7 +6041,10 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum());
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6041,7 +6079,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            Cheque theCheque;
+            Cheque theCheque{data_folder_};
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque
@@ -6118,7 +6156,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
             }
 
             std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(strUpdatedCronItem));
+                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6175,7 +6213,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
             }
 
             std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(strUpdatedCronItem));
+                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6230,7 +6268,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
              -------------------------------------------------------------------
              */
 
-            Message theSentMsg;
+            Message theSentMsg{data_folder_};
 
             if (strReference.Exists() &&
                 theSentMsg.LoadContractFromString(strReference)) {
@@ -6255,7 +6293,10 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum());
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6302,7 +6343,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            Cheque theCheque;
+            Cheque theCheque{data_folder_};
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque
@@ -6365,7 +6406,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                          "paymentReceipt transaction.\n";
 
             std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(strUpdatedCronItem));
+                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6400,7 +6441,10 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                                              // attached.)
         {
             pOriginalItem = Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum());
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6434,7 +6478,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            Cheque theCheque;
+            Cheque theCheque{data_folder_};
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque
@@ -6501,7 +6545,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
                          "paymentReceipt transaction.\n";
 
             std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(strUpdatedCronItem));
+                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6535,7 +6579,10 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum());
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6549,7 +6596,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
         return false;  // Should never happen, since we always expect one based
                        // on the transaction type.
 
-    Cheque theCheque;  // allocated on the stack :-)
+    Cheque theCheque{data_folder_};  // allocated on the stack :-)
     String strAttachment;
 
     switch (GetType()) {
@@ -6630,7 +6677,7 @@ bool OTTransaction::GetMemo(String& strMemo)
                          "paymentReceipt transaction.\n";
 
             std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(strUpdatedCronItem));
+                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6665,7 +6712,10 @@ bool OTTransaction::GetMemo(String& strMemo)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
-                strReference, GetPurportedNotaryID(), GetReferenceToNum());
+                data_folder_,
+                strReference,
+                GetPurportedNotaryID(),
+                GetReferenceToNum());
 
             if (nullptr != pOriginalItem) theItemAngel.reset(pOriginalItem);
 
@@ -6701,7 +6751,7 @@ bool OTTransaction::GetMemo(String& strMemo)
                       << " (expected depositCheque)\n";
                 return false;
             } else {
-                Cheque theCheque;
+                Cheque theCheque{data_folder_};
                 String strCheque;
                 pOriginalItem->GetAttachment(strCheque);
 

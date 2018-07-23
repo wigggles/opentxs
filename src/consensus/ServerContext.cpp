@@ -9,7 +9,6 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -19,7 +18,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/OT.hpp"
 
 #define CURRENT_VERSION 2
 #define DEFAULT_NODE_NAME "Stash Node Pro"
@@ -71,13 +69,13 @@ ServerContext::ManagedNumber::~ManagedNumber()
 }
 
 ServerContext::ServerContext(
+    const api::client::Wallet& wallet,
     const api::Legacy& legacy,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
-    network::ServerConnection& connection,
-    std::mutex& nymfileLock)
-    : ot_super(legacy, CURRENT_VERSION, local, remote, server, nymfileLock)
+    network::ServerConnection& connection)
+    : ot_super(wallet, legacy, CURRENT_VERSION, local, remote, server)
     , connection_(connection)
     , admin_password_("")
     , admin_attempted_(Flag::Factory(false))
@@ -89,20 +87,20 @@ ServerContext::ServerContext(
 }
 
 ServerContext::ServerContext(
+    const api::client::Wallet& wallet,
     const api::Legacy& legacy,
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
-    network::ServerConnection& connection,
-    std::mutex& nymfileLock)
+    network::ServerConnection& connection)
     : ot_super(
+          wallet,
           legacy,
           CURRENT_VERSION,
           serialized,
           local,
           remote,
-          Identifier::Factory(serialized.servercontext().serverid()),
-          nymfileLock)
+          Identifier::Factory(serialized.servercontext().serverid()))
     , connection_(connection)
     , admin_password_(serialized.servercontext().adminpassword())
     , admin_attempted_(
@@ -262,7 +260,7 @@ TransactionNumber ServerContext::Highest() const
 std::unique_ptr<Message> ServerContext::initialize_server_command(
     const MessageType type) const
 {
-    std::unique_ptr<Message> output(new Message);
+    std::unique_ptr<Message> output(new Message{legacy_.ClientDataFolder()});
 
     OT_ASSERT(output);
     OT_ASSERT(nym_);
@@ -648,7 +646,7 @@ bool ServerContext::ShouldRename(const std::string& defaultName) const
 
     // TODO pass wallet singleton into constructor and hold as a reference
     // member variable
-    auto contract = OT::App().Wallet().Server(server_id_);
+    auto contract = wallet_.Server(server_id_);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Missing server contract."

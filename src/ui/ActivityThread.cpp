@@ -5,8 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Sync.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"

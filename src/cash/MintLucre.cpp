@@ -38,27 +38,31 @@ namespace opentxs
 
 #if OT_CASH_USING_LUCRE
 
-MintLucre::MintLucre()
-    : ot_super()
+MintLucre::MintLucre(const std::string& dataFolder)
+    : ot_super(dataFolder)
 {
 }
 
 MintLucre::MintLucre(
+    const std::string& dataFolder,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
-    : ot_super(strNotaryID, strInstrumentDefinitionID)
+    : ot_super(dataFolder, strNotaryID, strInstrumentDefinitionID)
 {
 }
 
 MintLucre::MintLucre(
+    const std::string& dataFolder,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
-    : ot_super(strNotaryID, strServerNymID, strInstrumentDefinitionID)
+    : ot_super(
+          dataFolder,
+          strNotaryID,
+          strServerNymID,
+          strInstrumentDefinitionID)
 {
 }
-
-MintLucre::~MintLucre() {}
 
 // The mint has a different key pair for each denomination.
 // Pass the actual denomination such as 5, 10, 20, 50, 100...
@@ -344,6 +348,7 @@ bool MintLucre::VerifyToken(
 
     return bReturnValue;
 }
+
 #endif  // OT_CRYPTO_USING_OPENSSL
 #endif  // OT_CASH_USING_LUCRE
 }  // namespace opentxs

@@ -35,24 +35,24 @@
 
 namespace opentxs
 {
-
-OTPartyAccount::OTPartyAccount()
+OTPartyAccount::OTPartyAccount(const std::string& dataFolder)
     : wallet_(OT::App().Wallet())
+    , data_folder_{dataFolder}
     , m_pForParty(nullptr)
     , m_lClosingTransNo(0)
 {
 }
 
 // For an account to be party to an agreement, there must be a closing
-// transaction #
-// provided, for the finalReceipt for that account.
-//
+// transaction # provided, for the finalReceipt for that account.
 OTPartyAccount::OTPartyAccount(
+    const std::string& dataFolder,
     const std::string& str_account_name,
     const String& strAgentName,
     Account& theAccount,
     std::int64_t lClosingTransNo)
     : wallet_(OT::App().Wallet())
+    , data_folder_{dataFolder}
     , m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
     , m_lClosingTransNo(lClosingTransNo)
@@ -64,12 +64,14 @@ OTPartyAccount::OTPartyAccount(
 }
 
 OTPartyAccount::OTPartyAccount(
+    const std::string& dataFolder,
     const String& strName,
     const String& strAgentName,
     const String& strAcctID,
     const String& strInstrumentDefinitionID,
     std::int64_t lClosingTransNo)
     : wallet_(OT::App().Wallet())
+    , data_folder_{dataFolder}
     , m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
     , m_lClosingTransNo(lClosingTransNo)
@@ -84,7 +86,7 @@ SharedAccount OTPartyAccount::get_account() const
 {
     if (!m_strAcctID.Exists()) { return {}; }
 
-    return wallet_.Account(Identifier::Factory(m_strAcctID));
+    return wallet_.Account(data_folder_, Identifier::Factory(m_strAcctID));
 }
 
 // Every partyaccount has its own authorized agent's name.
@@ -114,12 +116,6 @@ OTAgent* OTPartyAccount::GetAuthorizedAgent()
 void OTPartyAccount::SetParty(OTParty& theOwnerParty)
 {
     m_pForParty = &theOwnerParty;
-}
-
-OTPartyAccount::~OTPartyAccount()
-{
-    // m_pForParty NOT cleaned up here. pointer is only for convenience.
-    m_pForParty = nullptr;
 }
 
 bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
@@ -317,7 +313,8 @@ SharedAccount OTPartyAccount::LoadAccount()
         return {};
     }
 
-    auto account = wallet_.Account(Identifier::Factory(m_strAcctID));
+    auto account =
+        wallet_.Account(data_folder_, Identifier::Factory(m_strAcctID));
 
     if (false == bool(account)) {
         otOut << "OTPartyAccount::" << __FUNCTION__
@@ -419,4 +416,9 @@ bool OTPartyAccount::Compare(const OTPartyAccount& rhs) const
     return true;
 }
 
+OTPartyAccount::~OTPartyAccount()
+{
+    // m_pForParty NOT cleaned up here. pointer is only for convenience.
+    m_pForParty = nullptr;
+}
 }  // namespace opentxs

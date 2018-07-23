@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/Activity.hpp"
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"

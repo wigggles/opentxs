@@ -189,8 +189,9 @@ public:
     // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
     EXPORT bool VerifyCurrentDate(bool& bVerified);
 
-    EXPORT OTPayment();
-    EXPORT OTPayment(const String& strPayment);
+    EXPORT OTPayment(const std::string& dataFolder);
+    EXPORT OTPayment(const std::string& dataFolder, const String& strPayment);
+
     EXPORT virtual ~OTPayment();
 
 protected:
@@ -248,6 +249,8 @@ protected:
 
 private:
     using ot_super = Contract;
+
+    OTPayment() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_EXT_OTPAYMENT_HPP

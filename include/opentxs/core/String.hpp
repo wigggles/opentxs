@@ -52,7 +52,7 @@ public:
         const Contract& value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(
         const Identifier& value);
-    EXPORT static opentxs::Pimpl<opentxs::String> Factory(Nym& value);
+    EXPORT static opentxs::Pimpl<opentxs::String> Factory(const NymFile& value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(const char* value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(
         const std::string& value);
@@ -159,7 +159,7 @@ public:
     EXPORT explicit String(const OTSignature& value);
     EXPORT explicit String(const Contract& value);
     EXPORT explicit String(const Identifier& value);
-    EXPORT explicit String(Nym& value);
+    EXPORT explicit String(const NymFile& value);
     EXPORT String(const char* value);
     EXPORT explicit String(const std::string& value);
     EXPORT String(const char* value, std::size_t size);

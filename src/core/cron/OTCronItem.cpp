@@ -55,8 +55,63 @@
 
 namespace opentxs
 {
+OTCronItem::OTCronItem(const std::string& dataFolder)
+    : ot_super(dataFolder)
+    , m_pCancelerNymID(Identifier::Factory())
+    , m_bCanceled(false)
+    , m_bRemovalFlag(false)
+    , m_pCron(nullptr)
+    , serverNym_(nullptr)
+    , notaryID_(Identifier::Factory())
+    , m_CREATION_DATE(OT_TIME_ZERO)
+    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
+    , m_PROCESS_INTERVAL(1)
+{
+    InitCronItem();
+}
 
-OTCronItem* OTCronItem::NewCronItem(const String& strCronItem)
+OTCronItem::OTCronItem(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_pCancelerNymID(Identifier::Factory())
+    , m_bCanceled(false)
+    , m_bRemovalFlag(false)
+    , m_pCron(nullptr)
+    , serverNym_(nullptr)
+    , notaryID_(Identifier::Factory())
+    , m_CREATION_DATE(OT_TIME_ZERO)
+    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
+    , m_PROCESS_INTERVAL(1)
+{
+    InitCronItem();
+}
+
+OTCronItem::OTCronItem(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& ACCT_ID,
+    const Identifier& NYM_ID)
+    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, NYM_ID)
+    , m_pCancelerNymID(Identifier::Factory())
+    , m_bCanceled(false)
+    , m_bRemovalFlag(false)
+    , m_pCron(nullptr)
+    , serverNym_(nullptr)
+    , notaryID_(Identifier::Factory())
+    , m_CREATION_DATE(OT_TIME_ZERO)
+    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
+    , m_PROCESS_INTERVAL(1)
+
+{
+    InitCronItem();
+}
+
+OTCronItem* OTCronItem::NewCronItem(
+    const std::string& dataFolder,
+    const String& strCronItem)
 {
     static char buf[45] = "";
 
@@ -98,15 +153,15 @@ OTCronItem* OTCronItem::NewCronItem(const String& strCronItem)
     std::unique_ptr<OTCronItem> pItem;
     // this string is 35 chars long.
     if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
-        pItem.reset(new OTPaymentPlan);
+        pItem.reset(new OTPaymentPlan{dataFolder});
     }
     // this string is 28 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) {
-        pItem.reset(new OTTrade);
+        pItem.reset(new OTTrade(dataFolder));
     }
     // this string is 36 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
-        pItem.reset(new OTSmartContract);
+        pItem.reset(new OTSmartContract(dataFolder));
     } else {
         return nullptr;
     }
@@ -116,7 +171,9 @@ OTCronItem* OTCronItem::NewCronItem(const String& strCronItem)
     return nullptr;
 }
 
-OTCronItem* OTCronItem::LoadCronReceipt(const std::int64_t& lTransactionNum)
+OTCronItem* OTCronItem::LoadCronReceipt(
+    const std::string& dataFolder,
+    const TransactionNumber& lTransactionNum)
 {
     String strFilename;
     strFilename.Format("%" PRId64 ".crn", lTransactionNum);
@@ -146,12 +203,13 @@ OTCronItem* OTCronItem::LoadCronReceipt(const std::int64_t& lTransactionNum)
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return OTCronItem::NewCronItem(strFileContents);
+        return OTCronItem::NewCronItem(dataFolder, strFileContents);
 }
 
 // static
 OTCronItem* OTCronItem::LoadActiveCronReceipt(
-    const std::int64_t& lTransactionNum,
+    const std::string& dataFolder,
+    const TransactionNumber& lTransactionNum,
     const Identifier& notaryID)  // Client-side only.
 {
     String strFilename, strNotaryID(notaryID);
@@ -186,7 +244,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return OTCronItem::NewCronItem(strFileContents);
+        return OTCronItem::NewCronItem(dataFolder, strFileContents);
 }
 
 // static
@@ -233,7 +291,7 @@ bool OTCronItem::GetActiveCronTransNums(
 // static
 // Client-side only.
 bool OTCronItem::EraseActiveCronReceipt(
-    const std::int64_t& lTransactionNum,
+    const TransactionNumber& lTransactionNum,
     const Identifier& nymID,
     const Identifier& notaryID)
 {
@@ -744,7 +802,7 @@ void OTCronItem::HookRemovalFromCron(
         // containing the ORIGINAL SIGNED REQUEST.
         //
         OTCronItem* pOrigCronItem =
-            OTCronItem::LoadCronReceipt(GetTransactionNum());
+            OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum());
         // OTCronItem::LoadCronReceipt loads the original version with the
         // user's signature.
         // (Updated versions, as processing occurs, are signed by the server.)
@@ -983,7 +1041,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
 
     // Load the inbox in case it already exists.
-    Ledger theInbox(NYM_ID, ACCOUNT_ID, GetNotaryID());
+    Ledger theInbox(data_folder_, NYM_ID, ACCOUNT_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theInbox.LoadInbox();
@@ -1104,7 +1162,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
         theInbox.SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
-        auto account = OT::App().Wallet().mutable_Account(ACCOUNT_ID);
+        auto account =
+            OT::App().Wallet().mutable_Account(data_folder_, ACCOUNT_ID);
 
         // Save inbox to storage. (File, DB, wherever it goes.)
         if (account) {
@@ -1163,7 +1222,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox";  // RESUME!!!!!!!
 
-    Ledger theLedger(NYM_ID, NYM_ID, GetNotaryID());
+    Ledger theLedger(data_folder_, NYM_ID, NYM_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theLedger.LoadNymbox();
@@ -1401,61 +1460,6 @@ void OTCronItem::HarvestClosingNumbers(ServerContext& context)
     }
 }
 
-OTCronItem::OTCronItem()
-    : ot_super()
-    , m_pCron(nullptr)
-    , serverNym_(nullptr)
-    , notaryID_(Identifier::Factory())
-    , m_CREATION_DATE(OT_TIME_ZERO)
-    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
-    , m_PROCESS_INTERVAL(1)
-    ,  // Default for any cron item is to execute once per second.
-    m_pCancelerNymID(Identifier::Factory())
-    , m_bCanceled(false)
-    , m_bRemovalFlag(false)
-{
-    InitCronItem();
-}
-
-OTCronItem::OTCronItem(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
-    , m_pCron(nullptr)
-    , serverNym_(nullptr)
-    , notaryID_(Identifier::Factory())
-    , m_CREATION_DATE(OT_TIME_ZERO)
-    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
-    , m_PROCESS_INTERVAL(1)
-    ,  // Default for any cron item is to execute once per second.
-    m_pCancelerNymID(Identifier::Factory())
-    , m_bCanceled(false)
-    , m_bRemovalFlag(false)
-{
-    InitCronItem();
-}
-
-OTCronItem::OTCronItem(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& ACCT_ID,
-    const Identifier& NYM_ID)
-    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, NYM_ID)
-    , m_pCron(nullptr)
-    , serverNym_(nullptr)
-    , notaryID_(Identifier::Factory())
-    , m_CREATION_DATE(OT_TIME_ZERO)
-    , m_LAST_PROCESS_DATE(OT_TIME_ZERO)
-    , m_PROCESS_INTERVAL(1)
-    ,  // Default for any cron item is to execute once per second.
-    m_pCancelerNymID(Identifier::Factory())
-    , m_bCanceled(false)
-    , m_bRemovalFlag(false)
-
-{
-    InitCronItem();
-}
-
 bool OTCronItem::GetCancelerID(Identifier& theOutput) const
 {
     if (!IsCanceled()) {
@@ -1492,8 +1496,6 @@ void OTCronItem::InitCronItem()
 }
 
 void OTCronItem::ClearClosingNumbers() { m_dequeClosingNumbers.clear(); }
-
-OTCronItem::~OTCronItem() { Release_CronItem(); }
 
 void OTCronItem::Release_CronItem()
 {
@@ -1561,4 +1563,6 @@ void OTCronItem::setNotaryID(const Identifier& notaryID)
 {
     notaryID_ = Identifier::Factory(notaryID);
 }
+
+OTCronItem::~OTCronItem() { Release_CronItem(); }
 }  // namespace opentxs

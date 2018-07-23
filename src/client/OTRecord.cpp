@@ -444,7 +444,7 @@ bool OTRecord::HasInitialPayment() const
 {
     if (!IsPaymentPlan()) return false;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasInitialPayment())
@@ -456,7 +456,7 @@ bool OTRecord::HasPaymentPlan() const
 {
     if (!IsPaymentPlan()) return false;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
@@ -468,7 +468,7 @@ time64_t OTRecord::GetInitialPaymentDate() const
 {
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasInitialPayment())
@@ -480,7 +480,7 @@ Amount OTRecord::GetInitialPaymentAmount() const
 {
     if (!IsPaymentPlan()) return 0;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasInitialPayment())
@@ -492,7 +492,7 @@ time64_t OTRecord::GetPaymentPlanStartDate() const
 {
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
@@ -504,7 +504,7 @@ time64_t OTRecord::GetTimeBetweenPayments() const
 {
     if (!IsPaymentPlan()) return OT_TIME_ZERO;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
@@ -516,7 +516,7 @@ Amount OTRecord::GetPaymentPlanAmount() const
 {
     if (!IsPaymentPlan()) return 0;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
@@ -528,7 +528,7 @@ std::int32_t OTRecord::GetMaximumNoPayments() const
 {
     if (!IsPaymentPlan()) return 0;
 
-    OTPaymentPlan thePlan;
+    OTPaymentPlan thePlan{backlink_.data_folder_};
     const String strPlan(GetContents().c_str());
 
     if (thePlan.LoadContractFromString(strPlan) && thePlan.HasPaymentPlan())
@@ -896,8 +896,8 @@ bool OTRecord::cancel_outgoing_payments(
     const std::string& ACCOUNT_ID,
     const std::string& INDICES) const
 {
-    return 1 ==
-           OTRecordList::cancel_outgoing_payments(nymID, ACCOUNT_ID, INDICES);
+    return 1 == OTRecordList::cancel_outgoing_payments(
+                    backlink_.data_folder_, nymID, ACCOUNT_ID, INDICES);
 }
 
 bool OTRecord::AcceptIncomingTransfer() const
@@ -1067,6 +1067,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
 
             std::string str_server_response;
             if (!OTRecordList::accept_from_paymentbox(
+                    backlink_.data_folder_,
                     m_str_msg_notary_id,
                     str_into_acct,
                     str_indices,
@@ -1234,7 +1235,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const  // This can be
                         return false;
                     }
                     String strPayment(strOutpayment);
-                    OTPayment thePayment(strPayment);
+                    OTPayment thePayment(backlink_.data_folder_, strPayment);
 
                     if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
                         std::int32_t lIndex = GetBoxIndex();
@@ -1290,7 +1291,7 @@ bool OTRecord::CancelOutgoing(std::string str_via_acct) const  // This can be
                     return false;
                 }
                 String strPayment(strOutpayment);
-                OTPayment thePayment(strPayment);
+                OTPayment thePayment(backlink_.data_folder_, strPayment);
 
                 if (!thePayment.IsValid() || !thePayment.SetTempValues()) {
                     otErr << __FUNCTION__
@@ -1443,7 +1444,7 @@ void OTRecord::SetContents(const std::string& str_contents)
     if (!m_str_contents.empty() && ((OTRecord::Instrument == GetRecordType()) ||
                                     (OTRecord::Notice == GetRecordType()))) {
         String strPayment(m_str_contents);
-        OTPayment thePayment(strPayment);
+        OTPayment thePayment(backlink_.data_folder_, strPayment);
 
         if (thePayment.IsValid() && thePayment.SetTempValues()) {
             switch (thePayment.GetType()) {

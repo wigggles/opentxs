@@ -62,36 +62,15 @@
 
 namespace opentxs
 {
-
-class ServerContext;
-
 class Basket : public Contract
 {
-protected:
-    std::int32_t m_nSubCount{0};
-    // used in the actual basket
-    Amount m_lMinimumTransfer{0};
-    // used in a request basket. If non-zero, that means this is a request
-    // basket.
-    std::int32_t m_nTransferMultiple{0};
-    // used in a request basket so the server knows your acct ID.
-    OTIdentifier m_RequestAccountID;
-    dequeOfBasketItems m_dequeItems;
-    // When saving, we might wish to produce a version without Account IDs
-    // So that the resulting hash will be a consistent ID across different
-    // servers.
-    bool m_bHideAccountID{false};
-    // True if exchanging INTO the basket, False if exchanging OUT of the
-    // basket.
-    bool m_bExchangingIn{false};
-    // For the main (basket) account, in a request basket (for exchanges.)
-    TransactionNumber m_lClosingTransactionNo{0};
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-
 public:
-    EXPORT Basket();
-    EXPORT Basket(std::int32_t nCount, std::int64_t lMinimumTransferAmount);
+    EXPORT Basket(const std::string& dataFolder);
+    EXPORT Basket(
+        const std::string& dataFolder,
+        std::int32_t nCount,
+        std::int64_t lMinimumTransferAmount);
+
     EXPORT virtual ~Basket();
 
     void UpdateContents() override;
@@ -172,8 +151,32 @@ public:
         const Identifier& theNotaryID,
         bool bSave = true);
 
+protected:
+    std::int32_t m_nSubCount{0};
+    // used in the actual basket
+    Amount m_lMinimumTransfer{0};
+    // used in a request basket. If non-zero, that means this is a request
+    // basket.
+    std::int32_t m_nTransferMultiple{0};
+    // used in a request basket so the server knows your acct ID.
+    OTIdentifier m_RequestAccountID;
+    dequeOfBasketItems m_dequeItems;
+    // When saving, we might wish to produce a version without Account IDs
+    // So that the resulting hash will be a consistent ID across different
+    // servers.
+    bool m_bHideAccountID{false};
+    // True if exchanging INTO the basket, False if exchanging OUT of the
+    // basket.
+    bool m_bExchangingIn{false};
+    // For the main (basket) account, in a request basket (for exchanges.)
+    TransactionNumber m_lClosingTransactionNo{0};
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+
 private:
     void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
+
+    Basket() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_BASKET_BASKET_HPP
