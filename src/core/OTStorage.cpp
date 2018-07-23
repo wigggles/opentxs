@@ -7,12 +7,14 @@
 
 #include "opentxs/core/OTStorage.hpp"
 
-#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStoragePB.hpp"
+#include "opentxs/OT.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -2877,9 +2879,7 @@ bool StorageFS::onEraseValueByKey(
 StorageFS::StorageFS()
     : Storage()
 {
-    String strDataPath;
-    OTDataFolder::Get(strDataPath);
-    m_strDataPath = strDataPath.Get();
+    m_strDataPath = OT::App().Legacy().DataFolderPath();
 }
 
 StorageFS::~StorageFS() {}

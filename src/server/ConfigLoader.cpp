@@ -14,7 +14,6 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTKeyring.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
@@ -41,8 +40,6 @@ bool ConfigLoader::load(
 
     // Setup Config File
     String strConfigFolder, strConfigFilename;
-
-    if (!OTDataFolder::IsInitialized()) { OT_FAIL; }
 
     // LOG LEVEL
     {

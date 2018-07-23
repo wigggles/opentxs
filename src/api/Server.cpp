@@ -11,7 +11,6 @@
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -523,8 +522,8 @@ bool Server::verify_mint_directory(const std::string& serverID) const
     bool created{false};
     String serverDir{""};
     String mintDir{""};
-    const auto haveMint =
-        OTPaths::AppendFolder(mintDir, OTDataFolder::Get(), OTFolders::Mint());
+    const auto haveMint = OTPaths::AppendFolder(
+        mintDir, legacy_.ServerDataFolder().c_str(), OTFolders::Mint());
     const auto haveServer =
         OTPaths::AppendFolder(serverDir, mintDir, serverID.c_str());
 

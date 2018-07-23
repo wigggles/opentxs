@@ -23,7 +23,6 @@
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -454,92 +453,85 @@ void Server::Init(bool readOnly)
 {
     m_bReadOnly = readOnly;
 
-    if (!OTDataFolder::IsInitialized()) {
-        Log::vError("Unable to Init data folders!");
-        OT_FAIL;
-    }
     if (!ConfigLoader::load(crypto_, config_, WalletFilename())) {
         Log::vError("Unable to Load Config File!");
         OT_FAIL;
     }
 
-    String dataPath;
-    bool bGetDataFolderSuccess = OTDataFolder::Get(dataPath);
+    String dataPath = legacy_.ServerDataFolder().c_str();
 
     // PID -- Make sure we're not running two copies of OT on the same data
     // simultaneously here.
-    if (bGetDataFolderSuccess) {
-        // If we want to WRITE to the data location, then we can't be in
-        // read-only mode.
-        if (!readOnly) {
-            // 1. READ A FILE STORING THE PID. (It will already exist, if OT is
-            // already running.)
-            //
-            // We open it for reading first, to see if it already exists. If it
-            // does, we read the number. 0 is fine, since we overwrite with 0 on
-            // shutdown. But any OTHER number means OT is still running. Or it
-            // means it was killed while running and didn't shut down properly,
-            // and that you need to delete the pid file by hand before running
-            // OT again. (This is all for the purpose of preventing two copies
-            // of OT running at the same time and corrupting the data folder.)
-            //
-            String strPIDPath;
-            OTPaths::AppendFile(strPIDPath, dataPath, SERVER_PID_FILENAME);
+    // If we want to WRITE to the data location, then we can't be in
+    // read-only mode.
+    if (!readOnly) {
+        // 1. READ A FILE STORING THE PID. (It will already exist, if OT is
+        // already running.)
+        //
+        // We open it for reading first, to see if it already exists. If it
+        // does, we read the number. 0 is fine, since we overwrite with 0 on
+        // shutdown. But any OTHER number means OT is still running. Or it
+        // means it was killed while running and didn't shut down properly,
+        // and that you need to delete the pid file by hand before running
+        // OT again. (This is all for the purpose of preventing two copies
+        // of OT running at the same time and corrupting the data folder.)
+        //
+        String strPIDPath;
+        OTPaths::AppendFile(strPIDPath, dataPath, SERVER_PID_FILENAME);
 
-            std::ifstream pid_infile(strPIDPath.Get());
+        std::ifstream pid_infile(strPIDPath.Get());
 
-            // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
-            if (pid_infile.is_open()) {
-                std::uint32_t old_pid = 0;
-                pid_infile >> old_pid;
-                pid_infile.close();
+        // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
+        if (pid_infile.is_open()) {
+            std::uint32_t old_pid = 0;
+            pid_infile >> old_pid;
+            pid_infile.close();
 
-                // There was a real PID in there.
-                if (old_pid != 0) {
-                    std::uint64_t lPID = old_pid;
-                    Log::vError(
-                        "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
-                        "I found a PID (%" PRIu64
-                        ") in the data lock file, located "
-                        "at: %s\n\n"
-                        "If the OT process with PID %" PRIu64
-                        " is truly not running "
-                        "anymore, "
-                        "then just ERASE THAT FILE and then RESTART.\n",
-                        lPID,
-                        strPIDPath.Get(),
-                        lPID);
-                    exit(-1);
-                }
-                // Otherwise, though the file existed, the PID within was 0.
-                // (Meaning the previous instance of OT already set it to 0 as
-                // it was shutting down.)
+            // There was a real PID in there.
+            if (old_pid != 0) {
+                std::uint64_t lPID = old_pid;
+                Log::vError(
+                    "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
+                    "I found a PID (%" PRIu64
+                    ") in the data lock file, located "
+                    "at: %s\n\n"
+                    "If the OT process with PID %" PRIu64
+                    " is truly not running "
+                    "anymore, "
+                    "then just ERASE THAT FILE and then RESTART.\n",
+                    lPID,
+                    strPIDPath.Get(),
+                    lPID);
+                exit(-1);
             }
-            // Next let's record our PID to the same file, so other copies of OT
-            // can't trample on US.
+            // Otherwise, though the file existed, the PID within was 0.
+            // (Meaning the previous instance of OT already set it to 0 as
+            // it was shutting down.)
+        }
+        // Next let's record our PID to the same file, so other copies of OT
+        // can't trample on US.
 
-            // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
-            std::uint64_t the_pid = 0;
+        // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
+        std::uint64_t the_pid = 0;
 
 #ifdef _WIN32
-            the_pid = GetCurrentProcessId();
+        the_pid = GetCurrentProcessId();
 #else
-            the_pid = getpid();
+        the_pid = getpid();
 #endif
 
-            // 4. OPEN THE FILE IN WRITE MODE, AND SAVE THE PID TO IT.
-            std::ofstream pid_outfile(strPIDPath.Get());
+        // 4. OPEN THE FILE IN WRITE MODE, AND SAVE THE PID TO IT.
+        std::ofstream pid_outfile(strPIDPath.Get());
 
-            if (pid_outfile.is_open()) {
-                pid_outfile << the_pid;
-                pid_outfile.close();
-            } else {
-                Log::vError(
-                    "Failed trying to open data locking file (to "
-                    "store PID %" PRIu64 "): %s\n",
-                    the_pid,
-                    strPIDPath.Get());
-            }
+        if (pid_outfile.is_open()) {
+            pid_outfile << the_pid;
+            pid_outfile.close();
+        } else {
+            Log::vError(
+                "Failed trying to open data locking file (to "
+                "store PID %" PRIu64 "): %s\n",
+                the_pid,
+                strPIDPath.Get());
         }
     }
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
@@ -970,24 +962,23 @@ Server::~Server()
     //
     //    OTLog::vError("m_strDataPath: %s\n", m_strDataPath.Get());
     //    OTLog::vError("SERVER_PID_FILENAME: %s\n", SERVER_PID_FILENAME);
+    String strDataPath = legacy_.ServerDataFolder().c_str();
 
-    String strDataPath;
-    const bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
-    if (!m_bReadOnly && bGetDataFolderSuccess) {
+    if (!m_bReadOnly) {
         String strPIDPath;
         OTPaths::AppendFile(strPIDPath, strDataPath, SERVER_PID_FILENAME);
-
         std::ofstream pid_outfile(strPIDPath.Get());
 
         if (pid_outfile.is_open()) {
             std::uint32_t the_pid = 0;
             pid_outfile << the_pid;
             pid_outfile.close();
-        } else
+        } else {
             Log::vError(
                 "Failed trying to open data locking file (to wipe "
                 "PID back to 0): %s\n",
                 strPIDPath.Get());
+        }
     }
 }
 }  // namespace opentxs::server

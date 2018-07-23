@@ -5,7 +5,6 @@
 
 set(cxx-sources
   Assert.cpp
-  OTDataFolder.cpp
   OTFolders.cpp
   OTPaths.cpp
   StringUtils.cpp

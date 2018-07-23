@@ -7,9 +7,10 @@
 
 #include "opentxs/core/Account.hpp"
 
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -26,6 +27,7 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -398,9 +400,9 @@ Account* Account::LoadExistingAccount(
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
 
-    String strDataFolder = "";
+    String strDataFolder = OT::App().Legacy().DataFolderPath().c_str();
     String strAccountPath = "";
-    if (!OTDataFolder::Get(strDataFolder)) { OT_FAIL; }
+
     if (!OTPaths::AppendFolder(
             strAccountPath, strDataFolder, OTFolders::Account())) {
         OT_FAIL;

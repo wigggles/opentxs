@@ -29,7 +29,6 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -585,7 +584,7 @@ void Native::Init()
     Init_Config();  // requires Init_Legacy()
     Init_Log();     // requires Init_Config()
     Init_Crypto();
-    Init_Storage();  // requires Init_Config(), Init_Crypto()
+    Init_Storage();    // requires Init_Legacy(), Init_Config(), Init_Crypto()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Dht();       // requires Init_Config()
@@ -668,25 +667,9 @@ void Native::Init_Blockchain()
 
 void Native::Init_Config()
 {
-    bool setupPathsSuccess{false};
+    OT_ASSERT(legacy_)
 
-    if (server_mode_) {
-        setupPathsSuccess = OTDataFolder::Init(SERVER_CONFIG_KEY);
-    } else {
-        setupPathsSuccess = OTDataFolder::Init(CLIENT_CONFIG_KEY);
-    }
-
-    if (false == setupPathsSuccess) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Unable to initialize data folders" << std::endl;
-
-        OT_FAIL;
-    }
-
-    OT_ASSERT(OTDataFolder::IsInitialized());
-
-    String strConfigFilePath;
-    OTDataFolder::GetConfigFilePath(strConfigFilePath);
+    String strConfigFilePath = legacy_->ConfigFilePath().c_str();
     config_[""].reset(Factory::Settings(strConfigFilePath));
 }
 

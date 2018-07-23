@@ -58,7 +58,6 @@
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
@@ -559,8 +558,7 @@ bool OT_API::Init()
     //
     // we need to get the loacation of where the pid file should be.
     // then we pass it to the OpenPid function.
-    String strDataPath = "";
-    const bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
+    String strDataPath = legacy_.ClientDataFolder().c_str();
 
     {
         bool bExists = false, bIsNew = false;
@@ -571,8 +569,7 @@ bool OT_API::Init()
 
     String strPIDPath = "";
     OTPaths::AppendFile(strPIDPath, strDataPath, CLIENT_PID_FILENAME);
-
-    if (bGetDataFolderSuccess) pid_->OpenPid(strPIDPath);
+    pid_->OpenPid(strPIDPath);
 
     if (!pid_->IsPidOpen()) { return false; }  // failed loading
 

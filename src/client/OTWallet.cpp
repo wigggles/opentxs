@@ -20,7 +20,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -72,7 +71,7 @@ OTWallet::OTWallet(
     , m_strName()
     , m_strVersion()
     , m_strFilename()
-    , m_strDataFolder(OTDataFolder::Get())
+    , m_strDataFolder(legacy_.ClientDataFolder())
 {
 }
 
