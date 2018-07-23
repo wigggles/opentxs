@@ -7,6 +7,7 @@
 
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTDataFolder.hpp"
@@ -32,8 +33,9 @@
 
 namespace opentxs
 {
-OTMessageOutbuffer::OTMessageOutbuffer()
-    : messagesMap_()
+OTMessageOutbuffer::OTMessageOutbuffer(const api::Legacy& legacy)
+    : legacy_(legacy)
+    , messagesMap_()
     , dataFolder_(OTDataFolder::Get())
 {
     OT_ASSERT(dataFolder_.Exists());

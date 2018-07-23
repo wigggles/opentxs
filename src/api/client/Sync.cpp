@@ -14,6 +14,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
@@ -125,6 +126,7 @@ api::client::Sync* Factory::Sync(
     const api::ContactManager& contacts,
     const api::Settings& config,
     const api::Api& api,
+    const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
@@ -137,6 +139,7 @@ api::client::Sync* Factory::Sync(
         otapi,
         exec,
         contacts,
+        legacy,
         config,
         api,
         wallet,
@@ -204,6 +207,7 @@ Sync::Sync(
     const OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
     const api::ContactManager& contacts,
+    const api::Legacy& legacy,
     const api::Settings& config,
     const api::Api& api,
     const api::client::Wallet& wallet,
@@ -217,6 +221,7 @@ Sync::Sync(
     , ot_api_(otapi)
     , exec_(exec)
     , contacts_(contacts)
+    , legacy_(legacy)
     , config_(config)
     , api_(api)
     , server_action_(api.ServerAction())
@@ -381,7 +386,7 @@ bool Sync::AcceptIncoming(
                 return false;
             }
 
-            Utility utility(context.It(), ot_api_);
+            Utility utility(context.It(), ot_api_, legacy_);
             const auto download = utility.getIntermediaryFiles(
                 context.It().Server().str(),
                 context.It().Nym()->ID().str(),

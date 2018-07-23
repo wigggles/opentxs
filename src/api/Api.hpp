@@ -36,6 +36,7 @@ private:
     const ContactManager& contacts_;
     const api::Crypto& crypto_;
     const Identity& identity_;
+    const api::Legacy& legacy_;
     const storage::Storage& storage_;
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
@@ -63,6 +64,7 @@ private:
         const api::ContactManager& contacts,
         const api::Crypto& crypto,
         const api::Identity& identity,
+        const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zmq);

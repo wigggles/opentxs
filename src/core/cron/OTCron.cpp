@@ -35,7 +35,6 @@
 
 namespace opentxs
 {
-
 // Note: these are only code defaults -- the values are actually loaded from
 // ~/.ot/server.cfg.
 std::int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
@@ -53,6 +52,22 @@ std::int32_t OTCron::__cron_max_items_per_nym =
          // active at the same time.
 
 Timer OTCron::tCron(true);
+
+OTCron::OTCron(const api::Legacy& legacy)
+    : Contract()
+    , legacy_{legacy}
+    , m_mapMarkets()
+    , m_mapCronItems()
+    , m_multimapCronItems()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_listTransactionNumbers()
+    , m_bIsActivated(false)
+    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
+                             // cleanup this pointer.
+{
+    InitCron();
+    otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
+}
 
 // Make sure Server Nym is set on this cron object before loading or saving,
 // since it's
@@ -1046,63 +1061,6 @@ OTMarket* OTCron::GetMarket(const Identifier& MARKET_ID)
     return nullptr;
 }
 
-OTCron::OTCron()
-    : Contract()
-    , m_mapMarkets()
-    , m_mapCronItems()
-    , m_multimapCronItems()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_listTransactionNumbers()
-    , m_bIsActivated(false)
-    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
-                             // cleanup this pointer.
-{
-    InitCron();
-    otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
-}
-
-OTCron::OTCron(const Identifier& NOTARY_ID)
-    : Contract()
-    , m_mapMarkets()
-    , m_mapCronItems()
-    , m_multimapCronItems()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_listTransactionNumbers()
-    , m_bIsActivated(false)
-    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
-                             // cleanup this pointer.
-{
-    InitCron();
-    SetNotaryID(NOTARY_ID);
-    otLog3 << "OTCron::OTCron: Finished calling InitCron 1.\n";
-}
-
-OTCron::OTCron(const char* szFilename)
-    : Contract()
-    , m_mapMarkets()
-    , m_mapCronItems()
-    , m_multimapCronItems()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_listTransactionNumbers()
-    , m_bIsActivated(false)
-    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
-                             // cleanup this pointer.
-{
-    OT_ASSERT(nullptr != szFilename);
-    InitCron();
-
-    m_strFoldername.Set(OTFolders::Cron().Get());
-    m_strFilename.Set(szFilename);
-    otLog3 << "OTCron::OTCron: Finished calling InitCron 2.\n";
-}
-
-OTCron::~OTCron()
-{
-    Release_Cron();
-
-    m_pServerNym = nullptr;
-}
-
 void OTCron::InitCron() { m_strContractType = "CRON"; }
 
 void OTCron::Release()
@@ -1141,4 +1099,10 @@ void OTCron::Release_Cron()
     }
 }
 
+OTCron::~OTCron()
+{
+    Release_Cron();
+
+    m_pServerNym = nullptr;
+}
 }  // namespace opentxs

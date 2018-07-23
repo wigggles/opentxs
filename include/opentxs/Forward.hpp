@@ -53,6 +53,7 @@ class Blockchain;
 class ContactManager;
 class Crypto;
 class Identity;
+class Legacy;
 class Native;
 class Server;
 class Settings;

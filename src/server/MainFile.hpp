@@ -36,6 +36,7 @@ public:
     explicit MainFile(
         Server& server,
         const opentxs::api::Crypto& crypto_,
+        const opentxs::api::Legacy& legacy,
         const opentxs::api::client::Wallet& wallet_);
 
     bool CreateMainFile(
@@ -51,6 +52,7 @@ public:
 
 private:
     Server& server_;  // TODO: remove when feasible
+    const opentxs::api::Legacy& legacy_;
     const opentxs::api::Crypto& crypto_;
     const opentxs::api::client::Wallet& wallet_;
     std::string version_;

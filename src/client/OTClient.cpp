@@ -12,6 +12,7 @@
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #if OT_CASH
@@ -72,14 +73,16 @@ OTClient::OTClient(
     OTWallet& theWallet,
     const api::Activity& activity,
     const api::ContactManager& contacts,
+    const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow)
     : m_pWallet(theWallet)
     , activity_(activity)
     , contacts_(contacts)
+    , legacy_(legacy)
     , wallet_(wallet)
     , workflow_(workflow)
-    , m_MessageOutbuffer()
+    , m_MessageOutbuffer(legacy_)
 {
 }
 

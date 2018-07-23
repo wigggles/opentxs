@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -59,12 +60,13 @@ api::client::Pair* Factory::Pair(
     const api::client::Sync& sync,
     const api::client::ServerAction& action,
     const api::client::Wallet& wallet,
+    const api::Legacy& legacy,
     const opentxs::OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
     const opentxs::network::zeromq::Context& context)
 {
     return new api::client::implementation::Pair(
-        running, sync, action, wallet, otapi, exec, context);
+        running, sync, action, wallet, legacy, otapi, exec, context);
 }
 }  // namespace opentxs
 
@@ -83,6 +85,7 @@ Pair::Pair(
     const api::client::Sync& sync,
     const client::ServerAction& action,
     const client::Wallet& wallet,
+    const Legacy& legacy,
     const opentxs::OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
     const opentxs::network::zeromq::Context& context)
@@ -90,6 +93,7 @@ Pair::Pair(
     , sync_(sync)
     , action_(action)
     , wallet_(wallet)
+    , legacy_(legacy)
     , ot_api_(otapi)
     , exec_(exec)
     , zmq_(context)

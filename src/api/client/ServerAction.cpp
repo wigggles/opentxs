@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -30,10 +31,11 @@ api::client::ServerAction* Factory::ServerAction(
     const OTAPI_Exec& exec,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
+    const api::Legacy& legacy,
     const ContextLockCallback& lockCallback)
 {
     return new api::client::implementation::ServerAction(
-        otapi, exec, wallet, workflow, lockCallback);
+        otapi, exec, wallet, workflow, legacy, lockCallback);
 }
 }  // namespace opentxs
 
@@ -44,11 +46,13 @@ ServerAction::ServerAction(
     const OTAPI_Exec& exec,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
+    const api::Legacy& legacy,
     const ContextLockCallback& lockCallback)
     : otapi_(otapi)
     , exec_(exec)
     , wallet_(wallet)
     , workflow_(workflow)
+    , legacy_(legacy)
     , lock_callback_(lockCallback)
 {
 }
@@ -65,6 +69,7 @@ ServerAction::Action ServerAction::AcknowledgeBailment(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -90,6 +95,7 @@ ServerAction::Action ServerAction::AcknowledgeConnection(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -115,6 +121,7 @@ ServerAction::Action ServerAction::AcknowledgeNotice(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -136,6 +143,7 @@ ServerAction::Action ServerAction::AcknowledgeOutbailment(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -162,6 +170,7 @@ ServerAction::Action ServerAction::ActivateSmartContract(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -184,6 +193,7 @@ ServerAction::Action ServerAction::AddServerClaim(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -205,6 +215,7 @@ ServerAction::Action ServerAction::AdjustUsageCredits(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -237,6 +248,7 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -276,6 +288,7 @@ ServerAction::Action ServerAction::CreateMarketOffer(
         lock_callback_({nymID->str(), notaryID->str()}),
         wallet_,
         workflow_,
+        legacy_,
         nymID,
         notaryID,
         exec_,
@@ -309,6 +322,7 @@ ServerAction::Action ServerAction::DepositCashPurse(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -334,6 +348,7 @@ ServerAction::Action ServerAction::DepositCheque(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -352,6 +367,7 @@ ServerAction::Action ServerAction::DepositPaymentPlan(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -368,7 +384,7 @@ bool ServerAction::DownloadAccount(
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
     auto context = wallet_.mutable_ServerContext(localNymID, serverID);
-    Utility MsgUtil(context.It(), otapi_);
+    Utility MsgUtil(context.It(), otapi_, legacy_);
     const auto output = MsgUtil.getIntermediaryFiles(
         serverID.str(), localNymID.str(), accountID.str(), forceDownload);
 
@@ -387,6 +403,7 @@ ServerAction::Action ServerAction::DownloadBoxReceipt(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -406,6 +423,7 @@ ServerAction::Action ServerAction::DownloadContract(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -422,6 +440,7 @@ ServerAction::Action ServerAction::DownloadMarketList(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -439,6 +458,7 @@ ServerAction::Action ServerAction::DownloadMarketOffers(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -457,6 +477,7 @@ ServerAction::Action ServerAction::DownloadMarketRecentTrades(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -475,6 +496,7 @@ ServerAction::Action ServerAction::DownloadMint(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -490,7 +512,7 @@ bool ServerAction::GetTransactionNumbers(
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
     auto context = wallet_.mutable_ServerContext(localNymID, serverID);
-    Utility MsgUtil(context.It(), otapi_);
+    Utility MsgUtil(context.It(), otapi_, legacy_);
     auto available = context.It().AvailableNumbers();
 
     if (available < quantity) {
@@ -501,6 +523,7 @@ bool ServerAction::GetTransactionNumbers(
             lock_callback_({localNymID.str(), serverID.str()}),
             wallet_,
             workflow_,
+            legacy_,
             localNymID,
             serverID,
             exec_,
@@ -547,6 +570,7 @@ ServerAction::Action ServerAction::DownloadNym(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -560,7 +584,7 @@ bool ServerAction::DownloadNymbox(
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
     auto context = wallet_.mutable_ServerContext(localNymID, serverID);
-    Utility util(context.It(), otapi_);
+    Utility util(context.It(), otapi_, legacy_);
 
     if (0 >= context.It().UpdateRequestNumber()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -592,6 +616,7 @@ ServerAction::Action ServerAction::DownloadNymMarketOffers(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -616,6 +641,7 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -644,6 +670,7 @@ ServerAction::Action ServerAction::ExchangeCash(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -664,6 +691,7 @@ ServerAction::Action ServerAction::InitiateBailment(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -685,6 +713,7 @@ ServerAction::Action ServerAction::InitiateOutbailment(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -706,6 +735,7 @@ ServerAction::Action ServerAction::InitiateRequestConnection(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -727,6 +757,7 @@ ServerAction::Action ServerAction::InitiateStoreSecret(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -747,6 +778,7 @@ ServerAction::Action ServerAction::IssueBasketCurrency(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -764,6 +796,7 @@ ServerAction::Action ServerAction::IssueUnitDefinition(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -787,6 +820,7 @@ ServerAction::Action ServerAction::KillMarketOffer(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -811,6 +845,7 @@ ServerAction::Action ServerAction::KillPaymentPlan(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -833,6 +868,7 @@ ServerAction::Action ServerAction::NotifyBailment(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -862,6 +898,7 @@ ServerAction::Action ServerAction::PayDividend(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -888,6 +925,7 @@ ServerAction::Action ServerAction::ProcessInbox(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -906,6 +944,7 @@ ServerAction::Action ServerAction::PublishNym(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -923,6 +962,7 @@ ServerAction::Action ServerAction::PublishServerContract(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -940,6 +980,7 @@ ServerAction::Action ServerAction::PublishUnitDefinition(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -957,6 +998,7 @@ ServerAction::Action ServerAction::RegisterAccount(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -973,6 +1015,7 @@ ServerAction::Action ServerAction::RegisterNym(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -989,6 +1032,7 @@ ServerAction::Action ServerAction::RequestAdmin(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1018,6 +1062,7 @@ ServerAction::Action ServerAction::SendCash(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1039,6 +1084,7 @@ ServerAction::Action ServerAction::SendMessage(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1069,6 +1115,7 @@ ServerAction::Action ServerAction::SendPayment(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1095,6 +1142,7 @@ ServerAction::Action ServerAction::SendTransfer(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1117,6 +1165,7 @@ ServerAction::Action ServerAction::TriggerClause(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1136,6 +1185,7 @@ ServerAction::Action ServerAction::UnregisterAccount(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1152,6 +1202,7 @@ ServerAction::Action ServerAction::UnregisterNym(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1175,6 +1226,7 @@ ServerAction::Action ServerAction::WithdrawCash(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,
@@ -1202,6 +1254,7 @@ ServerAction::Action ServerAction::WithdrawVoucher(
         lock_callback_({localNymID.str(), serverID.str()}),
         wallet_,
         workflow_,
+        legacy_,
         localNymID,
         serverID,
         exec_,

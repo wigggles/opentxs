@@ -7,6 +7,7 @@
 
 #include "opentxs/consensus/ClientContext.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -18,21 +19,30 @@
 namespace opentxs
 {
 ClientContext::ClientContext(
+    const api::Legacy& legacy,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
     std::mutex& nymfileLock)
-    : ot_super(CURRENT_VERSION, local, remote, server, nymfileLock)
+    : ot_super(legacy, CURRENT_VERSION, local, remote, server, nymfileLock)
 {
 }
 
 ClientContext::ClientContext(
+    const api::Legacy& legacy,
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
     std::mutex& nymfileLock)
-    : ot_super(CURRENT_VERSION, serialized, local, remote, server, nymfileLock)
+    : ot_super(
+          legacy,
+          CURRENT_VERSION,
+          serialized,
+          local,
+          remote,
+          server,
+          nymfileLock)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {
@@ -114,6 +124,11 @@ bool ClientContext::IssueNumber(const TransactionNumber& number)
     Lock lock(lock_);
 
     return issue_number(lock, number);
+}
+
+std::string ClientContext::LegacyDataFolder() const
+{
+    return legacy_.ServerDataFolder();
 }
 
 bool ClientContext::OpenCronItem(const TransactionNumber number)

@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
@@ -57,10 +58,12 @@ namespace opentxs
 
 OTWallet::OTWallet(
     const api::Crypto& crypto,
+    const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::storage::Storage& storage)
     : Lockable()
     , crypto_(crypto)
+    , legacy_(legacy)
     , wallet_(wallet)
     , storage_(storage)
 #if OT_CASH

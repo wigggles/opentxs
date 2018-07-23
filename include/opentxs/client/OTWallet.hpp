@@ -83,6 +83,7 @@ private:
     friend OT_API;
 
     const api::Crypto& crypto_;
+    const api::Legacy& legacy_;
     const api::client::Wallet& wallet_;
     const api::storage::Storage& storage_;
 #if OT_CASH
@@ -101,6 +102,7 @@ private:
 
     OTWallet(
         const api::Crypto& crypto,
+        const api::Legacy& legacy,
         const api::client::Wallet& wallet,
         const api::storage::Storage& storage);
     OTWallet() = delete;

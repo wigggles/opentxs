@@ -15,6 +15,7 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
@@ -96,6 +97,7 @@ OTAPI_Exec::OTAPI_Exec(
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
     const api::Identity& identity,
+    const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zeromq,
     const OT_API& otapi,
@@ -105,6 +107,7 @@ OTAPI_Exec::OTAPI_Exec(
     , contacts_(contacts)
     , crypto_(crypto)
     , identity_(identity)
+    , legacy_(legacy)
     , wallet_(wallet)
     , zeromq_(zeromq)
     , ot_api_(otapi)

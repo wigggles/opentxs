@@ -24,12 +24,14 @@
 namespace opentxs
 {
 Context::Context(
+    const api::Legacy& legacy,
     const std::uint32_t targetVersion,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
     std::mutex& nymfileLock)
     : ot_super(local, targetVersion)
+    , legacy_(legacy)
     , nymfile_lock_(nymfileLock)
     , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)
@@ -44,6 +46,7 @@ Context::Context(
 }
 
 Context::Context(
+    const api::Legacy& legacy,
     const std::uint32_t targetVersion,
     const proto::Context& serialized,
     const ConstNym& local,
@@ -51,6 +54,7 @@ Context::Context(
     const Identifier& server,
     std::mutex& nymfileLock)
     : ot_super(local, serialized.version())
+    , legacy_(legacy)
     , nymfile_lock_(nymfileLock)
     , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)

@@ -7,6 +7,7 @@
 
 #include "Transactor.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountList.hpp"
@@ -30,8 +31,12 @@
 namespace opentxs::server
 {
 
-Transactor::Transactor(Server* server)
-    : transactionNumber_(0)
+Transactor::Transactor(const api::Legacy& legacy, Server* server)
+    : legacy_(legacy)
+    , transactionNumber_(0)
+    , idToBasketMap_()
+    , contractIdToBasketAccountId_()
+    , voucherAccounts_()
     , server_(server)
 {
 }

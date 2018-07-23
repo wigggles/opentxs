@@ -9,6 +9,7 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -45,8 +46,10 @@ namespace opentxs::server
 MainFile::MainFile(
     Server& server,
     const opentxs::api::Crypto& crypto,
+    const opentxs::api::Legacy& legacy,
     const opentxs::api::client::Wallet& wallet)
     : server_(server)
+    , legacy_(legacy)
     , crypto_(crypto)
     , wallet_(wallet)
     , version_()

@@ -14,11 +14,6 @@
 
 namespace opentxs
 {
-
-class Account;
-class Identifier;
-class String;
-
 namespace server
 {
 class Server;
@@ -26,16 +21,13 @@ class Server;
 
 // Note: from OTUnitDefinition.h and .cpp.
 // This is a subclass of AccountVisitor, which is used whenever OTUnitDefinition
-// needs to
-// loop through all the accounts for a given instrument definition (its own.)
-// This subclass
-// needs to
-// call Server method to do its job, so it can't be defined in otlib, but must
-// be defined
-// here in otserver (so it can see the methods that it needs...)
-//
+// needs to loop through all the accounts for a given instrument definition (its
+// own.) This subclass needs to call Server method to do its job, so it can't be
+// defined in otlib, but must be defined here in otserver (so it can see the
+// methods that it needs...)
 class PayDividendVisitor : public AccountVisitor
 {
+    const api::Legacy& legacy_;
     const OTIdentifier nymId_;
     const OTIdentifier payoutUnitTypeId_;
     const OTIdentifier voucherAcctId_;
@@ -51,8 +43,11 @@ class PayDividendVisitor : public AccountVisitor
     std::int64_t m_lAmountReturned{0};  // as we pay each voucher out, we keep a
                                         // running count.
 
+    PayDividendVisitor() = delete;
+
 public:
     PayDividendVisitor(
+        const api::Legacy& legacy,
         const Identifier& theNotaryID,
         const Identifier& theNymID,
         const Identifier& thePayoutUnitTypeId,
@@ -73,7 +68,5 @@ public:
 
     bool Trigger(const Account& theAccount) override;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_SERVER_ACCTFUNCTOR_PAYDIVIDEND_HPP

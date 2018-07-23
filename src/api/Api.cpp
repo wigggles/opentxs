@@ -40,6 +40,7 @@ api::Api* Factory::Api(
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
     const api::Identity& identity,
+    const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zmq)
@@ -51,6 +52,7 @@ api::Api* Factory::Api(
         contacts,
         crypto,
         identity,
+        legacy,
         storage,
         wallet,
         zmq);
@@ -66,6 +68,7 @@ Api::Api(
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
     const api::Identity& identity,
+    const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zmq)
@@ -75,6 +78,7 @@ Api::Api(
     , contacts_(contacts)
     , crypto_(crypto)
     , identity_(identity)
+    , legacy_(legacy)
     , storage_(storage)
     , wallet_(wallet)
     , zmq_(zmq)
@@ -115,8 +119,8 @@ void Api::Init()
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
 
-    workflow_.reset(
-        Factory::Workflow(activity_, contacts_, storage_, zmq_.Context()));
+    workflow_.reset(Factory::Workflow(
+        activity_, contacts_, legacy_, storage_, zmq_.Context()));
 
     OT_ASSERT(workflow_)
 
@@ -127,6 +131,7 @@ void Api::Init()
         contacts_,
         crypto_,
         identity_,
+        legacy_,
         storage_,
         wallet_,
         *workflow_,
@@ -141,6 +146,7 @@ void Api::Init()
         contacts_,
         crypto_,
         identity_,
+        legacy_,
         wallet_,
         zmq_,
         *ot_api_,
@@ -153,11 +159,12 @@ void Api::Init()
         *otapi_exec_,
         wallet_,
         *workflow_,
+        legacy_,
         std::bind(&Api::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(server_action_)
 
-    cash_.reset(Factory::Cash());
+    cash_.reset(Factory::Cash(legacy_));
 
     OT_ASSERT(cash_);
 
@@ -168,6 +175,7 @@ void Api::Init()
         contacts_,
         config_,
         *this,
+        legacy_,
         wallet_,
         *workflow_,
         crypto_.Encode(),
@@ -182,6 +190,7 @@ void Api::Init()
         *sync_,
         *server_action_,
         wallet_,
+        legacy_,
         *ot_api_,
         *otapi_exec_,
         zmq_.Context()));

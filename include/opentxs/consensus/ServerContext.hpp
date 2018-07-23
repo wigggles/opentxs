@@ -50,12 +50,14 @@ public:
     };
 
     ServerContext(
+        const api::Legacy& legacy,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
         network::ServerConnection& connection,
         std::mutex& nymfileLock);
     ServerContext(
+        const api::Legacy& legacy,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
@@ -68,6 +70,7 @@ public:
     bool HaveAdminPassword() const;
     TransactionNumber Highest() const;
     bool isAdmin() const;
+    std::string LegacyDataFolder() const override;
     std::uint64_t Revision() const;
     bool ShouldRename(const std::string& defaultName = "") const;
     bool StaleNym() const;

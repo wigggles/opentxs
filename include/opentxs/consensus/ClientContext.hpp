@@ -23,11 +23,13 @@ private:
 
 public:
     ClientContext(
+        const api::Legacy& legacy,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
         std::mutex& nymfileLock);
     ClientContext(
+        const api::Legacy& legacy,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
@@ -36,6 +38,7 @@ public:
 
     bool hasOpenTransactions() const;
     std::size_t IssuedNumbers(const std::set<TransactionNumber>& exclude) const;
+    std::string LegacyDataFolder() const override;
     std::size_t OpenCronItems() const;
     proto::ConsensusType Type() const override;
     bool Verify(

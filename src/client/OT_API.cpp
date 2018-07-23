@@ -16,6 +16,7 @@
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #if OT_CASH
@@ -495,6 +496,7 @@ OT_API::OT_API(
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
     const api::Identity& identity,
+    const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
@@ -506,6 +508,7 @@ OT_API::OT_API(
     , contacts_(contacts)
     , crypto_(crypto)
     , identity_(identity)
+    , legacy_(legacy)
     , storage_(storage)
     , wallet_(wallet)
     , workflow_(workflow)
@@ -583,9 +586,9 @@ bool OT_API::Init()
     if (m_bDefaultStore) {
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
-        m_pWallet = new OTWallet(crypto_, wallet_, storage_);
-        m_pClient.reset(
-            new OTClient(*m_pWallet, activity_, contacts_, wallet_, workflow_));
+        m_pWallet = new OTWallet(crypto_, legacy_, wallet_, storage_);
+        m_pClient.reset(new OTClient(
+            *m_pWallet, activity_, contacts_, legacy_, wallet_, workflow_));
 
         OT_ASSERT(m_pClient);
 

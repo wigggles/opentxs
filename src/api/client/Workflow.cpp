@@ -9,6 +9,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -42,11 +43,12 @@ namespace opentxs
 api::client::Workflow* Factory::Workflow(
     const api::Activity& activity,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const network::zeromq::Context& zmq)
 {
     return new api::client::implementation::Workflow(
-        activity, contact, storage, zmq);
+        activity, contact, legacy, storage, zmq);
 }
 }  // namespace opentxs
 
@@ -135,10 +137,12 @@ namespace implementation
 Workflow::Workflow(
     const api::Activity& activity,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const storage::Storage& storage,
     const opentxs::network::zeromq::Context& zmq)
     : activity_(activity)
     , contact_(contact)
+    , legacy_(legacy)
     , storage_(storage)
     , zmq_(zmq)
     , account_publisher_(zmq.PublishSocket())

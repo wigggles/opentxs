@@ -41,6 +41,7 @@ public:
     bool HaveRemoteNymboxHash() const;
     std::string Name() const override;
     bool NymboxHashMatch() const;
+    virtual std::string LegacyDataFolder() const = 0;
     OTIdentifier LocalNymboxHash() const;
     std::unique_ptr<const class NymFile> Nymfile(
         const OTPasswordData& reason) const;
@@ -72,6 +73,7 @@ public:
     virtual ~Context() = default;
 
 protected:
+    const api::Legacy& legacy_;
     std::mutex& nymfile_lock_;
     const OTIdentifier server_id_;
     std::shared_ptr<const class Nym> remote_nym_{};
@@ -99,12 +101,14 @@ protected:
         const std::set<RequestNumber>& req);
 
     Context(
+        const api::Legacy& legacy,
         const std::uint32_t targetVersion,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
         std::mutex& nymfileLock);
     Context(
+        const api::Legacy& legacy,
         const std::uint32_t targetVersion,
         const proto::Context& serialized,
         const ConstNym& local,

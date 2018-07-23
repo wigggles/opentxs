@@ -12,6 +12,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -82,26 +83,28 @@ std::int32_t OTCron::__cron_max_items_per_nym =
 
 Server::Server(
     const opentxs::api::Crypto& crypto,
+    const opentxs::api::Legacy& legacy,
     const opentxs::api::Settings& config,
     const opentxs::api::Server& mint,
     const opentxs::api::storage::Storage& storage,
     const opentxs::api::client::Wallet& wallet)
     : crypto_(crypto)
+    , legacy_(legacy)
     , config_(config)
     , mint_(mint)
     , storage_(storage)
     , wallet_(wallet)
-    , mainFile_(*this, crypto_, wallet_)
-    , notary_(*this, mint_, wallet_)
-    , transactor_(this)
-    , userCommandProcessor_(*this, config_, mint_, wallet_)
+    , mainFile_(*this, crypto_, legacy_, wallet_)
+    , notary_(*this, legacy_, mint_, wallet_)
+    , transactor_(legacy_, this)
+    , userCommandProcessor_(*this, legacy_, config_, mint_, wallet_)
     , m_strWalletFilename()
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
     , m_notaryID(Identifier::Factory())
     , m_strServerNymID()
     , m_nymServer(nullptr)
-    , m_Cron()
+    , m_Cron(legacy_)
 {
 }
 

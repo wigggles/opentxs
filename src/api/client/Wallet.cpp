@@ -13,6 +13,7 @@
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/client/NymData.hpp"
@@ -666,6 +667,7 @@ std::shared_ptr<class Context> Wallet::context(
             const auto& server = serialized->servercontext().serverid();
             auto& connection = zmq.Server(server);
             entry.reset(new class ServerContext(
+                ot_.Legacy(),
                 *serialized,
                 localNym,
                 remoteNym,
@@ -677,6 +679,7 @@ std::shared_ptr<class Context> Wallet::context(
 
             const auto& serverID = ot_.Server().ID();
             entry.reset(new class ClientContext(
+                ot_.Legacy(),
                 *serialized,
                 localNym,
                 remoteNym,
@@ -804,7 +807,7 @@ Editor<class ClientContext> Wallet::mutable_ClientContext(
         const ContextID contextID = {serverNymID.str(), remoteNymID.str()};
         auto& entry = context_map_[contextID];
         entry.reset(new class ClientContext(
-            local, remote, serverID, nymfile_lock(remoteNymID)));
+            ot_.Legacy(), local, remote, serverID, nymfile_lock(remoteNymID)));
         base = entry;
     }
 
@@ -849,6 +852,7 @@ Editor<class ServerContext> Wallet::mutable_ServerContext(
         auto& zmq = ot_.ZMQ();
         auto& connection = zmq.Server(serverID->str());
         entry.reset(new class ServerContext(
+            ot_.Legacy(),
             localNym,
             remoteNym,
             serverID,

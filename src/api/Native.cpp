@@ -15,7 +15,9 @@
 #endif
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/UI.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -55,7 +57,6 @@
 #include "api/Activity.hpp"
 #include "api/ContactManager.hpp"
 #include "api/NativeInternal.hpp"
-#include "api/Server.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
 #include "storage/StorageConfig.hpp"
@@ -372,6 +373,7 @@ Native::Native(
     , crypto_(nullptr)
     , dht_(nullptr)
     , identity_(nullptr)
+    , legacy_(nullptr)
     , storage_(nullptr)
     , wallet_(nullptr)
     , zeromq_(nullptr)
@@ -579,8 +581,9 @@ const api::Identity& Native::Identity() const
 
 void Native::Init()
 {
-    Init_Config();
-    Init_Log();  // requires Init_Config()
+    Init_Legacy();
+    Init_Config();  // requires Init_Legacy()
+    Init_Log();     // requires Init_Config()
     Init_Crypto();
     Init_Storage();  // requires Init_Config(), Init_Crypto()
     Init_ZMQ();      // requires Init_Config()
@@ -594,9 +597,9 @@ void Native::Init()
     Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
                         // Init_Contracts(), Init_Activity()
 #endif
-    Init_Api();  // requires Init_Config(), Init_Crypto(), Init_Contracts(),
-                 // Init_Identity(), Init_Storage(), Init_ZMQ(), Init_Contacts()
-                 // Init_Activity()
+    Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
+                 // Init_Contracts(), Init_Identity(), Init_Storage(),
+                 // Init_ZMQ(), Init_Contacts() Init_Activity()
     if (!server_mode_) {
         Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api(),
                     // Init_Storage(), Init_ZMQ()
@@ -604,8 +607,9 @@ void Native::Init()
 
     if (recover_) { recover(); }
 
-    Init_Server();  // requires Init_Config(), Init_Storage(), Init_Crypto(),
-                    // Init_Contracts(), Init_Log(), Init_Contracts()
+    Init_Server();  // requires Init_Legacy(), Init_Config(), Init_Storage(),
+                    // Init_Crypto(), Init_Contracts(), Init_Log(),
+                    // Init_Contracts()
 
     start();
 }
@@ -630,6 +634,7 @@ void Native::Init_Api()
     OT_ASSERT(wallet_);
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
+    OT_ASSERT(legacy_);
 
     if (server_mode_) { return; }
 
@@ -640,6 +645,7 @@ void Native::Init_Api()
         *contacts_,
         *crypto_,
         *identity_,
+        *legacy_,
         *storage_,
         *wallet_,
         *zeromq_));
@@ -777,14 +783,25 @@ void Native::Init_Identity()
     identity_.reset(Factory::Identity(*wallet_));
 }
 
+void Native::Init_Legacy()
+{
+    if (server_mode_) {
+        legacy_.reset(Factory::Legacy(SERVER_CONFIG_KEY));
+    } else {
+        legacy_.reset(Factory::Legacy(CLIENT_CONFIG_KEY));
+    }
+
+    OT_ASSERT(legacy_);
+}
+
 void Native::Init_Log()
 {
     std::string type{};
 
     if (server_mode_) {
-        type = "server";
+        type = SERVER_CONFIG_KEY;
     } else {
-        type = "client";
+        type = CLIENT_CONFIG_KEY;
     }
 
     if (false == Log::Init(Config(), type.c_str())) { abort(); }
@@ -874,9 +891,10 @@ void Native::Init_Server()
     OT_ASSERT(storage_);
     OT_ASSERT(wallet_);
 
-    server_.reset(new api::implementation::Server(
+    server_.reset(Factory::ServerAPI(
         server_args_,
         *crypto_,
+        *legacy_,
         Config(),
         *storage_,
         *wallet_,
@@ -884,12 +902,6 @@ void Native::Init_Server()
         zmq_context_));
 
     OT_ASSERT(server_);
-
-    auto server = dynamic_cast<implementation::Server*>(server_.get());
-
-    OT_ASSERT(server);
-
-    server->Init();
 }
 
 void Native::Init_Storage()
@@ -1126,6 +1138,13 @@ void Native::Init_ZMQ()
         new api::network::implementation::ZMQ(zmq_context_, *config, running_));
 }
 
+const api::Legacy& Native::Legacy() const
+{
+    OT_ASSERT(legacy_)
+
+    return *legacy_;
+}
+
 void Native::Periodic()
 {
     while (running_) {
@@ -1252,13 +1271,7 @@ void Native::shutdown()
 
     if (periodic_) { periodic_->join(); }
 
-    if (server_) {
-        auto server = dynamic_cast<implementation::Server*>(server_.get());
-
-        OT_ASSERT(server);
-
-        server->Cleanup();
-    } else {
+    if (false == bool(server_)) {
         OT_ASSERT(api_);
 
         auto wallet = api_->OTAPI().GetWallet(nullptr);
@@ -1325,11 +1338,7 @@ void Native::start()
     if (server_mode_) {
         OT_ASSERT(server_);
 
-        auto server = dynamic_cast<implementation::Server*>(server_.get());
-
-        OT_ASSERT(server);
-
-        server->Start();
+        server_->Start();
     }
 }
 

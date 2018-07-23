@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_SERVER_OTSERVER_HPP
-#define OPENTXS_SERVER_OTSERVER_HPP
+#ifndef IMPLEMENTATION_SERVER_SERVER_HPP
+#define IMPLEMENTATION_SERVER_SERVER_HPP
 
 #include "Internal.hpp"
 
@@ -37,9 +37,6 @@ namespace server
 {
 class Server
 {
-    friend class opentxs::api::implementation::Server;
-    friend class MainFile;
-
 public:
     bool GetConnectInfo(std::string& hostname, std::uint32_t& port) const;
     const Identifier& GetServerID() const;
@@ -74,6 +71,9 @@ public:
     ~Server();
 
 private:
+    friend api::implementation::Server;
+    friend MainFile;
+
     const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
     const std::string DEFAULT_BIND_IP = "127.0.0.1";
     const std::string DEFAULT_NAME = "localhost";
@@ -83,6 +83,7 @@ private:
     const std::uint32_t MAX_TCP_PORT = 63356;
 
     const opentxs::api::Crypto& crypto_;
+    const opentxs::api::Legacy& legacy_;
     const opentxs::api::Settings& config_;
     const opentxs::api::Server& mint_;
     const opentxs::api::storage::Storage& storage_;
@@ -105,13 +106,6 @@ private:
     // connect info.
     ConstNym m_nymServer;
     OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
-
-    Server(
-        const opentxs::api::Crypto& crypto,
-        const opentxs::api::Settings& config,
-        const opentxs::api::Server& mint,
-        const opentxs::api::storage::Storage& storage,
-        const opentxs::api::client::Wallet& wallet);
 
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
@@ -136,6 +130,13 @@ private:
         const Identifier& recipientNymID,
         const Message& msg);
 
+    Server(
+        const opentxs::api::Crypto& crypto,
+        const opentxs::api::Legacy& legacy,
+        const opentxs::api::Settings& config,
+        const opentxs::api::Server& mint,
+        const opentxs::api::storage::Storage& storage,
+        const opentxs::api::client::Wallet& wallet);
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;
@@ -144,5 +145,4 @@ private:
 };
 }  // namespace server
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_OTSERVER_HPP
+#endif  // IMPLEMENTATION_SERVER_SERVER_HPP

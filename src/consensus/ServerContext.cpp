@@ -8,6 +8,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -70,12 +71,13 @@ ServerContext::ManagedNumber::~ManagedNumber()
 }
 
 ServerContext::ServerContext(
+    const api::Legacy& legacy,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
     network::ServerConnection& connection,
     std::mutex& nymfileLock)
-    : ot_super(CURRENT_VERSION, local, remote, server, nymfileLock)
+    : ot_super(legacy, CURRENT_VERSION, local, remote, server, nymfileLock)
     , connection_(connection)
     , admin_password_("")
     , admin_attempted_(Flag::Factory(false))
@@ -87,12 +89,14 @@ ServerContext::ServerContext(
 }
 
 ServerContext::ServerContext(
+    const api::Legacy& legacy,
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
     network::ServerConnection& connection,
     std::mutex& nymfileLock)
     : ot_super(
+          legacy,
           CURRENT_VERSION,
           serialized,
           local,
@@ -358,6 +362,11 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
 }
 
 bool ServerContext::isAdmin() const { return admin_success_.get(); }
+
+std::string ServerContext::LegacyDataFolder() const
+{
+    return legacy_.ServerDataFolder();
+}
 
 ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
     const MessageType reason)

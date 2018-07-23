@@ -8,6 +8,7 @@
 #include "PayDividendVisitor.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
@@ -30,6 +31,7 @@
 namespace opentxs
 {
 PayDividendVisitor::PayDividendVisitor(
+    const api::Legacy& legacy,
     const Identifier& theNotaryID,
     const Identifier& theNymID,
     const Identifier& thePayoutUnitTypeId,
@@ -38,6 +40,7 @@ PayDividendVisitor::PayDividendVisitor(
     server::Server& theServer,
     std::int64_t lPayoutPerShare)
     : AccountVisitor(Identifier::Factory(theNotaryID))
+    , legacy_(legacy)
     , nymId_(Identifier::Factory(theNymID))
     , payoutUnitTypeId_(Identifier::Factory(thePayoutUnitTypeId))
     , voucherAcctId_(Identifier::Factory(theVoucherAcctID))

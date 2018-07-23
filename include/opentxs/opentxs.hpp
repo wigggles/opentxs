@@ -18,6 +18,7 @@
 #include <opentxs/api/Blockchain.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/ContactManager.hpp>
+#include <opentxs/api/Legacy.hpp>
 #include <opentxs/api/Native.hpp>
 #include <opentxs/api/UI.hpp>
 #include <opentxs/api/client/Cash.hpp>

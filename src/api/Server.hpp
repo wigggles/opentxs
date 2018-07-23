@@ -8,17 +8,6 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/Server.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Types.hpp"
-
-#include <atomic>
-#include <deque>
-#include <map>
-#include <mutex>
-#include <string>
-#include <thread>
-
 namespace opentxs::api::implementation
 {
 class Server : virtual public opentxs::api::Server
@@ -50,13 +39,14 @@ public:
     ~Server();
 
 private:
-    friend class implementation::Native;
+    friend Factory;
 
 #if OT_CASH
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 #endif  // OT_CASH
 
     const ArgList& args_;
+    const api::Legacy& legacy_;
     const api::Settings& config_;
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;
@@ -109,11 +99,12 @@ private:
 
     void Cleanup();
     void Init();
-    void Start();
+    void Start() override;
 
     Server(
         const ArgList& args,
         const api::Crypto& crypto,
+        const api::Legacy& legacy,
         const api::Settings& config,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,

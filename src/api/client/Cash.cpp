@@ -6,6 +6,7 @@
 #include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/ServerAction.hpp"
@@ -21,15 +22,20 @@
 
 namespace opentxs
 {
-api::client::Cash* Factory::Cash()
+api::client::Cash* Factory::Cash(const api::Legacy& legacy)
 {
-    return new api::client::implementation::Cash();
+    return new api::client::implementation::Cash(legacy);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 #if OT_CASH
+Cash::Cash(const api::Legacy& legacy)
+    : legacy_(legacy)
+{
+}
+
 bool Cash::deposit_cash(
     const std::string& notaryID,
     const std::string& nymID,

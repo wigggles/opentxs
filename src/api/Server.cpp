@@ -6,24 +6,34 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Server.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
-#include <opentxs/core/util/OTDataFolder.hpp>
-#include <opentxs/core/util/OTFolders.hpp>
-#include <opentxs/core/util/OTPaths.hpp>
+#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
+#include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include <opentxs/core/OTStorage.hpp>
 #include "opentxs/core/String.hpp"
+#include "opentxs/Types.hpp"
 
 #include "server/MessageProcessor.hpp"
 #include "server/Server.hpp"
 #include "server/ServerSettings.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <ctime>
+#include <deque>
+#include <map>
+#include <mutex>
+#include <string>
+#include <thread>
 
 #include "Server.hpp"
 
@@ -38,24 +48,49 @@
 
 #define OT_METHOD "opentxs::api::implementation::Server::"
 
+namespace opentxs
+{
+api::Server* Factory::ServerAPI(
+    const ArgList& args,
+    const api::Crypto& crypto,
+    const api::Legacy& legacy,
+    const api::Settings& config,
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet,
+    const Flag& running,
+    const network::zeromq::Context& context)
+{
+    return new api::implementation::Server(
+        args, crypto, legacy, config, storage, wallet, running, context);
+}
+}  // namespace opentxs
+
 namespace opentxs::api::implementation
 {
 Server::Server(
     const ArgList& args,
     const opentxs::api::Crypto& crypto,
+    const api::Legacy& legacy,
     const opentxs::api::Settings& config,
     const opentxs::api::storage::Storage& storage,
     const opentxs::api::client::Wallet& wallet,
     const Flag& running,
     const opentxs::network::zeromq::Context& context)
     : args_(args)
+    , legacy_(legacy)
     , config_(config)
     , crypto_(crypto)
     , storage_(storage)
     , wallet_(wallet)
     , running_(running)
     , zmq_context_(context)
-    , server_p_(new server::Server(crypto_, config_, *this, storage_, wallet_))
+    , server_p_(new server::Server(
+          crypto_,
+          legacy_,
+          config_,
+          *this,
+          storage_,
+          wallet_))
     , server_(*server_p_)
     , message_processor_p_(
           new server::MessageProcessor(server_, context, running_))
@@ -75,6 +110,8 @@ Server::Server(
 #if OT_CASH
     mint_thread_.reset(new std::thread(&Server::mint, this));
 #endif  // OT_CASH
+
+    Init();
 }
 
 void Server::Cleanup()
@@ -500,6 +537,8 @@ bool Server::verify_mint_directory(const std::string& serverID) const
 
 Server::~Server()
 {
+    Cleanup();
+
 #if OT_CASH
     if (mint_thread_) {
         mint_thread_->join();

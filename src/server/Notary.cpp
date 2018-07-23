@@ -8,6 +8,7 @@
 #include "Notary.hpp"
 
 #include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #if OT_CASH
@@ -69,9 +70,11 @@ typedef std::deque<Token*> dequeOfTokenPtrs;
 
 Notary::Notary(
     Server& server,
+    const opentxs::api::Legacy& legacy,
     const opentxs::api::Server& mint,
     const opentxs::api::client::Wallet& wallet)
     : server_(server)
+    , legacy_(legacy)
     , mint_(mint)
     , wallet_(wallet)
 {
@@ -1876,6 +1879,7 @@ void Notary::NotarizePayDividend(
                                 // asset accounts for the share type,
                                 // and send a voucher to the owner of each one.
                                 PayDividendVisitor actionPayDividend(
+                                    legacy_,
                                     NOTARY_ID,
                                     NYM_ID,
                                     PAYOUT_INSTRUMENT_DEFINITION_ID,
