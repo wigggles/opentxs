@@ -142,7 +142,7 @@ bool EllipticCurve::GetPublicKey(String& strKey) const
 bool EllipticCurve::GetPublicKey(Data& key) const
 {
     if (false == key_->empty()) {
-        key.Assign(key_->GetPointer(), key_->GetSize());
+        key.Assign(key_->data(), key_->size());
 
         return true;
     }
@@ -294,7 +294,7 @@ std::shared_ptr<proto::AsymmetricKey> EllipticCurve::Serialize() const
         serializedKey->set_mode(proto::KEYMODE_PUBLIC);
 
         if (false == key_->empty()) {
-            serializedKey->set_key(key_->GetPointer(), key_->GetSize());
+            serializedKey->set_key(key_->data(), key_->size());
         }
     }
 

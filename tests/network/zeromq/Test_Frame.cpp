@@ -24,7 +24,7 @@ TEST(Frame, Factory2)
     OTZMQFrame message = network::zeromq::Frame::Factory(data);
 
     ASSERT_NE(nullptr, &message.get());
-    ASSERT_EQ(message->size(), data->GetSize());
+    ASSERT_EQ(message->size(), data->size());
 }
 
 TEST(Frame, Factory3)

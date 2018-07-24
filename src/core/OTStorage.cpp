@@ -2394,8 +2394,8 @@ Storable* Storage::DecodeObject(
     // Put thePayload's contents into pBuffer here.
     //
     pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
-        thePayload->GetSize());
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
 
     // Now let's unpack it and return the Storable object.
 

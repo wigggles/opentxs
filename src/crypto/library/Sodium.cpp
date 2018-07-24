@@ -189,9 +189,8 @@ bool Sodium::ECDH(
     auto curvePublic = Data::Factory(blank.data(), blank.size());
     secret.setMemory(blank.data(), blank.size());
     const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
-        static_cast<unsigned char*>(
-            const_cast<void*>(curvePublic->GetPointer())),
-        static_cast<const unsigned char*>(publicKey.GetPointer()));
+        static_cast<unsigned char*>(const_cast<void*>(curvePublic->data())),
+        static_cast<const unsigned char*>(publicKey.data()));
 
     if (0 != havePublic) {
         otErr << OT_METHOD << __FUNCTION__
@@ -204,7 +203,7 @@ bool Sodium::ECDH(
     const auto output = ::crypto_scalarmult(
         static_cast<unsigned char*>(secret.getMemoryWritable()),
         static_cast<const unsigned char*>(curvePrivate.getMemory()),
-        static_cast<const unsigned char*>(curvePublic->GetPointer()));
+        static_cast<const unsigned char*>(curvePublic->data()));
 
     return (0 == output);
 }
@@ -457,7 +456,7 @@ bool Sodium::SeedToCurveKey(
 
     const bool havePublic = crypto_sign_ed25519_pk_to_curve25519(
         blank.data(),
-        static_cast<const unsigned char*>(intermediatePublic->GetPointer()));
+        static_cast<const unsigned char*>(intermediatePublic->data()));
 
     if (0 != havePublic) {
         otErr << OT_METHOD << __FUNCTION__
@@ -469,7 +468,7 @@ bool Sodium::SeedToCurveKey(
 
     publicKey.Assign(blank.data(), blank.size());
 
-    OT_ASSERT(crypto_scalarmult_BYTES == publicKey.GetSize());
+    OT_ASSERT(crypto_scalarmult_BYTES == publicKey.size());
     OT_ASSERT(crypto_scalarmult_SCALARBYTES == privateKey.getMemorySize());
 
     return true;
@@ -532,8 +531,8 @@ bool Sodium::Sign(
     const auto output = ::crypto_sign_detached(
         sig.data(),
         nullptr,
-        static_cast<const unsigned char*>(plaintext.GetPointer()),
-        plaintext.GetSize(),
+        static_cast<const unsigned char*>(plaintext.data()),
+        plaintext.size(),
         static_cast<const unsigned char*>(privKey.getMemory()));
 
     if (0 == output) {
@@ -598,10 +597,10 @@ bool Sodium::Verify(
     }
 
     const auto output = ::crypto_sign_verify_detached(
-        static_cast<const unsigned char*>(signature.GetPointer()),
-        static_cast<const unsigned char*>(plaintext.GetPointer()),
-        plaintext.GetSize(),
-        static_cast<const unsigned char*>(pubkey->GetPointer()));
+        static_cast<const unsigned char*>(signature.data()),
+        static_cast<const unsigned char*>(plaintext.data()),
+        plaintext.size(),
+        static_cast<const unsigned char*>(pubkey->data()));
 
     if (0 == output) { return true; }
 

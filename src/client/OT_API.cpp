@@ -886,7 +886,7 @@ bool OT_API::IsNym_RegisteredAtServer(
     const Identifier& NYM_ID,
     const Identifier& NOTARY_ID) const
 {
-    if (NYM_ID.IsEmpty()) {
+    if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": NYM_ID is empty!";
         OT_FAIL;
     }
@@ -1045,7 +1045,7 @@ bool OT_API::Wallet_CanRemoveServer(const Identifier& NOTARY_ID) const
 {
     Lock lock(lock_);
 
-    if (NOTARY_ID.IsEmpty()) {
+    if (NOTARY_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: NOTARY_ID passed in!\n";
         OT_FAIL;
     }
@@ -1091,7 +1091,7 @@ bool OT_API::Wallet_CanRemoveAssetType(
 {
     Lock lock(lock_);
 
-    if (INSTRUMENT_DEFINITION_ID.IsEmpty()) {
+    if (INSTRUMENT_DEFINITION_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Null: INSTRUMENT_DEFINITION_ID passed in!\n";
         OT_FAIL;
@@ -1126,7 +1126,7 @@ bool OT_API::Wallet_CanRemoveNym(const Identifier& NYM_ID) const
 {
     Lock lock(lock_);
 
-    if (NYM_ID.IsEmpty()) {
+    if (NYM_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: NYM_ID passed in!\n";
         OT_FAIL;
     }
@@ -1182,7 +1182,7 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
 {
     Lock lock(lock_);
 
-    if (ACCOUNT_ID.IsEmpty()) {
+    if (ACCOUNT_ID.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Null: ACCOUNT_ID passed in!\n";
         OT_FAIL;
     }

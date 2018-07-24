@@ -203,7 +203,7 @@ TEST_F(Test_ContactGroup, AddPrimary)
 {
     // Test that AddPrimary ignores a null pointer.
     const auto& group1 = contactGroup_.AddPrimary(nullptr);
-    ASSERT_TRUE(group1.Primary().IsEmpty());
+    ASSERT_TRUE(group1.Primary().empty());
 
     // Test that AddPrimary sets the primary attribute on an active item.
     const auto& group2 = contactGroup_.AddPrimary(active_);

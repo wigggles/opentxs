@@ -269,7 +269,7 @@ bool EcdsaProvider::PrivateToPublic(
         return false;
     }
 
-    publicKey.set_key(key->GetPointer(), key->GetSize());
+    publicKey.set_key(key->data(), key->size());
 
     return true;
 }

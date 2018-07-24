@@ -54,10 +54,10 @@ bool Purse::GetNymID(Identifier& theOutput) const
     if (IsPasswordProtected()) {
         bSuccess = false;  // optimizer will remove automatically anyway, I
                            // assume. Might as well have it here for clarity.
-    } else if (IsNymIDIncluded() && !m_NymID->IsEmpty()) {
+    } else if (IsNymIDIncluded() && !m_NymID->empty()) {
         bSuccess = true;
         theOutput.SetString(m_NymID->str());
-    } else if (!m_NymID->IsEmpty()) {
+    } else if (!m_NymID->empty()) {
         bSuccess = true;
         theOutput.SetString(m_NymID->str());
     }
@@ -872,8 +872,8 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
     tag.add_attribute("isNymIDIncluded", formatBool(m_bIsNymIDIncluded));
     tag.add_attribute(
         "nymID",
-        (m_bIsNymIDIncluded && !m_NymID->IsEmpty())  // (Provided that the ID
-                                                     // even exists, of course.)
+        (m_bIsNymIDIncluded && !m_NymID->empty())  // (Provided that the ID
+                                                   // even exists, of course.)
             ? NYM_ID.Get()
             : "");  // Then print the ID (otherwise print an empty string.)
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
@@ -1066,8 +1066,8 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        if (!m_NymID->IsEmpty())  // If the NymID isn't empty, then why am I in
-                                  // the middle of loading an internal Key?
+        if (!m_NymID->empty())  // If the NymID isn't empty, then why am I in
+                                // the middle of loading an internal Key?
         {
             otErr << szFunc
                   << ": Error: Unexpected 'internalKey' data, since "
@@ -1145,8 +1145,8 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        if (!m_NymID->IsEmpty())  // If the NymID isn't empty, then why am I in
-                                  // the middle of loading an internal Key?
+        if (!m_NymID->empty())  // If the NymID isn't empty, then why am I in
+                                // the middle of loading an internal Key?
         {
             otErr << szFunc
                   << ": Error: Unexpected 'cachedKey' data, since "

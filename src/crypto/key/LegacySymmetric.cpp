@@ -627,7 +627,7 @@ bool LegacySymmetric::GenerateHashCheck(const OTPassword& thePassphrase)
         return false;
     }
 
-    OT_ASSERT(hash_check_->IsEmpty());
+    OT_ASSERT(hash_check_->empty());
 
     OTPassword* pDerivedKey = calculate_new_derived_key_from_passphrase(
         lock,
@@ -714,7 +714,7 @@ OTPassword* LegacySymmetric::calculate_derived_key_from_passphrase(
             otOut << __FUNCTION__
                   << ": Warning!! No hash check, ignoring... "
                      "(since bCheckForHashCheck was set false)";
-            OT_ASSERT(tmpDataHashCheck->IsEmpty());
+            OT_ASSERT(tmpDataHashCheck->empty());
         }
     }
 
@@ -750,7 +750,7 @@ OTPassword* LegacySymmetric::calculate_new_derived_key_from_passphrase(
     }
 
     OT_ASSERT(pDerivedKey);
-    OT_ASSERT(false == hash_check_->IsEmpty());
+    OT_ASSERT(false == hash_check_->empty());
 
     has_hash_check_->On();
 
@@ -833,9 +833,9 @@ bool LegacySymmetric::get_raw_key_from_derived_key(
                         // encrypted_key_.
         // Here's what we're trying to decrypt: the encrypted
         // form of the symmetric key.
-        static_cast<const char*>(encrypted_key_->GetPointer()),  // The
-                                                                 // Ciphertext.
-        encrypted_key_->GetSize(),
+        static_cast<const char*>(encrypted_key_->data()),  // The
+                                                           // Ciphertext.
+        encrypted_key_->size(),
         iv_.get(),   // Created when *this symmetric key was generated. Both are
                      // already stored.
         plaintext);  // OUTPUT. (Recovered plaintext of symmetric key.) You
@@ -964,10 +964,9 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     //
     salt_->SetSize(lSaltSize);
 
-    if (0 ==
-        (nRead = theInput.OTfread(
-             static_cast<std::uint8_t*>(const_cast<void*>(salt_->GetPointer())),
-             static_cast<std::uint32_t>(lSaltSize)))) {
+    if (0 == (nRead = theInput.OTfread(
+                  static_cast<std::uint8_t*>(const_cast<void*>(salt_->data())),
+                  static_cast<std::uint32_t>(lSaltSize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading salt for symmetric key.\n";
         return false;
@@ -1001,10 +1000,9 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     //
     iv_->SetSize(lIVSize);
 
-    if (0 ==
-        (nRead = theInput.OTfread(
-             static_cast<std::uint8_t*>(const_cast<void*>(iv_->GetPointer())),
-             static_cast<std::uint32_t>(lIVSize)))) {
+    if (0 == (nRead = theInput.OTfread(
+                  static_cast<std::uint8_t*>(const_cast<void*>(iv_->data())),
+                  static_cast<std::uint32_t>(lIVSize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading IV for symmetric key.\n";
         return false;
@@ -1043,7 +1041,7 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
 
     if (0 == (nRead = theInput.OTfread(
                   static_cast<std::uint8_t*>(
-                      const_cast<void*>(encrypted_key_->GetPointer())),
+                      const_cast<void*>(encrypted_key_->data())),
                   static_cast<std::uint32_t>(lEncKeySize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading encrypted symmetric key.\n";
@@ -1085,10 +1083,10 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     //
     hash_check_->SetSize(lHashCheckSize);
 
-    if (0 == (nRead = theInput.OTfread(
-                  static_cast<std::uint8_t*>(
-                      const_cast<void*>(hash_check_->GetPointer())),
-                  static_cast<std::uint32_t>(lHashCheckSize)))) {
+    if (0 ==
+        (nRead = theInput.OTfread(
+             static_cast<std::uint8_t*>(const_cast<void*>(hash_check_->data())),
+             static_cast<std::uint32_t>(lHashCheckSize)))) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error reading hash check data.\n";
         return false;
@@ -1099,7 +1097,7 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
 
     OT_ASSERT(nRead == static_cast<std::uint32_t>(lHashCheckSize));
 
-    has_hash_check_->Set(!hash_check_->IsEmpty());
+    has_hash_check_->Set(!hash_check_->empty());
 
     return true;
 }
@@ -1169,10 +1167,10 @@ bool LegacySymmetric::serialize_to(const Lock& lock, Data& theOutput) const
     std::uint32_t n_iteration_count =
         htonl(static_cast<std::uint32_t>(m_uIterationCount));
 
-    std::uint32_t n_salt_size = htonl(salt_->GetSize());
-    std::uint32_t n_iv_size = htonl(iv_->GetSize());
-    std::uint32_t n_enc_key_size = htonl(encrypted_key_->GetSize());
-    std::uint32_t n_hash_check_size = htonl(hash_check_->GetSize());
+    std::uint32_t n_salt_size = htonl(salt_->size());
+    std::uint32_t n_iv_size = htonl(iv_->size());
+    std::uint32_t n_enc_key_size = htonl(encrypted_key_->size());
+    std::uint32_t n_hash_check_size = htonl(hash_check_->size());
 
     otLog5 << __FUNCTION__ << ": is_generated: "
            << static_cast<std::int32_t>(ntohs(n_is_generated))
@@ -1203,30 +1201,29 @@ bool LegacySymmetric::serialize_to(const Lock& lock, Data& theOutput) const
         reinterpret_cast<void*>(&n_salt_size),
         static_cast<std::uint32_t>(sizeof(n_salt_size)));
 
-    OT_ASSERT(nullptr != salt_->GetPointer());
-    theOutput.Concatenate(salt_->GetPointer(), salt_->GetSize());
+    OT_ASSERT(nullptr != salt_->data());
+    theOutput.Concatenate(salt_->data(), salt_->size());
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_iv_size),
         static_cast<std::uint32_t>(sizeof(n_iv_size)));
 
-    OT_ASSERT(nullptr != iv_->GetPointer());
-    theOutput.Concatenate(iv_->GetPointer(), iv_->GetSize());
+    OT_ASSERT(nullptr != iv_->data());
+    theOutput.Concatenate(iv_->data(), iv_->size());
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_enc_key_size),
         static_cast<std::uint32_t>(sizeof(n_enc_key_size)));
 
-    OT_ASSERT(nullptr != encrypted_key_->GetPointer());
-    theOutput.Concatenate(
-        encrypted_key_->GetPointer(), encrypted_key_->GetSize());
+    OT_ASSERT(nullptr != encrypted_key_->data());
+    theOutput.Concatenate(encrypted_key_->data(), encrypted_key_->size());
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_hash_check_size),
         static_cast<std::uint32_t>(sizeof(n_hash_check_size)));
 
-    OT_ASSERT(nullptr != hash_check_->GetPointer());
-    theOutput.Concatenate(hash_check_->GetPointer(), hash_check_->GetSize());
+    OT_ASSERT(nullptr != hash_check_->data());
+    theOutput.Concatenate(hash_check_->data(), hash_check_->size());
 
     return true;
 }

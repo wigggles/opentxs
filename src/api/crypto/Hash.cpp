@@ -195,9 +195,9 @@ bool Hash::Digest(
 
     return Digest(
         hashType,
-        static_cast<const std::uint8_t*>(data.GetPointer()),
-        data.GetSize(),
-        static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
+        static_cast<const std::uint8_t*>(data.data()),
+        data.size(),
+        static_cast<std::uint8_t*>(const_cast<void*>(digest.data())));
 }
 
 bool Hash::Digest(
@@ -216,7 +216,7 @@ bool Hash::Digest(
         hashType,
         reinterpret_cast<const std::uint8_t*>(data.Get()),
         data.GetLength(),
-        static_cast<std::uint8_t*>(const_cast<void*>(digest.GetPointer())));
+        static_cast<std::uint8_t*>(const_cast<void*>(digest.data())));
 }
 
 bool Hash::Digest(
@@ -238,7 +238,7 @@ bool Hash::Digest(
         hashType,
         reinterpret_cast<const std::uint8_t*>(data.c_str()),
         data.size(),
-        static_cast<std::uint8_t*>(const_cast<void*>(result->GetPointer())));
+        static_cast<std::uint8_t*>(const_cast<void*>(result->data())));
 
     if (success) { encodedDigest.assign(encode_.IdentifierEncode(result)); }
 
@@ -267,8 +267,8 @@ bool Hash::HMAC(
 
     return HMAC(
         hashType,
-        static_cast<const std::uint8_t*>(data.GetPointer()),
-        data.GetSize(),
+        static_cast<const std::uint8_t*>(data.data()),
+        data.size(),
         static_cast<const std::uint8_t*>(key.getMemory()),
         key.getMemorySize(),
         static_cast<std::uint8_t*>(digest.getMemoryWritable()));

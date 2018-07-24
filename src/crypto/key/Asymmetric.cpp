@@ -377,7 +377,7 @@ bool Asymmetric::Sign(
         if (credID.Exists()) { sig.set_credentialid(credID.Get()); }
         if (proto::SIGROLE_ERROR != role) { sig.set_role(role); }
         sig.set_hashtype(hash);
-        sig.set_signature(signature->GetPointer(), signature->GetSize());
+        sig.set_signature(signature->data(), signature->size());
     }
 
     return goodSig;

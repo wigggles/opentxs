@@ -1415,7 +1415,7 @@ Nym* Nym::LoadPrivateNym(
     const char* szFunc =
         (nullptr != szFuncName) ? szFuncName : "OTPseudonym::LoadPrivateNym";
 
-    if (NYM_ID.IsEmpty()) return nullptr;
+    if (NYM_ID.empty()) return nullptr;
 
     const String strNymID(NYM_ID);
 
@@ -2048,7 +2048,7 @@ bool Nym::serialize_nymfile(const T& lock, String& strNym) const
         std::string strAcctID = it.first;
         const Identifier& theID = it.second;
 
-        if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
+        if ((strAcctID.size() > 0) && !theID.empty()) {
             const String strHash(theID);
             TagPtr pTag(new Tag("inboxHashItem"));
             pTag->add_attribute("accountID", strAcctID);
@@ -2062,7 +2062,7 @@ bool Nym::serialize_nymfile(const T& lock, String& strNym) const
         std::string strAcctID = it.first;
         const Identifier& theID = it.second;
 
-        if ((strAcctID.size() > 0) && !theID.IsEmpty()) {
+        if ((strAcctID.size() > 0) && !theID.empty()) {
             const String strHash(theID);
             TagPtr pTag(new Tag("outboxHashItem"));
             pTag->add_attribute("accountID", strAcctID);

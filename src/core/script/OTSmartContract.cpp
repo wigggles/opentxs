@@ -891,7 +891,7 @@ OTPartyAccount    * GetPartyAccountByID(const Identifier& theAcctID);
 //
 bool OTSmartContract::SetNotaryIDIfEmpty(const Identifier& theID)
 {
-    if (GetNotaryID().IsEmpty()) {
+    if (GetNotaryID().empty()) {
         SetNotaryID(theID);
         return true;
     }

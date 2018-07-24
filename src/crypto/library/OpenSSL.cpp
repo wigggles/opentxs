@@ -275,7 +275,7 @@ OTPassword* OpenSSL::DeriveNewKey(
     std::uint32_t uIterations,
     Data& dataCheckHash) const
 {
-    OT_ASSERT(!dataSalt.IsEmpty());
+    OT_ASSERT(!dataSalt.empty());
 
     otInfo << __FUNCTION__
            << ": Using a text passphrase, salt, and iteration count, "
@@ -299,14 +299,14 @@ OTPassword* OpenSSL::DeriveNewKey(
         static_cast<std::int32_t>(
             userPassword.isPassword() ? userPassword.getPasswordSize()
                                       : userPassword.getMemorySize()),
-        static_cast<const std::uint8_t*>(dataSalt.GetPointer()),
-        static_cast<std::int32_t>(dataSalt.GetSize()),
+        static_cast<const std::uint8_t*>(dataSalt.data()),
+        static_cast<std::int32_t>(dataSalt.size()),
         static_cast<std::int32_t>(uIterations),
         static_cast<std::int32_t>(pDerivedKey->getMemorySize()),
         static_cast<std::uint8_t*>(pDerivedKey->getMemoryWritable()));
 
     // For The HashCheck
-    const bool bHaveCheckHash = !dataCheckHash.IsEmpty();
+    const bool bHaveCheckHash = !dataCheckHash.empty();
 
     auto tmpHashCheck = Data::Factory();
     tmpHashCheck->SetSize(CryptoConfig::SymmetricKeySize());
@@ -318,21 +318,21 @@ OTPassword* OpenSSL::DeriveNewKey(
     PKCS5_PBKDF2_HMAC_SHA1(
         reinterpret_cast<const char*>(pDerivedKey->getMemory()),
         static_cast<std::int32_t>(pDerivedKey->getMemorySize()),
-        static_cast<const std::uint8_t*>(dataSalt.GetPointer()),
-        static_cast<std::int32_t>(dataSalt.GetSize()),
+        static_cast<const std::uint8_t*>(dataSalt.data()),
+        static_cast<std::int32_t>(dataSalt.size()),
         static_cast<std::int32_t>(uIterations),
-        static_cast<std::int32_t>(tmpHashCheck->GetSize()),
+        static_cast<std::int32_t>(tmpHashCheck->size()),
         const_cast<std::uint8_t*>(
-            static_cast<const std::uint8_t*>(tmpHashCheck->GetPointer())));
+            static_cast<const std::uint8_t*>(tmpHashCheck->data())));
 
     if (bHaveCheckHash) {
         String strDataCheck, strTestCheck;
         strDataCheck.Set(
-            static_cast<const char*>(dataCheckHash.GetPointer()),
-            dataCheckHash.GetSize());
+            static_cast<const char*>(dataCheckHash.data()),
+            dataCheckHash.size());
         strTestCheck.Set(
-            static_cast<const char*>(tmpHashCheck->GetPointer()),
-            tmpHashCheck->GetSize());
+            static_cast<const char*>(tmpHashCheck->data()),
+            tmpHashCheck->size());
 
         if (!strDataCheck.Compare(strTestCheck)) {
             otWarn << __FUNCTION__ << ": Incorrect password provided.\n"
@@ -343,7 +343,7 @@ OTPassword* OpenSSL::DeriveNewKey(
         }
     }
 
-    dataCheckHash.Assign(tmpHashCheck->GetPointer(), tmpHashCheck->GetSize());
+    dataCheckHash.Assign(tmpHashCheck->data(), tmpHashCheck->size());
 
     return pDerivedKey.release();
 }
@@ -897,15 +897,14 @@ bool OpenSSL::ArgumentCheck(
            << "bit key.\n";
 
     otLog3 << "Actual key bytes: " << key.getMemorySize() << "\n";
-    otLog3 << "Actual IV bytes: " << iv.GetSize() << "\n";
+    otLog3 << "Actual IV bytes: " << iv.size() << "\n";
     if ((!encrypt) & AEAD) {
-        otLog3 << "Actual tag bytes: " << tag.GetSize() << "\n";
+        otLog3 << "Actual tag bytes: " << tag.size() << "\n";
     }
 
     // Validate input parameters
     if (!encrypt) {
-        if (AEAD &&
-            (LegacySymmetricProvider::TagSize(cipher) != tag.GetSize())) {
+        if (AEAD && (LegacySymmetricProvider::TagSize(cipher) != tag.size())) {
             otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect tag size.\n";
             return false;
         }
@@ -918,9 +917,9 @@ bool OpenSSL::ArgumentCheck(
         return false;
     }
 
-    if (!ECB && (iv.GetSize() != LegacySymmetricProvider::IVSize(cipher))) {
+    if (!ECB && (iv.size() != LegacySymmetricProvider::IVSize(cipher))) {
         otErr << "OpenSSL::" << __FUNCTION__ << ": Incorrect IV size.\n";
-        otErr << "Actual IV bytes: " << iv.GetSize() << "\n";
+        otErr << "Actual IV bytes: " << iv.size() << "\n";
         return false;
     }
 
@@ -1103,7 +1102,7 @@ bool OpenSSL::Encrypt(
     if (AEAD) {
         // set GCM IV length
         if (!EVP_CIPHER_CTX_ctrl(
-                pCONTEXT, EVP_CTRL_GCM_SET_IVLEN, iv.GetSize(), nullptr)) {
+                pCONTEXT, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr)) {
             otErr << szFunc << ": Could not set IV length.\n";
             return false;
         }
@@ -1116,8 +1115,7 @@ bool OpenSSL::Encrypt(
                 nullptr,
                 nullptr,
                 nullptr,
-                static_cast<std::uint8_t*>(
-                    const_cast<void*>(iv.GetPointer())))) {
+                static_cast<std::uint8_t*>(const_cast<void*>(iv.data())))) {
             otErr << szFunc << ": Could not set IV.\n";
             return false;
         }
@@ -1188,7 +1186,7 @@ bool OpenSSL::Encrypt(
                 pCONTEXT,
                 EVP_CTRL_GCM_GET_TAG,
                 LegacySymmetricProvider::TagSize(cipher),
-                const_cast<void*>(tag.GetPointer()))) {
+                const_cast<void*>(tag.data()))) {
             otErr << szFunc << ": Could not extract tag.\n";
             return false;
         }
@@ -1347,7 +1345,7 @@ bool OpenSSL::Decrypt(
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
                 &ctx, EVP_CTRL_GCM_SET_IVLEN, iv.GetSize(), nullptr)) {
 #else
-                context, EVP_CTRL_GCM_SET_IVLEN, iv.GetSize(), nullptr)) {
+                context, EVP_CTRL_GCM_SET_IVLEN, iv.size(), nullptr)) {
 #endif
             otErr << szFunc << ": Could not set IV length.\n";
             return false;
@@ -1365,8 +1363,7 @@ bool OpenSSL::Decrypt(
                 nullptr,
                 nullptr,
                 nullptr,
-                static_cast<std::uint8_t*>(
-                    const_cast<void*>(iv.GetPointer())))) {
+                static_cast<std::uint8_t*>(const_cast<void*>(iv.data())))) {
             otErr << szFunc << ": Could not set IV.\n";
             return false;
         }
@@ -1444,7 +1441,7 @@ bool OpenSSL::Decrypt(
 #endif
                 EVP_CTRL_GCM_SET_TAG,
                 LegacySymmetricProvider::TagSize(cipher),
-                const_cast<void*>(tag.GetPointer()))) {
+                const_cast<void*>(tag.data()))) {
             otErr << szFunc << ": Could not set tag.\n";
             return false;
         }
@@ -1686,7 +1683,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     std::int32_t status = RSA_padding_add_PKCS1_PSS(
         pRsaKey,
         &vEM.at(0),
-        static_cast<const unsigned char*>(hash->GetPointer()),
+        static_cast<const unsigned char*>(hash->data()),
         md_sha256,
         -2);  // maximum salt length
 
@@ -1758,7 +1755,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
 
     // RSA_private_encrypt actually returns the right size.
     const auto binSignature = Data::Factory(&vpSignature.at(0), status);
-    theSignature.Assign(binSignature->GetPointer(), binSignature->GetSize());
+    theSignature.Assign(binSignature->data(), binSignature->size());
 
     if (pRsaKey) { RSA_free(pRsaKey); }
 
@@ -1797,18 +1794,17 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     }
 
     const std::int32_t nSignatureSize = static_cast<int32_t>(
-        theSignature.GetSize());  // converting from unsigned to signed (since
-                                  // openssl wants it that way.)
+        theSignature.size());  // converting from unsigned to signed (since
+                               // openssl wants it that way.)
 
-    if ((theSignature.GetSize() <
-         static_cast<std::uint32_t>(RSA_size(pRsaKey))) ||
+    if ((theSignature.size() < static_cast<std::uint32_t>(RSA_size(pRsaKey))) ||
         (nSignatureSize < RSA_size(pRsaKey)))  // this one probably unnecessary.
     {
         otErr << szFunc
               << ": Decoded base64-encoded data for signature, but "
                  "resulting size was < RSA_size(pRsaKey): "
                  "Signed: "
-              << nSignatureSize << ". Unsigned: " << theSignature.GetSize()
+              << nSignatureSize << ". Unsigned: " << theSignature.size()
               << ".\n";
         RSA_free(pRsaKey);
         pRsaKey = nullptr;
@@ -1832,8 +1828,8 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     // RSA_NO_PADDING);
     std::int32_t status = RSA_public_decrypt(
         nSignatureSize,  // length of signature, aka RSA_size(rsa)
-        static_cast<const std::uint8_t*>(
-            theSignature.GetPointer()),  // location of signature
+        static_cast<const std::uint8_t*>(theSignature.data()),  // location of
+                                                                // signature
         &vDecrypted.at(0),  // Output--must be large enough to hold the md
                             // (which is smaller than RSA_size(rsa) - 11)
         pRsaKey,            // signer's public key
@@ -1883,7 +1879,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     const EVP_MD* md_sha256 = EVP_sha256();
     status = RSA_verify_PKCS1_PSS(
         pRsaKey,
-        static_cast<const unsigned char*>(hash->GetPointer()),
+        static_cast<const unsigned char*>(hash->data()),
         md_sha256,
         &vDecrypted.at(0),
         -2);  // salt length recovered from signature
@@ -2401,9 +2397,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
         strContractUnsigned.GetSize());
 #else
     EVP_SignUpdate(
-        context,
-        strContractUnsigned.GetPointer(),
-        strContractUnsigned.GetSize());
+        context, strContractUnsigned.data(), strContractUnsigned.size());
 #endif
 
     std::uint8_t sig_buf[4096];  // Safe since we pass the size when we use it.
@@ -2439,7 +2433,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
     const OTPasswordData* pPWData) const
 {
     OT_ASSERT_MSG(
-        strContractToVerify.GetSize() > 0,
+        strContractToVerify.size() > 0,
         "OpenSSL::VerifySignature: ASSERT FAILURE: "
         "strContractToVerify.GetSize()>0");
     OT_ASSERT_MSG(nullptr != pkey, "Null pkey in OpenSSL::VerifySignature.\n");
@@ -2485,9 +2479,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
         &ctx, strContractToVerify.GetPointer(), strContractToVerify.GetSize());
 #else
     EVP_VerifyUpdate(
-        context,
-        strContractToVerify.GetPointer(),
-        strContractToVerify.GetSize());
+        context, strContractToVerify.data(), strContractToVerify.size());
 #endif
 
     // Now we pass in the Signature
@@ -2500,8 +2492,8 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 #else
         context,
 #endif
-        static_cast<const std::uint8_t*>(theSignature.GetPointer()),
-        theSignature.GetSize(),
+        static_cast<const std::uint8_t*>(theSignature.data()),
+        theSignature.size(),
         const_cast<EVP_PKEY*>(pkey));
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
@@ -3609,9 +3601,8 @@ bool OpenSSL::DecryptSessionKey(
     //
     auto ciphertext = Data::Factory(
         static_cast<const void*>(
-            static_cast<const std::uint8_t*>(dataInput.GetPointer()) +
-            nRunningTotal),
-        dataInput.GetSize() - nRunningTotal);
+            static_cast<const std::uint8_t*>(dataInput.data()) + nRunningTotal),
+        dataInput.size() - nRunningTotal);
 
     //
     const EVP_CIPHER* cipher_type = EVP_aes_256_cbc();  // todo hardcoding.
@@ -3632,8 +3623,8 @@ bool OpenSSL::DecryptSessionKey(
             context,
 #endif
             cipher_type,
-            static_cast<const std::uint8_t*>(theRawEncryptedKey->GetPointer()),
-            static_cast<std::int32_t>(theRawEncryptedKey->GetSize()),
+            static_cast<const std::uint8_t*>(theRawEncryptedKey->data()),
+            static_cast<std::int32_t>(theRawEncryptedKey->size()),
             static_cast<const std::uint8_t*>(iv),
             private_key)) {
 

@@ -276,8 +276,8 @@ const std::string PaymentCode::asBase58() const
         OTPassword::safe_memcpy(
             &serialized[PUBLIC_KEY_OFFSET],
             PUBLIC_KEY_BYTES,
-            pubkey->GetPointer(),
-            pubkey->GetSize(),
+            pubkey->data(),
+            pubkey->size(),
             false);
         OTPassword::safe_memcpy(
             &serialized[CHAIN_CODE_OFFSET],
@@ -306,7 +306,7 @@ void PaymentCode::ConstructKey(const opentxs::Data& pubkey)
     newKey.set_type(proto::AKEYTYPE_SECP256K1);
     newKey.set_mode(proto::KEYMODE_PUBLIC);
     newKey.set_role(proto::KEYROLE_SIGN);
-    newKey.set_key(pubkey.GetPointer(), pubkey.GetSize());
+    newKey.set_key(pubkey.data(), pubkey.size());
     asymmetric_key_ = crypto::key::Asymmetric::Factory(newKey);
 
     if (asymmetric_key_.get()) {
@@ -326,8 +326,8 @@ const OTIdentifier PaymentCode::ID() const
     OTPassword::safe_memcpy(
         &core[XPUB_KEY_OFFSET],
         PUBLIC_KEY_BYTES,
-        pubkey->GetPointer(),
-        pubkey->GetSize(),
+        pubkey->data(),
+        pubkey->size(),
         false);
 
     if (chain_code_) {
@@ -387,7 +387,7 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
     }
 
     success = (CHAIN_CODE_BYTES == chainCode->getMemorySize()) &&
-              (PUBLIC_KEY_BYTES == publicKey->GetSize());
+              (PUBLIC_KEY_BYTES == publicKey->size());
 
     return output;
 }
@@ -399,7 +399,7 @@ const OTData PaymentCode::Pubkey() const
 
     if (nullptr != pubkey_) { pubkey_->GetKey(pubkey); }
 
-    OT_ASSERT(PUBLIC_KEY_BYTES == pubkey->GetSize());
+    OT_ASSERT(PUBLIC_KEY_BYTES == pubkey->size());
 
     return pubkey;
 }
@@ -411,7 +411,7 @@ SerializedPaymentCode PaymentCode::Serialize() const
 
     if (nullptr != pubkey_) {
         auto pubkey = Pubkey();
-        serialized->set_key(pubkey->GetPointer(), pubkey->GetSize());
+        serialized->set_key(pubkey->data(), pubkey->size());
     }
 
     if (chain_code_) {

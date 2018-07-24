@@ -514,7 +514,7 @@ serializedCredential Credential::ExtractArmoredCredential(
     auto dataCredential = Data::Factory(armoredCredential);
     serializedCredential serializedCred = std::make_shared<proto::Credential>();
     serializedCred->ParseFromArray(
-        dataCredential->GetPointer(), dataCredential->GetSize());
+        dataCredential->data(), dataCredential->size());
 
     return serializedCred;
 }

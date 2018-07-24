@@ -84,7 +84,7 @@ bool Letter::AddRSARecipients(
         engine.EncryptSessionKey(recipients, binary, encrypted);
 
     if (haveSessionKey) {
-        envelope.set_rsakey(encrypted->GetPointer(), encrypted->GetSize());
+        envelope.set_rsakey(encrypted->data(), encrypted->size());
     } else {
         otErr << __FUNCTION__ << ": Session key encryption failed."
               << std::endl;
@@ -289,7 +289,7 @@ bool Letter::Seal(
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
     auto temp = proto::ProtoAsData(output);
-    dataOutput.Assign(temp->GetPointer(), temp->GetSize());
+    dataOutput.Assign(temp->data(), temp->size());
 
     return true;
 }
@@ -413,8 +413,7 @@ bool Letter::Open(
 
         if (decrypted) {
             theOutput.Set(
-                static_cast<const char*>(plaintext->GetPointer()),
-                plaintext->GetSize());
+                static_cast<const char*>(plaintext->data()), plaintext->size());
 
             return true;
         } else {

@@ -462,7 +462,7 @@ bool Armored::SetData(const Data& theData, bool bLineBreaks)
 {
     Release();
 
-    if (theData.GetSize() < 1) return true;
+    if (theData.size() < 1) return true;
 
     auto string = OT::App().Crypto().Encode().DataEncode(theData);
 

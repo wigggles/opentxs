@@ -284,11 +284,10 @@ serializedNymIDSource NymIDSource::ExtractArmoredSource(
 {
     auto dataSource = Data::Factory(armoredSource);
 
-    OT_ASSERT(dataSource->GetSize() > 0);
+    OT_ASSERT(dataSource->size() > 0);
 
     auto protoSource = std::make_shared<proto::NymIDSource>();
-    protoSource->ParseFromArray(
-        dataSource->GetPointer(), dataSource->GetSize());
+    protoSource->ParseFromArray(dataSource->data(), dataSource->size());
 
     return protoSource;
 }

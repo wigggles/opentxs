@@ -23,8 +23,8 @@ struct Default_Data : public ::testing::Test {
 
 TEST_F(Default_Data, default_accessors)
 {
-    ASSERT_EQ(data_->GetPointer(), nullptr);
-    ASSERT_EQ(data_->GetSize(), 0);
+    ASSERT_EQ(data_->data(), nullptr);
+    ASSERT_EQ(data_->size(), 0);
 }
 
 TEST(Data, compare_equal_to_self)
@@ -71,8 +71,7 @@ TEST(Data, copy_from_pimpl)
 {
     auto one = Data::Factory("abcd", 4);
     auto other = Data::Factory(one);
-    std::string value(
-        static_cast<const char*>(other->GetPointer()), other->GetSize());
+    std::string value(static_cast<const char*>(other->data()), other->size());
     ASSERT_EQ(value, "abcd");
 }
 
@@ -80,7 +79,6 @@ TEST(Data, copy_from_interface)
 {
     auto one = Data::Factory("abcd", 4);
     auto other = Data::Factory(one.get());
-    std::string value(
-        static_cast<const char*>(other->GetPointer()), other->GetSize());
+    std::string value(static_cast<const char*>(other->data()), other->size());
     ASSERT_EQ(value, "abcd");
 }
