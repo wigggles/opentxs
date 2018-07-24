@@ -173,7 +173,9 @@ std::size_t Message::findDivider() const
 bool Message::hasDivider() const
 {
     return std::find_if(
-               messages_.begin(), messages_.end(), [](OTZMQFrame msg) -> bool {
+               messages_.begin(),
+               messages_.end(),
+               [](const OTZMQFrame& msg) -> bool {
                    return 0 == msg->size();
                }) != messages_.end();
 }
