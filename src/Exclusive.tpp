@@ -18,13 +18,16 @@ template <class C>
 Exclusive<C>::Exclusive() noexcept
     : p_{nullptr}
     , lock_{nullptr}
-    , save_{[](C*, eLock&, bool) -> void {}}
+    , save_{[](Container&, eLock&, bool) -> void {}}
     , success_{true}
 {
 }
 
 template <class C>
-Exclusive<C>::Exclusive(C* in, std::shared_mutex& lock, Save save) noexcept
+Exclusive<C>::Exclusive(
+    Container* in,
+    std::shared_mutex& lock,
+    Save save) noexcept
     : p_{in}
     , lock_{new eLock(lock)}
     , save_{save}
@@ -41,7 +44,7 @@ Exclusive<C>::Exclusive(Exclusive&& rhs) noexcept
     , success_{rhs.success_.load()}
 {
     rhs.p_ = nullptr;
-    rhs.save_ = [](C*, eLock&, bool) -> void {};
+    rhs.save_ = [](Container&, eLock&, bool) -> void {};
     rhs.success_.store(true);
 }
 
@@ -52,7 +55,7 @@ Exclusive<C>& Exclusive<C>::operator=(Exclusive&& rhs) noexcept
     rhs.p_ = nullptr;
     lock_.reset(rhs.lock_.release());
     save_ = rhs.save_;
-    rhs.save_ = [](C*, eLock&, bool) -> void {};
+    rhs.save_ = [](Container&, eLock&, bool) -> void {};
     success_.store(rhs.success_.load());
     rhs.success_.store(true);
 
@@ -62,7 +65,7 @@ Exclusive<C>& Exclusive<C>::operator=(Exclusive&& rhs) noexcept
 template <class C>
 Exclusive<C>::operator bool() const
 {
-    return nullptr != p_;
+    return (nullptr != p_) && (p_);
 }
 
 template <class C>
@@ -80,7 +83,7 @@ Exclusive<C>::operator C&()
 template <class C>
 bool Exclusive<C>::Abort()
 {
-    if (nullptr == p_) { return false; }
+    if (false == bool(*this)) { return false; }
 
     success_.store(false);
 
@@ -90,29 +93,29 @@ bool Exclusive<C>::Abort()
 template <class C>
 const C& Exclusive<C>::get() const
 {
-    OT_ASSERT(nullptr != p_)
+    OT_ASSERT(*this)
 
-    return *p_;
+    return **p_;
 }
 
 template <class C>
 C& Exclusive<C>::get()
 {
-    OT_ASSERT(nullptr != p_)
+    OT_ASSERT(*this)
 
-    return *p_;
+    return **p_;
 }
 
 template <class C>
 bool Exclusive<C>::Release()
 {
-    if (nullptr == p_) { return false; }
+    if (false == bool(*this)) { return false; }
 
     OT_ASSERT(lock_)
 
-    save_(p_, *lock_, success_);
+    save_(*p_, *lock_, success_);
     p_ = nullptr;
-    save_ = [](C*, eLock&, bool) -> void {};
+    save_ = [](Container&, eLock&, bool) -> void {};
     success_.store(true);
 
     return true;

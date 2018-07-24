@@ -25,7 +25,8 @@ template <class C>
 class Exclusive
 {
 public:
-    using Save = std::function<void(C*, eLock&, bool)>;
+    using Container = std::unique_ptr<C>;
+    using Save = std::function<void(Container&, eLock&, bool)>;
 
     operator bool() const;
 #ifndef SWIG
@@ -39,7 +40,7 @@ public:
     C& get();
     bool Release();
 
-    Exclusive(C* in, std::shared_mutex& lock, Save save) noexcept;
+    Exclusive(Container* in, std::shared_mutex& lock, Save save) noexcept;
     Exclusive() noexcept;
     Exclusive(const Exclusive&) = delete;
     Exclusive(Exclusive&&) noexcept;
@@ -49,9 +50,9 @@ public:
     ~Exclusive();
 
 private:
-    C* p_{nullptr};
+    Container* p_{nullptr};
     std::unique_ptr<eLock> lock_{nullptr};
-    Save save_{[](C*, eLock&, bool) -> void {}};
+    Save save_{[](Container&, eLock&, bool) -> void {}};
     std::atomic<bool> success_{true};
 };  // class Exclusive
 }  // namespace opentxs

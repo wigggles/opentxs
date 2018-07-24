@@ -145,6 +145,12 @@ Wallet::AccountLock& Wallet::account(
     }
 
     eLock rowLock(rowMutex);
+    // What if more than one thread tries to create the same row at the same
+    // time? One thread will construct the Account object and the other(s) will
+    // block until the lock is obtained. Therefore this check is necessary to
+    // avoid creating the same account twice.
+    if (pAccount) { return row; }
+
     std::string serialized{""};
     std::string alias{""};
     const auto loaded = ot_.DB().Load(account.str(), serialized, alias, true);
@@ -338,13 +344,16 @@ ExclusiveAccount Wallet::CreateAccount(
 
             OT_ASSERT(saved)
 
-            std::function<void(opentxs::Account*, eLock&, bool)> callback =
-                [this,
-                 id](opentxs::Account* in, eLock& lock, bool success) -> void {
+            std::function<void(
+                std::unique_ptr<opentxs::Account>&, eLock&, bool)>
+                callback = [this, id](
+                               std::unique_ptr<opentxs::Account>& in,
+                               eLock& lock,
+                               bool success) -> void {
                 this->save(id, in, lock, success);
             };
 
-            return ExclusiveAccount(pAccount.get(), rowMutex, callback);
+            return ExclusiveAccount(&pAccount, rowMutex, callback);
         }
     } catch (...) {
 
@@ -424,13 +433,16 @@ ExclusiveAccount Wallet::mutable_Account(const Identifier& accountID) const
         const auto id = accountID.str();
 
         if (pAccount) {
-            std::function<void(opentxs::Account*, eLock&, bool)> callback =
-                [this,
-                 id](opentxs::Account* in, eLock& lock, bool success) -> void {
+            std::function<void(
+                std::unique_ptr<opentxs::Account>&, eLock&, bool)>
+                callback = [this, id](
+                               std::unique_ptr<opentxs::Account>& in,
+                               eLock& lock,
+                               bool success) -> void {
                 this->save(id, in, lock, success);
             };
 
-            return ExclusiveAccount(pAccount.get(), rowMutex, callback);
+            return ExclusiveAccount(&pAccount, rowMutex, callback);
         }
     } catch (...) {
 
@@ -560,7 +572,6 @@ bool Wallet::UpdateAccount(
 
     return true;
 }
-
 
 proto::ContactItemType Wallet::CurrencyTypeBasedOnUnitType(
     const Identifier& contractID) const
@@ -1834,24 +1845,26 @@ void Wallet::publish_server(const Identifier& id) const
 
 void Wallet::save(
     const std::string id,
-    opentxs::Account* in,
+    std::unique_ptr<opentxs::Account>& in,
     eLock&,
     bool success) const
 {
-    OT_ASSERT(nullptr != in)
+    OT_ASSERT(in)
 
     auto& account = *in;
     const auto accountID = Identifier::Factory(id);
 
     if (false == success) {
-        // I would look up the row containing this account and reset the smart
-        // pointer, but that would result in a deadlock if there is a thread
-        // waiting to acquire a SharedAccount for this row.
-        //
-        // Deleting the old object so the next user of this account will get
-        // clean data loaded from storage without any of the aborted changes.
-        delete in;
-        in = nullptr;
+        // Reload the last valid state for this Account.
+        std::string serialized{""};
+        std::string alias{""};
+        const auto loaded = ot_.DB().Load(id, serialized, alias, false);
+
+        OT_ASSERT(loaded)
+
+        in.reset(account_factory(accountID, alias, serialized));
+
+        OT_ASSERT(in);
 
         return;
     }

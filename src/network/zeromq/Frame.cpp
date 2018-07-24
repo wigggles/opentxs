@@ -47,12 +47,12 @@ Frame::Frame(const Data& input)
 {
     OT_ASSERT(nullptr != message_);
 
-    const auto init = zmq_msg_init_size(message_, input.GetSize());
+    const auto init = zmq_msg_init_size(message_, input.size());
     OTPassword::safe_memcpy(
         zmq_msg_data(message_),
         zmq_msg_size(message_),
-        input.GetPointer(),
-        input.GetSize(),
+        input.data(),
+        input.size(),
         false);
 
     OT_ASSERT(0 == init);

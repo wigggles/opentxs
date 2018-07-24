@@ -140,30 +140,36 @@ bool Account::LoadContractFromString(const String& theStr)
 // Caller responsible to delete.
 Ledger* Account::LoadInbox(const Nym& nym) const
 {
-    auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
-    OT_ASSERT(box != nullptr);
+    std::unique_ptr<Ledger> box{
+        new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
-    if (box->LoadInbox() && box->VerifyAccount(nym)) { return box; }
+    OT_ASSERT(box);
+
+    if (box->LoadInbox() && box->VerifyAccount(nym)) { return box.release(); }
 
     String strNymID(GetNymID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify inbox:\n"
            << strAcctID << "\n For user:\n"
            << strNymID << "\n";
+
     return nullptr;
 }
 
 // Caller responsible to delete.
 Ledger* Account::LoadOutbox(const Nym& nym) const
 {
-    auto* box = new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID());
-    OT_ASSERT(nullptr != box);
+    std::unique_ptr<Ledger> box{
+        new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
-    if (box->LoadOutbox() && box->VerifyAccount(nym)) { return box; }
+    OT_ASSERT(box);
+
+    if (box->LoadOutbox() && box->VerifyAccount(nym)) { return box.release(); }
 
     String strNymID(GetNymID()), strAcctID(GetRealAccountID());
     otInfo << "Unable to load or verify outbox:\n"
            << strAcctID << "\n For user:\n"
            << strNymID << "\n";
+
     return nullptr;
 }
 
