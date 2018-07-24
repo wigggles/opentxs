@@ -61,9 +61,9 @@ ContactGroup ContactGroup::operator+(const ContactGroup& rhs) const
         const bool designated = (id == primary);
 
         if (isPrimary && (false == designated)) {
-            map[id].reset(new ContactItem(item->SetPrimary(false)));
+            map.emplace(id, new ContactItem(item->SetPrimary(false)));
         } else {
-            map[id] = item;
+            map.emplace(id, item);
         }
 
         OT_ASSERT(map[id])

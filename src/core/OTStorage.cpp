@@ -2852,7 +2852,7 @@ bool StorageFS::onEraseValueByKey(
 
     ofs.clear();
     ofs << "(This space intentionally left blank.)\n";
-    bool bSuccess = ofs.good() ? true : false;
+    bool bSuccess{false};
     ofs.close();
     // Note: I bet you think I should be overwriting the file 7 times here with
     // random data, right? Wrong: YOU need to override OTStorage and create your

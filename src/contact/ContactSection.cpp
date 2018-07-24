@@ -83,9 +83,10 @@ ContactSection ContactSection::operator+(const ContactSection& rhs) const
 
             OT_ASSERT(group);
         } else {
-            map[rhsID] = rhsGroup;
+            [[maybe_unused]] const auto [it, inserted] =
+                map.emplace(rhsID, rhsGroup);
 
-            OT_ASSERT(map[rhsID]);
+            OT_ASSERT(inserted);
         }
     }
 
@@ -246,7 +247,7 @@ ContactSection::GroupMap ContactSection::extract_groups(
 
         const auto& itemID = instantiated->ID();
         auto& itemMap = itemMaps[itemType];
-        itemMap[itemID] = instantiated;
+        itemMap.emplace(itemID, instantiated);
     }
 
     for (const auto& itemMap : itemMaps) {

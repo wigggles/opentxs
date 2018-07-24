@@ -2102,7 +2102,7 @@ void Notary::NotarizePayDividend(
                                                 NYM_ID,         // recipient nym
                                                                 // (returning to
                                                 // original sender.)
-                                                &thePayment,
+                                                thePayment,
                                                 "payDividend");  // todo:
                                             // hardcoding.
                                         }
