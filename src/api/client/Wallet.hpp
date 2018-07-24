@@ -19,7 +19,7 @@ public:
         const Identifier& ownerNymID,
         const Identifier& notaryID,
         const Identifier& instrumentDefinitionID,
-        const class Nym& signer,
+        const opentxs::Nym& signer,
         Account::AccountType type,
         TransactionNumber stash) const override;
     bool DeleteAccount(const Identifier& accountID) const override;
@@ -70,10 +70,10 @@ public:
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const override;
     NymData mutable_Nym(const Identifier& id) const override;
-    std::unique_ptr<const class NymFile> Nymfile(
+    std::unique_ptr<const opentxs::NymFile> Nymfile(
         const Identifier& id,
         const OTPasswordData& reason) const override;
-    Editor<class NymFile> mutable_Nymfile(
+    Editor<opentxs::NymFile> mutable_Nymfile(
         const Identifier& id,
         const OTPasswordData& reason) const override;
     ConstNym NymByIDPartialMatch(const std::string& partialId) const override;
@@ -172,21 +172,20 @@ public:
     proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const Identifier& contractID) const override;
 
-
     ~Wallet();
 
 private:
     using AccountLock =
-        std::pair<std::shared_mutex, std::unique_ptr<class Account>>;
+        std::pair<std::shared_mutex, std::unique_ptr<opentxs::Account>>;
     using AccountMap = std::map<OTIdentifier, AccountLock>;
-    using NymLock = std::pair<std::mutex, std::shared_ptr<class Nym>>;
+    using NymLock = std::pair<std::mutex, std::shared_ptr<opentxs::Nym>>;
     using NymMap = std::map<std::string, NymLock>;
     using ServerMap =
-        std::map<std::string, std::shared_ptr<class ServerContract>>;
+        std::map<std::string, std::shared_ptr<opentxs::ServerContract>>;
     using UnitMap =
-        std::map<std::string, std::shared_ptr<class UnitDefinition>>;
+        std::map<std::string, std::shared_ptr<opentxs::UnitDefinition>>;
     using ContextID = std::pair<std::string, std::string>;
-    using ContextMap = std::map<ContextID, std::shared_ptr<class Context>>;
+    using ContextMap = std::map<ContextID, std::shared_ptr<opentxs::Context>>;
     using IssuerID = std::pair<OTIdentifier, OTIdentifier>;
     using IssuerLock =
         std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
@@ -236,22 +235,22 @@ private:
     void publish_server(const Identifier& id) const;
     void save(
         const std::string id,
-        opentxs::Account* in,
+        std::unique_ptr<opentxs::Account>& in,
         eLock& lock,
         bool success) const;
-    void save(class Context* context) const;
+    void save(opentxs::Context* context) const;
     void save(const Lock& lock, api::client::Issuer* in) const;
     void save(NymData* nymData, const Lock& lock) const;
-    void save(class NymFile* nym, const Lock& lock) const;
-    bool SaveCredentialIDs(const class Nym& nym) const;
-    std::shared_ptr<const class Nym> signer_nym(const Identifier& id) const;
+    void save(opentxs::NymFile* nym, const Lock& lock) const;
+    bool SaveCredentialIDs(const opentxs::Nym& nym) const;
+    std::shared_ptr<const opentxs::Nym> signer_nym(const Identifier& id) const;
 
     /* Throws std::out_of_range for missing accounts */
     AccountLock& account(
         const Lock& lock,
         const Identifier& accountID,
         const bool create) const;
-    std::shared_ptr<class Context> context(
+    std::shared_ptr<opentxs::Context> context(
         const Identifier& localNymID,
         const Identifier& remoteNymID) const;
     IssuerLock& issuer(
@@ -279,7 +278,7 @@ private:
      *    \param[in] contract the instantiated UnitDefinition object
      */
     ConstUnitDefinition UnitDefinition(
-        std::unique_ptr<class UnitDefinition>& contract) const;
+        std::unique_ptr<opentxs::UnitDefinition>& contract) const;
 
     Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq);
     Wallet() = delete;
