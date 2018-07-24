@@ -204,19 +204,18 @@ EVP_PKEY* RSA::d::CopyPublicKey(
 
             void* pv = OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData->GetPointer()))),  // destination
-                theData->GetSize(),  // size of destination buffer.
-                pChar,               // source
-                nSize);              // length of source.
+                    const_cast<void*>(theData->data()))),  // destination
+                theData->size(),  // size of destination buffer.
+                pChar,            // source
+                nSize);           // length of source.
 
             if (nullptr != pv) {
                 // Next, copy theData's contents into a new BIO_mem_buf,
                 // so OpenSSL can load the key out of it.
                 //
                 crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
-                    static_cast<char*>(
-                        const_cast<void*>(theData->GetPointer())),
-                    theData->GetSize());
+                    static_cast<char*>(const_cast<void*>(theData->data())),
+                    theData->size());
                 OT_ASSERT_MSG(
                     nullptr != keyBio,
                     "RSA::"
@@ -360,10 +359,10 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
 
             void* pv = OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData->GetPointer()))),  // destination
-                theData->GetSize(),  // size of destination buffer.
-                pChar,               // source
-                nSize);              // length of source.
+                    const_cast<void*>(theData->data()))),  // destination
+                theData->size(),  // size of destination buffer.
+                pChar,            // source
+                nSize);           // length of source.
             // bool bZeroSource=false); // if true, sets the source buffer to
             // zero after copying is done.
 
@@ -373,9 +372,8 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
                 // so OpenSSL can load the key out of it.
                 //
                 crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
-                    static_cast<char*>(
-                        const_cast<void*>(theData->GetPointer())),
-                    theData->GetSize());
+                    static_cast<char*>(const_cast<void*>(theData->data())),
+                    theData->size());
                 OT_ASSERT_MSG(
                     nullptr != keyBio,
                     "RSA::"
@@ -467,10 +465,10 @@ bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
             //            void * pv =
             OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData->GetPointer()))),  // destination
-                theData->GetSize(),  // size of destination buffer.
-                pChar,               // source
-                nSize);              // length of source.
+                    const_cast<void*>(theData->data()))),  // destination
+                theData->size(),  // size of destination buffer.
+                pChar,            // source
+                nSize);           // length of source.
             // bool bZeroSource=false); // if true, sets the source buffer to
             // zero after copying is done.
 
@@ -506,14 +504,14 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
     //
     backlink->m_p_ascKey->GetData(theData);
 
-    if (theData->GetSize() > 0) {
+    if (theData->size() > 0) {
 
         // Next, copy theData's contents into a new BIO_mem_buf,
         // so OpenSSL can load the key out of it.
         //
         crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData->GetPointer())),
-            theData->GetSize());
+            static_cast<char*>(const_cast<void*>(theData->data())),
+            theData->size());
         OT_ASSERT_MSG(
             nullptr != keyBio,
             "RSA::"
@@ -587,10 +585,10 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
 
     // Copy the encrypted binary private key data into an OpenSSL memory BIO...
     //
-    if (theData->GetSize() > 0) {
+    if (theData->size() > 0) {
         crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData->GetPointer())),
-            theData->GetSize());  // theData will zeroMemory upon destruction.
+            static_cast<char*>(const_cast<void*>(theData->data())),
+            theData->size());  // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(
             nullptr != keyBio,
             "RSA::"
@@ -732,10 +730,10 @@ bool RSA::d::ArmorPrivateKey(
             //            void * pv =
             OTPassword::safe_memcpy(
                 (static_cast<char*>(
-                    const_cast<void*>(theData->GetPointer()))),  // destination
-                theData->GetSize(),  // size of destination buffer.
-                pChar,               // source
-                nSize);              // length of source.
+                    const_cast<void*>(theData->data()))),  // destination
+                theData->size(),  // size of destination buffer.
+                pChar,            // source
+                nSize);           // length of source.
             // bool bZeroSource=false); // if true, sets the source buffer to
             // zero after copying is done.
 

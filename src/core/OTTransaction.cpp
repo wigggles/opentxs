@@ -5888,12 +5888,12 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 // case block just below here.
 
                 theReturnID.SetString(pSmart->GetLastSenderNymID());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else if (nullptr != pCronItem)  // else if it is any other kind of
                                               // cron item...
             {
                 theReturnID.SetString(pCronItem->GetSenderNymID().str());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
                       << ": Unable to load Cron Item. Should never happen. "
@@ -5933,13 +5933,13 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 if (!pSmart->GetLastSenderNymID().Exists()) return false;
 
                 theReturnID.SetString(pSmart->GetLastSenderNymID());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else if (nullptr != pCronItem)  // else if it is any other
                                               // kind of
                                               // cron item...
             {
                 theReturnID.SetString(pCronItem->GetSenderNymID().str());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
                       << ": Unable to load Cron Item. Should never happen. "
@@ -6142,11 +6142,11 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 // paymentReceipt case below.
 
                 theReturnID.SetString(pSmart->GetLastRecipientNymID());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else if (nullptr != pPlan)  // else if it is a payment plan...
             {
                 theReturnID.SetString(pPlan->GetRecipientNymID().str());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
                       << ": Unable to load Cron Item. Should never happen. "
@@ -6187,11 +6187,11 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 if (!pSmart->GetLastRecipientNymID().Exists()) return false;
 
                 theReturnID.SetString(pSmart->GetLastRecipientNymID());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else if (nullptr != pPlan)  // else if it is a payment plan...
             {
                 theReturnID.SetString(pPlan->GetRecipientNymID().str());
-                return !theReturnID.IsEmpty();
+                return !theReturnID.empty();
             } else {
                 otErr << "OTTransaction::" << __FUNCTION__
                       << ": Unable to load Cron Item. Should never happen. "

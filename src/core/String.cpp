@@ -322,7 +322,7 @@ String::String()
 String::String(const Identifier& theValue)
     : String()
 {
-    if (theValue.GetSize() > 0) theValue.GetString(*this);
+    if (theValue.size() > 0) theValue.GetString(*this);
 }
 
 String::String(const Contract& theValue)

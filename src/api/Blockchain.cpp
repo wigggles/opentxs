@@ -407,9 +407,9 @@ std::string Blockchain::calculate_address(
         return {};
     }
 
-    if (COMPRESSED_PUBKEY_SIZE != pubkey->GetSize()) {
+    if (COMPRESSED_PUBKEY_SIZE != pubkey->size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect pubkey size ("
-              << pubkey->GetSize() << ")." << std::endl;
+              << pubkey->size() << ")." << std::endl;
 
         return {};
     }
@@ -435,11 +435,11 @@ std::string Blockchain::calculate_address(
     const auto prefix = address_prefix(account.type());
     auto preimage = Data::Factory(&prefix, sizeof(prefix));
 
-    OT_ASSERT(1 == preimage->GetSize());
+    OT_ASSERT(1 == preimage->size());
 
     preimage += pubkeyHash;
 
-    OT_ASSERT(21 == preimage->GetSize());
+    OT_ASSERT(21 == preimage->size());
 
     return crypto_.Encode().IdentifierEncode(preimage);
 }

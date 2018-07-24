@@ -132,7 +132,7 @@ bool Identifier::Validate(const std::string& input)
 
     const auto id = Factory(input);
 
-    return (0 < id->GetSize());
+    return (0 < id->size());
 }
 }  // namespace opentxs
 
@@ -266,11 +266,11 @@ void Identifier::GetString(String& id) const
     auto data = Data::Factory();
     data->Assign(&type_, sizeof(type_));
 
-    OT_ASSERT(1 == data->GetSize());
+    OT_ASSERT(1 == data->size());
 
-    if (0 == GetSize()) { return; }
+    if (0 == size()) { return; }
 
-    data->Concatenate(GetPointer(), GetSize());
+    data->Concatenate(this->data(), size());
 
     String output("ot");
     output.Concatenate(
@@ -353,11 +353,11 @@ std::string Identifier::str() const
     auto data = Data::Factory();
     data->Assign(&type_, sizeof(type_));
 
-    OT_ASSERT(1 == data->GetSize());
+    OT_ASSERT(1 == data->size());
 
-    if (0 == GetSize()) { return {}; }
+    if (0 == size()) { return {}; }
 
-    data->Concatenate(GetPointer(), GetSize());
+    data->Concatenate(this->data(), size());
 
     std::string output("ot");
     output.append(OT::App().Crypto().Encode().IdentifierEncode(data).c_str());

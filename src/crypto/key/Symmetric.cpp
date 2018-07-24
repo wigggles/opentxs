@@ -229,7 +229,7 @@ bool Symmetric::Allocate(const std::size_t size, Data& container)
 {
     container.SetSize(size);
 
-    return (size == container.GetSize());
+    return (size == container.size());
 }
 
 bool Symmetric::Allocate(
@@ -341,7 +341,7 @@ bool Symmetric::Decrypt(
     return (Decrypt(
         ciphertext,
         keyPassword,
-        static_cast<std::uint8_t*>(const_cast<void*>(plaintext.GetPointer()))));
+        static_cast<std::uint8_t*>(const_cast<void*>(plaintext.data()))));
 }
 
 bool Symmetric::Decrypt(
@@ -442,8 +442,8 @@ bool Symmetric::Encrypt(
     const bool success = Encrypt(
         input,
         inputSize,
-        static_cast<const std::uint8_t*>(iv.GetPointer()),
-        iv.GetSize(),
+        static_cast<const std::uint8_t*>(iv.data()),
+        iv.size(),
         mode,
         keyPassword,
         ciphertext,
@@ -465,8 +465,8 @@ bool Symmetric::Encrypt(
     const bool success = Encrypt(
         reinterpret_cast<const std::uint8_t*>(plaintext.Get()),
         plaintext.GetLength() + 1,
-        static_cast<const std::uint8_t*>(iv.GetPointer()),
-        iv.GetSize(),
+        static_cast<const std::uint8_t*>(iv.data()),
+        iv.size(),
         mode,
         keyPassword,
         ciphertext,
@@ -488,8 +488,8 @@ bool Symmetric::Encrypt(
     const bool success = Encrypt(
         reinterpret_cast<const std::uint8_t*>(plaintext.c_str()),
         plaintext.size(),
-        static_cast<const std::uint8_t*>(iv.GetPointer()),
-        iv.GetSize(),
+        static_cast<const std::uint8_t*>(iv.data()),
+        iv.size(),
         mode,
         keyPassword,
         ciphertext,

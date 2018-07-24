@@ -227,12 +227,12 @@ bool Account::GetInboxHash(Identifier& output)
 {
     output.Release();
 
-    if (!inboxHash_->IsEmpty()) {
+    if (!inboxHash_->empty()) {
         output.SetString(inboxHash_->str());
         return true;
     } else if (
-        !GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
-        !GetRealNotaryID().IsEmpty()) {
+        !GetNymID().empty() && !GetRealAccountID().empty() &&
+        !GetRealNotaryID().empty()) {
         Ledger inbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
@@ -250,12 +250,12 @@ bool Account::GetOutboxHash(Identifier& output)
 {
     output.Release();
 
-    if (!outboxHash_->IsEmpty()) {
+    if (!outboxHash_->empty()) {
         output.SetString(outboxHash_->str());
         return true;
     } else if (
-        !GetNymID().IsEmpty() && !GetRealAccountID().IsEmpty() &&
-        !GetRealNotaryID().IsEmpty()) {
+        !GetNymID().empty() && !GetRealAccountID().empty() &&
+        !GetRealNotaryID().empty()) {
         Ledger outbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
@@ -688,13 +688,13 @@ void Account::UpdateContents()
         tagStash->add_attribute("cronItemNum", formatLong(stashTransNum_));
         tag.add_tag(tagStash);
     }
-    if (!inboxHash_->IsEmpty()) {
+    if (!inboxHash_->empty()) {
         String strHash(inboxHash_);
         TagPtr tagBox(new Tag("inboxHash"));
         tagBox->add_attribute("value", strHash.Get());
         tag.add_tag(tagBox);
     }
-    if (!outboxHash_->IsEmpty()) {
+    if (!outboxHash_->empty()) {
         String strHash(outboxHash_);
         TagPtr tagBox(new Tag("outboxHash"));
         tagBox->add_attribute("value", strHash.Get());

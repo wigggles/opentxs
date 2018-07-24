@@ -83,7 +83,7 @@ bool CurveClient::set_remote_key(const Lock&, const ServerContract& contract)
 
     const auto& key = contract.TransportKey();
 
-    if (CURVE_KEY_BYTES != key.GetSize()) {
+    if (CURVE_KEY_BYTES != key.size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid server key."
               << std::endl;
 
@@ -91,7 +91,7 @@ bool CurveClient::set_remote_key(const Lock&, const ServerContract& contract)
     }
 
     const auto set = zmq_setsockopt(
-        curve_socket_, ZMQ_CURVE_SERVERKEY, key.GetPointer(), key.GetSize());
+        curve_socket_, ZMQ_CURVE_SERVERKEY, key.data(), key.size());
 
     if (0 != set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to set server key."

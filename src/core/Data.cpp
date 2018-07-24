@@ -35,7 +35,7 @@ OTData Data::Factory() { return OTData(new implementation::Data()); }
 
 OTData Data::Factory(const Data& rhs)
 {
-    return OTData(new implementation::Data(rhs.GetPointer(), rhs.GetSize()));
+    return OTData(new implementation::Data(rhs.data(), rhs.size()));
 }
 
 OTData Data::Factory(const void* data, std::size_t size)
@@ -177,21 +177,21 @@ void Data::Initialize()
 // returns how much was actually read. If you start at position 0, and read 100
 // bytes, then you are now on position 100, and the next OTfread will proceed
 // from that position. (Unless you reset().)
-std::size_t Data::OTfread(std::uint8_t* data, const std::size_t& size)
+std::size_t Data::OTfread(std::uint8_t* data, const std::size_t& readSize)
 {
-    OT_ASSERT(data != nullptr && size > 0);
+    OT_ASSERT(data != nullptr && readSize > 0);
 
     std::size_t sizeToRead = 0;
 
-    if (position_ < GetSize()) {
+    if (position_ < size()) {
         // If the size is 20, and position is 5 (I've already read the first 5
         // bytes) then the size remaining to read is 15. That is, GetSize()
         // minus position_.
-        sizeToRead = GetSize() - position_;
+        sizeToRead = size() - position_;
 
-        if (size < sizeToRead) { sizeToRead = size; }
+        if (readSize < sizeToRead) { sizeToRead = readSize; }
 
-        OTPassword::safe_memcpy(data, size, &data_[position_], sizeToRead);
+        OTPassword::safe_memcpy(data, readSize, &data_[position_], sizeToRead);
         position_ += sizeToRead;
     }
 

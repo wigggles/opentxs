@@ -444,7 +444,7 @@ bool Trezor::ECDH(
 
     const bool havePublic = ecdsa_read_pubkey(
         secp256k1_->params,
-        static_cast<const std::uint8_t*>(publicKey.GetPointer()),
+        static_cast<const std::uint8_t*>(publicKey.data()),
         &point);
 
     if (!havePublic) {
@@ -483,14 +483,14 @@ bool Trezor::ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
     ecdsa_get_public_key33(
         secp256k1_->params,
         privateKey.getMemory_uint8(),
-        static_cast<std::uint8_t*>(const_cast<void*>(publicKey.GetPointer())));
+        static_cast<std::uint8_t*>(const_cast<void*>(publicKey.data())));
 
     curve_point notUsed;
 
     return (
         1 == ecdsa_read_pubkey(
                  secp256k1_->params,
-                 static_cast<const std::uint8_t*>(publicKey.GetPointer()),
+                 static_cast<const std::uint8_t*>(publicKey.data()),
                  &notUsed));
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
@@ -612,9 +612,9 @@ bool Trezor::Sign(
             (0 == ecdsa_sign_digest(
                       secp256k1_->params,
                       static_cast<const std::uint8_t*>(privKey.getMemory()),
-                      static_cast<const std::uint8_t*>(hash->GetPointer()),
+                      static_cast<const std::uint8_t*>(hash->data()),
                       static_cast<std::uint8_t*>(
-                          const_cast<void*>(signature.GetPointer())),
+                          const_cast<void*>(signature.data())),
                       nullptr,
                       nullptr));
 
@@ -662,9 +662,9 @@ bool Trezor::Verify(
     const bool output =
         (0 == ecdsa_verify_digest(
                   secp256k1_->params,
-                  static_cast<const std::uint8_t*>(ecdsaPubkey->GetPointer()),
-                  static_cast<const std::uint8_t*>(signature.GetPointer()),
-                  static_cast<const std::uint8_t*>(hash->GetPointer())));
+                  static_cast<const std::uint8_t*>(ecdsaPubkey->data()),
+                  static_cast<const std::uint8_t*>(signature.data()),
+                  static_cast<const std::uint8_t*>(hash->data())));
 
     return output;
 }

@@ -216,8 +216,7 @@ proto::ServerContract ServerContract::IDVersion(const Lock& lock) const
     }
 
     contract.set_terms(conditions_);
-    contract.set_transportkey(
-        transport_key_->GetPointer(), transport_key_->GetSize());
+    contract.set_transportkey(transport_key_->data(), transport_key_->size());
 
     return contract;
 }

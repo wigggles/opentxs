@@ -106,7 +106,7 @@
 //
 #define OT_VERIFY_OT_ID(OT_ID_OBJECT)                                          \
                                                                                \
-    OT_ASSERT_MSG((!(OT_ID_OBJECT).IsEmpty()), OT_ID_FORMAT(OT_ID_OBJECT))
+    OT_ASSERT_MSG((!(OT_ID_OBJECT).empty()), OT_ID_FORMAT(OT_ID_OBJECT))
 // -------------------------------------------------------
 // Verify that the ID isn't empty, and that it contains
 // a valid Opentxs ID. Otherwise, assert with a message.

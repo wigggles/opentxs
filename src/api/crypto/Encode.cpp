@@ -97,7 +97,7 @@ std::string Encode::DataEncode(const std::string& input) const
 std::string Encode::DataEncode(const Data& input) const
 {
     return Base64Encode(
-        static_cast<const std::uint8_t*>(input.GetPointer()), input.GetSize());
+        static_cast<const std::uint8_t*>(input.data()), input.size());
 }
 
 std::string Encode::DataDecode(const std::string& input) const
@@ -116,7 +116,7 @@ std::string Encode::DataDecode(const std::string& input) const
 std::string Encode::IdentifierEncode(const Data& input) const
 {
     return base58_.Base58CheckEncode(
-        static_cast<const std::uint8_t*>(input.GetPointer()), input.GetSize());
+        static_cast<const std::uint8_t*>(input.data()), input.size());
 }
 
 std::string Encode::IdentifierEncode(const OTPassword& input) const

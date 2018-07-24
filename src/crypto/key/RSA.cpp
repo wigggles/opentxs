@@ -456,15 +456,15 @@ bool RSA::ReEncryptPrivateKey(
                                    // encrypted private key itself, no longer in
                                    // text-armoring.
 
-    if (theData->GetSize() > 0) {
+    if (theData->size() > 0) {
         EVP_PKEY* pClearKey = nullptr;
 
         // Copy the encrypted binary private key data into an OpenSSL memory
         // BIO...
         //
         crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
-            static_cast<char*>(const_cast<void*>(theData->GetPointer())),
-            theData->GetSize());  // theData will zeroMemory upon destruction.
+            static_cast<char*>(const_cast<void*>(theData->data())),
+            theData->size());  // theData will zeroMemory upon destruction.
         OT_ASSERT_MSG(
             nullptr != keyBio,
             "RSA::"
@@ -591,10 +591,10 @@ bool RSA::ReEncryptPrivateKey(
                     //                  void * pv =
                     OTPassword::safe_memcpy(
                         (static_cast<char*>(const_cast<void*>(
-                            theNewData->GetPointer()))),  // destination
-                        theNewData->GetSize(),  // size of destination buffer.
-                        pChar,                  // source
-                        nSize);                 // length of source.
+                            theNewData->data()))),  // destination
+                        theNewData->size(),  // size of destination buffer.
+                        pChar,               // source
+                        nSize);              // length of source.
                     // bool bZeroSource=false); // if true, sets the source
                     // buffer to zero after copying is done.
 
@@ -785,7 +785,7 @@ std::shared_ptr<proto::AsymmetricKey> RSA::Serialize() const
         serializedKey->set_mode(proto::KEYMODE_PUBLIC);
     }
 
-    serializedKey->set_key(dataKey->GetPointer(), dataKey->GetSize());
+    serializedKey->set_key(dataKey->data(), dataKey->size());
 
     return serializedKey;
 }
@@ -805,7 +805,7 @@ bool RSA::TransportKey(
 
     OT::App().Crypto().Hash().Digest(StandardHash, key, hash);
     OTPassword seed;
-    seed.setMemory(hash->GetPointer(), hash->GetSize());
+    seed.setMemory(hash->data(), hash->size());
     const crypto::EcdsaProvider& engine =
         dynamic_cast<const crypto::Sodium&>(OT::App().Crypto().ED25519());
 

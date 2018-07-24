@@ -137,7 +137,7 @@ bool Secp256k1::Sign(
         bool signatureCreated = secp256k1_ecdsa_sign(
             context_,
             &ecdsaSignature,
-            reinterpret_cast<const unsigned char*>(hash->GetPointer()),
+            reinterpret_cast<const unsigned char*>(hash->data()),
             reinterpret_cast<const unsigned char*>(privKey.getMemory()),
             nullptr,
             nullptr);
@@ -197,7 +197,7 @@ bool Secp256k1::Verify(
     return secp256k1_ecdsa_verify(
         context_,
         &ecdsaSignature,
-        reinterpret_cast<const unsigned char*>(hash->GetPointer()),
+        reinterpret_cast<const unsigned char*>(hash->data()),
         &point);
 }
 
@@ -206,14 +206,14 @@ bool Secp256k1::DataToECSignature(
     secp256k1_ecdsa_signature& outSignature) const
 {
     const std::uint8_t* sigStart =
-        static_cast<const std::uint8_t*>(inSignature.GetPointer());
+        static_cast<const std::uint8_t*>(inSignature.data());
 
     if (nullptr != sigStart) {
 
-        if (sizeof(secp256k1_ecdsa_signature) == inSignature.GetSize()) {
+        if (sizeof(secp256k1_ecdsa_signature) == inSignature.size()) {
             secp256k1_ecdsa_signature ecdsaSignature;
 
-            for (std::uint32_t i = 0; i < inSignature.GetSize(); i++) {
+            for (std::uint32_t i = 0; i < inSignature.size(); i++) {
                 ecdsaSignature.data[i] = *(sigStart + i);
             }
 
@@ -259,8 +259,8 @@ bool Secp256k1::ParsePublicKey(const Data& input, secp256k1_pubkey& output)
     return secp256k1_ec_pubkey_parse(
         context_,
         &output,
-        reinterpret_cast<const unsigned char*>(input.GetPointer()),
-        input.GetSize());
+        reinterpret_cast<const unsigned char*>(input.data()),
+        input.size());
 }
 
 bool Secp256k1::ScalarBaseMultiply(

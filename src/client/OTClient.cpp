@@ -5691,8 +5691,8 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
-        thePayload->GetSize());
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
 
     std::unique_ptr<OTDB::MarketList> pMarketList(
         dynamic_cast<OTDB::MarketList*>(
@@ -5771,8 +5771,8 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
-        thePayload->GetSize());
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
 
     std::unique_ptr<OTDB::OfferListMarket> pOfferList(
         dynamic_cast<OTDB::OfferListMarket*>(
@@ -5852,8 +5852,8 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
-        thePayload->GetSize());
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
 
     std::unique_ptr<OTDB::TradeListMarket> pTradeList(
         dynamic_cast<OTDB::TradeListMarket*>(
@@ -5928,8 +5928,8 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     OT_ASSERT(nullptr != pBuffer);
 
     pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->GetPointer()),
-        thePayload->GetSize());
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
 
     std::unique_ptr<OTDB::OfferListNym> pOfferList(
         dynamic_cast<OTDB::OfferListNym*>(

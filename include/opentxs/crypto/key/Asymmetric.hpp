@@ -105,9 +105,7 @@ public:
             pPWData,
             nullptr);
 
-        if (goodSig) {
-            signature.set_signature(sig->GetPointer(), sig->GetSize());
-        }
+        if (goodSig) { signature.set_signature(sig->data(), sig->size()); }
 
         return goodSig;
     }

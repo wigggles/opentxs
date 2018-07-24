@@ -93,9 +93,7 @@ bool StorageSqlite3::EmptyBucket(const bool bucket) const
 
 std::string StorageSqlite3::expand_sql(sqlite3_stmt* statement) const
 {
-    const auto* raw = sqlite3_expanded_sql(statement);
-    const std::string output{raw};
-    sqlite3_free(raw);
+    const std::string output{sqlite3_expanded_sql(statement)};
 
     return output;
 }

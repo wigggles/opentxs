@@ -855,10 +855,10 @@ std::int32_t OTPassword::addMemory(
 
 std::int32_t OTPassword::setMemory(const Data& data)
 {
-    const std::uint32_t dataSize = data.GetSize();
+    const std::uint32_t dataSize = data.size();
     std::uint32_t returnedSize = dataSize;
 
-    bool memorySet = setMemory(data.GetPointer(), returnedSize);
+    bool memorySet = setMemory(data.data(), returnedSize);
     // TODO maybe we should check for truncation?
     return memorySet;
 }

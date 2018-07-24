@@ -166,9 +166,9 @@ bool OTEnvelope::Encrypt(
     //
     std::uint32_t ivlen =
         CryptoConfig::SymmetricIvSize();  // Length of IV for this cipher...
-    OT_ASSERT(ivlen >= theIV->GetSize());
-    std::uint32_t ivlen_n = htonl(
-        theIV->GetSize());  // Calculate "network-order" version of iv length.
+    OT_ASSERT(ivlen >= theIV->size());
+    std::uint32_t ivlen_n = htonl(theIV->size());  // Calculate "network-order"
+                                                   // version of iv length.
 
     ciphertext_->Concatenate(
         reinterpret_cast<void*>(&ivlen_n),
@@ -176,11 +176,10 @@ bool OTEnvelope::Encrypt(
 
     // Write the IV itself.
     //
-    ciphertext_->Concatenate(theIV->GetPointer(), theIV->GetSize());
+    ciphertext_->Concatenate(theIV->data(), theIV->size());
     // Write the Ciphertext.
     //
-    ciphertext_->Concatenate(
-        theCipherText->GetPointer(), theCipherText->GetSize());
+    ciphertext_->Concatenate(theCipherText->data(), theCipherText->size());
 
     // We don't write the size of the ciphertext before the ciphertext itself,
     // since the decryption is able to deduce the size based on the total
@@ -296,10 +295,9 @@ bool OTEnvelope::Decrypt(
     auto theIV = Data::Factory();
     theIV->SetSize(iv_size_host_order);
 
-    if (0 ==
-        (nRead = ciphertext_->OTfread(
-             static_cast<std::uint8_t*>(const_cast<void*>(theIV->GetPointer())),
-             static_cast<std::uint32_t>(iv_size_host_order)))) {
+    if (0 == (nRead = ciphertext_->OTfread(
+                  static_cast<std::uint8_t*>(const_cast<void*>(theIV->data())),
+                  static_cast<std::uint32_t>(iv_size_host_order)))) {
         otErr << szFunc << ": Error reading initialization vector.\n";
         return false;
     }
@@ -317,9 +315,9 @@ bool OTEnvelope::Decrypt(
     //
     auto theCipherText = Data::Factory(
         static_cast<const void*>(
-            static_cast<const std::uint8_t*>(ciphertext_->GetPointer()) +
+            static_cast<const std::uint8_t*>(ciphertext_->data()) +
             nRunningTotal),
-        ciphertext_->GetSize() - nRunningTotal);
+        ciphertext_->size() - nRunningTotal);
 
     // Now we've got all the pieces together, let's try to decrypt it...
     //
@@ -328,9 +326,9 @@ bool OTEnvelope::Decrypt(
 
     const bool bDecrypted = OT::App().Crypto().AES().Decrypt(
         theRawSymmetricKey,  // The symmetric key, in clear form.
-        static_cast<const char*>(theCipherText->GetPointer()),  // This is the
-                                                                // Ciphertext.
-        theCipherText->GetSize(),
+        static_cast<const char*>(theCipherText->data()),  // This is the
+                                                          // Ciphertext.
+        theCipherText->size(),
         theIV,
         plaintext);  // OUTPUT. (Recovered plaintext.) You can pass
                      // OTPassword& OR Data& here (either will
@@ -344,13 +342,13 @@ bool OTEnvelope::Decrypt(
 
         // Make sure it's null-terminated...
         //
-        std::uint32_t nIndex = thePlaintext->GetSize() - 1;
+        std::uint32_t nIndex = thePlaintext->size() - 1;
         (static_cast<std::uint8_t*>(
-            const_cast<void*>(thePlaintext->GetPointer())))[nIndex] = '\0';
+            const_cast<void*>(thePlaintext->data())))[nIndex] = '\0';
 
         // Set it into theOutput (to return the plaintext to the caller)
         //
-        theOutput.Set(static_cast<const char*>(thePlaintext->GetPointer()));
+        theOutput.Set(static_cast<const char*>(thePlaintext->data()));
     }
 
     return bDecrypted;

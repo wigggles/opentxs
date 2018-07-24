@@ -84,8 +84,7 @@ T TextToProto(const std::string& input)
 template <class T>
 T DataToProto(const Data& input)
 {
-    return RawToProto<T>(
-        static_cast<const char*>(input.GetPointer()), input.GetSize());
+    return RawToProto<T>(static_cast<const char*>(input.data()), input.size());
 }
 
 template <class T>
