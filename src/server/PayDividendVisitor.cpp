@@ -184,7 +184,7 @@ bool PayDividendVisitor::Trigger(
                 theNotaryID,
                 theServerNymID,  // sender nym
                 RECIPIENT_ID,    // recipient nym
-                &thePayment,
+                thePayment,
                 "payDividend");    // todo: hardcoding.
             bReturnValue = bSent;  // <======= RETURN VALUE.
             if (bSent)
@@ -249,7 +249,7 @@ bool PayDividendVisitor::Trigger(
                     theNotaryID,
                     theServerNymID,  // sender nym
                     theSenderNymID,  // recipient nym (original sender.)
-                    &theReturnPayment,
+                    theReturnPayment,
                     "payDividend");  // todo: hardcoding.
                 if (bSent)
                     m_lAmountReturned +=

@@ -132,7 +132,7 @@ Contact& Contact::operator+=(Contact& rhs)
         const auto& id = it.first;
         const auto& nym = it.second;
 
-        if (0 == nyms_.count(id)) { nyms_[id] = nym; }
+        if (0 == nyms_.count(id)) { nyms_.emplace(id, nym); }
     }
 
     rhs.nyms_.clear();

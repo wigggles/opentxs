@@ -58,7 +58,7 @@ namespace opentxs
 bool Letter::AddRSARecipients(
     [[maybe_unused]] const mapOfAsymmetricKeys& recipients,
     [[maybe_unused]] const crypto::key::Symmetric& sessionKey,
-    [[maybe_unused]] proto::Envelope envelope)
+    [[maybe_unused]] proto::Envelope& envelope)
 {
 #if OT_CRYPTO_SUPPORTED_KEY_RSA
 #if OT_CRYPTO_USING_OPENSSL

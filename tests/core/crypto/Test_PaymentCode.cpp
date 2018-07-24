@@ -50,14 +50,14 @@ public:
               "PaycodeNym_3",
               fingerprint,
               3))
-        , nymData_0(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_0)))
-        , nymData_1(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_1)))
-        , nymData_2(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_2)))
-        , nymData_3(
-              opentxs::OT::App().Wallet().mutable_Nym(Identifier::Factory(nymID_3)))
+        , nymData_0(opentxs::OT::App().Wallet().mutable_Nym(
+              Identifier::Factory(nymID_0)))
+        , nymData_1(opentxs::OT::App().Wallet().mutable_Nym(
+              Identifier::Factory(nymID_1)))
+        , nymData_2(opentxs::OT::App().Wallet().mutable_Nym(
+              Identifier::Factory(nymID_2)))
+        , nymData_3(opentxs::OT::App().Wallet().mutable_Nym(
+              Identifier::Factory(nymID_3)))
         , paycode_0(
               "PM8TJhB2CxWDqR8c5y4kWoJwSGRNYaVATdJM85kqfn2dZ9TdSihbFJraQzjYUMYx"
               "bsrnMfjPK6oZFAPQ1tWqzwTfKbtunvLFCzDJFVXVGbUAKxhsz7P5")
@@ -219,15 +219,15 @@ TEST_F(Test_PaymentCode, paycode_derivation_matches_nymidsource)
     ASSERT_STREQ(paycode_2.c_str(), nym_2_paycode->asBase58().c_str());
     ASSERT_STREQ(paycode_3.c_str(), nym_3_paycode->asBase58().c_str());
 
-    auto idsource_0 = new NymIDSource(nym_0_paycode);
-    auto idsource_1 = new NymIDSource(nym_1_paycode);
-    auto idsource_2 = new NymIDSource(nym_2_paycode);
-    auto idsource_3 = new NymIDSource(nym_3_paycode);
+    NymIDSource idsource_0(nym_0_paycode);
+    NymIDSource idsource_1(nym_1_paycode);
+    NymIDSource idsource_2(nym_2_paycode);
+    NymIDSource idsource_3(nym_3_paycode);
 
-    ASSERT_STREQ(nymID_0.c_str(), String(idsource_0->NymID()).Get());
-    ASSERT_STREQ(nymID_1.c_str(), String(idsource_1->NymID()).Get());
-    ASSERT_STREQ(nymID_2.c_str(), String(idsource_2->NymID()).Get());
-    ASSERT_STREQ(nymID_3.c_str(), String(idsource_3->NymID()).Get());
+    ASSERT_STREQ(nymID_0.c_str(), idsource_0.NymID()->str().c_str());
+    ASSERT_STREQ(nymID_1.c_str(), idsource_1.NymID()->str().c_str());
+    ASSERT_STREQ(nymID_2.c_str(), idsource_2.NymID()->str().c_str());
+    ASSERT_STREQ(nymID_3.c_str(), idsource_3.NymID()->str().c_str());
 }
 
 /* Test: Factory methods create the same paycode
@@ -259,7 +259,8 @@ TEST_F(Test_PaymentCode, factory)
 
     // Factory 3: std:
     proto::HDPath path;
-    const ConstNym nym = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
+    const ConstNym nym =
+        opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
     EXPECT_TRUE(nym.get()->Path(path));
     std::string fingerprint = path.root();
 
@@ -284,7 +285,8 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
     std::uint8_t bitmessage_version = 0;
     std::uint8_t bitmessage_stream = 0;
 
-    const ConstNym nym = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
+    const ConstNym nym =
+        opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
     proto::HDPath path;
     EXPECT_TRUE(nym.get()->Path(path));
 
@@ -299,21 +301,19 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
  */
 TEST_F(Test_PaymentCode, two_nyms)
 {
-    const ConstNym nym_0 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
-    const ConstNym nym_1 = opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_1));
+    const ConstNym nym_0 =
+        opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_0));
+    const ConstNym nym_1 =
+        opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_1));
 
-    auto idsource_0 = new NymIDSource(PaymentCode::Factory(paycode_0));
-    auto idsource_1 = new NymIDSource(PaymentCode::Factory(paycode_1));
+    NymIDSource idsource_0(PaymentCode::Factory(paycode_0));
+    NymIDSource idsource_1(PaymentCode::Factory(paycode_1));
 
-    ASSERT_TRUE(bool(idsource_0));
-    ASSERT_TRUE(bool(idsource_1));
+    ASSERT_STREQ(nym_0->ID().str().c_str(), idsource_0.NymID()->str().c_str());
+    ASSERT_STREQ(nym_1->ID().str().c_str(), idsource_1.NymID()->str().c_str());
 
-    ASSERT_STREQ(nym_0->ID().str().c_str(), String(idsource_0->NymID()).Get());
-    ASSERT_STREQ(nym_1->ID().str().c_str(), String(idsource_1->NymID()).Get());
-
-    ASSERT_STRNE(String(idsource_0->NymID()).Get(), "");
-    ASSERT_STRNE(String(idsource_1->NymID()).Get(), "");
+    ASSERT_STRNE(idsource_0.NymID()->str().c_str(), "");
+    ASSERT_STRNE(idsource_1.NymID()->str().c_str(), "");
 }
-
 }  // namespace
 #endif

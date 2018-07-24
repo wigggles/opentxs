@@ -67,9 +67,11 @@ ContactData ContactData::operator+(const ContactData& rhs) const
 
             OT_ASSERT(section);
         } else {
-            map[rhsID] = rhsSection;
+            const auto [it, inserted] = map.emplace(rhsID, rhsSection);
 
-            OT_ASSERT(map[rhsID]);
+            OT_ASSERT(inserted);
+
+            [[maybe_unused]] const auto& notUsed = it;
         }
     }
 
@@ -375,6 +377,16 @@ ContactData ContactData::AddSocialMediaProfile(
             if (group) { needPrimary = group->Primary().empty(); }
         }
 
+        attrib.clear();
+
+        if (active || primary || needPrimary) {
+            attrib.emplace(proto::CITEMATTR_ACTIVE);
+        }
+
+        if (primary || needPrimary) {
+            attrib.emplace(proto::CITEMATTR_PRIMARY);
+        }
+
         item = std::make_shared<ContactItem>(
             nym_,
             version,
@@ -413,6 +425,16 @@ ContactData ContactData::AddSocialMediaProfile(
             auto group = identifierSection->Group(type);
 
             if (group) { needPrimary = group->Primary().empty(); }
+        }
+
+        attrib.clear();
+
+        if (active || primary || needPrimary) {
+            attrib.emplace(proto::CITEMATTR_ACTIVE);
+        }
+
+        if (primary || needPrimary) {
+            attrib.emplace(proto::CITEMATTR_PRIMARY);
         }
 
         item = std::make_shared<ContactItem>(

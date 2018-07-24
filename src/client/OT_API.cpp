@@ -9143,7 +9143,8 @@ CommandResult OT_API::withdrawVoucher(
         accountID,
         nymID,
         strChequeMemo,
-        *((strRecipientNymID.GetLength() > 2) ? &(RECIPIENT_NYM_ID) : nullptr));
+        (strRecipientNymID.GetLength() > 2) ? RECIPIENT_NYM_ID
+                                            : Identifier::Factory().get());
     std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
     std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 

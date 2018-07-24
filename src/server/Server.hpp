@@ -67,7 +67,7 @@ public:
         const Identifier& notaryID,
         const Identifier& senderNymID,
         const Identifier& recipientNymID,
-        const OTPayment* payment,
+        const OTPayment& payment,
         const char* command);
     String& WalletFilename() { return m_strWalletFilename; }
 

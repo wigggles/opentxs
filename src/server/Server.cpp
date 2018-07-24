@@ -593,30 +593,29 @@ bool Server::LoadServerNym(const Identifier& nymID)
 }
 
 // msg, the request msg from payer, which is attached WHOLE to the Nymbox
-// receipt. contains payment already.
-// or pass pPayment instead: we will create our own msg here (with payment
-// inside) to be attached to the receipt.
+// receipt. contains payment already. or pass pPayment instead: we will create
+// our own msg here (with payment inside) to be attached to the receipt.
 // szCommand for passing payDividend (as the message command instead of
 // sendNymInstrument, the default.)
 bool Server::SendInstrumentToNym(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
-    const OTPayment* pPayment,
+    const OTPayment& pPayment,
     const char* szCommand)
 {
-    OT_ASSERT(nullptr == pPayment);
-    OT_ASSERT(pPayment->IsValid());
+    OT_ASSERT(pPayment.IsValid());
+
     // If a payment was passed in (for us to use it to construct pMsg, which is
     // nullptr in the case where payment isn't nullptr)
     // Then we grab it in string form, so we can pass it on...
     String strPayment;
-    if (nullptr != pPayment) {
-        const bool bGotPaymentContents =
-            pPayment->GetPaymentContents(strPayment);
-        if (!bGotPaymentContents)
-            Log::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
+    const bool bGotPaymentContents = pPayment.GetPaymentContents(strPayment);
+
+    if (!bGotPaymentContents) {
+        Log::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
     }
+
     const bool bDropped = DropMessageToNymbox(
         NOTARY_ID,
         SENDER_NYM_ID,

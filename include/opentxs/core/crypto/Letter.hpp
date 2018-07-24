@@ -36,7 +36,7 @@ private:
     static bool AddRSARecipients(
         const mapOfAsymmetricKeys& recipients,
         const crypto::key::Symmetric& sessionKey,
-        proto::Envelope envelope);
+        proto::Envelope& envelope);
     static bool DefaultPassword(OTPasswordData& password);
     static bool SortRecipients(
         const mapOfAsymmetricKeys& recipients,
