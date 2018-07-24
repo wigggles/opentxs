@@ -45,7 +45,7 @@ std::string StorageSqlite3::bind_key(
     sqlite3_stmt* statement{nullptr};
     sqlite3_prepare_v2(db_, source.c_str(), -1, &statement, nullptr);
     sqlite3_bind_text(statement, start, key.c_str(), key.size(), SQLITE_STATIC);
-    const std::string output = sqlite3_expanded_sql(statement);
+    const auto output = expand_sql(statement);
     sqlite3_finalize(statement);
 
     return output;
@@ -89,6 +89,15 @@ bool StorageSqlite3::Create(const std::string& tablename) const
 bool StorageSqlite3::EmptyBucket(const bool bucket) const
 {
     return Purge(GetTableName(bucket));
+}
+
+std::string StorageSqlite3::expand_sql(sqlite3_stmt* statement) const
+{
+    const auto* raw = sqlite3_expanded_sql(statement);
+    const std::string output{raw};
+    sqlite3_free(raw);
+
+    return output;
 }
 
 std::string StorageSqlite3::GetTableName(const bool bucket) const
@@ -237,7 +246,7 @@ void StorageSqlite3::set_data(std::stringstream& sql) const
         OT_ASSERT(SQLITE_OK == bound);
     }
 
-    sql << sqlite3_expanded_sql(data) << " ";
+    sql << expand_sql(data) << " ";
     sqlite3_finalize(data);
 }
 
@@ -264,7 +273,7 @@ void StorageSqlite3::set_root(
 
     OT_ASSERT(SQLITE_OK == bound)
 
-    sql << sqlite3_expanded_sql(root) << " ";
+    sql << expand_sql(root) << " ";
     sqlite3_finalize(root);
 }
 
@@ -316,7 +325,7 @@ bool StorageSqlite3::Upsert(
     sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
     sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
     sqlite3_bind_blob(statement, 2, value.c_str(), value.size(), SQLITE_STATIC);
-    otInfo << sqlite3_expanded_sql(statement) << std::endl;
+    otInfo << expand_sql(statement) << std::endl;
     const auto result = sqlite3_step(statement);
     sqlite3_finalize(statement);
 

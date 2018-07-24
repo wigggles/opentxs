@@ -64,6 +64,7 @@ private:
     void commit(std::stringstream& sql) const;
     bool commit_transaction(const std::string& rootHash) const;
     bool Create(const std::string& tablename) const;
+    std::string expand_sql(sqlite3_stmt* statement) const;
     std::string GetTableName(const bool bucket) const;
     bool Select(
         const std::string& key,
