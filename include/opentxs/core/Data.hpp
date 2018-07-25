@@ -35,7 +35,7 @@
 %rename(dataCompareNotEqual) opentxs::Data::operator!=(const Data& rhs) const;
 %rename(dataPlusEqual) opentxs::Data::operator+=(const Data& rhs);
 %rename(assign) operator=(const opentxs::Data&);
-%rename (DataFactory) Factory;
+%rename (DataFactory) opentxs::Data::Factory;
 %template(OTData) opentxs::Pimpl<opentxs::Data>;
 // clang-format on
 #endif  // SWIG
