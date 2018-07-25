@@ -24,7 +24,7 @@
 %rename(identifierCompareLessThan) opentxs::Identifier::operator<(const Identifier& rhs) const;
 %rename(identifierCompareGreaterOrEqual) opentxs::Identifier::operator>=(const Identifier& rhs) const;
 %rename(identifierCompareLessOrEqual) opentxs::Identifier::operator<=(const Identifier& rhs) const;
-%rename (IdentifierFactory) Factory;
+%rename (IdentifierFactory) opentxs::Identifier::Factory;
 %template(OTIdentifier) opentxs::Pimpl<opentxs::Identifier>;
 // clang-format on
 #endif
