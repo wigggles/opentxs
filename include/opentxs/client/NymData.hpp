@@ -173,7 +173,7 @@ public:
         const bool primary,
         const bool active) const;
     std::string Name() const;
-    const class Nym& Nym() const;
+    const opentxs::Nym& Nym() const;
     std::string PaymentCode(const proto::ContactItemType currency) const;
     std::string PhoneNumbers(bool active = true) const;
     std::string PreferredOTServer() const;
@@ -227,7 +227,7 @@ public:
     ~NymData();
 
 private:
-    friend class api::client::implementation::Wallet;
+    friend api::client::implementation::Wallet;
 
     typedef std::unique_lock<std::mutex> Lock;
     typedef std::function<void(NymData*, Lock&)> LockedSave;
@@ -235,15 +235,16 @@ private:
     std::unique_ptr<Lock> object_lock_;
     std::unique_ptr<LockedSave> locked_save_callback_;
 
-    std::shared_ptr<class Nym> nym_;
+    std::shared_ptr<opentxs::Nym> nym_;
 
     const ContactData& data() const;
 
-    class Nym& nym();
+    const opentxs::Nym& nym() const;
+    opentxs::Nym& nym();
 
     NymData(
         std::mutex& objectMutex,
-        const std::shared_ptr<class Nym>& nym,
+        const std::shared_ptr<opentxs::Nym>& nym,
         LockedSave save);
     NymData() = delete;
     NymData& operator=(const NymData&) = delete;
