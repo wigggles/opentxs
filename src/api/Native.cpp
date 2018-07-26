@@ -582,14 +582,14 @@ void Native::Init()
     Init_Config();
     Init_Log();  // requires Init_Config()
     Init_Crypto();
-    Init_Storage();    // requires Init_Config(), Init_Crypto()
-    Init_ZMQ();        // requires Init_Config()
-    Init_Contracts();  // requires Init_ZMQ()
-    Init_Dht();        // requires Init_Config()
-    Init_Identity();   // requires Init_Contracts()
-    Init_Contacts();   // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
-    Init_Activity();   // requires Init_Storage(), Init_Contacts(),
-                       // Init_Contracts()
+    Init_Storage();  // requires Init_Config(), Init_Crypto()
+    Init_ZMQ();      // requires Init_Config()
+    Init_Contracts();
+    Init_Dht();       // requires Init_Config()
+    Init_Identity();  // requires Init_Contracts()
+    Init_Contacts();  // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
+    Init_Activity();  // requires Init_Storage(), Init_Contacts(),
+                      // Init_Contracts()
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
                         // Init_Contracts(), Init_Activity()
@@ -695,9 +695,7 @@ void Native::Init_Contacts()
 
 void Native::Init_Contracts()
 {
-    OT_ASSERT(zeromq_)
-
-    wallet_.reset(Factory::Wallet(*this, zeromq_->Context()));
+    wallet_.reset(Factory::Wallet(*this, zmq_context_));
 }
 
 void Native::Init_Crypto() { crypto_.reset(Factory::Crypto(*this)); }

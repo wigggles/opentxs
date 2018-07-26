@@ -42,7 +42,12 @@ Context::Context()
     OT_ASSERT(1 == zmq_has("curve"));
 }
 
-Context::operator void*() const { return context_; }
+Context::operator void*() const
+{
+    OT_ASSERT(nullptr != context_)
+
+    return context_;
+}
 
 Context* Context::clone() const { return new Context; }
 
