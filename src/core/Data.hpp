@@ -28,7 +28,6 @@ public:
     {
         return const_iterator(this, data_.size());
     }
-    Data* clone() const override { return new Data(*this); }
     bool empty() const override { return data_.empty(); }
     const void* data() const override { return data_.data(); }
     const_iterator end() const override
@@ -61,27 +60,33 @@ public:
     virtual ~Data() = default;
 
 protected:
+    using Vector = std::vector<std::uint8_t>;
+
+    Vector data_{};
+    std::size_t position_{0};
+
     void Initialize();
-    void swap(Data& rhs);
 
     Data() = default;
     explicit Data(const void* data, std::size_t size);
     explicit Data(const Armored& source);
     explicit Data(const std::vector<unsigned char>& sourceVector);
-    Data(const Data& rhs);
-    Data(Data&& rhs);
-    Data& operator=(const Data& rhs);
-    Data& operator=(Data&& rhs);
+    explicit Data(const Vector& rhs, const std::size_t size);
 
 private:
     friend opentxs::Data;
 
-    typedef std::vector<std::uint8_t> Vector;
-
-    Vector data_{};
-    std::size_t position_{};
+    Data* clone() const override
+    {
+        return new Data(this->data_, this->position_);
+    }
 
     void concatenate(const Vector& data);
+
+    Data(const Data& rhs) = delete;
+    Data(Data&& rhs) = delete;
+    Data& operator=(const Data& rhs) = delete;
+    Data& operator=(Data&& rhs) = delete;
 };
 }  // namespace opentxs::implementation
 #endif  // IMPLEMENTATION_OPENTXS_CORE_DATA_HPP

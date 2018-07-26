@@ -143,14 +143,6 @@ Identifier::Identifier()
 {
 }
 
-Identifier::Identifier(const Identifier& rhs)
-    : opentxs::Data()
-    , opentxs::Identifier()
-    , ot_super(rhs)
-    , type_(rhs.Type())
-{
-}
-
 Identifier::Identifier(const std::string& theStr)
     : ot_super()
 {
@@ -196,6 +188,15 @@ Identifier::Identifier(const OTCachedKey& theKey)
     // tried to do this, and figure out where its logic
     // went wrong, since it should have made sure this
     // would not happen, before constructing like this.)
+}
+
+Identifier::Identifier(
+    const Vector& data,
+    const std::size_t size,
+    const ID type)
+    : ot_super(data, size)
+    , type_(type)
+{
 }
 
 Identifier::Identifier(
@@ -256,6 +257,11 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
 
     return OT::App().Crypto().Hash().Digest(
         IDToHashType(type_), dataInput, *this);
+}
+
+Identifier* Identifier::clone() const
+{
+    return new Identifier(data_, position_, type_);
 }
 
 // This Identifier is stored in binary form.
@@ -367,9 +373,7 @@ std::string Identifier::str() const
 void Identifier::swap(opentxs::Identifier& rhs)
 {
     auto& input = dynamic_cast<Identifier&>(rhs);
-    ot_super::swap(input);
-    const auto type{type_};
-    type_ = input.type_;
-    input.type_ = type;
+    ot_super::swap(std::move(input));
+    std::swap(type_, input.type_);
 }
 }  // namespace opentxs::implementation
