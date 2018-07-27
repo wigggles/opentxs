@@ -50,6 +50,8 @@ extern "C" {
 
 #define OT_METHOD "opentxs::Crypto::"
 
+template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
+
 namespace opentxs
 {
 api::Crypto* Factory::Crypto(const api::Native& native)

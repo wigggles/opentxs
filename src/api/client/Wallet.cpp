@@ -53,6 +53,7 @@
 
 template class opentxs::Exclusive<opentxs::Account>;
 template class opentxs::Shared<opentxs::Account>;
+template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 
 #define OT_METHOD "opentxs::api::client::implementation::Wallet::"
 

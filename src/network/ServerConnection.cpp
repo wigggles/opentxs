@@ -39,6 +39,7 @@
 #include "ServerConnection.hpp"
 
 template class opentxs::Pimpl<opentxs::network::ServerConnection>;
+template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
 
 #define OT_METHOD "opentxs::ServerConnection::"
 

@@ -33,6 +33,9 @@
 
 #define OT_METHOD "opentxs::MessageProcessor::"
 
+template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
+template class opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
+
 namespace opentxs::server
 {
 
