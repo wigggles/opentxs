@@ -230,6 +230,15 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   endif()
 endif()
 
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address -Wformat -Werror=format-security -Werror=array-bounds -fno-optimize-sibling-calls -fno-omit-frame-pointer")
+  set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -fsanitize=undefined,address")
+  if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=gold")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -fuse-ld=gold")
+  endif() #GNU LINKER
+endif() # DEBUG
+
 if(BUILD_SHARED_LIBS)
   # Windows would complain about unknown flag -fPIC
   if(NOT WIN32)
