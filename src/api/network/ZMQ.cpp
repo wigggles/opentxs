@@ -22,6 +22,8 @@
 
 #define OT_METHOD "opentxs::api::ZMQ::"
 
+template class opentxs::Pimpl<opentxs::network::ServerConnection>;
+
 namespace opentxs::api::network::implementation
 {
 

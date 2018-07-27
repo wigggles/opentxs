@@ -27,6 +27,8 @@
 
 #define OT_METHOD "opentxs::api::implementation::Activity::"
 
+template class opentxs::Pimpl<opentxs::PaymentCode>;
+
 namespace opentxs::api::implementation
 {
 Activity::Activity(

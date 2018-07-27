@@ -50,6 +50,8 @@
 
 #define OT_METHOD "opentxs::api::client::implementation::Pair::"
 
+template class opentxs::Pimpl<opentxs::network::zeromq::PublishSocket>;
+
 namespace opentxs
 {
 api::client::Pair* Factory::Pair(
