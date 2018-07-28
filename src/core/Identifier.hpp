@@ -48,7 +48,7 @@ private:
 
     ID type_{DefaultType};
 
-    Identifier* clone() const override { return new Identifier(*this); }
+    Identifier* clone() const override;
 
     static proto::HashType IDToHashType(const ID type);
     static OTData path_to_data(
@@ -61,9 +61,13 @@ private:
     explicit Identifier(const Contract& contract);
     explicit Identifier(const crypto::key::LegacySymmetric& key);
     explicit Identifier(const OTCachedKey& key);
+    explicit Identifier(
+        const Vector& data,
+        const std::size_t size,
+        const ID type);
     Identifier(const proto::ContactItemType type, const proto::HDPath& path);
     Identifier();
-    Identifier(const Identifier& rhs);
+    Identifier(const Identifier& rhs) = delete;
     Identifier(Identifier&& rhs) = delete;
     Identifier& operator=(const Identifier& rhs) = delete;
     Identifier& operator=(Identifier&& rhs) = delete;

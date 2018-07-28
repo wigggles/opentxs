@@ -50,8 +50,8 @@ ContactData ContactData::operator+(const ContactData& rhs) const
     auto map{sections_};
 
     for (auto& it : rhs.sections_) {
-        auto& rhsID = it.first;
-        auto& rhsSection = it.second;
+        const auto& rhsID = it.first;
+        const auto& rhsSection = it.second;
 
         OT_ASSERT(rhsSection);
 
@@ -626,7 +626,7 @@ ContactData::SectionMap ContactData::extract_sections(
     SectionMap sectionMap{};
 
     for (const auto it : serialized.section()) {
-        if (0 != it.version()) {
+        if ((0 != it.version()) && (it.item_size() > 0)) {
             sectionMap[it.name()].reset(new ContactSection(
                 nym, check_version(serialized.version(), targetVersion), it));
         }

@@ -72,32 +72,10 @@ Data::Data(const std::vector<unsigned char>& sourceVector)
     Assign(sourceVector.data(), sourceVector.size());
 }
 
-Data::Data(const Data& rhs)
-    : opentxs::Data()
-    , position_(rhs.position_)
+Data::Data(const Vector& rhs, const std::size_t size)
+    : data_{rhs}
+    , position_{size}
 {
-    Assign(rhs);
-}
-
-Data::Data(Data&& rhs)
-{
-    data_.swap(rhs.data_);
-    position_ = rhs.position_;
-    rhs.position_ = 0;
-}
-
-Data& Data::operator=(const Data& rhs)
-{
-    Assign(rhs);
-
-    return *this;
-}
-
-Data& Data::operator=(Data&& rhs)
-{
-    swap(rhs);
-
-    return *this;
 }
 
 bool Data::operator==(const opentxs::Data& rhs) const
@@ -220,13 +198,12 @@ void Data::SetSize(const std::size_t& size)
     if (size > 0) { data_.assign(size, 0); }
 }
 
-void Data::swap(Data& rhs)
+void Data::swap(opentxs::Data&& rhs)
 {
-    std::swap(data_, rhs.data_);
-    std::swap(position_, rhs.position_);
+    auto& in = dynamic_cast<Data&>(rhs);
+    std::swap(data_, in.data_);
+    std::swap(position_, in.position_);
 }
-
-void Data::swap(opentxs::Data&& rhs) { swap(dynamic_cast<Data&>(rhs)); }
 
 void Data::zeroMemory()
 {

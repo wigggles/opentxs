@@ -138,31 +138,26 @@ bool NymData::AddSocialMediaProfile(
 
 const serializedCredentialIndex NymData::asPublicNym() const
 {
-    return nym_->asPublicNym();
+    return nym().asPublicNym();
 }
 
-std::string NymData::BestEmail() const { return Nym().BestEmail(); }
+std::string NymData::BestEmail() const { return nym().BestEmail(); }
 
-std::string NymData::BestPhoneNumber() const { return Nym().BestPhoneNumber(); }
+std::string NymData::BestPhoneNumber() const { return nym().BestPhoneNumber(); }
 
 std::string NymData::BestSocialMediaProfile(
     const proto::ContactItemType type) const
 {
-    return Nym().BestSocialMediaProfile(type);
+    return nym().BestSocialMediaProfile(type);
 }
 
-const class ContactData& NymData::Claims() const { return nym_->Claims(); }
+const class ContactData& NymData::Claims() const { return nym().Claims(); }
 
-const ContactData& NymData::data() const
-{
-    OT_ASSERT(nym_);
-
-    return nym_->Claims();
-}
+const ContactData& NymData::data() const { return nym().Claims(); }
 
 std::string NymData::EmailAddresses(bool active) const
 {
-    return Nym().EmailAddresses(active);
+    return nym().EmailAddresses(active);
 }
 
 bool NymData::HaveContract(
@@ -173,11 +168,11 @@ bool NymData::HaveContract(
 {
     OT_ASSERT(nym_);
 
-    const auto contracts = nym_->Contracts(currency, active);
+    const auto contracts = nym().Contracts(currency, active);
 
     if (0 == contracts.size()) { return false; }
 
-    const auto& data = nym_->Claims();
+    const auto& data = nym().Claims();
 
     for (const auto& id : contracts) {
         const auto& claim = data.Claim(id);
@@ -194,21 +189,18 @@ bool NymData::HaveContract(
     return false;
 }
 
-std::string NymData::Name() const
-{
-    OT_ASSERT(nym_);
+std::string NymData::Name() const { return nym().Name(); }
 
-    return nym_->Name();
-}
+const opentxs::Nym& NymData::Nym() const { return nym(); }
 
-const class Nym& NymData::Nym() const
+opentxs::Nym& NymData::nym()
 {
     OT_ASSERT(nym_);
 
     return *nym_;
 }
 
-Nym& NymData::nym()
+const opentxs::Nym& NymData::nym() const
 {
     OT_ASSERT(nym_);
 
@@ -222,7 +214,7 @@ std::string NymData::PaymentCode(const proto::ContactItemType currency) const
 
 std::string NymData::PhoneNumbers(bool active) const
 {
-    return Nym().PhoneNumbers(active);
+    return nym().PhoneNumbers(active);
 }
 
 std::string NymData::PreferredOTServer() const
@@ -262,12 +254,12 @@ std::string NymData::SocialMediaProfiles(
     const proto::ContactItemType type,
     bool active) const
 {
-    return Nym().SocialMediaProfiles(type, active);
+    return nym().SocialMediaProfiles(type, active);
 }
 
 std::set<proto::ContactItemType> NymData::SocialMediaProfileTypes() const
 {
-    return Nym().SocialMediaProfileTypes();
+    return nym().SocialMediaProfileTypes();
 }
 
 proto::ContactItemType NymData::Type() const { return data().Type(); }
@@ -276,7 +268,7 @@ bool NymData::Valid() const { return bool(nym_); }
 
 std::unique_ptr<proto::VerificationSet> NymData::VerificationSet() const
 {
-    return nym_->VerificationSet();
+    return nym().VerificationSet();
 }
 
 NymData::~NymData()
