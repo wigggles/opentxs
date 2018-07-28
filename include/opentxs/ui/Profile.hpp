@@ -77,8 +77,6 @@
 // clang-format on
 #endif  // SWIG
 
-extern template struct std::pair<int, std::string>;
-
 namespace opentxs
 {
 namespace ui

@@ -11,8 +11,6 @@
 #include <set>
 #include <string>
 
-extern template class std::set<opentxs::OTIdentifier>;
-
 namespace opentxs
 {
 namespace api

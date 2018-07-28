@@ -294,9 +294,6 @@ class TrezorCrypto;
 #endif
 }  // namespace opentxs
 
-extern template class std::
-    tuple<opentxs::OTIdentifier, opentxs::StorageBox, opentxs::OTIdentifier>;
-
 #include "Factory.hpp"
 
 #endif  // OPENTXS_FORWARD_INTERNAL_HPP
