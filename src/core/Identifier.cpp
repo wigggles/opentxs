@@ -42,8 +42,6 @@ bool less<opentxs::Pimpl<opentxs::Identifier>>::operator()(
 }
 }  // namespace std
 
-template struct std::less<opentxs::OTIdentifier>;
-
 namespace opentxs
 {
 bool operator==(const OTIdentifier& lhs, const Identifier& rhs)
