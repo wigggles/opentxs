@@ -47,6 +47,7 @@ endif()
 option(OT_STRICT           "Use pedantic compiler options." ON)
 option(OT_VALGRIND         "Use Valgrind annotations." OFF)
 option(USE_CCACHE          "Use ccache." OFF)
+option(OT_SANITIZE         "Enable sanitize options" ON)
 
 option(BUILD_SHARED_LIBS   "Build shared libraries." ON)
 
@@ -230,7 +231,7 @@ elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
   endif()
 endif()
 
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
+if(CMAKE_BUILD_TYPE MATCHES "Debug" AND OT_SANITIZE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined,address -Wformat -Werror=format-security -Werror=array-bounds -fno-optimize-sibling-calls -fno-omit-frame-pointer")
   set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -fsanitize=undefined,address")
   if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU)
