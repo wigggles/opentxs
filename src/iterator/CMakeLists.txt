@@ -41,5 +41,6 @@ install(FILES ${cxx-install-headers}
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
+set_target_properties(${MODULE_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 set_lib_property(${MODULE_NAME})
 #// clang-format on

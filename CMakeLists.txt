@@ -3,10 +3,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 project(opentxs)
 
 #-----------------------------------------------------------------------------
+option(OT_ANDROID       "Set Android-specific options" OFF)
+
 if(NOT ANDROID)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM LAST)
 find_package(Git)
@@ -49,7 +51,14 @@ option(OT_VALGRIND         "Use Valgrind annotations." OFF)
 option(USE_CCACHE          "Use ccache." OFF)
 option(OT_SANITIZE         "Enable sanitize options" ON)
 
-option(BUILD_SHARED_LIBS   "Build shared libraries." ON)
+option(OT_SHARED           "Build shared libopentxs." ON)
+option(OT_STATIC           "Build static libopentxs." OFF)
+
+if(OT_SHARED)
+  option(BUILD_SHARED_LIBS   "Preferred shared linking." ON)
+else()
+  option(BUILD_SHARED_LIBS   "Preferred shared linking." OFF)
+endif()
 
 option(RPM                 "Build a RPM" OFF)
 option(DEB                 "Build a DEB" OFF)
@@ -110,6 +119,23 @@ option(PHP     "Build with PHP binding" OFF)
 option(PYTHON3 "Build with Python3 binding" OFF)
 option(PYTHON2 "Build with Python2 binding" OFF)
 option(PYTHON  "Build with default Python binding" OFF)
+
+option(OT_ZLIB_OVERRIDE "Manually specify zlib paths" OFF)
+option(OT_HOST_OVERRIDE "Manually specify --host value for external projects" "")
+option(OT_SYSROOT_OVERRIDE "Manually specify --sysroot value for external projects" "")
+OPTION(OT_MAKEOPTS_OVERRIDE "Manually specify number of threads for external projects" "-j4")
+
+option(OT_GENERATE_PROTO "Regenerate protobuf classes" ON)
+option(OT_BUNDLED_PROTOBUF "Use bundled version of protobuf" OFF)
+option(OT_BUNDLED_SODIUM "Use bundled version of libsodium" OFF)
+option(OT_BUNDLED_SECP256K1 "Use bundled version of libsecp256k1" OFF)
+option(OT_BUNDLED_SQLITE "Use bundled version of sqlite" OFF)
+option(OT_BUNDLED_LIBZMQ "Use bundled version of libzmq" OFF)
+option(OT_BUNDLED_OPENTXS_PROTO "Use bundled version of opentxs-proto" OFF)
+
+if(NOT ("${CMAKE_C_COMPILER_TARGET}" STREQUAL ""))
+  set(OT_HOST_OVERRIDE "${CMAKE_C_COMPILER_TARGET}" CACHE INTERNAL "" FORCE)
+endif()
 
 
 if(BUILD_VERBOSE)
@@ -193,6 +219,17 @@ message(STATUS "Default Python binding: ${PYTHON}")
 
 message(STATUS "Script engines-------------------------------")
 message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
+
+message(STATUS "Dependencies---------------------------------")
+message(STATUS "Bundled protobuf:       ${OT_BUNDLED_PROTOBUF}")
+message(STATUS "Regenerate otprotob:    ${OT_GENERATE_PROTO}")
+message(STATUS "Bundled sodium:         ${OT_BUNDLED_SODIUM}")
+message(STATUS "Bundled libsecp256k1:   ${OT_BUNDLED_SECP256K1}")
+message(STATUS "Bundled sqlite:         ${OT_BUNDLED_SQLITE}")
+message(STATUS "Bundled libzmq:         ${OT_BUNDLED_LIBZMQ}")
+message(STATUS "Bundled opentxs-proto:  ${OT_BUNDLED_OPENTXS_PROTO}")
+
+message(STATUS "---------------------------------------------")
 
 #-----------------------------------------------------------------------------
 # Collect all binaries into bin subdirectory
@@ -288,7 +325,17 @@ else()
   add_definitions(-DOT_VALGRIND=0)
 endif()
 
-find_package(opentxs-proto REQUIRED)
+if(OT_BUNDLED_OPENTXS_PROTO)
+   set(OT_OPENTXS_PROTO_HEADERS
+     "${CMAKE_CURRENT_SOURCE_DIR}/deps/opentxs-proto/include"
+     "${CMAKE_CURRENT_SOURCE_DIR}/deps/opentxs-proto/generated"
+   )
+   include_directories("${OT_OPENTXS_PROTO_HEADERS}")
+else()
+  find_package(opentxs-proto REQUIRED)
+  include_directories("${OPENTXS_PROTO_INCLUDE_DIRS}")
+endif()
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
@@ -298,25 +345,67 @@ if(APPLE)
 else()
   find_package(OpenSSL 1.0.1 REQUIRED)
 endif()
-find_package(Protobuf REQUIRED)
-find_package(ZLIB REQUIRED)
-find_package(Sodium REQUIRED)
-find_package(ZeroMQ 4 REQUIRED)
+
+if(OT_BUNDLED_PROTOBUF)
+  set(OT_PROTOBUF_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/deps/protobuf/install/include")
+  include_directories(SYSTEM ${OT_PROTOBUF_HEADERS})
+else()
+  find_package(Protobuf REQUIRED)
+  set(OT_PROTOBUF_HEADERS "${PROTOBUF_INCLUDE_DIR}")
+  include_directories(SYSTEM ${OT_PROTOBUF_HEADERS})
+endif()
+
+if(OT_ZLIB_OVERRIDE)
+  set(ZLIB_INCLUDE_DIRS "${ZLIB_INCLUDE_DIRS_OVERRIDE}")
+  set(ZLIB_LIBRARIES "${ZLIB_LIBRARIES_OVERRIDE}")
+  set(ZLIB_FOUND TRUE)
+else()
+  find_package(ZLIB REQUIRED)
+endif()
+
+if(OT_BUNDLED_SODIUM)
+  set(OT_SODIUM_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/deps/sodium/install/include")
+else()
+  find_package(Sodium REQUIRED)
+  set(OT_SODIUM_HEADERS "${SODIUM_INCLUDE_DIR}")
+endif()
+
+if(OT_BUNDLED_LIBZMQ)
+  set(OT_ZEROMQ_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/deps/libzmq/install/include")
+else()
+  find_package(ZeroMQ 4 REQUIRED)
+  set(OT_ZEROMQ_HEADERS "${ZMQ_INCLUDE_DIRS}")
+endif()
+
 if(OT_DHT)
   find_package(OPENDHT 0.6 REQUIRED)
   find_package(GnuTLS REQUIRED)
 endif()
+
 if(OT_STORAGE_SQLITE)
-  find_package(SQLite3 REQUIRED)
+  if(OT_BUNDLED_SQLITE)
+    set(OT_SQLITE_HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/deps/sqlite-amalgamation-3240000")
+  else()
+    find_package(SQLite3 REQUIRED)
+    set(OT_SQLITE_HEADERS "${SQLITE3_INCLUDE_DIRS}")
+  endif()
 endif()
+
 if(OT_STORAGE_FS)
   find_package(Boost REQUIRED filesystem)
   find_package(Boost REQUIRED iostreams)
   find_package(Boost REQUIRED system)
 endif()
-if (OT_CRYPTO_SUPPORTED_KEY_SECP256K1 OR OT_CRYPTO_SUPPORTED_SOURCE_BIP47)
-  find_package(Libsecp256k1 REQUIRED)
+
+if (OT_CRYPTO_USING_LIBSECP256K1)
+  if (OT_BUNDLED_SECP256K1)
+    set(OT_SECP256K1_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/deps/secp256k1/install/include")
+  else()
+    find_package(Libsecp256k1 REQUIRED)
+    set(OT_SECP256K1_HEADERS "${LIBSECP256K1_INCLUDE_DIR}")
+  endif()
 endif()
+
 if (OT_CRYPTO_USING_LIBBITCOIN)
   find_package(libbitcoin REQUIRED)
 endif()
