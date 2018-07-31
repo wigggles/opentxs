@@ -88,10 +88,14 @@ public:
     // for the payment of dividends.)
 
     // adds the account to the list. (When account is created.)
-    EXPORT bool AddAccountRecord(const Account& theAccount) const;
+    EXPORT bool AddAccountRecord(
+        const std::string& dataFolder,
+        const Account& theAccount) const;
 
     // removes the account from the list. (When account is deleted.)
-    EXPORT bool EraseAccountRecord(const Identifier& theAcctID) const;
+    EXPORT bool EraseAccountRecord(
+        const std::string& dataFolder,
+        const Identifier& theAcctID) const;
 
     EXPORT bool VisitAccountRecords(
         const std::string& dataFolder,

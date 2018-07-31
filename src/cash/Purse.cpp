@@ -757,8 +757,12 @@ bool Purse::LoadPurse(
         strInstrumentDefinitionID
             .Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
-    if (false ==
-        OTDB::Exists(szFolder1name, szFolder2name, szFolder3name, szFilename)) {
+    if (false == OTDB::Exists(
+                     data_folder_,
+                     szFolder1name,
+                     szFolder2name,
+                     szFolder3name,
+                     szFilename)) {
         otInfo << "Purse::LoadPurse: File does not exist: " << szFolder1name
                << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
                << szFolder3name << Log::PathSeparator() << szFilename << "\n";
@@ -766,6 +770,7 @@ bool Purse::LoadPurse(
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
+        data_folder_,
         szFolder1name,
         szFolder2name,
         szFolder3name,
@@ -847,6 +852,7 @@ bool Purse::SavePurse(
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
+        data_folder_,
         szFolder1name,
         szFolder2name,
         szFolder3name,

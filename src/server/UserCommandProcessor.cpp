@@ -610,7 +610,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     }
 
     if (contract->Type() == proto::UNITTYPE_SECURITY) {
-        if (false == contract->EraseAccountRecord(accountID)) {
+        if (false == contract->EraseAccountRecord(
+                         legacy_.ServerDataFolder(), accountID)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to delete account record " << String(contractID)
                   << std::endl;
@@ -1825,7 +1826,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     if (contract->Type() == proto::UNITTYPE_SECURITY) {
         // The instrument definition keeps a list of all accounts for that type.
         // (For shares, not for currencies.)
-        if (false == contract->AddAccountRecord(account.get())) {
+        if (false == contract->AddAccountRecord(
+                         legacy_.ServerDataFolder(), account.get())) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to add account record " << String(contractID)
                   << std::endl;

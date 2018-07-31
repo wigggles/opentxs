@@ -319,7 +319,11 @@ std::int32_t Server::last_generated_series(
         const std::string filename =
             unitID + SERIES_DIVIDER + std::to_string(output);
         const auto exists = OTDB::Exists(
-            OTFolders::Mint().Get(), serverID.c_str(), filename.c_str(), "");
+            legacy_.ServerDataFolder(),
+            OTFolders::Mint().Get(),
+            serverID.c_str(),
+            filename.c_str(),
+            "");
 
         if (false == exists) { return output - 1; }
     }

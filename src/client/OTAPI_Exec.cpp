@@ -617,7 +617,8 @@ std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
     NumList numlist;
     std::string str_return;
 
-    if (OTCronItem::GetActiveCronTransNums(numlist, nymId, notaryID)) {
+    if (OTCronItem::GetActiveCronTransNums(
+            numlist, legacy_.ClientDataFolder(), nymId, notaryID)) {
         String strOutput;
         numlist.Output(strOutput);
         str_return = strOutput.Get();

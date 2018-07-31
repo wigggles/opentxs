@@ -524,7 +524,8 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
         strRawFile.Set(*pString);
     else  // Loading FROM A FILE.
     {
-        if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename, "")) {
+        if (!OTDB::Exists(
+                data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
             otLog3 << pszType << " does not exist in OTLedger::Load" << pszType
                    << ": " << szFolder1name << Log::PathSeparator()
                    << szFolder2name << Log::PathSeparator() << szFilename
@@ -535,8 +536,12 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
         // Try to load the ledger from local storage.
         //
         std::string strFileContents(OTDB::QueryPlainString(
-            szFolder1name, szFolder2name, szFilename, ""));  // <=== LOADING
-                                                             // FROM DATA STORE.
+            data_folder_,
+            szFolder1name,
+            szFolder2name,
+            szFilename,
+            ""));  // <=== LOADING
+                   // FROM DATA STORE.
 
         if (strFileContents.length() < 2) {
             otErr << "OTLedger::LoadGeneric: Error reading file: "
@@ -659,6 +664,7 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
+        data_folder_,
         szFolder1name,
         szFolder2name,
         szFilename,
@@ -936,7 +942,8 @@ bool Ledger::generate_ledger(
                                 // "inbox/NOTARY_ID/ACCT_ID" or
                                 // "outbox/NOTARY_ID/ACCT_ID")
 
-        if (OTDB::Exists(szFolder1name, szFolder2name, szFilename, "")) {
+        if (OTDB::Exists(
+                data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
             otOut << "ERROR: trying to generate ledger that already exists: "
                   << szFolder1name << Log::PathSeparator() << szFolder2name
                   << Log::PathSeparator() << szFilename << "\n";
@@ -2306,6 +2313,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                         const bool bBoxReceiptAlreadyExists =
                             VerifyBoxReceiptExists(
+                                data_folder_,
                                 pTransaction->GetRealNotaryID(),
                                 pTransaction->GetNymID(),
                                 pTransaction->GetRealAccountID(),  // If Nymbox

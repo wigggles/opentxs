@@ -429,6 +429,7 @@ Account* Account::LoadExistingAccount(
     account->m_strFilename = strAcctID.Get();
 
     if (!OTDB::Exists(
+            dataFolder,
             account->m_strFoldername.Get(),
             account->m_strFilename.Get(),
             "",
@@ -523,7 +524,8 @@ bool Account::GenerateNewAccount(
 
     // Then we try to load it, in order to make sure that it doesn't already
     // exist.
-    if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get(), "", "")) {
+    if (OTDB::Exists(
+            data_folder_, m_strFoldername.Get(), m_strFilename.Get(), "", "")) {
         otErr << __FUNCTION__ << ": Account already exists: " << m_strFilename
               << "\n";
         return false;

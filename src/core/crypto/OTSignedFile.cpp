@@ -200,7 +200,8 @@ bool OTSignedFile::LoadFile()
     //    otOut << "DEBUG LoadFile (Signed) folder: %s file: %s \n",
     // m_strFoldername.Get(), m_strFilename.Get());
 
-    if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get(), "", ""))
+    if (OTDB::Exists(
+            data_folder_, m_strFoldername.Get(), m_strFilename.Get(), "", ""))
         return LoadContract();
 
     return false;

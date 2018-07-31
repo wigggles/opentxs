@@ -908,7 +908,12 @@ void Native::Init_Storage()
     std::string path;
 
     if (0 <= storage->ConstructAndCreatePath(
-                 path, OTFolders::Common().Get(), ".temp", "", "")) {
+                 path,
+                 legacy_->DataFolderPath(),
+                 OTFolders::Common().Get(),
+                 ".temp",
+                 "",
+                 "")) {
         path.erase(path.end() - 5, path.end());
     }
 

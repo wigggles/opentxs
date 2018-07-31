@@ -276,6 +276,7 @@ bool UnitDefinition::VisitAccountRecords(
 
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
         OTDB::STORED_OBJ_STRING_MAP,
+        dataFolder,
         OTFolders::Contract().Get(),
         strAcctRecordFile.Get(),
         "",
@@ -338,8 +339,10 @@ bool UnitDefinition::VisitAccountRecords(
     return true;
 }
 
-bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
-                                                                        // the
+bool UnitDefinition::AddAccountRecord(
+    const std::string& dataFolder,
+    const Account& theAccount) const  // adds
+                                      // the
 // account
 // to the
 // list.
@@ -375,6 +378,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(
+            dataFolder,
             OTFolders::Contract().Get(),
             strAcctRecordFile.Get(),
             "",
@@ -382,6 +386,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
                   // try to load it up.
         pStorable = OTDB::QueryObject(
             OTDB::STORED_OBJ_STRING_MAP,
+            dataFolder,
             OTFolders::Contract().Get(),
             strAcctRecordFile.Get(),
             "",
@@ -455,6 +460,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
     //
     if (!OTDB::StoreObject(
             *pMap,
+            dataFolder,
             OTFolders::Contract().Get(),
             strAcctRecordFile.Get(),
             "",
@@ -473,6 +479,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
 }
 
 bool UnitDefinition::EraseAccountRecord(
+    const std::string& dataFolder,
     const Identifier& theAcctID) const  // removes the account from the list.
                                         // (When account is deleted.)
 {
@@ -495,6 +502,7 @@ bool UnitDefinition::EraseAccountRecord(
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(
+            dataFolder,
             OTFolders::Contract().Get(),
             strAcctRecordFile.Get(),
             "",
@@ -502,6 +510,7 @@ bool UnitDefinition::EraseAccountRecord(
                   // try to load it up.
         pStorable = OTDB::QueryObject(
             OTDB::STORED_OBJ_STRING_MAP,
+            dataFolder,
             OTFolders::Contract().Get(),
             strAcctRecordFile.Get(),
             "",
@@ -545,6 +554,7 @@ bool UnitDefinition::EraseAccountRecord(
     //
     if (!OTDB::StoreObject(
             *pMap,
+            dataFolder,
             OTFolders::Contract().Get(),
             strAcctRecordFile.Get(),
             "",

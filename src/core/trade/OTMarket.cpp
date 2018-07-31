@@ -802,7 +802,8 @@ bool OTMarket::LoadMarket()
     const char* szFoldername = OTFolders::Market().Get();
     const char* szFilename = str_MARKET_ID.Get();
 
-    bool bSuccess = OTDB::Exists(szFoldername, szFilename, "", "");
+    bool bSuccess =
+        OTDB::Exists(data_folder_, szFoldername, szFilename, "", "");
 
     if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename);  // todo ??
 
@@ -820,6 +821,7 @@ bool OTMarket::LoadMarket()
 
         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(OTDB::QueryObject(
             OTDB::STORED_OBJ_TRADE_LIST_MARKET,
+            data_folder_,
             szFoldername,  // markets
             szSubFolder,   // markets/recent
             str_TRADES_FILE.Get(),
@@ -868,6 +870,7 @@ bool OTMarket::SaveMarket()
         // If this fails, oh well. It's informational, anyway.
         if (!OTDB::StoreObject(
                 *m_pTradeList,
+                data_folder_,
                 szFoldername,  // markets
                 szSubFolder,   // markets/recent
                 str_TRADES_FILE.Get(),

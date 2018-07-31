@@ -302,8 +302,13 @@ bool OTWallet::save_wallet(const Lock& lock, const char* szFilename)
         // Wallet file is the only one in data_folder (".") and not a subfolder
         // of that.
         bSuccess = OTDB::StorePlainString(
-            strFinal.Get(), ".", m_strFilename.Get(), "", "");  // <==== Store
-                                                                // Plain String
+            strFinal.Get(),
+            legacy_.ClientDataFolder(),
+            ".",
+            m_strFilename.Get(),
+            "",
+            "");  // <==== Store
+                  // Plain String
     }
 
     return bSuccess;
@@ -355,7 +360,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         szFilename = m_strFilename.Get();  // (We know existing string is there,
                                            // in this case.)
 
-    if (!OTDB::Exists(".", szFilename, "", "")) {
+    if (!OTDB::Exists(legacy_.ClientDataFolder(), ".", szFilename, "", "")) {
         otErr << __FUNCTION__ << ": Wallet file does not exist: " << szFilename
               << ". Creating...\n";
 
@@ -363,19 +368,25 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                  "\n"
                                  "</wallet>\n";
 
-        if (!OTDB::StorePlainString(szContents, ".", szFilename, "", "")) {
+        if (!OTDB::StorePlainString(
+                szContents,
+                legacy_.ClientDataFolder(),
+                ".",
+                szFilename,
+                "",
+                "")) {
             otErr << __FUNCTION__
                   << ": Error: Unable to create blank wallet file.\n";
             OT_FAIL;
         }
     }
 
-    String strFileContents(
-        OTDB::QueryPlainString(".", szFilename, "", ""));  // <===
-                                                           // LOADING
-                                                           // FROM
-                                                           // DATA
-                                                           // STORE.
+    String strFileContents(OTDB::QueryPlainString(
+        legacy_.ClientDataFolder(), ".", szFilename, "", ""));  // <===
+                                                                // LOADING
+                                                                // FROM
+                                                                // DATA
+                                                                // STORE.
 
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading wallet file: " << szFilename

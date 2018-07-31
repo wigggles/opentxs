@@ -226,15 +226,24 @@ bool VerifyBalanceReceipt(
     const char* szFilename =
         strFilename.Get();  // receipts/NOTARY_ID/accountID.success
 
-    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename, "")) {
+    if (!OTDB::Exists(
+            context.LegacyDataFolder(),
+            szFolder1name,
+            szFolder2name,
+            szFilename,
+            "")) {
         otWarn << "Receipt file doesn't exist in "
                   "OTTransaction::VerifyBalanceReceipt.\n";
         return false;
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
-        szFolder1name, szFolder2name, szFilename, ""));  // <=== LOADING FROM
-                                                         // DATA STORE.
+        context.LegacyDataFolder(),
+        szFolder1name,
+        szFolder2name,
+        szFilename,
+        ""));  // <=== LOADING FROM
+               // DATA STORE.
 
     if (strFileContents.length() < 2) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error reading file: "
@@ -8536,7 +8545,11 @@ CommandResult OT_API::notarizeWithdrawal(
 
     const auto& contractID = account.get().GetInstrumentDefinitionID();
     const bool exists = OTDB::Exists(
-        OTFolders::Mint().Get(), serverID.str(), contractID.str(), "");
+        legacy_.ClientDataFolder(),
+        OTFolders::Mint().Get(),
+        serverID.str(),
+        contractID.str(),
+        "");
 
     if (false == exists) {
         otErr << OT_METHOD << __FUNCTION__
@@ -11316,6 +11329,7 @@ bool OT_API::DoesBoxReceiptExist(
 
     // static
     return VerifyBoxReceiptExists(
+        legacy_.ClientDataFolder(),
         NOTARY_ID,
         NYM_ID,      // Unused here for now, but still convention.
         ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass NYM_ID in this

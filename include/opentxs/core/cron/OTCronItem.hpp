@@ -76,12 +76,14 @@ public:
         const TransactionNumber& lTransactionNum,
         const Identifier& notaryID);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
+        const std::string& dataFolder,
         const TransactionNumber& lTransactionNum,
         const Identifier& nymID,
         const Identifier& notaryID);  // Client-side only.
     EXPORT static bool GetActiveCronTransNums(
         NumList& output,  // Client-side
                           // only.
+        const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& notaryID);
     inline void SetCreationDate(const time64_t& CREATION_DATE)

@@ -87,11 +87,6 @@ public:
     EXPORT bool GetString(String& theData, bool bLineBreaks = true) const;
     // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER" There's
     // no default, to force you to enter the right string.
-    EXPORT bool WriteArmoredFile(
-        const String& foldername,
-        const String& filename,
-        const std::string str_type,
-        bool bEscaped = false) const;
     // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER" There's
     // no default, to force you to enter the right string.
     EXPORT bool WriteArmoredString(
@@ -101,7 +96,6 @@ public:
 
     EXPORT bool LoadFrom_ifstream(std::ifstream& fin);
     EXPORT bool LoadFromExactPath(const std::string& filename);
-    EXPORT bool LoadFromFile(const String& foldername, const String& filename);
     // This code reads up the string, discards the bookends, and saves only the
     // gibberish itself. the bEscaped option allows you to load a normal
     // ASCII-Armored file if off, and allows you to load an escaped

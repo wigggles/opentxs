@@ -272,6 +272,7 @@ std::int32_t LoadAbbreviatedRecord(
 }
 
 bool VerifyBoxReceiptExists(
+    const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,      // Unused here for now, but still convention.
     const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass
@@ -305,6 +306,7 @@ bool VerifyBoxReceiptExists(
     // See if the box receipt exists before trying to save over it...
     //
     const bool bExists = OTDB::Exists(
+        dataFolder,
         strFolder1name.Get(),
         strFolder2name.Get(),
         strFolder3name.Get(),
@@ -364,6 +366,7 @@ OTTransaction* LoadBoxReceipt(
     // See if the box receipt exists before trying to load it...
     //
     if (!OTDB::Exists(
+            theAbbrev.DataFolder(),
             strFolder1name.Get(),
             strFolder2name.Get(),
             strFolder3name.Get(),
@@ -378,6 +381,7 @@ OTTransaction* LoadBoxReceipt(
     // Try to load the box receipt from local storage.
     //
     std::string strFileContents(OTDB::QueryPlainString(
+        theAbbrev.DataFolder(),
         strFolder1name.Get(),  // <=== LOADING FROM DATA STORE.
         strFolder2name.Get(),
         strFolder3name.Get(),

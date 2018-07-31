@@ -841,8 +841,8 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
     String strNym;
     serialize_nymfile(lock, strNym);
 
-    bool bSaved =
-        OTDB::StorePlainString(strNym.Get(), szFoldername, szFilename, "", "");
+    bool bSaved = OTDB::StorePlainString(
+        strNym.Get(), data_folder_, szFoldername, szFilename, "", "");
     if (!bSaved)
         otErr << __FUNCTION__ << ": Error saving file: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";

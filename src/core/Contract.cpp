@@ -1038,8 +1038,8 @@ bool Contract::WriteContract(
         return false;
     }
 
-    const bool bSaved =
-        OTDB::StorePlainString(strFinal.Get(), folder, filename, "", "");
+    const bool bSaved = OTDB::StorePlainString(
+        strFinal.Get(), data_folder_, folder, filename, "", "");
 
     if (!bSaved) {
         otErr << OT_METHOD << __FUNCTION__ << "Error saving file: " << folder
@@ -1076,15 +1076,17 @@ bool Contract::LoadContractRawFile()
 
     if (!m_strFoldername.Exists() || !m_strFilename.Exists()) return false;
 
-    if (!OTDB::Exists(szFoldername, szFilename, "", "")) {
+    if (!OTDB::Exists(data_folder_, szFoldername, szFilename, "", "")) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
     String strFileContents(OTDB::QueryPlainString(
-        szFoldername, szFilename, "", ""));  // <=== LOADING FROM
-                                             // DATA STORE.
+        data_folder_, szFoldername, szFilename, "", ""));  // <===
+                                                           // LOADING
+                                                           // FROM DATA
+                                                           // STORE.
 
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file: " << szFoldername

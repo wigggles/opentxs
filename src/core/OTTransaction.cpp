@@ -1672,7 +1672,8 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     const char* szFolder2name = strNotaryID.Get();
     const char* szFilename = strFilename.Get();
 
-    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename, "")) {
+    if (!OTDB::Exists(
+            data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
         otWarn << "Receipt file doesn't exist in "
                   "OTTransaction::VerifyBalanceReceipt:\n "
                << szFilename << "\n";
@@ -1680,8 +1681,8 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         return false;
     }
 
-    const std::string strFileContents(
-        OTDB::QueryPlainString(szFolder1name, szFolder2name, szFilename, ""));
+    const std::string strFileContents(OTDB::QueryPlainString(
+        data_folder_, szFolder1name, szFolder2name, szFilename, ""));
 
     if (strFileContents.length() < 2) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error reading "
@@ -2865,6 +2866,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     // See if the box receipt exists before trying to save over it...
     //
     if (!OTDB::Exists(
+            data_folder_,
             strFolder1name.Get(),
             strFolder2name.Get(),
             strFolder3name.Get(),
@@ -2918,6 +2920,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
 
     bool bDeleted = OTDB::StorePlainString(
         strOutput.Get(),
+        data_folder_,
         strFolder1name.Get(),
         strFolder2name.Get(),
         strFolder3name.Get(),
@@ -2962,6 +2965,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     // See if the box receipt exists before trying to save over it...
     //
     if (OTDB::Exists(
+            data_folder_,
             strFolder1name.Get(),
             strFolder2name.Get(),
             strFolder3name.Get(),
@@ -2992,6 +2996,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
+        data_folder_,
         strFolder1name.Get(),
         strFolder2name.Get(),
         strFolder3name.Get(),

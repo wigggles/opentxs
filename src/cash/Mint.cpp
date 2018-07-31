@@ -307,7 +307,8 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
         strFilename
             .Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
 
-    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename, "")) {
+    if (!OTDB::Exists(
+            data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
         otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
               << szFilename << "\n";
@@ -315,8 +316,12 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
-        szFolder1name, szFolder2name, szFilename, ""));  // <=== LOADING FROM
-                                                         // DATA STORE.
+        data_folder_,
+        szFolder1name,
+        szFolder2name,
+        szFilename,
+        ""));  // <=== LOADING FROM
+               // DATA STORE.
 
     if (strFileContents.length() < 2) {
         otErr << "Mint::LoadMint: Error reading file: " << szFolder1name
@@ -392,6 +397,7 @@ bool Mint::SaveMint(const char* szAppend)
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
+        data_folder_,
         szFolder1name,
         szFolder2name,
         szFilename,

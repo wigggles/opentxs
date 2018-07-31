@@ -225,7 +225,11 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
     if (add_item_to_workflow(*context.Nym(), message, payment)) { return true; }
 
     const bool bExists = OTDB::Exists(
-        OTFolders::PaymentInbox().Get(), strNotaryID.Get(), strNymID.Get(), "");
+        legacy_.ClientDataFolder(),
+        OTFolders::PaymentInbox().Get(),
+        strNotaryID.Get(),
+        strNymID.Get(),
+        "");
     Ledger thePmntInbox(
         legacy_.ClientDataFolder(), nymID, nymID, context.Server());  // payment
                                                                       // inbox
@@ -797,6 +801,7 @@ bool OTClient::AcceptEntireNymbox(
             // actively running on Cron. So we don't want to keep it on our list
             // of "active" cron items if we know it's already inactive.
             OTCronItem::EraseActiveCronReceipt(
+                pTransaction->DataFolder(),
                 pTransaction->GetReferenceToNum(),
                 nymID,
                 pTransaction->GetPurportedNotaryID());
@@ -1106,11 +1111,13 @@ void OTClient::ProcessIncomingCronItemReply(
     //  if (OTItem::rejection == pReplyItem->GetStatus())
     {
         const bool bExists1 = OTDB::Exists(
+            legacy_.ClientDataFolder(),
             OTFolders::PaymentInbox().Get(),
             strNotaryID.Get(),
             String(context.Nym()->ID()).Get(),
             "");
         const bool bExists2 = OTDB::Exists(
+            legacy_.ClientDataFolder(),
             OTFolders::RecordBox().Get(),
             strNotaryID.Get(),
             String(context.Nym()->ID()).Get(),
@@ -1815,6 +1822,7 @@ void OTClient::ProcessIncomingTransaction(
 
         OTDB::StorePlainString(
             strFinal.Get(),
+            legacy_.ClientDataFolder(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
             strReceiptFilename.Get(),
@@ -1830,6 +1838,7 @@ void OTClient::ProcessIncomingTransaction(
 
         OTDB::StorePlainString(
             strFinal.Get(),
+            legacy_.ClientDataFolder(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
             strReceiptFilename.Get(),
@@ -2109,6 +2118,7 @@ void OTClient::ProcessDepositChequeResponse(
         const String strNymID(nymID);
         const String strNotaryID(serverID);
         const bool bExists = OTDB::Exists(
+            legacy_.ClientDataFolder(),
             OTFolders::RecordBox().Get(),
             strNotaryID.Get(),
             strNymID.Get(),
@@ -2739,6 +2749,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                         OT_FAIL;
                     }
                     const bool bExists = OTDB::Exists(
+                        legacy_.ClientDataFolder(),
                         OTFolders::PaymentInbox().Get(),
                         strNotaryID.Get(),
                         String(context.Nym()->ID()).Get(),
@@ -2916,6 +2927,7 @@ bool OTClient::processServerReplyProcessInbox(
     Ledger theRecordBox(
         legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
     bool bInbox = OTDB::Exists(
+        legacy_.ClientDataFolder(),
         OTFolders::Inbox().Get(),
         strNotaryID.Get(),
         theReply.m_strAcctID.Get(),
@@ -2933,6 +2945,7 @@ bool OTClient::processServerReplyProcessInbox(
 
     bool bLoadedRecordBox = false;
     bool bRecordBoxExists = OTDB::Exists(
+        legacy_.ClientDataFolder(),
         OTFolders::RecordBox().Get(),
         strNotaryID.Get(),
         theReply.m_strAcctID.Get(),
@@ -3443,6 +3456,7 @@ bool OTClient::processServerReplyProcessInbox(
                         std::unique_ptr<OTDB::TradeListNym> pList;
 
                         if (OTDB::Exists(
+                                legacy_.ClientDataFolder(),
                                 OTFolders::Nym().Get(),
                                 "trades",  // todo stop
                                            // hardcoding.
@@ -3451,6 +3465,7 @@ bool OTClient::processServerReplyProcessInbox(
                             pList.reset(dynamic_cast<OTDB::TradeListNym*>(
                                 OTDB::QueryObject(
                                     OTDB::STORED_OBJ_TRADE_LIST_NYM,
+                                    legacy_.ClientDataFolder(),
                                     OTFolders::Nym().Get(),
                                     "trades",  // todo stop
                                     // hardcoding.
@@ -3561,6 +3576,7 @@ bool OTClient::processServerReplyProcessInbox(
                         }
                         if (false == OTDB::StoreObject(
                                          *pList,
+                                         legacy_.ClientDataFolder(),
                                          OTFolders::Nym().Get(),
                                          "trades",  // todo stop hardcoding.
                                          strNotaryID.Get(),
@@ -3611,6 +3627,7 @@ bool OTClient::processServerReplyProcessInbox(
                 // others.
                 //
                 OTCronItem::EraseActiveCronReceipt(
+                    pServerTransaction->DataFolder(),
                     pServerTransaction->GetReferenceToNum(),
                     context.Nym()->ID(),
                     pServerTransaction->GetPurportedNotaryID());
@@ -4354,11 +4371,13 @@ bool OTClient::processServerReplyProcessNymbox(
                                 //                                  // REJECTION
                                 {
                                     const bool bExists1 = OTDB::Exists(
+                                        legacy_.ClientDataFolder(),
                                         OTFolders::PaymentInbox().Get(),
                                         strNotaryID.Get(),
                                         String(context.Nym()->ID()).Get(),
                                         "");
                                     const bool bExists2 = OTDB::Exists(
+                                        legacy_.ClientDataFolder(),
                                         OTFolders::RecordBox().Get(),
                                         strNotaryID.Get(),
                                         String(context.Nym()->ID()).Get(),
@@ -5126,6 +5145,7 @@ bool OTClient::processServerReplyProcessNymbox(
                 // keep it on our list of "active" cron items if we know it's
                 // already inactive.
                 OTCronItem::EraseActiveCronReceipt(
+                    pServerTransaction->DataFolder(),
                     pServerTransaction->GetReferenceToNum(),
                     context.Nym()->ID(),
                     pServerTransaction->GetPurportedNotaryID());
@@ -5425,6 +5445,7 @@ bool OTClient::processServerReplyProcessBox(
                     if (nullptr != pReplyItem) {
                         OTDB::StorePlainString(
                             strFinal.Get(),
+                            legacy_.ClientDataFolder(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
                             strReceiptFilename.Get(),
@@ -5441,6 +5462,7 @@ bool OTClient::processServerReplyProcessBox(
 
                         OTDB::StorePlainString(
                             strFinal.Get(),
+                            legacy_.ClientDataFolder(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
                             strReceiptFilename.Get(),
@@ -5599,6 +5621,7 @@ bool OTClient::processServerReplyGetAccountData(
                     // called for market offers, but whatever. It is for the
                     // others.
                     OTCronItem::EraseActiveCronReceipt(
+                        pTempTrans->DataFolder(),
                         pTempTrans->GetReferenceToNum(),
                         context.Nym()->ID(),
                         pTempTrans->GetPurportedNotaryID());
@@ -5736,6 +5759,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
             strMarketDatafile.Get(),
@@ -5784,6 +5808,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pMarketList,
+        legacy_.ClientDataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
         strMarketDatafile.Get(),
@@ -5815,6 +5840,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
             "offers",                      // "markets/<notaryID>/offers"
@@ -5865,6 +5891,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList,
+        legacy_.ClientDataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
         "offers",                      // "markets/<notaryID>/offers"
@@ -5895,6 +5922,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>recent", //
                                            // "markets/<notaryID>/recent"
@@ -5946,6 +5974,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pTradeList,
+        legacy_.ClientDataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
         "recent",                      // "markets/<notaryID>/recent"
@@ -5973,6 +6002,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Nym().Get(),        // "nyms"
             theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
             "offers",                      // "nyms/<notaryID>/offers"
@@ -6022,6 +6052,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList,
+        legacy_.ClientDataFolder(),
         OTFolders::Nym().Get(),        // "nyms"
         theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
         "offers",                      // "nyms/<notaryID>/offers",
