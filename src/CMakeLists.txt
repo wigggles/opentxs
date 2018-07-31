@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs)
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${PEDANTIC_CXX_FLAGS}")
 
 set(dependency_include_dir
@@ -12,7 +14,6 @@ set(dependency_include_dir
 include_directories(SYSTEM
   ${dependency_include_dir}
   ${dependency_include_dir}/ChaiScript/include
-  ${ZMQ_INCLUDE_DIRS}
 )
 
 include_directories(
@@ -63,6 +64,121 @@ else()
   set(cash "")
 endif()
 
+if(OT_BUNDLED_OPENTXS_PROTO)
+  set(bundled-opentxs-proto
+    $<TARGET_OBJECTS:opentxs-proto-objects>
+    $<TARGET_OBJECTS:opentxs-verify>
+  )
+else()
+  set(bundled-opentxs-proto "")
+endif()
+
+if(OT_BUNDLED_PROTOBUF)
+  set_source_files_properties(
+    ${bundled-protobuf-path}
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true
+  )
+
+  if(OT_CASH_EXPORT)
+    add_dependencies(opentxs-cash protobuf)
+  endif()
+
+  if(CASH_LUCRE_EXPORT)
+    add_dependencies(lucre protobuf)
+  endif()
+
+  if(TREZORCRYPTO_EXPORT)
+    add_dependencies(TrezorCrypto protobuf)
+  endif()
+
+  if(OT_BUNDLED_OPENTXS_PROTO)
+    add_dependencies(opentxs-proto-objects protobuf)
+    add_dependencies(opentxs-verify protobuf)
+  endif()
+
+  add_dependencies(otprotob protobuf)
+  add_dependencies(base64 protobuf)
+  add_dependencies(irrxml protobuf)
+  add_dependencies(otprotob protobuf)
+  add_dependencies(opentxs-api-client protobuf)
+  add_dependencies(opentxs-api-crypto protobuf)
+  add_dependencies(opentxs-api-network protobuf)
+  add_dependencies(opentxs-api-storage protobuf)
+  add_dependencies(opentxs-api protobuf)
+  add_dependencies(opentxs-client protobuf)
+  add_dependencies(opentxs-consensus protobuf)
+  add_dependencies(opentxs-core-contract-basket protobuf)
+  add_dependencies(opentxs-core-contract-peer protobuf)
+  add_dependencies(opentxs-core-contract protobuf)
+  add_dependencies(opentxs-core-crypto protobuf)
+  add_dependencies(opentxs-core-transaction protobuf)
+  add_dependencies(opentxs-core-util protobuf)
+  add_dependencies(opentxs-core protobuf)
+  add_dependencies(opentxs-crypto-key protobuf)
+  add_dependencies(opentxs-crypto-library protobuf)
+  add_dependencies(opentxs-crypto protobuf)
+  add_dependencies(opentxs-cron protobuf)
+  add_dependencies(opentxs-ext protobuf)
+  add_dependencies(opentxs-iterator protobuf)
+  add_dependencies(opentxs-network-zeromq protobuf)
+  add_dependencies(opentxs-network protobuf)
+  add_dependencies(opentxs-recurring protobuf)
+  add_dependencies(opentxs-script protobuf)
+  add_dependencies(opentxs-server protobuf)
+  add_dependencies(opentxs-storage protobuf)
+  add_dependencies(opentxs-storage-drivers protobuf)
+  add_dependencies(opentxs-storage-tree protobuf)
+  add_dependencies(opentxs-trade protobuf)
+  add_dependencies(opentxs-contact protobuf)
+  add_dependencies(opentxs-ui protobuf)
+  add_dependencies(opentxs-util protobuf)
+endif()
+
+if(OT_BUNDLED_SODIUM)
+  set_source_files_properties(
+    ${bundled-sodium-path}
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true
+  )
+  add_dependencies(opentxs-core sodium)
+  add_dependencies(opentxs-crypto-key sodium)
+  add_dependencies(opentxs-crypto-library sodium)
+endif()
+
+if(OT_BUNDLED_SECP256K1)
+  set_source_files_properties(
+    ${bundled-secp256k1-path}
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true
+  )
+  add_dependencies(opentxs-crypto-library secp256k1)
+endif()
+
+if(OT_STORAGE_SQLITE AND OT_BUNDLED_SQLITE)
+  set(bundled-sqlite $<TARGET_OBJECTS:opentxs-bundled-sqlite>)
+else()
+  set(bundled-sqlite "")
+endif()
+
+if(OT_BUNDLED_LIBZMQ)
+  set_source_files_properties(
+    ${bundled-zmq-path}
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true
+  )
+
+  if(OT_BUNDLED_SODIUM)
+    add_dependencies(libzmq sodium)
+  endif()
+
+  add_dependencies(opentxs-network-zeromq libzmq)
+endif()
+
 set(object-deps
   $<TARGET_OBJECTS:base64>
   $<TARGET_OBJECTS:irrxml>
@@ -102,6 +218,13 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-contact>
   $<TARGET_OBJECTS:opentxs-ui>
   $<TARGET_OBJECTS:opentxs-util>
+  ${bundled-opentxs-proto}
+  ${bundled-zmq-path}
+  ${bundled-opentxs-proto-library}
+  ${bundled-protobuf-path}
+  ${bundled-sodium-path}
+  ${bundled-secp256k1-path}
+  ${bundled-sqlite}
 )
 
 set(cxx-install-headers
@@ -124,57 +247,136 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.hpp"
 )
 
-set(MODULE_NAME opentxs)
+if(OT_SHARED)
+  add_library(${MODULE_NAME} SHARED
+    ${cxx-headers}
+    ${object-deps}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Globals.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
+  )
 
-add_library(${MODULE_NAME} SHARED
-  ${cxx-headers}
-  ${object-deps}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Globals.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
-)
+  target_link_libraries(${MODULE_NAME}
+    PRIVATE
+    Threads::Threads
+    ${OPENSSL_LIBRARIES}
+    ${ZLIB_LIBRARIES}
+    ${OPENTXS_SYSTEM_LIBRARIES}
+    ${keyring}
+    ${CMAKE_DL_LIBS}
+  )
 
-add_library(${MODULE_NAME}_static STATIC
-  ${cxx-headers}
-  ${object-deps}
-)
+  if(NOT OT_BUNDLED_OPENTXS_PROTO)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${OPENTXS_PROTO_LIBRARIES})
+  endif()
 
-if(NOT WIN32)
-  set_target_properties(${MODULE_NAME}_static PROPERTIES OUTPUT_NAME ${MODULE_NAME})
+  if(NOT OT_BUNDLED_PROTOBUF)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${PROTOBUF_LITE_LIBRARIES})
+  endif()
+
+  if(NOT OT_BUNDLED_SODIUM)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${SODIUM_LIBRARY})
+  endif()
+
+  if (LIBSECP256K1_EXPORT AND NOT OT_BUNDLED_SECP256K1)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${LIBSECP256K1_LIBRARY})
+  endif()
+
+  if (LIBBITCOIN_EXPORT)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${LIBBITCOIN_LIBRARIES})
+  endif()
+
+  if(NOT OT_BUNDLED_LIBZMQ)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${ZMQ_LIBRARIES})
+  endif()
+
+  if(OT_DHT)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+  endif()
+
+  if (OT_STORAGE_SQLITE AND NOT OT_BUNDLED_SQLITE)
+      target_link_libraries(${MODULE_NAME} PRIVATE ${SQLITE3_LIBRARIES})
+  endif()
+
+  if (OT_STORAGE_FS)
+      target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_IOSTREAMS_LIBRARIES})
+  endif()
+
+  if(NOT WIN32)
+    include(GNUInstallDirs)
+    install(TARGETS ${MODULE_NAME}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            EXPORT opentxsTargets
+            COMPONENT main)
+  endif()
 endif()
 
-target_link_libraries(${MODULE_NAME}
-  PRIVATE
-  Threads::Threads
-  ${OPENSSL_LIBRARIES}
-  ${OPENTXS_PROTO_LIBRARIES}
-  ${PROTOBUF_LITE_LIBRARIES}
-  ${ZLIB_LIBRARY}
-  ${SODIUM_LIBRARY}
-  ${OPENTXS_SYSTEM_LIBRARIES}
-  ${keyring}
-  ${CMAKE_DL_LIBS}
-  ${ZMQ_LIBRARIES}
-)
+if(OT_STATIC)
+  add_library(${MODULE_NAME}_static STATIC
+    ${cxx-headers}
+    ${object-deps}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Globals.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/OT.cpp
+  )
 
-if (LIBSECP256K1_EXPORT)
-  target_link_libraries(${MODULE_NAME} PRIVATE ${LIBSECP256K1_LIBRARY})
-endif()
+  if(NOT WIN32)
+    set_target_properties(${MODULE_NAME}_static PROPERTIES OUTPUT_NAME ${MODULE_NAME})
+  endif()
 
-if (LIBBITCOIN_EXPORT)
-  target_link_libraries(${MODULE_NAME} PRIVATE ${LIBBITCOIN_LIBRARIES})
-endif()
+  target_link_libraries(${MODULE_NAME}_static
+    PRIVATE
+    Threads::Threads
+    ${OPENSSL_LIBRARIES}
+    ${ZLIB_LIBRARIES}
+    ${OPENTXS_SYSTEM_LIBRARIES}
+    ${keyring}
+    ${CMAKE_DL_LIBS}
+  )
 
-if(OT_DHT)
-  target_link_libraries(${MODULE_NAME} PRIVATE ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
-endif()
+  if(NOT OT_BUNDLED_OPENTXS_PROTO)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${OPENTXS_PROTO_LIBRARIES})
+  endif()
 
-if (OT_STORAGE_SQLITE)
-    target_link_libraries(${MODULE_NAME} PRIVATE ${SQLITE3_LIBRARIES})
-endif()
+  if(NOT OT_BUNDLED_PROTOBUF)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${PROTOBUF_LITE_LIBRARIES})
+  endif()
 
-if (OT_STORAGE_FS)
-    target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_IOSTREAMS_LIBRARIES})
+  if(NOT OT_BUNDLED_SODIUM)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${SODIUM_LIBRARY})
+  endif()
+
+  if (LIBSECP256K1_EXPORT AND NOT OT_BUNDLED_SECP256K1)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${LIBSECP256K1_LIBRARY})
+  endif()
+
+  if (LIBBITCOIN_EXPORT)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${LIBBITCOIN_LIBRARIES})
+  endif()
+
+  if(NOT OT_BUNDLED_LIBZMQ)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${ZMQ_LIBRARIES})
+  endif()
+
+  if(OT_DHT)
+    target_link_libraries(${MODULE_NAME}_static PRIVATE ${OPENDHT_LIBRARIES} ${GNUTLS_LIBRARIES})
+  endif()
+
+  if (OT_STORAGE_SQLITE AND NOT OT_BUNDLED_SQLITE)
+      target_link_libraries(${MODULE_NAME}_static PRIVATE ${SQLITE3_LIBRARIES})
+  endif()
+
+  if (OT_STORAGE_FS)
+      target_link_libraries(${MODULE_NAME}_static PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_IOSTREAMS_LIBRARIES})
+  endif()
+
+  if(NOT WIN32)
+    include(GNUInstallDirs)
+    install(TARGETS ${MODULE_NAME}_static
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            EXPORT opentxsTargets
+            COMPONENT main)
+  endif()
 endif()
 
 if(WIN32)
@@ -189,20 +391,6 @@ if(WIN32)
     "${CMAKE_BINARY_DIR}/bin/$<CONFIGURATION>/${MODULE_NAME}.pdb")
 endif()
 
-if(NOT WIN32)
-  include(GNUInstallDirs)
-  install(TARGETS ${MODULE_NAME} ${MODULE_NAME}_static
-          DESTINATION ${CMAKE_INSTALL_LIBDIR}
-          EXPORT opentxsTargets
-          COMPONENT main)
-endif()
-
 install(FILES ${cxx-install-headers}
         DESTINATION include/opentxs
         COMPONENT dev)
-
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}../include/opentxs/interface
-        DESTINATION include/opentxs/interface
-        COMPONENT dev
-        FILES_MATCHING PATTERN "*.hpp")
-

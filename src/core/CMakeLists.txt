@@ -4,6 +4,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #// clang-format off
+set(MODULE_NAME opentxs-core)
 
 add_subdirectory(contract)
 add_subdirectory(cron)
@@ -79,24 +80,16 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/Identifier.hpp"
 )
 
-include_directories(${ProtobufIncludePath})
-
 if(KEYRING_GNOME)
   include(GNUInstallDirs)
-  include_directories(${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/glib-2.0/ /usr/${CMAKE_INSTALL_LIBDIR}/glib-2.0/include/ ${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/gnome-keyring-1/)
+  target_include_directories( ${MODULE_NAME}
+    PRIVATE
+    ${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/glib-2.0/
+    /usr/${CMAKE_INSTALL_LIBDIR}/glib-2.0/include/
+    ${CMAKE_INSTALL_FULL_OLDINCLUDEDIR}/gnome-keyring-1/
+  )
 endif()
 
-include_directories(SYSTEM
-  ${OPENSSL_INCLUDE_DIR}
-  ${PROTOBUF_INCLUDE_DIR}
-  ${ZLIB_INCLUDE_DIRS}
-)
-
-if (LIBSECP256K1_EXPORT)
-  include_directories(SYSTEM ${LIBSECP256K1_INCLUDE_DIR})
-endif()
-
-set(MODULE_NAME opentxs-core)
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
@@ -131,6 +124,15 @@ install(FILES ${cxx-install-headers}
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
 
-add_dependencies(${MODULE_NAME} otprotob)
+if(OT_GENERATE_PROTO)
+  add_dependencies(${MODULE_NAME} otprotob)
+endif()
 
+target_include_directories( ${MODULE_NAME}
+  PRIVATE
+    ${OT_SODIUM_HEADERS}
+    ${ZLIB_INCLUDE_DIRS}
+    ${OPENSSL_INCLUDE_DIR}
+    ${ProtobufIncludePath}
+)
 #// clang-format on

@@ -10,3 +10,18 @@
 [submodule "deps/trezor-crypto"]
 	path = deps/trezor-crypto
 	url = https://github.com/trezor/trezor-crypto.git
+[submodule "deps/protobuf"]
+	path = deps/protobuf
+	url = https://github.com/google/protobuf.git
+[submodule "deps/sodium"]
+	path = deps/sodium
+	url = https://github.com/jedisct1/libsodium.git
+[submodule "deps/secp256k1"]
+	path = deps/secp256k1
+	url = https://github.com/libbitcoin/secp256k1.git
+[submodule "deps/libzmq"]
+	path = deps/libzmq
+	url = https://github.com/zeromq/libzmq.git
+[submodule "deps/opentxs-proto"]
+	path = deps/opentxs-proto
+	url = https://github.com/Open-Transactions/opentxs-proto.git

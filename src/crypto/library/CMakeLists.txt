@@ -75,4 +75,9 @@ install(FILES ${cxx-install-headers}
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+target_include_directories(${MODULE_NAME} PRIVATE ${OT_SODIUM_HEADERS})
+
+if(LIBSECP256K1_EXPORT)
+  target_include_directories(${MODULE_NAME} PRIVATE ${OT_SECP256K1_HEADERS})
+endif()
 #// clang-format on

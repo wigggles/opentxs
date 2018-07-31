@@ -56,3 +56,5 @@ install(TARGETS ${MOD_NAME}
         DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT java)
 
+add_dependencies(${MOD_NAME} opentxs)
+

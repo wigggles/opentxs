@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs-network-zeromq)
+
 set(cxx-sources
   Context.cpp
   CurveClient.cpp
@@ -61,8 +63,6 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/SubscribeSocket.hpp
 )
 
-set(MODULE_NAME opentxs-network-zeromq)
-
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
@@ -95,3 +95,4 @@ install(FILES ${cxx-install-headers}
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+target_include_directories(${MODULE_NAME} PRIVATE ${OT_ZEROMQ_HEADERS})

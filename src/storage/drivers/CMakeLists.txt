@@ -3,11 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-if (OT_STORAGE_SQLITE)
-  include_directories(SYSTEM
-    ${SQLITE3_INCLUDE_DIRS}
-  )
-endif()
+set(MODULE_NAME opentxs-storage-drivers)
 
 set(cxx-sources
   StorageFS.cpp
@@ -25,7 +21,6 @@ set(cxx-headers
   StorageSqlite3.hpp
 )
 
-set(MODULE_NAME opentxs-storage-drivers)
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
   add_definitions(-DOTLOG_IMPORT)
@@ -54,3 +49,7 @@ endif()
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+
+if (OT_STORAGE_SQLITE)
+  target_include_directories(${MODULE_NAME} PRIVATE ${OT_SQLITE_HEADERS})
+endif()

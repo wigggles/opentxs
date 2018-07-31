@@ -7,6 +7,9 @@
 
 #include "opentxs/opentxs.hpp"
 
+// Insure FAIL macro has correct definition
+#include <gtest/gtest.h>
+
 void OTTestEnvironment::SetUp()
 {
     opentxs::ArgList args;

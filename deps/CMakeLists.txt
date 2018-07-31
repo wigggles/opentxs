@@ -1,7 +1,14 @@
-# Copyright (c) Monetas AG, 2014
+# Copyright (c) 2018 The Open-Transactions developers
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 add_subdirectory(irrxml)
 add_subdirectory(base64)
+
+if(OT_BUNDLED_SQLITE)
+  add_subdirectory(sqlite-amalgamation-3240000)
+endif()
 
 if(CASH_LUCRE_EXPORT)
   ### Build lucre as library
@@ -24,6 +31,24 @@ set_property(TARGET lucre PROPERTY POSITION_INDEPENDENT_CODE 1)
 endif(CASH_LUCRE_EXPORT)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+if("${OT_HOST_OVERRIDE}" STREQUAL "")
+  set(OT_HOST "")
+else()
+  set(OT_HOST "--host=${OT_HOST_OVERRIDE}")
+endif()
+
+if("${OT_SYSROOT_OVERRIDE}" STREQUAL "")
+  set(OT_SYSROOT "")
+else()
+  set(OT_SYSROOT "--with-sysroot=${OT_SYSROOT_OVERRIDE}")
+endif()
+
+if(OT_ANDROID)
+  set(OT_ANDROID_LOG "LDFLAGS=-llog")
+else()
+  set(OT_ANDROID_LOG "")
+endif()
 
 if (TREZORCRYPTO_EXPORT)
     set(trezor-sources
@@ -136,7 +161,195 @@ if (TREZORCRYPTO_EXPORT)
     include_directories(trezor-crypto/aes)
     include_directories(trezor-crypto/chacha20poly1305)
     include_directories(trezor-crypto/ed25519-donna)
-    set(CMAKE_C_FLAGS "-std=c99")
     add_library(TrezorCrypto OBJECT ${trezor-sources} ${trezor-headers})
     set_property(TARGET TrezorCrypto PROPERTY POSITION_INDEPENDENT_CODE 1)
+    set_target_properties(TrezorCrypto PROPERTIES COMPILE_FLAGS "-std=c99")
+endif()
+
+if (OT_BUNDLED_PROTOBUF)
+    set(bundled-protobuf-path "${CMAKE_CURRENT_BINARY_DIR}/protobuf/install/lib/libprotobuf-lite.a" CACHE INTERNAL "" FORCE)
+    include(ExternalProject)
+    ExternalProject_Add(
+        protobuf
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/protobuf
+        TMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/protobuf/tmp
+        STAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/protobuf/stamp
+        EXCLUDE_FROM_ALL 1
+        DOWNLOAD_COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/protobuf/src/
+        DOWNLOAD_NO_PROGRESS 1
+        UPDATE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/protobuf/src/autogen.sh
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/protobuf/src
+        CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/protobuf/src/configure --prefix ${CMAKE_CURRENT_BINARY_DIR}/protobuf/install ${OT_HOST} ${OT_SYSROOT} --enable-shared=no --enable-static=yes --with-pic --enable-cross-compile --with-pthreads --with-protoc=protoc --with-zlib --with-zlib-include=${ZLIB_INCLUDE_DIRS} --with-zlib-lib=${ZLIB_LIBRARIES} --disable-maintainer-mode --enable-fast-install ${OT_ANDROID_LOG}
+        BUILD_COMMAND make "${OT_MAKEOPTS_OVERRIDE}"
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS "${bundled-protobuf-path}"
+        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/protobuf/install
+        INSTALL_COMMAND make install
+    )
+
+    ExternalProject_Add_Step(
+        protobuf
+        checkout
+        COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/protobuf checkout-index --all --force --prefix=${CMAKE_CURRENT_BINARY_DIR}/protobuf/src/
+        DEPENDERS update
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/protobuf
+    )
+else()
+    set(bundled-protobuf-path "" CACHE INTERNAL "" FORCE)
+endif()
+
+if(OT_BUNDLED_OPENTXS_PROTO)
+  add_subdirectory(opentxs-proto)
+  file(GLOB opentxs-proto-headers "${CMAKE_CURRENT_SOURCE_DIR}/opentxs-proto/generated/opentxs-proto/*.pb.h")
+  file(GLOB opentxs-proto-sources "${CMAKE_CURRENT_SOURCE_DIR}/opentxs-proto/generated/opentxs-proto/*.pb.cc")
+  add_library(opentxs-proto-objects OBJECT "${opentxs-proto-headers}" "${opentxs-proto-sources}")
+  set_property(TARGET opentxs-proto-objects PROPERTY POSITION_INDEPENDENT_CODE 1)
+  target_include_directories(opentxs-proto-objects PUBLIC ${OT_PROTOBUF_HEADERS})
+  target_include_directories(opentxs-verify PUBLIC ${OT_PROTOBUF_HEADERS})
+  install(FILES ${opentxs-proto-headers}
+          DESTINATION include/opentxs-proto
+          COMPONENT dev)
+endif()
+
+if(OT_BUNDLED_SODIUM)
+    set(bundled-sodium-path "${CMAKE_CURRENT_BINARY_DIR}/sodium/install/lib/libsodium.a" CACHE INTERNAL "" FORCE)
+    set(SODIUM_INCLUDE_DIR "${OT_SODIUM_HEADERS}" CACHE INTERNAL "" FORCE)
+    set(SODIUM_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/sodium/install/lib/libsodium.a" CACHE INTERNAL "" FORCE)
+    set(SODIUM_FOUND TRUE CACHE INTERNAL "" FORCE)
+    include(ExternalProject)
+    ExternalProject_Add(
+        sodium
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/sodium
+        TMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/sodium/tmp
+        STAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/sodium/stamp
+        EXCLUDE_FROM_ALL 1
+        DOWNLOAD_COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/sodium/src/
+        DOWNLOAD_NO_PROGRESS 1
+        UPDATE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sodium/src/autogen.sh
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/sodium/src
+        CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sodium/src/configure --prefix ${CMAKE_CURRENT_BINARY_DIR}/sodium/install ${OT_HOST} ${OT_SYSROOT} --enable-shared=no --enable-static=yes --with-pic --with-pthreads --disable-asm --disable-soname-versions --enable-minimal
+        BUILD_COMMAND make "${OT_MAKEOPTS_OVERRIDE}"
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS "${bundled-sodium-path}"
+        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/sodium/install
+        INSTALL_COMMAND make install
+    )
+
+    # resolve symbol conflicts with trezor-crypto
+    ExternalProject_Add_Step(
+        sodium
+        patchB
+        COMMAND find ${CMAKE_CURRENT_BINARY_DIR}/sodium/src -type f -exec sed -i s/ge25519_scalarmult/sodium_ge25519_scalarmult/ {} +
+        DEPENDERS update
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sodium
+    )
+
+    # resolve symbol conflicts with trezor-crypto
+    ExternalProject_Add_Step(
+        sodium
+        patchA
+        COMMAND find ${CMAKE_CURRENT_BINARY_DIR}/sodium/src -type f -exec sed -i s/ge25519_double_scalarmult_vartime/sodium_ge25519_double_scalarmult_vartime/ {} +
+        DEPENDERS patchB
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/sodium
+    )
+
+    ExternalProject_Add_Step(
+        sodium
+        checkout
+        COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/sodium checkout-index --all --force --prefix=${CMAKE_CURRENT_BINARY_DIR}/sodium/src/
+        DEPENDERS patchA
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/sodium
+    )
+else()
+    set(bundled-sodium-path "" CACHE INTERNAL "" FORCE)
+endif()
+
+if(OT_BUNDLED_LIBZMQ)
+    set(bundled-zmq-path "${CMAKE_CURRENT_BINARY_DIR}/libzmq/install/lib/libzmq.a" CACHE INTERNAL "" FORCE)
+    include(ExternalProject)
+    ExternalProject_Add(
+        libzmq
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libzmq
+        TMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/libzmq/tmp
+        STAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/libzmq/stamp
+        EXCLUDE_FROM_ALL 1
+        DOWNLOAD_COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src/
+        DOWNLOAD_NO_PROGRESS 1
+        UPDATE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src/autogen.sh
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src
+        CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src/configure --prefix ${CMAKE_CURRENT_BINARY_DIR}/libzmq/install ${OT_HOST} ${OT_SYSROOT} --enable-shared=no --enable-static=yes --with-pic --disable-code-coverage --disable-curve-keygen --enable-drafts --without-docs --without-documentation --with-libsodium
+        BUILD_COMMAND make "${OT_MAKEOPTS_OVERRIDE}"
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS "${bundled-zmq-path}"
+        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/libzmq/install
+        INSTALL_COMMAND make install
+    )
+
+    ExternalProject_Add_Step(
+        libzmq
+        checkout
+        COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/libzmq checkout-index --all --force --prefix=${CMAKE_CURRENT_BINARY_DIR}/libzmq/src/
+        DEPENDERS update
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libzmq
+    )
+
+    if(OT_BUNDLED_SODIUM AND NOT ("${OT_SYSROOT_OVERRIDE}" STREQUAL ""))
+     ExternalProject_Add_Step(
+         libzmq
+         link_fix
+         COMMAND cp -a "${SODIUM_LIBRARY}" "${OT_SYSROOT_OVERRIDE}/usr/lib/"
+         DEPENDERS configure
+         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libzmq
+     )
+
+      ExternalProject_Add_Step(
+          libzmq
+          include_fix_2
+          COMMAND cp -a "${OT_SODIUM_HEADERS}/sodium" "${OT_SYSROOT_OVERRIDE}/usr/include/"
+          DEPENDERS link_fix
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libzmq
+      )
+
+      ExternalProject_Add_Step(
+          libzmq
+          include_fix-1
+          COMMAND cp "${OT_SODIUM_HEADERS}/sodium.h" "${OT_SYSROOT_OVERRIDE}/usr/include/"
+          DEPENDERS include_fix_2
+          WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libzmq
+      )
+    endif()
+else()
+    set(bundled-zmq-path "" CACHE INTERNAL "" FORCE)
+endif()
+
+if (OT_BUNDLED_SECP256K1)
+    set(bundled-secp256k1-path "${CMAKE_CURRENT_BINARY_DIR}/secp256k1/install/lib/libsecp256k1.a" CACHE INTERNAL "" FORCE)
+    include(ExternalProject)
+    ExternalProject_Add(
+        secp256k1
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/secp256k1
+        TMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/tmp
+        STAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/stamp
+        EXCLUDE_FROM_ALL 1
+        DOWNLOAD_COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/src/
+        DOWNLOAD_NO_PROGRESS 1
+        UPDATE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/src/autogen.sh
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/src
+        CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/src/configure --prefix ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/install ${OT_HOST} ${OT_SYSROOT} --enable-shared=no --enable-static=yes --with-pic --disable-openssl-tests --enable-experimental --disable-exhaustive-tests --enable-module-ecdh --enable-module-recovery --disable-jni --with-bignum=no --with-asm=no --disable-tests --disable-benchmark
+        BUILD_COMMAND make "${OT_MAKEOPTS_OVERRIDE}"
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS "${bundled-secp256k1-path}"
+        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/secp256k1/install
+        INSTALL_COMMAND make install
+    )
+
+    ExternalProject_Add_Step(
+        secp256k1
+        checkout
+        COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/secp256k1 checkout-index --all --force --prefix=${CMAKE_CURRENT_BINARY_DIR}/secp256k1/src/
+        DEPENDERS update
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/secp256k1
+    )
+else()
+    set(bundled-secp256k1-path "" CACHE INTERNAL "" FORCE)
 endif()

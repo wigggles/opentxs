@@ -19,6 +19,15 @@ include_directories(
 )
 
 add_executable(${name} ${cxx-sources})
-target_link_libraries(${name} opentxs opentxs-proto ${PROTOBUF_LITE_LIBRARIES} ${GTEST_LIBRARY})
+target_link_libraries(${name} opentxs ${GTEST_LIBRARY})
+
+if(NOT OT_BUNDLED_PROTOBUF)
+  target_link_libraries(${name} ${PROTOBUF_LITE_LIBRARIES})
+endif()
+
+if(NOT OT_BUNDLED_OPENTXS_PROTO)
+  target_link_libraries(${name} opentxs-proto)
+endif()
+
 set_target_properties(${name} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/tests)
 add_test(${name} ${PROJECT_BINARY_DIR}/tests/${name} --gtest_output=xml:gtestresults.xml)
