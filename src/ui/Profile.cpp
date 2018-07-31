@@ -251,7 +251,7 @@ void Profile::process_nym(const Nym& nym)
 
         if (check_type(type)) {
             CustomData custom{new opentxs::ContactSection(*section.second)};
-            add_item(type, sort_key(type), {section.second.get()});
+            add_item(type, sort_key(type), custom);
             active.emplace(type);
         }
     }
