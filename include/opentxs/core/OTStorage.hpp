@@ -377,36 +377,36 @@ protected:
     virtual bool onStorePackedBuffer(
         PackedBuffer& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") = 0;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) = 0;
 
     virtual bool onQueryPackedBuffer(
         PackedBuffer& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") = 0;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) = 0;
 
     virtual bool onStorePlainString(
         const std::string& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") = 0;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) = 0;
 
     virtual bool onQueryPlainString(
         std::string& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") = 0;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) = 0;
 
     virtual bool onEraseValueByKey(
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") = 0;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) = 0;
 
 public:
     // Use GetPacker() to access the Packer, throughout duration of this Storage
@@ -431,16 +431,16 @@ public:
     // See if the file is there.
     virtual bool Exists(
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") = 0;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) = 0;
 
     virtual std::int64_t FormPathString(
         std::string& strOutput,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") = 0;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) = 0;
 
     virtual ~Storage()
     {
@@ -453,45 +453,45 @@ public:
     EXPORT bool StoreString(
         const std::string& strContents,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
     EXPORT std::string QueryString(
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
     EXPORT bool StorePlainString(
         const std::string& strContents,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
     EXPORT std::string QueryPlainString(
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
     // Store/Retrieve an object. (Storable.)
 
     EXPORT bool StoreObject(
         Storable& theContents,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
     // Use %newobject OTDB::Storage::QueryObject();
     EXPORT Storable* QueryObject(
         const StoredObjectType& theObjectType,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
     // Store/Retrieve a Storable object inside an Armored object.
 
     EXPORT std::string EncodeObject(Storable& theContents);
@@ -505,9 +505,9 @@ public:
 
     EXPORT bool EraseValueByKey(
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
     // Note:
     // Make sure to use: %newobject Factory::createObj();  IN OTAPI.i file!
@@ -562,60 +562,60 @@ EXPORT bool CheckStringsExistInOrder(
 //
 EXPORT bool Exists(
     const std::string strFolder,
-    const std::string oneStr = "",
-    const std::string twoStr = "",
-    const std::string threeStr = "");
+    const std::string oneStr,
+    const std::string twoStr,
+    const std::string threeStr);
 
 EXPORT std::int64_t FormPathString(
     std::string& strOutput,
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 // Store/Retrieve a string.
 //
 EXPORT bool StoreString(
     const std::string& strContents,
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 
 EXPORT std::string QueryString(
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 
 EXPORT bool StorePlainString(
     const std::string& strContents,
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 
 EXPORT std::string QueryPlainString(
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 
 // Store/Retrieve an object. (Storable.)
 //
 EXPORT bool StoreObject(
     Storable& theContents,
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 
 // Use %newobject OTDB::Storage::Query();
 EXPORT Storable* QueryObject(
     const StoredObjectType theObjectType,
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 
 // Store/Retrieve a Storable object inside an Armored object.
 EXPORT std::string EncodeObject(Storable& theContents);
@@ -629,9 +629,9 @@ EXPORT Storable* DecodeObject(
 
 EXPORT bool EraseValueByKey(
     const std::string& strFolder,
-    const std::string& oneStr = "",
-    const std::string& twoStr = "",
-    const std::string& threeStr = "");
+    const std::string& oneStr,
+    const std::string& twoStr,
+    const std::string& threeStr);
 
 #define DECLARE_GET_ADD_REMOVE(name)                                           \
                                                                                \
@@ -1531,18 +1531,18 @@ protected:
     std::int64_t ConstructAndConfirmPath(
         std::string& strOutput,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
 public:
     // Verifies whether path exists AND creates folders where necessary.
     std::int64_t ConstructAndCreatePath(
         std::string& strOutput,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "");
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr);
 
 private:
     std::int64_t ConstructAndConfirmPathImp(
@@ -1561,50 +1561,50 @@ protected:
     bool onStorePackedBuffer(
         PackedBuffer& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") override;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) override;
 
     bool onQueryPackedBuffer(
         PackedBuffer& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") override;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) override;
 
     bool onStorePlainString(
         const std::string& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") override;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) override;
 
     bool onQueryPlainString(
         std::string& theBuffer,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") override;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) override;
 
     bool onEraseValueByKey(
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") override;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) override;
 
 public:
     bool Exists(
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") override;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) override;
 
     std::int64_t FormPathString(
         std::string& strOutput,
         const std::string& strFolder,
-        const std::string& oneStr = "",
-        const std::string& twoStr = "",
-        const std::string& threeStr = "") override;
+        const std::string& oneStr,
+        const std::string& twoStr,
+        const std::string& threeStr) override;
 
     static StorageFS* Instantiate() { return new StorageFS; }
 

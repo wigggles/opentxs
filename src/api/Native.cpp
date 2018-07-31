@@ -585,14 +585,14 @@ void Native::Init()
     Init_Config();  // requires Init_Legacy()
     Init_Log();     // requires Init_Config()
     Init_Crypto();
-    Init_Storage();    // requires Init_Legacy(), Init_Config(), Init_Crypto()
+    Init_Storage();  // requires Init_Legacy(), Init_Config(), Init_Crypto()
     Init_ZMQ();      // requires Init_Config()
     Init_Contracts();
     Init_Dht();       // requires Init_Config()
     Init_Identity();  // requires Init_Contracts()
     Init_Contacts();  // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
     Init_Activity();  // requires Init_Storage(), Init_Contacts(),
-                       // Init_Contracts(), Init_Legacy()
+                      // Init_Contracts(), Init_Legacy()
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
                         // Init_Contracts(), Init_Activity()
@@ -908,7 +908,7 @@ void Native::Init_Storage()
     std::string path;
 
     if (0 <= storage->ConstructAndCreatePath(
-                 path, OTFolders::Common().Get(), ".temp")) {
+                 path, OTFolders::Common().Get(), ".temp", "", "")) {
         path.erase(path.end() - 5, path.end());
     }
 

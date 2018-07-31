@@ -145,8 +145,8 @@ bool Account::LoadContractFromString(const String& theStr)
 // Caller responsible to delete.
 Ledger* Account::LoadInbox(const Nym& nym) const
 {
-    std::unique_ptr<Ledger> box{
-        new Ledger(data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+    std::unique_ptr<Ledger> box{new Ledger(
+        data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -163,8 +163,8 @@ Ledger* Account::LoadInbox(const Nym& nym) const
 // Caller responsible to delete.
 Ledger* Account::LoadOutbox(const Nym& nym) const
 {
-    std::unique_ptr<Ledger> box{
-        new Ledger(data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+    std::unique_ptr<Ledger> box{new Ledger(
+        data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -429,7 +429,10 @@ Account* Account::LoadExistingAccount(
     account->m_strFilename = strAcctID.Get();
 
     if (!OTDB::Exists(
-            account->m_strFoldername.Get(), account->m_strFilename.Get())) {
+            account->m_strFoldername.Get(),
+            account->m_strFilename.Get(),
+            "",
+            "")) {
         otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
                << account->m_strFoldername << Log::PathSeparator()
                << account->m_strFilename << "\n";
@@ -520,7 +523,7 @@ bool Account::GenerateNewAccount(
 
     // Then we try to load it, in order to make sure that it doesn't already
     // exist.
-    if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get())) {
+    if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get(), "", "")) {
         otErr << __FUNCTION__ << ": Account already exists: " << m_strFilename
               << "\n";
         return false;

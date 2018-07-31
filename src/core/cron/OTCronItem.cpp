@@ -181,7 +181,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
 
-    if (!OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(szFoldername, szFilename, "", "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
@@ -189,7 +189,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(
     }
 
     String strFileContents(OTDB::QueryPlainString(
-        szFoldername, szFilename));  // <=== LOADING FROM DATA STORE.
+        szFoldername, szFilename, "", ""));  // <=== LOADING FROM DATA STORE.
 
     if (strFileContents.GetLength() < 2) {
         otErr << "OTCronItem::" << __FUNCTION__
@@ -218,7 +218,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
 
-    if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
+    if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename, "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
@@ -227,9 +227,8 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     }
 
     String strFileContents(OTDB::QueryPlainString(
-        szFoldername,
-        strNotaryID.Get(),
-        szFilename));  // <=== LOADING FROM DATA STORE.
+        szFoldername, strNotaryID.Get(), szFilename, ""));  // <=== LOADING FROM
+                                                            // DATA STORE.
 
     if (strFileContents.GetLength() < 2) {
         otErr << "OTCronItem::" << __FUNCTION__
@@ -263,11 +262,12 @@ bool OTCronItem::GetActiveCronTransNums(
     String strListFilename(nymID), strNotaryID(notaryID);
     strListFilename.Concatenate(".lst");  // nymID.lst
 
-    if (OTDB::Exists(szFoldername, strNotaryID.Get(), strListFilename.Get())) {
+    if (OTDB::Exists(
+            szFoldername, strNotaryID.Get(), strListFilename.Get(), "")) {
         // Load up existing list, if it exists.
         //
         String strNumlist(OTDB::QueryPlainString(
-            szFoldername, strNotaryID.Get(), strListFilename.Get()));
+            szFoldername, strNotaryID.Get(), strListFilename.Get(), ""));
 
         if (strNumlist.Exists()) {
             if (false ==
@@ -309,13 +309,14 @@ bool OTCronItem::EraseActiveCronReceipt(
     String strListFilename(nymID);
     strListFilename.Concatenate(".lst");  // nymID.lst
 
-    if (OTDB::Exists(szFoldername, strNotaryID.Get(), strListFilename.Get())) {
+    if (OTDB::Exists(
+            szFoldername, strNotaryID.Get(), strListFilename.Get(), "")) {
         // Load up existing list, to remove the transaction num from it.
         //
         NumList numlist;
 
         String strNumlist(OTDB::QueryPlainString(
-            szFoldername, strNotaryID.Get(), strListFilename.Get()));
+            szFoldername, strNotaryID.Get(), strListFilename.Get(), ""));
 
         if (strNumlist.Exists()) {
             if (false ==
@@ -337,7 +338,10 @@ bool OTCronItem::EraseActiveCronReceipt(
 
         if (0 == numlist.Count()) {
             if (!OTDB::EraseValueByKey(
-                    szFoldername, strNotaryID.Get(), strListFilename.Get())) {
+                    szFoldername,
+                    strNotaryID.Get(),
+                    strListFilename.Get(),
+                    "")) {
                 otOut << "OTCronItem::" << __FUNCTION__
                       << ": FYI, failure erasing recurring IDs file: "
                       << szFoldername << Log::PathSeparator() << strNotaryID
@@ -363,7 +367,8 @@ bool OTCronItem::EraseActiveCronReceipt(
                     strFinal.Get(),
                     szFoldername,
                     strNotaryID.Get(),
-                    strListFilename.Get());
+                    strListFilename.Get(),
+                    "");
 
                 if (!bSaved) {
                     otErr << "OTCronItem::" << __FUNCTION__
@@ -379,7 +384,7 @@ bool OTCronItem::EraseActiveCronReceipt(
     // Now that the list is updated, let's go ahead and erase the actual cron
     // item itself.
     //
-    if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
+    if (!OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename, "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
@@ -387,7 +392,8 @@ bool OTCronItem::EraseActiveCronReceipt(
         return false;
     }
 
-    if (!OTDB::EraseValueByKey(szFoldername, strNotaryID.Get(), szFilename)) {
+    if (!OTDB::EraseValueByKey(
+            szFoldername, strNotaryID.Get(), szFilename, "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error erasing file: " << szFoldername
               << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
@@ -410,7 +416,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     const char* szFoldername = OTFolders::Cron().Get();  // cron
     const char* szFilename = strFilename.Get();  // cron/TRANSACTION_NUM.crn
 
-    if (OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename)) {
+    if (OTDB::Exists(szFoldername, strNotaryID.Get(), szFilename, "")) {
         otInfo << "OTCronItem::" << __FUNCTION__
                << ": Cron Record already exists for transaction "
                << GetTransactionNum() << " " << szFoldername
@@ -430,11 +436,11 @@ bool OTCronItem::SaveActiveCronReceipt(
         NumList numlist;
 
         if (OTDB::Exists(
-                szFoldername, strNotaryID.Get(), strListFilename.Get())) {
+                szFoldername, strNotaryID.Get(), strListFilename.Get(), "")) {
             // Load up existing list, to add the new transaction num to it.
             //
             String strNumlist(OTDB::QueryPlainString(
-                szFoldername, strNotaryID.Get(), strListFilename.Get()));
+                szFoldername, strNotaryID.Get(), strListFilename.Get(), ""));
 
             if (strNumlist.Exists()) {
                 if (false == strNumlist.DecodeIfArmored(
@@ -473,7 +479,8 @@ bool OTCronItem::SaveActiveCronReceipt(
                 strFinal.Get(),
                 szFoldername,
                 strNotaryID.Get(),
-                strListFilename.Get());
+                strListFilename.Get(),
+                "");
 
             if (!bSaved) {
                 otErr << "OTCronItem::" << __FUNCTION__
@@ -498,7 +505,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     }
 
     bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), szFoldername, strNotaryID.Get(), szFilename);
+        strFinal.Get(), szFoldername, strNotaryID.Get(), szFilename, "");
 
     if (!bSaved) {
         otErr << "OTCronItem::" << __FUNCTION__
@@ -530,7 +537,7 @@ bool OTCronItem::SaveCronReceipt()
     const char* szFoldername = OTFolders::Cron().Get();  // cron
     const char* szFilename = strFilename.Get();  // cron/TRANSACTION_NUM.crn
 
-    if (OTDB::Exists(szFoldername, szFilename)) {
+    if (OTDB::Exists(szFoldername, szFilename, "", "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Cron Record already exists for transaction "
               << GetTransactionNum() << " " << szFoldername
@@ -551,8 +558,8 @@ bool OTCronItem::SaveCronReceipt()
         return false;
     }
 
-    bool bSaved =
-        OTDB::StorePlainString(strFinal.Get(), szFoldername, szFilename);
+    bool bSaved = OTDB::StorePlainString(
+        strFinal.Get(), szFoldername, szFilename, "", "");
 
     if (!bSaved) {
         otErr << "OTCronItem::" << __FUNCTION__

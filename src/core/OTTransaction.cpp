@@ -1672,7 +1672,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     const char* szFolder2name = strNotaryID.Get();
     const char* szFilename = strFilename.Get();
 
-    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename, "")) {
         otWarn << "Receipt file doesn't exist in "
                   "OTTransaction::VerifyBalanceReceipt:\n "
                << szFilename << "\n";
@@ -1681,7 +1681,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     }
 
     const std::string strFileContents(
-        OTDB::QueryPlainString(szFolder1name, szFolder2name, szFilename));
+        OTDB::QueryPlainString(szFolder1name, szFolder2name, szFilename, ""));
 
     if (strFileContents.length() < 2) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error reading "

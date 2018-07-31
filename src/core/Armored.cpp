@@ -314,17 +314,17 @@ bool Armored::LoadFromFile(const String& foldername, const String& filename)
     OT_ASSERT(foldername.Exists());
     OT_ASSERT(filename.Exists());
 
-    if (!OTDB::Exists(foldername.Get(), filename.Get())) {
+    if (!OTDB::Exists(foldername.Get(), filename.Get(), "", "")) {
         otErr << "Armored::LoadFromFile: File does not exist: " << foldername
               << "" << Log::PathSeparator() << "" << filename << "\n";
         return false;
     }
 
-    String strFileContents(
-        OTDB::QueryPlainString(foldername.Get(), filename.Get()));  // <===
-                                                                    // LOADING
-                                                                    // FROM DATA
-                                                                    // STORE.
+    String strFileContents(OTDB::QueryPlainString(
+        foldername.Get(), filename.Get(), "", ""));  // <===
+                                                     // LOADING
+                                                     // FROM DATA
+                                                     // STORE.
 
     if (strFileContents.GetLength() < 2) {
         otErr << "Armored::LoadFromFile: Error reading file: " << foldername
@@ -565,7 +565,7 @@ bool Armored::WriteArmoredFile(
         // for the output file.
         //
         bool bSaved = OTDB::StorePlainString(
-            strOutput.Get(), foldername.Get(), filename.Get());
+            strOutput.Get(), foldername.Get(), filename.Get(), "", "");
 
         if (!bSaved) {
             otErr << "Armored::WriteArmoredFile"

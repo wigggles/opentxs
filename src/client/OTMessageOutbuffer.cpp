@@ -136,9 +136,9 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
     //
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
-    if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
+    if (OTDB::Exists(strFolder.Get(), str_data_filename, "", "")) {
         String strNumList(
-            OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+            OTDB::QueryPlainString(strFolder.Get(), str_data_filename, "", ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Add(lRequestNum);  // Add the new request number to it.
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -181,7 +181,9 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
     if (!OTDB::StorePlainString(
             strOutput.Get(),
             strFolder.Get(),
-            str_data_filename))  // todo hardcoding.
+            str_data_filename,
+            "",
+            ""))  // todo hardcoding.
     {
         otErr << "OTMessageOutbuffer::AddSentMessage: Error: failed writing "
                  "list of request numbers to storage.\n";
@@ -239,10 +241,11 @@ Message* OTMessageOutbuffer::GetSentMessage(
     //
     NumList theNumList;
     std::string str_data_filename("sent.dat");
-    if (OTDB::Exists(strFolder.Get(), str_data_filename))  // todo hardcoding.
+    if (OTDB::Exists(
+            strFolder.Get(), str_data_filename, "", ""))  // todo hardcoding.
     {
         String strNumList(
-            OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+            OTDB::QueryPlainString(strFolder.Get(), str_data_filename, "", ""));
 
         if (strNumList.Exists()) theNumList.Add(strNumList);
 
@@ -257,7 +260,7 @@ Message* OTMessageOutbuffer::GetSentMessage(
 
             std::unique_ptr<Message> theMsgAngel(pMsg);
 
-            if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
+            if (OTDB::Exists(strFolder.Get(), strFile.Get(), "", "") &&
                 pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
@@ -452,9 +455,9 @@ void OTMessageOutbuffer::Clear(
         NumList theNumList;
         std::string str_data_filename("sent.dat");
 
-        if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-            String strNumList(
-                OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+        if (OTDB::Exists(strFolder.Get(), str_data_filename, "", "")) {
+            String strNumList(OTDB::QueryPlainString(
+                strFolder.Get(), str_data_filename, "", ""));
 
             if (strNumList.Exists()) { theNumList.Add(strNumList); }
 
@@ -464,7 +467,7 @@ void OTMessageOutbuffer::Clear(
         String strOutput;
         theNumList.Output(strOutput);
         const bool saved = OTDB::StorePlainString(
-            strOutput.Get(), strFolder.Get(), str_data_filename);
+            strOutput.Get(), strFolder.Get(), str_data_filename, "", "");
 
         if (!saved) {
             otErr << "OTMessageOutbuffer::Clear: Error: failed writing list of "
@@ -478,9 +481,9 @@ void OTMessageOutbuffer::Clear(
 
         OT_ASSERT(storedMessage);
 
-        if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
+        if (OTDB::Exists(strFolder.Get(), strFile.Get(), "", "") &&
             storedMessage->LoadContract(strFolder.Get(), strFile.Get())) {
-            OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
+            OTDB::EraseValueByKey(strFolder.Get(), strFile.Get(), "", "");
         }
 
         delete pThisMsg;
@@ -559,9 +562,9 @@ bool OTMessageOutbuffer::RemoveSentMessage(
 
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
-    if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
+    if (OTDB::Exists(strFolder.Get(), str_data_filename, "", "")) {
         String strNumList(
-            OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+            OTDB::QueryPlainString(strFolder.Get(), str_data_filename, "", ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Remove(lRequestNum);
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -605,7 +608,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     String strOutput;
     theNumList.Output(strOutput);
     if (!OTDB::StorePlainString(
-            strOutput.Get(), strFolder.Get(), str_data_filename)) {
+            strOutput.Get(), strFolder.Get(), str_data_filename, "", "")) {
         otErr << "OTMessageOutbuffer::RemoveSentMessage: Error: failed writing "
                  "list of request numbers to storage.\n";
     }
@@ -617,9 +620,9 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     OT_ASSERT(nullptr != pMsg);
     std::unique_ptr<Message> theMsgAngel(pMsg);
 
-    if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
+    if (OTDB::Exists(strFolder.Get(), strFile.Get(), "", "") &&
         pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
-        OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
+        OTDB::EraseValueByKey(strFolder.Get(), strFile.Get(), "", "");
         return true;
     }
 

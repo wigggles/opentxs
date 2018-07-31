@@ -802,7 +802,7 @@ bool OTMarket::LoadMarket()
     const char* szFoldername = OTFolders::Market().Get();
     const char* szFilename = str_MARKET_ID.Get();
 
-    bool bSuccess = OTDB::Exists(szFoldername, szFilename);
+    bool bSuccess = OTDB::Exists(szFoldername, szFilename, "", "");
 
     if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename);  // todo ??
 
@@ -820,9 +820,10 @@ bool OTMarket::LoadMarket()
 
         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(OTDB::QueryObject(
             OTDB::STORED_OBJ_TRADE_LIST_MARKET,
-            szFoldername,             // markets
-            szSubFolder,              // markets/recent
-            str_TRADES_FILE.Get()));  // markets/recent/<market_ID>.bin
+            szFoldername,  // markets
+            szSubFolder,   // markets/recent
+            str_TRADES_FILE.Get(),
+            ""));  // markets/recent/<market_ID>.bin
     }
 
     return bSuccess;
@@ -867,9 +868,10 @@ bool OTMarket::SaveMarket()
         // If this fails, oh well. It's informational, anyway.
         if (!OTDB::StoreObject(
                 *m_pTradeList,
-                szFoldername,            // markets
-                szSubFolder,             // markets/recent
-                str_TRADES_FILE.Get()))  // markets/recent/<Market_ID>.bin
+                szFoldername,  // markets
+                szSubFolder,   // markets/recent
+                str_TRADES_FILE.Get(),
+                ""))  // markets/recent/<Market_ID>.bin
             otErr << "Error saving recent trades for Market:\n"
                   << szFoldername << Log::PathSeparator() << szSubFolder
                   << Log::PathSeparator() << szFilename << "\n";

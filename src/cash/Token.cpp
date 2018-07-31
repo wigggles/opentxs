@@ -434,7 +434,7 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
         "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
-        OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
+        OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get(), "");
 
     if (bTokenIsPresent) {
         otOut << "\nToken::IsTokenAlreadySpent: Token was already spent: "
@@ -469,7 +469,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
     // See if the spent token file ALREADY EXISTS...
     bool bTokenIsPresent = OTDB::Exists(
-        OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
+        OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get(), "");
 
     // If so, we're trying to record a token that was already recorded...
     if (bTokenIsPresent) {
@@ -502,7 +502,8 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
         strFinal.Get(),
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
-        strTokenHash.Get());
+        strTokenHash.Get(),
+        "");
     if (!bSaved) {
         otErr << "Token::RecordTokenAsSpent: Error saving file: "
               << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder

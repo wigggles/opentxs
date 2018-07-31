@@ -16,6 +16,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -157,7 +158,7 @@ bool MainFile::SaveMainFile()
     // being used).
     //
     const bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), ".", server_.WalletFilename().Get());
+        strFinal.Get(), ".", server_.WalletFilename().Get(), "", "");
 
     if (!bSaved) {
         Log::vError(
@@ -175,13 +176,15 @@ bool MainFile::CreateMainFile(
     const std::string& strNymID,
     const std::string& strCachedKey)
 {
-    if (!OTDB::StorePlainString(strContract, "contracts", strNotaryID)) {
+    if (!OTDB::StorePlainString(
+            strContract, "contracts", strNotaryID, "", "")) {
         Log::Error("Failed trying to store the server contract.\n");
         return false;
     }
 
     if (!strCert.empty() &&
-        !OTDB::StorePlainString(strCert, "certs", strNymID)) {
+        !OTDB::StorePlainString(
+            strCert, OTFolders::Cert().Get(), strNymID, "", "")) {
         Log::Error(
             "Failed trying to store the server Nym's public/private cert.\n");
         return false;
@@ -215,9 +218,7 @@ bool MainFile::CreateMainFile(
     std::string str_Notary(strNotaryFile.Get());
 
     if (!OTDB::StorePlainString(
-            str_Notary,
-            ".",
-            "notaryServer.xml"))  // todo hardcoding.
+            str_Notary, ".", "notaryServer.xml", "", ""))  // todo hardcoding.
     {
         Log::Error("Failed trying to store the new notaryServer.xml file.\n");
         return false;
@@ -259,7 +260,7 @@ bool MainFile::CreateMainFile(
 
 bool MainFile::LoadMainFile(bool bReadOnly)
 {
-    if (!OTDB::Exists(".", server_.WalletFilename().Get())) {
+    if (!OTDB::Exists(".", server_.WalletFilename().Get(), "", "")) {
         Log::vError(
             "%s: Error finding file: %s\n",
             __FUNCTION__,
@@ -267,8 +268,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         return false;
     }
     String strFileContents(OTDB::QueryPlainString(
-        ".",
-        server_.WalletFilename().Get()));  // <=== LOADING FROM DATA STORE.
+        ".", server_.WalletFilename().Get(), "", ""));  // <=== LOADING FROM
+                                                        // DATA STORE.
 
     if (!strFileContents.Exists()) {
         Log::vError(

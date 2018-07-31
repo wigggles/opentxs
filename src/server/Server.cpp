@@ -177,7 +177,7 @@ std::pair<std::string, std::string> Server::parse_seed_backup(
 void Server::CreateMainFile(bool& mainFileExists)
 {
 #if OT_CRYPTO_WITH_BIP39
-    const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE);
+    const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE, "", "", "");
     std::string seed{};
 
     if (false == backup.empty()) {
@@ -361,7 +361,8 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     std::shared_ptr<const ServerContract> pContract{};
     auto& wallet = wallet_;
-    const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
+    const String existing =
+        OTDB::QueryPlainString(SERVER_CONTRACT_FILE, "", "", "").data();
 
     if (existing.empty()) {
         pContract = wallet.Server(nymID->str(), name, terms, endpoints);
@@ -426,7 +427,8 @@ void Server::CreateMainFile(bool& mainFileExists)
     Armored ascContract(signedContract.get());
     opentxs::String strBookended;
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
-    OTDB::StorePlainString(strBookended.Get(), SERVER_CONTRACT_FILE);
+    OTDB::StorePlainString(
+        strBookended.Get(), SERVER_CONTRACT_FILE, "", "", "");
 
     otOut << "Your server contract has been saved as " << SERVER_CONTRACT_FILE
           << " in the server data directory." << std::endl;
@@ -448,7 +450,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     json += words;
     json += "\" }\n";
 
-    OTDB::StorePlainString(json, SEED_BACKUP_FILE);
+    OTDB::StorePlainString(json, SEED_BACKUP_FILE, "", "", "");
 
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", nymID->str(), strCachedKey);
@@ -544,9 +546,10 @@ void Server::Init(bool readOnly)
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
 
     // Load up the transaction number and other Server data members.
-    bool mainFileExists = WalletFilename().Exists()
-                              ? OTDB::Exists(".", WalletFilename().Get())
-                              : false;
+    bool mainFileExists =
+        WalletFilename().Exists()
+            ? OTDB::Exists(".", WalletFilename().Get(), "", "")
+            : false;
 
     if (false == mainFileExists) {
         if (readOnly) {
@@ -563,7 +566,7 @@ void Server::Init(bool readOnly)
     if (mainFileExists) {
         if (false == mainFile_.LoadMainFile(readOnly)) {
             Log::vError("Error in Loading Main File, re-creating.\n");
-            OTDB::EraseValueByKey(".", WalletFilename().Get());
+            OTDB::EraseValueByKey(".", WalletFilename().Get(), "", "");
             CreateMainFile(mainFileExists);
 
             OT_ASSERT(mainFileExists);

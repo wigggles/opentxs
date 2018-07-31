@@ -225,7 +225,7 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
     if (add_item_to_workflow(*context.Nym(), message, payment)) { return true; }
 
     const bool bExists = OTDB::Exists(
-        OTFolders::PaymentInbox().Get(), strNotaryID.Get(), strNymID.Get());
+        OTFolders::PaymentInbox().Get(), strNotaryID.Get(), strNymID.Get(), "");
     Ledger thePmntInbox(
         legacy_.ClientDataFolder(), nymID, nymID, context.Server());  // payment
                                                                       // inbox
@@ -1108,11 +1108,13 @@ void OTClient::ProcessIncomingCronItemReply(
         const bool bExists1 = OTDB::Exists(
             OTFolders::PaymentInbox().Get(),
             strNotaryID.Get(),
-            String(context.Nym()->ID()).Get());
+            String(context.Nym()->ID()).Get(),
+            "");
         const bool bExists2 = OTDB::Exists(
             OTFolders::RecordBox().Get(),
             strNotaryID.Get(),
-            String(context.Nym()->ID()).Get());
+            String(context.Nym()->ID()).Get(),
+            "");
 
         Ledger thePmntInbox(
             legacy_.ClientDataFolder(),
@@ -1815,7 +1817,8 @@ void OTClient::ProcessIncomingTransaction(
             strFinal.Get(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
-            strReceiptFilename.Get());
+            strReceiptFilename.Get(),
+            "");
     } else  // This should never happen...
     {
         strReceiptFilename.Format("%s.error", strReceiptID.Get());
@@ -1829,7 +1832,8 @@ void OTClient::ProcessIncomingTransaction(
             strFinal.Get(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
-            strReceiptFilename.Get());
+            strReceiptFilename.Get(),
+            "");
     }
 
     // No matter what kind of transaction it is, let's see if the server
@@ -2105,7 +2109,10 @@ void OTClient::ProcessDepositChequeResponse(
         const String strNymID(nymID);
         const String strNotaryID(serverID);
         const bool bExists = OTDB::Exists(
-            OTFolders::RecordBox().Get(), strNotaryID.Get(), strNymID.Get());
+            OTFolders::RecordBox().Get(),
+            strNotaryID.Get(),
+            strNymID.Get(),
+            "");
         Ledger theRecordBox(
             legacy_.ClientDataFolder(), nymID, nymID, serverID);  // record box
         bool bSuccessLoading = (bExists && theRecordBox.LoadRecordBox());
@@ -2734,7 +2741,8 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     const bool bExists = OTDB::Exists(
                         OTFolders::PaymentInbox().Get(),
                         strNotaryID.Get(),
-                        String(context.Nym()->ID()).Get());
+                        String(context.Nym()->ID()).Get(),
+                        "");
                     Ledger thePmntInbox(
                         legacy_.ClientDataFolder(),
                         nymID,
@@ -2910,7 +2918,8 @@ bool OTClient::processServerReplyProcessInbox(
     bool bInbox = OTDB::Exists(
         OTFolders::Inbox().Get(),
         strNotaryID.Get(),
-        theReply.m_strAcctID.Get());
+        theReply.m_strAcctID.Get(),
+        "");
 
     if (bInbox && theInbox.LoadInbox()) {
         bInbox = theInbox.VerifyAccount(*context.Nym());
@@ -2926,7 +2935,8 @@ bool OTClient::processServerReplyProcessInbox(
     bool bRecordBoxExists = OTDB::Exists(
         OTFolders::RecordBox().Get(),
         strNotaryID.Get(),
-        theReply.m_strAcctID.Get());
+        theReply.m_strAcctID.Get(),
+        "");
     // Next, loop through the reply items for each "process inbox" item that
     // I must have previously sent. For each, if successful, remove from
     // inbox. For item receipts, if successful, also remove the appropriate
@@ -4346,11 +4356,13 @@ bool OTClient::processServerReplyProcessNymbox(
                                     const bool bExists1 = OTDB::Exists(
                                         OTFolders::PaymentInbox().Get(),
                                         strNotaryID.Get(),
-                                        String(context.Nym()->ID()).Get());
+                                        String(context.Nym()->ID()).Get(),
+                                        "");
                                     const bool bExists2 = OTDB::Exists(
                                         OTFolders::RecordBox().Get(),
                                         strNotaryID.Get(),
-                                        String(context.Nym()->ID()).Get());
+                                        String(context.Nym()->ID()).Get(),
+                                        "");
 
                                     Ledger thePmntInbox(
                                         legacy_.ClientDataFolder(),
@@ -5415,7 +5427,8 @@ bool OTClient::processServerReplyProcessBox(
                             strFinal.Get(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
-                            strReceiptFilename.Get());
+                            strReceiptFilename.Get(),
+                            "");
                     } else  // This should never happen...
                     {
                         strReceiptFilename.Format(
@@ -5430,7 +5443,8 @@ bool OTClient::processServerReplyProcessBox(
                             strFinal.Get(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
-                            strReceiptFilename.Get());
+                            strReceiptFilename.Get(),
+                            "");
                     }
                 }  // success writing armored string
             } else {
@@ -5724,7 +5738,8 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
         bool bSuccessErase = pStorage->EraseValueByKey(
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
-            strMarketDatafile.Get());  // "markets/<notaryID>/market_data.bin"
+            strMarketDatafile.Get(),
+            "");  // "markets/<notaryID>/market_data.bin"
         if (!bSuccessErase)
             otErr << "Error erasing market list from market folder: "
                   << strMarketDatafile << " \n";
@@ -5771,7 +5786,8 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
         *pMarketList,
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
-        strMarketDatafile.Get());      // "markets/<notaryID>/market_data.bin"
+        strMarketDatafile.Get(),
+        "");  // "markets/<notaryID>/market_data.bin"
     if (!bSuccessStore)
         otErr << "Error storing market list to market folder: "
               << strMarketDatafile << " \n";
@@ -5884,8 +5900,8 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
                                            // "markets/<notaryID>/recent"
                                            // // todo stop
                                            // hardcoding.
-            strTradeDatafile
-                .Get());  // "markets/<notaryID>/recent/<marketID>.bin"
+            strTradeDatafile.Get(),
+            "");  // "markets/<notaryID>/recent/<marketID>.bin"
         if (!bSuccessErase)
             otErr << "Error erasing recent trades list from market folder: "
                   << strTradeDatafile << " \n";
