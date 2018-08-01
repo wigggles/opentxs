@@ -10,6 +10,7 @@
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -59,6 +60,19 @@ extern "C" {
 #include "Trezor.hpp"
 
 #define OT_METHOD "opentxs::crypto::implementation::Trezor::"
+
+extern "C" {
+uint32_t random32(void)
+{
+    uint32_t output{0};
+    const auto done = opentxs::OT::App().Crypto().Util().RandomizeMemory(
+        &output, sizeof(output));
+
+    OT_ASSERT(done)
+
+    return output;
+}
+}
 
 namespace opentxs
 {

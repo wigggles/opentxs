@@ -391,11 +391,9 @@ bool Sodium::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
-bool Sodium::RandomizeMemory(
-    std::uint8_t* szDestination,
-    std::uint32_t nNewSize) const
+bool Sodium::RandomizeMemory(void* destination, const std::size_t size) const
 {
-    ::randombytes_buf(szDestination, nNewSize);
+    ::randombytes_buf(destination, size);
 
     return true;
 }

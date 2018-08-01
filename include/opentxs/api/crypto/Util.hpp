@@ -20,9 +20,8 @@ namespace crypto
 class Util
 {
 public:
-    virtual bool RandomizeMemory(
-        std::uint8_t* szDestination,
-        std::uint32_t nNewSize) const = 0;
+    virtual bool RandomizeMemory(void* destination, const std::size_t size)
+        const = 0;
 
     virtual ~Util() = default;
 
