@@ -277,7 +277,7 @@ if(OT_BUNDLED_LIBZMQ)
         DOWNLOAD_NO_PROGRESS 1
         UPDATE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src/autogen.sh
         SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src
-        CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src/configure --prefix ${CMAKE_CURRENT_BINARY_DIR}/libzmq/install ${OT_HOST} ${OT_SYSROOT} --enable-shared=no --enable-static=yes --with-pic --disable-code-coverage --disable-curve-keygen --enable-drafts --without-docs --without-documentation --with-libsodium
+        CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/libzmq/src/configure --prefix ${CMAKE_CURRENT_BINARY_DIR}/libzmq/install ${OT_HOST} ${OT_SYSROOT} --enable-shared=no --enable-static=yes --with-pic --disable-code-coverage --disable-curve-keygen --enable-drafts --without-docs --without-documentation --with-libsodium --disable-libunwind
         BUILD_COMMAND make "${OT_MAKEOPTS_OVERRIDE}"
         BUILD_IN_SOURCE 1
         BUILD_BYPRODUCTS "${bundled-zmq-path}"
