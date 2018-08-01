@@ -31,7 +31,7 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool RandomKeypair(OTPassword& privateKey, Data& publicKey) const override;
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-    bool RandomizeMemory(std::uint8_t* szDestination, std::uint32_t nNewSize)
+    bool RandomizeMemory(void* destination, const std::size_t size)
         const override;
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     bool Sign(

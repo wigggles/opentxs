@@ -3,6 +3,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+#clang-format off
 add_subdirectory(irrxml)
 add_subdirectory(base64)
 
@@ -164,6 +165,7 @@ if (TREZORCRYPTO_EXPORT)
     add_library(TrezorCrypto OBJECT ${trezor-sources} ${trezor-headers})
     set_property(TARGET TrezorCrypto PROPERTY POSITION_INDEPENDENT_CODE 1)
     set_target_properties(TrezorCrypto PROPERTIES COMPILE_FLAGS "-std=c99")
+    target_compile_definitions(TrezorCrypto PRIVATE "-DRAND_PLATFORM_INDEPENDENT")
 endif()
 
 if (OT_BUNDLED_PROTOBUF)
@@ -353,3 +355,5 @@ if (OT_BUNDLED_SECP256K1)
 else()
     set(bundled-secp256k1-path "" CACHE INTERNAL "" FORCE)
 endif()
+
+#clang-format on
