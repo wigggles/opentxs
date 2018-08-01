@@ -49,6 +49,7 @@ extern "C" {
 #endif
 #include <trezor-crypto/base58.h>
 #include <trezor-crypto/ecdsa.h>
+#include <trezor-crypto/rand.h>
 #include <trezor-crypto/ripemd160.h>
 }
 
