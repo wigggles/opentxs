@@ -20,7 +20,7 @@ T extract_custom(const CustomData& custom, const std::size_t index = 0)
 {
     OT_ASSERT((index + 1) <= custom.size())
 
-    std::unique_ptr<const T> output{static_cast<const T*>(custom.at(0))};
+    std::unique_ptr<const T> output{static_cast<const T*>(custom.at(index))};
 
     OT_ASSERT(output)
 
