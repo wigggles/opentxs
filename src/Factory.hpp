@@ -348,7 +348,7 @@ public:
         const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     static crypto::Trezor* Trezor(const api::Native& native);
-    static api::UI* UI(
+    static api::client::UI* UI(
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,

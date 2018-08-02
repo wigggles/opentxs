@@ -8,9 +8,9 @@
 
 #include "Internal.hpp"
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-class UI : virtual public opentxs::api::UI, Lockable
+class UI : virtual public opentxs::api::client::UI, Lockable
 {
 public:
     const ui::AccountActivity& AccountActivity(

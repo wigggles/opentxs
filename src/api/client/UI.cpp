@@ -5,8 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/UI.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -38,7 +38,7 @@
 
 namespace opentxs
 {
-api::UI* Factory::UI(
+api::client::UI* Factory::UI(
     const api::client::Sync& sync,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
@@ -50,7 +50,7 @@ api::UI* Factory::UI(
     const network::zeromq::Context& zmq,
     const Flag& running)
 {
-    return new api::implementation::UI(
+    return new api::client::implementation::UI(
         sync,
         wallet,
         workflow,
@@ -64,7 +64,7 @@ api::UI* Factory::UI(
 }
 }  // namespace opentxs
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
 UI::UI(
     const api::client::Sync& sync,

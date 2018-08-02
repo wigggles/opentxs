@@ -33,6 +33,7 @@ public:
     EXPORT virtual const client::Pair& Pair() const = 0;
     EXPORT virtual const client::ServerAction& ServerAction() const = 0;
     EXPORT virtual const client::Sync& Sync() const = 0;
+    EXPORT virtual const api::client::UI& UI() const = 0;
     EXPORT virtual const client::Workflow& Workflow() const = 0;
 
     EXPORT virtual ~Client() = default;

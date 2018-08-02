@@ -13,6 +13,7 @@
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
+#include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
@@ -21,7 +22,6 @@
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/UI.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -3697,14 +3697,14 @@ void SwigWrap::Trigger_Refresh() { OT::App().Client().Sync().Refresh(); }
 
 const ui::ActivitySummary& SwigWrap::ActivitySummary(const std::string& nymID)
 {
-    return OT::App().UI().ActivitySummary(Identifier::Factory(nymID));
+    return OT::App().Client().UI().ActivitySummary(Identifier::Factory(nymID));
 }
 
 const ui::AccountActivity& SwigWrap::AccountActivity(
     const std::string& nymID,
     const std::string& accountID)
 {
-    return OT::App().UI().AccountActivity(
+    return OT::App().Client().UI().AccountActivity(
         Identifier::Factory(nymID), Identifier::Factory(accountID));
 }
 
@@ -3712,7 +3712,7 @@ const ui::AccountSummary& SwigWrap::AccountSummary(
     const std::string& nymID,
     const int currency)
 {
-    return OT::App().UI().AccountSummary(
+    return OT::App().Client().UI().AccountSummary(
         Identifier::Factory(nymID),
         static_cast<proto::ContactItemType>(currency));
 }
@@ -3721,30 +3721,30 @@ const ui::ActivityThread& SwigWrap::ActivityThread(
     const std::string& nymID,
     const std::string& threadID)
 {
-    return OT::App().UI().ActivityThread(
+    return OT::App().Client().UI().ActivityThread(
         Identifier::Factory(nymID), Identifier::Factory(threadID));
 }
 
 const ui::Contact& SwigWrap::Contact(const std::string& contactID)
 {
-    return OT::App().UI().Contact(Identifier::Factory(contactID));
+    return OT::App().Client().UI().Contact(Identifier::Factory(contactID));
 }
 
 const ui::ContactList& SwigWrap::ContactList(const std::string& nymID)
 {
-    return OT::App().UI().ContactList(Identifier::Factory(nymID));
+    return OT::App().Client().UI().ContactList(Identifier::Factory(nymID));
 }
 
 const ui::MessagableList& SwigWrap::MessagableList(const std::string& nymID)
 {
-    return OT::App().UI().MessagableList(Identifier::Factory(nymID));
+    return OT::App().Client().UI().MessagableList(Identifier::Factory(nymID));
 }
 
 const ui::PayableList& SwigWrap::PayableList(
     const std::string& nymID,
     std::uint32_t currency)
 {
-    return OT::App().UI().PayableList(
+    return OT::App().Client().UI().PayableList(
         Identifier::Factory(nymID),
         static_cast<proto::ContactItemType>(currency));
 }
@@ -3752,7 +3752,7 @@ const ui::PayableList& SwigWrap::PayableList(
 const ui::Profile& SwigWrap::Profile(const std::string& contactID)
 {
 
-    return OT::App().UI().Profile(Identifier::Factory(contactID));
+    return OT::App().Client().UI().Profile(Identifier::Factory(contactID));
 }
 
 const network::zeromq::Context& SwigWrap::ZMQ()

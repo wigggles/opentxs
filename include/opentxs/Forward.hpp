@@ -26,6 +26,7 @@ class Issuer;
 class Pair;
 class ServerAction;
 class Sync;
+class UI;
 class Wallet;
 class Workflow;
 }  // namespace client
@@ -57,7 +58,6 @@ class Legacy;
 class Native;
 class Server;
 class Settings;
-class UI;
 }  // namespace api
 
 namespace client

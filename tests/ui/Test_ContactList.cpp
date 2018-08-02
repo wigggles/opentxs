@@ -49,7 +49,7 @@ public:
             IncrementCounter(message.at(0));
         })};
     OTZMQSubscribeSocket subscriber_{setup_listener(callback_)};
-    const ui::ContactList& contact_list_{OT::App().UI().ContactList(nym_id_)};
+    const ui::ContactList& contact_list_{OT::App().Client().UI().ContactList(nym_id_)};
     std::thread loop_{&Test_ContactList::loop, this};
     std::atomic<bool> shutdown_{false};
     const OTPaymentCode bob_payment_code_{

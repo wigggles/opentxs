@@ -14,6 +14,7 @@
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Sync.hpp"
+#include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
@@ -110,6 +111,7 @@ const api::client::Blockchain& Client::Blockchain() const
 
 void Client::Cleanup()
 {
+    ui_.reset();
     pair_.reset();
     sync_.reset();
     cash_.reset();
@@ -214,6 +216,8 @@ void Client::Init()
         zmq_.Context()));
 
     OT_ASSERT(pair_);
+
+    Init_UI();  // Requires sync_, workflow_
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -223,6 +227,26 @@ void Client::Init_Blockchain()
         Factory::Blockchain(activity_, crypto_, storage_, wallet_));
 }
 #endif
+
+void Client::Init_UI()
+{
+    OT_ASSERT(sync_)
+    OT_ASSERT(workflow_)
+
+    ui_.reset(Factory::UI(
+        *sync_,
+        wallet_,
+        *workflow_,
+        zmq_,
+        storage_,
+        activity_,
+        contacts_,
+        legacy_,
+        zmq_.Context(),
+        running_));
+
+    OT_ASSERT(ui_);
+}
 
 const OTAPI_Exec& Client::Exec(const std::string&) const
 {
@@ -271,6 +295,13 @@ const api::client::Sync& Client::Sync() const
     OT_ASSERT(sync_);
 
     return *sync_;
+}
+
+const api::client::UI& Client::UI() const
+{
+    OT_ASSERT(ui_)
+
+    return *ui_;
 }
 
 const api::client::Workflow& Client::Workflow() const

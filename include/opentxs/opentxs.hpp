@@ -22,6 +22,7 @@
 #include <opentxs/api/client/Pair.hpp>
 #include <opentxs/api/client/ServerAction.hpp>
 #include <opentxs/api/client/Sync.hpp>
+#include <opentxs/api/client/UI.hpp>
 #include <opentxs/api/client/Wallet.hpp>
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
@@ -29,7 +30,6 @@
 #include <opentxs/api/ContactManager.hpp>
 #include <opentxs/api/Legacy.hpp>
 #include <opentxs/api/Native.hpp>
-#include <opentxs/api/UI.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OTRecordList.hpp>

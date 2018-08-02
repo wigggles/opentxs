@@ -45,7 +45,6 @@ public:
     virtual const api::Server& Server() const = 0;
     virtual bool ServerMode() const = 0;
     virtual const client::Wallet& Wallet() const = 0;
-    virtual const api::UI& UI() const = 0;
     virtual const network::ZMQ& ZMQ() const = 0;
 
     virtual ~Native() = default;

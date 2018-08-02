@@ -17,7 +17,6 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/UI.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -376,7 +375,6 @@ Native::Native(
     , storage_encryption_key_(opentxs::crypto::key::Symmetric::Factory())
 #endif
     , server_(nullptr)
-    , ui_(nullptr)
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
     , server_args_(args)
@@ -581,10 +579,6 @@ void Native::Init()
     Init_Api();       // requires Init_Legacy(), Init_Config(), Init_Crypto(),
                       // Init_Contracts(), Init_Identity(), Init_Storage(),
                       // Init_ZMQ(), Init_Contacts() Init_Activity()
-    if (!server_mode_) {
-        Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api(),
-                    // Init_Storage(), Init_ZMQ(), Init_Legacy()
-    }
 
     if (recover_) { recover(); }
 
@@ -1063,31 +1057,6 @@ void Native::Init_StorageBackup()
     storage_->start();
 }
 
-void Native::Init_UI()
-{
-    OT_ASSERT(activity_)
-    OT_ASSERT(client_)
-    OT_ASSERT(contacts_)
-    OT_ASSERT(legacy_)
-    OT_ASSERT(storage_)
-    OT_ASSERT(wallet_)
-    OT_ASSERT(zeromq_)
-
-    ui_.reset(Factory::UI(
-        client_->Sync(),
-        *wallet_,
-        client_->Workflow(),
-        *zeromq_,
-        *storage_,
-        *activity_,
-        *contacts_,
-        *legacy_,
-        zmq_context_,
-        running_));
-
-    OT_ASSERT(ui_);
-}
-
 void Native::Init_ZMQ()
 {
     auto& config = config_[""];
@@ -1242,7 +1211,6 @@ void Native::shutdown()
     }
 
     server_.reset();
-    ui_.reset();
     client_.reset();
     activity_.reset();
     contacts_.reset();
@@ -1294,13 +1262,6 @@ void Native::start()
 
         server_->Start();
     }
-}
-
-const api::UI& Native::UI() const
-{
-    OT_ASSERT(ui_)
-
-    return *ui_;
 }
 
 const api::client::Wallet& Native::Wallet() const

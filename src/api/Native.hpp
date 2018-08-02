@@ -45,7 +45,6 @@ public:
     const api::Server& Server() const override;
     bool ServerMode() const override;
     const api::client::Wallet& Wallet() const override;
-    const api::UI& UI() const override;
     const api::network::ZMQ& ZMQ() const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
@@ -95,7 +94,6 @@ private:
     OTSymmetricKey storage_encryption_key_;
 #endif
     std::unique_ptr<api::Server> server_;
-    std::unique_ptr<api::UI> ui_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
@@ -138,7 +136,6 @@ private:
     void Init_Server();
     void Init_Storage();
     void Init_StorageBackup();
-    void Init_UI();
     void Init_ZMQ();
     void Init() override;
     void Periodic();

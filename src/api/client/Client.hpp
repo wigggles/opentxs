@@ -25,6 +25,7 @@ public:
     const api::client::Pair& Pair() const override;
     const client::ServerAction& ServerAction() const override;
     const client::Sync& Sync() const override;
+    const api::client::UI& UI() const override;
     const client::Workflow& Workflow() const override;
 
     ~Client();
@@ -50,6 +51,7 @@ private:
     std::unique_ptr<api::client::Pair> pair_;
     std::unique_ptr<api::client::ServerAction> server_action_;
     std::unique_ptr<api::client::Sync> sync_;
+    std::unique_ptr<api::client::UI> ui_;
     std::unique_ptr<api::client::Workflow> workflow_;
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
@@ -65,6 +67,7 @@ private:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     void Init_Blockchain();
 #endif
+    void Init_UI();
 
     Client(
         const Flag& running,
