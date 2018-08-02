@@ -8,6 +8,7 @@ set(cxx-sources
   Blockchain.cpp
   Cash.cpp
   Client.cpp
+  Contacts.cpp
   Issuer.cpp
   Pair.cpp
   ServerAction.cpp
@@ -27,6 +28,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Blockchain.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Cash.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Client.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Contacts.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Issuer.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/InternalClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Pair.hpp

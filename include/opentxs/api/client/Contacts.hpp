@@ -18,7 +18,9 @@ namespace opentxs
 {
 namespace api
 {
-class ContactManager
+namespace client
+{
+class Contacts
 {
 public:
     EXPORT virtual OTIdentifier BlockchainAddressToContact(
@@ -55,18 +57,18 @@ public:
     EXPORT virtual std::shared_ptr<const class Contact> Update(
         const proto::CredentialIndex& nym) const = 0;
 
-    virtual ~ContactManager() = default;
+    virtual ~Contacts() = default;
 
 protected:
-    ContactManager() = default;
+    Contacts() = default;
 
 private:
-    ContactManager(const ContactManager&) = delete;
-    ContactManager(ContactManager&&) = delete;
-    ContactManager& operator=(const ContactManager&) = delete;
-    ContactManager& operator=(ContactManager&&) = delete;
+    Contacts(const Contacts&) = delete;
+    Contacts(Contacts&&) = delete;
+    Contacts& operator=(const Contacts&) = delete;
+    Contacts& operator=(Contacts&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
-
 #endif  // OPENTXS_API_CONTACT_MANAGER_HPP

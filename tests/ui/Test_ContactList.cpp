@@ -49,7 +49,8 @@ public:
             IncrementCounter(message.at(0));
         })};
     OTZMQSubscribeSocket subscriber_{setup_listener(callback_)};
-    const ui::ContactList& contact_list_{OT::App().Client().UI().ContactList(nym_id_)};
+    const ui::ContactList& contact_list_{
+        OT::App().Client().UI().ContactList(nym_id_)};
     std::thread loop_{&Test_ContactList::loop, this};
     std::atomic<bool> shutdown_{false};
     const OTPaymentCode bob_payment_code_{
@@ -210,7 +211,7 @@ TEST_F(Test_ContactList, Contact_List)
 
     while (GetCounter(contact_widget_id_) < 2) { ; }
 
-    const auto bob = OT::App().Contact().NewContact(
+    const auto bob = OT::App().Client().Contacts().NewContact(
         BOB_NYM_NAME, bob_payment_code_->ID(), bob_payment_code_);
 
     ASSERT_EQ(true, bool(bob));
@@ -221,7 +222,7 @@ TEST_F(Test_ContactList, Contact_List)
 
     while (GetCounter(contact_widget_id_) < 4) { ; }
 
-    const auto chris = OT::App().Contact().NewContact(
+    const auto chris = OT::App().Client().Contacts().NewContact(
         CHRIS_NYM_NAME, chris_payment_code_->ID(), chris_payment_code_);
 
     ASSERT_EQ(true, bool(chris));

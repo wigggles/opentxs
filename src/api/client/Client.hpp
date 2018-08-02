@@ -18,6 +18,7 @@ public:
     const api::client::Blockchain& Blockchain() const override;
 #endif
     const api::client::Cash& Cash() const override;
+    const api::client::Contacts& Contacts() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     std::recursive_mutex& Lock(
         const Identifier& nymID,
@@ -30,6 +31,7 @@ public:
     const client::Workflow& Workflow() const override;
 
     void StartActivity() override;
+    void StartContacts() override;
     opentxs::OTWallet* StartWallet() override;
 
     ~Client();
@@ -41,7 +43,6 @@ private:
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
     const api::storage::Storage& storage_;
-    const api::ContactManager& contacts_;
     const api::Crypto& crypto_;
     const api::Identity& identity_;
     const api::Legacy& legacy_;
@@ -52,6 +53,7 @@ private:
     std::unique_ptr<api::client::Blockchain> blockchain_;
 #endif
     std::unique_ptr<api::client::Cash> cash_;
+    std::unique_ptr<api::client::internal::Contacts> contacts_;
     std::unique_ptr<api::client::Pair> pair_;
     std::unique_ptr<api::client::ServerAction> server_action_;
     std::unique_ptr<api::client::Sync> sync_;
@@ -72,12 +74,18 @@ private:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     void Init_Blockchain();
 #endif
+    void Init_Cash();
+    void Init_Contacts();
+    void Init_OldClientAPI();
+    void Init_Pair();
+    void Init_ServerAction();
+    void Init_Sync();
     void Init_UI();
+    void Init_Workflow();
 
     Client(
         const Flag& running,
         const api::Settings& config,
-        const api::ContactManager& contacts,
         const api::Crypto& crypto,
         const api::Identity& identity,
         const api::Legacy& legacy,

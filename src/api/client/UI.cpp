@@ -45,7 +45,7 @@ api::client::UI* Factory::UI(
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::client::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::Legacy& legacy,
     const network::zeromq::Context& zmq,
     const Flag& running)
@@ -73,7 +73,7 @@ UI::UI(
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::client::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::Legacy& legacy,
     const opentxs::network::zeromq::Context& zmq,
     const Flag& running)
@@ -290,4 +290,4 @@ const ui::Profile& UI::Profile(const Identifier& contactID) const
 }
 
 UI::~UI() {}
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation

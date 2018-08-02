@@ -85,7 +85,7 @@ private:
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::storage::Storage& storage,
         const api::Legacy& legacy,
         const Identifier& nymID,

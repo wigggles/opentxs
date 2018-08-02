@@ -11,7 +11,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -51,7 +50,6 @@
 #include "api/network/Dht.hpp"
 #include "api/network/ZMQ.hpp"
 #include "api/storage/StorageInternal.hpp"
-#include "api/ContactManager.hpp"
 #include "api/NativeInternal.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
@@ -361,7 +359,6 @@ Native::Native(
     , periodic_task_list()
     , client_(nullptr)
     , config_()
-    , contacts_(nullptr)
     , crypto_(nullptr)
     , dht_(nullptr)
     , identity_(nullptr)
@@ -441,13 +438,6 @@ const api::Settings& Native::Config(const std::string& path) const
     lock.unlock();
 
     return *config;
-}
-
-const api::ContactManager& Native::Contact() const
-{
-    OT_ASSERT(contacts_)
-
-    return *contacts_;
 }
 
 const api::Crypto& Native::Crypto() const
@@ -565,10 +555,9 @@ void Native::Init()
     Init_Contracts();
     Init_Dht();       // requires Init_Config()
     Init_Identity();  // requires Init_Contracts()
-    Init_Contacts();  // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
     Init_Api();       // requires Init_Legacy(), Init_Config(), Init_Crypto(),
                       // Init_Contracts(), Init_Identity(), Init_Storage(),
-                      // Init_ZMQ(), Init_Contacts()
+                      // Init_ZMQ()
 
     if (recover_) { recover(); }
 
@@ -584,7 +573,6 @@ void Native::Init_Api()
     auto& config = config_[""];
 
     OT_ASSERT(config);
-    OT_ASSERT(contacts_);
     OT_ASSERT(wallet_);
     OT_ASSERT(crypto_);
     OT_ASSERT(identity_);
@@ -595,7 +583,6 @@ void Native::Init_Api()
     client_.reset(Factory::Client(
         running_,
         *config,
-        *contacts_,
         *crypto_,
         *identity_,
         *legacy_,
@@ -612,15 +599,6 @@ void Native::Init_Config()
 
     String strConfigFilePath = legacy_->ConfigFilePath().c_str();
     config_[""].reset(Factory::Settings(strConfigFilePath));
-}
-
-void Native::Init_Contacts()
-{
-    OT_ASSERT(storage_)
-    OT_ASSERT(wallet_)
-
-    contacts_.reset(new api::implementation::ContactManager(
-        *storage_, *wallet_, zmq_context_.get()));
 }
 
 void Native::Init_Contracts()
@@ -1189,7 +1167,6 @@ void Native::shutdown()
 
     server_.reset();
     client_.reset();
-    contacts_.reset();
     identity_.reset();
     dht_.reset();
     wallet_.reset();
@@ -1205,8 +1182,6 @@ void Native::shutdown()
 
 void Native::start()
 {
-    OT_ASSERT(contacts_);
-
     if (false == server_mode_) {
         OT_ASSERT(client_);
 
@@ -1224,11 +1199,11 @@ void Native::start()
     OT_ASSERT(storage_);
 
     storage_->UpgradeNyms();
-    dynamic_cast<ContactManager&>(*contacts_).start();
 
     if (false == server_mode_) {
         OT_ASSERT(client_);
 
+        client_->StartContacts();
         client_->StartActivity();
     }
 

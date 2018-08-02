@@ -6,7 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -25,7 +25,7 @@ ActivityThreadItem::ActivityThreadItem(
     const ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,

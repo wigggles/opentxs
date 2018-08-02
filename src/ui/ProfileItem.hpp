@@ -67,7 +67,7 @@ private:
         const ProfileSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ProfileSubsectionRowID& rowID,
         const ProfileSubsectionSortKey& sortKey,
         const CustomData& custom,

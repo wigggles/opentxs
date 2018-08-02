@@ -113,7 +113,7 @@ private:
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
         const api::client::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const Identifier& threadID);
 

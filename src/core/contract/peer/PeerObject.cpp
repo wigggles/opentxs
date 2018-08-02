@@ -7,8 +7,9 @@
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
+#include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Wallet.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -32,7 +33,7 @@ PeerObject::PeerObject(
 
     if (serialized.has_nym()) {
         objectNym = OT::App().Wallet().Nym(serialized.nym());
-        OT::App().Contact().Update(serialized.nym());
+        OT::App().Client().Contacts().Update(serialized.nym());
     }
 
     if (signerNym) {

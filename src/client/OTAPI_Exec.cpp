@@ -9,11 +9,11 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -94,7 +94,7 @@ const std::int32_t OT_ERROR = (-1);
 OTAPI_Exec::OTAPI_Exec(
     const api::client::Activity& activity,
     const api::Settings& config,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Crypto& crypto,
     const api::Identity& identity,
     const api::Legacy& legacy,

@@ -9,9 +9,9 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -72,7 +72,7 @@ namespace opentxs
 OTClient::OTClient(
     OTWallet& theWallet,
     const api::client::Activity& activity,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow)

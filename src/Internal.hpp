@@ -20,6 +20,7 @@ namespace internal
 {
 struct Activity;
 struct Client;
+struct Contacts;
 }  // namespace internal
 }  // namespace client
 

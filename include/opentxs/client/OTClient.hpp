@@ -47,7 +47,7 @@ public:
     explicit OTClient(
         OTWallet& theWallet,
         const api::client::Activity& activity,
-        const api::ContactManager& contacts,
+        const api::client::Contacts& contacts,
         const api::Legacy& legacy,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow);
@@ -55,7 +55,7 @@ public:
 private:
     OTWallet& m_pWallet;
     const api::client::Activity& activity_;
-    const api::ContactManager& contacts_;
+    const api::client::Contacts& contacts_;
     const api::Legacy& legacy_;
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;

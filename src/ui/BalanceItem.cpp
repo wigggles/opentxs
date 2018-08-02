@@ -5,10 +5,10 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -40,7 +40,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
     const ui::implementation::CustomData& custom,
@@ -86,7 +86,7 @@ BalanceItem::BalanceItem(
     const AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
@@ -110,7 +110,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,

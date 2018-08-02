@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -34,7 +34,7 @@ ui::internal::ContactListItem* Factory::ContactListItem(
     const ui::implementation::ContactListInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::ContactListRowID& rowID,
     const ui::implementation::ContactListSortKey& key)
 {
@@ -49,7 +49,7 @@ ContactListItem::ContactListItem(
     const ContactListInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ContactListRowID& rowID,
     const ContactListSortKey& key)
     : ContactListItemRow(parent, zmq, publisher, contact, rowID, true)

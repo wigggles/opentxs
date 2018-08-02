@@ -502,7 +502,7 @@ OT_API::OT_API(
     const api::client::Activity& activity,
     const api::client::Client& client,
     const api::Settings& config,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Crypto& crypto,
     const api::Identity& identity,
     const api::Legacy& legacy,

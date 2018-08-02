@@ -32,7 +32,7 @@ protected:
         const ContactListInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ContactListRowID& rowID,
         const ContactListSortKey& key);
 

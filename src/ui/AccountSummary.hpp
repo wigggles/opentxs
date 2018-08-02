@@ -63,7 +63,7 @@ private:
         const api::client::Wallet& wallet,
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::Legacy& legacy,
         const Identifier& nymID,
         const proto::ContactItemType currency);

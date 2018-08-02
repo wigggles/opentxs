@@ -9,7 +9,6 @@ add_subdirectory(network)
 add_subdirectory(storage)
 
 set(cxx-sources
-  ContactManager.cpp
   Identity.cpp
   Legacy.cpp
   Native.cpp
@@ -23,7 +22,6 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/ContactManager.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Identity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp

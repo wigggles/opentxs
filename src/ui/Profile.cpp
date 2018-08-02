@@ -47,7 +47,7 @@ namespace opentxs
 ui::Profile* Factory::ProfileWidget(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::client::Wallet& wallet,
     const Identifier& nymID)
 {
@@ -74,7 +74,7 @@ const Widget::ListenerDefinitions Profile::listeners_{
 Profile::Profile(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::client::Wallet& wallet,
     const Identifier& nymID)
     : ProfileList(nymID, zmq, publisher, contact)

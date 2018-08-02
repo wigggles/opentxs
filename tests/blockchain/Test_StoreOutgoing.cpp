@@ -199,7 +199,7 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
     // test: Activity::Thread contains deposit item
     OTIdentifier CharlyContactID = Identifier::Factory(Charly);
     // OTIdentifier CharlyContactID =
-    // OT::App().Contact().ContactID(Identifier(Charly));
+    // OT::App().Client().Contacts().ContactID(Identifier(Charly));
     std::shared_ptr<proto::StorageThread> Thread_AC =
         opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(CharlyContactID));

@@ -6,9 +6,9 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -42,7 +42,7 @@ namespace opentxs
 {
 api::client::Workflow* Factory::Workflow(
     const api::client::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const network::zeromq::Context& zmq)
@@ -137,7 +137,7 @@ namespace implementation
 {
 Workflow::Workflow(
     const api::client::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::Legacy& legacy,
     const storage::Storage& storage,
     const opentxs::network::zeromq::Context& zmq)

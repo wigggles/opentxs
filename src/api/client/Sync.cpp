@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
@@ -13,7 +14,6 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
 #if OT_CASH
@@ -123,7 +123,7 @@ api::client::Sync* Factory::Sync(
     const Flag& running,
     const OT_API& otapi,
     const OTAPI_Exec& exec,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Settings& config,
     const api::client::Client& client,
     const api::Legacy& legacy,
@@ -206,7 +206,7 @@ Sync::Sync(
     const Flag& running,
     const OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Legacy& legacy,
     const api::Settings& config,
     const api::client::Client& client,

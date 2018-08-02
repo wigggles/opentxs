@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Blockchain.hpp"
 #endif
 #include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
@@ -19,7 +20,6 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -3304,7 +3304,7 @@ std::string SwigWrap::Add_Contact(
     if (nym->empty() && code->VerifyInternally()) { nym = code->ID(); }
 #endif
 
-    auto output = OT::App().Contact().NewContact(
+    auto output = OT::App().Client().Contacts().NewContact(
         label,
         nym
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -3326,12 +3326,12 @@ std::string SwigWrap::Blockchain_Address_To_Contact(
     const proto::ContactItemType type =
         static_cast<proto::ContactItemType>(chain);
     const auto existing =
-        OT::App().Contact().BlockchainAddressToContact(address, type);
+        OT::App().Client().Contacts().BlockchainAddressToContact(address, type);
 
     if (false == existing->empty()) { return existing->str(); }
 
-    const auto contact =
-        OT::App().Contact().NewContactFromAddress(address, label, type);
+    const auto contact = OT::App().Client().Contacts().NewContactFromAddress(
+        address, label, type);
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to create new contact."
@@ -3348,8 +3348,8 @@ bool SwigWrap::Contact_Add_Blockchain_Address(
     const std::string& address,
     const std::uint32_t chain)
 {
-    auto contact =
-        OT::App().Contact().mutable_Contact(Identifier::Factory(contactID));
+    auto contact = OT::App().Client().Contacts().mutable_Contact(
+        Identifier::Factory(contactID));
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Contact does not exist."
@@ -3364,14 +3364,14 @@ bool SwigWrap::Contact_Add_Blockchain_Address(
 
 std::string SwigWrap::Contact_List()
 {
-    return comma(OT::App().Contact().ContactList());
+    return comma(OT::App().Client().Contacts().ContactList());
 }
 
 bool SwigWrap::Contact_Merge(
     const std::string& parent,
     const std::string& child)
 {
-    auto contact = OT::App().Contact().Merge(
+    auto contact = OT::App().Client().Contacts().Merge(
         Identifier::Factory(parent), Identifier::Factory(child));
 
     return bool(contact);
@@ -3379,7 +3379,8 @@ bool SwigWrap::Contact_Merge(
 
 std::string SwigWrap::Contact_Name(const std::string& id)
 {
-    auto contact = OT::App().Contact().Contact(Identifier::Factory(id));
+    auto contact =
+        OT::App().Client().Contacts().Contact(Identifier::Factory(id));
 
     if (contact) { return contact->Label(); }
 
@@ -3390,7 +3391,8 @@ std::string SwigWrap::Contact_PaymentCode(
     const std::string& id,
     const std::uint32_t currency)
 {
-    auto contact = OT::App().Contact().Contact(Identifier::Factory(id));
+    auto contact =
+        OT::App().Client().Contacts().Contact(Identifier::Factory(id));
 
     if (contact) {
 
@@ -3404,7 +3406,7 @@ std::string SwigWrap::Contact_PaymentCode(
 std::string SwigWrap::Contact_to_Nym(const std::string& contactID)
 {
     const auto contact =
-        OT::App().Contact().Contact(Identifier::Factory(contactID));
+        OT::App().Client().Contacts().Contact(Identifier::Factory(contactID));
 
     if (false == bool(contact)) { return {}; }
 
@@ -3417,14 +3419,16 @@ std::string SwigWrap::Contact_to_Nym(const std::string& contactID)
 
 bool SwigWrap::Have_Contact(const std::string& id)
 {
-    auto contact = OT::App().Contact().Contact(Identifier::Factory(id));
+    auto contact =
+        OT::App().Client().Contacts().Contact(Identifier::Factory(id));
 
     return bool(contact);
 }
 
 bool SwigWrap::Rename_Contact(const std::string& id, const std::string& name)
 {
-    auto contact = OT::App().Contact().mutable_Contact(Identifier::Factory(id));
+    auto contact =
+        OT::App().Client().Contacts().mutable_Contact(Identifier::Factory(id));
 
     if (contact) {
         contact->It().SetLabel(name);
@@ -3437,7 +3441,11 @@ bool SwigWrap::Rename_Contact(const std::string& id, const std::string& name)
 
 std::string SwigWrap::Nym_to_Contact(const std::string& nymID)
 {
-    return OT::App().Contact().ContactID(Identifier::Factory(nymID))->str();
+    return OT::App()
+        .Client()
+        .Contacts()
+        .ContactID(Identifier::Factory(nymID))
+        ->str();
 }
 
 //-----------------------------------------------------------------------------

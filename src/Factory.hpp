@@ -18,7 +18,7 @@ public:
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::storage::Storage& storage,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -29,7 +29,7 @@ public:
         const api::client::Wallet& wallet,
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::Legacy& legacy,
         const Identifier& nymID,
         const proto::ContactItemType currency);
@@ -37,7 +37,7 @@ public:
         const ui::implementation::IssuerItemInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::IssuerItemRowID& rowID,
         const ui::implementation::IssuerItemSortKey& sortKey,
         const ui::implementation::CustomData& custom,
@@ -45,7 +45,7 @@ public:
         const api::storage::Storage& storage);
     static api::client::internal::Activity* Activity(
         const api::Legacy& legacy,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
         const network::zeromq::Context& zmq);
@@ -54,7 +54,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Flag& running,
         const Identifier& nymID);
     static ui::implementation::ActivitySummaryRowInternal* ActivitySummaryItem(
@@ -62,7 +62,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ui::implementation::ActivitySummaryRowID& rowID,
         const ui::implementation::ActivitySummarySortKey& sortKey,
@@ -73,14 +73,14 @@ public:
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
         const api::client::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const Identifier& threadID);
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::AccountActivityRowID& rowID,
         const ui::implementation::AccountActivitySortKey& sortKey,
         const ui::implementation::CustomData& custom,
@@ -98,7 +98,6 @@ public:
     static api::client::internal::Client* Client(
         const Flag& running,
         const api::Settings& config,
-        const api::ContactManager& contacts,
         const api::Crypto& crypto,
         const api::Identity& identity,
         const api::Legacy& legacy,
@@ -108,25 +107,29 @@ public:
     static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID);
     static ui::implementation::ContactListRowInternal* ContactListItem(
         const ui::implementation::ContactListInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::ContactListRowID& rowID,
         const ui::implementation::ContactListSortKey& key);
+    static api::client::internal::Contacts* Contacts(
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet,
+        const network::zeromq::Context& context);
     static ui::implementation::ContactExternalInterface* ContactWidget(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& contactID);
     static ui::implementation::ContactSubsectionRowInternal* ContactItemWidget(
         const ui::implementation::ContactSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::ContactSubsectionRowID& rowID,
         const ui::implementation::ContactSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom);
@@ -134,7 +137,7 @@ public:
         const ui::implementation::ContactInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::ContactRowID& rowID,
         const ui::implementation::ContactSortKey& key,
         const ui::implementation::CustomData& custom);
@@ -143,7 +146,7 @@ public:
         const ui::implementation::ContactSectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::ContactSectionRowID& rowID,
         const ui::implementation::ContactSectionSortKey& key,
         const ui::implementation::CustomData& custom);
@@ -175,7 +178,7 @@ public:
         const ui::implementation::AccountSummaryInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::AccountSummaryRowID& rowID,
         const ui::implementation::AccountSummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
@@ -188,7 +191,7 @@ public:
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -200,7 +203,7 @@ public:
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -209,7 +212,7 @@ public:
     static ui::implementation::MessagableExternalInterface* MessagableList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::client::Sync& sync,
         const Identifier& nymID);
     static api::internal::Native* Native(
@@ -237,7 +240,7 @@ public:
     static ui::implementation::PayableExternalInterface* PayableList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::client::Sync& sync,
         const Identifier& nymID,
         const proto::ContactItemType& currency);
@@ -245,7 +248,7 @@ public:
         const ui::implementation::PayableInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::PayableListRowID& rowID,
         const ui::implementation::PayableListSortKey& key,
         const std::string& paymentcode,
@@ -254,7 +257,7 @@ public:
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
@@ -263,14 +266,14 @@ public:
     static ui::implementation::ProfileExternalInterface* ProfileWidget(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::client::Wallet& wallet,
         const Identifier& nymID);
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::ProfileSubsectionRowID& rowID,
         const ui::implementation::ProfileSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom,
@@ -279,7 +282,7 @@ public:
         const ui::implementation::ProfileInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::ProfileRowID& rowID,
         const ui::implementation::ProfileSortKey& key,
         const ui::implementation::CustomData& custom,
@@ -289,7 +292,7 @@ public:
         const ui::implementation::ProfileSectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ui::implementation::ProfileSectionRowID& rowID,
         const ui::implementation::ProfileSectionSortKey& key,
         const ui::implementation::CustomData& custom,
@@ -336,7 +339,7 @@ public:
         const Flag& running,
         const OT_API& otapi,
         const OTAPI_Exec& exec,
-        const api::ContactManager& contacts,
+        const api::client::Contacts& contacts,
         const api::Settings& config,
         const api::client::Client& api,
         const api::Legacy& legacy,
@@ -354,7 +357,7 @@ public:
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
         const api::client::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::Legacy& legacy,
         const network::zeromq::Context& zmq,
         const Flag& running);
@@ -363,7 +366,7 @@ public:
         const network::zeromq::Context& zmq);
     static api::client::Workflow* Workflow(
         const api::client::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq);

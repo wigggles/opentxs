@@ -23,6 +23,7 @@ class Activity;
 class Blockchain;
 class Cash;
 class Client;
+class Contacts;
 class Issuer;
 class Pair;
 class ServerAction;
@@ -51,7 +52,6 @@ class Dht;
 class ZMQ;
 }  // namespace network
 
-class ContactManager;
 class Crypto;
 class Identity;
 class Legacy;

@@ -6,10 +6,10 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -38,7 +38,7 @@ namespace opentxs
 {
 api::client::internal::Activity* Factory::Activity(
     const api::Legacy& legacy,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
     const network::zeromq::Context& zmq)
@@ -52,7 +52,7 @@ namespace opentxs::api::client::implementation
 {
 Activity::Activity(
     const Legacy& legacy,
-    const ContactManager& contact,
+    const Contacts& contact,
     const storage::Storage& storage,
     const client::Wallet& wallet,
     const opentxs::network::zeromq::Context& zmq)

@@ -24,7 +24,7 @@ ui::implementation::ContactSubsectionRowInternal* Factory::ContactItemWidget(
     const ui::implementation::ContactSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
     const ui::implementation::CustomData& custom)
@@ -40,7 +40,7 @@ ContactItem::ContactItem(
     const ContactSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ContactSubsectionRowID& rowID,
     const ContactSubsectionSortKey& sortKey,
     const CustomData& custom)

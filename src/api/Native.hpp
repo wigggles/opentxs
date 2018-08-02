@@ -27,7 +27,6 @@ public:
     const api::client::Client& Client() const override;
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
-    const api::ContactManager& Contact() const override;
     const api::Crypto& Crypto() const override;
     const api::storage::Storage& DB() const override;
     const api::network::Dht& DHT() const override;
@@ -79,7 +78,6 @@ private:
     mutable TaskList periodic_task_list;
     std::unique_ptr<api::client::internal::Client> client_;
     mutable ConfigMap config_;
-    std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::network::Dht> dht_;
     std::unique_ptr<api::Identity> identity_;
@@ -122,7 +120,6 @@ private:
 
     void Init_Api();
     void Init_Config();
-    void Init_Contacts();
     void Init_Contracts();
     void Init_Crypto();
     void Init_Dht();

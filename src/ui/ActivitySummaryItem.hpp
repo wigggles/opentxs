@@ -57,7 +57,7 @@ private:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ActivitySummaryRowID& rowID,
         const ActivitySummarySortKey& sortKey,

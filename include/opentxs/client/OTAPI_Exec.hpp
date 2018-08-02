@@ -39,7 +39,7 @@ private:
 
     const api::client::Activity& activity_;
     const api::Settings& config_;
-    const api::ContactManager& contacts_;
+    const api::client::Contacts& contacts_;
     const api::Crypto& crypto_;
     const api::Identity& identity_;
     const api::Legacy& legacy_;
@@ -51,7 +51,7 @@ private:
     OTAPI_Exec(
         const api::client::Activity& activity,
         const api::Settings& config,
-        const api::ContactManager& contacts,
+        const api::client::Contacts& contacts,
         const api::Crypto& crypto,
         const api::Identity& identity,
         const api::Legacy& legacy,

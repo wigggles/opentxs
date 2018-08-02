@@ -5,10 +5,10 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -51,7 +51,7 @@ ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const api::client::Wallet& wallet,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::Legacy& legacy,
     const Identifier& nymID,
     const proto::ContactItemType currency)
@@ -88,7 +88,7 @@ AccountSummary::AccountSummary(
     const api::client::Wallet& wallet,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::Legacy& legacy,
     const Identifier& nymID,
     const proto::ContactItemType currency)

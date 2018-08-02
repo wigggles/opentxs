@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -41,7 +41,7 @@ namespace opentxs
 ui::implementation::ContactListExternalInterface* Factory::ContactList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID)
 {
     return new ui::implementation::ContactList(zmq, publisher, contact, nymID);
@@ -58,7 +58,7 @@ const Widget::ListenerDefinitions ContactList::listeners_{
 ContactList::ContactList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID)
     : ContactListList(nymID, zmq, publisher, contact)
     , owner_contact_id_(contact.ContactID(nymID))

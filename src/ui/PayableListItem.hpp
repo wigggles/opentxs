@@ -35,7 +35,7 @@ private:
         const PayableInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const PayableListRowID& rowID,
         const PayableListSortKey& key,
         const std::string& paymentcode,

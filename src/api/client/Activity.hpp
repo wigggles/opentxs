@@ -184,7 +184,7 @@ private:
         MailCache;
 
     const Legacy& legacy_;
-    const ContactManager& contact_;
+    const Contacts& contact_;
     const storage::Storage& storage_;
     const client::Wallet& wallet_;
     const opentxs::network::zeromq::Context& zmq_;
@@ -195,7 +195,7 @@ private:
 
     /**   Migrate nym-based thread IDs to contact-based thread IDs
      *
-     *    This method should only be called by the ContactManager on startup
+     *    This method should only be called by the Contacts on startup
      */
     void MigrateLegacyThreads() const override;
     void activity_preload_thread(
@@ -222,7 +222,7 @@ private:
 
     Activity(
         const Legacy& legacy,
-        const ContactManager& contact,
+        const Contacts& contact,
         const storage::Storage& storage,
         const client::Wallet& wallet,
         const opentxs::network::zeromq::Context& zmq);
