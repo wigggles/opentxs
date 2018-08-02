@@ -359,7 +359,6 @@ Native::Native(
     , task_list_lock_()
     , signal_handler_lock_()
     , periodic_task_list()
-    , activity_(nullptr)
     , client_(nullptr)
     , config_()
     , contacts_(nullptr)
@@ -419,13 +418,6 @@ Native::Native(
             encrypted_directory_ = encryptedDirectory;
         }
     }
-}
-
-const api::Activity& Native::Activity() const
-{
-    OT_ASSERT(activity_)
-
-    return *activity_;
 }
 
 const api::client::Client& Native::Client() const
@@ -574,11 +566,9 @@ void Native::Init()
     Init_Dht();       // requires Init_Config()
     Init_Identity();  // requires Init_Contracts()
     Init_Contacts();  // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
-    Init_Activity();  // requires Init_Storage(), Init_Contacts(),
-                      // Init_Contracts(), Init_Legacy()
     Init_Api();       // requires Init_Legacy(), Init_Config(), Init_Crypto(),
                       // Init_Contracts(), Init_Identity(), Init_Storage(),
-                      // Init_ZMQ(), Init_Contacts() Init_Activity()
+                      // Init_ZMQ(), Init_Contacts()
 
     if (recover_) { recover(); }
 
@@ -589,22 +579,10 @@ void Native::Init()
     start();
 }
 
-void Native::Init_Activity()
-{
-    OT_ASSERT(legacy_);
-    OT_ASSERT(contacts_);
-    OT_ASSERT(wallet_);
-    OT_ASSERT(storage_);
-
-    activity_.reset(Factory::Activity(
-        *legacy_, *contacts_, *storage_, *wallet_, zmq_context_));
-}
-
 void Native::Init_Api()
 {
     auto& config = config_[""];
 
-    OT_ASSERT(activity_);
     OT_ASSERT(config);
     OT_ASSERT(contacts_);
     OT_ASSERT(wallet_);
@@ -616,7 +594,6 @@ void Native::Init_Api()
 
     client_.reset(Factory::Client(
         running_,
-        *activity_,
         *config,
         *contacts_,
         *crypto_,
@@ -1212,7 +1189,6 @@ void Native::shutdown()
 
     server_.reset();
     client_.reset();
-    activity_.reset();
     contacts_.reset();
     identity_.reset();
     dht_.reset();
@@ -1229,17 +1205,12 @@ void Native::shutdown()
 
 void Native::start()
 {
-    OT_ASSERT(activity_);
     OT_ASSERT(contacts_);
 
     if (false == server_mode_) {
         OT_ASSERT(client_);
 
-        const bool loaded = client_->OTAPI().LoadWallet();
-
-        OT_ASSERT(loaded);
-
-        auto wallet = client_->OTAPI().GetWallet(nullptr);
+        auto wallet = client_->StartWallet();
 
         OT_ASSERT(nullptr != wallet);
 
@@ -1254,7 +1225,13 @@ void Native::start()
 
     storage_->UpgradeNyms();
     dynamic_cast<ContactManager&>(*contacts_).start();
-    activity_->MigrateLegacyThreads();
+
+    if (false == server_mode_) {
+        OT_ASSERT(client_);
+
+        client_->StartActivity();
+    }
+
     Init_Periodic();
 
     if (server_mode_) {

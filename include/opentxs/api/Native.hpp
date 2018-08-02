@@ -25,7 +25,6 @@ class Native
 public:
     using ShutdownCallback = std::function<void()>;
 
-    virtual const api::Activity& Activity() const = 0;
     virtual const api::client::Client& Client() const = 0;
     virtual const api::Settings& Config(
         const std::string& path = std::string("")) const = 0;

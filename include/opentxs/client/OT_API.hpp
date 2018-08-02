@@ -1200,7 +1200,7 @@ private:
 
     class Pid;
 
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const api::client::Client& client_;
     const api::Settings& config_;
     const api::ContactManager& contacts_;
@@ -1278,7 +1278,7 @@ private:
     bool LoadConfigFile();
 
     OT_API(
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::client::Client& client,
         const api::Settings& config,
         const api::ContactManager& contacts,

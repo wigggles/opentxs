@@ -59,8 +59,8 @@ proto::BlockchainTransaction* MakeTransaction(const std::string id)
 TEST_F(Test_StoreOutgoing, testDeposit)
 {
     // test: Alice has no activity records
-    ObjectList AThreads =
-        OT::App().Activity().Threads(Identifier::Factory(Alice), false);
+    ObjectList AThreads = OT::App().Client().Activity().Threads(
+        Identifier::Factory(Alice), false);
     ASSERT_EQ(0, AThreads.size());
 
     // test:: Activity::Thread has deposit
@@ -115,7 +115,7 @@ TEST_F(Test_StoreOutgoing, testDeposit)
 
     // test: Activity::Thread contains deposit item
     std::shared_ptr<proto::StorageThread> Thread_AB =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(Bob));
     ASSERT_EQ(1, Thread_AB->item_size());
     EXPECT_EQ(1, Thread_AB->participant_size());
@@ -137,8 +137,8 @@ TEST_F(Test_StoreOutgoing, testDeposit)
 TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
 {
     // test: Alice has acvitiy with previous contact
-    ObjectList AThreads =
-        OT::App().Activity().Threads(Identifier::Factory(Alice), false);
+    ObjectList AThreads = OT::App().Client().Activity().Threads(
+        Identifier::Factory(Alice), false);
     EXPECT_EQ(1, AThreads.size());
 
     // test:: account contains an outgoing tx
@@ -168,7 +168,7 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
 
     // test: Activity::Thread contains deposit item
     std::shared_ptr<proto::StorageThread> Thread_AB_ =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(Charly));
     ASSERT_EQ(1, Thread_AB_->item_size());
 
@@ -201,7 +201,7 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
     // OTIdentifier CharlyContactID =
     // OT::App().Contact().ContactID(Identifier(Charly));
     std::shared_ptr<proto::StorageThread> Thread_AC =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(CharlyContactID));
     ASSERT_EQ(1, Thread_AC->item_size());
     EXPECT_EQ(1, Thread_AC->participant_size());
@@ -210,8 +210,8 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
     EXPECT_STREQ(Charly.c_str(), Thread_AC->id().c_str());
 
     // test: Alice has acvitiy with Bob (from previous test) and Charly
-    ObjectList AThreads_ =
-        OT::App().Activity().Threads(Identifier::Factory(Alice), false);
+    ObjectList AThreads_ = OT::App().Client().Activity().Threads(
+        Identifier::Factory(Alice), false);
     EXPECT_EQ(2, AThreads_.size());
 
     proto::StorageThreadItem DepositToCharly = Thread_AC->item(0);

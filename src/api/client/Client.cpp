@@ -27,6 +27,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "InternalClient.hpp"
+
 #include <set>
 #include <map>
 #include <memory>
@@ -37,9 +39,8 @@
 
 namespace opentxs
 {
-api::client::Client* Factory::Client(
+api::client::internal::Client* Factory::Client(
     const Flag& running,
-    const api::Activity& activity,
     const api::Settings& config,
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
@@ -51,7 +52,6 @@ api::client::Client* Factory::Client(
 {
     return new api::client::implementation::Client(
         running,
-        activity,
         config,
         contacts,
         crypto,
@@ -67,7 +67,6 @@ namespace opentxs::api::client::implementation
 {
 Client::Client(
     const Flag& running,
-    const api::Activity& activity,
     const api::Settings& config,
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
@@ -80,12 +79,15 @@ Client::Client(
     , wallet_(wallet)
     , zmq_(zmq)
     , storage_(storage)
-    , activity_(activity)
     , contacts_(contacts)
     , crypto_(crypto)
     , identity_(identity)
     , legacy_(legacy)
     , config_(config)
+    , activity_(nullptr)
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    , blockchain_(nullptr)
+#endif
     , cash_(nullptr)
     , pair_(nullptr)
     , server_action_(nullptr)
@@ -98,6 +100,13 @@ Client::Client(
     , context_locks_()
 {
     Init();
+}
+
+const api::client::Activity& Client::Activity() const
+{
+    OT_ASSERT(activity_)
+
+    return *activity_;
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -122,6 +131,7 @@ void Client::Cleanup()
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     blockchain_.reset();
 #endif
+    activity_.reset();
 }
 
 std::recursive_mutex& Client::get_lock(const ContextID context) const
@@ -136,16 +146,21 @@ void Client::Init()
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
 
+    // FIXME
+
+    OT_ASSERT(activity_)
+
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Init_Blockchain();
 #endif
+
     workflow_.reset(Factory::Workflow(
-        activity_, contacts_, legacy_, storage_, zmq_.Context()));
+        *activity_, contacts_, legacy_, storage_, zmq_.Context()));
 
     OT_ASSERT(workflow_)
 
     ot_api_.reset(new OT_API(
-        activity_,
+        *activity_,
         *this,
         config_,
         contacts_,
@@ -161,7 +176,7 @@ void Client::Init()
     OT_ASSERT(ot_api_);
 
     otapi_exec_.reset(new OTAPI_Exec(
-        activity_,
+        *activity_,
         config_,
         contacts_,
         crypto_,
@@ -217,19 +232,28 @@ void Client::Init()
 
     OT_ASSERT(pair_);
 
-    Init_UI();  // Requires sync_, workflow_
+    Init_UI();  // Requires activity_, sync_, workflow_
+}
+
+void Client::Init_Activity()
+{
+    activity_.reset(Factory::Activity(
+        legacy_, contacts_, storage_, wallet_, zmq_.Context()));
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 void Client::Init_Blockchain()
 {
+    OT_ASSERT(activity_)
+
     blockchain_.reset(
-        Factory::Blockchain(activity_, crypto_, storage_, wallet_));
+        Factory::Blockchain(*activity_, crypto_, storage_, wallet_));
 }
 #endif
 
 void Client::Init_UI()
 {
+    OT_ASSERT(activity_)
     OT_ASSERT(sync_)
     OT_ASSERT(workflow_)
 
@@ -239,7 +263,7 @@ void Client::Init_UI()
         *workflow_,
         zmq_,
         storage_,
-        activity_,
+        *activity_,
         contacts_,
         legacy_,
         zmq_.Context(),
@@ -288,6 +312,24 @@ const api::client::ServerAction& Client::ServerAction() const
     OT_ASSERT(server_action_);
 
     return *server_action_;
+}
+
+void Client::StartActivity()
+{
+    OT_ASSERT(activity_)
+
+    activity_->MigrateLegacyThreads();
+}
+
+opentxs::OTWallet* Client::StartWallet()
+{
+    OT_ASSERT(ot_api_)
+
+    const bool loaded = ot_api_->LoadWallet();
+
+    OT_ASSERT(loaded);
+
+    return ot_api_->GetWallet(nullptr);
 }
 
 const api::client::Sync& Client::Sync() const

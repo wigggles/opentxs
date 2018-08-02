@@ -35,7 +35,7 @@ private:
     // id, box, account
     using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
 
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const Flag& running_;
     const OTIdentifier nym_id_;
     ActivitySummarySortKey key_;
@@ -56,7 +56,7 @@ private:
         const ActivitySummaryInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::ContactManager& contact,
         const Identifier& nymID,
         const ActivitySummaryRowID& rowID,

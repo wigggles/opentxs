@@ -499,7 +499,7 @@ void OT_API::Pid::ClosePid()
 bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 OT_API::OT_API(
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::client::Client& client,
     const api::Settings& config,
     const api::ContactManager& contacts,

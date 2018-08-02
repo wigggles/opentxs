@@ -92,7 +92,7 @@ const std::int32_t OT_ERROR = (-1);
 #endif
 
 OTAPI_Exec::OTAPI_Exec(
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::Settings& config,
     const api::ContactManager& contacts,
     const api::Crypto& crypto,

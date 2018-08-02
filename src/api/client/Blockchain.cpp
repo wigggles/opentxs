@@ -59,7 +59,7 @@
 namespace opentxs
 {
 api::client::Blockchain* Factory::Blockchain(
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::Crypto& crypto,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet)
@@ -72,7 +72,7 @@ api::client::Blockchain* Factory::Blockchain(
 namespace opentxs::api::client::implementation
 {
 Blockchain::Blockchain(
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::Crypto& crypto,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet)
@@ -767,5 +767,5 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
 
     return output;
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD

@@ -41,7 +41,7 @@
 namespace opentxs
 {
 api::client::Workflow* Factory::Workflow(
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::ContactManager& contact,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
@@ -136,7 +136,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
 namespace implementation
 {
 Workflow::Workflow(
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::ContactManager& contact,
     const api::Legacy& legacy,
     const storage::Storage& storage,

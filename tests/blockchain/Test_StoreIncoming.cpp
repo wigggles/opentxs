@@ -130,7 +130,7 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit1)
 
     // test: Activity::Thread has deposit
     std::shared_ptr<proto::StorageThread> Thread_AB =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(Bob));
     ASSERT_EQ(1, Thread_AB->item_size());
     EXPECT_EQ(1, Thread_AB->participant_size());
@@ -190,7 +190,7 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit1)
 
     // test: Alice<->Bob events are 2
     std::shared_ptr<proto::StorageThread> Thread_AB_ =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(Bob));
     ASSERT_EQ(2, Thread_AB_->item_size());
 }
@@ -205,8 +205,8 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit_UnknownContact)
     std::cout << "Started Uknown contact test !!!\n";
 
     // test: Alice has activity record with Bob
-    ObjectList AThreads =
-        OT::App().Activity().Threads(Identifier::Factory(Alice), false);
+    ObjectList AThreads = OT::App().Client().Activity().Threads(
+        Identifier::Factory(Alice), false);
     ASSERT_EQ(1, AThreads.size());
 
     std::shared_ptr<proto::Bip44Account> Account =
@@ -286,7 +286,7 @@ TEST_F(Test_StoreIncoming, testIncomingDeposit_UnknownContact)
 
     // test: deposit is included in Activity::Thread
     std::shared_ptr<proto::StorageThread> Thread_AC =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(Charly));
     ASSERT_EQ(1, Thread_AC->item_size());
     EXPECT_EQ(1, Thread_AC->participant_size());

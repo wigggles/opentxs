@@ -49,7 +49,7 @@ ui::ActivityThread* Factory::ActivityThread(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::ContactManager& contact,
     const Identifier& nymID,
     const Identifier& threadID)
@@ -65,7 +65,7 @@ ActivityThread::ActivityThread(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::ContactManager& contact,
     const Identifier& nymID,
     const Identifier& threadID)

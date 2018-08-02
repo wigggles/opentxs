@@ -71,7 +71,7 @@ namespace opentxs
 {
 OTClient::OTClient(
     OTWallet& theWallet,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::ContactManager& contacts,
     const api::Legacy& legacy,
     const api::client::Wallet& wallet,

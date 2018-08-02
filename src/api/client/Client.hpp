@@ -10,9 +10,10 @@
 
 namespace opentxs::api::client::implementation
 {
-class Client : virtual public opentxs::api::client::Client
+class Client final : public opentxs::api::client::internal::Client
 {
 public:
+    const api::client::Activity& Activity() const override;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const api::client::Blockchain& Blockchain() const override;
 #endif
@@ -28,6 +29,9 @@ public:
     const api::client::UI& UI() const override;
     const client::Workflow& Workflow() const override;
 
+    void StartActivity() override;
+    opentxs::OTWallet* StartWallet() override;
+
     ~Client();
 
 private:
@@ -37,13 +41,13 @@ private:
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
     const api::storage::Storage& storage_;
-    const api::Activity& activity_;
     const api::ContactManager& contacts_;
     const api::Crypto& crypto_;
     const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
 
+    std::unique_ptr<api::client::internal::Activity> activity_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::client::Blockchain> blockchain_;
 #endif
@@ -64,6 +68,7 @@ private:
 
     void Cleanup();
     void Init();
+    void Init_Activity();
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     void Init_Blockchain();
 #endif
@@ -71,7 +76,6 @@ private:
 
     Client(
         const Flag& running,
-        const api::Activity& activity,
         const api::Settings& config,
         const api::ContactManager& contacts,
         const api::Crypto& crypto,

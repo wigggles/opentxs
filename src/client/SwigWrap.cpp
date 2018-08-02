@@ -2971,7 +2971,8 @@ void SwigWrap::Activity_Preload(
     const std::string& nymID,
     const std::uint32_t& items)
 {
-    OT::App().Activity().PreloadActivity(Identifier::Factory(nymID), items);
+    OT::App().Client().Activity().PreloadActivity(
+        Identifier::Factory(nymID), items);
 }
 
 bool SwigWrap::Activity_Mark_Read(
@@ -2979,7 +2980,7 @@ bool SwigWrap::Activity_Mark_Read(
     const std::string& threadID,
     const std::string& itemID)
 {
-    return OT::App().Activity().MarkRead(
+    return OT::App().Client().Activity().MarkRead(
         Identifier::Factory(nymID),
         Identifier::Factory(threadID),
         Identifier::Factory(itemID));
@@ -2990,7 +2991,7 @@ bool SwigWrap::Activity_Mark_Unread(
     const std::string& threadID,
     const std::string& itemID)
 {
-    return OT::App().Activity().MarkUnread(
+    return OT::App().Client().Activity().MarkUnread(
         Identifier::Factory(nymID),
         Identifier::Factory(threadID),
         Identifier::Factory(itemID));
@@ -3001,7 +3002,7 @@ std::string SwigWrap::Activity_Thread_base64(
     const std::string& threadId)
 {
     std::string output{};
-    const auto thread = OT::App().Activity().Thread(
+    const auto thread = OT::App().Client().Activity().Thread(
         Identifier::Factory(nymId), Identifier::Factory(threadId));
 
     if (thread) {
@@ -3023,7 +3024,8 @@ std::string SwigWrap::Activity_Threads(
 
 std::uint64_t SwigWrap::Activity_Unread_Count(const std::string& nymID)
 {
-    return OT::App().Activity().UnreadCount(Identifier::Factory(nymID));
+    return OT::App().Client().Activity().UnreadCount(
+        Identifier::Factory(nymID));
 }
 
 void SwigWrap::Thread_Preload(
@@ -3032,7 +3034,7 @@ void SwigWrap::Thread_Preload(
     const std::uint32_t start,
     const std::uint32_t items)
 {
-    OT::App().Activity().PreloadThread(
+    OT::App().Client().Activity().PreloadThread(
         Identifier::Factory(nymID),
         Identifier::Factory(threadID),
         start,

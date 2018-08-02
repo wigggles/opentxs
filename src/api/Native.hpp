@@ -24,7 +24,6 @@ namespace opentxs::api::implementation
 class Native : virtual public api::internal::Native
 {
 public:
-    const api::Activity& Activity() const override;
     const api::client::Client& Client() const override;
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
@@ -78,8 +77,7 @@ private:
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
-    std::unique_ptr<api::client::internal::Activity> activity_;
-    std::unique_ptr<api::client::Client> client_;
+    std::unique_ptr<api::client::internal::Client> client_;
     mutable ConfigMap config_;
     std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<api::Crypto> crypto_;
@@ -122,7 +120,6 @@ private:
 
     void setup_default_external_password_callback();
 
-    void Init_Activity();
     void Init_Api();
     void Init_Config();
     void Init_Contacts();

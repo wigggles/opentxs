@@ -40,7 +40,7 @@ private:
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
-        const api::Activity& activity);
+        const api::client::Activity& activity);
     PaymentItem() = delete;
     PaymentItem(const PaymentItem&) = delete;
     PaymentItem(PaymentItem&&) = delete;

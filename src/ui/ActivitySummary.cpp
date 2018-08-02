@@ -43,7 +43,7 @@ namespace opentxs
 ui::implementation::ActivitySummaryExternalInterface* Factory::ActivitySummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::ContactManager& contact,
     const Flag& running,
     const Identifier& nymID)
@@ -59,7 +59,7 @@ namespace opentxs::ui::implementation
 ActivitySummary::ActivitySummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::ContactManager& contact,
     const Flag& running,
     const Identifier& nymID)

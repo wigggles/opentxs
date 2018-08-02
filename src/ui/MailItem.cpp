@@ -32,7 +32,7 @@ ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const bool loading,
     const bool pending)
 {
@@ -59,7 +59,7 @@ ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::Activity& activity)
+    const api::client::Activity& activity)
 {
     return new ui::implementation::MailItem(
         parent,
@@ -85,7 +85,7 @@ MailItem::MailItem(
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const bool loading,
     const bool pending)
     : ActivityThreadItem(
@@ -115,7 +115,7 @@ MailItem::MailItem(
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
-    const api::Activity& activity)
+    const api::client::Activity& activity)
     : MailItem(
           parent,
           zmq,

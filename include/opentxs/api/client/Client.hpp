@@ -19,6 +19,7 @@ namespace client
 class Client
 {
 public:
+    EXPORT virtual const api::client::Activity& Activity() const = 0;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual const api::client::Blockchain& Blockchain() const = 0;
 #endif

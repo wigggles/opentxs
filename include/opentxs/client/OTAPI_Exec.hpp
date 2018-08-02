@@ -37,7 +37,7 @@ class OTAPI_Exec : Lockable
 private:
     friend class api::client::implementation::Client;
 
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const api::Settings& config_;
     const api::ContactManager& contacts_;
     const api::Crypto& crypto_;
@@ -49,7 +49,7 @@ private:
     ContextLockCallback lock_callback_;
 
     OTAPI_Exec(
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::Settings& config,
         const api::ContactManager& contacts,
         const api::Crypto& crypto,

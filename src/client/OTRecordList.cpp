@@ -2705,7 +2705,7 @@ bool OTRecordList::Populate()
                     continue;
                 }
 
-                auto message = OT::App().Activity().Mail(
+                auto message = OT::App().Client().Activity().Mail(
                     nymID, Identifier::Factory(id), StorageBox::MAILINBOX);
 
                 if (!message) {
@@ -2825,7 +2825,7 @@ bool OTRecordList::Populate()
                     continue;
                 }
 
-                auto message = OT::App().Activity().Mail(
+                auto message = OT::App().Client().Activity().Mail(
                     nymID, Identifier::Factory(id), StorageBox::MAILOUTBOX);
 
                 if (!message) {

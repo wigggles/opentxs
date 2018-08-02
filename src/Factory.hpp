@@ -53,7 +53,7 @@ public:
     ActivitySummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::ContactManager& contact,
         const Flag& running,
         const Identifier& nymID);
@@ -61,7 +61,7 @@ public:
         const ui::implementation::ActivitySummaryInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::ContactManager& contact,
         const Identifier& nymID,
         const ui::implementation::ActivitySummaryRowID& rowID,
@@ -72,7 +72,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::ContactManager& contact,
         const Identifier& nymID,
         const Identifier& threadID);
@@ -90,14 +90,13 @@ public:
         const Identifier& nymID,
         const Identifier& accountID);
     static api::client::Blockchain* Blockchain(
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::Crypto& crypto,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet);
     static api::client::Cash* Cash(const api::Legacy& legacy);
-    static api::client::Client* Client(
+    static api::client::internal::Client* Client(
         const Flag& running,
-        const api::Activity& activity,
         const api::Settings& config,
         const api::ContactManager& contacts,
         const api::Crypto& crypto,
@@ -194,7 +193,7 @@ public:
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const bool loading,
         const bool pending);
     static ui::implementation::ActivityThreadRowInternal* MailItem(
@@ -206,7 +205,7 @@ public:
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom,
-        const api::Activity& activity);
+        const api::client::Activity& activity);
     static ui::implementation::MessagableExternalInterface* MessagableList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -260,7 +259,7 @@ public:
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom,
-        const api::Activity& activity);
+        const api::client::Activity& activity);
     static ui::implementation::ProfileExternalInterface* ProfileWidget(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -354,7 +353,7 @@ public:
         const api::client::Workflow& workflow,
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::ContactManager& contact,
         const api::Legacy& legacy,
         const network::zeromq::Context& zmq,
@@ -363,7 +362,7 @@ public:
         const api::Native& ot,
         const network::zeromq::Context& zmq);
     static api::client::Workflow* Workflow(
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::ContactManager& contact,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,

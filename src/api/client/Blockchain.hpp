@@ -59,7 +59,7 @@ private:
 
     friend Factory;
 
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;
     const api::client::Wallet& wallet_;
@@ -98,7 +98,7 @@ private:
         const std::string& toContact) const;
 
     Blockchain(
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::Crypto& crypto,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet);
@@ -108,6 +108,6 @@ private:
     Blockchain& operator=(const Blockchain&) = delete;
     Blockchain& operator=(Blockchain&&) = delete;
 };
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif  // OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP

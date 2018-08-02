@@ -33,7 +33,7 @@ private:
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const bool loading,
         const bool pending);
     MailItem(
@@ -45,7 +45,7 @@ private:
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
-        const api::Activity& activity);
+        const api::client::Activity& activity);
     MailItem() = delete;
     MailItem(const MailItem&) = delete;
     MailItem(MailItem&&) = delete;

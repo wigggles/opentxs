@@ -66,7 +66,7 @@ private:
     const api::client::Workflow& workflow_;
     const api::network::ZMQ& connection_;
     const api::storage::Storage& storage_;
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const api::ContactManager& contact_;
     const api::Legacy& legacy_;
     const opentxs::network::zeromq::Context& zmq_;
@@ -87,7 +87,7 @@ private:
        const api::client::Workflow& workflow,
        const api::network::ZMQ& connection,
        const api::storage::Storage& storage,
-       const api::Activity& activity,
+       const api::client::Activity& activity,
        const api::ContactManager& contact,
        const api::Legacy& legacy,
        const opentxs::network::zeromq::Context& zmq,
