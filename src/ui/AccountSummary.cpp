@@ -7,8 +7,8 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -48,7 +48,7 @@ namespace opentxs
 ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::client::Contacts& contact,
@@ -85,7 +85,7 @@ const Widget::ListenerDefinitions AccountSummary::listeners_{
 AccountSummary::AccountSummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::client::Contacts& contact,

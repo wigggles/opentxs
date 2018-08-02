@@ -40,7 +40,7 @@ namespace opentxs
 {
 api::client::UI* Factory::UI(
     const api::client::Sync& sync,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
@@ -68,7 +68,7 @@ namespace opentxs::api::client::implementation
 {
 UI::UI(
     const api::client::Sync& sync,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,

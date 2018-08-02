@@ -7,7 +7,6 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Client.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
@@ -16,6 +15,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -1216,7 +1216,7 @@ void Native::start()
     }
 }
 
-const api::client::Wallet& Native::Wallet() const
+const api::Wallet& Native::Wallet() const
 {
     OT_ASSERT(wallet_)
 

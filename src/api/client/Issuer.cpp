@@ -6,7 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
@@ -28,7 +28,7 @@
 namespace opentxs
 {
 api::client::Issuer* Factory::Issuer(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID,
     const proto::Issuer& serialized)
 {
@@ -36,7 +36,7 @@ api::client::Issuer* Factory::Issuer(
 }
 
 api::client::Issuer* Factory::Issuer(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& issuerID)
 {
@@ -47,7 +47,7 @@ api::client::Issuer* Factory::Issuer(
 namespace opentxs::api::client::implementation
 {
 Issuer::Issuer(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& issuerID)
     : wallet_(wallet)
@@ -62,7 +62,7 @@ Issuer::Issuer(
 }
 
 Issuer::Issuer(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID,
     const proto::Issuer& serialized)
     : wallet_(wallet)

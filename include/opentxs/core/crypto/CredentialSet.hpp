@@ -97,7 +97,7 @@ private:
     std::uint32_t version_{};
     std::uint32_t index_{};
     proto::KeyMode mode_{proto::KEYMODE_ERROR};
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
 
     bool CreateMasterCredential(const NymParameters& nymParameters);
 
@@ -107,13 +107,13 @@ public:
     /** The source is the URL/DN/pubkey that hashes to form the NymID. Any
      * credential must verify against its own source. */
     void SetSource(const std::shared_ptr<NymIDSource>& source);
-    explicit CredentialSet(const api::client::Wallet& wallet);
+    explicit CredentialSet(const api::Wallet& wallet);
     explicit CredentialSet(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const proto::KeyMode mode,
         const proto::CredentialSet& serializedCredentialSet);
     EXPORT CredentialSet(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const NymParameters& nymParameters,
         std::uint32_t version,
         const OTPasswordData* pPWData = nullptr);

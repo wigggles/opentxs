@@ -46,7 +46,7 @@ api::client::internal::Client* Factory::Client(
     const api::Identity& identity,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::network::ZMQ& zmq)
 {
     return new api::client::implementation::Client(
@@ -63,7 +63,7 @@ Client::Client(
     const api::Identity& identity,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::network::ZMQ& zmq)
     : running_(running)
     , wallet_(wallet)

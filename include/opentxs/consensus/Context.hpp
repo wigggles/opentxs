@@ -23,13 +23,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
 namespace implementation
 {
 class Wallet;
 }  // namespace implementation
-}  // namespace client
 }  // namespace api
 
 class Context : public Signable
@@ -73,7 +70,7 @@ public:
     virtual ~Context() = default;
 
 protected:
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::Legacy& legacy_;
     const OTIdentifier server_id_;
     std::shared_ptr<const class Nym> remote_nym_{};
@@ -101,14 +98,14 @@ protected:
         const std::set<RequestNumber>& req);
 
     Context(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const std::uint32_t targetVersion,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server);
     Context(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const std::uint32_t targetVersion,
         const proto::Context& serialized,
@@ -118,7 +115,7 @@ protected:
 
 private:
     friend class Nym;
-    friend class api::client::implementation::Wallet;
+    friend class api::implementation::Wallet;
 
     typedef Signable ot_super;
 

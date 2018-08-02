@@ -18,13 +18,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
 namespace implementation
 {
 class Wallet;
 }  // namespace implementation
-}  // namespace client
 }  // namespace api
 
 class Account : public OTTransactionType
@@ -98,7 +95,7 @@ public:
 
 private:
     friend OTWallet;
-    friend opentxs::api::client::implementation::Wallet;
+    friend opentxs::api::implementation::Wallet;
     friend OTTransactionType* OTTransactionType::TransactionFactory(
         const std::string& dataFolder,
         String input);

@@ -62,7 +62,7 @@ private:
     using ProfileMap = std::map<OTIdentifier, std::unique_ptr<ui::Profile>>;
 
     const api::client::Sync& sync_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::network::ZMQ& connection_;
     const api::storage::Storage& storage_;
@@ -83,7 +83,7 @@ private:
     OTZMQPublishSocket widget_update_publisher_;
 
     UI(const api::client::Sync& sync,
-       const api::client::Wallet& wallet,
+       const api::Wallet& wallet,
        const api::client::Workflow& workflow,
        const api::network::ZMQ& connection,
        const api::storage::Storage& storage,

@@ -29,7 +29,7 @@ public:
 private:
     friend Factory;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::storage::Storage& storage_;
     const Identifier& account_id_;
     const proto::ContactItemType& currency_;
@@ -45,7 +45,7 @@ private:
         const IssuerItemRowID& rowID,
         const IssuerItemSortKey& sortKey,
         const CustomData& custom,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::storage::Storage& storage);
     AccountSummaryItem() = delete;
     AccountSummaryItem(const AccountSummaryItem&) = delete;

@@ -82,11 +82,11 @@ protected:
         const bool onlyPrivate = false);
 
     KeyCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& owner,
         const NymParameters& nymParameters);
     KeyCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& owner,
         const proto::Credential& serializedCred);
 

@@ -62,7 +62,7 @@ private:
     const api::client::Activity& activity_;
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
     mutable IDLock account_lock_;
@@ -101,7 +101,7 @@ private:
         const api::client::Activity& activity,
         const api::Crypto& crypto,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;

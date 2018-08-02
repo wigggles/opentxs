@@ -57,7 +57,7 @@ private:
     using ContactNameMap = std::map<OTIdentifier, std::string>;
 
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
     mutable ContactNameMap contact_name_map_;
@@ -124,7 +124,7 @@ private:
 
     Contacts(
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const opentxs::network::zeromq::Context& context);
     Contacts() = delete;
     Contacts(const Contacts&) = delete;

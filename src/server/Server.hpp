@@ -87,7 +87,7 @@ private:
     const opentxs::api::Settings& config_;
     const opentxs::api::Server& mint_;
     const opentxs::api::storage::Storage& storage_;
-    const opentxs::api::client::Wallet& wallet_;
+    const opentxs::api::Wallet& wallet_;
     MainFile mainFile_;
     Notary notary_;
     Transactor transactor_;
@@ -136,7 +136,7 @@ private:
         const opentxs::api::Settings& config,
         const opentxs::api::Server& mint,
         const opentxs::api::storage::Storage& storage,
-        const opentxs::api::client::Wallet& wallet);
+        const opentxs::api::Wallet& wallet);
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;

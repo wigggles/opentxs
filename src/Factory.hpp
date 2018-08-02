@@ -16,7 +16,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::client::Contacts& contact,
         const api::storage::Storage& storage,
@@ -26,7 +26,7 @@ public:
     static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
         const api::client::Contacts& contact,
@@ -41,13 +41,13 @@ public:
         const ui::implementation::IssuerItemRowID& rowID,
         const ui::implementation::IssuerItemSortKey& sortKey,
         const ui::implementation::CustomData& custom,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::storage::Storage& storage);
     static api::client::internal::Activity* Activity(
         const api::Legacy& legacy,
         const api::client::Contacts& contact,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const network::zeromq::Context& zmq);
     static ui::implementation::ActivitySummaryExternalInterface*
     ActivitySummary(
@@ -85,7 +85,7 @@ public:
         const ui::implementation::AccountActivitySortKey& sortKey,
         const ui::implementation::CustomData& custom,
         const api::client::Sync& sync,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);
@@ -93,7 +93,7 @@ public:
         const api::client::Activity& activity,
         const api::Crypto& crypto,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     static api::client::Cash* Cash(const api::Legacy& legacy);
     static api::client::internal::Client* Client(
         const Flag& running,
@@ -102,7 +102,7 @@ public:
         const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::network::ZMQ& zmq);
     static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
@@ -118,7 +118,7 @@ public:
         const ui::implementation::ContactListSortKey& key);
     static api::client::internal::Contacts* Contacts(
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const network::zeromq::Context& context);
     static ui::implementation::ContactExternalInterface* ContactWidget(
         const network::zeromq::Context& zmq,
@@ -165,13 +165,13 @@ public:
         crypto::Trezor& bitcoin
 #endif
     );
-    static api::Identity* Identity(const api::client::Wallet& wallet);
+    static api::Identity* Identity(const api::Wallet& wallet);
     static api::client::Issuer* Issuer(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Identifier& nymID,
         const proto::Issuer& serialized);
     static api::client::Issuer* Issuer(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& issuerID);
     static ui::implementation::AccountSummaryRowInternal* IssuerItem(
@@ -182,7 +182,7 @@ public:
         const ui::implementation::AccountSummaryRowID& rowID,
         const ui::implementation::AccountSummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::storage::Storage& storage,
         const api::Legacy& legacy,
         const proto::ContactItemType currency);
@@ -232,7 +232,7 @@ public:
         const Flag& running,
         const api::client::Sync& sync,
         const api::client::ServerAction& action,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const OT_API& otapi,
         const OTAPI_Exec& exec,
@@ -267,7 +267,7 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Contacts& contact,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Identifier& nymID);
     static ui::implementation::ProfileSubsectionRowInternal* ProfileItemWidget(
         const ui::implementation::ProfileSubsectionInternalInterface& parent,
@@ -277,7 +277,7 @@ public:
         const ui::implementation::ProfileSubsectionRowID& rowID,
         const ui::implementation::ProfileSubsectionSortKey& sortKey,
         const ui::implementation::CustomData& custom,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     static ui::implementation::ProfileRowInternal* ProfileSectionWidget(
         const ui::implementation::ProfileInternalInterface& parent,
         const network::zeromq::Context& zmq,
@@ -286,7 +286,7 @@ public:
         const ui::implementation::ProfileRowID& rowID,
         const ui::implementation::ProfileSortKey& key,
         const ui::implementation::CustomData& custom,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     static ui::implementation::ProfileSectionRowInternal*
     ProfileSubsectionWidget(
         const ui::implementation::ProfileSectionInternalInterface& parent,
@@ -296,7 +296,7 @@ public:
         const ui::implementation::ProfileSectionRowID& rowID,
         const ui::implementation::ProfileSectionSortKey& key,
         const ui::implementation::CustomData& custom,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     static crypto::key::RSA* RSAKey(const proto::AsymmetricKey& serializedKey);
     static crypto::key::RSA* RSAKey(const String& publicKey);
     static crypto::key::RSA* RSAKey(const proto::KeyRole role);
@@ -310,7 +310,7 @@ public:
     static api::client::ServerAction* ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const ContextLockCallback& lockCallback);
@@ -320,7 +320,7 @@ public:
         const api::Legacy& legacy,
         const api::Settings& config,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Flag& running,
         const network::zeromq::Context& context);
     static api::Settings* Settings();
@@ -343,7 +343,7 @@ public:
         const api::Settings& config,
         const api::client::Client& api,
         const api::Legacy& legacy,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
         const api::storage::Storage& storage,
@@ -352,7 +352,7 @@ public:
     static crypto::Trezor* Trezor(const api::Native& native);
     static api::client::UI* UI(
         const api::client::Sync& sync,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
@@ -361,7 +361,7 @@ public:
         const api::Legacy& legacy,
         const network::zeromq::Context& zmq,
         const Flag& running);
-    static api::client::Wallet* Wallet(
+    static api::Wallet* Wallet(
         const api::Native& ot,
         const network::zeromq::Context& zmq);
     static api::client::Workflow* Workflow(

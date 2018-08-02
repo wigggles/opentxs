@@ -42,7 +42,7 @@ public:
             std::chrono::seconds(0)) const override;
     const api::Server& Server() const override;
     bool ServerMode() const override;
-    const api::client::Wallet& Wallet() const override;
+    const api::Wallet& Wallet() const override;
     const api::network::ZMQ& ZMQ() const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
@@ -83,7 +83,7 @@ private:
     std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
-    std::unique_ptr<api::client::Wallet> wallet_;
+    std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
 #if OT_CRYPTO_WITH_BIP39

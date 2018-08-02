@@ -56,7 +56,7 @@ private:
     Server& server_;
     const opentxs::api::Legacy& legacy_;
     const opentxs::api::Server& mint_;
-    const opentxs::api::client::Wallet& wallet_;
+    const opentxs::api::Wallet& wallet_;
 
     void NotarizeCancelCronItem(
         ClientContext& context,
@@ -117,7 +117,7 @@ private:
         Server& server,
         const opentxs::api::Legacy& legacy,
         const opentxs::api::Server& mint,
-        const opentxs::api::client::Wallet& wallet);
+        const opentxs::api::Wallet& wallet);
     Notary() = delete;
     Notary(const Notary&) = delete;
     Notary(Notary&&) = delete;

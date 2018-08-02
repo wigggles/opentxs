@@ -57,7 +57,7 @@ public:
 private:
     friend Factory;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     std::unique_ptr<opentxs::ContactItem> item_{nullptr};
 
     bool add_claim(const Claim& claim) const;
@@ -71,7 +71,7 @@ private:
         const ProfileSubsectionRowID& rowID,
         const ProfileSubsectionSortKey& sortKey,
         const CustomData& custom,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     ProfileItem() = delete;
     ProfileItem(const ProfileItem&) = delete;
     ProfileItem(ProfileItem&&) = delete;

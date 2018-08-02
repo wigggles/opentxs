@@ -63,11 +63,11 @@ private:  // Private prevents erroneous use by other classes.
     bool New(const NymParameters& nymParameters) override;
 
     MasterCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& theOwner,
         const proto::Credential& serializedCred);
     MasterCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& theOwner,
         const NymParameters& nymParameters);
     MasterCredential() = delete;

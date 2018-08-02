@@ -145,13 +145,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
 namespace implementation
 {
 class Wallet;
 }  // namespace implementation
-}  // namespace client
 }  // namespace api
 
 class NymData
@@ -227,7 +224,7 @@ public:
     ~NymData();
 
 private:
-    friend api::client::implementation::Wallet;
+    friend api::implementation::Wallet;
 
     typedef std::unique_lock<std::mutex> Lock;
     typedef std::function<void(NymData*, Lock&)> LockedSave;

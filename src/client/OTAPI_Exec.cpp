@@ -10,13 +10,13 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
 #endif  // OT_CASH
@@ -98,7 +98,7 @@ OTAPI_Exec::OTAPI_Exec(
     const api::Crypto& crypto,
     const api::Identity& identity,
     const api::Legacy& legacy,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::network::ZMQ& zeromq,
     const OT_API& otapi,
     const ContextLockCallback& lockCallback)

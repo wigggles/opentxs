@@ -70,12 +70,12 @@ public:
     // --Returns True if Trade should stay on the Cron list for more processing.
     // --Returns False if it should be removed and deleted.
     void ProcessTrade(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         OTTrade& theTrade,
         OTOffer& theOffer,
         OTOffer& theOtherOffer);
     bool ProcessTrade(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         OTTrade& theTrade,
         OTOffer& theOffer);
 

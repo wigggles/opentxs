@@ -50,14 +50,14 @@ public:
     };
 
     ServerContext(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server,
         network::ServerConnection& connection);
     ServerContext(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const proto::Context& serialized,
         const ConstNym& local,

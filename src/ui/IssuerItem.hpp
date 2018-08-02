@@ -49,7 +49,7 @@ private:
 
     static const ListenerDefinitions listeners_;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::storage::Storage& storage_;
     const api::Legacy& legacy_;
     AccountSummarySortKey key_;
@@ -76,7 +76,7 @@ private:
         const AccountSummaryRowID& rowID,
         const AccountSummarySortKey& sortKey,
         const CustomData& custom,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::storage::Storage& storage,
         const api::Legacy& legacy,
         const proto::ContactItemType currency);

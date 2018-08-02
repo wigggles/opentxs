@@ -301,11 +301,9 @@ protected:
     inline void IncrementNoPaymentsDone() { m_nNoPaymentsDone++; }
     inline void IncrementNoFailedPayments() { m_nNoFailedPayments++; }
 
-    bool ProcessPayment(
-        const api::client::Wallet& wallet,
-        const Amount& amount);
-    void ProcessInitialPayment(const api::client::Wallet& wallet);
-    void ProcessPaymentPlan(const api::client::Wallet& wallet);
+    bool ProcessPayment(const api::Wallet& wallet, const Amount& amount);
+    void ProcessInitialPayment(const api::Wallet& wallet);
+    void ProcessPaymentPlan(const api::Wallet& wallet);
 
 private:
     typedef OTAgreement ot_super;

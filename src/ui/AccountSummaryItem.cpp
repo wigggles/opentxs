@@ -6,8 +6,8 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -39,7 +39,7 @@ ui::implementation::IssuerItemRowInternal* Factory::AccountSummaryItem(
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::storage::Storage& storage)
 {
     return new ui::implementation::AccountSummaryItem(
@@ -65,7 +65,7 @@ AccountSummaryItem::AccountSummaryItem(
     const IssuerItemRowID& rowID,
     const IssuerItemSortKey& sortKey,
     const CustomData& custom,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::storage::Storage& storage)
     : AccountSummaryItemRow(parent, zmq, publisher, contact, rowID, true)
     , wallet_{wallet}

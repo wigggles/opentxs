@@ -10,8 +10,8 @@
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/ServerAction.hpp"
@@ -59,7 +59,7 @@ api::client::Pair* Factory::Pair(
     const Flag& running,
     const api::client::Sync& sync,
     const api::client::ServerAction& action,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const opentxs::OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
@@ -84,7 +84,7 @@ Pair::Pair(
     const Flag& running,
     const api::client::Sync& sync,
     const client::ServerAction& action,
-    const client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Legacy& legacy,
     const opentxs::OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,

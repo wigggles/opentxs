@@ -57,7 +57,7 @@ private:
     const Flag& running_;
     const client::Sync& sync_;
     const client::ServerAction& action_;
-    const client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const Legacy& legacy_;
     const opentxs::OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
@@ -144,7 +144,7 @@ private:
         const Flag& running,
         const client::Sync& sync,
         const client::ServerAction& action,
-        const client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Legacy& legacy,
         const opentxs::OT_API& otapi,
         const opentxs::OTAPI_Exec& exec,

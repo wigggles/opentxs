@@ -8,11 +8,11 @@
 #include "opentxs/core/Nym.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -60,7 +60,7 @@
 namespace opentxs
 {
 Nym::Nym(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID,
     const proto::CredentialIndexMode mode)
     : version_(NYM_CREATE_VERSION)
@@ -80,7 +80,7 @@ Nym::Nym(
 {
 }
 
-Nym::Nym(const api::client::Wallet& wallet, const NymParameters& nymParameters)
+Nym::Nym(const api::Wallet& wallet, const NymParameters& nymParameters)
     : Nym(wallet, Identifier::Factory(), proto::CREDINDEX_PRIVATE)
 {
     NymParameters revisedParameters = nymParameters;

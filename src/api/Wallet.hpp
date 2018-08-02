@@ -8,9 +8,9 @@
 
 #include "Internal.hpp"
 
-namespace opentxs::api::client::implementation
+namespace opentxs::api::implementation
 {
-class Wallet : virtual public opentxs::api::client::Wallet, Lockable
+class Wallet : virtual public opentxs::api::Wallet, Lockable
 {
 public:
     SharedAccount Account(
@@ -207,7 +207,7 @@ private:
 
     static const std::map<std::string, proto::ContactItemType> unit_of_account_;
 
-    const Native& ot_;
+    const api::Native& ot_;
     mutable AccountMap account_map_;
     mutable NymMap nym_map_;
     mutable ServerMap server_map_;
@@ -301,12 +301,12 @@ private:
     ConstUnitDefinition UnitDefinition(
         std::unique_ptr<opentxs::UnitDefinition>& contract) const;
 
-    Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq);
+    Wallet(const api::Native& ot, const opentxs::network::zeromq::Context& zmq);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;
     Wallet& operator=(const Wallet&) = delete;
     Wallet& operator=(Wallet&&) = delete;
 };
-}  // namespace opentxs::api::client::implementation
+}  // namespace opentxs::api::implementation
 #endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP

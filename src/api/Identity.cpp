@@ -5,9 +5,9 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/VerificationCredential.hpp"
@@ -32,7 +32,7 @@
 
 namespace opentxs
 {
-api::Identity* Factory::Identity(const api::client::Wallet& wallet)
+api::Identity* Factory::Identity(const api::Wallet& wallet)
 {
     return new api::implementation::Identity(wallet);
 }
@@ -40,7 +40,7 @@ api::Identity* Factory::Identity(const api::client::Wallet& wallet)
 
 namespace opentxs::api::implementation
 {
-Identity::Identity(const api::client::Wallet& wallet)
+Identity::Identity(const api::Wallet& wallet)
     : wallet_(wallet)
 {
 }

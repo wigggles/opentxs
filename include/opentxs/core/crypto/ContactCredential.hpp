@@ -35,11 +35,11 @@ private:
         const SerializationSignatureFlag asSigned) const override;
 
     ContactCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& parent,
         const proto::Credential& credential);
     ContactCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& parent,
         const NymParameters& nymParameters);
     ContactCredential() = delete;

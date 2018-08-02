@@ -5,12 +5,12 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Server.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -55,7 +55,7 @@ api::Server* Factory::ServerAPI(
     const api::Legacy& legacy,
     const api::Settings& config,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Flag& running,
     const network::zeromq::Context& context)
 {
@@ -72,7 +72,7 @@ Server::Server(
     const api::Legacy& legacy,
     const opentxs::api::Settings& config,
     const opentxs::api::storage::Storage& storage,
-    const opentxs::api::client::Wallet& wallet,
+    const opentxs::api::Wallet& wallet,
     const Flag& running,
     const opentxs::network::zeromq::Context& context)
     : args_(args)

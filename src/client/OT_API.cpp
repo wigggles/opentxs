@@ -10,7 +10,6 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Pair.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
@@ -19,6 +18,7 @@
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -507,7 +507,7 @@ OT_API::OT_API(
     const api::Identity& identity,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::network::ZMQ& zmq,
     const ContextLockCallback& lockCallback)

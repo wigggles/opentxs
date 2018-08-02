@@ -46,7 +46,7 @@ std::string VerificationCredential::VerificationID(
 }
 
 VerificationCredential::VerificationCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& parent,
     const proto::Credential& credential)
     : ot_super(wallet, parent, credential)
@@ -57,7 +57,7 @@ VerificationCredential::VerificationCredential(
 }
 
 VerificationCredential::VerificationCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& parent,
     const NymParameters& nymParameters)
     : ot_super(wallet, parent, VERIFICATION_CREDENTIAL_VERSION, nymParameters)

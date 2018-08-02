@@ -7,8 +7,8 @@
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
 #include "opentxs/core/contract/Signable.hpp"

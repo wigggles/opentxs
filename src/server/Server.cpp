@@ -7,7 +7,6 @@
 
 #include "Server.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -16,6 +15,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -86,7 +86,7 @@ Server::Server(
     const opentxs::api::Settings& config,
     const opentxs::api::Server& mint,
     const opentxs::api::storage::Storage& storage,
-    const opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Wallet& wallet)
     : crypto_(crypto)
     , legacy_(legacy)
     , config_(config)

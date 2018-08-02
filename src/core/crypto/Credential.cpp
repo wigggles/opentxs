@@ -33,9 +33,9 @@
 
 #include "opentxs/core/crypto/Credential.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
@@ -65,7 +65,7 @@ namespace opentxs
  * stored as an Contract, and it must be signed by the master key. (which is
  * also an Credential.) */
 std::unique_ptr<Credential> Credential::Factory(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& parent,
     const proto::Credential& serialized,
     const proto::KeyMode& mode,
@@ -110,7 +110,7 @@ std::unique_ptr<Credential> Credential::Factory(
 }
 
 Credential::Credential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& theOwner,
     const std::uint32_t version,
     const NymParameters& nymParameters)
@@ -123,7 +123,7 @@ Credential::Credential(
 }
 
 Credential::Credential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
     : ot_super(ConstNym(), serializedCred.version())

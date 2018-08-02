@@ -42,7 +42,7 @@ public:
 private:
     friend class api::implementation::Native;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     mutable CallbackMap callback_map_{};
     std::unique_ptr<const DhtConfig> config_{nullptr};
 #if OT_DHT
@@ -51,23 +51,23 @@ private:
 
 #if OT_DHT
     static bool ProcessPublicNym(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessServerContract(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
     static bool ProcessUnitDefinition(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const std::string key,
         const DhtResults& values,
         NotifyCB notifyCB);
 #endif
 
-    explicit Dht(DhtConfig& config, const api::client::Wallet& wallet);
+    explicit Dht(DhtConfig& config, const api::Wallet& wallet);
     Dht() = delete;
     Dht(const Dht&) = delete;
     Dht(Dht&&) = delete;

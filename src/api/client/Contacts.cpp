@@ -6,9 +6,9 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -32,7 +32,7 @@ namespace opentxs
 {
 api::client::internal::Contacts* Factory::Contacts(
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const network::zeromq::Context& context)
 {
     return new opentxs::api::client::implementation::Contacts(
@@ -44,7 +44,7 @@ namespace opentxs::api::client::implementation
 {
 Contacts::Contacts(
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const opentxs::network::zeromq::Context& context)
     : storage_(storage)
     , wallet_(wallet)

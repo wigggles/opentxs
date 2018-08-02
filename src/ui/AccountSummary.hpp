@@ -32,7 +32,7 @@ private:
 
     static const ListenerDefinitions listeners_;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::network::ZMQ& connection_;
     const api::storage::Storage& storage_;
     const api::Legacy& legacy_;
@@ -60,7 +60,7 @@ private:
     AccountSummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
         const api::client::Contacts& contact,

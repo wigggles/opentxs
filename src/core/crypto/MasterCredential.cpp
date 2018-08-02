@@ -106,7 +106,7 @@ bool MasterCredential::verify_against_source(const Lock& lock) const
 }
 
 MasterCredential::MasterCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
     : ot_super(wallet, theOwner, serializedCred)
@@ -122,7 +122,7 @@ MasterCredential::MasterCredential(
 }
 
 MasterCredential::MasterCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
     : ot_super(wallet, theOwner, nymParameters)

@@ -103,7 +103,7 @@ public:
 
     // Lucre step 1: generate new mint
     void GenerateNewMint(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         std::int32_t nSeries,
         time64_t VALID_FROM,
         time64_t VALID_TO,

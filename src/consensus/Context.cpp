@@ -7,7 +7,7 @@
 
 #include "opentxs/consensus/Context.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
@@ -24,7 +24,7 @@
 namespace opentxs
 {
 Context::Context(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const std::uint32_t targetVersion,
     const ConstNym& local,
@@ -46,7 +46,7 @@ Context::Context(
 }
 
 Context::Context(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const std::uint32_t targetVersion,
     const proto::Context& serialized,

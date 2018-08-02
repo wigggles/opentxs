@@ -32,8 +32,6 @@ typedef std::shared_ptr<const class UnitDefinition> ConstUnitDefinition;
 
 namespace api
 {
-namespace client
-{
 /** \brief This class manages instantiated contracts and provides easy access
  *  to them.
  *
@@ -163,7 +161,7 @@ public:
      *    \returns A smart pointer to the object. The smart pointer will not be
      *             instantiated if the object does not exist or is invalid.
      */
-    virtual std::shared_ptr<const class Issuer> Issuer(
+    virtual std::shared_ptr<const client::Issuer> Issuer(
         const Identifier& nymID,
         const Identifier& issuerID) const = 0;
 
@@ -172,7 +170,7 @@ public:
      *    \param[in] nymID the identifier of the local nym
      *    \param[in] issuerID the identifier of the issuer nym
      */
-    virtual Editor<class Issuer> mutable_Issuer(
+    virtual Editor<client::Issuer> mutable_Issuer(
         const Identifier& nymID,
         const Identifier& issuerID) const = 0;
 
@@ -665,7 +663,6 @@ private:
     Wallet& operator=(const Wallet&) = delete;
     Wallet& operator=(Wallet&&) = delete;
 };
-}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_API_CLIENT_WALLET_HPP

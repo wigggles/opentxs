@@ -69,7 +69,7 @@ private:
     typedef std::pair<OTIdentifier, OTIdentifier> UnitAccountPair;
 
     friend Factory;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string pairing_code_{""};
     mutable OTFlag paired_;
@@ -94,11 +94,11 @@ private:
         const Identifier& replyID);
 
     Issuer(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Identifier& nymID,
         const proto::Issuer& serialized);
     Issuer(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& issuerID);
     Issuer() = delete;

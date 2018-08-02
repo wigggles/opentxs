@@ -7,10 +7,10 @@
 
 #include "MainFile.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -48,7 +48,7 @@ MainFile::MainFile(
     Server& server,
     const opentxs::api::Crypto& crypto,
     const opentxs::api::Legacy& legacy,
-    const opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Wallet& wallet)
     : server_(server)
     , legacy_(legacy)
     , crypto_(crypto)

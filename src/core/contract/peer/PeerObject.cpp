@@ -9,8 +9,8 @@
 
 #include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"

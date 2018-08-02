@@ -53,7 +53,7 @@ private:
 
     static bool check_type(const ProfileSubsectionRowID type);
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
 
     void construct_row(
         const ProfileSubsectionRowID& id,
@@ -77,7 +77,7 @@ private:
         const ProfileSectionRowID& rowID,
         const ProfileSectionSortKey& key,
         const CustomData& custom,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     ProfileSubsection() = delete;
     ProfileSubsection(const ProfileSubsection&) = delete;
     ProfileSubsection(ProfileSubsection&&) = delete;

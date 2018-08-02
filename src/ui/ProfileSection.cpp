@@ -47,7 +47,7 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
     const ui::implementation::CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
 {
     return new ui::implementation::ProfileSection(
         parent, zmq, publisher, contact, rowID, key, custom, wallet);
@@ -162,7 +162,7 @@ ProfileSection::ProfileSection(
     const ProfileRowID& rowID,
     const ProfileSortKey& key,
     const CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
     : ProfileSectionList(
           parent.WidgetID(),
           parent.NymID(),

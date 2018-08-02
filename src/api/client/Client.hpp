@@ -40,7 +40,7 @@ private:
     friend Factory;
 
     const Flag& running_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
     const api::storage::Storage& storage_;
     const api::Crypto& crypto_;
@@ -90,7 +90,7 @@ private:
         const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::network::ZMQ& zmq);
     Client() = delete;
     Client(const Client&) = delete;

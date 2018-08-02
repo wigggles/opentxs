@@ -199,7 +199,7 @@ private:
     const api::Settings& config_;
     const api::client::Client& client_;
     const api::client::ServerAction& server_action_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::crypto::Encode& encoding_;
     const api::storage::Storage& storage_;
@@ -386,7 +386,7 @@ private:
         const api::Legacy& legacy,
         const api::Settings& config,
         const api::client::Client& client,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
         const api::storage::Storage& storage,

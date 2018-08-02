@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -48,7 +48,7 @@ ui::Profile* Factory::ProfileWidget(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Contacts& contact,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID)
 {
     return new ui::implementation::Profile(
@@ -75,7 +75,7 @@ Profile::Profile(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Contacts& contact,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID)
     : ProfileList(nymID, zmq, publisher, contact)
     , wallet_(wallet)
@@ -220,7 +220,7 @@ std::string Profile::DisplayName() const
 }
 
 std::string Profile::nym_name(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID)
 {
     for (const auto& [id, name] : wallet.NymList()) {

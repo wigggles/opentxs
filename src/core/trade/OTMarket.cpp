@@ -7,8 +7,8 @@
 
 #include "opentxs/core/trade/OTMarket.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
@@ -1008,7 +1008,7 @@ void OTMarket::rollback_four_accounts(
 // occur here.)
 //
 void OTMarket::ProcessTrade(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     OTTrade& theTrade,
     OTOffer& theOffer,
     OTOffer& theOtherOffer)
@@ -2375,7 +2375,7 @@ void OTMarket::ProcessTrade(
 // Return True if Trade should stay on the Cron list for more processing.
 // Return False if it should be removed and deleted.
 bool OTMarket::ProcessTrade(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     OTTrade& theTrade,
     OTOffer& theOffer)
 {

@@ -50,7 +50,7 @@ private:
     const api::Settings& config_;
     const api::Crypto& crypto_;
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const Flag& running_;
     const opentxs::network::zeromq::Context& zmq_context_;
     std::unique_ptr<server::Server> server_p_;
@@ -107,7 +107,7 @@ private:
         const api::Legacy& legacy,
         const api::Settings& config,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Flag& running,
         const opentxs::network::zeromq::Context& context);
     Server() = delete;

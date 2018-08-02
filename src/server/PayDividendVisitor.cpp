@@ -7,9 +7,9 @@
 
 #include "PayDividendVisitor.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/AccountVisitor.hpp"

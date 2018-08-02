@@ -6,9 +6,9 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -44,7 +44,7 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::storage::Storage& storage,
     const api::Legacy& legacy,
     const proto::ContactItemType currency)
@@ -79,7 +79,7 @@ IssuerItem::IssuerItem(
     const AccountSummaryRowID& rowID,
     const AccountSummarySortKey& sortKey,
     [[maybe_unused]] const CustomData& custom,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::storage::Storage& storage,
     const api::Legacy& legacy,
     const proto::ContactItemType currency)

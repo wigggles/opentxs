@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -1208,7 +1208,7 @@ private:
     const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::network::ZMQ& zeromq_;
 
@@ -1286,7 +1286,7 @@ private:
         const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::network::ZMQ& zmq,
         const ContextLockCallback& lockCallback);

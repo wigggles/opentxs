@@ -57,11 +57,11 @@ private:
         const SerializationSignatureFlag asSigned) const override;
 
     ChildKeyCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& other,
         const proto::Credential& serializedCred);
     ChildKeyCredential(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         CredentialSet& other,
         const NymParameters& nymParameters);
     ChildKeyCredential() = delete;

@@ -14,6 +14,7 @@ set(cxx-sources
   Native.cpp
   Server.cpp
   Settings.cpp
+  Wallet.cpp
 )
 
 file(GLOB cxx-install-headers
@@ -28,6 +29,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/NativeInternal.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
 )
 
 set(MODULE_NAME opentxs-api)

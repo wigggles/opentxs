@@ -7,8 +7,8 @@
 
 #include "opentxs/consensus/ServerContext.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -69,7 +69,7 @@ ServerContext::ManagedNumber::~ManagedNumber()
 }
 
 ServerContext::ServerContext(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const ConstNym& local,
     const ConstNym& remote,
@@ -87,7 +87,7 @@ ServerContext::ServerContext(
 }
 
 ServerContext::ServerContext(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const proto::Context& serialized,
     const ConstNym& local,

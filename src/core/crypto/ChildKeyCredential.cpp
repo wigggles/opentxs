@@ -47,7 +47,7 @@
 namespace opentxs
 {
 ChildKeyCredential::ChildKeyCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& owner,
     const proto::Credential& serializedCred)
     : ot_super(wallet, owner, serializedCred)
@@ -57,7 +57,7 @@ ChildKeyCredential::ChildKeyCredential(
 }
 
 ChildKeyCredential::ChildKeyCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& owner,
     const NymParameters& nymParameters)
     : ot_super(wallet, owner, nymParameters)

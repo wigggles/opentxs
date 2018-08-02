@@ -14,7 +14,6 @@ set(cxx-sources
   ServerAction.cpp
   Sync.cpp
   UI.cpp
-  Wallet.cpp
   Workflow.cpp
 )
 
@@ -35,7 +34,6 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Sync.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/UI.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Workflow.hpp
 )
 

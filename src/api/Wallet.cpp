@@ -7,7 +7,6 @@
 
 #include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Issuer.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -15,6 +14,7 @@
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
@@ -56,19 +56,19 @@ template class opentxs::Exclusive<opentxs::Account>;
 template class opentxs::Shared<opentxs::Account>;
 template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 
-#define OT_METHOD "opentxs::api::client::implementation::Wallet::"
+#define OT_METHOD "opentxs::api::implementation::Wallet::"
 
 namespace opentxs
 {
-api::client::Wallet* Factory::Wallet(
+api::Wallet* Factory::Wallet(
     const api::Native& ot,
     const network::zeromq::Context& zmq)
 {
-    return new api::client::implementation::Wallet(ot, zmq);
+    return new api::implementation::Wallet(ot, zmq);
 }
 }  // namespace opentxs
 
-namespace opentxs::api::client::implementation
+namespace opentxs::api::implementation
 {
 const std::map<std::string, proto::ContactItemType> Wallet::unit_of_account_{
     {"BTC", proto::CITEMTYPE_BTC},   {"ETH", proto::CITEMTYPE_ETH},
@@ -93,7 +93,9 @@ const std::map<std::string, proto::ContactItemType> Wallet::unit_of_account_{
     {"BCH", proto::CITEMTYPE_BCH},   {"BCT", proto::CITEMTYPE_TNBCH},
 };
 
-Wallet::Wallet(const Native& ot, const opentxs::network::zeromq::Context& zmq)
+Wallet::Wallet(
+    const api::Native& ot,
+    const opentxs::network::zeromq::Context& zmq)
     : ot_(ot)
     , account_map_()
     , nym_map_()
@@ -2480,4 +2482,4 @@ ConstUnitDefinition Wallet::UnitDefinition(
 }
 
 Wallet::~Wallet() {}
-}  // namespace opentxs::api::client::implementation
+}  // namespace opentxs::api::implementation

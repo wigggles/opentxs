@@ -7,8 +7,8 @@
 
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -563,7 +563,7 @@ bool OTPaymentPlan::SetInitialPaymentDone()
 // This can be called by either the initial payment code, or by the payment plan
 // code. true == success, false == failure.
 bool OTPaymentPlan::ProcessPayment(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Amount& amount)
 {
     const OTCron* pCron = GetCron();
@@ -1182,7 +1182,7 @@ bool OTPaymentPlan::ProcessPayment(
 // Assumes we're due for this payment. Execution oriented.
 // NOTE: there used to be more to this function, but it ended up like this. Que
 // sera sera.
-void OTPaymentPlan::ProcessInitialPayment(const api::client::Wallet& wallet)
+void OTPaymentPlan::ProcessInitialPayment(const api::Wallet& wallet)
 {
     OT_ASSERT(nullptr != GetCron());
 
@@ -1273,7 +1273,7 @@ void OTPaymentPlan::onRemovalFromCron()
 // Assumes we're due for a payment. Execution oriented.
 // NOTE: There used to be more to this function, but it ended up like this. Que
 // sera sera.
-void OTPaymentPlan::ProcessPaymentPlan(const api::client::Wallet& wallet)
+void OTPaymentPlan::ProcessPaymentPlan(const api::Wallet& wallet)
 {
     OT_ASSERT(nullptr != GetCron());
 

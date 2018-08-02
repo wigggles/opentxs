@@ -7,10 +7,10 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
@@ -40,7 +40,7 @@ api::client::internal::Activity* Factory::Activity(
     const api::Legacy& legacy,
     const api::client::Contacts& contact,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const network::zeromq::Context& zmq)
 {
     return new api::client::implementation::Activity(
@@ -54,7 +54,7 @@ Activity::Activity(
     const Legacy& legacy,
     const Contacts& contact,
     const storage::Storage& storage,
-    const client::Wallet& wallet,
+    const api::Wallet& wallet,
     const opentxs::network::zeromq::Context& zmq)
     : legacy_(legacy)
     , contact_(contact)

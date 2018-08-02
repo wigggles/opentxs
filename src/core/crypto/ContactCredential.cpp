@@ -90,7 +90,7 @@ Claim ContactCredential::asClaim(
 }
 
 ContactCredential::ContactCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& parent,
     const proto::Credential& credential)
     : ot_super(wallet, parent, credential)
@@ -101,7 +101,7 @@ ContactCredential::ContactCredential(
 }
 
 ContactCredential::ContactCredential(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     CredentialSet& parent,
     const NymParameters& nymParameters)
     : ot_super(wallet, parent, CONTACT_CREDENTIAL_VERSION, nymParameters)
