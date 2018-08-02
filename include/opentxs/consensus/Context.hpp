@@ -41,6 +41,7 @@ public:
     bool HaveRemoteNymboxHash() const;
     std::string Name() const override;
     bool NymboxHashMatch() const;
+    virtual std::string LegacyDataFolder() const = 0;
     OTIdentifier LocalNymboxHash() const;
     std::unique_ptr<const class NymFile> Nymfile(
         const OTPasswordData& reason) const;
@@ -72,7 +73,8 @@ public:
     virtual ~Context() = default;
 
 protected:
-    std::mutex& nymfile_lock_;
+    const api::client::Wallet& wallet_;
+    const api::Legacy& legacy_;
     const OTIdentifier server_id_;
     std::shared_ptr<const class Nym> remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
@@ -99,18 +101,20 @@ protected:
         const std::set<RequestNumber>& req);
 
     Context(
+        const api::client::Wallet& wallet,
+        const api::Legacy& legacy,
         const std::uint32_t targetVersion,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server,
-        std::mutex& nymfileLock);
+        const Identifier& server);
     Context(
+        const api::client::Wallet& wallet,
+        const api::Legacy& legacy,
         const std::uint32_t targetVersion,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
-        const Identifier& server,
-        std::mutex& nymfileLock);
+        const Identifier& server);
 
 private:
     friend class Nym;
@@ -122,7 +126,6 @@ private:
 
     proto::Context contract(const Lock& lock) const;
     proto::Context IDVersion(const Lock& lock) const;
-    void save(class NymFile* nym, const Lock& lock) const;
     proto::Context SigVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)

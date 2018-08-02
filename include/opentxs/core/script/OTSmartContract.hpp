@@ -28,100 +28,13 @@ class OTStash;
 
 class OTSmartContract : public OTCronItem
 {
+private:  // Private prevents erroneous use by other classes.
+    typedef OTCronItem ot_super;
+
 public:
     using mapOfAccounts = std::map<std::string, SharedAccount>;
     using mapOfStashes = std::map<std::string, OTStash*>;
 
-private:  // Private prevents erroneous use by other classes.
-    typedef OTCronItem ot_super;
-
-private:
-    const api::client::Wallet& wallet_;
-    // In OTSmartContract, none of this normal crap is used.
-    // The Sender/Recipient are unused.
-    // The Opening and Closing Trans#s are unused.
-    //
-    // Instead, all that stuff goes through OTParty list (each with agents
-    // and accounts) and OTBylaw list (each with clauses and variables.)
-    // Todo: convert existing payment plan and markets to use this system since
-    // it is much cleaner.
-    //
-    //    OTIdentifier    m_RECIPIENT_ACCT_ID;
-    //    OTIdentifier    m_RECIPIENT_NYM_ID;
-    // This is where the scripts inside the smart contract can stash money,
-    // after it starts operating.
-    //
-    mapOfStashes m_mapStashes;  // The server will NOT allow any smart contract
-                                // to be activated unless these lists are empty.
-    // A smart contract may have any number of "stashes" which are stored by
-    // name. Each stash
-    // can be queried for balance for ANY ASSET TYPE. So stash "alice" might
-    // have 5 instrument definitions
-    // in it, AND stash "bob" might also have 5 instrument definitions stored in
-    // it.
-    AccountList m_StashAccts;  // The actual accounts where stash funds are
-                               // stored
-                               // (so they will turn up properly on an audit.)
-    // Assuming that Alice and Bob both use the same instrument definitions,
-    // there will be
-    // 5 stash accounts here,
-    // not 10.  That's because, even if you create a thousand stashes, if they
-    // use the same 2 instrument definitions
-    // then OT is smart enough here to only create 2 stash accounts. The rest of
-    // the information is
-    // stored in m_mapStashes, not in the accounts themselves, which are only
-    // reserves for those stashes.
-    String m_strLastSenderUser;     // These four strings are here so that each
-                                    // sender or recipient (of a transfer of
-                                    // funds)
-    String m_strLastSenderAcct;     // is clearly saved in each inbox receipt.
-                                    // That way, if the receipt has a monetary
-                                    // value, then
-    String m_strLastRecipientUser;  // we know who was sending and who was
-                                    // receiving. Also, if a STASH was the last
-                                    // action, then
-    String m_strLastRecipientAcct;  // the sender (or recipient) will be blank,
-                                    // signifying that the source or
-                                    // destination was a stash.
-
-    // If onProcess() is on a timer (say, to wake up in a week) then this will
-    // contain the
-    time64_t m_tNextProcessDate{0};  // date that it WILL be, in a week. (Or
-                                     // zero.)
-
-    // For moving money from one nym's account to another.
-    // it is also nearly identically copied in OTPaymentPlan.
-    bool MoveFunds(
-        const std::int64_t& lAmount,
-        const Identifier& SOURCE_ACCT_ID,
-        const Identifier& SENDER_NYM_ID,
-        const Identifier& RECIPIENT_ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID);
-
-protected:
-    void onActivate() override;  // called by
-                                 // OTCronItem::HookActivationOnCron().
-
-    void onFinalReceipt(
-        OTCronItem& theOrigCronItem,
-        const std::int64_t& lNewTransactionNumber,
-        ConstNym theOriginator,
-        ConstNym pRemover) override;
-    void onRemovalFromCron() override;
-    // Above are stored the user and acct IDs of the last sender and recipient
-    // of funds.
-    // (It's stored there so that the info will be available on receipts.)
-    // This function clears those values. Used internally to this class.
-    //
-    void ReleaseLastSenderRecipientIDs();
-    // (These two are lower level, and used by SetNextProcessTime).
-    void SetNextProcessDate(const time64_t& tNEXT_DATE)
-    {
-        m_tNextProcessDate = tNEXT_DATE;
-    }
-    const time64_t& GetNextProcessDate() const { return m_tNextProcessDate; }
-
-public:
     originType GetOriginType() const override
     {
         return originType::origin_smart_contract;
@@ -362,10 +275,6 @@ public:
         const Identifier& PARTY_ACCT_ID,
         const Identifier& PARTY_NYM_ID,
         OTStash& theStash);
-    EXPORT OTSmartContract();
-    EXPORT OTSmartContract(const Identifier& NOTARY_ID);
-
-    EXPORT virtual ~OTSmartContract();
 
     void InitSmartContract();
 
@@ -381,8 +290,103 @@ public:
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the ledger saves its contents
+                                     // this is where the ledger saves its
+                                     // contents
+
+    EXPORT OTSmartContract(const std::string& dataFolder);
+    EXPORT OTSmartContract(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID);
+
+    EXPORT virtual ~OTSmartContract();
+
+protected:
+    void onActivate() override;  // called by
+                                 // OTCronItem::HookActivationOnCron().
+
+    void onFinalReceipt(
+        OTCronItem& theOrigCronItem,
+        const std::int64_t& lNewTransactionNumber,
+        ConstNym theOriginator,
+        ConstNym pRemover) override;
+    void onRemovalFromCron() override;
+    // Above are stored the user and acct IDs of the last sender and recipient
+    // of funds.
+    // (It's stored there so that the info will be available on receipts.)
+    // This function clears those values. Used internally to this class.
+    //
+    void ReleaseLastSenderRecipientIDs();
+    // (These two are lower level, and used by SetNextProcessTime).
+    void SetNextProcessDate(const time64_t& tNEXT_DATE)
+    {
+        m_tNextProcessDate = tNEXT_DATE;
+    }
+    const time64_t& GetNextProcessDate() const { return m_tNextProcessDate; }
+
+private:
+    const api::client::Wallet& wallet_;
+    // In OTSmartContract, none of this normal crap is used.
+    // The Sender/Recipient are unused.
+    // The Opening and Closing Trans#s are unused.
+    //
+    // Instead, all that stuff goes through OTParty list (each with agents
+    // and accounts) and OTBylaw list (each with clauses and variables.)
+    // Todo: convert existing payment plan and markets to use this system since
+    // it is much cleaner.
+    //
+    //    OTIdentifier    m_RECIPIENT_ACCT_ID;
+    //    OTIdentifier    m_RECIPIENT_NYM_ID;
+    // This is where the scripts inside the smart contract can stash money,
+    // after it starts operating.
+    //
+    mapOfStashes m_mapStashes;  // The server will NOT allow any smart contract
+                                // to be activated unless these lists are empty.
+    // A smart contract may have any number of "stashes" which are stored by
+    // name. Each stash
+    // can be queried for balance for ANY ASSET TYPE. So stash "alice" might
+    // have 5 instrument definitions
+    // in it, AND stash "bob" might also have 5 instrument definitions stored in
+    // it.
+    AccountList m_StashAccts;  // The actual accounts where stash funds are
+                               // stored
+                               // (so they will turn up properly on an audit.)
+    // Assuming that Alice and Bob both use the same instrument definitions,
+    // there will be
+    // 5 stash accounts here,
+    // not 10.  That's because, even if you create a thousand stashes, if they
+    // use the same 2 instrument definitions
+    // then OT is smart enough here to only create 2 stash accounts. The rest of
+    // the information is
+    // stored in m_mapStashes, not in the accounts themselves, which are only
+    // reserves for those stashes.
+    String m_strLastSenderUser;     // These four strings are here so that each
+                                    // sender or recipient (of a transfer of
+                                    // funds)
+    String m_strLastSenderAcct;     // is clearly saved in each inbox receipt.
+                                    // That way, if the receipt has a monetary
+                                    // value, then
+    String m_strLastRecipientUser;  // we know who was sending and who was
+                                    // receiving. Also, if a STASH was the last
+                                    // action, then
+    String m_strLastRecipientAcct;  // the sender (or recipient) will be blank,
+                                    // signifying that the source or
+                                    // destination was a stash.
+
+    // If onProcess() is on a timer (say, to wake up in a week) then this will
+    // contain the
+    time64_t m_tNextProcessDate{0};  // date that it WILL be, in a week. (Or
+                                     // zero.)
+
+    // For moving money from one nym's account to another.
+    // it is also nearly identically copied in OTPaymentPlan.
+    bool MoveFunds(
+        const std::int64_t& lAmount,
+        const Identifier& SOURCE_ACCT_ID,
+        const Identifier& SENDER_NYM_ID,
+        const Identifier& RECIPIENT_ACCT_ID,
+        const Identifier& RECIPIENT_NYM_ID);
+
+    OTSmartContract() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP

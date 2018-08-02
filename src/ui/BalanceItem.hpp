@@ -80,6 +80,8 @@ public:
 
 private:
     friend Factory;
+
+    const api::Legacy& legacy_;
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
     mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
 
@@ -99,6 +101,7 @@ private:
         const CustomData& custom,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
+        const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);
 

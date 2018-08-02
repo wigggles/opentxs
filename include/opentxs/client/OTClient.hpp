@@ -48,6 +48,7 @@ public:
         OTWallet& theWallet,
         const api::Activity& activity,
         const api::ContactManager& contacts,
+        const api::Legacy& legacy,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow);
 
@@ -55,6 +56,7 @@ private:
     OTWallet& m_pWallet;
     const api::Activity& activity_;
     const api::ContactManager& contacts_;
+    const api::Legacy& legacy_;
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     OTMessageOutbuffer m_MessageOutbuffer;

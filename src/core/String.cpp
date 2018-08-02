@@ -65,7 +65,10 @@ OTString String::Factory(const Identifier& value)
     return OTString(new String(value));
 }
 
-OTString String::Factory(Nym& value) { return OTString(new String(value)); }
+OTString String::Factory(const NymFile& value)
+{
+    return OTString(new String(value));
+}
 
 OTString String::Factory(const char* value)
 {
@@ -353,10 +356,10 @@ String::String(const OTSignature& strValue)
     if (strValue.Exists()) strValue.GetString(*this);
 }
 
-String::String(Nym& theValue)
+String::String(const NymFile& value)
     : String()
 {
-    theValue.SerializeNymfile(*this);
+    value.SerializeNymFile(*this);
 }
 
 String::String(const char* new_string)

@@ -222,6 +222,19 @@ const std::map<MessageType, MessageType> Message::reply_message_{
 
 const Message::ReverseTypeMap Message::message_types_ = make_reverse_map();
 
+Message::Message(const std::string& dataFolder)
+    : Contract(dataFolder)
+    , m_bIsSigned(false)
+    , m_lNewRequestNum(0)
+    , m_lDepth(0)
+    , m_lTransactionNum(0)
+    , m_bSuccess(false)
+    , m_bBool(false)
+    , m_lTime(0)
+{
+    Contract::m_strContractType.Set("MESSAGE");
+}
+
 Message::ReverseTypeMap Message::make_reverse_map()
 {
     Message::ReverseTypeMap output{};
@@ -291,10 +304,10 @@ bool Message::HarvestTransactionNumbers(
     // in case.
 
     const String strLedger(m_ascPayload);
-
-    Ledger theLedger(MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID);  // We're going to
-                                                          // load a messsage
-                                                          // ledger from *this.
+    Ledger theLedger(
+        data_folder_, MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID);  // We're going to
+                                                           // load a messsage
+                                                           // ledger from *this.
 
     if (!strLedger.Exists() || !theLedger.LoadLedgerFromString(strLedger)) {
         otErr << __FUNCTION__
@@ -620,20 +633,6 @@ bool Message::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
 // true.
 //
 bool Message::VerifyContractID() const { return true; }
-
-Message::Message()
-    : Contract()
-    , m_bIsSigned(false)
-    , m_lNewRequestNum(0)
-    , m_lDepth(0)
-    , m_lTransactionNum(0)
-    , m_bSuccess(false)
-    , m_bBool(false)
-    , m_lTime(0)
-
-{
-    Contract::m_strContractType.Set("MESSAGE");
-}
 
 Message::~Message() {}
 

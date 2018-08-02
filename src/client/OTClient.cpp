@@ -7,11 +7,12 @@
 
 #include "opentxs/client/OTClient.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #if OT_CASH
@@ -72,14 +73,16 @@ OTClient::OTClient(
     OTWallet& theWallet,
     const api::Activity& activity,
     const api::ContactManager& contacts,
+    const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow)
     : m_pWallet(theWallet)
     , activity_(activity)
     , contacts_(contacts)
+    , legacy_(legacy)
     , wallet_(wallet)
     , workflow_(workflow)
-    , m_MessageOutbuffer()
+    , m_MessageOutbuffer(legacy_)
 {
 }
 
@@ -88,7 +91,7 @@ bool OTClient::add_item_to_workflow(
     const Message& transportItem,
     const std::string& item) const
 {
-    Message message;
+    Message message{legacy_.ClientDataFolder()};
     const auto loaded = message.LoadContractFromString(item.c_str());
 
     if (false == loaded) {
@@ -109,13 +112,13 @@ bool OTClient::add_item_to_workflow(
         return false;
     }
 
-    OTPayment payment(plaintext);
+    OTPayment payment(legacy_.ClientDataFolder(), plaintext);
 
     if (false == payment.IsCheque()) { return false; }
 
     if (payment.IsCancelledCheque()) { return false; }
 
-    Cheque cheque;
+    Cheque cheque{legacy_.ServerDataFolder()};
     cheque.LoadContractFromString(payment.Payment());
     // We already made sure a contact exists for the sender of the message, but
     // it's possible the sender of the cheque is a different nym
@@ -159,7 +162,7 @@ void OTClient::QueueOutgoingMessage(const Message& theMessage)
     // So I can save the request number when sending a message, check for it
     // later in the Nymbox, and then worst case, look it up in the Outbuffer and
     // get my fucking transaction numbers back again!
-    std::unique_ptr<Message> pMsg(new Message);
+    std::unique_ptr<Message> pMsg(new Message{legacy_.ClientDataFolder()});
 
     if (pMsg->LoadContractFromString(serialized)) {
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
@@ -222,8 +225,14 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
     if (add_item_to_workflow(*context.Nym(), message, payment)) { return true; }
 
     const bool bExists = OTDB::Exists(
-        OTFolders::PaymentInbox().Get(), strNotaryID.Get(), strNymID.Get());
-    Ledger thePmntInbox(nymID, nymID, context.Server());  // payment inbox
+        legacy_.ClientDataFolder(),
+        OTFolders::PaymentInbox().Get(),
+        strNotaryID.Get(),
+        strNymID.Get(),
+        "");
+    Ledger thePmntInbox(
+        legacy_.ClientDataFolder(), nymID, nymID, context.Server());  // payment
+                                                                      // inbox
     bool bSuccessLoading = (bExists && thePmntInbox.LoadPaymentInbox());
 
     if (bExists && bSuccessLoading) {
@@ -349,7 +358,10 @@ bool OTClient::AcceptEntireNymbox(
     // the message to the server will contain a ledger to be processed for a
     // specific acct. (in this case no acct, but user ID used twice instead.)
     Ledger processLedger(
-        theNymbox.GetNymID(), theNymbox.GetNymID(), context.Server());
+        legacy_.ClientDataFolder(),
+        theNymbox.GetNymID(),
+        theNymbox.GetNymID(),
+        context.Server());
 
     // bGenerateFile defaults to false on GenerateLedger call, so I left out the
     // false.
@@ -361,6 +373,7 @@ bool OTClient::AcceptEntireNymbox(
         theNymbox.GetNymID(), context.Server(), Ledger::message);
 
     OTTransaction* pAcceptTransaction = OTTransaction::GenerateTransaction(
+        legacy_.ClientDataFolder(),
         theNymbox.GetNymID(),
         theNymbox.GetNymID(),
         context.Server(),
@@ -624,7 +637,8 @@ bool OTClient::AcceptEntireNymbox(
                                  "replyNotice. (It appears to "
                                  "be zero length.)\n";
                     } else {
-                        std::shared_ptr<Message> pMessage(new Message);
+                        std::shared_ptr<Message> pMessage(
+                            new Message{legacy_.ClientDataFolder()});
                         OT_ASSERT_MSG(
                             pMessage,
                             "OTClient::AcceptEntireNymbox: OTMessage "
@@ -787,6 +801,7 @@ bool OTClient::AcceptEntireNymbox(
             // actively running on Cron. So we don't want to keep it on our list
             // of "active" cron items if we know it's already inactive.
             OTCronItem::EraseActiveCronReceipt(
+                pTransaction->DataFolder(),
                 pTransaction->GetReferenceToNum(),
                 nymID,
                 pTransaction->GetPurportedNotaryID());
@@ -924,8 +939,8 @@ void OTClient::load_str_trans_add_to_ledger(
     //
     if (nullptr != ledger.GetTransaction(lTransNum)) { return; }
     // -----------------------------------------
-    OTTransactionType* pTransType =
-        OTTransactionType::TransactionFactory(str_trans_to_add);
+    OTTransactionType* pTransType = OTTransactionType::TransactionFactory(
+        legacy_.ClientDataFolder(), str_trans_to_add);
 
     if (nullptr == pTransType) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1096,16 +1111,28 @@ void OTClient::ProcessIncomingCronItemReply(
     //  if (OTItem::rejection == pReplyItem->GetStatus())
     {
         const bool bExists1 = OTDB::Exists(
+            legacy_.ClientDataFolder(),
             OTFolders::PaymentInbox().Get(),
             strNotaryID.Get(),
-            String(context.Nym()->ID()).Get());
+            String(context.Nym()->ID()).Get(),
+            "");
         const bool bExists2 = OTDB::Exists(
+            legacy_.ClientDataFolder(),
             OTFolders::RecordBox().Get(),
             strNotaryID.Get(),
-            String(context.Nym()->ID()).Get());
+            String(context.Nym()->ID()).Get(),
+            "");
 
-        Ledger thePmntInbox(NYM_ID, NYM_ID, context.Server());  // payment inbox
-        Ledger theRecordBox(NYM_ID, NYM_ID, context.Server());  // record box
+        Ledger thePmntInbox(
+            legacy_.ClientDataFolder(),
+            NYM_ID,
+            NYM_ID,
+            context.Server());  // payment inbox
+        Ledger theRecordBox(
+            legacy_.ClientDataFolder(),
+            NYM_ID,
+            NYM_ID,
+            context.Server());  // record box
 
         bool bSuccessLoading1 = (bExists1 && thePmntInbox.LoadPaymentInbox());
         bool bSuccessLoading2 = (bExists2 && theRecordBox.LoadRecordBox());
@@ -1191,7 +1218,7 @@ void OTClient::ProcessIncomingCronItemReply(
             // equivalent to saying: if ("X,Y".VerifyAny("X")) which RETURNS
             // TRUE -- and we have found the instrument!
 
-            OTPayment theOutpayment;
+            OTPayment theOutpayment{legacy_.ClientDataFolder()};
 
             if (strInstrument.Exists() &&
                 theOutpayment.SetPayment(strInstrument) &&
@@ -1203,7 +1230,10 @@ void OTClient::ProcessIncomingCronItemReply(
                 thePmntInbox.GetTransactionNums()};
             for (const auto& receipt_id : set_receipt_ids) {
                 std::unique_ptr<OTPayment> pPayment(GetInstrumentByReceiptID(
-                    *context.Nym(), receipt_id, thePmntInbox));
+                    legacy_.ClientDataFolder(),
+                    *context.Nym(),
+                    receipt_id,
+                    thePmntInbox));
 
                 if (!pPayment) {
                     otOut << __FUNCTION__
@@ -1530,7 +1560,8 @@ void OTClient::ProcessIncomingTransaction(
 
                 OTTransactionType* pTempTransType =
                     strOriginalItem.Exists()
-                        ? OTTransactionType::TransactionFactory(strOriginalItem)
+                        ? OTTransactionType::TransactionFactory(
+                              legacy_.ClientDataFolder(), strOriginalItem)
                         : nullptr;
 
                 std::unique_ptr<Item> pOriginalItem(
@@ -1540,7 +1571,7 @@ void OTClient::ProcessIncomingTransaction(
 
                 if (pOriginalItem) {
                     String strBasket;
-                    Basket theRequestBasket;
+                    Basket theRequestBasket{legacy_.ClientDataFolder()};
                     pOriginalItem->GetAttachment(strBasket);
 
                     if (strBasket.Exists() &&
@@ -1585,7 +1616,8 @@ void OTClient::ProcessIncomingTransaction(
 
                 OTTransactionType* pTempTransType =
                     strOriginalItem.Exists()
-                        ? OTTransactionType::TransactionFactory(strOriginalItem)
+                        ? OTTransactionType::TransactionFactory(
+                              legacy_.ClientDataFolder(), strOriginalItem)
                         : nullptr;
 
                 std::unique_ptr<Item> pOriginalItem(
@@ -1665,7 +1697,8 @@ void OTClient::ProcessIncomingTransaction(
 
                 OTTransactionType* pTempTransType =
                     strOriginalItem.Exists()
-                        ? OTTransactionType::TransactionFactory(strOriginalItem)
+                        ? OTTransactionType::TransactionFactory(
+                              legacy_.ClientDataFolder(), strOriginalItem)
                         : nullptr;
 
                 std::unique_ptr<Item> pOriginalItem(
@@ -1693,7 +1726,8 @@ void OTClient::ProcessIncomingTransaction(
                     //
                     std::unique_ptr<OTCronItem> pCronItem(
                         strCronItem.Exists()
-                            ? OTCronItem::NewCronItem(strCronItem)
+                            ? OTCronItem::NewCronItem(
+                                  legacy_.ClientDataFolder(), strCronItem)
                             : nullptr);
 
                     if (nullptr != pCronItem)  // the original smart contract or
@@ -1788,9 +1822,11 @@ void OTClient::ProcessIncomingTransaction(
 
         OTDB::StorePlainString(
             strFinal.Get(),
+            legacy_.ClientDataFolder(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
-            strReceiptFilename.Get());
+            strReceiptFilename.Get(),
+            "");
     } else  // This should never happen...
     {
         strReceiptFilename.Format("%s.error", strReceiptID.Get());
@@ -1802,9 +1838,11 @@ void OTClient::ProcessIncomingTransaction(
 
         OTDB::StorePlainString(
             strFinal.Get(),
+            legacy_.ClientDataFolder(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
-            strReceiptFilename.Get());
+            strReceiptFilename.Get(),
+            "");
     }
 
     // No matter what kind of transaction it is, let's see if the server
@@ -1863,7 +1901,8 @@ void OTClient::ProcessIncomingTransactions(
     // lose it.)
     // So let's just check to see if it's a withdrawal...
     //
-    Ledger theLedger(NYM_ID, accountID, context.Server());
+    Ledger theLedger(
+        legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
     String strLedger(theReply.m_ascPayload);
 
     // The ledger we received from the server was generated there, so we don't
@@ -1966,8 +2005,12 @@ void OTClient::ProcessDepositChequeResponse(
     // depositCheque request, and if that cheque is found inside
     // the Payments Inbox, then move it to the record box.
     //
-    std::unique_ptr<Ledger> pLedger(
-        Ledger::GenerateLedger(nymID, nymID, serverID, Ledger::paymentInbox));
+    std::unique_ptr<Ledger> pLedger(Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        nymID,
+        nymID,
+        serverID,
+        Ledger::paymentInbox));
 
     if (!pLedger || !pLedger->LoadPaymentInbox() ||
         !pLedger->VerifyAccount(nym)) {
@@ -1990,13 +2033,14 @@ void OTClient::ProcessDepositChequeResponse(
     pReplyItem->GetReferenceString(strOriginalDepositItem);
 
     std::unique_ptr<OTTransactionType> pTransType(
-        OTTransactionType::TransactionFactory(strOriginalDepositItem));
+        OTTransactionType::TransactionFactory(
+            legacy_.ClientDataFolder(), strOriginalDepositItem));
 
     if (pTransType) { pOriginalItem = dynamic_cast<Item*>(pTransType.get()); }
     if (nullptr == pOriginalItem) {
         return;  // Todo log something?
     }
-    Cheque theCheque;
+    Cheque theCheque{legacy_.ClientDataFolder()};
     String strCheque;
     pOriginalItem->GetAttachment(strCheque);
     if (!theCheque.LoadContractFromString(strCheque)) {
@@ -2018,8 +2062,8 @@ void OTClient::ProcessDepositChequeResponse(
 
     for (auto& receipt_id : receipt_ids) {
         std::int64_t lPaymentTransNum{0};
-        std::unique_ptr<OTPayment> pPayment(
-            GetInstrumentByReceiptID(nym, receipt_id, *pLedger));
+        std::unique_ptr<OTPayment> pPayment(GetInstrumentByReceiptID(
+            legacy_.ClientDataFolder(), nym, receipt_id, *pLedger));
 
         if (!pPayment || !pPayment->SetTempValues() ||
             !pPayment->GetTransactionNum(lPaymentTransNum) ||
@@ -2074,8 +2118,13 @@ void OTClient::ProcessDepositChequeResponse(
         const String strNymID(nymID);
         const String strNotaryID(serverID);
         const bool bExists = OTDB::Exists(
-            OTFolders::RecordBox().Get(), strNotaryID.Get(), strNymID.Get());
-        Ledger theRecordBox(nymID, nymID, serverID);  // record box
+            legacy_.ClientDataFolder(),
+            OTFolders::RecordBox().Get(),
+            strNotaryID.Get(),
+            strNymID.Get(),
+            "");
+        Ledger theRecordBox(
+            legacy_.ClientDataFolder(), nymID, nymID, serverID);  // record box
         bool bSuccessLoading = (bExists && theRecordBox.LoadRecordBox());
         if (bExists && bSuccessLoading)
             bSuccessLoading =
@@ -2181,7 +2230,7 @@ void OTClient::ProcessWithdrawalResponse(
         if ((Item::atWithdrawVoucher == pItem->GetType()) &&
             (Item::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
-            Cheque theVoucher;
+            Cheque theVoucher{legacy_.ClientDataFolder()};
 
             pItem->GetAttachment(strVoucher);
 
@@ -2202,7 +2251,7 @@ void OTClient::ProcessWithdrawalResponse(
             String strPurse;
             pItem->GetAttachment(strPurse);
 
-            Purse thePurse(context.Server());
+            Purse thePurse(legacy_.ClientDataFolder(), context.Server());
 
             if (thePurse.LoadContractFromString(strPurse)) {
                 // When we made the withdrawal request, we saved that purse
@@ -2214,8 +2263,10 @@ void OTClient::ProcessWithdrawalResponse(
 
                 String strInstrumentDefinitionID(
                     thePurse.GetInstrumentDefinitionID());
-                std::unique_ptr<Mint> pMint(
-                    Mint::MintFactory(strNotaryID, strInstrumentDefinitionID));
+                std::unique_ptr<Mint> pMint(Mint::MintFactory(
+                    legacy_.ClientDataFolder(),
+                    strNotaryID,
+                    strInstrumentDefinitionID));
                 OT_ASSERT(nullptr != pMint);
                 // Unlike the purse which we read out of a message,
                 // now we try to open a purse as a file on the client side,
@@ -2416,7 +2467,8 @@ bool OTClient::processServerReplyGetNymBox(
         "replyNotice into the nymbox.");
 
     // Load the ledger object from that string.
-    Ledger theNymbox(NYM_ID, NYM_ID, context.Server());
+    Ledger theNymbox(
+        legacy_.ClientDataFolder(), NYM_ID, NYM_ID, context.Server());
 
     setRecentHash(theReply, true, context);
 
@@ -2534,8 +2586,8 @@ bool OTClient::processServerReplyGetBoxReceipt(
         std::unique_ptr<OTTransactionType> pTransType;
 
         if (strTransTypeObject.Exists())
-            pTransType.reset(
-                OTTransactionType::TransactionFactory(strTransTypeObject));
+            pTransType.reset(OTTransactionType::TransactionFactory(
+                legacy_.ClientDataFolder(), strTransTypeObject));
 
         if (nullptr == pTransType)
             otErr << OT_METHOD << __FUNCTION__
@@ -2599,7 +2651,8 @@ bool OTClient::processServerReplyGetBoxReceipt(
                 if (OTTransaction::message == rcpt_type) {
                     String strOTMessage;
                     pBoxReceipt->GetReferenceString(strOTMessage);
-                    std::unique_ptr<Message> pMessage(new Message);
+                    std::unique_ptr<Message> pMessage(
+                        new Message{legacy_.ClientDataFolder()});
                     OT_ASSERT(bool(pMessage));
                     //
                     // The original message that was sent to me by the sender
@@ -2696,10 +2749,13 @@ bool OTClient::processServerReplyGetBoxReceipt(
                         OT_FAIL;
                     }
                     const bool bExists = OTDB::Exists(
+                        legacy_.ClientDataFolder(),
                         OTFolders::PaymentInbox().Get(),
                         strNotaryID.Get(),
-                        String(context.Nym()->ID()).Get());
+                        String(context.Nym()->ID()).Get(),
+                        "");
                     Ledger thePmntInbox(
+                        legacy_.ClientDataFolder(),
                         nymID,
                         nymID,
                         context.Server());  // payment inbox
@@ -2866,13 +2922,16 @@ bool OTClient::processServerReplyProcessInbox(
     OT_ASSERT(nullptr != pReplyTransaction)
 
     // Load the inbox.
-    Ledger theInbox(NYM_ID, accountID, context.Server());
-    Ledger theRecordBox(NYM_ID, accountID, context.Server());
-
+    Ledger theInbox(
+        legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
+    Ledger theRecordBox(
+        legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
     bool bInbox = OTDB::Exists(
+        legacy_.ClientDataFolder(),
         OTFolders::Inbox().Get(),
         strNotaryID.Get(),
-        theReply.m_strAcctID.Get());
+        theReply.m_strAcctID.Get(),
+        "");
 
     if (bInbox && theInbox.LoadInbox()) {
         bInbox = theInbox.VerifyAccount(*context.Nym());
@@ -2886,9 +2945,11 @@ bool OTClient::processServerReplyProcessInbox(
 
     bool bLoadedRecordBox = false;
     bool bRecordBoxExists = OTDB::Exists(
+        legacy_.ClientDataFolder(),
         OTFolders::RecordBox().Get(),
         strNotaryID.Get(),
-        theReply.m_strAcctID.Get());
+        theReply.m_strAcctID.Get(),
+        "");
     // Next, loop through the reply items for each "process inbox" item that
     // I must have previously sent. For each, if successful, remove from
     // inbox. For item receipts, if successful, also remove the appropriate
@@ -3026,6 +3087,7 @@ bool OTClient::processServerReplyProcessInbox(
         pReplyItem->GetReferenceString(strProcessInboxItem);
 
         std::unique_ptr<Item> pProcessInboxItem(Item::CreateItemFromString(
+            pReplyItem->DataFolder(),
             strProcessInboxItem,
             context.Server(),
             pReplyItem->GetReferenceToNum()));
@@ -3152,6 +3214,7 @@ bool OTClient::processServerReplyProcessInbox(
                 pServerTransaction->GetReferenceString(strOriginalItem);
 
                 std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                    pServerTransaction->DataFolder(),
                     strOriginalItem,
                     context.Server(),
                     pServerTransaction->GetReferenceToNum()));
@@ -3188,7 +3251,7 @@ bool OTClient::processServerReplyProcessInbox(
                         String strCheque;
                         pOriginalItem->GetAttachment(strCheque);
 
-                        Cheque theCheque;  // allocated on the stack :-)
+                        Cheque theCheque{legacy_.ClientDataFolder()};
 
                         if (false ==
                             ((strCheque.GetLength() > 2) &&
@@ -3279,10 +3342,8 @@ bool OTClient::processServerReplyProcessInbox(
                     pServerItem->GetAttachment(strOffer);
                     // contains updated trade.
                     pServerItem->GetNote(strTrade);
-
-                    OTOffer theOffer;
-                    OTTrade theTrade;
-
+                    OTOffer theOffer{legacy_.ClientDataFolder()};
+                    OTTrade theTrade{legacy_.ClientDataFolder()};
                     bool bLoadOfferFromString =
                         theOffer.LoadContractFromString(strOffer);
                     bool bLoadTradeFromString =
@@ -3312,7 +3373,8 @@ bool OTClient::processServerReplyProcessInbox(
                             pServerItem->GetTransactionNum());
                         pData->completed_count = to_string<std::int32_t>(
                             theTrade.GetCompletedCount());
-                        auto account = wallet_.Account(accountID);
+                        auto account = wallet_.Account(
+                            legacy_.ClientDataFolder(), accountID);
 
                         OT_ASSERT(account)
 
@@ -3394,6 +3456,7 @@ bool OTClient::processServerReplyProcessInbox(
                         std::unique_ptr<OTDB::TradeListNym> pList;
 
                         if (OTDB::Exists(
+                                legacy_.ClientDataFolder(),
                                 OTFolders::Nym().Get(),
                                 "trades",  // todo stop
                                            // hardcoding.
@@ -3402,6 +3465,7 @@ bool OTClient::processServerReplyProcessInbox(
                             pList.reset(dynamic_cast<OTDB::TradeListNym*>(
                                 OTDB::QueryObject(
                                     OTDB::STORED_OBJ_TRADE_LIST_NYM,
+                                    legacy_.ClientDataFolder(),
                                     OTFolders::Nym().Get(),
                                     "trades",  // todo stop
                                     // hardcoding.
@@ -3512,6 +3576,7 @@ bool OTClient::processServerReplyProcessInbox(
                         }
                         if (false == OTDB::StoreObject(
                                          *pList,
+                                         legacy_.ClientDataFolder(),
                                          OTFolders::Nym().Get(),
                                          "trades",  // todo stop hardcoding.
                                          strNotaryID.Get(),
@@ -3562,6 +3627,7 @@ bool OTClient::processServerReplyProcessInbox(
                 // others.
                 //
                 OTCronItem::EraseActiveCronReceipt(
+                    pServerTransaction->DataFolder(),
                     pServerTransaction->GetReferenceToNum(),
                     context.Nym()->ID(),
                     pServerTransaction->GetPurportedNotaryID());
@@ -3625,7 +3691,7 @@ bool OTClient::processServerReplyProcessInbox(
                 OTTransaction* pNewTransaction = nullptr;
                 std::unique_ptr<OTTransactionType> pTransType(
                     OTTransactionType::TransactionFactory(
-                        strServerTransaction));
+                        legacy_.ClientDataFolder(), strServerTransaction));
 
                 pNewTransaction =
                     dynamic_cast<OTTransaction*>(pTransType.get());
@@ -3756,7 +3822,8 @@ bool OTClient::processServerReplyProcessNymbox(
     // TIME IS DONE.)
 
     // Load the Nymbox.
-    Ledger theNymbox(NYM_ID, NYM_ID, context.Server());
+    Ledger theNymbox(
+        legacy_.ClientDataFolder(), NYM_ID, NYM_ID, context.Server());
     bool bLoadedNymbox = false;
 
     if (nullptr != pNymbox)  // If a pointer was passed in, then
@@ -3875,6 +3942,7 @@ bool OTClient::processServerReplyProcessNymbox(
         pReplyItem->GetReferenceString(strProcessNymboxItem);
 
         std::unique_ptr<Item> pProcessNymboxItem(Item::CreateItemFromString(
+            pReplyItem->DataFolder(),
             strProcessNymboxItem,
             context.Server(),
             0 /* 0 is the "transaction number"*/));  // todo stop hardcoding
@@ -4096,12 +4164,16 @@ bool OTClient::processServerReplyProcessNymbox(
                         //
                         std::unique_ptr<OTCronItem> pOriginalCronItem(
                             (strOriginalCronItem.Exists()
-                                 ? OTCronItem::NewCronItem(strOriginalCronItem)
+                                 ? OTCronItem::NewCronItem(
+                                       legacy_.ClientDataFolder(),
+                                       strOriginalCronItem)
                                  : nullptr));
 
                         std::unique_ptr<OTCronItem> pUpdatedCronItem(
                             (strUpdatedCronItem.Exists()
-                                 ? OTCronItem::NewCronItem(strUpdatedCronItem)
+                                 ? OTCronItem::NewCronItem(
+                                       legacy_.ClientDataFolder(),
+                                       strUpdatedCronItem)
                                  : nullptr));
 
                         std::unique_ptr<OTCronItem>& pCronItem =
@@ -4299,20 +4371,26 @@ bool OTClient::processServerReplyProcessNymbox(
                                 //                                  // REJECTION
                                 {
                                     const bool bExists1 = OTDB::Exists(
+                                        legacy_.ClientDataFolder(),
                                         OTFolders::PaymentInbox().Get(),
                                         strNotaryID.Get(),
-                                        String(context.Nym()->ID()).Get());
+                                        String(context.Nym()->ID()).Get(),
+                                        "");
                                     const bool bExists2 = OTDB::Exists(
+                                        legacy_.ClientDataFolder(),
                                         OTFolders::RecordBox().Get(),
                                         strNotaryID.Get(),
-                                        String(context.Nym()->ID()).Get());
+                                        String(context.Nym()->ID()).Get(),
+                                        "");
 
                                     Ledger thePmntInbox(
+                                        legacy_.ClientDataFolder(),
                                         NYM_ID,
                                         NYM_ID,
                                         context.Server());  // payment inbox
 
                                     Ledger theRecordBox(
+                                        legacy_.ClientDataFolder(),
                                         NYM_ID,
                                         NYM_ID,
                                         context.Server());  // record box
@@ -4445,7 +4523,8 @@ bool OTClient::processServerReplyProcessNymbox(
                                         // TRUE -- and we have found the
                                         // instrument!
 
-                                        OTPayment theOutpayment;
+                                        OTPayment theOutpayment{
+                                            legacy_.ClientDataFolder()};
 
                                         if (strSentInstrument.Exists() &&
                                             theOutpayment.SetPayment(
@@ -4458,7 +4537,8 @@ bool OTClient::processServerReplyProcessNymbox(
                                         // -------------------------------------
                                         //                                      if (0 == numlistOutpayment.Count())
                                         {
-                                            OTPayment tempPayment;
+                                            OTPayment tempPayment{
+                                                legacy_.ClientDataFolder()};
                                             const String& strCronItem =
                                                 (strUpdatedCronItem.Exists()
                                                      ? strUpdatedCronItem
@@ -4483,6 +4563,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                              set_receipt_ids) {
                                             std::unique_ptr<OTPayment> pPayment(
                                                 GetInstrumentByReceiptID(
+                                                    legacy_.ClientDataFolder(),
                                                     *context.Nym(),
                                                     receipt_id,
                                                     thePmntInbox));
@@ -4864,7 +4945,9 @@ bool OTClient::processServerReplyProcessNymbox(
                                                 //
                                                 //                                              if (0 == lTransNumForDisplay)
                                                 {
-                                                    OTPayment tempPayment;
+                                                    OTPayment tempPayment{
+                                                        legacy_
+                                                            .ClientDataFolder()};
                                                     const String& strCronItem =
                                                         (strUpdatedCronItem
                                                                  .Exists()
@@ -5062,6 +5145,7 @@ bool OTClient::processServerReplyProcessNymbox(
                 // keep it on our list of "active" cron items if we know it's
                 // already inactive.
                 OTCronItem::EraseActiveCronReceipt(
+                    pServerTransaction->DataFolder(),
                     pServerTransaction->GetReferenceToNum(),
                     context.Nym()->ID(),
                     pServerTransaction->GetPurportedNotaryID());
@@ -5124,7 +5208,7 @@ bool OTClient::processServerReplyProcessBox(
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
     }
 
-    Message theOriginalMessage;
+    Message theOriginalMessage{legacy_.ClientDataFolder()};
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
@@ -5137,8 +5221,13 @@ bool OTClient::processServerReplyProcessBox(
         if (theReply.m_strCommand.Compare("processNymboxResponse"))
             ACCOUNT_ID = NYM_ID;  // For Nymbox, NymID *is* AcctID.
 
-        Ledger theLedger(NYM_ID, ACCOUNT_ID, context.Server()),
-            theReplyLedger(NYM_ID, ACCOUNT_ID, context.Server());
+        Ledger theLedger(
+            legacy_.ClientDataFolder(), NYM_ID, ACCOUNT_ID, context.Server()),
+            theReplyLedger(
+                legacy_.ClientDataFolder(),
+                NYM_ID,
+                ACCOUNT_ID,
+                context.Server());
 
         theOriginalMessage.m_ascPayload.GetString(strLedger);
         theReply.m_ascPayload.GetString(strReplyLedger);
@@ -5356,9 +5445,11 @@ bool OTClient::processServerReplyProcessBox(
                     if (nullptr != pReplyItem) {
                         OTDB::StorePlainString(
                             strFinal.Get(),
+                            legacy_.ClientDataFolder(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
-                            strReceiptFilename.Get());
+                            strReceiptFilename.Get(),
+                            "");
                     } else  // This should never happen...
                     {
                         strReceiptFilename.Format(
@@ -5371,9 +5462,11 @@ bool OTClient::processServerReplyProcessBox(
 
                         OTDB::StorePlainString(
                             strFinal.Get(),
+                            legacy_.ClientDataFolder(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
-                            strReceiptFilename.Get());
+                            strReceiptFilename.Get(),
+                            "");
                     }
                 }  // success writing armored string
             } else {
@@ -5441,7 +5534,8 @@ bool OTClient::processServerReplyGetAccountData(
         const String strNotaryID(context.Server());
 
         // Load the ledger object from strInbox
-        Ledger theInbox(NYM_ID, accountID, context.Server());
+        Ledger theInbox(
+            legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
 
         // I receive the inbox, verify the server's signature, then
         // RE-SIGN IT WITH MY OWN
@@ -5527,6 +5621,7 @@ bool OTClient::processServerReplyGetAccountData(
                     // called for market offers, but whatever. It is for the
                     // others.
                     OTCronItem::EraseActiveCronReceipt(
+                        pTempTrans->DataFolder(),
                         pTempTrans->GetReferenceToNum(),
                         context.Nym()->ID(),
                         pTempTrans->GetPurportedNotaryID());
@@ -5550,7 +5645,8 @@ bool OTClient::processServerReplyGetAccountData(
     }
     if (strOutbox.Exists()) {
         // Load the ledger object from strOutbox.
-        Ledger theOutbox(NYM_ID, accountID, context.Server());
+        Ledger theOutbox(
+            legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
 
         // I receive the outbox, verify the server's signature, then RE-SIGN IT
         // WITH MY OWN SIGNATURE, then SAVE it to local storage.  So any FUTURE
@@ -5633,7 +5729,9 @@ bool OTClient::processServerReplyGetMint(const Message& theReply)
     String strMint(theReply.m_ascPayload);
     // Load the mint object from that string...
     std::unique_ptr<Mint> pMint(Mint::MintFactory(
-        theReply.m_strNotaryID, theReply.m_strInstrumentDefinitionID));
+        legacy_.ClientDataFolder(),
+        theReply.m_strNotaryID,
+        theReply.m_strInstrumentDefinitionID));
     OT_ASSERT(nullptr != pMint);
     // TODO check the server signature on the mint here...
     if (pMint->LoadContractFromString(strMint)) {
@@ -5661,9 +5759,11 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
-            strMarketDatafile.Get());  // "markets/<notaryID>/market_data.bin"
+            strMarketDatafile.Get(),
+            "");  // "markets/<notaryID>/market_data.bin"
         if (!bSuccessErase)
             otErr << "Error erasing market list from market folder: "
                   << strMarketDatafile << " \n";
@@ -5708,9 +5808,11 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pMarketList,
+        legacy_.ClientDataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
-        strMarketDatafile.Get());      // "markets/<notaryID>/market_data.bin"
+        strMarketDatafile.Get(),
+        "");  // "markets/<notaryID>/market_data.bin"
     if (!bSuccessStore)
         otErr << "Error storing market list to market folder: "
               << strMarketDatafile << " \n";
@@ -5738,6 +5840,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
             "offers",                      // "markets/<notaryID>/offers"
@@ -5788,6 +5891,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList,
+        legacy_.ClientDataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
         "offers",                      // "markets/<notaryID>/offers"
@@ -5818,13 +5922,14 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>recent", //
                                            // "markets/<notaryID>/recent"
                                            // // todo stop
                                            // hardcoding.
-            strTradeDatafile
-                .Get());  // "markets/<notaryID>/recent/<marketID>.bin"
+            strTradeDatafile.Get(),
+            "");  // "markets/<notaryID>/recent/<marketID>.bin"
         if (!bSuccessErase)
             otErr << "Error erasing recent trades list from market folder: "
                   << strTradeDatafile << " \n";
@@ -5869,6 +5974,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pTradeList,
+        legacy_.ClientDataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
         "recent",                      // "markets/<notaryID>/recent"
@@ -5896,6 +6002,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
+            legacy_.ClientDataFolder(),
             OTFolders::Nym().Get(),        // "nyms"
             theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
             "offers",                      // "nyms/<notaryID>/offers"
@@ -5945,6 +6052,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList,
+        legacy_.ClientDataFolder(),
         OTFolders::Nym().Get(),        // "nyms"
         theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
         "offers",                      // "nyms/<notaryID>/offers",
@@ -5961,7 +6069,7 @@ bool OTClient::processServerReplyUnregisterNym(
 {
     String strOriginalMessage;
     const String strNotaryID(context.Server());
-    Message theOriginalMessage;
+    Message theOriginalMessage{legacy_.ClientDataFolder()};
 
     if (theReply.m_ascInReferenceTo.Exists()) {
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
@@ -5989,13 +6097,13 @@ bool OTClient::processServerReplyUnregisterAccount(
     const Message& theReply,
     ServerContext& context)
 {
-
     String strOriginalMessage;
-    if (theReply.m_ascInReferenceTo.Exists())
+
+    if (theReply.m_ascInReferenceTo.Exists()) {
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+    }
 
-    Message theOriginalMessage;
-
+    Message theOriginalMessage{legacy_.ClientDataFolder()};
     const String strNotaryID(context.Server());
 
     if (strOriginalMessage.Exists() &&
@@ -6006,11 +6114,12 @@ bool OTClient::processServerReplyUnregisterAccount(
         theOriginalMessage.m_strCommand.Compare("unregisterAccount")) {
 
         const auto theAccountID = Identifier::Factory(theReply.m_strAcctID);
-        auto account = wallet_.mutable_Account(theAccountID);
+        auto account =
+            wallet_.mutable_Account(legacy_.ClientDataFolder(), theAccountID);
 
         if (account) {
             account.Release();
-            wallet_.DeleteAccount(theAccountID);
+            wallet_.DeleteAccount(legacy_.ClientDataFolder(), theAccountID);
         }
 
         otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID

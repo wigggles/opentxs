@@ -33,6 +33,7 @@ private:
     typedef Contract ot_super;
 
 private:
+    const api::Legacy& legacy_;
     // A list of all valid markets.
     mapOfMarkets m_mapMarkets;
     // Cron Items are found on both lists.
@@ -57,6 +58,8 @@ private:
     static std::int32_t __cron_max_items_per_nym;
 
     static Timer tCron;
+
+    OTCron() = delete;
 
 public:
     static std::int32_t GetCronMsBetweenProcess()
@@ -90,33 +93,31 @@ public:
             return false;
     }
     // RECURRING TRANSACTIONS
-    EXPORT bool AddCronItem(
+    bool AddCronItem(
         OTCronItem& theItem,
         bool bSaveReceipt,
         time64_t tDateAdded);  // Date it was FIRST added to Cron.
     /** if returns false, item wasn't found. */
-    EXPORT bool RemoveCronItem(
-        std::int64_t lTransactionNum,
-        ConstNym theRemover);
-    EXPORT OTCronItem* GetItemByOfficialNum(std::int64_t lTransactionNum);
-    EXPORT OTCronItem* GetItemByValidOpeningNum(std::int64_t lOpeningNum);
-    EXPORT mapOfCronItems::iterator FindItemOnMap(std::int64_t lTransactionNum);
-    EXPORT multimapOfCronItems::iterator FindItemOnMultimap(
+    bool RemoveCronItem(std::int64_t lTransactionNum, ConstNym theRemover);
+    OTCronItem* GetItemByOfficialNum(std::int64_t lTransactionNum);
+    OTCronItem* GetItemByValidOpeningNum(std::int64_t lOpeningNum);
+    mapOfCronItems::iterator FindItemOnMap(std::int64_t lTransactionNum);
+    multimapOfCronItems::iterator FindItemOnMultimap(
         std::int64_t lTransactionNum);
     // MARKETS
     bool AddMarket(OTMarket& theMarket, bool bSaveMarketFile = true);
     bool RemoveMarket(const Identifier& MARKET_ID);  // if returns false,
                                                      // market wasn't found.
 
-    EXPORT OTMarket* GetMarket(const Identifier& MARKET_ID);
+    OTMarket* GetMarket(const Identifier& MARKET_ID);
     OTMarket* GetOrCreateMarket(
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_ID,
         const std::int64_t& lScale);
     /** This is informational only. It returns OTStorage-type data objects,
      * packed in a string. */
-    EXPORT bool GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount);
-    EXPORT bool GetNym_OfferList(
+    bool GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount);
+    bool GetNym_OfferList(
         Armored& ascOutput,
         const Identifier& NYM_ID,
         std::int32_t& nOfferCount);
@@ -127,17 +128,17 @@ public:
      * working. Part of using Cron properly is to call ProcessCron() regularly,
      * as well as to call AddTransactionNumber() regularly, in order to keep
      * GetTransactionCount() at some minimum threshold. */
-    EXPORT void AddTransactionNumber(const std::int64_t& lTransactionNum);
+    void AddTransactionNumber(const std::int64_t& lTransactionNum);
     std::int64_t GetNextTransactionNumber();
     /** How many numbers do I currently have on the list? */
-    EXPORT std::int32_t GetTransactionCount() const;
+    std::int32_t GetTransactionCount() const;
     /** Make sure every time you call this, you check the GetTransactionCount()
      * first and replenish it to whatever your minimum supply is. (The
      * transaction numbers in there must be enough to last for the entire
      * ProcessCronItems() call, and all the trades and payment plans within,
      * since it will not be replenished again at least until the call has
      * finished.) */
-    EXPORT void ProcessCronItems();
+    void ProcessCronItems();
 
     std::int64_t computeTimeout();
 
@@ -154,14 +155,12 @@ public:
     }
     inline ConstNym GetServerNym() const { return m_pServerNym; }
 
-    EXPORT bool LoadCron();
-    EXPORT bool SaveCron();
+    bool LoadCron();
+    bool SaveCron();
 
-    EXPORT OTCron();
-    explicit OTCron(const Identifier& NOTARY_ID);
-    explicit OTCron(const char* szFilename);
+    explicit OTCron(const api::Legacy& legacy);
 
-    EXPORT virtual ~OTCron();
+    virtual ~OTCron();
 
     void InitCron();
 

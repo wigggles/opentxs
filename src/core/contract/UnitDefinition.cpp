@@ -264,7 +264,9 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
 // currently only "user" accounts (normal user asset accounts) are added to
 // this list Any "special" accounts, such as basket reserve accounts, or voucher
 // reserve accounts, or cash reserve accounts, are not included on this list.
-bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
+bool UnitDefinition::VisitAccountRecords(
+    const std::string& dataFolder,
+    AccountVisitor& visitor) const
 {
     Lock lock(lock_);
 
@@ -274,8 +276,11 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
 
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
         OTDB::STORED_OBJ_STRING_MAP,
+        dataFolder,
         OTFolders::Contract().Get(),
-        strAcctRecordFile.Get()));
+        strAcctRecordFile.Get(),
+        "",
+        ""));
 
     OTDB::StringMap* pMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
@@ -312,7 +317,7 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
             } else {
                 const auto& wallet = OT::App().Wallet();
                 const auto accountID = Identifier::Factory(str_acct_id);
-                auto account = wallet.Account(accountID);
+                auto account = wallet.Account(dataFolder, accountID);
 
                 if (false == bool(account)) {
                     otErr << OT_METHOD << __FUNCTION__
@@ -334,8 +339,10 @@ bool UnitDefinition::VisitAccountRecords(AccountVisitor& visitor) const
     return true;
 }
 
-bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
-                                                                        // the
+bool UnitDefinition::AddAccountRecord(
+    const std::string& dataFolder,
+    const Account& theAccount) const  // adds
+                                      // the
 // account
 // to the
 // list.
@@ -371,13 +378,19 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(
+            dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get()))  // the file already exists; let's
-                                       // try to load it up.
+            strAcctRecordFile.Get(),
+            "",
+            ""))  // the file already exists; let's
+                  // try to load it up.
         pStorable = OTDB::QueryObject(
             OTDB::STORED_OBJ_STRING_MAP,
+            dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get());
+            strAcctRecordFile.Get(),
+            "",
+            "");
     else  // the account records file (for this instrument definition) doesn't
           // exist.
         pStorable = OTDB::CreateObject(
@@ -446,7 +459,12 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
     // Then save it back to local storage:
     //
     if (!OTDB::StoreObject(
-            *pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get())) {
+            *pMap,
+            dataFolder,
+            OTFolders::Contract().Get(),
+            strAcctRecordFile.Get(),
+            "",
+            "")) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
                  "account records file for instrument definition: "
@@ -461,6 +479,7 @@ bool UnitDefinition::AddAccountRecord(const Account& theAccount) const  // adds
 }
 
 bool UnitDefinition::EraseAccountRecord(
+    const std::string& dataFolder,
     const Identifier& theAcctID) const  // removes the account from the list.
                                         // (When account is deleted.)
 {
@@ -483,13 +502,19 @@ bool UnitDefinition::EraseAccountRecord(
     OTDB::StringMap* pMap = nullptr;
 
     if (OTDB::Exists(
+            dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get()))  // the file already exists; let's
-                                       // try to load it up.
+            strAcctRecordFile.Get(),
+            "",
+            ""))  // the file already exists; let's
+                  // try to load it up.
         pStorable = OTDB::QueryObject(
             OTDB::STORED_OBJ_STRING_MAP,
+            dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get());
+            strAcctRecordFile.Get(),
+            "",
+            "");
     else  // the account records file (for this instrument definition) doesn't
           // exist.
         pStorable = OTDB::CreateObject(
@@ -528,7 +553,12 @@ bool UnitDefinition::EraseAccountRecord(
     // Then save it back to local storage:
     //
     if (!OTDB::StoreObject(
-            *pMap, OTFolders::Contract().Get(), strAcctRecordFile.Get())) {
+            *pMap,
+            dataFolder,
+            OTFolders::Contract().Get(),
+            strAcctRecordFile.Get(),
+            "",
+            "")) {
         otErr << szFunc
               << ": Failed trying to StoreObject, while saving updated "
                  "account records file for instrument definition: "

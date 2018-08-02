@@ -33,6 +33,111 @@
 
 namespace opentxs
 {
+OTParty::OTParty(const std::string& dataFolder)
+    : data_folder_{dataFolder}
+    , m_pstr_party_name(nullptr)
+    , m_bPartyIsNym(false)
+    , m_lOpeningTransNo(0)
+    , m_pOwnerAgreement(nullptr)
+{
+}
+
+OTParty::OTParty(
+    const std::string& dataFolder,
+    const char* szName,
+    bool bIsOwnerNym,
+    const char* szOwnerID,
+    const char* szAuthAgent,
+    bool bCreateAgent)
+    : data_folder_{dataFolder}
+    , m_pstr_party_name(nullptr)
+    , m_bPartyIsNym(bIsOwnerNym)
+    , m_str_owner_id(szOwnerID != nullptr ? szOwnerID : "")
+    , m_str_authorizing_agent(szAuthAgent != nullptr ? szAuthAgent : "")
+    , m_lOpeningTransNo(0)
+    , m_pOwnerAgreement(nullptr)
+{
+    m_pstr_party_name = new std::string(szName != nullptr ? szName : "");
+
+    if (bCreateAgent) {
+        const String strName(m_str_authorizing_agent.c_str()), strNymID(""),
+            strRoleID(""), strGroupName("");
+        OTAgent* pAgent = new OTAgent(
+            true /*bNymRepresentsSelf*/,
+            true /*bIsAnIndividual*/,
+            strName,
+            strNymID,
+            strRoleID,
+            strGroupName);
+        OT_ASSERT(nullptr != pAgent);
+
+        if (!AddAgent(*pAgent)) {
+            otErr << "OTParty::OTParty: *** Failed *** while adding default "
+                     "agent in CONSTRUCTOR! 2\n";
+            delete pAgent;
+            pAgent = nullptr;
+        }
+    }
+}
+
+OTParty::OTParty(
+    const std::string& dataFolder,
+    std::string str_PartyName,
+    const Nym& theNym,  // Nym is BOTH owner AND agent, when using
+                        // this constructor.
+    const std::string str_agent_name,
+    Account* pAccount,
+    const std::string* pstr_account_name,
+    std::int64_t lClosingTransNo)
+    : data_folder_{dataFolder}
+    , m_pstr_party_name(new std::string(str_PartyName))
+    , m_bPartyIsNym(true)
+    , m_lOpeningTransNo(0)
+    , m_pOwnerAgreement(nullptr)
+{
+    //  m_pstr_party_name = new std::string(str_PartyName);
+    OT_ASSERT(nullptr != m_pstr_party_name);
+
+    // theNym is owner, therefore save his ID information, and create the agent
+    // for this Nym automatically (that's why it was passed in.)
+    // This code won't compile until you do.  :-)
+
+    String strNymID;
+    theNym.GetIdentifier(strNymID);
+    m_str_owner_id = strNymID.Get();
+
+    OTAgent* pAgent = new OTAgent(
+        str_agent_name, theNym);  // (The third arg, bRepresentsSelf,
+                                  // defaults here to true.)
+    OT_ASSERT(nullptr != pAgent);
+
+    if (!AddAgent(*pAgent)) {
+        otErr << "OTParty::OTParty: *** Failed *** while adding default agent "
+                 "in CONSTRUCTOR!\n";
+        delete pAgent;
+        pAgent = nullptr;
+    } else
+        m_str_authorizing_agent = str_agent_name;
+
+    // if pAccount is NOT nullptr, then an account was passed in, so
+    // let's also create a default partyaccount for it.
+    //
+    if (nullptr != pAccount) {
+        OT_ASSERT(nullptr != pstr_account_name);  // If passing an account, then
+                                                  // you MUST pass an account
+                                                  // name also.
+
+        bool bAdded = AddAccount(
+            str_agent_name.c_str(),
+            pstr_account_name->c_str(),
+            *pAccount,
+            lClosingTransNo);
+
+        if (!bAdded)
+            otErr << "OTParty::OTParty: *** Failed *** while adding default "
+                     "account in CONSTRUCTOR!\n";
+    }
+}
 
 // Checks opening number on party, and closing numbers on his accounts.
 bool OTParty::HasTransactionNum(const std::int64_t& lInput) const
@@ -86,127 +191,6 @@ std::int32_t OTParty::GetAccountCount(std::string str_agent_name) const
     return nCount;
 }
 
-// Party is always either an Owner Nym, or an Owner Entity formed by Contract.
-//
-// Either way, the agents are there to represent the interests of the parties.
-//
-// This is meant in the sense of "actually" since the agent is not just a
-// trusted
-// friend of the party, but is either the party himself (if party is a Nym), OR
-// is
-// a voting group or employee that belongs to the party. (If party is an
-// entity.)
-// Either way, the point is that in this context, the agent is ACTUALLY
-// authorized
-// by the party by virtue of its existence, versus being a "separate but
-// authorized"
-// party in the legal sense. No need exists to "grant" the authority since the
-// authority is already INHERENT.
-//
-// A party may also have multiple agents.
-//
-
-OTParty::OTParty()
-    : m_pstr_party_name(nullptr)
-    , m_bPartyIsNym(false)
-    , m_lOpeningTransNo(0)
-    , m_pOwnerAgreement(nullptr)
-{
-}
-
-OTParty::OTParty(
-    const char* szName,
-    bool bIsOwnerNym,
-    const char* szOwnerID,
-    const char* szAuthAgent,
-    bool bCreateAgent)
-    : m_pstr_party_name(nullptr)
-    , m_bPartyIsNym(bIsOwnerNym)
-    , m_str_owner_id(szOwnerID != nullptr ? szOwnerID : "")
-    , m_str_authorizing_agent(szAuthAgent != nullptr ? szAuthAgent : "")
-    , m_lOpeningTransNo(0)
-    , m_pOwnerAgreement(nullptr)
-{
-    m_pstr_party_name = new std::string(szName != nullptr ? szName : "");
-
-    if (bCreateAgent) {
-        const String strName(m_str_authorizing_agent.c_str()), strNymID(""),
-            strRoleID(""), strGroupName("");
-        OTAgent* pAgent = new OTAgent(
-            true /*bNymRepresentsSelf*/,
-            true /*bIsAnIndividual*/,
-            strName,
-            strNymID,
-            strRoleID,
-            strGroupName);
-        OT_ASSERT(nullptr != pAgent);
-
-        if (!AddAgent(*pAgent)) {
-            otErr << "OTParty::OTParty: *** Failed *** while adding default "
-                     "agent in CONSTRUCTOR! 2\n";
-            delete pAgent;
-            pAgent = nullptr;
-        }
-    }
-}
-
-OTParty::OTParty(
-    std::string str_PartyName,
-    const Nym& theNym,  // Nym is BOTH owner AND agent, when using
-                        // this constructor.
-    const std::string str_agent_name,
-    Account* pAccount,
-    const std::string* pstr_account_name,
-    std::int64_t lClosingTransNo)
-    : m_pstr_party_name(new std::string(str_PartyName))
-    , m_bPartyIsNym(true)
-    , m_lOpeningTransNo(0)
-    , m_pOwnerAgreement(nullptr)
-{
-    //  m_pstr_party_name = new std::string(str_PartyName);
-    OT_ASSERT(nullptr != m_pstr_party_name);
-
-    // theNym is owner, therefore save his ID information, and create the agent
-    // for this Nym automatically (that's why it was passed in.)
-    // This code won't compile until you do.  :-)
-
-    String strNymID;
-    theNym.GetIdentifier(strNymID);
-    m_str_owner_id = strNymID.Get();
-
-    OTAgent* pAgent = new OTAgent(
-        str_agent_name, theNym);  // (The third arg, bRepresentsSelf,
-                                  // defaults here to true.)
-    OT_ASSERT(nullptr != pAgent);
-
-    if (!AddAgent(*pAgent)) {
-        otErr << "OTParty::OTParty: *** Failed *** while adding default agent "
-                 "in CONSTRUCTOR!\n";
-        delete pAgent;
-        pAgent = nullptr;
-    } else
-        m_str_authorizing_agent = str_agent_name;
-
-    // if pAccount is NOT nullptr, then an account was passed in, so
-    // let's also create a default partyaccount for it.
-    //
-    if (nullptr != pAccount) {
-        OT_ASSERT(nullptr != pstr_account_name);  // If passing an account, then
-                                                  // you MUST pass an account
-                                                  // name also.
-
-        bool bAdded = AddAccount(
-            str_agent_name.c_str(),
-            pstr_account_name->c_str(),
-            *pAccount,
-            lClosingTransNo);
-
-        if (!bAdded)
-            otErr << "OTParty::OTParty: *** Failed *** while adding default "
-                     "account in CONSTRUCTOR!\n";
-    }
-}
-
 bool OTParty::AddAgent(OTAgent& theAgent)
 {
     const std::string str_agent_name = theAgent.GetName().Get();
@@ -249,6 +233,7 @@ bool OTParty::AddAccount(
     std::int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
+        data_folder_,
         strName,
         strAgentName,
         strAcctID,
@@ -271,7 +256,7 @@ bool OTParty::AddAccount(
     std::int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
-        szAcctName, strAgentName, theAccount, lClosingTransNo);
+        data_folder_, szAcctName, strAgentName, theAccount, lClosingTransNo);
     OT_ASSERT(nullptr != pPartyAccount);
 
     if (!AddAccount(*pPartyAccount)) {
@@ -384,17 +369,6 @@ void OTParty::CleanupAccounts()
         pTemp = nullptr;
         m_mapPartyAccounts.erase(m_mapPartyAccounts.begin());
     }
-}
-
-OTParty::~OTParty()
-{
-    CleanupAgents();
-    CleanupAccounts();
-
-    if (nullptr != m_pstr_party_name) delete m_pstr_party_name;
-    m_pstr_party_name = nullptr;
-
-    m_pOwnerAgreement = nullptr;
 }
 
 void OTParty::ClearTemporaryPointers()
@@ -964,6 +938,7 @@ bool OTParty::DropFinalReceiptToNymboxes(
 }
 
 bool OTParty::SendNoticeToParty(
+    const std::string& dataFolder,
     bool bSuccessMsg,
     const Nym& theServerNym,
     const Identifier& theNotaryID,
@@ -991,6 +966,7 @@ bool OTParty::SendNoticeToParty(
                 "Unexpected nullptr agent pointer in party map.");
 
             if (false == pAgent->DropServerNoticeToNymbox(
+                             dataFolder,
                              bSuccessMsg,
                              theServerNym,
                              theNotaryID,
@@ -1611,4 +1587,14 @@ bool OTParty::CopyAcctsToConfirmingParty(OTParty& theParty) const
     return true;
 }
 
+OTParty::~OTParty()
+{
+    CleanupAgents();
+    CleanupAccounts();
+
+    if (nullptr != m_pstr_party_name) delete m_pstr_party_name;
+    m_pstr_party_name = nullptr;
+
+    m_pOwnerAgreement = nullptr;
+}
 }  // namespace opentxs

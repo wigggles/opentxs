@@ -195,6 +195,7 @@ private:
     const OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
     const api::ContactManager& contacts_;
+    const api::Legacy& legacy_;
     const api::Settings& config_;
     const api::Api& api_;
     const api::client::ServerAction& server_action_;
@@ -382,6 +383,7 @@ private:
         const OT_API& otapi,
         const opentxs::OTAPI_Exec& exec,
         const api::ContactManager& contacts,
+        const api::Legacy& legacy,
         const api::Settings& config,
         const api::Api& api,
         const api::client::Wallet& wallet,

@@ -728,6 +728,27 @@ typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
 //                                                             std::int64_t
 //                                                             lAmount);
 
+OTSmartContract::OTSmartContract(const std::string& dataFolder)
+    : ot_super(dataFolder)
+    , wallet_(OT::App().Wallet())
+    , m_StashAccts(dataFolder, Account::stash)
+    , m_tNextProcessDate(OT_TIME_ZERO)
+{
+    InitSmartContract();
+}
+
+OTSmartContract::OTSmartContract(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID)
+    : ot_super(dataFolder)
+    , wallet_(OT::App().Wallet())
+    , m_StashAccts(dataFolder, Account::stash)
+    , m_tNextProcessDate(OT_TIME_ZERO)
+{
+    Instrument::SetNotaryID(NOTARY_ID);
+    InitSmartContract();
+}
+
 void OTSmartContract::RegisterOTNativeCallsWithScript(OTScript& theScript)
 {
     // CALL THE PARENT
@@ -1243,7 +1264,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
-    auto account = wallet_.Account(PARTY_ACCT_ID);
+    auto account = wallet_.Account(data_folder_, PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -1454,7 +1475,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the instrument definition.
-    auto account = wallet_.Account(PARTY_ACCT_ID);
+    auto account = wallet_.Account(data_folder_, PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -1647,6 +1668,7 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
         const String strReference(*this);
 
         bDroppedNotice = pParty->SendNoticeToParty(
+            data_folder_,
             true,  // bSuccessMsg=true. True in general means "success" and
                    // false means "failure."
             *pServerNym,
@@ -2181,7 +2203,7 @@ bool OTSmartContract::StashFunds(
 
     // Load up the party's account and get the instrument definition, so we know
     // which stash to get off the stash.
-    auto account = wallet_.mutable_Account(PARTY_ACCT_ID);
+    auto account = wallet_.mutable_Account(data_folder_, PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << "OTSmartContract::StashFunds: ERROR verifying existence of "
@@ -2365,7 +2387,7 @@ bool OTSmartContract::StashFunds(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem(
-        OTCronItem::LoadCronReceipt(GetTransactionNum()));
+        OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum()));
 
     OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
                                           // receipt wasn't saved in the first
@@ -2441,7 +2463,8 @@ bool OTSmartContract::StashFunds(
         // (No need for the stash's inbox -- the server owns it.)
 
         // Load the inbox in case it already exists
-        Ledger thePartyInbox(PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
+        Ledger thePartyInbox(
+            data_folder_, PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -4881,27 +4904,6 @@ OTStash* OTSmartContract::GetStash(std::string str_stash_name)
     return pStash;
 }
 
-OTSmartContract::OTSmartContract()
-    : ot_super()
-    , wallet_(OT::App().Wallet())
-    , m_StashAccts(Account::stash)
-    , m_tNextProcessDate(OT_TIME_ZERO)
-{
-    InitSmartContract();
-}
-
-OTSmartContract::OTSmartContract(const Identifier& NOTARY_ID)
-    : ot_super()
-    , wallet_(OT::App().Wallet())
-    , m_StashAccts(Account::stash)
-    , m_tNextProcessDate(OT_TIME_ZERO)
-{
-    Instrument::SetNotaryID(NOTARY_ID);
-    InitSmartContract();
-}
-
-OTSmartContract::~OTSmartContract() { Release_SmartContract(); }
-
 void OTSmartContract::InitSmartContract()
 {
     m_strContractType = "SMARTCONTRACT";
@@ -5369,7 +5371,8 @@ bool OTSmartContract::MoveFunds(
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    pOrigCronItem = OTCronItem::LoadCronReceipt(GetTransactionNum());
+    pOrigCronItem =
+        OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum());
 
     OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
                                           // receipt wasn't saved in the first
@@ -5599,7 +5602,7 @@ bool OTSmartContract::MoveFunds(
 
     // LOAD THE ACCOUNTS
     //
-    auto sourceAccount = wallet_.mutable_Account(SOURCE_ACCT_ID);
+    auto sourceAccount = wallet_.mutable_Account(data_folder_, SOURCE_ACCT_ID);
 
     if (false == bool(sourceAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
@@ -5608,7 +5611,8 @@ bool OTSmartContract::MoveFunds(
         return false;
     }
 
-    auto recipientAccount = wallet_.mutable_Account(RECIPIENT_ACCT_ID);
+    auto recipientAccount =
+        wallet_.mutable_Account(data_folder_, RECIPIENT_ACCT_ID);
 
     if (false == bool(recipientAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "
@@ -5667,8 +5671,10 @@ bool OTSmartContract::MoveFunds(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inboxes in case they already exist
-        Ledger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
-            theRecipientInbox(RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
+        Ledger theSenderInbox(
+            data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            theRecipientInbox(
+                data_folder_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -5886,7 +5892,7 @@ bool OTSmartContract::MoveFunds(
             // (above), then I need to re-sign it and save it first. (The
             // original version I'll load from
             // a separate file using
-            // OTCronItem::LoadCronReceipt(lTransactionNum).
+            // OTCronItem::LoadCronReceipt(data_folder_,lTransactionNum).
             //
             // I should be able to call a method on the original cronitem, where
             // I ask it to verify a certain
@@ -6043,4 +6049,6 @@ bool OTSmartContract::MoveFunds(
 
     return bSuccess;
 }
+
+OTSmartContract::~OTSmartContract() { Release_SmartContract(); }
 }  // namespace opentxs

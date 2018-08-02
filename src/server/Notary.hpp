@@ -54,6 +54,7 @@ private:
     friend class Server;
 
     Server& server_;
+    const opentxs::api::Legacy& legacy_;
     const opentxs::api::Server& mint_;
     const opentxs::api::client::Wallet& wallet_;
 
@@ -114,6 +115,7 @@ private:
 
     explicit Notary(
         Server& server,
+        const opentxs::api::Legacy& legacy,
         const opentxs::api::Server& mint,
         const opentxs::api::client::Wallet& wallet);
     Notary() = delete;

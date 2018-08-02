@@ -42,98 +42,6 @@ namespace opentxs
 */
 class OTOffer : public Instrument
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Instrument ot_super;
-
-    // From OTInstrument (parent class of this)
-    /*
-public:
-     inline time64_t GetValidFrom()    const { return m_VALID_FROM; }
-     inline time64_t GetValidTo()        const { return m_VALID_TO; }
-
-     inline void SetValidFrom(time64_t TIME_FROM)    { m_VALID_FROM    =
-TIME_FROM; }
-     inline void SetValidTo(time64_t TIME_TO)        { m_VALID_TO    = TIME_TO;
-}
-
-
-     inline const Identifier& GetInstrumentDefinitionID() const { return
-m_InstrumentDefinitionID; }
-     inline const Identifier& GetNotaryID() const { return m_NotaryID; }
-
-     inline void SetInstrumentDefinitionID(const Identifier&
-INSTRUMENT_DEFINITION_ID)  {
-m_InstrumentDefinitionID    =
-INSTRUMENT_DEFINITION_ID; }
-     inline void SetNotaryID(const Identifier& NOTARY_ID) { m_NotaryID    =
-NOTARY_ID; }
-
-     bool VerifyCurrentDate(); // Verify the current date against the VALID FROM
-/ TO dates.
-     */
-    time64_t m_tDateAddedToMarket{0};
-
-    bool isPowerOfTen(const std::int64_t& x);
-
-protected:
-    // If this offer is actually connected to a trade, it will have a pointer.
-    OTTrade* m_pTrade{nullptr};
-    // GOLD (Asset) is trading for DOLLARS (Currency).
-    OTIdentifier m_CURRENCY_TYPE_ID;
-    bool m_bSelling{false};  // true = ask. false = bid.
-    // If a bid, this is the most I will pay. If an ask, this is the least I
-    // will sell for. My limit.
-    // (Normally the price I get is whatever is the best one on the market right
-    // now.)
-    std::int64_t m_lPriceLimit{0};  // Denominated in CURRENCY TYPE, and priced
-                                    // per SCALE. 1oz market price limit might
-                                    // be 1,300
-    // 100oz market price limit might be 130,000 (or 127,987 or whatever)
-
-    std::int64_t m_lTransactionNum{0};    // Matches to an OTTrade stored in
-                                          // OTCron.
-    std::int64_t m_lTotalAssetsOffer{0};  // Total amount of ASSET TYPE trying
-                                          // to BUY or SELL, this trade.
-    std::int64_t m_lFinishedSoFar{0};     // Number of ASSETs bought or sold
-                                          // already against the above total.
-
-    std::int64_t m_lScale{0};  // 1oz market? 100oz market? 10,000oz market?
-                               // This determines size and granularity.
-    std::int64_t m_lMinimumIncrement{0};  // Each sale or purchase against the
-                                          // above total must be in minimum
-                                          // increments.
-    // Minimum Increment must be evenly divisible by m_lScale.
-    // (This effectively becomes a "FILL OR KILL" order if set to the same value
-    // as m_lTotalAssetsOffer. Also, MUST be 1
-    // or great. CANNOT be zero. Enforce this at class level. You cannot sell
-    // something in minimum increments of 0.)
-    inline void SetTransactionNum(const std::int64_t& lTransactionNum)
-    {
-        m_lTransactionNum = lTransactionNum;
-    }
-    inline void SetPriceLimit(const std::int64_t& lPriceLimit)
-    {
-        m_lPriceLimit = lPriceLimit;
-    }
-    inline void SetTotalAssetsOnOffer(const std::int64_t& lTotalAssets)
-    {
-        m_lTotalAssetsOffer = lTotalAssets;
-    }
-    inline void SetFinishedSoFar(const std::int64_t& lFinishedSoFar)
-    {
-        m_lFinishedSoFar = lFinishedSoFar;
-    }
-    inline void SetMinimumIncrement(const std::int64_t& lMinIncrement)
-    {
-        m_lMinimumIncrement = lMinIncrement;
-        if (m_lMinimumIncrement < 1) m_lMinimumIncrement = 1;
-    }
-    inline void SetScale(const std::int64_t& lScale)
-    {
-        m_lScale = lScale;
-        if (m_lScale < 1) m_lScale = 1;
-    }
-
 public:
     EXPORT bool MakeOffer(
         bool bBuyingOrSelling,            // True == SELLING, False == BUYING
@@ -211,15 +119,6 @@ public:
                                                    // GetNymOfferList.
     EXPORT void SetDateAddedToMarket(time64_t tDate);  // Used in OTCron when
                                                        // adding/loading offers.
-    EXPORT OTOffer();  // The constructor contains the 3 variables needed to
-                       // identify any market.
-    EXPORT OTOffer(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_ID,
-        const std::int64_t& MARKET_SCALE);
-    EXPORT virtual ~OTOffer();
-
     // Overridden from Contract.
     void GetIdentifier(Identifier& theIdentifier) const override;
 
@@ -232,8 +131,88 @@ public:
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the ledger saves its contents
+                                     // this is where the ledger saves its
+                                     // contents
+
+    EXPORT OTOffer(const std::string& dataFolder);  // The constructor contains
+                                                    // the 3 variables needed to
+                                                    // identify any market.
+    EXPORT OTOffer(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& CURRENCY_ID,
+        const std::int64_t& MARKET_SCALE);
+
+    EXPORT virtual ~OTOffer();
+
+protected:
+    // If this offer is actually connected to a trade, it will have a pointer.
+    OTTrade* m_pTrade{nullptr};
+    // GOLD (Asset) is trading for DOLLARS (Currency).
+    OTIdentifier m_CURRENCY_TYPE_ID;
+    bool m_bSelling{false};  // true = ask. false = bid.
+    // If a bid, this is the most I will pay. If an ask, this is the least I
+    // will sell for. My limit.
+    // (Normally the price I get is whatever is the best one on the market right
+    // now.)
+    std::int64_t m_lPriceLimit{0};  // Denominated in CURRENCY TYPE, and priced
+                                    // per SCALE. 1oz market price limit might
+                                    // be 1,300
+    // 100oz market price limit might be 130,000 (or 127,987 or whatever)
+
+    std::int64_t m_lTransactionNum{0};    // Matches to an OTTrade stored in
+                                          // OTCron.
+    std::int64_t m_lTotalAssetsOffer{0};  // Total amount of ASSET TYPE trying
+                                          // to BUY or SELL, this trade.
+    std::int64_t m_lFinishedSoFar{0};     // Number of ASSETs bought or sold
+                                          // already against the above total.
+
+    std::int64_t m_lScale{0};  // 1oz market? 100oz market? 10,000oz market?
+                               // This determines size and granularity.
+    std::int64_t m_lMinimumIncrement{0};  // Each sale or purchase against the
+                                          // above total must be in minimum
+                                          // increments.
+    // Minimum Increment must be evenly divisible by m_lScale.
+    // (This effectively becomes a "FILL OR KILL" order if set to the same value
+    // as m_lTotalAssetsOffer. Also, MUST be 1
+    // or great. CANNOT be zero. Enforce this at class level. You cannot sell
+    // something in minimum increments of 0.)
+    inline void SetTransactionNum(const std::int64_t& lTransactionNum)
+    {
+        m_lTransactionNum = lTransactionNum;
+    }
+    inline void SetPriceLimit(const std::int64_t& lPriceLimit)
+    {
+        m_lPriceLimit = lPriceLimit;
+    }
+    inline void SetTotalAssetsOnOffer(const std::int64_t& lTotalAssets)
+    {
+        m_lTotalAssetsOffer = lTotalAssets;
+    }
+    inline void SetFinishedSoFar(const std::int64_t& lFinishedSoFar)
+    {
+        m_lFinishedSoFar = lFinishedSoFar;
+    }
+    inline void SetMinimumIncrement(const std::int64_t& lMinIncrement)
+    {
+        m_lMinimumIncrement = lMinIncrement;
+        if (m_lMinimumIncrement < 1) m_lMinimumIncrement = 1;
+    }
+    inline void SetScale(const std::int64_t& lScale)
+    {
+        m_lScale = lScale;
+        if (m_lScale < 1) m_lScale = 1;
+    }
+
+private:
+    typedef Instrument ot_super;
+
+    time64_t m_tDateAddedToMarket{0};
+
+    bool isPowerOfTen(const std::int64_t& x);
+
+    OTOffer() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_TRADE_OTOFFER_HPP

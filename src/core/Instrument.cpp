@@ -17,6 +17,28 @@
 
 namespace opentxs
 {
+Instrument::Instrument(const std::string& dataFolder)
+    : OTScriptable(dataFolder)
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_VALID_FROM(OT_TIME_ZERO)
+    , m_VALID_TO(OT_TIME_ZERO)
+{
+    InitInstrument();
+}
+
+Instrument::Instrument(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
+    : OTScriptable(dataFolder)
+    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
+    , m_NotaryID(Identifier::Factory(NOTARY_ID))
+    , m_VALID_FROM(OT_TIME_ZERO)
+    , m_VALID_TO(OT_TIME_ZERO)
+{
+    InitInstrument();
+}
 
 // Verify whether the CURRENT date is AFTER the the VALID TO date.
 // Notice, this will return false, if the instrument is NOT YET VALID.
@@ -51,36 +73,6 @@ bool Instrument::VerifyCurrentDate()
 }
 
 void Instrument::InitInstrument() { m_strContractType.Set("INSTRUMENT"); }
-
-Instrument::Instrument()
-    : OTScriptable()
-    , m_InstrumentDefinitionID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory())
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-{
-    InitInstrument();
-}
-
-Instrument::Instrument(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-    : OTScriptable()
-    , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
-    , m_NotaryID(Identifier::Factory(NOTARY_ID))
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-{
-    InitInstrument();
-}
-
-Instrument::~Instrument()
-{
-    Release_Instrument();
-
-    m_VALID_FROM = OT_TIME_ZERO;
-    m_VALID_TO = OT_TIME_ZERO;
-}
 
 void Instrument::Release_Instrument()
 {
@@ -144,4 +136,11 @@ std::int32_t Instrument::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
+Instrument::~Instrument()
+{
+    Release_Instrument();
+
+    m_VALID_FROM = OT_TIME_ZERO;
+    m_VALID_TO = OT_TIME_ZERO;
+}
 }  // namespace opentxs

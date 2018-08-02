@@ -20,14 +20,6 @@
 
 namespace opentxs
 {
-
-class Identifier;
-class Mint;
-class Nym;
-class OTNym_or_SymmetricKey;
-class Purse;
-class String;
-
 typedef std::map<std::int32_t, Armored*> mapOfPrototokens;
 
 /*
@@ -65,9 +57,6 @@ denomination will work. */
 /** This class implements the Lucre coins. */
 class Token : public Instrument
 {
-private:
-    typedef Instrument ot_super;
-
 public:
     enum tokenState {
         blankToken,
@@ -83,80 +72,27 @@ public:
     // Another 1000.  These provide more security but they also cost more in
     // terms of resources to process all those prototokens.
     EXPORT static std::int32_t GetMinimumPrototokenCount();
-
-protected:
-    bool m_bPasswordProtected{false};  // this token might be encrypted to a
-                                       // passphrase, instead of a Nym.
-
-    Armored m_ascSpendable;  // This is the final, signed, unblinded token
-                             // ID, ready to be spent. (But still in
-                             // envelope form, encrypted and
-                             // ascii-armored.)
-    Armored m_Signature;     // This is the Mint's signature on the blinded
-                             // prototoken.
-
-    std::int64_t m_lDenomination{0};  // The actual value of the token is
-                                      // between issuer and trader.
-    // The token must have a denomination so we know which Mint Key to verify it
-    // with.
-
-    // --------------- Prototoken stuff below here.....
-    mapOfPrototokens m_mapPublic;   // in protoToken state, this object stores N
-                                    // prototokens in order to fulfill the
-                                    // protocol
-    mapOfPrototokens m_mapPrivate;  // The elements are accessed [0..N].
-                                    // mapPublic[2] corresponds to
-                                    // map_Private[2], etc.
-
-    std::int32_t m_nTokenCount{0};  // Official token count is stored here for
-    // serialization, etc. The maps' size should match.
-    std::int32_t m_nChosenIndex{0};  // When the client submits N prototokens,
-                                     // the server randomly chooses one to sign.
-    // (The server opens the other (N-1) prototokens to verify the amount is
-    // correct and that the IDs are random enough.) Expiration dates are
-    // necessary because otherwise the spent token database must be stored
-    // forever. This may be useful in some applications, but in most, a 1-year
-    // or 1-month expiration date will be perfectly fine, especially with
-    // auto-exchanges performed by the wallet. Suddenly it becomes much more
-    // feasible a proposition to effectively run a token server, without having
-    // to hold those spent tokens forever.
-    //
-    // EXPIRATION DATES are in the parent:
-    //
-    // time64_t            m_VALID_FROM;    // (In the parent)
-    // time64_t            m_VALID_TO;        // (In the parent)
-    //
-    // Tokens (and Mints) also have a SERIES:
-    std::int32_t m_nSeries{0};
-    tokenState m_State{errorToken};
-    bool m_bSavePrivateKeys{false};  // Determines whether it serializes private
-                                     // keys 1 time (yes if true)
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    void InitToken();
-    bool ChooseIndex(std::int32_t nIndex);
-    EXPORT Token();
-    EXPORT Token& operator=(const Token& rhs);
-    EXPORT Token(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT explicit Token(const Purse& thePurse);
-
-public:
     /** Preparing to polymorphize tokens. This will allow us to instantiate
      * LucreTokens, and other types of tokens, dynamically, without having to
      * know beforehand which OTToken subclass we're dealing with. */
-    EXPORT static Token* TokenFactory(String strInput);
+    EXPORT static Token* TokenFactory(
+        const std::string& dataFolder,
+        String strInput);
     EXPORT static Token* TokenFactory(String strInput, const Purse& thePurse);
     EXPORT static Token* TokenFactory(
+        const std::string& dataFolder,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT static Token* LowLevelInstantiate(const Purse& thePurse);
-    EXPORT static Token* LowLevelInstantiate(const String& strFirstLine);
+    EXPORT static Token* LowLevelInstantiate(
+        const std::string& dataFolder,
+        const String& strFirstLine);
     EXPORT static Token* LowLevelInstantiate(
         const String& strFirstLine,
         const Purse& thePurse);
     EXPORT static Token* LowLevelInstantiate(
+        const std::string& dataFolder,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
@@ -198,17 +134,6 @@ public:
 
     // Lucre step 1 (in OTMint) Generate New Mint
 
-protected:
-    /** Lucre Step 2: Generate Coin Request nDenomination MUST be one that the
-     * Mint supports. let nTokenCount default to 1, since that's how Lucre
-     * works. */
-    EXPORT virtual bool GenerateTokenRequest(
-        const Nym& theNym,
-        Mint& theMint,
-        std::int64_t lDenomination,
-        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount()) = 0;
-
-public:
     EXPORT static Token* InstantiateAndGenerateTokenRequest(
         const Purse& thePurse,
         const Nym& theNym,
@@ -264,6 +189,80 @@ public:
     EXPORT bool GetPrivatePrototoken(
         Armored& ascPrototoken,
         std::int32_t nTokenIndex);
+
+protected:
+    bool m_bPasswordProtected{false};  // this token might be encrypted to a
+                                       // passphrase, instead of a Nym.
+
+    Armored m_ascSpendable;  // This is the final, signed, unblinded token
+                             // ID, ready to be spent. (But still in
+                             // envelope form, encrypted and
+                             // ascii-armored.)
+    Armored m_Signature;     // This is the Mint's signature on the blinded
+                             // prototoken.
+
+    std::int64_t m_lDenomination{0};  // The actual value of the token is
+                                      // between issuer and trader.
+    // The token must have a denomination so we know which Mint Key to verify it
+    // with.
+
+    // --------------- Prototoken stuff below here.....
+    mapOfPrototokens m_mapPublic;   // in protoToken state, this object stores N
+                                    // prototokens in order to fulfill the
+                                    // protocol
+    mapOfPrototokens m_mapPrivate;  // The elements are accessed [0..N].
+                                    // mapPublic[2] corresponds to
+                                    // map_Private[2], etc.
+
+    std::int32_t m_nTokenCount{0};  // Official token count is stored here for
+    // serialization, etc. The maps' size should match.
+    std::int32_t m_nChosenIndex{0};  // When the client submits N prototokens,
+                                     // the server randomly chooses one to sign.
+    // (The server opens the other (N-1) prototokens to verify the amount is
+    // correct and that the IDs are random enough.) Expiration dates are
+    // necessary because otherwise the spent token database must be stored
+    // forever. This may be useful in some applications, but in most, a 1-year
+    // or 1-month expiration date will be perfectly fine, especially with
+    // auto-exchanges performed by the wallet. Suddenly it becomes much more
+    // feasible a proposition to effectively run a token server, without having
+    // to hold those spent tokens forever.
+    //
+    // EXPIRATION DATES are in the parent:
+    //
+    // time64_t            m_VALID_FROM;    // (In the parent)
+    // time64_t            m_VALID_TO;        // (In the parent)
+    //
+    // Tokens (and Mints) also have a SERIES:
+    std::int32_t m_nSeries{0};
+    tokenState m_State{errorToken};
+    bool m_bSavePrivateKeys{false};  // Determines whether it serializes private
+                                     // keys 1 time (yes if true)
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    void InitToken();
+    bool ChooseIndex(std::int32_t nIndex);
+
+    /** Lucre Step 2: Generate Coin Request nDenomination MUST be one that the
+     * Mint supports. let nTokenCount default to 1, since that's how Lucre
+     * works. */
+    virtual bool GenerateTokenRequest(
+        const Nym& theNym,
+        Mint& theMint,
+        std::int64_t lDenomination,
+        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount()) = 0;
+
+    Token& operator=(const Token& rhs);
+
+    Token(const std::string& dataFolder);
+    Token(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    Token(const std::string& dataFolder, const Purse& thePurse);
+
+private:
+    typedef Instrument ot_super;
+
+    Token() = delete;
 };
 }  // namespace opentxs
 #endif  // OT_CASH

@@ -47,7 +47,6 @@
 
 namespace opentxs
 {
-
 char const* const __TypeStringsLedger[] = {
     "nymbox",  // the nymbox is per user account (versus per asset account) and
                // is used to receive new transaction numbers (and messages.)
@@ -67,6 +66,49 @@ char const* const __TypeStringsLedger[] = {
                    // the
                    // paymentInbox.
     "error_state"};
+
+// ID refers to account ID.
+// Since a ledger is normally used as an inbox for a specific account, in a
+// specific file, then I've decided to restrict ledgers to a single account.
+Ledger::Ledger(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID)
+    : OTTransactionType(dataFolder, theNymID, theAccountID, theNotaryID)
+    , m_Type(Ledger::message)
+    , m_bLoadedLegacyData(false)
+{
+    InitLedger();
+}
+
+// ONLY call this if you need to load a ledger where you don't already know the
+// person's NymID For example, if you need to load someone ELSE's inbox in
+// order to send them a transfer, then you only know their account number, not
+// their user ID. So you call this function to get it loaded up, and the NymID
+// will hopefully be loaded up with the rest of it.
+Ledger::Ledger(
+    const std::string& dataFolder,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID)
+    : OTTransactionType(dataFolder)
+    , m_Type(Ledger::message)
+    , m_bLoadedLegacyData(false)
+{
+    InitLedger();
+
+    SetRealAccountID(theAccountID);
+    SetRealNotaryID(theNotaryID);
+}
+
+// This is private now and hopefully will stay that way.
+Ledger::Ledger(const std::string& dataFolder)
+    : OTTransactionType(dataFolder)
+    , m_Type(Ledger::message)
+    , m_bLoadedLegacyData(false)
+{
+    InitLedger();
+}
 
 char const* Ledger::_GetTypeString(ledgerType theType)
 {
@@ -482,7 +524,8 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
         strRawFile.Set(*pString);
     else  // Loading FROM A FILE.
     {
-        if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+        if (!OTDB::Exists(
+                data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
             otLog3 << pszType << " does not exist in OTLedger::Load" << pszType
                    << ": " << szFolder1name << Log::PathSeparator()
                    << szFolder2name << Log::PathSeparator() << szFilename
@@ -493,9 +536,12 @@ bool Ledger::LoadGeneric(Ledger::ledgerType theType, const String* pString)
         // Try to load the ledger from local storage.
         //
         std::string strFileContents(OTDB::QueryPlainString(
+            data_folder_,
             szFolder1name,
             szFolder2name,
-            szFilename));  // <=== LOADING FROM DATA STORE.
+            szFilename,
+            ""));  // <=== LOADING
+                   // FROM DATA STORE.
 
         if (strFileContents.length() < 2) {
             otErr << "OTLedger::LoadGeneric: Error reading file: "
@@ -618,9 +664,11 @@ bool Ledger::SaveGeneric(Ledger::ledgerType theType)
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
+        data_folder_,
         szFolder1name,
         szFolder2name,
-        szFilename);  // <=== SAVING TO DATA STORE.
+        szFilename,
+        "");  // <=== SAVING TO DATA STORE.
     if (!bSaved) {
         otErr << "OTLedger::SaveGeneric: Error writing " << pszType
               << " to file: " << szFolder1name << Log::PathSeparator()
@@ -793,6 +841,7 @@ bool Ledger::SaveExpiredBox()
 
 // static
 Ledger* Ledger::GenerateLedger(
+    const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAcctID,  // AcctID should be "OwnerID" since could be
                                   // acct OR Nym (with nymbox)
@@ -801,7 +850,7 @@ Ledger* Ledger::GenerateLedger(
     bool bCreateFile)
 {
     std::unique_ptr<Ledger> ledger{
-        new Ledger(theNymID, theAcctID, theNotaryID)};
+        new Ledger(dataFolder, theNymID, theAcctID, theNotaryID)};
 
     OT_ASSERT(ledger);
 
@@ -893,7 +942,8 @@ bool Ledger::generate_ledger(
                                 // "inbox/NOTARY_ID/ACCT_ID" or
                                 // "outbox/NOTARY_ID/ACCT_ID")
 
-        if (OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+        if (OTDB::Exists(
+                data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
             otOut << "ERROR: trying to generate ledger that already exists: "
                   << szFolder1name << Log::PathSeparator() << szFolder2name
                   << Log::PathSeparator() << szFilename << "\n";
@@ -930,7 +980,7 @@ bool Ledger::GenerateLedger(
     if ((Ledger::inbox == theType) || (Ledger::outbox == theType)) {
         // Have to look up the NymID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        auto account = OT::App().Wallet().Account(theAcctID);
+        auto account = OT::App().Wallet().Account(data_folder_, theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());
@@ -941,7 +991,7 @@ bool Ledger::GenerateLedger(
         }
     } else if (Ledger::recordBox == theType) {
         // RecordBox COULD be by NymID OR AcctID. So we TRY to lookup the acct.
-        auto account = OT::App().Wallet().Account(theAcctID);
+        auto account = OT::App().Wallet().Account(data_folder_, theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());
@@ -984,48 +1034,6 @@ void Ledger::InitLedger()
     m_Type = Ledger::message;
 
     m_bLoadedLegacyData = false;
-}
-
-// ID refers to account ID.
-// Since a ledger is normally used as an inbox for a specific account, in a
-// specific file,
-// then I've decided to restrict ledgers to a single account.
-Ledger::Ledger(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID)
-    : OTTransactionType(theNymID, theAccountID, theNotaryID)
-    , m_Type(Ledger::message)
-    , m_bLoadedLegacyData(false)
-{
-    InitLedger();
-}
-
-// ONLY call this if you need to load a ledger where you don't already know the
-// person's NymID
-// For example, if you need to load someone ELSE's inbox in order to send them a
-// transfer, then
-// you only know their account number, not their user ID. So you call this
-// function to get it
-// loaded up, and the NymID will hopefully be loaded up with the rest of it.
-Ledger::Ledger(const Identifier& theAccountID, const Identifier& theNotaryID)
-    : OTTransactionType()
-    , m_Type(Ledger::message)
-    , m_bLoadedLegacyData(false)
-{
-    InitLedger();
-
-    SetRealAccountID(theAccountID);
-    SetRealNotaryID(theNotaryID);
-}
-
-// This is private now and hopefully will stay that way.
-Ledger::Ledger()
-    : OTTransactionType()
-    , m_Type(Ledger::message)
-    , m_bLoadedLegacyData(false)
-{
-    InitLedger();
 }
 
 const mapOfTransactions& Ledger::GetTransactionMap() const
@@ -1216,6 +1224,7 @@ OTTransaction* Ledger::GetTransferReceipt(std::int64_t lNumberOfOrigin)
             pTransaction->GetReferenceString(strReference);
 
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                pTransaction->DataFolder(),
                 strReference,
                 pTransaction->GetPurportedNotaryID(),
                 pTransaction->GetReferenceToNum()));
@@ -1296,6 +1305,7 @@ OTTransaction* Ledger::GetChequeReceipt(
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
         std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+            pCurrentReceipt->DataFolder(),
             strDepositChequeMsg,
             GetPurportedNotaryID(),
             pCurrentReceipt->GetReferenceToNum()));
@@ -1319,7 +1329,7 @@ OTTransaction* Ledger::GetChequeReceipt(
             String strCheque;
             pOriginalItem->GetAttachment(strCheque);
 
-            Cheque* pCheque = new Cheque;
+            Cheque* pCheque = new Cheque{data_folder_};
             OT_ASSERT(nullptr != pCheque);
             std::unique_ptr<Cheque> theChequeAngel(pCheque);
 
@@ -2032,6 +2042,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // which is ONLY used here.
                     //
                     OTTransaction* pTransaction = new OTTransaction(
+                        data_folder_,
                         NYM_ID,
                         ACCOUNT_ID,
                         NOTARY_ID,
@@ -2229,7 +2240,10 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // OTTransaction(GetNymID(), GetRealAccountID(),
             // GetRealNotaryID());
             OTTransaction* pTransaction = new OTTransaction(
-                GetNymID(), GetPurportedAccountID(), GetPurportedNotaryID());
+                data_folder_,
+                GetNymID(),
+                GetPurportedAccountID(),
+                GetPurportedNotaryID());
             OT_ASSERT(nullptr != pTransaction);
 
             // Need this set before the LoadContractFromString().
@@ -2299,6 +2313,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                         const bool bBoxReceiptAlreadyExists =
                             VerifyBoxReceiptExists(
+                                data_folder_,
                                 pTransaction->GetRealNotaryID(),
                                 pTransaction->GetNymID(),
                                 pTransaction->GetRealAccountID(),  // If Nymbox
@@ -2360,8 +2375,6 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return 0;
 }
 
-Ledger::~Ledger() { Release_Ledger(); }
-
 void Ledger::ReleaseTransactions()
 {
     // If there were any dynamically allocated objects, clean them up here.
@@ -2384,4 +2397,5 @@ void Ledger::Release()
                           // now...
 }
 
+Ledger::~Ledger() { Release_Ledger(); }
 }  // namespace opentxs

@@ -40,80 +40,35 @@ typedef std::deque<Armored*> dequeOfTokens;
 
 class Purse : public Contract
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef Contract ot_super;
-
-protected:
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the Purse saves its contents
-
-    dequeOfTokens m_dequeTokens;
-
-    // TODO: Add a boolean value, so that the NymID is either for a real user,
-    // or is for a temp Nym which must be ATTACHED to the purse, if that boolean
-    // is set to true.
-
-    OTIdentifier m_NymID;                   // Optional
-    OTIdentifier m_NotaryID;                // Mandatory
-    OTIdentifier m_InstrumentDefinitionID;  // Mandatory
-    std::int64_t m_lTotalValue{0};  // Push increments this by denomination, and
-                                    // Pop decrements it by denomination.
-    bool m_bPasswordProtected{false};  // this purse might be encrypted to a
-                                       // passphrase, instead of a Nym.
-    // If that's the case, BTW, then there will be a Symmetric Key and a Master
-    // Key. The symmetric key is used to store the actual key for
-    // encrypting/decrypting the tokens in this purse. Whereas the master key is
-    // used for retrieving the passphrase to use for unlocking the symmetric
-    // key. The passphrase in question is actually a random number stored inside
-    // the master key, inside its own internal symmetric key. In order to unlock
-    // it, OTCachedKey may occasionally ask the user to enter a passphrase,
-    // which is used to derived a key to unlock it. This key may then be cached
-    // in memory by OTCachedKey until a timeout, and later be zapped by a thread
-    // for that purpose.
-    bool m_bIsNymIDIncluded{false};  // It's possible to use a purse WITHOUT
-                                     // attaching the relevant NymID. (The
-                                     // holder of the purse just has to "know"
-                                     // what the correct NymID is, or it won't
-                                     // work.) This bool tells us whether the ID
-                                     // is attached, or not.
-    OTLegacySymmetricKey m_pSymmetricKey{
-        crypto::key::LegacySymmetric::Blank()};  // If this purse
-                                                 // contains its own
-    // symmetric key (instead of using an
-    // owner Nym)...
-    // ...then it will have a master key as well, for unlocking that symmetric
-    // key, and managing timeouts, etc.
-    std::shared_ptr<OTCachedKey> m_pCachedKey;
-    time64_t m_tLatestValidFrom{0};  // The tokens in the purse may become valid
-                                     // on different dates. This stores the
-                                     // latest one.
-    time64_t m_tEarliestValidTo{0};  // The tokens in the purse may have
-                                     // different expirations. This stores the
-                                     // earliest one.
-    void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
-    Purse();  // private
-
 public:
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID in advance. I decided to add a factory for OTPurse to
     // facilitate that.
-    EXPORT static Purse* PurseFactory(String strInput);
     EXPORT static Purse* PurseFactory(
+        const std::string& dataFolder,
+        String strInput);
+    EXPORT static Purse* PurseFactory(
+        const std::string& dataFolder,
         String strInput,
         const Identifier& NOTARY_ID);
     EXPORT static Purse* PurseFactory(
+        const std::string& dataFolder,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT static Purse* LowLevelInstantiate(const String& strFirstLine);
     EXPORT static Purse* LowLevelInstantiate(
+        const std::string& dataFolder,
+        const String& strFirstLine);
+    EXPORT static Purse* LowLevelInstantiate(
+        const std::string& dataFolder,
         const String& strFirstLine,
         const Identifier& NOTARY_ID);
     EXPORT static Purse* LowLevelInstantiate(
+        const std::string& dataFolder,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
+
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     /// What if you DON'T want to encrypt the purse to your Nym?? What if you
     /// just want to use a passphrase instead? That's what these functions are
@@ -164,21 +119,6 @@ public:
         OTNym_or_SymmetricKey theOldNym,
         OTNym_or_SymmetricKey theNewNym,
         Purse& theNewPurse);
-    /** just for copy another purse's Server and Instrument Definition Id */
-    EXPORT Purse(const Purse& thePurse);
-    /** similar thing */
-    EXPORT Purse(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    /** Don't use this unless you really don't know the instrument definition
-     * (Like if you're about to read it out of a string.) */
-    EXPORT explicit Purse(const Identifier& NOTARY_ID);
-    /** Normally you really really want to set the instrument definition. */
-    EXPORT Purse(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& NYM_ID);  // NymID optional
-    EXPORT virtual ~Purse();
     EXPORT bool LoadPurse(
         const char* szNotaryID = nullptr,
         const char* szNymID = nullptr,
@@ -199,6 +139,81 @@ public:
     void Release() override;
     EXPORT void Release_Purse();
     EXPORT void ReleaseTokens();
+
+    /** just for copy another purse's Server and Instrument Definition Id */
+    EXPORT Purse(const std::string& dataFolder, const Purse& thePurse);
+    /** similar thing */
+    EXPORT Purse(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    /** Don't use this unless you really don't know the instrument definition
+     * (Like if you're about to read it out of a string.) */
+    EXPORT Purse(const std::string& dataFolder, const Identifier& NOTARY_ID);
+    /** Normally you really really want to set the instrument definition. */
+    EXPORT Purse(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& NYM_ID);  // NymID optional
+
+    EXPORT virtual ~Purse();
+
+protected:
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this
+                                     // is where the Purse saves its contents
+
+    dequeOfTokens m_dequeTokens;
+
+    // TODO: Add a boolean value, so that the NymID is either for a real user,
+    // or is for a temp Nym which must be ATTACHED to the purse, if that boolean
+    // is set to true.
+
+    OTIdentifier m_NymID;                   // Optional
+    OTIdentifier m_NotaryID;                // Mandatory
+    OTIdentifier m_InstrumentDefinitionID;  // Mandatory
+    std::int64_t m_lTotalValue{0};  // Push increments this by denomination, and
+                                    // Pop decrements it by denomination.
+    bool m_bPasswordProtected{false};  // this purse might be encrypted to a
+                                       // passphrase, instead of a Nym.
+    // If that's the case, BTW, then there will be a Symmetric Key and a Master
+    // Key. The symmetric key is used to store the actual key for
+    // encrypting/decrypting the tokens in this purse. Whereas the master key is
+    // used for retrieving the passphrase to use for unlocking the symmetric
+    // key. The passphrase in question is actually a random number stored inside
+    // the master key, inside its own internal symmetric key. In order to unlock
+    // it, OTCachedKey may occasionally ask the user to enter a passphrase,
+    // which is used to derived a key to unlock it. This key may then be cached
+    // in memory by OTCachedKey until a timeout, and later be zapped by a thread
+    // for that purpose.
+    bool m_bIsNymIDIncluded{false};  // It's possible to use a purse WITHOUT
+                                     // attaching the relevant NymID. (The
+                                     // holder of the purse just has to "know"
+                                     // what the correct NymID is, or it won't
+                                     // work.) This bool tells us whether the ID
+                                     // is attached, or not.
+    OTLegacySymmetricKey m_pSymmetricKey{
+        crypto::key::LegacySymmetric::Blank()};  // If this purse
+                                                 // contains its own
+    // symmetric key (instead of using an
+    // owner Nym)...
+    // ...then it will have a master key as well, for unlocking that symmetric
+    // key, and managing timeouts, etc.
+    std::shared_ptr<OTCachedKey> m_pCachedKey;
+    time64_t m_tLatestValidFrom{0};  // The tokens in the purse may become valid
+                                     // on different dates. This stores the
+                                     // latest one.
+    time64_t m_tEarliestValidTo{0};  // The tokens in the purse may have
+                                     // different expirations. This stores the
+                                     // earliest one.
+    void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
+    Purse(const std::string& dataFolder);  // private
+
+private:
+    typedef Contract ot_super;
+
+    Purse() = delete;
 };
 }  // namespace opentxs
 #endif  // OT_CASH

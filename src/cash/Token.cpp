@@ -39,7 +39,6 @@
 
 namespace opentxs
 {
-
 // The current implementation for withdrawals (using Lucre) requires only a
 // single proto-token
 // to be sent, signed, and returned. Only the ID of the token is blinded.
@@ -65,6 +64,58 @@ namespace opentxs
 // of them.
 // (more prototokens == more resource cost, but more security.)
 const std::int32_t Token__nMinimumPrototokenCount = 1;
+
+Token::Token(const std::string& dataFolder)
+    : Instrument(dataFolder)
+    , m_bPasswordProtected(false)
+    , m_lDenomination(0)
+    , m_nTokenCount(0)
+    , m_nChosenIndex(0)
+    , m_nSeries(0)
+    , m_State(blankToken)
+    , m_bSavePrivateKeys(false)
+{
+    InitToken();
+}
+
+Token::Token(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
+    : Instrument(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_bPasswordProtected(false)
+    , m_lDenomination(0)
+    , m_nTokenCount(0)
+    , m_nChosenIndex(0)
+    , m_nSeries(0)
+    , m_State(blankToken)
+    , m_bSavePrivateKeys(false)
+{
+    InitToken();
+
+    // m_NotaryID and m_InstrumentDefinitionID are now in the parent class
+    // (OTInstrument)
+    // So they are initialized there now.
+}
+
+Token::Token(const std::string& dataFolder, const Purse& thePurse)
+    : Instrument(dataFolder)
+    , m_bPasswordProtected(false)
+    , m_lDenomination(0)
+    , m_nTokenCount(0)
+    , m_nChosenIndex(0)
+    , m_nSeries(0)
+    , m_State(blankToken)
+    , m_bSavePrivateKeys(false)
+{
+    InitToken();
+
+    // These are in the parent class, OTInstrument.
+    // I set them here because the "Purse" argument only exists
+    // in this subclass constructor, not the base.
+    m_NotaryID = thePurse.GetNotaryID();
+    m_InstrumentDefinitionID = thePurse.GetInstrumentDefinitionID();
+}
 
 std::int32_t Token::GetMinimumPrototokenCount()
 {
@@ -95,73 +146,7 @@ std::int32_t Token::GetMinimumPrototokenCount()
 
 void Token::InitToken()
 {
-    //    m_lDenomination    = 0;
-    //    m_nTokenCount    = 0;
-    //    m_nChosenIndex    = 0;
-    //    m_nSeries        = 0;
-    //    m_State            = blankToken;
-    //    m_bSavePrivateKeys = false;
-
     m_strContractType.Set("CASH TOKEN");  // todo internationalization.
-}
-
-Token::Token()
-    : Instrument()
-    , m_bPasswordProtected(false)
-    , m_lDenomination(0)
-    , m_nTokenCount(0)
-    , m_nChosenIndex(0)
-    , m_nSeries(0)
-    , m_State(blankToken)
-    , m_bSavePrivateKeys(false)
-{
-    InitToken();
-}
-
-// std::int64_t                m_lDenomination;
-// std::int32_t                m_nTokenCount;
-// std::int32_t                m_nChosenIndex;
-// std::int32_t                m_nSeries;
-// tokenState        m_State;
-// bool                m_bSavePrivateKeys; // Determines whether it serializes
-// private keys 1 time (yes if true)
-
-Token::Token(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-    : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
-    , m_bPasswordProtected(false)
-    , m_lDenomination(0)
-    , m_nTokenCount(0)
-    , m_nChosenIndex(0)
-    , m_nSeries(0)
-    , m_State(blankToken)
-    , m_bSavePrivateKeys(false)
-{
-    InitToken();
-
-    // m_NotaryID and m_InstrumentDefinitionID are now in the parent class
-    // (OTInstrument)
-    // So they are initialized there now.
-}
-
-Token::Token(const Purse& thePurse)
-    : Instrument()
-    , m_bPasswordProtected(false)
-    , m_lDenomination(0)
-    , m_nTokenCount(0)
-    , m_nChosenIndex(0)
-    , m_nSeries(0)
-    , m_State(blankToken)
-    , m_bSavePrivateKeys(false)
-{
-    InitToken();
-
-    // These are in the parent class, OTInstrument.
-    // I set them here because the "Purse" argument only exists
-    // in this subclass constructor, not the base.
-    m_NotaryID = thePurse.GetNotaryID();
-    m_InstrumentDefinitionID = thePurse.GetInstrumentDefinitionID();
 }
 
 void Token::Release_Token()
@@ -181,22 +166,6 @@ void Token::Release()
 
     Instrument::Release();  // since I've overridden the base class, I call it
                             // now...
-}
-
-Token::~Token()
-{
-    Release_Token();
-
-    m_bPasswordProtected = false;
-
-    // todo: optimization (probably just remove these here.)
-    m_lDenomination = 0;
-    //    m_nTokenCount    = 0;  // this happens in ReleasePrototokens. (Called
-    // by Release_Token above.)
-    m_nChosenIndex = 0;
-    m_nSeries = 0;
-    m_State = blankToken;
-    m_bSavePrivateKeys = false;
 }
 
 void Token::ReleasePrototokens()
@@ -230,6 +199,7 @@ void Token::ReleasePrototokens()
 // static -- class factory.
 //
 Token* Token::LowLevelInstantiate(
+    const std::string& dataFolder,
     const String& strFirstLine,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
@@ -240,20 +210,23 @@ Token* Token::LowLevelInstantiate(
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
                                                                // 27 chars long.
     {
-        pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pToken =
+            new Token_Lucre(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
-        pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pToken =
+            new Token_Lucre(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
                                                                 // is
     // 39 chars long.
     {
-        pToken = new Token_Lucre(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pToken =
+            new Token_Lucre(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
 #else
@@ -275,20 +248,20 @@ Token* Token::LowLevelInstantiate(
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
                                                                // 27 chars long.
     {
-        pToken = new Token_Lucre(thePurse);
+        pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
-        pToken = new Token_Lucre(thePurse);
+        pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
                                                                 // is
     // 39 chars long.
     {
-        pToken = new Token_Lucre(thePurse);
+        pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
         OT_ASSERT(nullptr != pToken);
     }
 #else
@@ -305,7 +278,7 @@ Token* Token::LowLevelInstantiate(const Purse& thePurse)
     Token* pToken = nullptr;
 
 #if OT_CASH_USING_LUCRE
-    pToken = new Token_Lucre(thePurse);
+    pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
     OT_ASSERT(nullptr != pToken);
 #else
     otErr << __FUNCTION__
@@ -316,7 +289,9 @@ Token* Token::LowLevelInstantiate(const Purse& thePurse)
     return pToken;
 }
 
-Token* Token::LowLevelInstantiate(const String& strFirstLine)
+Token* Token::LowLevelInstantiate(
+    const std::string& dataFolder,
+    const String& strFirstLine)
 {
     Token* pToken = nullptr;
 
@@ -324,20 +299,26 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
                                                                // 27 chars long.
     {
-        pToken = new Token_Lucre;
+        pToken = new Token_Lucre{
+            dataFolder,
+        };
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
-        pToken = new Token_Lucre;
+        pToken = new Token_Lucre{
+            dataFolder,
+        };
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
                                                                 // is
     // 39 chars long.
     {
-        pToken = new Token_Lucre;
+        pToken = new Token_Lucre{
+            dataFolder,
+        };
         OT_ASSERT(nullptr != pToken);
     }
 #else
@@ -352,19 +333,18 @@ Token* Token::LowLevelInstantiate(const String& strFirstLine)
 // static -- class factory.
 //
 Token* Token::TokenFactory(
+    const std::string& dataFolder,
     String strInput,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
 {
-    //  const char * szFunc = "Token::TokenFactory";
-
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         Token* pToken = Token::LowLevelInstantiate(
-            strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+            dataFolder, strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pToken) return nullptr;
@@ -381,8 +361,6 @@ Token* Token::TokenFactory(
 
 Token* Token::TokenFactory(String strInput, const Purse& thePurse)
 {
-    //  const char * szFunc = "Token::TokenFactory";
-
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
@@ -403,16 +381,14 @@ Token* Token::TokenFactory(String strInput, const Purse& thePurse)
     return nullptr;
 }
 
-Token* Token::TokenFactory(String strInput)
+Token* Token::TokenFactory(const std::string& dataFolder, String strInput)
 {
-    //  const char * szFunc = "Token::TokenFactory";
-
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Token* pToken = Token::LowLevelInstantiate(strFirstLine);
+        Token* pToken = Token::LowLevelInstantiate(dataFolder, strFirstLine);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pToken) return nullptr;
@@ -458,7 +434,11 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
         "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
-        OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
+        data_folder_,
+        OTFolders::Spent().Get(),
+        strAssetFolder.Get(),
+        strTokenHash.Get(),
+        "");
 
     if (bTokenIsPresent) {
         otOut << "\nToken::IsTokenAlreadySpent: Token was already spent: "
@@ -493,7 +473,11 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
     // See if the spent token file ALREADY EXISTS...
     bool bTokenIsPresent = OTDB::Exists(
-        OTFolders::Spent().Get(), strAssetFolder.Get(), strTokenHash.Get());
+        data_folder_,
+        OTFolders::Spent().Get(),
+        strAssetFolder.Get(),
+        strTokenHash.Get(),
+        "");
 
     // If so, we're trying to record a token that was already recorded...
     if (bTokenIsPresent) {
@@ -524,9 +508,11 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
     const bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
+        data_folder_,
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
-        strTokenHash.Get());
+        strTokenHash.Get(),
+        "");
     if (!bSaved) {
         otErr << "Token::RecordTokenAsSpent: Error saving file: "
               << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
@@ -1106,4 +1092,19 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
 // Todo:  Someday...
 #endif  // Magic Money
 
+Token::~Token()
+{
+    Release_Token();
+
+    m_bPasswordProtected = false;
+
+    // todo: optimization (probably just remove these here.)
+    m_lDenomination = 0;
+    //    m_nTokenCount    = 0;  // this happens in ReleasePrototokens. (Called
+    // by Release_Token above.)
+    m_nChosenIndex = 0;
+    m_nSeries = 0;
+    m_State = blankToken;
+    m_bSavePrivateKeys = false;
+}
 }  // namespace opentxs

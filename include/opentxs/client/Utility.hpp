@@ -44,10 +44,6 @@ EXPORT std::int32_t VerifyMsgTrnxSuccess(
 
 typedef std::array<bool, 4> OTfourbool;
 
-class OT_API;
-class ServerContext;
-class ZMQ;
-
 class Utility
 {
 public:
@@ -55,7 +51,10 @@ public:
     std::int32_t delay_ms{};
     std::int32_t max_trans_dl{};
 
-    EXPORT Utility(ServerContext& context, const OT_API& otapi);
+    EXPORT Utility(
+        ServerContext& context,
+        const OT_API& otapi,
+        const api::Legacy& legacy);
 
     EXPORT void delay() const;
     EXPORT std::int32_t getAndProcessNymbox_3(
@@ -146,9 +145,10 @@ public:
 
     EXPORT ~Utility() = default;
 
-private:
+protected:
     ServerContext& context_;
     const OT_API& otapi_;
+    const api::Legacy& legacy_;
 
     Utility() = delete;
     Utility(const Utility&) = delete;

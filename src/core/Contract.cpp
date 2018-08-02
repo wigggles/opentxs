@@ -106,17 +106,19 @@ void Contract::SetIdentifier(const Identifier& theID)
     m_ID = Identifier::Factory(theID);
 }
 
-Contract::Contract()
-    : Contract("", "", "", "")
+Contract::Contract(const std::string& dataFolder)
+    : Contract(dataFolder, "", "", "", "")
 {
 }
 
 Contract::Contract(
+    const std::string& dataFolder,
     const String& name,
     const String& foldername,
     const String& filename,
     const String& strID)
-    : m_strName(name)
+    : data_folder_(dataFolder)
+    , m_strName(name)
     , m_strFoldername(foldername)
     , m_strFilename(filename)
     , m_ID(Identifier::Factory(strID))
@@ -134,13 +136,13 @@ Contract::Contract(
 {
 }
 
-Contract::Contract(const String& strID)
-    : Contract("", "", "", strID)
+Contract::Contract(const std::string& dataFolder, const String& strID)
+    : Contract(dataFolder, "", "", "", strID)
 {
 }
 
-Contract::Contract(const Identifier& theID)
-    : Contract(String(theID))
+Contract::Contract(const std::string& dataFolder, const Identifier& theID)
+    : Contract(dataFolder, String(theID))
 {
 }
 
@@ -1036,8 +1038,8 @@ bool Contract::WriteContract(
         return false;
     }
 
-    const bool bSaved =
-        OTDB::StorePlainString(strFinal.Get(), folder, filename);
+    const bool bSaved = OTDB::StorePlainString(
+        strFinal.Get(), data_folder_, folder, filename, "", "");
 
     if (!bSaved) {
         otErr << OT_METHOD << __FUNCTION__ << "Error saving file: " << folder
@@ -1074,15 +1076,17 @@ bool Contract::LoadContractRawFile()
 
     if (!m_strFoldername.Exists() || !m_strFilename.Exists()) return false;
 
-    if (!OTDB::Exists(szFoldername, szFilename)) {
+    if (!OTDB::Exists(data_folder_, szFoldername, szFilename, "", "")) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
-    String strFileContents(
-        OTDB::QueryPlainString(szFoldername, szFilename));  // <=== LOADING FROM
-                                                            // DATA STORE.
+    String strFileContents(OTDB::QueryPlainString(
+        data_folder_, szFoldername, szFilename, "", ""));  // <===
+                                                           // LOADING
+                                                           // FROM DATA
+                                                           // STORE.
 
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file: " << szFoldername

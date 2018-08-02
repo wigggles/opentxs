@@ -91,6 +91,7 @@ private:
     };
 
     Server& server_;
+    const opentxs::api::Legacy& legacy_;
     const opentxs::api::Settings& config_;
     const opentxs::api::Server& mint_;
     const opentxs::api::client::Wallet& wallet_;
@@ -184,8 +185,9 @@ private:
     bool verify_transaction(const OTTransaction* transaction, const Nym& signer)
         const;
 
-    explicit UserCommandProcessor(
+    UserCommandProcessor(
         Server& server,
+        const opentxs::api::Legacy& legacy,
         const opentxs::api::Settings& config,
         const opentxs::api::Server& mint,
         const opentxs::api::client::Wallet& wallet);

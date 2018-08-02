@@ -35,12 +35,6 @@ typedef std::list<Item*> listOfItems;
 // not the item. A transaction contains a list of items.
 class Item : public OTTransactionType
 {
-private:  // Private prevents erroneous use by other classes.
-    typedef OTTransactionType ot_super;
-
-    friend OTTransactionType* OTTransactionType::TransactionFactory(
-        String strInput);
-
 public:
     enum itemType {
         // TRANSFER
@@ -212,48 +206,6 @@ public:
         error_status  // error status versus error state
     };
 
-protected:
-    // DESTINATION ACCOUNT for transfers. NOT the account holder.
-    OTIdentifier m_AcctToID;
-    // For balance, or fee, etc. Only an item can actually have an amount. (Or a
-    // "TO" account.)
-    Amount m_lAmount{0};
-    // Sometimes an item needs to have a list of yet more items. Like balance
-    // statements have a list of inbox items. (Just the relevant data, not all
-    // the attachments and everything.)
-    listOfItems m_listItems;
-    // the item type. Could be a transfer, a fee, a balance or client
-    // accept/rejecting an item
-    itemType m_Type{error_state};
-    // request, acknowledgment, or rejection.
-    itemStatus m_Status{error_status};
-    // Used for balance agreement. The user puts transaction "1" in his outbox
-    // when doing a transfer, since he has no idea what # will actually be
-    // issued on the server side after he sends his message. Let's say the
-    // server issues # 34, and puts that in the outbox. It thus sets this member
-    // to 34, and it is understood that 1 in the client request corresponds to
-    // 34 on this member variable in the reply.  Only one transfer can be done
-    // at a time. In cases where verifying a balance receipt and you come across
-    // transaction #1 in the outbox, simply look up this variable on the
-    // server's portion of the reply and then look up that number instead.
-    TransactionNumber m_lNewOutboxTransNum{0};
-    // Used in balance agreement (to represent an inbox item)
-    TransactionNumber m_lClosingTransactionNo{0};
-
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    // Before transmission or serialization, this is where the ledger saves its
-    // contents
-    void UpdateContents() override;
-
-    // There is the OTTransaction transfer, which is a transaction type, and
-    // there is also the OTItem transfer, which is an item type. They are
-    // related. Every transaction has a list of items, and these perform the
-    // transaction. A transaction trying to TRANSFER would have these items:
-    // transfer, serverfee, balance, and possibly outboxhash.
-    Item();
-
-public:
     // For "OTItem::acceptTransaction" -- the blank contains a list of blank
     // numbers,
     // therefore the "accept" must contain the same list. Otherwise you haven't
@@ -357,10 +309,10 @@ public:
         m_AcctToID = theID;
     }
     EXPORT static Item* CreateItemFromString(
+        const std::string& dataFolder,
         const String& strItem,
         const Identifier& theNotaryID,
         std::int64_t lTransactionNumber);
-
     EXPORT static Item* CreateItemFromTransaction(
         const OTTransaction& theOwner,
         Item::itemType theType,
@@ -372,26 +324,77 @@ public:
     {
         GetStringFromType(GetType(), strType);
     }
+    void InitItem();
+
     Item(
+        const std::string& dataFolder,
         const Identifier& theNymID,
         const Item& theOwner);  // From owner we can get acct ID, server ID,
                                 // and transaction Num
     Item(
+        const std::string& dataFolder,
         const Identifier& theNymID,
         const OTTransaction& theOwner);  // From owner we can get acct ID,
                                          // server ID, and transaction Num
     Item(
+        const std::string& dataFolder,
         const Identifier& theNymID,
         const OTTransaction& theOwner,
         Item::itemType theType,
         const Identifier& pDestinationAcctID);
 
     virtual ~Item();
-    //    OTItem& operator=(const OTItem& rhs);
-    void InitItem();
 
-private:
+protected:
+    // DESTINATION ACCOUNT for transfers. NOT the account holder.
+    OTIdentifier m_AcctToID;
+    // For balance, or fee, etc. Only an item can actually have an amount. (Or a
+    // "TO" account.)
+    Amount m_lAmount{0};
+    // Sometimes an item needs to have a list of yet more items. Like balance
+    // statements have a list of inbox items. (Just the relevant data, not all
+    // the attachments and everything.)
+    listOfItems m_listItems;
+    // the item type. Could be a transfer, a fee, a balance or client
+    // accept/rejecting an item
+    itemType m_Type{error_state};
+    // request, acknowledgment, or rejection.
+    itemStatus m_Status{error_status};
+    // Used for balance agreement. The user puts transaction "1" in his outbox
+    // when doing a transfer, since he has no idea what # will actually be
+    // issued on the server side after he sends his message. Let's say the
+    // server issues # 34, and puts that in the outbox. It thus sets this member
+    // to 34, and it is understood that 1 in the client request corresponds to
+    // 34 on this member variable in the reply.  Only one transfer can be done
+    // at a time. In cases where verifying a balance receipt and you come across
+    // transaction #1 in the outbox, simply look up this variable on the
+    // server's portion of the reply and then look up that number instead.
+    TransactionNumber m_lNewOutboxTransNum{0};
+    // Used in balance agreement (to represent an inbox item)
+    TransactionNumber m_lClosingTransactionNo{0};
+
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    // Before transmission or serialization, this is where the ledger saves its
+    // contents
+    void UpdateContents() override;
+
+    // There is the OTTransaction transfer, which is a transaction type, and
+    // there is also the OTItem transfer, which is an item type. They are
+    // related. Every transaction has a list of items, and these perform the
+    // transaction. A transaction trying to TRANSFER would have these items:
+    // transfer, serverfee, balance, and possibly outboxhash.
+    Item(const std::string& dataFolder);
+
+private:  // Private prevents erroneous use by other classes.
+    typedef OTTransactionType ot_super;
+
+    friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const std::string& dataFolder,
+        String strInput);
+
     Item::itemType GetItemTypeFromString(const String& strType);
+    Item() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTITEM_HPP

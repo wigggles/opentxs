@@ -307,34 +307,6 @@ bool Armored::LoadFromExactPath(const std::string& filename)
     return LoadFrom_ifstream(fin);
 }
 
-// This code reads up the file, discards the bookends, and saves only the
-// gibberish itself.
-bool Armored::LoadFromFile(const String& foldername, const String& filename)
-{
-    OT_ASSERT(foldername.Exists());
-    OT_ASSERT(filename.Exists());
-
-    if (!OTDB::Exists(foldername.Get(), filename.Get())) {
-        otErr << "Armored::LoadFromFile: File does not exist: " << foldername
-              << "" << Log::PathSeparator() << "" << filename << "\n";
-        return false;
-    }
-
-    String strFileContents(
-        OTDB::QueryPlainString(foldername.Get(), filename.Get()));  // <===
-                                                                    // LOADING
-                                                                    // FROM DATA
-                                                                    // STORE.
-
-    if (strFileContents.GetLength() < 2) {
-        otErr << "Armored::LoadFromFile: Error reading file: " << foldername
-              << Log::PathSeparator() << filename << "\n";
-        return false;
-    }
-
-    return LoadFromString(strFileContents);
-}
-
 bool Armored::LoadFromString(
     String& theStr,  // input
     bool bEscaped,
@@ -541,44 +513,6 @@ bool Armored::SetString(const String& strData, bool bLineBreaks)  //=true
     Set(pString.data(), pString.size());
 
     return true;
-}
-
-bool Armored::WriteArmoredFile(
-    const String& foldername,
-    const String& filename,
-    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
-    std::string str_type,  // There's no default, to force you to enter the
-                           // right
-                           // string.
-    bool bEscaped) const
-{
-    OT_ASSERT(foldername.Exists());
-    OT_ASSERT(filename.Exists());
-
-    String strOutput;
-
-    if (WriteArmoredString(strOutput, str_type, bEscaped) &&
-        strOutput.Exists()) {
-        // WRITE IT TO THE FILE
-        // StorePlainString will attempt to create all the folders leading up to
-        // the path
-        // for the output file.
-        //
-        bool bSaved = OTDB::StorePlainString(
-            strOutput.Get(), foldername.Get(), filename.Get());
-
-        if (!bSaved) {
-            otErr << "Armored::WriteArmoredFile"
-                  << ": Failed saving to file: %s%s%s\n\n Contents:\n\n"
-                  << strOutput << "\n\n",
-                foldername.Get(), Log::PathSeparator(), filename.Get();
-            return false;
-        }
-
-        return true;
-    }
-
-    return false;
 }
 
 bool Armored::WriteArmoredString(

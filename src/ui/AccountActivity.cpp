@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -52,6 +53,7 @@ ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
     const api::client::Workflow& workflow,
     const api::ContactManager& contact,
     const api::storage::Storage& storage,
+    const api::Legacy& legacy,
     const Identifier& nymID,
     const Identifier& accountID)
 {
@@ -63,6 +65,7 @@ ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
         workflow,
         contact,
         storage,
+        legacy,
         nymID,
         accountID);
 }
@@ -85,6 +88,7 @@ AccountActivity::AccountActivity(
     const api::client::Workflow& workflow,
     const api::ContactManager& contact,
     const api::storage::Storage& storage,
+    const api::Legacy& legacy,
     const Identifier& nymID,
     const Identifier& accountID)
     : AccountActivityList(nymID, zmq, publisher, contact)
@@ -92,6 +96,7 @@ AccountActivity::AccountActivity(
     , wallet_(wallet)
     , workflow_(workflow)
     , storage_(storage)
+    , legacy_(legacy)
     , balance_(0)
     , account_id_(accountID)
     , contract_(nullptr)
@@ -122,6 +127,7 @@ void AccountActivity::construct_row(
             custom,
             sync_,
             wallet_,
+            legacy_,
             nym_id_,
             account_id_));
     names_.emplace(id, index);
@@ -328,7 +334,7 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
 
 void AccountActivity::startup()
 {
-    auto account = wallet_.Account(account_id_);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), account_id_);
 
     if (account) {
         balance_.store(account.get().GetBalance());

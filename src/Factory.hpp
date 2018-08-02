@@ -20,6 +20,7 @@ public:
         const api::client::Workflow& workflow,
         const api::ContactManager& contact,
         const api::storage::Storage& storage,
+        const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);
     static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
@@ -29,6 +30,7 @@ public:
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
         const api::ContactManager& contact,
+        const api::Legacy& legacy,
         const Identifier& nymID,
         const proto::ContactItemType currency);
     static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
@@ -41,6 +43,12 @@ public:
         const ui::implementation::CustomData& custom,
         const api::client::Wallet& wallet,
         const api::storage::Storage& storage);
+    static api::client::internal::Activity* Activity(
+        const api::Legacy& legacy,
+        const api::ContactManager& contact,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet,
+        const network::zeromq::Context& zmq);
     static ui::implementation::ActivitySummaryExternalInterface*
     ActivitySummary(
         const network::zeromq::Context& zmq,
@@ -75,6 +83,7 @@ public:
         const api::ContactManager& contacts,
         const api::Crypto& crypto,
         const api::Identity& identity,
+        const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zmq);
@@ -88,6 +97,7 @@ public:
         const ui::implementation::CustomData& custom,
         const api::client::Sync& sync,
         const api::client::Wallet& wallet,
+        const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);
     static api::Blockchain* Blockchain(
@@ -95,7 +105,7 @@ public:
         const api::Crypto& crypto,
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet);
-    static api::client::Cash* Cash();
+    static api::client::Cash* Cash(const api::Legacy& legacy);
     static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -172,7 +182,9 @@ public:
         const ui::implementation::CustomData& custom,
         const api::client::Wallet& wallet,
         const api::storage::Storage& storage,
+        const api::Legacy& legacy,
         const proto::ContactItemType currency);
+    static api::Legacy* Legacy(const std::string& key);
     static ui::implementation::ActivityThreadRowInternal* MailItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
@@ -201,7 +213,7 @@ public:
         const api::ContactManager& contact,
         const api::client::Sync& sync,
         const Identifier& nymID);
-    static api::NativeInternal* Native(
+    static api::internal::Native* Native(
         Flag& running,
         const ArgList& args,
         const bool recover,
@@ -209,12 +221,17 @@ public:
         const std::chrono::seconds gcInterval,
         OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();
+    static internal::NymFile* NymFile(
+        std::shared_ptr<const Nym> targetNym,
+        std::shared_ptr<const Nym> signerNym,
+        const std::string& dataFolder);
     static crypto::OpenSSL* OpenSSL();
     static api::client::Pair* Pair(
         const Flag& running,
         const api::client::Sync& sync,
         const api::client::ServerAction& action,
         const api::client::Wallet& wallet,
+        const api::Legacy& legacy,
         const OT_API& otapi,
         const OTAPI_Exec& exec,
         const network::zeromq::Context& context);
@@ -293,7 +310,17 @@ public:
         const OTAPI_Exec& exec,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
+        const api::Legacy& legacy,
         const ContextLockCallback& lockCallback);
+    static api::Server* ServerAPI(
+        const ArgList& args,
+        const api::Crypto& crypto,
+        const api::Legacy& legacy,
+        const api::Settings& config,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet,
+        const Flag& running,
+        const network::zeromq::Context& context);
     static api::Settings* Settings();
     static api::Settings* Settings(const String& path);
     static crypto::Sodium* Sodium();
@@ -313,6 +340,7 @@ public:
         const api::ContactManager& contacts,
         const api::Settings& config,
         const api::Api& api,
+        const api::Legacy& legacy,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
@@ -328,6 +356,7 @@ public:
         const api::storage::Storage& storage,
         const api::Activity& activity,
         const api::ContactManager& contact,
+        const api::Legacy& legacy,
         const network::zeromq::Context& zmq,
         const Flag& running);
     static api::client::Wallet* Wallet(
@@ -336,6 +365,7 @@ public:
     static api::client::Workflow* Workflow(
         const api::Activity& activity,
         const api::ContactManager& contact,
+        const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq);
 };

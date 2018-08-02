@@ -5,38 +5,59 @@
 
 #include "stdafx.hpp"
 
-#include "Activity.hpp"
-
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Types.hpp"
 
+#include "InternalClient.hpp"
+
+#include <map>
+#include <mutex>
 #include <thread>
+
+#include "Activity.hpp"
 
 #define OT_METHOD "opentxs::api::implementation::Activity::"
 
-template class opentxs::Pimpl<opentxs::PaymentCode>;
+namespace opentxs
+{
+api::client::internal::Activity* Factory::Activity(
+    const api::Legacy& legacy,
+    const api::ContactManager& contact,
+    const api::storage::Storage& storage,
+    const api::client::Wallet& wallet,
+    const network::zeromq::Context& zmq)
+{
+    return new api::client::implementation::Activity(
+        legacy, contact, storage, wallet, zmq);
+}
+}  // namespace opentxs
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
 Activity::Activity(
+    const Legacy& legacy,
     const ContactManager& contact,
     const storage::Storage& storage,
     const client::Wallet& wallet,
     const opentxs::network::zeromq::Context& zmq)
-    : contact_(contact)
+    : legacy_(legacy)
+    , contact_(contact)
     , storage_(storage)
     , wallet_(wallet)
     , zmq_(zmq)
@@ -172,7 +193,8 @@ Activity::ChequeData Activity::Cheque(
 
     OT_ASSERT(workflow)
 
-    auto instantiated = client::Workflow::InstantiateCheque(*workflow);
+    auto instantiated = client::Workflow::InstantiateCheque(
+        legacy_.ClientDataFolder(), *workflow);
     cheque.reset(std::get<1>(instantiated).release());
 
     OT_ASSERT(cheque)
@@ -254,7 +276,7 @@ std::unique_ptr<Message> Activity::Mail(
         return output;
     }
 
-    output.reset(new Message);
+    output.reset(new Message{legacy_.ClientDataFolder()});
 
     OT_ASSERT(output);
 
@@ -727,4 +749,4 @@ std::size_t Activity::UnreadCount(const Identifier& nymId) const
 
     return output;
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation

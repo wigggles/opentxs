@@ -21,26 +21,13 @@ typedef std::int32_t INTERNAL_PASSWORD_CALLBACK(
 }
 }  // namespace
 
-namespace opentxs::api
+namespace opentxs::api::internal
 {
-class NativeInternal : virtual public Native
-{
-public:
+struct Native : virtual public api::Native {
     virtual INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const = 0;
     virtual OTCaller& GetPasswordCaller() const = 0;
     virtual void Init() = 0;
     virtual void shutdown() = 0;
-
-    virtual ~NativeInternal() = default;
-
-protected:
-    NativeInternal() = default;
-
-private:
-    NativeInternal(const NativeInternal&) = delete;
-    NativeInternal(NativeInternal&&) = delete;
-    NativeInternal& operator=(const NativeInternal&) = delete;
-    NativeInternal& operator=(NativeInternal&&) = delete;
 };
-}  // namespace opentxs::api
+}  // namespace opentxs::api::internal
 #endif  // OPENTXS_CORE_API_NATIVEINTERNAL_HPP

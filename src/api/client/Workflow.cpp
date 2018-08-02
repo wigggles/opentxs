@@ -5,10 +5,11 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -42,11 +43,12 @@ namespace opentxs
 api::client::Workflow* Factory::Workflow(
     const api::Activity& activity,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const network::zeromq::Context& zmq)
 {
     return new api::client::implementation::Workflow(
-        activity, contact, storage, zmq);
+        activity, contact, legacy, storage, zmq);
 }
 }  // namespace opentxs
 
@@ -89,6 +91,7 @@ std::string Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
 }
 
 Workflow::Cheque Workflow::InstantiateCheque(
+    const std::string& dataFolder,
     const proto::PaymentWorkflow& workflow)
 {
     Cheque output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
@@ -99,7 +102,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            cheque.reset(new opentxs::Cheque);
+            cheque.reset(new opentxs::Cheque{dataFolder});
 
             OT_ASSERT(cheque)
 
@@ -135,10 +138,12 @@ namespace implementation
 Workflow::Workflow(
     const api::Activity& activity,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const storage::Storage& storage,
     const opentxs::network::zeromq::Context& zmq)
     : activity_(activity)
     , contact_(contact)
+    , legacy_(legacy)
     , storage_(storage)
     , zmq_(zmq)
     , account_publisher_(zmq.PublishSocket())
@@ -839,7 +844,7 @@ Workflow::Cheque Workflow::LoadCheque(
         return {};
     }
 
-    return InstantiateCheque(*workflow);
+    return InstantiateCheque(legacy_.ClientDataFolder(), *workflow);
 }
 
 Workflow::Cheque Workflow::LoadChequeByWorkflow(
@@ -859,7 +864,7 @@ Workflow::Cheque Workflow::LoadChequeByWorkflow(
         return {};
     }
 
-    return InstantiateCheque(*workflow);
+    return InstantiateCheque(legacy_.ClientDataFolder(), *workflow);
 }
 
 std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(

@@ -40,19 +40,23 @@ using namespace io;
 
 namespace opentxs
 {
-AccountList::AccountList()
+AccountList::AccountList(const std::string& dataFolder)
     : wallet_(OT::App().Wallet())
     , acctType_(Account::voucher)
+    , data_folder_(dataFolder)
+    , mapAcctIDs_{}
 {
 }
 
-AccountList::AccountList(Account::AccountType acctType)
+AccountList::AccountList(
+    const std::string& dataFolder,
+    Account::AccountType acctType)
     : wallet_(OT::App().Wallet())
     , acctType_(acctType)
+    , data_folder_(dataFolder)
+    , mapAcctIDs_{}
 {
 }
-
-AccountList::~AccountList() { Release_AcctList(); }
 
 void AccountList::Serialize(Tag& parent) const
 {
@@ -184,7 +188,8 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
         const auto& accountID = acctIDsIt->second;
-        account = wallet_.mutable_Account(Identifier::Factory(accountID));
+        account = wallet_.mutable_Account(
+            data_folder_, Identifier::Factory(accountID));
 
         if (account) {
             otLog3 << OT_METHOD << __FUNCTION__ << "Successfully loaded "
@@ -199,6 +204,7 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     // Not found. There's no account ID yet for that instrument definition ID.
     // That means we can create it.
     account = wallet_.CreateAccount(
+        data_folder_,
         accountOwnerId,
         notaryID,
         instrumentDefinitionID,
@@ -225,4 +231,6 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
 
     return account;
 }
+
+AccountList::~AccountList() { Release_AcctList(); }
 }  // namespace opentxs

@@ -9,11 +9,11 @@ add_subdirectory(network)
 add_subdirectory(storage)
 
 set(cxx-sources
-  Activity.cpp
   Api.cpp
   Blockchain.cpp
   ContactManager.cpp
   Identity.cpp
+  Legacy.cpp
   Native.cpp
   Server.cpp
   Settings.cpp
@@ -26,11 +26,11 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Activity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Api.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Blockchain.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ContactManager.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Identity.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/NativeInternal.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp

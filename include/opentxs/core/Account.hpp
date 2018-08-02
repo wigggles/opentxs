@@ -100,6 +100,7 @@ private:
     friend OTWallet;
     friend opentxs::api::client::implementation::Wallet;
     friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const std::string& dataFolder,
         String input);
 
     AccountType acctType_{err_acct};
@@ -121,6 +122,7 @@ private:
     OTIdentifier outboxHash_;
 
     static Account* GenerateNewAccount(
+        const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& notaryID,
         const Nym& serverNym,
@@ -131,6 +133,7 @@ private:
     // Let's say you don't have or know the NymID, and you just want to load
     // the damn thing up. Then call this function. It will set nymID for you.
     static Account* LoadExistingAccount(
+        const std::string& dataFolder,
         const Identifier& accountId,
         const Identifier& notaryID);
 
@@ -164,16 +167,22 @@ private:
     void UpdateContents() override;
 
     Account(
+        const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID,
         const String& name);
     Account(
+        const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID);
-    Account(const Identifier& nymID, const Identifier& notaryID);
-    Account();
+    Account(
+        const std::string& dataFolder,
+        const Identifier& nymID,
+        const Identifier& notaryID);
+    Account(const std::string& dataFolder);
+    Account() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTACCOUNT_HPP

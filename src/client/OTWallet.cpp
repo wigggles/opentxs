@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
@@ -19,7 +20,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -57,10 +57,12 @@ namespace opentxs
 
 OTWallet::OTWallet(
     const api::Crypto& crypto,
+    const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::storage::Storage& storage)
     : Lockable()
     , crypto_(crypto)
+    , legacy_(legacy)
     , wallet_(wallet)
     , storage_(storage)
 #if OT_CASH
@@ -69,7 +71,7 @@ OTWallet::OTWallet(
     , m_strName()
     , m_strVersion()
     , m_strFilename()
-    , m_strDataFolder(OTDataFolder::Get())
+    , m_strDataFolder(legacy_.ClientDataFolder())
 {
 }
 
@@ -200,7 +202,8 @@ void OTWallet::DisplayStatistics(String& strOutput) const
 
     for (const auto& it : storage_.AccountList()) {
         const auto& accountID = it.first;
-        const auto account = wallet_.Account(Identifier::Factory(accountID));
+        const auto account = wallet_.Account(
+            legacy_.ClientDataFolder(), Identifier::Factory(accountID));
         account.get().DisplayStatistics(strOutput);
         strOutput.Concatenate(
             "-------------------------------------------------\n\n");
@@ -300,8 +303,12 @@ bool OTWallet::save_wallet(const Lock& lock, const char* szFilename)
         // of that.
         bSuccess = OTDB::StorePlainString(
             strFinal.Get(),
+            legacy_.ClientDataFolder(),
             ".",
-            m_strFilename.Get());  // <==== Store Plain String
+            m_strFilename.Get(),
+            "",
+            "");  // <==== Store
+                  // Plain String
     }
 
     return bSuccess;
@@ -353,7 +360,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         szFilename = m_strFilename.Get();  // (We know existing string is there,
                                            // in this case.)
 
-    if (!OTDB::Exists(".", szFilename)) {
+    if (!OTDB::Exists(legacy_.ClientDataFolder(), ".", szFilename, "", "")) {
         otErr << __FUNCTION__ << ": Wallet file does not exist: " << szFilename
               << ". Creating...\n";
 
@@ -361,18 +368,25 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                  "\n"
                                  "</wallet>\n";
 
-        if (!OTDB::StorePlainString(szContents, ".", szFilename)) {
+        if (!OTDB::StorePlainString(
+                szContents,
+                legacy_.ClientDataFolder(),
+                ".",
+                szFilename,
+                "",
+                "")) {
             otErr << __FUNCTION__
                   << ": Error: Unable to create blank wallet file.\n";
             OT_FAIL;
         }
     }
 
-    String strFileContents(OTDB::QueryPlainString(".", szFilename));  // <===
-                                                                      // LOADING
-                                                                      // FROM
-                                                                      // DATA
-                                                                      // STORE.
+    String strFileContents(OTDB::QueryPlainString(
+        legacy_.ClientDataFolder(), ".", szFilename, "", ""));  // <===
+                                                                // LOADING
+                                                                // FROM
+                                                                // DATA
+                                                                // STORE.
 
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading wallet file: " << szFilename
@@ -483,11 +497,14 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                    NOTARY_ID = Identifier::Factory(NotaryID);
                         std::unique_ptr<Account> pAccount(
                             Account::LoadExistingAccount(
-                                ACCOUNT_ID, NOTARY_ID));
+                                legacy_.ClientDataFolder(),
+                                ACCOUNT_ID,
+                                NOTARY_ID));
 
                         if (pAccount) {
                             pAccount->SetName(AcctName);
-                            wallet_.ImportAccount(pAccount);
+                            wallet_.ImportAccount(
+                                legacy_.ClientDataFolder(), pAccount);
                         } else {
                             otErr
                                 << __FUNCTION__

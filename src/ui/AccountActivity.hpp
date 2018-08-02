@@ -56,6 +56,7 @@ private:
     const api::client::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::storage::Storage& storage_;
+    const api::Legacy& legacy_;
     mutable std::atomic<Amount> balance_{0};
     const OTIdentifier account_id_;
     std::shared_ptr<const UnitDefinition> contract_{nullptr};
@@ -86,6 +87,7 @@ private:
         const api::client::Workflow& workflow,
         const api::ContactManager& contact,
         const api::storage::Storage& storage,
+        const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);
     AccountActivity() = delete;

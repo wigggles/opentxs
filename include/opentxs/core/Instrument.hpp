@@ -19,12 +19,6 @@ namespace opentxs
 class Instrument : public OTScriptable
 {
 public:
-    EXPORT Instrument();
-    EXPORT Instrument(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT virtual ~Instrument();
-
     EXPORT void Release() override;
 
     void Release_Instrument();
@@ -43,7 +37,17 @@ public:
     inline const Identifier& GetNotaryID() const { return m_NotaryID; }
     void InitInstrument();
 
+    EXPORT virtual ~Instrument();
+
 protected:
+    OTIdentifier m_InstrumentDefinitionID;
+    OTIdentifier m_NotaryID;
+    // Expiration Date (valid from/to date)
+    // The date, in seconds, when the instrument is valid FROM.
+    time64_t m_VALID_FROM{0};
+    // The date, in seconds, when the instrument expires.
+    time64_t m_VALID_TO{0};
+
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     inline void SetValidFrom(time64_t TIME_FROM) { m_VALID_FROM = TIME_FROM; }
@@ -58,14 +62,14 @@ protected:
         m_NotaryID = NOTARY_ID;
     }
 
-protected:
-    OTIdentifier m_InstrumentDefinitionID;
-    OTIdentifier m_NotaryID;
-    // Expiration Date (valid from/to date)
-    // The date, in seconds, when the instrument is valid FROM.
-    time64_t m_VALID_FROM{0};
-    // The date, in seconds, when the instrument expires.
-    time64_t m_VALID_TO{0};
+    Instrument(const std::string& dataFolder);
+    Instrument(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+
+private:
+    Instrument() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTINSTRUMENT_HPP

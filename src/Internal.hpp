@@ -20,6 +20,11 @@ namespace implementation
 {
 class Wallet;
 }  // namespace implementation
+
+namespace internal
+{
+struct Activity;
+}  // namespace internal
 }  // namespace client
 
 namespace implementation
@@ -41,12 +46,15 @@ class ZMQ;
 }  // namespace implementation
 }  // namespace network
 
+namespace internal
+{
+struct Native;
+}  // namespace internal
+
 namespace storage
 {
 class StorageInternal;
 }  // namespace storage
-
-class NativeInternal;
 }  // namespace api
 
 namespace crypto
@@ -56,6 +64,11 @@ namespace implementation
 class OpenSSL;
 }  // namespace implementation
 }  // namespace crypto
+
+namespace internal
+{
+struct NymFile;
+}  // namespace internal
 
 namespace network
 {

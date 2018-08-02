@@ -403,7 +403,7 @@ bool OTCachedKey::GetMasterPassword(
         // it here...
         bool bGenerated = key_->IsGenerated();
         const auto& native =
-            dynamic_cast<const api::NativeInternal&>(OT::App());
+            dynamic_cast<const api::internal::Native&>(OT::App());
         auto* pPasswordCallback = native.GetInternalPasswordCallback();
 
         OT_ASSERT(nullptr != pPasswordCallback)

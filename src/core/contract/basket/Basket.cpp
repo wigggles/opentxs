@@ -71,6 +71,26 @@
 
 namespace opentxs
 {
+Basket::Basket(
+    const std::string& dataFolder,
+    std::int32_t nCount,
+    std::int64_t lMinimumTransferAmount)
+    : Contract(dataFolder)
+    , m_nSubCount(nCount)
+    , m_lMinimumTransfer(lMinimumTransferAmount)
+    , m_nTransferMultiple(0)
+    , m_RequestAccountID(Identifier::Factory())
+    , m_dequeItems()
+    , m_bHideAccountID(false)
+    , m_bExchangingIn(false)
+    , m_lClosingTransactionNo(0)
+{
+}
+
+Basket::Basket(const std::string& dataFolder)
+    : Basket(dataFolder, 0, 0)
+{
+}
 
 void Basket::HarvestClosingNumbers(
     ServerContext& context,
@@ -339,34 +359,6 @@ void Basket::CalculateContractID(Identifier& newID) const
     newID.CalculateDigest(xmlUnsigned);
 }
 
-Basket::Basket(std::int32_t nCount, std::int64_t lMinimumTransferAmount)
-    : Contract()
-    , m_nSubCount(nCount)
-    , m_lMinimumTransfer(lMinimumTransferAmount)
-    , m_nTransferMultiple(0)
-    , m_RequestAccountID(Identifier::Factory())
-    , m_dequeItems()
-    , m_bHideAccountID(false)
-    , m_bExchangingIn(false)
-    , m_lClosingTransactionNo(0)
-{
-}
-
-Basket::Basket()
-    : Contract()
-    , m_nSubCount(0)
-    , m_lMinimumTransfer(0)
-    , m_nTransferMultiple(0)
-    , m_RequestAccountID(Identifier::Factory())
-    , m_dequeItems()
-    , m_bHideAccountID(false)
-    , m_bExchangingIn(false)
-    , m_lClosingTransactionNo(0)
-{
-}
-
-Basket::~Basket() { Release_Basket(); }
-
 void Basket::Release_Basket()
 {
     m_RequestAccountID->Release();
@@ -392,4 +384,5 @@ void Basket::Release()
     Contract::Release();
 }
 
+Basket::~Basket() { Release_Basket(); }
 }  // namespace opentxs

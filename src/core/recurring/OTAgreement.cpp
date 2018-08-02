@@ -41,6 +41,55 @@
 
 namespace opentxs
 {
+OTAgreement::OTAgreement(const std::string& dataFolder)
+    : ot_super(dataFolder)
+    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_strConsideration()
+    , m_strMerchantSignedCopy()
+    , m_dequeRecipientClosingNumbers()
+{
+    InitAgreement();
+}
+
+OTAgreement::OTAgreement(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_strConsideration()
+    , m_strMerchantSignedCopy()
+    , m_dequeRecipientClosingNumbers()
+{
+    InitAgreement();
+}
+
+OTAgreement::OTAgreement(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& SENDER_ACCT_ID,
+    const Identifier& SENDER_NYM_ID,
+    const Identifier& RECIPIENT_ACCT_ID,
+    const Identifier& RECIPIENT_NYM_ID)
+    : ot_super(
+          dataFolder,
+          NOTARY_ID,
+          INSTRUMENT_DEFINITION_ID,
+          SENDER_ACCT_ID,
+          SENDER_NYM_ID)
+    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
+    , m_RECIPIENT_NYM_ID(Identifier::Factory())
+    , m_strConsideration()
+    , m_strMerchantSignedCopy()
+    , m_dequeRecipientClosingNumbers()
+{
+    InitAgreement();
+    SetRecipientAcctID(RECIPIENT_ACCT_ID);
+    SetRecipientNymID(RECIPIENT_NYM_ID);
+}
 
 void OTAgreement::setCustomerNymId(const Identifier& NYM_ID)
 {
@@ -48,6 +97,7 @@ void OTAgreement::setCustomerNymId(const Identifier& NYM_ID)
 }
 
 bool OTAgreement::SendNoticeToAllParties(
+    const std::string& dataFolder,
     bool bSuccessMsg,
     const Nym& theServerNym,
     const Identifier& theNotaryID,
@@ -63,6 +113,7 @@ bool OTAgreement::SendNoticeToAllParties(
 
     // Sender
     if (!OTAgreement::DropServerNoticeToNymbox(
+            dataFolder,
             bSuccessMsg,  // "success" notice? or "failure" notice?
             theServerNym,
             theNotaryID,
@@ -80,6 +131,7 @@ bool OTAgreement::SendNoticeToAllParties(
 
     // Recipient
     if (!OTAgreement::DropServerNoticeToNymbox(
+            dataFolder,
             bSuccessMsg,  // "success" notice? or "failure" notice?
             theServerNym,
             theNotaryID,
@@ -100,6 +152,7 @@ bool OTAgreement::SendNoticeToAllParties(
 // Used by payment plans and smart contracts. Nym receives an
 // OTItem::acknowledgment or OTItem::rejection.
 bool OTAgreement::DropServerNoticeToNymbox(
+    const std::string& dataFolder,
     bool bSuccessMsg,
     const Nym& theServerNym,
     const Identifier& NOTARY_ID,
@@ -112,7 +165,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     String* pstrAttachment,
     const Identifier& actualNymID)
 {
-    Ledger theLedger(NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theLedger(dataFolder, NYM_ID, NYM_ID, NOTARY_ID);
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theLedger.LoadNymbox();
 
@@ -1023,55 +1076,6 @@ bool OTAgreement::Confirm(
     return true;
 }
 
-OTAgreement::OTAgreement()
-    : ot_super()
-    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
-    , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_strConsideration()
-    , m_strMerchantSignedCopy()
-    , m_dequeRecipientClosingNumbers()
-{
-    InitAgreement();
-}
-
-OTAgreement::OTAgreement(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
-    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
-    , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_strConsideration()
-    , m_strMerchantSignedCopy()
-    , m_dequeRecipientClosingNumbers()
-{
-    InitAgreement();
-}
-
-OTAgreement::OTAgreement(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& SENDER_ACCT_ID,
-    const Identifier& SENDER_NYM_ID,
-    const Identifier& RECIPIENT_ACCT_ID,
-    const Identifier& RECIPIENT_NYM_ID)
-    : ot_super(
-          NOTARY_ID,
-          INSTRUMENT_DEFINITION_ID,
-          SENDER_ACCT_ID,
-          SENDER_NYM_ID)
-    , m_RECIPIENT_ACCT_ID(Identifier::Factory())
-    , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_strConsideration()
-    , m_strMerchantSignedCopy()
-    , m_dequeRecipientClosingNumbers()
-{
-    InitAgreement();
-    SetRecipientAcctID(RECIPIENT_ACCT_ID);
-    SetRecipientNymID(RECIPIENT_NYM_ID);
-}
-
-OTAgreement::~OTAgreement() { Release_Agreement(); }
-
 void OTAgreement::InitAgreement() { m_strContractType = "AGREEMENT"; }
 
 void OTAgreement::Release_Agreement()
@@ -1233,4 +1237,5 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     return nReturnVal;
 }
 
+OTAgreement::~OTAgreement() { Release_Agreement(); }
 }  // namespace opentxs

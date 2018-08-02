@@ -21,7 +21,7 @@ namespace opentxs::api::implementation
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
  */
-class Native : virtual public opentxs::api::NativeInternal
+class Native : virtual public api::internal::Native
 {
 public:
     const api::Activity& Activity() const override;
@@ -37,6 +37,7 @@ public:
     const api::network::Dht& DHT() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
     const api::Identity& Identity() const override;
+    const api::Legacy& Legacy() const override;
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */
     void Schedule(
@@ -81,7 +82,7 @@ private:
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
-    std::unique_ptr<api::Activity> activity_;
+    std::unique_ptr<api::client::internal::Activity> activity_;
     std::unique_ptr<api::Api> api_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::Blockchain> blockchain_;
@@ -91,6 +92,7 @@ private:
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::network::Dht> dht_;
     std::unique_ptr<api::Identity> identity_;
+    std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
     std::unique_ptr<api::client::Wallet> wallet_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
@@ -139,6 +141,7 @@ private:
     void Init_Crypto();
     void Init_Dht();
     void Init_Identity();
+    void Init_Legacy();
     void Init_Log();
     void Init_Periodic();
     void Init_Server();

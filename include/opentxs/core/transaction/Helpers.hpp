@@ -44,6 +44,7 @@ std::int32_t LoadAbbreviatedRecord(
     NumList* pNumList = nullptr);
 
 EXPORT bool VerifyBoxReceiptExists(
+    const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& NYM_ID,
     const Identifier& ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then

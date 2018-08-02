@@ -31,7 +31,7 @@ namespace opentxs
 class OTMessageOutbuffer : Lockable
 {
 public:
-    EXPORT OTMessageOutbuffer();
+    EXPORT OTMessageOutbuffer(const api::Legacy& legacy);
 
     EXPORT void Clear(
         const String& notaryID,
@@ -65,9 +65,11 @@ public:
 private:
     typedef std::multimap<std::int64_t, Message*> mapOfMessages;
 
+    const api::Legacy& legacy_;
     mapOfMessages messagesMap_{};
     String dataFolder_{};
 
+    OTMessageOutbuffer() = delete;
     OTMessageOutbuffer(const OTMessageOutbuffer&);
     OTMessageOutbuffer& operator=(const OTMessageOutbuffer&);
 };

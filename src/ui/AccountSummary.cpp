@@ -52,11 +52,20 @@ ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const Identifier& nymID,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::AccountSummary(
-        zmq, publisher, wallet, connection, storage, contact, nymID, currency);
+        zmq,
+        publisher,
+        wallet,
+        connection,
+        storage,
+        contact,
+        legacy,
+        nymID,
+        currency);
 }
 }  // namespace opentxs
 
@@ -80,12 +89,14 @@ AccountSummary::AccountSummary(
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::ContactManager& contact,
+    const api::Legacy& legacy,
     const Identifier& nymID,
     const proto::ContactItemType currency)
     : AccountSummaryList(nymID, zmq, publisher, contact)
     , wallet_{wallet}
     , connection_{connection}
     , storage_{storage}
+    , legacy_{legacy}
     , currency_{currency}
     , issuers_{}
     , server_issuer_map_{}
@@ -115,6 +126,7 @@ void AccountSummary::construct_row(
             custom,
             wallet_,
             storage_,
+            legacy_,
             currency_));
     names_.emplace(id, index);
 }

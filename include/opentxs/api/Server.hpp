@@ -20,30 +20,32 @@ namespace api
 class Server
 {
 public:
-    virtual const std::string GetCommandPort() const = 0;
-    virtual const std::string GetDefaultBindIP() const = 0;
-    virtual const std::string GetEEP() const = 0;
-    virtual const std::string GetExternalIP() const = 0;
-    virtual const std::string GetListenCommand() const = 0;
-    virtual const std::string GetListenNotify() const = 0;
-    virtual const std::string GetOnion() const = 0;
+    EXPORT virtual const std::string GetCommandPort() const = 0;
+    EXPORT virtual const std::string GetDefaultBindIP() const = 0;
+    EXPORT virtual const std::string GetEEP() const = 0;
+    EXPORT virtual const std::string GetExternalIP() const = 0;
+    EXPORT virtual const std::string GetListenCommand() const = 0;
+    EXPORT virtual const std::string GetListenNotify() const = 0;
+    EXPORT virtual const std::string GetOnion() const = 0;
 #if OT_CASH
-    virtual std::shared_ptr<Mint> GetPrivateMint(
+    EXPORT virtual std::shared_ptr<Mint> GetPrivateMint(
         const Identifier& unitid,
         std::uint32_t series) const = 0;
-    virtual std::shared_ptr<const Mint> GetPublicMint(
+    EXPORT virtual std::shared_ptr<const Mint> GetPublicMint(
         const Identifier& unitID) const = 0;
 #endif  // OT_CASH
-    virtual const std::string GetUserName() const = 0;
-    virtual const std::string GetUserTerms() const = 0;
-    virtual const Identifier& ID() const = 0;
-    virtual const Identifier& NymID() const = 0;
+    EXPORT virtual const std::string GetUserName() const = 0;
+    EXPORT virtual const std::string GetUserTerms() const = 0;
+    EXPORT virtual const Identifier& ID() const = 0;
+    EXPORT virtual const Identifier& NymID() const = 0;
 #if OT_CASH
-    virtual void ScanMints() const = 0;
-    virtual void UpdateMint(const Identifier& unitID) const = 0;
+    EXPORT virtual void ScanMints() const = 0;
+    EXPORT virtual void UpdateMint(const Identifier& unitID) const = 0;
 #endif  // OT_CASH
 
-    virtual ~Server() = default;
+    EXPORT virtual void Start() = 0;
+
+    EXPORT virtual ~Server() = default;
 
 protected:
     Server() = default;

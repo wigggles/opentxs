@@ -7,12 +7,14 @@
 
 #include "opentxs/core/OTStorage.hpp"
 
-#include "opentxs/core/util/OTDataFolder.hpp"
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStoragePB.hpp"
+#include "opentxs/OT.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -423,6 +425,7 @@ Storable* CreateObject(StoredObjectType eType)
 // Check that if oneStr is "", then twoStr and threeStr are "" also... and so
 // on...
 bool CheckStringsExistInOrder(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -434,23 +437,28 @@ bool CheckStringsExistInOrder(
     String ot_strFolder(strFolder), ot_oneStr(oneStr), ot_twoStr(twoStr),
         ot_threeStr(threeStr);
 
-    if (ot_strFolder.Exists()) {
-        if (!ot_oneStr.Exists()) {
-            if ((!ot_twoStr.Exists()) && (!ot_threeStr.Exists())) {
-            } else {
+    if (String(dataFolder).Exists()) {
+        if (ot_strFolder.Exists()) {
+            if (!ot_oneStr.Exists()) {
+                if ((!ot_twoStr.Exists()) && (!ot_threeStr.Exists())) {
+                } else {
+                    otErr << szFuncName
+                          << ": ot_twoStr or ot_threeStr exist, when "
+                             "ot_oneStr doesn't exist! \n";
+                    OT_FAIL;
+                }
+            } else if ((!ot_twoStr.Exists()) && (ot_threeStr.Exists())) {
                 otErr << szFuncName
                       << ": ot_twoStr or ot_threeStr exist, when "
                          "ot_oneStr doesn't exist! \n";
                 OT_FAIL;
             }
-        } else if ((!ot_twoStr.Exists()) && (ot_threeStr.Exists())) {
-            otErr << szFuncName
-                  << ": ot_twoStr or ot_threeStr exist, when "
-                     "ot_oneStr doesn't exist! \n";
+        } else {
+            otErr << szFuncName << ": ot_strFolder must always exist!\n";
             OT_FAIL;
         }
     } else {
-        otErr << szFuncName << ": ot_strFolder must always exist!\n";
+        otErr << szFuncName << ": dataFolder must always exist!\n";
         OT_FAIL;
     }
     return true;
@@ -458,6 +466,7 @@ bool CheckStringsExistInOrder(
 
 // See if the file is there.
 bool Exists(
+    const std::string& dataFolder,
     std::string strFolder,
     std::string oneStr,
     std::string twoStr,
@@ -486,11 +495,12 @@ bool Exists(
         return false;
     }
 
-    return pStorage->Exists(strFolder, oneStr, twoStr, threeStr);
+    return pStorage->Exists(dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
 std::int64_t FormPathString(
     std::string& strOutput,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -518,13 +528,19 @@ std::int64_t FormPathString(
     }
 
     return pStorage->FormPathString(
-        strOutput, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        strOutput,
+        dataFolder,
+        ot_strFolder.Get(),
+        ot_oneStr.Get(),
+        twoStr,
+        threeStr);
 }
 
 // Store/Retrieve a string.
 
 bool StoreString(
     const std::string& strContents,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -548,10 +564,16 @@ bool StoreString(
     if (nullptr == pStorage) { return false; }
 
     return pStorage->StoreString(
-        strContents, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        strContents,
+        dataFolder,
+        ot_strFolder.Get(),
+        ot_oneStr.Get(),
+        twoStr,
+        threeStr);
 }
 
 std::string QueryString(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -561,7 +583,7 @@ std::string QueryString(
         ot_threeStr(threeStr);
 
     if (!CheckStringsExistInOrder(
-            strFolder, oneStr, twoStr, threeStr, __FUNCTION__))
+            dataFolder, strFolder, oneStr, twoStr, threeStr, __FUNCTION__))
         return std::string("");
 
     if (!ot_oneStr.Exists()) {
@@ -577,13 +599,14 @@ std::string QueryString(
     if (nullptr == pStorage) return std::string("");
 
     return pStorage->QueryString(
-        ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        dataFolder, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
 }
 
 // Store/Retrieve a plain string.
 
 bool StorePlainString(
     const std::string& strContents,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -609,10 +632,16 @@ bool StorePlainString(
     if (nullptr == pStorage) { return false; }
 
     return pStorage->StorePlainString(
-        strContents, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        strContents,
+        dataFolder,
+        ot_strFolder.Get(),
+        ot_oneStr.Get(),
+        twoStr,
+        threeStr);
 }
 
 std::string QueryPlainString(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -639,13 +668,14 @@ std::string QueryPlainString(
     if (nullptr == pStorage) { return std::string(""); }
 
     return pStorage->QueryPlainString(
-        ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        dataFolder, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
 }
 
 // Store/Retrieve an object. (Storable.)
 
 bool StoreObject(
     Storable& theContents,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -671,12 +701,18 @@ bool StoreObject(
     }
 
     return pStorage->StoreObject(
-        theContents, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        theContents,
+        dataFolder,
+        ot_strFolder.Get(),
+        ot_oneStr.Get(),
+        twoStr,
+        threeStr);
 }
 
 // Use %newobject Storage::Query();
 Storable* QueryObject(
     const StoredObjectType theObjectType,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -700,7 +736,12 @@ Storable* QueryObject(
     if (nullptr == pStorage) { return nullptr; }
 
     return pStorage->QueryObject(
-        theObjectType, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        theObjectType,
+        dataFolder,
+        ot_strFolder.Get(),
+        ot_oneStr.Get(),
+        twoStr,
+        threeStr);
 }
 
 // Store/Retrieve a Storable object to/from an Armored object.
@@ -731,6 +772,7 @@ Storable* DecodeObject(
 // Erase a value by location.
 
 bool EraseValueByKey(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -744,7 +786,8 @@ bool EraseValueByKey(
         return false;
     }
 
-    return pStorage->EraseValueByKey(strFolder, oneStr, twoStr, threeStr);
+    return pStorage->EraseValueByKey(
+        dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
 // Used internally. Creates the right subclass for any stored object type,
@@ -2113,6 +2156,7 @@ StorageType Storage::GetType() const
 
 bool Storage::StoreString(
     const std::string& strContents,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2140,7 +2184,12 @@ bool Storage::StoreString(
     if (nullptr == pBuffer) return false;
 
     const bool bSuccess = onStorePackedBuffer(
-        *pBuffer, ot_strFolder.Get(), ot_oneStr.Get(), twoStr, threeStr);
+        *pBuffer,
+        dataFolder,
+        ot_strFolder.Get(),
+        ot_oneStr.Get(),
+        twoStr,
+        threeStr);
 
     // Don't want any leaks here, do we?
     delete pBuffer;
@@ -2150,6 +2199,7 @@ bool Storage::StoreString(
 }
 
 std::string Storage::QueryString(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2167,8 +2217,8 @@ std::string Storage::QueryString(
 
     // Below this point, responsible for pBuffer.
 
-    bool bSuccess =
-        onQueryPackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
+    bool bSuccess = onQueryPackedBuffer(
+        *pBuffer, dataFolder, strFolder, oneStr, twoStr, threeStr);
 
     if (!bSuccess) {
         delete pBuffer;
@@ -2200,15 +2250,18 @@ std::string Storage::QueryString(
 
 bool Storage::StorePlainString(
     const std::string& strContents,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
     const std::string& threeStr)
 {
-    return onStorePlainString(strContents, strFolder, oneStr, twoStr, threeStr);
+    return onStorePlainString(
+        strContents, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
 std::string Storage::QueryPlainString(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2216,7 +2269,8 @@ std::string Storage::QueryPlainString(
 {
     std::string theString("");
 
-    if (!onQueryPlainString(theString, strFolder, oneStr, twoStr, threeStr))
+    if (!onQueryPlainString(
+            theString, dataFolder, strFolder, oneStr, twoStr, threeStr))
         theString = "";
 
     return theString;
@@ -2224,6 +2278,7 @@ std::string Storage::QueryPlainString(
 
 bool Storage::StoreObject(
     Storable& theContents,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2243,8 +2298,8 @@ bool Storage::StoreObject(
         return false;
     }
 
-    bool bSuccess =
-        onStorePackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
+    bool bSuccess = onStorePackedBuffer(
+        *pBuffer, dataFolder, strFolder, oneStr, twoStr, threeStr);
 
     if (!bSuccess) {
         otErr << "Storing failed in Storage::StoreObject (calling "
@@ -2262,6 +2317,7 @@ bool Storage::StoreObject(
 //
 Storable* Storage::QueryObject(
     const StoredObjectType& theObjectType,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2286,8 +2342,8 @@ Storable* Storage::QueryObject(
 
     // Below this point, responsible for pBuffer AND pStorable.
 
-    bool bSuccess =
-        onQueryPackedBuffer(*pBuffer, strFolder, oneStr, twoStr, threeStr);
+    bool bSuccess = onQueryPackedBuffer(
+        *pBuffer, dataFolder, strFolder, oneStr, twoStr, threeStr);
 
     if (!bSuccess) {
         delete pBuffer;
@@ -2417,12 +2473,14 @@ Storable* Storage::DecodeObject(
 }
 
 bool Storage::EraseValueByKey(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
     const std::string& threeStr)
 {
-    bool bSuccess = onEraseValueByKey(strFolder, oneStr, twoStr, threeStr);
+    bool bSuccess =
+        onEraseValueByKey(dataFolder, strFolder, oneStr, twoStr, threeStr);
 
     if (!bSuccess)
         otErr << "Storage::EraseValueByKey: Failed trying to erase a value "
@@ -2461,10 +2519,13 @@ bool StorageFS::ConfirmOrCreateFolder(const char* szFolderName, struct stat*)
 // Returns true or false whether a specific file exists.
 // Adds the main path prior to checking.
 //
-bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
+bool StorageFS::ConfirmFile(
+    const std::string& dataFolder,
+    const char* szFileName,
+    struct stat*)
 {
     String strFilePath("");
-    OTPaths::AppendFile(strFilePath, String(m_strDataPath), String(szFileName));
+    OTPaths::AppendFile(strFilePath, String(dataFolder), String(szFileName));
     return OTPaths::PathExists(strFilePath);
 }
 
@@ -2485,35 +2546,38 @@ bool StorageFS::ConfirmFile(const char* szFileName, struct stat*)
  */
 std::int64_t StorageFS::ConstructAndCreatePath(
     std::string& strOutput,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
     const std::string& threeStr)
 {
     return ConstructAndConfirmPathImp(
-        true, strOutput, strFolder, oneStr, twoStr, threeStr);
+        true, strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
 std::int64_t StorageFS::ConstructAndConfirmPath(
     std::string& strOutput,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
     const std::string& threeStr)
 {
     return ConstructAndConfirmPathImp(
-        false, strOutput, strFolder, oneStr, twoStr, threeStr);
+        false, strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
 
 std::int64_t StorageFS::ConstructAndConfirmPathImp(
     const bool bMakePath,
     std::string& strOutput,
+    const std::string& dataFolder,
     const std::string& zeroStr,
     const std::string& oneStr,
     const std::string& twoStr,
     const std::string& threeStr)
 {
-    const std::string strRoot(m_strDataPath.c_str());
+    const std::string strRoot(dataFolder.c_str());
     const std::string strZero(3 > zeroStr.length() ? "" : zeroStr);
     const std::string strOne(3 > oneStr.length() ? "" : oneStr);
     const std::string strTwo(3 > twoStr.length() ? "" : twoStr);
@@ -2636,6 +2700,7 @@ ot_exit_block:
 
 bool StorageFS::onStorePackedBuffer(
     PackedBuffer& theBuffer,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2644,7 +2709,7 @@ bool StorageFS::onStorePackedBuffer(
     std::string strOutput;
 
     if (0 > ConstructAndCreatePath(
-                strOutput, strFolder, oneStr, twoStr, threeStr)) {
+                strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr)) {
         otErr << __FUNCTION__ << ": Error writing to " << strOutput << ".\n";
         return false;
     }
@@ -2673,6 +2738,7 @@ bool StorageFS::onStorePackedBuffer(
 
 bool StorageFS::onQueryPackedBuffer(
     PackedBuffer& theBuffer,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2680,8 +2746,8 @@ bool StorageFS::onQueryPackedBuffer(
 {
     std::string strOutput;
 
-    std::int64_t lRet =
-        ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr);
+    std::int64_t lRet = ConstructAndConfirmPath(
+        strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);
 
     if (0 > lRet) {
         otErr << "StorageFS::" << __FUNCTION__ << ": Error with " << strOutput
@@ -2713,6 +2779,7 @@ bool StorageFS::onQueryPackedBuffer(
 
 bool StorageFS::onStorePlainString(
     const std::string& theBuffer,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2721,7 +2788,7 @@ bool StorageFS::onStorePlainString(
     std::string strOutput;
 
     if (0 > ConstructAndCreatePath(
-                strOutput, strFolder, oneStr, twoStr, threeStr)) {
+                strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr)) {
         otErr << "StorageFS::" << __FUNCTION__ << ": Error writing to "
               << strOutput << ".\n";
         return false;
@@ -2758,6 +2825,7 @@ bool StorageFS::onStorePlainString(
 
 bool StorageFS::onQueryPlainString(
     std::string& theBuffer,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2765,8 +2833,8 @@ bool StorageFS::onQueryPlainString(
 {
     std::string strOutput;
 
-    std::int64_t lRet =
-        ConstructAndConfirmPath(strOutput, strFolder, oneStr, twoStr, threeStr);
+    std::int64_t lRet = ConstructAndConfirmPath(
+        strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);
 
     if (0 > lRet) {
         otErr << "StorageFS::" << __FUNCTION__ << ": Error with " << strOutput
@@ -2811,6 +2879,7 @@ bool StorageFS::onQueryPlainString(
 // Erase a value by location.
 //
 bool StorageFS::onEraseValueByKey(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2819,7 +2888,7 @@ bool StorageFS::onEraseValueByKey(
     std::string strOutput;
 
     if (0 > ConstructAndConfirmPath(
-                strOutput, strFolder, oneStr, twoStr, threeStr)) {
+                strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr)) {
         otErr << "Error: " << __FUNCTION__
               << ": Failed calling ConstructAndConfirmPath with:\n"
                  "strOutput: "
@@ -2877,9 +2946,6 @@ bool StorageFS::onEraseValueByKey(
 StorageFS::StorageFS()
     : Storage()
 {
-    String strDataPath;
-    OTDataFolder::Get(strDataPath);
-    m_strDataPath = strDataPath.Get();
 }
 
 StorageFS::~StorageFS() {}
@@ -2887,6 +2953,7 @@ StorageFS::~StorageFS() {}
 // See if the file is there.
 
 bool StorageFS::Exists(
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
@@ -2896,22 +2963,21 @@ bool StorageFS::Exists(
 
     return (
         0 < ConstructAndConfirmPath(
-                strOutput, strFolder, oneStr, twoStr, threeStr));
+                strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr));
 }
 
 // Returns path size, plus path in strOutput.
 //
 std::int64_t StorageFS::FormPathString(
     std::string& strOutput,
+    const std::string& dataFolder,
     const std::string& strFolder,
     const std::string& oneStr,
     const std::string& twoStr,
     const std::string& threeStr)
 {
     return ConstructAndConfirmPath(
-        strOutput, strFolder, oneStr, twoStr, threeStr);
+        strOutput, dataFolder, strFolder, oneStr, twoStr, threeStr);
 }
-
 }  // namespace OTDB
-
 }  // namespace opentxs

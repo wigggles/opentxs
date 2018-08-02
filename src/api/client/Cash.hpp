@@ -148,7 +148,10 @@ protected:
 private:
     friend Factory;
 
-    Cash() = default;
+    const api::Legacy& legacy_;
+
+    Cash(const api::Legacy& legacy);
+    Cash() = delete;
     Cash(const Cash&) = delete;
     Cash(Cash&&) = delete;
     Cash& operator=(const Cash&) = delete;

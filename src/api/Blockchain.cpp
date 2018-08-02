@@ -8,12 +8,12 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"

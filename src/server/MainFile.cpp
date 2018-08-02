@@ -9,12 +9,14 @@
 
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/AccountList.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -45,8 +47,10 @@ namespace opentxs::server
 MainFile::MainFile(
     Server& server,
     const opentxs::api::Crypto& crypto,
+    const opentxs::api::Legacy& legacy,
     const opentxs::api::client::Wallet& wallet)
     : server_(server)
+    , legacy_(legacy)
     , crypto_(crypto)
     , wallet_(wallet)
     , version_()
@@ -154,7 +158,12 @@ bool MainFile::SaveMainFile()
     // being used).
     //
     const bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), ".", server_.WalletFilename().Get());
+        strFinal.Get(),
+        legacy_.ServerDataFolder(),
+        ".",
+        server_.WalletFilename().Get(),
+        "",
+        "");
 
     if (!bSaved) {
         Log::vError(
@@ -172,13 +181,24 @@ bool MainFile::CreateMainFile(
     const std::string& strNymID,
     const std::string& strCachedKey)
 {
-    if (!OTDB::StorePlainString(strContract, "contracts", strNotaryID)) {
+    if (!OTDB::StorePlainString(
+            strContract,
+            legacy_.ServerDataFolder(),
+            OTFolders::Contract().Get(),
+            strNotaryID,
+            "",
+            "")) {
         Log::Error("Failed trying to store the server contract.\n");
         return false;
     }
 
-    if (!strCert.empty() &&
-        !OTDB::StorePlainString(strCert, "certs", strNymID)) {
+    if (!strCert.empty() && !OTDB::StorePlainString(
+                                strCert,
+                                legacy_.ServerDataFolder(),
+                                OTFolders::Cert().Get(),
+                                strNymID,
+                                "",
+                                "")) {
         Log::Error(
             "Failed trying to store the server Nym's public/private cert.\n");
         return false;
@@ -213,8 +233,11 @@ bool MainFile::CreateMainFile(
 
     if (!OTDB::StorePlainString(
             str_Notary,
+            legacy_.ServerDataFolder(),
             ".",
-            "notaryServer.xml"))  // todo hardcoding.
+            "notaryServer.xml",
+            "",
+            ""))  // todo hardcoding.
     {
         Log::Error("Failed trying to store the new notaryServer.xml file.\n");
         return false;
@@ -256,7 +279,12 @@ bool MainFile::CreateMainFile(
 
 bool MainFile::LoadMainFile(bool bReadOnly)
 {
-    if (!OTDB::Exists(".", server_.WalletFilename().Get())) {
+    if (!OTDB::Exists(
+            legacy_.ServerDataFolder(),
+            ".",
+            server_.WalletFilename().Get(),
+            "",
+            "")) {
         Log::vError(
             "%s: Error finding file: %s\n",
             __FUNCTION__,
@@ -264,8 +292,12 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         return false;
     }
     String strFileContents(OTDB::QueryPlainString(
+        legacy_.ServerDataFolder(),
         ".",
-        server_.WalletFilename().Get()));  // <=== LOADING FROM DATA STORE.
+        server_.WalletFilename().Get(),
+        "",
+        ""));  // <=== LOADING FROM
+               // DATA STORE.
 
     if (!strFileContents.Exists()) {
         Log::vError(

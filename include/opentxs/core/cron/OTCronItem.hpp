@@ -22,65 +22,8 @@ namespace opentxs
 class OTCronItem : public OTTrackable
 {
 public:
-    OTCronItem();
-
     virtual originType GetOriginType() const = 0;
 
-private:  // Private prevents erroneous use by other classes.
-    typedef OTTrackable ot_super;
-
-private:
-    OTCron* m_pCron{nullptr};
-    ConstNym serverNym_{nullptr};
-    OTIdentifier notaryID_;
-    time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
-                                  // authorized.
-    time64_t m_LAST_PROCESS_DATE{0};  // The last time this item was processed.
-    std::int64_t m_PROCESS_INTERVAL{0};  // How often to Process Cron on this
-                                         // item.
-
-protected:
-    std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING
-                                                     // a
-    // transaction. (finalReceipt.)
-
-protected:
-    OTCronItem(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    OTCronItem(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& ACCT_ID,
-        const Identifier& NYM_ID);
-
-    OTIdentifier m_pCancelerNymID;
-
-    bool m_bCanceled{false};  // This defaults to false. But if someone cancels
-                              // it (BEFORE it is ever activated, just to nip it
-                              // in the bud and harvest the numbers, and send
-                              // the notices, etc) -- then we set this to true,
-                              // and we also set the canceler Nym ID. (So we can
-                              // see these values later and know whether it was
-                              // canceled before activation, and if so, who did
-                              // it.)
-
-    bool m_bRemovalFlag{false};  // Set this to true and the cronitem will be
-                                 // removed from Cron on next process.
-    // (And its offer will be removed from the Market as well, if appropriate.)
-    virtual void onActivate() {}  // called by HookActivationOnCron().
-
-    virtual void onFinalReceipt(
-        OTCronItem& theOrigCronItem,
-        const std::int64_t& lNewTransactionNumber,
-        ConstNym theOriginator,
-        ConstNym pRemover) = 0;  // called by
-                                 // HookRemovalFromCron().
-
-    virtual void onRemovalFromCron() {}  // called by HookRemovalFromCron().
-    void ClearClosingNumbers();
-
-public:
     // To force the Nym to close out the closing number on the receipt.
     bool DropFinalReceiptToInbox(
         const Identifier& NYM_ID,
@@ -122,19 +65,25 @@ public:
     inline void FlagForRemoval() { m_bRemovalFlag = true; }
     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
-    EXPORT static OTCronItem* NewCronItem(const String& strCronItem);
+    EXPORT static OTCronItem* NewCronItem(
+        const std::string& dataFolder,
+        const String& strCronItem);
     EXPORT static OTCronItem* LoadCronReceipt(
-        const std::int64_t& lTransactionNum);  // Server-side only.
+        const std::string& dataFolder,
+        const TransactionNumber& lTransactionNum);  // Server-side only.
     EXPORT static OTCronItem* LoadActiveCronReceipt(
-        const std::int64_t& lTransactionNum,
+        const std::string& dataFolder,
+        const TransactionNumber& lTransactionNum,
         const Identifier& notaryID);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
-        const std::int64_t& lTransactionNum,
+        const std::string& dataFolder,
+        const TransactionNumber& lTransactionNum,
         const Identifier& nymID,
         const Identifier& notaryID);  // Client-side only.
     EXPORT static bool GetActiveCronTransNums(
         NumList& output,  // Client-side
                           // only.
+        const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& notaryID);
     inline void SetCreationDate(const time64_t& CREATION_DATE)
@@ -208,7 +157,62 @@ public:
     virtual std::int64_t GetOpeningNumber(const Identifier& theNymID) const;
     virtual std::int64_t GetClosingNumber(const Identifier& theAcctID) const;
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
-    //  virtual void UpdateContents();
+
+protected:
+    std::deque<std::int64_t> m_dequeClosingNumbers;  // Numbers used for CLOSING
+                                                     // a transaction.
+                                                     // (finalReceipt.)
+    OTIdentifier m_pCancelerNymID;
+
+    bool m_bCanceled{false};  // This defaults to false. But if someone cancels
+                              // it (BEFORE it is ever activated, just to nip it
+                              // in the bud and harvest the numbers, and send
+                              // the notices, etc) -- then we set this to true,
+                              // and we also set the canceler Nym ID. (So we can
+                              // see these values later and know whether it was
+                              // canceled before activation, and if so, who did
+                              // it.)
+
+    bool m_bRemovalFlag{false};  // Set this to true and the cronitem will be
+                                 // removed from Cron on next process.
+    // (And its offer will be removed from the Market as well, if appropriate.)
+    virtual void onActivate() {}  // called by HookActivationOnCron().
+
+    virtual void onFinalReceipt(
+        OTCronItem& theOrigCronItem,
+        const std::int64_t& lNewTransactionNumber,
+        ConstNym theOriginator,
+        ConstNym pRemover) = 0;  // called by
+                                 // HookRemovalFromCron().
+
+    virtual void onRemovalFromCron() {}  // called by HookRemovalFromCron().
+    void ClearClosingNumbers();
+
+    OTCronItem(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTCronItem(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& ACCT_ID,
+        const Identifier& NYM_ID);
+    OTCronItem(const std::string& dataFolder);
+
+private:
+    typedef OTTrackable ot_super;
+
+    OTCron* m_pCron{nullptr};
+    ConstNym serverNym_{nullptr};
+    OTIdentifier notaryID_;
+    time64_t m_CREATION_DATE{0};  // The date, in seconds, when the CronItem was
+                                  // authorized.
+    time64_t m_LAST_PROCESS_DATE{0};  // The last time this item was processed.
+    std::int64_t m_PROCESS_INTERVAL{0};  // How often to Process Cron on this
+                                         // item.
+
+    OTCronItem() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CRON_OTCRONITEM_HPP

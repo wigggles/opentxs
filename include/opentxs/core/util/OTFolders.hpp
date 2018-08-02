@@ -60,9 +60,7 @@ private:
     static inline const String& GetFolder(const String& strFolder)
     {
         if (!strFolder.Exists()) {
-            if (!GetSetAll()) {
-                OT_FAIL;
-            }
+            if (!GetSetAll()) { OT_FAIL; }
         }
         return strFolder;
     }
@@ -83,8 +81,6 @@ private:
     static String s_strReceipt;
     static String s_strRecordBox;
     static String s_strExpiredBox;
-    static String s_strScript;
-    static String s_strSmartContracts;
     static String s_strSpent;
     static String s_strUserAcct;
 
@@ -105,8 +101,6 @@ public:
     EXPORT static const String& Receipt();
     EXPORT static const String& RecordBox();
     EXPORT static const String& ExpiredBox();
-    EXPORT static const String& Script();
-    EXPORT static const String& SmartContracts();
     EXPORT static const String& Spent();
     EXPORT static const String& UserAcct();
 };

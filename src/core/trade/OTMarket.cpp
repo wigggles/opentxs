@@ -46,6 +46,67 @@
 
 namespace opentxs
 {
+OTMarket::OTMarket(const std::string& dataFolder, const char* szFilename)
+    : Contract(dataFolder)
+    , m_pCron(nullptr)
+    , m_pTradeList(nullptr)
+    , m_mapBids()
+    , m_mapAsks()
+    , m_mapOffers()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
+    , m_CURRENCY_TYPE_ID(Identifier::Factory())
+    , m_lScale(1)
+    , m_lLastSalePrice(0)
+    , m_strLastSaleDate()
+{
+    OT_ASSERT(nullptr != szFilename);
+
+    InitMarket();
+
+    m_strFilename.Set(szFilename);
+    m_strFoldername.Set(OTFolders::Market().Get());
+}
+
+OTMarket::OTMarket(const std::string& dataFolder)
+    : Contract(dataFolder)
+    , m_pCron(nullptr)
+    , m_pTradeList(nullptr)
+    , m_mapBids()
+    , m_mapAsks()
+    , m_mapOffers()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
+    , m_CURRENCY_TYPE_ID(Identifier::Factory())
+    , m_lScale(1)
+    , m_lLastSalePrice(0)
+    , m_strLastSaleDate()
+{
+    InitMarket();
+}
+
+OTMarket::OTMarket(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& CURRENCY_TYPE_ID,
+    const std::int64_t& lScale)
+    : Contract(dataFolder)
+    , m_pCron(nullptr)
+    , m_pTradeList(nullptr)
+    , m_mapBids()
+    , m_mapAsks()
+    , m_mapOffers()
+    , m_NOTARY_ID(Identifier::Factory(NOTARY_ID))
+    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
+    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_TYPE_ID))
+    , m_lScale(1)
+    , m_lLastSalePrice(0)
+    , m_strLastSaleDate()
+{
+    InitMarket();
+    SetScale(lScale);
+}
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
@@ -105,6 +166,7 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         } else {
             OTOffer* pOffer = new OTOffer(
+                data_folder_,
                 m_NOTARY_ID,
                 m_INSTRUMENT_DEFINITION_ID,
                 m_CURRENCY_TYPE_ID,
@@ -740,7 +802,8 @@ bool OTMarket::LoadMarket()
     const char* szFoldername = OTFolders::Market().Get();
     const char* szFilename = str_MARKET_ID.Get();
 
-    bool bSuccess = OTDB::Exists(szFoldername, szFilename);
+    bool bSuccess =
+        OTDB::Exists(data_folder_, szFoldername, szFilename, "", "");
 
     if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename);  // todo ??
 
@@ -758,9 +821,11 @@ bool OTMarket::LoadMarket()
 
         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(OTDB::QueryObject(
             OTDB::STORED_OBJ_TRADE_LIST_MARKET,
-            szFoldername,             // markets
-            szSubFolder,              // markets/recent
-            str_TRADES_FILE.Get()));  // markets/recent/<market_ID>.bin
+            data_folder_,
+            szFoldername,  // markets
+            szSubFolder,   // markets/recent
+            str_TRADES_FILE.Get(),
+            ""));  // markets/recent/<market_ID>.bin
     }
 
     return bSuccess;
@@ -805,9 +870,11 @@ bool OTMarket::SaveMarket()
         // If this fails, oh well. It's informational, anyway.
         if (!OTDB::StoreObject(
                 *m_pTradeList,
-                szFoldername,            // markets
-                szSubFolder,             // markets/recent
-                str_TRADES_FILE.Get()))  // markets/recent/<Market_ID>.bin
+                data_folder_,
+                szFoldername,  // markets
+                szSubFolder,   // markets/recent
+                str_TRADES_FILE.Get(),
+                ""))  // markets/recent/<Market_ID>.bin
             otErr << "Error saving recent trades for Market:\n"
                   << szFoldername << Log::PathSeparator() << szSubFolder
                   << Log::PathSeparator() << szFilename << "\n";
@@ -1120,13 +1187,14 @@ void OTMarket::ProcessTrade(
     // Make sure have ALL FOUR accounts loaded and checked out.
     // (first nym's asset/currency, and other nym's asset/currency.)
 
-    auto pFirstAssetAcct = wallet.mutable_Account(theTrade.GetSenderAcctID());
+    auto pFirstAssetAcct =
+        wallet.mutable_Account(data_folder_, theTrade.GetSenderAcctID());
     auto pFirstCurrencyAcct =
-        wallet.mutable_Account(theTrade.GetCurrencyAcctID());
+        wallet.mutable_Account(data_folder_, theTrade.GetCurrencyAcctID());
     auto pOtherAssetAcct =
-        wallet.mutable_Account(pOtherTrade->GetSenderAcctID());
+        wallet.mutable_Account(data_folder_, pOtherTrade->GetSenderAcctID());
     auto pOtherCurrencyAcct =
-        wallet.mutable_Account(pOtherTrade->GetCurrencyAcctID());
+        wallet.mutable_Account(data_folder_, pOtherTrade->GetCurrencyAcctID());
 
     if ((!pFirstAssetAcct) || (!pFirstCurrencyAcct)) {
         otOut << "ERROR verifying existence of one of the first trader's "
@@ -1218,13 +1286,22 @@ void OTMarket::ProcessTrade(
 
         // Load the inbox/outbox in case they already exist
         Ledger theFirstAssetInbox(
-            FIRST_NYM_ID, theTrade.GetSenderAcctID(), NOTARY_ID),
+            data_folder_, FIRST_NYM_ID, theTrade.GetSenderAcctID(), NOTARY_ID),
             theFirstCurrencyInbox(
-                FIRST_NYM_ID, theTrade.GetCurrencyAcctID(), NOTARY_ID),
+                data_folder_,
+                FIRST_NYM_ID,
+                theTrade.GetCurrencyAcctID(),
+                NOTARY_ID),
             theOtherAssetInbox(
-                OTHER_NYM_ID, pOtherTrade->GetSenderAcctID(), NOTARY_ID),
+                data_folder_,
+                OTHER_NYM_ID,
+                pOtherTrade->GetSenderAcctID(),
+                NOTARY_ID),
             theOtherCurrencyInbox(
-                OTHER_NYM_ID, pOtherTrade->GetCurrencyAcctID(), NOTARY_ID);
+                data_folder_,
+                OTHER_NYM_ID,
+                pOtherTrade->GetCurrencyAcctID(),
+                NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -1866,10 +1943,10 @@ void OTMarket::ProcessTrade(
             // user's signature.
             // (Updated versions, as processing occurs, are signed by the
             // server.)
-            pOrigTrade =
-                OTCronItem::LoadCronReceipt(theTrade.GetTransactionNum());
-            pOrigOtherTrade =
-                OTCronItem::LoadCronReceipt(pOtherTrade->GetTransactionNum());
+            pOrigTrade = OTCronItem::LoadCronReceipt(
+                data_folder_, theTrade.GetTransactionNum());
+            pOrigOtherTrade = OTCronItem::LoadCronReceipt(
+                data_folder_, pOtherTrade->GetTransactionNum());
 
             OT_ASSERT(nullptr != pOrigTrade);
             OT_ASSERT(nullptr != pOrigOtherTrade);
@@ -2651,69 +2728,6 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
     return bValidOffer;
 }
 
-OTMarket::OTMarket(const char* szFilename)
-    : Contract()
-    , m_pCron(nullptr)
-    , m_pTradeList(nullptr)
-    , m_mapBids()
-    , m_mapAsks()
-    , m_mapOffers()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
-    , m_CURRENCY_TYPE_ID(Identifier::Factory())
-    , m_lScale(1)
-    , m_lLastSalePrice(0)
-    , m_strLastSaleDate()
-{
-    OT_ASSERT(nullptr != szFilename);
-
-    InitMarket();
-
-    m_strFilename.Set(szFilename);
-    m_strFoldername.Set(OTFolders::Market().Get());
-}
-
-OTMarket::OTMarket()
-    : Contract()
-    , m_pCron(nullptr)
-    , m_pTradeList(nullptr)
-    , m_mapBids()
-    , m_mapAsks()
-    , m_mapOffers()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory())
-    , m_CURRENCY_TYPE_ID(Identifier::Factory())
-    , m_lScale(1)
-    , m_lLastSalePrice(0)
-    , m_strLastSaleDate()
-{
-    InitMarket();
-}
-
-OTMarket::OTMarket(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& CURRENCY_TYPE_ID,
-    const std::int64_t& lScale)
-    : Contract()
-    , m_pCron(nullptr)
-    , m_pTradeList(nullptr)
-    , m_mapBids()
-    , m_mapAsks()
-    , m_mapOffers()
-    , m_NOTARY_ID(Identifier::Factory(NOTARY_ID))
-    , m_INSTRUMENT_DEFINITION_ID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
-    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_TYPE_ID))
-    , m_lScale(1)
-    , m_lLastSalePrice(0)
-    , m_strLastSaleDate()
-{
-    InitMarket();
-    SetScale(lScale);
-}
-
-OTMarket::~OTMarket() { Release_Market(); }
-
 void OTMarket::InitMarket() { m_strContractType = "MARKET"; }
 
 void OTMarket::Release_Market()
@@ -2756,4 +2770,5 @@ void OTMarket::Release()
     InitMarket();
 }
 
+OTMarket::~OTMarket() { Release_Market(); }
 }  // namespace opentxs

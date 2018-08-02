@@ -14,6 +14,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
@@ -125,6 +126,7 @@ api::client::Sync* Factory::Sync(
     const api::ContactManager& contacts,
     const api::Settings& config,
     const api::Api& api,
+    const api::Legacy& legacy,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
@@ -137,6 +139,7 @@ api::client::Sync* Factory::Sync(
         otapi,
         exec,
         contacts,
+        legacy,
         config,
         api,
         wallet,
@@ -204,6 +207,7 @@ Sync::Sync(
     const OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
     const api::ContactManager& contacts,
+    const api::Legacy& legacy,
     const api::Settings& config,
     const api::Api& api,
     const api::client::Wallet& wallet,
@@ -217,6 +221,7 @@ Sync::Sync(
     , ot_api_(otapi)
     , exec_(exec)
     , contacts_(contacts)
+    , legacy_(legacy)
     , config_(config)
     , api_(api)
     , server_action_(api.ServerAction())
@@ -381,7 +386,7 @@ bool Sync::AcceptIncoming(
                 return false;
             }
 
-            Utility utility(context.It(), ot_api_);
+            Utility utility(context.It(), ot_api_, legacy_);
             const auto download = utility.getIntermediaryFiles(
                 context.It().Server().str(),
                 context.It().Nym()->ID().str(),
@@ -763,7 +768,7 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    std::unique_ptr<Cheque> cheque = std::make_unique<Cheque>();
+    auto cheque = std::make_unique<Cheque>(legacy_.ClientDataFolder());
     const auto loaded = cheque->LoadContractFromString(payment->Payment());
 
     if (false == loaded) {
@@ -1532,7 +1537,8 @@ bool Sync::publish_server_registration(
 bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
     const
 {
-    auto payment = std::make_shared<OTPayment>(String(cheque));
+    auto payment =
+        std::make_shared<OTPayment>(legacy_.ClientDataFolder(), String(cheque));
 
     OT_ASSERT(payment)
 
@@ -1975,7 +1981,7 @@ OTIdentifier Sync::SendCheque(
 
     // The first nym in the vector should be the primary, if a primary is set
     const auto& recipientNymID = nyms[0];
-    auto account = wallet_.Account(sourceAccountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), sourceAccountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid account" << std::endl;
@@ -2002,7 +2008,8 @@ OTIdentifier Sync::SendCheque(
         return Identifier::Factory();
     }
 
-    auto payment = std::make_shared<OTPayment>(String(*cheque));
+    auto payment = std::make_shared<OTPayment>(
+        legacy_.ClientDataFolder(), String(*cheque));
 
     if (false == bool(cheque)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate payment"
@@ -2031,7 +2038,8 @@ OTIdentifier Sync::SendTransfer(
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
 
-    auto sourceAccount = wallet_.Account(sourceAccountID);
+    auto sourceAccount =
+        wallet_.Account(legacy_.ClientDataFolder(), sourceAccountID);
 
     if (false == bool(sourceAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid source account"
@@ -2040,7 +2048,8 @@ OTIdentifier Sync::SendTransfer(
         return Identifier::Factory();
     }
 
-    auto targetAccount = wallet_.Account(targetAccountID);
+    auto targetAccount =
+        wallet_.Account(legacy_.ClientDataFolder(), targetAccountID);
 
     if (false == bool(targetAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid target account"

@@ -7,15 +7,16 @@
 
 #include "opentxs/client/OT_API.hpp"
 
+#include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Activity.hpp"
 #include "opentxs/api/Api.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #if OT_CASH
@@ -57,7 +58,6 @@
 #include "opentxs/core/transaction/Helpers.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Account.hpp"
@@ -151,6 +151,7 @@ namespace
 // pass in the opening number for the cron item that this is a receipt for.
 // CALLER RESPONSIBLE TO DELETE.
 OTTransaction* GetPaymentReceipt(
+    const std::string& dataFolder,
     const mapOfTransactions& transactionsMap,
     std::int64_t lReferenceNum,
     OTPayment** ppPaymentOut)
@@ -172,7 +173,7 @@ OTTransaction* GetPaymentReceipt(
                 transaction->GetReferenceString(strPayment);
 
                 if (strPayment.Exists()) {
-                    OTPayment* pPayment = new OTPayment(strPayment);
+                    OTPayment* pPayment = new OTPayment(dataFolder, strPayment);
                     OT_ASSERT(nullptr != pPayment);
 
                     if (pPayment->IsValid() && pPayment->SetTempValues())
@@ -214,7 +215,8 @@ bool VerifyBalanceReceipt(
 
     // Load the last successful BALANCE STATEMENT...
 
-    OTTransaction tranOut(NOTARY_NYM_ID, accountID, NOTARY_ID);
+    OTTransaction tranOut(
+        context.LegacyDataFolder(), NOTARY_NYM_ID, accountID, NOTARY_ID);
 
     String strFilename;
     strFilename.Format("%s.success", strReceiptID.Get());
@@ -224,16 +226,24 @@ bool VerifyBalanceReceipt(
     const char* szFilename =
         strFilename.Get();  // receipts/NOTARY_ID/accountID.success
 
-    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+    if (!OTDB::Exists(
+            context.LegacyDataFolder(),
+            szFolder1name,
+            szFolder2name,
+            szFilename,
+            "")) {
         otWarn << "Receipt file doesn't exist in "
                   "OTTransaction::VerifyBalanceReceipt.\n";
         return false;
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
+        context.LegacyDataFolder(),
         szFolder1name,
         szFolder2name,
-        szFilename));  // <=== LOADING FROM DATA STORE.
+        szFilename,
+        ""));  // <=== LOADING FROM
+               // DATA STORE.
 
     if (strFileContents.length() < 2) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Error reading file: "
@@ -495,6 +505,7 @@ OT_API::OT_API(
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
     const api::Identity& identity,
+    const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet,
     const api::client::Workflow& workflow,
@@ -506,6 +517,7 @@ OT_API::OT_API(
     , contacts_(contacts)
     , crypto_(crypto)
     , identity_(identity)
+    , legacy_(legacy)
     , storage_(storage)
     , wallet_(wallet)
     , workflow_(workflow)
@@ -556,8 +568,7 @@ bool OT_API::Init()
     //
     // we need to get the loacation of where the pid file should be.
     // then we pass it to the OpenPid function.
-    String strDataPath = "";
-    const bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
+    String strDataPath = legacy_.ClientDataFolder().c_str();
 
     {
         bool bExists = false, bIsNew = false;
@@ -568,8 +579,7 @@ bool OT_API::Init()
 
     String strPIDPath = "";
     OTPaths::AppendFile(strPIDPath, strDataPath, CLIENT_PID_FILENAME);
-
-    if (bGetDataFolderSuccess) pid_->OpenPid(strPIDPath);
+    pid_->OpenPid(strPIDPath);
 
     if (!pid_->IsPidOpen()) { return false; }  // failed loading
 
@@ -583,9 +593,9 @@ bool OT_API::Init()
     if (m_bDefaultStore) {
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
-        m_pWallet = new OTWallet(crypto_, wallet_, storage_);
-        m_pClient.reset(
-            new OTClient(*m_pWallet, activity_, contacts_, wallet_, workflow_));
+        m_pWallet = new OTWallet(crypto_, legacy_, wallet_, storage_);
+        m_pClient.reset(new OTClient(
+            *m_pWallet, activity_, contacts_, legacy_, wallet_, workflow_));
 
         OT_ASSERT(m_pClient);
 
@@ -1188,7 +1198,7 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     }
 
     const String strAccountID(ACCOUNT_ID);
-    auto account = wallet_.Account(ACCOUNT_ID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCOUNT_ID);
 
     if (false == bool(account)) return false;
 
@@ -1986,13 +1996,16 @@ bool OT_API::SignContract(
         return false;
     }
     //
-    std::unique_ptr<Contract> contract(
-        OTTransactionType::TransactionFactory(strContract));
+    std::unique_ptr<Contract> contract(OTTransactionType::TransactionFactory(
+        legacy_.ClientDataFolder(), strContract));
 
     if (nullptr == contract)
-        contract.reset(OTScriptable::InstantiateScriptable(strContract));
+        contract.reset(OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
 
-    if (nullptr == contract) contract.reset(::InstantiateContract(strContract));
+    if (nullptr == contract)
+        contract.reset(
+            ::InstantiateContract(legacy_.ClientDataFolder(), strContract));
 
     if (nullptr == contract) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2007,6 +2020,7 @@ bool OT_API::SignContract(
     contract->SaveContract();
     strOutput.Release();
     contract->SaveContractRaw(strOutput);
+
     return true;
 }
 
@@ -2044,13 +2058,16 @@ bool OT_API::AddSignature(
         return false;
     }
     //
-    std::unique_ptr<Contract> contract(
-        OTTransactionType::TransactionFactory(strContract));
+    std::unique_ptr<Contract> contract(OTTransactionType::TransactionFactory(
+        legacy_.ClientDataFolder(), strContract));
 
     if (nullptr == contract)
-        contract.reset(OTScriptable::InstantiateScriptable(strContract));
+        contract.reset(OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract));
 
-    if (nullptr == contract) contract.reset(::InstantiateContract(strContract));
+    if (nullptr == contract)
+        contract.reset(
+            ::InstantiateContract(legacy_.ClientDataFolder(), strContract));
 
     if (nullptr == contract) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2107,12 +2124,16 @@ bool OT_API::VerifySignature(
     std::unique_ptr<Contract> theAngel;
 
     if (nullptr == contract)
-        contract = OTTransactionType::TransactionFactory(strContract);
+        contract = OTTransactionType::TransactionFactory(
+            legacy_.ClientDataFolder(), strContract);
 
     if (nullptr == contract)
-        contract = OTScriptable::InstantiateScriptable(strContract);
+        contract = OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), strContract);
 
-    if (nullptr == contract) contract = ::InstantiateContract(strContract);
+    if (nullptr == contract)
+        contract =
+            ::InstantiateContract(legacy_.ClientDataFolder(), strContract);
 
     if (nullptr == contract) {
         otErr << "OT_API::VerifySignature: I tried my best. Unable to "
@@ -2235,7 +2256,7 @@ bool OT_API::Create_SmartContract(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    OTSmartContract* contract = new OTSmartContract;
+    OTSmartContract* contract = new OTSmartContract{legacy_.ClientDataFolder()};
     OT_ASSERT_MSG(
         nullptr != contract,
         "OT_API::Create_SmartContract: ASSERT "
@@ -2276,7 +2297,8 @@ bool OT_API::SmartContract_SetDates(
     // to
     // cleanup.)
 
-    std::unique_ptr<OTCronItem> contract(OTCronItem::NewCronItem(THE_CONTRACT));
+    std::unique_ptr<OTCronItem> contract(
+        OTCronItem::NewCronItem(legacy_.ClientDataFolder(), THE_CONTRACT));
     if (!contract) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2318,8 +2340,8 @@ bool OT_API::SmartContract_AddParty(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (!contract) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2364,6 +2386,7 @@ bool OT_API::SmartContract_AddParty(
     }
 
     party = new OTParty(
+        legacy_.ClientDataFolder(),
         str_party_name.c_str(),
         true /*bIsOwnerNym*/,
         szPartyNymID,
@@ -2406,8 +2429,8 @@ bool OT_API::SmartContract_RemoveParty(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (!contract) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2451,8 +2474,8 @@ bool OT_API::SmartContract_AddAccount(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_AddAccount: Error loading "
                  "smart contract:\n\n"
@@ -2553,8 +2576,8 @@ bool OT_API::SmartContract_RemoveAccount(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_RemoveAccount: Error loading "
                  "smart contract:\n\n"
@@ -2595,8 +2618,8 @@ std::int32_t OT_API::SmartContract_CountNumsNeeded(
 {
     std::int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
 
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_CountNumsNeeded: Error loading "
@@ -2632,14 +2655,15 @@ bool OT_API::SmartContract_ConfirmAccount(
     // to
     // cleanup.)
     const auto accountID = Identifier::Factory(ACCT_ID);
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) return false;
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     std::unique_ptr<OTScriptable> pScriptable(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+        OTScriptable::InstantiateScriptable(
+            legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == pScriptable) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2797,8 +2821,8 @@ bool OT_API::SmartContract_ConfirmAccount(
 
 bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 {
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
 
     if (nullptr == contract) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2812,8 +2836,8 @@ bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 
 bool OT_API::Smart_AreAssetTypesSpecified(const String& THE_CONTRACT) const
 {
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
 
     if (nullptr == contract) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2845,8 +2869,8 @@ bool OT_API::SmartContract_ConfirmParty(
     // to
     // cleanup.)
 
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
 
     if (nullptr == contract) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2884,6 +2908,7 @@ bool OT_API::SmartContract_ConfirmParty(
     }
 
     OTParty* pNewParty = new OTParty(
+        legacy_.ClientDataFolder(),
         party->GetPartyName(),
         *nym,  // party keeps an internal pointer to nym from here on.
         party->GetAuthorizingAgentName());  // Party name and agent name must
@@ -2925,7 +2950,7 @@ bool OT_API::SmartContract_ConfirmParty(
     // have to track it until it's activated or until we cancel it.)
     //
     const String strInstrument(*contract);
-    Message* pMessage = new Message;
+    Message* pMessage = new Message{legacy_.ClientDataFolder()};
     OT_ASSERT(nullptr != pMessage);
 
     const String strNymID(NYM_ID);
@@ -2964,8 +2989,8 @@ bool OT_API::SmartContract_AddBylaw(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_AddBylaw: Error loading smart "
                  "contract:\n\n"
@@ -3023,8 +3048,8 @@ bool OT_API::SmartContract_RemoveBylaw(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_RemoveBylaw: Error loading smart "
                  "contract:\n\n"
@@ -3070,8 +3095,8 @@ bool OT_API::SmartContract_AddHook(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_AddHook: Error loading smart "
                  "contract:\n\n"
@@ -3130,8 +3155,8 @@ bool OT_API::SmartContract_RemoveHook(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_RemoveHook: Error loading smart "
                  "contract:\n\n"
@@ -3186,8 +3211,8 @@ bool OT_API::SmartContract_AddCallback(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_AddCallback: Error loading "
                  "smart contract:\n\n"
@@ -3250,8 +3275,8 @@ bool OT_API::SmartContract_RemoveCallback(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::SmartContract_RemoveCallback: Error loading "
                  "smart contract:\n\n"
@@ -3304,8 +3329,8 @@ bool OT_API::SmartContract_AddClause(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3374,8 +3399,8 @@ bool OT_API::SmartContract_UpdateClause(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3430,8 +3455,8 @@ bool OT_API::SmartContract_RemoveClause(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3494,8 +3519,8 @@ bool OT_API::SmartContract_AddVariable(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3606,8 +3631,8 @@ bool OT_API::SmartContract_RemoveVariable(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<OTScriptable> contract(
-        OTScriptable::InstantiateScriptable(THE_CONTRACT));
+    std::unique_ptr<OTScriptable> contract(OTScriptable::InstantiateScriptable(
+        legacy_.ClientDataFolder(), THE_CONTRACT));
     if (nullptr == contract) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3704,7 +3729,8 @@ bool OT_API::SetAccount_Name(
 
     if (false == bool(pSignerNym)) { return false; }
 
-    auto account = wallet_.mutable_Account(accountID);
+    auto account =
+        wallet_.mutable_Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) { return false; }
 
@@ -3848,7 +3874,7 @@ bool OT_API::HarvestClosingNumbers(
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     std::unique_ptr<OTCronItem> pCronItem(
-        OTCronItem::NewCronItem(THE_CRON_ITEM));
+        OTCronItem::NewCronItem(legacy_.ClientDataFolder(), THE_CRON_ITEM));
 
     if (nullptr == pCronItem) {
         otErr << OT_METHOD << __FUNCTION__
@@ -3893,7 +3919,7 @@ bool OT_API::HarvestAllNumbers(
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(NYM_ID, NOTARY_ID);
     std::unique_ptr<OTCronItem> pCronItem(
-        OTCronItem::NewCronItem(THE_CRON_ITEM));
+        OTCronItem::NewCronItem(legacy_.ClientDataFolder(), THE_CRON_ITEM));
 
     if (nullptr == pCronItem) {
         otErr << OT_METHOD << __FUNCTION__
@@ -3974,7 +4000,8 @@ Cheque* OT_API::WriteCheque(
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nym = context.It().Nym();
-    auto account = wallet_.Account(SENDER_accountID);
+    auto account =
+        wallet_.Account(legacy_.ClientDataFolder(), SENDER_accountID);
 
     if (false == bool(account)) { return nullptr; }
 
@@ -4005,6 +4032,7 @@ Cheque* OT_API::WriteCheque(
 
     // At this point, I know that number contains one I can use.
     Cheque* pCheque = new Cheque(
+        legacy_.ClientDataFolder(),
         account.get().GetRealNotaryID(),
         account.get().GetInstrumentDefinitionID());
     OT_ASSERT_MSG(
@@ -4109,7 +4137,8 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     auto context = wallet_.mutable_ServerContext(RECIPIENT_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
     auto nym = context.It().Nym();
-    auto account = wallet_.Account(RECIPIENT_accountID);
+    auto account =
+        wallet_.Account(legacy_.ClientDataFolder(), RECIPIENT_accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -4130,7 +4159,9 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // sent it to him.)
     if (pSENDER_accountID.empty()) {
         pPlan = new OTPaymentPlan(
-            NOTARY_ID, account.get().GetInstrumentDefinitionID());
+            legacy_.ClientDataFolder(),
+            NOTARY_ID,
+            account.get().GetInstrumentDefinitionID());
 
         OT_ASSERT_MSG(
             nullptr != pPlan,
@@ -4143,6 +4174,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
         pPlan->SetRecipientAcctID(RECIPIENT_accountID);
     } else {
         pPlan = new OTPaymentPlan(
+            legacy_.ClientDataFolder(),
             NOTARY_ID,
             account.get().GetInstrumentDefinitionID(),
             pSENDER_accountID,
@@ -4256,7 +4288,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // have to track it until it's deposited or until we cancel it.)
     //
     const String strInstrument(*pPlan);
-    Message* pMessage = new Message;
+    Message* pMessage = new Message{legacy_.ClientDataFolder()};
     OT_ASSERT(nullptr != pMessage);
 
     const String strNymID(RECIPIENT_NYM_ID), strNymID2(SENDER_NYM_ID);
@@ -4300,7 +4332,8 @@ bool OT_API::ConfirmPaymentPlan(
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
     auto nym = context.It().Nym();
-    auto account = wallet_.Account(SENDER_accountID);
+    auto account =
+        wallet_.Account(legacy_.ClientDataFolder(), SENDER_accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -4358,7 +4391,7 @@ bool OT_API::ConfirmPaymentPlan(
     // have to track it until it's deposited or until we cancel it.)
     //
     const String strInstrument(thePlan);
-    Message* pMessage = new Message;
+    Message* pMessage = new Message{legacy_.ClientDataFolder()};
     OT_ASSERT(nullptr != pMessage);
 
     const String strNymID(SENDER_NYM_ID), strNymID2(RECIPIENT_NYM_ID);
@@ -4408,7 +4441,11 @@ Purse* OT_API::LoadPurse(
     }
 
     auto nym = context->Nym();
-    Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID);
+    Purse* pPurse = new Purse(
+        legacy_.ClientDataFolder(),
+        NOTARY_ID,
+        INSTRUMENT_DEFINITION_ID,
+        NYM_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
         "Error allocating memory in the OT API.");  // responsible to
@@ -4479,7 +4516,11 @@ Purse* OT_API::CreatePurse(
     const Identifier& OWNER_ID) const
 {
     rLock lock(lock_callback_({OWNER_ID.str(), NOTARY_ID.str()}));
-    Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID);
+    Purse* pPurse = new Purse(
+        legacy_.ClientDataFolder(),
+        NOTARY_ID,
+        INSTRUMENT_DEFINITION_ID,
+        OWNER_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
         "Error allocating memory in the OT API.");  // responsible to
@@ -4500,7 +4541,8 @@ Purse* OT_API::CreatePurse_Passphrase(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    Purse* pPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+    Purse* pPurse = new Purse(
+        legacy_.ClientDataFolder(), NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     OT_ASSERT_MSG(
         nullptr != pPurse,
         "Error allocating memory in the OT API.");  // responsible to
@@ -4832,7 +4874,8 @@ Token* OT_API::Purse_Peek(
             ? "Enter the passphrase for this purse. (Purse_Peek)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    Purse thePurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+    Purse thePurse(
+        legacy_.ClientDataFolder(), NOTARY_ID, INSTRUMENT_DEFINITION_ID);
     OTPassword thePassword;  // Only used in the case of password-protected
                              // purses.
     // What's going on here?
@@ -4921,8 +4964,8 @@ Purse* OT_API::Purse_Pop(
             ? "Enter the passphrase for this purse. (Purse_Pop)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    std::unique_ptr<Purse> pPurse(
-        new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    std::unique_ptr<Purse> pPurse(new Purse(
+        legacy_.ClientDataFolder(), NOTARY_ID, INSTRUMENT_DEFINITION_ID));
 
     OTPassword thePassword;  // Only used in the case of password-protected
                              // purses.
@@ -4990,8 +5033,11 @@ Purse* OT_API::Purse_Empty(
         (nullptr == pstrDisplay) ? "Making an empty copy of a cash purse."
                                  : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    Purse* pPurse =
-        Purse::PurseFactory(THE_PURSE, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+    Purse* pPurse = Purse::PurseFactory(
+        legacy_.ClientDataFolder(),
+        THE_PURSE,
+        NOTARY_ID,
+        INSTRUMENT_DEFINITION_ID);
 
     if (nullptr == pPurse) {
         otErr << OT_METHOD << __FUNCTION__
@@ -5048,8 +5094,11 @@ Purse* OT_API::Purse_Push(
         return nullptr;
     }
     String strToken(THE_TOKEN);
-    std::unique_ptr<Token> token(
-        Token::TokenFactory(strToken, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    std::unique_ptr<Token> token(Token::TokenFactory(
+        legacy_.ClientDataFolder(),
+        strToken,
+        NOTARY_ID,
+        INSTRUMENT_DEFINITION_ID));
 
     if (nullptr == token)  // TokenFactory instantiates AND loads from string.
     {
@@ -5058,8 +5107,8 @@ Purse* OT_API::Purse_Push(
               << THE_TOKEN << "\n\n";
         return nullptr;
     }
-    std::unique_ptr<Purse> pPurse(
-        new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    std::unique_ptr<Purse> pPurse(new Purse(
+        legacy_.ClientDataFolder(), NOTARY_ID, INSTRUMENT_DEFINITION_ID));
     OTPassword thePassword;  // Only used in the case of password-protected
                              // purses.
     // What's going on here?
@@ -5148,8 +5197,8 @@ bool OT_API::Wallet_ImportPurse(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    std::unique_ptr<Purse> pNewPurse(
-        new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    std::unique_ptr<Purse> pNewPurse(new Purse(
+        legacy_.ClientDataFolder(), NOTARY_ID, INSTRUMENT_DEFINITION_ID));
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by a
     // symmetric
@@ -5193,8 +5242,11 @@ bool OT_API::Wallet_ImportPurse(
     if (nullptr == pOldPurse)  // apparently there's not already a purse of this
                                // type, let's create it.
     {
-        pOldPurse.reset(
-            new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID));
+        pOldPurse.reset(new Purse(
+            legacy_.ClientDataFolder(),
+            NOTARY_ID,
+            INSTRUMENT_DEFINITION_ID,
+            SIGNER_ID));
     } else if (!pOldPurse->VerifySignature(*nym)) {
         otErr
             << __FUNCTION__
@@ -5339,7 +5391,8 @@ Token* OT_API::Token_ChangeOwner(
     {
         // if the old owner is a Purse (symmetric+master key), the entire
         // purse is loaded.
-        Purse* pOldPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        Purse* pOldPurse = new Purse(
+            legacy_.ClientDataFolder(), NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pOldPurse);
         theOldPurseAngel.reset(pOldPurse);
         pOldOwner = LoadPurseAndOwnerForMerge(
@@ -5380,7 +5433,8 @@ Token* OT_API::Token_ChangeOwner(
     {
         // if the new owner is a Purse (symmetric+master key), the entire purse
         // is loaded.
-        Purse* pNewPurse = new Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        Purse* pNewPurse = new Purse(
+            legacy_.ClientDataFolder(), NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pNewPurse);
         theNewPurseAngel.reset(pNewPurse);
         pNewOwner = LoadPurseAndOwnerForMerge(
@@ -5415,8 +5469,11 @@ Token* OT_API::Token_ChangeOwner(
     //
     // (By this point, pOldOwner and pNewOwner should both be good to go.)
     //
-    std::unique_ptr<Token> token(
-        Token::TokenFactory(THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    std::unique_ptr<Token> token(Token::TokenFactory(
+        legacy_.ClientDataFolder(),
+        THE_TOKEN,
+        NOTARY_ID,
+        INSTRUMENT_DEFINITION_ID));
     OT_ASSERT(nullptr != token);
     if (false == token->ReassignOwnership(
                      *pOldOwner,   // must be private, if a Nym.
@@ -5465,7 +5522,8 @@ Mint* OT_API::LoadMint(
               << strNotaryID << " \n";
         return nullptr;
     }
-    Mint* mint = Mint::MintFactory(strNotaryID, strInstrumentDefinitionID);
+    Mint* mint = Mint::MintFactory(
+        legacy_.ClientDataFolder(), strNotaryID, strInstrumentDefinitionID);
     OT_ASSERT_MSG(
         nullptr != mint,
         "OT_API::LoadMint: Error allocating memory in the OT API");
@@ -5501,8 +5559,8 @@ Ledger* OT_API::LoadNymbox(
     }
 
     auto nym = context->Nym();
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::nymbox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(), NYM_ID, NYM_ID, NOTARY_ID, Ledger::nymbox)};
 
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API.");
 
@@ -5532,8 +5590,8 @@ Ledger* OT_API::LoadNymboxNoVerify(
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::nymbox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(), NYM_ID, NYM_ID, NOTARY_ID, Ledger::nymbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API.");
     // ---------------------------------------------
     if (pLedger->LoadNymbox())  // The Verify would go here.
@@ -5569,8 +5627,12 @@ Ledger* OT_API::LoadInbox(
     // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::inbox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        ACCOUNT_ID,
+        NOTARY_ID,
+        Ledger::inbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API.");
 
     if (pLedger->LoadInbox() && pLedger->VerifyAccount(*nym))
@@ -5605,8 +5667,12 @@ Ledger* OT_API::LoadInboxNoVerify(
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::inbox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        ACCOUNT_ID,
+        NOTARY_ID,
+        Ledger::inbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     if (pLedger->LoadInbox())  // The Verify would go here.
@@ -5643,8 +5709,12 @@ Ledger* OT_API::LoadOutbox(
     // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::outbox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        ACCOUNT_ID,
+        NOTARY_ID,
+        Ledger::outbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     if (pLedger->LoadOutbox() && pLedger->VerifyAccount(*nym))
@@ -5679,8 +5749,12 @@ Ledger* OT_API::LoadOutboxNoVerify(
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::outbox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        ACCOUNT_ID,
+        NOTARY_ID,
+        Ledger::outbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     if (pLedger->LoadOutbox())  // The Verify would go here.
@@ -5712,7 +5786,11 @@ Ledger* OT_API::LoadPaymentInbox(
     auto nym = context->Nym();
 
     std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
-        NYM_ID, NYM_ID, NOTARY_ID, Ledger::paymentInbox)};
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        NYM_ID,
+        NOTARY_ID,
+        Ledger::paymentInbox)};
 
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
@@ -5739,7 +5817,11 @@ Ledger* OT_API::LoadPaymentInboxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
-        NYM_ID, NYM_ID, NOTARY_ID, Ledger::paymentInbox)};
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        NYM_ID,
+        NOTARY_ID,
+        Ledger::paymentInbox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     if (pLedger->LoadPaymentInbox())  // The Verify would have gone here.
@@ -5775,7 +5857,11 @@ Ledger* OT_API::LoadRecordBox(
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
-        NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::recordBox)};
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        ACCOUNT_ID,
+        NOTARY_ID,
+        Ledger::recordBox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     const bool bLoaded = pLedger->LoadRecordBox();
@@ -5806,7 +5892,11 @@ Ledger* OT_API::LoadRecordBoxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
-        NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::recordBox)};
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        ACCOUNT_ID,
+        NOTARY_ID,
+        Ledger::recordBox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     if (pLedger->LoadRecordBox())  // Verify would go here.
@@ -5840,8 +5930,12 @@ Ledger* OT_API::LoadExpiredBox(
     // By this point, nym is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::expiredBox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        NYM_ID,
+        NOTARY_ID,
+        Ledger::expiredBox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     const bool bLoaded = pLedger->LoadExpiredBox();
@@ -5869,8 +5963,12 @@ Ledger* OT_API::LoadExpiredBoxNoVerify(
     // By this point, nymfile is a good pointer, and is on the wallet.
     // (No need to cleanup later.)
     // ---------------------------------------------
-    std::unique_ptr<Ledger> pLedger{
-        Ledger::GenerateLedger(NYM_ID, NYM_ID, NOTARY_ID, Ledger::expiredBox)};
+    std::unique_ptr<Ledger> pLedger{Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        NYM_ID,
+        NOTARY_ID,
+        Ledger::expiredBox)};
     OT_NEW_ASSERT_MSG(pLedger, "Error allocating memory in the OT API");
 
     if (pLedger->LoadExpiredBox())  // The Verify would have gone here.
@@ -5906,7 +6004,12 @@ bool OT_API::ClearExpired(
 
     if (false == bool(pExpiredBox)) {
         pExpiredBox.reset(Ledger::GenerateLedger(
-            NYM_ID, NYM_ID, NOTARY_ID, Ledger::expiredBox, true));
+            legacy_.ClientDataFolder(),
+            NYM_ID,
+            NYM_ID,
+            NOTARY_ID,
+            Ledger::expiredBox,
+            true));
 
         if (false == bool(pExpiredBox)) {
             otErr << OT_METHOD << __FUNCTION__
@@ -6226,7 +6329,12 @@ bool OT_API::RecordPayment(
 
         if (nullptr == pRecordBox) {
             pRecordBox = Ledger::GenerateLedger(
-                NYM_ID, NYM_ID, TRANSPORT_NOTARY_ID, Ledger::recordBox, true);
+                legacy_.ClientDataFolder(),
+                NYM_ID,
+                NYM_ID,
+                TRANSPORT_NOTARY_ID,
+                Ledger::recordBox,
+                true);
             if (nullptr == pRecordBox) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Unable to load or create record box "
@@ -6237,7 +6345,12 @@ bool OT_API::RecordPayment(
         }
         if (nullptr == pExpiredBox) {
             pExpiredBox = Ledger::GenerateLedger(
-                NYM_ID, NYM_ID, TRANSPORT_NOTARY_ID, Ledger::expiredBox, true);
+                legacy_.ClientDataFolder(),
+                NYM_ID,
+                NYM_ID,
+                TRANSPORT_NOTARY_ID,
+                Ledger::expiredBox,
+                true);
             if (nullptr == pExpiredBox) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Unable to load or create expired box"
@@ -6290,8 +6403,11 @@ bool OT_API::RecordPayment(
                   << nIndex << ".\n";
             return false;
         }
-        pPayment.reset(
-            GetInstrumentByIndex(*transport_nym, nIndex, *pPaymentInbox));
+        pPayment.reset(GetInstrumentByIndex(
+            legacy_.ClientDataFolder(),
+            *transport_nym,
+            nIndex,
+            *pPaymentInbox));
         // ------------------------------------------
         // Payment Notary (versus the Transport Notary).
         //
@@ -6379,7 +6495,7 @@ bool OT_API::RecordPayment(
                   << nIndex << ".\n";
             return false;
         }
-        OTPayment thePayment(strInstrument);
+        OTPayment thePayment(legacy_.ClientDataFolder(), strInstrument);
         originType theOriginType = originType::not_applicable;
 
         if (thePayment.IsValid() && thePayment.SetTempValues()) {
@@ -7044,6 +7160,7 @@ bool OT_API::RecordPayment(
                                                 Identifier::Factory(strAcctID);
 
                                             Ledger theSenderInbox(
+                                                legacy_.ClientDataFolder(),
                                                 NYM_ID,
                                                 accountID,
                                                 paymentNotaryId);
@@ -7062,6 +7179,8 @@ bool OT_API::RecordPayment(
                                                 // for lPaymentTransNum inside.
                                                 //
                                                 if (GetPaymentReceipt(
+                                                        legacy_
+                                                            .ClientDataFolder(),
                                                         theSenderInbox
                                                             .GetTransactionMap(),
                                                         lPaymentTransNum,
@@ -7093,7 +7212,11 @@ bool OT_API::RecordPayment(
                            // cheque, most likely.)
                     {
                         Ledger theSenderInbox(
-                            NYM_ID, theSenderAcctID, paymentNotaryId);
+                            legacy_.ClientDataFolder(),
+
+                            NYM_ID,
+                            theSenderAcctID,
+                            paymentNotaryId);
 
                         const bool bSuccessLoadingSenderInbox =
                             (theSenderInbox.LoadInbox() &&
@@ -7126,6 +7249,7 @@ bool OT_API::RecordPayment(
                             // plan...)
                             else if (
                                 GetPaymentReceipt(
+                                    legacy_.ClientDataFolder(),
                                     theSenderInbox.GetTransactionMap(),
                                     lPaymentTransNum,
                                     nullptr) ||
@@ -7389,7 +7513,12 @@ bool OT_API::ClearRecord(
 
     if (pRecordBox) {
         pRecordBox.reset(Ledger::GenerateLedger(
-            NYM_ID, ACCOUNT_ID, NOTARY_ID, Ledger::recordBox, true));
+            legacy_.ClientDataFolder(),
+            NYM_ID,
+            ACCOUNT_ID,
+            NOTARY_ID,
+            Ledger::recordBox,
+            true));
 
         if (pRecordBox) {
             otErr << OT_METHOD << __FUNCTION__
@@ -7911,7 +8040,7 @@ Basket* OT_API::GenerateBasketExchange(
     if (nullptr == contract) return nullptr;
     // By this point, contract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -7954,7 +8083,8 @@ Basket* OT_API::GenerateBasketExchange(
                  "enough transaction numbers to perform the "
                  "exchange.\n";
     } else {
-        pRequestBasket = new Basket(currencies, contract->Weight());
+        pRequestBasket = new Basket(
+            legacy_.ClientDataFolder(), currencies, contract->Weight());
         OT_ASSERT_MSG(
             nullptr != pRequestBasket,
             "OT_API::GenerateBasketExchange: Error allocating "
@@ -7994,7 +8124,8 @@ bool OT_API::AddBasketExchangeItem(
 
     if (!contract) { return false; }
 
-    auto account = wallet_.Account(ASSET_ACCOUNT_ID);
+    auto account =
+        wallet_.Account(legacy_.ClientDataFolder(), ASSET_ACCOUNT_ID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8196,14 +8327,14 @@ CommandResult OT_API::exchangeBasket(
 
     if (nullptr == contract) { return output; }
 
-    Basket basket;
+    Basket basket{legacy_.ClientDataFolder()};
     bool validBasket = (0 < BASKET_INFO.GetLength());
     validBasket &= basket.LoadContractFromString(BASKET_INFO);
 
     if (false == validBasket) { return output; }
 
     const Identifier& accountID(basket.GetRequestAccountID());
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8263,6 +8394,7 @@ CommandResult OT_API::exchangeBasket(
     transactionNum = managedNumber;
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             accountID,
             serverID,
@@ -8310,7 +8442,7 @@ CommandResult OT_API::exchangeBasket(
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, accountID, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     ledger.GenerateLedger(accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -8357,7 +8489,7 @@ CommandResult OT_API::getTransactionNumbers(ServerContext& context) const
         return output;
     }
 
-    Message message;
+    Message message{legacy_.ClientDataFolder()};
     requestNum = m_pClient->ProcessUserCommand(
         MessageType::getTransactionNumbers,
         context,
@@ -8402,7 +8534,7 @@ CommandResult OT_API::notarizeWithdrawal(
 
     if (nullptr == wallet) { return output; }
 
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8412,8 +8544,12 @@ CommandResult OT_API::notarizeWithdrawal(
     }
 
     const auto& contractID = account.get().GetInstrumentDefinitionID();
-    const bool exists =
-        OTDB::Exists(OTFolders::Mint().Get(), serverID.str(), contractID.str());
+    const bool exists = OTDB::Exists(
+        legacy_.ClientDataFolder(),
+        OTFolders::Mint().Get(),
+        serverID.str(),
+        contractID.str(),
+        "");
 
     if (false == exists) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8425,7 +8561,8 @@ CommandResult OT_API::notarizeWithdrawal(
     }
 
     std::unique_ptr<Mint> mint{nullptr};
-    mint.reset(Mint::MintFactory(String(serverID), String(contractID)));
+    mint.reset(Mint::MintFactory(
+        legacy_.ClientDataFolder(), String(serverID), String(contractID)));
 
     if (false == bool(mint)) { return output; }
 
@@ -8470,6 +8607,7 @@ CommandResult OT_API::notarizeWithdrawal(
     transactionNum = managedNumber;
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             accountID,
             serverID,
@@ -8485,12 +8623,13 @@ CommandResult OT_API::notarizeWithdrawal(
     if (false == bool(item)) { return output; }
 
     item->SetNote(String("Gimme cash!"));
-    std::unique_ptr<Purse> purse(new Purse(serverID, contractID, serverNymID));
+    std::unique_ptr<Purse> purse(new Purse(
+        legacy_.ClientDataFolder(), serverID, contractID, serverNymID));
 
     if (false == bool(purse)) { return output; }
 
-    std::unique_ptr<Purse> purseCopy(
-        new Purse(serverID, contractID, serverNymID));
+    std::unique_ptr<Purse> purseCopy(new Purse(
+        legacy_.ClientDataFolder(), serverID, contractID, serverNymID));
 
     if (false == bool(purseCopy)) { return output; }
 
@@ -8555,7 +8694,7 @@ CommandResult OT_API::notarizeWithdrawal(
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, accountID, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     ledger.GenerateLedger(accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -8601,7 +8740,7 @@ CommandResult OT_API::notarizeDeposit(
         "Depositing a cash purse. Enter passphrase for the purse.");
     const OTPasswordData cashPasswordReason(
         "Depositing a cash purse. Enter master passphrase for wallet.");
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8648,6 +8787,7 @@ CommandResult OT_API::notarizeDeposit(
 
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             accountID,
             serverID,
@@ -8675,7 +8815,8 @@ CommandResult OT_API::notarizeDeposit(
     }
 
     const auto& contractID = account.get().GetInstrumentDefinitionID();
-    Purse outputPurse(serverID, contractID, serverNym.ID());
+    Purse outputPurse(
+        legacy_.ClientDataFolder(), serverID, contractID, serverNym.ID());
 
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by a
@@ -8690,7 +8831,7 @@ CommandResult OT_API::notarizeDeposit(
     // whether there is actually a Nym inside, or a symmetric key. (None of the
     // purse operations will care, since they can use pOwner either way.)
     OTPassword pursePassword;
-    Purse sourcePurse(outputPurse);
+    Purse sourcePurse(legacy_.ClientDataFolder(), outputPurse);
     std::unique_ptr<OTNym_or_SymmetricKey> purseOwner(LoadPurseAndOwnerForMerge(
         THE_PURSE,
         sourcePurse,
@@ -8776,7 +8917,7 @@ CommandResult OT_API::notarizeDeposit(
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, accountID, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     ledger.GenerateLedger(accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -8842,7 +8983,8 @@ CommandResult OT_API::payDividend(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto dividendAccount = wallet_.Account(DIVIDEND_FROM_accountID);
+    auto dividendAccount =
+        wallet_.Account(legacy_.ClientDataFolder(), DIVIDEND_FROM_accountID);
 
     if (false == bool(dividendAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8856,7 +8998,8 @@ CommandResult OT_API::payDividend(
     if (false == bool(contract)) { return output; }
 
     // issuerAccount is not owned by this function
-    auto issuerAccount = wallet_.IssuerAccount(SHARES_INSTRUMENT_DEFINITION_ID);
+    auto issuerAccount = wallet_.IssuerAccount(
+        legacy_.ClientDataFolder(), SHARES_INSTRUMENT_DEFINITION_ID);
 
     if (false == bool(issuerAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8949,7 +9092,8 @@ CommandResult OT_API::payDividend(
     // cheque when it constructs the actual voucher (to the dividend payee.) And
     // remember there might be a hundred shareholders, so the server would
     // create a hundred vouchers in that case.
-    Cheque theRequestVoucher(serverID, SHARES_INSTRUMENT_DEFINITION_ID);
+    Cheque theRequestVoucher(
+        legacy_.ClientDataFolder(), serverID, SHARES_INSTRUMENT_DEFINITION_ID);
     const bool bIssueCheque = theRequestVoucher.IssueCheque(
         AMOUNT_PER_SHARE,  // <====== Server needs this (AMOUNT_PER_SHARE.)
         transactionNum,    // server actually ignores this and supplies its own
@@ -8997,6 +9141,7 @@ CommandResult OT_API::payDividend(
 
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             DIVIDEND_FROM_accountID,
             serverID,
@@ -9046,7 +9191,8 @@ CommandResult OT_API::payDividend(
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, DIVIDEND_FROM_accountID, serverID);
+    Ledger ledger(
+        legacy_.ClientDataFolder(), nymID, DIVIDEND_FROM_accountID, serverID);
     ledger.GenerateLedger(DIVIDEND_FROM_accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -9090,7 +9236,7 @@ CommandResult OT_API::withdrawVoucher(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9103,7 +9249,7 @@ CommandResult OT_API::withdrawVoucher(
     String strContractID;
     contractID = account.get().GetInstrumentDefinitionID();
     contractID->GetString(strContractID);
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
     const auto withdrawalNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
     const auto voucherNumber =
@@ -9134,7 +9280,7 @@ CommandResult OT_API::withdrawVoucher(
     // The server only uses the memo, amount, and recipient from this cheque
     // when it
     // constructs the actual voucher.
-    Cheque theRequestVoucher(serverID, contractID);
+    Cheque theRequestVoucher(legacy_.ClientDataFolder(), serverID, contractID);
     bool bIssueCheque = theRequestVoucher.IssueCheque(
         amount,
         voucherNumber,
@@ -9167,6 +9313,7 @@ CommandResult OT_API::withdrawVoucher(
 
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             accountID,
             serverID,
@@ -9197,7 +9344,7 @@ CommandResult OT_API::withdrawVoucher(
     transaction->AddItem(*balanceItem.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, accountID, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     ledger.GenerateLedger(accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -9277,7 +9424,7 @@ bool OT_API::DiscardCheque(
 
     if (!pServer) { return false; }
 
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9292,15 +9439,13 @@ bool OT_API::DiscardCheque(
     // to cleanup.)
     auto contractID = Identifier::Factory();
     String strContractID;
-
     contractID = account.get().GetInstrumentDefinitionID();
     contractID->GetString(strContractID);
     // By this point, nymfile is a good pointer, and is on the wallet.
     //  (No need to cleanup.)  pServer and account are also good.
     //
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-
-    Cheque theCheque(NOTARY_ID, contractID);
+    Cheque theCheque(legacy_.ClientDataFolder(), NOTARY_ID, contractID);
 
     if (!theCheque.LoadContractFromString(THE_CHEQUE)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -9362,7 +9507,7 @@ CommandResult OT_API::depositCheque(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9393,7 +9538,10 @@ CommandResult OT_API::depositCheque(
     // If bCancellingCheque==true, we're actually cancelling the cheque by
     // "depositing" it back into the same account it's drawn on.
     bool bCancellingCheque{false};
-    Cheque copy(serverID, account.get().GetInstrumentDefinitionID());
+    Cheque copy(
+        legacy_.ClientDataFolder(),
+        serverID,
+        account.get().GetInstrumentDefinitionID());
 
     if (theCheque.HasRemitter()) {
         bCancellingCheque =
@@ -9495,6 +9643,7 @@ CommandResult OT_API::depositCheque(
     transactionNum = managedNumber;
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             accountID,
             serverID,
@@ -9536,7 +9685,7 @@ CommandResult OT_API::depositCheque(
     transaction->SignContract(nym);
     transaction->SaveContract();
 
-    Ledger ledger(nymID, accountID, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     const bool generated =
         ledger.GenerateLedger(accountID, serverID, Ledger::message);
 
@@ -9603,7 +9752,7 @@ CommandResult OT_API::depositPaymentPlan(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    OTPaymentPlan plan;
+    OTPaymentPlan plan{legacy_.ClientDataFolder()};
     const bool validPlan = plan.LoadContractFromString(THE_PAYMENT_PLAN) &&
                            plan.VerifySignature(nym);
 
@@ -9648,7 +9797,7 @@ CommandResult OT_API::depositPaymentPlan(
         bCancelling ? plan.GetRecipientAcctID() : plan.GetSenderAcctID());
 
     {
-        auto account = wallet_.Account(accountID);
+        auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
         if (false == bool(account)) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9661,6 +9810,7 @@ CommandResult OT_API::depositPaymentPlan(
     const auto openingNumber = plan.GetOpeningNumber(nymID);
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             accountID,
             serverID,
@@ -9686,7 +9836,7 @@ CommandResult OT_API::depositPaymentPlan(
     transaction->AddItem(*statement.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, accountID, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     ledger.GenerateLedger(accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -9764,7 +9914,7 @@ CommandResult OT_API::activateSmartContract(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    OTSmartContract contract(serverID);
+    OTSmartContract contract(legacy_.ClientDataFolder(), serverID);
 
     if (false == contract.LoadContractFromString(THE_SMART_CONTRACT)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -9985,6 +10135,7 @@ CommandResult OT_API::activateSmartContract(
     contract.SaveContract();
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             accountID,
             serverID,
@@ -10010,7 +10161,7 @@ CommandResult OT_API::activateSmartContract(
     transaction->AddItem(*statement.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, accountID, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     ledger.GenerateLedger(accountID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -10129,6 +10280,7 @@ CommandResult OT_API::cancelCronItem(
     transactionNum = managedNumber;
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             ASSET_ACCOUNT_ID,
             serverID,
@@ -10157,7 +10309,8 @@ CommandResult OT_API::cancelCronItem(
     transaction->SaveContract();
 
     // set up the ledger
-    Ledger ledger(nymID, ASSET_ACCOUNT_ID, serverID);
+    Ledger ledger(
+        legacy_.ClientDataFolder(), nymID, ASSET_ACCOUNT_ID, serverID);
     ledger.GenerateLedger(ASSET_ACCOUNT_ID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -10215,7 +10368,8 @@ CommandResult OT_API::issueMarketOffer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto assetAccount = wallet_.Account(ASSET_ACCOUNT_ID);
+    auto assetAccount =
+        wallet_.Account(legacy_.ClientDataFolder(), ASSET_ACCOUNT_ID);
 
     if (false == bool(assetAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load asset account"
@@ -10224,7 +10378,8 @@ CommandResult OT_API::issueMarketOffer(
         return output;
     }
 
-    auto currencyAccount = wallet_.Account(CURRENCY_ACCOUNT_ID);
+    auto currencyAccount =
+        wallet_.Account(legacy_.ClientDataFolder(), CURRENCY_ACCOUNT_ID);
 
     if (false == bool(currencyAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10363,8 +10518,14 @@ CommandResult OT_API::issueMarketOffer(
         strPrice.Format("Price: %" PRId64 "\n", lPriceLimit);
     }
 
-    OTOffer offer(serverID, assetContractID, currencyContractID, lMarketScale);
+    OTOffer offer(
+        legacy_.ClientDataFolder(),
+        serverID,
+        assetContractID,
+        currencyContractID,
+        lMarketScale);
     OTTrade trade(
+        legacy_.ClientDataFolder(),
         serverID,
         assetContractID,
         ASSET_ACCOUNT_ID,
@@ -10453,6 +10614,7 @@ CommandResult OT_API::issueMarketOffer(
           << "  To: " << OTTimeGetSecondsFromTime(VALID_TO) << std::endl;
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             ASSET_ACCOUNT_ID,
             serverID,
@@ -10480,7 +10642,8 @@ CommandResult OT_API::issueMarketOffer(
     transaction->AddItem(*statement.release());
     transaction->SignContract(nym);
     transaction->SaveContract();
-    Ledger ledger(nymID, ASSET_ACCOUNT_ID, serverID);
+    Ledger ledger(
+        legacy_.ClientDataFolder(), nymID, ASSET_ACCOUNT_ID, serverID);
     ledger.GenerateLedger(ASSET_ACCOUNT_ID, serverID, Ledger::message);
     ledger.AddTransaction(*transaction.release());
     ledger.SignContract(nym);
@@ -10657,7 +10820,7 @@ CommandResult OT_API::notarizeTransfer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = wallet_.Account(ACCT_FROM);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCT_FROM);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -10684,6 +10847,7 @@ CommandResult OT_API::notarizeTransfer(
     transactionNum = managedNumber;
     std::unique_ptr<OTTransaction> transaction(
         OTTransaction::GenerateTransaction(
+            legacy_.ClientDataFolder(),
             nymID,
             ACCT_FROM,
             serverID,
@@ -10762,7 +10926,7 @@ CommandResult OT_API::notarizeTransfer(
     transaction->SaveContract();
 
     // set up the ledger
-    Ledger ledger(nymID, ACCT_FROM, serverID);
+    Ledger ledger(legacy_.ClientDataFolder(), nymID, ACCT_FROM, serverID);
     ledger.GenerateLedger(
         ACCT_FROM,
         serverID,
@@ -10831,7 +10995,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    Ledger nymbox(nymID, nymID, serverID);
+    Ledger nymbox(legacy_.ClientDataFolder(), nymID, nymID, serverID);
 
     if (false == nymbox.LoadNymbox()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10857,7 +11021,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
         return output;
     }
 
-    Message message;
+    Message message{legacy_.ClientDataFolder()};
     const auto accepted =
         m_pClient->AcceptEntireNymbox(nymbox, context, message);
     requestNum = atoi(message.m_strRequestNum.Get());
@@ -10895,7 +11059,7 @@ CommandResult OT_API::processInbox(
     reply.reset();
 
     {
-        auto account = wallet_.Account(accountID);
+        auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
         if (false == bool(account)) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -11133,7 +11297,7 @@ CommandResult OT_API::deleteAssetAccount(
     reply.reset();
 
     {
-        auto account = wallet_.Account(ACCOUNT_ID);
+        auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCOUNT_ID);
 
         if (false == bool(account)) { return output; }
     }
@@ -11165,6 +11329,7 @@ bool OT_API::DoesBoxReceiptExist(
 
     // static
     return VerifyBoxReceiptExists(
+        legacy_.ClientDataFolder(),
         NOTARY_ID,
         NYM_ID,      // Unused here for now, but still convention.
         ACCOUNT_ID,  // If for Nymbox (vs inbox/outbox) then pass NYM_ID in this
@@ -11193,7 +11358,7 @@ CommandResult OT_API::getBoxReceipt(
     const auto& nymID = nym.ID();
 
     if (nymID != ACCOUNT_ID) {
-        auto account = wallet_.Account(ACCOUNT_ID);
+        auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCOUNT_ID);
 
         if (false == bool(account)) { return output; }
     }
@@ -11478,7 +11643,7 @@ CommandResult OT_API::sendNymMessage(
     if (false == reply->m_bSuccess) { return output; }
 
     // store a copy in the outmail.
-    std::unique_ptr<Message> sent(new Message);
+    std::unique_ptr<Message> sent(new Message{legacy_.ClientDataFolder()});
 
     OT_ASSERT(sent);
 
@@ -11601,7 +11766,7 @@ CommandResult OT_API::sendNymInstrument(
         }
     }
 
-    Message theMessage;
+    Message theMessage{legacy_.ClientDataFolder()};
     theMessage.m_strCommand = "sendNymInstrument";
     theMessage.m_strNymID = String(nymID);
     theMessage.m_strNymID2 = String(recipientNymID);
@@ -11611,7 +11776,8 @@ CommandResult OT_API::sendNymInstrument(
     // That way if send fails, at least you still already have your
     // own outgoing copy, and thus retain the theoretical ability
     // to later attempt a re-send.
-    std::unique_ptr<Message> pMessageLocalCopy(new Message);
+    std::unique_ptr<Message> pMessageLocalCopy(
+        new Message{legacy_.ClientDataFolder()});
     pMessageLocalCopy->m_strCommand = "outpaymentsMessage";
     pMessageLocalCopy->m_strNymID = String(nymID);
     pMessageLocalCopy->m_strNymID2 = String(recipientNymID);
@@ -11984,6 +12150,7 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrument(
     OT_ASSERT(nym);
     // ------------------------------------
     std::unique_ptr<OTPayment> pPayment{GetInstrumentByIndex(
+        legacy_.ClientDataFolder(),
         *nym,
         nIndex,
         const_cast<Ledger&>(ledger)  // Todo justus has fix for this const_cast.
@@ -12015,6 +12182,7 @@ std::unique_ptr<OTPayment> OT_API::Ledger_GetInstrumentByReceiptID(
     OT_ASSERT(nym);
     // ------------------------------------
     std::unique_ptr<OTPayment> pPayment{GetInstrumentByReceiptID(
+        legacy_.ClientDataFolder(),
         *nym,
         lReceiptId,
         const_cast<Ledger&>(ledger)  // Todo justus has fix for this const_cast.
@@ -12348,7 +12516,7 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    Message message;
+    Message message{legacy_.ClientDataFolder()};
     requestNum = m_pClient->ProcessUserCommand(
         MessageType::unregisterNym,
         context,
@@ -12650,8 +12818,12 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
         return {};
     }
 
-    processInbox.reset(
-        Ledger::GenerateLedger(nymID, accountID, serverID, Ledger::message));
+    processInbox.reset(Ledger::GenerateLedger(
+        legacy_.ClientDataFolder(),
+        nymID,
+        accountID,
+        serverID,
+        Ledger::message));
 
     if (false == bool(processInbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -12798,7 +12970,7 @@ bool OT_API::FinalizeProcessInbox(
     // Below this point, any failure will result in the transaction number being
     // recovered
     Cleanup cleanup(*processInbox, context);
-    auto account = wallet_.Account(accountID);
+    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -12808,7 +12980,7 @@ bool OT_API::FinalizeProcessInbox(
     }
 
     bool boxesLoaded = true;
-    Ledger outbox(nymID, accountID, serverID);
+    Ledger outbox(legacy_.ClientDataFolder(), nymID, accountID, serverID);
     boxesLoaded &= (boxesLoaded && outbox.LoadOutbox());
     boxesLoaded &= (boxesLoaded && outbox.VerifyAccount(*nym));
 
@@ -13013,8 +13185,8 @@ bool OT_API::find_standard(
         case Item::acceptItemReceipt: {
             String reference;
             serverTransaction.GetReferenceString(reference);
-            std::unique_ptr<Item> original(
-                Item::CreateItemFromString(reference, notaryID, number));
+            std::unique_ptr<Item> original(Item::CreateItemFromString(
+                serverTransaction.DataFolder(), reference, notaryID, number));
 
             if (false == bool(original)) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -13031,7 +13203,7 @@ bool OT_API::find_standard(
                 case Item::depositCheque: {
                     String attachment;
                     original->GetAttachment(attachment);
-                    Cheque cheque;
+                    Cheque cheque{legacy_.ClientDataFolder()};
 
                     if (3 > attachment.GetLength()) {
                         otErr << OT_METHOD << __FUNCTION__
@@ -13143,6 +13315,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
 
         std::unique_ptr<OTTransaction> newProcessInbox(
             OTTransaction::GenerateTransaction(
+                legacy_.ClientDataFolder(),
                 nymID,
                 accountID,
                 serverID,
@@ -13251,7 +13424,10 @@ TransactionNumber OT_API::get_origin(
             }
 
             std::unique_ptr<Item> original(Item::CreateItemFromString(
-                reference, notaryID, source.GetReferenceToNum()));
+                source.DataFolder(),
+                reference,
+                notaryID,
+                source.GetReferenceToNum()));
 
             if (false == bool(original)) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -13308,7 +13484,8 @@ std::set<std::unique_ptr<Cheque>> OT_API::extract_cheques(
     Ledger& inbox) const
 {
     std::set<std::unique_ptr<Cheque>> output;
-    std::unique_ptr<Ledger> ledger(new Ledger(nymID, accountID, serverID));
+    std::unique_ptr<Ledger> ledger(
+        new Ledger(legacy_.ClientDataFolder(), nymID, accountID, serverID));
 
     OT_ASSERT(ledger);
 
@@ -13329,8 +13506,8 @@ std::set<std::unique_ptr<Cheque>> OT_API::extract_cheques(
 
         String reference;
         inboxItem->GetReferenceString(reference);
-        std::unique_ptr<Item> item(
-            Item::CreateItemFromString(reference, serverID, inboxNumber));
+        std::unique_ptr<Item> item(Item::CreateItemFromString(
+            inboxItem->DataFolder(), reference, serverID, inboxNumber));
 
         OT_ASSERT(item)
 

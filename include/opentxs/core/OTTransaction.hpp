@@ -317,6 +317,7 @@ same time that it is first being
 class OTTransaction : public OTTransactionType
 {
     friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const std::string& dataFolder,
         String strInput);
 
 public:
@@ -400,46 +401,6 @@ public:
         error_state
     };  // If you add any types to this list, update the list of strings at the
     // top of the .CPP file.
-
-    OTTransaction(const Ledger& theOwner);
-
-    EXPORT explicit OTTransaction(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
-        originType theOriginType = originType::not_applicable);
-
-    explicit OTTransaction(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
-        std::int64_t lTransactionNum,
-        originType theOriginType = originType::not_applicable);
-
-    // THIS constructor only used when loading an abbreviated box receipt
-    // (inbox, nymbox, or outbox receipt).
-    // The full receipt is loaded only after the abbreviated ones are loaded,
-    // and verified against them.
-    OTTransaction(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
-        const std::int64_t& lNumberOfOrigin,
-        originType theOriginType,
-        const std::int64_t& lTransactionNum,
-        const std::int64_t& lInRefTo,
-        const std::int64_t& lInRefDisplay,
-        time64_t the_DATE_SIGNED,
-        transactionType theType,
-        const String& strHash,
-        const std::int64_t& lAdjustment,
-        const std::int64_t& lDisplayValue,
-        const std::int64_t& lClosingNum,
-        const std::int64_t& lRequestNum,
-        bool bReplyTransSuccess,
-        NumList* pNumList = nullptr);
-
-    EXPORT virtual ~OTTransaction();
 
     void Release() override;
     EXPORT std::int64_t GetNumberOfOrigin() override;
@@ -544,6 +505,7 @@ public:
     // it.
 
     EXPORT static OTTransaction* GenerateTransaction(
+        const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
@@ -660,16 +622,48 @@ public:
         bool bTransactionWasSuccess,   // false until positively asserted.
         bool bTransactionWasFailure);  // false until positively asserted.
 
-protected:
-    // return -1 if error, 0 if nothing, and 1 if the node was processed.
-    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+    EXPORT explicit OTTransaction(const Ledger& theOwner);
 
-    void UpdateContents() override;  // Before transmission or serialization,
-                                     // this
-                                     // is where the transaction saves its
-                                     // contents
+    EXPORT explicit OTTransaction(
+        const std::string& dataFolder,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        originType theOriginType = originType::not_applicable);
 
-    OTTransaction();  // only the factory gets to use this one.
+    EXPORT explicit OTTransaction(
+        const std::string& dataFolder,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        std::int64_t lTransactionNum,
+        originType theOriginType = originType::not_applicable);
+
+    // THIS constructor only used when loading an abbreviated box receipt
+    // (inbox, nymbox, or outbox receipt).
+    // The full receipt is loaded only after the abbreviated ones are loaded,
+    // and verified against them.
+    EXPORT OTTransaction(
+        const std::string& dataFolder,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        const std::int64_t& lNumberOfOrigin,
+        originType theOriginType,
+        const std::int64_t& lTransactionNum,
+        const std::int64_t& lInRefTo,
+        const std::int64_t& lInRefDisplay,
+        time64_t the_DATE_SIGNED,
+        transactionType theType,
+        const String& strHash,
+        const std::int64_t& lAdjustment,
+        const std::int64_t& lDisplayValue,
+        const std::int64_t& lClosingNum,
+        const std::int64_t& lRequestNum,
+        bool bReplyTransSuccess,
+        NumList* pNumList = nullptr);
+
+    EXPORT virtual ~OTTransaction();
 
 protected:
     // Usually a transaction object is inside a ledger object.
@@ -791,6 +785,19 @@ protected:
     // marked as "rejected." All the client has to do is check m_bCancelled
     // to see if it's set to TRUE, and it will know.
     bool m_bCancelled{false};
+
+    // return -1 if error, 0 if nothing, and 1 if the node was processed.
+    std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
+
+    void UpdateContents() override;  // Before transmission or serialization,
+                                     // this is where the transaction saves its
+                                     // contents
+
+    OTTransaction(const std::string& dataFolder);  // only the factory gets to
+                                                   // use this one.
+
+private:
+    OTTransaction() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_TRANSACTION_HPP

@@ -8,15 +8,9 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/Activity.hpp"
-#include "opentxs/core/Lockable.hpp"
-
-#include <map>
-#include <mutex>
-
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-class Activity : virtual public opentxs::api::Activity, Lockable
+class Activity : virtual public api::client::internal::Activity, Lockable
 {
 public:
     bool AddBlockchainTransaction(
@@ -184,11 +178,12 @@ public:
     ~Activity() = default;
 
 private:
-    friend class implementation::Native;
+    friend Factory;
 
     typedef std::map<OTIdentifier, std::shared_ptr<const std::string>>
         MailCache;
 
+    const Legacy& legacy_;
     const ContactManager& contact_;
     const storage::Storage& storage_;
     const client::Wallet& wallet_;
@@ -202,7 +197,7 @@ private:
      *
      *    This method should only be called by the ContactManager on startup
      */
-    void MigrateLegacyThreads() const;
+    void MigrateLegacyThreads() const override;
     void activity_preload_thread(
         const OTIdentifier nymID,
         const std::size_t count) const;
@@ -226,6 +221,7 @@ private:
     void publish(const Identifier& nymID, const std::string& threadID) const;
 
     Activity(
+        const Legacy& legacy,
         const ContactManager& contact,
         const storage::Storage& storage,
         const client::Wallet& wallet,
@@ -236,5 +232,5 @@ private:
     Activity& operator=(const Activity&) = delete;
     Activity& operator=(Activity&&) = delete;
 };
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_ACTIVITY_IMPLEMENTATION_HPP

@@ -285,7 +285,7 @@ bool RSA::SetPrivateKey(
                                // then
         {
             const auto& native =
-                dynamic_cast<const api::NativeInternal&>(OT::App());
+                dynamic_cast<const api::internal::Native&>(OT::App());
             pkey = PEM_read_bio_PrivateKey(
                 bio, nullptr, native.GetInternalPasswordCallback(), &thePWData);
         } else  // Otherwise, use pImportPassword instead of the normal
@@ -373,7 +373,7 @@ bool RSA::SetPublicKeyFromPrivateKey(
 
     if (nullptr == pImportPassword) {
         const auto& native =
-            dynamic_cast<const api::NativeInternal&>(OT::App());
+            dynamic_cast<const api::internal::Native&>(OT::App());
         x509 = PEM_read_bio_X509(
             keyBio, nullptr, native.GetInternalPasswordCallback(), &thePWData);
     } else {
@@ -498,7 +498,7 @@ bool RSA::ReEncryptPrivateKey(
         //
         else {
             const auto& native =
-                dynamic_cast<const api::NativeInternal&>(OT::App());
+                dynamic_cast<const api::internal::Native&>(OT::App());
             pClearKey = PEM_read_bio_PrivateKey(
                 keyBio,
                 nullptr,
@@ -525,7 +525,7 @@ bool RSA::ReEncryptPrivateKey(
             //
             std::int32_t nWriteBio = 0;
             const auto& native =
-                dynamic_cast<const api::NativeInternal&>(OT::App());
+                dynamic_cast<const api::internal::Native&>(OT::App());
 
             // If we're importing, that means we just loaded up the (previously)
             // exported Nym using theExportedPassphrase, so now we need to save
@@ -711,7 +711,7 @@ bool RSA::GetPrivateKey(
                                 : "RSA::"
                                   "GetPrivateKey is calling "
                                   "PEM_write_bio_PrivateKey...");
-    const auto& native = dynamic_cast<const api::NativeInternal&>(OT::App());
+    const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
 
     if (nullptr == pImportPassword) {
         PEM_write_bio_PrivateKey(

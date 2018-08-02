@@ -6,6 +6,7 @@
 #include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Api.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/ServerAction.hpp"
@@ -21,15 +22,20 @@
 
 namespace opentxs
 {
-api::client::Cash* Factory::Cash()
+api::client::Cash* Factory::Cash(const api::Legacy& legacy)
 {
-    return new api::client::implementation::Cash();
+    return new api::client::implementation::Cash(legacy);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 #if OT_CASH
+Cash::Cash(const api::Legacy& legacy)
+    : legacy_(legacy)
+{
+}
+
 bool Cash::deposit_cash(
     const std::string& notaryID,
     const std::string& nymID,
@@ -252,9 +258,9 @@ std::int32_t Cash::withdraw_and_export_cash_low_level(
     // By this point, exportedCash and retainedCopy should both be valid.
 
     std::shared_ptr<const Purse> pRecipientCopy(
-        Purse::PurseFactory(String(exportedCash)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(exportedCash)));
     std::shared_ptr<const Purse> pSenderCopy(
-        Purse::PurseFactory(String(retainedCopy)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(retainedCopy)));
 
     OT_ASSERT(pRecipientCopy);
     OT_ASSERT(pSenderCopy);
@@ -322,9 +328,9 @@ std::int32_t Cash::send_cash(
     // By this point, exportedCash and retainedCopy should both be valid.
 
     std::shared_ptr<const Purse> recipientCopy(
-        Purse::PurseFactory(String(exportedCash)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(exportedCash)));
     std::shared_ptr<const Purse> senderCopy(
-        Purse::PurseFactory(String(retainedCopy)));
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(retainedCopy)));
 
     OT_ASSERT(recipientCopy);
     OT_ASSERT(senderCopy);
@@ -554,7 +560,8 @@ std::int32_t Cash::deposit_purse_low_level(
         return -1;
     }
 
-    std::unique_ptr<Purse> purse(Purse::PurseFactory(String(newPurse)));
+    std::unique_ptr<Purse> purse(
+        Purse::PurseFactory(legacy_.ClientDataFolder(), String(newPurse)));
 
     OT_ASSERT(purse);
 

@@ -36,7 +36,7 @@ class Transactor
     friend class MainFile;
 
 public:
-    explicit Transactor(Server* server);
+    explicit Transactor(const api::Legacy& legacy, Server* server);
     ~Transactor();
 
     bool issueNextTransactionNumber(TransactionNumber& txNumber);
@@ -81,6 +81,7 @@ public:
 private:
     typedef std::map<std::string, std::string> BasketsMap;
 
+    const api::Legacy& legacy_;
     // This stores the last VALID AND ISSUED transaction number.
     TransactionNumber transactionNumber_;
     // maps basketId with basketAccountId
@@ -93,6 +94,8 @@ private:
     AccountList voucherAccounts_;
 
     Server* server_;  // TODO: remove later when feasible
+
+    Transactor() = delete;
 };
 }  // namespace server
 }  // namespace opentxs

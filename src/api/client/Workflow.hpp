@@ -66,8 +66,9 @@ public:
 private:
     friend Factory;
 
-    const api::Activity& activity_;
-    const api::ContactManager& contact_;
+    const Activity& activity_;
+    const ContactManager& contact_;
+    const Legacy& legacy_;
     const storage::Storage& storage_;
     const opentxs::network::zeromq::Context& zmq_;
     const OTZMQPublishSocket account_publisher_;
@@ -157,8 +158,9 @@ private:
         std::chrono::time_point<std::chrono::system_clock> time) const;
 
     Workflow(
-        const api::Activity& activity,
-        const api::ContactManager& contact,
+        const Activity& activity,
+        const ContactManager& contact,
+        const Legacy& legacy,
         const storage::Storage& storage,
         const opentxs::network::zeromq::Context& zmq);
     Workflow() = delete;

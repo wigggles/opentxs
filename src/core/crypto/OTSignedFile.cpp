@@ -25,6 +25,48 @@
 
 namespace opentxs
 {
+OTSignedFile::OTSignedFile(const std::string& dataFolder)
+    : Contract(dataFolder)
+{
+    m_strContractType.Set("FILE");
+}
+
+OTSignedFile::OTSignedFile(
+    const std::string& dataFolder,
+    const String& LOCAL_SUBDIR,
+    const String& FILE_NAME)
+    : Contract(dataFolder)
+{
+    m_strContractType.Set("FILE");
+
+    SetFilename(LOCAL_SUBDIR, FILE_NAME);
+}
+
+OTSignedFile::OTSignedFile(
+    const std::string& dataFolder,
+    const char* LOCAL_SUBDIR,
+    const String& FILE_NAME)
+    : Contract(dataFolder)
+{
+    m_strContractType.Set("FILE");
+
+    String strLocalSubdir(LOCAL_SUBDIR);
+
+    SetFilename(strLocalSubdir, FILE_NAME);
+}
+
+OTSignedFile::OTSignedFile(
+    const std::string& dataFolder,
+    const char* LOCAL_SUBDIR,
+    const char* FILE_NAME)
+    : Contract(dataFolder)
+{
+    m_strContractType.Set("FILE");
+
+    String strLocalSubdir(LOCAL_SUBDIR), strFile_Name(FILE_NAME);
+
+    SetFilename(strLocalSubdir, strFile_Name);
+}
 
 String& OTSignedFile::GetFilePayload() { return m_strSignedFilePayload; }
 
@@ -129,34 +171,6 @@ bool OTSignedFile::VerifyFile()
     return false;
 }
 
-OTSignedFile::OTSignedFile(const String& LOCAL_SUBDIR, const String& FILE_NAME)
-    : Contract()
-{
-    m_strContractType.Set("FILE");
-
-    SetFilename(LOCAL_SUBDIR, FILE_NAME);
-}
-
-OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const String& FILE_NAME)
-    : Contract()
-{
-    m_strContractType.Set("FILE");
-
-    String strLocalSubdir(LOCAL_SUBDIR);
-
-    SetFilename(strLocalSubdir, FILE_NAME);
-}
-
-OTSignedFile::OTSignedFile(const char* LOCAL_SUBDIR, const char* FILE_NAME)
-    : Contract()
-{
-    m_strContractType.Set("FILE");
-
-    String strLocalSubdir(LOCAL_SUBDIR), strFile_Name(FILE_NAME);
-
-    SetFilename(strLocalSubdir, strFile_Name);
-}
-
 // This is entirely separate from the Contract saving methods.  This is
 // specifically
 // for saving the internal file payload based on the internal file information,
@@ -186,7 +200,8 @@ bool OTSignedFile::LoadFile()
     //    otOut << "DEBUG LoadFile (Signed) folder: %s file: %s \n",
     // m_strFoldername.Get(), m_strFilename.Get());
 
-    if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get()))
+    if (OTDB::Exists(
+            data_folder_, m_strFoldername.Get(), m_strFilename.Get(), "", ""))
         return LoadContract();
 
     return false;
@@ -217,14 +232,6 @@ void OTSignedFile::SetFilename(
     // Finished Product:    "transaction/nyms/5bf9a88c.nym"
 }
 
-OTSignedFile::OTSignedFile()
-    : Contract()
-{
-    m_strContractType.Set("FILE");
-}
-
-OTSignedFile::~OTSignedFile() { Release_SignedFile(); }
-
 void OTSignedFile::Release_SignedFile()
 {
     m_strSignedFilePayload.Release();  // This is the file contents we were
@@ -253,4 +260,5 @@ void OTSignedFile::Release()
     m_strContractType.Set("FILE");
 }
 
+OTSignedFile::~OTSignedFile() { Release_SignedFile(); }
 }  // namespace opentxs

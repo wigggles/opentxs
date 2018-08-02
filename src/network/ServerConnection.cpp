@@ -243,7 +243,7 @@ NetworkReplyMessage ServerConnection::Send(const Message& message)
     NetworkReplyMessage output{SendResult::ERROR, nullptr};
     auto& status = output.first;
     auto& reply = output.second;
-    reply.reset(new Message);
+    reply.reset(new Message{message.DataFolder()});
 
     OT_ASSERT(reply);
 

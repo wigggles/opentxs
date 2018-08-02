@@ -7,9 +7,10 @@
 
 #include "opentxs/core/Account.hpp"
 
+#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/util/Tag.hpp"
@@ -26,6 +27,7 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -57,8 +59,11 @@ char const* const __TypeStringsAccount[] = {
     "err_acct"};
 
 // Used for generating accounts, thus no accountID needed.
-Account::Account(const Identifier& nymID, const Identifier& notaryID)
-    : OTTransactionType()
+Account::Account(
+    const std::string& dataFolder,
+    const Identifier& nymID,
+    const Identifier& notaryID)
+    : OTTransactionType(dataFolder)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -74,8 +79,8 @@ Account::Account(const Identifier& nymID, const Identifier& notaryID)
     SetPurportedNotaryID(notaryID);
 }
 
-Account::Account()
-    : OTTransactionType()
+Account::Account(const std::string& dataFolder)
+    : OTTransactionType(dataFolder)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -89,11 +94,12 @@ Account::Account()
 }
 
 Account::Account(
+    const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& accountId,
     const Identifier& notaryID,
     const String& name)
-    : OTTransactionType(nymID, accountId, notaryID)
+    : OTTransactionType(dataFolder, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -108,10 +114,11 @@ Account::Account(
 }
 
 Account::Account(
+    const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& accountId,
     const Identifier& notaryID)
-    : OTTransactionType(nymID, accountId, notaryID)
+    : OTTransactionType(dataFolder, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -123,8 +130,6 @@ Account::Account(
 {
     InitAccount();
 }
-
-Account::~Account() { Release_Account(); }
 
 char const* Account::_GetTypeString(AccountType accountType)
 {
@@ -140,8 +145,8 @@ bool Account::LoadContractFromString(const String& theStr)
 // Caller responsible to delete.
 Ledger* Account::LoadInbox(const Nym& nym) const
 {
-    std::unique_ptr<Ledger> box{
-        new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+    std::unique_ptr<Ledger> box{new Ledger(
+        data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -158,8 +163,8 @@ Ledger* Account::LoadInbox(const Nym& nym) const
 // Caller responsible to delete.
 Ledger* Account::LoadOutbox(const Nym& nym) const
 {
-    std::unique_ptr<Ledger> box{
-        new Ledger(GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+    std::unique_ptr<Ledger> box{new Ledger(
+        data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -233,7 +238,8 @@ bool Account::GetInboxHash(Identifier& output)
     } else if (
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
-        Ledger inbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+        Ledger inbox(
+            data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
             SetInboxHash(output);
@@ -256,7 +262,8 @@ bool Account::GetOutboxHash(Identifier& output)
     } else if (
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
-        Ledger outbox(GetNymID(), GetRealAccountID(), GetRealNotaryID());
+        Ledger outbox(
+            data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
             SetOutboxHash(output);
@@ -388,19 +395,17 @@ bool Account::VerifyOwnerByID(const Identifier& nymId) const
     return nymId == m_AcctNymID;
 }
 
-// Let's say you don't have or know the NymID, and you just want to load the
-// damn thing up.
-// Then call this function. It will set nymID and server ID for you.
 Account* Account::LoadExistingAccount(
+    const std::string& dataFolder,
     const Identifier& accountId,
     const Identifier& notaryID)
 {
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
 
-    String strDataFolder = "";
+    String strDataFolder = OT::App().Legacy().DataFolderPath().c_str();
     String strAccountPath = "";
-    if (!OTDataFolder::Get(strDataFolder)) { OT_FAIL; }
+
     if (!OTPaths::AppendFolder(
             strAccountPath, strDataFolder, OTFolders::Account())) {
         OT_FAIL;
@@ -413,7 +418,7 @@ Account* Account::LoadExistingAccount(
         return nullptr;
     }
 
-    std::unique_ptr<Account> account{new Account};
+    std::unique_ptr<Account> account{new Account{dataFolder}};
 
     OT_ASSERT(account);
 
@@ -424,7 +429,11 @@ Account* Account::LoadExistingAccount(
     account->m_strFilename = strAcctID.Get();
 
     if (!OTDB::Exists(
-            account->m_strFoldername.Get(), account->m_strFilename.Get())) {
+            dataFolder,
+            account->m_strFoldername.Get(),
+            account->m_strFilename.Get(),
+            "",
+            "")) {
         otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
                << account->m_strFoldername << Log::PathSeparator()
                << account->m_strFilename << "\n";
@@ -441,6 +450,7 @@ Account* Account::LoadExistingAccount(
 }
 
 Account* Account::GenerateNewAccount(
+    const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& notaryID,
     const Nym& serverNym,
@@ -449,7 +459,7 @@ Account* Account::GenerateNewAccount(
     Account::AccountType acctType,
     std::int64_t stashTransNum)
 {
-    std::unique_ptr<Account> output(new Account(nymID, notaryID));
+    std::unique_ptr<Account> output(new Account(dataFolder, nymID, notaryID));
 
     if (output) {
         if (false == output->GenerateNewAccount(
@@ -514,7 +524,8 @@ bool Account::GenerateNewAccount(
 
     // Then we try to load it, in order to make sure that it doesn't already
     // exist.
-    if (OTDB::Exists(m_strFoldername.Get(), m_strFilename.Get())) {
+    if (OTDB::Exists(
+            data_folder_, m_strFoldername.Get(), m_strFilename.Get(), "", "")) {
         otErr << __FUNCTION__ << ": Account already exists: " << m_strFilename
               << "\n";
         return false;
@@ -940,4 +951,5 @@ void Account::Release()
     OTTransactionType::Release();
 }
 
+Account::~Account() { Release_Account(); }
 }  // namespace opentxs

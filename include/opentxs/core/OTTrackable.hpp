@@ -46,16 +46,6 @@ public:
 
     inline const Identifier& GetSenderNymID() const { return m_SENDER_NYM_ID; }
 
-    OTTrackable();
-    OTTrackable(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    OTTrackable(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& ACCT_ID,
-        const Identifier& NYM_ID);
-
     virtual ~OTTrackable();
 
 protected:
@@ -68,6 +58,21 @@ protected:
 
     void SetSenderAcctID(const Identifier& ACCT_ID);
     void SetSenderNymID(const Identifier& NYM_ID);
+
+    OTTrackable(const std::string& dataFolder);
+    OTTrackable(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTTrackable(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& ACCT_ID,
+        const Identifier& NYM_ID);
+
+private:
+    OTTrackable() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTTRACKABLE_HPP

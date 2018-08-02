@@ -33,31 +33,10 @@ class OTRecordList
 public:
     enum ItemType { typeBoth = 0, typeTransfers = 1, typeReceipts = 2 };
 
-private:
-    const api::client::Wallet& wallet_;
-    // Defaults to false. If you set it true, it will run a lot faster. (And
-    // give you less data.)
-    bool m_bRunFast{false};
-    bool m_bAutoAcceptCheques{false};  // Cheques and vouchers, NOT invoices.
-    bool m_bAutoAcceptReceipts{false};
-    bool m_bAutoAcceptTransfers{false};
-    bool m_bAutoAcceptCash{false};
-    bool m_bIgnoreMail{false};
-    static std::string s_strTextTo;    // "To: "
-    static std::string s_strTextFrom;  // "From: "
-    list_of_strings m_servers;
-    map_of_strings m_assets;  // <instrument_definition_id, asset_name>
-    list_of_strings m_accounts;
-    list_of_strings m_nyms;
-    vec_OTRecordList m_contents;
-    static const std::string s_blank;
-    static const std::string s_message_type;
-
-public:
-    EXPORT OTRecordList();
-    EXPORT ~OTRecordList();
+    const std::string data_folder_{""};
 
     EXPORT static bool accept_from_paymentbox(
+        const std::string& dataFolder,
         const std::string& transport_notary,
         const std::string& myacct,
         const std::string& indices,
@@ -91,6 +70,7 @@ public:
         std::string* pOptionalOutput = nullptr);
 
     EXPORT static std::int32_t processPayment(
+        const std::string& dataFolder,
         const std::string& transport_notary,
         const std::string& myacct,
         const std::string& paymentType,
@@ -100,6 +80,7 @@ public:
         bool CLI_input_allowed = false);
 
     EXPORT static std::int32_t depositCheque(
+        const std::string& dataFolder,
         const std::string& server,
         const std::string& myacct,
         const std::string& mynym,
@@ -132,6 +113,7 @@ public:
         const std::string& indices);
 
     EXPORT static std::int32_t cancel_outgoing_payments(
+        const std::string& dataFolder,
         const std::string& mynym,
         const std::string& myacct,
         const std::string& indices);
@@ -214,6 +196,30 @@ public:
     EXPORT std::int32_t size() const;
     EXPORT OTRecord GetRecord(std::int32_t nIndex);
     EXPORT bool RemoveRecord(std::int32_t nIndex);
+
+    EXPORT OTRecordList();
+
+    EXPORT ~OTRecordList() = default;
+
+private:
+    const api::client::Wallet& wallet_;
+    // Defaults to false. If you set it true, it will run a lot faster. (And
+    // give you less data.)
+    bool m_bRunFast{false};
+    bool m_bAutoAcceptCheques{false};  // Cheques and vouchers, NOT invoices.
+    bool m_bAutoAcceptReceipts{false};
+    bool m_bAutoAcceptTransfers{false};
+    bool m_bAutoAcceptCash{false};
+    bool m_bIgnoreMail{false};
+    static std::string s_strTextTo;    // "To: "
+    static std::string s_strTextFrom;  // "From: "
+    list_of_strings m_servers;
+    map_of_strings m_assets;  // <instrument_definition_id, asset_name>
+    list_of_strings m_accounts;
+    list_of_strings m_nyms;
+    vec_OTRecordList m_contents;
+    static const std::string s_blank;
+    static const std::string s_message_type;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CLIENT_OTRECORDLIST_HPP

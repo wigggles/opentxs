@@ -12,6 +12,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -22,7 +23,6 @@
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -82,26 +82,28 @@ std::int32_t OTCron::__cron_max_items_per_nym =
 
 Server::Server(
     const opentxs::api::Crypto& crypto,
+    const opentxs::api::Legacy& legacy,
     const opentxs::api::Settings& config,
     const opentxs::api::Server& mint,
     const opentxs::api::storage::Storage& storage,
     const opentxs::api::client::Wallet& wallet)
     : crypto_(crypto)
+    , legacy_(legacy)
     , config_(config)
     , mint_(mint)
     , storage_(storage)
     , wallet_(wallet)
-    , mainFile_(*this, crypto_, wallet_)
-    , notary_(*this, mint_, wallet_)
-    , transactor_(this)
-    , userCommandProcessor_(*this, config_, mint_, wallet_)
+    , mainFile_(*this, crypto_, legacy_, wallet_)
+    , notary_(*this, legacy_, mint_, wallet_)
+    , transactor_(legacy_, this)
+    , userCommandProcessor_(*this, legacy_, config_, mint_, wallet_)
     , m_strWalletFilename()
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
     , m_notaryID(Identifier::Factory())
     , m_strServerNymID()
     , m_nymServer(nullptr)
-    , m_Cron()
+    , m_Cron(legacy_)
 {
 }
 
@@ -175,7 +177,8 @@ std::pair<std::string, std::string> Server::parse_seed_backup(
 void Server::CreateMainFile(bool& mainFileExists)
 {
 #if OT_CRYPTO_WITH_BIP39
-    const auto backup = OTDB::QueryPlainString(SEED_BACKUP_FILE);
+    const auto backup = OTDB::QueryPlainString(
+        legacy_.ServerDataFolder(), SEED_BACKUP_FILE, "", "", "");
     std::string seed{};
 
     if (false == backup.empty()) {
@@ -206,16 +209,16 @@ void Server::CreateMainFile(bool& mainFileExists)
 #else
     NymParameters nymParameters(proto::CREDTYPE_LEGACY);
 #endif
-    auto newNym = wallet_.Nym(nymParameters);
+    m_nymServer = wallet_.Nym(legacy_.ServerDataFolder(), nymParameters);
 
-    if (false == bool(newNym)) {
+    if (false == bool(m_nymServer)) {
         Log::vError("Error: Failed to create server nym\n");
         OT_FAIL;
     }
 
-    if (!newNym->VerifyPseudonym()) { OT_FAIL; }
+    if (!m_nymServer->VerifyPseudonym()) { OT_FAIL; }
 
-    const OTIdentifier nymID = newNym->ID();
+    const OTIdentifier nymID = m_nymServer->ID();
 
     const std::string defaultTerms = "This is an example server contract.";
     const std::string& userTerms = mint_.GetUserTerms();
@@ -359,7 +362,10 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     std::shared_ptr<const ServerContract> pContract{};
     auto& wallet = wallet_;
-    const String existing = OTDB::QueryPlainString(SERVER_CONTRACT_FILE).data();
+    const String existing =
+        OTDB::QueryPlainString(
+            legacy_.ServerDataFolder(), SERVER_CONTRACT_FILE, "", "", "")
+            .data();
 
     if (existing.empty()) {
         pContract = wallet.Server(nymID->str(), name, terms, endpoints);
@@ -404,20 +410,33 @@ void Server::CreateMainFile(bool& mainFileExists)
         OT_FAIL;
     }
 
-    newNym.reset();
+    OT_ASSERT(m_nymServer)
 
-    auto nymData = wallet_.mutable_Nym(nymID);
-    if (false == nymData.SetScope(proto::CITEMTYPE_SERVER, name, true)) {
-        OT_FAIL
+    {
+        auto nymData = wallet_.mutable_Nym(nymID);
+
+        if (false == nymData.SetScope(proto::CITEMTYPE_SERVER, name, true)) {
+            OT_FAIL
+        }
+
+        if (false == nymData.SetCommonName(pContract->ID()->str())) { OT_FAIL }
     }
 
-    if (false == nymData.SetCommonName(pContract->ID()->str())) { OT_FAIL }
+    m_nymServer = wallet_.Nym(nymID);
+
+    OT_ASSERT(m_nymServer)
 
     const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
     Armored ascContract(signedContract.get());
     opentxs::String strBookended;
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
-    OTDB::StorePlainString(strBookended.Get(), SERVER_CONTRACT_FILE);
+    OTDB::StorePlainString(
+        strBookended.Get(),
+        legacy_.ServerDataFolder(),
+        SERVER_CONTRACT_FILE,
+        "",
+        "",
+        "");
 
     otOut << "Your server contract has been saved as " << SERVER_CONTRACT_FILE
           << " in the server data directory." << std::endl;
@@ -439,7 +458,8 @@ void Server::CreateMainFile(bool& mainFileExists)
     json += words;
     json += "\" }\n";
 
-    OTDB::StorePlainString(json, SEED_BACKUP_FILE);
+    OTDB::StorePlainString(
+        json, legacy_.ServerDataFolder(), SEED_BACKUP_FILE, "", "", "");
 
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", nymID->str(), strCachedKey);
@@ -451,99 +471,97 @@ void Server::Init(bool readOnly)
 {
     m_bReadOnly = readOnly;
 
-    if (!OTDataFolder::IsInitialized()) {
-        Log::vError("Unable to Init data folders!");
-        OT_FAIL;
-    }
     if (!ConfigLoader::load(crypto_, config_, WalletFilename())) {
         Log::vError("Unable to Load Config File!");
         OT_FAIL;
     }
 
-    String dataPath;
-    bool bGetDataFolderSuccess = OTDataFolder::Get(dataPath);
+    String dataPath = legacy_.ServerDataFolder().c_str();
 
     // PID -- Make sure we're not running two copies of OT on the same data
     // simultaneously here.
-    if (bGetDataFolderSuccess) {
-        // If we want to WRITE to the data location, then we can't be in
-        // read-only mode.
-        if (!readOnly) {
-            // 1. READ A FILE STORING THE PID. (It will already exist, if OT is
-            // already running.)
-            //
-            // We open it for reading first, to see if it already exists. If it
-            // does, we read the number. 0 is fine, since we overwrite with 0 on
-            // shutdown. But any OTHER number means OT is still running. Or it
-            // means it was killed while running and didn't shut down properly,
-            // and that you need to delete the pid file by hand before running
-            // OT again. (This is all for the purpose of preventing two copies
-            // of OT running at the same time and corrupting the data folder.)
-            //
-            String strPIDPath;
-            OTPaths::AppendFile(strPIDPath, dataPath, SERVER_PID_FILENAME);
+    // If we want to WRITE to the data location, then we can't be in
+    // read-only mode.
+    if (!readOnly) {
+        // 1. READ A FILE STORING THE PID. (It will already exist, if OT is
+        // already running.)
+        //
+        // We open it for reading first, to see if it already exists. If it
+        // does, we read the number. 0 is fine, since we overwrite with 0 on
+        // shutdown. But any OTHER number means OT is still running. Or it
+        // means it was killed while running and didn't shut down properly,
+        // and that you need to delete the pid file by hand before running
+        // OT again. (This is all for the purpose of preventing two copies
+        // of OT running at the same time and corrupting the data folder.)
+        //
+        String strPIDPath;
+        OTPaths::AppendFile(strPIDPath, dataPath, SERVER_PID_FILENAME);
 
-            std::ifstream pid_infile(strPIDPath.Get());
+        std::ifstream pid_infile(strPIDPath.Get());
 
-            // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
-            if (pid_infile.is_open()) {
-                std::uint32_t old_pid = 0;
-                pid_infile >> old_pid;
-                pid_infile.close();
+        // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
+        if (pid_infile.is_open()) {
+            std::uint32_t old_pid = 0;
+            pid_infile >> old_pid;
+            pid_infile.close();
 
-                // There was a real PID in there.
-                if (old_pid != 0) {
-                    std::uint64_t lPID = old_pid;
-                    Log::vError(
-                        "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
-                        "I found a PID (%" PRIu64
-                        ") in the data lock file, located "
-                        "at: %s\n\n"
-                        "If the OT process with PID %" PRIu64
-                        " is truly not running "
-                        "anymore, "
-                        "then just ERASE THAT FILE and then RESTART.\n",
-                        lPID,
-                        strPIDPath.Get(),
-                        lPID);
-                    exit(-1);
-                }
-                // Otherwise, though the file existed, the PID within was 0.
-                // (Meaning the previous instance of OT already set it to 0 as
-                // it was shutting down.)
+            // There was a real PID in there.
+            if (old_pid != 0) {
+                std::uint64_t lPID = old_pid;
+                Log::vError(
+                    "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
+                    "I found a PID (%" PRIu64
+                    ") in the data lock file, located "
+                    "at: %s\n\n"
+                    "If the OT process with PID %" PRIu64
+                    " is truly not running "
+                    "anymore, "
+                    "then just ERASE THAT FILE and then RESTART.\n",
+                    lPID,
+                    strPIDPath.Get(),
+                    lPID);
+                exit(-1);
             }
-            // Next let's record our PID to the same file, so other copies of OT
-            // can't trample on US.
+            // Otherwise, though the file existed, the PID within was 0.
+            // (Meaning the previous instance of OT already set it to 0 as
+            // it was shutting down.)
+        }
+        // Next let's record our PID to the same file, so other copies of OT
+        // can't trample on US.
 
-            // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
-            std::uint64_t the_pid = 0;
+        // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
+        std::uint64_t the_pid = 0;
 
 #ifdef _WIN32
-            the_pid = GetCurrentProcessId();
+        the_pid = GetCurrentProcessId();
 #else
-            the_pid = getpid();
+        the_pid = getpid();
 #endif
 
-            // 4. OPEN THE FILE IN WRITE MODE, AND SAVE THE PID TO IT.
-            std::ofstream pid_outfile(strPIDPath.Get());
+        // 4. OPEN THE FILE IN WRITE MODE, AND SAVE THE PID TO IT.
+        std::ofstream pid_outfile(strPIDPath.Get());
 
-            if (pid_outfile.is_open()) {
-                pid_outfile << the_pid;
-                pid_outfile.close();
-            } else {
-                Log::vError(
-                    "Failed trying to open data locking file (to "
-                    "store PID %" PRIu64 "): %s\n",
-                    the_pid,
-                    strPIDPath.Get());
-            }
+        if (pid_outfile.is_open()) {
+            pid_outfile << the_pid;
+            pid_outfile.close();
+        } else {
+            Log::vError(
+                "Failed trying to open data locking file (to "
+                "store PID %" PRIu64 "): %s\n",
+                the_pid,
+                strPIDPath.Get());
         }
     }
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
 
     // Load up the transaction number and other Server data members.
     bool mainFileExists = WalletFilename().Exists()
-                              ? OTDB::Exists(".", WalletFilename().Get())
+                              ? OTDB::Exists(
+                                    legacy_.ServerDataFolder(),
+                                    ".",
+                                    WalletFilename().Get(),
+                                    "",
+                                    "")
                               : false;
 
     if (false == mainFileExists) {
@@ -561,7 +579,12 @@ void Server::Init(bool readOnly)
     if (mainFileExists) {
         if (false == mainFile_.LoadMainFile(readOnly)) {
             Log::vError("Error in Loading Main File, re-creating.\n");
-            OTDB::EraseValueByKey(".", WalletFilename().Get());
+            OTDB::EraseValueByKey(
+                legacy_.ServerDataFolder(),
+                ".",
+                WalletFilename().Get(),
+                "",
+                "");
             CreateMainFile(mainFileExists);
 
             OT_ASSERT(mainFileExists);
@@ -760,7 +783,7 @@ bool Server::DropMessageToNymbox(
     const Message* message{nullptr};
 
     if (nullptr == pMsg) {
-        theMsgAngel.reset(new Message);
+        theMsgAngel.reset(new Message{legacy_.ServerDataFolder()});
 
         if (nullptr != szCommand)
             theMsgAngel->m_strCommand = szCommand;
@@ -835,6 +858,7 @@ bool Server::DropMessageToNymbox(
     //
     const String strInMessage(*message);
     Ledger theLedger(
+        legacy_.ServerDataFolder(),
         RECIPIENT_NYM_ID,
         RECIPIENT_NYM_ID,
         NOTARY_ID);  // The recipient's Nymbox.
@@ -967,24 +991,23 @@ Server::~Server()
     //
     //    OTLog::vError("m_strDataPath: %s\n", m_strDataPath.Get());
     //    OTLog::vError("SERVER_PID_FILENAME: %s\n", SERVER_PID_FILENAME);
+    String strDataPath = legacy_.ServerDataFolder().c_str();
 
-    String strDataPath;
-    const bool bGetDataFolderSuccess = OTDataFolder::Get(strDataPath);
-    if (!m_bReadOnly && bGetDataFolderSuccess) {
+    if (!m_bReadOnly) {
         String strPIDPath;
         OTPaths::AppendFile(strPIDPath, strDataPath, SERVER_PID_FILENAME);
-
         std::ofstream pid_outfile(strPIDPath.Get());
 
         if (pid_outfile.is_open()) {
             std::uint32_t the_pid = 0;
             pid_outfile << the_pid;
             pid_outfile.close();
-        } else
+        } else {
             Log::vError(
                 "Failed trying to open data locking file (to wipe "
                 "PID back to 0): %s\n",
                 strPIDPath.Get());
+        }
     }
 }
 }  // namespace opentxs::server

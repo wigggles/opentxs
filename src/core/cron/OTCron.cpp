@@ -7,6 +7,7 @@
 
 #include "opentxs/core/cron/OTCron.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -35,7 +36,6 @@
 
 namespace opentxs
 {
-
 // Note: these are only code defaults -- the values are actually loaded from
 // ~/.ot/server.cfg.
 std::int32_t OTCron::__trans_refill_amount = 500;  // The number of transaction
@@ -53,6 +53,22 @@ std::int32_t OTCron::__cron_max_items_per_nym =
          // active at the same time.
 
 Timer OTCron::tCron(true);
+
+OTCron::OTCron(const api::Legacy& legacy)
+    : Contract(legacy.ServerDataFolder())
+    , legacy_{legacy}
+    , m_mapMarkets()
+    , m_mapCronItems()
+    , m_multimapCronItems()
+    , m_NOTARY_ID(Identifier::Factory())
+    , m_listTransactionNumbers()
+    , m_bIsActivated(false)
+    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
+                             // cleanup this pointer.
+{
+    InitCron();
+    otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
+}
 
 // Make sure Server Nym is set on this cron object before loading or saving,
 // since it's
@@ -381,7 +397,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "value.\n";
             return (-1);  // error condition
         } else {
-            OTCronItem* pItem = OTCronItem::NewCronItem(strData);
+            OTCronItem* pItem = OTCronItem::NewCronItem(data_folder_, strData);
 
             if (nullptr == pItem) {
                 otErr << "Unable to create cron item from data in cron file.\n";
@@ -448,7 +464,11 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // LoadMarket() needs this info to do its thing.
         OTMarket* pMarket = new OTMarket(
-            m_NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale);
+            data_folder_,
+            m_NOTARY_ID,
+            INSTRUMENT_DEFINITION_ID,
+            CURRENCY_ID,
+            lScale);
 
         OT_ASSERT(nullptr != pMarket);
 
@@ -980,7 +1000,11 @@ OTMarket* OTCron::GetOrCreateMarket(
     const std::int64_t& lScale)
 {
     OTMarket* pMarket = new OTMarket(
-        GetNotaryID(), INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale);
+        data_folder_,
+        GetNotaryID(),
+        INSTRUMENT_DEFINITION_ID,
+        CURRENCY_ID,
+        lScale);
 
     OT_ASSERT(nullptr != pMarket);
 
@@ -1046,63 +1070,6 @@ OTMarket* OTCron::GetMarket(const Identifier& MARKET_ID)
     return nullptr;
 }
 
-OTCron::OTCron()
-    : Contract()
-    , m_mapMarkets()
-    , m_mapCronItems()
-    , m_multimapCronItems()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_listTransactionNumbers()
-    , m_bIsActivated(false)
-    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
-                             // cleanup this pointer.
-{
-    InitCron();
-    otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
-}
-
-OTCron::OTCron(const Identifier& NOTARY_ID)
-    : Contract()
-    , m_mapMarkets()
-    , m_mapCronItems()
-    , m_multimapCronItems()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_listTransactionNumbers()
-    , m_bIsActivated(false)
-    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
-                             // cleanup this pointer.
-{
-    InitCron();
-    SetNotaryID(NOTARY_ID);
-    otLog3 << "OTCron::OTCron: Finished calling InitCron 1.\n";
-}
-
-OTCron::OTCron(const char* szFilename)
-    : Contract()
-    , m_mapMarkets()
-    , m_mapCronItems()
-    , m_multimapCronItems()
-    , m_NOTARY_ID(Identifier::Factory())
-    , m_listTransactionNumbers()
-    , m_bIsActivated(false)
-    , m_pServerNym(nullptr)  // just here for convenience, not responsible to
-                             // cleanup this pointer.
-{
-    OT_ASSERT(nullptr != szFilename);
-    InitCron();
-
-    m_strFoldername.Set(OTFolders::Cron().Get());
-    m_strFilename.Set(szFilename);
-    otLog3 << "OTCron::OTCron: Finished calling InitCron 2.\n";
-}
-
-OTCron::~OTCron()
-{
-    Release_Cron();
-
-    m_pServerNym = nullptr;
-}
-
 void OTCron::InitCron() { m_strContractType = "CRON"; }
 
 void OTCron::Release()
@@ -1141,4 +1108,10 @@ void OTCron::Release_Cron()
     }
 }
 
+OTCron::~OTCron()
+{
+    Release_Cron();
+
+    m_pServerNym = nullptr;
+}
 }  // namespace opentxs

@@ -35,14 +35,88 @@
 
 namespace opentxs
 {
+Mint::Mint(
+    const std::string& dataFolder,
+    const String& strNotaryID,
+    const String& strServerNymID,
+    const String& strInstrumentDefinitionID)
+    : Contract(dataFolder, strInstrumentDefinitionID)
+    , m_mapPrivate()
+    , m_mapPublic()
+    , m_NotaryID(Identifier::Factory(strNotaryID))
+    , m_ServerNymID(Identifier::Factory(strServerNymID))
+    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
+    , m_nDenominationCount(0)
+    , m_bSavePrivateKeys(false)
+    , m_nSeries(0)
+    , m_VALID_FROM(OT_TIME_ZERO)
+    , m_VALID_TO(OT_TIME_ZERO)
+    , m_EXPIRATION(OT_TIME_ZERO)
+    , m_CashAccountID(Identifier::Factory())
+{
+    m_strFoldername.Set(OTFolders::Mint().Get());
+    m_strFilename.Format(
+        "%s%s%s",
+        strNotaryID.Get(),
+        Log::PathSeparator(),
+        strInstrumentDefinitionID.Get());
+
+    InitMint();
+}
+
+Mint::Mint(
+    const std::string& dataFolder,
+    const String& strNotaryID,
+    const String& strInstrumentDefinitionID)
+    : Contract(dataFolder, strInstrumentDefinitionID)
+    , m_mapPrivate()
+    , m_mapPublic()
+    , m_NotaryID(Identifier::Factory(strNotaryID))
+    , m_ServerNymID(Identifier::Factory())
+    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
+    , m_nDenominationCount(0)
+    , m_bSavePrivateKeys(false)
+    , m_nSeries(0)
+    , m_VALID_FROM(OT_TIME_ZERO)
+    , m_VALID_TO(OT_TIME_ZERO)
+    , m_EXPIRATION(OT_TIME_ZERO)
+    , m_CashAccountID(Identifier::Factory())
+{
+    m_strFoldername.Set(OTFolders::Mint().Get());
+    m_strFilename.Format(
+        "%s%s%s",
+        strNotaryID.Get(),
+        Log::PathSeparator(),
+        strInstrumentDefinitionID.Get());
+
+    InitMint();
+}
+
+Mint::Mint(const std::string& dataFolder)
+    : Contract(dataFolder)
+    , m_mapPrivate()
+    , m_mapPublic()
+    , m_NotaryID(Identifier::Factory())
+    , m_ServerNymID(Identifier::Factory())
+    , m_InstrumentDefinitionID(Identifier::Factory())
+    , m_nDenominationCount(0)
+    , m_bSavePrivateKeys(false)
+    , m_nSeries(0)
+    , m_VALID_FROM(OT_TIME_ZERO)
+    , m_VALID_TO(OT_TIME_ZERO)
+    , m_EXPIRATION(OT_TIME_ZERO)
+    , m_CashAccountID(Identifier::Factory())
+{
+    InitMint();
+}
 
 // static
-Mint* Mint::MintFactory()
+Mint* Mint::MintFactory(const std::string& dataFolder)
 {
     Mint* pMint = nullptr;
 
 #if OT_CASH_USING_LUCRE
-    pMint = new MintLucre;
+    pMint = new MintLucre(dataFolder);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new Mint_MagicMoney;
     otErr << __FUCNTION__
@@ -60,13 +134,14 @@ Mint* Mint::MintFactory()
 
 // static
 Mint* Mint::MintFactory(
+    const std::string& dataFolder,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
 {
     Mint* pMint = nullptr;
 
 #if OT_CASH_USING_LUCRE
-    pMint = new MintLucre(strNotaryID, strInstrumentDefinitionID);
+    pMint = new MintLucre(dataFolder, strNotaryID, strInstrumentDefinitionID);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__
@@ -84,6 +159,7 @@ Mint* Mint::MintFactory(
 
 // static
 Mint* Mint::MintFactory(
+    const std::string& dataFolder,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
@@ -91,8 +167,8 @@ Mint* Mint::MintFactory(
     Mint* pMint = nullptr;
 
 #if OT_CASH_USING_LUCRE
-    pMint =
-        new MintLucre(strNotaryID, strServerNymID, strInstrumentDefinitionID);
+    pMint = new MintLucre(
+        dataFolder, strNotaryID, strServerNymID, strInstrumentDefinitionID);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__
@@ -163,8 +239,6 @@ void Mint::Release()
     InitMint();
 }
 
-Mint::~Mint() { Release_Mint(); }
-
 void Mint::InitMint()
 {
     m_strContractType.Set("MINT");
@@ -181,77 +255,6 @@ void Mint::InitMint()
     m_VALID_FROM = OT_TIME_ZERO;
     m_VALID_TO = OT_TIME_ZERO;
     m_EXPIRATION = OT_TIME_ZERO;
-}
-
-Mint::Mint(
-    const String& strNotaryID,
-    const String& strServerNymID,
-    const String& strInstrumentDefinitionID)
-    : Contract(strInstrumentDefinitionID)
-    , m_mapPrivate()
-    , m_mapPublic()
-    , m_NotaryID(Identifier::Factory(strNotaryID))
-    , m_ServerNymID(Identifier::Factory(strServerNymID))
-    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
-    , m_nDenominationCount(0)
-    , m_bSavePrivateKeys(false)
-    , m_nSeries(0)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-    , m_EXPIRATION(OT_TIME_ZERO)
-    , m_CashAccountID(Identifier::Factory())
-{
-    m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format(
-        "%s%s%s",
-        strNotaryID.Get(),
-        Log::PathSeparator(),
-        strInstrumentDefinitionID.Get());
-
-    InitMint();
-}
-
-Mint::Mint(const String& strNotaryID, const String& strInstrumentDefinitionID)
-    : Contract(strInstrumentDefinitionID)
-    , m_mapPrivate()
-    , m_mapPublic()
-    , m_NotaryID(Identifier::Factory(strNotaryID))
-    , m_ServerNymID(Identifier::Factory())
-    , m_InstrumentDefinitionID(Identifier::Factory(strInstrumentDefinitionID))
-    , m_nDenominationCount(0)
-    , m_bSavePrivateKeys(false)
-    , m_nSeries(0)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-    , m_EXPIRATION(OT_TIME_ZERO)
-    , m_CashAccountID(Identifier::Factory())
-{
-    m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format(
-        "%s%s%s",
-        strNotaryID.Get(),
-        Log::PathSeparator(),
-        strInstrumentDefinitionID.Get());
-
-    InitMint();
-}
-
-Mint::Mint()
-    : Contract()
-    , m_mapPrivate()
-    , m_mapPublic()
-    , m_NotaryID(Identifier::Factory())
-    , m_ServerNymID(Identifier::Factory())
-    , m_InstrumentDefinitionID(Identifier::Factory())
-    , m_nDenominationCount(0)
-    , m_bSavePrivateKeys(false)
-    , m_nSeries(0)
-    , m_VALID_FROM(OT_TIME_ZERO)
-    , m_VALID_TO(OT_TIME_ZERO)
-    , m_EXPIRATION(OT_TIME_ZERO)
-    , m_CashAccountID(Identifier::Factory())
-{
-    InitMint();
 }
 
 bool Mint::LoadContract()
@@ -304,7 +307,8 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
         strFilename
             .Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
 
-    if (!OTDB::Exists(szFolder1name, szFolder2name, szFilename)) {
+    if (!OTDB::Exists(
+            data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
         otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
               << szFilename << "\n";
@@ -312,9 +316,12 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
+        data_folder_,
         szFolder1name,
         szFolder2name,
-        szFilename));  // <=== LOADING FROM DATA STORE.
+        szFilename,
+        ""));  // <=== LOADING FROM
+               // DATA STORE.
 
     if (strFileContents.length() < 2) {
         otErr << "Mint::LoadMint: Error reading file: " << szFolder1name
@@ -390,9 +397,11 @@ bool Mint::SaveMint(const char* szAppend)
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
+        data_folder_,
         szFolder1name,
         szFolder2name,
-        szFilename);  // <=== SAVING TO LOCAL DATA STORE.
+        szFilename,
+        "");  // <=== SAVING TO LOCAL DATA STORE.
     if (!bSaved) {
         if (nullptr != szAppend)
             otErr << "Mint::SaveMint: Error writing to file: " << szFolder1name
@@ -777,6 +786,7 @@ void Mint::GenerateNewMint(
     m_VALID_TO = VALID_TO;
     m_EXPIRATION = MINT_EXPIRATION;
     auto account = wallet.CreateAccount(
+        data_folder_,
         NOTARY_NYM_ID,
         theNotaryID,
         theInstrumentDefinitionID,
@@ -843,4 +853,5 @@ void Mint::GenerateNewMint(
     }
 }
 
+Mint::~Mint() { Release_Mint(); }
 }  // namespace opentxs

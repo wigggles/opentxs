@@ -41,6 +41,46 @@
 
 namespace opentxs
 {
+OTPaymentPlan::OTPaymentPlan(const std::string& dataFolder)
+    : ot_super(dataFolder)
+    , m_bProcessingInitialPayment(false)
+    , m_bProcessingPaymentPlan(false)
+{
+    InitPaymentPlan();
+}
+
+OTPaymentPlan::OTPaymentPlan(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID)
+    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_bProcessingInitialPayment(false)
+    , m_bProcessingPaymentPlan(false)
+{
+    InitPaymentPlan();
+}
+
+OTPaymentPlan::OTPaymentPlan(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& SENDER_ACCT_ID,
+    const Identifier& SENDER_NYM_ID,
+    const Identifier& RECIPIENT_ACCT_ID,
+    const Identifier& RECIPIENT_NYM_ID)
+    : ot_super(
+          dataFolder,
+          NOTARY_ID,
+          INSTRUMENT_DEFINITION_ID,
+          SENDER_ACCT_ID,
+          SENDER_NYM_ID,
+          RECIPIENT_ACCT_ID,
+          RECIPIENT_NYM_ID)
+    , m_bProcessingInitialPayment(false)
+    , m_bProcessingPaymentPlan(false)
+{
+    InitPaymentPlan();
+}
 
 std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
@@ -321,7 +361,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
-    OTPaymentPlan theMerchantCopy;
+    OTPaymentPlan theMerchantCopy{data_folder_};
     if (!m_strMerchantSignedCopy.Exists() ||
         !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy)) {
         otErr << "OTPaymentPlan::" << __FUNCTION__
@@ -505,44 +545,6 @@ bool OTPaymentPlan::SetPaymentPlan(
     return true;
 }
 
-OTPaymentPlan::OTPaymentPlan()
-    : ot_super()
-    , m_bProcessingInitialPayment(false)
-    , m_bProcessingPaymentPlan(false)
-{
-    InitPaymentPlan();
-}
-
-OTPaymentPlan::OTPaymentPlan(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
-    , m_bProcessingInitialPayment(false)
-    , m_bProcessingPaymentPlan(false)
-{
-    InitPaymentPlan();
-}
-
-OTPaymentPlan::OTPaymentPlan(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& SENDER_ACCT_ID,
-    const Identifier& SENDER_NYM_ID,
-    const Identifier& RECIPIENT_ACCT_ID,
-    const Identifier& RECIPIENT_NYM_ID)
-    : ot_super(
-          NOTARY_ID,
-          INSTRUMENT_DEFINITION_ID,
-          SENDER_ACCT_ID,
-          SENDER_NYM_ID,
-          RECIPIENT_ACCT_ID,
-          RECIPIENT_NYM_ID)
-    , m_bProcessingInitialPayment(false)
-    , m_bProcessingPaymentPlan(false)
-{
-    InitPaymentPlan();
-}
-
 bool OTPaymentPlan::SetInitialPaymentDone()
 {
     if (m_bInitialPaymentDone)  // if done already.
@@ -609,7 +611,7 @@ bool OTPaymentPlan::ProcessPayment(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem(
-        OTCronItem::LoadCronReceipt(GetTransactionNum()));
+        OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum()));
 
     OT_ASSERT(pOrigCronItem);  // How am I processing it now if the
                                // receipt wasn't saved in the first place??
@@ -712,7 +714,7 @@ bool OTPaymentPlan::ProcessPayment(
     // worry about deleting it, either.) I know for a fact they have both
     // signed pOrigCronItem...
 
-    auto sourceAccount = wallet.mutable_Account(SOURCE_ACCT_ID);
+    auto sourceAccount = wallet.mutable_Account(data_folder_, SOURCE_ACCT_ID);
 
     if (false == bool(sourceAccount)) {
         otOut << "ERROR verifying existence of source account during attempted "
@@ -721,7 +723,8 @@ bool OTPaymentPlan::ProcessPayment(
         return false;
     }
 
-    auto recipientAccount = wallet.mutable_Account(RECIPIENT_ACCT_ID);
+    auto recipientAccount =
+        wallet.mutable_Account(data_folder_, RECIPIENT_ACCT_ID);
 
     if (false == bool(recipientAccount)) {
         otOut << __FUNCTION__
@@ -789,8 +792,10 @@ bool OTPaymentPlan::ProcessPayment(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        Ledger theSenderInbox(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
-            theRecipientInbox(RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
+        Ledger theSenderInbox(
+            data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            theRecipientInbox(
+                data_folder_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -1580,8 +1585,6 @@ void OTPaymentPlan::InitPaymentPlan()
         0;  // Every time a payment fails, we record that here.
 }
 
-OTPaymentPlan::~OTPaymentPlan() { Release_PaymentPlan(); }
-
 void OTPaymentPlan::Release_PaymentPlan()
 {
     // If there were any dynamically allocated objects, clean them up here.
@@ -1599,4 +1602,5 @@ void OTPaymentPlan::Release()
     InitPaymentPlan();
 }
 
+OTPaymentPlan::~OTPaymentPlan() { Release_PaymentPlan(); }
 }  // namespace opentxs

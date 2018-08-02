@@ -58,29 +58,33 @@ denomination will work. */
 
 class Token_Lucre : public Token
 {
-private:
-    typedef Token ot_super;
-    friend class Token;  // for the factory.
-
-protected:
-    EXPORT Token_Lucre();
-    EXPORT Token_Lucre(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT explicit Token_Lucre(const Purse& thePurse);
-
-    EXPORT bool GenerateTokenRequest(
-        const Nym& theNym,
-        Mint& theMint,
-        std::int64_t lDenomination,
-        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount()) override;
-
 public:
     EXPORT bool ProcessToken(
         const Nym& theNym,
         Mint& theMint,
         Token& theRequest) override;
-    EXPORT virtual ~Token_Lucre();
+
+    EXPORT ~Token_Lucre() = default;
+
+private:
+    Token_Lucre(const std::string& dataFolder);
+    Token_Lucre(
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    Token_Lucre(const std::string& dataFolder, const Purse& thePurse);
+
+    bool GenerateTokenRequest(
+        const Nym& theNym,
+        Mint& theMint,
+        std::int64_t lDenomination,
+        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount()) override;
+
+private:
+    typedef Token ot_super;
+    friend class Token;  // for the factory.
+
+    Token_Lucre() = delete;
 };
 }  // namespace opentxs
 #endif  // OT_CASH_USING_LUCRE

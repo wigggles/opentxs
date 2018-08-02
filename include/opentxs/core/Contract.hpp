@@ -42,70 +42,6 @@ String trim(const String& str);
 
 class Contract
 {
-
-protected:
-    /** Contract name as shown in the wallet. */
-    String m_strName;
-
-    /** Foldername for this contract (nyms, contracts, accounts, etc) */
-    String m_strFoldername;
-
-    /** Filename for this contract (usually an ID.) */
-    String m_strFilename;
-
-    /** Hash of the contract, including signatures. (the "raw file") */
-    OTIdentifier m_ID;
-
-    /** The Unsigned Clear Text (XML contents without signatures.) */
-    OTStringXML m_xmlUnsigned;
-
-    /** The complete raw file including signatures. */
-    String m_strRawFile;
-
-    /** The Hash algorithm used for the signature */
-    proto::HashType m_strSigHashType{proto::HASHTYPE_ERROR};
-
-    /** CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM */
-    String m_strContractType{"CONTRACT"};
-
-    /** The default behavior for a contract, though occasionally overridden, is
-     * to contain its own public keys internally, located on standard XML tags.
-     * So when we load a contract, we find its public key, and we verify its
-     * signature with it. (It self-verifies!) I could be talking about an x509
-     * as well, since people will need these to be revokable. The
-     * Issuer/Server/etc URL will also be located within the contract, on a
-     * standard tag, so by merely loading a contract, a wallet will know how to
-     * connect to the relevant server, and the wallet will be able to encrypt
-     * messages meant for that server to its public key without the normally
-     * requisite key exchange. ==> THE TRADER HAS ASSURANCE THAT, IF HIS
-     * OUT-MESSAGE IS ENCRYPTED, HE KNOWS THE MESSAGE CAN ONLY BE DECRYPTED BY
-     * THE SAME PERSON WHO SIGNED THAT CONTRACT. */
-    mapOfConstNyms m_mapNyms;
-
-    /** The PGP signatures at the bottom of the XML file. */
-    listOfSignatures m_listSignatures;
-
-    /** The version of this Contract file, in case the format changes in the
-    future. */
-    String m_strVersion{"2.0"};
-
-    // TODO: perhaps move these to a common ancestor for ServerContract and
-    // OTUnitDefinition. Maybe call it OTHardContract (since it should never
-    // change.)
-    String m_strEntityShortName;
-    String m_strEntityLongName;
-    String m_strEntityEmail;
-
-    /** The legal conditions, usually human-readable, on a contract. */
-    String::Map m_mapConditions;
-
-    /** The XML file is in m_xmlUnsigned. Load it from there into members here.
-     */
-    bool LoadContractXML();
-
-    /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
-    EXPORT virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
-
 public:
     /** Used by OTTransactionType::Factory and OTToken::Factory. In both cases,
      * it takes the input string, trims it, and if it's armored, it unarmors it,
@@ -144,14 +80,6 @@ public:
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
     void SetIdentifier(const Identifier& theID);
-    EXPORT Contract();
-    EXPORT Contract(
-        const String& name,
-        const String& foldername,
-        const String& filename,
-        const String& strID);
-    EXPORT explicit Contract(const Identifier& theID);
-    EXPORT explicit Contract(const String& strID);
 
     // TODO: a contract needs to have certain required fields in order to be
     // accepted for notarization. One of those should be a URL where anyone can
@@ -370,6 +298,86 @@ public:
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT ConstNym GetContractPublicNym() const;
+
+    EXPORT const std::string& DataFolder() const { return data_folder_; }
+
+protected:
+    const std::string data_folder_{""};
+
+    /** Contract name as shown in the wallet. */
+    String m_strName;
+
+    /** Foldername for this contract (nyms, contracts, accounts, etc) */
+    String m_strFoldername;
+
+    /** Filename for this contract (usually an ID.) */
+    String m_strFilename;
+
+    /** Hash of the contract, including signatures. (the "raw file") */
+    OTIdentifier m_ID;
+
+    /** The Unsigned Clear Text (XML contents without signatures.) */
+    OTStringXML m_xmlUnsigned;
+
+    /** The complete raw file including signatures. */
+    String m_strRawFile;
+
+    /** The Hash algorithm used for the signature */
+    proto::HashType m_strSigHashType{proto::HASHTYPE_ERROR};
+
+    /** CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM */
+    String m_strContractType{"CONTRACT"};
+
+    /** The default behavior for a contract, though occasionally overridden, is
+     * to contain its own public keys internally, located on standard XML tags.
+     * So when we load a contract, we find its public key, and we verify its
+     * signature with it. (It self-verifies!) I could be talking about an x509
+     * as well, since people will need these to be revokable. The
+     * Issuer/Server/etc URL will also be located within the contract, on a
+     * standard tag, so by merely loading a contract, a wallet will know how to
+     * connect to the relevant server, and the wallet will be able to encrypt
+     * messages meant for that server to its public key without the normally
+     * requisite key exchange. ==> THE TRADER HAS ASSURANCE THAT, IF HIS
+     * OUT-MESSAGE IS ENCRYPTED, HE KNOWS THE MESSAGE CAN ONLY BE DECRYPTED BY
+     * THE SAME PERSON WHO SIGNED THAT CONTRACT. */
+    mapOfConstNyms m_mapNyms;
+
+    /** The PGP signatures at the bottom of the XML file. */
+    listOfSignatures m_listSignatures;
+
+    /** The version of this Contract file, in case the format changes in the
+    future. */
+    String m_strVersion{"2.0"};
+
+    // TODO: perhaps move these to a common ancestor for ServerContract and
+    // OTUnitDefinition. Maybe call it OTHardContract (since it should never
+    // change.)
+    String m_strEntityShortName;
+    String m_strEntityLongName;
+    String m_strEntityEmail;
+
+    /** The legal conditions, usually human-readable, on a contract. */
+    String::Map m_mapConditions;
+
+    /** The XML file is in m_xmlUnsigned. Load it from there into members here.
+     */
+    bool LoadContractXML();
+
+    /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
+    virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
+
+    Contract(const std::string& dataFolder);
+    Contract(
+        const std::string& dataFolder,
+        const String& name,
+        const String& foldername,
+        const String& filename,
+        const String& strID);
+    explicit Contract(const std::string& dataFolder, const Identifier& theID);
+    explicit Contract(const std::string& dataFolder, const String& strID);
+
+private:
+    Contract() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_CONTRACT_HPP

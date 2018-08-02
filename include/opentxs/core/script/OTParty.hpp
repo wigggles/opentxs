@@ -17,39 +17,20 @@
 
 namespace opentxs
 {
-
-class Account;
-class ClientContext;
-class Contract;
-class Identifier;
-class NumList;
-class Nym;
-class OTAgent;
-class OTPartyAccount;
-class OTScript;
-class OTScriptable;
-class ServerContext;
-class Tag;
-
 // Party is always either an Owner Nym, or an Owner Entity formed by Contract.
 //
 // Either way, the agents are there to represent the interests of the parties.
 //
 // This is meant in the sense of "actually" since the agent is not just a
-// trusted
-// friend of the party, but is either the party himself (if party is a Nym), OR
-// is
-// a voting group or employee that belongs to the party. (If party is an
-// entity.)
+// trusted friend of the party, but is either the party himself (if party is a
+// Nym), OR is a voting group or employee that belongs to the party. (If party
+// is an entity.)
 // Either way, the point is that in this context, the agent is ACTUALLY
-// authorized
-// by the party by virtue of its existence, versus being a "separate but
-// authorized"
-// party in the legal sense. No need exists to "grant" the authority since the
-// authority is already INHERENT.
+// authorized by the party by virtue of its existence, versus being a "separate
+// but authorized" party in the legal sense. No need exists to "grant" the
+// authority since the authority is already INHERENT.
 //
 // A party may also have multiple agents.
-//
 class OTParty
 {
 public:
@@ -57,64 +38,6 @@ public:
     typedef std::map<std::string, OTAgent*> mapOfAgents;
     typedef std::map<std::string, OTPartyAccount*> mapOfPartyAccounts;
 
-private:
-    OTParty(const OTParty&);
-    OTParty& operator=(const OTParty&);
-
-    std::string* m_pstr_party_name{nullptr};
-
-    bool m_bPartyIsNym{true};  // true, is "nym". false, is "entity".
-
-    std::string m_str_owner_id;           // Nym ID or Entity ID.
-    std::string m_str_authorizing_agent;  // Contains the name of the
-                                          // authorizing
-                                          // agent (the one who supplied the
-                                          // opening Trans#)
-
-    mapOfAgents m_mapAgents;                // These are owned.
-    mapOfPartyAccounts m_mapPartyAccounts;  // These are owned. Each contains a
-                                            // Closing Transaction#.
-
-    // Each party (to a smart contract anyway) must provide an opening
-    // transaction #.
-    TransactionNumber m_lOpeningTransNo{0};
-    String m_strMySignedCopy;  // One party confirms it and sends it over. Then
-                               // another confirms it,
-    // which adds his own transaction numbers and signs it. This, unfortunately,
-    // invalidates the original version,
-    // (since the digital signature ceases to verify, once you change the
-    // contents.) So... we store a copy of each
-    // signed agreement INSIDE each party. The server can do the hard work of
-    // comparing them all, though such will
-    // probably occur through a comparison function I'll have to add right here
-    // in this class.
-
-    // This Party is owned by an agreement (OTScriptable-derived.) Convenience
-    // pointer
-    OTScriptable* m_pOwnerAgreement{nullptr};
-
-    void recover_closing_numbers(OTAgent& theAgent, ServerContext& context)
-        const;
-    void recover_opening_number(OTAgent& theAgent, ServerContext& context)
-        const;
-
-public:
-    OTParty();
-    EXPORT OTParty(
-        const char* szName,
-        bool bIsOwnerNym,
-        const char* szOwnerID,
-        const char* szAuthAgent,
-        bool bCreateAgent = false);
-    EXPORT OTParty(
-        std::string str_PartyName,
-        const Nym& theNym,  // Nym is BOTH owner AND agent, when
-                            // using this constructor.
-        std::string str_agent_name,
-        Account* pAccount = nullptr,
-        const std::string* pstr_account_name = nullptr,
-        std::int64_t lClosingTransNo = 0);
-    virtual ~OTParty();
     void CleanupAgents();
     void CleanupAccounts();
     bool Compare(const OTParty& rhs) const;
@@ -160,6 +83,7 @@ public:
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
     bool SendNoticeToParty(
+        const std::string& dataFolder,
         bool bSuccessMsg,
         const Nym& theServerNym,
         const Identifier& theNotaryID,
@@ -329,8 +253,67 @@ public:
     // only cares that the party has an active agent, but does not actually
     // speak directly
     // to said agent.)
+
+    EXPORT OTParty(const std::string& dataFolder);
+    EXPORT OTParty(
+        const std::string& dataFolder,
+        const char* szName,
+        bool bIsOwnerNym,
+        const char* szOwnerID,
+        const char* szAuthAgent,
+        bool bCreateAgent = false);
+    EXPORT OTParty(
+        const std::string& dataFolder,
+        std::string str_PartyName,
+        const Nym& theNym,  // Nym is BOTH owner AND agent, when
+                            // using this constructor.
+        std::string str_agent_name,
+        Account* pAccount = nullptr,
+        const std::string* pstr_account_name = nullptr,
+        std::int64_t lClosingTransNo = 0);
+
+    virtual ~OTParty();
+
+private:
+    const std::string data_folder_{""};
+    std::string* m_pstr_party_name{nullptr};
+    bool m_bPartyIsNym{true};             // true, is "nym". false, is "entity".
+    std::string m_str_owner_id;           // Nym ID or Entity ID.
+    std::string m_str_authorizing_agent;  // Contains the name of the
+                                          // authorizing
+                                          // agent (the one who supplied the
+                                          // opening Trans#)
+
+    mapOfAgents m_mapAgents;                // These are owned.
+    mapOfPartyAccounts m_mapPartyAccounts;  // These are owned. Each contains a
+                                            // Closing Transaction#.
+
+    // Each party (to a smart contract anyway) must provide an opening
+    // transaction #.
+    TransactionNumber m_lOpeningTransNo{0};
+    String m_strMySignedCopy;  // One party confirms it and sends it over. Then
+                               // another confirms it,
+    // which adds his own transaction numbers and signs it. This, unfortunately,
+    // invalidates the original version,
+    // (since the digital signature ceases to verify, once you change the
+    // contents.) So... we store a copy of each
+    // signed agreement INSIDE each party. The server can do the hard work of
+    // comparing them all, though such will
+    // probably occur through a comparison function I'll have to add right here
+    // in this class.
+
+    // This Party is owned by an agreement (OTScriptable-derived.) Convenience
+    // pointer
+    OTScriptable* m_pOwnerAgreement{nullptr};
+
+    void recover_closing_numbers(OTAgent& theAgent, ServerContext& context)
+        const;
+    void recover_opening_number(OTAgent& theAgent, ServerContext& context)
+        const;
+
+    OTParty() = delete;
+    OTParty(const OTParty&) = delete;
+    OTParty& operator=(const OTParty&) = delete;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_SCRIPT_OTPARTY_HPP

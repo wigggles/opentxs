@@ -17,16 +17,6 @@
 
 namespace opentxs
 {
-
-class Account;
-class Identifier;
-class Nym;
-class OTAgent;
-class OTParty;
-class OTScript;
-class OTSmartContract;
-class Tag;
-
 // Each party has a list of accounts. Just as the agent, depending on context,
 // MAY
 // have an unowned-but-useful pointer to its active Nym, similarly a
@@ -63,45 +53,6 @@ class Tag;
 //
 class OTPartyAccount
 {
-    const api::client::Wallet& wallet_;
-    OTParty* m_pForParty;  // When being added to a party, this pointer will be
-                           // set.
-    // NOTE: each party needs to have a list of partyaccounts, AND each account
-    // on that list needs to have a CLOSING #!!! Ahh...
-    std::int64_t m_lClosingTransNo;  // Any account that is party to an
-                                     // agreement,
-                                     // must have a closing transaction # for
-                                     // finalReceipt.
-    // account name (inside the script language, "gold_acct_A" could be used to
-    // reference this acct.)
-    //
-    String m_strName;    // Name of the account (for use in scripts.)
-    String m_strAcctID;  // The Account ID itself.
-    String m_strInstrumentDefinitionID;  // The instrument definition ID for the
-                                         // account.
-                                         // Stored
-    // because parties agree on this even before the
-    // account ID is selected. Compare() uses this
-    // even when the account ID is blank, and when
-    // acct ID *is* added, its instrument definition must match
-    // this.
-    String m_strAgentName;  // The name of the agent who has rights to this
-                            // account.
-    // Entity, role, and Nym information are not stored here.
-    // Entity is already known on the party who owns this account (and I should
-    // have a ptr to him.)
-    // Role is already known on the agent who is presumably on the party's list
-    // of agents.
-    // Nym is known on the party (for owner) and on the agent.
-
-    // "GetOwnerID()" for a partyaccount (if it were to store NymID, EntityID,
-    // and a bool to choose
-    // between them) should be logically the same as
-    // m_pOwnerParty->GetPartyID().
-    //
-
-    SharedAccount get_account() const;
-
 public:
     EXPORT void RegisterForExecution(OTScript& theScript);
 
@@ -156,13 +107,20 @@ public:
         const String& strOrigCronItem,
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
-    OTPartyAccount();
+    void Serialize(
+        Tag& parent,
+        bool bCalculatingID = false,
+        bool bSpecifyInstrumentDefinitionID = false) const;
+
+    OTPartyAccount(const std::string& dataFolder);
     OTPartyAccount(
+        const std::string& dataFolder,
         const std::string& str_account_name,
         const String& strAgentName,
         Account& theAccount,
         std::int64_t lClosingTransNo);
     OTPartyAccount(
+        const std::string& dataFolder,
         const String& strName,
         const String& strAgentName,
         const String& strAcctID,
@@ -171,10 +129,48 @@ public:
 
     virtual ~OTPartyAccount();
 
-    void Serialize(
-        Tag& parent,
-        bool bCalculatingID = false,
-        bool bSpecifyInstrumentDefinitionID = false) const;
+private:
+    const api::client::Wallet& wallet_;
+    const std::string data_folder_{""};
+    OTParty* m_pForParty;  // When being added to a party, this pointer will be
+                           // set.
+    // NOTE: each party needs to have a list of partyaccounts, AND each account
+    // on that list needs to have a CLOSING #!!! Ahh...
+    std::int64_t m_lClosingTransNo;  // Any account that is party to an
+                                     // agreement,
+                                     // must have a closing transaction # for
+                                     // finalReceipt.
+    // account name (inside the script language, "gold_acct_A" could be used to
+    // reference this acct.)
+    //
+    String m_strName;    // Name of the account (for use in scripts.)
+    String m_strAcctID;  // The Account ID itself.
+    String m_strInstrumentDefinitionID;  // The instrument definition ID for the
+                                         // account.
+                                         // Stored
+    // because parties agree on this even before the
+    // account ID is selected. Compare() uses this
+    // even when the account ID is blank, and when
+    // acct ID *is* added, its instrument definition must match
+    // this.
+    String m_strAgentName;  // The name of the agent who has rights to this
+                            // account.
+    // Entity, role, and Nym information are not stored here.
+    // Entity is already known on the party who owns this account (and I should
+    // have a ptr to him.)
+    // Role is already known on the agent who is presumably on the party's list
+    // of agents.
+    // Nym is known on the party (for owner) and on the agent.
+
+    // "GetOwnerID()" for a partyaccount (if it were to store NymID, EntityID,
+    // and a bool to choose
+    // between them) should be logically the same as
+    // m_pOwnerParty->GetPartyID().
+    //
+
+    SharedAccount get_account() const;
+
+    OTPartyAccount() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP

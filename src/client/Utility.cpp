@@ -199,12 +199,16 @@ std::int32_t InterpretTransactionMsgReply(
     return 1;
 }
 
-Utility::Utility(ServerContext& context, const OT_API& otapi)
+Utility::Utility(
+    ServerContext& context,
+    const OT_API& otapi,
+    const api::Legacy& legacy)
     : strLastReplyReceived("")
     , delay_ms(50)
     , max_trans_dl(10)
     , context_(context)
     , otapi_(otapi)
+    , legacy_(legacy)
 {
 }
 

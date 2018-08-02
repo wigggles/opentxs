@@ -26,8 +26,74 @@
 
 namespace opentxs
 {
+// keeping constructor private in order to force people to use the other
+// constructors and therefore provide the requisite IDs.
+OTTransactionType::OTTransactionType(const std::string& dataFolder)
+    : Contract(dataFolder)
+    , m_AcctID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory())
+    , m_AcctNotaryID(Identifier::Factory())
+    , m_AcctNymID(Identifier::Factory())
+    , m_lTransactionNum(0)
+    , m_lInReferenceToTransaction(0)
+    , m_lNumberOfOrigin(0)
+    , m_originType(originType::not_applicable)
+    , m_ascInReferenceTo()
+    , m_bLoadSecurely(true)
+    , m_Numlist()
+{
+    // this function is private to prevent people from using it.
+    // Should never actually get called.
 
-class Nym;
+    //  InitTransactionType(); // Just in case.
+}
+
+OTTransactionType::OTTransactionType(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    originType theOriginType)
+    : Contract(dataFolder, theAccountID)
+    , m_AcctID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(theNotaryID))
+    , m_AcctNotaryID(Identifier::Factory())
+    , m_AcctNymID(Identifier::Factory(theNymID))
+    , m_lTransactionNum(0)
+    , m_lInReferenceToTransaction(0)
+    , m_lNumberOfOrigin(0)
+    , m_originType(theOriginType)
+    , m_ascInReferenceTo()
+    , m_bLoadSecurely(true)
+    , m_Numlist()
+{
+    // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
+    // LOAD them or GENERATE them.
+}
+
+OTTransactionType::OTTransactionType(
+    const std::string& dataFolder,
+    const Identifier& theNymID,
+    const Identifier& theAccountID,
+    const Identifier& theNotaryID,
+    std::int64_t lTransactionNum,
+    originType theOriginType)
+    : Contract(dataFolder, theAccountID)
+    , m_AcctID(Identifier::Factory())
+    , m_NotaryID(Identifier::Factory(theNotaryID))
+    , m_AcctNotaryID(Identifier::Factory())
+    , m_AcctNymID(Identifier::Factory(theNymID))
+    , m_lTransactionNum(lTransactionNum)
+    , m_lInReferenceToTransaction(0)
+    , m_lNumberOfOrigin(0)
+    , m_originType(theOriginType)
+    , m_ascInReferenceTo()
+    , m_bLoadSecurely(true)
+    , m_Numlist()
+{
+    // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
+    // LOAD them or GENERATE them.
+}
 
 originType OTTransactionType::GetOriginTypeFromString(const String& strType)
 {
@@ -50,7 +116,9 @@ originType OTTransactionType::GetOriginTypeFromString(const String& strType)
 }
 
 // static -- class factory.
-OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
+OTTransactionType* OTTransactionType::TransactionFactory(
+    const std::string& dataFolder,
+    String strInput)
 {
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
@@ -63,7 +131,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                 "-----BEGIN SIGNED TRANSACTION-----"))  // this string is 34
                                                         // chars long.
         {
-            pContract = new OTTransaction;
+            pContract = new OTTransaction{dataFolder};
             OT_ASSERT(nullptr != pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRANSACTION ITEM-----"))  // this
@@ -71,19 +139,19 @@ OTTransactionType* OTTransactionType::TransactionFactory(String strInput)
                                                                     // 39 chars
                                                                     // long.
         {
-            pContract = new Item;
+            pContract = new Item(dataFolder);
             OT_ASSERT(nullptr != pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LEDGER-----"))  // this string is 29
                                                           // chars long.
         {
-            pContract = new Ledger;
+            pContract = new Ledger{dataFolder};
             OT_ASSERT(nullptr != pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED ACCOUNT-----"))  // this string is 30
                                                            // chars long.
         {
-            pContract = new Account;
+            pContract = new Account{dataFolder};
             OT_ASSERT(nullptr != pContract);
         }
 
@@ -169,75 +237,6 @@ bool OTTransactionType::Contains(const char* szContains)
 {
     return m_strRawFile.Contains(szContains);
 }
-
-// keeping constructor private in order to force people to use the other
-// constructors and therefore provide the requisite IDs.
-OTTransactionType::OTTransactionType()
-    : Contract()
-    , m_AcctID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory())
-    , m_AcctNotaryID(Identifier::Factory())
-    , m_AcctNymID(Identifier::Factory())
-    , m_lTransactionNum(0)
-    , m_lInReferenceToTransaction(0)
-    , m_lNumberOfOrigin(0)
-    , m_originType(originType::not_applicable)
-    , m_ascInReferenceTo()
-    , m_bLoadSecurely(true)
-    , m_Numlist()
-{
-    // this function is private to prevent people from using it.
-    // Should never actually get called.
-
-    //  InitTransactionType(); // Just in case.
-}
-
-OTTransactionType::OTTransactionType(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
-    originType theOriginType)
-    : Contract(theAccountID)
-    , m_AcctID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory(theNotaryID))
-    , m_AcctNotaryID(Identifier::Factory())
-    , m_AcctNymID(Identifier::Factory(theNymID))
-    , m_lTransactionNum(0)
-    , m_lInReferenceToTransaction(0)
-    , m_lNumberOfOrigin(0)
-    , m_originType(theOriginType)
-    , m_ascInReferenceTo()
-    , m_bLoadSecurely(true)
-    , m_Numlist()
-{
-    // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
-    // LOAD them or GENERATE them.
-}
-
-OTTransactionType::OTTransactionType(
-    const Identifier& theNymID,
-    const Identifier& theAccountID,
-    const Identifier& theNotaryID,
-    std::int64_t lTransactionNum,
-    originType theOriginType)
-    : Contract(theAccountID)
-    , m_AcctID(Identifier::Factory())
-    , m_NotaryID(Identifier::Factory(theNotaryID))
-    , m_AcctNotaryID(Identifier::Factory())
-    , m_AcctNymID(Identifier::Factory(theNymID))
-    , m_lTransactionNum(lTransactionNum)
-    , m_lInReferenceToTransaction(0)
-    , m_lNumberOfOrigin(0)
-    , m_originType(theOriginType)
-    , m_ascInReferenceTo()
-    , m_bLoadSecurely(true)
-    , m_Numlist()
-{
-    // do NOT set m_AcctID and m_AcctNotaryID here.  Let the child classes
-    // LOAD them or GENERATE them.
-}
-
-OTTransactionType::~OTTransactionType() { Release_TransactionType(); }
 
 // We'll see if any new bugs pop up after adding this...
 //
@@ -451,4 +450,5 @@ void OTTransactionType::SetReferenceToNum(std::int64_t lTransactionNum)
     m_lInReferenceToTransaction = lTransactionNum;
 }
 
+OTTransactionType::~OTTransactionType() { Release_TransactionType(); }
 }  // namespace opentxs

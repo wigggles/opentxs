@@ -32,6 +32,43 @@
 
 namespace opentxs
 {
+OTOffer::OTOffer(const std::string& dataFolder)
+    : Instrument(dataFolder)
+    , m_pTrade(nullptr)
+    , m_CURRENCY_TYPE_ID(Identifier::Factory())
+    , m_bSelling(false)
+    , m_lPriceLimit(0)
+    , m_lTransactionNum(0)
+    , m_lTotalAssetsOffer(0)
+    , m_lFinishedSoFar(0)
+    , m_lScale(1)
+    , m_lMinimumIncrement(1)
+    , m_tDateAddedToMarket(OT_TIME_ZERO)
+{
+    InitOffer();
+}
+
+OTOffer::OTOffer(
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID,
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const Identifier& CURRENCY_ID,
+    const std::int64_t& lScale)
+    : Instrument(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_pTrade(nullptr)
+    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_ID))
+    , m_bSelling(false)
+    , m_lPriceLimit(0)
+    , m_lTransactionNum(0)
+    , m_lTotalAssetsOffer(0)
+    , m_lFinishedSoFar(0)
+    , m_lScale(1)
+    , m_lMinimumIncrement(1)
+    , m_tDateAddedToMarket(OT_TIME_ZERO)
+{
+    InitOffer();
+    SetScale(lScale);
+}
 
 bool OTOffer::isPowerOfTen(const std::int64_t& x)
 {
@@ -396,45 +433,6 @@ void OTOffer::SetDateAddedToMarket(time64_t tDate)  // Used in OTCron when
     m_tDateAddedToMarket = tDate;
 }
 
-OTOffer::OTOffer()
-    : Instrument()
-    , m_tDateAddedToMarket(OT_TIME_ZERO)
-    , m_pTrade(nullptr)
-    , m_CURRENCY_TYPE_ID(Identifier::Factory())
-    , m_bSelling(false)
-    , m_lPriceLimit(0)
-    , m_lTransactionNum(0)
-    , m_lTotalAssetsOffer(0)
-    , m_lFinishedSoFar(0)
-    , m_lScale(1)
-    , m_lMinimumIncrement(1)
-{
-    InitOffer();
-}
-
-OTOffer::OTOffer(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& CURRENCY_ID,
-    const std::int64_t& lScale)
-    : Instrument(NOTARY_ID, INSTRUMENT_DEFINITION_ID)
-    , m_tDateAddedToMarket(OT_TIME_ZERO)
-    , m_pTrade(nullptr)
-    , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_ID))
-    , m_bSelling(false)
-    , m_lPriceLimit(0)
-    , m_lTransactionNum(0)
-    , m_lTotalAssetsOffer(0)
-    , m_lFinishedSoFar(0)
-    , m_lScale(1)
-    , m_lMinimumIncrement(1)
-{
-    InitOffer();
-    SetScale(lScale);
-}
-
-OTOffer::~OTOffer() { Release_Offer(); }
-
 void OTOffer::Release_Offer()
 {
     // If there were any dynamically allocated objects, clean them up here.
@@ -479,4 +477,5 @@ void OTOffer::InitOffer()
     SetScale(1);              // This must be 1 or greater. Enforced.
 }
 
+OTOffer::~OTOffer() { Release_Offer(); }
 }  // namespace opentxs

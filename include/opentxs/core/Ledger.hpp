@@ -28,15 +28,10 @@ class ServerContext;
 class String;
 
 // transaction ID is a std::int64_t, assigned by the server. Each transaction
-// has
-// one.
-// FIRST the server issues the ID. THEN we create the blank transaction object
-// with the
-// ID in it and store it in our inbox. THEN if we want to send a transaction, we
-// use
-// the blank to do so. If there is no blank available, we message the server and
-// request one.
-
+// has one. FIRST the server issues the ID. THEN we create the blank transaction
+// object with the ID in it and store it in our inbox. THEN if we want to send a
+// transaction, we use the blank to do so. If there is no blank available, we
+// message the server and request one.
 typedef std::map<std::int64_t, OTTransaction*> mapOfTransactions;
 
 // the "inbox" and "outbox" functionality is implemented in this class
@@ -70,7 +65,6 @@ public:
                                       // (Legacy boxes stored ALL of the
                                       // receipts IN the box. No more.)
 
-public:
     inline ledgerType GetType() const { return m_Type; }
 
     EXPORT bool LoadedLegacyData() const { return m_bLoadedLegacyData; }
@@ -200,11 +194,6 @@ public:
     // lookup the total value of pending
     // transfers within.
     EXPORT const mapOfTransactions& GetTransactionMap() const;
-    EXPORT Ledger(
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID);
-    EXPORT virtual ~Ledger();
 
     EXPORT void Release() override;
     EXPORT void Release_Ledger();
@@ -218,11 +207,9 @@ public:
     // function to get it
     // loaded up, and the NymID will hopefully be loaded up with the rest of
     // it.
-    EXPORT Ledger(
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID);
     EXPORT void InitLedger();
     EXPORT static Ledger* GenerateLedger(
+        const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAcctID,
         const Identifier& theNotaryID,
@@ -244,6 +231,18 @@ public:
     EXPORT static char const* _GetTypeString(ledgerType theType);
     EXPORT char const* GetTypeString() const { return _GetTypeString(m_Type); }
 
+    EXPORT Ledger(
+        const std::string& dataFolder,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID);
+    EXPORT Ledger(
+        const std::string& dataFolder,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID);
+
+    EXPORT virtual ~Ledger();
+
 protected:
     bool LoadGeneric(ledgerType theType, const String* pString = nullptr);
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -253,11 +252,12 @@ protected:
                                      // this is where the ledger saves its
                                      // contents
 
-    Ledger();  // Hopefully stays here.
+    Ledger(const std::string& dataFolder);  // Hopefully stays here.
 
 private:  // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
     friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const std::string& dataFolder,
         String strInput);
 
     mapOfTransactions m_mapTransactions;  // a ledger contains a map of
@@ -269,11 +269,12 @@ private:  // Private prevents erroneous use by other classes.
         const Identifier& theNotaryID,
         ledgerType theType,
         bool bCreateFile);
-
     bool save_box(
         const ledgerType type,
         Identifier& hash,
         bool (Ledger::*calc)(Identifier&) const);
+
+    Ledger() = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CORE_OTLEDGER_HPP

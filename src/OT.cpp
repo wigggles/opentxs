@@ -28,7 +28,7 @@ const api::Native& OT::App()
 void OT::Cleanup()
 {
     if (nullptr != instance_pointer_) {
-        auto ot = dynamic_cast<api::NativeInternal*>(instance_pointer_);
+        auto ot = dynamic_cast<api::internal::Native*>(instance_pointer_);
 
         if (nullptr != ot) { ot->shutdown(); }
 
@@ -50,7 +50,7 @@ void OT::ClientFactory(
 
     OT_ASSERT(nullptr != instance_pointer_);
 
-    auto ot = dynamic_cast<api::NativeInternal*>(instance_pointer_);
+    auto ot = dynamic_cast<api::internal::Native*>(instance_pointer_);
 
     OT_ASSERT(nullptr != ot);
 
@@ -79,7 +79,7 @@ void OT::ServerFactory(
 
     OT_ASSERT(nullptr != instance_pointer_);
 
-    auto ot = dynamic_cast<api::NativeInternal*>(instance_pointer_);
+    auto ot = dynamic_cast<api::internal::Native*>(instance_pointer_);
 
     OT_ASSERT(nullptr != ot);
 

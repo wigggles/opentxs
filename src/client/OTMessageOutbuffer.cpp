@@ -7,9 +7,9 @@
 
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 
+#include "opentxs/api/Legacy.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/OTDataFolder.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -32,9 +32,10 @@
 
 namespace opentxs
 {
-OTMessageOutbuffer::OTMessageOutbuffer()
-    : messagesMap_()
-    , dataFolder_(OTDataFolder::Get())
+OTMessageOutbuffer::OTMessageOutbuffer(const api::Legacy& legacy)
+    : legacy_(legacy)
+    , messagesMap_()
+    , dataFolder_(legacy_.ClientDataFolder())
 {
     OT_ASSERT(dataFolder_.Exists());
 }
@@ -135,9 +136,18 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
     //
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
-    if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-        String strNumList(
-            OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+    if (OTDB::Exists(
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            "")) {
+        String strNumList(OTDB::QueryPlainString(
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Add(lRequestNum);  // Add the new request number to it.
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -179,8 +189,11 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 
     if (!OTDB::StorePlainString(
             strOutput.Get(),
+            legacy_.ClientDataFolder(),
             strFolder.Get(),
-            str_data_filename))  // todo hardcoding.
+            str_data_filename,
+            "",
+            ""))  // todo hardcoding.
     {
         otErr << "OTMessageOutbuffer::AddSentMessage: Error: failed writing "
                  "list of request numbers to storage.\n";
@@ -238,10 +251,19 @@ Message* OTMessageOutbuffer::GetSentMessage(
     //
     NumList theNumList;
     std::string str_data_filename("sent.dat");
-    if (OTDB::Exists(strFolder.Get(), str_data_filename))  // todo hardcoding.
+    if (OTDB::Exists(
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            ""))  // todo hardcoding.
     {
-        String strNumList(
-            OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+        String strNumList(OTDB::QueryPlainString(
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            ""));
 
         if (strNumList.Exists()) theNumList.Add(strNumList);
 
@@ -249,14 +271,19 @@ Message* OTMessageOutbuffer::GetSentMessage(
             // Even if the outgoing message was stored, we still act like it
             // "doesn't exist" if it doesn't appear on the official list.
             // The list is what matters -- the message is just the contents
-            // referenced
-            // by that list.
+            // referencedby that list.
+            Message* pMsg = new Message{legacy_.ClientDataFolder()};
 
-            Message* pMsg = new Message;
             OT_ASSERT(nullptr != pMsg);
+
             std::unique_ptr<Message> theMsgAngel(pMsg);
 
-            if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
+            if (OTDB::Exists(
+                    legacy_.ClientDataFolder(),
+                    strFolder.Get(),
+                    strFile.Get(),
+                    "",
+                    "") &&
                 pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
@@ -451,9 +478,18 @@ void OTMessageOutbuffer::Clear(
         NumList theNumList;
         std::string str_data_filename("sent.dat");
 
-        if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-            String strNumList(
-                OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+        if (OTDB::Exists(
+                legacy_.ClientDataFolder(),
+                strFolder.Get(),
+                str_data_filename,
+                "",
+                "")) {
+            String strNumList(OTDB::QueryPlainString(
+                legacy_.ClientDataFolder(),
+                strFolder.Get(),
+                str_data_filename,
+                "",
+                ""));
 
             if (strNumList.Exists()) { theNumList.Add(strNumList); }
 
@@ -463,7 +499,12 @@ void OTMessageOutbuffer::Clear(
         String strOutput;
         theNumList.Output(strOutput);
         const bool saved = OTDB::StorePlainString(
-            strOutput.Get(), strFolder.Get(), str_data_filename);
+            strOutput.Get(),
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            "");
 
         if (!saved) {
             otErr << "OTMessageOutbuffer::Clear: Error: failed writing list of "
@@ -472,13 +513,24 @@ void OTMessageOutbuffer::Clear(
 
         // Make sure any messages being erased here, are also erased from local
         // storage.
-        std::unique_ptr<Message> storedMessage(new Message);
+        std::unique_ptr<Message> storedMessage(
+            new Message{legacy_.ClientDataFolder()});
 
         OT_ASSERT(storedMessage);
 
-        if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
+        if (OTDB::Exists(
+                legacy_.ClientDataFolder(),
+                strFolder.Get(),
+                strFile.Get(),
+                "",
+                "") &&
             storedMessage->LoadContract(strFolder.Get(), strFile.Get())) {
-            OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
+            OTDB::EraseValueByKey(
+                legacy_.ClientDataFolder(),
+                strFolder.Get(),
+                strFile.Get(),
+                "",
+                "");
         }
 
         delete pThisMsg;
@@ -557,9 +609,18 @@ bool OTMessageOutbuffer::RemoveSentMessage(
 
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
-    if (OTDB::Exists(strFolder.Get(), str_data_filename)) {
-        String strNumList(
-            OTDB::QueryPlainString(strFolder.Get(), str_data_filename));
+    if (OTDB::Exists(
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            "")) {
+        String strNumList(OTDB::QueryPlainString(
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Remove(lRequestNum);
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -603,7 +664,12 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     String strOutput;
     theNumList.Output(strOutput);
     if (!OTDB::StorePlainString(
-            strOutput.Get(), strFolder.Get(), str_data_filename)) {
+            strOutput.Get(),
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            str_data_filename,
+            "",
+            "")) {
         otErr << "OTMessageOutbuffer::RemoveSentMessage: Error: failed writing "
                  "list of request numbers to storage.\n";
     }
@@ -611,13 +677,19 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     // Now that we've updated the numlist in local storage, let's
     // erase the sent message itself...
     //
-    Message* pMsg = new Message;
+    Message* pMsg = new Message{legacy_.ClientDataFolder()};
     OT_ASSERT(nullptr != pMsg);
     std::unique_ptr<Message> theMsgAngel(pMsg);
 
-    if (OTDB::Exists(strFolder.Get(), strFile.Get()) &&
+    if (OTDB::Exists(
+            legacy_.ClientDataFolder(),
+            strFolder.Get(),
+            strFile.Get(),
+            "",
+            "") &&
         pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
-        OTDB::EraseValueByKey(strFolder.Get(), strFile.Get());
+        OTDB::EraseValueByKey(
+            legacy_.ClientDataFolder(), strFolder.Get(), strFile.Get(), "", "");
         return true;
     }
 

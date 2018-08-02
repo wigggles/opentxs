@@ -28,8 +28,6 @@
 #define DEFAULT_RECEIPT "receipts"
 #define DEFAULT_RECORDBOX "recordBox"
 #define DEFAULT_EXPIREDBOX "expiredBox"
-#define DEFAULT_SCRIPT "scripts"
-#define DEFAULT_SMARTCONTRACTS "smartcontracts"
 #define DEFAULT_SPENT "spent"
 #define DEFAULT_USERACCT "useraccounts"
 
@@ -49,8 +47,6 @@
 #define KEY_RECEIPT "receipt"
 #define KEY_RECORDBOX "recordbox"
 #define KEY_EXPIREDBOX "expiredbox"
-#define KEY_SCRIPT "script"
-#define KEY_SMARTCONTRACTS "smartcontracts"
 #define KEY_SPENT "spent"
 #define KEY_USERACCT "useracct"
 
@@ -73,8 +69,6 @@ String OTFolders::s_strPurse("");
 String OTFolders::s_strReceipt("");
 String OTFolders::s_strRecordBox("");
 String OTFolders::s_strExpiredBox("");
-String OTFolders::s_strScript("");
-String OTFolders::s_strSmartContracts("");
 String OTFolders::s_strSpent("");
 String OTFolders::s_strUserAcct("");
 
@@ -122,14 +116,6 @@ bool OTFolders::GetSetAll()
     if (!GetSetFolderName(
             *config, KEY_EXPIREDBOX, DEFAULT_EXPIREDBOX, s_strExpiredBox))
         return false;
-    if (!GetSetFolderName(*config, KEY_SCRIPT, DEFAULT_SCRIPT, s_strScript))
-        return false;
-    if (!GetSetFolderName(
-            *config,
-            KEY_SMARTCONTRACTS,
-            DEFAULT_SMARTCONTRACTS,
-            s_strSmartContracts))
-        return false;
     if (!GetSetFolderName(*config, KEY_SPENT, DEFAULT_SPENT, s_strSpent))
         return false;
     if (!GetSetFolderName(
@@ -159,11 +145,6 @@ const String& OTFolders::Purse() { return GetFolder(s_strPurse); }
 const String& OTFolders::Receipt() { return GetFolder(s_strReceipt); }
 const String& OTFolders::RecordBox() { return GetFolder(s_strRecordBox); }
 const String& OTFolders::ExpiredBox() { return GetFolder(s_strExpiredBox); }
-const String& OTFolders::Script() { return GetFolder(s_strScript); }
-const String& OTFolders::SmartContracts()
-{
-    return GetFolder(s_strSmartContracts);
-}
 const String& OTFolders::Spent() { return GetFolder(s_strSpent); }
 const String& OTFolders::UserAcct() { return GetFolder(s_strUserAcct); }
 
