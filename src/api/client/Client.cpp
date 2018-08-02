@@ -6,6 +6,9 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/api/client/Blockchain.hpp"
+#endif
 #include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Pair.hpp"
@@ -73,28 +76,37 @@ Client::Client(
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zmq)
     : running_(running)
+    , wallet_(wallet)
+    , zmq_(zmq)
+    , storage_(storage)
     , activity_(activity)
-    , config_(config)
     , contacts_(contacts)
     , crypto_(crypto)
     , identity_(identity)
     , legacy_(legacy)
-    , storage_(storage)
-    , wallet_(wallet)
-    , zmq_(zmq)
-    , ot_api_(nullptr)
-    , otapi_exec_(nullptr)
+    , config_(config)
     , cash_(nullptr)
     , pair_(nullptr)
     , server_action_(nullptr)
     , sync_(nullptr)
     , workflow_(nullptr)
+    , ot_api_(nullptr)
+    , otapi_exec_(nullptr)
     , lock_()
     , map_lock_()
     , context_locks_()
 {
     Init();
 }
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+const api::client::Blockchain& Client::Blockchain() const
+{
+    OT_ASSERT(blockchain_)
+
+    return *blockchain_;
+}
+#endif
 
 void Client::Cleanup()
 {
@@ -105,6 +117,9 @@ void Client::Cleanup()
     otapi_exec_.reset();
     ot_api_.reset();
     workflow_.reset();
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    blockchain_.reset();
+#endif
 }
 
 std::recursive_mutex& Client::get_lock(const ContextID context) const
@@ -119,6 +134,9 @@ void Client::Init()
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
 
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    Init_Blockchain();
+#endif
     workflow_.reset(Factory::Workflow(
         activity_, contacts_, legacy_, storage_, zmq_.Context()));
 
@@ -197,6 +215,14 @@ void Client::Init()
 
     OT_ASSERT(pair_);
 }
+
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+void Client::Init_Blockchain()
+{
+    blockchain_.reset(
+        Factory::Blockchain(activity_, crypto_, storage_, wallet_));
+}
+#endif
 
 const OTAPI_Exec& Client::Exec(const std::string&) const
 {

@@ -25,9 +25,6 @@ class Native : virtual public api::internal::Native
 {
 public:
     const api::Activity& Activity() const override;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    const api::Blockchain& Blockchain() const override;
-#endif
     const api::client::Client& Client() const override;
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
@@ -84,9 +81,6 @@ private:
     mutable TaskList periodic_task_list;
     std::unique_ptr<api::client::internal::Activity> activity_;
     std::unique_ptr<api::client::Client> client_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::unique_ptr<api::Blockchain> blockchain_;
-#endif
     mutable ConfigMap config_;
     std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<api::Crypto> crypto_;
@@ -132,9 +126,6 @@ private:
 
     void Init_Activity();
     void Init_Api();
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    void Init_Blockchain();
-#endif
     void Init_Config();
     void Init_Contacts();
     void Init_Contracts();

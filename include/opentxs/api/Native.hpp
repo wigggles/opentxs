@@ -26,9 +26,6 @@ public:
     using ShutdownCallback = std::function<void()>;
 
     virtual const api::Activity& Activity() const = 0;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    virtual const api::Blockchain& Blockchain() const = 0;
-#endif
     virtual const api::client::Client& Client() const = 0;
     virtual const api::Settings& Config(
         const std::string& path = std::string("")) const = 0;

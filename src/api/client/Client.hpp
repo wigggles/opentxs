@@ -13,13 +13,15 @@ namespace opentxs::api::client::implementation
 class Client : virtual public opentxs::api::client::Client
 {
 public:
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    const api::client::Blockchain& Blockchain() const override;
+#endif
+    const api::client::Cash& Cash() const override;
+    const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     std::recursive_mutex& Lock(
         const Identifier& nymID,
         const Identifier& serverID) const override;
-
-    const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
-    const api::client::Cash& Cash() const override;
     const api::client::Pair& Pair() const override;
     const client::ServerAction& ServerAction() const override;
     const client::Sync& Sync() const override;
@@ -31,23 +33,26 @@ private:
     friend Factory;
 
     const Flag& running_;
-    const Activity& activity_;
-    const Settings& config_;
-    const ContactManager& contacts_;
-    const api::Crypto& crypto_;
-    const Identity& identity_;
-    const api::Legacy& legacy_;
-    const storage::Storage& storage_;
     const api::client::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
+    const api::storage::Storage& storage_;
+    const api::Activity& activity_;
+    const api::ContactManager& contacts_;
+    const api::Crypto& crypto_;
+    const api::Identity& identity_;
+    const api::Legacy& legacy_;
+    const api::Settings& config_;
 
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    std::unique_ptr<api::client::Blockchain> blockchain_;
+#endif
     std::unique_ptr<api::client::Cash> cash_;
     std::unique_ptr<api::client::Pair> pair_;
     std::unique_ptr<api::client::ServerAction> server_action_;
     std::unique_ptr<api::client::Sync> sync_;
     std::unique_ptr<api::client::Workflow> workflow_;
+    std::unique_ptr<OT_API> ot_api_;
+    std::unique_ptr<OTAPI_Exec> otapi_exec_;
 
     mutable std::recursive_mutex lock_;
     mutable std::mutex map_lock_;
@@ -57,6 +62,9 @@ private:
 
     void Cleanup();
     void Init();
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    void Init_Blockchain();
+#endif
 
     Client(
         const Flag& running,

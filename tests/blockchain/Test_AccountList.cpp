@@ -32,18 +32,19 @@ TEST(Test_AccountList, testList)
     ASSERT_EQ(
         0,
         opentxs::OT::App()
+            .Client()
             .Blockchain()
             .AccountList(Identifier::Factory(AliceNymID), proto::CITEMTYPE_BTC)
             .size());
 
-    OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(
+    OTIdentifier AliceAccountID = OT::App().Client().Blockchain().NewAccount(
         Identifier::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
     std::cout << "Created Alice's Account: " << String(AliceAccountID).Get()
               << " !!\n";
 
-    OTIdentifier AliceAccountID2 = OT::App().Blockchain().NewAccount(
+    OTIdentifier AliceAccountID2 = OT::App().Client().Blockchain().NewAccount(
         Identifier::Factory(AliceNymID2),
         BlockchainAccountType::BIP32,
         proto::CITEMTYPE_BTC);
@@ -51,31 +52,31 @@ TEST(Test_AccountList, testList)
               << String(AliceAccountID2).Get() << " !!\n";
 
     const std::set<OTIdentifier> as =
-        opentxs::OT::App().Blockchain().AccountList(
+        opentxs::OT::App().Client().Blockchain().AccountList(
             Identifier::Factory(AliceNymID), proto::CITEMTYPE_BTC);
     const std::set<OTIdentifier> bs =
-        opentxs::OT::App().Blockchain().AccountList(
+        opentxs::OT::App().Client().Blockchain().AccountList(
             Identifier::Factory(BobNymID), proto::CITEMTYPE_BTC);
     EXPECT_EQ(1, as.size());
     ASSERT_EQ(0, bs.size());
 
-    OTIdentifier BobAccountID = OT::App().Blockchain().NewAccount(
+    OTIdentifier BobAccountID = OT::App().Client().Blockchain().NewAccount(
         Identifier::Factory(BobNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
 
     const std::set<OTIdentifier> bcs =
-        opentxs::OT::App().Blockchain().AccountList(
+        opentxs::OT::App().Client().Blockchain().AccountList(
             Identifier::Factory(BobNymID), proto::CITEMTYPE_BTC);
     EXPECT_EQ(1, bcs.size());
 
-    OTIdentifier AliceLTCAccountID = OT::App().Blockchain().NewAccount(
+    OTIdentifier AliceLTCAccountID = OT::App().Client().Blockchain().NewAccount(
         Identifier::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_LTC);
 
     const std::set<OTIdentifier> als =
-        opentxs::OT::App().Blockchain().AccountList(
+        opentxs::OT::App().Client().Blockchain().AccountList(
             Identifier::Factory(AliceNymID), proto::CITEMTYPE_LTC);
     EXPECT_EQ(1, als.size());
 }

@@ -7,9 +7,9 @@
 #define OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-class Blockchain : virtual public api::Blockchain
+class Blockchain : virtual public api::client::Blockchain
 {
 public:
     std::shared_ptr<proto::Bip44Account> Account(

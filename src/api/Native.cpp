@@ -11,9 +11,6 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include "opentxs/api/Blockchain.hpp"
-#endif
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
@@ -365,9 +362,6 @@ Native::Native(
     , periodic_task_list()
     , activity_(nullptr)
     , client_(nullptr)
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    , blockchain_(nullptr)
-#endif
     , config_()
     , contacts_(nullptr)
     , crypto_(nullptr)
@@ -435,15 +429,6 @@ const api::Activity& Native::Activity() const
 
     return *activity_;
 }
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-const api::Blockchain& Native::Blockchain() const
-{
-    OT_ASSERT(blockchain_)
-
-    return *blockchain_;
-}
-#endif
 
 const api::client::Client& Native::Client() const
 {
@@ -593,13 +578,9 @@ void Native::Init()
     Init_Contacts();  // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
     Init_Activity();  // requires Init_Storage(), Init_Contacts(),
                       // Init_Contracts(), Init_Legacy()
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
-                        // Init_Contracts(), Init_Activity()
-#endif
-    Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
-                 // Init_Contracts(), Init_Identity(), Init_Storage(),
-                 // Init_ZMQ(), Init_Contacts() Init_Activity()
+    Init_Api();       // requires Init_Legacy(), Init_Config(), Init_Crypto(),
+                      // Init_Contracts(), Init_Identity(), Init_Storage(),
+                      // Init_ZMQ(), Init_Contacts() Init_Activity()
     if (!server_mode_) {
         Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api(),
                     // Init_Storage(), Init_ZMQ(), Init_Legacy()
@@ -653,19 +634,6 @@ void Native::Init_Api()
 
     OT_ASSERT(client_);
 }
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-void Native::Init_Blockchain()
-{
-    OT_ASSERT(activity_);
-    OT_ASSERT(crypto_);
-    OT_ASSERT(storage_);
-    OT_ASSERT(wallet_)
-
-    blockchain_.reset(
-        Factory::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
-}
-#endif
 
 void Native::Init_Config()
 {
@@ -1276,9 +1244,6 @@ void Native::shutdown()
     server_.reset();
     ui_.reset();
     client_.reset();
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    blockchain_.reset();
-#endif
     activity_.reset();
     contacts_.reset();
     identity_.reset();

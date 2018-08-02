@@ -19,15 +19,17 @@ namespace client
 class Client
 {
 public:
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+    EXPORT virtual const api::client::Blockchain& Blockchain() const = 0;
+#endif
+    EXPORT virtual const client::Cash& Cash() const = 0;
+    EXPORT virtual const OTAPI_Exec& Exec(
+        const std::string& wallet = "") const = 0;
     EXPORT virtual std::recursive_mutex& Lock(
         const Identifier& nymID,
         const Identifier& serverID) const = 0;
-
-    EXPORT virtual const OTAPI_Exec& Exec(
-        const std::string& wallet = "") const = 0;
     EXPORT virtual const OT_API& OTAPI(
         const std::string& wallet = "") const = 0;
-    EXPORT virtual const client::Cash& Cash() const = 0;
     EXPORT virtual const client::Pair& Pair() const = 0;
     EXPORT virtual const client::ServerAction& ServerAction() const = 0;
     EXPORT virtual const client::Sync& Sync() const = 0;

@@ -19,6 +19,7 @@ namespace api
 {
 namespace client
 {
+class Blockchain;
 class Cash;
 class Client;
 class Issuer;
@@ -49,7 +50,6 @@ class ZMQ;
 }  // namespace network
 
 class Activity;
-class Blockchain;
 class ContactManager;
 class Crypto;
 class Identity;

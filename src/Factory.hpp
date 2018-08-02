@@ -89,7 +89,7 @@ public:
         const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);
-    static api::Blockchain* Blockchain(
+    static api::client::Blockchain* Blockchain(
         const api::Activity& activity,
         const api::Crypto& crypto,
         const api::storage::Storage& storage,

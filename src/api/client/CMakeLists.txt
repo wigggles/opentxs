@@ -5,6 +5,7 @@
 
 set(cxx-sources
   Activity.cpp
+  Blockchain.cpp
   Cash.cpp
   Client.cpp
   Issuer.cpp
@@ -22,6 +23,7 @@ file(GLOB cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
   ${CMAKE_CURRENT_SOURCE_DIR}/Activity.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Blockchain.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Cash.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Client.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Issuer.hpp

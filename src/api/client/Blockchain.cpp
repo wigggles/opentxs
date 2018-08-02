@@ -9,12 +9,12 @@
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Blockchain.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -58,18 +58,18 @@
 
 namespace opentxs
 {
-api::Blockchain* Factory::Blockchain(
+api::client::Blockchain* Factory::Blockchain(
     const api::Activity& activity,
     const api::Crypto& crypto,
     const api::storage::Storage& storage,
     const api::client::Wallet& wallet)
 {
-    return new api::implementation::Blockchain(
+    return new api::client::implementation::Blockchain(
         activity, crypto, storage, wallet);
 }
 }  // namespace opentxs
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
 Blockchain::Blockchain(
     const api::Activity& activity,

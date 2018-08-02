@@ -5,8 +5,10 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/Identifier.hpp"
 #include "opentxs/api/client/Activity.hpp"
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include "opentxs/api/client/Blockchain.hpp"
+#endif
 #include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Pair.hpp"
@@ -16,9 +18,6 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include "opentxs/api/Blockchain.hpp"
-#endif
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -32,6 +31,7 @@
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/String.hpp"
@@ -3044,7 +3044,7 @@ std::string SwigWrap::Blockchain_Account(
     const std::string& nymID,
     const std::string& accountID)
 {
-    const auto output = OT::App().Blockchain().Account(
+    const auto output = OT::App().Client().Blockchain().Account(
         Identifier::Factory(nymID), Identifier::Factory(accountID));
 
     if (false == bool(output)) { return {}; }
@@ -3071,7 +3071,7 @@ std::string SwigWrap::Blockchain_Account_List(
     const auto type = static_cast<proto::ContactItemType>(chain);
     otInfo << OT_METHOD << __FUNCTION__ << ": Loading account list for "
            << proto::TranslateItemType(type) << std::endl;
-    const auto output = OT::App().Blockchain().AccountList(nym, type);
+    const auto output = OT::App().Client().Blockchain().AccountList(nym, type);
 
     return comma(output);
 }
@@ -3082,7 +3082,7 @@ std::string SwigWrap::Blockchain_Allocate_Address(
     const std::string& label,
     const bool internal)
 {
-    const auto output = OT::App().Blockchain().AllocateAddress(
+    const auto output = OT::App().Client().Blockchain().AllocateAddress(
         Identifier::Factory(nymID),
         Identifier::Factory(accountID),
         label,
@@ -3119,7 +3119,7 @@ bool SwigWrap::Blockchain_Assign_Address(
     const std::string& contact,
     const bool internal)
 {
-    return OT::App().Blockchain().AssignAddress(
+    return OT::App().Client().Blockchain().AssignAddress(
         Identifier::Factory(nymID),
         Identifier::Factory(accountID),
         index,
@@ -3133,7 +3133,7 @@ std::string SwigWrap::Blockchain_Load_Address(
     const std::uint32_t index,
     const bool internal)
 {
-    const auto output = OT::App().Blockchain().LoadAddress(
+    const auto output = OT::App().Client().Blockchain().LoadAddress(
         Identifier::Factory(nymID),
         Identifier::Factory(accountID),
         index,
@@ -3168,6 +3168,7 @@ std::string SwigWrap::Blockchain_New_Bip44_Account(
     const std::uint32_t chain)
 {
     return OT::App()
+        .Client()
         .Blockchain()
         .NewAccount(
             Identifier::Factory(nymID),
@@ -3181,6 +3182,7 @@ std::string SwigWrap::Blockchain_New_Bip32_Account(
     const std::uint32_t chain)
 {
     return OT::App()
+        .Client()
         .Blockchain()
         .NewAccount(
             Identifier::Factory(nymID),
@@ -3207,7 +3209,7 @@ bool SwigWrap::Blockchain_Store_Incoming(
         return false;
     }
 
-    return OT::App().Blockchain().StoreIncoming(
+    return OT::App().Client().Blockchain().StoreIncoming(
         Identifier::Factory(nymID),
         Identifier::Factory(accountID),
         index,
@@ -3244,7 +3246,7 @@ bool SwigWrap::Blockchain_Store_Outgoing(
         return false;
     }
 
-    return OT::App().Blockchain().StoreOutgoing(
+    return OT::App().Client().Blockchain().StoreOutgoing(
         Identifier::Factory(nymID),
         Identifier::Factory(accountID),
         Identifier::Factory(recipientContactID),
@@ -3265,7 +3267,7 @@ bool SwigWrap::Blockchain_Store_Outgoing_base64(
 
 std::string SwigWrap::Blockchain_Transaction(const std::string& txid)
 {
-    const auto output = OT::App().Blockchain().Transaction(txid);
+    const auto output = OT::App().Client().Blockchain().Transaction(txid);
 
     if (false == bool(output)) { return {}; }
 
