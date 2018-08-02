@@ -13,6 +13,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -64,9 +65,6 @@
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -96,6 +94,7 @@ OTAPI_Exec::OTAPI_Exec(
     const api::Settings& config,
     const api::client::Contacts& contacts,
     const api::Crypto& crypto,
+    const api::Factory& factory,
     const api::Identity& identity,
     const api::Legacy& legacy,
     const api::Wallet& wallet,
@@ -106,6 +105,7 @@ OTAPI_Exec::OTAPI_Exec(
     , config_(config)
     , contacts_(contacts)
     , crypto_(crypto)
+    , factory_{factory}
     , identity_(identity)
     , legacy_(legacy)
     , wallet_(wallet)
@@ -471,7 +471,7 @@ bool OTAPI_Exec::IsValidID(const std::string& strPurportedID) const
 std::string OTAPI_Exec::NymIDFromPaymentCode(
     const std::string& paymentCode) const
 {
-    return OT_API::NymIDFromPaymentCode(paymentCode);
+    return ot_api_.NymIDFromPaymentCode(paymentCode);
 }
 
 // CREATE NYM  -- Create new User
@@ -577,7 +577,7 @@ std::string OTAPI_Exec::CreateNymHD(
     }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = PaymentCode::Factory(nym->PaymentCode());
+    auto code = factory_.PaymentCode(nym->PaymentCode());
 #endif
     contacts_.NewContact(
         name,

@@ -18,7 +18,7 @@ public:
     ~MailItem();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     std::unique_ptr<std::thread> load_{nullptr};
 

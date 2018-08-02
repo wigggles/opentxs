@@ -45,16 +45,6 @@
 
 namespace opentxs
 {
-
-class Credential;
-class ChildKeyCredential;
-class Data;
-class Identifier;
-class Nym;
-class OTPassword;
-class OTPasswordData;
-class Tag;
-
 typedef std::map<std::string, std::unique_ptr<Credential>> mapOfCredentials;
 typedef std::shared_ptr<proto::CredentialSet> SerializedCredentialSet;
 
@@ -81,42 +71,25 @@ typedef std::shared_ptr<proto::CredentialSet> SerializedCredentialSet;
  URL. */
 class CredentialSet
 {
-private:
-    std::unique_ptr<MasterCredential> m_MasterCredential;
-    mapOfCredentials m_mapCredentials;
-    mapOfCredentials m_mapRevokedCredentials;
-    std::string m_strNymID;
-    std::shared_ptr<NymIDSource> nym_id_source_;
-    const OTPassword* m_pImportPassword =
-        nullptr;  // Not owned. Just here for convenience.  Sometimes it will be
-                  // set, so that when loading something up (and decrypting it)
-                  // the password is already available, so the user doesn't have
-                  // to type it a million times (such as during import.) So we
-                  // use it when it's available. And usually whoever set it,
-                  // will immediately set it back to nullptr when he's done.
-    std::uint32_t version_{};
-    std::uint32_t index_{};
-    proto::KeyMode mode_{proto::KEYMODE_ERROR};
-    const api::Wallet& wallet_;
-
-    bool CreateMasterCredential(const NymParameters& nymParameters);
-
-    CredentialSet() = delete;
-
 public:
-    /** The source is the URL/DN/pubkey that hashes to form the NymID. Any
-     * credential must verify against its own source. */
-    void SetSource(const std::shared_ptr<NymIDSource>& source);
-    explicit CredentialSet(const api::Wallet& wallet);
-    explicit CredentialSet(
+    EXPORT CredentialSet(
+        const api::Factory& factory,
+        const api::Wallet& wallet);
+    EXPORT CredentialSet(
+        const api::Factory& factory,
         const api::Wallet& wallet,
         const proto::KeyMode mode,
         const proto::CredentialSet& serializedCredentialSet);
     EXPORT CredentialSet(
+        const api::Factory& factory,
         const api::Wallet& wallet,
         const NymParameters& nymParameters,
         std::uint32_t version,
         const OTPasswordData* pPWData = nullptr);
+
+    /** The source is the URL/DN/pubkey that hashes to form the NymID. Any
+     * credential must verify against its own source. */
+    void SetSource(const std::shared_ptr<NymIDSource>& source);
     EXPORT const OTPassword* GetImportPassword() const
     {
         return m_pImportPassword;
@@ -127,17 +100,6 @@ public:
     }
 
     EXPORT String MasterAsString() const;
-
-    static CredentialSet* LoadMaster(
-        const String& strNymID,  // Caller is responsible to delete.
-        const String& strMasterCredID,
-        const OTPasswordData* pPWData = nullptr);
-    static CredentialSet* LoadMasterFromString(
-        const String& strInput,
-        const String& strNymID,  // Caller is responsible to delete.
-        const String& strMasterCredID,
-        OTPasswordData* pPWData = nullptr,
-        const OTPassword* pImportPassword = nullptr);
 
     EXPORT bool Load_Master(
         const String& strNymID,
@@ -220,7 +182,6 @@ public:
     EXPORT const crypto::key::Keypair& GetSignKeypair(
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT void ClearChildCredentials();
-    EXPORT ~CredentialSet();
     EXPORT bool WriteCredentials() const;
 
     std::string AddChildKeyCredential(const NymParameters& nymParameters);
@@ -312,7 +273,31 @@ public:
 
         return false;
     }
+
+    EXPORT ~CredentialSet();
+
+private:
+    const api::Factory& factory_;
+    const api::Wallet& wallet_;
+    std::unique_ptr<MasterCredential> m_MasterCredential;
+    mapOfCredentials m_mapCredentials;
+    mapOfCredentials m_mapRevokedCredentials;
+    std::string m_strNymID;
+    std::shared_ptr<NymIDSource> nym_id_source_;
+    const OTPassword* m_pImportPassword =
+        nullptr;  // Not owned. Just here for convenience.  Sometimes it will be
+                  // set, so that when loading something up (and decrypting it)
+                  // the password is already available, so the user doesn't have
+                  // to type it a million times (such as during import.) So we
+                  // use it when it's available. And usually whoever set it,
+                  // will immediately set it back to nullptr when he's done.
+    std::uint32_t version_{0};
+    std::uint32_t index_{0};
+    proto::KeyMode mode_{proto::KEYMODE_ERROR};
+
+    bool CreateMasterCredential(const NymParameters& nymParameters);
+
+    CredentialSet() = delete;
 };
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP

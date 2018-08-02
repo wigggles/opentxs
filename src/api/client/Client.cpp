@@ -19,6 +19,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -43,6 +44,9 @@ api::client::internal::Client* Factory::Client(
     const Flag& running,
     const api::Settings& config,
     const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
     const api::Identity& identity,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
@@ -50,7 +54,17 @@ api::client::internal::Client* Factory::Client(
     const api::network::ZMQ& zmq)
 {
     return new api::client::implementation::Client(
-        running, config, crypto, identity, legacy, storage, wallet, zmq);
+        running,
+        config,
+        crypto,
+#if OT_CRYPTO_WITH_BIP39
+        seeds,
+#endif
+        identity,
+        legacy,
+        storage,
+        wallet,
+        zmq);
 }
 }  // namespace opentxs
 
@@ -60,6 +74,9 @@ Client::Client(
     const Flag& running,
     const api::Settings& config,
     const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
     const api::Identity& identity,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
@@ -70,6 +87,9 @@ Client::Client(
     , zmq_(zmq)
     , storage_(storage)
     , crypto_(crypto)
+#if OT_CRYPTO_WITH_BIP39
+    , seeds_(seeds)
+#endif
     , identity_(identity)
     , legacy_(legacy)
     , config_(config)
@@ -83,6 +103,7 @@ Client::Client(
     , server_action_(nullptr)
     , sync_(nullptr)
     , workflow_(nullptr)
+    , factory_(nullptr)
     , ot_api_(nullptr)
     , otapi_exec_(nullptr)
     , lock_()
@@ -110,11 +131,10 @@ const api::client::Blockchain& Client::Blockchain() const
 
 void Client::Cleanup()
 {
-    ui_.reset();
     pair_.reset();
-    sync_.reset();
-    cash_.reset();
+    ui_.reset();
     server_action_.reset();
+    sync_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
     workflow_.reset();
@@ -123,6 +143,8 @@ void Client::Cleanup()
 #endif
     activity_.reset();
     contacts_.reset();
+    cash_.reset();
+    factory_.reset();
 }
 
 const api::client::Contacts& Client::Contacts() const
@@ -130,6 +152,13 @@ const api::client::Contacts& Client::Contacts() const
     OT_ASSERT(contacts_)
 
     return *contacts_;
+}
+
+const api::Factory& Client::Factory() const
+{
+    OT_ASSERT(factory_)
+
+    return *factory_;
 }
 
 std::recursive_mutex& Client::get_lock(const ContextID context) const
@@ -144,15 +173,16 @@ void Client::Init()
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
 
+    Init_Factory();   // No dependencies
     Init_Cash();      // No dependencies
-    Init_Contacts();  // No dependencies
-    Init_Activity();  // Requires Init_Contacts()
+    Init_Contacts();  // Requires Init_Factory()
+    Init_Activity();  // Requires Init_Contacts(), Init_Factory()
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     Init_Blockchain();  // Requires Init_Activity()
 #endif
     Init_Workflow();      // Requires Init_Activity(), Init_Contacts()
     Init_OldClientAPI();  // Requires Init_Activity(), Init_Contacts(),
-                          // Init_Workflow()
+                          // Init_Workflow(), Init_Factory()
     Init_Sync();          // Requires Init_OldClientAPI(), Init_Contacts(),
                           // Init_Workflow()
     Init_ServerAction();  // Requires Init_OldClientAPI(), Init_Workflow()
@@ -165,9 +195,10 @@ void Client::Init()
 void Client::Init_Activity()
 {
     OT_ASSERT(contacts_)
+    OT_ASSERT(factory_)
 
-    activity_.reset(Factory::Activity(
-        legacy_, *contacts_, storage_, wallet_, zmq_.Context()));
+    activity_.reset(opentxs::Factory::Activity(
+        storage_, *contacts_, *factory_, legacy_, wallet_, zmq_.Context()));
 
     OT_ASSERT(activity_)
 }
@@ -177,8 +208,8 @@ void Client::Init_Blockchain()
 {
     OT_ASSERT(activity_)
 
-    blockchain_.reset(
-        Factory::Blockchain(*activity_, crypto_, storage_, wallet_));
+    blockchain_.reset(opentxs::Factory::Blockchain(
+        *activity_, crypto_, seeds_, storage_, wallet_));
 
     OT_ASSERT(blockchain_)
 }
@@ -186,22 +217,37 @@ void Client::Init_Blockchain()
 
 void Client::Init_Cash()
 {
-    cash_.reset(Factory::Cash(legacy_));
+    cash_.reset(opentxs::Factory::Cash(legacy_));
 
     OT_ASSERT(cash_);
 }
 
 void Client::Init_Contacts()
 {
-    contacts_.reset(Factory::Contacts(storage_, wallet_, zmq_.Context()));
+    OT_ASSERT(factory_)
+
+    contacts_.reset(opentxs::Factory::Contacts(
+        storage_, *factory_, wallet_, zmq_.Context()));
 
     OT_ASSERT(contacts_)
+}
+
+void Client::Init_Factory()
+{
+    factory_.reset(opentxs::Factory::FactoryAPI(
+#if OT_CRYPTO_WITH_BIP39
+        seeds_
+#endif
+        ));
+
+    OT_ASSERT(factory_)
 }
 
 void Client::Init_OldClientAPI()
 {
     OT_ASSERT(activity_);
     OT_ASSERT(contacts_);
+    OT_ASSERT(factory_)
     OT_ASSERT(workflow_);
 
     ot_api_.reset(new OT_API(
@@ -210,6 +256,10 @@ void Client::Init_OldClientAPI()
         config_,
         *contacts_,
         crypto_,
+        *factory_,
+#if OT_CRYPTO_WITH_BIP39
+        seeds_,
+#endif
         identity_,
         legacy_,
         storage_,
@@ -225,6 +275,7 @@ void Client::Init_OldClientAPI()
         config_,
         *contacts_,
         crypto_,
+        *factory_,
         identity_,
         legacy_,
         wallet_,
@@ -242,7 +293,7 @@ void Client::Init_Pair()
     OT_ASSERT(sync_)
     OT_ASSERT(server_action_)
 
-    pair_.reset(Factory::Pair(
+    pair_.reset(opentxs::Factory::Pair(
         running_,
         *sync_,
         *server_action_,
@@ -261,7 +312,7 @@ void Client::Init_ServerAction()
     OT_ASSERT(otapi_exec_)
     OT_ASSERT(workflow_)
 
-    server_action_.reset(Factory::ServerAction(
+    server_action_.reset(opentxs::Factory::ServerAction(
         *ot_api_,
         *otapi_exec_,
         wallet_,
@@ -279,7 +330,7 @@ void Client::Init_Sync()
     OT_ASSERT(otapi_exec_)
     OT_ASSERT(workflow_)
 
-    sync_.reset(Factory::Sync(
+    sync_.reset(opentxs::Factory::Sync(
         running_,
         *ot_api_,
         *otapi_exec_,
@@ -304,7 +355,7 @@ void Client::Init_UI()
     OT_ASSERT(sync_)
     OT_ASSERT(workflow_)
 
-    ui_.reset(Factory::UI(
+    ui_.reset(opentxs::Factory::UI(
         *sync_,
         wallet_,
         *workflow_,
@@ -324,7 +375,7 @@ void Client::Init_Workflow()
     OT_ASSERT(activity_)
     OT_ASSERT(contacts_)
 
-    workflow_.reset(Factory::Workflow(
+    workflow_.reset(opentxs::Factory::Workflow(
         *activity_, *contacts_, legacy_, storage_, zmq_.Context()));
 
     OT_ASSERT(workflow_)

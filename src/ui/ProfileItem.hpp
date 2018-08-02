@@ -55,7 +55,7 @@ public:
     ~ProfileItem() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const api::Wallet& wallet_;
     std::unique_ptr<opentxs::ContactItem> item_{nullptr};

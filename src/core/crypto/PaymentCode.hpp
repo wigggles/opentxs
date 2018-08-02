@@ -40,6 +40,7 @@ private:
 
     const std::uint8_t BIP47_VERSION_BYTE{0x47};
 
+    const api::HDSeed& seeds_;
     std::uint8_t version_{1};
     std::string seed_{""};
     std::int32_t index_{-1};
@@ -51,6 +52,7 @@ private:
     std::uint8_t bitmessage_stream_{0};
 
     static std::tuple<bool, std::unique_ptr<OTPassword>, OTData> make_key(
+        const api::HDSeed& seeds,
         const std::string& seed,
         const std::uint32_t index);
 
@@ -58,9 +60,10 @@ private:
     const OTData Pubkey() const;
     void ConstructKey(const Data& pubkey);
 
-    explicit PaymentCode(const std::string& base58);
-    explicit PaymentCode(const proto::PaymentCode& paycode);
+    PaymentCode(const api::HDSeed& seeds, const std::string& base58);
+    PaymentCode(const api::HDSeed& seeds, const proto::PaymentCode& paycode);
     PaymentCode(
+        const api::HDSeed& seeds,
         const std::string& seed,
         const std::uint32_t nym,
         const std::uint8_t version,

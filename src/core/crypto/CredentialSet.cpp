@@ -67,6 +67,121 @@
 
 namespace opentxs
 {
+CredentialSet::CredentialSet(
+    const api::Factory& factory,
+    const api::Wallet& wallet)
+    : factory_{factory}
+    , wallet_{wallet}
+    , m_MasterCredential{nullptr}
+    , m_mapCredentials{}
+    , m_mapRevokedCredentials{}
+    , m_strNymID{}
+    , nym_id_source_{nullptr}
+    , m_pImportPassword{nullptr}
+    , version_{0}
+    , index_{0}
+    , mode_{proto::KEYMODE_ERROR}
+{
+}
+
+CredentialSet::CredentialSet(
+    const api::Factory& factory,
+    const api::Wallet& wallet,
+    const proto::KeyMode mode,
+    const proto::CredentialSet& serializedCredentialSet)
+    : factory_{factory}
+    , wallet_(wallet)
+    , m_MasterCredential{nullptr}
+    , m_mapCredentials{}
+    , m_mapRevokedCredentials{}
+    , m_strNymID(serializedCredentialSet.nymid())
+    , nym_id_source_{nullptr}
+    , m_pImportPassword{nullptr}
+    , version_(serializedCredentialSet.version())
+    , index_(serializedCredentialSet.index())
+    , mode_(mode)
+{
+    if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
+        Load_Master(
+            String(serializedCredentialSet.nymid()),
+            String(serializedCredentialSet.masterid()));
+
+        for (auto& it : serializedCredentialSet.activechildids()) {
+            LoadChildKeyCredential(String(it));
+        }
+    } else {
+        auto master = Credential::Factory(
+            factory_,
+            wallet_,
+            *this,
+            serializedCredentialSet.mastercredential(),
+            mode);
+
+        if (master) {
+            m_MasterCredential.reset(
+                dynamic_cast<MasterCredential*>(master.release()));
+        }
+
+        for (auto& it : serializedCredentialSet.activechildren()) {
+            LoadChildKeyCredential(it);
+        }
+    }
+}
+
+CredentialSet::CredentialSet(
+    const api::Factory& factory,
+    const api::Wallet& wallet,
+    const NymParameters& nymParameters,
+    std::uint32_t version,
+    const OTPasswordData*)
+    : factory_{factory}
+    , wallet_(wallet)
+    , m_MasterCredential{nullptr}
+    , m_mapCredentials{}
+    , m_mapRevokedCredentials{}
+    , m_strNymID{}
+    , nym_id_source_{nullptr}
+    , m_pImportPassword{nullptr}
+    , version_(version)
+    , index_{0}
+    , mode_(proto::KEYMODE_PRIVATE)
+{
+    CreateMasterCredential(nymParameters);
+
+    OT_ASSERT(m_MasterCredential);
+
+    NymParameters revisedParameters = nymParameters;
+    bool haveChildCredential = false;
+
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+    if (!haveChildCredential) {
+        otOut << __FUNCTION__ << ": Creating an ed25519 child key credential."
+              << std::endl;
+        revisedParameters.setNymParameterType(NymParameterType::ED25519);
+        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+    }
+#endif
+
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    if (!haveChildCredential) {
+        otOut << __FUNCTION__ << ": Creating an secp256k1 child key credential."
+              << std::endl;
+        revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
+        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+    }
+#endif
+
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    if (!haveChildCredential) {
+        otOut << __FUNCTION__ << ": Creating an RSA child key credential."
+              << std::endl;
+        revisedParameters.setNymParameterType(NymParameterType::RSA);
+        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
+    }
+#endif
+
+    OT_ASSERT(haveChildCredential);
+}
 
 bool CredentialSet::Path(proto::HDPath& output) const
 {
@@ -166,90 +281,6 @@ const serializedCredential CredentialSet::GetSerializedPubCredential() const
     return m_MasterCredential->Serialized(AS_PUBLIC, WITH_SIGNATURES);
 }
 
-CredentialSet::CredentialSet(const api::Wallet& wallet)
-    : wallet_(wallet)
-{
-}
-
-CredentialSet::CredentialSet(
-    const api::Wallet& wallet,
-    const proto::KeyMode mode,
-    const proto::CredentialSet& serializedCredentialSet)
-    : m_strNymID(serializedCredentialSet.nymid())
-    , version_(serializedCredentialSet.version())
-    , index_(serializedCredentialSet.index())
-    , mode_(mode)
-    , wallet_(wallet)
-{
-    if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
-        Load_Master(
-            String(serializedCredentialSet.nymid()),
-            String(serializedCredentialSet.masterid()));
-
-        for (auto& it : serializedCredentialSet.activechildids()) {
-            LoadChildKeyCredential(String(it));
-        }
-    } else {
-        auto master = Credential::Factory(
-            wallet_, *this, serializedCredentialSet.mastercredential(), mode);
-
-        if (master) {
-            m_MasterCredential.reset(
-                dynamic_cast<MasterCredential*>(master.release()));
-        }
-
-        for (auto& it : serializedCredentialSet.activechildren()) {
-            LoadChildKeyCredential(it);
-        }
-    }
-}
-
-CredentialSet::CredentialSet(
-    const api::Wallet& wallet,
-    const NymParameters& nymParameters,
-    std::uint32_t version,
-    const OTPasswordData*)
-    : version_(version)
-    , mode_(proto::KEYMODE_PRIVATE)
-    , wallet_(wallet)
-{
-    CreateMasterCredential(nymParameters);
-
-    OT_ASSERT(m_MasterCredential);
-
-    NymParameters revisedParameters = nymParameters;
-    bool haveChildCredential = false;
-
-#if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    if (!haveChildCredential) {
-        otOut << __FUNCTION__ << ": Creating an ed25519 child key credential."
-              << std::endl;
-        revisedParameters.setNymParameterType(NymParameterType::ED25519);
-        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
-    }
-#endif
-
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    if (!haveChildCredential) {
-        otOut << __FUNCTION__ << ": Creating an secp256k1 child key credential."
-              << std::endl;
-        revisedParameters.setNymParameterType(NymParameterType::SECP256K1);
-        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
-    }
-#endif
-
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    if (!haveChildCredential) {
-        otOut << __FUNCTION__ << ": Creating an RSA child key credential."
-              << std::endl;
-        revisedParameters.setNymParameterType(NymParameterType::RSA);
-        haveChildCredential = !AddChildKeyCredential(revisedParameters).empty();
-    }
-#endif
-
-    OT_ASSERT(haveChildCredential);
-}
-
 std::string CredentialSet::AddChildKeyCredential(
     const NymParameters& nymParameters)
 {
@@ -260,7 +291,7 @@ std::string CredentialSet::AddChildKeyCredential(
 #endif
     std::unique_ptr<Credential> childCred =
         Credential::Create<ChildKeyCredential>(
-            wallet_, *this, revisedParameters);
+            factory_, wallet_, *this, revisedParameters);
 
     if (!childCred) {
         otErr << __FUNCTION__ << ": Failed to instantiate child key credential."
@@ -301,8 +332,8 @@ bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
         return false;
     }
 
-    m_MasterCredential =
-        Credential::Create<MasterCredential>(wallet_, *this, nymParameters);
+    m_MasterCredential = Credential::Create<MasterCredential>(
+        factory_, wallet_, *this, nymParameters);
 
     if (m_MasterCredential) {
         index_++;
@@ -329,61 +360,6 @@ String CredentialSet::MasterAsString() const
     } else {
         return "";
     }
-}
-
-// static  (Caller is responsible to delete.)
-CredentialSet* CredentialSet::LoadMaster(
-    const String& strNymID,  // Caller is responsible to delete, in both
-                             // CreateMaster and LoadMaster.
-    const String& strMasterCredID,
-    const OTPasswordData* pPWData)
-{
-    CredentialSet* pCredential = new CredentialSet(OT::App().Wallet());
-    std::unique_ptr<CredentialSet> theCredentialAngel(pCredential);
-    OT_ASSERT(nullptr != pCredential);
-
-    OTPasswordData thePWData("Loading master credential. (static 1.)");
-    const bool bLoaded = pCredential->Load_Master(
-        strNymID, strMasterCredID, (nullptr == pPWData) ? &thePWData : pPWData);
-    if (!bLoaded) {
-        otErr << __FUNCTION__
-              << ": Failed trying to load master credential "
-                 "from local storage. 1\n";
-        return nullptr;
-    }
-
-    return theCredentialAngel.release();
-}
-
-// static  (Caller is responsible to delete.)
-CredentialSet* CredentialSet::LoadMasterFromString(
-    const String& strInput,
-    const String& strNymID,  // Caller is responsible to delete, in both
-                             // CreateMaster and LoadMaster.
-    const String& strMasterCredID,
-    OTPasswordData* pPWData,
-    const OTPassword* pImportPassword)
-{
-    CredentialSet* pCredential = new CredentialSet(OT::App().Wallet());
-    std::unique_ptr<CredentialSet> theCredentialAngel(pCredential);
-    OT_ASSERT(nullptr != pCredential);
-
-    OTPasswordData thePWData(
-        nullptr == pImportPassword ? "Enter wallet master passphrase."
-                                   : "Enter passphrase for exported Nym.");
-    const bool bLoaded = pCredential->Load_MasterFromString(
-        strInput,
-        strNymID,
-        strMasterCredID,
-        (nullptr == pPWData) ? &thePWData : pPWData,
-        pImportPassword);
-    if (!bLoaded) {
-        otErr << __FUNCTION__
-              << ": Failed trying to load master credential from string. 2\n";
-        return nullptr;
-    }
-
-    return theCredentialAngel.release();
 }
 
 // When exporting a Nym, you don't want his private keys encrypted to the
@@ -500,7 +476,12 @@ bool CredentialSet::Load_MasterFromString(
     }
 
     auto master = Credential::Factory(
-        wallet_, *this, *serializedCred, mode_, proto::CREDROLE_MASTERKEY);
+        factory_,
+        wallet_,
+        *this,
+        *serializedCred,
+        mode_,
+        proto::CREDROLE_MASTERKEY);
 
     if (master) {
         m_MasterCredential.reset(
@@ -536,7 +517,12 @@ bool CredentialSet::Load_Master(
     }
 
     auto master = Credential::Factory(
-        wallet_, *this, *serialized, mode_, proto::CREDROLE_MASTERKEY);
+        factory_,
+        wallet_,
+        *this,
+        *serialized,
+        mode_,
+        proto::CREDROLE_MASTERKEY);
 
     if (master) {
         m_MasterCredential.reset(
@@ -558,7 +544,8 @@ bool CredentialSet::LoadChildKeyCredentialFromString(
 
     if (!serialized) { return false; }
 
-    auto child = Credential::Factory(wallet_, *this, *serialized, mode_);
+    auto child =
+        Credential::Factory(factory_, wallet_, *this, *serialized, mode_);
 
     if (child) {
         m_mapCredentials[strSubID.Get()].swap(child);
@@ -603,7 +590,8 @@ bool CredentialSet::LoadChildKeyCredential(
         return false;
     }
 
-    auto child = Credential::Factory(wallet_, *this, serializedCred, mode_);
+    auto child =
+        Credential::Factory(factory_, wallet_, *this, serializedCred, mode_);
 
     if (child) {
         m_mapCredentials[serializedCred.id()].swap(child);
@@ -856,8 +844,6 @@ const crypto::key::Asymmetric& CredentialSet::GetPrivateSignKey(
     return GetSignKeypair(plistRevokedIDs).GetPrivateKey();
 }
 
-CredentialSet::~CredentialSet() { ClearChildCredentials(); }
-
 void CredentialSet::ClearChildCredentials() { m_mapCredentials.clear(); }
 
 // listRevokedIDs should contain a list of std::strings for IDs of
@@ -1090,7 +1076,8 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     nymParameters.SetContactData(contactData);
 
     std::unique_ptr<Credential> newChildCredential =
-        Credential::Create<ContactCredential>(wallet_, *this, nymParameters);
+        Credential::Create<ContactCredential>(
+            factory_, wallet_, *this, nymParameters);
 
     if (!newChildCredential) { return false; }
 
@@ -1117,7 +1104,7 @@ bool CredentialSet::AddVerificationCredential(
 
     std::unique_ptr<Credential> newChildCredential =
         Credential::Create<VerificationCredential>(
-            wallet_, *this, nymParameters);
+            factory_, wallet_, *this, nymParameters);
 
     if (!newChildCredential) { return false; }
 
@@ -1230,4 +1217,6 @@ bool CredentialSet::hasCapability(const NymCapability& capability) const
 
     return false;
 }
+
+CredentialSet::~CredentialSet() { ClearChildCredentials(); }
 }  // namespace opentxs

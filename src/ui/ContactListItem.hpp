@@ -37,7 +37,7 @@ protected:
         const ContactListSortKey& key);
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     ContactListItem() = delete;
     ContactListItem(const ContactListItem&) = delete;

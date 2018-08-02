@@ -29,7 +29,7 @@ public:
     ~Contact() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;

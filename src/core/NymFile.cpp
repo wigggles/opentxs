@@ -41,9 +41,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"

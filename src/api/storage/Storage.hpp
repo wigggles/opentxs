@@ -314,7 +314,7 @@ public:
     ~Storage();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const std::uint32_t HASH_TYPE;
 

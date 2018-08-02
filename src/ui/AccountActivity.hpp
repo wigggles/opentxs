@@ -44,7 +44,7 @@ public:
     ~AccountActivity() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     using EventRow =
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;

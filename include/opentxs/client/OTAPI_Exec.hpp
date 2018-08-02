@@ -34,37 +34,6 @@ class Client;
 
 class OTAPI_Exec : Lockable
 {
-private:
-    friend class api::client::implementation::Client;
-
-    const api::client::Activity& activity_;
-    const api::Settings& config_;
-    const api::client::Contacts& contacts_;
-    const api::Crypto& crypto_;
-    const api::Identity& identity_;
-    const api::Legacy& legacy_;
-    const api::Wallet& wallet_;
-    const api::network::ZMQ& zeromq_;
-    const OT_API& ot_api_;
-    ContextLockCallback lock_callback_;
-
-    OTAPI_Exec(
-        const api::client::Activity& activity,
-        const api::Settings& config,
-        const api::client::Contacts& contacts,
-        const api::Crypto& crypto,
-        const api::Identity& identity,
-        const api::Legacy& legacy,
-        const api::Wallet& wallet,
-        const api::network::ZMQ& zeromq,
-        const OT_API& otapi,
-        const ContextLockCallback& lockCallback);
-    OTAPI_Exec() = delete;
-    OTAPI_Exec(const OTAPI_Exec&) = delete;
-    OTAPI_Exec(OTAPI_Exec&&) = delete;
-    OTAPI_Exec operator=(const OTAPI_Exec&) = delete;
-    OTAPI_Exec operator=(OTAPI_Exec&&) = delete;
-
 public:
     EXPORT std::int64_t StringToLong(const std::string& strNumber) const;
     EXPORT std::string LongToString(const std::int64_t& lNumber) const;
@@ -3424,6 +3393,39 @@ contract
         const std::uint32_t keysize) const;
 
     EXPORT ~OTAPI_Exec() = default;
+
+private:
+    friend class api::client::implementation::Client;
+
+    const api::client::Activity& activity_;
+    const api::Settings& config_;
+    const api::client::Contacts& contacts_;
+    const api::Crypto& crypto_;
+    const api::Factory& factory_;
+    const api::Identity& identity_;
+    const api::Legacy& legacy_;
+    const api::Wallet& wallet_;
+    const api::network::ZMQ& zeromq_;
+    const OT_API& ot_api_;
+    ContextLockCallback lock_callback_;
+
+    OTAPI_Exec(
+        const api::client::Activity& activity,
+        const api::Settings& config,
+        const api::client::Contacts& contacts,
+        const api::Crypto& crypto,
+        const api::Factory& factory,
+        const api::Identity& identity,
+        const api::Legacy& legacy,
+        const api::Wallet& wallet,
+        const api::network::ZMQ& zeromq,
+        const OT_API& otapi,
+        const ContextLockCallback& lockCallback);
+    OTAPI_Exec() = delete;
+    OTAPI_Exec(const OTAPI_Exec&) = delete;
+    OTAPI_Exec(OTAPI_Exec&&) = delete;
+    OTAPI_Exec operator=(const OTAPI_Exec&) = delete;
+    OTAPI_Exec operator=(OTAPI_Exec&&) = delete;
 };
 }  // namespace opentxs
 #endif  // OPENTXS_CLIENT_OTAPI_EXEC_HPP

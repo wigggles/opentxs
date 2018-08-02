@@ -32,9 +32,6 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "crypto/Bip32.hpp"
 #endif
-#if OT_CRYPTO_WITH_BIP39
-#include "crypto/Bip39.hpp"
-#endif
 #include "AsymmetricProvider.hpp"
 #include "EcdsaProvider.hpp"
 
@@ -77,16 +74,41 @@ uint32_t random32(void)
 
 namespace opentxs
 {
-crypto::Trezor* Factory::Trezor(const api::Native& native)
+crypto::Trezor* Factory::Trezor(const api::Crypto& crypto)
 {
-    return new crypto::implementation::Trezor(native);
+    return new crypto::implementation::Trezor(crypto);
 }
 }  // namespace opentxs
 
 namespace opentxs::crypto::implementation
 {
+Trezor::Trezor(const api::Crypto& crypto)
+#if OT_CRYPTO_WITH_BIP32
+    : Bip32()
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+#if OT_CRYPTO_WITH_BIP32
+    ,
+#else
+    :
+#endif
+    EcdsaProvider()
+#endif
+#if OT_CRYPTO_WITH_BIP32 || OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+    ,
+#else
+    :
+#endif
+    crypto_(crypto)
+{
+#if OT_CRYPTO_WITH_BIP32
+    secp256k1_ = get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str());
+    OT_ASSERT(nullptr != secp256k1_);
+#endif
+}
+
 #if OT_CRYPTO_WITH_BIP39
-bool Trezor::toWords(const OTPassword& seed, OTPassword& words) const
+bool Trezor::SeedToWords(const OTPassword& seed, OTPassword& words) const
 {
     return words.setPassword(std::string(::mnemonic_from_data(
         static_cast<const std::uint8_t*>(seed.getMemory()),
@@ -110,28 +132,6 @@ void Trezor::WordsToSeed(
         nullptr);
 }
 #endif  // OT_CRYPTO_WITH_BIP39
-
-Trezor::Trezor(const api::Native& native)
-#if OT_CRYPTO_WITH_BIP39
-    : Bip39(native)
-#if OT_CRYPTO_WITH_BIP32
-    , Bip32()
-#endif
-#endif
-#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#if OT_CRYPTO_WITH_BIP39
-    ,
-#else
-    :
-#endif
-    EcdsaProvider()
-#endif
-{
-#if OT_CRYPTO_WITH_BIP32
-    secp256k1_ = get_curve_by_name(CurveName(EcdsaCurve::SECP256K1).c_str());
-    OT_ASSERT(nullptr != secp256k1_);
-#endif
-}
 
 #if OT_CRYPTO_WITH_BIP32
 std::string Trezor::SeedToFingerprint(
@@ -170,8 +170,7 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::SeedToPrivateKey(
 
         if (derivedKey) {
             OTPassword root;
-            native_.Crypto().Hash().Digest(
-                proto::HASHTYPE_BLAKE2B160, seed, root);
+            crypto_.Hash().Digest(proto::HASHTYPE_BLAKE2B160, seed, root);
             derivedKey->mutable_path()->set_root(
                 root.getMemory(), root.getMemorySize());
         }
@@ -301,9 +300,9 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::HDNodeToSerialized(
     return key;
 }
 
-std::unique_ptr<HDNode> Trezor::InstantiateHDNode(const EcdsaCurve& curve)
+std::unique_ptr<HDNode> Trezor::InstantiateHDNode(const EcdsaCurve& curve) const
 {
-    auto entropy = OT::App().Crypto().AES().InstantiateBinarySecretSP();
+    auto entropy = crypto_.AES().InstantiateBinarySecretSP();
 
     OT_ASSERT_MSG(entropy, "Failed to obtain entropy.");
 
@@ -590,8 +589,7 @@ bool Trezor::Sign(
     const OTPassword* exportPassword) const
 {
     auto hash = Data::Factory();
-    bool haveDigest =
-        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) {
         otErr << __FUNCTION__ << ": Failed to obtain the contract hash."
@@ -659,8 +657,7 @@ bool Trezor::Verify(
     const OTPasswordData* pPWData) const
 {
     auto hash = Data::Factory();
-    bool haveDigest =
-        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) { return false; }
 

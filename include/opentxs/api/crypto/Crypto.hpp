@@ -70,7 +70,8 @@ public:
     EXPORT virtual const opentxs::crypto::Bip39& BIP39() const = 0;
 #endif  // OT_CRYPTO_WITH_BIP39
 
-    EXPORT virtual OTSymmetricKey GetStorageKey(std::string& seed) const = 0;
+    EXPORT virtual OTSymmetricKey GetStorageKey(
+        const proto::AsymmetricKey& raw) const = 0;
 
     EXPORT virtual ~Crypto() = default;
 

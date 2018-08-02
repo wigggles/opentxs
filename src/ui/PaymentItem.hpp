@@ -22,7 +22,7 @@ public:
     ~PaymentItem();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     std::string display_amount_{};
     std::string memo_{};

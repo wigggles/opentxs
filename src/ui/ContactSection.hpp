@@ -38,7 +38,7 @@ public:
     ~ContactSection() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const std::
         map<proto::ContactSectionName, std::set<proto::ContactItemType>>

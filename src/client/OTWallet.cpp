@@ -9,6 +9,9 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/HDSeed.hpp"
+#endif
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -34,9 +37,6 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
@@ -57,11 +57,17 @@ namespace opentxs
 
 OTWallet::OTWallet(
     const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
     const api::Legacy& legacy,
     const api::Wallet& wallet,
     const api::storage::Storage& storage)
     : Lockable()
     , crypto_(crypto)
+#if OT_CRYPTO_WITH_BIP39
+    , seeds_(seeds)
+#endif
     , legacy_(legacy)
     , wallet_(wallet)
     , storage_(storage)
@@ -118,7 +124,7 @@ std::string OTWallet::GetPhrase()
         save_wallet(lock);
     }
 
-    return crypto_.BIP39().Passphrase(defaultFingerprint);
+    return seeds_.Passphrase(defaultFingerprint);
 #else
     return "";
 #endif
@@ -135,7 +141,7 @@ std::string OTWallet::GetSeed()
         save_wallet(lock);
     }
 
-    return crypto_.BIP32().Seed(defaultFingerprint);
+    return seeds_.Bip32Root(defaultFingerprint);
 #else
     return "";
 #endif
@@ -152,7 +158,7 @@ std::string OTWallet::GetWords()
         save_wallet(lock);
     }
 
-    return crypto_.BIP39().Words(defaultFingerprint);
+    return seeds_.Words(defaultFingerprint);
 #else
     return "";
 #endif
@@ -163,7 +169,7 @@ std::string OTWallet::ImportSeed(
     const OTPassword& passphrase) const
 {
 #if OT_CRYPTO_WITH_BIP39
-    return crypto_.BIP39().ImportSeed(words, passphrase);
+    return seeds_.ImportSeed(words, passphrase);
 #else
     return "";
 #endif
@@ -522,7 +528,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                             xml->getAttributeValue("index"));
                         // An empty string will load the default seed
                         std::string seed = "";
-                        crypto_.BIP39().UpdateIndex(seed, index);
+                        seeds_.UpdateIndex(seed, index);
 #endif
                     } else {
                         // unknown element type

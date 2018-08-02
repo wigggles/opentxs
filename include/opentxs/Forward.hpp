@@ -52,6 +52,8 @@ class ZMQ;
 }  // namespace network
 
 class Crypto;
+class Factory;
+class HDSeed;
 class Identity;
 class Legacy;
 class Native;

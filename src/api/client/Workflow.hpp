@@ -64,7 +64,7 @@ public:
     ~Workflow() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const Activity& activity_;
     const Contacts& contact_;

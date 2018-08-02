@@ -14,6 +14,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -61,11 +62,12 @@ namespace opentxs
 api::client::Blockchain* Factory::Blockchain(
     const api::client::Activity& activity,
     const api::Crypto& crypto,
+    const api::HDSeed& seeds,
     const api::storage::Storage& storage,
     const api::Wallet& wallet)
 {
     return new api::client::implementation::Blockchain(
-        activity, crypto, storage, wallet);
+        activity, crypto, seeds, storage, wallet);
 }
 }  // namespace opentxs
 
@@ -74,10 +76,12 @@ namespace opentxs::api::client::implementation
 Blockchain::Blockchain(
     const api::client::Activity& activity,
     const api::Crypto& crypto,
+    const api::HDSeed& seeds,
     const api::storage::Storage& storage,
     const api::Wallet& wallet)
     : activity_(activity)
     , crypto_(crypto)
+    , seeds_(seeds)
     , storage_(storage)
     , wallet_(wallet)
     , lock_()
@@ -371,7 +375,7 @@ std::string Blockchain::calculate_address(
 {
     const auto& path = account.path();
     auto fingerprint = path.root();
-    auto serialized = crypto_.BIP32().AccountChildKey(path, chain, index);
+    auto serialized = seeds_.AccountChildKey(path, chain, index);
 
     if (false == bool(serialized)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to derive key."

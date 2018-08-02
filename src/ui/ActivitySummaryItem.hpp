@@ -31,7 +31,7 @@ public:
     ~ActivitySummaryItem();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
     // id, box, account
     using ItemLocator = std::tuple<std::string, StorageBox, std::string>;
 

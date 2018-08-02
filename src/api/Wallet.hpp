@@ -203,7 +203,7 @@ private:
         std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
     using IssuerMap = std::map<IssuerID, IssuerLock>;
 
-    friend Factory;
+    friend opentxs::Factory;
 
     static const std::map<std::string, proto::ContactItemType> unit_of_account_;
 

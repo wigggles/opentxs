@@ -229,6 +229,7 @@ private:
     typedef std::unique_lock<std::mutex> Lock;
     typedef std::function<void(NymData*, Lock&)> LockedSave;
 
+    const api::Factory& factory_;
     std::unique_ptr<Lock> object_lock_;
     std::unique_ptr<LockedSave> locked_save_callback_;
 
@@ -240,6 +241,7 @@ private:
     opentxs::Nym& nym();
 
     NymData(
+        const api::Factory& factory,
         std::mutex& objectMutex,
         const std::shared_ptr<opentxs::Nym>& nym,
         LockedSave save);

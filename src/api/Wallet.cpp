@@ -58,6 +58,10 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 
 #define OT_METHOD "opentxs::api::implementation::Wallet::"
 
+#define FACTORY                                                                \
+    (ot_.ServerMode()) ? ot_.Server().Factory() : ot_.Client().Factory()
+#define SEED (ot_.ServerMode()) ? ot_.Server().Seeds() : ot_.Client().Seeds()
+
 namespace opentxs
 {
 api::Wallet* Factory::Wallet(
@@ -1016,7 +1020,7 @@ Wallet::IssuerLock& Wallet::issuer(
     if (loaded) {
         OT_ASSERT(serialized)
 
-        pIssuer.reset(Factory::Issuer(*this, nymID, *serialized));
+        pIssuer.reset(opentxs::Factory::Issuer(*this, nymID, *serialized));
 
         OT_ASSERT(pIssuer)
 
@@ -1024,7 +1028,7 @@ Wallet::IssuerLock& Wallet::issuer(
     }
 
     if (create) {
-        pIssuer.reset(Factory::Issuer(*this, nymID, issuerID));
+        pIssuer.reset(opentxs::Factory::Issuer(*this, nymID, issuerID));
 
         OT_ASSERT(pIssuer);
 
@@ -1152,7 +1156,13 @@ ConstNym Wallet::Nym(
 
         if (loaded) {
             auto& pNym = nym_map_[nym].second;
-            pNym.reset(new opentxs::Nym(*this, id));
+            pNym.reset(new opentxs::Nym(
+                FACTORY,
+                *this,
+#if OT_CRYPTO_WITH_BIP39
+                SEED,
+#endif
+                id));
 
             if (pNym) {
                 if (pNym->LoadCredentialIndex(*serialized)) {
@@ -1210,7 +1220,13 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& serialized) const
 
         return existing;
     } else {
-        std::unique_ptr<opentxs::Nym> candidate(new opentxs::Nym(*this, nymID));
+        std::unique_ptr<opentxs::Nym> candidate(new opentxs::Nym(
+            FACTORY,
+            *this,
+#if OT_CRYPTO_WITH_BIP39
+            SEED,
+#endif
+            nymID));
 
         OT_ASSERT(candidate)
 
@@ -1243,7 +1259,13 @@ ConstNym Wallet::Nym(
     const proto::ContactItemType type,
     const std::string name) const
 {
-    std::shared_ptr<opentxs::Nym> pNym(new opentxs::Nym(*this, nymParameters));
+    std::shared_ptr<opentxs::Nym> pNym(new opentxs::Nym(
+        FACTORY,
+        *this,
+#if OT_CRYPTO_WITH_BIP39
+        SEED,
+#endif
+        nymParameters));
 
     OT_ASSERT(pNym);
 
@@ -1288,7 +1310,7 @@ NymData Wallet::mutable_Nym(const Identifier& id) const
         this->save(nymData, lock);
     };
 
-    return NymData(it->second.first, it->second.second, callback);
+    return NymData(FACTORY, it->second.first, it->second.second, callback);
 }
 
 std::unique_ptr<const opentxs::NymFile> Wallet::Nymfile(
@@ -1304,7 +1326,7 @@ std::unique_ptr<const opentxs::NymFile> Wallet::Nymfile(
     if (false == bool(signerNym)) { return {}; }
 
     auto nymfile = std::unique_ptr<opentxs::internal::NymFile>(
-        Factory::NymFile(targetNym, signerNym, dataFolder));
+        opentxs::Factory::NymFile(targetNym, signerNym, dataFolder));
 
     OT_ASSERT(nymfile)
 
@@ -1338,7 +1360,7 @@ Editor<opentxs::NymFile> Wallet::mutable_nymfile(
     const OTPasswordData& reason) const
 {
     auto nymfile = std::unique_ptr<opentxs::internal::NymFile>(
-        Factory::NymFile(targetNym, signerNym, dataFolder));
+        opentxs::Factory::NymFile(targetNym, signerNym, dataFolder));
 
     OT_ASSERT(nymfile)
 
@@ -2014,7 +2036,7 @@ bool Wallet::SaveCredentialIDs(const opentxs::Nym& nym) const
 
     if (!valid) { return false; }
 
-    if (!OT::App().DB().Store(index, nym.Alias())) {
+    if (!ot_.DB().Store(index, nym.Alias())) {
         otErr << __FUNCTION__ << ": Failure trying to store "
               << " credential list for Nym: " << nym.ID().str() << std::endl;
 

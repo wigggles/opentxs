@@ -47,20 +47,22 @@
 namespace opentxs
 {
 ChildKeyCredential::ChildKeyCredential(
+    const api::Factory& factory,
     const api::Wallet& wallet,
     CredentialSet& owner,
     const proto::Credential& serializedCred)
-    : ot_super(wallet, owner, serializedCred)
+    : ot_super(factory, wallet, owner, serializedCred)
 {
     role_ = proto::CREDROLE_CHILDKEY;
     master_id_ = serializedCred.childdata().masterid();
 }
 
 ChildKeyCredential::ChildKeyCredential(
+    const api::Factory& factory,
     const api::Wallet& wallet,
     CredentialSet& owner,
     const NymParameters& nymParameters)
-    : ot_super(wallet, owner, nymParameters)
+    : ot_super(factory, wallet, owner, nymParameters)
 {
     role_ = proto::CREDROLE_CHILDKEY;
 

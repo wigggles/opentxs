@@ -82,8 +82,8 @@ public:
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
 
-    EXPORT static std::string NymIDFromPaymentCode(
-        const std::string& paymentCode);
+    EXPORT std::string NymIDFromPaymentCode(
+        const std::string& paymentCode) const;
     /**   Add a single claim to the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  section section containing the claim
@@ -1205,6 +1205,10 @@ private:
     const api::Settings& config_;
     const api::client::Contacts& contacts_;
     const api::Crypto& crypto_;
+    const api::Factory& factory_;
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds_;
+#endif
     const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::storage::Storage& storage_;
@@ -1283,6 +1287,10 @@ private:
         const api::Settings& config,
         const api::client::Contacts& contacts,
         const api::Crypto& crypto,
+        const api::Factory& factory,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,

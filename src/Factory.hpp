@@ -44,9 +44,10 @@ public:
         const api::Wallet& wallet,
         const api::storage::Storage& storage);
     static api::client::internal::Activity* Activity(
-        const api::Legacy& legacy,
-        const api::client::Contacts& contact,
         const api::storage::Storage& storage,
+        const api::client::Contacts& contact,
+        const api::Factory& factory,
+        const api::Legacy& legacy,
         const api::Wallet& wallet,
         const network::zeromq::Context& zmq);
     static ui::implementation::ActivitySummaryExternalInterface*
@@ -89,16 +90,22 @@ public:
         const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);
+#if OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::Blockchain* Blockchain(
         const api::client::Activity& activity,
         const api::Crypto& crypto,
+        const api::HDSeed& seeds,
         const api::storage::Storage& storage,
         const api::Wallet& wallet);
+#endif
     static api::client::Cash* Cash(const api::Legacy& legacy);
     static api::client::internal::Client* Client(
         const Flag& running,
         const api::Settings& config,
         const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
@@ -118,6 +125,7 @@ public:
         const ui::implementation::ContactListSortKey& key);
     static api::client::internal::Contacts* Contacts(
         const api::storage::Storage& storage,
+        const api::Factory& factory,
         const api::Wallet& wallet,
         const network::zeromq::Context& context);
     static ui::implementation::ContactExternalInterface* ContactWidget(
@@ -150,12 +158,17 @@ public:
         const ui::implementation::ContactSectionRowID& rowID,
         const ui::implementation::ContactSectionSortKey& key,
         const ui::implementation::CustomData& custom);
-    static api::Crypto* Crypto(const api::Native& native);
+    static api::Crypto* Crypto();
     static crypto::key::Ed25519* Ed25519Key(
         const proto::AsymmetricKey& serializedKey);
     static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
     static crypto::key::Ed25519* Ed25519Key(const proto::KeyRole role);
     static api::crypto::Encode* Encode(crypto::EncodingProvider& base58);
+    static api::Factory* FactoryAPI(
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds
+#endif
+    );
     static api::crypto::Hash* Hash(
         api::crypto::Encode& encode,
         crypto::HashingProvider& ssl,
@@ -165,6 +178,14 @@ public:
         crypto::Trezor& bitcoin
 #endif
     );
+#if OT_CRYPTO_WITH_BIP39
+    static api::HDSeed* HDSeed(
+        const api::crypto::Symmetric& symmetric,
+        const api::storage::Storage& storage,
+        const crypto::Bip32& bip32,
+        const crypto::Bip39& bip39,
+        const crypto::LegacySymmetricProvider& aes);
+#endif
     static api::Identity* Identity(const api::Wallet& wallet);
     static api::client::Issuer* Issuer(
         const api::Wallet& wallet,
@@ -317,6 +338,9 @@ public:
     static api::Server* ServerAPI(
         const ArgList& args,
         const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const api::Legacy& legacy,
         const api::Settings& config,
         const api::storage::Storage& storage,
@@ -349,7 +373,7 @@ public:
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
-    static crypto::Trezor* Trezor(const api::Native& native);
+    static crypto::Trezor* Trezor(const api::Crypto& crypto);
     static api::client::UI* UI(
         const api::client::Sync& sync,
         const api::Wallet& wallet,

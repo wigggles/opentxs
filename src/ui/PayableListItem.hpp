@@ -21,7 +21,7 @@ public:
     ~PayableListItem() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     using ot_super = ContactListItem;
 

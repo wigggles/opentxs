@@ -49,7 +49,7 @@ public:
     OTCaller& GetPasswordCaller() const override;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
     friend class opentxs::OT;
 
     /** Last performed, Interval, Task */
@@ -80,6 +80,9 @@ private:
     mutable ConfigMap config_;
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::network::Dht> dht_;
+#if OT_CRYPTO_WITH_BIP39
+    std::unique_ptr<api::HDSeed> seeds_;
+#endif
     std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
@@ -127,6 +130,9 @@ private:
     void Init_Legacy();
     void Init_Log();
     void Init_Periodic();
+#if OT_CRYPTO_WITH_BIP39
+    void Init_Seeds();
+#endif
     void Init_Server();
     void Init_Storage();
     void Init_StorageBackup();

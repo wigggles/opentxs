@@ -10,6 +10,9 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/HDSeed.hpp"
+#endif
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -32,9 +35,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
@@ -361,6 +361,9 @@ Native::Native(
     , config_()
     , crypto_(nullptr)
     , dht_(nullptr)
+#if OT_CRYPTO_WITH_BIP39
+    , seeds_(nullptr)
+#endif
     , identity_(nullptr)
     , legacy_(nullptr)
     , storage_(nullptr)
@@ -431,7 +434,7 @@ const api::Settings& Native::Config(const std::string& path) const
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
 
-    if (!config) { config.reset(Factory::Settings(String(path))); }
+    if (!config) { config.reset(opentxs::Factory::Settings(String(path))); }
 
     OT_ASSERT(config);
 
@@ -551,19 +554,22 @@ void Native::Init()
     Init_Log();     // requires Init_Config()
     Init_Crypto();
     Init_Storage();  // requires Init_Legacy(), Init_Config(), Init_Crypto()
-    Init_ZMQ();      // requires Init_Config()
+#if OT_CRYPTO_WITH_BIP39
+    Init_Seeds();  // Requires Init_Crypto(), Init_Storage()
+#endif
+    Init_ZMQ();  // requires Init_Config()
     Init_Contracts();
     Init_Dht();       // requires Init_Config()
     Init_Identity();  // requires Init_Contracts()
     Init_Api();       // requires Init_Legacy(), Init_Config(), Init_Crypto(),
                       // Init_Contracts(), Init_Identity(), Init_Storage(),
-                      // Init_ZMQ()
+                      // Init_ZMQ(), Init_Seeds()
 
     if (recover_) { recover(); }
 
     Init_Server();  // requires Init_Legacy(), Init_Config(), Init_Storage(),
                     // Init_Crypto(), Init_Contracts(), Init_Log(),
-                    // Init_Contracts()
+                    // Init_Contracts(), Init_Seeds()
 
     start();
 }
@@ -575,15 +581,21 @@ void Native::Init_Api()
     OT_ASSERT(config);
     OT_ASSERT(wallet_);
     OT_ASSERT(crypto_);
+#if OT_CRYPTO_WITH_BIP39
+    OT_ASSERT(seeds_);
+#endif
     OT_ASSERT(identity_);
     OT_ASSERT(legacy_);
 
     if (server_mode_) { return; }
 
-    client_.reset(Factory::Client(
+    client_.reset(opentxs::Factory::Client(
         running_,
         *config,
         *crypto_,
+#if OT_CRYPTO_WITH_BIP39
+        *seeds_,
+#endif
         *identity_,
         *legacy_,
         *storage_,
@@ -598,15 +610,15 @@ void Native::Init_Config()
     OT_ASSERT(legacy_)
 
     String strConfigFilePath = legacy_->ConfigFilePath().c_str();
-    config_[""].reset(Factory::Settings(strConfigFilePath));
+    config_[""].reset(opentxs::Factory::Settings(strConfigFilePath));
 }
 
 void Native::Init_Contracts()
 {
-    wallet_.reset(Factory::Wallet(*this, zmq_context_));
+    wallet_.reset(opentxs::Factory::Wallet(*this, zmq_context_));
 }
 
-void Native::Init_Crypto() { crypto_.reset(Factory::Crypto(*this)); }
+void Native::Init_Crypto() { crypto_.reset(opentxs::Factory::Crypto()); }
 
 void Native::Init_Dht()
 {
@@ -682,15 +694,15 @@ void Native::Init_Identity()
 {
     OT_ASSERT(wallet_);
 
-    identity_.reset(Factory::Identity(*wallet_));
+    identity_.reset(opentxs::Factory::Identity(*wallet_));
 }
 
 void Native::Init_Legacy()
 {
     if (server_mode_) {
-        legacy_.reset(Factory::Legacy(SERVER_CONFIG_KEY));
+        legacy_.reset(opentxs::Factory::Legacy(SERVER_CONFIG_KEY));
     } else {
-        legacy_.reset(Factory::Legacy(CLIENT_CONFIG_KEY));
+        legacy_.reset(opentxs::Factory::Legacy(CLIENT_CONFIG_KEY));
     }
 
     OT_ASSERT(legacy_);
@@ -785,17 +797,38 @@ void Native::Init_Periodic()
     periodic_.reset(new std::thread(&Native::Periodic, this));
 }
 
+#if OT_CRYPTO_WITH_BIP39
+void Native::Init_Seeds()
+{
+    OT_ASSERT(crypto_);
+    OT_ASSERT(storage_);
+
+    seeds_.reset(opentxs::Factory::HDSeed(
+        crypto_->Symmetric(),
+        *storage_,
+        crypto_->BIP32(),
+        crypto_->BIP39(),
+        crypto_->AES()));
+
+    OT_ASSERT(seeds_);
+}
+#endif
+
 void Native::Init_Server()
 {
     if (false == server_mode_) { return; }
 
     OT_ASSERT(crypto_);
+    OT_ASSERT(seeds_);
     OT_ASSERT(storage_);
     OT_ASSERT(wallet_);
 
-    server_.reset(Factory::ServerAPI(
+    server_.reset(opentxs::Factory::ServerAPI(
         server_args_,
         *crypto_,
+#if OT_CRYPTO_WITH_BIP39
+        *seeds_,
+#endif
         *legacy_,
         Config(),
         *storage_,
@@ -987,7 +1020,7 @@ void Native::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(Factory::Storage(
+    storage_.reset(opentxs::Factory::Storage(
         running_, config, defaultPlugin, migrate, old, hash, random));
     Config().Set_str(
         STORAGE_CONFIG_KEY,
@@ -1101,9 +1134,9 @@ bool Native::ServerMode() const { return server_mode_; }
 void Native::set_storage_encryption()
 {
 #if OT_CRYPTO_WITH_BIP39
-    OT_ASSERT(crypto_);
+    OT_ASSERT(seeds_);
 
-    auto seed = crypto_->BIP39().DefaultSeed();
+    auto seed = seeds_->DefaultSeed();
 
     if (seed.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": No default seed." << std::endl;
@@ -1112,7 +1145,24 @@ void Native::set_storage_encryption()
               << std::endl;
     }
 
-    storage_encryption_key_ = crypto_->GetStorageKey(seed);
+    std::shared_ptr<proto::AsymmetricKey> rawKey{nullptr};
+
+    if (server_mode_) {
+        OT_ASSERT(server_)
+
+        rawKey = server_->Seeds().GetStorageKey(seed);
+    } else {
+        OT_ASSERT(client_)
+
+        rawKey = client_->Seeds().GetStorageKey(seed);
+    }
+
+    if (false == bool(rawKey)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load encryption key."
+              << std::endl;
+    }
+
+    storage_encryption_key_ = crypto_->GetStorageKey(*rawKey);
 
     if (storage_encryption_key_.get()) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Obtained storage key "
@@ -1129,7 +1179,7 @@ void Native::setup_default_external_password_callback()
     // NOTE: OT_ASSERT is not available yet because we're too early
     // in the startup process
 
-    null_callback_.reset(Factory::NullCallback());
+    null_callback_.reset(opentxs::Factory::NullCallback());
 
     assert(null_callback_);
 

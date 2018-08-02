@@ -291,7 +291,7 @@ public:
     ~ServerAction() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const OT_API& otapi_;
     const OTAPI_Exec& exec_;

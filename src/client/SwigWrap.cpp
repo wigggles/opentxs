@@ -20,6 +20,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -3299,7 +3300,7 @@ std::string SwigWrap::Add_Contact(
 
     auto nym = Identifier::Factory(nymID);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = PaymentCode::Factory(paymentCode);
+    auto code = OT::App().Client().Factory().PaymentCode(paymentCode);
 
     if (nym->empty() && code->VerifyInternally()) { nym = code->ID(); }
 #endif

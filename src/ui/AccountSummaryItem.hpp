@@ -27,7 +27,7 @@ public:
     ~AccountSummaryItem() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const api::Wallet& wallet_;
     const api::storage::Storage& storage_;

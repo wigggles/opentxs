@@ -54,10 +54,10 @@ public:
     std::thread loop_{&Test_ContactList::loop, this};
     std::atomic<bool> shutdown_{false};
     const OTPaymentCode bob_payment_code_{
-        PaymentCode::Factory(BOB_PAYMENT_CODE)};
+        OT::App().Client().Factory().PaymentCode(BOB_PAYMENT_CODE)};
     OTIdentifier bob_contact_id_{Identifier::Factory()};
     const OTPaymentCode chris_payment_code_{
-        PaymentCode::Factory(CHRIS_PAYMENT_CODE)};
+        OT::App().Client().Factory().PaymentCode(CHRIS_PAYMENT_CODE)};
     OTIdentifier chris_contact_id_{Identifier::Factory()};
 
     static OTZMQSubscribeSocket setup_listener(

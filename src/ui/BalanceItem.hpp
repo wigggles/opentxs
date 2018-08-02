@@ -79,7 +79,7 @@ public:
     ~ChequeBalanceItem() override = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const api::Legacy& legacy_;
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};

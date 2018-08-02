@@ -49,7 +49,7 @@ public:
     ~Contacts() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     using ContactLock = std::pair<std::mutex, std::shared_ptr<class Contact>>;
     using Address = std::pair<proto::ContactItemType, std::string>;
@@ -57,6 +57,7 @@ private:
     using ContactNameMap = std::map<OTIdentifier, std::string>;
 
     const api::storage::Storage& storage_;
+    const api::Factory& factory_;
     const api::Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
@@ -124,6 +125,7 @@ private:
 
     Contacts(
         const api::storage::Storage& storage,
+        const api::Factory& factory,
         const api::Wallet& wallet,
         const opentxs::network::zeromq::Context& context);
     Contacts() = delete;

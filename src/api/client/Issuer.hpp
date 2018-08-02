@@ -68,7 +68,7 @@ private:
     typedef std::map<proto::PeerRequestType, Workflow> WorkflowMap;
     typedef std::pair<OTIdentifier, OTIdentifier> UnitAccountPair;
 
-    friend Factory;
+    friend opentxs::Factory;
     const api::Wallet& wallet_;
     std::uint32_t version_{0};
     std::string pairing_code_{""};

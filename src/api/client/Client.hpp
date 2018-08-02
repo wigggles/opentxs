@@ -20,11 +20,15 @@ public:
     const api::client::Cash& Cash() const override;
     const api::client::Contacts& Contacts() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
+    const api::Factory& Factory() const override;
     std::recursive_mutex& Lock(
         const Identifier& nymID,
         const Identifier& serverID) const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
     const api::client::Pair& Pair() const override;
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& Seeds() const override { return seeds_; }
+#endif
     const client::ServerAction& ServerAction() const override;
     const client::Sync& Sync() const override;
     const api::client::UI& UI() const override;
@@ -37,13 +41,16 @@ public:
     ~Client();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const Flag& running_;
     const api::Wallet& wallet_;
     const api::network::ZMQ& zmq_;
     const api::storage::Storage& storage_;
     const api::Crypto& crypto_;
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds_;
+#endif
     const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
@@ -59,6 +66,7 @@ private:
     std::unique_ptr<api::client::Sync> sync_;
     std::unique_ptr<api::client::UI> ui_;
     std::unique_ptr<api::client::Workflow> workflow_;
+    std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
 
@@ -76,6 +84,7 @@ private:
 #endif
     void Init_Cash();
     void Init_Contacts();
+    void Init_Factory();
     void Init_OldClientAPI();
     void Init_Pair();
     void Init_ServerAction();
@@ -87,6 +96,9 @@ private:
         const Flag& running,
         const api::Settings& config,
         const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,

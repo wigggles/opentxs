@@ -31,7 +31,7 @@ public:
     ~Symmetric() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     opentxs::crypto::SymmetricProvider& sodium_;
 

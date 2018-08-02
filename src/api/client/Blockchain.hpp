@@ -57,10 +57,11 @@ public:
 private:
     typedef std::map<OTIdentifier, std::mutex> IDLock;
 
-    friend Factory;
+    friend opentxs::Factory;
 
     const api::client::Activity& activity_;
     const api::Crypto& crypto_;
+    const api::HDSeed& seeds_;
     const api::storage::Storage& storage_;
     const api::Wallet& wallet_;
     mutable std::mutex lock_;
@@ -100,6 +101,7 @@ private:
     Blockchain(
         const api::client::Activity& activity,
         const api::Crypto& crypto,
+        const api::HDSeed& seeds,
         const api::storage::Storage& storage,
         const api::Wallet& wallet);
     Blockchain() = delete;

@@ -41,14 +41,25 @@
 
 namespace opentxs
 {
-
-class CredentialSet;
-class String;
-
 class MasterCredential : public KeyCredential
 {
-private:  // Private prevents erroneous use by other classes.
+private:
     typedef KeyCredential ot_super;
+
+public:
+    bool hasCapability(const NymCapability& capability) const override;
+    bool Path(proto::HDPath& output) const;
+    std::string Path() const;
+    using ot_super::Verify;
+    bool Verify(
+        const proto::Credential& credential,
+        const proto::CredentialRole& role,
+        const Identifier& masterID,
+        const proto::Signature& masterSig) const override;
+
+    virtual ~MasterCredential() = default;
+
+private:
     friend class Credential;
 
     std::unique_ptr<proto::SourceProof> source_proof_;
@@ -63,10 +74,12 @@ private:  // Private prevents erroneous use by other classes.
     bool New(const NymParameters& nymParameters) override;
 
     MasterCredential(
+        const api::Factory& factory,
         const api::Wallet& wallet,
         CredentialSet& theOwner,
         const proto::Credential& serializedCred);
     MasterCredential(
+        const api::Factory& factory,
         const api::Wallet& wallet,
         CredentialSet& theOwner,
         const NymParameters& nymParameters);
@@ -75,21 +88,6 @@ private:  // Private prevents erroneous use by other classes.
     MasterCredential(MasterCredential&&) = delete;
     MasterCredential& operator=(const MasterCredential&) = delete;
     MasterCredential& operator=(MasterCredential&&) = delete;
-
-public:
-    bool hasCapability(const NymCapability& capability) const override;
-    bool Path(proto::HDPath& output) const;
-    std::string Path() const;
-    using ot_super::Verify;
-    bool Verify(
-        const proto::Credential& credential,
-        const proto::CredentialRole& role,
-        const Identifier& masterID,
-        const proto::Signature& masterSig) const override;
-
-    virtual ~MasterCredential() = default;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_CRYPTO_MASTERCREDENTIAL_HPP

@@ -50,7 +50,7 @@ private:
         Registered = 2,
     };
 
-    friend Factory;
+    friend opentxs::Factory;
     /// local nym id, issuer nym id
     typedef std::pair<OTIdentifier, OTIdentifier> IssuerID;
 

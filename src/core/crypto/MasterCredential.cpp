@@ -33,6 +33,7 @@
 
 #include "opentxs/core/crypto/MasterCredential.hpp"
 
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/CredentialSet.hpp"
@@ -57,6 +58,65 @@
 
 namespace opentxs
 {
+MasterCredential::MasterCredential(
+    const api::Factory& factory,
+    const api::Wallet& wallet,
+    CredentialSet& theOwner,
+    const proto::Credential& serializedCred)
+    : ot_super(factory, wallet, theOwner, serializedCred)
+{
+    role_ = proto::CREDROLE_MASTERKEY;
+    auto source = std::make_shared<NymIDSource>(
+        factory, serializedCred.masterdata().source());
+    owner_backlink_->SetSource(source);
+    source_proof_.reset(
+        new proto::SourceProof(serializedCred.masterdata().sourceproof()));
+}
+
+MasterCredential::MasterCredential(
+    const api::Factory& factory,
+    const api::Wallet& wallet,
+    CredentialSet& theOwner,
+    const NymParameters& nymParameters)
+    : ot_super(factory, wallet, theOwner, nymParameters)
+{
+    role_ = proto::CREDROLE_MASTERKEY;
+
+    std::shared_ptr<NymIDSource> source;
+    auto sourceProof = std::make_unique<proto::SourceProof>();
+
+    proto::SourceProofType proofType = nymParameters.SourceProofType();
+
+    if (proto::SOURCETYPE_PUBKEY == nymParameters.SourceType()) {
+        OT_ASSERT_MSG(
+            proto::SOURCEPROOFTYPE_SELF_SIGNATURE == proofType,
+            "non self-signed credentials not yet implemented");
+
+        source = std::make_shared<NymIDSource>(
+            factory_,
+            nymParameters,
+            *(signing_key_->GetPublicKey().Serialize()));
+        sourceProof->set_version(1);
+        sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
+
+    }
+#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
+    else if (proto::SOURCETYPE_BIP47 == nymParameters.SourceType()) {
+        sourceProof->set_version(1);
+        sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
+
+        auto bip47Source = factory_.PaymentCode(
+            nymParameters.Seed(), nymParameters.Nym(), PAYMENT_CODE_VERSION);
+        source = std::make_shared<NymIDSource>(factory_, bip47Source);
+    }
+#endif
+
+    source_proof_.reset(sourceProof.release());
+    owner_backlink_->SetSource(source);
+    std::string nymID = owner_backlink_->GetNymID();
+
+    nym_id_ = nymID;
+}
 
 /** Verify that nym_id_ is the same as the hash of m_strSourceForNymID. Also
  * verify that *this == owner_backlink_->GetMasterCredential() (the master
@@ -103,65 +163,6 @@ bool MasterCredential::verify_against_source(const Lock& lock) const
     }
 
     return owner_backlink_->Source().Verify(*serialized, *sourceSig);
-}
-
-MasterCredential::MasterCredential(
-    const api::Wallet& wallet,
-    CredentialSet& theOwner,
-    const proto::Credential& serializedCred)
-    : ot_super(wallet, theOwner, serializedCred)
-{
-    role_ = proto::CREDROLE_MASTERKEY;
-
-    std::shared_ptr<NymIDSource> source =
-        std::make_shared<NymIDSource>(serializedCred.masterdata().source());
-
-    owner_backlink_->SetSource(source);
-    source_proof_.reset(
-        new proto::SourceProof(serializedCred.masterdata().sourceproof()));
-}
-
-MasterCredential::MasterCredential(
-    const api::Wallet& wallet,
-    CredentialSet& theOwner,
-    const NymParameters& nymParameters)
-    : ot_super(wallet, theOwner, nymParameters)
-{
-    role_ = proto::CREDROLE_MASTERKEY;
-
-    std::shared_ptr<NymIDSource> source;
-    std::unique_ptr<proto::SourceProof> sourceProof;
-    sourceProof.reset(new proto::SourceProof);
-
-    proto::SourceProofType proofType = nymParameters.SourceProofType();
-
-    if (proto::SOURCETYPE_PUBKEY == nymParameters.SourceType()) {
-        OT_ASSERT_MSG(
-            proto::SOURCEPROOFTYPE_SELF_SIGNATURE == proofType,
-            "non self-signed credentials not yet implemented");
-
-        source = std::make_shared<NymIDSource>(
-            nymParameters, *(signing_key_->GetPublicKey().Serialize()));
-        sourceProof->set_version(1);
-        sourceProof->set_type(proto::SOURCEPROOFTYPE_SELF_SIGNATURE);
-
-    }
-#if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    else if (proto::SOURCETYPE_BIP47 == nymParameters.SourceType()) {
-        sourceProof->set_version(1);
-        sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
-
-        auto bip47Source = PaymentCode::Factory(
-            nymParameters.Seed(), nymParameters.Nym(), PAYMENT_CODE_VERSION);
-        source = std::make_shared<NymIDSource>(bip47Source);
-    }
-#endif
-
-    source_proof_.reset(sourceProof.release());
-    owner_backlink_->SetSource(source);
-    std::string nymID = owner_backlink_->GetNymID();
-
-    nym_id_ = nymID;
 }
 
 bool MasterCredential::New(const NymParameters& nymParameters)

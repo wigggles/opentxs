@@ -36,7 +36,7 @@ public:
     ~UI();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     /** NymID, AccountID */
     using AccountKey = std::pair<OTIdentifier, OTIdentifier>;

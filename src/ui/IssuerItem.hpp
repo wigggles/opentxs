@@ -45,7 +45,7 @@ public:
     ~IssuerItem() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const ListenerDefinitions listeners_;
 

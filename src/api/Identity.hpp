@@ -28,7 +28,7 @@ public:
     ~Identity() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const api::Wallet& wallet_;
 

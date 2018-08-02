@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -32,11 +33,12 @@ namespace opentxs
 {
 api::client::internal::Contacts* Factory::Contacts(
     const api::storage::Storage& storage,
+    const api::Factory& factory,
     const api::Wallet& wallet,
     const network::zeromq::Context& context)
 {
     return new opentxs::api::client::implementation::Contacts(
-        storage, wallet, context);
+        storage, factory, wallet, context);
 }
 }  // namespace opentxs
 
@@ -44,9 +46,11 @@ namespace opentxs::api::client::implementation
 {
 Contacts::Contacts(
     const api::storage::Storage& storage,
+    const api::Factory& factory,
     const api::Wallet& wallet,
     const opentxs::network::zeromq::Context& context)
     : storage_(storage)
+    , factory_{factory}
     , wallet_(wallet)
     , lock_()
     , contact_map_()
@@ -231,7 +235,7 @@ void Contacts::import_contacts(const rLock& lock)
                 case proto::CITEMTYPE_BUSINESS:
                 case proto::CITEMTYPE_GOVERNMENT: {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto code = PaymentCode::Factory(nym->PaymentCode());
+                    auto code = factory_.PaymentCode(nym->PaymentCode());
 #endif
                     new_contact(
                         lock,
@@ -572,13 +576,13 @@ OTIdentifier Contacts::NymToContact(const Identifier& nymID) const
     std::string label{""};
     auto nym = wallet_.Nym(nymID);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = PaymentCode::Factory("");
+    auto code = factory_.PaymentCode("");
 #endif
 
     if (nym) {
         label = nym->Claims().Name();
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        code = PaymentCode::Factory(nym->PaymentCode());
+        code = factory_.PaymentCode(nym->PaymentCode());
 #endif
     }
 
@@ -705,7 +709,7 @@ std::shared_ptr<const class Contact> Contacts::Update(
               << " is not associated with a contact. Creating a new contact."
               << std::endl;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        auto code = PaymentCode::Factory(nym->PaymentCode());
+        auto code = factory_.PaymentCode(nym->PaymentCode());
 #endif
         return new_contact(
             lock,

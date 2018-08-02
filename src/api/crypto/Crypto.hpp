@@ -66,14 +66,14 @@ public:
     EXPORT const opentxs::crypto::Bip39& BIP39() const override;
 #endif  // OT_CRYPTO_WITH_BIP39
 
-    OTSymmetricKey GetStorageKey(std::string& seed) const override;
+    OTSymmetricKey GetStorageKey(
+        const proto::AsymmetricKey& raw) const override;
 
     ~Crypto();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
-    const api::Native& native_;
     mutable std::mutex cached_key_lock_;
     mutable std::unique_ptr<OTCachedKey> primary_key_;
     mutable std::map<OTIdentifier, std::unique_ptr<OTCachedKey>> cached_keys_;
@@ -97,8 +97,7 @@ private:
     void Init();
     void Cleanup();
 
-    Crypto(const api::Native& native);
-    Crypto() = delete;
+    Crypto();
     Crypto(const Crypto&) = delete;
     Crypto(Crypto&&) = delete;
     Crypto& operator=(const Crypto&) = delete;

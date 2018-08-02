@@ -65,6 +65,7 @@ namespace opentxs
  * stored as an Contract, and it must be signed by the master key. (which is
  * also an Credential.) */
 std::unique_ptr<Credential> Credential::Factory(
+    const api::Factory& factory,
     const api::Wallet& wallet,
     CredentialSet& parent,
     const proto::Credential& serialized,
@@ -84,20 +85,23 @@ std::unique_ptr<Credential> Credential::Factory(
 
     switch (serialized.role()) {
         case proto::CREDROLE_MASTERKEY:
-            result.reset(new MasterCredential(wallet, parent, serialized));
+            result.reset(
+                new MasterCredential(factory, wallet, parent, serialized));
 
             break;
         case proto::CREDROLE_CHILDKEY:
-            result.reset(new ChildKeyCredential(wallet, parent, serialized));
+            result.reset(
+                new ChildKeyCredential(factory, wallet, parent, serialized));
 
             break;
         case proto::CREDROLE_CONTACT:
-            result.reset(new ContactCredential(wallet, parent, serialized));
+            result.reset(
+                new ContactCredential(factory, wallet, parent, serialized));
 
             break;
         case proto::CREDROLE_VERIFY:
-            result.reset(
-                new VerificationCredential(wallet, parent, serialized));
+            result.reset(new VerificationCredential(
+                factory, wallet, parent, serialized));
 
             break;
         default:
@@ -110,6 +114,7 @@ std::unique_ptr<Credential> Credential::Factory(
 }
 
 Credential::Credential(
+    const api::Factory& factory,
     const api::Wallet& wallet,
     CredentialSet& theOwner,
     const std::uint32_t version,
@@ -118,11 +123,13 @@ Credential::Credential(
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
+    , factory_{factory}
     , wallet_(wallet)
 {
 }
 
 Credential::Credential(
+    const api::Factory& factory,
     const api::Wallet& wallet,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
@@ -131,6 +138,7 @@ Credential::Credential(
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())
     , owner_backlink_(&theOwner)
+    , factory_{factory}
     , wallet_(wallet)
 {
     if (serializedCred.has_nymid()) {

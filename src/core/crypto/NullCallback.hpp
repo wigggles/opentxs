@@ -21,7 +21,7 @@ public:
     ~NullCallback() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const std::string password_;
 

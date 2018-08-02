@@ -27,12 +27,16 @@ public:
     EXPORT virtual const api::client::Contacts& Contacts() const = 0;
     EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;
+    EXPORT virtual const api::Factory& Factory() const = 0;
     EXPORT virtual std::recursive_mutex& Lock(
         const Identifier& nymID,
         const Identifier& serverID) const = 0;
     EXPORT virtual const OT_API& OTAPI(
         const std::string& wallet = "") const = 0;
     EXPORT virtual const client::Pair& Pair() const = 0;
+#if OT_CRYPTO_WITH_BIP39
+    EXPORT virtual const api::HDSeed& Seeds() const = 0;
+#endif
     EXPORT virtual const client::ServerAction& ServerAction() const = 0;
     EXPORT virtual const client::Sync& Sync() const = 0;
     EXPORT virtual const api::client::UI& UI() const = 0;

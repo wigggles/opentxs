@@ -83,6 +83,9 @@ private:
     const std::uint32_t MAX_TCP_PORT = 63356;
 
     const opentxs::api::Crypto& crypto_;
+#if OT_CRYPTO_WITH_BIP39
+    const opentxs::api::HDSeed& seeds_;
+#endif
     const opentxs::api::Legacy& legacy_;
     const opentxs::api::Settings& config_;
     const opentxs::api::Server& mint_;
@@ -132,6 +135,9 @@ private:
 
     Server(
         const opentxs::api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+        const opentxs::api::HDSeed& seeds,
+#endif
         const opentxs::api::Legacy& legacy,
         const opentxs::api::Settings& config,
         const opentxs::api::Server& mint,

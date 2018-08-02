@@ -49,7 +49,7 @@ public:
     ~ContactItem() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     std::unique_ptr<opentxs::ContactItem> item_{nullptr};
 

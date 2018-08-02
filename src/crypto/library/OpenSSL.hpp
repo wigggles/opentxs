@@ -137,7 +137,7 @@ public:
     ~OpenSSL();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
     class OpenSSLdp;
 
     class CipherContext

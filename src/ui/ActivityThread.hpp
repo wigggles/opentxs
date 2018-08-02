@@ -79,7 +79,7 @@ public:
     ~ActivityThread();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
     const api::client::Activity& activity_;

@@ -149,7 +149,7 @@ public:
 private:
     static const std::string DEFAULT_INTRODUCTION_SERVER;
 
-    friend Factory;
+    friend opentxs::Factory;
 
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<OTIdentifier, OTIdentifier>;

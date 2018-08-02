@@ -49,7 +49,7 @@ public:
     ~ProfileSubsection() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static bool check_type(const ProfileSubsectionRowID type);
 

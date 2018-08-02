@@ -218,6 +218,10 @@ public:
 private:
     friend api::implementation::Wallet;
 
+    const api::Factory& factory_;
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds_;
+#endif
     std::int32_t version_{0};
     std::uint32_t index_{0};
     std::string alias_;
@@ -279,8 +283,17 @@ private:
     void SetAlias(const std::string& alias);
     bool update_nym(const eLock& lock, const std::int32_t version);
 
-    Nym(const api::Wallet& wallet, const NymParameters& nymParameters);
-    Nym(const api::Wallet& wallet,
+    Nym(const api::Factory& factory,
+        const api::Wallet& wallet,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
+        const NymParameters& nymParameters);
+    Nym(const api::Factory& factory,
+        const api::Wallet& wallet,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const Identifier& nymID,
         const proto::CredentialIndexMode mode = proto::CREDINDEX_ERROR);
     Nym() = delete;

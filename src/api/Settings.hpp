@@ -116,7 +116,7 @@ public:
     ~Settings() override;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     class SettingsPvt;
 

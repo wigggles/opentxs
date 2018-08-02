@@ -12,7 +12,7 @@ class Trezor final : virtual public crypto::Trezor,
                      virtual public EncodingProvider
 #if OT_CRYPTO_WITH_BIP39
     ,
-                     public Bip39
+                     virtual public crypto::Bip39
 #endif
 #if OT_CRYPTO_WITH_BIP32
     ,
@@ -68,7 +68,7 @@ public:
     ~Trezor() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     typedef bool DerivationMode;
     const DerivationMode DERIVE_PRIVATE = true;
@@ -89,13 +89,14 @@ private:
 #endif
 
 #if OT_CRYPTO_WITH_BIP39
-    bool toWords(const OTPassword& seed, OTPassword& words) const override;
+    bool SeedToWords(const OTPassword& seed, OTPassword& words) const override;
     void WordsToSeed(
         const OTPassword& words,
         OTPassword& seed,
         const OTPassword& passphrase) const override;
 #endif
 
+    const api::Crypto& crypto_;
 #if OT_CRYPTO_WITH_BIP32
     const curve_info* secp256k1_{nullptr};
 
@@ -104,7 +105,6 @@ private:
     static std::unique_ptr<HDNode> InstantiateHDNode(
         const EcdsaCurve& curve,
         const OTPassword& seed);
-    static std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve);
     static std::unique_ptr<HDNode> GetChild(
         const HDNode& parent,
         const std::uint32_t index,
@@ -120,10 +120,11 @@ private:
         const proto::AsymmetricKeyType& type,
         const HDNode& node,
         const DerivationMode privateVersion) const;
+    std::unique_ptr<HDNode> InstantiateHDNode(const EcdsaCurve& curve) const;
     bool ValidPrivateKey(const OTPassword& key) const;
 #endif
 
-    Trezor(const api::Native& native);
+    Trezor(const api::Crypto& crypto);
     Trezor() = delete;
     Trezor(const Trezor&) = delete;
     Trezor(Trezor&&) = delete;

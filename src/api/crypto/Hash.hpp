@@ -36,7 +36,7 @@ public:
     ~Hash() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     api::crypto::Encode& encode_;
     opentxs::crypto::HashingProvider& ssl_;

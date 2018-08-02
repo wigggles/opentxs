@@ -7,6 +7,7 @@
 
 #include "opentxs/client/NymData.hpp"
 
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
@@ -23,7 +24,8 @@
 namespace opentxs
 {
 NymData::NymData(const NymData& rhs)
-    : object_lock_(std::move(const_cast<NymData&>(rhs).object_lock_))
+    : factory_{rhs.factory_}
+    , object_lock_(std::move(const_cast<NymData&>(rhs).object_lock_))
     , locked_save_callback_(
           std::move(const_cast<NymData&>(rhs).locked_save_callback_))
     , nym_(std::move(const_cast<NymData&>(rhs).nym_))
@@ -31,17 +33,16 @@ NymData::NymData(const NymData& rhs)
 }
 
 NymData::NymData(
+    const api::Factory& factory,
     std::mutex& objectMutex,
     const std::shared_ptr<class Nym>& nym,
     LockedSave save)
-    : nym_(nym)
+    : factory_{factory}
+    , object_lock_{new Lock(objectMutex)}
+    , locked_save_callback_{new LockedSave(save)}
+    , nym_(nym)
 {
-    object_lock_.reset(new Lock(objectMutex));
-
     OT_ASSERT(object_lock_);
-
-    locked_save_callback_.reset(new LockedSave(save));
-
     OT_ASSERT(locked_save_callback_);
 }
 
@@ -92,7 +93,7 @@ bool NymData::AddPaymentCode(
     [[maybe_unused]] const bool active)
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto paymentCode = PaymentCode::Factory(code);
+    auto paymentCode = factory_.PaymentCode(code);
 
     if (false == paymentCode->VerifyInternally()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid payment code."

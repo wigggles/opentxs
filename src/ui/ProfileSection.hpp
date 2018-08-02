@@ -52,7 +52,7 @@ public:
     ~ProfileSection() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static int sort_key(const ProfileSectionRowID type);
     static bool check_type(const ProfileSectionRowID type);
