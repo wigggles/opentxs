@@ -76,17 +76,6 @@ public:
         const api::ContactManager& contact,
         const Identifier& nymID,
         const Identifier& threadID);
-    static api::Api* Api(
-        const Flag& running,
-        const api::Activity& activity,
-        const api::Settings& config,
-        const api::ContactManager& contacts,
-        const api::Crypto& crypto,
-        const api::Identity& identity,
-        const api::Legacy& legacy,
-        const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
-        const api::network::ZMQ& zmq);
     static ui::implementation::AccountActivityRowInternal* BalanceItem(
         const ui::implementation::AccountActivityInternalInterface& parent,
         const network::zeromq::Context& zmq,
@@ -106,6 +95,17 @@ public:
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet);
     static api::client::Cash* Cash(const api::Legacy& legacy);
+    static api::client::Client* Client(
+        const Flag& running,
+        const api::Activity& activity,
+        const api::Settings& config,
+        const api::ContactManager& contacts,
+        const api::Crypto& crypto,
+        const api::Identity& identity,
+        const api::Legacy& legacy,
+        const api::storage::Storage& storage,
+        const api::client::Wallet& wallet,
+        const api::network::ZMQ& zmq);
     static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -339,7 +339,7 @@ public:
         const OTAPI_Exec& exec,
         const api::ContactManager& contacts,
         const api::Settings& config,
-        const api::Api& api,
+        const api::client::Client& api,
         const api::Legacy& legacy,
         const api::client::Wallet& wallet,
         const api::client::Workflow& workflow,

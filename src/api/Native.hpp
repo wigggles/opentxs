@@ -25,10 +25,10 @@ class Native : virtual public api::internal::Native
 {
 public:
     const api::Activity& Activity() const override;
-    const api::Api& API() const override;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const api::Blockchain& Blockchain() const override;
 #endif
+    const api::client::Client& Client() const override;
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
     const api::ContactManager& Contact() const override;
@@ -83,7 +83,7 @@ private:
     mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
     std::unique_ptr<api::client::internal::Activity> activity_;
-    std::unique_ptr<api::Api> api_;
+    std::unique_ptr<api::client::Client> client_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::Blockchain> blockchain_;
 #endif

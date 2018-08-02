@@ -7,9 +7,9 @@
 
 #include "OTAPI_Func.hpp"
 
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"

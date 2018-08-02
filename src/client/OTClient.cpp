@@ -8,9 +8,9 @@
 #include "opentxs/client/OTClient.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"

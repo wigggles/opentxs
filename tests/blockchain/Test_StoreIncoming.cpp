@@ -20,17 +20,17 @@ public:
 
     // these fingerprints are deterministic so we can share them among tests
     Test_StoreIncoming()
-        : Alice(opentxs::OT::App().API().Exec().CreateNymHD(
+        : Alice(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreIncoming_A",
               "",
               90))
-        , Bob(opentxs::OT::App().API().Exec().CreateNymHD(
+        , Bob(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreIncoming_B",
               "",
               91))
-        , Charly(opentxs::OT::App().API().Exec().CreateNymHD(
+        , Charly(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreIncoming_C",
               "",

@@ -8,11 +8,11 @@
 #include "opentxs/client/OTAPI_Exec.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"

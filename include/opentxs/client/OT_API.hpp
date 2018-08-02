@@ -29,10 +29,13 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
 namespace implementation
 {
-class Api;
+class Client;
 }  // namespace implementation
+}  // namespace client
 }  // namespace api
 
 // The C++ high-level interface to the Open Transactions client-side.
@@ -1193,12 +1196,12 @@ public:
     EXPORT ~OT_API();  // calls Cleanup();
 
 private:
-    friend class api::implementation::Api;
+    friend class api::client::implementation::Client;
 
     class Pid;
 
     const api::Activity& activity_;
-    const api::Api& api_;
+    const api::client::Client& client_;
     const api::Settings& config_;
     const api::ContactManager& contacts_;
     const api::Crypto& crypto_;
@@ -1276,7 +1279,7 @@ private:
 
     OT_API(
         const api::Activity& activity,
-        const api::Api& api,
+        const api::client::Client& client,
         const api::Settings& config,
         const api::ContactManager& contacts,
         const api::Crypto& crypto,

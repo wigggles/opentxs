@@ -19,13 +19,13 @@ TEST(Test_AccountList, testList)
 {
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const auto AliceNymID = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto AliceNymID = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "testList_Alice", "", 10);
     std::cout << "Created Alice's Nym: " << AliceNymID << " !!\n";
-    const auto AliceNymID2 = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto AliceNymID2 = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "testList_Alice", "", 11);
     std::cout << "Created Alice's 2nd Nym: " << AliceNymID2 << " !!\n";
-    const auto BobNymID = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto BobNymID = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "testList_Bob", "", 20);
     std::cout << "Created Bob's Nym: " << BobNymID << " !!\n";
 

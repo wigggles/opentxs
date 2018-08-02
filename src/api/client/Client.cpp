@@ -7,13 +7,13 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Cash.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -29,11 +29,11 @@
 #include <mutex>
 #include <string>
 
-#include "Api.hpp"
+#include "Client.hpp"
 
 namespace opentxs
 {
-api::Api* Factory::Api(
+api::client::Client* Factory::Client(
     const Flag& running,
     const api::Activity& activity,
     const api::Settings& config,
@@ -45,7 +45,7 @@ api::Api* Factory::Api(
     const api::client::Wallet& wallet,
     const api::network::ZMQ& zmq)
 {
-    return new api::implementation::Api(
+    return new api::client::implementation::Client(
         running,
         activity,
         config,
@@ -59,9 +59,9 @@ api::Api* Factory::Api(
 }
 }  // namespace opentxs
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-Api::Api(
+Client::Client(
     const Flag& running,
     const api::Activity& activity,
     const api::Settings& config,
@@ -96,7 +96,7 @@ Api::Api(
     Init();
 }
 
-void Api::Cleanup()
+void Client::Cleanup()
 {
     pair_.reset();
     sync_.reset();
@@ -107,14 +107,14 @@ void Api::Cleanup()
     workflow_.reset();
 }
 
-std::recursive_mutex& Api::get_lock(const ContextID context) const
+std::recursive_mutex& Client::get_lock(const ContextID context) const
 {
     opentxs::Lock lock(map_lock_);
 
     return context_locks_[context];
 }
 
-void Api::Init()
+void Client::Init()
 {
     otLog3 << "\n\nWelcome to Open Transactions -- version " << Log::Version()
            << "\n";
@@ -136,7 +136,7 @@ void Api::Init()
         wallet_,
         *workflow_,
         zmq_,
-        std::bind(&Api::get_lock, this, std::placeholders::_1)));
+        std::bind(&Client::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(ot_api_);
 
@@ -150,7 +150,7 @@ void Api::Init()
         wallet_,
         zmq_,
         *ot_api_,
-        std::bind(&Api::get_lock, this, std::placeholders::_1)));
+        std::bind(&Client::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(otapi_exec_);
 
@@ -160,7 +160,7 @@ void Api::Init()
         wallet_,
         *workflow_,
         legacy_,
-        std::bind(&Api::get_lock, this, std::placeholders::_1)));
+        std::bind(&Client::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(server_action_)
 
@@ -181,7 +181,7 @@ void Api::Init()
         crypto_.Encode(),
         storage_,
         zmq_.Context(),
-        std::bind(&Api::get_lock, this, std::placeholders::_1)));
+        std::bind(&Client::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(sync_);
 
@@ -198,61 +198,61 @@ void Api::Init()
     OT_ASSERT(pair_);
 }
 
-const OTAPI_Exec& Api::Exec(const std::string&) const
+const OTAPI_Exec& Client::Exec(const std::string&) const
 {
     OT_ASSERT(otapi_exec_);
 
     return *otapi_exec_;
 }
 
-std::recursive_mutex& Api::Lock(
+std::recursive_mutex& Client::Lock(
     const Identifier& nymID,
     const Identifier& serverID) const
 {
     return get_lock({nymID.str(), serverID.str()});
 }
 
-const OT_API& Api::OTAPI(const std::string&) const
+const OT_API& Client::OTAPI(const std::string&) const
 {
     OT_ASSERT(ot_api_);
 
     return *ot_api_;
 }
 
-const api::client::Cash& Api::Cash() const
+const api::client::Cash& Client::Cash() const
 {
     OT_ASSERT(cash_);
 
     return *cash_;
 }
 
-const api::client::Pair& Api::Pair() const
+const api::client::Pair& Client::Pair() const
 {
     OT_ASSERT(pair_);
 
     return *pair_;
 }
 
-const api::client::ServerAction& Api::ServerAction() const
+const api::client::ServerAction& Client::ServerAction() const
 {
     OT_ASSERT(server_action_);
 
     return *server_action_;
 }
 
-const api::client::Sync& Api::Sync() const
+const api::client::Sync& Client::Sync() const
 {
     OT_ASSERT(sync_);
 
     return *sync_;
 }
 
-const api::client::Workflow& Api::Workflow() const
+const api::client::Workflow& Client::Workflow() const
 {
     OT_ASSERT(workflow_);
 
     return *workflow_;
 }
 
-Api::~Api() { Cleanup(); }
-}  // namespace opentxs::api::implementation
+Client::~Client() { Cleanup(); }
+}  // namespace opentxs::api::client::implementation

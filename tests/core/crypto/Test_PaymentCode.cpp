@@ -29,23 +29,23 @@ public:
                "skate property fringe obey butter text tank drama palm guilt "
                "pudding laundry stay axis prosper")
         , fingerprint(
-              opentxs::OT::App().API().Exec().Wallet_ImportSeed(seed, ""))
-        , nymID_0(opentxs::OT::App().API().Exec().CreateNymHD(
+              opentxs::OT::App().Client().Exec().Wallet_ImportSeed(seed, ""))
+        , nymID_0(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym",
               fingerprint,
               0))
-        , nymID_1(opentxs::OT::App().API().Exec().CreateNymHD(
+        , nymID_1(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_1",
               fingerprint,
               1))
-        , nymID_2(opentxs::OT::App().API().Exec().CreateNymHD(
+        , nymID_2(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_2",
               fingerprint,
               2))
-        , nymID_3(opentxs::OT::App().API().Exec().CreateNymHD(
+        , nymID_3(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_3",
               fingerprint,

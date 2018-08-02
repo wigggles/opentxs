@@ -5,12 +5,12 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"

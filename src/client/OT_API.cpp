@@ -8,13 +8,13 @@
 #include "opentxs/client/OT_API.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -500,7 +500,7 @@ bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 OT_API::OT_API(
     const api::Activity& activity,
-    const api::Api& api,
+    const api::client::Client& client,
     const api::Settings& config,
     const api::ContactManager& contacts,
     const api::Crypto& crypto,
@@ -512,7 +512,7 @@ OT_API::OT_API(
     const api::network::ZMQ& zmq,
     const ContextLockCallback& lockCallback)
     : activity_(activity)
-    , api_(api)
+    , client_(client)
     , config_(config)
     , contacts_(contacts)
     , crypto_(crypto)

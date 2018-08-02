@@ -18,6 +18,7 @@ namespace client
 {
 namespace implementation
 {
+class Client;
 class Wallet;
 }  // namespace implementation
 
@@ -29,7 +30,6 @@ struct Activity;
 
 namespace implementation
 {
-class Api;
 class Crypto;
 class Native;
 class Storage;

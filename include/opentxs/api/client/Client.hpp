@@ -8,15 +8,15 @@
 
 #include "opentxs/Forward.hpp"
 
-//#include "opentxs/Types.hpp"
-
 #include <string>
 
 namespace opentxs
 {
 namespace api
 {
-class Api
+namespace client
+{
+class Client
 {
 public:
     EXPORT virtual std::recursive_mutex& Lock(
@@ -33,17 +33,18 @@ public:
     EXPORT virtual const client::Sync& Sync() const = 0;
     EXPORT virtual const client::Workflow& Workflow() const = 0;
 
-    EXPORT virtual ~Api() = default;
+    EXPORT virtual ~Client() = default;
 
 protected:
-    Api() = default;
+    Client() = default;
 
 private:
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Client(const Client&) = delete;
+    Client(Client&&) = delete;
+    Client& operator=(const Client&) = delete;
+    Client& operator=(Client&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_API_API_HPP

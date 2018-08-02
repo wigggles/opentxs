@@ -20,11 +20,11 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     // create nym and account
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const auto Alice = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Alice = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "Alice", "", 30);
     std::cout << "Created Alice's Nym: " << Alice << " !!\n";
-    const auto Bob =
-        opentxs::OT::App().API().Exec().CreateNymHD(INDIVIDUAL, "Bob", "", 40);
+    const auto Bob = opentxs::OT::App().Client().Exec().CreateNymHD(
+        INDIVIDUAL, "Bob", "", 40);
     std::cout << "Created Bob's Nym: " << Bob << " !!\n";
 
     OTIdentifier AliceAccountID = OT::App().Blockchain().NewAccount(

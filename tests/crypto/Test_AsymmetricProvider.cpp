@@ -15,7 +15,7 @@ class Test_Signatures : public ::testing::Test
 {
 public:
     const std::string fingerprint_{
-        opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
             "response seminar brave tip suit recall often sound stick owner "
             "lottery motion",
             "")};

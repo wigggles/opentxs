@@ -7,8 +7,8 @@
 
 #include "opentxs/client/Utility.hpp"
 
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -795,7 +795,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // just the getNymbox msg.)
         //
         //
-        //            void OT::App().API().Exec().FlushSentMessages(
+        //            void OT::App().Client().Exec().FlushSentMessages(
         //            std::int32_t //
         // bHarvestingForRetry, // bHarvestingForRetry is actually OT_BOOL
         //                              const char * NOTARY_ID,
@@ -815,7 +815,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
 
         if (VerifyStringVal(strNymbox)) {
 
-            OT::App().API().Exec().FlushSentMessages(
+            OT::App().Client().Exec().FlushSentMessages(
                 false,  // harvesting for retry = = OT_FALSE. None of the things
                 // are being re-tried by the time they are being flushed.
                 // They were already old news.;
@@ -1167,7 +1167,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     notaryID,
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
                 if (VerifyStringVal(strNymbox)) {
-                    OT::App().API().Exec().FlushSentMessages(
+                    OT::App().Client().Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -1424,7 +1424,7 @@ bool Utility::getBoxReceiptLowLevel(
     bWasSent = false;
 
     auto [nRequestNum, transactionNum, result] =
-        OT::App().API().OTAPI().getBoxReceipt(
+        OT::App().Client().OTAPI().getBoxReceipt(
             context_,
             Identifier::Factory(accountID),
             nBoxType,

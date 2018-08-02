@@ -6,6 +6,7 @@
 set(cxx-sources
   Activity.cpp
   Cash.cpp
+  Client.cpp
   Issuer.cpp
   Pair.cpp
   ServerAction.cpp
@@ -22,6 +23,7 @@ set(cxx-headers
   ${cxx-install-headers}
   ${CMAKE_CURRENT_SOURCE_DIR}/Activity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Cash.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Client.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Issuer.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/InternalClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Pair.hpp

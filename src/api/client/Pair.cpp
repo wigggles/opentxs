@@ -5,13 +5,13 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/ServerAction.hpp"

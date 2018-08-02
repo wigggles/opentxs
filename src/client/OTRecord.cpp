@@ -7,7 +7,7 @@
 
 #include "opentxs/client/OTRecord.hpp"
 
-#include "opentxs/api/Api.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OTRecordList.hpp"
@@ -43,8 +43,9 @@ bool OTRecord::FormatAmount(std::string& str_output) const
         //            m_str_unit_type_id << "";
         return false;
     }
-    str_output = OT::App().API().Exec().FormatAmount(
-        m_str_unit_type_id, OT::App().API().Exec().StringToLong(m_str_amount));
+    str_output = OT::App().Client().Exec().FormatAmount(
+        m_str_unit_type_id,
+        OT::App().Client().Exec().StringToLong(m_str_amount));
     return (!str_output.empty());
 }
 
@@ -52,8 +53,9 @@ bool OTRecord::FormatAmountWithoutSymbol(std::string& str_output)
 {
     if (m_str_amount.empty() || m_str_unit_type_id.empty()) { return false; }
 
-    str_output = OT::App().API().Exec().FormatAmountWithoutSymbol(
-        m_str_unit_type_id, OT::App().API().Exec().StringToLong(m_str_amount));
+    str_output = OT::App().Client().Exec().FormatAmountWithoutSymbol(
+        m_str_unit_type_id,
+        OT::App().Client().Exec().StringToLong(m_str_amount));
     return (!str_output.empty());
 }
 
@@ -71,9 +73,9 @@ bool OTRecord::FormatAmountLocale(
         //            m_str_unit_type_id << "";
         return false;
     }
-    str_output = OT::App().API().Exec().FormatAmountLocale(
+    str_output = OT::App().Client().Exec().FormatAmountLocale(
         m_str_unit_type_id,
-        OT::App().API().Exec().StringToLong(m_str_amount),
+        OT::App().Client().Exec().StringToLong(m_str_amount),
         str_thousands,
         str_decimal);
     return (!str_output.empty());
@@ -86,9 +88,9 @@ bool OTRecord::FormatAmountWithoutSymbolLocale(
 {
     if (m_str_amount.empty() || m_str_unit_type_id.empty()) { return false; }
 
-    str_output = OT::App().API().Exec().FormatAmountWithoutSymbolLocale(
+    str_output = OT::App().Client().Exec().FormatAmountWithoutSymbolLocale(
         m_str_unit_type_id,
-        OT::App().API().Exec().StringToLong(m_str_amount),
+        OT::App().Client().Exec().StringToLong(m_str_amount),
         str_thousands,
         str_decimal);
     return (!str_output.empty());
@@ -263,7 +265,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                 }
             } else if (0 == GetInstrumentType().compare("marketReceipt")) {
                 const Amount lAmount =
-                    OT::App().API().Exec().StringToLong(m_str_amount);
+                    OT::App().Client().Exec().StringToLong(m_str_amount);
 
                 // I *think* successful trades have a negative amount -- we'll
                 // find out!
@@ -275,7 +277,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                 }
             } else if (0 == GetInstrumentType().compare("chequeReceipt")) {
                 const Amount lAmount =
-                    OT::App().API().Exec().StringToLong(m_str_amount);
+                    OT::App().Client().Exec().StringToLong(m_str_amount);
 
                 // I paid OUT when this chequeReceipt came through. It must be a
                 // normal cheque that I wrote.
@@ -294,7 +296,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                 str_instrument_type = "payment";
             } else if (0 == GetInstrumentType().compare("paymentReceipt")) {
                 const Amount lAmount =
-                    OT::App().API().Exec().StringToLong(m_str_amount);
+                    OT::App().Client().Exec().StringToLong(m_str_amount);
 
                 if (!IsCanceled() && (lAmount > 0)) strKind.Set("received ");
 
@@ -367,7 +369,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                 }
             } else if (0 == GetInstrumentType().compare("marketReceipt")) {
                 const Amount lAmount =
-                    OT::App().API().Exec().StringToLong(m_str_amount);
+                    OT::App().Client().Exec().StringToLong(m_str_amount);
 
                 // I *think* marketReceipts have negative value. We'll just test
                 // for non-zero.
@@ -377,7 +379,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                     str_instrument_type = "market trade (receipt)";
             } else if (0 == GetInstrumentType().compare("chequeReceipt")) {
                 const Amount lAmount =
-                    OT::App().API().Exec().StringToLong(m_str_amount);
+                    OT::App().Client().Exec().StringToLong(m_str_amount);
 
                 // I paid OUT when this chequeReceipt came through. It must be a
                 // normal cheque that I wrote.
@@ -404,7 +406,7 @@ bool OTRecord::FormatDescription(std::string& str_output) const
                     str_instrument_type = "payment (receipt)";
             } else if (0 == GetInstrumentType().compare("paymentReceipt")) {
                 const Amount lAmount =
-                    OT::App().API().Exec().StringToLong(m_str_amount);
+                    OT::App().Client().Exec().StringToLong(m_str_amount);
 
                 if (!IsCanceled() && (lAmount > 0)) strKind.Set("received ");
 
@@ -735,7 +737,7 @@ bool OTRecord::DeleteRecord() const
             if (!m_bIsSpecialMail) {
                 if (m_bIsOutgoing)  // outgoing mail
                 {
-                    auto& exec = OT::App().API().Exec();
+                    auto& exec = OT::App().Client().Exec();
                     const auto list = exec.GetNym_OutmailCount(m_str_nym_id);
 
                     for (const auto& id : list) {
@@ -750,7 +752,7 @@ bool OTRecord::DeleteRecord() const
                     }
                 } else  // incoming mail
                 {
-                    auto& exec = OT::App().API().Exec();
+                    auto& exec = OT::App().Client().Exec();
                     const auto list = exec.GetNym_MailCount(m_str_nym_id);
 
                     for (const auto& id : list) {
@@ -817,8 +819,8 @@ bool OTRecord::DeleteRecord() const
                                                             // contains NymID
                                                             // (see above.)
 
-    Ledger* pRecordbox =
-        OT::App().API().OTAPI().LoadRecordBox(theNotaryID, theNymID, theAcctID);
+    Ledger* pRecordbox = OT::App().Client().OTAPI().LoadRecordBox(
+        theNotaryID, theNymID, theAcctID);
     std::unique_ptr<Ledger> theRecordBoxAngel(pRecordbox);
     if (!pRecordbox) {
         otErr << __FUNCTION__
@@ -940,7 +942,7 @@ bool OTRecord::AcceptIncomingTransferOrReceipt() const
                        theAcctID = Identifier::Factory(m_str_account_id);
 
             // Open the Nym's asset account inbox.
-            Ledger* pInbox = OT::App().API().OTAPI().LoadInbox(
+            Ledger* pInbox = OT::App().Client().OTAPI().LoadInbox(
                 thePmntNotaryID, theNymID, theAcctID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (!pInbox) {
@@ -1010,7 +1012,7 @@ bool OTRecord::AcceptIncomingInstrument(const std::string& str_into_acct) const
                        theNymID = Identifier::Factory(m_str_nym_id);
 
             // Open the Nym's payments inbox.
-            Ledger* pInbox = OT::App().API().OTAPI().LoadPaymentInbox(
+            Ledger* pInbox = OT::App().Client().OTAPI().LoadPaymentInbox(
                 theMsgNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (!pInbox) {
@@ -1123,7 +1125,7 @@ bool OTRecord::DiscardIncoming() const
                        theNymID = Identifier::Factory(m_str_nym_id);
 
             // Open the Nym's payments inbox.
-            Ledger* pInbox = OT::App().API().OTAPI().LoadPaymentInbox(
+            Ledger* pInbox = OT::App().Client().OTAPI().LoadPaymentInbox(
                 theMsgNotaryID, theNymID);
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
             if (!pInbox) {

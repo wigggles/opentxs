@@ -14,6 +14,7 @@
 
 #include <opentxs/api/client/Activity.hpp>
 #include <opentxs/api/client/Cash.hpp>
+#include "opentxs/api/client/Client.hpp"
 #include <opentxs/api/client/Issuer.hpp>
 #include <opentxs/api/client/Pair.hpp>
 #include <opentxs/api/client/ServerAction.hpp>
@@ -22,7 +23,6 @@
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/storage/Storage.hpp>
-#include <opentxs/api/Api.hpp>
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/Blockchain.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD

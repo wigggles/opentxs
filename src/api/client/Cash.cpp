@@ -4,8 +4,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/api/client/Cash.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -336,7 +336,7 @@ std::int32_t Cash::send_cash(
     OT_ASSERT(senderCopy);
 
     response = OT::App()
-                   .API()
+                   .Client()
                    .ServerAction()
                    .SendCash(
                        Identifier::Factory(mynym),
@@ -565,7 +565,7 @@ std::int32_t Cash::deposit_purse_low_level(
 
     OT_ASSERT(purse);
 
-    auto action = OT::App().API().ServerAction().DepositCashPurse(
+    auto action = OT::App().Client().ServerAction().DepositCashPurse(
         Identifier::Factory(nymID),
         Identifier::Factory(notaryID),
         Identifier::Factory(accountID),
@@ -586,7 +586,7 @@ std::int32_t Cash::deposit_purse_low_level(
         // etc)
         // since they have probably changed from this operation.
         //
-        bool bRetrieved = OT::App().API().ServerAction().DownloadAccount(
+        bool bRetrieved = OT::App().Client().ServerAction().DownloadAccount(
             Identifier::Factory(recipientNymID),
             Identifier::Factory(notaryID),
             Identifier::Factory(accountID),
@@ -672,7 +672,7 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
     if (assetContract.empty()) {
         std::string response =
             OT::App()
-                .API()
+                .Client()
                 .ServerAction()
                 .DownloadContract(theNymID, theNotaryID, theAssetType)
                 ->Run();
@@ -696,7 +696,7 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
 
     std::string response =
         OT::App()
-            .API()
+            .Client()
             .ServerAction()
             .WithdrawCash(theNymID, theNotaryID, theAcctID, amount)
             ->Run();
@@ -704,7 +704,7 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
         server, mynym, myacct, "withdraw_cash", response);
     if (1 != reply) { return reply; }
 
-    if (!OT::App().API().ServerAction().DownloadAccount(
+    if (!OT::App().Client().ServerAction().DownloadAccount(
             theNymID, theNotaryID, theAcctID, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
@@ -720,7 +720,7 @@ std::string Cash::check_nym(
     const std::string& nymID,
     const std::string& targetNymID) const
 {
-    auto action = OT::App().API().ServerAction().DownloadNym(
+    auto action = OT::App().Client().ServerAction().DownloadNym(
         opentxs::Identifier::Factory(nymID),
         opentxs::Identifier::Factory(notaryID),
         opentxs::Identifier::Factory(targetNymID));
@@ -768,7 +768,7 @@ std::string Cash::load_or_retrieve_mint(
                   "server...\n";
 
         response = OT::App()
-                       .API()
+                       .Client()
                        .ServerAction()
                        .DownloadMint(
                            Identifier::Factory(nymID),

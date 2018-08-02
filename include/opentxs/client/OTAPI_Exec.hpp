@@ -23,16 +23,19 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
 namespace implementation
 {
-class Api;
+class Client;
 }  // namespace implementation
+}  // namespace client
 }  // namespace api
 
 class OTAPI_Exec : Lockable
 {
 private:
-    friend class api::implementation::Api;
+    friend class api::client::implementation::Client;
 
     const api::Activity& activity_;
     const api::Settings& config_;

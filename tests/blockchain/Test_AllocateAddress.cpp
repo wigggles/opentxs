@@ -21,15 +21,15 @@ public:
 
     // these fingerprints are deterministic so we can share them among tests
     Test_AllocateAddress()
-        : SeedA_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        : SeedA_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "response seminar brave tip suit recall often sound stick owner "
               "lottery motion",
               ""))
-        , SeedB_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        , SeedB_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "reward upper indicate eight swift arch injury crystal super "
               "wrestle already dentist",
               ""))
-        , SeedC_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        , SeedC_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "predict cinnamon gauge spoon media food nurse improve employ "
               "similar own kid genius seed ghost",
               ""))
@@ -39,7 +39,7 @@ public:
 
 TEST_F(Test_AllocateAddress, testBip32_SeedA)
 {
-    const auto Alice = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Alice = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
 
     // Check m / 0'
@@ -262,7 +262,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
 TEST_F(Test_AllocateAddress, testBip32_SeedB)
 {
     // create account
-    const auto Bob = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Bob = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0);
 
     // Check m / 0'
@@ -484,7 +484,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
 
 TEST_F(Test_AllocateAddress, testBip44_SeedC)
 {
-    const auto Charly = OT::App().API().Exec().CreateNymHD(
+    const auto Charly = OT::App().Client().Exec().CreateNymHD(
         opentxs::proto::CITEMTYPE_INDIVIDUAL, "Charly", SeedC_, 0);
     OTIdentifier BTCAccountID = OT::App().Blockchain().NewAccount(
         Identifier::Factory(Charly),

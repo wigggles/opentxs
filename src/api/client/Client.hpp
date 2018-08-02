@@ -3,14 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_IMPLEMENTATION_API_HPP
-#define OPENTXS_API_IMPLEMENTATION_API_HPP
+#ifndef SRC_API_CLIENT_CLIENT_HPP
+#define SRC_API_CLIENT_CLIENT_HPP
 
 #include "Internal.hpp"
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-class Api : virtual public opentxs::api::Api
+class Client : virtual public opentxs::api::client::Client
 {
 public:
     std::recursive_mutex& Lock(
@@ -25,7 +25,7 @@ public:
     const client::Sync& Sync() const override;
     const client::Workflow& Workflow() const override;
 
-    ~Api();
+    ~Client();
 
 private:
     friend Factory;
@@ -58,7 +58,8 @@ private:
     void Cleanup();
     void Init();
 
-    Api(const Flag& running,
+    Client(
+        const Flag& running,
         const api::Activity& activity,
         const api::Settings& config,
         const api::ContactManager& contacts,
@@ -68,11 +69,11 @@ private:
         const api::storage::Storage& storage,
         const api::client::Wallet& wallet,
         const api::network::ZMQ& zmq);
-    Api() = delete;
-    Api(const Api&) = delete;
-    Api(Api&&) = delete;
-    Api& operator=(const Api&) = delete;
-    Api& operator=(Api&&) = delete;
+    Client() = delete;
+    Client(const Client&) = delete;
+    Client(Client&&) = delete;
+    Client& operator=(const Client&) = delete;
+    Client& operator=(Client&&) = delete;
 };
-}  // namespace opentxs::api::implementation
-#endif  // OPENTXS_API_IMPLEMENTATION_API_HPP
+}  // namespace opentxs::api::client::implementation
+#endif  // SRC_API_CLIENT_CLIENT_HPP

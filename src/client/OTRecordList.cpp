@@ -9,8 +9,8 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Cash.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/Api.hpp"
 #include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -232,7 +232,7 @@ std::string OTRecordList::get_payment_instrument(  // static method
     std::string strInbox =
         VerifyStringVal(PRELOADED_INBOX)
             ? PRELOADED_INBOX
-            : OT::App().API().Exec().LoadPaymentInbox(
+            : OT::App().Client().Exec().LoadPaymentInbox(
                   notaryID, nymID);  // Returns nullptr, or an inbox.
 
     if (!VerifyStringVal(strInbox)) {
@@ -242,7 +242,7 @@ std::string OTRecordList::get_payment_instrument(  // static method
         return "";
     }
 
-    std::int32_t nCount = OT::App().API().Exec().Ledger_GetCount(
+    std::int32_t nCount = OT::App().Client().Exec().Ledger_GetCount(
         notaryID, nymID, nymID, strInbox);
     if (0 > nCount) {
         otOut
@@ -256,7 +256,7 @@ std::string OTRecordList::get_payment_instrument(  // static method
         return "";
     }
 
-    strInstrument = OT::App().API().Exec().Ledger_GetInstrument(
+    strInstrument = OT::App().Client().Exec().Ledger_GetInstrument(
         notaryID, nymID, nymID, strInbox, nIndex);
     if (!VerifyStringVal(strInstrument)) {
         otOut << "Failed trying to get payment instrument from payments box.\n";
@@ -698,7 +698,7 @@ std::int32_t OTRecordList::processPayment(  // a static method
     } else if (thePayment.IsPurse()) {
         std::int32_t success{-1};
 #if OT_CASH
-        success = OT::App().API().Cash().deposit_purse(
+        success = OT::App().Client().Cash().deposit_purse(
             acct_server, myacct, mynym, instrument, "", pOptionalOutput);
 #endif  // OT_CASH
         // if index != -1, go ahead and call RecordPayment on the purse at that
@@ -740,7 +740,7 @@ std::int32_t OTRecordList::depositCheque(  // a static method
     std::string response;
     {
         response = OT::App()
-                       .API()
+                       .Client()
                        .ServerAction()
                        .DepositCheque(
                            Identifier::Factory(mynym),
@@ -756,7 +756,7 @@ std::int32_t OTRecordList::depositCheque(  // a static method
     if (nullptr != pOptionalOutput) { *pOptionalOutput = response; }
 
     {
-        if (!OT::App().API().ServerAction().DownloadAccount(
+        if (!OT::App().Client().ServerAction().DownloadAccount(
                 Identifier::Factory(mynym),
                 Identifier::Factory(server),
                 Identifier::Factory(myacct),
@@ -868,7 +868,7 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
     }
 
     {
-        if (!OT::App().API().ServerAction().GetTransactionNumbers(
+        if (!OT::App().Client().ServerAction().GetTransactionNumbers(
                 Identifier::Factory(senderUser),
                 Identifier::Factory(server),
                 2)) {
@@ -896,7 +896,7 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
     std::string response;
     {
         response = OT::App()
-                       .API()
+                       .Client()
                        .ServerAction()
                        .DepositPaymentPlan(
                            Identifier::Factory(senderUser),
@@ -920,7 +920,7 @@ std::int32_t OTRecordList::confirmPaymentPlan_lowLevel(  // a static method
     if (nullptr != pOptionalOutput) { *pOptionalOutput = response; }
 
     {
-        if (!OT::App().API().ServerAction().DownloadAccount(
+        if (!OT::App().Client().ServerAction().DownloadAccount(
                 Identifier::Factory(senderUser),
                 Identifier::Factory(server),
                 Identifier::Factory(senderAcct),
@@ -1288,7 +1288,7 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             std::string response;
             {
                 response = OT::App()
-                               .API()
+                               .Client()
                                .ServerAction()
                                .ActivateSmartContract(
                                    theNymID,
@@ -1332,7 +1332,7 @@ std::int32_t OTRecordList::cancel_outgoing_payments(
             std::string response;
             {
                 response = OT::App()
-                               .API()
+                               .Client()
                                .ServerAction()
                                .CancelPaymentPlan(theNymID, theNotaryID, plan)
                                ->Run();
@@ -1449,7 +1449,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     // have it fail and re-try, and at least be trying the actual intended
     // indices, and cut our account retrievals in half while we're at it!
     //
-    //    if (!OT::App().API().ME().retrieve_account(server, mynym, myacct,
+    //    if (!OT::App().Client().ME().retrieve_account(server, mynym, myacct,
     //    true)) {
     //        otOut << "Error retrieving intermediary files for account.\n";
     //        return -1;
@@ -1468,7 +1468,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
                theAcctID = Identifier::Factory(myacct);
 
     {
-        if (!OT::App().API().ServerAction().GetTransactionNumbers(
+        if (!OT::App().Client().ServerAction().GetTransactionNumbers(
                 theNymID, theNotaryID, 10)) {
             otOut << "Error: cannot reserve transaction numbers.\n";
             return -1;
@@ -1476,7 +1476,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     }
     // -----------------------------------------------------------
     std::unique_ptr<Ledger> pInbox(
-        OT::App().API().OTAPI().LoadInbox(theNotaryID, theNymID, theAcctID));
+        OT::App().Client().OTAPI().LoadInbox(theNotaryID, theNymID, theAcctID));
     if (false == bool(pInbox)) {
         otOut << "Error: cannot load inbox.\n";
         return -1;
@@ -1526,8 +1526,9 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     // inside the inbox.
 
     // -------------------------------------------------------
-    OT_API::ProcessInbox response{OT::App().API().OTAPI().Ledger_CreateResponse(
-        theNotaryID, theNymID, theAcctID)};
+    OT_API::ProcessInbox response{
+        OT::App().Client().OTAPI().Ledger_CreateResponse(
+            theNotaryID, theNymID, theAcctID)};
     // -------------------------------------------------------
     auto& processInbox = std::get<0>(response);
     auto& inbox = std::get<1>(response);
@@ -1539,7 +1540,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     // -------------------------------------------------------
     for (const TransactionNumber& lReceiptId : receiptIds) {
         OTTransaction* pReceipt =
-            OT::App().API().OTAPI().Ledger_GetTransactionByID(
+            OT::App().Client().OTAPI().Ledger_GetTransactionByID(
                 *inbox, lReceiptId);
 
         if (nullptr == pReceipt) {
@@ -1569,7 +1570,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
         }
         // ------------------------
         const bool bReceiptResponseCreated =
-            OT::App().API().OTAPI().Transaction_CreateResponse(
+            OT::App().Client().OTAPI().Transaction_CreateResponse(
                 theNotaryID,
                 theNymID,
                 theAcctID,
@@ -1592,7 +1593,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
         return 0;
     }
     // ----------------------------------------------
-    const bool bFinalized = OT::App().API().OTAPI().Ledger_FinalizeResponse(
+    const bool bFinalized = OT::App().Client().OTAPI().Ledger_FinalizeResponse(
         theNotaryID, theNymID, theAcctID, *processInbox);
 
     if (!bFinalized) {
@@ -1604,7 +1605,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     {
         notary_response =
             OT::App()
-                .API()
+                .Client()
                 .ServerAction()
                 .ProcessInbox(theNymID, theNotaryID, theAcctID, processInbox)
                 ->Run();
@@ -1618,7 +1619,7 @@ std::int32_t OTRecordList::acceptFromInbox(  // a static method
     // the inbox. Might as well refresh our copy with the new changes.
     //
     {
-        if (!OT::App().API().ServerAction().DownloadAccount(
+        if (!OT::App().Client().ServerAction().DownloadAccount(
                 theNymID, theNotaryID, theAcctID, true)) {
             otOut << __FUNCTION__
                   << "Success processing inbox, but then failed "
@@ -1746,12 +1747,14 @@ bool OTRecordList::PerformAutoAccept()
                 Ledger* pInbox{nullptr};
 
                 if (false == theNymID->empty()) {
-                    pInbox =
-                        m_bRunFast
-                            ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
-                                  theMsgNotaryID, theNymID)
-                            : OT::App().API().OTAPI().LoadPaymentInbox(
-                                  theMsgNotaryID, theNymID);
+                    pInbox = m_bRunFast
+                                 ? OT::App()
+                                       .Client()
+                                       .OTAPI()
+                                       .LoadPaymentInboxNoVerify(
+                                           theMsgNotaryID, theNymID)
+                                 : OT::App().Client().OTAPI().LoadPaymentInbox(
+                                       theMsgNotaryID, theNymID);
                 }
 
                 std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -2159,10 +2162,11 @@ bool OTRecordList::PerformAutoAccept()
             Ledger* pInbox{nullptr};
 
             if (false == theNymID.empty()) {
-                pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
-                                          theNotaryID, theNymID, theAccountID)
-                                    : OT::App().API().OTAPI().LoadInbox(
-                                          theNotaryID, theNymID, theAccountID);
+                pInbox = m_bRunFast
+                             ? OT::App().Client().OTAPI().LoadInboxNoVerify(
+                                   theNotaryID, theNymID, theAccountID)
+                             : OT::App().Client().OTAPI().LoadInbox(
+                                   theNotaryID, theNymID, theAccountID);
             }
 
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -2212,7 +2216,7 @@ bool OTRecordList::PerformAutoAccept()
                                  // least 20 transaction numbers."
                         {
                             if (!OT::App()
-                                     .API()
+                                     .Client()
                                      .ServerAction()
                                      .GetTransactionNumbers(
                                          theNymID,
@@ -2227,7 +2231,7 @@ bool OTRecordList::PerformAutoAccept()
                             }
                         }
                         strResponseLedger =
-                            OT::App().API().Exec().Ledger_CreateResponse(
+                            OT::App().Client().Exec().Ledger_CreateResponse(
                                 str_notary_id, str_nym_id, str_account_id);
 
                         if (strResponseLedger.empty()) {
@@ -2242,7 +2246,7 @@ bool OTRecordList::PerformAutoAccept()
                     const String strTrans(*pBoxTrans);
                     const std::string str_trans(strTrans.Get());
                     std::string strNEW_ResponseLEDGER =
-                        OT::App().API().Exec().Transaction_CreateResponse(
+                        OT::App().Client().Exec().Transaction_CreateResponse(
                             str_notary_id,
                             str_nym_id,
                             str_account_id,
@@ -2267,7 +2271,7 @@ bool OTRecordList::PerformAutoAccept()
             //
             if (bFoundAnyToAccept && !strResponseLedger.empty()) {
                 std::string strFinalizedResponse =
-                    OT::App().API().Exec().Ledger_FinalizeResponse(
+                    OT::App().Client().Exec().Ledger_FinalizeResponse(
                         str_notary_id,
                         str_nym_id,
                         str_account_id,
@@ -2296,7 +2300,7 @@ bool OTRecordList::PerformAutoAccept()
                 {
                     strResponse =
                         OT::App()
-                            .API()
+                            .Client()
                             .ServerAction()
                             .ProcessInbox(
                                 theNymID, theNotaryID, theAccountID, ledger)
@@ -2317,7 +2321,7 @@ bool OTRecordList::PerformAutoAccept()
                     // since they have probably changed from this operation.
                     //
                     bool bRetrieved =
-                        OT::App().API().ServerAction().DownloadAccount(
+                        OT::App().Client().ServerAction().DownloadAccount(
                             theNymID,
                             theNotaryID,
                             theAccountID,
@@ -2345,7 +2349,7 @@ bool OTRecordList::Populate()
     // Loop through all the accounts.
     //
     // From Open-Transactions.h:
-    // OT::App().API().OTAPI().GetServerCount()
+    // OT::App().Client().OTAPI().GetServerCount()
     //
     // From OTAPI.h:
     // SwigWrap::GetServerCount()  // wraps the above call.
@@ -2687,7 +2691,7 @@ bool OTRecordList::Populate()
         // --------------------------------------------------
         if (!m_bIgnoreMail) {
             // For each Nym, loop through his MAIL box.
-            auto& exec = OT::App().API().Exec();
+            auto& exec = OT::App().Client().Exec();
             const auto mail = exec.GetNym_MailCount(str_nym_id);
             std::int32_t index = 0;
 
@@ -2957,11 +2961,12 @@ bool OTRecordList::Populate()
             Ledger* pInbox{nullptr};
 
             if (false == theNymID->empty()) {
-                pInbox = m_bRunFast
-                             ? OT::App().API().OTAPI().LoadPaymentInboxNoVerify(
-                                   theMsgNotaryID, theNymID)
-                             : OT::App().API().OTAPI().LoadPaymentInbox(
-                                   theMsgNotaryID, theNymID);
+                pInbox =
+                    m_bRunFast
+                        ? OT::App().Client().OTAPI().LoadPaymentInboxNoVerify(
+                              theMsgNotaryID, theNymID)
+                        : OT::App().Client().OTAPI().LoadPaymentInbox(
+                              theMsgNotaryID, theNymID);
             }
 
             std::unique_ptr<Ledger> theInboxAngel(pInbox);
@@ -3294,9 +3299,9 @@ bool OTRecordList::Populate()
             if (false == theNymID->empty()) {
                 pRecordbox =
                     m_bRunFast
-                        ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
+                        ? OT::App().Client().OTAPI().LoadRecordBoxNoVerify(
                               theMsgNotaryID, theNymID, theNymID)  // twice.
-                        : OT::App().API().OTAPI().LoadRecordBox(
+                        : OT::App().Client().OTAPI().LoadRecordBox(
                               theMsgNotaryID, theNymID, theNymID);
             }
 
@@ -3892,10 +3897,11 @@ bool OTRecordList::Populate()
 
             if (false == theNymID->empty()) {
                 pExpiredbox =
-                    m_bRunFast ? OT::App().API().OTAPI().LoadExpiredBoxNoVerify(
-                                     theMsgNotaryID, theNymID)
-                               : OT::App().API().OTAPI().LoadExpiredBox(
-                                     theMsgNotaryID, theNymID);
+                    m_bRunFast
+                        ? OT::App().Client().OTAPI().LoadExpiredBoxNoVerify(
+                              theMsgNotaryID, theNymID)
+                        : OT::App().Client().OTAPI().LoadExpiredBox(
+                              theMsgNotaryID, theNymID);
             }
 
             std::unique_ptr<Ledger> theExpiredBoxAngel(pExpiredbox);
@@ -4527,9 +4533,9 @@ bool OTRecordList::Populate()
         Ledger* pInbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pInbox = m_bRunFast ? OT::App().API().OTAPI().LoadInboxNoVerify(
+            pInbox = m_bRunFast ? OT::App().Client().OTAPI().LoadInboxNoVerify(
                                       theNotaryID, theNymID, theAccountID)
-                                : OT::App().API().OTAPI().LoadInbox(
+                                : OT::App().Client().OTAPI().LoadInbox(
                                       theNotaryID, theNymID, theAccountID);
         }
 
@@ -4766,10 +4772,11 @@ bool OTRecordList::Populate()
         Ledger* pOutbox{nullptr};
 
         if (false == theNymID.empty()) {
-            pOutbox = m_bRunFast ? OT::App().API().OTAPI().LoadOutboxNoVerify(
-                                       theNotaryID, theNymID, theAccountID)
-                                 : OT::App().API().OTAPI().LoadOutbox(
-                                       theNotaryID, theNymID, theAccountID);
+            pOutbox = m_bRunFast
+                          ? OT::App().Client().OTAPI().LoadOutboxNoVerify(
+                                theNotaryID, theNymID, theAccountID)
+                          : OT::App().Client().OTAPI().LoadOutbox(
+                                theNotaryID, theNymID, theAccountID);
         }
 
         std::unique_ptr<Ledger> theOutboxAngel(pOutbox);
@@ -4942,9 +4949,9 @@ bool OTRecordList::Populate()
 
         if (false == theNymID.empty()) {
             pRecordbox = m_bRunFast
-                             ? OT::App().API().OTAPI().LoadRecordBoxNoVerify(
+                             ? OT::App().Client().OTAPI().LoadRecordBoxNoVerify(
                                    theNotaryID, theNymID, theAccountID)
-                             : OT::App().API().OTAPI().LoadRecordBox(
+                             : OT::App().Client().OTAPI().LoadRecordBox(
                                    theNotaryID, theNymID, theAccountID);
         }
 

@@ -6,11 +6,11 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Api.hpp"
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/Blockchain.hpp"
 #endif
@@ -364,7 +364,7 @@ Native::Native(
     , signal_handler_lock_()
     , periodic_task_list()
     , activity_(nullptr)
-    , api_(nullptr)
+    , client_(nullptr)
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     , blockchain_(nullptr)
 #endif
@@ -436,15 +436,6 @@ const api::Activity& Native::Activity() const
     return *activity_;
 }
 
-const api::Api& Native::API() const
-{
-    if (server_mode_) { OT_FAIL; }
-
-    OT_ASSERT(api_);
-
-    return *api_;
-}
-
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 const api::Blockchain& Native::Blockchain() const
 {
@@ -453,6 +444,15 @@ const api::Blockchain& Native::Blockchain() const
     return *blockchain_;
 }
 #endif
+
+const api::client::Client& Native::Client() const
+{
+    if (server_mode_) { OT_FAIL; }
+
+    OT_ASSERT(client_);
+
+    return *client_;
+}
 
 const api::Settings& Native::Config(const std::string& path) const
 {
@@ -639,7 +639,7 @@ void Native::Init_Api()
 
     if (server_mode_) { return; }
 
-    api_.reset(Factory::Api(
+    client_.reset(Factory::Client(
         running_,
         *activity_,
         *config,
@@ -651,7 +651,7 @@ void Native::Init_Api()
         *wallet_,
         *zeromq_));
 
-    OT_ASSERT(api_);
+    OT_ASSERT(client_);
 }
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -1098,7 +1098,7 @@ void Native::Init_StorageBackup()
 void Native::Init_UI()
 {
     OT_ASSERT(activity_)
-    OT_ASSERT(api_)
+    OT_ASSERT(client_)
     OT_ASSERT(contacts_)
     OT_ASSERT(legacy_)
     OT_ASSERT(storage_)
@@ -1106,9 +1106,9 @@ void Native::Init_UI()
     OT_ASSERT(zeromq_)
 
     ui_.reset(Factory::UI(
-        api_->Sync(),
+        client_->Sync(),
         *wallet_,
-        api_->Workflow(),
+        client_->Workflow(),
         *zeromq_,
         *storage_,
         *activity_,
@@ -1167,13 +1167,13 @@ void Native::Periodic()
 
 void Native::recover()
 {
-    OT_ASSERT(api_);
+    OT_ASSERT(client_);
     OT_ASSERT(crypto_);
     OT_ASSERT(recover_);
     OT_ASSERT(storage_);
     OT_ASSERT(0 < word_list_.getPasswordSize());
 
-    auto& api = api_->OTAPI();
+    auto& api = client_->OTAPI();
     const auto fingerprint = api.Wallet_ImportSeed(word_list_, passphrase_);
 
     if (fingerprint.empty()) {
@@ -1264,9 +1264,9 @@ void Native::shutdown()
     if (periodic_) { periodic_->join(); }
 
     if (false == bool(server_)) {
-        OT_ASSERT(api_);
+        OT_ASSERT(client_);
 
-        auto wallet = api_->OTAPI().GetWallet(nullptr);
+        auto wallet = client_->OTAPI().GetWallet(nullptr);
 
         OT_ASSERT(nullptr != wallet);
 
@@ -1275,7 +1275,7 @@ void Native::shutdown()
 
     server_.reset();
     ui_.reset();
-    api_.reset();
+    client_.reset();
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     blockchain_.reset();
 #endif
@@ -1300,13 +1300,13 @@ void Native::start()
     OT_ASSERT(contacts_);
 
     if (false == server_mode_) {
-        OT_ASSERT(api_);
+        OT_ASSERT(client_);
 
-        const bool loaded = api_->OTAPI().LoadWallet();
+        const bool loaded = client_->OTAPI().LoadWallet();
 
         OT_ASSERT(loaded);
 
-        auto wallet = api_->OTAPI().GetWallet(nullptr);
+        auto wallet = client_->OTAPI().GetWallet(nullptr);
 
         OT_ASSERT(nullptr != wallet);
 

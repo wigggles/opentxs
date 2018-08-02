@@ -30,12 +30,12 @@ class Test_ContactList : public ::testing::Test
 public:
     using WidgetUpdateCounter = std::map<std::string, int>;
 
-    const std::string fingerprint_{OT::App().API().Exec().Wallet_ImportSeed(
+    const std::string fingerprint_{OT::App().Client().Exec().Wallet_ImportSeed(
         "response seminar brave tip suit recall often sound stick owner "
         "lottery motion",
         "")};
     const OTIdentifier nym_id_{
-        Identifier::Factory(OT::App().API().Exec().CreateNymHD(
+        Identifier::Factory(OT::App().Client().Exec().CreateNymHD(
             proto::CITEMTYPE_INDIVIDUAL,
             ALICE_NYM_NAME,
             fingerprint_,

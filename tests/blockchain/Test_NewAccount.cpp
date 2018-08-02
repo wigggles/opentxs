@@ -42,13 +42,13 @@ TEST(Test_NewAccount, TestSeedRoot)
     const std::string seedA = "seed A";
 
     const std::string seedID =
-        opentxs::OT::App().API().Exec().Wallet_ImportSeed(seedA, "");
+        opentxs::OT::App().Client().Exec().Wallet_ImportSeed(seedA, "");
 
     const std::string alias = "Alias 1";
-    const auto Nym0 = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Nym0 = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, alias, seedID, 0);
     std::cout << "Created Nym 0: " << Nym0 << " !!\n";
-    const auto Nym1 = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Nym1 = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, alias, seedID, 1);
     std::cout << "Created Nym 1: " << Nym1 << " !!\n";
 
@@ -92,9 +92,9 @@ TEST(Test_NewAccount, TestNymsDiff)
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
 
-    const auto AliceNymID = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto AliceNymID = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "testNymsDiff_Alice", "", 50);
-    const auto BobNymID = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto BobNymID = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "testNymsDiff_Bob", "", 60);
 
     std::cout << "Created Alice: " << AliceNymID << " \n";
@@ -138,7 +138,7 @@ TEST(Test_NewAccount, TestNym_AccountIdempotence)
 {
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const auto Charly = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Charly = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "testNymIdempotence_Charly", "", 70);
 
     const std::string CharlyBIP32AccountID =
@@ -173,7 +173,7 @@ TEST(Test_NewAccount, TestChainDiff)
 {
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const auto Alice = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Alice = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, "testChainDiff_Alice", "", 80);
 
     const std::string AliceBTCAccountID =
@@ -200,12 +200,12 @@ TEST(Test_NewAccount, TestSeedPassphrase)
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
     const std::string seedID =
-        opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
             "fruit wave dwarf banana earth journey tattoo true farm silk olive "
             "fence",
             "banana");
     const std::string alias = "Alias 1";
-    const auto Nym0 = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Nym0 = opentxs::OT::App().Client().Exec().CreateNymHD(
         INDIVIDUAL, alias, seedID, 0);
 
     EXPECT_STRNE(Nym0.c_str(), "");
