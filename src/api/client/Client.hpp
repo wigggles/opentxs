@@ -36,7 +36,7 @@ public:
     const api::client::UI& UI() const override;
     const api::Wallet& Wallet() const override { return wallet_; }
     const client::Workflow& Workflow() const override;
-    const api::network::ZMQ& ZMQ() const override { return zmq_; }
+    const api::network::ZMQ& ZMQ() const override;
 
     void StartActivity() override;
     void StartContacts() override;
@@ -49,7 +49,6 @@ private:
 
     const Flag& running_;
     const api::Wallet& wallet_;
-    const api::network::ZMQ& zmq_;
     const api::storage::Storage& storage_;
     const api::Crypto& crypto_;
 #if OT_CRYPTO_WITH_BIP39
@@ -57,6 +56,7 @@ private:
 #endif
     const api::Legacy& legacy_;
     const api::Settings& config_;
+    const opentxs::network::zeromq::Context& zmq_context_;
 
     const int instance_{0};
 
@@ -71,6 +71,7 @@ private:
     std::unique_ptr<api::client::Sync> sync_;
     std::unique_ptr<api::client::UI> ui_;
     std::unique_ptr<api::client::Workflow> workflow_;
+    std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<OT_API> ot_api_;
@@ -98,6 +99,7 @@ private:
     void Init_Sync();
     void Init_UI();
     void Init_Workflow();
+    void Init_ZMQ();
 
     Client(
         const Flag& running,
@@ -109,7 +111,7 @@ private:
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::Wallet& wallet,
-        const api::network::ZMQ& zmq,
+        const opentxs::network::zeromq::Context& context,
         const int instance);
     Client() = delete;
     Client(const Client&) = delete;

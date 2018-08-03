@@ -686,7 +686,7 @@ std::shared_ptr<opentxs::Context> Wallet::context(
 
     switch (serialized->type()) {
         case proto::CONSENSUSTYPE_SERVER: {
-            auto& zmq = ot_.ZMQ();
+            auto& zmq = ot_.Client().ZMQ();
             const auto& server = serialized->servercontext().serverid();
             auto& connection = zmq.Server(server);
             entry.reset(new opentxs::ServerContext(
@@ -872,7 +872,7 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
         // Create a new Context
         const ContextID contextID = {localNymID.str(), remoteNymID->str()};
         auto& entry = context_map_[contextID];
-        auto& zmq = ot_.ZMQ();
+        auto& zmq = ot_.Client().ZMQ();
         auto& connection = zmq.Server(serverID->str());
         entry.reset(new opentxs::ServerContext(
             *this, ot_.Legacy(), localNym, remoteNym, serverID, connection));

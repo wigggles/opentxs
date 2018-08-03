@@ -41,7 +41,6 @@ public:
     const api::Server& Server() const override;
     bool ServerMode() const override;
     const api::Wallet& Wallet() const override;
-    const api::network::ZMQ& ZMQ() const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
@@ -84,7 +83,6 @@ private:
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
     std::unique_ptr<api::Wallet> wallet_;
-    std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
 #if OT_CRYPTO_WITH_BIP39
     OTSymmetricKey storage_encryption_key_;
@@ -132,7 +130,6 @@ private:
     void Init_Server();
     void Init_Storage();
     void Init_StorageBackup();
-    void Init_ZMQ();
     void Init() override;
     void Periodic();
     void recover();
@@ -140,7 +137,7 @@ private:
     void shutdown() override;
     void start();
 
-    ~Native();
+    ~Native() = default;
 };
 }  // namespace opentxs::api::implementation
 #endif  // OPENTXS_CORE_API_IMPLEMENTATION_NATIVE_HPP

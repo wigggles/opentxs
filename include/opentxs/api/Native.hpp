@@ -42,7 +42,6 @@ public:
     EXPORT virtual const api::Server& Server() const = 0;
     EXPORT virtual bool ServerMode() const = 0;
     EXPORT virtual const api::Wallet& Wallet() const = 0;
-    EXPORT virtual const network::ZMQ& ZMQ() const = 0;
 
     EXPORT virtual ~Native() = default;
 

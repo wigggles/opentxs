@@ -6,16 +6,6 @@
 #ifndef OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
 #define OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
 
-#include "Internal.hpp"
-
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/core/Flag.hpp"
-
-#include <atomic>
-#include <map>
-#include <memory>
-#include <mutex>
-
 namespace opentxs::api::network::implementation
 {
 class ZMQ : virtual public opentxs::api::network::ZMQ
@@ -42,7 +32,7 @@ public:
     ~ZMQ();
 
 private:
-    friend class opentxs::api::implementation::Native;
+    friend opentxs::Factory;
 
     const opentxs::network::zeromq::Context& context_;
     const api::Settings& config_;

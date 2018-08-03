@@ -5,13 +5,24 @@
 
 #include "stdafx.hpp"
 
-#include "ZMQ.hpp"
+#include "Internal.hpp"
 
+#include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
+
+#include <atomic>
+#include <map>
+#include <memory>
+#include <mutex>
+
+#include "ZMQ.hpp"
 
 #define CLIENT_SEND_TIMEOUT_SECONDS 20
 #define CLIENT_RECV_TIMEOUT_SECONDS 40
@@ -23,6 +34,17 @@
 #define OT_METHOD "opentxs::api::ZMQ::"
 
 template class opentxs::Pimpl<opentxs::network::ServerConnection>;
+
+namespace opentxs
+{
+api::network::ZMQ* Factory::ZMQ(
+    const network::zeromq::Context& context,
+    const api::Settings& config,
+    const Flag& running)
+{
+    return new api::network::implementation::ZMQ(context, config, running);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::network::implementation
 {

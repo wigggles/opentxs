@@ -47,7 +47,6 @@
 
 #include "api/client/InternalClient.hpp"
 #include "api/network/Dht.hpp"
-#include "api/network/ZMQ.hpp"
 #include "api/storage/StorageInternal.hpp"
 #include "api/NativeInternal.hpp"
 #include "network/DhtConfig.hpp"
@@ -366,7 +365,6 @@ Native::Native(
     , legacy_(nullptr)
     , storage_(nullptr)
     , wallet_(nullptr)
-    , zeromq_(nullptr)
     , periodic_(nullptr)
 #if OT_CRYPTO_WITH_BIP39
     , storage_encryption_key_(opentxs::crypto::key::Symmetric::Factory())
@@ -541,12 +539,11 @@ void Native::Init()
 #if OT_CRYPTO_WITH_BIP39
     Init_Seeds();  // Requires Init_Crypto(), Init_Storage()
 #endif
-    Init_ZMQ();  // requires Init_Config()
     Init_Contracts();
     Init_Dht();  // requires Init_Config()
     Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
                  // Init_Contracts(), Init_Identity(), Init_Storage(),
-                 // Init_ZMQ(), Init_Seeds()
+                 // Init_Seeds()
 
     if (recover_) { recover(); }
 
@@ -581,7 +578,7 @@ void Native::Init_Api()
         *legacy_,
         *storage_,
         *wallet_,
-        *zeromq_,
+        zmq_context_,
         0));  // TODO
 
     OT_ASSERT(client_);
@@ -1021,16 +1018,6 @@ void Native::Init_StorageBackup()
     storage_->start();
 }
 
-void Native::Init_ZMQ()
-{
-    auto& config = config_[""];
-
-    OT_ASSERT(config);
-
-    zeromq_.reset(
-        new api::network::implementation::ZMQ(zmq_context_, *config, running_));
-}
-
 const api::Legacy& Native::Legacy() const
 {
     OT_ASSERT(legacy_)
@@ -1195,7 +1182,6 @@ void Native::shutdown()
     client_.reset();
     dht_.reset();
     wallet_.reset();
-    zeromq_.reset();
     storage_.reset();
     crypto_.reset();
     Log::Cleanup();
@@ -1247,13 +1233,4 @@ const api::Wallet& Native::Wallet() const
 
     return *wallet_;
 }
-
-const api::network::ZMQ& Native::ZMQ() const
-{
-    OT_ASSERT(zeromq_)
-
-    return *zeromq_;
-}
-
-Native::~Native() {}
 }  // namespace opentxs::api::implementation

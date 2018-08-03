@@ -110,7 +110,7 @@ public:
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::Wallet& wallet,
-        const api::network::ZMQ& zmq,
+        const network::zeromq::Context& context,
         const int instance);
     static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
@@ -396,6 +396,10 @@ public:
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq);
+    static api::network::ZMQ* ZMQ(
+        const network::zeromq::Context& context,
+        const api::Settings& config,
+        const Flag& running);
 };
 }  // namespace opentxs
 #endif  // OPENTXS_FACTORY_HPP
