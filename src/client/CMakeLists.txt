@@ -11,8 +11,6 @@ set(cxx-sources
   OTAPI_Func.cpp
   OTClient.cpp
   OTMessageOutbuffer.cpp
-  OTRecord.cpp
-  OTRecordList.cpp
   OTWallet.cpp
   SwigWrap.cpp
   Utility.cpp
@@ -25,8 +23,6 @@ set(cxx-install-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OT_API.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTMessageOutbuffer.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecord.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTRecordList.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/OTWallet.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/ServerAction.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/client/SwigWrap.hpp

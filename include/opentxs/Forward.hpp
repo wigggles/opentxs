@@ -236,7 +236,6 @@ class OTPasswordData;
 class OTPaths;
 class OTPayment;
 class OTPaymentPlan;
-class OTRecordList;
 class OTScript;
 class OTScriptable;
 class OTSignature;

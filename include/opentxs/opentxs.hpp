@@ -34,7 +34,6 @@
 #include <opentxs/api/Wallet.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OTRecordList.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include <opentxs/client/OT_API.hpp>
 #include <opentxs/client/ServerAction.hpp>
