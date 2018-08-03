@@ -62,6 +62,7 @@ private:
     const api::Wallet& wallet_;
     const Flag& running_;
     const opentxs::network::zeromq::Context& zmq_context_;
+    const int instance_{0};
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<server::Server> server_p_;
     server::Server& server_;
@@ -123,7 +124,8 @@ private:
         const api::storage::Storage& storage,
         const api::Wallet& wallet,
         const Flag& running,
-        const opentxs::network::zeromq::Context& context);
+        const opentxs::network::zeromq::Context& context,
+        const int instance);
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;

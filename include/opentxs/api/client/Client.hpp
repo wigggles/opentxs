@@ -25,6 +25,7 @@ public:
 #endif
     EXPORT virtual const client::Cash& Cash() const = 0;
     EXPORT virtual const api::client::Contacts& Contacts() const = 0;
+    EXPORT virtual const api::Crypto& Crypto() const = 0;
     EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;
     EXPORT virtual const api::Factory& Factory() const = 0;
@@ -38,9 +39,12 @@ public:
     EXPORT virtual const api::HDSeed& Seeds() const = 0;
 #endif
     EXPORT virtual const client::ServerAction& ServerAction() const = 0;
+    EXPORT virtual const storage::Storage& Storage() const = 0;
     EXPORT virtual const client::Sync& Sync() const = 0;
     EXPORT virtual const api::client::UI& UI() const = 0;
+    EXPORT virtual const Wallet& Wallet() const = 0;
     EXPORT virtual const client::Workflow& Workflow() const = 0;
+    EXPORT virtual const network::ZMQ& ZMQ() const = 0;
 
     EXPORT virtual ~Client() = default;
 

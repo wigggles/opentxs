@@ -600,7 +600,8 @@ void Native::Init_Api()
         *legacy_,
         *storage_,
         *wallet_,
-        *zeromq_));
+        *zeromq_,
+        0));  // TODO
 
     OT_ASSERT(client_);
 }
@@ -834,7 +835,8 @@ void Native::Init_Server()
         *storage_,
         *wallet_,
         running_,
-        zmq_context_));
+        zmq_context_,
+        0));  // TODO
 
     OT_ASSERT(server_);
 }

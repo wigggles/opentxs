@@ -19,6 +19,7 @@ public:
 #endif
     const api::client::Cash& Cash() const override;
     const api::client::Contacts& Contacts() const override;
+    const api::Crypto& Crypto() const override { return crypto_; }
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const api::Factory& Factory() const override;
     std::recursive_mutex& Lock(
@@ -30,9 +31,12 @@ public:
     const api::HDSeed& Seeds() const override { return seeds_; }
 #endif
     const client::ServerAction& ServerAction() const override;
+    const api::storage::Storage& Storage() const override { return storage_; }
     const client::Sync& Sync() const override;
     const api::client::UI& UI() const override;
+    const api::Wallet& Wallet() const override { return wallet_; }
     const client::Workflow& Workflow() const override;
+    const api::network::ZMQ& ZMQ() const override { return zmq_; }
 
     void StartActivity() override;
     void StartContacts() override;
@@ -54,6 +58,8 @@ private:
     const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
+
+    const int instance_{0};
 
     std::unique_ptr<api::client::internal::Activity> activity_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -103,7 +109,8 @@ private:
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::Wallet& wallet,
-        const api::network::ZMQ& zmq);
+        const api::network::ZMQ& zmq,
+        const int instance);
     Client() = delete;
     Client(const Client&) = delete;
     Client(Client&&) = delete;

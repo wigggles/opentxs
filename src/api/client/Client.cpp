@@ -23,6 +23,7 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -51,7 +52,8 @@ api::client::internal::Client* Factory::Client(
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const api::Wallet& wallet,
-    const api::network::ZMQ& zmq)
+    const api::network::ZMQ& zmq,
+    const int instance)
 {
     return new api::client::implementation::Client(
         running,
@@ -64,7 +66,8 @@ api::client::internal::Client* Factory::Client(
         legacy,
         storage,
         wallet,
-        zmq);
+        zmq,
+        instance);
 }
 }  // namespace opentxs
 
@@ -81,7 +84,8 @@ Client::Client(
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const api::Wallet& wallet,
-    const api::network::ZMQ& zmq)
+    const api::network::ZMQ& zmq,
+    const int instance)
     : running_(running)
     , wallet_(wallet)
     , zmq_(zmq)
@@ -93,6 +97,7 @@ Client::Client(
     , identity_(identity)
     , legacy_(legacy)
     , config_(config)
+    , instance_{instance}
     , activity_(nullptr)
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     , blockchain_(nullptr)
@@ -133,8 +138,10 @@ void Client::Cleanup()
 {
     pair_.reset();
     ui_.reset();
-    server_action_.reset();
+    SwigWrap::client_ = nullptr;
     sync_.reset();
+    server_action_.reset();
+    cash_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
     workflow_.reset();
@@ -143,7 +150,6 @@ void Client::Cleanup()
 #endif
     activity_.reset();
     contacts_.reset();
-    cash_.reset();
     factory_.reset();
 }
 
@@ -174,7 +180,6 @@ void Client::Init()
            << "\n";
 
     Init_Factory();   // No dependencies
-    Init_Cash();      // No dependencies
     Init_Contacts();  // Requires Init_Factory()
     Init_Activity();  // Requires Init_Contacts(), Init_Factory()
 #if OT_CRYPTO_SUPPORTED_KEY_HD
@@ -183,9 +188,10 @@ void Client::Init()
     Init_Workflow();      // Requires Init_Activity(), Init_Contacts()
     Init_OldClientAPI();  // Requires Init_Activity(), Init_Contacts(),
                           // Init_Workflow(), Init_Factory()
-    Init_Sync();          // Requires Init_OldClientAPI(), Init_Contacts(),
-                          // Init_Workflow()
+    Init_Cash();          // Requires Init_OldClientAPI()
     Init_ServerAction();  // Requires Init_OldClientAPI(), Init_Workflow()
+    Init_Sync();          // Requires Init_OldClientAPI(), Init_Contacts(),
+                          // Init_Workflow(), Init_ServerAction()
     Init_UI();    // Requires Init_Activity(), Init_Sync(), Init_Workflow(),
                   // Init_Contacts()
     Init_Pair();  // Requires Init_OldClientAPI(), Init_Sync(),
@@ -284,6 +290,12 @@ void Client::Init_OldClientAPI()
         std::bind(&Client::get_lock, this, std::placeholders::_1)));
 
     OT_ASSERT(otapi_exec_);
+
+    if (0 == instance_) {
+        SwigWrap::client_ = this;
+
+        OT_ASSERT(SwigWrap::client_)
+    }
 }
 
 void Client::Init_Pair()

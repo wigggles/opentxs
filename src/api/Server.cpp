@@ -62,10 +62,20 @@ api::Server* Factory::ServerAPI(
     const api::storage::Storage& storage,
     const api::Wallet& wallet,
     const Flag& running,
-    const network::zeromq::Context& context)
+    const network::zeromq::Context& context,
+    const int instance)
 {
     return new api::implementation::Server(
-        args, crypto, seeds, legacy, config, storage, wallet, running, context);
+        args,
+        crypto,
+        seeds,
+        legacy,
+        config,
+        storage,
+        wallet,
+        running,
+        context,
+        instance);
 }
 }  // namespace opentxs
 
@@ -82,7 +92,8 @@ Server::Server(
     const opentxs::api::storage::Storage& storage,
     const opentxs::api::Wallet& wallet,
     const Flag& running,
-    const opentxs::network::zeromq::Context& context)
+    const opentxs::network::zeromq::Context& context,
+    const int instance)
     : args_(args)
     , legacy_(legacy)
     , config_(config)
@@ -92,6 +103,7 @@ Server::Server(
     , wallet_(wallet)
     , running_(running)
     , zmq_context_(context)
+    , instance_{instance}
     , factory_(nullptr)
     , server_p_(new server::Server(
           crypto_,

@@ -110,7 +110,8 @@ public:
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::Wallet& wallet,
-        const api::network::ZMQ& zmq);
+        const api::network::ZMQ& zmq,
+        const int instance);
     static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -346,7 +347,8 @@ public:
         const api::storage::Storage& storage,
         const api::Wallet& wallet,
         const Flag& running,
-        const network::zeromq::Context& context);
+        const network::zeromq::Context& context,
+        const int instance);
     static api::Settings* Settings();
     static api::Settings* Settings(const String& path);
     static crypto::Sodium* Sodium();
