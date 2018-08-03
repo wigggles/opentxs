@@ -39,6 +39,7 @@ public:
     const api::HDSeed& Seeds() const override { return seeds_; }
 #if OT_CASH
 #endif
+    const api::storage::Storage& Storage() const override { return storage_; }
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
 

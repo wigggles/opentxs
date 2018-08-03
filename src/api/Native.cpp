@@ -450,13 +450,6 @@ const api::Crypto& Native::Crypto() const
     return *crypto_;
 }
 
-const api::storage::Storage& Native::DB() const
-{
-    OT_ASSERT(storage_)
-
-    return *storage_;
-}
-
 const api::network::Dht& Native::DHT() const
 {
     OT_ASSERT(dht_)

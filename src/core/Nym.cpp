@@ -14,7 +14,6 @@
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
@@ -61,6 +60,7 @@
 namespace opentxs
 {
 Nym::Nym(
+    const api::storage::Storage& storage,
     const api::Factory& factory,
     const api::Wallet& wallet,
 #if OT_CRYPTO_WITH_BIP39
@@ -81,6 +81,7 @@ Nym::Nym(
     , source_(nullptr)
     , contact_data_(nullptr)
     , wallet_(wallet)
+    , storage_(storage)
     , m_mapCredentialSets()
     , m_mapRevokedSets()
     , m_listRevokedIDs()
@@ -88,13 +89,15 @@ Nym::Nym(
 }
 
 Nym::Nym(
+    const api::storage::Storage& storage,
     const api::Factory& factory,
     const api::Wallet& wallet,
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds,
 #endif
     const NymParameters& nymParameters)
-    : Nym(factory,
+    : Nym(storage,
+          factory,
           wallet,
           seeds,
           Identifier::Factory(),
@@ -988,7 +991,7 @@ bool Nym::load_credentials(
     String strNymID(m_nymID);
     std::shared_ptr<proto::CredentialIndex> index;
 
-    if (OT::App().DB().Load(strNymID.Get(), index)) {
+    if (storage_.Load(strNymID.Get(), index)) {
         return load_credential_index(lock, *index);
     } else {
         otErr << __FUNCTION__

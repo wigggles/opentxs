@@ -45,6 +45,7 @@ public:
     EXPORT virtual const api::HDSeed& Seeds() const = 0;
 #endif
 #if OT_CASH
+    EXPORT virtual const storage::Storage& Storage() const = 0;
     EXPORT virtual void UpdateMint(const Identifier& unitID) const = 0;
 #endif  // OT_CASH
 

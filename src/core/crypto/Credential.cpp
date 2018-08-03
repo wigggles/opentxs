@@ -471,7 +471,7 @@ bool Credential::Save() const
         return false;
     }
 
-    const bool bSaved = OT::App().DB().Store(*serializedProto);
+    const bool bSaved = wallet_.SaveCredential(*serializedProto);
 
     if (!bSaved) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error saving credential"

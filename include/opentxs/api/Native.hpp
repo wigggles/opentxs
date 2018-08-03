@@ -29,7 +29,6 @@ public:
     EXPORT virtual const api::Settings& Config(
         const std::string& path = std::string("")) const = 0;
     EXPORT virtual const api::Crypto& Crypto() const = 0;
-    EXPORT virtual const storage::Storage& DB() const = 0;
     EXPORT virtual const network::Dht& DHT() const = 0;
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;

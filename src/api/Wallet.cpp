@@ -61,6 +61,8 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 #define FACTORY                                                                \
     (ot_.ServerMode()) ? ot_.Server().Factory() : ot_.Client().Factory()
 #define SEED (ot_.ServerMode()) ? ot_.Server().Seeds() : ot_.Client().Seeds()
+#define STORAGE                                                                \
+    ((ot_.ServerMode()) ? ot_.Server().Storage() : ot_.Client().Storage())
 
 namespace opentxs
 {
@@ -162,7 +164,7 @@ Wallet::AccountLock& Wallet::account(
 
     std::string serialized{""};
     std::string alias{""};
-    const auto loaded = ot_.DB().Load(account.str(), serialized, alias, true);
+    const auto loaded = STORAGE.Load(account.str(), serialized, alias, true);
 
     if (loaded) {
         otInfo << OT_METHOD << __FUNCTION__ << ": Account " << account.str()
@@ -213,7 +215,7 @@ SharedAccount Wallet::Account(
 
 std::string Wallet::account_alias(const std::string& accountID) const
 {
-    for (const auto& [id, alias] : ot_.DB().AccountList()) {
+    for (const auto& [id, alias] : STORAGE.AccountList()) {
         if (id == accountID) { return alias; }
     }
 
@@ -241,7 +243,7 @@ opentxs::Account* Wallet::account_factory(
 
     OT_ASSERT(output)
 
-    const auto signerID = ot_.DB().AccountSigner(accountID);
+    const auto signerID = STORAGE.AccountSigner(accountID);
 
     if (signerID->empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unknown signer nym."
@@ -273,7 +275,7 @@ opentxs::Account* Wallet::account_factory(
 
 OTIdentifier Wallet::AccountPartialMatch(const std::string& hint) const
 {
-    const auto list = ot_.DB().AccountList();
+    const auto list = STORAGE.AccountList();
 
     for (const auto& [id, alias] : list) {
         if (0 == id.compare(0, hint.size(), hint)) {
@@ -345,7 +347,7 @@ ExclusiveAccount Wallet::CreateAccount(
             const auto id = pAccount->GetRealAccountID().str();
             String serialized{};
             pAccount->SaveContractRaw(serialized);
-            const auto saved = ot_.DB().Store(
+            const auto saved = STORAGE.Store(
                 id,
                 serialized.Get(),
                 "",
@@ -392,7 +394,7 @@ bool Wallet::DeleteAccount(
         eLock lock(rowMutex);
 
         if (pAccount) {
-            const auto deleted = ot_.DB().DeleteAccount(accountID.str());
+            const auto deleted = STORAGE.DeleteAccount(accountID.str());
 
             if (deleted) {
                 pAccount.reset();
@@ -412,7 +414,7 @@ SharedAccount Wallet::IssuerAccount(
     const std::string& dataFolder,
     const Identifier& unitID) const
 {
-    const auto accounts = ot_.DB().AccountsByContract(unitID);
+    const auto accounts = STORAGE.AccountsByContract(unitID);
     Lock mapLock(account_map_lock_);
 
     try {
@@ -569,7 +571,7 @@ bool Wallet::UpdateAccount(
         return false;
     }
 
-    saved = ot_.DB().Store(
+    saved = STORAGE.Store(
         accountID.str(),
         raw.Get(),
         account_alias(accountID.str()),
@@ -644,7 +646,7 @@ std::shared_ptr<opentxs::Context> Wallet::context(
     // Load from storage, if it exists.
     std::shared_ptr<proto::Context> serialized;
     const bool loaded =
-        ot_.DB().Load(localNymID.str(), remoteNymID.str(), serialized, true);
+        STORAGE.Load(localNymID.str(), remoteNymID.str(), serialized, true);
 
     if (!loaded) { return nullptr; }
 
@@ -934,7 +936,7 @@ bool Wallet::ImportAccount(
         String alias{};
         pAccount->SaveContractRaw(serialized);
         pAccount->GetName(alias);
-        const auto saved = ot_.DB().Store(
+        const auto saved = STORAGE.Store(
             accountID.str(),
             serialized.Get(),
             alias.Get(),
@@ -966,7 +968,7 @@ bool Wallet::ImportAccount(
 std::set<OTIdentifier> Wallet::IssuerList(const Identifier& nymID) const
 {
     std::set<OTIdentifier> output{};
-    auto list = ot_.DB().IssuerList(nymID.str());
+    auto list = STORAGE.IssuerList(nymID.str());
 
     for (const auto& it : list) {
         output.emplace(Identifier::Factory(it.first));
@@ -1015,7 +1017,7 @@ Wallet::IssuerLock& Wallet::issuer(
 
     std::shared_ptr<proto::Issuer> serialized{nullptr};
     const bool loaded =
-        ot_.DB().Load(nymID.str(), issuerID.str(), serialized, true);
+        STORAGE.Load(nymID.str(), issuerID.str(), serialized, true);
 
     if (loaded) {
         OT_ASSERT(serialized)
@@ -1040,7 +1042,7 @@ Wallet::IssuerLock& Wallet::issuer(
 
 bool Wallet::IsLocalNym(const std::string& id) const
 {
-    return ot_.DB().LocalNyms().count(id);
+    return STORAGE.LocalNyms().count(id);
 }
 
 bool Wallet::load_legacy_account(
@@ -1102,7 +1104,7 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(ot_.Server().ID() == serverID)
 
-    saved = ot_.DB().Store(
+    saved = STORAGE.Store(
         accountID.str(),
         serialized.Get(),
         "",
@@ -1118,14 +1120,11 @@ bool Wallet::load_legacy_account(
     return true;
 }
 
-std::size_t Wallet::LocalNymCount() const
-{
-    return ot_.DB().LocalNyms().size();
-}
+std::size_t Wallet::LocalNymCount() const { return STORAGE.LocalNyms().size(); }
 
 std::set<OTIdentifier> Wallet::LocalNyms() const
 {
-    const std::set<std::string> ids = ot_.DB().LocalNyms();
+    const std::set<std::string> ids = STORAGE.LocalNyms();
 
     std::set<OTIdentifier> nymIds;
     std::transform(
@@ -1152,11 +1151,12 @@ ConstNym Wallet::Nym(
         std::shared_ptr<proto::CredentialIndex> serialized;
 
         std::string alias;
-        bool loaded = ot_.DB().Load(nym, serialized, alias, true);
+        bool loaded = STORAGE.Load(nym, serialized, alias, true);
 
         if (loaded) {
             auto& pNym = nym_map_[nym].second;
             pNym.reset(new opentxs::Nym(
+                STORAGE,
                 FACTORY,
                 *this,
 #if OT_CRYPTO_WITH_BIP39
@@ -1221,6 +1221,7 @@ ConstNym Wallet::Nym(const proto::CredentialIndex& serialized) const
         return existing;
     } else {
         std::unique_ptr<opentxs::Nym> candidate(new opentxs::Nym(
+            STORAGE,
             FACTORY,
             *this,
 #if OT_CRYPTO_WITH_BIP39
@@ -1260,6 +1261,7 @@ ConstNym Wallet::Nym(
     const std::string name) const
 {
     std::shared_ptr<opentxs::Nym> pNym(new opentxs::Nym(
+        STORAGE,
         FACTORY,
         *this,
 #if OT_CRYPTO_WITH_BIP39
@@ -1410,11 +1412,11 @@ ConstNym Wallet::NymByIDPartialMatch(const std::string& partialId) const
     return nullptr;
 }
 
-ObjectList Wallet::NymList() const { return ot_.DB().NymList(); }
+ObjectList Wallet::NymList() const { return STORAGE.NymList(); }
 
 bool Wallet::NymNameByIndex(const std::size_t index, String& name) const
 {
-    std::set<std::string> nymNames = ot_.DB().LocalNyms();
+    std::set<std::string> nymNames = STORAGE.LocalNyms();
 
     if (index < nymNames.size()) {
         std::size_t idx{0};
@@ -1450,7 +1452,7 @@ std::shared_ptr<proto::PeerReply> Wallet::PeerReply(
     Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> output;
 
-    ot_.DB().Load(nymID, reply.str(), box, output, true);
+    STORAGE.Load(nymID, reply.str(), box, output, true);
 
     return output;
 }
@@ -1461,7 +1463,7 @@ bool Wallet::PeerReplyComplete(const Identifier& nym, const Identifier& replyID)
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> reply;
-    const bool haveReply = ot_.DB().Load(
+    const bool haveReply = STORAGE.Load(
         nymID, replyID.str(), StorageBox::SENTPEERREPLY, reply, false);
 
     if (!haveReply) {
@@ -1475,7 +1477,7 @@ bool Wallet::PeerReplyComplete(const Identifier& nym, const Identifier& replyID)
     const auto& realReplyID = reply->id();
 
     const bool savedReply =
-        ot_.DB().Store(*reply, nymID, StorageBox::FINISHEDPEERREPLY);
+        STORAGE.Store(*reply, nymID, StorageBox::FINISHEDPEERREPLY);
 
     if (!savedReply) {
         otErr << OT_METHOD << __FUNCTION__ << ": failed to save finished reply."
@@ -1484,8 +1486,8 @@ bool Wallet::PeerReplyComplete(const Identifier& nym, const Identifier& replyID)
         return false;
     }
 
-    const bool removedReply = ot_.DB().RemoveNymBoxItem(
-        nymID, StorageBox::SENTPEERREPLY, realReplyID);
+    const bool removedReply =
+        STORAGE.RemoveNymBoxItem(nymID, StorageBox::SENTPEERREPLY, realReplyID);
 
     if (!removedReply) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1519,7 +1521,7 @@ bool Wallet::PeerReplyCreate(
     }
 
     const bool createdReply =
-        ot_.DB().Store(reply, nymID, StorageBox::SENTPEERREPLY);
+        STORAGE.Store(reply, nymID, StorageBox::SENTPEERREPLY);
 
     if (!createdReply) {
         otErr << OT_METHOD << __FUNCTION__ << ": failed to save sent reply."
@@ -1529,7 +1531,7 @@ bool Wallet::PeerReplyCreate(
     }
 
     const bool processedRequest =
-        ot_.DB().Store(request, nymID, StorageBox::PROCESSEDPEERREQUEST);
+        STORAGE.Store(request, nymID, StorageBox::PROCESSEDPEERREQUEST);
 
     if (!processedRequest) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1538,7 +1540,7 @@ bool Wallet::PeerReplyCreate(
         return false;
     }
 
-    const bool movedRequest = ot_.DB().RemoveNymBoxItem(
+    const bool movedRequest = STORAGE.RemoveNymBoxItem(
         nymID, StorageBox::INCOMINGPEERREQUEST, request.id());
 
     if (!processedRequest) {
@@ -1562,7 +1564,7 @@ bool Wallet::PeerReplyCreateRollback(
     std::shared_ptr<proto::PeerRequest> requestItem;
     bool output = true;
     time_t notUsed = 0;
-    const bool loadedRequest = ot_.DB().Load(
+    const bool loadedRequest = STORAGE.Load(
         nymID,
         requestID,
         StorageBox::PROCESSEDPEERREQUEST,
@@ -1570,11 +1572,11 @@ bool Wallet::PeerReplyCreateRollback(
         notUsed);
 
     if (loadedRequest) {
-        const bool requestRolledBack = ot_.DB().Store(
-            *requestItem, nymID, StorageBox::INCOMINGPEERREQUEST);
+        const bool requestRolledBack =
+            STORAGE.Store(*requestItem, nymID, StorageBox::INCOMINGPEERREQUEST);
 
         if (requestRolledBack) {
-            const bool purgedRequest = ot_.DB().RemoveNymBoxItem(
+            const bool purgedRequest = STORAGE.RemoveNymBoxItem(
                 nymID, StorageBox::PROCESSEDPEERREQUEST, requestID);
             if (!purgedRequest) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -1595,7 +1597,7 @@ bool Wallet::PeerReplyCreateRollback(
     }
 
     const bool removedReply =
-        ot_.DB().RemoveNymBoxItem(nymID, StorageBox::SENTPEERREPLY, replyID);
+        STORAGE.RemoveNymBoxItem(nymID, StorageBox::SENTPEERREPLY, replyID);
 
     if (!removedReply) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1611,7 +1613,7 @@ ObjectList Wallet::PeerReplySent(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nymID, StorageBox::SENTPEERREPLY);
+    return STORAGE.NymBoxList(nymID, StorageBox::SENTPEERREPLY);
 }
 
 ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
@@ -1619,7 +1621,7 @@ ObjectList Wallet::PeerReplyIncoming(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nymID, StorageBox::INCOMINGPEERREPLY);
+    return STORAGE.NymBoxList(nymID, StorageBox::INCOMINGPEERREPLY);
 }
 
 ObjectList Wallet::PeerReplyFinished(const Identifier& nym) const
@@ -1627,7 +1629,7 @@ ObjectList Wallet::PeerReplyFinished(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nymID, StorageBox::FINISHEDPEERREPLY);
+    return STORAGE.NymBoxList(nymID, StorageBox::FINISHEDPEERREPLY);
 }
 
 ObjectList Wallet::PeerReplyProcessed(const Identifier& nym) const
@@ -1635,7 +1637,7 @@ ObjectList Wallet::PeerReplyProcessed(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nymID, StorageBox::PROCESSEDPEERREPLY);
+    return STORAGE.NymBoxList(nymID, StorageBox::PROCESSEDPEERREPLY);
 }
 
 bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
@@ -1666,7 +1668,7 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
 
     std::shared_ptr<proto::PeerRequest> request;
     std::time_t notUsed;
-    const bool haveRequest = ot_.DB().Load(
+    const bool haveRequest = STORAGE.Load(
         nymID,
         requestID->str(),
         StorageBox::SENTPEERREQUEST,
@@ -1682,7 +1684,7 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
         return false;
     }
 
-    const bool receivedReply = ot_.DB().Store(
+    const bool receivedReply = STORAGE.Store(
         reply.Reply()->Contract(), nymID, StorageBox::INCOMINGPEERREPLY);
 
     if (!receivedReply) {
@@ -1693,7 +1695,7 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
     }
 
     const bool finishedRequest =
-        ot_.DB().Store(*request, nymID, StorageBox::FINISHEDPEERREQUEST);
+        STORAGE.Store(*request, nymID, StorageBox::FINISHEDPEERREQUEST);
 
     if (!finishedRequest) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1702,7 +1704,7 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
         return false;
     }
 
-    const bool removedRequest = ot_.DB().RemoveNymBoxItem(
+    const bool removedRequest = STORAGE.RemoveNymBoxItem(
         nymID, StorageBox::SENTPEERREQUEST, requestID->str());
 
     if (!finishedRequest) {
@@ -1724,7 +1726,7 @@ std::shared_ptr<proto::PeerRequest> Wallet::PeerRequest(
     Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerRequest> output;
 
-    ot_.DB().Load(nymID, request.str(), box, output, time, true);
+    STORAGE.Load(nymID, request.str(), box, output, time, true);
 
     return output;
 }
@@ -1736,7 +1738,7 @@ bool Wallet::PeerRequestComplete(
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
     std::shared_ptr<proto::PeerReply> reply;
-    const bool haveReply = ot_.DB().Load(
+    const bool haveReply = STORAGE.Load(
         nymID, replyID.str(), StorageBox::INCOMINGPEERREPLY, reply, false);
 
     if (!haveReply) {
@@ -1750,7 +1752,7 @@ bool Wallet::PeerRequestComplete(
     const auto& realReplyID = reply->id();
 
     const bool storedReply =
-        ot_.DB().Store(*reply, nymID, StorageBox::PROCESSEDPEERREPLY);
+        STORAGE.Store(*reply, nymID, StorageBox::PROCESSEDPEERREPLY);
 
     if (!storedReply) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1759,7 +1761,7 @@ bool Wallet::PeerRequestComplete(
         return false;
     }
 
-    const bool removedReply = ot_.DB().RemoveNymBoxItem(
+    const bool removedReply = STORAGE.RemoveNymBoxItem(
         nymID, StorageBox::INCOMINGPEERREPLY, realReplyID);
 
     if (!removedReply) {
@@ -1778,7 +1780,7 @@ bool Wallet::PeerRequestCreate(
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().Store(request, nym.str(), StorageBox::SENTPEERREQUEST);
+    return STORAGE.Store(request, nym.str(), StorageBox::SENTPEERREQUEST);
 }
 
 bool Wallet::PeerRequestCreateRollback(
@@ -1788,7 +1790,7 @@ bool Wallet::PeerRequestCreateRollback(
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().RemoveNymBoxItem(
+    return STORAGE.RemoveNymBoxItem(
         nym.str(), StorageBox::SENTPEERREQUEST, request.str());
 }
 
@@ -1802,7 +1804,7 @@ bool Wallet::PeerRequestDelete(
         case StorageBox::INCOMINGPEERREQUEST:
         case StorageBox::FINISHEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREQUEST: {
-            return ot_.DB().RemoveNymBoxItem(nym.str(), box, request.str());
+            return STORAGE.RemoveNymBoxItem(nym.str(), box, request.str());
         }
         default: {
             return false;
@@ -1815,7 +1817,7 @@ ObjectList Wallet::PeerRequestSent(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nym.str(), StorageBox::SENTPEERREQUEST);
+    return STORAGE.NymBoxList(nym.str(), StorageBox::SENTPEERREQUEST);
 }
 
 ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
@@ -1823,7 +1825,7 @@ ObjectList Wallet::PeerRequestIncoming(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nym.str(), StorageBox::INCOMINGPEERREQUEST);
+    return STORAGE.NymBoxList(nym.str(), StorageBox::INCOMINGPEERREQUEST);
 }
 
 ObjectList Wallet::PeerRequestFinished(const Identifier& nym) const
@@ -1831,7 +1833,7 @@ ObjectList Wallet::PeerRequestFinished(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nym.str(), StorageBox::FINISHEDPEERREQUEST);
+    return STORAGE.NymBoxList(nym.str(), StorageBox::FINISHEDPEERREQUEST);
 }
 
 ObjectList Wallet::PeerRequestProcessed(const Identifier& nym) const
@@ -1839,7 +1841,7 @@ ObjectList Wallet::PeerRequestProcessed(const Identifier& nym) const
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().NymBoxList(nym.str(), StorageBox::PROCESSEDPEERREQUEST);
+    return STORAGE.NymBoxList(nym.str(), StorageBox::PROCESSEDPEERREQUEST);
 }
 
 bool Wallet::PeerRequestReceive(
@@ -1862,7 +1864,7 @@ bool Wallet::PeerRequestReceive(
     const std::string nymID = nym.str();
     Lock lock(peer_lock(nymID));
 
-    return ot_.DB().Store(
+    return STORAGE.Store(
         request.Request()->Contract(), nymID, StorageBox::INCOMINGPEERREQUEST);
 }
 
@@ -1876,7 +1878,7 @@ bool Wallet::PeerRequestUpdate(
         case StorageBox::INCOMINGPEERREQUEST:
         case StorageBox::FINISHEDPEERREQUEST:
         case StorageBox::PROCESSEDPEERREQUEST: {
-            return ot_.DB().SetPeerRequestTime(nym.str(), request.str(), box);
+            return STORAGE.SetPeerRequestTime(nym.str(), request.str(), box);
         }
         default: {
             return false;
@@ -1890,7 +1892,7 @@ bool Wallet::RemoveServer(const Identifier& id) const
     Lock mapLock(server_map_lock_);
     auto deleted = server_map_.erase(server);
 
-    if (0 != deleted) { return ot_.DB().RemoveServer(server); }
+    if (0 != deleted) { return STORAGE.RemoveServer(server); }
 
     return false;
 }
@@ -1901,7 +1903,7 @@ bool Wallet::RemoveUnitDefinition(const Identifier& id) const
     Lock mapLock(unit_map_lock_);
     auto deleted = unit_map_.erase(unit);
 
-    if (0 != deleted) { return ot_.DB().RemoveUnitDefinition(unit); }
+    if (0 != deleted) { return STORAGE.RemoveUnitDefinition(unit); }
 
     return false;
 }
@@ -1926,7 +1928,7 @@ void Wallet::save(
         // Reload the last valid state for this Account.
         std::string serialized{""};
         std::string alias{""};
-        const auto loaded = ot_.DB().Load(id, serialized, alias, false);
+        const auto loaded = STORAGE.Load(id, serialized, alias, false);
 
         OT_ASSERT(loaded)
 
@@ -1938,7 +1940,7 @@ void Wallet::save(
         return;
     }
 
-    const auto signerID = ot_.DB().AccountSigner(accountID);
+    const auto signerID = STORAGE.AccountSigner(accountID);
 
     OT_ASSERT(false == signerID->empty())
 
@@ -1960,20 +1962,20 @@ void Wallet::save(
 
     OT_ASSERT(saved)
 
-    const auto contractID = ot_.DB().AccountContract(accountID);
+    const auto contractID = STORAGE.AccountContract(accountID);
 
     OT_ASSERT(false == contractID->empty())
 
     String alias{};
     in->GetName(alias);
-    saved = ot_.DB().Store(
+    saved = STORAGE.Store(
         accountID->str(),
         serialized.Get(),
         alias.Get(),
-        ot_.DB().AccountOwner(accountID),
-        ot_.DB().AccountSigner(accountID),
-        ot_.DB().AccountIssuer(accountID),
-        ot_.DB().AccountServer(accountID),
+        STORAGE.AccountOwner(accountID),
+        STORAGE.AccountSigner(accountID),
+        STORAGE.AccountIssuer(accountID),
+        STORAGE.AccountServer(accountID),
         contractID,
         extract_unit(contractID));
 
@@ -1990,7 +1992,7 @@ void Wallet::save(opentxs::Context* context) const
 
     OT_ASSERT(context->validate(lock));
 
-    ot_.DB().Store(context->contract(lock));
+    STORAGE.Store(context->contract(lock));
 }
 
 void Wallet::save(const Lock& lock, api::client::Issuer* in) const
@@ -2000,7 +2002,7 @@ void Wallet::save(const Lock& lock, api::client::Issuer* in) const
 
     const auto& nymID = in->LocalNymID();
     const auto& issuerID = in->IssuerID();
-    ot_.DB().Store(nymID.str(), in->Serialize());
+    STORAGE.Store(nymID.str(), in->Serialize());
     auto message = opentxs::network::zeromq::Message::Factory(nymID.str());
     message->AddFrame(issuerID.str());
     issuer_publisher_->Publish(message);
@@ -2036,7 +2038,7 @@ bool Wallet::SaveCredentialIDs(const opentxs::Nym& nym) const
 
     if (!valid) { return false; }
 
-    if (!ot_.DB().Store(index, nym.Alias())) {
+    if (!STORAGE.Store(index, nym.Alias())) {
         otErr << __FUNCTION__ << ": Failure trying to store "
               << " credential list for Nym: " << nym.ID().str() << std::endl;
 
@@ -2055,7 +2057,7 @@ bool Wallet::SetNymAlias(const Identifier& id, const std::string& alias) const
 
     nym->SetAlias(alias);
 
-    return ot_.DB().SetNymAlias(id.str(), alias);
+    return STORAGE.SetNymAlias(id.str(), alias);
 }
 
 std::shared_ptr<const opentxs::Nym> Wallet::signer_nym(
@@ -2079,7 +2081,7 @@ ConstServerContract Wallet::Server(
         std::shared_ptr<proto::ServerContract> serialized;
 
         std::string alias;
-        bool loaded = ot_.DB().Load(server, serialized, alias, true);
+        bool loaded = STORAGE.Load(server, serialized, alias, true);
 
         if (loaded) {
             auto nym = Nym(Identifier::Factory(serialized->nymid()));
@@ -2155,7 +2157,7 @@ ConstServerContract Wallet::Server(
         contract->SetAlias(serverNymName);
     }
 
-    if (ot_.DB().Store(contract->Contract(), contract->Alias())) {
+    if (STORAGE.Store(contract->Contract(), contract->Alias())) {
         Lock mapLock(server_map_lock_);
         server_map_[server].reset(contract.release());
         mapLock.unlock();
@@ -2206,7 +2208,7 @@ ConstServerContract Wallet::Server(const proto::ServerContract& contract) const
                     serverID->Assign(candidate->ID());
                 }
 
-                const auto stored = ot_.DB().Store(
+                const auto stored = STORAGE.Store(
                     candidate->Contract(), candidate->EffectiveName());
 
                 if (stored) {
@@ -2253,7 +2255,7 @@ ConstServerContract Wallet::Server(
     return Server(Identifier::Factory(server));
 }
 
-ObjectList Wallet::ServerList() const { return ot_.DB().ServerList(); }
+ObjectList Wallet::ServerList() const { return STORAGE.ServerList(); }
 
 OTIdentifier Wallet::ServerToNym(OTIdentifier& input) const
 {
@@ -2298,7 +2300,7 @@ bool Wallet::SetServerAlias(const Identifier& id, const std::string& alias)
     const
 {
     const std::string server = id.str();
-    const bool saved = ot_.DB().SetServerAlias(server, alias);
+    const bool saved = STORAGE.SetServerAlias(server, alias);
 
     if (saved) {
         Lock mapLock(server_map_lock_);
@@ -2316,7 +2318,7 @@ bool Wallet::SetUnitDefinitionAlias(
     const std::string& alias) const
 {
     const std::string unit = id.str();
-    const bool saved = ot_.DB().SetUnitDefinitionAlias(unit, alias);
+    const bool saved = STORAGE.SetUnitDefinitionAlias(unit, alias);
 
     if (saved) {
         Lock mapLock(unit_map_lock_);
@@ -2330,7 +2332,7 @@ bool Wallet::SetUnitDefinitionAlias(
 
 ObjectList Wallet::UnitDefinitionList() const
 {
-    return ot_.DB().UnitDefinitionList();
+    return STORAGE.UnitDefinitionList();
 }
 
 const ConstUnitDefinition Wallet::UnitDefinition(
@@ -2346,7 +2348,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
         std::shared_ptr<proto::UnitDefinition> serialized;
 
         std::string alias;
-        bool loaded = ot_.DB().Load(unit, serialized, alias, true);
+        bool loaded = STORAGE.Load(unit, serialized, alias, true);
 
         if (loaded) {
             auto nym = Nym(Identifier::Factory(serialized->nymid()));
@@ -2403,7 +2405,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
     if (contract) {
         if (contract->Validate()) {
-            if (ot_.DB().Store(contract->Contract(), contract->Alias())) {
+            if (STORAGE.Store(contract->Contract(), contract->Alias())) {
                 Lock mapLock(unit_map_lock_);
                 unit_map_[unit].reset(contract.release());
                 mapLock.unlock();
@@ -2428,7 +2430,7 @@ ConstUnitDefinition Wallet::UnitDefinition(
 
         if (candidate) {
             if (candidate->Validate()) {
-                if (ot_.DB().Store(candidate->Contract(), candidate->Alias())) {
+                if (STORAGE.Store(candidate->Contract(), candidate->Alias())) {
                     Lock mapLock(unit_map_lock_);
                     unit_map_[unit].reset(candidate.release());
                     mapLock.unlock();
@@ -2503,5 +2505,15 @@ ConstUnitDefinition Wallet::UnitDefinition(
     return UnitDefinition(Identifier::Factory(unit));
 }
 
-Wallet::~Wallet() {}
+bool Wallet::LoadCredential(
+    const std::string& id,
+    std::shared_ptr<proto::Credential>& credential) const
+{
+    return STORAGE.Load(id, credential);
+}
+
+bool Wallet::SaveCredential(const proto::Credential& credential) const
+{
+    return STORAGE.Store(credential);
+}
 }  // namespace opentxs::api::implementation

@@ -28,7 +28,6 @@ public:
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
     const api::Crypto& Crypto() const override;
-    const api::storage::Storage& DB() const override;
     const api::network::Dht& DHT() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
     const api::Identity& Identity() const override;

@@ -184,7 +184,12 @@ public:
     proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const Identifier& contractID) const override;
 
-    ~Wallet();
+    bool LoadCredential(
+        const std::string& id,
+        std::shared_ptr<proto::Credential>& credential) const override;
+    bool SaveCredential(const proto::Credential& credential) const override;
+
+    ~Wallet() = default;
 
 private:
     using AccountLock =

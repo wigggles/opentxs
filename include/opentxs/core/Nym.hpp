@@ -239,6 +239,7 @@ private:
     std::shared_ptr<NymIDSource> source_{nullptr};
     mutable std::unique_ptr<class ContactData> contact_data_;
     const api::Wallet& wallet_;
+    const api::storage::Storage& storage_;
 
     // The credentials for this Nym. (Each with a master key credential and
     // various child credentials.)
@@ -295,13 +296,15 @@ private:
     void SetAlias(const std::string& alias);
     bool update_nym(const eLock& lock, const std::int32_t version);
 
-    Nym(const api::Factory& factory,
+    Nym(const api::storage::Storage& storage,
+        const api::Factory& factory,
         const api::Wallet& wallet,
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
         const NymParameters& nymParameters);
-    Nym(const api::Factory& factory,
+    Nym(const api::storage::Storage& storage,
+        const api::Factory& factory,
         const api::Wallet& wallet,
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
