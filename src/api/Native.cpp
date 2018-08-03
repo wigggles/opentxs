@@ -13,7 +13,6 @@
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
-#include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
@@ -364,7 +363,6 @@ Native::Native(
 #if OT_CRYPTO_WITH_BIP39
     , seeds_(nullptr)
 #endif
-    , identity_(nullptr)
     , legacy_(nullptr)
     , storage_(nullptr)
     , wallet_(nullptr)
@@ -533,13 +531,6 @@ void Native::HandleSignals(ShutdownCallback* callback) const
     }
 }
 
-const api::Identity& Native::Identity() const
-{
-    OT_ASSERT(identity_)
-
-    return *identity_;
-}
-
 void Native::Init()
 {
     Init_Legacy();
@@ -552,11 +543,10 @@ void Native::Init()
 #endif
     Init_ZMQ();  // requires Init_Config()
     Init_Contracts();
-    Init_Dht();       // requires Init_Config()
-    Init_Identity();  // requires Init_Contracts()
-    Init_Api();       // requires Init_Legacy(), Init_Config(), Init_Crypto(),
-                      // Init_Contracts(), Init_Identity(), Init_Storage(),
-                      // Init_ZMQ(), Init_Seeds()
+    Init_Dht();  // requires Init_Config()
+    Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
+                 // Init_Contracts(), Init_Identity(), Init_Storage(),
+                 // Init_ZMQ(), Init_Seeds()
 
     if (recover_) { recover(); }
 
@@ -577,7 +567,6 @@ void Native::Init_Api()
 #if OT_CRYPTO_WITH_BIP39
     OT_ASSERT(seeds_);
 #endif
-    OT_ASSERT(identity_);
     OT_ASSERT(legacy_);
 
     if (server_mode_) { return; }
@@ -589,7 +578,6 @@ void Native::Init_Api()
 #if OT_CRYPTO_WITH_BIP39
         *seeds_,
 #endif
-        *identity_,
         *legacy_,
         *storage_,
         *wallet_,
@@ -682,13 +670,6 @@ void Native::Init_Dht()
         notUsed);
 
     dht_.reset(new api::network::implementation::Dht(config, *wallet_));
-}
-
-void Native::Init_Identity()
-{
-    OT_ASSERT(wallet_);
-
-    identity_.reset(opentxs::Factory::Identity(*wallet_));
 }
 
 void Native::Init_Legacy()
@@ -1212,7 +1193,6 @@ void Native::shutdown()
 
     server_.reset();
     client_.reset();
-    identity_.reset();
     dht_.reset();
     wallet_.reset();
     zeromq_.reset();

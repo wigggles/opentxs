@@ -32,7 +32,6 @@ public:
     EXPORT virtual const network::Dht& DHT() const = 0;
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
-    EXPORT virtual const api::Identity& Identity() const = 0;
     EXPORT virtual const api::Legacy& Legacy() const = 0;
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */

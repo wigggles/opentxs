@@ -107,7 +107,6 @@ public:
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
-        const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::Wallet& wallet,

@@ -55,7 +55,6 @@ private:
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds_;
 #endif
-    const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
 
@@ -73,6 +72,7 @@ private:
     std::unique_ptr<api::client::UI> ui_;
     std::unique_ptr<api::client::Workflow> workflow_;
     std::unique_ptr<api::Factory> factory_;
+    std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
 
@@ -91,6 +91,7 @@ private:
     void Init_Cash();
     void Init_Contacts();
     void Init_Factory();
+    void Init_Identity();
     void Init_OldClientAPI();
     void Init_Pair();
     void Init_ServerAction();
@@ -105,7 +106,6 @@ private:
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
-        const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const api::Wallet& wallet,

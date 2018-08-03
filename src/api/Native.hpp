@@ -30,7 +30,6 @@ public:
     const api::Crypto& Crypto() const override;
     const api::network::Dht& DHT() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
-    const api::Identity& Identity() const override;
     const api::Legacy& Legacy() const override;
     /** Adds a task to the periodic task list with the specified interval. By
      * default, schedules for immediate execution. */
@@ -82,7 +81,6 @@ private:
 #if OT_CRYPTO_WITH_BIP39
     std::unique_ptr<api::HDSeed> seeds_;
 #endif
-    std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
     std::unique_ptr<api::Wallet> wallet_;
@@ -125,7 +123,6 @@ private:
     void Init_Contracts();
     void Init_Crypto();
     void Init_Dht();
-    void Init_Identity();
     void Init_Legacy();
     void Init_Log();
     void Init_Periodic();
