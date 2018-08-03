@@ -7,15 +7,18 @@
 
 #include "Server.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/HDSeed.hpp"
+#endif
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -33,9 +36,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/ext/OTPayment.hpp"
 
 #include "ConfigLoader.hpp"
@@ -82,12 +82,18 @@ std::int32_t OTCron::__cron_max_items_per_nym =
 
 Server::Server(
     const opentxs::api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+    const opentxs::api::HDSeed& seeds,
+#endif
     const opentxs::api::Legacy& legacy,
     const opentxs::api::Settings& config,
     const opentxs::api::Server& mint,
     const opentxs::api::storage::Storage& storage,
-    const opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Wallet& wallet)
     : crypto_(crypto)
+#if OT_CRYPTO_WITH_BIP39
+    , seeds_(seeds)
+#endif
     , legacy_(legacy)
     , config_(config)
     , mint_(mint)
@@ -189,7 +195,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         OTPassword words;
         phrase.setPassword(parsed.first);
         words.setPassword(parsed.second);
-        seed = crypto_.BIP39().ImportSeed(words, phrase);
+        seed = seeds_.ImportSeed(words, phrase);
 
         if (seed.empty()) {
             otErr << OT_METHOD << __FUNCTION__ << ": Seed restoration failed."
@@ -443,9 +449,8 @@ void Server::CreateMainFile(bool& mainFileExists)
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const std::string defaultFingerprint = storage_.DefaultSeed();
 
-    const std::string words = crypto_.BIP39().Words(defaultFingerprint);
-    const std::string passphrase =
-        crypto_.BIP39().Passphrase(defaultFingerprint);
+    const std::string words = seeds_.Words(defaultFingerprint);
+    const std::string passphrase = seeds_.Passphrase(defaultFingerprint);
 #else
     const std::string words;
     const std::string passphrase;

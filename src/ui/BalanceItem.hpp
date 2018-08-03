@@ -34,7 +34,7 @@ public:
 
 protected:
     const api::client::Sync& sync_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const OTIdentifier nym_id_;
     const StorageBox type_{StorageBox::UNKNOWN};
     std::string text_{""};
@@ -47,12 +47,12 @@ protected:
         const AccountActivityInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
         const api::client::Sync& sync,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& accountID);
 
@@ -79,7 +79,7 @@ public:
     ~ChequeBalanceItem() override = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const api::Legacy& legacy_;
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
@@ -95,12 +95,12 @@ private:
         const AccountActivityInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
         const api::client::Sync& sync,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const Identifier& nymID,
         const Identifier& accountID);

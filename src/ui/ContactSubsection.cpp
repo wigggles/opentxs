@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -43,7 +43,7 @@ ui::implementation::ContactSectionRowInternal* Factory::ContactSubsectionWidget(
     const ui::implementation::ContactSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::ContactSectionRowID& rowID,
     const ui::implementation::ContactSectionSortKey& key,
     const ui::implementation::CustomData& custom)
@@ -59,7 +59,7 @@ ContactSubsection::ContactSubsection(
     const ContactSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ContactSectionRowID& rowID,
     const ContactSectionSortKey& key,
     const CustomData& custom)

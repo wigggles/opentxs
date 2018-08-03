@@ -19,6 +19,8 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
 class Blockchain
 {
 public:
@@ -73,6 +75,7 @@ private:
     Blockchain& operator=(const Blockchain&) = delete;
     Blockchain& operator=(Blockchain&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD

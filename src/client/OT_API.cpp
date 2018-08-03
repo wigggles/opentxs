@@ -8,17 +8,18 @@
 #include "opentxs/client/OT_API.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Pair.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Api.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -76,9 +77,6 @@
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
-#endif
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
 #endif
 #include "opentxs/ext/InstantiateContract.hpp"
 #include "opentxs/ext/OTPayment.hpp"
@@ -499,37 +497,40 @@ void OT_API::Pid::ClosePid()
 bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
 
 OT_API::OT_API(
-    const api::Activity& activity,
-    const api::Api& api,
+    const api::client::Activity& activity,
+    const api::client::Client& client,
     const api::Settings& config,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Crypto& crypto,
+    const api::Factory& factory,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
     const api::Identity& identity,
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::network::ZMQ& zmq,
     const ContextLockCallback& lockCallback)
     : activity_(activity)
-    , api_(api)
+    , client_(client)
     , config_(config)
     , contacts_(contacts)
     , crypto_(crypto)
-    , identity_(identity)
-    , legacy_(legacy)
-    , storage_(storage)
-    , wallet_(wallet)
-    , workflow_(workflow)
-    , zeromq_(zmq)
-    , m_strDataPath("")
-    , m_strWalletFilename("")
-    , m_strWalletFilePath("")
-    , m_strConfigFilename("")
-    , m_strConfigFilePath("")
-    , m_pWallet(nullptr)
-    , m_pClient(nullptr)
-    , lock_callback_(lockCallback)
+    , factory_
+{
+    factory
+}
+#if OT_CRYPTO_WITH_BIP39
+, seeds_(seeds)
+#endif
+      ,
+    identity_(identity), legacy_(legacy), storage_(storage), wallet_(wallet),
+    workflow_(workflow), zeromq_(zmq), m_strDataPath(""),
+    m_strWalletFilename(""), m_strWalletFilePath(""), m_strConfigFilename(""),
+    m_strConfigFilePath(""), m_pWallet(nullptr), m_pClient(nullptr),
+    lock_callback_(lockCallback)
 {
     pid_.reset(new Pid);
 
@@ -593,7 +594,14 @@ bool OT_API::Init()
     if (m_bDefaultStore) {
         otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
-        m_pWallet = new OTWallet(crypto_, legacy_, wallet_, storage_);
+        m_pWallet = new OTWallet(
+            crypto_,
+#if OT_CRYPTO_WITH_BIP39
+            seeds_,
+#endif
+            legacy_,
+            wallet_,
+            storage_);
         m_pClient.reset(new OTClient(
             *m_pWallet, activity_, contacts_, legacy_, wallet_, workflow_));
 
@@ -3943,12 +3951,11 @@ bool OT_API::HarvestAllNumbers(
     return true;
 }
 
-// static
-std::string OT_API::NymIDFromPaymentCode(__attribute__((unused))
-                                         const std::string& paymentCode)
+std::string OT_API::NymIDFromPaymentCode([
+    [maybe_unused]] const std::string& paymentCode) const
 {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = PaymentCode::Factory(paymentCode);
+    auto code = factory_.PaymentCode(paymentCode);
 
     if (code->VerifyInternally()) {
         return code->ID()->str();

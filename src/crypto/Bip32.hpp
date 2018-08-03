@@ -14,17 +14,6 @@ namespace opentxs::crypto::implementation
 {
 class Bip32 : virtual public opentxs::crypto::Bip32
 {
-public:
-    std::shared_ptr<proto::AsymmetricKey> AccountChildKey(
-        const proto::HDPath& path,
-        const BIP44Chain internal,
-        const std::uint32_t index) const;
-    std::string Seed(const std::string& fingerprint = "") const;
-    std::shared_ptr<proto::AsymmetricKey> GetPaymentCode(
-        std::string& fingerprint,
-        const std::uint32_t nym) const;
-    std::shared_ptr<proto::AsymmetricKey> GetStorageKey(
-        std::string& seed) const;
 };
 }  // namespace opentxs::crypto::implementation
 #endif  // IMPLEMENTATION_OPENTXS_CRYPTO_BIP32_HPP

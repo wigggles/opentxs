@@ -19,12 +19,16 @@ namespace api
 {
 namespace client
 {
+class Activity;
+class Blockchain;
 class Cash;
+class Client;
+class Contacts;
 class Issuer;
 class Pair;
 class ServerAction;
 class Sync;
-class Wallet;
+class UI;
 class Workflow;
 }  // namespace client
 
@@ -47,17 +51,15 @@ class Dht;
 class ZMQ;
 }  // namespace network
 
-class Activity;
-class Api;
-class Blockchain;
-class ContactManager;
 class Crypto;
+class Factory;
+class HDSeed;
 class Identity;
 class Legacy;
 class Native;
 class Server;
 class Settings;
-class UI;
+class Wallet;
 }  // namespace api
 
 namespace client

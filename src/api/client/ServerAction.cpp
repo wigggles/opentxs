@@ -29,7 +29,7 @@ namespace opentxs
 api::client::ServerAction* Factory::ServerAction(
     const OT_API& otapi,
     const OTAPI_Exec& exec,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::Legacy& legacy,
     const ContextLockCallback& lockCallback)
@@ -44,7 +44,7 @@ namespace opentxs::api::client::implementation
 ServerAction::ServerAction(
     const OT_API& otapi,
     const OTAPI_Exec& exec,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::Legacy& legacy,
     const ContextLockCallback& lockCallback)

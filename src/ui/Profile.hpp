@@ -57,11 +57,11 @@ public:
     ~Profile() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const ListenerDefinitions listeners_;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     std::string name_;
     std::string payment_code_;
 
@@ -71,7 +71,7 @@ private:
     static int sort_key(const proto::ContactSectionName type);
     static bool check_type(const proto::ContactSectionName type);
     static std::string nym_name(
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Identifier& nymID);
 
     void construct_row(
@@ -91,8 +91,8 @@ private:
     Profile(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
-        const api::client::Wallet& wallet,
+        const api::client::Contacts& contact,
+        const api::Wallet& wallet,
         const Identifier& nymID);
     Profile() = delete;
     Profile(const Profile&) = delete;

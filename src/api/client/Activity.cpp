@@ -6,11 +6,12 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
@@ -37,28 +38,31 @@
 namespace opentxs
 {
 api::client::internal::Activity* Factory::Activity(
-    const api::Legacy& legacy,
-    const api::ContactManager& contact,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::client::Contacts& contact,
+    const api::Factory& factory,
+    const api::Legacy& legacy,
+    const api::Wallet& wallet,
     const network::zeromq::Context& zmq)
 {
     return new api::client::implementation::Activity(
-        legacy, contact, storage, wallet, zmq);
+        storage, contact, factory, legacy, wallet, zmq);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 Activity::Activity(
-    const Legacy& legacy,
-    const ContactManager& contact,
     const storage::Storage& storage,
-    const client::Wallet& wallet,
+    const Contacts& contact,
+    const Factory& factory,
+    const Legacy& legacy,
+    const Wallet& wallet,
     const opentxs::network::zeromq::Context& zmq)
-    : legacy_(legacy)
+    : storage_(storage)
     , contact_(contact)
-    , storage_(storage)
+    , factory_(factory)
+    , legacy_(legacy)
     , wallet_(wallet)
     , zmq_(zmq)
     , mail_cache_lock_()
@@ -456,7 +460,7 @@ void Activity::MigrateLegacyThreads() const
 
                 if (1 == nymCount) {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto paymentCode = PaymentCode::Factory("");
+                    auto paymentCode = factory_.PaymentCode("");
 #endif
                     auto newContact = contact_.NewContact(
                         "",

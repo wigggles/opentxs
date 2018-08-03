@@ -8,10 +8,9 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/OT.hpp"
-
 #include <cstdint>
 #include <memory>
+#include <string>
 
 namespace opentxs
 {
@@ -20,6 +19,7 @@ namespace api
 class Server
 {
 public:
+    EXPORT virtual const api::Factory& Factory() const = 0;
     EXPORT virtual const std::string GetCommandPort() const = 0;
     EXPORT virtual const std::string GetDefaultBindIP() const = 0;
     EXPORT virtual const std::string GetEEP() const = 0;
@@ -40,6 +40,11 @@ public:
     EXPORT virtual const Identifier& NymID() const = 0;
 #if OT_CASH
     EXPORT virtual void ScanMints() const = 0;
+#endif  // OT_CASH
+#if OT_CRYPTO_WITH_BIP39
+    EXPORT virtual const api::HDSeed& Seeds() const = 0;
+#endif
+#if OT_CASH
     EXPORT virtual void UpdateMint(const Identifier& unitID) const = 0;
 #endif  // OT_CASH
 

@@ -7,11 +7,11 @@
 
 #include "UserCommandProcessor.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
+#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
@@ -164,7 +164,7 @@ UserCommandProcessor::UserCommandProcessor(
     const opentxs::api::Legacy& legacy,
     const opentxs::api::Settings& config,
     const opentxs::api::Server& mint,
-    const opentxs::api::client::Wallet& wallet)
+    const opentxs::api::Wallet& wallet)
     : server_(server)
     , legacy_(legacy)
     , config_(config)

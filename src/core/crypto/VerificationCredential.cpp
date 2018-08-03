@@ -46,10 +46,11 @@ std::string VerificationCredential::VerificationID(
 }
 
 VerificationCredential::VerificationCredential(
-    const api::client::Wallet& wallet,
+    const api::Factory& factory,
+    const api::Wallet& wallet,
     CredentialSet& parent,
     const proto::Credential& credential)
-    : ot_super(wallet, parent, credential)
+    : ot_super(factory, wallet, parent, credential)
 {
     mode_ = proto::KEYMODE_NULL;
     master_id_ = credential.childdata().masterid();
@@ -57,10 +58,16 @@ VerificationCredential::VerificationCredential(
 }
 
 VerificationCredential::VerificationCredential(
-    const api::client::Wallet& wallet,
+    const api::Factory& factory,
+    const api::Wallet& wallet,
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(wallet, parent, VERIFICATION_CREDENTIAL_VERSION, nymParameters)
+    : ot_super(
+          factory,
+          wallet,
+          parent,
+          VERIFICATION_CREDENTIAL_VERSION,
+          nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_VERIFY;

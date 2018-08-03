@@ -291,11 +291,11 @@ public:
     ~ServerAction() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const OT_API& otapi_;
     const OTAPI_Exec& exec_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::Legacy& legacy_;
     ContextLockCallback lock_callback_;
@@ -303,7 +303,7 @@ private:
     ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const ContextLockCallback& lockCallback);

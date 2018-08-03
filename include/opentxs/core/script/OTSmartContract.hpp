@@ -324,7 +324,7 @@ protected:
     const time64_t& GetNextProcessDate() const { return m_tNextProcessDate; }
 
 private:
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     // In OTSmartContract, none of this normal crap is used.
     // The Sender/Recipient are unused.
     // The Opening and Closing Trans#s are unused.

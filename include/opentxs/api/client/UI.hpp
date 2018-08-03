@@ -12,7 +12,7 @@
 
 #ifdef SWIG
 // clang-format off
-%extend opentxs::api::UI {
+%extend opentxs::api::client::UI {
     const ui::AccountSummary& AccountSummary(
         const Identifier& nymID,
         const int currency) const
@@ -30,14 +30,16 @@
             static_cast<opentxs::proto::ContactItemType>(currency));
     }
 }
-%ignore opentxs::api::UI::AccountSummary;
-%ignore opentxs::api::UI::PayableList;
+%ignore opentxs::api::client::UI::AccountSummary;
+%ignore opentxs::api::client::UI::PayableList;
 // clang-format on
 #endif  // SWIG
 
 namespace opentxs
 {
 namespace api
+{
+namespace client
 {
 class UI
 {
@@ -76,6 +78,7 @@ private:
     UI& operator=(const UI&) = delete;
     UI& operator=(UI&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_API_UI_HPP

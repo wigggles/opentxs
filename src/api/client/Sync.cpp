@@ -5,17 +5,17 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Api.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Settings.hpp"
+#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Purse.hpp"
 #endif  // OT_CASH
@@ -123,11 +123,11 @@ api::client::Sync* Factory::Sync(
     const Flag& running,
     const OT_API& otapi,
     const OTAPI_Exec& exec,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Settings& config,
-    const api::Api& api,
+    const api::client::Client& client,
     const api::Legacy& legacy,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
     const api::storage::Storage& storage,
@@ -141,7 +141,7 @@ api::client::Sync* Factory::Sync(
         contacts,
         legacy,
         config,
-        api,
+        client,
         wallet,
         workflow,
         encoding,
@@ -206,11 +206,11 @@ Sync::Sync(
     const Flag& running,
     const OT_API& otapi,
     const opentxs::OTAPI_Exec& exec,
-    const api::ContactManager& contacts,
+    const api::client::Contacts& contacts,
     const api::Legacy& legacy,
     const api::Settings& config,
-    const api::Api& api,
-    const api::client::Wallet& wallet,
+    const api::client::Client& client,
+    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
     const api::storage::Storage& storage,
@@ -223,8 +223,8 @@ Sync::Sync(
     , contacts_(contacts)
     , legacy_(legacy)
     , config_(config)
-    , api_(api)
-    , server_action_(api.ServerAction())
+    , client_(client)
+    , server_action_(client.ServerAction())
     , wallet_(wallet)
     , workflow_(workflow)
     , encoding_(encoding)
@@ -929,7 +929,7 @@ bool Sync::download_contract(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
-            api_.Pair().Update();
+            client_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {
@@ -964,7 +964,7 @@ bool Sync::download_nym(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
-            api_.Pair().Update();
+            client_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {
@@ -1555,7 +1555,7 @@ bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
 
 void Sync::Refresh() const
 {
-    api_.Pair().Update();
+    client_.Pair().Update();
     refresh_accounts();
 
     SHUTDOWN()
@@ -1725,7 +1725,7 @@ bool Sync::register_account(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
-            api_.Pair().Update();
+            client_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {
@@ -1758,7 +1758,7 @@ bool Sync::register_nym(
         OT_ASSERT(action->Reply());
 
         if (action->Reply()->m_bSuccess) {
-            api_.Pair().Update();
+            client_.Pair().Update();
 
             return finish_task(taskID, true);
         } else {

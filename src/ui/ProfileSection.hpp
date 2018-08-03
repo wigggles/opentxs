@@ -52,12 +52,12 @@ public:
     ~ProfileSection() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static int sort_key(const ProfileSectionRowID type);
     static bool check_type(const ProfileSectionRowID type);
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
 
     void construct_row(
         const ProfileSectionRowID& id,
@@ -76,11 +76,11 @@ private:
         const ProfileInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ProfileRowID& rowID,
         const ProfileSortKey& key,
         const CustomData& custom,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     ProfileSection() = delete;
     ProfileSection(const ProfileSection&) = delete;
     ProfileSection(ProfileSection&&) = delete;

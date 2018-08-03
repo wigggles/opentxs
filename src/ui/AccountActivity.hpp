@@ -44,7 +44,7 @@ public:
     ~AccountActivity() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     using EventRow =
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
@@ -53,7 +53,7 @@ private:
     static const ListenerDefinitions listeners_;
 
     const api::client::Sync& sync_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::storage::Storage& storage_;
     const api::Legacy& legacy_;
@@ -83,9 +83,9 @@ private:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const api::storage::Storage& storage,
         const api::Legacy& legacy,
         const Identifier& nymID,

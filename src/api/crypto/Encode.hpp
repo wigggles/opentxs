@@ -28,7 +28,7 @@ public:
     ~Encode() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const std::uint8_t LineWidth{72};
 

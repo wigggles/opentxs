@@ -7,9 +7,9 @@
 #define OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-class Blockchain : virtual public api::Blockchain
+class Blockchain : virtual public api::client::Blockchain
 {
 public:
     std::shared_ptr<proto::Bip44Account> Account(
@@ -57,12 +57,13 @@ public:
 private:
     typedef std::map<OTIdentifier, std::mutex> IDLock;
 
-    friend Factory;
+    friend opentxs::Factory;
 
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const api::Crypto& crypto_;
+    const api::HDSeed& seeds_;
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
     mutable IDLock account_lock_;
@@ -98,16 +99,17 @@ private:
         const std::string& toContact) const;
 
     Blockchain(
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const api::Crypto& crypto,
+        const api::HDSeed& seeds,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet);
+        const api::Wallet& wallet);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;
     Blockchain& operator=(const Blockchain&) = delete;
     Blockchain& operator=(Blockchain&&) = delete;
 };
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #endif  // OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP

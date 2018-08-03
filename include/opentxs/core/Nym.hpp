@@ -29,13 +29,10 @@ namespace opentxs
 {
 namespace api
 {
-namespace client
-{
 namespace implementation
 {
 class Wallet;
 }  // namespace implementation
-}  // namespace client
 }  // namespace api
 
 typedef std::deque<Message*> dequeOfMail;
@@ -46,8 +43,6 @@ typedef bool CredentialIndexModeFlag;
 
 class Nym : Lockable
 {
-    friend class api::client::implementation::Wallet;
-
 public:
     static const CredentialIndexModeFlag ONLY_IDS = true;
     static const CredentialIndexModeFlag FULL_CREDS = false;
@@ -221,8 +216,12 @@ public:
     EXPORT ~Nym();
 
 private:
-    friend api::client::Wallet;
+    friend api::implementation::Wallet;
 
+    const api::Factory& factory_;
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds_;
+#endif
     std::int32_t version_{0};
     std::uint32_t index_{0};
     std::string alias_;
@@ -233,7 +232,7 @@ private:
     const OTIdentifier m_nymID;
     std::shared_ptr<NymIDSource> source_{nullptr};
     mutable std::unique_ptr<class ContactData> contact_data_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
 
     // The credentials for this Nym. (Each with a master key credential and
     // various child credentials.)
@@ -284,8 +283,17 @@ private:
     void SetAlias(const std::string& alias);
     bool update_nym(const eLock& lock, const std::int32_t version);
 
-    Nym(const api::client::Wallet& wallet, const NymParameters& nymParameters);
-    Nym(const api::client::Wallet& wallet,
+    Nym(const api::Factory& factory,
+        const api::Wallet& wallet,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
+        const NymParameters& nymParameters);
+    Nym(const api::Factory& factory,
+        const api::Wallet& wallet,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const Identifier& nymID,
         const proto::CredentialIndexMode mode = proto::CREDINDEX_ERROR);
     Nym() = delete;

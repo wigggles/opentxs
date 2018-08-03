@@ -5,9 +5,10 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Server.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
@@ -19,6 +20,7 @@
 #include "opentxs/core/Log.hpp"
 #include <opentxs/core/OTStorage.hpp>
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include "server/MessageProcessor.hpp"
@@ -52,15 +54,28 @@ namespace opentxs
 api::Server* Factory::ServerAPI(
     const ArgList& args,
     const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
     const api::Legacy& legacy,
     const api::Settings& config,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Flag& running,
-    const network::zeromq::Context& context)
+    const network::zeromq::Context& context,
+    const int instance)
 {
     return new api::implementation::Server(
-        args, crypto, legacy, config, storage, wallet, running, context);
+        args,
+        crypto,
+        seeds,
+        legacy,
+        config,
+        storage,
+        wallet,
+        running,
+        context,
+        instance);
 }
 }  // namespace opentxs
 
@@ -69,22 +84,32 @@ namespace opentxs::api::implementation
 Server::Server(
     const ArgList& args,
     const opentxs::api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
     const api::Legacy& legacy,
     const opentxs::api::Settings& config,
     const opentxs::api::storage::Storage& storage,
-    const opentxs::api::client::Wallet& wallet,
+    const opentxs::api::Wallet& wallet,
     const Flag& running,
-    const opentxs::network::zeromq::Context& context)
+    const opentxs::network::zeromq::Context& context,
+    const int instance)
     : args_(args)
     , legacy_(legacy)
     , config_(config)
     , crypto_(crypto)
+    , seeds_(seeds)
     , storage_(storage)
     , wallet_(wallet)
     , running_(running)
     , zmq_context_(context)
+    , instance_{instance}
+    , factory_(nullptr)
     , server_p_(new server::Server(
           crypto_,
+#if OT_CRYPTO_WITH_BIP39
+          seeds_,
+#endif
           legacy_,
           config_,
           *this,
@@ -117,8 +142,15 @@ void Server::Cleanup()
 {
     otErr << OT_METHOD << __FUNCTION__ << ": Shutting down and cleaning up."
           << std::endl;
-
     message_processor_.cleanup();
+    factory_.reset();
+}
+
+const api::Factory& Server::Factory() const
+{
+    OT_ASSERT(factory_)
+
+    return *factory_;
 }
 
 #if OT_CASH
@@ -306,7 +338,18 @@ const std::string Server::GetUserTerms() const
 
 const Identifier& Server::ID() const { return server_.GetServerID(); }
 
-void Server::Init() {}
+void Server::Init() { Init_Factory(); }
+
+void Server::Init_Factory()
+{
+    factory_.reset(opentxs::Factory::FactoryAPI(
+#if OT_CRYPTO_WITH_BIP39
+        seeds_
+#endif
+        ));
+
+    OT_ASSERT(factory_)
+}
 
 #if OT_CASH
 std::int32_t Server::last_generated_series(

@@ -11,7 +11,6 @@ set(MODULE_NAME opentxs-crypto)
 
 set(cxx-sources
   Bip32.cpp
-  Bip39.cpp
 )
 
 set(cxx-install-headers
@@ -22,7 +21,6 @@ set(cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
   Bip32.hpp
-  Bip39.hpp
 )
 
 if(WIN32)

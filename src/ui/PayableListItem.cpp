@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -29,7 +29,7 @@ ui::internal::PayableListItem* Factory::PayableListItem(
     const ui::implementation::PayableInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::PayableListRowID& rowID,
     const ui::implementation::PayableListSortKey& key,
     const std::string& paymentcode,
@@ -46,7 +46,7 @@ PayableListItem::PayableListItem(
     const PayableInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const PayableListRowID& rowID,
     const PayableListSortKey& key,
     const std::string& paymentcode,

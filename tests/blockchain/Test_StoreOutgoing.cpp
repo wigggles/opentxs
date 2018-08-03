@@ -20,22 +20,22 @@ public:
 
     // these fingerprints are deterministic so we can share them among tests
     Test_StoreOutgoing()
-        : Alice(opentxs::OT::App().API().Exec().CreateNymHD(
+        : Alice(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreOutgoing_A",
               "",
               100))
-        , Bob(opentxs::OT::App().API().Exec().CreateNymHD(
+        , Bob(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreOutgoing_B",
               "",
               101))
-        , Charly(opentxs::OT::App().API().Exec().CreateNymHD(
+        , Charly(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "testStoreOutgoing_C",
               "",
               102))
-        , AccountID(OT::App().Blockchain().NewAccount(
+        , AccountID(OT::App().Client().Blockchain().NewAccount(
               Identifier::Factory(Alice),
               BlockchainAccountType::BIP44,
               proto::CITEMTYPE_BTC))
@@ -59,26 +59,27 @@ proto::BlockchainTransaction* MakeTransaction(const std::string id)
 TEST_F(Test_StoreOutgoing, testDeposit)
 {
     // test: Alice has no activity records
-    ObjectList AThreads =
-        OT::App().Activity().Threads(Identifier::Factory(Alice), false);
+    ObjectList AThreads = OT::App().Client().Activity().Threads(
+        Identifier::Factory(Alice), false);
     ASSERT_EQ(0, AThreads.size());
 
     // test:: Activity::Thread has deposit
     std::shared_ptr<proto::Bip44Account> Account =
-        OT::App().Blockchain().Account(Identifier::Factory(Alice), AccountID);
+        OT::App().Client().Blockchain().Account(
+            Identifier::Factory(Alice), AccountID);
     // test: no outgoing transactions
     ASSERT_EQ((*Account.get()).outgoing_size(), 0);
 
     // 1. Allocate deposit address
     std::unique_ptr<proto::Bip44Address> Address =
-        opentxs::OT::App().Blockchain().AllocateAddress(
+        opentxs::OT::App().Client().Blockchain().AllocateAddress(
             Identifier::Factory(Alice),
             Identifier::Factory(AccountID),
             "Deposit 1",
             EXTERNAL_CHAIN);
 
     // 2. Assign to Bob
-    bool assigned = opentxs::OT::App().Blockchain().AssignAddress(
+    bool assigned = opentxs::OT::App().Client().Blockchain().AssignAddress(
         Identifier::Factory(Alice),
         Identifier::Factory(AccountID),
         Address->index(),
@@ -90,7 +91,7 @@ TEST_F(Test_StoreOutgoing, testDeposit)
     // 3. Store outgoing transaction: from Alice to Bob
     proto::BlockchainTransaction* Tx = MakeTransaction(
         "ff041ccd67dd63b88a55f4681229108363c7615932ccbe73b68f4fffd1697ac6");
-    bool Stored = opentxs::OT::App().Blockchain().StoreOutgoing(
+    bool Stored = opentxs::OT::App().Client().Blockchain().StoreOutgoing(
         Identifier::Factory(Alice),
         Identifier::Factory(AccountID),
         Identifier::Factory(Bob),
@@ -101,19 +102,20 @@ TEST_F(Test_StoreOutgoing, testDeposit)
     // test: transaction is saved
     std::string TXID = Tx->txid();
     std::shared_ptr<proto::BlockchainTransaction> StoredOutgoingTx =
-        opentxs::OT::App().Blockchain().Transaction(Tx->txid());
+        opentxs::OT::App().Client().Blockchain().Transaction(Tx->txid());
     proto::BlockchainTransaction& StoredTx = *StoredOutgoingTx.get();
     EXPECT_TRUE(bool(StoredOutgoingTx));
 
     // test: transaction associated in account
     std::shared_ptr<proto::Bip44Account> ReloadedAccount =
-        OT::App().Blockchain().Account(Identifier::Factory(Alice), AccountID);
+        OT::App().Client().Blockchain().Account(
+            Identifier::Factory(Alice), AccountID);
     ASSERT_EQ(ReloadedAccount->outgoing_size(), 1);
     ASSERT_STREQ(ReloadedAccount->outgoing(0).c_str(), Tx->txid().c_str());
 
     // test: Activity::Thread contains deposit item
     std::shared_ptr<proto::StorageThread> Thread_AB =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(Bob));
     ASSERT_EQ(1, Thread_AB->item_size());
     EXPECT_EQ(1, Thread_AB->participant_size());
@@ -135,18 +137,19 @@ TEST_F(Test_StoreOutgoing, testDeposit)
 TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
 {
     // test: Alice has acvitiy with previous contact
-    ObjectList AThreads =
-        OT::App().Activity().Threads(Identifier::Factory(Alice), false);
+    ObjectList AThreads = OT::App().Client().Activity().Threads(
+        Identifier::Factory(Alice), false);
     EXPECT_EQ(1, AThreads.size());
 
     // test:: account contains an outgoing tx
     std::shared_ptr<proto::Bip44Account> Account =
-        OT::App().Blockchain().Account(Identifier::Factory(Alice), AccountID);
+        OT::App().Client().Blockchain().Account(
+            Identifier::Factory(Alice), AccountID);
     ASSERT_EQ((*Account.get()).outgoing_size(), 1);
 
     // 1. Allocate deposit address
     std::unique_ptr<proto::Bip44Address> Address =
-        opentxs::OT::App().Blockchain().AllocateAddress(
+        opentxs::OT::App().Client().Blockchain().AllocateAddress(
             Identifier::Factory(Alice),
             Identifier::Factory(AccountID),
             "Deposit 1",
@@ -155,7 +158,7 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
     // 2. Store outgoing transaction: from Alice to Charly
     proto::BlockchainTransaction* Tx = MakeTransaction(
         "855cd591c6502d1c81cfe38db8e0d8404ca09c2c3bc878e07f4cd0ca3afd7793");
-    bool Stored = opentxs::OT::App().Blockchain().StoreOutgoing(
+    bool Stored = opentxs::OT::App().Client().Blockchain().StoreOutgoing(
         Identifier::Factory(Alice),
         Identifier::Factory(AccountID),
         Identifier::Factory(Charly),
@@ -165,12 +168,12 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
 
     // test: Activity::Thread contains deposit item
     std::shared_ptr<proto::StorageThread> Thread_AB_ =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(Charly));
     ASSERT_EQ(1, Thread_AB_->item_size());
 
     // 3. Assign to Charly
-    bool assigned = opentxs::OT::App().Blockchain().AssignAddress(
+    bool assigned = opentxs::OT::App().Client().Blockchain().AssignAddress(
         Identifier::Factory(Alice),
         Identifier::Factory(AccountID),
         Address->index(),
@@ -182,22 +185,23 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
     // test: transaction is saved
     std::string TXID = Tx->txid();
     std::shared_ptr<proto::BlockchainTransaction> StoredOutgoingTx =
-        opentxs::OT::App().Blockchain().Transaction(Tx->txid());
+        opentxs::OT::App().Client().Blockchain().Transaction(Tx->txid());
     proto::BlockchainTransaction& StoredTx = *StoredOutgoingTx.get();
     EXPECT_TRUE(bool(StoredOutgoingTx));
 
     // test: transaction associated in account
     std::shared_ptr<proto::Bip44Account> ReloadedAccount =
-        OT::App().Blockchain().Account(Identifier::Factory(Alice), AccountID);
+        OT::App().Client().Blockchain().Account(
+            Identifier::Factory(Alice), AccountID);
     ASSERT_EQ(ReloadedAccount->outgoing_size(), 2);
     ASSERT_STREQ(ReloadedAccount->outgoing(1).c_str(), Tx->txid().c_str());
 
     // test: Activity::Thread contains deposit item
     OTIdentifier CharlyContactID = Identifier::Factory(Charly);
     // OTIdentifier CharlyContactID =
-    // OT::App().Contact().ContactID(Identifier(Charly));
+    // OT::App().Client().Contacts().ContactID(Identifier(Charly));
     std::shared_ptr<proto::StorageThread> Thread_AC =
-        opentxs::OT::App().Activity().Thread(
+        opentxs::OT::App().Client().Activity().Thread(
             Identifier::Factory(Alice), Identifier::Factory(CharlyContactID));
     ASSERT_EQ(1, Thread_AC->item_size());
     EXPECT_EQ(1, Thread_AC->participant_size());
@@ -206,8 +210,8 @@ TEST_F(Test_StoreOutgoing, testDeposit_UnknownContact)
     EXPECT_STREQ(Charly.c_str(), Thread_AC->id().c_str());
 
     // test: Alice has acvitiy with Bob (from previous test) and Charly
-    ObjectList AThreads_ =
-        OT::App().Activity().Threads(Identifier::Factory(Alice), false);
+    ObjectList AThreads_ = OT::App().Client().Activity().Threads(
+        Identifier::Factory(Alice), false);
     EXPECT_EQ(2, AThreads_.size());
 
     proto::StorageThreadItem DepositToCharly = Thread_AC->item(0);

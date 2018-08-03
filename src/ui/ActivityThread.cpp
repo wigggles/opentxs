@@ -6,8 +6,8 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Sync.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -49,8 +49,8 @@ ui::ActivityThread* Factory::ActivityThread(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
-    const api::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Activity& activity,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const Identifier& threadID)
 {
@@ -65,8 +65,8 @@ ActivityThread::ActivityThread(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
-    const api::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Activity& activity,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const Identifier& threadID)
     : ActivityThreadList(nymID, zmq, publisher, contact)

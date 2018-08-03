@@ -149,7 +149,7 @@ public:
 private:
     static const std::string DEFAULT_INTRODUCTION_SERVER;
 
-    friend Factory;
+    friend opentxs::Factory;
 
     /** ContextID: localNymID, serverID */
     using ContextID = std::pair<OTIdentifier, OTIdentifier>;
@@ -194,12 +194,12 @@ private:
     const Flag& running_;
     const OT_API& ot_api_;
     const opentxs::OTAPI_Exec& exec_;
-    const api::ContactManager& contacts_;
+    const api::client::Contacts& contacts_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
-    const api::Api& api_;
+    const api::client::Client& client_;
     const api::client::ServerAction& server_action_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::crypto::Encode& encoding_;
     const api::storage::Storage& storage_;
@@ -382,11 +382,11 @@ private:
         const Flag& running,
         const OT_API& otapi,
         const opentxs::OTAPI_Exec& exec,
-        const api::ContactManager& contacts,
+        const api::client::Contacts& contacts,
         const api::Legacy& legacy,
         const api::Settings& config,
-        const api::Api& api,
-        const api::client::Wallet& wallet,
+        const api::client::Client& client,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
         const api::storage::Storage& storage,

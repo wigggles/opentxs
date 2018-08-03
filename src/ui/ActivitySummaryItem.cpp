@@ -6,7 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -44,8 +44,8 @@ ui::implementation::ActivitySummaryRowInternal* Factory::ActivitySummaryItem(
     const ui::implementation::ActivitySummaryInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Activity& activity,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
@@ -72,8 +72,8 @@ ActivitySummaryItem::ActivitySummaryItem(
     const ActivitySummaryInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::Activity& activity,
-    const api::ContactManager& contact,
+    const api::client::Activity& activity,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivitySummaryRowID& rowID,
     const ActivitySummarySortKey& sortKey,

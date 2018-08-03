@@ -4,7 +4,6 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
-#include "opentxs/crypto/Bip32.hpp"
 
 #include <gtest/gtest.h>
 
@@ -29,23 +28,23 @@ public:
                "skate property fringe obey butter text tank drama palm guilt "
                "pudding laundry stay axis prosper")
         , fingerprint(
-              opentxs::OT::App().API().Exec().Wallet_ImportSeed(seed, ""))
-        , nymID_0(opentxs::OT::App().API().Exec().CreateNymHD(
+              opentxs::OT::App().Client().Exec().Wallet_ImportSeed(seed, ""))
+        , nymID_0(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym",
               fingerprint,
               0))
-        , nymID_1(opentxs::OT::App().API().Exec().CreateNymHD(
+        , nymID_1(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_1",
               fingerprint,
               1))
-        , nymID_2(opentxs::OT::App().API().Exec().CreateNymHD(
+        , nymID_2(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_2",
               fingerprint,
               2))
-        , nymID_3(opentxs::OT::App().API().Exec().CreateNymHD(
+        , nymID_3(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "PaycodeNym_3",
               fingerprint,
@@ -153,10 +152,26 @@ TEST_F(Test_PaymentCode, test_secondary_doesnt_replace)
  */
 TEST_F(Test_PaymentCode, valid_paycodes)
 {
-    ASSERT_TRUE(PaymentCode::Factory(paycode_0)->VerifyInternally());
-    ASSERT_TRUE(PaymentCode::Factory(paycode_1)->VerifyInternally());
-    ASSERT_TRUE(PaymentCode::Factory(paycode_2)->VerifyInternally());
-    ASSERT_TRUE(PaymentCode::Factory(paycode_3)->VerifyInternally());
+    ASSERT_TRUE(OT::App()
+                    .Client()
+                    .Factory()
+                    .PaymentCode(paycode_0)
+                    ->VerifyInternally());
+    ASSERT_TRUE(OT::App()
+                    .Client()
+                    .Factory()
+                    .PaymentCode(paycode_1)
+                    ->VerifyInternally());
+    ASSERT_TRUE(OT::App()
+                    .Client()
+                    .Factory()
+                    .PaymentCode(paycode_2)
+                    ->VerifyInternally());
+    ASSERT_TRUE(OT::App()
+                    .Client()
+                    .Factory()
+                    .PaymentCode(paycode_3)
+                    ->VerifyInternally());
 }
 
 /* Test: Invalid paycodes should not be saved
@@ -165,7 +180,8 @@ TEST_F(Test_PaymentCode, empty_paycode)
 {
     ASSERT_STREQ(paycode_0.c_str(), nymData_0.PaymentCode(currency).c_str());
 
-    ASSERT_FALSE(PaymentCode::Factory("")->VerifyInternally());
+    ASSERT_FALSE(
+        OT::App().Client().Factory().PaymentCode("")->VerifyInternally());
     bool added = nymData_0.AddPaymentCode("", currency, true, true);
     ASSERT_FALSE(added);
 
@@ -174,7 +190,11 @@ TEST_F(Test_PaymentCode, empty_paycode)
     std::string invalid_paycode =
         "XM8TJS2JxQ5ztXUpBBRnpTbcUXbUHy2T1abfrb3KkAAtMEGNbey4oumH7Hc578WgQJhPjB"
         "xteQ5GHHToTYHE3A1w6p7tU6KSoFmWBVbFGjKPisZDbP97";
-    ASSERT_FALSE(PaymentCode::Factory(invalid_paycode)->VerifyInternally());
+    ASSERT_FALSE(OT::App()
+                     .Client()
+                     .Factory()
+                     .PaymentCode(invalid_paycode)
+                     ->VerifyInternally());
 
     added = nymData_0.AddPaymentCode(invalid_paycode, currency, true, true);
     ASSERT_FALSE(added);
@@ -187,7 +207,8 @@ TEST_F(Test_PaymentCode, empty_paycode)
  */
 TEST_F(Test_PaymentCode, paycode_equals)
 {
-    OTPaymentCode payment_code = PaymentCode::Factory(paycode_0);
+    OTPaymentCode payment_code =
+        OT::App().Client().Factory().PaymentCode(paycode_0);
     PaymentCode& rep1 = payment_code.get();
     proto::PaymentCode& rep2 = *(payment_code->Serialize());
     ASSERT_TRUE(rep1 == rep2);
@@ -197,7 +218,7 @@ TEST_F(Test_PaymentCode, paycode_equals)
  */
 TEST_F(Test_PaymentCode, asBase58)
 {
-    auto pcode = PaymentCode::Factory(paycode_0);
+    auto pcode = OT::App().Client().Factory().PaymentCode(paycode_0);
     ASSERT_STREQ(paycode_0.c_str(), pcode->asBase58().c_str());
 }
 
@@ -205,24 +226,24 @@ TEST_F(Test_PaymentCode, asBase58)
  */
 TEST_F(Test_PaymentCode, paycode_derivation_matches_nymidsource)
 {
-    auto nym_0_paycode =
-        PaymentCode::Factory(fingerprint, 0, 1);  // seed, nym, paycode version
-    auto nym_1_paycode =
-        PaymentCode::Factory(fingerprint, 1, 1);  // seed, nym, paycode version
-    auto nym_2_paycode =
-        PaymentCode::Factory(fingerprint, 2, 1);  // seed, nym, paycode version
-    auto nym_3_paycode =
-        PaymentCode::Factory(fingerprint, 3, 1);  // seed, nym, paycode version
+    auto nym_0_paycode = OT::App().Client().Factory().PaymentCode(
+        fingerprint, 0, 1);  // seed, nym, paycode version
+    auto nym_1_paycode = OT::App().Client().Factory().PaymentCode(
+        fingerprint, 1, 1);  // seed, nym, paycode version
+    auto nym_2_paycode = OT::App().Client().Factory().PaymentCode(
+        fingerprint, 2, 1);  // seed, nym, paycode version
+    auto nym_3_paycode = OT::App().Client().Factory().PaymentCode(
+        fingerprint, 3, 1);  // seed, nym, paycode version
 
     ASSERT_STREQ(paycode_0.c_str(), nym_0_paycode->asBase58().c_str());
     ASSERT_STREQ(paycode_1.c_str(), nym_1_paycode->asBase58().c_str());
     ASSERT_STREQ(paycode_2.c_str(), nym_2_paycode->asBase58().c_str());
     ASSERT_STREQ(paycode_3.c_str(), nym_3_paycode->asBase58().c_str());
 
-    NymIDSource idsource_0(nym_0_paycode);
-    NymIDSource idsource_1(nym_1_paycode);
-    NymIDSource idsource_2(nym_2_paycode);
-    NymIDSource idsource_3(nym_3_paycode);
+    NymIDSource idsource_0(OT::App().Client().Factory(), nym_0_paycode);
+    NymIDSource idsource_1(OT::App().Client().Factory(), nym_1_paycode);
+    NymIDSource idsource_2(OT::App().Client().Factory(), nym_2_paycode);
+    NymIDSource idsource_3(OT::App().Client().Factory(), nym_3_paycode);
 
     ASSERT_STREQ(nymID_0.c_str(), idsource_0.NymID()->str().c_str());
     ASSERT_STREQ(nymID_1.c_str(), idsource_1.NymID()->str().c_str());
@@ -235,26 +256,29 @@ TEST_F(Test_PaymentCode, paycode_derivation_matches_nymidsource)
 TEST_F(Test_PaymentCode, factory)
 {
     // Factory 0: PaymentCode&
-    auto factory_0 =
-        PaymentCode::Factory(PaymentCode::Factory(paycode_0).get());
+    auto factory_0 = PaymentCode::Factory(
+        OT::App().Client().Factory().PaymentCode(paycode_0).get());
     ASSERT_STREQ(paycode_0.c_str(), factory_0->asBase58().c_str());
 
-    auto factory_0b =
-        PaymentCode::Factory(PaymentCode::Factory(paycode_1).get());
+    auto factory_0b = PaymentCode::Factory(
+        OT::App().Client().Factory().PaymentCode(paycode_1).get());
     ASSERT_STREQ(paycode_1.c_str(), factory_0b->asBase58().c_str());
 
     // Factory 1: std::string
-    OTPaymentCode factory_1 = PaymentCode::Factory(paycode_0);
+    OTPaymentCode factory_1 =
+        OT::App().Client().Factory().PaymentCode(paycode_0);
     ASSERT_STREQ(paycode_0.c_str(), factory_1->asBase58().c_str());
 
-    auto factory_1b = PaymentCode::Factory(paycode_1);
+    auto factory_1b = OT::App().Client().Factory().PaymentCode(paycode_1);
     ASSERT_STREQ(paycode_1.c_str(), factory_1b->asBase58().c_str());
 
     // Factory 2: proto::PaymentCode&
-    auto factory_2 = PaymentCode::Factory(*factory_1->Serialize());
+    auto factory_2 =
+        OT::App().Client().Factory().PaymentCode(*factory_1->Serialize());
     ASSERT_STREQ(paycode_0.c_str(), factory_2->asBase58().c_str());
 
-    auto factory_2b = PaymentCode::Factory(*factory_1b->Serialize());
+    auto factory_2b =
+        OT::App().Client().Factory().PaymentCode(*factory_1b->Serialize());
     ASSERT_STREQ(paycode_1.c_str(), factory_2b->asBase58().c_str());
 
     // Factory 3: std:
@@ -264,12 +288,12 @@ TEST_F(Test_PaymentCode, factory)
     EXPECT_TRUE(nym.get()->Path(path));
     std::string fingerprint = path.root();
 
-    auto factory_3 =
-        PaymentCode::Factory(fingerprint, 0, 1);  // seed, nym, paycode version
+    auto factory_3 = OT::App().Client().Factory().PaymentCode(
+        fingerprint, 0, 1);  // seed, nym, paycode version
     ASSERT_STREQ(paycode_0.c_str(), factory_3->asBase58().c_str());
 
-    auto factory_3b =
-        PaymentCode::Factory(fingerprint, 1, 1);  // seed, nym, paycode version
+    auto factory_3b = OT::App().Client().Factory().PaymentCode(
+        fingerprint, 1, 1);  // seed, nym, paycode version
 
     ASSERT_STREQ(paycode_1.c_str(), factory_3b->asBase58().c_str());
 }
@@ -278,7 +302,7 @@ TEST_F(Test_PaymentCode, factory)
  */
 TEST_F(Test_PaymentCode, factory_seed_nym)
 {
-    std::string seed = opentxs::OT::App().Crypto().BIP39().DefaultSeed();
+    std::string seed = opentxs::OT::App().Client().Seeds().DefaultSeed();
     std::uint32_t nym_idx = 0;
     std::uint8_t version = 1;
     bool bitmessage = false;
@@ -292,7 +316,7 @@ TEST_F(Test_PaymentCode, factory_seed_nym)
 
     std::string fingerprint = path.root();
     auto privatekey =
-        opentxs::OT::App().Crypto().BIP32().GetPaymentCode(fingerprint, 10);
+        opentxs::OT::App().Client().Seeds().GetPaymentCode(fingerprint, 10);
     proto::AsymmetricKey privKey = *privatekey;
     ASSERT_TRUE(bool(privatekey));
 }
@@ -306,8 +330,12 @@ TEST_F(Test_PaymentCode, two_nyms)
     const ConstNym nym_1 =
         opentxs::OT::App().Wallet().Nym(Identifier::Factory(nymID_1));
 
-    NymIDSource idsource_0(PaymentCode::Factory(paycode_0));
-    NymIDSource idsource_1(PaymentCode::Factory(paycode_1));
+    NymIDSource idsource_0(
+        OT::App().Client().Factory(),
+        OT::App().Client().Factory().PaymentCode(paycode_0));
+    NymIDSource idsource_1(
+        OT::App().Client().Factory(),
+        OT::App().Client().Factory().PaymentCode(paycode_1));
 
     ASSERT_STREQ(nym_0->ID().str().c_str(), idsource_0.NymID()->str().c_str());
     ASSERT_STREQ(nym_1->ID().str().c_str(), idsource_1.NymID()->str().c_str());

@@ -7,7 +7,7 @@
 
 #include "opentxs/cash/Mint.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/MintLucre.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -754,7 +754,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 // INSTRUMENT_DEFINITION_ID, m_nymServer,
 // 1, 5, 10, 20, 50, 100, 500, 1000, 10000, 100000);
 void Mint::GenerateNewMint(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     std::int32_t nSeries,
     time64_t VALID_FROM,
     time64_t VALID_TO,

@@ -75,7 +75,7 @@ public:
     ~NymFile();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const std::shared_ptr<const Nym> target_nym_{nullptr};
     const std::shared_ptr<const Nym> signer_nym_{nullptr};

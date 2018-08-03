@@ -56,9 +56,6 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
@@ -69,10 +66,11 @@
 namespace opentxs
 {
 KeyCredential::KeyCredential(
-    const api::client::Wallet& wallet,
+    const api::Factory& factory,
+    const api::Wallet& wallet,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
-    : ot_super(wallet, theOwner, serializedCred)
+    : ot_super(factory, wallet, theOwner, serializedCred)
     , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serializedCred))
     , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serializedCred))
     , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serializedCred))
@@ -80,10 +78,11 @@ KeyCredential::KeyCredential(
 }
 
 KeyCredential::KeyCredential(
-    const api::client::Wallet& wallet,
+    const api::Factory& factory,
+    const api::Wallet& wallet,
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(wallet, theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
+    : ot_super(factory, wallet, theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
     , signing_key_(new_key(proto::KEYROLE_SIGN, nymParameters))
     , authentication_key_(new_key(proto::KEYROLE_AUTH, nymParameters))
     , encryption_key_(new_key(proto::KEYROLE_ENCRYPT, nymParameters))

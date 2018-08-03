@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactSection.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -43,11 +43,11 @@ ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
     const ui::implementation::ProfileInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
     const ui::implementation::CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
 {
     return new ui::implementation::ProfileSection(
         parent, zmq, publisher, contact, rowID, key, custom, wallet);
@@ -158,11 +158,11 @@ ProfileSection::ProfileSection(
     const ProfileInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ProfileRowID& rowID,
     const ProfileSortKey& key,
     const CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
     : ProfileSectionList(
           parent.WidgetID(),
           parent.NymID(),

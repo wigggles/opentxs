@@ -38,7 +38,7 @@ public:
     ~ContactSection() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const std::
         map<proto::ContactSectionName, std::set<proto::ContactItemType>>
@@ -67,7 +67,7 @@ private:
         const ContactInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ContactRowID& rowID,
         const ContactSortKey& key,
         const CustomData& custom);

@@ -178,15 +178,16 @@ public:
     ~Activity() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     typedef std::map<OTIdentifier, std::shared_ptr<const std::string>>
         MailCache;
 
-    const Legacy& legacy_;
-    const ContactManager& contact_;
     const storage::Storage& storage_;
-    const client::Wallet& wallet_;
+    const Contacts& contact_;
+    const Factory& factory_;
+    const Legacy& legacy_;
+    const Wallet& wallet_;
     const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex mail_cache_lock_;
     mutable MailCache mail_cache_;
@@ -195,7 +196,7 @@ private:
 
     /**   Migrate nym-based thread IDs to contact-based thread IDs
      *
-     *    This method should only be called by the ContactManager on startup
+     *    This method should only be called by the Contacts on startup
      */
     void MigrateLegacyThreads() const override;
     void activity_preload_thread(
@@ -221,10 +222,11 @@ private:
     void publish(const Identifier& nymID, const std::string& threadID) const;
 
     Activity(
-        const Legacy& legacy,
-        const ContactManager& contact,
         const storage::Storage& storage,
-        const client::Wallet& wallet,
+        const Contacts& contact,
+        const Factory& factory,
+        const Legacy& legacy,
+        const Wallet& wallet,
         const opentxs::network::zeromq::Context& zmq);
     Activity() = delete;
     Activity(const Activity&) = delete;

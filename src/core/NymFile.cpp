@@ -6,11 +6,11 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -41,9 +41,6 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"

@@ -5,8 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Sync.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -43,7 +43,7 @@ namespace opentxs
 ui::PayableList* Factory::PayableList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::client::Sync& sync,
     const Identifier& nymID,
     const proto::ContactItemType& currency)
@@ -65,7 +65,7 @@ const Widget::ListenerDefinitions PayableList::listeners_{
 PayableList::PayableList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::client::Sync& sync,
     const Identifier& nymID,
     const proto::ContactItemType& currency)

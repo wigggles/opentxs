@@ -5,11 +5,11 @@
 
 #include "stdafx.hpp"
 
-#include "ContactManager.hpp"
-
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -18,17 +18,39 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Proto.hpp"
 
+#include "InternalClient.hpp"
+
 #include <functional>
+#include <map>
+#include <mutex>
+#include <tuple>
 
-#define OT_METHOD "opentxs::api::implementation::ContactManager"
+#include "Contacts.hpp"
 
-namespace opentxs::api::implementation
+#define OT_METHOD "opentxs::api::implementation::Contacts"
+
+namespace opentxs
 {
-ContactManager::ContactManager(
+api::client::internal::Contacts* Factory::Contacts(
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet,
+    const api::Factory& factory,
+    const api::Wallet& wallet,
+    const network::zeromq::Context& context)
+{
+    return new opentxs::api::client::implementation::Contacts(
+        storage, factory, wallet, context);
+}
+}  // namespace opentxs
+
+namespace opentxs::api::client::implementation
+{
+Contacts::Contacts(
+    const api::storage::Storage& storage,
+    const api::Factory& factory,
+    const api::Wallet& wallet,
     const opentxs::network::zeromq::Context& context)
     : storage_(storage)
+    , factory_{factory}
     , wallet_(wallet)
     , lock_()
     , contact_map_()
@@ -38,7 +60,7 @@ ContactManager::ContactManager(
     publisher_->Start(opentxs::network::zeromq::Socket::ContactUpdateEndpoint);
 }
 
-ContactManager::ContactMap::iterator ContactManager::add_contact(
+Contacts::ContactMap::iterator Contacts::add_contact(
     const rLock& lock,
     class Contact* contact) const
 {
@@ -55,7 +77,7 @@ ContactManager::ContactMap::iterator ContactManager::add_contact(
     return contact_map_.find(id);
 }
 
-OTIdentifier ContactManager::address_to_contact(
+OTIdentifier Contacts::address_to_contact(
     const rLock& lock,
     const std::string& address,
     const proto::ContactItemType currency) const
@@ -69,7 +91,7 @@ OTIdentifier ContactManager::address_to_contact(
     return Identifier::Factory(contact);
 }
 
-OTIdentifier ContactManager::BlockchainAddressToContact(
+OTIdentifier Contacts::BlockchainAddressToContact(
     const std::string& address,
     const proto::ContactItemType currency) const
 {
@@ -78,7 +100,7 @@ OTIdentifier ContactManager::BlockchainAddressToContact(
     return address_to_contact(lock, address, currency);
 }
 
-ContactManager::ContactNameMap ContactManager::build_name_map(
+Contacts::ContactNameMap Contacts::build_name_map(
     const api::storage::Storage& storage)
 {
     ContactNameMap output;
@@ -90,7 +112,7 @@ ContactManager::ContactNameMap ContactManager::build_name_map(
     return output;
 }
 
-void ContactManager::check_identifiers(
+void Contacts::check_identifiers(
     const Identifier& inputNymID,
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
     const PaymentCode& paymentCode,
@@ -117,7 +139,7 @@ void ContactManager::check_identifiers(
 #endif
 }
 
-std::shared_ptr<const class Contact> ContactManager::contact(
+std::shared_ptr<const class Contact> Contacts::contact(
     const rLock& lock,
     const Identifier& id) const
 {
@@ -132,7 +154,7 @@ std::shared_ptr<const class Contact> ContactManager::contact(
     return {};
 }
 
-std::shared_ptr<const class Contact> ContactManager::contact(
+std::shared_ptr<const class Contact> Contacts::contact(
     const rLock& lock,
     const std::string& label) const
 {
@@ -167,7 +189,7 @@ std::shared_ptr<const class Contact> ContactManager::contact(
     return output;
 }
 
-std::shared_ptr<const class Contact> ContactManager::Contact(
+std::shared_ptr<const class Contact> Contacts::Contact(
     const Identifier& id) const
 {
     rLock lock(lock_);
@@ -175,17 +197,14 @@ std::shared_ptr<const class Contact> ContactManager::Contact(
     return contact(lock, id);
 }
 
-OTIdentifier ContactManager::ContactID(const Identifier& nymID) const
+OTIdentifier Contacts::ContactID(const Identifier& nymID) const
 {
     return Identifier::Factory(storage_.ContactOwnerNym(nymID.str()));
 }
 
-ObjectList ContactManager::ContactList() const
-{
-    return storage_.ContactList();
-}
+ObjectList Contacts::ContactList() const { return storage_.ContactList(); }
 
-std::string ContactManager::ContactName(const Identifier& contactID) const
+std::string Contacts::ContactName(const Identifier& contactID) const
 {
     rLock lock(lock_);
     auto it = contact_name_map_.find(contactID);
@@ -195,7 +214,7 @@ std::string ContactManager::ContactName(const Identifier& contactID) const
     return it->second;
 }
 
-void ContactManager::import_contacts(const rLock& lock)
+void Contacts::import_contacts(const rLock& lock)
 {
     auto nyms = wallet_.NymList();
 
@@ -216,7 +235,7 @@ void ContactManager::import_contacts(const rLock& lock)
                 case proto::CITEMTYPE_BUSINESS:
                 case proto::CITEMTYPE_GOVERNMENT: {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto code = PaymentCode::Factory(nym->PaymentCode());
+                    auto code = factory_.PaymentCode(nym->PaymentCode());
 #endif
                     new_contact(
                         lock,
@@ -237,7 +256,7 @@ void ContactManager::import_contacts(const rLock& lock)
     }
 }
 
-void ContactManager::init_nym_map(const rLock& lock)
+void Contacts::init_nym_map(const rLock& lock)
 {
     otErr << OT_METHOD << __FUNCTION__ << ": Upgrading indices" << std::endl;
 
@@ -273,7 +292,7 @@ void ContactManager::init_nym_map(const rLock& lock)
     storage_.ContactSaveIndices();
 }
 
-ContactManager::ContactMap::iterator ContactManager::load_contact(
+Contacts::ContactMap::iterator Contacts::load_contact(
     const rLock& lock,
     const Identifier& id) const
 {
@@ -306,7 +325,7 @@ ContactManager::ContactMap::iterator ContactManager::load_contact(
     return add_contact(lock, contact.release());
 }
 
-std::shared_ptr<const class Contact> ContactManager::Merge(
+std::shared_ptr<const class Contact> Contacts::Merge(
     const Identifier& parent,
     const Identifier& child) const
 {
@@ -374,7 +393,7 @@ std::shared_ptr<const class Contact> ContactManager::Merge(
     return parentContact;
 }
 
-std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
+std::unique_ptr<Editor<class Contact>> Contacts::mutable_contact(
     const rLock& lock,
     const Identifier& id) const
 {
@@ -397,7 +416,7 @@ std::unique_ptr<Editor<class Contact>> ContactManager::mutable_contact(
     return output;
 }
 
-std::unique_ptr<Editor<class Contact>> ContactManager::mutable_Contact(
+std::unique_ptr<Editor<class Contact>> Contacts::mutable_Contact(
     const Identifier& id) const
 {
     rLock lock(lock_);
@@ -407,7 +426,7 @@ std::unique_ptr<Editor<class Contact>> ContactManager::mutable_Contact(
     return output;
 }
 
-std::shared_ptr<const class Contact> ContactManager::new_contact(
+std::shared_ptr<const class Contact> Contacts::new_contact(
     const rLock& lock,
     const std::string& label,
     const Identifier& nymID
@@ -481,7 +500,7 @@ std::shared_ptr<const class Contact> ContactManager::new_contact(
     return contact(lock, contactID);
 }
 
-std::shared_ptr<const class Contact> ContactManager::NewContact(
+std::shared_ptr<const class Contact> Contacts::NewContact(
     const std::string& label) const
 {
     rLock lock(lock_);
@@ -489,7 +508,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContact(
     return contact(lock, label);
 }
 
-std::shared_ptr<const class Contact> ContactManager::NewContact(
+std::shared_ptr<const class Contact> Contacts::NewContact(
     const std::string& label,
     const Identifier& nymID
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -511,7 +530,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContact(
     );
 }
 
-std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
+std::shared_ptr<const class Contact> Contacts::NewContactFromAddress(
     const std::string& address,
     const std::string& label,
     const proto::ContactItemType currency) const
@@ -547,7 +566,7 @@ std::shared_ptr<const class Contact> ContactManager::NewContactFromAddress(
     return newContact;
 }
 
-OTIdentifier ContactManager::NymToContact(const Identifier& nymID) const
+OTIdentifier Contacts::NymToContact(const Identifier& nymID) const
 {
     const auto contactID = ContactID(nymID);
 
@@ -557,13 +576,13 @@ OTIdentifier ContactManager::NymToContact(const Identifier& nymID) const
     std::string label{""};
     auto nym = wallet_.Nym(nymID);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = PaymentCode::Factory("");
+    auto code = factory_.PaymentCode("");
 #endif
 
     if (nym) {
         label = nym->Claims().Name();
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        code = PaymentCode::Factory(nym->PaymentCode());
+        code = factory_.PaymentCode(nym->PaymentCode());
 #endif
     }
 
@@ -581,7 +600,7 @@ OTIdentifier ContactManager::NymToContact(const Identifier& nymID) const
     return Identifier::Factory();
 }
 
-ContactManager::ContactMap::iterator ContactManager::obtain_contact(
+Contacts::ContactMap::iterator Contacts::obtain_contact(
     const rLock& lock,
     const Identifier& id) const
 {
@@ -596,8 +615,7 @@ ContactManager::ContactMap::iterator ContactManager::obtain_contact(
     return load_contact(lock, id);
 }
 
-void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
-    const
+void Contacts::refresh_indices(const rLock& lock, class Contact& contact) const
 {
     if (false == verify_write_lock(lock)) {
         throw std::runtime_error("lock error");
@@ -615,7 +633,7 @@ void ContactManager::refresh_indices(const rLock& lock, class Contact& contact)
     publisher_->Publish(rawID);
 }
 
-void ContactManager::save(class Contact* contact) const
+void Contacts::save(class Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
 
@@ -639,7 +657,7 @@ void ContactManager::save(class Contact* contact) const
     refresh_indices(lock, *contact);
 }
 
-void ContactManager::start()
+void Contacts::start()
 {
     const auto level = storage_.ContactUpgradeLevel();
 
@@ -656,7 +674,7 @@ void ContactManager::start()
     }
 }
 
-std::shared_ptr<const class Contact> ContactManager::Update(
+std::shared_ptr<const class Contact> Contacts::Update(
     const proto::CredentialIndex& serialized) const
 {
     auto nym = wallet_.Nym(serialized);
@@ -691,7 +709,7 @@ std::shared_ptr<const class Contact> ContactManager::Update(
               << " is not associated with a contact. Creating a new contact."
               << std::endl;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        auto code = PaymentCode::Factory(nym->PaymentCode());
+        auto code = factory_.PaymentCode(nym->PaymentCode());
 #endif
         return new_contact(
             lock,
@@ -723,7 +741,7 @@ std::shared_ptr<const class Contact> ContactManager::Update(
     return output;
 }
 
-std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
+std::shared_ptr<const class Contact> Contacts::update_existing_contact(
     const rLock& lock,
     const std::string& label,
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
@@ -759,7 +777,7 @@ std::shared_ptr<const class Contact> ContactManager::update_existing_contact(
     return contact;
 }
 
-void ContactManager::update_nym_map(
+void Contacts::update_nym_map(
     const rLock& lock,
     const OTIdentifier nymID,
     class Contact& contact,
@@ -815,7 +833,7 @@ void ContactManager::update_nym_map(
     }
 }
 
-bool ContactManager::verify_write_lock(const rLock& lock) const
+bool Contacts::verify_write_lock(const rLock& lock) const
 {
     if (lock.mutex() != &lock_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;
@@ -831,4 +849,4 @@ bool ContactManager::verify_write_lock(const rLock& lock) const
 
     return true;
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation

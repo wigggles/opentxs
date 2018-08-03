@@ -8,11 +8,15 @@
 #include "opentxs/core/Nym.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Factory.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/HDSeed.hpp"
+#endif
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -38,9 +42,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/OT.hpp"
 
@@ -60,10 +61,16 @@
 namespace opentxs
 {
 Nym::Nym(
-    const api::client::Wallet& wallet,
+    const api::Factory& factory,
+    const api::Wallet& wallet,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
     const Identifier& nymID,
     const proto::CredentialIndexMode mode)
-    : version_(NYM_CREATE_VERSION)
+    : factory_{factory}
+    , seeds_(seeds)
+    , version_(NYM_CREATE_VERSION)
     , index_(0)
     , alias_()
     , revision_(1)
@@ -80,15 +87,25 @@ Nym::Nym(
 {
 }
 
-Nym::Nym(const api::client::Wallet& wallet, const NymParameters& nymParameters)
-    : Nym(wallet, Identifier::Factory(), proto::CREDINDEX_PRIVATE)
+Nym::Nym(
+    const api::Factory& factory,
+    const api::Wallet& wallet,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
+    const NymParameters& nymParameters)
+    : Nym(factory,
+          wallet,
+          seeds,
+          Identifier::Factory(),
+          proto::CREDINDEX_PRIVATE)
 {
     NymParameters revisedParameters = nymParameters;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     revisedParameters.SetCredset(index_++);
     std::uint32_t nymIndex = 0;
     std::string fingerprint = nymParameters.Seed();
-    auto seed = OT::App().Crypto().BIP39().Seed(fingerprint, nymIndex);
+    auto seed = seeds_.Seed(fingerprint, nymIndex);
 
     OT_ASSERT(seed);
 
@@ -103,13 +120,13 @@ Nym::Nym(const api::client::Wallet& wallet, const NymParameters& nymParameters)
 
     const std::int32_t newIndex = nymIndex + 1;
 
-    OT::App().Crypto().BIP39().UpdateIndex(fingerprint, newIndex);
+    seeds_.UpdateIndex(fingerprint, newIndex);
     revisedParameters.SetEntropy(*seed);
     revisedParameters.SetSeed(fingerprint);
     revisedParameters.SetNym(nymIndex);
 #endif
     CredentialSet* pNewCredentialSet =
-        new CredentialSet(wallet_, revisedParameters, version_);
+        new CredentialSet(factory_, wallet_, revisedParameters, version_);
 
     OT_ASSERT(nullptr != pNewCredentialSet);
 
@@ -894,7 +911,7 @@ bool Nym::load_credential_index(
     index_ = index.index();
     revision_.store(index.revision());
     mode_ = index.mode();
-    source_ = std::make_shared<NymIDSource>(index.source());
+    source_ = std::make_shared<NymIDSource>(factory_, index.source());
     proto::KeyMode mode = (proto::CREDINDEX_PRIVATE == mode_)
                               ? proto::KEYMODE_PRIVATE
                               : proto::KEYMODE_PUBLIC;
@@ -902,7 +919,7 @@ bool Nym::load_credential_index(
     m_mapCredentialSets.clear();
 
     for (auto& it : index.activecredentials()) {
-        CredentialSet* newSet = new CredentialSet(wallet_, mode, it);
+        CredentialSet* newSet = new CredentialSet(factory_, wallet_, mode, it);
 
         if (nullptr != newSet) {
             m_mapCredentialSets.emplace(
@@ -913,7 +930,7 @@ bool Nym::load_credential_index(
     m_mapRevokedSets.clear();
 
     for (auto& it : index.revokedcredentials()) {
-        CredentialSet* newSet = new CredentialSet(wallet_, mode, it);
+        CredentialSet* newSet = new CredentialSet(factory_, wallet_, mode, it);
 
         if (nullptr != newSet) {
             m_mapRevokedSets.emplace(
@@ -1046,7 +1063,7 @@ std::string Nym::PaymentCode() const
 
     if (!serialized) { return ""; }
 
-    auto paymentCode = PaymentCode::Factory(serialized->paymentcode());
+    auto paymentCode = factory_.PaymentCode(serialized->paymentcode());
 
     return paymentCode->asBase58();
 

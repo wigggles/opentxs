@@ -8,9 +8,9 @@
 
 #include "Internal.hpp"
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-class UI : virtual public opentxs::api::UI, Lockable
+class UI : virtual public opentxs::api::client::UI, Lockable
 {
 public:
     const ui::AccountActivity& AccountActivity(
@@ -36,7 +36,7 @@ public:
     ~UI();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     /** NymID, AccountID */
     using AccountKey = std::pair<OTIdentifier, OTIdentifier>;
@@ -62,12 +62,12 @@ private:
     using ProfileMap = std::map<OTIdentifier, std::unique_ptr<ui::Profile>>;
 
     const api::client::Sync& sync_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::network::ZMQ& connection_;
     const api::storage::Storage& storage_;
-    const api::Activity& activity_;
-    const api::ContactManager& contact_;
+    const api::client::Activity& activity_;
+    const api::client::Contacts& contact_;
     const api::Legacy& legacy_;
     const opentxs::network::zeromq::Context& zmq_;
     const Flag& running_;
@@ -83,12 +83,12 @@ private:
     OTZMQPublishSocket widget_update_publisher_;
 
     UI(const api::client::Sync& sync,
-       const api::client::Wallet& wallet,
+       const api::Wallet& wallet,
        const api::client::Workflow& workflow,
        const api::network::ZMQ& connection,
        const api::storage::Storage& storage,
-       const api::Activity& activity,
-       const api::ContactManager& contact,
+       const api::client::Activity& activity,
+       const api::client::Contacts& contact,
        const api::Legacy& legacy,
        const opentxs::network::zeromq::Context& zmq,
        const Flag& running);
@@ -98,5 +98,5 @@ private:
     UI& operator=(const UI&) = delete;
     UI& operator=(UI&&) = delete;
 };
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_UI_IMPLEMENTATION_HPP

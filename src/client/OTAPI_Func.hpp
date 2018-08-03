@@ -84,7 +84,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -94,7 +94,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -105,7 +105,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -116,7 +116,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -127,7 +127,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -139,7 +139,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -151,7 +151,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -163,7 +163,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -175,7 +175,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -187,7 +187,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -199,7 +199,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -211,7 +211,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -224,7 +224,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -236,7 +236,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -248,7 +248,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -261,7 +261,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -274,7 +274,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -287,7 +287,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -300,7 +300,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -314,7 +314,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -328,7 +328,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -341,7 +341,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -356,7 +356,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -370,7 +370,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -385,7 +385,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -402,7 +402,7 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const Identifier& nymID,
@@ -475,7 +475,7 @@ private:
     time64_t lifetime_{OT_TIME_ZERO};
     std::int32_t nRequestNum_{-1};
     std::int32_t nTransNumsNeeded_{0};
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::Legacy& legacy_;
     Editor<ServerContext> context_editor_;
@@ -514,7 +514,7 @@ private:
 
     explicit OTAPI_Func(
         std::recursive_mutex& apilock,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const OTAPI_Exec& exec,

@@ -13,6 +13,7 @@ namespace opentxs::api::implementation
 class Server : virtual public opentxs::api::Server
 {
 public:
+    const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
     const std::string GetDefaultBindIP() const override;
     const std::string GetEEP() const override;
@@ -33,13 +34,18 @@ public:
     const Identifier& NymID() const override;
 #if OT_CASH
     void ScanMints() const override;
+#endif  // OT_CASH
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& Seeds() const override { return seeds_; }
+#if OT_CASH
+#endif
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
 
     ~Server();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
 #if OT_CASH
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
@@ -49,10 +55,15 @@ private:
     const api::Legacy& legacy_;
     const api::Settings& config_;
     const api::Crypto& crypto_;
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds_;
+#endif
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const Flag& running_;
     const opentxs::network::zeromq::Context& zmq_context_;
+    const int instance_{0};
+    std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<server::Server> server_p_;
     server::Server& server_;
     std::unique_ptr<server::MessageProcessor> message_processor_p_;
@@ -99,17 +110,22 @@ private:
 
     void Cleanup();
     void Init();
+    void Init_Factory();
     void Start() override;
 
     Server(
         const ArgList& args,
         const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const api::Legacy& legacy,
         const api::Settings& config,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const Flag& running,
-        const opentxs::network::zeromq::Context& context);
+        const opentxs::network::zeromq::Context& context,
+        const int instance);
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;

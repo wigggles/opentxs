@@ -23,7 +23,7 @@ public:
     ~Legacy() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const bool client_{true};
     const std::string client_data_folder_{""};

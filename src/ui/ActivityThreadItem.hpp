@@ -35,7 +35,7 @@ public:
 
 protected:
     const Identifier& nym_id_;
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const std::chrono::system_clock::time_point time_;
     const Identifier& item_id_;
     const StorageBox& box_;
@@ -48,12 +48,12 @@ protected:
         const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const bool loading,
         const bool pending);
 

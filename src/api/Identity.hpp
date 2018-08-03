@@ -28,9 +28,9 @@ public:
     ~Identity() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
 
     bool AddInternalVerification(
         bool& changed,
@@ -81,7 +81,7 @@ private:
         const Nym& nym,
         const OTPasswordData* pPWData = nullptr) const;
 
-    Identity(const api::client::Wallet& wallet);
+    Identity(const api::Wallet& wallet);
     Identity() = delete;
     Identity(const Identity&) = delete;
     Identity(Identity&&) = delete;

@@ -25,10 +25,10 @@ public:
     ~ActivitySummary() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
-    const api::Activity& activity_;
+    const api::client::Activity& activity_;
     const Flag& running_;
 
     static const proto::StorageThreadItem& newest_item(
@@ -48,8 +48,8 @@ private:
     ActivitySummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::Activity& activity,
-        const api::ContactManager& contact,
+        const api::client::Activity& activity,
+        const api::client::Contacts& contact,
         const Flag& running,
         const Identifier& nymID);
     ActivitySummary() = delete;

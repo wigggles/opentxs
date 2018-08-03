@@ -58,7 +58,7 @@ public:
 private:
     typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
 
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     Account::AccountType acctType_;
     const std::string data_folder_{""};
 

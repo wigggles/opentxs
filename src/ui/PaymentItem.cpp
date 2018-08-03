@@ -29,12 +29,12 @@ ui::implementation::ActivityThreadRowInternal* Factory::PaymentItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::Activity& activity)
+    const api::client::Activity& activity)
 {
     return new ui::implementation::PaymentItem(
         parent,
@@ -55,12 +55,12 @@ PaymentItem::PaymentItem(
     const ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
-    const api::Activity& activity)
+    const api::client::Activity& activity)
     : ActivityThreadItem(
           parent,
           zmq,

@@ -19,12 +19,12 @@ class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
             public Lockable
 {
 protected:
-    const api::ContactManager& contact_;
+    const api::client::Contacts& contact_;
 
     Row(const ParentType& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const IdentifierType id,
         const bool valid)
         : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)

@@ -49,7 +49,7 @@ public:
     ~ContactItem() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     std::unique_ptr<opentxs::ContactItem> item_{nullptr};
 
@@ -57,7 +57,7 @@ private:
         const ContactSubsectionInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const ContactSubsectionRowID& rowID,
         const ContactSubsectionSortKey& sortKey,
         const CustomData& custom);

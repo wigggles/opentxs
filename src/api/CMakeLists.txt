@@ -9,15 +9,14 @@ add_subdirectory(network)
 add_subdirectory(storage)
 
 set(cxx-sources
-  Api.cpp
-  Blockchain.cpp
-  ContactManager.cpp
+  Factory.cpp
+  HDSeed.cpp
   Identity.cpp
   Legacy.cpp
   Native.cpp
   Server.cpp
   Settings.cpp
-  UI.cpp
+  Wallet.cpp
 )
 
 file(GLOB cxx-install-headers
@@ -26,16 +25,15 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Api.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Blockchain.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/ContactManager.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/HDSeed.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Identity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/NativeInternal.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/UI.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
 )
 
 set(MODULE_NAME opentxs-api)

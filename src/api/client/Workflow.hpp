@@ -64,10 +64,10 @@ public:
     ~Workflow() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const Activity& activity_;
-    const ContactManager& contact_;
+    const Contacts& contact_;
     const Legacy& legacy_;
     const storage::Storage& storage_;
     const opentxs::network::zeromq::Context& zmq_;
@@ -159,7 +159,7 @@ private:
 
     Workflow(
         const Activity& activity,
-        const ContactManager& contact,
+        const Contacts& contact,
         const Legacy& legacy,
         const storage::Storage& storage,
         const opentxs::network::zeromq::Context& zmq);

@@ -9,12 +9,13 @@
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Blockchain.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Blockchain.hpp"
+#include "opentxs/api/HDSeed.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
@@ -58,26 +59,29 @@
 
 namespace opentxs
 {
-api::Blockchain* Factory::Blockchain(
-    const api::Activity& activity,
+api::client::Blockchain* Factory::Blockchain(
+    const api::client::Activity& activity,
     const api::Crypto& crypto,
+    const api::HDSeed& seeds,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
 {
-    return new api::implementation::Blockchain(
-        activity, crypto, storage, wallet);
+    return new api::client::implementation::Blockchain(
+        activity, crypto, seeds, storage, wallet);
 }
 }  // namespace opentxs
 
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
 Blockchain::Blockchain(
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const api::Crypto& crypto,
+    const api::HDSeed& seeds,
     const api::storage::Storage& storage,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
     : activity_(activity)
     , crypto_(crypto)
+    , seeds_(seeds)
     , storage_(storage)
     , wallet_(wallet)
     , lock_()
@@ -371,7 +375,7 @@ std::string Blockchain::calculate_address(
 {
     const auto& path = account.path();
     auto fingerprint = path.root();
-    auto serialized = crypto_.BIP32().AccountChildKey(path, chain, index);
+    auto serialized = seeds_.AccountChildKey(path, chain, index);
 
     if (false == bool(serialized)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to derive key."
@@ -767,5 +771,5 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
 
     return output;
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD

@@ -21,6 +21,17 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace client
+{
+namespace implementation
+{
+class Client;
+}  // namespace implementation
+}  // namespace client
+}  // namespace api
+
 class SwigWrap
 {
 public:
@@ -3692,6 +3703,10 @@ public:
     EXPORT static std::string AvailableServers(const std::string& nymID);
 
 private:
+    friend api::client::implementation::Client;
+
+    static const api::client::Client* client_;
+
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);
     static std::string comma(const std::set<OTIdentifier>& list);

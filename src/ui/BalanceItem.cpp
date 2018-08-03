@@ -5,11 +5,11 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Sync.hpp"
-#include "opentxs/api/client/Wallet.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -40,12 +40,12 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
     const ui::implementation::CustomData& custom,
     const api::client::Sync& sync,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const Identifier& nymID,
     const Identifier& accountID)
@@ -86,12 +86,12 @@ BalanceItem::BalanceItem(
     const AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
     const api::client::Sync& sync,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& accountID)
     : BalanceItemRow(parent, zmq, publisher, contact, rowID, true)
@@ -110,12 +110,12 @@ ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivityInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
     const api::client::Sync& sync,
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const Identifier& nymID,
     const Identifier& accountID)

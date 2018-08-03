@@ -202,7 +202,7 @@ public:
     EXPORT ~OTRecordList() = default;
 
 private:
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     // Defaults to false. If you set it true, it will run a lot faster. (And
     // give you less data.)
     bool m_bRunFast{false};

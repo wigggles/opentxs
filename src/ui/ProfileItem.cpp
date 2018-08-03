@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -24,11 +24,11 @@ ui::implementation::ProfileSubsectionRowInternal* Factory::ProfileItemWidget(
     const ui::implementation::ProfileSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
 {
     return new ui::implementation::ProfileItem(
         parent, zmq, publisher, contact, rowID, sortKey, custom, wallet);
@@ -41,11 +41,11 @@ ProfileItem::ProfileItem(
     const ProfileSubsectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ProfileSubsectionRowID& rowID,
     const ProfileSubsectionSortKey& sortKey,
     const CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
     : ProfileItemRow(parent, zmq, publisher, contact, rowID, true)
     , wallet_(wallet)
     , item_{new opentxs::ContactItem(

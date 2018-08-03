@@ -18,7 +18,7 @@ public:
     ~MailItem();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     std::unique_ptr<std::thread> load_{nullptr};
 
@@ -28,24 +28,24 @@ private:
         const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
-        const api::Activity& activity,
+        const api::client::Activity& activity,
         const bool loading,
         const bool pending);
     MailItem(
         const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
-        const api::Activity& activity);
+        const api::client::Activity& activity);
     MailItem() = delete;
     MailItem(const MailItem&) = delete;
     MailItem(MailItem&&) = delete;

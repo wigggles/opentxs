@@ -15,7 +15,7 @@ class Test_Signatures : public ::testing::Test
 {
 public:
     const std::string fingerprint_{
-        opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
             "response seminar brave tip suit recall often sound stick owner "
             "lottery motion",
             "")};
@@ -55,7 +55,7 @@ public:
     {
         std::string id{fingerprint};
         std::uint32_t notUsed{0};
-        auto seed = OT::App().Crypto().BIP39().Seed(id, notUsed);
+        auto seed = OT::App().Client().Seeds().Seed(id, notUsed);
         proto::HDPath path{};
         path.set_version(1);
         path.set_root(id.c_str(), id.size());

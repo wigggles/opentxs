@@ -19,7 +19,7 @@
 namespace opentxs
 {
 ClientContext::ClientContext(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const ConstNym& local,
     const ConstNym& remote,
@@ -29,7 +29,7 @@ ClientContext::ClientContext(
 }
 
 ClientContext::ClientContext(
-    const api::client::Wallet& wallet,
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const proto::Context& serialized,
     const ConstNym& local,

@@ -6,21 +6,19 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
-#include "opentxs/api/Api.hpp"
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include "opentxs/api/Blockchain.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/HDSeed.hpp"
 #endif
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
-#include "opentxs/api/UI.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -37,9 +35,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/crypto/Bip39.hpp"
-#endif
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/ui/ActivitySummary.hpp"
@@ -55,7 +50,6 @@
 #include "api/network/Dht.hpp"
 #include "api/network/ZMQ.hpp"
 #include "api/storage/StorageInternal.hpp"
-#include "api/ContactManager.hpp"
 #include "api/NativeInternal.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
@@ -363,15 +357,13 @@ Native::Native(
     , task_list_lock_()
     , signal_handler_lock_()
     , periodic_task_list()
-    , activity_(nullptr)
-    , api_(nullptr)
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    , blockchain_(nullptr)
-#endif
+    , client_(nullptr)
     , config_()
-    , contacts_(nullptr)
     , crypto_(nullptr)
     , dht_(nullptr)
+#if OT_CRYPTO_WITH_BIP39
+    , seeds_(nullptr)
+#endif
     , identity_(nullptr)
     , legacy_(nullptr)
     , storage_(nullptr)
@@ -382,7 +374,6 @@ Native::Native(
     , storage_encryption_key_(opentxs::crypto::key::Symmetric::Factory())
 #endif
     , server_(nullptr)
-    , ui_(nullptr)
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
     , server_args_(args)
@@ -429,50 +420,27 @@ Native::Native(
     }
 }
 
-const api::Activity& Native::Activity() const
-{
-    OT_ASSERT(activity_)
-
-    return *activity_;
-}
-
-const api::Api& Native::API() const
+const api::client::Client& Native::Client() const
 {
     if (server_mode_) { OT_FAIL; }
 
-    OT_ASSERT(api_);
+    OT_ASSERT(client_);
 
-    return *api_;
+    return *client_;
 }
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-const api::Blockchain& Native::Blockchain() const
-{
-    OT_ASSERT(blockchain_)
-
-    return *blockchain_;
-}
-#endif
 
 const api::Settings& Native::Config(const std::string& path) const
 {
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
 
-    if (!config) { config.reset(Factory::Settings(String(path))); }
+    if (!config) { config.reset(opentxs::Factory::Settings(String(path))); }
 
     OT_ASSERT(config);
 
     lock.unlock();
 
     return *config;
-}
-
-const api::ContactManager& Native::Contact() const
-{
-    OT_ASSERT(contacts_)
-
-    return *contacts_;
 }
 
 const api::Crypto& Native::Crypto() const
@@ -586,110 +554,72 @@ void Native::Init()
     Init_Log();     // requires Init_Config()
     Init_Crypto();
     Init_Storage();  // requires Init_Legacy(), Init_Config(), Init_Crypto()
-    Init_ZMQ();      // requires Init_Config()
+#if OT_CRYPTO_WITH_BIP39
+    Init_Seeds();  // Requires Init_Crypto(), Init_Storage()
+#endif
+    Init_ZMQ();  // requires Init_Config()
     Init_Contracts();
     Init_Dht();       // requires Init_Config()
     Init_Identity();  // requires Init_Contracts()
-    Init_Contacts();  // requires Init_Contracts(), Init_Storage(), Init_ZMQ()
-    Init_Activity();  // requires Init_Storage(), Init_Contacts(),
-                      // Init_Contracts(), Init_Legacy()
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    Init_Blockchain();  // requires Init_Storage(), Init_Crypto(),
-                        // Init_Contracts(), Init_Activity()
-#endif
-    Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
-                 // Init_Contracts(), Init_Identity(), Init_Storage(),
-                 // Init_ZMQ(), Init_Contacts() Init_Activity()
-    if (!server_mode_) {
-        Init_UI();  // requires Init_Activity(), Init_Contacts(), Init_Api(),
-                    // Init_Storage(), Init_ZMQ(), Init_Legacy()
-    }
+    Init_Api();       // requires Init_Legacy(), Init_Config(), Init_Crypto(),
+                      // Init_Contracts(), Init_Identity(), Init_Storage(),
+                      // Init_ZMQ(), Init_Seeds()
 
     if (recover_) { recover(); }
 
     Init_Server();  // requires Init_Legacy(), Init_Config(), Init_Storage(),
                     // Init_Crypto(), Init_Contracts(), Init_Log(),
-                    // Init_Contracts()
+                    // Init_Contracts(), Init_Seeds()
 
     start();
-}
-
-void Native::Init_Activity()
-{
-    OT_ASSERT(legacy_);
-    OT_ASSERT(contacts_);
-    OT_ASSERT(wallet_);
-    OT_ASSERT(storage_);
-
-    activity_.reset(Factory::Activity(
-        *legacy_, *contacts_, *storage_, *wallet_, zmq_context_));
 }
 
 void Native::Init_Api()
 {
     auto& config = config_[""];
 
-    OT_ASSERT(activity_);
     OT_ASSERT(config);
-    OT_ASSERT(contacts_);
     OT_ASSERT(wallet_);
     OT_ASSERT(crypto_);
+#if OT_CRYPTO_WITH_BIP39
+    OT_ASSERT(seeds_);
+#endif
     OT_ASSERT(identity_);
     OT_ASSERT(legacy_);
 
     if (server_mode_) { return; }
 
-    api_.reset(Factory::Api(
+    client_.reset(opentxs::Factory::Client(
         running_,
-        *activity_,
         *config,
-        *contacts_,
         *crypto_,
+#if OT_CRYPTO_WITH_BIP39
+        *seeds_,
+#endif
         *identity_,
         *legacy_,
         *storage_,
         *wallet_,
-        *zeromq_));
+        *zeromq_,
+        0));  // TODO
 
-    OT_ASSERT(api_);
+    OT_ASSERT(client_);
 }
-
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-void Native::Init_Blockchain()
-{
-    OT_ASSERT(activity_);
-    OT_ASSERT(crypto_);
-    OT_ASSERT(storage_);
-    OT_ASSERT(wallet_)
-
-    blockchain_.reset(
-        Factory::Blockchain(*activity_, *crypto_, *storage_, *wallet_));
-}
-#endif
 
 void Native::Init_Config()
 {
     OT_ASSERT(legacy_)
 
     String strConfigFilePath = legacy_->ConfigFilePath().c_str();
-    config_[""].reset(Factory::Settings(strConfigFilePath));
-}
-
-void Native::Init_Contacts()
-{
-    OT_ASSERT(storage_)
-    OT_ASSERT(wallet_)
-
-    contacts_.reset(new api::implementation::ContactManager(
-        *storage_, *wallet_, zmq_context_.get()));
+    config_[""].reset(opentxs::Factory::Settings(strConfigFilePath));
 }
 
 void Native::Init_Contracts()
 {
-    wallet_.reset(Factory::Wallet(*this, zmq_context_));
+    wallet_.reset(opentxs::Factory::Wallet(*this, zmq_context_));
 }
 
-void Native::Init_Crypto() { crypto_.reset(Factory::Crypto(*this)); }
+void Native::Init_Crypto() { crypto_.reset(opentxs::Factory::Crypto()); }
 
 void Native::Init_Dht()
 {
@@ -765,15 +695,15 @@ void Native::Init_Identity()
 {
     OT_ASSERT(wallet_);
 
-    identity_.reset(Factory::Identity(*wallet_));
+    identity_.reset(opentxs::Factory::Identity(*wallet_));
 }
 
 void Native::Init_Legacy()
 {
     if (server_mode_) {
-        legacy_.reset(Factory::Legacy(SERVER_CONFIG_KEY));
+        legacy_.reset(opentxs::Factory::Legacy(SERVER_CONFIG_KEY));
     } else {
-        legacy_.reset(Factory::Legacy(CLIENT_CONFIG_KEY));
+        legacy_.reset(opentxs::Factory::Legacy(CLIENT_CONFIG_KEY));
     }
 
     OT_ASSERT(legacy_);
@@ -868,23 +798,45 @@ void Native::Init_Periodic()
     periodic_.reset(new std::thread(&Native::Periodic, this));
 }
 
+#if OT_CRYPTO_WITH_BIP39
+void Native::Init_Seeds()
+{
+    OT_ASSERT(crypto_);
+    OT_ASSERT(storage_);
+
+    seeds_.reset(opentxs::Factory::HDSeed(
+        crypto_->Symmetric(),
+        *storage_,
+        crypto_->BIP32(),
+        crypto_->BIP39(),
+        crypto_->AES()));
+
+    OT_ASSERT(seeds_);
+}
+#endif
+
 void Native::Init_Server()
 {
     if (false == server_mode_) { return; }
 
     OT_ASSERT(crypto_);
+    OT_ASSERT(seeds_);
     OT_ASSERT(storage_);
     OT_ASSERT(wallet_);
 
-    server_.reset(Factory::ServerAPI(
+    server_.reset(opentxs::Factory::ServerAPI(
         server_args_,
         *crypto_,
+#if OT_CRYPTO_WITH_BIP39
+        *seeds_,
+#endif
         *legacy_,
         Config(),
         *storage_,
         *wallet_,
         running_,
-        zmq_context_));
+        zmq_context_,
+        0));  // TODO
 
     OT_ASSERT(server_);
 }
@@ -1070,7 +1022,7 @@ void Native::Init_Storage()
 
     OT_ASSERT(crypto_);
 
-    storage_.reset(Factory::Storage(
+    storage_.reset(opentxs::Factory::Storage(
         running_, config, defaultPlugin, migrate, old, hash, random));
     Config().Set_str(
         STORAGE_CONFIG_KEY,
@@ -1093,31 +1045,6 @@ void Native::Init_StorageBackup()
 #endif
 
     storage_->start();
-}
-
-void Native::Init_UI()
-{
-    OT_ASSERT(activity_)
-    OT_ASSERT(api_)
-    OT_ASSERT(contacts_)
-    OT_ASSERT(legacy_)
-    OT_ASSERT(storage_)
-    OT_ASSERT(wallet_)
-    OT_ASSERT(zeromq_)
-
-    ui_.reset(Factory::UI(
-        api_->Sync(),
-        *wallet_,
-        api_->Workflow(),
-        *zeromq_,
-        *storage_,
-        *activity_,
-        *contacts_,
-        *legacy_,
-        zmq_context_,
-        running_));
-
-    OT_ASSERT(ui_);
 }
 
 void Native::Init_ZMQ()
@@ -1167,13 +1094,13 @@ void Native::Periodic()
 
 void Native::recover()
 {
-    OT_ASSERT(api_);
+    OT_ASSERT(client_);
     OT_ASSERT(crypto_);
     OT_ASSERT(recover_);
     OT_ASSERT(storage_);
     OT_ASSERT(0 < word_list_.getPasswordSize());
 
-    auto& api = api_->OTAPI();
+    auto& api = client_->OTAPI();
     const auto fingerprint = api.Wallet_ImportSeed(word_list_, passphrase_);
 
     if (fingerprint.empty()) {
@@ -1209,9 +1136,9 @@ bool Native::ServerMode() const { return server_mode_; }
 void Native::set_storage_encryption()
 {
 #if OT_CRYPTO_WITH_BIP39
-    OT_ASSERT(crypto_);
+    OT_ASSERT(seeds_);
 
-    auto seed = crypto_->BIP39().DefaultSeed();
+    auto seed = seeds_->DefaultSeed();
 
     if (seed.empty()) {
         otErr << OT_METHOD << __FUNCTION__ << ": No default seed." << std::endl;
@@ -1220,7 +1147,24 @@ void Native::set_storage_encryption()
               << std::endl;
     }
 
-    storage_encryption_key_ = crypto_->GetStorageKey(seed);
+    std::shared_ptr<proto::AsymmetricKey> rawKey{nullptr};
+
+    if (server_mode_) {
+        OT_ASSERT(server_)
+
+        rawKey = server_->Seeds().GetStorageKey(seed);
+    } else {
+        OT_ASSERT(client_)
+
+        rawKey = client_->Seeds().GetStorageKey(seed);
+    }
+
+    if (false == bool(rawKey)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load encryption key."
+              << std::endl;
+    }
+
+    storage_encryption_key_ = crypto_->GetStorageKey(*rawKey);
 
     if (storage_encryption_key_.get()) {
         otWarn << OT_METHOD << __FUNCTION__ << ": Obtained storage key "
@@ -1237,7 +1181,7 @@ void Native::setup_default_external_password_callback()
     // NOTE: OT_ASSERT is not available yet because we're too early
     // in the startup process
 
-    null_callback_.reset(Factory::NullCallback());
+    null_callback_.reset(opentxs::Factory::NullCallback());
 
     assert(null_callback_);
 
@@ -1264,9 +1208,9 @@ void Native::shutdown()
     if (periodic_) { periodic_->join(); }
 
     if (false == bool(server_)) {
-        OT_ASSERT(api_);
+        OT_ASSERT(client_);
 
-        auto wallet = api_->OTAPI().GetWallet(nullptr);
+        auto wallet = client_->OTAPI().GetWallet(nullptr);
 
         OT_ASSERT(nullptr != wallet);
 
@@ -1274,13 +1218,7 @@ void Native::shutdown()
     }
 
     server_.reset();
-    ui_.reset();
-    api_.reset();
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    blockchain_.reset();
-#endif
-    activity_.reset();
-    contacts_.reset();
+    client_.reset();
     identity_.reset();
     dht_.reset();
     wallet_.reset();
@@ -1296,17 +1234,10 @@ void Native::shutdown()
 
 void Native::start()
 {
-    OT_ASSERT(activity_);
-    OT_ASSERT(contacts_);
-
     if (false == server_mode_) {
-        OT_ASSERT(api_);
+        OT_ASSERT(client_);
 
-        const bool loaded = api_->OTAPI().LoadWallet();
-
-        OT_ASSERT(loaded);
-
-        auto wallet = api_->OTAPI().GetWallet(nullptr);
+        auto wallet = client_->StartWallet();
 
         OT_ASSERT(nullptr != wallet);
 
@@ -1320,8 +1251,14 @@ void Native::start()
     OT_ASSERT(storage_);
 
     storage_->UpgradeNyms();
-    dynamic_cast<ContactManager&>(*contacts_).start();
-    activity_->MigrateLegacyThreads();
+
+    if (false == server_mode_) {
+        OT_ASSERT(client_);
+
+        client_->StartContacts();
+        client_->StartActivity();
+    }
+
     Init_Periodic();
 
     if (server_mode_) {
@@ -1331,14 +1268,7 @@ void Native::start()
     }
 }
 
-const api::UI& Native::UI() const
-{
-    OT_ASSERT(ui_)
-
-    return *ui_;
-}
-
-const api::client::Wallet& Native::Wallet() const
+const api::Wallet& Native::Wallet() const
 {
     OT_ASSERT(wallet_)
 

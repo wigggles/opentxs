@@ -40,17 +40,24 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const;
 
-    explicit NymIDSource(const proto::NymIDSource& serializedSource);
-    explicit NymIDSource(const String& stringSource);
     NymIDSource(
+        const api::Factory& factory,
+        const proto::NymIDSource& serializedSource);
+    NymIDSource(const api::Factory& factory, const String& stringSource);
+    NymIDSource(
+        const api::Factory& factory,
         const NymParameters& nymParameters,
         proto::AsymmetricKey& pubkey);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    explicit NymIDSource(const PaymentCode& source);
+    explicit NymIDSource(
+        const api::Factory& factory,
+        const PaymentCode& source);
 #endif
     NymIDSource(const NymIDSource&);
 
 private:
+    const api::Factory& factory_;
+
     std::uint32_t version_ = 0;
     proto::SourceType type_ = proto::SOURCETYPE_ERROR;
     OTAsymmetricKey pubkey_;

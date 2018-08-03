@@ -22,7 +22,7 @@ public:
     ~PaymentItem();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     std::string display_amount_{};
     std::string memo_{};
@@ -35,12 +35,12 @@ private:
         const ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::ContactManager& contact,
+        const api::client::Contacts& contact,
         const Identifier& nymID,
         const ActivityThreadRowID& rowID,
         const ActivityThreadSortKey& sortKey,
         const CustomData& custom,
-        const api::Activity& activity);
+        const api::client::Activity& activity);
     PaymentItem() = delete;
     PaymentItem(const PaymentItem&) = delete;
     PaymentItem(PaymentItem&&) = delete;

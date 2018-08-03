@@ -24,14 +24,9 @@ namespace opentxs::api::implementation
 class Native : virtual public api::internal::Native
 {
 public:
-    const api::Activity& Activity() const override;
-    const api::Api& API() const override;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    const api::Blockchain& Blockchain() const override;
-#endif
+    const api::client::Client& Client() const override;
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
-    const api::ContactManager& Contact() const override;
     const api::Crypto& Crypto() const override;
     const api::storage::Storage& DB() const override;
     const api::network::Dht& DHT() const override;
@@ -47,15 +42,14 @@ public:
             std::chrono::seconds(0)) const override;
     const api::Server& Server() const override;
     bool ServerMode() const override;
-    const api::client::Wallet& Wallet() const override;
-    const api::UI& UI() const override;
+    const api::Wallet& Wallet() const override;
     const api::network::ZMQ& ZMQ() const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
     friend class opentxs::OT;
 
     /** Last performed, Interval, Task */
@@ -82,26 +76,23 @@ private:
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
     mutable TaskList periodic_task_list;
-    std::unique_ptr<api::client::internal::Activity> activity_;
-    std::unique_ptr<api::Api> api_;
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    std::unique_ptr<api::Blockchain> blockchain_;
-#endif
+    std::unique_ptr<api::client::internal::Client> client_;
     mutable ConfigMap config_;
-    std::unique_ptr<api::ContactManager> contacts_;
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::network::Dht> dht_;
+#if OT_CRYPTO_WITH_BIP39
+    std::unique_ptr<api::HDSeed> seeds_;
+#endif
     std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
-    std::unique_ptr<api::client::Wallet> wallet_;
+    std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<std::thread> periodic_;
 #if OT_CRYPTO_WITH_BIP39
     OTSymmetricKey storage_encryption_key_;
 #endif
     std::unique_ptr<api::Server> server_;
-    std::unique_ptr<api::UI> ui_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
@@ -130,13 +121,8 @@ private:
 
     void setup_default_external_password_callback();
 
-    void Init_Activity();
     void Init_Api();
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    void Init_Blockchain();
-#endif
     void Init_Config();
-    void Init_Contacts();
     void Init_Contracts();
     void Init_Crypto();
     void Init_Dht();
@@ -144,10 +130,12 @@ private:
     void Init_Legacy();
     void Init_Log();
     void Init_Periodic();
+#if OT_CRYPTO_WITH_BIP39
+    void Init_Seeds();
+#endif
     void Init_Server();
     void Init_Storage();
     void Init_StorageBackup();
-    void Init_UI();
     void Init_ZMQ();
     void Init() override;
     void Periodic();

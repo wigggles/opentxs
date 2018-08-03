@@ -5,8 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Sync.hpp"
-#include "opentxs/api/ContactManager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -41,7 +41,7 @@ namespace opentxs
 ui::implementation::MessagableExternalInterface* Factory::MessagableList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::client::Sync& sync,
     const Identifier& nymID)
 {
@@ -62,7 +62,7 @@ const Widget::ListenerDefinitions MessagableList::listeners_{
 MessagableList::MessagableList(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const api::client::Sync& sync,
     const Identifier& nymID)
     : MessagableListList(nymID, zmq, publisher, contact)

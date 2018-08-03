@@ -16,7 +16,7 @@ public:
     Test_NymData()
         : nymData_(opentxs::OT::App().Wallet().mutable_Nym(
               opentxs::Identifier::Factory(
-                  opentxs::OT::App().API().Exec().CreateNymHD(
+                  opentxs::OT::App().Client().Exec().CreateNymHD(
                       opentxs::proto::CITEMTYPE_INDIVIDUAL,
                       "testNym",
                       "",

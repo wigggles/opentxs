@@ -24,27 +24,27 @@ public:
 
     Test_CreateNymHD()
         // these fingerprints are deterministic so we can share them among tests
-        : SeedA_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        : SeedA_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "spike nominee miss inquiry fee nothing belt list other daughter "
               "leave valley twelve gossip paper",
               ""))
-        , SeedB_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        , SeedB_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "glimpse destroy nation advice seven useless candy move number "
               "toast insane anxiety proof enjoy lumber",
               ""))
-        , SeedC_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        , SeedC_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "park cabbage quit",
               ""))
-        , SeedD_(opentxs::OT::App().API().Exec().Wallet_ImportSeed(
+        , SeedD_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "federal dilemma rare",
               ""))
-        , Alice(opentxs::OT::App().API().Exec().CreateNymHD(
+        , Alice(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "Alice",
               SeedA_,
               0))
         , AliceID("ot24XFA1wKynjaAB59dx7PwEzGg37U8Q2yXG")
-        , Bob(opentxs::OT::App().API().Exec().CreateNymHD(
+        , Bob(opentxs::OT::App().Client().Exec().CreateNymHD(
               proto::CITEMTYPE_INDIVIDUAL,
               "Bob",
               SeedB_,
@@ -65,9 +65,9 @@ TEST_F(Test_CreateNymHD, TestNym_DeterministicIDs)
 
 TEST_F(Test_CreateNymHD, TestNym_ABCD)
 {
-    auto Charly = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto Charly = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Charly", SeedA_, 1);
-    auto Dave = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto Dave = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
 
     const ConstNym NymA =
@@ -124,7 +124,7 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
 
 TEST_F(Test_CreateNymHD, TestNym_Dave)
 {
-    const auto Dave = opentxs::OT::App().API().Exec().CreateNymHD(
+    const auto Dave = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
     const ConstNym NymD =
         opentxs::OT::App().Wallet().Nym(Identifier::Factory(Dave));
@@ -147,7 +147,7 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
 {
 
     // EXPECT_STREQ(EveID.c_str(), Eve.c_str());
-    auto NewEve = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NewEve = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Eve", SeedB_, 2);
     EXPECT_STREQ(EveID.c_str(), NewEve.c_str());
 
@@ -170,9 +170,9 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
 
 TEST_F(Test_CreateNymHD, TestNym_Frank)
 {
-    auto Frank = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto Frank = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Frank", SeedB_, 3);
-    auto Frank2 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto Frank2 = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Frank", SeedA_, 3);
 
     EXPECT_STRNE(Frank.c_str(), Frank2.c_str());
@@ -206,10 +206,10 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
 
 TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
 {
-    auto NymID1 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID1 = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedC_, 0);
 
-    auto NymID2 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID2 = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedC_, 0);
 
     const ConstNym Nym1 =
@@ -229,10 +229,10 @@ TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
 
 TEST_F(Test_CreateNymHD, TestNym_NegativeIndex)
 {
-    auto NymID1 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID1 = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedD_, -1);
 
-    auto NymID2 = opentxs::OT::App().API().Exec().CreateNymHD(
+    auto NymID2 = opentxs::OT::App().Client().Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedD_, -1);
 
     const ConstNym Nym1 =

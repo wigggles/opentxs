@@ -8,15 +8,9 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
-
-#include <map>
-#include <mutex>
-#include <tuple>
-
-namespace opentxs::api::implementation
+namespace opentxs::api::client::implementation
 {
-class ContactManager : virtual public opentxs::api::ContactManager
+class Contacts final : public client::internal::Contacts
 {
 public:
     OTIdentifier BlockchainAddressToContact(
@@ -52,10 +46,10 @@ public:
     std::shared_ptr<const class Contact> Update(
         const proto::CredentialIndex& nym) const override;
 
-    ~ContactManager() = default;
+    ~Contacts() = default;
 
 private:
-    friend class implementation::Native;
+    friend opentxs::Factory;
 
     using ContactLock = std::pair<std::mutex, std::shared_ptr<class Contact>>;
     using Address = std::pair<proto::ContactItemType, std::string>;
@@ -63,7 +57,8 @@ private:
     using ContactNameMap = std::map<OTIdentifier, std::string>;
 
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Factory& factory_;
+    const api::Wallet& wallet_;
     mutable std::recursive_mutex lock_{};
     mutable ContactMap contact_map_{};
     mutable ContactNameMap contact_name_map_;
@@ -114,7 +109,7 @@ private:
         ) const;
     void refresh_indices(const rLock& lock, class Contact& contact) const;
     void save(class Contact* contact) const;
-    void start();
+    void start() override;
     std::shared_ptr<const class Contact> update_existing_contact(
         const rLock& lock,
         const std::string& label,
@@ -128,15 +123,16 @@ private:
         class Contact& contact,
         const bool replace = false) const;
 
-    ContactManager(
+    Contacts(
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Factory& factory,
+        const api::Wallet& wallet,
         const opentxs::network::zeromq::Context& context);
-    ContactManager() = delete;
-    ContactManager(const ContactManager&) = delete;
-    ContactManager(ContactManager&&) = delete;
-    ContactManager& operator=(const ContactManager&) = delete;
-    ContactManager& operator=(ContactManager&&) = delete;
+    Contacts() = delete;
+    Contacts(const Contacts&) = delete;
+    Contacts(Contacts&&) = delete;
+    Contacts& operator=(const Contacts&) = delete;
+    Contacts& operator=(Contacts&&) = delete;
 };
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::client::implementation
 #endif  // OPENTXS_API_CONTACT_MANAGER_IMPLEMENTATION_HPP

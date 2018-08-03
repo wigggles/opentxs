@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
@@ -44,11 +44,11 @@ ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
     const ui::implementation::ProfileSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
     const ui::implementation::CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
 {
     return new ui::implementation::ProfileSubsection(
         parent, zmq, publisher, contact, rowID, key, custom, wallet);
@@ -61,11 +61,11 @@ ProfileSubsection::ProfileSubsection(
     const ProfileSectionInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const ProfileSectionRowID& rowID,
     const ProfileSectionSortKey& key,
     const CustomData& custom,
-    const api::client::Wallet& wallet)
+    const api::Wallet& wallet)
     : ProfileSubsectionList(
           parent.WidgetID(),
           parent.NymID(),

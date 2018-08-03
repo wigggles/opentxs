@@ -30,12 +30,12 @@ class Test_ContactList : public ::testing::Test
 public:
     using WidgetUpdateCounter = std::map<std::string, int>;
 
-    const std::string fingerprint_{OT::App().API().Exec().Wallet_ImportSeed(
+    const std::string fingerprint_{OT::App().Client().Exec().Wallet_ImportSeed(
         "response seminar brave tip suit recall often sound stick owner "
         "lottery motion",
         "")};
     const OTIdentifier nym_id_{
-        Identifier::Factory(OT::App().API().Exec().CreateNymHD(
+        Identifier::Factory(OT::App().Client().Exec().CreateNymHD(
             proto::CITEMTYPE_INDIVIDUAL,
             ALICE_NYM_NAME,
             fingerprint_,
@@ -49,14 +49,15 @@ public:
             IncrementCounter(message.at(0));
         })};
     OTZMQSubscribeSocket subscriber_{setup_listener(callback_)};
-    const ui::ContactList& contact_list_{OT::App().UI().ContactList(nym_id_)};
+    const ui::ContactList& contact_list_{
+        OT::App().Client().UI().ContactList(nym_id_)};
     std::thread loop_{&Test_ContactList::loop, this};
     std::atomic<bool> shutdown_{false};
     const OTPaymentCode bob_payment_code_{
-        PaymentCode::Factory(BOB_PAYMENT_CODE)};
+        OT::App().Client().Factory().PaymentCode(BOB_PAYMENT_CODE)};
     OTIdentifier bob_contact_id_{Identifier::Factory()};
     const OTPaymentCode chris_payment_code_{
-        PaymentCode::Factory(CHRIS_PAYMENT_CODE)};
+        OT::App().Client().Factory().PaymentCode(CHRIS_PAYMENT_CODE)};
     OTIdentifier chris_contact_id_{Identifier::Factory()};
 
     static OTZMQSubscribeSocket setup_listener(
@@ -210,7 +211,7 @@ TEST_F(Test_ContactList, Contact_List)
 
     while (GetCounter(contact_widget_id_) < 2) { ; }
 
-    const auto bob = OT::App().Contact().NewContact(
+    const auto bob = OT::App().Client().Contacts().NewContact(
         BOB_NYM_NAME, bob_payment_code_->ID(), bob_payment_code_);
 
     ASSERT_EQ(true, bool(bob));
@@ -221,7 +222,7 @@ TEST_F(Test_ContactList, Contact_List)
 
     while (GetCounter(contact_widget_id_) < 4) { ; }
 
-    const auto chris = OT::App().Contact().NewContact(
+    const auto chris = OT::App().Client().Contacts().NewContact(
         CHRIS_NYM_NAME, chris_payment_code_->ID(), chris_payment_code_);
 
     ASSERT_EQ(true, bool(chris));

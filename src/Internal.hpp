@@ -16,24 +16,18 @@ namespace api
 {
 namespace client
 {
-namespace implementation
-{
-class Wallet;
-}  // namespace implementation
-
 namespace internal
 {
 struct Activity;
+struct Client;
+struct Contacts;
 }  // namespace internal
 }  // namespace client
 
 namespace implementation
 {
-class Api;
-class Crypto;
 class Native;
 class Storage;
-class UI;
 }  // namespace implementation
 
 namespace network

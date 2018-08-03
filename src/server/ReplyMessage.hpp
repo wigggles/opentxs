@@ -39,7 +39,7 @@ class ReplyMessage
 {
 public:
     ReplyMessage(
-        const opentxs::api::client::Wallet& wallet,
+        const opentxs::api::Wallet& wallet,
         const Identifier& notaryID,
         const Nym& signer,
         const Message& input,
@@ -78,7 +78,7 @@ public:
     ~ReplyMessage();
 
 private:
-    const opentxs::api::client::Wallet& wallet_;
+    const opentxs::api::Wallet& wallet_;
     const Nym& signer_;
     const Message& original_;
     const OTIdentifier notary_id_;

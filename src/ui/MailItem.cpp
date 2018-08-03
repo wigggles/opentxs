@@ -27,12 +27,12 @@ ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const bool loading,
     const bool pending)
 {
@@ -54,12 +54,12 @@ ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::Activity& activity)
+    const api::client::Activity& activity)
 {
     return new ui::implementation::MailItem(
         parent,
@@ -80,12 +80,12 @@ MailItem::MailItem(
     const ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
-    const api::Activity& activity,
+    const api::client::Activity& activity,
     const bool loading,
     const bool pending)
     : ActivityThreadItem(
@@ -110,12 +110,12 @@ MailItem::MailItem(
     const ActivityThreadInternalInterface& parent,
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
-    const api::Activity& activity)
+    const api::client::Activity& activity)
     : MailItem(
           parent,
           zmq,

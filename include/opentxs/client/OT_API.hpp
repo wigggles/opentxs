@@ -8,7 +8,7 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/api/client/Wallet.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -29,10 +29,13 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
 namespace implementation
 {
-class Api;
+class Client;
 }  // namespace implementation
+}  // namespace client
 }  // namespace api
 
 // The C++ high-level interface to the Open Transactions client-side.
@@ -79,8 +82,8 @@ public:
         const Identifier& THE_ID,
         const char* szFuncName = nullptr) const;
 
-    EXPORT static std::string NymIDFromPaymentCode(
-        const std::string& paymentCode);
+    EXPORT std::string NymIDFromPaymentCode(
+        const std::string& paymentCode) const;
     /**   Add a single claim to the target nym's contact credential
      *    \param[in]  nymID the indentifier of the target nym
      *    \param[in]  section section containing the claim
@@ -1193,19 +1196,23 @@ public:
     EXPORT ~OT_API();  // calls Cleanup();
 
 private:
-    friend class api::implementation::Api;
+    friend class api::client::implementation::Client;
 
     class Pid;
 
-    const api::Activity& activity_;
-    const api::Api& api_;
+    const api::client::Activity& activity_;
+    const api::client::Client& client_;
     const api::Settings& config_;
-    const api::ContactManager& contacts_;
+    const api::client::Contacts& contacts_;
     const api::Crypto& crypto_;
+    const api::Factory& factory_;
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds_;
+#endif
     const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::storage::Storage& storage_;
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::network::ZMQ& zeromq_;
 
@@ -1275,15 +1282,19 @@ private:
     bool LoadConfigFile();
 
     OT_API(
-        const api::Activity& activity,
-        const api::Api& api,
+        const api::client::Activity& activity,
+        const api::client::Client& client,
         const api::Settings& config,
-        const api::ContactManager& contacts,
+        const api::client::Contacts& contacts,
         const api::Crypto& crypto,
+        const api::Factory& factory,
+#if OT_CRYPTO_WITH_BIP39
+        const api::HDSeed& seeds,
+#endif
         const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
-        const api::client::Wallet& wallet,
+        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::network::ZMQ& zmq,
         const ContextLockCallback& lockCallback);

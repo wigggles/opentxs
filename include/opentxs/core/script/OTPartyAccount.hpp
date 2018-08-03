@@ -130,7 +130,7 @@ public:
     virtual ~OTPartyAccount();
 
 private:
-    const api::client::Wallet& wallet_;
+    const api::Wallet& wallet_;
     const std::string data_folder_{""};
     OTParty* m_pForParty;  // When being added to a party, this pointer will be
                            // set.

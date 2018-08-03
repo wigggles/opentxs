@@ -20,6 +20,8 @@ namespace opentxs
 {
 namespace api
 {
+namespace client
+{
 class Activity
 {
 public:
@@ -190,6 +192,7 @@ private:
     Activity& operator=(const Activity&) = delete;
     Activity& operator=(Activity&&) = delete;
 };
+}  // namespace client
 }  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_API_ACTIVITY_HPP

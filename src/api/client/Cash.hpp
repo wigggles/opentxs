@@ -146,7 +146,7 @@ protected:
 #endif  // OT_CASH
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     const api::Legacy& legacy_;
 

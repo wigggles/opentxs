@@ -34,7 +34,7 @@ public:
     ~Secp256k1();
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const int PrivateKeySize = 32;
     static const int PublicKeySize = 33;

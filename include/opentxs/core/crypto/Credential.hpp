@@ -56,7 +56,8 @@ public:
     static serializedCredential ExtractArmoredCredential(
         const Armored& armoredCredential);
     static std::unique_ptr<Credential> Factory(
-        const api::client::Wallet& wallet,
+        const api::Factory& factory,
+        const api::Wallet& wallet,
         CredentialSet& parent,
         const proto::Credential& serialized,
         const proto::KeyMode& mode,
@@ -64,13 +65,14 @@ public:
 
     template <class C>
     static std::unique_ptr<C> Create(
-        const api::client::Wallet& wallet,
+        const api::Factory& factory,
+        const api::Wallet& wallet,
         CredentialSet& owner,
         const NymParameters& nymParameters)
     {
         std::unique_ptr<C> credential;
 
-        credential.reset(new C(wallet, owner, nymParameters));
+        credential.reset(new C(factory, wallet, owner, nymParameters));
 
         if (!credential) {
             otErr << __FUNCTION__ << ": Failed to construct credential."
@@ -118,7 +120,8 @@ protected:
     CredentialSet* owner_backlink_ = nullptr;  // Do not cleanup.
     std::string master_id_;
     std::string nym_id_;
-    const api::client::Wallet& wallet_;
+    const api::Factory& factory_;
+    const api::Wallet& wallet_;
 
     virtual serializedCredential serialize(
         const Lock& lock,
@@ -131,11 +134,13 @@ protected:
     virtual bool New(const NymParameters& nymParameters);
 
     Credential(
-        const api::client::Wallet& wallet,
+        const api::Factory& factory,
+        const api::Wallet& wallet,
         CredentialSet& owner,
         const proto::Credential& serializedCred);
     Credential(
-        const api::client::Wallet& wallet,
+        const api::Factory& factory,
+        const api::Wallet& wallet,
         CredentialSet& owner,
         const std::uint32_t version,
         const NymParameters& nymParameters);

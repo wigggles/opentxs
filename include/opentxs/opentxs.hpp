@@ -13,23 +13,25 @@
 #include <opentxs/Forward.hpp>
 
 #include <opentxs/api/client/Activity.hpp>
+#if OT_CRYPTO_SUPPORTED_KEY_HD
+#include <opentxs/api/client/Blockchain.hpp>
+#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Cash.hpp>
+#include <opentxs/api/client/Client.hpp>
+#include <opentxs/api/client/Contacts.hpp>
 #include <opentxs/api/client/Issuer.hpp>
 #include <opentxs/api/client/Pair.hpp>
 #include <opentxs/api/client/ServerAction.hpp>
 #include <opentxs/api/client/Sync.hpp>
-#include <opentxs/api/client/Wallet.hpp>
+#include <opentxs/api/client/UI.hpp>
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/storage/Storage.hpp>
-#include <opentxs/api/Api.hpp>
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-#include <opentxs/api/Blockchain.hpp>
-#endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#include <opentxs/api/ContactManager.hpp>
+#include <opentxs/api/Factory.hpp>
+#include <opentxs/api/HDSeed.hpp>
 #include <opentxs/api/Legacy.hpp>
 #include <opentxs/api/Native.hpp>
-#include <opentxs/api/UI.hpp>
+#include <opentxs/api/Wallet.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OTRecordList.hpp>

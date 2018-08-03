@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/ContactManager.hpp"
+#include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactSection.hpp"
@@ -43,7 +43,7 @@ namespace opentxs
 ui::implementation::ContactExternalInterface* Factory::ContactWidget(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& contactID)
 {
     return new ui::implementation::Contact(zmq, publisher, contact, contactID);
@@ -68,7 +68,7 @@ const Widget::ListenerDefinitions Contact::listeners_{
 Contact::Contact(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::ContactManager& contact,
+    const api::client::Contacts& contact,
     const Identifier& contactID)
     : ContactType(contactID, zmq, publisher, contact)
     , name_(contact.ContactName(contactID))

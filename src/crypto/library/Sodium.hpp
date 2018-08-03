@@ -56,7 +56,7 @@ public:
     ~Sodium() = default;
 
 private:
-    friend Factory;
+    friend opentxs::Factory;
 
     static const proto::SymmetricMode DEFAULT_MODE{
         proto::SMODE_CHACHA20POLY1305};
