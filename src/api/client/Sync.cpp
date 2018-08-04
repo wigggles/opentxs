@@ -5,8 +5,8 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
@@ -125,7 +125,7 @@ api::client::Sync* Factory::Sync(
     const OTAPI_Exec& exec,
     const api::client::Contacts& contacts,
     const api::Settings& config,
-    const api::client::Client& client,
+    const api::client::Manager& client,
     const api::Legacy& legacy,
     const api::Wallet& wallet,
     const api::client::Workflow& workflow,
@@ -209,7 +209,7 @@ Sync::Sync(
     const api::client::Contacts& contacts,
     const api::Legacy& legacy,
     const api::Settings& config,
-    const api::client::Client& client,
+    const api::client::Manager& client,
     const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::crypto::Encode& encoding,
@@ -768,7 +768,7 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    auto cheque = std::make_unique<Cheque>(legacy_.ClientDataFolder());
+    auto cheque = std::make_unique<Cheque>(wallet_, legacy_.ClientDataFolder());
     const auto loaded = cheque->LoadContractFromString(payment->Payment());
 
     if (false == loaded) {
@@ -1537,8 +1537,8 @@ bool Sync::publish_server_registration(
 bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
     const
 {
-    auto payment =
-        std::make_shared<OTPayment>(legacy_.ClientDataFolder(), String(cheque));
+    auto payment = std::make_shared<OTPayment>(
+        wallet_, legacy_.ClientDataFolder(), String(cheque));
 
     OT_ASSERT(payment)
 
@@ -2009,7 +2009,7 @@ OTIdentifier Sync::SendCheque(
     }
 
     auto payment = std::make_shared<OTPayment>(
-        legacy_.ClientDataFolder(), String(*cheque));
+        wallet_, legacy_.ClientDataFolder(), String(*cheque));
 
     if (false == bool(cheque)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate payment"

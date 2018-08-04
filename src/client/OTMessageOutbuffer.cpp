@@ -32,8 +32,11 @@
 
 namespace opentxs
 {
-OTMessageOutbuffer::OTMessageOutbuffer(const api::Legacy& legacy)
-    : legacy_(legacy)
+OTMessageOutbuffer::OTMessageOutbuffer(
+    const api::Wallet& wallet,
+    const api::Legacy& legacy)
+    : wallet_(wallet)
+    , legacy_(legacy)
     , messagesMap_()
     , dataFolder_(legacy_.ClientDataFolder())
 {
@@ -272,7 +275,7 @@ Message* OTMessageOutbuffer::GetSentMessage(
             // "doesn't exist" if it doesn't appear on the official list.
             // The list is what matters -- the message is just the contents
             // referencedby that list.
-            Message* pMsg = new Message{legacy_.ClientDataFolder()};
+            Message* pMsg = new Message{wallet_, legacy_.ClientDataFolder()};
 
             OT_ASSERT(nullptr != pMsg);
 
@@ -514,7 +517,7 @@ void OTMessageOutbuffer::Clear(
         // Make sure any messages being erased here, are also erased from local
         // storage.
         std::unique_ptr<Message> storedMessage(
-            new Message{legacy_.ClientDataFolder()});
+            new Message{wallet_, legacy_.ClientDataFolder()});
 
         OT_ASSERT(storedMessage);
 
@@ -677,7 +680,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     // Now that we've updated the numlist in local storage, let's
     // erase the sent message itself...
     //
-    Message* pMsg = new Message{legacy_.ClientDataFolder()};
+    Message* pMsg = new Message{wallet_, legacy_.ClientDataFolder()};
     OT_ASSERT(nullptr != pMsg);
     std::unique_ptr<Message> theMsgAngel(pMsg);
 

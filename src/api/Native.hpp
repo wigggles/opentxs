@@ -22,15 +22,14 @@ namespace opentxs::api::implementation
 class Native final : api::internal::Native
 {
 public:
-    const api::client::Client& Client() const override;
+    const api::client::Manager& Client() const override;
     const api::Settings& Config(
         const std::string& path = std::string("")) const override;
     const api::Crypto& Crypto() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
     const api::Legacy& Legacy() const override;
-    const api::Server& Server() const override;
+    const api::server::Manager& Server() const override;
     bool ServerMode() const override;
-    const api::Wallet& Wallet() const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
@@ -53,7 +52,7 @@ private:
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
-    std::unique_ptr<api::client::internal::Client> client_;
+    std::unique_ptr<api::client::internal::Manager> client_;
     mutable ConfigMap config_;
     std::unique_ptr<api::Crypto> crypto_;
 #if OT_CRYPTO_WITH_BIP39
@@ -61,11 +60,10 @@ private:
 #endif
     std::unique_ptr<api::Legacy> legacy_;
     std::unique_ptr<api::storage::StorageInternal> storage_;
-    std::unique_ptr<api::Wallet> wallet_;
 #if OT_CRYPTO_WITH_BIP39
     OTSymmetricKey storage_encryption_key_;
 #endif
-    std::unique_ptr<api::Server> server_;
+    std::unique_ptr<api::server::Manager> server_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
@@ -96,7 +94,6 @@ private:
 
     void Init_Api();
     void Init_Config();
-    void Init_Contracts();
     void Init_Crypto();
     void Init_Legacy();
     void Init_Log();

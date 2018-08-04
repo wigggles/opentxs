@@ -22,16 +22,21 @@ public:
     // These assume SetFilename() was already called,
     // or at least one of the constructors that uses it.
     //
-    EXPORT explicit OTSignedFile(const std::string& dataFolder);
     EXPORT explicit OTSignedFile(
+        const api::Wallet& wallet,
+        const std::string& dataFolder);
+    EXPORT explicit OTSignedFile(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& LOCAL_SUBDIR,
         const String& FILE_NAME);
     EXPORT explicit OTSignedFile(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const char* LOCAL_SUBDIR,
         const String& FILE_NAME);
     EXPORT explicit OTSignedFile(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const char* LOCAL_SUBDIR,
         const char* FILE_NAME);

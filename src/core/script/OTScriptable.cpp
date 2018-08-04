@@ -7,6 +7,7 @@
 
 #include "opentxs/core/script/OTScriptable.hpp"
 
+#include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -28,6 +29,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/OT.hpp"
 
 #if OT_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
@@ -60,8 +62,10 @@
 
 namespace opentxs
 {
-OTScriptable::OTScriptable(const std::string& dataFolder)
-    : Contract(dataFolder)
+OTScriptable::OTScriptable(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
     , m_bCalculatingID(false)
     ,  // This is not serialized.
     m_bSpecifyInstrumentDefinitionID(false)
@@ -70,6 +74,7 @@ OTScriptable::OTScriptable(const std::string& dataFolder)
 }
 
 OTScriptable* OTScriptable::InstantiateScriptable(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strInput)
 {
@@ -121,7 +126,7 @@ OTScriptable* OTScriptable::InstantiateScriptable(
                  "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                            // chars long.
     {
-        pItem = new OTSmartContract{dataFolder};
+        pItem = new OTSmartContract{wallet, dataFolder};
         OT_ASSERT(nullptr != pItem);
     }
 
@@ -1144,7 +1149,7 @@ bool OTScriptable::VerifyPartyAuthorization(
     // entire contract falls apart.
 
     OTScriptable* pPartySignedCopy = OTScriptable::InstantiateScriptable(
-        data_folder_, theParty.GetMySignedCopy());
+        wallet_, data_folder_, theParty.GetMySignedCopy());
     std::unique_ptr<OTScriptable> theCopyAngel;
 
     if (nullptr == pPartySignedCopy) {
@@ -1326,7 +1331,7 @@ bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
     // entire contract falls apart.
 
     OTScriptable* pPartySignedCopy = OTScriptable::InstantiateScriptable(
-        data_folder_, pParty->GetMySignedCopy());
+        wallet_, data_folder_, pParty->GetMySignedCopy());
     std::unique_ptr<OTScriptable> theCopyAngel;
 
     if (nullptr == pPartySignedCopy) {
@@ -1890,7 +1895,7 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
         if (pParty->GetMySignedCopy().Exists()) {
             OTScriptable* pPartySignedCopy =
                 OTScriptable::InstantiateScriptable(
-                    data_folder_, pParty->GetMySignedCopy());
+                    wallet_, data_folder_, pParty->GetMySignedCopy());
             std::unique_ptr<OTScriptable> theCopyAngel;
 
             if (nullptr == pPartySignedCopy) {
@@ -2452,6 +2457,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                               << "s: Expected openingTransNo in party.\n";
 
                     OTParty* pParty = new OTParty(
+                        wallet_,
                         data_folder_,
                         strName.Exists() ? strName.Get() : "PARTY_ERROR_NAME",
                         strOwnerType.Compare("nym") ? true : false,
@@ -2579,6 +2585,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // already-loaded parties.
 
                                 OTAgent* pAgent = new OTAgent(
+                                    wallet_,
                                     bRepsHimself,
                                     bIsIndividual,
                                     strAgentName,

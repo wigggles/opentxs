@@ -38,7 +38,6 @@ namespace opentxs
 // Caller is responsible to delete.
 //
 OTPayment* GetInstrumentByReceiptID(
-    const std::string& dataFolder,
     const Nym& theNym,
     const std::int64_t& lReceiptId,
     Ledger& ledger)
@@ -53,11 +52,10 @@ OTPayment* GetInstrumentByReceiptID(
               << lReceiptId << "\n";
         return nullptr;  // Weird.
     }
-    return GetInstrument(dataFolder, theNym, ledger, pTransaction);
+    return GetInstrument(theNym, ledger, pTransaction);
 }
 // ------------------------------------------------------------
 OTPayment* GetInstrumentByIndex(
-    const std::string& dataFolder,
     const Nym& theNym,
     const std::int32_t& nIndex,
     Ledger& ledger)
@@ -71,7 +69,7 @@ OTPayment* GetInstrumentByIndex(
               << nIndex << "\n";
         return nullptr;  // Weird.
     }
-    return GetInstrument(dataFolder, theNym, ledger, pTransaction);
+    return GetInstrument(theNym, ledger, pTransaction);
 }
 // ------------------------------------------------------------
 // For paymentsInbox and possibly the Nym's recordbox / expired box.
@@ -80,7 +78,6 @@ OTPayment* GetInstrumentByIndex(
 // Caller responsible to delete.
 //
 OTPayment* GetInstrument(
-    const std::string& dataFolder,
     const Nym& theNym,
     Ledger& ledger,
     OTTransaction*& pTransaction)
@@ -149,15 +146,14 @@ OTPayment* GetInstrument(
     // not abbreviated, and is one of the accepted receipt types
     // that would contain the sort of instrument we're looking for.
     //
-    OTPayment* pPayment = extract_payment_instrument_from_notice(
-        dataFolder, theNym, pTransaction);
+    OTPayment* pPayment =
+        extract_payment_instrument_from_notice(theNym, pTransaction);
 
     return pPayment;
 }
 
 // Low-level.
 OTPayment* extract_payment_instrument_from_notice(
-    const std::string& dataFolder,
     const Nym& theNym,
     OTTransaction*& pTransaction)
 {
@@ -182,7 +178,8 @@ OTPayment* extract_payment_instrument_from_notice(
             return nullptr;
         }
         // --------------------
-        std::unique_ptr<Message> pMsg(new Message{dataFolder});
+        std::unique_ptr<Message> pMsg(
+            new Message{pTransaction->Wallet(), pTransaction->DataFolder()});
         if (!pMsg) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Null:  Assert while allocating memory "
@@ -230,8 +227,10 @@ OTPayment* extract_payment_instrument_from_notice(
             // strEnvelopeContents contains a PURSE or CHEQUE
             // (etc) and not specifically a generic "PAYMENT".
             //
-            std::unique_ptr<OTPayment> pPayment(
-                new OTPayment(dataFolder, strEnvelopeContents));
+            std::unique_ptr<OTPayment> pPayment(new OTPayment(
+                pTransaction->Wallet(),
+                pTransaction->DataFolder(),
+                strEnvelopeContents));
             if (!pPayment || !pPayment->IsValid())
                 otOut << OT_METHOD << __FUNCTION__
                       << ": Failed: after decryption, payment is invalid. "
@@ -244,8 +243,8 @@ OTPayment* extract_payment_instrument_from_notice(
         }
     } else if (OTTransaction::notice == pTransaction->GetType()) {
         String strNotice(*pTransaction);
-        std::unique_ptr<OTPayment> pPayment(
-            new OTPayment(dataFolder, strNotice));
+        std::unique_ptr<OTPayment> pPayment(new OTPayment(
+            pTransaction->Wallet(), pTransaction->DataFolder(), strNotice));
 
         if (!pPayment || !pPayment->IsValid())
             otOut << OT_METHOD << __FUNCTION__

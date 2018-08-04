@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Issuer.hpp"

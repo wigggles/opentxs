@@ -15,9 +15,10 @@
 namespace opentxs
 {
 OutBailmentRequest::OutBailmentRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(nym, serialized, serialized.outbailment().instructions())
+    : ot_super(wallet, nym, serialized, serialized.outbailment().instructions())
     , unit_(Identifier::Factory(serialized.outbailment().unitid()))
     , server_(Identifier::Factory(serialized.outbailment().serverid()))
     , amount_(serialized.outbailment().amount())
@@ -25,6 +26,7 @@ OutBailmentRequest::OutBailmentRequest(
 }
 
 OutBailmentRequest::OutBailmentRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& recipientID,
     const Identifier& unitID,
@@ -32,6 +34,7 @@ OutBailmentRequest::OutBailmentRequest(
     const std::uint64_t& amount,
     const std::string& terms)
     : ot_super(
+          wallet,
           nym,
           CURRENT_VERSION,
           recipientID,

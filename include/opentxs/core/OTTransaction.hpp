@@ -317,6 +317,7 @@ same time that it is first being
 class OTTransaction : public OTTransactionType
 {
     friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput);
 
@@ -505,6 +506,7 @@ public:
     // it.
 
     EXPORT static OTTransaction* GenerateTransaction(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
@@ -514,6 +516,7 @@ public:
         std::int64_t lTransactionNum = 0);
 
     EXPORT static OTTransaction* GenerateTransaction(
+        const api::Wallet& wallet,
         const Ledger& theOwner,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
@@ -622,9 +625,12 @@ public:
         bool bTransactionWasSuccess,   // false until positively asserted.
         bool bTransactionWasFailure);  // false until positively asserted.
 
-    EXPORT explicit OTTransaction(const Ledger& theOwner);
+    EXPORT explicit OTTransaction(
+        const api::Wallet& wallet,
+        const Ledger& theOwner);
 
     EXPORT explicit OTTransaction(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
@@ -632,6 +638,7 @@ public:
         originType theOriginType = originType::not_applicable);
 
     EXPORT explicit OTTransaction(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
@@ -644,6 +651,7 @@ public:
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
     EXPORT OTTransaction(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
@@ -793,10 +801,8 @@ protected:
                                      // this is where the transaction saves its
                                      // contents
 
-    OTTransaction(const std::string& dataFolder);  // only the factory gets to
-                                                   // use this one.
-
 private:
+    OTTransaction(const api::Wallet& wallet, const std::string& dataFolder);
     OTTransaction() = delete;
 };
 }  // namespace opentxs

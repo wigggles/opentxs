@@ -27,7 +27,7 @@ namespace client
 {
 namespace implementation
 {
-class Client;
+class Manager;
 }  // namespace implementation
 }  // namespace client
 }  // namespace api
@@ -3703,9 +3703,9 @@ public:
     EXPORT static std::string AvailableServers(const std::string& nymID);
 
 private:
-    friend api::client::implementation::Client;
+    friend api::client::implementation::Manager;
 
-    static const api::client::Client* client_;
+    static const api::client::Manager* client_;
 
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);

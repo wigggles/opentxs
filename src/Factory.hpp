@@ -99,8 +99,10 @@ public:
         const api::storage::Storage& storage,
         const api::Wallet& wallet);
 #endif
-    static api::client::Cash* Cash(const api::Legacy& legacy);
-    static api::client::internal::Client* Client(
+    static api::client::Cash* Cash(
+        const api::Legacy& legacy,
+        const api::Wallet& wallet);
+    static api::client::internal::Manager* ClientManager(
         const Flag& running,
         const api::Settings& config,
         const api::Crypto& crypto,
@@ -109,7 +111,6 @@ public:
 #endif
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
-        const api::Wallet& wallet,
         const network::zeromq::Context& context,
         const int instance);
     static ui::implementation::ContactListExternalInterface* ContactList(
@@ -258,6 +259,7 @@ public:
         OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();
     static internal::NymFile* NymFile(
+        const api::Wallet& wallet,
         std::shared_ptr<const Nym> targetNym,
         std::shared_ptr<const Nym> signerNym,
         const std::string& dataFolder);
@@ -348,18 +350,17 @@ public:
         const api::client::Workflow& workflow,
         const api::Legacy& legacy,
         const ContextLockCallback& lockCallback);
-    static api::Server* ServerAPI(
+    static api::server::Manager* ServerManager(
         const ArgList& args,
+        const api::storage::Storage& storage,
         const api::Crypto& crypto,
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
         const api::Legacy& legacy,
         const api::Settings& config,
-        const api::storage::Storage& storage,
-        const api::Wallet& wallet,
-        const Flag& running,
         const network::zeromq::Context& context,
+        const Flag& running,
         const int instance);
     static api::Settings* Settings();
     static api::Settings* Settings(const String& path);
@@ -379,7 +380,7 @@ public:
         const OTAPI_Exec& exec,
         const api::client::Contacts& contacts,
         const api::Settings& config,
-        const api::client::Client& api,
+        const api::client::Manager& api,
         const api::Legacy& legacy,
         const api::Wallet& wallet,
         const api::client::Workflow& workflow,
@@ -400,18 +401,30 @@ public:
         const network::zeromq::Context& zmq,
         const Flag& running);
     static api::Wallet* Wallet(
-        const int instance,
-        const api::Native& ot,
+        const api::client::Manager& client,
+        const api::storage::Storage& storage,
+        const api::Factory& factory,
+        const api::HDSeed& seeds,
+        const api::Legacy& legacy,
+        const network::zeromq::Context& zmq);
+    static api::Wallet* Wallet(
+        const api::server::Manager& server,
+        const api::storage::Storage& storage,
+        const api::Factory& factory,
+        const api::HDSeed& seeds,
+        const api::Legacy& legacy,
         const network::zeromq::Context& zmq);
     static api::client::Workflow* Workflow(
         const api::client::Activity& activity,
         const api::client::Contacts& contact,
         const api::Legacy& legacy,
+        const api::Wallet& wallet,
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq);
     static api::network::ZMQ* ZMQ(
         const network::zeromq::Context& context,
         const api::Settings& config,
+        const api::Wallet& wallet,
         const Flag& running);
 };
 }  // namespace opentxs

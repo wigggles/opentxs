@@ -7,9 +7,9 @@
 
 #include "Notary.hpp"
 
+#include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
@@ -71,7 +71,7 @@ typedef std::deque<Token*> dequeOfTokenPtrs;
 Notary::Notary(
     Server& server,
     const opentxs::api::Legacy& legacy,
-    const opentxs::api::Server& mint,
+    const opentxs::api::server::Manager& mint,
     const opentxs::api::Wallet& wallet)
     : server_(server)
     , legacy_(legacy)
@@ -280,8 +280,13 @@ void Notary::NotarizeTransfer(
 
             // Load the inbox/outbox in case they already exist
             Ledger theFromOutbox(
-                legacy_.ServerDataFolder(), NYM_ID, IDFromAccount, NOTARY_ID),
+                wallet_,
+                legacy_.ServerDataFolder(),
+                NYM_ID,
+                IDFromAccount,
+                NOTARY_ID),
                 theToInbox(
+                    wallet_,
                     legacy_.ServerDataFolder(),
                     pItem->GetDestinationAcctID(),
                     NOTARY_ID);
@@ -355,12 +360,14 @@ void Notary::NotarizeTransfer(
                 //
                 OTTransaction* pTEMPOutboxTransaction =
                     OTTransaction::GenerateTransaction(
+                        wallet_,
                         *pOutbox,
                         OTTransaction::pending,
                         originType::not_applicable,
                         lNewTransactionNumber);
                 OTTransaction* pOutboxTransaction =
                     OTTransaction::GenerateTransaction(
+                        wallet_,
                         theFromOutbox,
                         OTTransaction::pending,
                         originType::not_applicable,
@@ -368,6 +375,7 @@ void Notary::NotarizeTransfer(
 
                 OTTransaction* pInboxTransaction =
                     OTTransaction::GenerateTransaction(
+                        wallet_,
                         theToInbox,
                         OTTransaction::pending,
                         originType::not_applicable,
@@ -796,10 +804,12 @@ void Notary::NotarizeWithdrawal(
                 Identifier::Factory(voucherReserveAccount.get());
 
             Cheque theVoucher(
+                wallet_,
                 legacy_.ServerDataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID),
                 theVoucherRequest(
+                    wallet_,
                     legacy_.ServerDataFolder(),
                     NOTARY_ID,
                     INSTRUMENT_DEFINITION_ID);
@@ -1086,10 +1096,12 @@ void Notary::NotarizeWithdrawal(
             // for each token and it's amount/denomination
 
             Purse thePurse(
+                wallet_,
                 legacy_.ServerDataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);
             Purse theOutputPurse(
+                wallet_,
                 legacy_.ServerDataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);
@@ -1555,7 +1567,7 @@ void Notary::NotarizePayDividend(
         // This response item is IN RESPONSE to pItem and its Owner Transaction.
         pResponseBalanceItem->SetReferenceToNum(pItem->GetTransactionNum());
         const std::int64_t lTotalCostOfDividend = pItem->GetAmount();
-        Cheque theVoucherRequest{legacy_.ServerDataFolder()};
+        Cheque theVoucherRequest{wallet_, legacy_.ServerDataFolder()};
         String strVoucherRequest;
         // When paying a dividend, you create a voucher request (the same as in
         // withdrawVoucher). It's just for information
@@ -1896,6 +1908,7 @@ void Notary::NotarizePayDividend(
                                 // asset accounts for the share type,
                                 // and send a voucher to the owner of each one.
                                 PayDividendVisitor actionPayDividend(
+                                    wallet_,
                                     legacy_,
                                     NOTARY_ID,
                                     NYM_ID,
@@ -1999,6 +2012,7 @@ void Notary::NotarizePayDividend(
                                         lTotalCostOfDividend,
                                         lLeftovers);
                                     Cheque theVoucher(
+                                        wallet_,
                                         legacy_.ServerDataFolder(),
                                         NOTARY_ID,
                                         PAYOUT_INSTRUMENT_DEFINITION_ID);
@@ -2116,6 +2130,7 @@ void Notary::NotarizePayDividend(
                                             //
                                             const String strVoucher(theVoucher);
                                             OTPayment thePayment(
+                                                wallet_,
                                                 legacy_.ServerDataFolder(),
                                                 strVoucher);
 
@@ -2420,6 +2435,7 @@ void Notary::NotarizeDeposit(
             String strCheque;
             pItem->GetAttachment(strCheque);
             Cheque theCheque(
+                wallet_,
                 legacy_.ServerDataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);  // allocated on the stack :-)
@@ -2585,6 +2601,7 @@ void Notary::NotarizeDeposit(
 
                         OTTransaction* pInboxTransaction =
                             OTTransaction::GenerateTransaction(
+                                wallet_,
                                 *pInbox,
                                 OTTransaction::chequeReceipt,
                                 originType::not_applicable,
@@ -2728,11 +2745,13 @@ void Notary::NotarizeDeposit(
                     strRemitterNymID(REMITTER_NYM_ID),
                     strRemitterAcctID(REMITTER_ACCT_ID);
                 Ledger theSenderInbox(
+                    wallet_,
                     legacy_.ServerDataFolder(),
                     SENDER_NYM_ID,
                     SOURCE_ACCT_ID,
                     NOTARY_ID);  // chequeReceipt goes here.
                 Ledger theRemitterInbox(
+                    wallet_,
                     legacy_.ServerDataFolder(),
                     REMITTER_NYM_ID,
                     REMITTER_ACCT_ID,
@@ -3392,6 +3411,7 @@ void Notary::NotarizeDeposit(
 
                                 OTTransaction* pInboxTransaction =
                                     OTTransaction::GenerateTransaction(
+                                        wallet_,
                                         *pInboxWhereReceiptGoes,
                                         theCheque.HasRemitter()
                                             ? OTTransaction::voucherReceipt
@@ -3595,6 +3615,7 @@ void Notary::NotarizeDeposit(
             pItem->GetAttachment(strPurse);
 
             Purse thePurse(
+                wallet_,
                 legacy_.ServerDataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);
@@ -4005,7 +4026,7 @@ void Notary::NotarizePaymentPlan(
             String strPaymentPlan;
             pItem->GetAttachment(strPaymentPlan);
             OTPaymentPlan* pPlan =
-                new OTPaymentPlan{legacy_.ServerDataFolder()};
+                new OTPaymentPlan{wallet_, legacy_.ServerDataFolder()};
 
             OT_ASSERT(nullptr != pPlan);
 
@@ -4454,6 +4475,7 @@ void Notary::NotarizePaymentPlan(
                                             lOtherNewTransNumber);
 
                                     if (false == pPlan->SendNoticeToAllParties(
+                                                     wallet_,
                                                      legacy_.ServerDataFolder(),
                                                      true,  // bSuccessMsg=true
                                                      server_.GetServerNym(),
@@ -4504,6 +4526,7 @@ void Notary::NotarizePaymentPlan(
                                             lOtherNewTransNumber);
 
                                     if (false == pPlan->SendNoticeToAllParties(
+                                                     wallet_,
                                                      legacy_.ServerDataFolder(),
                                                      false,
                                                      server_.GetServerNym(),
@@ -4684,8 +4707,8 @@ void Notary::NotarizeSmartContract(
             // Also load up the smart contract from inside the transaction item.
             String strContract;
             pItem->GetAttachment(strContract);
-            OTSmartContract* pContract =
-                new OTSmartContract(legacy_.ServerDataFolder(), NOTARY_ID);
+            OTSmartContract* pContract = new OTSmartContract(
+                wallet_, legacy_.ServerDataFolder(), NOTARY_ID);
             OT_ASSERT(nullptr != pContract);
 
             // If we failed to load the smart contract...
@@ -5653,7 +5676,7 @@ void Notary::NotarizeExchangeBasket(
 
             // Here's the request from the user.
             String strBasket;
-            Basket theRequestBasket{legacy_.ServerDataFolder()};
+            Basket theRequestBasket{wallet_, legacy_.ServerDataFolder()};
 
             pItem->GetAttachment(strBasket);
 
@@ -6023,6 +6046,7 @@ void Notary::NotarizeExchangeBasket(
                                             OTTransaction* pInboxTransaction =
                                                 OTTransaction::
                                                     GenerateTransaction(
+                                                        wallet_,
                                                         *pSubInbox,
                                                         OTTransaction::
                                                             basketReceipt,
@@ -6222,6 +6246,7 @@ void Notary::NotarizeExchangeBasket(
 
                                     OTTransaction* pInboxTransaction =
                                         OTTransaction::GenerateTransaction(
+                                            wallet_,
                                             *pInbox,
                                             OTTransaction::basketReceipt,
                                             originType::not_applicable,
@@ -6533,10 +6558,10 @@ void Notary::NotarizeMarketOffer(
                 legacy_.ServerDataFolder(), CURRENCY_ACCT_ID);
             // Also load up the Trade from inside the transaction item.
             String strOffer;
-            OTOffer theOffer{legacy_.ServerDataFolder()};
+            OTOffer theOffer{wallet_, legacy_.ServerDataFolder()};
             String strTrade;
             pItem->GetAttachment(strTrade);
-            OTTrade* pTrade = new OTTrade{legacy_.ServerDataFolder()};
+            OTTrade* pTrade = new OTTrade{wallet_, legacy_.ServerDataFolder()};
 
             OT_ASSERT(nullptr != pTrade);
 
@@ -7254,7 +7279,8 @@ void Notary::NotarizeProcessNymbox(
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto& NOTARY_ID = context.Server();
     std::set<TransactionNumber> newNumbers;
-    Ledger theNymbox(legacy_.ServerDataFolder(), NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theNymbox(
+        wallet_, legacy_.ServerDataFolder(), NYM_ID, NYM_ID, NOTARY_ID);
     String strNymID(NYM_ID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
@@ -7648,6 +7674,7 @@ void Notary::NotarizeProcessNymbox(
                                 //
                                 OTTransaction* pSuccessNotice =
                                     OTTransaction::GenerateTransaction(
+                                        wallet_,
                                         theNymbox,
                                         OTTransaction::successNotice,
                                         originType::not_applicable,
@@ -8181,6 +8208,7 @@ void Notary::NotarizeProcessInbox(
                 pServerTransaction->GetReferenceString(strOriginalItem);
 
                 std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                    wallet_,
                     pServerTransaction->DataFolder(),
                     strOriginalItem,
                     NOTARY_ID,
@@ -8221,6 +8249,7 @@ void Notary::NotarizeProcessInbox(
                         String strCheque;
                         pOriginalItem->GetAttachment(strCheque);
                         Cheque theCheque{
+                            wallet_,
                             legacy_.ServerDataFolder()};  // allocated on the
                                                           // stack :-)
 
@@ -8519,7 +8548,7 @@ void Notary::NotarizeProcessInbox(
         // theAcctID is the ID on the client Account that was
         // passed in.
         Ledger theInbox(
-            legacy_.ServerDataFolder(), NYM_ID, ACCOUNT_ID, NOTARY_ID);
+            wallet_, legacy_.ServerDataFolder(), NYM_ID, ACCOUNT_ID, NOTARY_ID);
 
         OTTransaction* pServerTransaction = nullptr;
 
@@ -8688,6 +8717,7 @@ void Notary::NotarizeProcessInbox(
             pServerTransaction->GetReferenceString(strOriginalItem);
 
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                wallet_,
                 pServerTransaction->DataFolder(),
                 strOriginalItem,
                 NOTARY_ID,
@@ -8833,10 +8863,12 @@ void Notary::NotarizeProcessInbox(
                     // put a notice of this acceptance for the
                     // sender's records.
                     Ledger theFromOutbox(
+                        wallet_,
                         legacy_.ServerDataFolder(),
                         IDFromAccount,
                         NOTARY_ID),  // Sender's *OUTBOX*
                         theFromInbox(
+                            wallet_,
                             legacy_.ServerDataFolder(),
                             IDFromAccount,
                             NOTARY_ID);  // Sender's *INBOX*
@@ -8889,6 +8921,7 @@ void Notary::NotarizeProcessInbox(
                         // notice the sender of acceptance.)
                         OTTransaction* pInboxTransaction =
                             OTTransaction::GenerateTransaction(
+                                wallet_,
                                 theFromInbox,
                                 OTTransaction::transferReceipt,
                                 originType::not_applicable,

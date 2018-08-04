@@ -40,23 +40,31 @@ private:
     PeerRequest() = delete;
 
 protected:
+    const api::Wallet& wallet_;
+
     virtual proto::PeerRequest IDVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)
         const override;
 
-    PeerRequest(const ConstNym& nym, const proto::PeerRequest& serialized);
     PeerRequest(
+        const api::Wallet& wallet,
+        const ConstNym& nym,
+        const proto::PeerRequest& serialized);
+    PeerRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerRequest& serialized,
         const std::string& conditions);
     PeerRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         std::uint32_t version,
         const Identifier& recipient,
         const Identifier& serverID,
         const proto::PeerRequestType& type);
     PeerRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         std::uint32_t version,
         const Identifier& recipient,
@@ -66,11 +74,13 @@ protected:
 
 public:
     static std::unique_ptr<PeerRequest> Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& unitID,
         const Identifier& serverID);
     static std::unique_ptr<PeerRequest> Create(
+        const api::Wallet& wallet,
         const ConstNym& sender,
         const proto::PeerRequestType& type,
         const Identifier& unitID,
@@ -80,6 +90,7 @@ public:
         const std::string& txid,
         const Amount& amount);
     static std::unique_ptr<PeerRequest> Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& unitID,
@@ -87,12 +98,14 @@ public:
         const std::uint64_t& amount,
         const std::string& terms);
     static std::unique_ptr<PeerRequest> Create(
+        const api::Wallet& wallet,
         const ConstNym& sender,
         const proto::PeerRequestType& type,
         const proto::ConnectionInfoType connectionType,
         const Identifier& recipient,
         const Identifier& serverID);
     static std::unique_ptr<PeerRequest> Create(
+        const api::Wallet& wallet,
         const ConstNym& sender,
         const proto::PeerRequestType& type,
         const proto::SecretType secretType,
@@ -101,6 +114,7 @@ public:
         const std::string& secondary,
         const Identifier& serverID);
     static std::unique_ptr<PeerRequest> Factory(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerRequest& serialized);
 

@@ -7,7 +7,6 @@
 
 #include "opentxs/core/trade/OTMarket.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -31,7 +30,6 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -46,8 +44,11 @@
 
 namespace opentxs
 {
-OTMarket::OTMarket(const std::string& dataFolder, const char* szFilename)
-    : Contract(dataFolder)
+OTMarket::OTMarket(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const char* szFilename)
+    : Contract(wallet, dataFolder)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_mapBids()
@@ -63,13 +64,12 @@ OTMarket::OTMarket(const std::string& dataFolder, const char* szFilename)
     OT_ASSERT(nullptr != szFilename);
 
     InitMarket();
-
     m_strFilename.Set(szFilename);
     m_strFoldername.Set(OTFolders::Market().Get());
 }
 
-OTMarket::OTMarket(const std::string& dataFolder)
-    : Contract(dataFolder)
+OTMarket::OTMarket(const api::Wallet& wallet, const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_mapBids()
@@ -86,12 +86,13 @@ OTMarket::OTMarket(const std::string& dataFolder)
 }
 
 OTMarket::OTMarket(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& CURRENCY_TYPE_ID,
     const std::int64_t& lScale)
-    : Contract(dataFolder)
+    : Contract(wallet, dataFolder)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_mapBids()
@@ -166,6 +167,7 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         } else {
             OTOffer* pOffer = new OTOffer(
+                wallet_,
                 data_folder_,
                 m_NOTARY_ID,
                 m_INSTRUMENT_DEFINITION_ID,
@@ -1125,7 +1127,7 @@ void OTMarket::ProcessTrade(
         pFirstNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pFirstNym = OT::App().Wallet().Nym(FIRST_NYM_ID);
+        pFirstNym = wallet_.Nym(FIRST_NYM_ID);
         if (nullptr == pFirstNym) {
             String strNymID(FIRST_NYM_ID);
             otErr << "OTMarket::" << __FUNCTION__
@@ -1148,7 +1150,7 @@ void OTMarket::ProcessTrade(
         pOtherNym = pFirstNym;  // theNym is pFirstNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pOtherNym = OT::App().Wallet().Nym(OTHER_NYM_ID);
+        pOtherNym = wallet_.Nym(OTHER_NYM_ID);
         if (nullptr == pOtherNym) {
             String strNymID(OTHER_NYM_ID);
             otErr << "Failure loading or verifying Other Nym public key in "
@@ -1286,18 +1288,25 @@ void OTMarket::ProcessTrade(
 
         // Load the inbox/outbox in case they already exist
         Ledger theFirstAssetInbox(
-            data_folder_, FIRST_NYM_ID, theTrade.GetSenderAcctID(), NOTARY_ID),
+            wallet_,
+            data_folder_,
+            FIRST_NYM_ID,
+            theTrade.GetSenderAcctID(),
+            NOTARY_ID),
             theFirstCurrencyInbox(
+                wallet_,
                 data_folder_,
                 FIRST_NYM_ID,
                 theTrade.GetCurrencyAcctID(),
                 NOTARY_ID),
             theOtherAssetInbox(
+                wallet_,
                 data_folder_,
                 OTHER_NYM_ID,
                 pOtherTrade->GetSenderAcctID(),
                 NOTARY_ID),
             theOtherCurrencyInbox(
+                wallet_,
                 data_folder_,
                 OTHER_NYM_ID,
                 pOtherTrade->GetCurrencyAcctID(),
@@ -1428,24 +1437,28 @@ void OTMarket::ProcessTrade(
             // Start generating the receipts (for all four inboxes.)
 
             OTTransaction* pTrans1 = OTTransaction::GenerateTransaction(
+                wallet_,
                 theFirstAssetInbox,
                 OTTransaction::marketReceipt,
                 originType::origin_market_offer,
                 lNewTransactionNumber);
 
             OTTransaction* pTrans2 = OTTransaction::GenerateTransaction(
+                wallet_,
                 theFirstCurrencyInbox,
                 OTTransaction::marketReceipt,
                 originType::origin_market_offer,
                 lNewTransactionNumber);
 
             OTTransaction* pTrans3 = OTTransaction::GenerateTransaction(
+                wallet_,
                 theOtherAssetInbox,
                 OTTransaction::marketReceipt,
                 originType::origin_market_offer,
                 lNewTransactionNumber);
 
             OTTransaction* pTrans4 = OTTransaction::GenerateTransaction(
+                wallet_,
                 theOtherCurrencyInbox,
                 OTTransaction::marketReceipt,
                 originType::origin_market_offer,
@@ -1944,9 +1957,9 @@ void OTMarket::ProcessTrade(
             // (Updated versions, as processing occurs, are signed by the
             // server.)
             pOrigTrade = OTCronItem::LoadCronReceipt(
-                data_folder_, theTrade.GetTransactionNum());
+                wallet_, data_folder_, theTrade.GetTransactionNum());
             pOrigOtherTrade = OTCronItem::LoadCronReceipt(
-                data_folder_, pOtherTrade->GetTransactionNum());
+                wallet_, data_folder_, pOtherTrade->GetTransactionNum());
 
             OT_ASSERT(nullptr != pOrigTrade);
             OT_ASSERT(nullptr != pOrigOtherTrade);

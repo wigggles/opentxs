@@ -11,8 +11,11 @@
 
 namespace opentxs
 {
-AccountVisitor::AccountVisitor(const Identifier& notaryID)
-    : notaryID_(Identifier::Factory(notaryID))
+AccountVisitor::AccountVisitor(
+    const api::Wallet& wallet,
+    const Identifier& notaryID)
+    : wallet_{wallet}
+    , notaryID_(Identifier::Factory(notaryID))
 {
 }
 }  // namespace opentxs

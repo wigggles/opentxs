@@ -74,8 +74,8 @@ char const* const __TypeStringsPayment[] = {
     // payment is removed when the notice is received into the record box.
     "ERROR_STATE"};
 
-OTPayment::OTPayment(const std::string& dataFolder)
-    : Contract(dataFolder)
+OTPayment::OTPayment(const api::Wallet& wallet, const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
     , m_strPayment()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
@@ -99,8 +99,11 @@ OTPayment::OTPayment(const std::string& dataFolder)
     InitPayment();
 }
 
-OTPayment::OTPayment(const std::string& dataFolder, const String& strPayment)
-    : Contract(dataFolder)
+OTPayment::OTPayment(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const String& strPayment)
+    : Contract(wallet, dataFolder)
     , m_strPayment()
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
@@ -167,7 +170,7 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
         // Perform instantiation of a purse, then use it to set the temp values,
         // then cleans it up again before returning success/fail.
         //
-        std::unique_ptr<Purse> pPurse(InstantiatePurse());
+        std::unique_ptr<Purse> pPurse(InstantiatePurse(wallet_));
 
         if (!pPurse) {
             otErr << __FUNCTION__
@@ -422,7 +425,7 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(data_folder_, strCronItem));
+            new OTPayment(wallet_, data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -747,7 +750,7 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(data_folder_, strCronItem));
+            new OTPayment(wallet_, data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -875,7 +878,7 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(data_folder_, strCronItem));
+            new OTPayment(wallet_, data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -996,7 +999,7 @@ bool OTPayment::GetClosingNum(
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(data_folder_, strCronItem));
+            new OTPayment(wallet_, data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -1113,7 +1116,7 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(data_folder_, strCronItem));
+            new OTPayment(wallet_, data_folder_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -1677,7 +1680,8 @@ OTTrackable* OTPayment::Instantiate() const
         case CHEQUE:
         case VOUCHER:
         case INVOICE:
-            pContract = ::InstantiateContract(data_folder_, m_strPayment);
+            pContract =
+                ::InstantiateContract(wallet_, data_folder_, m_strPayment);
 
             if (nullptr != pContract) {
                 pCheque = dynamic_cast<Cheque*>(pContract);
@@ -1699,7 +1703,8 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case PAYMENT_PLAN:
-            pContract = ::InstantiateContract(data_folder_, m_strPayment);
+            pContract =
+                ::InstantiateContract(wallet_, data_folder_, m_strPayment);
 
             if (nullptr != pContract) {
                 pPaymentPlan = dynamic_cast<OTPaymentPlan*>(pContract);
@@ -1721,7 +1726,8 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case SMART_CONTRACT:
-            pContract = ::InstantiateContract(data_folder_, m_strPayment);
+            pContract =
+                ::InstantiateContract(wallet_, data_folder_, m_strPayment);
 
             if (nullptr != pContract) {
                 pSmartContract = dynamic_cast<OTSmartContract*>(pContract);
@@ -1795,8 +1801,8 @@ OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
 OTTransaction* OTPayment::InstantiateNotice() const
 {
     if (m_strPayment.Exists() && (OTPayment::NOTICE == GetType())) {
-        OTTransactionType* pType =
-            OTTransactionType::TransactionFactory(data_folder_, m_strPayment);
+        OTTransactionType* pType = OTTransactionType::TransactionFactory(
+            wallet_, data_folder_, m_strPayment);
 
         if (nullptr == pType) {
             otErr << __FUNCTION__
@@ -1836,10 +1842,10 @@ OTTransaction* OTPayment::InstantiateNotice() const
 //
 // CALLER is responsible to delete!
 //
-Purse* OTPayment::InstantiatePurse() const
+Purse* OTPayment::InstantiatePurse(const api::Wallet& wallet) const
 {
     if (OTPayment::PURSE == GetType()) {
-        return Purse::PurseFactory(data_folder_, m_strPayment);
+        return Purse::PurseFactory(wallet, data_folder_, m_strPayment);
     } else
         otErr << __FUNCTION__
               << ": Failure: This payment object "
@@ -1850,7 +1856,9 @@ Purse* OTPayment::InstantiatePurse() const
     return nullptr;
 }
 
-Purse* OTPayment::InstantiatePurse(const String& strPayment)
+Purse* OTPayment::InstantiatePurse(
+    const api::Wallet& wallet,
+    const String& strPayment)
 {
     if (!SetPayment(strPayment))
         otErr << __FUNCTION__
@@ -1864,7 +1872,7 @@ Purse* OTPayment::InstantiatePurse(const String& strPayment)
                  "the payment string:\n\n"
               << strPayment << "\n\n";
     else
-        return InstantiatePurse();
+        return InstantiatePurse(wallet);
 
     return nullptr;
 }

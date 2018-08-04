@@ -60,10 +60,11 @@ char const* const __TypeStringsAccount[] = {
 
 // Used for generating accounts, thus no accountID needed.
 Account::Account(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& notaryID)
-    : OTTransactionType(dataFolder)
+    : OTTransactionType(wallet, dataFolder)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -79,8 +80,8 @@ Account::Account(
     SetPurportedNotaryID(notaryID);
 }
 
-Account::Account(const std::string& dataFolder)
-    : OTTransactionType(dataFolder)
+Account::Account(const api::Wallet& wallet, const std::string& dataFolder)
+    : OTTransactionType(wallet, dataFolder)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -94,12 +95,13 @@ Account::Account(const std::string& dataFolder)
 }
 
 Account::Account(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& accountId,
     const Identifier& notaryID,
     const String& name)
-    : OTTransactionType(dataFolder, nymID, accountId, notaryID)
+    : OTTransactionType(wallet, dataFolder, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -114,11 +116,12 @@ Account::Account(
 }
 
 Account::Account(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& accountId,
     const Identifier& notaryID)
-    : OTTransactionType(dataFolder, nymID, accountId, notaryID)
+    : OTTransactionType(wallet, dataFolder, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
     , balanceDate_()
@@ -146,7 +149,11 @@ bool Account::LoadContractFromString(const String& theStr)
 Ledger* Account::LoadInbox(const Nym& nym) const
 {
     std::unique_ptr<Ledger> box{new Ledger(
-        data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+        wallet_,
+        data_folder_,
+        GetNymID(),
+        GetRealAccountID(),
+        GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -164,7 +171,11 @@ Ledger* Account::LoadInbox(const Nym& nym) const
 Ledger* Account::LoadOutbox(const Nym& nym) const
 {
     std::unique_ptr<Ledger> box{new Ledger(
-        data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+        wallet_,
+        data_folder_,
+        GetNymID(),
+        GetRealAccountID(),
+        GetRealNotaryID())};
 
     OT_ASSERT(box);
 
@@ -239,7 +250,11 @@ bool Account::GetInboxHash(Identifier& output)
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
         Ledger inbox(
-            data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID());
+            wallet_,
+            data_folder_,
+            GetNymID(),
+            GetRealAccountID(),
+            GetRealNotaryID());
 
         if (inbox.LoadInbox() && inbox.CalculateInboxHash(output)) {
             SetInboxHash(output);
@@ -263,7 +278,11 @@ bool Account::GetOutboxHash(Identifier& output)
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
         Ledger outbox(
-            data_folder_, GetNymID(), GetRealAccountID(), GetRealNotaryID());
+            wallet_,
+            data_folder_,
+            GetNymID(),
+            GetRealAccountID(),
+            GetRealNotaryID());
 
         if (outbox.LoadOutbox() && outbox.CalculateOutboxHash(output)) {
             SetOutboxHash(output);
@@ -396,6 +415,7 @@ bool Account::VerifyOwnerByID(const Identifier& nymId) const
 }
 
 Account* Account::LoadExistingAccount(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& accountId,
     const Identifier& notaryID)
@@ -418,7 +438,7 @@ Account* Account::LoadExistingAccount(
         return nullptr;
     }
 
-    std::unique_ptr<Account> account{new Account{dataFolder}};
+    std::unique_ptr<Account> account{new Account{wallet, dataFolder}};
 
     OT_ASSERT(account);
 
@@ -450,6 +470,7 @@ Account* Account::LoadExistingAccount(
 }
 
 Account* Account::GenerateNewAccount(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& nymID,
     const Identifier& notaryID,
@@ -459,7 +480,8 @@ Account* Account::GenerateNewAccount(
     Account::AccountType acctType,
     std::int64_t stashTransNum)
 {
-    std::unique_ptr<Account> output(new Account(dataFolder, nymID, notaryID));
+    std::unique_ptr<Account> output(
+        new Account(wallet, dataFolder, nymID, notaryID));
 
     if (output) {
         if (false == output->GenerateNewAccount(

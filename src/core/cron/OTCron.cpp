@@ -54,8 +54,8 @@ std::int32_t OTCron::__cron_max_items_per_nym =
 
 Timer OTCron::tCron(true);
 
-OTCron::OTCron(const api::Legacy& legacy)
-    : Contract(legacy.ServerDataFolder())
+OTCron::OTCron(const api::Wallet& wallet, const api::Legacy& legacy)
+    : Contract(wallet, legacy.ServerDataFolder())
     , legacy_{legacy}
     , m_mapMarkets()
     , m_mapCronItems()
@@ -397,7 +397,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "value.\n";
             return (-1);  // error condition
         } else {
-            OTCronItem* pItem = OTCronItem::NewCronItem(data_folder_, strData);
+            OTCronItem* pItem =
+                OTCronItem::NewCronItem(wallet_, data_folder_, strData);
 
             if (nullptr == pItem) {
                 otErr << "Unable to create cron item from data in cron file.\n";
@@ -464,6 +465,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // LoadMarket() needs this info to do its thing.
         OTMarket* pMarket = new OTMarket(
+            wallet_,
             data_folder_,
             m_NOTARY_ID,
             INSTRUMENT_DEFINITION_ID,
@@ -626,7 +628,8 @@ void OTCron::ProcessCronItems()
             it++;
             continue;
         }
-        pItem->HookRemovalFromCron(nullptr, GetNextTransactionNumber());
+        pItem->HookRemovalFromCron(
+            wallet_, nullptr, GetNextTransactionNumber());
         otOut << "OTCron::" << __FUNCTION__
               << ": Removing cron item: " << pItem->GetTransactionNum() << "\n";
         it = m_multimapCronItems.erase(it);
@@ -784,7 +787,8 @@ bool OTCron::RemoveCronItem(
                                                               // map, MUST be on
                                                               // multimap also.
 
-        pItem->HookRemovalFromCron(theRemover, GetNextTransactionNumber());
+        pItem->HookRemovalFromCron(
+            wallet_, theRemover, GetNextTransactionNumber());
 
         m_mapCronItems.erase(it_map);            // Remove from MAP.
         m_multimapCronItems.erase(it_multimap);  // Remove from MULTIMAP.
@@ -1000,6 +1004,7 @@ OTMarket* OTCron::GetOrCreateMarket(
     const std::int64_t& lScale)
 {
     OTMarket* pMarket = new OTMarket(
+        wallet_,
         data_folder_,
         GetNotaryID(),
         INSTRUMENT_DEFINITION_ID,

@@ -22,9 +22,9 @@ namespace client
 class Activity;
 class Blockchain;
 class Cash;
-class Client;
 class Contacts;
 class Issuer;
+class Manager;
 class Pair;
 class ServerAction;
 class Sync;
@@ -40,16 +40,21 @@ class Symmetric;
 class Util;
 }  // namespace crypto
 
-namespace storage
-{
-class Storage;
-}  // namespace storage
-
 namespace network
 {
 class Dht;
 class ZMQ;
 }  // namespace network
+
+namespace server
+{
+class Manager;
+}  // namespace server
+
+namespace storage
+{
+class Storage;
+}  // namespace storage
 
 class Crypto;
 class Factory;
@@ -57,7 +62,6 @@ class HDSeed;
 class Identity;
 class Legacy;
 class Native;
-class Server;
 class Settings;
 class Wallet;
 }  // namespace api

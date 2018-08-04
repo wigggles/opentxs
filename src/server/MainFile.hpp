@@ -17,7 +17,7 @@ class String;
 namespace api
 {
 class Crypto;
-class Server;
+class Manager;
 
 namespace client
 {

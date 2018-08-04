@@ -47,12 +47,14 @@ private:
     typedef Mint ot_super;
     friend Mint;  // for the factory.
 
-    MintLucre(const std::string& dataFolder);
+    MintLucre(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT MintLucre(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID);
     EXPORT MintLucre(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strNotaryID,
         const String& strServerNymID,

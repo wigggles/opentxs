@@ -31,6 +31,7 @@ private:
     static std::unique_ptr<PeerReply> Finish(
         std::unique_ptr<PeerReply>& contract);
     static std::shared_ptr<proto::PeerRequest> LoadRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& requestID);
 
@@ -43,13 +44,19 @@ private:
     PeerReply() = delete;
 
 protected:
+    const api::Wallet& wallet_;
+
     virtual proto::PeerReply IDVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)
         const override;
 
-    PeerReply(const ConstNym& nym, const proto::PeerReply& serialized);
     PeerReply(
+        const api::Wallet& wallet,
+        const ConstNym& nym,
+        const proto::PeerReply& serialized);
+    PeerReply(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::uint32_t version,
         const Identifier& initiator,
@@ -59,17 +66,20 @@ protected:
 
 public:
     static std::unique_ptr<PeerReply> Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerRequestType& type,
         const Identifier& request,
         const Identifier& server,
         const std::string& terms);
     static std::unique_ptr<PeerReply> Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& request,
         const Identifier& server,
         const bool& ack);
     static std::unique_ptr<PeerReply> Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& request,
         const Identifier& server,
@@ -79,6 +89,7 @@ public:
         const std::string& password,
         const std::string& key);
     static std::unique_ptr<PeerReply> Factory(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerReply& serialized);
 

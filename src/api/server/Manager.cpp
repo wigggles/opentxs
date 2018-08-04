@@ -5,8 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"
@@ -40,7 +40,7 @@
 #include <string>
 #include <thread>
 
-#include "Server.hpp"
+#include "Manager.hpp"
 
 #if OT_CASH
 #define SERIES_DIVIDER "."
@@ -51,127 +51,145 @@
 #define MINT_GENERATE_DAYS 7
 #endif  // OT_CASH
 
-#define OT_METHOD "opentxs::api::implementation::Server::"
+#define OT_METHOD "opentxs::api::server::implementation::Server::"
 
 namespace opentxs
 {
-api::Server* Factory::ServerAPI(
+api::server::Manager* Factory::ServerManager(
     const ArgList& args,
+    const api::storage::Storage& storage,
     const api::Crypto& crypto,
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds,
 #endif
     const api::Legacy& legacy,
     const api::Settings& config,
-    const api::storage::Storage& storage,
-    const api::Wallet& wallet,
-    const Flag& running,
     const network::zeromq::Context& context,
+    const Flag& running,
     const int instance)
 {
-    return new api::implementation::Server(
+    return new api::server::implementation::Manager(
         args,
+        storage,
         crypto,
+#if OT_CRYPTO_WITH_BIP39
         seeds,
+#endif
         legacy,
         config,
-        storage,
-        wallet,
-        running,
         context,
+        running,
         instance);
 }
 }  // namespace opentxs
 
-namespace opentxs::api::implementation
+namespace opentxs::api::server::implementation
 {
-Server::Server(
+Manager::Manager(
     const ArgList& args,
-    const opentxs::api::Crypto& crypto,
+    const api::storage::Storage& storage,
+    const api::Crypto& crypto,
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds,
 #endif
     const api::Legacy& legacy,
-    const opentxs::api::Settings& config,
-    const opentxs::api::storage::Storage& storage,
-    const opentxs::api::Wallet& wallet,
-    const Flag& running,
+    const api::Settings& config,
     const opentxs::network::zeromq::Context& context,
+    const Flag& running,
     const int instance)
     : Scheduler(running)
     , args_(args)
+    , storage_(storage)
     , legacy_(legacy)
     , config_(config)
     , crypto_(crypto)
     , seeds_(seeds)
-    , storage_(storage)
-    , wallet_(wallet)
-    , running_(running)
     , zmq_context_(context)
     , instance_{instance}
-    , dht_{opentxs::Factory::Dht(
-          instance_,
-          true,
-          config_,
-          wallet_,
-          context,
-          nym_publish_interval_,
-          nym_refresh_interval_,
-          server_publish_interval_,
-          server_refresh_interval_,
-          unit_publish_interval_,
-          unit_refresh_interval_)}
-    , factory_(nullptr)
-    , server_p_(new server::Server(
-          crypto_,
+    , running_{running}
+    , factory_
+{
+    opentxs::Factory::FactoryAPI(
 #if OT_CRYPTO_WITH_BIP39
-          seeds_,
+        seeds_
 #endif
-          legacy_,
-          config_,
-          *this,
-          storage_,
-          wallet_))
-    , server_(*server_p_)
-    , message_processor_p_(
-          new server::MessageProcessor(legacy_, server_, context, running_))
-    , message_processor_(*message_processor_p_)
+    )
+}
+,
+    wallet_{opentxs::Factory::Wallet(
+        *this,
+        storage_,
+        *factory_,
+        seeds_,
+        legacy_,
+        zmq_context_)},
+    dht_{opentxs::Factory::Dht(
+        instance_,
+        true,
+        config_,
+        *wallet_,
+        context,
+        nym_publish_interval_,
+        nym_refresh_interval_,
+        server_publish_interval_,
+        server_refresh_interval_,
+        unit_publish_interval_,
+        unit_refresh_interval_)},
+    server_p_(new opentxs::server::Server(
+        crypto_,
+#if OT_CRYPTO_WITH_BIP39
+        seeds_,
+#endif
+        legacy_,
+        config_,
+        *this,
+        storage_,
+        *wallet_)),
+    server_(*server_p_),
+    message_processor_p_(new opentxs::server::MessageProcessor(
+        legacy_,
+        server_,
+        context,
+        running_)),
+    message_processor_(*message_processor_p_)
 #if OT_CASH
-    , mint_thread_(nullptr)
-    , mint_lock_()
-    , mint_update_lock_()
-    , mint_scan_lock_()
-    , mints_()
-    , mints_to_check_()
+        ,
+    mint_thread_(nullptr), mint_lock_(), mint_update_lock_(), mint_scan_lock_(),
+    mints_(), mints_to_check_()
 #endif  // OT_CASH
 {
+    OT_ASSERT(factory_);
+    OT_ASSERT(wallet_);
     OT_ASSERT(dht_)
     OT_ASSERT(server_p_);
     OT_ASSERT(message_processor_p_);
 
 #if OT_CASH
-    mint_thread_.reset(new std::thread(&Server::mint, this));
+    mint_thread_.reset(new std::thread(&Manager::mint, this));
 #endif  // OT_CASH
 
     Init();
 }
 
-void Server::Cleanup()
+void Manager::Cleanup()
 {
     otErr << OT_METHOD << __FUNCTION__ << ": Shutting down and cleaning up."
           << std::endl;
     message_processor_.cleanup();
+    message_processor_p_.reset();
+    server_p_.reset();
+    wallet_.reset();
     factory_.reset();
 }
 
-const api::network::Dht& Server::DHT() const
+const api::network::Dht& Manager::DHT() const
 {
     OT_ASSERT(dht_)
 
     return *dht_;
 }
 
-const api::Factory& Server::Factory() const
+const api::Factory& Manager::Factory() const
 {
     OT_ASSERT(factory_)
 
@@ -179,7 +197,7 @@ const api::Factory& Server::Factory() const
 }
 
 #if OT_CASH
-void Server::generate_mint(
+void Manager::generate_mint(
     const std::string& serverID,
     const std::string& unitID,
     const std::uint32_t series) const
@@ -196,8 +214,8 @@ void Server::generate_mint(
     const std::string nymID{NymID().str()};
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(series);
-    mint.reset(
-        Mint::MintFactory(serverID.c_str(), nymID.c_str(), unitID.c_str()));
+    mint.reset(Mint::MintFactory(
+        *wallet_, serverID.c_str(), nymID.c_str(), unitID.c_str()));
 
     OT_ASSERT(mint)
 
@@ -218,7 +236,7 @@ void Server::generate_mint(
     }
 
     mint->GenerateNewMint(
-        wallet_,
+        *wallet_,
         series,
         now,
         validTo,
@@ -254,7 +272,7 @@ void Server::generate_mint(
     mint->SaveMint(PUBLIC_SERIES);
 }
 
-const std::string Server::get_arg(const std::string& argName) const
+const std::string Manager::get_arg(const std::string& argName) const
 {
     auto argIt = args_.find(argName);
     if (args_.end() != argIt) {
@@ -266,39 +284,39 @@ const std::string Server::get_arg(const std::string& argName) const
     return {};
 }
 
-const std::string Server::GetCommandPort() const
+const std::string Manager::GetCommandPort() const
 {
     return get_arg(OPENTXS_ARG_COMMANDPORT);
 }
 
-const std::string Server::GetDefaultBindIP() const
+const std::string Manager::GetDefaultBindIP() const
 {
     return get_arg(OPENTXS_ARG_BINDIP);
 }
 
-const std::string Server::GetEEP() const { return get_arg(OPENTXS_ARG_EEP); }
+const std::string Manager::GetEEP() const { return get_arg(OPENTXS_ARG_EEP); }
 
-const std::string Server::GetExternalIP() const
+const std::string Manager::GetExternalIP() const
 {
     return get_arg(OPENTXS_ARG_EXTERNALIP);
 }
 
-const std::string Server::GetListenCommand() const
+const std::string Manager::GetListenCommand() const
 {
     return get_arg(OPENTXS_ARG_LISTENCOMMAND);
 }
 
-const std::string Server::GetListenNotify() const
+const std::string Manager::GetListenNotify() const
 {
     return get_arg(OPENTXS_ARG_LISTENNOTIFY);
 }
 
-const std::string Server::GetOnion() const
+const std::string Manager::GetOnion() const
 {
     return get_arg(OPENTXS_ARG_ONION);
 }
 
-std::shared_ptr<Mint> Server::GetPrivateMint(
+std::shared_ptr<Mint> Manager::GetPrivateMint(
     const Identifier& unitID,
     std::uint32_t index) const
 {
@@ -326,7 +344,7 @@ std::shared_ptr<Mint> Server::GetPrivateMint(
     return series->second;
 }
 
-std::shared_ptr<const Mint> Server::GetPublicMint(
+std::shared_ptr<const Mint> Manager::GetPublicMint(
     const Identifier& unitID) const
 {
     Lock lock(mint_lock_);
@@ -351,40 +369,27 @@ std::shared_ptr<const Mint> Server::GetPublicMint(
 }
 #endif  // OT_CASH
 
-const std::string Server::GetUserName() const
+const std::string Manager::GetUserName() const
 {
     return get_arg(OPENTXS_ARG_NAME);
 }
 
-const std::string Server::GetUserTerms() const
+const std::string Manager::GetUserTerms() const
 {
     return get_arg(OPENTXS_ARG_TERMS);
 }
 
-const Identifier& Server::ID() const { return server_.GetServerID(); }
+const Identifier& Manager::ID() const { return server_.GetServerID(); }
 
-void Server::Init()
+void Manager::Init()
 {
-    Init_Factory();
-
     OT_ASSERT(dht_)
 
     Scheduler::Start(&storage_, dht_.get());
 }
 
-void Server::Init_Factory()
-{
-    factory_.reset(opentxs::Factory::FactoryAPI(
-#if OT_CRYPTO_WITH_BIP39
-        seeds_
-#endif
-        ));
-
-    OT_ASSERT(factory_)
-}
-
 #if OT_CASH
-std::int32_t Server::last_generated_series(
+std::int32_t Manager::last_generated_series(
     const std::string& serverID,
     const std::string& unitID) const
 {
@@ -406,7 +411,7 @@ std::int32_t Server::last_generated_series(
     return -1;
 }
 
-std::shared_ptr<Mint> Server::load_private_mint(
+std::shared_ptr<Mint> Manager::load_private_mint(
     const Lock& lock,
     const std::string& unitID,
     const std::string seriesID) const
@@ -414,6 +419,7 @@ std::shared_ptr<Mint> Server::load_private_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<Mint> mint(Mint::MintFactory(
+        *wallet_,
         legacy_.ServerDataFolder(),
         String(ID()),
         String(NymID()),
@@ -424,7 +430,7 @@ std::shared_ptr<Mint> Server::load_private_mint(
     return verify_mint(lock, unitID, seriesID, mint);
 }
 
-std::shared_ptr<Mint> Server::load_public_mint(
+std::shared_ptr<Mint> Manager::load_public_mint(
     const Lock& lock,
     const std::string& unitID,
     const std::string seriesID) const
@@ -432,14 +438,14 @@ std::shared_ptr<Mint> Server::load_public_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<Mint> mint(Mint::MintFactory(
-        legacy_.ServerDataFolder(), String(ID()), unitID.c_str()));
+        *wallet_, legacy_.ServerDataFolder(), String(ID()), unitID.c_str()));
 
     OT_ASSERT(mint);
 
     return verify_mint(lock, unitID, seriesID, mint);
 }
 
-void Server::mint() const
+void Manager::mint() const
 {
     Lock updateLock(mint_update_lock_, std::defer_lock);
 
@@ -454,7 +460,9 @@ void Server::mint() const
     while (running_) {
         Log::Sleep(std::chrono::milliseconds(250));
 
-        if (false == server::ServerSettings::__cmd_get_mint) { continue; }
+        if (false == opentxs::server::ServerSettings::__cmd_get_mint) {
+            continue;
+        }
 
         std::string unitID{""};
         updateLock.lock();
@@ -502,14 +510,14 @@ void Server::mint() const
 }
 #endif  // OT_CASH
 
-const Identifier& Server::NymID() const { return server_.GetServerNym().ID(); }
+const Identifier& Manager::NymID() const { return server_.GetServerNym().ID(); }
 
 #if OT_CASH
-void Server::ScanMints() const
+void Manager::ScanMints() const
 {
     Lock scanLock(mint_scan_lock_);
     Lock updateLock(mint_update_lock_, std::defer_lock);
-    const auto units = wallet_.UnitDefinitionList();
+    const auto units = wallet_->UnitDefinitionList();
 
     for (const auto& it : units) {
         const auto& id = it.first;
@@ -520,7 +528,7 @@ void Server::ScanMints() const
 }
 #endif  // OT_CASH
 
-void Server::Start()
+void Manager::Start()
 {
     server_.Init();
     server_.ActivateCron();
@@ -542,7 +550,7 @@ void Server::Start()
 #endif  // OT_CASH
 }
 
-void Server::storage_gc_hook()
+void Manager::storage_gc_hook()
 {
     // if (storage_) { storage_->RunGC(); }
 
@@ -550,14 +558,14 @@ void Server::storage_gc_hook()
 }
 
 #if OT_CASH
-void Server::UpdateMint(const Identifier& unitID) const
+void Manager::UpdateMint(const Identifier& unitID) const
 {
     Lock updateLock(mint_update_lock_);
     mints_to_check_.push_front(unitID.str());
 }
 #endif  // OT_CASH
 
-bool Server::verify_lock(const Lock& lock, const std::mutex& mutex) const
+bool Manager::verify_lock(const Lock& lock, const std::mutex& mutex) const
 {
     if (lock.mutex() != &mutex) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect mutex." << std::endl;
@@ -575,7 +583,7 @@ bool Server::verify_lock(const Lock& lock, const std::mutex& mutex) const
 }
 
 #if OT_CASH
-std::shared_ptr<Mint> Server::verify_mint(
+std::shared_ptr<Mint> Manager::verify_mint(
     const Lock& lock,
     const std::string& unitID,
     const std::string seriesID,
@@ -607,7 +615,7 @@ std::shared_ptr<Mint> Server::verify_mint(
     return output;
 }
 
-bool Server::verify_mint_directory(const std::string& serverID) const
+bool Manager::verify_mint_directory(const std::string& serverID) const
 {
     bool created{false};
     String serverDir{""};
@@ -624,7 +632,7 @@ bool Server::verify_mint_directory(const std::string& serverID) const
 }
 #endif  // OT_CASH
 
-Server::~Server()
+Manager::~Manager()
 {
     Cleanup();
 
@@ -635,4 +643,4 @@ Server::~Server()
     }
 #endif  // OT_CASH
 }
-}  // namespace opentxs::api::implementation
+}  // namespace opentxs::api::server::implementation

@@ -99,6 +99,7 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-api-client protobuf)
   add_dependencies(opentxs-api-crypto protobuf)
   add_dependencies(opentxs-api-network protobuf)
+  add_dependencies(opentxs-api-server protobuf)
   add_dependencies(opentxs-api-storage protobuf)
   add_dependencies(opentxs-api protobuf)
   add_dependencies(opentxs-client protobuf)
@@ -182,6 +183,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-api-client>
   $<TARGET_OBJECTS:opentxs-api-crypto>
   $<TARGET_OBJECTS:opentxs-api-network>
+  $<TARGET_OBJECTS:opentxs-api-server>
   $<TARGET_OBJECTS:opentxs-api-storage>
   $<TARGET_OBJECTS:opentxs-api>
   ${cash}

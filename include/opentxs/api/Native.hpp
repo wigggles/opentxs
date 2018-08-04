@@ -25,16 +25,15 @@ class Native
 public:
     using ShutdownCallback = std::function<void()>;
 
-    EXPORT virtual const api::client::Client& Client() const = 0;
+    EXPORT virtual const api::client::Manager& Client() const = 0;
     EXPORT virtual const api::Settings& Config(
         const std::string& path = std::string("")) const = 0;
     EXPORT virtual const api::Crypto& Crypto() const = 0;
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
     EXPORT virtual const api::Legacy& Legacy() const = 0;
-    EXPORT virtual const api::Server& Server() const = 0;
+    EXPORT virtual const api::server::Manager& Server() const = 0;
     EXPORT virtual bool ServerMode() const = 0;
-    EXPORT virtual const api::Wallet& Wallet() const = 0;
 
     EXPORT virtual ~Native() = default;
 

@@ -22,9 +22,11 @@ private:
     friend ot_super;
 
     SecurityContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::UnitDefinition serialized);
     SecurityContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
@@ -43,7 +45,5 @@ public:
 
     virtual ~SecurityContract() = default;
 };
-
 }  // namespace opentxs
-
 #endif  // OPENTXS_CORE_SECURITYCONTRACT_HPP

@@ -4,7 +4,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/api/client/Cash.hpp"
-#include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -22,17 +22,20 @@
 
 namespace opentxs
 {
-api::client::Cash* Factory::Cash(const api::Legacy& legacy)
+api::client::Cash* Factory::Cash(
+    const api::Legacy& legacy,
+    const api::Wallet& wallet)
 {
-    return new api::client::implementation::Cash(legacy);
+    return new api::client::implementation::Cash(legacy, wallet);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 #if OT_CASH
-Cash::Cash(const api::Legacy& legacy)
+Cash::Cash(const Legacy& legacy, const Wallet& wallet)
     : legacy_(legacy)
+    , wallet_(wallet)
 {
 }
 
@@ -257,10 +260,10 @@ std::int32_t Cash::withdraw_and_export_cash_low_level(
     }
     // By this point, exportedCash and retainedCopy should both be valid.
 
-    std::shared_ptr<const Purse> pRecipientCopy(
-        Purse::PurseFactory(legacy_.ClientDataFolder(), String(exportedCash)));
-    std::shared_ptr<const Purse> pSenderCopy(
-        Purse::PurseFactory(legacy_.ClientDataFolder(), String(retainedCopy)));
+    std::shared_ptr<const Purse> pRecipientCopy(Purse::PurseFactory(
+        wallet_, legacy_.ClientDataFolder(), String(exportedCash)));
+    std::shared_ptr<const Purse> pSenderCopy(Purse::PurseFactory(
+        wallet_, legacy_.ClientDataFolder(), String(retainedCopy)));
 
     OT_ASSERT(pRecipientCopy);
     OT_ASSERT(pSenderCopy);
@@ -327,10 +330,10 @@ std::int32_t Cash::send_cash(
     }
     // By this point, exportedCash and retainedCopy should both be valid.
 
-    std::shared_ptr<const Purse> recipientCopy(
-        Purse::PurseFactory(legacy_.ClientDataFolder(), String(exportedCash)));
-    std::shared_ptr<const Purse> senderCopy(
-        Purse::PurseFactory(legacy_.ClientDataFolder(), String(retainedCopy)));
+    std::shared_ptr<const Purse> recipientCopy(Purse::PurseFactory(
+        wallet_, legacy_.ClientDataFolder(), String(exportedCash)));
+    std::shared_ptr<const Purse> senderCopy(Purse::PurseFactory(
+        wallet_, legacy_.ClientDataFolder(), String(retainedCopy)));
 
     OT_ASSERT(recipientCopy);
     OT_ASSERT(senderCopy);
@@ -560,8 +563,8 @@ std::int32_t Cash::deposit_purse_low_level(
         return -1;
     }
 
-    std::unique_ptr<Purse> purse(
-        Purse::PurseFactory(legacy_.ClientDataFolder(), String(newPurse)));
+    std::unique_ptr<Purse> purse(Purse::PurseFactory(
+        wallet_, legacy_.ClientDataFolder(), String(newPurse)));
 
     OT_ASSERT(purse);
 

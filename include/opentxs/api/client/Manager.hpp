@@ -16,7 +16,7 @@ namespace api
 {
 namespace client
 {
-class Client
+class Manager
 {
 public:
     EXPORT virtual const api::client::Activity& Activity() const = 0;
@@ -30,6 +30,7 @@ public:
     EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;
     EXPORT virtual const api::Factory& Factory() const = 0;
+    EXPORT virtual int Instance() const = 0;
     EXPORT virtual std::recursive_mutex& Lock(
         const Identifier& nymID,
         const Identifier& serverID) const = 0;
@@ -53,16 +54,16 @@ public:
     EXPORT virtual const client::Workflow& Workflow() const = 0;
     EXPORT virtual const network::ZMQ& ZMQ() const = 0;
 
-    EXPORT virtual ~Client() = default;
+    EXPORT virtual ~Manager() = default;
 
 protected:
-    Client() = default;
+    Manager() = default;
 
 private:
-    Client(const Client&) = delete;
-    Client(Client&&) = delete;
-    Client& operator=(const Client&) = delete;
-    Client& operator=(Client&&) = delete;
+    Manager(const Manager&) = delete;
+    Manager(Manager&&) = delete;
+    Manager& operator=(const Manager&) = delete;
+    Manager& operator=(Manager&&) = delete;
 };
 }  // namespace client
 }  // namespace api

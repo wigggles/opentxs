@@ -35,8 +35,10 @@
 
 namespace opentxs
 {
-OTPartyAccount::OTPartyAccount(const std::string& dataFolder)
-    : wallet_(OT::App().Wallet())
+OTPartyAccount::OTPartyAccount(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : wallet_(wallet)
     , data_folder_{dataFolder}
     , m_pForParty(nullptr)
     , m_lClosingTransNo(0)
@@ -46,12 +48,13 @@ OTPartyAccount::OTPartyAccount(const std::string& dataFolder)
 // For an account to be party to an agreement, there must be a closing
 // transaction # provided, for the finalReceipt for that account.
 OTPartyAccount::OTPartyAccount(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const std::string& str_account_name,
     const String& strAgentName,
     Account& theAccount,
     std::int64_t lClosingTransNo)
-    : wallet_(OT::App().Wallet())
+    : wallet_(wallet)
     , data_folder_{dataFolder}
     , m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
@@ -64,13 +67,14 @@ OTPartyAccount::OTPartyAccount(
 }
 
 OTPartyAccount::OTPartyAccount(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strName,
     const String& strAgentName,
     const String& strAcctID,
     const String& strInstrumentDefinitionID,
     std::int64_t lClosingTransNo)
-    : wallet_(OT::App().Wallet())
+    : wallet_(wallet)
     , data_folder_{dataFolder}
     , m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.

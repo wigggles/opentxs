@@ -77,6 +77,7 @@ public:
 private:
     friend opentxs::Factory;
 
+    const api::Wallet& wallet_;
     const std::shared_ptr<const Nym> target_nym_{nullptr};
     const std::shared_ptr<const Nym> signer_nym_{nullptr};
     std::int64_t m_lUsageCredits{-1};
@@ -139,6 +140,7 @@ private:
         const Identifier& theInput);
 
     NymFile(
+        const api::Wallet& wallet,
         std::shared_ptr<const Nym> targetNym,
         std::shared_ptr<const Nym> signerNym,
         const std::string& dataFolder);

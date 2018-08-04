@@ -144,9 +144,13 @@ public:
                                      // this is where the ledger saves its
                                      // contents
 
-    OTMarket(const std::string& dataFolder);
-    OTMarket(const std::string& dataFolder, const char* szFilename);
+    OTMarket(const api::Wallet& wallet, const std::string& dataFolder);
     OTMarket(
+        const api::Wallet& wallet,
+        const std::string& dataFolder,
+        const char* szFilename);
+    OTMarket(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,

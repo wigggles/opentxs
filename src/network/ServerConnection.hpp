@@ -28,6 +28,7 @@ private:
     friend opentxs::network::ServerConnection;
 
     const api::network::ZMQ& zmq_;
+    const api::Wallet& wallet_;
     const zeromq::PublishSocket& updates_;
     const std::string server_id_{};
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
@@ -53,9 +54,10 @@ private:
     void reset_timer();
 
     ServerConnection(
-        const opentxs::api::network::ZMQ& zmq,
-        const std::string& serverID,
-        const zeromq::PublishSocket& updates);
+        const api::network::ZMQ& zmq,
+        const api::Wallet& wallet,
+        const zeromq::PublishSocket& updates,
+        const std::shared_ptr<const ServerContract>& contract);
     ServerConnection() = delete;
     ServerConnection(const ServerConnection&) = delete;
     ServerConnection(ServerConnection&&) = delete;

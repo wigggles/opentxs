@@ -7,7 +7,6 @@
 
 #include "opentxs/core/Contract.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/crypto/OTSignature.hpp"
@@ -25,7 +24,6 @@
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -45,11 +43,58 @@ using namespace io;
 
 namespace opentxs
 {
-
 String trim(const String& str)
 {
     std::string s(str.Get(), str.GetLength());
     return String(String::trim(s));
+}
+
+Contract::Contract(const api::Wallet& wallet, const std::string& dataFolder)
+    : Contract(wallet, dataFolder, "", "", "", "")
+{
+}
+
+Contract::Contract(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const String& name,
+    const String& foldername,
+    const String& filename,
+    const String& strID)
+    : wallet_{wallet}
+    , data_folder_(dataFolder)
+    , m_strName(name)
+    , m_strFoldername(foldername)
+    , m_strFilename(filename)
+    , m_ID(Identifier::Factory(strID))
+    , m_xmlUnsigned()
+    , m_strRawFile()
+    , m_strSigHashType(proto::HASHTYPE_ERROR)
+    , m_strContractType("CONTRACT")
+    , m_mapNyms()
+    , m_listSignatures()
+    , m_strVersion("2.0")
+    , m_strEntityShortName()
+    , m_strEntityLongName()
+    , m_strEntityEmail()
+    , m_mapConditions()
+{
+}
+
+Contract::Contract(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const String& strID)
+    : Contract(wallet, dataFolder, "", "", "", strID)
+{
+}
+
+Contract::Contract(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const Identifier& theID)
+    : Contract(wallet, dataFolder, String(theID))
+{
 }
 
 // static
@@ -104,46 +149,6 @@ bool Contract::DearmorAndTrim(
 void Contract::SetIdentifier(const Identifier& theID)
 {
     m_ID = Identifier::Factory(theID);
-}
-
-Contract::Contract(const std::string& dataFolder)
-    : Contract(dataFolder, "", "", "", "")
-{
-}
-
-Contract::Contract(
-    const std::string& dataFolder,
-    const String& name,
-    const String& foldername,
-    const String& filename,
-    const String& strID)
-    : data_folder_(dataFolder)
-    , m_strName(name)
-    , m_strFoldername(foldername)
-    , m_strFilename(filename)
-    , m_ID(Identifier::Factory(strID))
-    , m_xmlUnsigned()
-    , m_strRawFile()
-    , m_strSigHashType(proto::HASHTYPE_ERROR)
-    , m_strContractType("CONTRACT")
-    , m_mapNyms()
-    , m_listSignatures()
-    , m_strVersion("2.0")
-    , m_strEntityShortName()
-    , m_strEntityLongName()
-    , m_strEntityEmail()
-    , m_mapConditions()
-{
-}
-
-Contract::Contract(const std::string& dataFolder, const String& strID)
-    : Contract(dataFolder, "", "", "", strID)
-{
-}
-
-Contract::Contract(const std::string& dataFolder, const Identifier& theID)
-    : Contract(dataFolder, String(theID))
-{
 }
 
 // The name, filename, version, and ID loaded by the wallet
@@ -1915,7 +1920,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
             } else  // theSigner has Credentials, so we'll add him to the
                     // contract.
             {
-                auto pNym = OT::App().Wallet().Nym(theSigner.ID());
+                auto pNym = wallet_.Nym(theSigner.ID());
                 if (nullptr == pNym) {
                     otErr << __FUNCTION__ << ": failed to load signing nym."
                           << std::endl;
@@ -2092,7 +2097,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         }
 
         auto nymId = Identifier::Factory(strSignerNymID);
-        auto pNym = OT::App().Wallet().Nym(nymId);
+        auto pNym = wallet_.Nym(nymId);
 
         if (nullptr == pNym) {
             otErr << __FUNCTION__ << ": Failure loading signing nym "

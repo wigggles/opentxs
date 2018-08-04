@@ -19,8 +19,8 @@ namespace client
 namespace internal
 {
 struct Activity;
-struct Client;
 struct Contacts;
+struct Manager;
 }  // namespace internal
 }  // namespace client
 

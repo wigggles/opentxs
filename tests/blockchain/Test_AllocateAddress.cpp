@@ -44,7 +44,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedA)
 
     // Check m / 0'
     const ConstNym NymA =
-        opentxs::OT::App().Wallet().Nym(Identifier::Factory(Alice));
+        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Alice));
     proto::HDPath pathA;
     ASSERT_TRUE(NymA.get()->Path(pathA));
     ASSERT_EQ(
@@ -289,7 +289,7 @@ TEST_F(Test_AllocateAddress, testBip32_SeedB)
 
     // Check m / 0'
     const ConstNym NymB =
-        opentxs::OT::App().Wallet().Nym(Identifier::Factory(Bob));
+        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Bob));
     proto::HDPath pathB;
     ASSERT_TRUE(NymB.get()->Path(pathB));
     ASSERT_EQ(
@@ -547,7 +547,7 @@ TEST_F(Test_AllocateAddress, testBip44_SeedC)
 
     // Check m / 44 ' / 0'
     const ConstNym NymC =
-        opentxs::OT::App().Wallet().Nym(Identifier::Factory(Charly));
+        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Charly));
     proto::HDPath pathC;
     ASSERT_TRUE(NymC.get()->Path(pathC));
     ASSERT_EQ(

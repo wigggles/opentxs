@@ -82,8 +82,9 @@ public:
                                      // this is where the token saves its
                                      // contents
 
-    EXPORT Cheque(const std::string& dataFolder);
+    EXPORT Cheque(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT Cheque(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);

@@ -6,6 +6,7 @@
 add_subdirectory(client)
 add_subdirectory(crypto)
 add_subdirectory(network)
+add_subdirectory(server)
 add_subdirectory(storage)
 
 set(cxx-sources
@@ -15,7 +16,6 @@ set(cxx-sources
   Legacy.cpp
   Native.cpp
   Scheduler.cpp
-  Server.cpp
   Settings.cpp
   Wallet.cpp
 )
@@ -33,7 +33,6 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Scheduler.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
 )

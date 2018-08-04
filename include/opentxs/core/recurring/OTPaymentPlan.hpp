@@ -210,12 +210,16 @@ public:
                                      // this
                                      // is where the ledger saves its contents
 
-    EXPORT OTPaymentPlan(const std::string& dataFolder);
     EXPORT OTPaymentPlan(
+        const api::Wallet& wallet,
+        const std::string& dataFolder);
+    EXPORT OTPaymentPlan(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT OTPaymentPlan(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,

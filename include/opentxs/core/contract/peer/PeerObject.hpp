@@ -23,23 +23,31 @@ class PeerObject
 {
 public:
     static std::unique_ptr<PeerObject> Create(
+        const api::Wallet& wallet,
         const ConstNym& senderNym,
         const std::string& message);
     static std::unique_ptr<PeerObject> Create(
+        const api::Wallet& wallet,
         const ConstNym& senderNym,
         const std::string& payment,
         const bool isPayment);
     static std::unique_ptr<PeerObject> Create(
+        const api::Wallet& wallet,
         const std::shared_ptr<PeerRequest>& request,
         const std::shared_ptr<PeerReply>& reply,
         const std::uint32_t& version);
     static std::unique_ptr<PeerObject> Create(
+        const api::Wallet& wallet,
         const std::shared_ptr<PeerRequest>& request,
         const std::uint32_t& version);
     static std::unique_ptr<PeerObject> Factory(
+        const api::client::Contacts& contacts,
+        const api::Wallet& wallet,
         const ConstNym& signerNym,
         const proto::PeerObject& serialized);
     static std::unique_ptr<PeerObject> Factory(
+        const api::client::Contacts& contacts,
+        const api::Wallet& wallet,
         const ConstNym& recipientNym,
         const Armored& encrypted);
 
@@ -58,6 +66,7 @@ public:
     ~PeerObject() = default;
 
 private:
+    const api::Wallet& wallet_;
     ConstNym nym_{nullptr};
     std::unique_ptr<std::string> message_{nullptr};
     std::unique_ptr<std::string> payment_{nullptr};
@@ -66,14 +75,26 @@ private:
     proto::PeerObjectType type_{proto::PEEROBJECT_ERROR};
     std::uint32_t version_{0};
 
-    PeerObject(const ConstNym& signerNym, const proto::PeerObject serialized);
-    PeerObject(const ConstNym& senderNym, const std::string& message);
-    PeerObject(const std::string& payment, const ConstNym& senderNym);
     PeerObject(
+        const api::client::Contacts& contacts,
+        const api::Wallet& wallet,
+        const ConstNym& signerNym,
+        const proto::PeerObject serialized);
+    PeerObject(
+        const api::Wallet& wallet,
+        const ConstNym& senderNym,
+        const std::string& message);
+    PeerObject(
+        const api::Wallet& wallet,
+        const std::string& payment,
+        const ConstNym& senderNym);
+    PeerObject(
+        const api::Wallet& wallet,
         const std::shared_ptr<PeerRequest>& request,
         const std::shared_ptr<PeerReply>& reply,
         const std::uint32_t& version);
     PeerObject(
+        const api::Wallet& wallet,
         const std::shared_ptr<PeerRequest>& request,
         const std::uint32_t& version);
     PeerObject() = delete;

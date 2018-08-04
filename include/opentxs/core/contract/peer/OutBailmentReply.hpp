@@ -23,8 +23,12 @@ private:
 
     proto::PeerReply IDVersion(const Lock& lock) const override;
 
-    OutBailmentReply(const ConstNym& nym, const proto::PeerReply& serialized);
     OutBailmentReply(
+        const api::Wallet& wallet,
+        const ConstNym& nym,
+        const proto::PeerReply& serialized);
+    OutBailmentReply(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& initiator,
         const Identifier& request,

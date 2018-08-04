@@ -30,6 +30,7 @@ namespace opentxs
 class OTAgent
 {
 private:
+    const api::Wallet& wallet_;
     bool m_bNymRepresentsSelf;  // Whether this agent represents himself (a nym)
                                 // or whether he represents an entity of some
                                 // sort.
@@ -71,9 +72,12 @@ private:
     String m_strGroupName;  // If agent is a voting group in an Entity, this is
                             // group's Name (inside Entity.)
 
+    OTAgent() = delete;
+
 public:
-    OTAgent();
+    OTAgent(const api::Wallet& wallet);
     OTAgent(
+        const api::Wallet& wallet,
         const std::string& str_agent_name,
         const Nym& theNym,
         const bool bNymRepresentsSelf = true);
@@ -83,6 +87,7 @@ public:
     // instantiating with an Entity/Group instead of with a Nym.
 
     OTAgent(
+        const api::Wallet& wallet,
         bool bNymRepresentsSelf,
         bool bIsAnIndividual,
         const String& strName,

@@ -19,13 +19,11 @@ namespace opentxs
 //
 // Caller is responsible to delete.
 EXPORT OTPayment* GetInstrumentByReceiptID(
-    const std::string& dataFolder,
     const Nym& theNym,
     const std::int64_t& lReceiptId,
     Ledger& ledger);
 
 EXPORT OTPayment* GetInstrumentByIndex(
-    const std::string& dataFolder,
     const Nym& theNym,
     const std::int32_t& nIndex,
     Ledger& ledger);
@@ -34,13 +32,11 @@ EXPORT OTPayment* GetInstrumentByIndex(
 // (Cheque, Purse, etc.)
 // Caller is responsible to delete.
 EXPORT OTPayment* GetInstrument(
-    const std::string& dataFolder,
     const Nym& theNym,
     Ledger& ledger,
     OTTransaction*& pTransaction);
 
 EXPORT OTPayment* extract_payment_instrument_from_notice(
-    const std::string& dataFolder,
     const Nym& theNym,
     OTTransaction*& pTransaction);
 }  // namespace opentxs

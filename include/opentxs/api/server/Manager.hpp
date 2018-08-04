@@ -16,7 +16,9 @@ namespace opentxs
 {
 namespace api
 {
-class Server
+namespace server
+{
+class Manager
 {
 public:
     EXPORT virtual const network::Dht& DHT() const = 0;
@@ -38,6 +40,7 @@ public:
     EXPORT virtual const std::string GetUserName() const = 0;
     EXPORT virtual const std::string GetUserTerms() const = 0;
     EXPORT virtual const Identifier& ID() const = 0;
+    EXPORT virtual int Instance() const = 0;
     EXPORT virtual const Identifier& NymID() const = 0;
 #if OT_CASH
     EXPORT virtual void ScanMints() const = 0;
@@ -58,17 +61,18 @@ public:
 
     EXPORT virtual void Start() = 0;
 
-    EXPORT virtual ~Server() = default;
+    EXPORT virtual ~Manager() = default;
 
 protected:
-    Server() = default;
+    Manager() = default;
 
 private:
-    Server(const Server&) = delete;
-    Server(Server&&) = delete;
-    Server& operator=(const Server&) = delete;
-    Server& operator=(Server&&) = delete;
+    Manager(const Manager&) = delete;
+    Manager(Manager&&) = delete;
+    Manager& operator=(const Manager&) = delete;
+    Manager& operator=(Manager&&) = delete;
 };
+}  // namespace server
 }  // namespace api
 }  // namespace opentxs
 #endif  // OPENTXS_API_SERVER_HPP

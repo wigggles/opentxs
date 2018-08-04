@@ -36,7 +36,7 @@ Transactor::Transactor(const api::Legacy& legacy, Server* server)
     , transactionNumber_(0)
     , idToBasketMap_()
     , contractIdToBasketAccountId_()
-    , voucherAccounts_(legacy_.ServerDataFolder())
+    , voucherAccounts_(server->Wallet(), legacy_.ServerDataFolder())
     , server_(server)
 {
 }

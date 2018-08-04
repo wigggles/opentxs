@@ -44,11 +44,12 @@ api::client::Workflow* Factory::Workflow(
     const api::client::Activity& activity,
     const api::client::Contacts& contact,
     const api::Legacy& legacy,
+    const api::Wallet& wallet,
     const api::storage::Storage& storage,
     const network::zeromq::Context& zmq)
 {
     return new api::client::implementation::Workflow(
-        activity, contact, legacy, storage, zmq);
+        activity, contact, legacy, wallet, storage, zmq);
 }
 }  // namespace opentxs
 
@@ -91,6 +92,7 @@ std::string Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
 }
 
 Workflow::Cheque Workflow::InstantiateCheque(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const proto::PaymentWorkflow& workflow)
 {
@@ -102,7 +104,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            cheque.reset(new opentxs::Cheque{dataFolder});
+            cheque.reset(new opentxs::Cheque{wallet, dataFolder});
 
             OT_ASSERT(cheque)
 
@@ -139,11 +141,13 @@ Workflow::Workflow(
     const api::client::Activity& activity,
     const api::client::Contacts& contact,
     const api::Legacy& legacy,
+    const api::Wallet& wallet,
     const storage::Storage& storage,
     const opentxs::network::zeromq::Context& zmq)
     : activity_(activity)
     , contact_(contact)
     , legacy_(legacy)
+    , wallet_(wallet)
     , storage_(storage)
     , zmq_(zmq)
     , account_publisher_(zmq.PublishSocket())
@@ -844,7 +848,7 @@ Workflow::Cheque Workflow::LoadCheque(
         return {};
     }
 
-    return InstantiateCheque(legacy_.ClientDataFolder(), *workflow);
+    return InstantiateCheque(wallet_, legacy_.ClientDataFolder(), *workflow);
 }
 
 Workflow::Cheque Workflow::LoadChequeByWorkflow(
@@ -864,7 +868,7 @@ Workflow::Cheque Workflow::LoadChequeByWorkflow(
         return {};
     }
 
-    return InstantiateCheque(legacy_.ClientDataFolder(), *workflow);
+    return InstantiateCheque(wallet_, legacy_.ClientDataFolder(), *workflow);
 }
 
 std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(

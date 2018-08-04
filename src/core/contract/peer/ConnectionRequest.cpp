@@ -15,19 +15,22 @@
 namespace opentxs
 {
 ConnectionRequest::ConnectionRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(nym, serialized)
+    : ot_super(wallet, nym, serialized)
     , connection_type_(serialized.connectioninfo().type())
 {
 }
 
 ConnectionRequest::ConnectionRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& recipientID,
     const proto::ConnectionInfoType type,
     const Identifier& serverID)
     : ot_super(
+          wallet,
           nym,
           CURRENT_VERSION,
           recipientID,

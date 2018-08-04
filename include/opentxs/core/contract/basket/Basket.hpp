@@ -65,8 +65,9 @@ namespace opentxs
 class Basket : public Contract
 {
 public:
-    EXPORT Basket(const std::string& dataFolder);
+    EXPORT Basket(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT Basket(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         std::int32_t nCount,
         std::int64_t lMinimumTransferAmount);

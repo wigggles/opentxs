@@ -28,8 +28,10 @@ namespace opentxs
 {
 // keeping constructor private in order to force people to use the other
 // constructors and therefore provide the requisite IDs.
-OTTransactionType::OTTransactionType(const std::string& dataFolder)
-    : Contract(dataFolder)
+OTTransactionType::OTTransactionType(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
     , m_AcctID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory())
     , m_AcctNotaryID(Identifier::Factory())
@@ -49,12 +51,13 @@ OTTransactionType::OTTransactionType(const std::string& dataFolder)
 }
 
 OTTransactionType::OTTransactionType(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
     originType theOriginType)
-    : Contract(dataFolder, theAccountID)
+    : Contract(wallet, dataFolder, theAccountID)
     , m_AcctID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(theNotaryID))
     , m_AcctNotaryID(Identifier::Factory())
@@ -72,13 +75,14 @@ OTTransactionType::OTTransactionType(
 }
 
 OTTransactionType::OTTransactionType(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
     std::int64_t lTransactionNum,
     originType theOriginType)
-    : Contract(dataFolder, theAccountID)
+    : Contract(wallet, dataFolder, theAccountID)
     , m_AcctID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(theNotaryID))
     , m_AcctNotaryID(Identifier::Factory())
@@ -117,6 +121,7 @@ originType OTTransactionType::GetOriginTypeFromString(const String& strType)
 
 // static -- class factory.
 OTTransactionType* OTTransactionType::TransactionFactory(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     String strInput)
 {
@@ -131,7 +136,7 @@ OTTransactionType* OTTransactionType::TransactionFactory(
                 "-----BEGIN SIGNED TRANSACTION-----"))  // this string is 34
                                                         // chars long.
         {
-            pContract = new OTTransaction{dataFolder};
+            pContract = new OTTransaction{wallet, dataFolder};
             OT_ASSERT(nullptr != pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRANSACTION ITEM-----"))  // this
@@ -139,19 +144,19 @@ OTTransactionType* OTTransactionType::TransactionFactory(
                                                                     // 39 chars
                                                                     // long.
         {
-            pContract = new Item(dataFolder);
+            pContract = new Item(wallet, dataFolder);
             OT_ASSERT(nullptr != pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LEDGER-----"))  // this string is 29
                                                           // chars long.
         {
-            pContract = new Ledger{dataFolder};
+            pContract = new Ledger{wallet, dataFolder};
             OT_ASSERT(nullptr != pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED ACCOUNT-----"))  // this string is 30
                                                            // chars long.
         {
-            pContract = new Account{dataFolder};
+            pContract = new Account{wallet, dataFolder};
             OT_ASSERT(nullptr != pContract);
         }
 

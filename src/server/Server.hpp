@@ -28,10 +28,13 @@ namespace opentxs
 {
 namespace api
 {
+namespace server
+{
 namespace implementation
 {
-class Server;
+class Manager;
 }  // namespace implementation
+}  // namespace server
 }  // namespace api
 namespace server
 {
@@ -43,6 +46,7 @@ public:
     const Nym& GetServerNym() const;
     std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     bool IsFlaggedForShutdown() const;
+    const api::Wallet& Wallet() const { return wallet_; }
 
     void ActivateCron();
     UserCommandProcessor& CommandProcessor() { return userCommandProcessor_; }
@@ -71,7 +75,7 @@ public:
     ~Server();
 
 private:
-    friend api::implementation::Server;
+    friend api::server::implementation::Manager;
     friend MainFile;
 
     const std::string DEFAULT_EXTERNAL_IP = "127.0.0.1";
@@ -88,7 +92,7 @@ private:
 #endif
     const opentxs::api::Legacy& legacy_;
     const opentxs::api::Settings& config_;
-    const opentxs::api::Server& mint_;
+    const opentxs::api::server::Manager& mint_;
     const opentxs::api::storage::Storage& storage_;
     const opentxs::api::Wallet& wallet_;
     MainFile mainFile_;
@@ -140,7 +144,7 @@ private:
 #endif
         const opentxs::api::Legacy& legacy,
         const opentxs::api::Settings& config,
-        const opentxs::api::Server& mint,
+        const opentxs::api::server::Manager& mint,
         const opentxs::api::storage::Storage& storage,
         const opentxs::api::Wallet& wallet);
     Server() = delete;

@@ -36,6 +36,7 @@ private:
 
     const opentxs::network::zeromq::Context& context_;
     const api::Settings& config_;
+    const api::Wallet& wallet_;
     const Flag& running_;
     mutable std::atomic<std::chrono::seconds> linger_;
     mutable std::atomic<std::chrono::seconds> receive_timeout_;
@@ -52,6 +53,7 @@ private:
 
     ZMQ(const opentxs::network::zeromq::Context& context,
         const api::Settings& config,
+        const api::Wallet& wallet,
         const Flag& running);
     ZMQ() = delete;
     ZMQ(const ZMQ&) = delete;

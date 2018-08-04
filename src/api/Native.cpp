@@ -8,16 +8,16 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/server/Manager.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -352,7 +352,6 @@ Native::Native(
 #endif
     , legacy_(nullptr)
     , storage_(nullptr)
-    , wallet_(nullptr)
 #if OT_CRYPTO_WITH_BIP39
     , storage_encryption_key_(opentxs::crypto::key::Symmetric::Factory())
 #endif
@@ -403,7 +402,7 @@ Native::Native(
     }
 }
 
-const api::client::Client& Native::Client() const
+const api::client::Manager& Native::Client() const
 {
     if (server_mode_) { OT_FAIL; }
 
@@ -519,16 +518,14 @@ void Native::Init()
 #if OT_CRYPTO_WITH_BIP39
     Init_Seeds();  // Requires Init_Crypto(), Init_Storage()
 #endif
-    Init_Contracts();
     Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
-                 // Init_Contracts(), Init_Identity(), Init_Storage(),
+                 // Init_Dht(), Init_Storage(),
                  // Init_Seeds()
 
     if (recover_) { recover(); }
 
     Init_Server();  // requires Init_Legacy(), Init_Config(), Init_Storage(),
-                    // Init_Crypto(), Init_Contracts(), Init_Log(),
-                    // Init_Contracts(), Init_Seeds()
+                    // Init_Crypto(), Init_Log(), Init_Seeds(), Init_Dht()
 
     start();
 }
@@ -538,7 +535,6 @@ void Native::Init_Api()
     auto& config = config_[""];
 
     OT_ASSERT(config);
-    OT_ASSERT(wallet_);
     OT_ASSERT(crypto_);
 #if OT_CRYPTO_WITH_BIP39
     OT_ASSERT(seeds_);
@@ -547,7 +543,7 @@ void Native::Init_Api()
 
     if (server_mode_) { return; }
 
-    client_.reset(opentxs::Factory::Client(
+    client_.reset(opentxs::Factory::ClientManager(
         running_,
         *config,
         *crypto_,
@@ -556,7 +552,6 @@ void Native::Init_Api()
 #endif
         *legacy_,
         *storage_,
-        *wallet_,
         zmq_context_,
         0));  // TODO
 
@@ -569,11 +564,6 @@ void Native::Init_Config()
 
     String strConfigFilePath = legacy_->ConfigFilePath().c_str();
     config_[""].reset(opentxs::Factory::Settings(strConfigFilePath));
-}
-
-void Native::Init_Contracts()
-{
-    wallet_.reset(opentxs::Factory::Wallet(0, *this, zmq_context_));  // TODO
 }
 
 void Native::Init_Crypto() { crypto_.reset(opentxs::Factory::Crypto()); }
@@ -626,20 +616,18 @@ void Native::Init_Server()
     OT_ASSERT(crypto_);
     OT_ASSERT(seeds_);
     OT_ASSERT(storage_);
-    OT_ASSERT(wallet_);
 
-    server_.reset(opentxs::Factory::ServerAPI(
+    server_.reset(opentxs::Factory::ServerManager(
         server_args_,
+        *storage_,
         *crypto_,
 #if OT_CRYPTO_WITH_BIP39
         *seeds_,
 #endif
         *legacy_,
         Config(),
-        *storage_,
-        *wallet_,
-        running_,
         zmq_context_,
+        running_,
         1));  // TODO
 
     OT_ASSERT(server_);
@@ -880,7 +868,7 @@ void Native::recover()
     }
 }
 
-const api::Server& Native::Server() const
+const api::server::Manager& Native::Server() const
 {
     OT_ASSERT(server_);
 
@@ -973,7 +961,6 @@ void Native::shutdown()
 
     server_.reset();
     client_.reset();
-    wallet_.reset();
     storage_.reset();
     crypto_.reset();
     Log::Cleanup();
@@ -1015,12 +1002,5 @@ void Native::start()
 
         server_->Start();
     }
-}
-
-const api::Wallet& Native::Wallet() const
-{
-    OT_ASSERT(wallet_)
-
-    return *wallet_;
 }
 }  // namespace opentxs::api::implementation

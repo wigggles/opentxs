@@ -152,8 +152,9 @@ public:
                                      // this is where the ledger saves its
                                      // contents
 
-    EXPORT OTTrade(const std::string& dataFolder);
+    EXPORT OTTrade(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT OTTrade(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& notaryID,
         const Identifier& instrumentDefinitionID,

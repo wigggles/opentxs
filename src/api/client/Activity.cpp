@@ -198,7 +198,7 @@ Activity::ChequeData Activity::Cheque(
     OT_ASSERT(workflow)
 
     auto instantiated = client::Workflow::InstantiateCheque(
-        legacy_.ClientDataFolder(), *workflow);
+        wallet_, legacy_.ClientDataFolder(), *workflow);
     cheque.reset(std::get<1>(instantiated).release());
 
     OT_ASSERT(cheque)
@@ -280,7 +280,7 @@ std::unique_ptr<Message> Activity::Mail(
         return output;
     }
 
-    output.reset(new Message{legacy_.ClientDataFolder()});
+    output.reset(new Message{wallet_, legacy_.ClientDataFolder()});
 
     OT_ASSERT(output);
 
@@ -588,7 +588,8 @@ void Activity::preload(
 
     otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message " << id->str()
           << std::endl;
-    auto peerObject = PeerObject::Factory(nym, message->m_ascPayload);
+    auto peerObject =
+        PeerObject::Factory(contact_, wallet_, nym, message->m_ascPayload);
     otErr << OT_METHOD << __FUNCTION__ << ": Message " << id->str()
           << " decrypted." << std::endl;
 

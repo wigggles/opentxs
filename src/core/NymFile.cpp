@@ -7,9 +7,9 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -74,21 +74,25 @@
 namespace opentxs
 {
 internal::NymFile* Factory::NymFile(
+    const api::Wallet& wallet,
     std::shared_ptr<const Nym> targetNym,
     std::shared_ptr<const Nym> signerNym,
     const std::string& dataFolder)
 {
-    return new implementation::NymFile(targetNym, signerNym, dataFolder);
+    return new implementation::NymFile(
+        wallet, targetNym, signerNym, dataFolder);
 }
 }  // namespace opentxs
 
 namespace opentxs::implementation
 {
 NymFile::NymFile(
+    const api::Wallet& wallet,
     std::shared_ptr<const Nym> targetNym,
     std::shared_ptr<const Nym> signerNym,
     const std::string& dataFolder)
-    : target_nym_{targetNym}
+    : wallet_{wallet}
+    , target_nym_{targetNym}
     , signer_nym_{signerNym}
     , m_lUsageCredits(0)
     , m_bMarkForDeletion(false)
@@ -306,7 +310,7 @@ bool NymFile::deserialize_nymfile(
 
                                 if (strMessage.GetLength() > 2) {
                                     Message* pMessage =
-                                        new Message{data_folder_};
+                                        new Message{wallet_, data_folder_};
 
                                     OT_ASSERT(nullptr != pMessage);
 
@@ -449,7 +453,7 @@ Message* NymFile::GetOutpaymentsByTransNum(
         //
         if (pMsg->m_ascPayload.Exists() &&
             pMsg->m_ascPayload.GetString(strPayment) && strPayment.Exists()) {
-            pPayment.reset(new OTPayment(data_folder_, strPayment));
+            pPayment.reset(new OTPayment(wallet_, data_folder_, strPayment));
 
             // Let's see if it's the cheque we're looking for...
             //
@@ -493,7 +497,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
-    OTSignedFile theNymFile(data_folder_, OTFolders::Nym(), nymID);
+    OTSignedFile theNymFile(wallet_, data_folder_, OTFolders::Nym(), nymID);
 
     if (!theNymFile.LoadFile()) {
         otWarn << __FUNCTION__ << ": Failed loading a signed nymfile: " << nymID
@@ -659,8 +663,8 @@ bool NymFile::ResyncWithServer(
     const String strNotaryID(theNotaryID);
     const String strNymID(target_nym_->ID());
 
-    auto context = OT::App().Wallet().mutable_ServerContext(
-        target_nym_->ID(), theNotaryID);
+    auto context =
+        wallet_.mutable_ServerContext(target_nym_->ID(), theNotaryID);
 
     // Remove all issued, transaction, and tentative numbers for a specific
     // server ID,
@@ -864,7 +868,8 @@ bool NymFile::save_signed_nymfile(const T& lock)
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
-    OTSignedFile theNymFile(data_folder_, OTFolders::Nym().Get(), strNymID);
+    OTSignedFile theNymFile(
+        wallet_, data_folder_, OTFolders::Nym().Get(), strNymID);
     theNymFile.GetFilename(m_strNymFile);
 
     otInfo << "Saving nym to: " << m_strNymFile << "\n";

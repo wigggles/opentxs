@@ -148,9 +148,10 @@ protected:
 private:
     friend opentxs::Factory;
 
-    const api::Legacy& legacy_;
+    const Legacy& legacy_;
+    const Wallet& wallet_;
 
-    Cash(const api::Legacy& legacy);
+    Cash(const Legacy& legacy, const Wallet& wallet);
     Cash() = delete;
     Cash(const Cash&) = delete;
     Cash(Cash&&) = delete;

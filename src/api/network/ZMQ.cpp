@@ -40,21 +40,24 @@ namespace opentxs
 api::network::ZMQ* Factory::ZMQ(
     const network::zeromq::Context& context,
     const api::Settings& config,
+    const api::Wallet& wallet,
     const Flag& running)
 {
-    return new api::network::implementation::ZMQ(context, config, running);
+    return new api::network::implementation::ZMQ(
+        context, config, wallet, running);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::network::implementation
 {
-
 ZMQ::ZMQ(
     const opentxs::network::zeromq::Context& context,
     const api::Settings& config,
+    const api::Wallet& wallet,
     const Flag& running)
     : context_(context)
     , config_(config)
+    , wallet_{wallet}
     , running_(running)
     , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER_SECONDS))
     , receive_timeout_(std::chrono::seconds(CLIENT_RECV_TIMEOUT))
@@ -167,10 +170,14 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
 
     if (server_connections_.end() != existing) { return existing->second; }
 
+    auto contract = wallet_.Server(Identifier::Factory(id));
+
+    OT_ASSERT(contract)
+
     auto [it, created] = server_connections_.emplace(
         id,
         opentxs::network::ServerConnection::Factory(
-            *this, id, status_publisher_));
+            *this, wallet_, status_publisher_, contract));
     auto& connection = it->second;
 
     OT_ASSERT(created);

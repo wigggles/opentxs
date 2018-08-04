@@ -9,9 +9,9 @@
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/client/Blockchain.hpp"
 #endif
-#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Pair.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/UI.hpp"
@@ -61,7 +61,7 @@
 
 namespace opentxs
 {
-const api::client::Client* SwigWrap::client_{nullptr};
+const api::client::Manager* SwigWrap::client_{nullptr};
 
 bool SwigWrap::networkFailure(const std::string& notaryID)
 {

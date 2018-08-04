@@ -9,21 +9,21 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 
 namespace opentxs::api::client::internal
 {
 struct Activity : virtual public api::client::Activity {
     virtual void MigrateLegacyThreads() const = 0;
 };
-struct Client : virtual public api::client::Client {
+struct Contacts : virtual public api::client::Contacts {
+    virtual void start() = 0;
+};
+struct Manager : virtual public api::client::Manager {
     virtual void StartActivity() = 0;
     virtual void StartContacts() = 0;
     virtual opentxs::OTWallet* StartWallet() = 0;
-};
-struct Contacts : virtual public api::client::Contacts {
-    virtual void start() = 0;
 };
 }  // namespace opentxs::api::client::internal
 #endif  // OPENTXS_API_CLIENT_INTERNALCLIENT_HPP

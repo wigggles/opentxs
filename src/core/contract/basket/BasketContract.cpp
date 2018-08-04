@@ -18,6 +18,37 @@
 
 namespace opentxs
 {
+BasketContract::BasketContract(
+    const api::Wallet& wallet,
+    const ConstNym& nym,
+    const proto::UnitDefinition serialized)
+    : ot_super(wallet, nym, serialized)
+{
+    if (serialized.has_basket()) {
+
+        if (serialized.basket().has_weight()) {
+            weight_ = serialized.basket().weight();
+        }
+
+        for (auto& item : serialized.basket().item()) {
+            subcontracts_.insert(
+                {item.unit(), {item.account(), item.weight()}});
+        }
+    }
+}
+
+BasketContract::BasketContract(
+    const api::Wallet& wallet,
+    const ConstNym& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms,
+    const std::uint64_t weight)
+    : ot_super(wallet, nym, shortname, name, symbol, terms)
+    , weight_(weight)
+{
+}
 
 OTIdentifier BasketContract::CalculateBasketID(
     const proto::UnitDefinition& serialized)
@@ -35,11 +66,12 @@ OTIdentifier BasketContract::CalculateBasketID(
 }
 
 bool BasketContract::FinalizeTemplate(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     proto::UnitDefinition& serialized)
 {
     std::unique_ptr<BasketContract> contract(
-        new BasketContract(nym, serialized));
+        new BasketContract(wallet, nym, serialized));
 
     if (!contract) { return false; }
 
@@ -60,36 +92,6 @@ bool BasketContract::FinalizeTemplate(
     }
 
     return false;
-}
-
-BasketContract::BasketContract(
-    const ConstNym& nym,
-    const proto::UnitDefinition serialized)
-    : ot_super(nym, serialized)
-{
-    if (serialized.has_basket()) {
-
-        if (serialized.basket().has_weight()) {
-            weight_ = serialized.basket().weight();
-        }
-
-        for (auto& item : serialized.basket().item()) {
-            subcontracts_.insert(
-                {item.unit(), {item.account(), item.weight()}});
-        }
-    }
-}
-
-BasketContract::BasketContract(
-    const ConstNym& nym,
-    const std::string& shortname,
-    const std::string& name,
-    const std::string& symbol,
-    const std::string& terms,
-    const std::uint64_t weight)
-    : ot_super(nym, shortname, name, symbol, terms)
-    , weight_(weight)
-{
 }
 
 proto::UnitDefinition BasketContract::IDVersion(const Lock& lock) const
@@ -124,5 +126,4 @@ proto::UnitDefinition BasketContract::BasketIDVersion(const Lock& lock) const
 
     return contract;
 }
-
 }  // namespace opentxs

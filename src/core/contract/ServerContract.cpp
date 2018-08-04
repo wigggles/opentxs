@@ -7,7 +7,6 @@
 
 #include "opentxs/core/contract/ServerContract.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -17,15 +16,15 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #define OT_METHOD "opentxs::ServerContract::"
 
 namespace opentxs
 {
-ServerContract::ServerContract(const ConstNym& nym)
+ServerContract::ServerContract(const api::Wallet& wallet, const ConstNym& nym)
     : ot_super(nym)
+    , wallet_{wallet}
     , listen_params_()
     , name_()
     , transport_key_(Data::Factory())
@@ -33,9 +32,10 @@ ServerContract::ServerContract(const ConstNym& nym)
 }
 
 ServerContract::ServerContract(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::ServerContract& serialized)
-    : ServerContract(nym)
+    : ServerContract(wallet, nym)
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -60,6 +60,7 @@ ServerContract::ServerContract(
 }
 
 ServerContract* ServerContract::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
@@ -68,7 +69,7 @@ ServerContract* ServerContract::Create(
     OT_ASSERT(nym);
     OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));
 
-    ServerContract* contract = new ServerContract(nym);
+    ServerContract* contract = new ServerContract(wallet, nym);
 
     if (nullptr != contract) {
         contract->version_ = 1;
@@ -98,7 +99,7 @@ std::string ServerContract::EffectiveName() const
 {
     OT_ASSERT(nym_)
 
-    const auto nym = OT::App().Wallet().Nym(nym_->ID());
+    const auto nym = wallet_.Nym(nym_->ID());
     const auto output = nym->Name();
 
     if (output.empty()) { return name_; }
@@ -107,6 +108,7 @@ std::string ServerContract::EffectiveName() const
 }
 
 ServerContract* ServerContract::Factory(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::ServerContract& serialized)
 {
@@ -115,7 +117,7 @@ ServerContract* ServerContract::Factory(
     }
 
     std::unique_ptr<ServerContract> contract(
-        new ServerContract(nym, serialized));
+        new ServerContract(wallet, nym, serialized));
 
     if (!contract) { return nullptr; }
 
@@ -225,7 +227,7 @@ void ServerContract::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    OT::App().Wallet().SetServerAlias(id_, alias);
+    wallet_.SetServerAlias(id_, alias);
 }
 
 proto::ServerContract ServerContract::SigVersion(const Lock& lock) const

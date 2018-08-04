@@ -197,7 +197,7 @@ private:
     const api::client::Contacts& contacts_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
-    const api::client::Client& client_;
+    const api::client::Manager& client_;
     const api::client::ServerAction& server_action_;
     const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
@@ -385,7 +385,7 @@ private:
         const api::client::Contacts& contacts,
         const api::Legacy& legacy,
         const api::Settings& config,
-        const api::client::Client& client,
+        const api::client::Manager& client,
         const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,

@@ -3,15 +3,15 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_IMPLEMENTATION_SERVER_HPP
-#define OPENTXS_API_IMPLEMENTATION_SERVER_HPP
+#ifndef IMPLEMENTATION_OPENTXS_API_SERVER_MANAGER_HPP
+#define IMPLEMENTATION_OPENTXS_API_SERVER_MANAGER_HPP
 
 #include "Internal.hpp"
 
-namespace opentxs::api::implementation
+namespace opentxs::api::server::implementation
 {
-class Server final : opentxs::api::Server,
-                     opentxs::api::implementation::Scheduler
+class Manager final : opentxs::api::server::Manager,
+                      opentxs::api::implementation::Scheduler
 {
 public:
     const api::network::Dht& DHT() const override;
@@ -33,6 +33,7 @@ public:
     const std::string GetUserName() const override;
     const std::string GetUserTerms() const override;
     const Identifier& ID() const override;
+    int Instance() const override { return instance_; }
     const Identifier& NymID() const override;
 #if OT_CASH
     void ScanMints() const override;
@@ -53,7 +54,7 @@ public:
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
 
-    ~Server();
+    ~Manager();
 
 private:
     friend opentxs::Factory;
@@ -63,23 +64,23 @@ private:
 #endif  // OT_CASH
 
     const ArgList& args_;
+    const api::storage::Storage& storage_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
     const api::Crypto& crypto_;
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds_;
 #endif
-    const api::storage::Storage& storage_;
-    const api::Wallet& wallet_;
-    const Flag& running_;
     const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
-    std::unique_ptr<api::network::Dht> dht_;
+    const Flag& running_;
     std::unique_ptr<api::Factory> factory_;
-    std::unique_ptr<server::Server> server_p_;
-    server::Server& server_;
-    std::unique_ptr<server::MessageProcessor> message_processor_p_;
-    server::MessageProcessor& message_processor_;
+    std::unique_ptr<api::Wallet> wallet_;
+    std::unique_ptr<api::network::Dht> dht_;
+    std::unique_ptr<opentxs::server::Server> server_p_;
+    opentxs::server::Server& server_;
+    std::unique_ptr<opentxs::server::MessageProcessor> message_processor_p_;
+    opentxs::server::MessageProcessor& message_processor_;
 #if OT_CASH
     std::unique_ptr<std::thread> mint_thread_;
     mutable std::mutex mint_lock_;
@@ -122,28 +123,26 @@ private:
 
     void Cleanup();
     void Init();
-    void Init_Factory();
     void Start() override;
     void storage_gc_hook() override;
 
-    Server(
+    Manager(
         const ArgList& args,
+        const api::storage::Storage& storage,
         const api::Crypto& crypto,
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
         const api::Legacy& legacy,
         const api::Settings& config,
-        const api::storage::Storage& storage,
-        const api::Wallet& wallet,
-        const Flag& running,
         const opentxs::network::zeromq::Context& context,
+        const Flag& running,
         const int instance);
-    Server() = delete;
-    Server(const Server&) = delete;
-    Server(Server&&) = delete;
-    Server& operator=(const Server&) = delete;
-    Server& operator=(Server&&) = delete;
+    Manager() = delete;
+    Manager(const Manager&) = delete;
+    Manager(Manager&&) = delete;
+    Manager& operator=(const Manager&) = delete;
+    Manager& operator=(Manager&&) = delete;
 };
-}  // namespace opentxs::api::implementation
-#endif  // OPENTXS_API_IMPLEMENTATION_SERVER_HPP
+}  // namespace opentxs::api::server::implementation
+#endif  // IMPLEMENTATION_OPENTXS_API_SERVER_MANAGER_HPP

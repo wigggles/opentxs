@@ -468,7 +468,6 @@ various sequence numbers. Hm.
 #include "opentxs/core/script/OTSmartContract.hpp"
 
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
@@ -510,7 +509,6 @@ various sequence numbers. Hm.
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #if OT_SCRIPT_CHAI
 #include <chaiscript/chaiscript.hpp>
@@ -728,21 +726,22 @@ typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
 //                                                             std::int64_t
 //                                                             lAmount);
 
-OTSmartContract::OTSmartContract(const std::string& dataFolder)
-    : ot_super(dataFolder)
-    , wallet_(OT::App().Wallet())
-    , m_StashAccts(dataFolder, Account::stash)
+OTSmartContract::OTSmartContract(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : ot_super(wallet, dataFolder)
+    , m_StashAccts(wallet, dataFolder, Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
     InitSmartContract();
 }
 
 OTSmartContract::OTSmartContract(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID)
-    : ot_super(dataFolder)
-    , wallet_(OT::App().Wallet())
-    , m_StashAccts(dataFolder, Account::stash)
+    : ot_super(wallet, dataFolder)
+    , m_StashAccts(wallet, dataFolder, Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
     Instrument::SetNotaryID(NOTARY_ID);
@@ -2386,8 +2385,8 @@ bool OTSmartContract::StashFunds(
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    std::unique_ptr<OTCronItem> pOrigCronItem(
-        OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum()));
+    std::unique_ptr<OTCronItem> pOrigCronItem(OTCronItem::LoadCronReceipt(
+        wallet_, data_folder_, GetTransactionNum()));
 
     OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
                                           // receipt wasn't saved in the first
@@ -2423,7 +2422,7 @@ bool OTSmartContract::StashFunds(
     } else if (nullptr == pPartyNym)  // Else load the First Nym from storage,
                                       // if still not found.
     {
-        pPartyNym = OT::App().Wallet().Nym(PARTY_NYM_ID);
+        pPartyNym = wallet_.Nym(PARTY_NYM_ID);
         if (nullptr == pPartyNym) {
             otErr << "OTSmartContract::StashFunds: Failure loading or "
                      "verifying party Nym public key: "
@@ -2464,7 +2463,7 @@ bool OTSmartContract::StashFunds(
 
         // Load the inbox in case it already exists
         Ledger thePartyInbox(
-            data_folder_, PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
+            wallet_, data_folder_, PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -2502,6 +2501,7 @@ bool OTSmartContract::StashFunds(
             }
 
             OTTransaction* pTransParty = OTTransaction::GenerateTransaction(
+                wallet_,
                 thePartyInbox,
                 OTTransaction::paymentReceipt,
                 originType::origin_smart_contract,
@@ -5372,7 +5372,7 @@ bool OTSmartContract::MoveFunds(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     pOrigCronItem =
-        OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum());
+        OTCronItem::LoadCronReceipt(wallet_, data_folder_, GetTransactionNum());
 
     OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
                                           // receipt wasn't saved in the first
@@ -5430,7 +5430,7 @@ bool OTSmartContract::MoveFunds(
     } else if (nullptr == pSenderNym)  // Else load the First Nym from storage,
                                        // if still not found.
     {
-        pSenderNym = OT::App().Wallet().Nym(SENDER_NYM_ID);
+        pSenderNym = wallet_.Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             String strNymID(SENDER_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
@@ -5453,7 +5453,7 @@ bool OTSmartContract::MoveFunds(
                                           // Disk and point to that, if still
                                           // not found.
     {
-        pRecipientNym = OT::App().Wallet().Nym(RECIPIENT_NYM_ID);
+        pRecipientNym = wallet_.Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             String strNymID(RECIPIENT_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
@@ -5672,9 +5672,13 @@ bool OTSmartContract::MoveFunds(
 
         // Load the inboxes in case they already exist
         Ledger theSenderInbox(
-            data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            wallet_, data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
             theRecipientInbox(
-                data_folder_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
+                wallet_,
+                data_folder_,
+                RECIPIENT_NYM_ID,
+                RECIPIENT_ACCT_ID,
+                NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -5713,12 +5717,14 @@ bool OTSmartContract::MoveFunds(
             }
 
             OTTransaction* pTransSend = OTTransaction::GenerateTransaction(
+                wallet_,
                 theSenderInbox,
                 OTTransaction::paymentReceipt,
                 originType::origin_smart_contract,
                 lNewTransactionNumber);
 
             OTTransaction* pTransRecip = OTTransaction::GenerateTransaction(
+                wallet_,
                 theRecipientInbox,
                 OTTransaction::paymentReceipt,
                 originType::origin_smart_contract,

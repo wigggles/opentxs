@@ -7,8 +7,6 @@
 
 #include "opentxs/core/script/OTAgent.hpp"
 
-#include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/Context.hpp"
@@ -26,7 +24,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -51,6 +48,64 @@
 
 namespace opentxs
 {
+OTAgent::OTAgent(const api::Wallet& wallet)
+    : wallet_{wallet}
+    , m_bNymRepresentsSelf(false)
+    , m_bIsAnIndividual(false)
+    , m_pNym(nullptr)
+    , m_pForParty(nullptr)
+{
+}
+
+OTAgent::OTAgent(
+    const api::Wallet& wallet,
+    bool bNymRepresentsSelf,
+    bool bIsAnIndividual,
+    const String& strName,
+    const String& strNymID,
+    const String& strRoleID,
+    const String& strGroupName)
+    : wallet_{wallet}
+    , m_bNymRepresentsSelf(bNymRepresentsSelf)
+    , m_bIsAnIndividual(bIsAnIndividual)
+    , m_pNym(nullptr)
+    , m_pForParty(nullptr)
+    , m_strName(strName)
+    , m_strNymID(strNymID)
+    , m_strRoleID(strRoleID)
+    , m_strGroupName(strGroupName)
+{
+}
+
+OTAgent::OTAgent(
+    const api::Wallet& wallet,
+    const std::string& str_agent_name,
+    const Nym& theNym,
+    const bool bNymRepresentsSelf)
+    /*IF false, then: ROLE parameter goes here.*/
+    : wallet_{wallet}
+    , m_bNymRepresentsSelf(bNymRepresentsSelf)
+    , m_bIsAnIndividual(true)
+    , m_pNym(&theNym)
+    , m_pForParty(nullptr)
+    , m_strName(str_agent_name.c_str())
+{
+    // Grab m_strNymID
+    auto theNymID = Identifier::Factory();
+    theNym.GetIdentifier(theNymID);
+    theNymID->GetString(m_strNymID);
+
+    //
+
+    if (!bNymRepresentsSelf) {
+        // Todo: if the Nym represents an Entity, then RoleID should
+        // be passed in, and set here.  I WILL PROBABLY make that part into a
+        // SEPARATE CONSTRUCTOR.
+        // (Once I get around to adding Entities.)
+        //
+        otErr << "OTAgent::OTAgent: THIS HASN'T BEEN WRITTEN YET!!\n";
+    }
+}
 
 bool OTAgent::VerifySignature(const Contract& theContract) const
 {
@@ -123,7 +178,7 @@ ConstNym OTAgent::LoadNym()
     bool bNymID = GetNymID(theAgentNymID);
 
     if (bNymID) {
-        m_pNym = OT::App().Wallet().Nym(theAgentNymID);
+        m_pNym = wallet_.Nym(theAgentNymID);
         OT_ASSERT(m_pNym);
 
         return m_pNym;
@@ -132,60 +187,6 @@ ConstNym OTAgent::LoadNym()
                  "at all? \n";
 
     return nullptr;
-}
-
-OTAgent::OTAgent()
-    : m_bNymRepresentsSelf(false)
-    , m_bIsAnIndividual(false)
-    , m_pNym(nullptr)
-    , m_pForParty(nullptr)
-{
-}
-
-OTAgent::OTAgent(
-    bool bNymRepresentsSelf,
-    bool bIsAnIndividual,
-    const String& strName,
-    const String& strNymID,
-    const String& strRoleID,
-    const String& strGroupName)
-    : m_bNymRepresentsSelf(bNymRepresentsSelf)
-    , m_bIsAnIndividual(bIsAnIndividual)
-    , m_pNym(nullptr)
-    , m_pForParty(nullptr)
-    , m_strName(strName)
-    , m_strNymID(strNymID)
-    , m_strRoleID(strRoleID)
-    , m_strGroupName(strGroupName)
-{
-}
-
-OTAgent::OTAgent(
-    const std::string& str_agent_name,
-    const Nym& theNym,
-    const bool bNymRepresentsSelf)
-    /*IF false, then: ROLE parameter goes here.*/
-    : m_bNymRepresentsSelf(bNymRepresentsSelf)
-    , m_bIsAnIndividual(true)
-    , m_pNym(&theNym)
-    , m_pForParty(nullptr)
-    , m_strName(str_agent_name.c_str())
-{
-    // Grab m_strNymID
-    auto theNymID = Identifier::Factory();
-    theNym.GetIdentifier(theNymID);
-    theNymID->GetString(m_strNymID);
-
-    //
-
-    if (!bNymRepresentsSelf) {
-        // Todo: if the Nym represents an Entity, then RoleID should
-        // be passed in, and set here.  I WILL PROBABLY make that part into a
-        // SEPARATE CONSTRUCTOR.
-        // (Once I get around to adding Entities.)
-        //
-        otErr << "OTAgent::OTAgent: THIS HASN'T BEEN WRITTEN YET!!\n";
-    }
 }
 
 void OTAgent::SetParty(OTParty& theOwnerParty)  // This happens when the agent
@@ -224,12 +225,6 @@ void OTAgent::SetParty(OTParty& theOwnerParty)  // This happens when the agent
         // Similarly, make sure that the RoleID or GroupName, whichever is
         // relevant, is validated for the owner.
     }
-}
-
-OTAgent::~OTAgent()
-{
-    m_pForParty = nullptr;  // The agent probably has a pointer to the party it
-                            // acts on behalf of.
 }
 
 // If the agent is a Nym acting for himself, this will be true. Otherwise, if
@@ -564,7 +559,7 @@ bool OTAgent::DropFinalReceiptToInbox(
     if (bNymID) {
         // IsAnIndividual() is definitely true.
 
-        auto context = OT::App().Wallet().ClientContext(
+        auto context = wallet_.ClientContext(
             Identifier::Factory(strNotaryID), theAgentNymID);
 
         OT_ASSERT(context);
@@ -645,6 +640,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     if (true == bNymID) {
 
         return OTAgreement::DropServerNoticeToNymbox(
+            wallet_,
             dataFolder,
             bSuccessMsg,
             theServerNym,
@@ -697,8 +693,8 @@ bool OTAgent::VerifyIssuedNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context = OT::App().Wallet().Context(
-            Identifier::Factory(strNotaryID), m_pNym->ID());
+        auto context =
+            wallet_.Context(Identifier::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -725,8 +721,8 @@ bool OTAgent::VerifyTransactionNumber(
     }
 
     if (nullptr != m_pNym) {
-        auto context = OT::App().Wallet().Context(
-            Identifier::Factory(strNotaryID), m_pNym->ID());
+        auto context =
+            wallet_.Context(Identifier::Factory(strNotaryID), m_pNym->ID());
 
         OT_ASSERT(context);
 
@@ -787,7 +783,7 @@ bool OTAgent::RecoverTransactionNumber(
     const String& strNotaryID)
 {
     if (nullptr != m_pNym) {
-        auto context = OT::App().Wallet().mutable_Context(
+        auto context = wallet_.mutable_Context(
             Identifier::Factory(strNotaryID), m_pNym->ID());
 
         return RecoverTransactionNumber(lNumber, context.It());
@@ -823,8 +819,8 @@ bool OTAgent::RemoveTransactionNumber(
         return false;
     }
 
-    auto context = OT::App().Wallet().mutable_Context(
-        Identifier::Factory(strNotaryID), m_pNym->ID());
+    auto context =
+        wallet_.mutable_Context(Identifier::Factory(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeAvailable(lNumber)) {
         context.It().OpenCronItem(lNumber);
@@ -863,8 +859,8 @@ bool OTAgent::RemoveIssuedNumber(
         return false;
     }
 
-    auto context = OT::App().Wallet().mutable_Context(
-        Identifier::Factory(strNotaryID), m_pNym->ID());
+    auto context =
+        wallet_.mutable_Context(Identifier::Factory(strNotaryID), m_pNym->ID());
 
     if (context.It().ConsumeIssued(lNumber)) {
         context.It().CloseCronItem(lNumber);
@@ -1006,4 +1002,9 @@ void OTAgent::Serialize(Tag& parent) const
     parent.add_tag(pTag);
 }
 
+OTAgent::~OTAgent()
+{
+    m_pForParty = nullptr;  // The agent probably has a pointer to the party it
+                            // acts on behalf of.
+}
 }  // namespace opentxs

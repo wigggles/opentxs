@@ -47,6 +47,7 @@ class PayDividendVisitor : public AccountVisitor
 
 public:
     PayDividendVisitor(
+        const api::Wallet& wallet,
         const api::Legacy& legacy,
         const Identifier& theNotaryID,
         const Identifier& theNymID,

@@ -96,7 +96,7 @@ public:
     EXPORT static MessageType Type(const std::string& type);
     EXPORT static std::string ReplyCommand(const MessageType type);
 
-    EXPORT Message(const std::string& dataFolder);
+    EXPORT Message(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT virtual ~Message();
 
     bool VerifyContractID() const override;

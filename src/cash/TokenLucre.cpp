@@ -39,26 +39,29 @@
 
 namespace opentxs
 {
-
-class Purse;
-
 #if OT_CASH_USING_LUCRE && OT_CRYPTO_USING_OPENSSL
 
-Token_Lucre::Token_Lucre(const std::string& dataFolder)
-    : ot_super(dataFolder)
+Token_Lucre::Token_Lucre(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : ot_super(wallet, dataFolder)
 {
 }
 
 Token_Lucre::Token_Lucre(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
 {
 }
 
-Token_Lucre::Token_Lucre(const std::string& dataFolder, const Purse& thePurse)
-    : ot_super(dataFolder, thePurse)
+Token_Lucre::Token_Lucre(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const Purse& thePurse)
+    : ot_super(wallet, dataFolder, thePurse)
 {
 }
 
