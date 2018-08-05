@@ -10,7 +10,8 @@
 
 namespace opentxs::api::client::implementation
 {
-class Client final : public opentxs::api::client::internal::Client
+class Client final : opentxs::api::client::internal::Client,
+                     opentxs::api::implementation::Scheduler
 {
 public:
     const api::client::Activity& Activity() const override;
@@ -20,6 +21,7 @@ public:
     const api::client::Cash& Cash() const override;
     const api::client::Contacts& Contacts() const override;
     const api::Crypto& Crypto() const override { return crypto_; }
+    const api::network::Dht& DHT() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const api::Factory& Factory() const override;
     std::recursive_mutex& Lock(
@@ -27,6 +29,14 @@ public:
         const Identifier& serverID) const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
     const api::client::Pair& Pair() const override;
+    void Schedule(
+        const std::chrono::seconds& interval,
+        const PeriodicTask& task,
+        const std::chrono::seconds& last =
+            std::chrono::seconds(0)) const override
+    {
+        Scheduler::Schedule(interval, task, last);
+    }
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& Seeds() const override { return seeds_; }
 #endif
@@ -57,9 +67,7 @@ private:
     const api::Legacy& legacy_;
     const api::Settings& config_;
     const opentxs::network::zeromq::Context& zmq_context_;
-
     const int instance_{0};
-
     std::unique_ptr<api::client::internal::Activity> activity_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::client::Blockchain> blockchain_;
@@ -71,6 +79,7 @@ private:
     std::unique_ptr<api::client::Sync> sync_;
     std::unique_ptr<api::client::UI> ui_;
     std::unique_ptr<api::client::Workflow> workflow_;
+    std::unique_ptr<api::network::Dht> dht_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<api::Identity> identity_;
@@ -100,6 +109,7 @@ private:
     void Init_UI();
     void Init_Workflow();
     void Init_ZMQ();
+    void storage_gc_hook() override;
 
     Client(
         const Flag& running,

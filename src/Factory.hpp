@@ -160,6 +160,18 @@ public:
         const ui::implementation::ContactSectionSortKey& key,
         const ui::implementation::CustomData& custom);
     static api::Crypto* Crypto();
+    static api::network::Dht* Dht(
+        const int instance,
+        const bool defaultEnable,
+        const api::Settings& settings,
+        const api::Wallet& wallet,
+        const network::zeromq::Context& zmq,
+        std::int64_t& nymPublishInterval,
+        std::int64_t& nymRefreshInterval,
+        std::int64_t& serverPublishInterval,
+        std::int64_t& serverRefreshInterval,
+        std::int64_t& unitPublishInterval,
+        std::int64_t& unitRefreshInterval);
     static crypto::key::Ed25519* Ed25519Key(
         const proto::AsymmetricKey& serializedKey);
     static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
@@ -388,6 +400,7 @@ public:
         const network::zeromq::Context& zmq,
         const Flag& running);
     static api::Wallet* Wallet(
+        const int instance,
         const api::Native& ot,
         const network::zeromq::Context& zmq);
     static api::client::Workflow* Workflow(

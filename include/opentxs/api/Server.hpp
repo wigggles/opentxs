@@ -19,6 +19,7 @@ namespace api
 class Server
 {
 public:
+    EXPORT virtual const network::Dht& DHT() const = 0;
     EXPORT virtual const api::Factory& Factory() const = 0;
     EXPORT virtual const std::string GetCommandPort() const = 0;
     EXPORT virtual const std::string GetDefaultBindIP() const = 0;
@@ -41,6 +42,12 @@ public:
 #if OT_CASH
     EXPORT virtual void ScanMints() const = 0;
 #endif  // OT_CASH
+    /** Adds a task to the periodic task list with the specified interval. By
+     * default, schedules for immediate execution. */
+    EXPORT virtual void Schedule(
+        const std::chrono::seconds& interval,
+        const opentxs::PeriodicTask& task,
+        const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
 #if OT_CRYPTO_WITH_BIP39
     EXPORT virtual const api::HDSeed& Seeds() const = 0;
 #endif

@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "Internal.hpp"
+
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
@@ -26,7 +28,6 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
-#include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -46,24 +47,19 @@
 #include "opentxs/Types.hpp"
 
 #include "api/client/InternalClient.hpp"
-#include "api/network/Dht.hpp"
 #include "api/storage/StorageInternal.hpp"
-#include "api/NativeInternal.hpp"
+#include "internal/api/Internal.hpp"
 #include "network/DhtConfig.hpp"
 #include "network/OpenDHT.hpp"
 #include "storage/StorageConfig.hpp"
+#include "Scheduler.hpp"
 
 #include <atomic>
 #include <ctime>
-#include <cstdint>
 #include <limits>
-#include <list>
 #include <map>
-#include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
-#include <tuple>
 
 #include "Native.hpp"
 
@@ -344,28 +340,19 @@ Native::Native(
     : running_(running)
     , recover_(recover)
     , server_mode_(serverMode)
-    , nym_publish_interval_(std::numeric_limits<std::int64_t>::max())
-    , nym_refresh_interval_(std::numeric_limits<std::int64_t>::max())
-    , server_publish_interval_(std::numeric_limits<std::int64_t>::max())
-    , server_refresh_interval_(std::numeric_limits<std::int64_t>::max())
-    , unit_publish_interval_(std::numeric_limits<std::int64_t>::max())
-    , unit_refresh_interval_(std::numeric_limits<std::int64_t>::max())
     , gc_interval_(gcInterval)
     , config_lock_()
     , task_list_lock_()
     , signal_handler_lock_()
-    , periodic_task_list()
     , client_(nullptr)
     , config_()
     , crypto_(nullptr)
-    , dht_(nullptr)
 #if OT_CRYPTO_WITH_BIP39
     , seeds_(nullptr)
 #endif
     , legacy_(nullptr)
     , storage_(nullptr)
     , wallet_(nullptr)
-    , periodic_(nullptr)
 #if OT_CRYPTO_WITH_BIP39
     , storage_encryption_key_(opentxs::crypto::key::Symmetric::Factory())
 #endif
@@ -444,13 +431,6 @@ const api::Crypto& Native::Crypto() const
     OT_ASSERT(crypto_)
 
     return *crypto_;
-}
-
-const api::network::Dht& Native::DHT() const
-{
-    OT_ASSERT(dht_)
-
-    return *dht_;
 }
 
 String Native::get_primary_storage_plugin(
@@ -540,7 +520,6 @@ void Native::Init()
     Init_Seeds();  // Requires Init_Crypto(), Init_Storage()
 #endif
     Init_Contracts();
-    Init_Dht();  // requires Init_Config()
     Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
                  // Init_Contracts(), Init_Identity(), Init_Storage(),
                  // Init_Seeds()
@@ -594,80 +573,10 @@ void Native::Init_Config()
 
 void Native::Init_Contracts()
 {
-    wallet_.reset(opentxs::Factory::Wallet(*this, zmq_context_));
+    wallet_.reset(opentxs::Factory::Wallet(0, *this, zmq_context_));  // TODO
 }
 
 void Native::Init_Crypto() { crypto_.reset(opentxs::Factory::Crypto()); }
-
-void Native::Init_Dht()
-{
-    OT_ASSERT(wallet_);
-
-    DhtConfig config;
-    bool notUsed;
-    Config().CheckSet_bool(
-        "OpenDHT",
-        "enable_dht",
-        server_mode_ ? true : false,
-        config.enable_dht_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "nym_publish_interval",
-        config.nym_publish_interval_,
-        nym_publish_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "nym_refresh_interval",
-        config.nym_refresh_interval_,
-        nym_refresh_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "server_publish_interval",
-        config.server_publish_interval_,
-        server_publish_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "server_refresh_interval",
-        config.server_refresh_interval_,
-        server_refresh_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "unit_publish_interval",
-        config.unit_publish_interval_,
-        unit_publish_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "unit_refresh_interval",
-        config.unit_refresh_interval_,
-        unit_refresh_interval_,
-        notUsed);
-    Config().CheckSet_long(
-        "OpenDHT",
-        "listen_port",
-        config.default_port_,
-        config.listen_port_,
-        notUsed);
-    Config().CheckSet_str(
-        "OpenDHT",
-        "bootstrap_url",
-        String(config.bootstrap_url_),
-        config.bootstrap_url_,
-        notUsed);
-    Config().CheckSet_str(
-        "OpenDHT",
-        "bootstrap_port",
-        String(config.bootstrap_port_),
-        config.bootstrap_port_,
-        notUsed);
-
-    dht_.reset(new api::network::implementation::Dht(config, *wallet_));
-}
 
 void Native::Init_Legacy()
 {
@@ -691,82 +600,6 @@ void Native::Init_Log()
     }
 
     if (false == Log::Init(Config(), type.c_str())) { abort(); }
-}
-
-void Native::Init_Periodic()
-{
-    OT_ASSERT(storage_);
-
-    auto storage = storage_.get();
-    const auto now = std::chrono::seconds(std::time(nullptr));
-
-    Schedule(
-        std::chrono::seconds(nym_publish_interval_),
-        [storage]() -> void {
-            NymLambda nymLambda(
-                [](const serializedCredentialIndex& nym) -> void {
-                    OT::App().DHT().Insert(nym);
-                });
-            storage->MapPublicNyms(nymLambda);
-        },
-        now);
-
-    Schedule(
-        std::chrono::seconds(nym_refresh_interval_),
-        [storage]() -> void {
-            NymLambda nymLambda(
-                [](const serializedCredentialIndex& nym) -> void {
-                    OT::App().DHT().GetPublicNym(nym.nymid());
-                });
-            storage->MapPublicNyms(nymLambda);
-        },
-        (now - std::chrono::seconds(nym_refresh_interval_) / 2));
-
-    Schedule(
-        std::chrono::seconds(server_publish_interval_),
-        [storage]() -> void {
-            ServerLambda serverLambda(
-                [](const proto::ServerContract& server) -> void {
-                    OT::App().DHT().Insert(server);
-                });
-            storage->MapServers(serverLambda);
-        },
-        now);
-
-    Schedule(
-        std::chrono::seconds(server_refresh_interval_),
-        [storage]() -> void {
-            ServerLambda serverLambda(
-                [](const proto::ServerContract& server) -> void {
-                    OT::App().DHT().GetServerContract(server.id());
-                });
-            storage->MapServers(serverLambda);
-        },
-        (now - std::chrono::seconds(server_refresh_interval_) / 2));
-
-    Schedule(
-        std::chrono::seconds(unit_publish_interval_),
-        [storage]() -> void {
-            UnitLambda unitLambda(
-                [](const proto::UnitDefinition& unit) -> void {
-                    OT::App().DHT().Insert(unit);
-                });
-            storage->MapUnitDefinitions(unitLambda);
-        },
-        now);
-
-    Schedule(
-        std::chrono::seconds(unit_refresh_interval_),
-        [storage]() -> void {
-            UnitLambda unitLambda(
-                [](const proto::UnitDefinition& unit) -> void {
-                    OT::App().DHT().GetUnitDefinition(unit.id());
-                });
-            storage->MapUnitDefinitions(unitLambda);
-        },
-        (now - std::chrono::seconds(unit_refresh_interval_) / 2));
-
-    periodic_.reset(new std::thread(&Native::Periodic, this));
 }
 
 #if OT_CRYPTO_WITH_BIP39
@@ -807,7 +640,7 @@ void Native::Init_Server()
         *wallet_,
         running_,
         zmq_context_,
-        0));  // TODO
+        1));  // TODO
 
     OT_ASSERT(server_);
 }
@@ -981,15 +814,17 @@ void Native::Init_Storage()
         config.gc_interval_ = configGcInterval;
     }
 
-    if (dht_) {
-        config.dht_callback_ = std::bind(
-            static_cast<void (api::network::Dht::*)(
-                const std::string&, const std::string&) const>(
-                &api::network::Dht::Insert),
-            dht_.get(),
-            std::placeholders::_1,
-            std::placeholders::_2);
-    }
+    /* Storage is always initialized before Dht
+        if (dht_) {
+            config.dht_callback_ = std::bind(
+                static_cast<void (api::network::Dht::*)(
+                    const std::string&, const std::string&) const>(
+                    &api::network::Dht::Insert),
+                dht_.get(),
+                std::placeholders::_1,
+                std::placeholders::_2);
+        }
+    */
 
     OT_ASSERT(crypto_);
 
@@ -1025,34 +860,6 @@ const api::Legacy& Native::Legacy() const
     return *legacy_;
 }
 
-void Native::Periodic()
-{
-    while (running_) {
-        std::time_t now = std::time(nullptr);
-
-        // Make sure list is not edited while we iterate
-        std::unique_lock<std::mutex> listLock(task_list_lock_);
-
-        for (auto& task : periodic_task_list) {
-            if ((now - std::get<0>(task)) > std::get<1>(task)) {
-                // set "last performed"
-                std::get<0>(task) = now;
-                // run the task in an independent thread
-                auto taskThread = std::thread(std::get<2>(task));
-                taskThread.detach();
-            }
-        }
-
-        listLock.unlock();
-
-        // This method has its own interval checking. Run here to avoid
-        // spawning unnecessary threads.
-        if (storage_) { storage_->RunGC(); }
-
-        if (running_) { Log::Sleep(std::chrono::milliseconds(100)); }
-    }
-}
-
 void Native::recover()
 {
     OT_ASSERT(client_);
@@ -1071,18 +878,6 @@ void Native::recover()
         otErr << OT_METHOD << __FUNCTION__ << ": Imported seed " << fingerprint
               << std::endl;
     }
-}
-
-void Native::Schedule(
-    const std::chrono::seconds& interval,
-    const PeriodicTask& task,
-    const std::chrono::seconds& last) const
-{
-    // Make sure nobody is iterating while we add to the list
-    std::lock_guard<std::mutex> listLock(task_list_lock_);
-
-    periodic_task_list.push_back(
-        TaskItem{last.count(), interval.count(), task});
 }
 
 const api::Server& Native::Server() const
@@ -1166,8 +961,6 @@ void Native::shutdown()
         callback();
     }
 
-    if (periodic_) { periodic_->join(); }
-
     if (false == bool(server_)) {
         OT_ASSERT(client_);
 
@@ -1180,7 +973,6 @@ void Native::shutdown()
 
     server_.reset();
     client_.reset();
-    dht_.reset();
     wallet_.reset();
     storage_.reset();
     crypto_.reset();
@@ -1217,8 +1009,6 @@ void Native::start()
         client_->StartContacts();
         client_->StartActivity();
     }
-
-    Init_Periodic();
 
     if (server_mode_) {
         OT_ASSERT(server_);

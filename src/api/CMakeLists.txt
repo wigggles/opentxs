@@ -14,6 +14,7 @@ set(cxx-sources
   Identity.cpp
   Legacy.cpp
   Native.cpp
+  Scheduler.cpp
   Server.cpp
   Settings.cpp
   Wallet.cpp
@@ -25,12 +26,13 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/../internal/api/Internal.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/HDSeed.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Identity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/NativeInternal.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Scheduler.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Server.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp

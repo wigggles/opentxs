@@ -37,6 +37,7 @@
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/Types.hpp"
 
 #include "core/InternalCore.hpp"
@@ -67,10 +68,11 @@ template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
 namespace opentxs
 {
 api::Wallet* Factory::Wallet(
+    const int instance,
     const api::Native& ot,
     const network::zeromq::Context& zmq)
 {
-    return new api::implementation::Wallet(ot, zmq);
+    return new api::implementation::Wallet(instance, ot, zmq);
 }
 }  // namespace opentxs
 
@@ -100,9 +102,11 @@ const std::map<std::string, proto::ContactItemType> Wallet::unit_of_account_{
 };
 
 Wallet::Wallet(
+    const int instance,
     const api::Native& ot,
     const opentxs::network::zeromq::Context& zmq)
-    : ot_(ot)
+    : instance_{instance}
+    , ot_(ot)
     , account_map_()
     , nym_map_()
     , server_map_()
@@ -123,6 +127,9 @@ Wallet::Wallet(
     , issuer_publisher_(zmq.PublishSocket())
     , nym_publisher_(zmq.PublishSocket())
     , server_publisher_(zmq.PublishSocket())
+    , dht_nym_requester_{zmq.RequestSocket()}
+    , dht_server_requester_{zmq.RequestSocket()}
+    , dht_unit_requester_{zmq.RequestSocket()}
 {
     account_publisher_->Start(
         opentxs::network::zeromq::Socket::AccountUpdateEndpoint);
@@ -132,6 +139,13 @@ Wallet::Wallet(
         opentxs::network::zeromq::Socket::NymDownloadEndpoint);
     server_publisher_->Start(
         opentxs::network::zeromq::Socket::ServerUpdateEndpoint);
+    dht_nym_requester_->Start(
+        opentxs::network::zeromq::Socket::GetDhtRequestNymEndpoint(instance_));
+    dht_server_requester_->Start(
+        opentxs::network::zeromq::Socket::GetDhtRequestServerEndpoint(
+            instance_));
+    dht_unit_requester_->Start(
+        opentxs::network::zeromq::Socket::GetDhtRequestUnitEndpoint(instance_));
 }
 
 Wallet::AccountLock& Wallet::account(
@@ -1171,7 +1185,7 @@ ConstNym Wallet::Nym(
                 }
             }
         } else {
-            ot_.DHT().GetPublicNym(nym);
+            dht_nym_requester_->SendRequest(nym);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -2100,7 +2114,7 @@ ConstServerContract Wallet::Server(
                 }
             }
         } else {
-            ot_.DHT().GetServerContract(server);
+            dht_server_requester_->SendRequest(server);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();
@@ -2367,7 +2381,7 @@ const ConstUnitDefinition Wallet::UnitDefinition(
                 }
             }
         } else {
-            ot_.DHT().GetUnitDefinition(unit);
+            dht_unit_requester_->SendRequest(unit);
 
             if (timeout > std::chrono::milliseconds(0)) {
                 mapLock.unlock();

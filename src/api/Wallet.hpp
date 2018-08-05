@@ -212,6 +212,7 @@ private:
 
     static const std::map<std::string, proto::ContactItemType> unit_of_account_;
 
+    const int instance_{0};
     const api::Native& ot_;
     mutable AccountMap account_map_;
     mutable NymMap nym_map_;
@@ -233,6 +234,9 @@ private:
     OTZMQPublishSocket issuer_publisher_;
     OTZMQPublishSocket nym_publisher_;
     OTZMQPublishSocket server_publisher_;
+    OTZMQRequestSocket dht_nym_requester_;
+    OTZMQRequestSocket dht_server_requester_;
+    OTZMQRequestSocket dht_unit_requester_;
 
     std::string account_alias(const std::string& accountID) const;
     opentxs::Account* account_factory(
@@ -306,7 +310,10 @@ private:
     ConstUnitDefinition UnitDefinition(
         std::unique_ptr<opentxs::UnitDefinition>& contract) const;
 
-    Wallet(const api::Native& ot, const opentxs::network::zeromq::Context& zmq);
+    Wallet(
+        const int instance,
+        const api::Native& ot,
+        const opentxs::network::zeromq::Context& zmq);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;

@@ -10,9 +10,11 @@
 
 namespace opentxs::api::implementation
 {
-class Server : virtual public opentxs::api::Server
+class Server final : opentxs::api::Server,
+                     opentxs::api::implementation::Scheduler
 {
 public:
+    const api::network::Dht& DHT() const override;
     const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
     const std::string GetDefaultBindIP() const override;
@@ -35,6 +37,14 @@ public:
 #if OT_CASH
     void ScanMints() const override;
 #endif  // OT_CASH
+    void Schedule(
+        const std::chrono::seconds& interval,
+        const PeriodicTask& task,
+        const std::chrono::seconds& last =
+            std::chrono::seconds(0)) const override
+    {
+        Scheduler::Schedule(interval, task, last);
+    }
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& Seeds() const override { return seeds_; }
 #if OT_CASH
@@ -64,6 +74,7 @@ private:
     const Flag& running_;
     const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
+    std::unique_ptr<api::network::Dht> dht_;
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<server::Server> server_p_;
     server::Server& server_;
@@ -113,6 +124,7 @@ private:
     void Init();
     void Init_Factory();
     void Start() override;
+    void storage_gc_hook() override;
 
     Server(
         const ArgList& args,

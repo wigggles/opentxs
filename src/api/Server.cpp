@@ -9,6 +9,8 @@
 #include "opentxs/api/Server.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/network/Dht.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
@@ -23,6 +25,8 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
+#include "api/Scheduler.hpp"
+#include "internal/api/Internal.hpp"
 #include "server/MessageProcessor.hpp"
 #include "server/Server.hpp"
 #include "server/ServerSettings.hpp"
@@ -94,7 +98,8 @@ Server::Server(
     const Flag& running,
     const opentxs::network::zeromq::Context& context,
     const int instance)
-    : args_(args)
+    : Scheduler(running)
+    , args_(args)
     , legacy_(legacy)
     , config_(config)
     , crypto_(crypto)
@@ -104,6 +109,18 @@ Server::Server(
     , running_(running)
     , zmq_context_(context)
     , instance_{instance}
+    , dht_{opentxs::Factory::Dht(
+          instance_,
+          true,
+          config_,
+          wallet_,
+          context,
+          nym_publish_interval_,
+          nym_refresh_interval_,
+          server_publish_interval_,
+          server_refresh_interval_,
+          unit_publish_interval_,
+          unit_refresh_interval_)}
     , factory_(nullptr)
     , server_p_(new server::Server(
           crypto_,
@@ -128,6 +145,7 @@ Server::Server(
     , mints_to_check_()
 #endif  // OT_CASH
 {
+    OT_ASSERT(dht_)
     OT_ASSERT(server_p_);
     OT_ASSERT(message_processor_p_);
 
@@ -144,6 +162,13 @@ void Server::Cleanup()
           << std::endl;
     message_processor_.cleanup();
     factory_.reset();
+}
+
+const api::network::Dht& Server::DHT() const
+{
+    OT_ASSERT(dht_)
+
+    return *dht_;
 }
 
 const api::Factory& Server::Factory() const
@@ -338,7 +363,14 @@ const std::string Server::GetUserTerms() const
 
 const Identifier& Server::ID() const { return server_.GetServerID(); }
 
-void Server::Init() { Init_Factory(); }
+void Server::Init()
+{
+    Init_Factory();
+
+    OT_ASSERT(dht_)
+
+    Scheduler::Start(&storage_, dht_.get());
+}
 
 void Server::Init_Factory()
 {
@@ -508,6 +540,13 @@ void Server::Start()
 #if OT_CASH
     ScanMints();
 #endif  // OT_CASH
+}
+
+void Server::storage_gc_hook()
+{
+    // if (storage_) { storage_->RunGC(); }
+
+    storage_.RunGC();
 }
 
 #if OT_CASH

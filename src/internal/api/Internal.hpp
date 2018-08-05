@@ -8,6 +8,8 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Native.hpp"
+
 namespace
 {
 /** Callbacks in this form allow OpenSSL to query opentxs to get key encryption
@@ -20,6 +22,10 @@ typedef std::int32_t INTERNAL_PASSWORD_CALLBACK(
     void* userdata);
 }
 }  // namespace
+
+namespace opentxs::internal
+{
+}  // namespace opentxs::internal
 
 namespace opentxs::api::internal
 {

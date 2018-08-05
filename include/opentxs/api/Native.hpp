@@ -29,16 +29,9 @@ public:
     EXPORT virtual const api::Settings& Config(
         const std::string& path = std::string("")) const = 0;
     EXPORT virtual const api::Crypto& Crypto() const = 0;
-    EXPORT virtual const network::Dht& DHT() const = 0;
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
     EXPORT virtual const api::Legacy& Legacy() const = 0;
-    /** Adds a task to the periodic task list with the specified interval. By
-     * default, schedules for immediate execution. */
-    EXPORT virtual void Schedule(
-        const std::chrono::seconds& interval,
-        const opentxs::PeriodicTask& task,
-        const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
     EXPORT virtual const api::Server& Server() const = 0;
     EXPORT virtual bool ServerMode() const = 0;
     EXPORT virtual const api::Wallet& Wallet() const = 0;

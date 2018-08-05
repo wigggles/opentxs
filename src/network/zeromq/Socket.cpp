@@ -12,6 +12,12 @@
 
 #include <zmq.h>
 
+#define INPROC_PREFIX "inproc://opentxs/"
+#define INSTANCE_SEPERATOR "/"
+#define ENDPOINT_VERSION_1 1
+#define DHT_NYM_REQUEST_ENDPOINT "dht/requestnym"
+#define DHT_SERVER_REQUEST_ENDPOINT "dht/requestserver"
+#define DHT_UNIT_REQUEST_ENDPOINT "dht/requestunit"
 #define ACCOUNT_UPDATE_ENDPOINT "inproc://opentxs/accountupdate/1"
 #define CONTACT_UPDATE_ENDPOINT "inproc://opentxs/contactupdate/1"
 #define CONNECTION_STATUS_ENDPOINT "inproc://opentxs/connectionstatus/1"
@@ -44,6 +50,33 @@ const std::string Socket::ThreadUpdateEndpoint{THREAD_UPDATE_ENDPOINT};
 const std::string Socket::WidgetUpdateEndpoint{WIDGET_UPDATE_ENDPOINT};
 const std::string Socket::WorkflowAccountUpdateEndpoint{
     WORKFLOW_ACCOUNT_UPDATE_ENDPOINT};
+
+std::string build_inproc_path(
+    const std::string& path,
+    const int instance,
+    const int version)
+{
+    return std::string(INPROC_PREFIX) + std::to_string(instance) +
+           INSTANCE_SEPERATOR + path + std::to_string(version);
+}
+
+std::string Socket::GetDhtRequestNymEndpoint(const int instance)
+{
+    return build_inproc_path(
+        DHT_NYM_REQUEST_ENDPOINT, instance, ENDPOINT_VERSION_1);
+}
+
+std::string Socket::GetDhtRequestServerEndpoint(const int instance)
+{
+    return build_inproc_path(
+        DHT_SERVER_REQUEST_ENDPOINT, instance, ENDPOINT_VERSION_1);
+}
+
+std::string Socket::GetDhtRequestUnitEndpoint(const int instance)
+{
+    return build_inproc_path(
+        DHT_UNIT_REQUEST_ENDPOINT, instance, ENDPOINT_VERSION_1);
+}
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation

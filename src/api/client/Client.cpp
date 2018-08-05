@@ -18,7 +18,9 @@
 #include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -30,6 +32,8 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "api/Scheduler.hpp"
+#include "internal/api/Internal.hpp"
 #include "InternalClient.hpp"
 
 #include <set>
@@ -84,7 +88,8 @@ Client::Client(
     const api::Wallet& wallet,
     const opentxs::network::zeromq::Context& context,
     const int instance)
-    : running_(running)
+    : Scheduler(running)
+    , running_(running)
     , wallet_(wallet)
     , storage_(storage)
     , crypto_(crypto)
@@ -105,6 +110,18 @@ Client::Client(
     , server_action_(nullptr)
     , sync_(nullptr)
     , workflow_(nullptr)
+    , dht_{opentxs::Factory::Dht(
+          instance_,
+          false,
+          config_,
+          wallet_,
+          context,
+          nym_publish_interval_,
+          nym_refresh_interval_,
+          server_publish_interval_,
+          server_refresh_interval_,
+          unit_publish_interval_,
+          unit_refresh_interval_)}
     , zeromq_(nullptr)
     , factory_(nullptr)
     , identity_(nullptr)
@@ -114,6 +131,8 @@ Client::Client(
     , map_lock_()
     , context_locks_()
 {
+    OT_ASSERT(dht_)
+
     Init();
 }
 
@@ -159,6 +178,13 @@ const api::client::Contacts& Client::Contacts() const
     OT_ASSERT(contacts_)
 
     return *contacts_;
+}
+
+const api::network::Dht& Client::DHT() const
+{
+    OT_ASSERT(dht_)
+
+    return *dht_;
 }
 
 const api::Factory& Client::Factory() const
@@ -457,6 +483,10 @@ void Client::StartActivity()
     OT_ASSERT(activity_)
 
     activity_->MigrateLegacyThreads();
+
+    OT_ASSERT(dht_)
+
+    Scheduler::Start(&storage_, dht_.get());
 }
 
 void Client::StartContacts()
@@ -475,6 +505,13 @@ opentxs::OTWallet* Client::StartWallet()
     OT_ASSERT(loaded);
 
     return ot_api_->GetWallet(nullptr);
+}
+
+void Client::storage_gc_hook()
+{
+    // if (storage_) { storage_->RunGC(); }
+
+    storage_.RunGC();
 }
 
 const api::client::Sync& Client::Sync() const

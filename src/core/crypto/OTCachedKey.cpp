@@ -21,7 +21,7 @@
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/OT.hpp"
 
-#include "api/NativeInternal.hpp"
+#include "internal/api/Internal.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
 extern "C" {
