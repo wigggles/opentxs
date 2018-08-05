@@ -10,7 +10,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
-#if OT_CRYPTO_USING_TREZOR
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #endif
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -19,6 +19,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
+#if OT_CRYPTO_USING_LIBBITCOIN
+#include "opentxs/crypto/library/Bitcoin.hpp"
+#endif
 #if OT_CRYPTO_USING_OPENSSL
 #include "opentxs/crypto/library/OpenSSL.hpp"
 #endif
@@ -26,6 +29,7 @@
 #if OT_CRYPTO_USING_LIBSECP256K1
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #endif
+#include "opentxs/crypto/library/Ripemd160.hpp"
 #include "opentxs/crypto/library/Sodium.hpp"
 #if OT_CRYPTO_USING_TREZOR
 #include "opentxs/crypto/library/Trezor.hpp"
@@ -63,22 +67,57 @@ Crypto::Crypto()
     : cached_key_lock_()
     , primary_key_(nullptr)
     , cached_keys_()
-#if OT_CRYPTO_USING_TREZOR
-    , bitcoincrypto_(opentxs::Factory::Trezor(*this))
+#if OT_CRYPTO_USING_LIBBITCOIN
+    , bitcoin_(opentxs::Factory::Bitcoin(*this))
 #endif
-    , ed25519_(opentxs::Factory::Sodium())
+#if OT_CRYPTO_USING_TREZOR
+    , trezor_(opentxs::Factory::Trezor(*this))
+#endif
+    , sodium_(opentxs::Factory::Sodium())
 #if OT_CRYPTO_USING_OPENSSL
     , ssl_(opentxs::Factory::OpenSSL())
 #endif
-    , util_(*ed25519_)
+    , util_(*sodium_)
+#if OT_CRYPTO_USING_LIBBITCOIN
+    , secp256k1_helper_(*bitcoin_)
+    , base58_(*bitcoin_)
+    , ripemd160_(*bitcoin_)
+    , bip32_(*bitcoin_)
+    , bip39_(*bitcoin_)
+#elif OT_CRYPTO_USING_TREZOR
+    , secp256k1_helper_(*trezor_)
+    , base58_(*trezor_)
+    , ripemd160_(*trezor_)
+    , bip32_(*trezor_)
+    , bip39_(*trezor_)
+#endif
 #if OT_CRYPTO_USING_LIBSECP256K1
-    , secp256k1_(opentxs::Factory::Secp256k1(util_, *bitcoincrypto_))
+    , secp256k1_(opentxs::Factory::Secp256k1(util_, secp256k1_helper_))
+    , secp256k1_provider_(*secp256k1_)
+#elif OT_CRYPTO_USING_LIBBITCOIN
+    , secp256k1_provider_(*bitcoin_)
+#elif OT_CRYPTO_USING_TREZOR
+    , secp256k1_provider_(*trezor_)
 #endif
+    , encode_(opentxs::Factory::Encode(base58_))
+    , hash_(opentxs::Factory::Hash(
+          *encode_,
+          *ssl_,
+          *sodium_
+#if OT_CRYPTO_USING_TREZOR || OT_CRYPTO_USING_LIBBITCOIN
+          ,
+          ripemd160_
+#endif  // OT_CRYPTO_USING_TREZOR
+          ))
+    , symmetric_(opentxs::Factory::Symmetric(*sodium_))
 {
-#if OT_CRYPTO_USING_TREZOR
-    OT_ASSERT(bitcoincrypto_)
+#if OT_CRYPTO_USING_LIBBITCOIN
+    OT_ASSERT(bitcoin_)
 #endif
-    OT_ASSERT(ed25519_)
+#if OT_CRYPTO_USING_TREZOR
+    OT_ASSERT(trezor_)
+#endif
+    OT_ASSERT(sodium_)
 #if OT_CRYPTO_USING_OPENSSL
     OT_ASSERT(ssl_)
 #endif
@@ -99,21 +138,11 @@ const opentxs::crypto::LegacySymmetricProvider& Crypto::AES() const
 #endif
 
 #if OT_CRYPTO_WITH_BIP32
-const opentxs::crypto::Bip32& Crypto::BIP32() const
-{
-    OT_ASSERT(nullptr != bitcoincrypto_);
-
-    return *bitcoincrypto_;
-}
+const opentxs::crypto::Bip32& Crypto::BIP32() const { return bip32_; }
 #endif
 
 #if OT_CRYPTO_WITH_BIP39
-const opentxs::crypto::Bip39& Crypto::BIP39() const
-{
-    OT_ASSERT(nullptr != bitcoincrypto_);
-
-    return *bitcoincrypto_;
-}
+const opentxs::crypto::Bip39& Crypto::BIP39() const { return bip39_; }
 #endif
 
 const OTCachedKey& Crypto::CachedKey(const Identifier& id) const
@@ -185,9 +214,9 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 const opentxs::crypto::AsymmetricProvider& Crypto::ED25519() const
 {
-    OT_ASSERT(nullptr != ed25519_);
+    OT_ASSERT(nullptr != sodium_);
 
-    return *ed25519_;
+    return *sodium_;
 }
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 
@@ -207,21 +236,6 @@ const crypto::Hash& Crypto::Hash() const
 
 void Crypto::Init()
 {
-#if OT_CRYPTO_USING_LIBSECP256K1
-    secp256k1_.reset(opentxs::Factory::Secp256k1(util_, *bitcoincrypto_));
-#endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    encode_.reset(opentxs::Factory::Encode(*bitcoincrypto_));
-    hash_.reset(opentxs::Factory::Hash(
-        *encode_,
-        *ssl_,
-        *ed25519_
-#if OT_CRYPTO_USING_TREZOR
-        ,
-        *bitcoincrypto_
-#endif  // OT_CRYPTO_USING_TREZOR
-        ));
-    symmetric_.reset(opentxs::Factory::Symmetric(*ed25519_));
-
     otWarn << OT_METHOD << __FUNCTION__
            << ": Setting up rlimits, and crypto libraries...\n";
 
@@ -280,15 +294,7 @@ const opentxs::crypto::AsymmetricProvider& Crypto::RSA() const
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
 const opentxs::crypto::AsymmetricProvider& Crypto::SECP256K1() const
 {
-#if OT_CRYPTO_USING_LIBSECP256K1
-    OT_ASSERT(nullptr != secp256k1_);
-
-    return *secp256k1_;
-#else
-    OT_ASSERT(nullptr != bitcoincrypto_);
-
-    return *bitcoincrypto_;
-#endif
+    return secp256k1_provider_;
 }
 #endif
 

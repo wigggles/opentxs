@@ -22,6 +22,9 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
+#if OT_CRYPTO_USING_LIBBITCOIN
+#include "opentxs/crypto/library/Bitcoin.hpp"
+#endif
 #include "opentxs/crypto/key/Secp256k1.hpp"
 #include "opentxs/crypto/library/Secp256k1.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
@@ -47,7 +50,7 @@ namespace opentxs
 {
 crypto::Secp256k1* Factory::Secp256k1(
     const api::crypto::Util& util,
-    const crypto::Trezor& ecdsa)
+    const crypto::EcdsaProvider& ecdsa)
 {
     return new crypto::implementation::Secp256k1(util, ecdsa);
 }
@@ -57,7 +60,9 @@ namespace opentxs::crypto::implementation
 {
 bool Secp256k1::Initialized_ = false;
 
-Secp256k1::Secp256k1(const api::crypto::Util& ssl, const crypto::Trezor& ecdsa)
+Secp256k1::Secp256k1(
+    const api::crypto::Util& ssl,
+    const crypto::EcdsaProvider& ecdsa)
     : context_(secp256k1_context_create(
           SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
     , ecdsa_(ecdsa)
@@ -230,8 +235,11 @@ bool Secp256k1::ECDH(
     const OTPassword& privateKey,
     OTPassword& secret) const
 {
-#if OT_CRYPTO_USING_TREZOR
-    return static_cast<const Trezor&>(ecdsa_).ECDH(
+#if OT_CRYPTO_USING_LIBBITCOIN
+    return dynamic_cast<const Bitcoin&>(ecdsa_).ECDH(
+        publicKey, privateKey, secret);
+#elif OT_CRYPTO_USING_TREZOR
+    return dynamic_cast<const Trezor&>(ecdsa_).ECDH(
         publicKey, privateKey, secret);
 #else
     return false;

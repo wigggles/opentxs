@@ -8,6 +8,7 @@ set(MODULE_NAME opentxs-crypto-library)
 
 set(cxx-sources
   AsymmetricProvider.cpp
+  Bitcoin.cpp
   EcdsaProvider.cpp
   HashingProvider.cpp
   LegacySymmetricProvider.cpp
@@ -29,12 +30,15 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/Bitcoin.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/OpenSSL.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/Ripemd160.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/Secp256k1.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/Sodium.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/crypto/library/Trezor.hpp"
   AsymmetricProvider.hpp
   AsymmetricProviderNull.hpp
+  Bitcoin.hpp
   EcdsaProvider.hpp
   OpenSSL.hpp
   OpenSSL_BIO.hpp

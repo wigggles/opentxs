@@ -16,12 +16,6 @@ include_directories(SYSTEM
   ${dependency_include_dir}/ChaiScript/include
 )
 
-include_directories(
-  ${CMAKE_CURRENT_BINARY_DIR}/../include
-  ${CMAKE_CURRENT_SOURCE_DIR}/../include
-  ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
 if(LIBBITCOIN_EXPORT)
   include_directories(SYSTEM ${LIBBITCOIN_INCLUDE_DIRS})
 endif()

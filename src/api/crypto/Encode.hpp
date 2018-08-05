@@ -32,7 +32,7 @@ private:
 
     static const std::uint8_t LineWidth{72};
 
-    opentxs::crypto::EncodingProvider& base58_;
+    const opentxs::crypto::EncodingProvider& base58_;
 
     std::string Base64Encode(
         const std::uint8_t* inputStart,
@@ -41,7 +41,7 @@ private:
     std::string BreakLines(const std::string& input) const;
     std::string IdentifierEncode(const OTPassword& input) const;
 
-    Encode(opentxs::crypto::EncodingProvider& base58);
+    Encode(const opentxs::crypto::EncodingProvider& base58);
     Encode() = delete;
     Encode(const Encode&) = delete;
     Encode& operator=(const Encode&) = delete;

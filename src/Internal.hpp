@@ -53,6 +53,8 @@ class StorageInternal;
 
 namespace crypto
 {
+class Ripemd160;
+
 namespace implementation
 {
 class OpenSSL;
@@ -79,6 +81,7 @@ class Proxy;
 namespace storage
 {
 class Accounts;
+class Bip47Channels;
 class BlockchainTransactions;
 class Contacts;
 class Contexts;
