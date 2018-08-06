@@ -503,6 +503,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                    NOTARY_ID = Identifier::Factory(NotaryID);
                         std::unique_ptr<Account> pAccount(
                             Account::LoadExistingAccount(
+                                wallet_,
                                 legacy_.ClientDataFolder(),
                                 ACCOUNT_ID,
                                 NOTARY_ID));

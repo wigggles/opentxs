@@ -69,4 +69,4 @@ public:
     ~LowLevelKeyGenerator();
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_LOWLEVELKEYGENERATOR_HPP
+#endif

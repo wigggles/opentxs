@@ -323,7 +323,7 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
     cheque_ = api::client::Workflow::InstantiateCheque(
-                  legacy_.ClientDataFolder(), workflow)
+                  wallet_, legacy_.ClientDataFolder(), workflow)
                   .second;
 
     OT_ASSERT(cheque_)

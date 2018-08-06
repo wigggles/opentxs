@@ -25,17 +25,20 @@
 
 namespace opentxs
 {
-OTSignedFile::OTSignedFile(const std::string& dataFolder)
-    : Contract(dataFolder)
+OTSignedFile::OTSignedFile(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
 {
     m_strContractType.Set("FILE");
 }
 
 OTSignedFile::OTSignedFile(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& LOCAL_SUBDIR,
     const String& FILE_NAME)
-    : Contract(dataFolder)
+    : Contract(wallet, dataFolder)
 {
     m_strContractType.Set("FILE");
 
@@ -43,10 +46,11 @@ OTSignedFile::OTSignedFile(
 }
 
 OTSignedFile::OTSignedFile(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const char* LOCAL_SUBDIR,
     const String& FILE_NAME)
-    : Contract(dataFolder)
+    : Contract(wallet, dataFolder)
 {
     m_strContractType.Set("FILE");
 
@@ -56,10 +60,11 @@ OTSignedFile::OTSignedFile(
 }
 
 OTSignedFile::OTSignedFile(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const char* LOCAL_SUBDIR,
     const char* FILE_NAME)
-    : Contract(dataFolder)
+    : Contract(wallet, dataFolder)
 {
     m_strContractType.Set("FILE");
 

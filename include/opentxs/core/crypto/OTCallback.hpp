@@ -34,4 +34,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_OTCALLBACK_HPP
+#endif

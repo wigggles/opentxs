@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
-#define OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -47,4 +46,3 @@ private:
     Encode& operator=(const Encode&) = delete;
 };
 }  // namespace opentxs::api::crypto::implementation
-#endif  // OPENTXS_API_CRYPTO_IMPLEMENTATION_ENCODE_HPP

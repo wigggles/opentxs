@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef CLASS_TAG_HEADER
-#define CLASS_TAG_HEADER
+#ifndef OPENTXS_CORE_UTIL_TAG_HPP
+#define OPENTXS_CORE_UTIL_TAG_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -64,8 +64,6 @@ public:
 
 }  // namespace opentxs
 
-#endif  // CLASS_TAG_HEADER
-
 /*
 
 
@@ -87,3 +85,4 @@ public:
 
 
  */
+#endif

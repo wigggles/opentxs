@@ -24,13 +24,17 @@
 
 namespace opentxs
 {
-PeerReply::PeerReply(const ConstNym& nym, const proto::PeerReply& serialized)
+PeerReply::PeerReply(
+    const api::Wallet& wallet,
+    const ConstNym& nym,
+    const proto::PeerReply& serialized)
     : ot_super(nym)
     , initiator_(Identifier::Factory(serialized.initiator()))
     , recipient_(Identifier::Factory(serialized.recipient()))
     , server_(Identifier::Factory(serialized.server()))
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
+    , wallet_{wallet}
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -39,6 +43,7 @@ PeerReply::PeerReply(const ConstNym& nym, const proto::PeerReply& serialized)
 }
 
 PeerReply::PeerReply(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const std::uint32_t version,
     const Identifier& initiator,
@@ -51,6 +56,7 @@ PeerReply::PeerReply(
     , server_(Identifier::Factory(server))
     , cookie_(Identifier::Factory(request))
     , type_(type)
+    , wallet_{wallet}
 {
 }
 
@@ -70,13 +76,14 @@ proto::PeerReply PeerReply::Contract() const
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& requestID,
     const Identifier& server,
     const std::string& terms)
 {
-    auto peerRequest = LoadRequest(nym, requestID);
+    auto peerRequest = LoadRequest(wallet, nym, requestID);
 
     if (!peerRequest) { return nullptr; }
 
@@ -85,6 +92,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     switch (type) {
         case (proto::PEERREQUEST_BAILMENT): {
             contract.reset(new BailmentReply(
+                wallet,
                 nym,
                 Identifier::Factory(peerRequest->initiator()),
                 requestID,
@@ -93,6 +101,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         } break;
         case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentReply(
+                wallet,
                 nym,
                 Identifier::Factory(peerRequest->initiator()),
                 requestID,
@@ -111,12 +120,13 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& requestID,
     const Identifier& server,
     const bool& ack)
 {
-    auto peerRequest = LoadRequest(nym, requestID);
+    auto peerRequest = LoadRequest(wallet, nym, requestID);
 
     if (!peerRequest) { return nullptr; }
 
@@ -127,6 +137,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
         case (proto::PEERREQUEST_PENDINGBAILMENT):
         case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new NoticeAcknowledgement(
+                wallet,
                 nym,
                 Identifier::Factory(peerRequest->initiator()),
                 requestID,
@@ -146,6 +157,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& request,
     const Identifier& server,
@@ -155,7 +167,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     const std::string& password,
     const std::string& key)
 {
-    auto peerRequest = LoadRequest(nym, request);
+    auto peerRequest = LoadRequest(wallet, nym, request);
 
     if (!peerRequest) { return nullptr; }
 
@@ -165,6 +177,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
     switch (type) {
         case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionReply(
+                wallet,
                 nym,
                 Identifier::Factory(peerRequest->initiator()),
                 request,
@@ -187,6 +200,7 @@ std::unique_ptr<PeerReply> PeerReply::Create(
 }
 
 std::unique_ptr<PeerReply> PeerReply::Factory(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerReply& serialized)
 {
@@ -201,17 +215,17 @@ std::unique_ptr<PeerReply> PeerReply::Factory(
 
     switch (serialized.type()) {
         case (proto::PEERREQUEST_BAILMENT): {
-            contract.reset(new BailmentReply(nym, serialized));
+            contract.reset(new BailmentReply(wallet, nym, serialized));
         } break;
         case (proto::PEERREQUEST_OUTBAILMENT): {
-            contract.reset(new OutBailmentReply(nym, serialized));
+            contract.reset(new OutBailmentReply(wallet, nym, serialized));
         } break;
         case (proto::PEERREQUEST_PENDINGBAILMENT):
         case (proto::PEERREQUEST_STORESECRET): {
-            contract.reset(new NoticeAcknowledgement(nym, serialized));
+            contract.reset(new NoticeAcknowledgement(wallet, nym, serialized));
         } break;
         case (proto::PEERREQUEST_CONNECTIONINFO): {
-            contract.reset(new ConnectionReply(nym, serialized));
+            contract.reset(new ConnectionReply(wallet, nym, serialized));
         } break;
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": invalid reply type."
@@ -326,17 +340,18 @@ proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
 }
 
 std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& requestID)
 {
     std::shared_ptr<proto::PeerRequest> output;
     std::time_t notUsed = 0;
 
-    output = OT::App().Wallet().PeerRequest(
+    output = wallet.PeerRequest(
         nym->ID(), requestID, StorageBox::INCOMINGPEERREQUEST, notUsed);
 
     if (!output) {
-        output = OT::App().Wallet().PeerRequest(
+        output = wallet.PeerRequest(
             nym->ID(), requestID, StorageBox::PROCESSEDPEERREQUEST, notUsed);
 
         if (output) {

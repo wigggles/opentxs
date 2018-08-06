@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTLEDGER_HPP
-#define OPENTXS_CORE_OTLEDGER_HPP
+#ifndef OPENTXS_CORE_LEDGER_HPP
+#define OPENTXS_CORE_LEDGER_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -209,6 +209,7 @@ public:
     // it.
     EXPORT void InitLedger();
     EXPORT static Ledger* GenerateLedger(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAcctID,
@@ -232,10 +233,12 @@ public:
     EXPORT char const* GetTypeString() const { return _GetTypeString(m_Type); }
 
     EXPORT Ledger(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theAccountID,
         const Identifier& theNotaryID);
     EXPORT Ledger(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const Identifier& theAccountID,
@@ -252,11 +255,16 @@ protected:
                                      // this is where the ledger saves its
                                      // contents
 
-    Ledger(const std::string& dataFolder);  // Hopefully stays here.
+    Ledger(
+        const api::Wallet& wallet,
+        const std::string& dataFolder);  // Hopefully
+                                         // stays
+                                         // here.
 
 private:  // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
     friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput);
 
@@ -277,4 +285,4 @@ private:  // Private prevents erroneous use by other classes.
     Ledger() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTLEDGER_HPP
+#endif

@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
-#define OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
+#ifndef OPENTXS_CLIENT_OT_API_HPP
+#define OPENTXS_CLIENT_OT_API_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -33,7 +33,7 @@ namespace client
 {
 namespace implementation
 {
-class Client;
+class Manager;
 }  // namespace implementation
 }  // namespace client
 }  // namespace api
@@ -1196,12 +1196,12 @@ public:
     EXPORT ~OT_API();  // calls Cleanup();
 
 private:
-    friend class api::client::implementation::Client;
+    friend class api::client::implementation::Manager;
 
     class Pid;
 
     const api::client::Activity& activity_;
-    const api::client::Client& client_;
+    const api::client::Manager& client_;
     const api::Settings& config_;
     const api::client::Contacts& contacts_;
     const api::Crypto& crypto_;
@@ -1283,7 +1283,7 @@ private:
 
     OT_API(
         const api::client::Activity& activity,
-        const api::client::Client& client,
+        const api::client::Manager& client,
         const api::Settings& config,
         const api::client::Contacts& contacts,
         const api::Crypto& crypto,
@@ -1306,4 +1306,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CLIENT_OPENTRANSACTIONS_HPP
+#endif

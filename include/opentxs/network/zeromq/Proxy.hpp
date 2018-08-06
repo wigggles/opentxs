@@ -52,4 +52,4 @@ private:
 }  // namespace zeromq
 }  // namespace network
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_PROXY_HPP
+#endif

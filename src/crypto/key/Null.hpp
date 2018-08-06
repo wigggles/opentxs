@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_KEY_NULL_HPP
-#define IMPLEMENTATION_OPENTXS_CRYPTO_KEY_NULL_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -96,4 +95,3 @@ private:
     Null& operator=(Null&&) = delete;
 };
 }  // namespace opentxs::crypto::key::implementation
-#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_KEY_NULL_HPP

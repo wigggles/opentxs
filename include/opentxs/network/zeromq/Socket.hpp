@@ -62,6 +62,11 @@ public:
     EXPORT static const std::string WidgetUpdateEndpoint;
     EXPORT static const std::string WorkflowAccountUpdateEndpoint;
 
+    EXPORT static std::string GetDhtRequestNymEndpoint(const int instance = 0);
+    EXPORT static std::string GetDhtRequestServerEndpoint(
+        const int instance = 0);
+    EXPORT static std::string GetDhtRequestUnitEndpoint(const int instance = 0);
+
     EXPORT virtual operator void*() const = 0;
 
     EXPORT virtual bool Close() const = 0;
@@ -87,4 +92,4 @@ private:
 }  // namespace zeromq
 }  // namespace network
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_SOCKET_HPP
+#endif

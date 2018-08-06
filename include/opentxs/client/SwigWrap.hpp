@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CLIENT_SWIG_HPP
-#define OPENTXS_CLIENT_SWIG_HPP
+#ifndef OPENTXS_CLIENT_SWIGWRAP_HPP
+#define OPENTXS_CLIENT_SWIGWRAP_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -27,7 +27,7 @@ namespace client
 {
 namespace implementation
 {
-class Client;
+class Manager;
 }  // namespace implementation
 }  // namespace client
 }  // namespace api
@@ -3703,9 +3703,9 @@ public:
     EXPORT static std::string AvailableServers(const std::string& nymID);
 
 private:
-    friend api::client::implementation::Client;
+    friend api::client::implementation::Manager;
 
-    static const api::client::Client* client_;
+    static const api::client::Manager* client_;
 
     static std::string comma(const std::list<std::string>& list);
     static std::string comma(const ObjectList& list);
@@ -3715,4 +3715,4 @@ private:
     ~SwigWrap() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_SWIG_HPP
+#endif

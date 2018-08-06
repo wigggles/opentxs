@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP
-#define OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP
+#pragma once
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 namespace opentxs::api::client::implementation
@@ -112,4 +111,3 @@ private:
 };
 }  // namespace opentxs::api::client::implementation
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#endif  // OPENTXS_API_BLOCKCHAIN_IMPLEMENTATION_HPP

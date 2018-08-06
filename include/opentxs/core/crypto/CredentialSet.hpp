@@ -309,4 +309,4 @@ private:
     CredentialSet() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CREDENTIALSET_HPP
+#endif

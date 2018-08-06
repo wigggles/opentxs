@@ -78,4 +78,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_NYMIDSOURCE_HPP
+#endif

@@ -48,4 +48,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_ISSUERITEM_HPP
+#endif

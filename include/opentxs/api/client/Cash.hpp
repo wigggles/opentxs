@@ -37,7 +37,7 @@ public:
         const std::string& mynym,
         std::string instrument,
         const std::string& indices,
-        std::string* pOptionalOutput=nullptr) const = 0;
+        std::string* pOptionalOutput = nullptr) const = 0;
     EXPORT virtual bool easy_withdraw_cash(
         const std::string& ACCT_ID,
         std::int64_t AMOUNT) const = 0;
@@ -65,7 +65,7 @@ public:
         std::int64_t AMOUNT,
         std::shared_ptr<const Purse>& recipientCopy,
         std::shared_ptr<const Purse>& senderCopy,
-        bool bPasswordProtected=false) const = 0;
+        bool bPasswordProtected = false) const = 0;
     EXPORT virtual bool withdraw_and_send_cash(
         const std::string& ACCT_ID,
         const std::string& RECIPIENT_NYM_ID,
@@ -87,4 +87,4 @@ private:
 }  // namespace api
 }  // namespace opentxs
 
-#endif  // OPENTXS_API_CLIENT_CASH_HPP
+#endif

@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_WORKFLOW_HPP
-#define OPENTXS_API_CLIENT_IMPLEMENTATION_WORKFLOW_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -69,6 +68,7 @@ private:
     const Activity& activity_;
     const Contacts& contact_;
     const Legacy& legacy_;
+    const Wallet& wallet_;
     const storage::Storage& storage_;
     const opentxs::network::zeromq::Context& zmq_;
     const OTZMQPublishSocket account_publisher_;
@@ -161,6 +161,7 @@ private:
         const Activity& activity,
         const Contacts& contact,
         const Legacy& legacy,
+        const Wallet& wallet,
         const storage::Storage& storage,
         const opentxs::network::zeromq::Context& zmq);
     Workflow() = delete;
@@ -170,4 +171,3 @@ private:
     Workflow& operator=(Workflow&&) = delete;
 };
 }  // namespace opentxs::api::client::implementation
-#endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_WORKFLOW_HPP

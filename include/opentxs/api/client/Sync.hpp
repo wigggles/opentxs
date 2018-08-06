@@ -162,4 +162,4 @@ private:
 }  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_CLIENT_SYNC_HPP
+#endif

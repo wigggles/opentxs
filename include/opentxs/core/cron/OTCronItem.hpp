@@ -59,19 +59,25 @@ public:
 
     // Called in OTCron::RemoveCronItem as well as OTCron::ProcessCron.
     // This calls onFinalReceipt, then onRemovalFromCron. Both are virtual.
-    void HookRemovalFromCron(ConstNym pRemover, std::int64_t newTransactionNo);
+    void HookRemovalFromCron(
+        const api::Wallet& wallet,
+        ConstNym pRemover,
+        std::int64_t newTransactionNo);
 
     inline bool IsFlaggedForRemoval() const { return m_bRemovalFlag; }
     inline void FlagForRemoval() { m_bRemovalFlag = true; }
     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
     EXPORT static OTCronItem* NewCronItem(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strCronItem);
     EXPORT static OTCronItem* LoadCronReceipt(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const TransactionNumber& lTransactionNum);  // Server-side only.
     EXPORT static OTCronItem* LoadActiveCronReceipt(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const TransactionNumber& lTransactionNum,
         const Identifier& notaryID);  // Client-side only.
@@ -189,16 +195,18 @@ protected:
     void ClearClosingNumbers();
 
     OTCronItem(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     OTCronItem(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& ACCT_ID,
         const Identifier& NYM_ID);
-    OTCronItem(const std::string& dataFolder);
+    OTCronItem(const api::Wallet& wallet, const std::string& dataFolder);
 
 private:
     typedef OTTrackable ot_super;
@@ -215,4 +223,4 @@ private:
     OTCronItem() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRON_OTCRONITEM_HPP
+#endif

@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTITEM_HPP
-#define OPENTXS_CORE_OTITEM_HPP
+#ifndef OPENTXS_CORE_ITEM_HPP
+#define OPENTXS_CORE_ITEM_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -309,6 +309,7 @@ public:
         m_AcctToID = theID;
     }
     EXPORT static Item* CreateItemFromString(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strItem,
         const Identifier& theNotaryID,
@@ -327,16 +328,19 @@ public:
     void InitItem();
 
     Item(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const Item& theOwner);  // From owner we can get acct ID, server ID,
                                 // and transaction Num
     Item(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const OTTransaction& theOwner);  // From owner we can get acct ID,
                                          // server ID, and transaction Num
     Item(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& theNymID,
         const OTTransaction& theOwner,
@@ -384,12 +388,13 @@ protected:
     // related. Every transaction has a list of items, and these perform the
     // transaction. A transaction trying to TRANSFER would have these items:
     // transfer, serverfee, balance, and possibly outboxhash.
-    Item(const std::string& dataFolder);
+    Item(const api::Wallet& wallet, const std::string& dataFolder);
 
 private:  // Private prevents erroneous use by other classes.
     typedef OTTransactionType ot_super;
 
     friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput);
 
@@ -397,4 +402,4 @@ private:  // Private prevents erroneous use by other classes.
     Item() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTITEM_HPP
+#endif

@@ -124,4 +124,4 @@ private:
     Data& operator=(Data&& rhs) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_DATA_HPP
+#endif

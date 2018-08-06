@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTINSTRUMENT_HPP
-#define OPENTXS_CORE_OTINSTRUMENT_HPP
+#ifndef OPENTXS_CORE_INSTRUMENT_HPP
+#define OPENTXS_CORE_INSTRUMENT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -62,8 +62,9 @@ protected:
         m_NotaryID = NOTARY_ID;
     }
 
-    Instrument(const std::string& dataFolder);
+    Instrument(const api::Wallet& wallet, const std::string& dataFolder);
     Instrument(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
@@ -72,4 +73,4 @@ private:
     Instrument() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTINSTRUMENT_HPP
+#endif

@@ -32,8 +32,8 @@ using namespace io;
 
 namespace opentxs
 {
-Cheque::Cheque(const std::string& dataFolder)
-    : ot_super(dataFolder)
+Cheque::Cheque(const api::Wallet& wallet, const std::string& dataFolder)
+    : ot_super(wallet, dataFolder)
     , m_lAmount(0)
     , m_strMemo()
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
@@ -46,10 +46,11 @@ Cheque::Cheque(const std::string& dataFolder)
 }
 
 Cheque::Cheque(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
     , m_strMemo()
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
@@ -63,13 +64,15 @@ Cheque::Cheque(
 
 std::unique_ptr<Cheque> Cheque::CreateFromReceipt(const OTTransaction& receipt)
 {
-    std::unique_ptr<Cheque> output{new Cheque{receipt.DataFolder()}};
+    std::unique_ptr<Cheque> output{
+        new Cheque{receipt.Wallet(), receipt.DataFolder()}};
 
     OT_ASSERT(output)
 
     String serializedItem{};
     receipt.GetReferenceString(serializedItem);
     std::unique_ptr<Item> item(Item::CreateItemFromString(
+        receipt.Wallet(),
         receipt.DataFolder(),
         serializedItem,
         receipt.GetRealNotaryID(),

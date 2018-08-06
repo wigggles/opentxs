@@ -7,9 +7,8 @@
 
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 
-#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Contacts.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -17,23 +16,25 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #define OT_METHOD "opentxs::PeerObject::"
 
 namespace opentxs
 {
 PeerObject::PeerObject(
+    const api::client::Contacts& contacts,
+    const api::Wallet& wallet,
     const ConstNym& signerNym,
     const proto::PeerObject serialized)
-    : type_(serialized.type())
+    : wallet_{wallet}
+    , type_(serialized.type())
     , version_(serialized.version())
 {
     ConstNym objectNym{nullptr};
 
     if (serialized.has_nym()) {
-        objectNym = OT::App().Wallet().Nym(serialized.nym());
-        OT::App().Client().Contacts().Update(serialized.nym());
+        objectNym = wallet_.Nym(serialized.nym());
+        contacts.Update(serialized.nym());
     }
 
     if (signerNym) {
@@ -47,19 +48,21 @@ PeerObject::PeerObject(
             message_.reset(new std::string(serialized.otmessage()));
         } break;
         case (proto::PEEROBJECT_REQUEST): {
-            request_ = PeerRequest::Factory(nym_, serialized.otrequest());
+            request_ =
+                PeerRequest::Factory(wallet_, nym_, serialized.otrequest());
         } break;
         case (proto::PEEROBJECT_RESPONSE): {
-            auto senderNym = OT::App().Wallet().Nym(
+            auto senderNym = wallet_.Nym(
                 Identifier::Factory(serialized.otrequest().initiator()));
-            request_ = PeerRequest::Factory(senderNym, serialized.otrequest());
+            request_ = PeerRequest::Factory(
+                wallet_, senderNym, serialized.otrequest());
 
             if (false == bool(nym_)) {
-                nym_ = OT::App().Wallet().Nym(
+                nym_ = wallet_.Nym(
                     Identifier::Factory(serialized.otrequest().recipient()));
             }
 
-            reply_ = PeerReply::Factory(nym_, serialized.otreply());
+            reply_ = PeerReply::Factory(wallet_, nym_, serialized.otreply());
         } break;
         case (proto::PEEROBJECT_PAYMENT): {
             payment_.reset(new std::string(serialized.otpayment()));
@@ -71,16 +74,24 @@ PeerObject::PeerObject(
     }
 }
 
-PeerObject::PeerObject(const ConstNym& senderNym, const std::string& message)
-    : nym_(senderNym)
+PeerObject::PeerObject(
+    const api::Wallet& wallet,
+    const ConstNym& senderNym,
+    const std::string& message)
+    : wallet_{wallet}
+    , nym_(senderNym)
     , message_(new std::string{message})
     , type_(proto::PEEROBJECT_MESSAGE)
     , version_(PEER_MESSAGE_VERSION)
 {
 }
 
-PeerObject::PeerObject(const std::string& payment, const ConstNym& senderNym)
-    : nym_(senderNym)
+PeerObject::PeerObject(
+    const api::Wallet& wallet,
+    const std::string& payment,
+    const ConstNym& senderNym)
+    : wallet_{wallet}
+    , nym_(senderNym)
     , payment_(new std::string{payment})
     , type_(proto::PEEROBJECT_PAYMENT)
     , version_(PEER_PAYMENT_VERSION)
@@ -88,10 +99,12 @@ PeerObject::PeerObject(const std::string& payment, const ConstNym& senderNym)
 }
 
 PeerObject::PeerObject(
+    const api::Wallet& wallet,
     const std::shared_ptr<PeerRequest>& request,
     const std::shared_ptr<PeerReply>& reply,
     const std::uint32_t& version)
-    : reply_(reply)
+    : wallet_{wallet}
+    , reply_(reply)
     , request_(request)
     , type_(proto::PEEROBJECT_RESPONSE)
     , version_(version)
@@ -99,19 +112,23 @@ PeerObject::PeerObject(
 }
 
 PeerObject::PeerObject(
+    const api::Wallet& wallet,
     const std::shared_ptr<PeerRequest>& request,
     const std::uint32_t& version)
-    : request_(request)
+    : wallet_{wallet}
+    , request_(request)
     , type_(proto::PEEROBJECT_REQUEST)
     , version_(version)
 {
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
+    const api::Wallet& wallet,
     const ConstNym& senderNym,
     const std::string& message)
 {
-    std::unique_ptr<PeerObject> output(new PeerObject(senderNym, message));
+    std::unique_ptr<PeerObject> output(
+        new PeerObject(wallet, senderNym, message));
 
     if (!output->Validate()) { output.reset(); }
 
@@ -119,13 +136,15 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
+    const api::Wallet& wallet,
     const ConstNym& senderNym,
     const std::string& payment,
     const bool isPayment)
 {
-    if (!isPayment) { return Create(senderNym, payment); }
+    if (!isPayment) { return Create(wallet, senderNym, payment); }
 
-    std::unique_ptr<PeerObject> output(new PeerObject(payment, senderNym));
+    std::unique_ptr<PeerObject> output(
+        new PeerObject(wallet, payment, senderNym));
 
     if (!output->Validate()) { output.reset(); }
 
@@ -133,11 +152,13 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
+    const api::Wallet& wallet,
     const std::shared_ptr<PeerRequest>& request,
     const std::shared_ptr<PeerReply>& reply,
     const std::uint32_t& version)
 {
-    std::unique_ptr<PeerObject> output(new PeerObject(request, reply, version));
+    std::unique_ptr<PeerObject> output(
+        new PeerObject(wallet, request, reply, version));
 
     if (!output->Validate()) { output.reset(); }
 
@@ -145,10 +166,12 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Create(
+    const api::Wallet& wallet,
     const std::shared_ptr<PeerRequest>& request,
     const std::uint32_t& version)
 {
-    std::unique_ptr<PeerObject> output(new PeerObject(request, version));
+    std::unique_ptr<PeerObject> output(
+        new PeerObject(wallet, request, version));
 
     if (!output->Validate()) { output.reset(); }
 
@@ -156,6 +179,8 @@ std::unique_ptr<PeerObject> PeerObject::Create(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Factory(
+    const api::client::Contacts& contacts,
+    const api::Wallet& wallet,
     const ConstNym& signerNym,
     const proto::PeerObject& serialized)
 {
@@ -163,7 +188,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     std::unique_ptr<PeerObject> output;
 
     if (valid) {
-        output.reset(new PeerObject(signerNym, serialized));
+        output.reset(new PeerObject(contacts, wallet, signerNym, serialized));
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": invalid peer object."
               << std::endl;
@@ -173,6 +198,8 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
 }
 
 std::unique_ptr<PeerObject> PeerObject::Factory(
+    const api::client::Contacts& contacts,
+    const api::Wallet& wallet,
     const ConstNym& recipientNym,
     const Armored& encrypted)
 {
@@ -187,7 +214,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
     if (!input.Open(*recipientNym, contents)) { return output; }
 
     auto serialized = proto::StringToProto<proto::PeerObject>(contents);
-    output = Factory(notUsed, serialized);
+    output = Factory(contacts, wallet, notUsed, serialized);
 
     return output;
 }
@@ -230,7 +257,7 @@ proto::PeerObject PeerObject::Serialize() const
 
             if (request_) {
                 *(output.mutable_otrequest()) = request_->Contract();
-                auto nym = OT::App().Wallet().Nym(request_->Initiator());
+                auto nym = wallet_.Nym(request_->Initiator());
 
                 if (nym) { *output.mutable_nym() = nym->asPublicNym(); }
             }

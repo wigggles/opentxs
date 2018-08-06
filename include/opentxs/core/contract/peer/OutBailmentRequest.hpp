@@ -26,9 +26,11 @@ private:
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     OutBailmentRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerRequest& serialized);
     OutBailmentRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& recipientID,
         const Identifier& unitID,
@@ -41,4 +43,4 @@ public:
     ~OutBailmentRequest() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREQUEST_HPP
+#endif

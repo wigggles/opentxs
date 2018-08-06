@@ -6,9 +6,6 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Native.hpp"
-#include "opentxs/api/Settings.hpp"
-#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -25,7 +22,6 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <atomic>
@@ -47,25 +43,30 @@ namespace opentxs::network
 {
 OTServerConnection ServerConnection::Factory(
     const api::network::ZMQ& zmq,
-    const std::string& serverID,
-    const zeromq::PublishSocket& updates)
+    const api::Wallet& wallet,
+    const zeromq::PublishSocket& updates,
+    const std::shared_ptr<const ServerContract>& contract)
 {
+    OT_ASSERT(contract)
+
     return OTServerConnection(
-        new implementation::ServerConnection(zmq, serverID, updates));
+        new implementation::ServerConnection(zmq, wallet, updates, contract));
 }
 }  // namespace opentxs::network
 
 namespace opentxs::network::implementation
 {
 ServerConnection::ServerConnection(
-    const opentxs::api::network::ZMQ& zmq,
-    const std::string& serverID,
-    const zeromq::PublishSocket& updates)
+    const api::network::ZMQ& zmq,
+    const api::Wallet& wallet,
+    const zeromq::PublishSocket& updates,
+    const std::shared_ptr<const ServerContract>& contract)
     : zmq_(zmq)
+    , wallet_(wallet)
     , updates_(updates)
-    , server_id_(serverID)
+    , server_id_(contract->ID()->str())
     , address_type_(zmq.DefaultAddressType())
-    , remote_contract_(OT::App().Wallet().Server(Identifier::Factory(serverID)))
+    , remote_contract_(contract)
     , thread_(nullptr)
     , socket_(zmq.Context().RequestSocket())
     , last_activity_(std::time(nullptr))
@@ -243,7 +244,7 @@ NetworkReplyMessage ServerConnection::Send(const Message& message)
     NetworkReplyMessage output{SendResult::ERROR, nullptr};
     auto& status = output.first;
     auto& reply = output.second;
-    reply.reset(new Message{message.DataFolder()});
+    reply.reset(new Message{wallet_, message.DataFolder()});
 
     OT_ASSERT(reply);
 

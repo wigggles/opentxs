@@ -25,7 +25,7 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
-#include "api/NativeInternal.hpp"
+#include "internal/api/Internal.hpp"
 #include "crypto/key/RSA_private.hpp"
 #include "crypto/library/OpenSSL_BIO.hpp"
 

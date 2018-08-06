@@ -17,8 +17,8 @@
 // Copyright (c) 2003 Song Ho Ahn
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef OPENTXS_CORE_TIMER_HPP
-#define OPENTXS_CORE_TIMER_HPP
+#ifndef OPENTXS_CORE_UTIL_TIMER_HPP
+#define OPENTXS_CORE_UTIL_TIMER_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -69,4 +69,4 @@ private:
 #endif
 };
 
-#endif  // OPENTXS_CORE_TIMER_HPP
+#endif

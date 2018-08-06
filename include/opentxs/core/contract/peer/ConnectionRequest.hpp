@@ -24,9 +24,11 @@ private:
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
     ConnectionRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::PeerRequest& serialized);
     ConnectionRequest(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& recipientID,
         const proto::ConnectionInfoType type,
@@ -38,4 +40,4 @@ public:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREQUEST_HPP
+#endif

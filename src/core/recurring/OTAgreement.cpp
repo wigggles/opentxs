@@ -7,7 +7,6 @@
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -25,7 +24,6 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -41,8 +39,10 @@
 
 namespace opentxs
 {
-OTAgreement::OTAgreement(const std::string& dataFolder)
-    : ot_super(dataFolder)
+OTAgreement::OTAgreement(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : ot_super(wallet, dataFolder)
     , m_RECIPIENT_ACCT_ID(Identifier::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_strConsideration()
@@ -53,10 +53,11 @@ OTAgreement::OTAgreement(const std::string& dataFolder)
 }
 
 OTAgreement::OTAgreement(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_RECIPIENT_ACCT_ID(Identifier::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_strConsideration()
@@ -67,6 +68,7 @@ OTAgreement::OTAgreement(
 }
 
 OTAgreement::OTAgreement(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -75,6 +77,7 @@ OTAgreement::OTAgreement(
     const Identifier& RECIPIENT_ACCT_ID,
     const Identifier& RECIPIENT_NYM_ID)
     : ot_super(
+          wallet,
           dataFolder,
           NOTARY_ID,
           INSTRUMENT_DEFINITION_ID,
@@ -97,6 +100,7 @@ void OTAgreement::setCustomerNymId(const Identifier& NYM_ID)
 }
 
 bool OTAgreement::SendNoticeToAllParties(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     bool bSuccessMsg,
     const Nym& theServerNym,
@@ -113,6 +117,7 @@ bool OTAgreement::SendNoticeToAllParties(
 
     // Sender
     if (!OTAgreement::DropServerNoticeToNymbox(
+            wallet,
             dataFolder,
             bSuccessMsg,  // "success" notice? or "failure" notice?
             theServerNym,
@@ -131,6 +136,7 @@ bool OTAgreement::SendNoticeToAllParties(
 
     // Recipient
     if (!OTAgreement::DropServerNoticeToNymbox(
+            wallet,
             dataFolder,
             bSuccessMsg,  // "success" notice? or "failure" notice?
             theServerNym,
@@ -152,6 +158,7 @@ bool OTAgreement::SendNoticeToAllParties(
 // Used by payment plans and smart contracts. Nym receives an
 // OTItem::acknowledgment or OTItem::rejection.
 bool OTAgreement::DropServerNoticeToNymbox(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     bool bSuccessMsg,
     const Nym& theServerNym,
@@ -165,7 +172,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     String* pstrAttachment,
     const Identifier& actualNymID)
 {
-    Ledger theLedger(dataFolder, NYM_ID, NYM_ID, NOTARY_ID);
+    Ledger theLedger(wallet, dataFolder, NYM_ID, NYM_ID, NOTARY_ID);
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theLedger.LoadNymbox();
 
@@ -185,7 +192,11 @@ bool OTAgreement::DropServerNoticeToNymbox(
     }
 
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-        theLedger, OTTransaction::notice, theOriginType, lNewTransactionNumber);
+        wallet,
+        theLedger,
+        OTTransaction::notice,
+        theOriginType,
+        lNewTransactionNumber);
 
     if (nullptr != pTransaction) {
         // The nymbox will get a receipt with the new transaction ID.
@@ -270,8 +281,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
         //
         pTransaction->SaveBoxReceipt(theLedger);
 
-        auto context = OT::App().Wallet().mutable_ClientContext(
-            theServerNym.ID(), actualNymID);
+        auto context =
+            wallet.mutable_ClientContext(theServerNym.ID(), actualNymID);
         context.It().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions
@@ -386,8 +397,8 @@ void OTAgreement::onFinalReceipt(
             : 0;  // index 0 is closing number for sender, since
                   // GetTransactionNum() is his opening #.
     const String strNotaryID(GetNotaryID());
-    auto oContext = OT::App().Wallet().mutable_ClientContext(
-        pServerNym->ID(), theOriginator->ID());
+    auto oContext =
+        wallet_.mutable_ClientContext(pServerNym->ID(), theOriginator->ID());
 
     if ((lSenderOpeningNumber > 0) &&
         oContext.It().VerifyIssuedNumber(lSenderOpeningNumber)) {
@@ -451,8 +462,8 @@ void OTAgreement::onFinalReceipt(
                  "theOriginator.VerifyTransactionNum(lSenderClosingNumber)\n";
     }
 
-    auto rContext = OT::App().Wallet().mutable_ClientContext(
-        pServerNym->ID(), GetRecipientNymID());
+    auto rContext =
+        wallet_.mutable_ClientContext(pServerNym->ID(), GetRecipientNymID());
 
     if ((lRecipientOpeningNumber > 0) &&
         rContext.It().VerifyIssuedNumber(lRecipientOpeningNumber)) {

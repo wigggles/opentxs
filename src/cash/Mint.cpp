@@ -36,11 +36,12 @@
 namespace opentxs
 {
 Mint::Mint(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
-    : Contract(dataFolder, strInstrumentDefinitionID)
+    : Contract(wallet, dataFolder, strInstrumentDefinitionID)
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory(strNotaryID))
@@ -65,10 +66,11 @@ Mint::Mint(
 }
 
 Mint::Mint(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
-    : Contract(dataFolder, strInstrumentDefinitionID)
+    : Contract(wallet, dataFolder, strInstrumentDefinitionID)
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory(strNotaryID))
@@ -92,8 +94,8 @@ Mint::Mint(
     InitMint();
 }
 
-Mint::Mint(const std::string& dataFolder)
-    : Contract(dataFolder)
+Mint::Mint(const api::Wallet& wallet, const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory())
@@ -111,12 +113,14 @@ Mint::Mint(const std::string& dataFolder)
 }
 
 // static
-Mint* Mint::MintFactory(const std::string& dataFolder)
+Mint* Mint::MintFactory(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
 {
     Mint* pMint = nullptr;
 
 #if OT_CASH_USING_LUCRE
-    pMint = new MintLucre(dataFolder);
+    pMint = new MintLucre(wallet, dataFolder);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new Mint_MagicMoney;
     otErr << __FUCNTION__
@@ -134,6 +138,7 @@ Mint* Mint::MintFactory(const std::string& dataFolder)
 
 // static
 Mint* Mint::MintFactory(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
@@ -141,7 +146,8 @@ Mint* Mint::MintFactory(
     Mint* pMint = nullptr;
 
 #if OT_CASH_USING_LUCRE
-    pMint = new MintLucre(dataFolder, strNotaryID, strInstrumentDefinitionID);
+    pMint = new MintLucre(
+        wallet, dataFolder, strNotaryID, strInstrumentDefinitionID);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__
@@ -159,6 +165,7 @@ Mint* Mint::MintFactory(
 
 // static
 Mint* Mint::MintFactory(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strNotaryID,
     const String& strServerNymID,
@@ -168,7 +175,11 @@ Mint* Mint::MintFactory(
 
 #if OT_CASH_USING_LUCRE
     pMint = new MintLucre(
-        dataFolder, strNotaryID, strServerNymID, strInstrumentDefinitionID);
+        wallet,
+        dataFolder,
+        strNotaryID,
+        strServerNymID,
+        strInstrumentDefinitionID);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new OTMint_MagicMoney;
     otErr << __FUNCTION__

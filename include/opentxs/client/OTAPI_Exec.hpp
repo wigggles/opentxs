@@ -27,7 +27,7 @@ namespace client
 {
 namespace implementation
 {
-class Client;
+class Manager;
 }  // namespace implementation
 }  // namespace client
 }  // namespace api
@@ -3395,7 +3395,7 @@ contract
     EXPORT ~OTAPI_Exec() = default;
 
 private:
-    friend class api::client::implementation::Client;
+    friend class api::client::implementation::Manager;
 
     const api::client::Activity& activity_;
     const api::Settings& config_;
@@ -3428,4 +3428,4 @@ private:
     OTAPI_Exec operator=(OTAPI_Exec&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_OTAPI_EXEC_HPP
+#endif

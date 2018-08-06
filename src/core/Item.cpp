@@ -27,7 +27,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -45,8 +44,8 @@ namespace opentxs
 // probvably not actually. If I end up back here, it's because
 // sometimes I dont' WANT to assign the stuff, but leave it blank
 // because I'm about to load it.
-Item::Item(const std::string& dataFolder)
-    : OTTransactionType(dataFolder)
+Item::Item(const api::Wallet& wallet, const std::string& dataFolder)
+    : OTTransactionType(wallet, dataFolder)
     , m_AcctToID(Identifier::Factory())
     , m_lAmount(0)
     , m_listItems()
@@ -60,10 +59,12 @@ Item::Item(const std::string& dataFolder)
 
 // From owner we can get acct ID, server ID, and transaction Num
 Item::Item(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const OTTransaction& theOwner)
     : OTTransactionType(
+          wallet,
           dataFolder,
           theNymID,
           theOwner.GetRealAccountID(),
@@ -83,10 +84,12 @@ Item::Item(
 
 // From owner we can get acct ID, server ID, and transaction Num
 Item::Item(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Item& theOwner)
     : OTTransactionType(
+          wallet,
           dataFolder,
           theNymID,
           theOwner.GetRealAccountID(),
@@ -105,12 +108,14 @@ Item::Item(
 }
 
 Item::Item(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const OTTransaction& theOwner,
     Item::itemType theType,
     const Identifier& pDestinationAcctID)
     : OTTransactionType(
+          wallet,
           dataFolder,
           theNymID,
           theOwner.GetRealAccountID(),
@@ -918,7 +923,7 @@ void Item::CalculateNumberOfOrigin()
 
         case depositCheque:  // this item is a request to deposit a cheque.
         {
-            Cheque theCheque{data_folder_};
+            Cheque theCheque{wallet_, data_folder_};
             String strAttachment;
             GetAttachment(strAttachment);
 
@@ -955,6 +960,7 @@ void Item::CalculateNumberOfOrigin()
             // of origin as its transaction number.
             //
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -1115,6 +1121,7 @@ Item* Item::CreateItemFromTransaction(
     const Identifier& pDestinationAcctID)
 {
     Item* pItem = new Item(
+        theOwner.Wallet(),
         theOwner.DataFolder(),
         theOwner.GetNymID(),
         theOwner,
@@ -1137,6 +1144,7 @@ Item* Item::CreateItemFromTransaction(
 // we need
 // to verify that the user ID is actually the owner of the AccountID. TOdo that.
 Item* Item::CreateItemFromString(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strItem,
     const Identifier& theNotaryID,
@@ -1148,7 +1156,7 @@ Item* Item::CreateItemFromString(
         return nullptr;
     }
 
-    Item* pItem = new Item(dataFolder);
+    Item* pItem = new Item(wallet, dataFolder);
 
     // So when it loads its own server ID, we can compare to this one.
     pItem->SetRealNotaryID(theNotaryID);
@@ -1516,8 +1524,8 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // case.
             // That's okay, because I'm setting it below with
             // pItem->SetTransactionNum...
-            Item* pItem =
-                new Item(data_folder_, GetNymID(), *this);  // But I've also got
+            Item* pItem = new Item(
+                wallet_, data_folder_, GetNymID(), *this);  // But I've also got
                                                             // ITEM types with
                                                             // the same names...
             // That way, it will translate the string and set the type

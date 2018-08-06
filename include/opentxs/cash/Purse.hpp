@@ -45,25 +45,31 @@ public:
     // server ID in advance. I decided to add a factory for OTPurse to
     // facilitate that.
     EXPORT static Purse* PurseFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput);
     EXPORT static Purse* PurseFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput,
         const Identifier& NOTARY_ID);
     EXPORT static Purse* PurseFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT static Purse* LowLevelInstantiate(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strFirstLine);
     EXPORT static Purse* LowLevelInstantiate(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strFirstLine,
         const Identifier& NOTARY_ID);
     EXPORT static Purse* LowLevelInstantiate(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
@@ -141,17 +147,25 @@ public:
     EXPORT void ReleaseTokens();
 
     /** just for copy another purse's Server and Instrument Definition Id */
-    EXPORT Purse(const std::string& dataFolder, const Purse& thePurse);
+    EXPORT Purse(
+        const api::Wallet& wallet,
+        const std::string& dataFolder,
+        const Purse& thePurse);
     /** similar thing */
     EXPORT Purse(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     /** Don't use this unless you really don't know the instrument definition
      * (Like if you're about to read it out of a string.) */
-    EXPORT Purse(const std::string& dataFolder, const Identifier& NOTARY_ID);
+    EXPORT Purse(
+        const api::Wallet& wallet,
+        const std::string& dataFolder,
+        const Identifier& NOTARY_ID);
     /** Normally you really really want to set the instrument definition. */
     EXPORT Purse(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -208,7 +222,9 @@ protected:
                                      // different expirations. This stores the
                                      // earliest one.
     void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
-    Purse(const std::string& dataFolder);  // private
+
+    Purse(const api::Wallet& wallet,
+          const std::string& dataFolder);  // private
 
 private:
     typedef Contract ot_super;
@@ -217,4 +233,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CASH
-#endif  // OPENTXS_CASH_PURSE_HPP
+#endif

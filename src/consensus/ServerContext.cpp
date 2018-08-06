@@ -260,7 +260,8 @@ TransactionNumber ServerContext::Highest() const
 std::unique_ptr<Message> ServerContext::initialize_server_command(
     const MessageType type) const
 {
-    std::unique_ptr<Message> output(new Message{legacy_.ClientDataFolder()});
+    std::unique_ptr<Message> output(
+        new Message{wallet_, legacy_.ClientDataFolder()});
 
     OT_ASSERT(output);
     OT_ASSERT(nym_);
@@ -644,8 +645,6 @@ bool ServerContext::ShouldRename(const std::string& defaultName) const
         return false;
     }
 
-    // TODO pass wallet singleton into constructor and hold as a reference
-    // member variable
     auto contract = wallet_.Server(server_id_);
 
     if (false == bool(contract)) {

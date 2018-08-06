@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -16,6 +15,14 @@
 
 #define CURVE_KEY_BYTES 32
 #define CURVE_KEY_Z85_BYTES 40
+
+namespace opentxs::network::zeromq
+{
+std::string build_inproc_path(
+    const std::string& path,
+    const int instance,
+    const int version);
+}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
@@ -62,4 +69,3 @@ private:
     Socket& operator=(Socket&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_SOCKET_HPP

@@ -63,7 +63,8 @@ public:
     static OTZMQSubscribeSocket setup_listener(
         const network::zeromq::ListenCallback& callback)
     {
-        auto output = OT::App().ZMQ().Context().SubscribeSocket(callback);
+        auto output =
+            OT::App().Client().ZMQ().Context().SubscribeSocket(callback);
         output->Start(network::zeromq::Socket::WidgetUpdateEndpoint);
 
         return output;

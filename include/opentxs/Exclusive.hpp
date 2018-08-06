@@ -56,4 +56,4 @@ private:
     std::atomic<bool> success_{true};
 };  // class Exclusive
 }  // namespace opentxs
-#endif  // OPENTXS_EXCLUSIVE_HPP
+#endif

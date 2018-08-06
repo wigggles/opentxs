@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
-#define OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -28,7 +27,7 @@ class String;
 
 namespace api
 {
-class Server;
+class Manager;
 class Settings;
 
 namespace client
@@ -54,6 +53,7 @@ public:
         const Identifier& realNotaryID);
     static bool check_server_lock(const Identifier& nymID);
     static void drop_reply_notice_to_nymbox(
+        const api::Wallet& wallet,
         const String& messageString,
         const std::int64_t& requestNum,
         const bool replyTransSuccess,
@@ -69,7 +69,11 @@ private:
     class FinalizeResponse
     {
     public:
-        FinalizeResponse(const Nym& nym, ReplyMessage& reply, Ledger& ledger);
+        FinalizeResponse(
+            const api::Wallet& wallet,
+            const Nym& nym,
+            ReplyMessage& reply,
+            Ledger& ledger);
         FinalizeResponse() = delete;
         FinalizeResponse(const FinalizeResponse&) = delete;
         FinalizeResponse(FinalizeResponse&&) = delete;
@@ -83,6 +87,7 @@ private:
         ~FinalizeResponse();
 
     private:
+        const api::Wallet& wallet_;
         const Nym& nym_;
         ReplyMessage& reply_;
         Ledger& ledger_;
@@ -93,7 +98,7 @@ private:
     Server& server_;
     const opentxs::api::Legacy& legacy_;
     const opentxs::api::Settings& config_;
-    const opentxs::api::Server& mint_;
+    const opentxs::api::server::Manager& mint_;
     const opentxs::api::Wallet& wallet_;
 
     bool add_numbers_to_nymbox(
@@ -189,7 +194,7 @@ private:
         Server& server,
         const opentxs::api::Legacy& legacy,
         const opentxs::api::Settings& config,
-        const opentxs::api::Server& mint,
+        const opentxs::api::server::Manager& mint,
         const opentxs::api::Wallet& wallet);
     UserCommandProcessor() = delete;
     UserCommandProcessor(const UserCommandProcessor&) = delete;
@@ -199,5 +204,3 @@ private:
 };
 }  // namespace server
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_USERCOMMANDPROCESSOR_HPP

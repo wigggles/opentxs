@@ -33,8 +33,9 @@
 
 namespace opentxs
 {
-OTParty::OTParty(const std::string& dataFolder)
-    : data_folder_{dataFolder}
+OTParty::OTParty(const api::Wallet& wallet, const std::string& dataFolder)
+    : wallet_{wallet}
+    , data_folder_{dataFolder}
     , m_pstr_party_name(nullptr)
     , m_bPartyIsNym(false)
     , m_lOpeningTransNo(0)
@@ -43,13 +44,15 @@ OTParty::OTParty(const std::string& dataFolder)
 }
 
 OTParty::OTParty(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const char* szName,
     bool bIsOwnerNym,
     const char* szOwnerID,
     const char* szAuthAgent,
     bool bCreateAgent)
-    : data_folder_{dataFolder}
+    : wallet_{wallet}
+    , data_folder_{dataFolder}
     , m_pstr_party_name(nullptr)
     , m_bPartyIsNym(bIsOwnerNym)
     , m_str_owner_id(szOwnerID != nullptr ? szOwnerID : "")
@@ -63,6 +66,7 @@ OTParty::OTParty(
         const String strName(m_str_authorizing_agent.c_str()), strNymID(""),
             strRoleID(""), strGroupName("");
         OTAgent* pAgent = new OTAgent(
+            wallet_,
             true /*bNymRepresentsSelf*/,
             true /*bIsAnIndividual*/,
             strName,
@@ -81,6 +85,7 @@ OTParty::OTParty(
 }
 
 OTParty::OTParty(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     std::string str_PartyName,
     const Nym& theNym,  // Nym is BOTH owner AND agent, when using
@@ -89,7 +94,8 @@ OTParty::OTParty(
     Account* pAccount,
     const std::string* pstr_account_name,
     std::int64_t lClosingTransNo)
-    : data_folder_{dataFolder}
+    : wallet_{wallet}
+    , data_folder_{dataFolder}
     , m_pstr_party_name(new std::string(str_PartyName))
     , m_bPartyIsNym(true)
     , m_lOpeningTransNo(0)
@@ -107,8 +113,8 @@ OTParty::OTParty(
     m_str_owner_id = strNymID.Get();
 
     OTAgent* pAgent = new OTAgent(
-        str_agent_name, theNym);  // (The third arg, bRepresentsSelf,
-                                  // defaults here to true.)
+        wallet_, str_agent_name, theNym);  // (The third arg, bRepresentsSelf,
+                                           // defaults here to true.)
     OT_ASSERT(nullptr != pAgent);
 
     if (!AddAgent(*pAgent)) {
@@ -233,6 +239,7 @@ bool OTParty::AddAccount(
     std::int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
+        wallet_,
         data_folder_,
         strName,
         strAgentName,
@@ -256,7 +263,12 @@ bool OTParty::AddAccount(
     std::int64_t lClosingTransNo)
 {
     OTPartyAccount* pPartyAccount = new OTPartyAccount(
-        data_folder_, szAcctName, strAgentName, theAccount, lClosingTransNo);
+        wallet_,
+        data_folder_,
+        szAcctName,
+        strAgentName,
+        theAccount,
+        lClosingTransNo);
     OT_ASSERT(nullptr != pPartyAccount);
 
     if (!AddAccount(*pPartyAccount)) {

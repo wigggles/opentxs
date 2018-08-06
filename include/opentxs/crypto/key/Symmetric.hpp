@@ -158,4 +158,4 @@ private:
 }  // namespace key
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OPENTXS_CRYPTO_KEY_SYMMETRIC_HPP
+#endif

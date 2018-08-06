@@ -76,22 +76,26 @@ public:
      * LucreTokens, and other types of tokens, dynamically, without having to
      * know beforehand which OTToken subclass we're dealing with. */
     EXPORT static Token* TokenFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput);
     EXPORT static Token* TokenFactory(String strInput, const Purse& thePurse);
     EXPORT static Token* TokenFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT static Token* LowLevelInstantiate(const Purse& thePurse);
     EXPORT static Token* LowLevelInstantiate(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strFirstLine);
     EXPORT static Token* LowLevelInstantiate(
         const String& strFirstLine,
         const Purse& thePurse);
     EXPORT static Token* LowLevelInstantiate(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
@@ -252,12 +256,16 @@ protected:
 
     Token& operator=(const Token& rhs);
 
-    Token(const std::string& dataFolder);
+    Token(const api::Wallet& wallet, const std::string& dataFolder);
     Token(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    Token(const std::string& dataFolder, const Purse& thePurse);
+    Token(
+        const api::Wallet& wallet,
+        const std::string& dataFolder,
+        const Purse& thePurse);
 
 private:
     typedef Instrument ot_super;
@@ -266,4 +274,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CASH
-#endif  // OPENTXS_CASH_TOKEN_HPP
+#endif

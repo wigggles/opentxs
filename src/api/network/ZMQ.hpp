@@ -3,18 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
-#define OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP
-
-#include "Internal.hpp"
-
-#include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/core/Flag.hpp"
-
-#include <atomic>
-#include <map>
-#include <memory>
-#include <mutex>
+#pragma once
 
 namespace opentxs::api::network::implementation
 {
@@ -42,10 +31,11 @@ public:
     ~ZMQ();
 
 private:
-    friend class opentxs::api::implementation::Native;
+    friend opentxs::Factory;
 
     const opentxs::network::zeromq::Context& context_;
     const api::Settings& config_;
+    const api::Wallet& wallet_;
     const Flag& running_;
     mutable std::atomic<std::chrono::seconds> linger_;
     mutable std::atomic<std::chrono::seconds> receive_timeout_;
@@ -62,6 +52,7 @@ private:
 
     ZMQ(const opentxs::network::zeromq::Context& context,
         const api::Settings& config,
+        const api::Wallet& wallet,
         const Flag& running);
     ZMQ() = delete;
     ZMQ(const ZMQ&) = delete;
@@ -70,4 +61,3 @@ private:
     ZMQ& operator=(const ZMQ&&) = delete;
 };
 }  // namespace opentxs::api::network::implementation
-#endif  // OPENTXS_API_NETWORK_IMPLEMENTATION_ZMQ_HPP

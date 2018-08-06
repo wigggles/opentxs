@@ -56,4 +56,4 @@ private:
 }  // namespace network
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_NETWORK_ZMQ_HPP
+#endif

@@ -49,4 +49,4 @@ private:
 };
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OPENTXS_CRYPTO_LIBRARY_HASHINGPROVIDER_HPP
+#endif

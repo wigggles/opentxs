@@ -7,7 +7,6 @@
 
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -27,7 +26,6 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdlib.h>
@@ -41,8 +39,10 @@
 
 namespace opentxs
 {
-OTPaymentPlan::OTPaymentPlan(const std::string& dataFolder)
-    : ot_super(dataFolder)
+OTPaymentPlan::OTPaymentPlan(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : ot_super(wallet, dataFolder)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -50,10 +50,11 @@ OTPaymentPlan::OTPaymentPlan(const std::string& dataFolder)
 }
 
 OTPaymentPlan::OTPaymentPlan(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -61,6 +62,7 @@ OTPaymentPlan::OTPaymentPlan(
 }
 
 OTPaymentPlan::OTPaymentPlan(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -69,6 +71,7 @@ OTPaymentPlan::OTPaymentPlan(
     const Identifier& RECIPIENT_ACCT_ID,
     const Identifier& RECIPIENT_NYM_ID)
     : ot_super(
+          wallet,
           dataFolder,
           NOTARY_ID,
           INSTRUMENT_DEFINITION_ID,
@@ -361,7 +364,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
-    OTPaymentPlan theMerchantCopy{data_folder_};
+    OTPaymentPlan theMerchantCopy{wallet_, data_folder_};
     if (!m_strMerchantSignedCopy.Exists() ||
         !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy)) {
         otErr << "OTPaymentPlan::" << __FUNCTION__
@@ -610,8 +613,8 @@ bool OTPaymentPlan::ProcessPayment(
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    std::unique_ptr<OTCronItem> pOrigCronItem(
-        OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum()));
+    std::unique_ptr<OTCronItem> pOrigCronItem(OTCronItem::LoadCronReceipt(
+        wallet_, data_folder_, GetTransactionNum()));
 
     OT_ASSERT(pOrigCronItem);  // How am I processing it now if the
                                // receipt wasn't saved in the first place??
@@ -656,7 +659,7 @@ bool OTPaymentPlan::ProcessPayment(
         pSenderNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pSenderNym = OT::App().Wallet().Nym(SENDER_NYM_ID);
+        pSenderNym = wallet_.Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             otErr << "Failure loading Sender Nym in " << __FUNCTION__ << ": "
                   << SENDER_NYM_ID.str() << std::endl;
@@ -675,7 +678,7 @@ bool OTPaymentPlan::ProcessPayment(
         pRecipientNym = pSenderNym;  // theSenderNym is pSenderNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pRecipientNym = OT::App().Wallet().Nym(RECIPIENT_NYM_ID);
+        pRecipientNym = wallet_.Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             otErr << "Failure loading Recipient Nym in " << __FUNCTION__ << ": "
                   << RECIPIENT_NYM_ID.str() << std::endl;
@@ -793,9 +796,13 @@ bool OTPaymentPlan::ProcessPayment(
 
         // Load the inbox/outbox in case they already exist
         Ledger theSenderInbox(
-            data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
+            wallet_, data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
             theRecipientInbox(
-                data_folder_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID);
+                wallet_,
+                data_folder_,
+                RECIPIENT_NYM_ID,
+                RECIPIENT_ACCT_ID,
+                NOTARY_ID);
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -843,12 +850,14 @@ bool OTPaymentPlan::ProcessPayment(
             }
 
             OTTransaction* pTransSend = OTTransaction::GenerateTransaction(
+                wallet_,
                 theSenderInbox,
                 OTTransaction::paymentReceipt,
                 originType::origin_payment_plan,
                 lNewTransactionNumber);
 
             OTTransaction* pTransRecip = OTTransaction::GenerateTransaction(
+                wallet_,
                 theRecipientInbox,
                 OTTransaction::paymentReceipt,
                 originType::origin_payment_plan,
@@ -1373,7 +1382,7 @@ bool OTPaymentPlan::ProcessCron()
 
         otOut << "Cron: Processing initial payment...\n";
 
-        ProcessInitialPayment(OT::App().Wallet());
+        ProcessInitialPayment(wallet_);
     }
     // ----------------------------------------------
     // Next, process the payment plan...
@@ -1506,7 +1515,7 @@ bool OTPaymentPlan::ProcessCron()
 
             // This function assumes the payment is due, and it only fails in
             // the case of the payer's account having insufficient funds.
-            ProcessPaymentPlan(OT::App().Wallet());
+            ProcessPaymentPlan(wallet_);
         }
     }
 

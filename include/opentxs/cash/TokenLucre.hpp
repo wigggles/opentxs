@@ -16,12 +16,6 @@
 
 namespace opentxs
 {
-
-class Identifier;
-class Mint;
-class Nym;
-class Purse;
-
 /*
 Here's a rough sketch of the protocol:
 
@@ -67,12 +61,16 @@ public:
     EXPORT ~Token_Lucre() = default;
 
 private:
-    Token_Lucre(const std::string& dataFolder);
+    Token_Lucre(const api::Wallet& wallet, const std::string& dataFolder);
     Token_Lucre(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    Token_Lucre(const std::string& dataFolder, const Purse& thePurse);
+    Token_Lucre(
+        const api::Wallet& wallet,
+        const std::string& dataFolder,
+        const Purse& thePurse);
 
     bool GenerateTokenRequest(
         const Nym& theNym,
@@ -88,4 +86,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CASH_USING_LUCRE
-#endif  // OPENTXS_CASH_TOKENLUCRE_HPP
+#endif

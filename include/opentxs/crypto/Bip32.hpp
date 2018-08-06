@@ -37,4 +37,4 @@ public:
         const OTPassword& seed) const = 0;
 };
 }  // namespace opentxs::crypto
-#endif  // OPENTXS_CRYPTO_BIP32_HPP
+#endif

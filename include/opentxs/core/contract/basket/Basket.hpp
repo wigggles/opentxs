@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_BASKET_BASKET_HPP
-#define OPENTXS_BASKET_BASKET_HPP
+#ifndef OPENTXS_CORE_CONTRACT_BASKET_BASKET_HPP
+#define OPENTXS_CORE_CONTRACT_BASKET_BASKET_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -65,8 +65,9 @@ namespace opentxs
 class Basket : public Contract
 {
 public:
-    EXPORT Basket(const std::string& dataFolder);
+    EXPORT Basket(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT Basket(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         std::int32_t nCount,
         std::int64_t lMinimumTransferAmount);
@@ -179,4 +180,4 @@ private:
     Basket() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_BASKET_BASKET_HPP
+#endif

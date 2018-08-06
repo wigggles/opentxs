@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_SECURITYCONTRACT_HPP
-#define OPENTXS_CORE_SECURITYCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_SECURITYCONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_SECURITYCONTRACT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -22,9 +22,11 @@ private:
     friend ot_super;
 
     SecurityContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::UnitDefinition serialized);
     SecurityContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
@@ -43,7 +45,5 @@ public:
 
     virtual ~SecurityContract() = default;
 };
-
 }  // namespace opentxs
-
-#endif  // OPENTXS_CORE_SECURITYCONTRACT_HPP
+#endif

@@ -1056,9 +1056,9 @@ ServerAction::Action ServerAction::SendCash(
     if (senderCopy) strSend = String(*senderCopy);
 
     std::unique_ptr<const Purse> pRecip(
-        Purse::PurseFactory(legacy_.ClientDataFolder(), strRecip));
+        Purse::PurseFactory(wallet_, legacy_.ClientDataFolder(), strRecip));
     std::unique_ptr<const Purse> pSend(
-        Purse::PurseFactory(legacy_.ClientDataFolder(), strSend));
+        Purse::PurseFactory(wallet_, legacy_.ClientDataFolder(), strSend));
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
@@ -1111,7 +1111,7 @@ ServerAction::Action ServerAction::SendPayment(
     }
 
     auto pPayment = std::make_unique<const OTPayment>(
-        legacy_.ClientDataFolder(), strPayment);
+        wallet_, legacy_.ClientDataFolder(), strPayment);
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,

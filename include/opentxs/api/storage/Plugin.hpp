@@ -43,4 +43,4 @@ private:
 }  // namespace storage
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_STORAGE_PLUGIN_HPP
+#endif

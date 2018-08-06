@@ -43,4 +43,4 @@ private:
 }  // namespace crypto
 }  // namespace opentxs
 #endif  // OT_CRYPTO_WITH_BIP39
-#endif  // OPENTXS_CRYPTO_BIP39_HPP
+#endif

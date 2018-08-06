@@ -7,7 +7,6 @@
 
 #include "opentxs/core/Ledger.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
@@ -30,7 +29,6 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <stdlib.h>
@@ -71,11 +69,12 @@ char const* const __TypeStringsLedger[] = {
 // Since a ledger is normally used as an inbox for a specific account, in a
 // specific file, then I've decided to restrict ledgers to a single account.
 Ledger::Ledger(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID)
-    : OTTransactionType(dataFolder, theNymID, theAccountID, theNotaryID)
+    : OTTransactionType(wallet, dataFolder, theNymID, theAccountID, theNotaryID)
     , m_Type(Ledger::message)
     , m_bLoadedLegacyData(false)
 {
@@ -88,10 +87,11 @@ Ledger::Ledger(
 // their user ID. So you call this function to get it loaded up, and the NymID
 // will hopefully be loaded up with the rest of it.
 Ledger::Ledger(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theAccountID,
     const Identifier& theNotaryID)
-    : OTTransactionType(dataFolder)
+    : OTTransactionType(wallet, dataFolder)
     , m_Type(Ledger::message)
     , m_bLoadedLegacyData(false)
 {
@@ -102,8 +102,8 @@ Ledger::Ledger(
 }
 
 // This is private now and hopefully will stay that way.
-Ledger::Ledger(const std::string& dataFolder)
-    : OTTransactionType(dataFolder)
+Ledger::Ledger(const api::Wallet& wallet, const std::string& dataFolder)
+    : OTTransactionType(wallet, dataFolder)
     , m_Type(Ledger::message)
     , m_bLoadedLegacyData(false)
 {
@@ -841,6 +841,7 @@ bool Ledger::SaveExpiredBox()
 
 // static
 Ledger* Ledger::GenerateLedger(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAcctID,  // AcctID should be "OwnerID" since could be
@@ -850,7 +851,7 @@ Ledger* Ledger::GenerateLedger(
     bool bCreateFile)
 {
     std::unique_ptr<Ledger> ledger{
-        new Ledger(dataFolder, theNymID, theAcctID, theNotaryID)};
+        new Ledger(wallet, dataFolder, theNymID, theAcctID, theNotaryID)};
 
     OT_ASSERT(ledger);
 
@@ -980,7 +981,7 @@ bool Ledger::GenerateLedger(
     if ((Ledger::inbox == theType) || (Ledger::outbox == theType)) {
         // Have to look up the NymID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        auto account = OT::App().Wallet().Account(data_folder_, theAcctID);
+        auto account = wallet_.Account(data_folder_, theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());
@@ -991,7 +992,7 @@ bool Ledger::GenerateLedger(
         }
     } else if (Ledger::recordBox == theType) {
         // RecordBox COULD be by NymID OR AcctID. So we TRY to lookup the acct.
-        auto account = OT::App().Wallet().Account(data_folder_, theAcctID);
+        auto account = wallet_.Account(data_folder_, theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());
@@ -1224,6 +1225,7 @@ OTTransaction* Ledger::GetTransferReceipt(std::int64_t lNumberOfOrigin)
             pTransaction->GetReferenceString(strReference);
 
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                wallet_,
                 pTransaction->DataFolder(),
                 strReference,
                 pTransaction->GetPurportedNotaryID(),
@@ -1305,6 +1307,7 @@ OTTransaction* Ledger::GetChequeReceipt(
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
         std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+            wallet_,
             pCurrentReceipt->DataFolder(),
             strDepositChequeMsg,
             GetPurportedNotaryID(),
@@ -1329,7 +1332,7 @@ OTTransaction* Ledger::GetChequeReceipt(
             String strCheque;
             pOriginalItem->GetAttachment(strCheque);
 
-            Cheque* pCheque = new Cheque{data_folder_};
+            Cheque* pCheque = new Cheque{wallet_, data_folder_};
             OT_ASSERT(nullptr != pCheque);
             std::unique_ptr<Cheque> theChequeAngel(pCheque);
 
@@ -2042,6 +2045,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // which is ONLY used here.
                     //
                     OTTransaction* pTransaction = new OTTransaction(
+                        wallet_,
                         data_folder_,
                         NYM_ID,
                         ACCOUNT_ID,
@@ -2240,6 +2244,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // OTTransaction(GetNymID(), GetRealAccountID(),
             // GetRealNotaryID());
             OTTransaction* pTransaction = new OTTransaction(
+                wallet_,
                 data_folder_,
                 GetNymID(),
                 GetPurportedAccountID(),

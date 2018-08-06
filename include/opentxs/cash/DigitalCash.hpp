@@ -56,4 +56,4 @@ public:
 }  // namespace opentxs
 
 #endif  // OT_CASH
-#endif  // OPENTXS_CASH_DIGITALCASH_HPP
+#endif

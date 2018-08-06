@@ -118,4 +118,4 @@ private:
     Identifier& operator=(Identifier&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_IDENTIFIER_HPP
+#endif

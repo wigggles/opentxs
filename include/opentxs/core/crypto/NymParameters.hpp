@@ -136,4 +136,4 @@ public:
     ~NymParameters() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_NYMPARAMETERS_HPP
+#endif

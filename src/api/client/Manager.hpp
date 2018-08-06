@@ -3,14 +3,14 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef SRC_API_CLIENT_CLIENT_HPP
-#define SRC_API_CLIENT_CLIENT_HPP
+#pragma once
 
 #include "Internal.hpp"
 
 namespace opentxs::api::client::implementation
 {
-class Client final : public opentxs::api::client::internal::Client
+class Manager final : opentxs::api::client::internal::Manager,
+                      opentxs::api::implementation::Scheduler
 {
 public:
     const api::client::Activity& Activity() const override;
@@ -18,15 +18,26 @@ public:
     const api::client::Blockchain& Blockchain() const override;
 #endif
     const api::client::Cash& Cash() const override;
+    const api::Settings& Config() const override { return config_; }
     const api::client::Contacts& Contacts() const override;
     const api::Crypto& Crypto() const override { return crypto_; }
+    const api::network::Dht& DHT() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const api::Factory& Factory() const override;
+    int Instance() const override { return instance_; }
     std::recursive_mutex& Lock(
         const Identifier& nymID,
         const Identifier& serverID) const override;
     const OT_API& OTAPI(const std::string& wallet = "") const override;
     const api::client::Pair& Pair() const override;
+    void Schedule(
+        const std::chrono::seconds& interval,
+        const PeriodicTask& task,
+        const std::chrono::seconds& last =
+            std::chrono::seconds(0)) const override
+    {
+        Scheduler::Schedule(interval, task, last);
+    }
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& Seeds() const override { return seeds_; }
 #endif
@@ -34,48 +45,51 @@ public:
     const api::storage::Storage& Storage() const override { return storage_; }
     const client::Sync& Sync() const override;
     const api::client::UI& UI() const override;
-    const api::Wallet& Wallet() const override { return wallet_; }
+    const api::Wallet& Wallet() const override;
     const client::Workflow& Workflow() const override;
-    const api::network::ZMQ& ZMQ() const override { return zmq_; }
+    const opentxs::network::zeromq::Context& ZeroMQ() const override
+    {
+        return zmq_context_;
+    }
+    const api::network::ZMQ& ZMQ() const override;
 
     void StartActivity() override;
     void StartContacts() override;
     opentxs::OTWallet* StartWallet() override;
 
-    ~Client();
+    ~Manager();
 
 private:
     friend opentxs::Factory;
 
     const Flag& running_;
-    const api::Wallet& wallet_;
-    const api::network::ZMQ& zmq_;
     const api::storage::Storage& storage_;
     const api::Crypto& crypto_;
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds_;
 #endif
-    const api::Identity& identity_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
-
+    const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
-
+    std::unique_ptr<api::Factory> factory_;
+    std::unique_ptr<api::Wallet> wallet_;
+    std::unique_ptr<api::network::ZMQ> zeromq_;
+    std::unique_ptr<api::Identity> identity_;
+    std::unique_ptr<api::client::internal::Contacts> contacts_;
     std::unique_ptr<api::client::internal::Activity> activity_;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     std::unique_ptr<api::client::Blockchain> blockchain_;
 #endif
+    std::unique_ptr<api::client::Workflow> workflow_;
+    std::unique_ptr<OT_API> ot_api_;
+    std::unique_ptr<OTAPI_Exec> otapi_exec_;
     std::unique_ptr<api::client::Cash> cash_;
-    std::unique_ptr<api::client::internal::Contacts> contacts_;
-    std::unique_ptr<api::client::Pair> pair_;
     std::unique_ptr<api::client::ServerAction> server_action_;
     std::unique_ptr<api::client::Sync> sync_;
     std::unique_ptr<api::client::UI> ui_;
-    std::unique_ptr<api::client::Workflow> workflow_;
-    std::unique_ptr<api::Factory> factory_;
-    std::unique_ptr<OT_API> ot_api_;
-    std::unique_ptr<OTAPI_Exec> otapi_exec_;
-
+    std::unique_ptr<api::client::Pair> pair_;
+    std::unique_ptr<api::network::Dht> dht_;
     mutable std::recursive_mutex lock_;
     mutable std::mutex map_lock_;
     mutable std::map<ContextID, std::recursive_mutex> context_locks_;
@@ -84,38 +98,23 @@ private:
 
     void Cleanup();
     void Init();
-    void Init_Activity();
-#if OT_CRYPTO_SUPPORTED_KEY_HD
-    void Init_Blockchain();
-#endif
-    void Init_Cash();
-    void Init_Contacts();
-    void Init_Factory();
-    void Init_OldClientAPI();
-    void Init_Pair();
-    void Init_ServerAction();
-    void Init_Sync();
-    void Init_UI();
-    void Init_Workflow();
+    void storage_gc_hook() override;
 
-    Client(
+    Manager(
         const Flag& running,
         const api::Settings& config,
         const api::Crypto& crypto,
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
-        const api::Identity& identity,
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
-        const api::Wallet& wallet,
-        const api::network::ZMQ& zmq,
+        const opentxs::network::zeromq::Context& context,
         const int instance);
-    Client() = delete;
-    Client(const Client&) = delete;
-    Client(Client&&) = delete;
-    Client& operator=(const Client&) = delete;
-    Client& operator=(Client&&) = delete;
+    Manager() = delete;
+    Manager(const Manager&) = delete;
+    Manager(Manager&&) = delete;
+    Manager& operator=(const Manager&) = delete;
+    Manager& operator=(Manager&&) = delete;
 };
 }  // namespace opentxs::api::client::implementation
-#endif  // SRC_API_CLIENT_CLIENT_HPP

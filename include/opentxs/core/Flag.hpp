@@ -43,4 +43,4 @@ private:
     Flag& operator=(Flag&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_FLAG_HPP
+#endif

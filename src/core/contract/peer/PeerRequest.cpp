@@ -27,6 +27,7 @@
 namespace opentxs
 {
 PeerRequest::PeerRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
     : ot_super(nym, serialized.version())
@@ -35,6 +36,7 @@ PeerRequest::PeerRequest(
     , server_(Identifier::Factory(serialized.server()))
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
+    , wallet_{wallet}
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -42,6 +44,7 @@ PeerRequest::PeerRequest(
 }
 
 PeerRequest::PeerRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequest& serialized,
     const std::string& conditions)
@@ -51,6 +54,7 @@ PeerRequest::PeerRequest(
     , server_(Identifier::Factory(serialized.server()))
     , cookie_(Identifier::Factory(serialized.cookie()))
     , type_(serialized.type())
+    , wallet_{wallet}
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -58,6 +62,7 @@ PeerRequest::PeerRequest(
 }
 
 PeerRequest::PeerRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const std::uint32_t version,
     const Identifier& recipient,
@@ -69,6 +74,7 @@ PeerRequest::PeerRequest(
     , server_(Identifier::Factory(server))
     , cookie_(Identifier::Factory())
     , type_(type)
+    , wallet_{wallet}
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
@@ -77,6 +83,7 @@ PeerRequest::PeerRequest(
 }
 
 PeerRequest::PeerRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const std::uint32_t version,
     const Identifier& recipient,
@@ -89,6 +96,7 @@ PeerRequest::PeerRequest(
     , server_(Identifier::Factory(server))
     , cookie_(Identifier::Factory())
     , type_(type)
+    , wallet_{wallet}
 {
     auto random = OT::App().Crypto().AES().InstantiateBinarySecretSP();
     random->randomizeMemory(32);
@@ -112,6 +120,7 @@ proto::PeerRequest PeerRequest::Contract() const
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
+    const api::Wallet& wallet,
     const ConstNym& sender,
     const proto::PeerRequestType& type,
     const Identifier& unitID,
@@ -121,7 +130,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const std::string& txid,
     const Amount& amount)
 {
-    auto unit = OT::App().Wallet().UnitDefinition(unitID);
+    auto unit = wallet.UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."
@@ -135,7 +144,14 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_PENDINGBAILMENT): {
             contract.reset(new BailmentNotice(
-                sender, recipient, unitID, serverID, requestID, txid, amount));
+                wallet,
+                sender,
+                recipient,
+                unitID,
+                serverID,
+                requestID,
+                txid,
+                amount));
             break;
         }
         default: {
@@ -149,12 +165,13 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& unitID,
     const Identifier& serverID)
 {
-    auto unit = OT::App().Wallet().UnitDefinition(unitID);
+    auto unit = wallet.UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."
@@ -167,8 +184,8 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 
     switch (type) {
         case (proto::PEERREQUEST_BAILMENT): {
-            contract.reset(
-                new BailmentRequest(nym, unit->Nym()->ID(), unitID, serverID));
+            contract.reset(new BailmentRequest(
+                wallet, nym, unit->Nym()->ID(), unitID, serverID));
             break;
         }
         default: {
@@ -182,6 +199,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequestType& type,
     const Identifier& unitID,
@@ -189,7 +207,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     const std::uint64_t& amount,
     const std::string& terms)
 {
-    auto unit = OT::App().Wallet().UnitDefinition(unitID);
+    auto unit = wallet.UnitDefinition(unitID);
 
     if (!unit) {
         otErr << __FUNCTION__ << ": failed to load unit definition."
@@ -203,7 +221,13 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_OUTBAILMENT): {
             contract.reset(new OutBailmentRequest(
-                nym, unit->Nym()->ID(), unitID, serverID, amount, terms));
+                wallet,
+                nym,
+                unit->Nym()->ID(),
+                unitID,
+                serverID,
+                amount,
+                terms));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -216,6 +240,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
+    const api::Wallet& wallet,
     const ConstNym& sender,
     const proto::PeerRequestType& type,
     const proto::ConnectionInfoType connectionType,
@@ -227,7 +252,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_CONNECTIONINFO): {
             contract.reset(new ConnectionRequest(
-                sender, recipient, connectionType, serverID));
+                wallet, sender, recipient, connectionType, serverID));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -240,6 +265,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Create(
+    const api::Wallet& wallet,
     const ConstNym& sender,
     const proto::PeerRequestType& type,
     const proto::SecretType secretType,
@@ -253,7 +279,13 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
     switch (type) {
         case (proto::PEERREQUEST_STORESECRET): {
             contract.reset(new StoreSecret(
-                sender, recipient, secretType, primary, secondary, serverID));
+                wallet,
+                sender,
+                recipient,
+                secretType,
+                primary,
+                secondary,
+                serverID));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;
@@ -266,6 +298,7 @@ std::unique_ptr<PeerRequest> PeerRequest::Create(
 }
 
 std::unique_ptr<PeerRequest> PeerRequest::Factory(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
 {
@@ -279,19 +312,19 @@ std::unique_ptr<PeerRequest> PeerRequest::Factory(
 
     switch (serialized.type()) {
         case (proto::PEERREQUEST_BAILMENT): {
-            contract.reset(new BailmentRequest(nym, serialized));
+            contract.reset(new BailmentRequest(wallet, nym, serialized));
         } break;
         case (proto::PEERREQUEST_OUTBAILMENT): {
-            contract.reset(new OutBailmentRequest(nym, serialized));
+            contract.reset(new OutBailmentRequest(wallet, nym, serialized));
         } break;
         case (proto::PEERREQUEST_PENDINGBAILMENT): {
-            contract.reset(new BailmentNotice(nym, serialized));
+            contract.reset(new BailmentNotice(wallet, nym, serialized));
         } break;
         case (proto::PEERREQUEST_CONNECTIONINFO): {
-            contract.reset(new ConnectionRequest(nym, serialized));
+            contract.reset(new ConnectionRequest(wallet, nym, serialized));
         } break;
         case (proto::PEERREQUEST_STORESECRET): {
-            contract.reset(new StoreSecret(nym, serialized));
+            contract.reset(new StoreSecret(wallet, nym, serialized));
         } break;
         default: {
             otErr << __FUNCTION__ << ": invalid request type." << std::endl;

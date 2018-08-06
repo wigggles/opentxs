@@ -7,7 +7,7 @@
 
 #include "opentxs/client/Utility.hpp"
 
-#include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"

@@ -3,14 +3,22 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP
-#define OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP
+#pragma once
 
 #include "Internal.hpp"
 
+#include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Lockable.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/RequestSocket.hpp"
+
+#include <map>
+#include <tuple>
+
 namespace opentxs::api::implementation
 {
-class Wallet : virtual public opentxs::api::Wallet, Lockable
+class Wallet : virtual public opentxs::api::Wallet, public Lockable
 {
 public:
     SharedAccount Account(
@@ -41,18 +49,12 @@ public:
     bool ImportAccount(
         const std::string& dataFolder,
         std::unique_ptr<opentxs::Account>& imported) const override;
-    std::shared_ptr<const opentxs::Context> Context(
-        const Identifier& notaryID,
-        const Identifier& clientNymID) const override;
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
         const Identifier& localNymID,
         const Identifier& remoteNymID) const override;
     std::shared_ptr<const opentxs::ServerContext> ServerContext(
         const Identifier& localNymID,
         const Identifier& remoteID) const override;
-    Editor<opentxs::Context> mutable_Context(
-        const Identifier& notaryID,
-        const Identifier& clientNymID) const override;
     Editor<opentxs::ClientContext> mutable_ClientContext(
         const Identifier& localNymID,
         const Identifier& remoteNymID) const override;
@@ -184,11 +186,45 @@ public:
     proto::ContactItemType CurrencyTypeBasedOnUnitType(
         const Identifier& contractID) const override;
 
-    ~Wallet();
+    bool LoadCredential(
+        const std::string& id,
+        std::shared_ptr<proto::Credential>& credential) const override;
+    bool SaveCredential(const proto::Credential& credential) const override;
 
-private:
+    virtual ~Wallet() = default;
+
+protected:
     using AccountLock =
         std::pair<std::shared_mutex, std::unique_ptr<opentxs::Account>>;
+    using ContextID = std::pair<std::string, std::string>;
+    using ContextMap = std::map<ContextID, std::shared_ptr<opentxs::Context>>;
+
+    const int instance_{0};
+    const api::storage::Storage& storage_;
+    const api::Factory& factory_;
+    const api::HDSeed& seeds_;
+    const api::Legacy& legacy_;
+    mutable ContextMap context_map_;
+    mutable std::mutex context_map_lock_;
+
+    std::shared_ptr<opentxs::Context> context(
+        const Identifier& localNymID,
+        const Identifier& remoteNymID) const;
+    proto::ContactItemType extract_unit(const Identifier& contractID) const;
+    proto::ContactItemType extract_unit(
+        const opentxs::UnitDefinition& contract) const;
+    void save(opentxs::Context* context) const;
+    OTIdentifier server_to_nym(OTIdentifier& serverID) const;
+
+    Wallet(
+        const int instance,
+        const api::storage::Storage& storage,
+        const api::Factory& factory,
+        const api::HDSeed& seeds,
+        const api::Legacy& legacy,
+        const opentxs::network::zeromq::Context& zmq);
+
+private:
     using AccountMap = std::map<OTIdentifier, AccountLock>;
     using NymLock = std::pair<std::mutex, std::shared_ptr<opentxs::Nym>>;
     using NymMap = std::map<std::string, NymLock>;
@@ -196,8 +232,6 @@ private:
         std::map<std::string, std::shared_ptr<opentxs::ServerContract>>;
     using UnitMap =
         std::map<std::string, std::shared_ptr<opentxs::UnitDefinition>>;
-    using ContextID = std::pair<std::string, std::string>;
-    using ContextMap = std::map<ContextID, std::shared_ptr<opentxs::Context>>;
     using IssuerID = std::pair<OTIdentifier, OTIdentifier>;
     using IssuerLock =
         std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
@@ -207,18 +241,15 @@ private:
 
     static const std::map<std::string, proto::ContactItemType> unit_of_account_;
 
-    const api::Native& ot_;
     mutable AccountMap account_map_;
     mutable NymMap nym_map_;
     mutable ServerMap server_map_;
     mutable UnitMap unit_map_;
-    mutable ContextMap context_map_;
     mutable IssuerMap issuer_map_;
     mutable std::mutex account_map_lock_;
     mutable std::mutex nym_map_lock_;
     mutable std::mutex server_map_lock_;
     mutable std::mutex unit_map_lock_;
-    mutable std::mutex context_map_lock_;
     mutable std::mutex issuer_map_lock_;
     mutable std::mutex peer_map_lock_;
     mutable std::map<std::string, std::mutex> peer_lock_;
@@ -228,6 +259,9 @@ private:
     OTZMQPublishSocket issuer_publisher_;
     OTZMQPublishSocket nym_publisher_;
     OTZMQPublishSocket server_publisher_;
+    OTZMQRequestSocket dht_nym_requester_;
+    OTZMQRequestSocket dht_server_requester_;
+    OTZMQRequestSocket dht_unit_requester_;
 
     std::string account_alias(const std::string& accountID) const;
     opentxs::Account* account_factory(
@@ -235,15 +269,28 @@ private:
         const Identifier& accountID,
         const std::string& alias,
         const std::string& serialized) const;
-    proto::ContactItemType extract_unit(const Identifier& contractID) const;
-    proto::ContactItemType extract_unit(
-        const opentxs::UnitDefinition& contract) const;
-    bool load_legacy_account(
+    virtual void instantiate_client_context(
+        const proto::Context& serialized,
+        const std::shared_ptr<const opentxs::Nym>& localNym,
+        const std::shared_ptr<const opentxs::Nym>& remoteNym,
+        std::shared_ptr<opentxs::Context>& output) const
+    {
+    }
+    virtual void instantiate_server_context(
+        const proto::Context& serialized,
+        const std::shared_ptr<const opentxs::Nym>& localNym,
+        const std::shared_ptr<const opentxs::Nym>& remoteNym,
+        std::shared_ptr<opentxs::Context>& output) const
+    {
+    }
+    virtual bool load_legacy_account(
         const std::string& dataFolder,
         const Identifier& accountID,
-        const Identifier& notaryID,
         const eLock& lock,
-        AccountLock& row) const;
+        AccountLock& row) const
+    {
+        return false;
+    }
     Editor<opentxs::NymFile> mutable_nymfile(
         const std::string& dataFolder,
         const std::shared_ptr<const opentxs::Nym>& targetNym,
@@ -258,12 +305,12 @@ private:
         std::unique_ptr<opentxs::Account>& in,
         eLock& lock,
         bool success) const;
-    void save(opentxs::Context* context) const;
     void save(const Lock& lock, api::client::Issuer* in) const;
     void save(NymData* nymData, const Lock& lock) const;
     void save(opentxs::NymFile* nym, const Lock& lock) const;
     bool SaveCredentialIDs(const opentxs::Nym& nym) const;
-    std::shared_ptr<const opentxs::Nym> signer_nym(const Identifier& id) const;
+    virtual std::shared_ptr<const opentxs::Nym> signer_nym(
+        const Identifier& id) const = 0;
 
     /* Throws std::out_of_range for missing accounts */
     AccountLock& account(
@@ -271,9 +318,6 @@ private:
         const std::string& dataFolder,
         const Identifier& accountID,
         const bool create) const;
-    std::shared_ptr<opentxs::Context> context(
-        const Identifier& localNymID,
-        const Identifier& remoteNymID) const;
     IssuerLock& issuer(
         const Identifier& nymID,
         const Identifier& issuerID,
@@ -288,7 +332,6 @@ private:
      *    \param[in] contract the instantiated ServerContract object
      */
     ConstServerContract Server(std::unique_ptr<ServerContract>& contract) const;
-    OTIdentifier ServerToNym(OTIdentifier& serverID) const;
 
     /**   Save an instantiated unit definition to storage and add to internal
      *    map.
@@ -301,7 +344,6 @@ private:
     ConstUnitDefinition UnitDefinition(
         std::unique_ptr<opentxs::UnitDefinition>& contract) const;
 
-    Wallet(const api::Native& ot, const opentxs::network::zeromq::Context& zmq);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;
@@ -309,4 +351,3 @@ private:
     Wallet& operator=(Wallet&&) = delete;
 };
 }  // namespace opentxs::api::implementation
-#endif  // OPENTXS_API_CLIENT_IMPLEMENTATION_WALLET_HPP

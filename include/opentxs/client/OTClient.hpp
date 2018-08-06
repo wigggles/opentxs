@@ -182,4 +182,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CLIENT_OTCLIENT_HPP
+#endif

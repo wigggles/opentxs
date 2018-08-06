@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUBLISHSOCKET_HPP
-#define OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUBLISHSOCKET_HPP
+#pragma once
 
 #include "opentxs/Forward.hpp"
 
@@ -41,4 +40,3 @@ private:
     PublishSocket& operator=(PublishSocket&&) = delete;
 };
 }  // namespace opentxs::network::zeromq::implementation
-#endif  // OPENTXS_NETWORK_ZEROMQ_IMPLEMENTATION_PUBLISHSOCKET_HPP

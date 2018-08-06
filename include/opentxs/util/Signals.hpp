@@ -110,4 +110,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_UTIL_SIGNALS_HPP
+#endif

@@ -18,7 +18,7 @@ namespace io
 {
 class IFileReadCallBack;
 }
-}
+}  // namespace irr
 
 namespace opentxs
 {
@@ -48,4 +48,4 @@ private:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_OTSTRINGXML_HPP
+#endif

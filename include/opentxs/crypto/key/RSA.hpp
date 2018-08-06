@@ -57,4 +57,4 @@ private:
 }  // namespace crypto
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_KEY_RSA
-#endif  // OPENTXS_CRYPTO_KEY_RSA_HPP
+#endif

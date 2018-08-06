@@ -41,4 +41,4 @@ private:
     Sodium& operator=(Sodium&&) = delete;
 };
 }  // namespace opentxs::crypto
-#endif  // OPENTXS_CRYPTO_LIBRARY_SODIUM_HPP
+#endif

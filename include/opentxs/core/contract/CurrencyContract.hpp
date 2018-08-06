@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_CURRENCYCONTRACT_HPP
-#define OPENTXS_CORE_CURRENCYCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_CURRENCYCONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_CURRENCYCONTRACT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -30,9 +30,11 @@ private:
     std::string fractional_unit_name_;
 
     EXPORT CurrencyContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::UnitDefinition serialized);
     EXPORT CurrencyContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
@@ -65,4 +67,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CURRENCYCONTRACT_HPP
+#endif

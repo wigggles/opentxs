@@ -5,8 +5,8 @@
 
 // OTAgreement is derived from OTCronItem.  It handles re-occuring billing.
 
-#ifndef OPENTXS_CORE_OTAGREEMENT_HPP
-#define OPENTXS_CORE_OTAGREEMENT_HPP
+#ifndef OPENTXS_CORE_RECURRING_OTAGREEMENT_HPP
+#define OPENTXS_CORE_RECURRING_OTAGREEMENT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -371,6 +371,7 @@ public:
 
      */
     EXPORT bool SendNoticeToAllParties(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         bool bSuccessMsg,
         const Nym& theServerNym,
@@ -385,6 +386,7 @@ public:
 
     // Nym receives an OTItem::acknowledgment or OTItem::rejection.
     EXPORT static bool DropServerNoticeToNymbox(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         bool bSuccessMsg,
         const Nym& theServerNym,
@@ -398,12 +400,14 @@ public:
         String* pstrAttachment,
         const Identifier& actualNymID);
 
-    OTAgreement(const std::string& dataFolder);
+    OTAgreement(const api::Wallet& wallet, const std::string& dataFolder);
     OTAgreement(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     OTAgreement(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -431,4 +435,4 @@ private:
     OTAgreement() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTAGREEMENT_HPP
+#endif

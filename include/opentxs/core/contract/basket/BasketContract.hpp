@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
-#define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_BASKET_BASKETCONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_BASKET_BASKETCONTRACT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -32,9 +32,11 @@ private:
     std::uint64_t weight_;
 
     EXPORT BasketContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::UnitDefinition serialized);
     EXPORT BasketContract(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
@@ -49,6 +51,7 @@ public:
     EXPORT static OTIdentifier CalculateBasketID(
         const proto::UnitDefinition& serialized);
     EXPORT static bool FinalizeTemplate(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         proto::UnitDefinition& serialized);
 
@@ -65,4 +68,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#endif

@@ -48,8 +48,11 @@ public:
                                // created here. Otherwise set to false;
         std::int64_t stashTransNum = 0);
 
-    AccountList(const std::string& dataFolder);
     explicit AccountList(
+        const api::Wallet& wallet,
+        const std::string& dataFolder);
+    explicit AccountList(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         Account::AccountType acctType);
 
@@ -68,4 +71,4 @@ private:
     AccountList() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_ACCOUNTLIST_HPP
+#endif

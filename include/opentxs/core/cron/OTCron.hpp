@@ -158,7 +158,7 @@ public:
     bool LoadCron();
     bool SaveCron();
 
-    explicit OTCron(const api::Legacy& legacy);
+    explicit OTCron(const api::Wallet& wallet, const api::Legacy& legacy);
 
     virtual ~OTCron();
 
@@ -176,4 +176,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRON_OTCRON_HPP
+#endif

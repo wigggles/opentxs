@@ -185,4 +185,4 @@ private:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_OTPASSWORD_HPP
+#endif

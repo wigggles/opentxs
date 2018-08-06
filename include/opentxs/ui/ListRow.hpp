@@ -41,4 +41,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_LISTROW_HPP
+#endif

@@ -37,4 +37,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_LEGACY_HPP
+#endif

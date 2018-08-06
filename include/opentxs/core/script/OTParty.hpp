@@ -254,8 +254,9 @@ public:
     // speak directly
     // to said agent.)
 
-    EXPORT OTParty(const std::string& dataFolder);
+    EXPORT OTParty(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT OTParty(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const char* szName,
         bool bIsOwnerNym,
@@ -263,6 +264,7 @@ public:
         const char* szAuthAgent,
         bool bCreateAgent = false);
     EXPORT OTParty(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         std::string str_PartyName,
         const Nym& theNym,  // Nym is BOTH owner AND agent, when
@@ -275,6 +277,7 @@ public:
     virtual ~OTParty();
 
 private:
+    const api::Wallet& wallet_;
     const std::string data_folder_{""};
     std::string* m_pstr_party_name{nullptr};
     bool m_bPartyIsNym{true};             // true, is "nym". false, is "entity".
@@ -316,4 +319,4 @@ private:
     OTParty& operator=(const OTParty&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SCRIPT_OTPARTY_HPP
+#endif

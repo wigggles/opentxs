@@ -29,8 +29,12 @@ private:
 
     proto::PeerReply IDVersion(const Lock& lock) const override;
 
-    ConnectionReply(const ConstNym& nym, const proto::PeerReply& serialized);
     ConnectionReply(
+        const api::Wallet& wallet,
+        const ConstNym& nym,
+        const proto::PeerReply& serialized);
+    ConnectionReply(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& initiator,
         const Identifier& request,
@@ -47,4 +51,4 @@ public:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
+#endif

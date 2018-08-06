@@ -3,16 +3,19 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_IMPLEMENTATION_SERVER_HPP
-#define OPENTXS_API_IMPLEMENTATION_SERVER_HPP
+#pragma once
 
 #include "Internal.hpp"
 
-namespace opentxs::api::implementation
+namespace opentxs::api::server::implementation
 {
-class Server : virtual public opentxs::api::Server
+class Manager final : opentxs::api::server::Manager,
+                      opentxs::api::implementation::Scheduler
 {
 public:
+    const api::Settings& Config() const override { return config_; }
+    const api::Crypto& Crypto() const override { return crypto_; }
+    const api::network::Dht& DHT() const override;
     const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
     const std::string GetDefaultBindIP() const override;
@@ -31,18 +34,33 @@ public:
     const std::string GetUserName() const override;
     const std::string GetUserTerms() const override;
     const Identifier& ID() const override;
+    int Instance() const override { return instance_; }
     const Identifier& NymID() const override;
 #if OT_CASH
     void ScanMints() const override;
 #endif  // OT_CASH
+    void Schedule(
+        const std::chrono::seconds& interval,
+        const PeriodicTask& task,
+        const std::chrono::seconds& last =
+            std::chrono::seconds(0)) const override
+    {
+        Scheduler::Schedule(interval, task, last);
+    }
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& Seeds() const override { return seeds_; }
 #if OT_CASH
 #endif
+    const api::storage::Storage& Storage() const override { return storage_; }
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
+    const api::Wallet& Wallet() const override;
+    const opentxs::network::zeromq::Context& ZeroMQ() const override
+    {
+        return zmq_context_;
+    }
 
-    ~Server();
+    ~Manager();
 
 private:
     friend opentxs::Factory;
@@ -52,22 +70,23 @@ private:
 #endif  // OT_CASH
 
     const ArgList& args_;
+    const api::storage::Storage& storage_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
     const api::Crypto& crypto_;
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds_;
 #endif
-    const api::storage::Storage& storage_;
-    const api::Wallet& wallet_;
-    const Flag& running_;
     const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
+    const Flag& running_;
     std::unique_ptr<api::Factory> factory_;
-    std::unique_ptr<server::Server> server_p_;
-    server::Server& server_;
-    std::unique_ptr<server::MessageProcessor> message_processor_p_;
-    server::MessageProcessor& message_processor_;
+    std::unique_ptr<api::Wallet> wallet_;
+    std::unique_ptr<api::network::Dht> dht_;
+    std::unique_ptr<opentxs::server::Server> server_p_;
+    opentxs::server::Server& server_;
+    std::unique_ptr<opentxs::server::MessageProcessor> message_processor_p_;
+    opentxs::server::MessageProcessor& message_processor_;
 #if OT_CASH
     std::unique_ptr<std::thread> mint_thread_;
     mutable std::mutex mint_lock_;
@@ -110,27 +129,25 @@ private:
 
     void Cleanup();
     void Init();
-    void Init_Factory();
     void Start() override;
+    void storage_gc_hook() override;
 
-    Server(
+    Manager(
         const ArgList& args,
+        const api::storage::Storage& storage,
         const api::Crypto& crypto,
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
         const api::Legacy& legacy,
         const api::Settings& config,
-        const api::storage::Storage& storage,
-        const api::Wallet& wallet,
-        const Flag& running,
         const opentxs::network::zeromq::Context& context,
+        const Flag& running,
         const int instance);
-    Server() = delete;
-    Server(const Server&) = delete;
-    Server(Server&&) = delete;
-    Server& operator=(const Server&) = delete;
-    Server& operator=(Server&&) = delete;
+    Manager() = delete;
+    Manager(const Manager&) = delete;
+    Manager(Manager&&) = delete;
+    Manager& operator=(const Manager&) = delete;
+    Manager& operator=(Manager&&) = delete;
 };
-}  // namespace opentxs::api::implementation
-#endif  // OPENTXS_API_IMPLEMENTATION_SERVER_HPP
+}  // namespace opentxs::api::server::implementation

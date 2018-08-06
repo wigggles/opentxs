@@ -168,4 +168,4 @@ public:
     EXPORT String& operator=(const String& rhs);
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_STRING_HPP
+#endif

@@ -52,6 +52,7 @@ public:
     static bool ContainsCheque(const proto::PaymentWorkflow& workflow);
     static std::string ExtractCheque(const proto::PaymentWorkflow& workflow);
     static Cheque InstantiateCheque(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const proto::PaymentWorkflow& workflow);
 
@@ -132,4 +133,4 @@ private:
 }  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_CLIENT_WORKFLOW_HPP
+#endif

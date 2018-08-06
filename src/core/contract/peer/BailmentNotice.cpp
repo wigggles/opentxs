@@ -15,9 +15,10 @@
 namespace opentxs
 {
 BailmentNotice::BailmentNotice(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(nym, serialized)
+    : ot_super(wallet, nym, serialized)
     , unit_(Identifier::Factory(serialized.pendingbailment().unitid()))
     , server_(Identifier::Factory(serialized.pendingbailment().serverid()))
     , requestID_(Identifier::Factory(serialized.pendingbailment().requestid()))
@@ -27,6 +28,7 @@ BailmentNotice::BailmentNotice(
 }
 
 BailmentNotice::BailmentNotice(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& recipientID,
     const Identifier& unitID,
@@ -35,6 +37,7 @@ BailmentNotice::BailmentNotice(
     const std::string& txid,
     const Amount& amount)
     : ot_super(
+          wallet,
           nym,
           CURRENT_VERSION,
           recipientID,

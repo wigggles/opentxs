@@ -36,8 +36,7 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_CORE_CRYPTO_BITCOIN_CRYPTO_HPP
-#define OPENTXS_CORE_CRYPTO_BITCOIN_CRYPTO_HPP
+#pragma once
 
 #if OT_CRYPTO_USING_LIBBITCOIN
 namespace opentxs::crypto::implementation
@@ -133,4 +132,3 @@ private:
 };
 }  // namespace opentxs::crypto::implementation
 #endif  // OT_CRYPTO_USING_LIBBITCOIN
-#endif  // OPENTXS_CORE_CRYPTO_BITCOIN_CRYPTO_HPP

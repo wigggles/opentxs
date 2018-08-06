@@ -14,7 +14,7 @@ class Test_NymData : public ::testing::Test
 {
 public:
     Test_NymData()
-        : nymData_(opentxs::OT::App().Wallet().mutable_Nym(
+        : nymData_(opentxs::OT::App().Client().Wallet().mutable_Nym(
               opentxs::Identifier::Factory(
                   opentxs::OT::App().Client().Exec().CreateNymHD(
                       opentxs::proto::CITEMTYPE_INDIVIDUAL,

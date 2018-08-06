@@ -112,14 +112,16 @@ public:
         bool bCalculatingID = false,
         bool bSpecifyInstrumentDefinitionID = false) const;
 
-    OTPartyAccount(const std::string& dataFolder);
+    OTPartyAccount(const api::Wallet& wallet, const std::string& dataFolder);
     OTPartyAccount(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const std::string& str_account_name,
         const String& strAgentName,
         Account& theAccount,
         std::int64_t lClosingTransNo);
     OTPartyAccount(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strName,
         const String& strAgentName,
@@ -173,4 +175,4 @@ private:
     OTPartyAccount() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
+#endif

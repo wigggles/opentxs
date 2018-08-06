@@ -95,4 +95,4 @@ public:
 };  // class Editor
 }  // namespace opentxs
 
-#endif  // OPENTXS_API_EDITOR_HPP
+#endif

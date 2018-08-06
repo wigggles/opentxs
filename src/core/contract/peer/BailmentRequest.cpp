@@ -15,20 +15,23 @@
 namespace opentxs
 {
 BailmentRequest::BailmentRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::PeerRequest& serialized)
-    : ot_super(nym, serialized)
+    : ot_super(wallet, nym, serialized)
     , unit_(Identifier::Factory(serialized.bailment().unitid()))
     , server_(Identifier::Factory(serialized.bailment().serverid()))
 {
 }
 
 BailmentRequest::BailmentRequest(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const Identifier& recipientID,
     const Identifier& unitID,
     const Identifier& serverID)
     : ot_super(
+          wallet,
           nym,
           CURRENT_VERSION,
           recipientID,

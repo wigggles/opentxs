@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_STORAGE_TREE_NYMS_HPP
-#define OPENTXS_STORAGE_TREE_NYMS_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -66,4 +65,3 @@ public:
 };
 }  // namespace storage
 }  // namespace opentxs
-#endif  // OPENTXS_STORAGE_TREE_NYMS_HPP

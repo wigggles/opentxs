@@ -149,7 +149,7 @@ public:
     EXPORT OTTrackable* Instantiate(const String& strPayment);
     EXPORT OTTransaction* InstantiateNotice() const;
 #if OT_CASH
-    EXPORT Purse* InstantiatePurse() const;
+    EXPORT Purse* InstantiatePurse(const api::Wallet& wallet) const;
 #endif  // OT_CASH
     EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
     EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
@@ -167,7 +167,9 @@ public:
     EXPORT void InitPayment();
     EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
 #if OT_CASH
-    EXPORT Purse* InstantiatePurse(const String& strPayment);
+    EXPORT Purse* InstantiatePurse(
+        const api::Wallet& wallet,
+        const String& strPayment);
 #endif  // OT_CASH
     EXPORT std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     EXPORT void Release() override;
@@ -189,8 +191,11 @@ public:
     // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
     EXPORT bool VerifyCurrentDate(bool& bVerified);
 
-    EXPORT OTPayment(const std::string& dataFolder);
-    EXPORT OTPayment(const std::string& dataFolder, const String& strPayment);
+    EXPORT OTPayment(const api::Wallet& wallet, const std::string& dataFolder);
+    EXPORT OTPayment(
+        const api::Wallet& wallet,
+        const std::string& dataFolder,
+        const String& strPayment);
 
     EXPORT virtual ~OTPayment();
 
@@ -253,4 +258,4 @@ private:
     OTPayment() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_EXT_OTPAYMENT_HPP
+#endif

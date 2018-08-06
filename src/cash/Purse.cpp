@@ -46,8 +46,8 @@ namespace opentxs
 typedef std::map<std::string, Token*> mapOfTokenPointers;
 
 // private, used by factory.
-Purse::Purse(const std::string& dataFolder)
-    : Contract(dataFolder)
+Purse::Purse(const api::Wallet& wallet, const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory())
@@ -63,8 +63,11 @@ Purse::Purse(const std::string& dataFolder)
     InitPurse();
 }
 
-Purse::Purse(const std::string& dataFolder, const Purse& thePurse)
-    : Contract(dataFolder)
+Purse::Purse(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const Purse& thePurse)
+    : Contract(wallet, dataFolder)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(thePurse.GetNotaryID()))
@@ -85,8 +88,11 @@ Purse::Purse(const std::string& dataFolder, const Purse& thePurse)
 // Perhaps you know you're about to read this purse from a string and you
 // know the instrument definition is in there anyway. So you use this
 // constructor.
-Purse::Purse(const std::string& dataFolder, const Identifier& NOTARY_ID)
-    : Contract(dataFolder)
+Purse::Purse(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const Identifier& NOTARY_ID)
+    : Contract(wallet, dataFolder)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(NOTARY_ID))
@@ -103,10 +109,11 @@ Purse::Purse(const std::string& dataFolder, const Identifier& NOTARY_ID)
 }
 
 Purse::Purse(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : Contract(dataFolder)
+    : Contract(wallet, dataFolder)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(NOTARY_ID))
@@ -123,11 +130,12 @@ Purse::Purse(
 }
 
 Purse::Purse(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& NYM_ID)
-    : Contract(dataFolder)
+    : Contract(wallet, dataFolder)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory(NYM_ID))
     , m_NotaryID(Identifier::Factory(NOTARY_ID))
@@ -516,6 +524,7 @@ bool Purse::Merge(
 // static -- class factory.
 //
 Purse* Purse::LowLevelInstantiate(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strFirstLine,
     const Identifier& NOTARY_ID,
@@ -528,13 +537,15 @@ Purse* Purse::LowLevelInstantiate(
     // todo
     // hardcoding.
     {
-        pPurse = new Purse(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pPurse =
+            new Purse(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
 }
 
 Purse* Purse::LowLevelInstantiate(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strFirstLine,
     const Identifier& NOTARY_ID)
@@ -546,13 +557,14 @@ Purse* Purse::LowLevelInstantiate(
     // todo
     // hardcoding.
     {
-        pPurse = new Purse(dataFolder, NOTARY_ID);
+        pPurse = new Purse(wallet, dataFolder, NOTARY_ID);
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
 }
 
 Purse* Purse::LowLevelInstantiate(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strFirstLine)
 {
@@ -563,7 +575,7 @@ Purse* Purse::LowLevelInstantiate(
     // todo
     // hardcoding.
     {
-        pPurse = new Purse{dataFolder};
+        pPurse = new Purse{wallet, dataFolder};
         OT_ASSERT(nullptr != pPurse);
     }
     return pPurse;
@@ -574,6 +586,7 @@ Purse* Purse::LowLevelInstantiate(
 // Checks the notaryID / InstrumentDefinitionID, so you don't have to.
 //
 Purse* Purse::PurseFactory(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     String strInput,
     const Identifier& NOTARY_ID,
@@ -585,7 +598,11 @@ Purse* Purse::PurseFactory(
 
     if (bProcessed) {
         Purse* pPurse = Purse::LowLevelInstantiate(
-            dataFolder, strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+            wallet,
+            dataFolder,
+            strFirstLine,
+            NOTARY_ID,
+            INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;
@@ -632,6 +649,7 @@ Purse* Purse::PurseFactory(
 // Checks the notaryID, so you don't have to.
 //
 Purse* Purse::PurseFactory(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     String strInput,
     const Identifier& NOTARY_ID)
@@ -641,8 +659,8 @@ Purse* Purse::PurseFactory(
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Purse* pPurse =
-            Purse::LowLevelInstantiate(dataFolder, strFirstLine, NOTARY_ID);
+        Purse* pPurse = Purse::LowLevelInstantiate(
+            wallet, dataFolder, strFirstLine, NOTARY_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;
@@ -669,7 +687,10 @@ Purse* Purse::PurseFactory(
     return nullptr;
 }
 
-Purse* Purse::PurseFactory(const std::string& dataFolder, String strInput)
+Purse* Purse::PurseFactory(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    String strInput)
 {
     //  const char * szFunc = "Purse::PurseFactory";
 
@@ -678,7 +699,8 @@ Purse* Purse::PurseFactory(const std::string& dataFolder, String strInput)
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(dataFolder, strFirstLine);
+        Purse* pPurse =
+            Purse::LowLevelInstantiate(wallet, dataFolder, strFirstLine);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pPurse) return nullptr;

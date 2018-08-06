@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_SERVER_MAINFILE_HPP
-#define OPENTXS_SERVER_MAINFILE_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -17,7 +16,7 @@ class String;
 namespace api
 {
 class Crypto;
-class Server;
+class Manager;
 
 namespace client
 {
@@ -65,5 +64,3 @@ private:
 };
 }  // namespace server
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_MAINFILE_HPP

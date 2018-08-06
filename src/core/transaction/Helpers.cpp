@@ -409,7 +409,7 @@ OTTransaction* LoadBoxReceipt(
     // successful.
     //
     OTTransactionType* pTransType = OTTransactionType::TransactionFactory(
-        theAbbrev.DataFolder(), strRawFile);
+        theAbbrev.Wallet(), theAbbrev.DataFolder(), strRawFile);
 
     if (nullptr == pTransType) {
         otErr << __FUNCTION__

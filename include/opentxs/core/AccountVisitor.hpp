@@ -22,13 +22,19 @@ public:
 
     virtual bool Trigger(const Account& account) = 0;
 
+    const api::Wallet& Wallet() const { return wallet_; }
+
     virtual ~AccountVisitor() = default;
 
 protected:
+    const api::Wallet& wallet_;
     const OTIdentifier notaryID_;
     mapOfAccounts* loadedAccounts_;
 
-    AccountVisitor(const Identifier& notaryID);
+    AccountVisitor(const api::Wallet& wallet, const Identifier& notaryID);
+
+private:
+    AccountVisitor() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_ACCOUNTVISITOR_HPP
+#endif

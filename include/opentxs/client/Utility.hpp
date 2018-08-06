@@ -158,4 +158,4 @@ protected:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CLIENT_UTILITY_HPP
+#endif

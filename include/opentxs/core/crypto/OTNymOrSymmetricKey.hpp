@@ -96,4 +96,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_OTNYMORSYMMETRICKEY_HPP
+#endif

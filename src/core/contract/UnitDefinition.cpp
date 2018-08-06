@@ -7,7 +7,6 @@
 
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/CurrencyContract.hpp"
 #include "opentxs/core/contract/SecurityContract.hpp"
@@ -23,7 +22,6 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <ctype.h>
@@ -43,6 +41,42 @@
 
 namespace opentxs
 {
+UnitDefinition::UnitDefinition(
+    const api::Wallet& wallet,
+    const ConstNym& nym,
+    const std::string& shortname,
+    const std::string& name,
+    const std::string& symbol,
+    const std::string& terms)
+    : ot_super(nym)
+    , primary_unit_name_(name)
+    , short_name_(shortname)
+    , wallet_{wallet}
+    , primary_unit_symbol_(symbol)
+{
+    version_ = 1;
+    conditions_ = terms;
+}
+
+UnitDefinition::UnitDefinition(
+    const api::Wallet& wallet,
+    const ConstNym& nym,
+    const proto::UnitDefinition serialized)
+    : ot_super(nym)
+    , wallet_{wallet}
+{
+    if (serialized.has_id()) { id_ = Identifier::Factory(serialized.id()); }
+    if (serialized.has_signature()) {
+        signatures_.push_front(SerializedSignature(
+            std::make_shared<proto::Signature>(serialized.signature())));
+    }
+    if (serialized.has_version()) { version_ = serialized.version(); }
+    if (serialized.has_terms()) { conditions_ = serialized.terms(); }
+    if (serialized.has_name()) { primary_unit_name_ = serialized.name(); }
+    if (serialized.has_symbol()) { primary_unit_symbol_ = serialized.symbol(); }
+    if (serialized.has_shortname()) { short_name_ = serialized.shortname(); }
+}
+
 bool UnitDefinition::ParseFormatted(
     std::int64_t& lResult,
     const std::string& str_input,
@@ -315,7 +349,7 @@ bool UnitDefinition::VisitAccountRecords(
                       << ") when expecting: " << strInstrumentDefinitionID
                       << "\n";
             } else {
-                const auto& wallet = OT::App().Wallet();
+                const auto& wallet = wallet_;
                 const auto accountID = Identifier::Factory(str_acct_id);
                 auto account = wallet.Account(dataFolder, accountID);
 
@@ -573,39 +607,8 @@ bool UnitDefinition::EraseAccountRecord(
     return true;
 }
 
-UnitDefinition::UnitDefinition(
-    const ConstNym& nym,
-    const std::string& shortname,
-    const std::string& name,
-    const std::string& symbol,
-    const std::string& terms)
-    : ot_super(nym)
-    , primary_unit_name_(name)
-    , short_name_(shortname)
-    , primary_unit_symbol_(symbol)
-{
-    version_ = 1;
-    conditions_ = terms;
-}
-
-UnitDefinition::UnitDefinition(
-    const ConstNym& nym,
-    const proto::UnitDefinition serialized)
-    : ot_super(nym)
-{
-    if (serialized.has_id()) { id_ = Identifier::Factory(serialized.id()); }
-    if (serialized.has_signature()) {
-        signatures_.push_front(SerializedSignature(
-            std::make_shared<proto::Signature>(serialized.signature())));
-    }
-    if (serialized.has_version()) { version_ = serialized.version(); }
-    if (serialized.has_terms()) { conditions_ = serialized.terms(); }
-    if (serialized.has_name()) { primary_unit_name_ = serialized.name(); }
-    if (serialized.has_symbol()) { primary_unit_symbol_ = serialized.symbol(); }
-    if (serialized.has_shortname()) { short_name_ = serialized.shortname(); }
-}
-
 UnitDefinition* UnitDefinition::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const std::string& shortname,
     const std::string& name,
@@ -616,7 +619,7 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& fraction)
 {
     std::unique_ptr<UnitDefinition> contract(new CurrencyContract(
-        nym, shortname, name, symbol, terms, tla, power, fraction));
+        wallet, nym, shortname, name, symbol, terms, tla, power, fraction));
 
     if (!contract) { return nullptr; }
 
@@ -640,6 +643,7 @@ UnitDefinition* UnitDefinition::Create(
 }
 
 UnitDefinition* UnitDefinition::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const std::string& shortname,
     const std::string& name,
@@ -647,7 +651,7 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& terms)
 {
     std::unique_ptr<UnitDefinition> contract(
-        new SecurityContract(nym, shortname, name, symbol, terms));
+        new SecurityContract(wallet, nym, shortname, name, symbol, terms));
 
     if (!contract) { return nullptr; }
 
@@ -674,6 +678,7 @@ UnitDefinition* UnitDefinition::Create(
 // valid contract. This is used on the client side to produce a template for
 // the server, which actually creates the contract.
 UnitDefinition* UnitDefinition::Create(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const std::string& shortname,
     const std::string& name,
@@ -681,13 +686,14 @@ UnitDefinition* UnitDefinition::Create(
     const std::string& terms,
     const std::uint64_t weight)
 {
-    std::unique_ptr<UnitDefinition> contract(
-        new BasketContract(nym, shortname, name, symbol, terms, weight));
+    std::unique_ptr<UnitDefinition> contract(new BasketContract(
+        wallet, nym, shortname, name, symbol, terms, weight));
 
     return contract.release();
 }
 
 UnitDefinition* UnitDefinition::Factory(
+    const api::Wallet& wallet,
     const ConstNym& nym,
     const proto::UnitDefinition& serialized)
 {
@@ -700,15 +706,15 @@ UnitDefinition* UnitDefinition::Factory(
 
     switch (serialized.type()) {
         case proto::UNITTYPE_CURRENCY:
-            contract.reset(new CurrencyContract(nym, serialized));
+            contract.reset(new CurrencyContract(wallet, nym, serialized));
 
             break;
         case proto::UNITTYPE_BASKET:
-            contract.reset(new BasketContract(nym, serialized));
+            contract.reset(new BasketContract(wallet, nym, serialized));
 
             break;
         case proto::UNITTYPE_SECURITY:
-            contract.reset(new SecurityContract(nym, serialized));
+            contract.reset(new SecurityContract(wallet, nym, serialized));
 
             break;
         default:
@@ -801,7 +807,7 @@ void UnitDefinition::SetAlias(const std::string& alias)
 {
     ot_super::SetAlias(alias);
 
-    OT::App().Wallet().SetUnitDefinitionAlias(id_, alias);
+    wallet_.SetUnitDefinitionAlias(id_, alias);
 }
 
 bool UnitDefinition::update_signature(const Lock& lock)

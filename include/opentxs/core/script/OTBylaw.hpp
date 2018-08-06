@@ -166,4 +166,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_SCRIPT_OTBYLAW_HPP
+#endif

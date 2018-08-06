@@ -31,8 +31,12 @@ private:
 
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
-    BailmentNotice(const ConstNym& nym, const proto::PeerRequest& serialized);
     BailmentNotice(
+        const api::Wallet& wallet,
+        const ConstNym& nym,
+        const proto::PeerRequest& serialized);
+    BailmentNotice(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& recipientID,
         const Identifier& unitID,
@@ -43,4 +47,4 @@ private:
     BailmentNotice() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CONTRACT_PEER_BAILMENTNOTICE_HPP
+#endif

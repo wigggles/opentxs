@@ -50,4 +50,4 @@ public:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CONSENSUS_TRANSACTIONSTATEMENT_HPP
+#endif

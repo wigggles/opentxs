@@ -43,4 +43,4 @@ private:
 }  // namespace network
 }  // namespace opentxs
 #endif  // OT_DHT
-#endif  // OPENTXS_NETWORK_OPENDHT_HPP
+#endif

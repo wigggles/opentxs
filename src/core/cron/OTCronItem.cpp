@@ -7,7 +7,6 @@
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -29,7 +28,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -55,8 +53,9 @@
 
 namespace opentxs
 {
-OTCronItem::OTCronItem(const std::string& dataFolder)
-    : ot_super(dataFolder)
+OTCronItem::OTCronItem(const api::Wallet& wallet, const std::string& dataFolder)
+    : ot_super(wallet, dataFolder)
+    , m_dequeClosingNumbers{}
     , m_pCancelerNymID(Identifier::Factory())
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
@@ -71,10 +70,12 @@ OTCronItem::OTCronItem(const std::string& dataFolder)
 }
 
 OTCronItem::OTCronItem(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    , m_dequeClosingNumbers{}
     , m_pCancelerNymID(Identifier::Factory())
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
@@ -89,12 +90,20 @@ OTCronItem::OTCronItem(
 }
 
 OTCronItem::OTCronItem(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& ACCT_ID,
     const Identifier& NYM_ID)
-    : ot_super(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, NYM_ID)
+    : ot_super(
+          wallet,
+          dataFolder,
+          NOTARY_ID,
+          INSTRUMENT_DEFINITION_ID,
+          ACCT_ID,
+          NYM_ID)
+    , m_dequeClosingNumbers{}
     , m_pCancelerNymID(Identifier::Factory())
     , m_bCanceled(false)
     , m_bRemovalFlag(false)
@@ -110,6 +119,7 @@ OTCronItem::OTCronItem(
 }
 
 OTCronItem* OTCronItem::NewCronItem(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strCronItem)
 {
@@ -153,15 +163,15 @@ OTCronItem* OTCronItem::NewCronItem(
     std::unique_ptr<OTCronItem> pItem;
     // this string is 35 chars long.
     if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
-        pItem.reset(new OTPaymentPlan{dataFolder});
+        pItem.reset(new OTPaymentPlan{wallet, dataFolder});
     }
     // this string is 28 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) {
-        pItem.reset(new OTTrade(dataFolder));
+        pItem.reset(new OTTrade(wallet, dataFolder));
     }
     // this string is 36 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
-        pItem.reset(new OTSmartContract(dataFolder));
+        pItem.reset(new OTSmartContract(wallet, dataFolder));
     } else {
         return nullptr;
     }
@@ -172,6 +182,7 @@ OTCronItem* OTCronItem::NewCronItem(
 }
 
 OTCronItem* OTCronItem::LoadCronReceipt(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const TransactionNumber& lTransactionNum)
 {
@@ -206,11 +217,12 @@ OTCronItem* OTCronItem::LoadCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return OTCronItem::NewCronItem(dataFolder, strFileContents);
+        return OTCronItem::NewCronItem(wallet, dataFolder, strFileContents);
 }
 
 // static
 OTCronItem* OTCronItem::LoadActiveCronReceipt(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const TransactionNumber& lTransactionNum,
     const Identifier& notaryID)  // Client-side only.
@@ -251,7 +263,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return OTCronItem::NewCronItem(dataFolder, strFileContents);
+        return OTCronItem::NewCronItem(wallet, dataFolder, strFileContents);
 }
 
 // static
@@ -804,6 +816,7 @@ void OTCronItem::HookActivationOnCron(bool bForTheFirstTime)
 // and clean up any memory, before being destroyed.
 //
 void OTCronItem::HookRemovalFromCron(
+    const api::Wallet& wallet,
     ConstNym pRemover,
     std::int64_t newTransactionNo)
 {
@@ -852,8 +865,8 @@ void OTCronItem::HookRemovalFromCron(
         // information,
         // containing the ORIGINAL SIGNED REQUEST.
         //
-        OTCronItem* pOrigCronItem =
-            OTCronItem::LoadCronReceipt(data_folder_, GetTransactionNum());
+        OTCronItem* pOrigCronItem = OTCronItem::LoadCronReceipt(
+            wallet, data_folder_, GetTransactionNum());
         // OTCronItem::LoadCronReceipt loads the original version with the
         // user's signature.
         // (Updated versions, as processing occurs, are signed by the server.)
@@ -927,7 +940,7 @@ void OTCronItem::HookRemovalFromCron(
             const OTIdentifier NYM_ID =
                 Identifier::Factory(pOrigCronItem->GetSenderNymID());
 
-            pOriginator = OT::App().Wallet().Nym(NYM_ID);
+            pOriginator = wallet_.Nym(NYM_ID);
         }
 
         // pOriginator should NEVER be nullptr by this point, unless there was
@@ -969,8 +982,8 @@ void OTCronItem::onFinalReceipt(
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    auto context = OT::App().Wallet().mutable_ClientContext(
-        serverNym_->ID(), theOriginator->ID());
+    auto context =
+        wallet_.mutable_ClientContext(serverNym_->ID(), theOriginator->ID());
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
@@ -1092,7 +1105,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
 
     // Load the inbox in case it already exists.
-    Ledger theInbox(data_folder_, NYM_ID, ACCOUNT_ID, GetNotaryID());
+    Ledger theInbox(wallet_, data_folder_, NYM_ID, ACCOUNT_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theInbox.LoadInbox();
@@ -1117,6 +1130,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // Start generating the receipts
 
         OTTransaction* pTrans1 = OTTransaction::GenerateTransaction(
+            wallet_,
             theInbox,
             OTTransaction::finalReceipt,
             theOriginType,
@@ -1213,8 +1227,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         theInbox.SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
-        auto account =
-            OT::App().Wallet().mutable_Account(data_folder_, ACCOUNT_ID);
+        auto account = wallet_.mutable_Account(data_folder_, ACCOUNT_ID);
 
         // Save inbox to storage. (File, DB, wherever it goes.)
         if (account) {
@@ -1273,7 +1286,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox";  // RESUME!!!!!!!
 
-    Ledger theLedger(data_folder_, NYM_ID, NYM_ID, GetNotaryID());
+    Ledger theLedger(wallet_, data_folder_, NYM_ID, NYM_ID, GetNotaryID());
 
     // Inbox will receive notification of something ALREADY DONE.
     bool bSuccessLoading = theLedger.LoadNymbox();
@@ -1296,6 +1309,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     }
 
     OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
+        wallet_,
         theLedger,
         OTTransaction::finalReceipt,
         theOriginType,
@@ -1416,8 +1430,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         //
 
         const auto ACTUAL_NYM_ID = Identifier::Factory(NYM_ID);
-        auto context =
-            OT::App().Wallet().mutable_ClientContext(pServerNym->ID(), NYM_ID);
+        auto context = wallet_.mutable_ClientContext(pServerNym->ID(), NYM_ID);
         context.It().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions

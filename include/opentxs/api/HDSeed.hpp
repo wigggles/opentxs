@@ -63,4 +63,4 @@ private:
 }  // namespace api
 }  // namespace opentxs
 #endif  // OT_CRYPTO_WITH_BIP39
-#endif  // OPENTXS_API_HDSEED_HPP
+#endif

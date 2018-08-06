@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_SERVER_NOTARY_HPP
-#define OPENTXS_SERVER_NOTARY_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -17,7 +16,7 @@ class OTTransaction;
 
 namespace api
 {
-class Server;
+class Manager;
 
 namespace client
 {
@@ -55,7 +54,7 @@ private:
 
     Server& server_;
     const opentxs::api::Legacy& legacy_;
-    const opentxs::api::Server& mint_;
+    const opentxs::api::server::Manager& mint_;
     const opentxs::api::Wallet& wallet_;
 
     void NotarizeCancelCronItem(
@@ -116,7 +115,7 @@ private:
     explicit Notary(
         Server& server,
         const opentxs::api::Legacy& legacy,
-        const opentxs::api::Server& mint,
+        const opentxs::api::server::Manager& mint,
         const opentxs::api::Wallet& wallet);
     Notary() = delete;
     Notary(const Notary&) = delete;
@@ -126,5 +125,3 @@ private:
 };
 }  // namespace server
 }  // namespace opentxs
-
-#endif  // OPENTXS_SERVER_NOTARY_HPP

@@ -47,4 +47,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_FACTORY_HPP
+#endif

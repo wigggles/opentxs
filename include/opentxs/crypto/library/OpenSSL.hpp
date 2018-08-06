@@ -59,4 +59,4 @@ private:
 }  // namespace opentxs::crypto
 
 #endif  // OT_CRYPTO_USING_OPENSSL
-#endif  // OPENTXS_CRYPTO_LIBRARY_OPENSSL_HPP
+#endif

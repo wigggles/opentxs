@@ -23,12 +23,16 @@ class Mint : public Contract
 {
 public:
     // Caller is responsible to delete.
-    static Mint* MintFactory(const std::string& dataFolder);
     static Mint* MintFactory(
+        const api::Wallet& wallet,
+        const std::string& dataFolder);
+    static Mint* MintFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID);
     static Mint* MintFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strNotaryID,
         const String& strServerNymID,
@@ -188,12 +192,14 @@ protected:
     OTIdentifier m_CashAccountID;  // The Account ID for the cash reserve
                                    // account.
 
-    Mint(const std::string& dataFolder);
+    Mint(const api::Wallet& wallet, const std::string& dataFolder);
     Mint(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID);
     Mint(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const String& strNotaryID,
         const String& strServerNymID,
@@ -206,4 +212,4 @@ private:  // Private prevents erroneous use by other classes.
 };
 }  // namespace opentxs
 #endif  // OT_CASH
-#endif  // OPENTXS_CASH_MINT_HPP
+#endif

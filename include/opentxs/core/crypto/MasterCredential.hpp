@@ -90,4 +90,4 @@ private:
     MasterCredential& operator=(MasterCredential&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_MASTERCREDENTIAL_HPP
+#endif

@@ -7,7 +7,6 @@
 
 #include "opentxs/core/OTTransaction.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
@@ -35,7 +34,6 @@
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -53,8 +51,10 @@
 namespace opentxs
 {
 // private and hopefully not needed
-OTTransaction::OTTransaction(const std::string& dataFolder)
-    : OTTransactionType(dataFolder)
+OTTransaction::OTTransaction(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : OTTransactionType(wallet, dataFolder)
     , m_pParent(nullptr)
     , m_bIsAbbreviated(false)
     , m_lAbbrevAmount(0)
@@ -80,8 +80,9 @@ OTTransaction::OTTransaction(const std::string& dataFolder)
 // off of
 // the inbox itself (which you presumably just read from a file or socket.)
 //
-OTTransaction::OTTransaction(const Ledger& theOwner)
+OTTransaction::OTTransaction(const api::Wallet& wallet, const Ledger& theOwner)
     : OTTransactionType(
+          wallet,
           theOwner.DataFolder(),
           theOwner.GetNymID(),
           theOwner.GetPurportedAccountID(),
@@ -115,12 +116,14 @@ OTTransaction::OTTransaction(const Ledger& theOwner)
 //      Then it can grab whatever it needs from those. I'm doing something
 // similar in OTItem
 OTTransaction::OTTransaction(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
     originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(
+          wallet,
           dataFolder,
           theNymID,
           theAccountID,
@@ -149,6 +152,7 @@ OTTransaction::OTTransaction(
 }
 
 OTTransaction::OTTransaction(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
@@ -156,6 +160,7 @@ OTTransaction::OTTransaction(
     std::int64_t lTransactionNum,
     originType theOriginType /*=originType::not_applicable*/)
     : OTTransactionType(
+          wallet,
           dataFolder,
           theNymID,
           theAccountID,
@@ -192,6 +197,7 @@ OTTransaction::OTTransaction(
 // See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
 //
 OTTransaction::OTTransaction(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
@@ -211,6 +217,7 @@ OTTransaction::OTTransaction(
     bool bReplyTransSuccess,
     NumList* pNumList)
     : OTTransactionType(
+          wallet,
           dataFolder,
           theNymID,
           theAccountID,
@@ -915,8 +922,11 @@ bool OTTransaction::HarvestOpeningNumber(
                     class _getRecipientOpeningNum
                     {
                     public:
-                        _getRecipientOpeningNum(const std::string& dataFolder)
+                        _getRecipientOpeningNum(
+                            const api::Wallet& wallet,
+                            const std::string& dataFolder)
                             : data_folder_(dataFolder)
+                            , wallet_(wallet)
                         {
                         }
                         std::int64_t Run(OTTransaction& theTransaction)
@@ -928,7 +938,7 @@ bool OTTransaction::HarvestOpeningNumber(
                                 // transaction item.
                                 //
                                 String strPaymentPlan;
-                                OTPaymentPlan thePlan{data_folder_};
+                                OTPaymentPlan thePlan{wallet_, data_folder_};
                                 pItem->GetAttachment(strPaymentPlan);
 
                                 if (strPaymentPlan.Exists() &&
@@ -952,6 +962,7 @@ bool OTTransaction::HarvestOpeningNumber(
 
                     private:
                         const std::string& data_folder_;
+                        const api::Wallet& wallet_;
                     };  // class _getRecipientOpeningNum
 
                     // If the server reply message was unambiguously a FAIL,
@@ -960,7 +971,7 @@ bool OTTransaction::HarvestOpeningNumber(
                     //
                     if (bReplyWasFailure && !bHarvestingForRetry) {
                         _getRecipientOpeningNum getRecipientOpeningNum(
-                            context.LegacyDataFolder());
+                            wallet_, context.LegacyDataFolder());
                         const std::int64_t lRecipientOpeningNum =
                             getRecipientOpeningNum.Run(*this);
 
@@ -1009,7 +1020,7 @@ bool OTTransaction::HarvestOpeningNumber(
                             // DEFINITELY STILL GOOD.
                             //
                             _getRecipientOpeningNum getRecipientOpeningNum(
-                                context.LegacyDataFolder());
+                                wallet_, context.LegacyDataFolder());
                             const std::int64_t lRecipientOpeningNum =
                                 getRecipientOpeningNum.Run(*this);
 
@@ -1065,7 +1076,7 @@ bool OTTransaction::HarvestOpeningNumber(
                 {
                     String strSmartContract;
                     OTSmartContract theSmartContract(
-                        data_folder_, GetPurportedNotaryID());
+                        wallet_, data_folder_, GetPurportedNotaryID());
                     pItem->GetAttachment(strSmartContract);
 
                     // If we failed to load the smart contract...
@@ -1177,7 +1188,7 @@ bool OTTransaction::HarvestClosingNumbers(
                 } else  // pItem is good. Let's load up the OTCronIteam
                         // object...
                 {
-                    OTTrade theTrade{data_folder_};
+                    OTTrade theTrade{wallet_, data_folder_};
                     String strTrade;
                     pItem->GetAttachment(strTrade);
 
@@ -1286,7 +1297,7 @@ bool OTTransaction::HarvestClosingNumbers(
                         // object...
                 {
                     String strPaymentPlan;
-                    OTPaymentPlan thePlan(context.LegacyDataFolder());
+                    OTPaymentPlan thePlan(wallet_, context.LegacyDataFolder());
                     pItem->GetAttachment(strPaymentPlan);
 
                     // First load the payment plan up...
@@ -1391,7 +1402,7 @@ bool OTTransaction::HarvestClosingNumbers(
                 {
                     String strSmartContract;
                     OTSmartContract theSmartContract(
-                        data_folder_, GetPurportedNotaryID());
+                        wallet_, data_folder_, GetPurportedNotaryID());
                     pItem->GetAttachment(strSmartContract);
 
                     // If we failed to load the smart contract...
@@ -1695,7 +1706,8 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     String strTransaction(strFileContents.c_str());
     std::unique_ptr<OTTransactionType> pContents(
-        OTTransactionType::TransactionFactory(data_folder_, strTransaction));
+        OTTransactionType::TransactionFactory(
+            wallet_, data_folder_, strTransaction));
 
     if (nullptr == pContents) {
         otErr << "OTTransaction::VerifyBalanceReceipt: Unable to load "
@@ -1779,6 +1791,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         }
 
         pTransactionItem = Item::CreateItemFromString(
+            wallet_,
             pResponseTransactionItem->DataFolder(),
             strBalanceItem,
             GetRealNotaryID(),
@@ -1804,7 +1817,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         pItemWithIssuedList = pTransactionItem;
     }
 
-    auto account = OT::App().Wallet().Account(data_folder_, GetRealAccountID());
+    auto account = wallet_.Account(data_folder_, GetRealAccountID());
 
     if (false == bool(account)) {
         otOut << "Failed loading or verifying account for THE_NYM in "
@@ -1853,6 +1866,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     }
 
     pBalanceItem = Item::CreateItemFromString(
+        wallet_,
         pResponseBalanceItem->DataFolder(),
         strBalanceItem,
         GetRealNotaryID(),
@@ -3184,12 +3198,14 @@ void OTTransaction::InitTransaction()
 
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
+    const api::Wallet& wallet,
     const Ledger& theOwner,
     OTTransaction::transactionType theType,
     originType theOriginType /*=originType::not_applicable*/,
     std::int64_t lTransactionNum /*=0*/)
 {
     OTTransaction* pTransaction = GenerateTransaction(
+        wallet,
         theOwner.DataFolder(),
         theOwner.GetNymID(),
         theOwner.GetPurportedAccountID(),
@@ -3204,6 +3220,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
 
 // static
 OTTransaction* OTTransaction::GenerateTransaction(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& theNymID,
     const Identifier& theAccountID,
@@ -3213,6 +3230,7 @@ OTTransaction* OTTransaction::GenerateTransaction(
     std::int64_t lTransactionNum /*=0*/)
 {
     OTTransaction* pTransaction = new OTTransaction(
+        wallet,
         dataFolder,
         theNymID,
         theAccountID,
@@ -4091,7 +4109,7 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "field without value.\n";
             return (-1);  // error condition
         } else {
-            Item* pItem = new Item(data_folder_, GetNymID(), *this);
+            Item* pItem = new Item(wallet_, data_folder_, GetNymID(), *this);
             OT_ASSERT(nullptr != pItem);
 
             if (!m_bLoadSecurely) pItem->SetLoadInsecure();
@@ -5372,6 +5390,7 @@ std::int64_t OTTransaction::GetReceiptAmount()
             GetReferenceString(strReference);
 
             pOriginalItem = Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -5411,7 +5430,7 @@ std::int64_t OTTransaction::GetReceiptAmount()
             }
 
             String strAttachment;
-            Cheque theCheque{data_folder_};
+            Cheque theCheque{wallet_, data_folder_};
 
             // Get the cheque from the Item and load it up into a Cheque
             // object.
@@ -5645,6 +5664,7 @@ void OTTransaction::CalculateNumberOfOrigin()
             // as its transaction number.
             //
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -5785,7 +5805,7 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay()
             GetReferenceString(strRef);
             if (strRef.Exists()) {
                 std::unique_ptr<OTCronItem> pCronItem(
-                    OTCronItem::NewCronItem(data_folder_, strRef));
+                    OTCronItem::NewCronItem(wallet_, data_folder_, strRef));
 
                 if (pCronItem) {
                     lReferenceNum = pCronItem->GetTransactionNum();
@@ -5907,8 +5927,8 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
+            std::unique_ptr<OTCronItem> pCronItem(OTCronItem::NewCronItem(
+                wallet_, data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -5962,8 +5982,8 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
+            std::unique_ptr<OTCronItem> pCronItem(OTCronItem::NewCronItem(
+                wallet_, data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6021,7 +6041,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
             //          above.) GetReferenceString(strReference);   // (Already
             //          done above.)
 
-            Message theSentMsg{data_folder_};
+            Message theSentMsg{wallet_, data_folder_};
 
             if (strReference.Exists() &&
                 theSentMsg.LoadContractFromString(strReference)) {
@@ -6046,6 +6066,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -6084,7 +6105,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            Cheque theCheque{data_folder_};
+            Cheque theCheque{wallet_, data_folder_};
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque
@@ -6160,8 +6181,8 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
+            std::unique_ptr<OTCronItem> pCronItem(OTCronItem::NewCronItem(
+                wallet_, data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6217,8 +6238,8 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
+            std::unique_ptr<OTCronItem> pCronItem(OTCronItem::NewCronItem(
+                wallet_, data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6273,7 +6294,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
              -------------------------------------------------------------------
              */
 
-            Message theSentMsg{data_folder_};
+            Message theSentMsg{wallet_, data_folder_};
 
             if (strReference.Exists() &&
                 theSentMsg.LoadContractFromString(strReference)) {
@@ -6298,6 +6319,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -6348,7 +6370,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            Cheque theCheque{data_folder_};
+            Cheque theCheque{wallet_, data_folder_};
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque
@@ -6410,8 +6432,8 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                       << ": Failed trying to get paymentReceipt item from "
                          "paymentReceipt transaction.\n";
 
-            std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
+            std::unique_ptr<OTCronItem> pCronItem(OTCronItem::NewCronItem(
+                wallet_, data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6446,6 +6468,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                                              // attached.)
         {
             pOriginalItem = Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -6483,7 +6506,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                 return false;
             }
 
-            Cheque theCheque{data_folder_};
+            Cheque theCheque{wallet_, data_folder_};
             String strAttachment;
 
             // Get the cheque from the Item and load it up into a Cheque
@@ -6549,8 +6572,8 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
                       << ": Failed trying to get paymentReceipt item from "
                          "paymentReceipt transaction.\n";
 
-            std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
+            std::unique_ptr<OTCronItem> pCronItem(OTCronItem::NewCronItem(
+                wallet_, data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6584,6 +6607,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -6601,7 +6625,7 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
         return false;  // Should never happen, since we always expect one based
                        // on the transaction type.
 
-    Cheque theCheque{data_folder_};  // allocated on the stack :-)
+    Cheque theCheque{wallet_, data_folder_};  // allocated on the stack :-)
     String strAttachment;
 
     switch (GetType()) {
@@ -6681,8 +6705,8 @@ bool OTTransaction::GetMemo(String& strMemo)
                       << ": Failed trying to get paymentReceipt item from "
                          "paymentReceipt transaction.\n";
 
-            std::unique_ptr<OTCronItem> pCronItem(
-                OTCronItem::NewCronItem(data_folder_, strUpdatedCronItem));
+            std::unique_ptr<OTCronItem> pCronItem(OTCronItem::NewCronItem(
+                wallet_, data_folder_, strUpdatedCronItem));
 
             OTSmartContract* pSmart =
                 dynamic_cast<OTSmartContract*>(pCronItem.get());
@@ -6717,6 +6741,7 @@ bool OTTransaction::GetMemo(String& strMemo)
         case OTTransaction::chequeReceipt:
         case OTTransaction::voucherReceipt: {
             pOriginalItem = Item::CreateItemFromString(
+                wallet_,
                 data_folder_,
                 strReference,
                 GetPurportedNotaryID(),
@@ -6756,7 +6781,7 @@ bool OTTransaction::GetMemo(String& strMemo)
                       << " (expected depositCheque)\n";
                 return false;
             } else {
-                Cheque theCheque{data_folder_};
+                Cheque theCheque{wallet_, data_folder_};
                 String strCheque;
                 pOriginalItem->GetAttachment(strCheque);
 

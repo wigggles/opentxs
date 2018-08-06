@@ -45,4 +45,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_WIDGET_HPP
+#endif

@@ -41,4 +41,4 @@ private:
 }  // namespace network
 }  // namespace opentxs
 
-#endif  // OPENTXS_NETWORK_ZEROMQ_CURVECLIENT_HPP
+#endif

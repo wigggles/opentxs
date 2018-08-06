@@ -56,4 +56,4 @@ private:
 }  // namespace zeromq
 }  // namespace network
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_SUBSCRIBESOCKET_HPP
+#endif

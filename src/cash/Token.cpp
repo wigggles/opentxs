@@ -65,8 +65,8 @@ namespace opentxs
 // (more prototokens == more resource cost, but more security.)
 const std::int32_t Token__nMinimumPrototokenCount = 1;
 
-Token::Token(const std::string& dataFolder)
-    : Instrument(dataFolder)
+Token::Token(const api::Wallet& wallet, const std::string& dataFolder)
+    : Instrument(wallet, dataFolder)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -79,10 +79,11 @@ Token::Token(const std::string& dataFolder)
 }
 
 Token::Token(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : Instrument(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -98,8 +99,11 @@ Token::Token(
     // So they are initialized there now.
 }
 
-Token::Token(const std::string& dataFolder, const Purse& thePurse)
-    : Instrument(dataFolder)
+Token::Token(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    const Purse& thePurse)
+    : Instrument(wallet, dataFolder)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -199,6 +203,7 @@ void Token::ReleasePrototokens()
 // static -- class factory.
 //
 Token* Token::LowLevelInstantiate(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strFirstLine,
     const Identifier& NOTARY_ID,
@@ -210,23 +215,23 @@ Token* Token::LowLevelInstantiate(
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
                                                                // 27 chars long.
     {
-        pToken =
-            new Token_Lucre(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pToken = new Token_Lucre(
+            wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
-        pToken =
-            new Token_Lucre(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pToken = new Token_Lucre(
+            wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
                                                                 // is
     // 39 chars long.
     {
-        pToken =
-            new Token_Lucre(dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        pToken = new Token_Lucre(
+            wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
         OT_ASSERT(nullptr != pToken);
     }
 #else
@@ -248,20 +253,23 @@ Token* Token::LowLevelInstantiate(
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
                                                                // 27 chars long.
     {
-        pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
+        pToken =
+            new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
-        pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
+        pToken =
+            new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
         OT_ASSERT(nullptr != pToken);
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
                                                                 // is
     // 39 chars long.
     {
-        pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
+        pToken =
+            new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
         OT_ASSERT(nullptr != pToken);
     }
 #else
@@ -278,7 +286,8 @@ Token* Token::LowLevelInstantiate(const Purse& thePurse)
     Token* pToken = nullptr;
 
 #if OT_CASH_USING_LUCRE
-    pToken = new Token_Lucre(thePurse.DataFolder(), thePurse);
+    pToken =
+        new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
     OT_ASSERT(nullptr != pToken);
 #else
     otErr << __FUNCTION__
@@ -290,6 +299,7 @@ Token* Token::LowLevelInstantiate(const Purse& thePurse)
 }
 
 Token* Token::LowLevelInstantiate(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const String& strFirstLine)
 {
@@ -300,6 +310,7 @@ Token* Token::LowLevelInstantiate(
                                                                // 27 chars long.
     {
         pToken = new Token_Lucre{
+            wallet,
             dataFolder,
         };
         OT_ASSERT(nullptr != pToken);
@@ -308,6 +319,7 @@ Token* Token::LowLevelInstantiate(
                                                           // chars long.
     {
         pToken = new Token_Lucre{
+            wallet,
             dataFolder,
         };
         OT_ASSERT(nullptr != pToken);
@@ -317,6 +329,7 @@ Token* Token::LowLevelInstantiate(
     // 39 chars long.
     {
         pToken = new Token_Lucre{
+            wallet,
             dataFolder,
         };
         OT_ASSERT(nullptr != pToken);
@@ -333,6 +346,7 @@ Token* Token::LowLevelInstantiate(
 // static -- class factory.
 //
 Token* Token::TokenFactory(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     String strInput,
     const Identifier& NOTARY_ID,
@@ -343,8 +357,12 @@ Token* Token::TokenFactory(
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Token* pToken = Token::LowLevelInstantiate(
-            dataFolder, strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        Token* pToken = LowLevelInstantiate(
+            wallet,
+            dataFolder,
+            strFirstLine,
+            NOTARY_ID,
+            INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pToken) return nullptr;
@@ -366,7 +384,7 @@ Token* Token::TokenFactory(String strInput, const Purse& thePurse)
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Token* pToken = Token::LowLevelInstantiate(strFirstLine, thePurse);
+        Token* pToken = LowLevelInstantiate(strFirstLine, thePurse);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pToken) return nullptr;
@@ -381,14 +399,17 @@ Token* Token::TokenFactory(String strInput, const Purse& thePurse)
     return nullptr;
 }
 
-Token* Token::TokenFactory(const std::string& dataFolder, String strInput)
+Token* Token::TokenFactory(
+    const api::Wallet& wallet,
+    const std::string& dataFolder,
+    String strInput)
 {
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        Token* pToken = Token::LowLevelInstantiate(dataFolder, strFirstLine);
+        Token* pToken = LowLevelInstantiate(wallet, dataFolder, strFirstLine);
 
         // The string didn't match any of the options in the factory.
         if (nullptr == pToken) return nullptr;
@@ -949,8 +970,8 @@ Token* Token::InstantiateAndGenerateTokenRequest(
     std::int64_t lDenomination,
     std::int32_t nTokenCount)
 {
-    Token* pToken = Token::LowLevelInstantiate(thePurse);  // already asserts.
-    OT_ASSERT(nullptr != pToken);  // Just for good measure.
+    Token* pToken = LowLevelInstantiate(thePurse);  // already asserts.
+    OT_ASSERT(nullptr != pToken);                   // Just for good measure.
 
     const bool bGeneratedRequest = pToken->GenerateTokenRequest(
         theNym, theMint, lDenomination, nTokenCount);

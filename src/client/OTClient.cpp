@@ -8,8 +8,8 @@
 #include "opentxs/client/OTClient.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
-#include "opentxs/api/client/Client.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -82,7 +82,7 @@ OTClient::OTClient(
     , legacy_(legacy)
     , wallet_(wallet)
     , workflow_(workflow)
-    , m_MessageOutbuffer(legacy_)
+    , m_MessageOutbuffer(wallet, legacy_)
 {
 }
 
@@ -91,7 +91,7 @@ bool OTClient::add_item_to_workflow(
     const Message& transportItem,
     const std::string& item) const
 {
-    Message message{legacy_.ClientDataFolder()};
+    Message message{wallet_, legacy_.ClientDataFolder()};
     const auto loaded = message.LoadContractFromString(item.c_str());
 
     if (false == loaded) {
@@ -112,13 +112,13 @@ bool OTClient::add_item_to_workflow(
         return false;
     }
 
-    OTPayment payment(legacy_.ClientDataFolder(), plaintext);
+    OTPayment payment(wallet_, legacy_.ClientDataFolder(), plaintext);
 
     if (false == payment.IsCheque()) { return false; }
 
     if (payment.IsCancelledCheque()) { return false; }
 
-    Cheque cheque{legacy_.ServerDataFolder()};
+    Cheque cheque{wallet_, legacy_.ClientDataFolder()};
     cheque.LoadContractFromString(payment.Payment());
     // We already made sure a contact exists for the sender of the message, but
     // it's possible the sender of the cheque is a different nym
@@ -162,7 +162,8 @@ void OTClient::QueueOutgoingMessage(const Message& theMessage)
     // So I can save the request number when sending a message, check for it
     // later in the Nymbox, and then worst case, look it up in the Outbuffer and
     // get my fucking transaction numbers back again!
-    std::unique_ptr<Message> pMsg(new Message{legacy_.ClientDataFolder()});
+    std::unique_ptr<Message> pMsg(
+        new Message{wallet_, legacy_.ClientDataFolder()});
 
     if (pMsg->LoadContractFromString(serialized)) {
         m_MessageOutbuffer.AddSentMessage(*(pMsg.release()));
@@ -231,8 +232,12 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
         strNymID.Get(),
         "");
     Ledger thePmntInbox(
-        legacy_.ClientDataFolder(), nymID, nymID, context.Server());  // payment
-                                                                      // inbox
+        wallet_,
+        legacy_.ClientDataFolder(),
+        nymID,
+        nymID,
+        context.Server());  // payment
+                            // inbox
     bool bSuccessLoading = (bExists && thePmntInbox.LoadPaymentInbox());
 
     if (bExists && bSuccessLoading) {
@@ -268,6 +273,7 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
         // that's the Txn# that would have been on it anyway.
         //
         OTTransaction::GenerateTransaction(
+            wallet_,
             thePmntInbox,
             OTTransaction::instrumentNotice,
             originType::not_applicable,
@@ -358,6 +364,7 @@ bool OTClient::AcceptEntireNymbox(
     // the message to the server will contain a ledger to be processed for a
     // specific acct. (in this case no acct, but user ID used twice instead.)
     Ledger processLedger(
+        wallet_,
         legacy_.ClientDataFolder(),
         theNymbox.GetNymID(),
         theNymbox.GetNymID(),
@@ -373,6 +380,7 @@ bool OTClient::AcceptEntireNymbox(
         theNymbox.GetNymID(), context.Server(), Ledger::message);
 
     OTTransaction* pAcceptTransaction = OTTransaction::GenerateTransaction(
+        wallet_,
         legacy_.ClientDataFolder(),
         theNymbox.GetNymID(),
         theNymbox.GetNymID(),
@@ -638,7 +646,7 @@ bool OTClient::AcceptEntireNymbox(
                                  "be zero length.)\n";
                     } else {
                         std::shared_ptr<Message> pMessage(
-                            new Message{legacy_.ClientDataFolder()});
+                            new Message{wallet_, legacy_.ClientDataFolder()});
                         OT_ASSERT_MSG(
                             pMessage,
                             "OTClient::AcceptEntireNymbox: OTMessage "
@@ -940,7 +948,7 @@ void OTClient::load_str_trans_add_to_ledger(
     if (nullptr != ledger.GetTransaction(lTransNum)) { return; }
     // -----------------------------------------
     OTTransactionType* pTransType = OTTransactionType::TransactionFactory(
-        legacy_.ClientDataFolder(), str_trans_to_add);
+        wallet_, legacy_.ClientDataFolder(), str_trans_to_add);
 
     if (nullptr == pTransType) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1124,11 +1132,13 @@ void OTClient::ProcessIncomingCronItemReply(
             "");
 
         Ledger thePmntInbox(
+            wallet_,
             legacy_.ClientDataFolder(),
             NYM_ID,
             NYM_ID,
             context.Server());  // payment inbox
         Ledger theRecordBox(
+            wallet_,
             legacy_.ClientDataFolder(),
             NYM_ID,
             NYM_ID,
@@ -1218,7 +1228,7 @@ void OTClient::ProcessIncomingCronItemReply(
             // equivalent to saying: if ("X,Y".VerifyAny("X")) which RETURNS
             // TRUE -- and we have found the instrument!
 
-            OTPayment theOutpayment{legacy_.ClientDataFolder()};
+            OTPayment theOutpayment{wallet_, legacy_.ClientDataFolder()};
 
             if (strInstrument.Exists() &&
                 theOutpayment.SetPayment(strInstrument) &&
@@ -1230,10 +1240,7 @@ void OTClient::ProcessIncomingCronItemReply(
                 thePmntInbox.GetTransactionNums()};
             for (const auto& receipt_id : set_receipt_ids) {
                 std::unique_ptr<OTPayment> pPayment(GetInstrumentByReceiptID(
-                    legacy_.ClientDataFolder(),
-                    *context.Nym(),
-                    receipt_id,
-                    thePmntInbox));
+                    *context.Nym(), receipt_id, thePmntInbox));
 
                 if (!pPayment) {
                     otOut << __FUNCTION__
@@ -1372,6 +1379,7 @@ void OTClient::ProcessIncomingCronItemReply(
 
                 OTTransaction* pNewTransaction =
                     OTTransaction::GenerateTransaction(
+                        wallet_,
                         theRecordBox,  // recordbox.
                         OTTransaction::notice,
                         theOriginType,
@@ -1561,7 +1569,9 @@ void OTClient::ProcessIncomingTransaction(
                 OTTransactionType* pTempTransType =
                     strOriginalItem.Exists()
                         ? OTTransactionType::TransactionFactory(
-                              legacy_.ClientDataFolder(), strOriginalItem)
+                              wallet_,
+                              legacy_.ClientDataFolder(),
+                              strOriginalItem)
                         : nullptr;
 
                 std::unique_ptr<Item> pOriginalItem(
@@ -1571,7 +1581,8 @@ void OTClient::ProcessIncomingTransaction(
 
                 if (pOriginalItem) {
                     String strBasket;
-                    Basket theRequestBasket{legacy_.ClientDataFolder()};
+                    Basket theRequestBasket{wallet_,
+                                            legacy_.ClientDataFolder()};
                     pOriginalItem->GetAttachment(strBasket);
 
                     if (strBasket.Exists() &&
@@ -1617,7 +1628,9 @@ void OTClient::ProcessIncomingTransaction(
                 OTTransactionType* pTempTransType =
                     strOriginalItem.Exists()
                         ? OTTransactionType::TransactionFactory(
-                              legacy_.ClientDataFolder(), strOriginalItem)
+                              wallet_,
+                              legacy_.ClientDataFolder(),
+                              strOriginalItem)
                         : nullptr;
 
                 std::unique_ptr<Item> pOriginalItem(
@@ -1698,7 +1711,9 @@ void OTClient::ProcessIncomingTransaction(
                 OTTransactionType* pTempTransType =
                     strOriginalItem.Exists()
                         ? OTTransactionType::TransactionFactory(
-                              legacy_.ClientDataFolder(), strOriginalItem)
+                              wallet_,
+                              legacy_.ClientDataFolder(),
+                              strOriginalItem)
                         : nullptr;
 
                 std::unique_ptr<Item> pOriginalItem(
@@ -1725,10 +1740,11 @@ void OTClient::ProcessIncomingTransaction(
                     // and to whom the notice is send.
                     //
                     std::unique_ptr<OTCronItem> pCronItem(
-                        strCronItem.Exists()
-                            ? OTCronItem::NewCronItem(
-                                  legacy_.ClientDataFolder(), strCronItem)
-                            : nullptr);
+                        strCronItem.Exists() ? OTCronItem::NewCronItem(
+                                                   wallet_,
+                                                   legacy_.ClientDataFolder(),
+                                                   strCronItem)
+                                             : nullptr);
 
                     if (nullptr != pCronItem)  // the original smart contract or
                                                // payment plan object.
@@ -1902,7 +1918,11 @@ void OTClient::ProcessIncomingTransactions(
     // So let's just check to see if it's a withdrawal...
     //
     Ledger theLedger(
-        legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
+        wallet_,
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        accountID,
+        context.Server());
     String strLedger(theReply.m_ascPayload);
 
     // The ledger we received from the server was generated there, so we don't
@@ -2006,6 +2026,7 @@ void OTClient::ProcessDepositChequeResponse(
     // the Payments Inbox, then move it to the record box.
     //
     std::unique_ptr<Ledger> pLedger(Ledger::GenerateLedger(
+        wallet_,
         legacy_.ClientDataFolder(),
         nymID,
         nymID,
@@ -2034,13 +2055,13 @@ void OTClient::ProcessDepositChequeResponse(
 
     std::unique_ptr<OTTransactionType> pTransType(
         OTTransactionType::TransactionFactory(
-            legacy_.ClientDataFolder(), strOriginalDepositItem));
+            wallet_, legacy_.ClientDataFolder(), strOriginalDepositItem));
 
     if (pTransType) { pOriginalItem = dynamic_cast<Item*>(pTransType.get()); }
     if (nullptr == pOriginalItem) {
         return;  // Todo log something?
     }
-    Cheque theCheque{legacy_.ClientDataFolder()};
+    Cheque theCheque{wallet_, legacy_.ClientDataFolder()};
     String strCheque;
     pOriginalItem->GetAttachment(strCheque);
     if (!theCheque.LoadContractFromString(strCheque)) {
@@ -2062,8 +2083,8 @@ void OTClient::ProcessDepositChequeResponse(
 
     for (auto& receipt_id : receipt_ids) {
         std::int64_t lPaymentTransNum{0};
-        std::unique_ptr<OTPayment> pPayment(GetInstrumentByReceiptID(
-            legacy_.ClientDataFolder(), nym, receipt_id, *pLedger));
+        std::unique_ptr<OTPayment> pPayment(
+            GetInstrumentByReceiptID(nym, receipt_id, *pLedger));
 
         if (!pPayment || !pPayment->SetTempValues() ||
             !pPayment->GetTransactionNum(lPaymentTransNum) ||
@@ -2124,7 +2145,11 @@ void OTClient::ProcessDepositChequeResponse(
             strNymID.Get(),
             "");
         Ledger theRecordBox(
-            legacy_.ClientDataFolder(), nymID, nymID, serverID);  // record box
+            wallet_,
+            legacy_.ClientDataFolder(),
+            nymID,
+            nymID,
+            serverID);  // record box
         bool bSuccessLoading = (bExists && theRecordBox.LoadRecordBox());
         if (bExists && bSuccessLoading)
             bSuccessLoading =
@@ -2230,7 +2255,7 @@ void OTClient::ProcessWithdrawalResponse(
         if ((Item::atWithdrawVoucher == pItem->GetType()) &&
             (Item::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
-            Cheque theVoucher{legacy_.ClientDataFolder()};
+            Cheque theVoucher{wallet_, legacy_.ClientDataFolder()};
 
             pItem->GetAttachment(strVoucher);
 
@@ -2251,7 +2276,8 @@ void OTClient::ProcessWithdrawalResponse(
             String strPurse;
             pItem->GetAttachment(strPurse);
 
-            Purse thePurse(legacy_.ClientDataFolder(), context.Server());
+            Purse thePurse(
+                wallet_, legacy_.ClientDataFolder(), context.Server());
 
             if (thePurse.LoadContractFromString(strPurse)) {
                 // When we made the withdrawal request, we saved that purse
@@ -2264,6 +2290,7 @@ void OTClient::ProcessWithdrawalResponse(
                 String strInstrumentDefinitionID(
                     thePurse.GetInstrumentDefinitionID());
                 std::unique_ptr<Mint> pMint(Mint::MintFactory(
+                    wallet_,
                     legacy_.ClientDataFolder(),
                     strNotaryID,
                     strInstrumentDefinitionID));
@@ -2468,7 +2495,7 @@ bool OTClient::processServerReplyGetNymBox(
 
     // Load the ledger object from that string.
     Ledger theNymbox(
-        legacy_.ClientDataFolder(), NYM_ID, NYM_ID, context.Server());
+        wallet_, legacy_.ClientDataFolder(), NYM_ID, NYM_ID, context.Server());
 
     setRecentHash(theReply, true, context);
 
@@ -2587,7 +2614,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
 
         if (strTransTypeObject.Exists())
             pTransType.reset(OTTransactionType::TransactionFactory(
-                legacy_.ClientDataFolder(), strTransTypeObject));
+                wallet_, legacy_.ClientDataFolder(), strTransTypeObject));
 
         if (nullptr == pTransType)
             otErr << OT_METHOD << __FUNCTION__
@@ -2652,7 +2679,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     String strOTMessage;
                     pBoxReceipt->GetReferenceString(strOTMessage);
                     std::unique_ptr<Message> pMessage(
-                        new Message{legacy_.ClientDataFolder()});
+                        new Message{wallet_, legacy_.ClientDataFolder()});
                     OT_ASSERT(bool(pMessage));
                     //
                     // The original message that was sent to me by the sender
@@ -2679,7 +2706,10 @@ bool OTClient::processServerReplyGetBoxReceipt(
 
                         if (recipientNymId == nymID) {
                             const auto peerObject = PeerObject::Factory(
-                                context.Nym(), pMessage->m_ascPayload);
+                                contacts_,
+                                wallet_,
+                                context.Nym(),
+                                pMessage->m_ascPayload);
                             proto::PeerObjectType type =
                                 proto::PEEROBJECT_ERROR;
 
@@ -2755,6 +2785,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                         String(context.Nym()->ID()).Get(),
                         "");
                     Ledger thePmntInbox(
+                        wallet_,
                         legacy_.ClientDataFolder(),
                         nymID,
                         nymID,
@@ -2923,9 +2954,17 @@ bool OTClient::processServerReplyProcessInbox(
 
     // Load the inbox.
     Ledger theInbox(
-        legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
+        wallet_,
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        accountID,
+        context.Server());
     Ledger theRecordBox(
-        legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
+        wallet_,
+        legacy_.ClientDataFolder(),
+        NYM_ID,
+        accountID,
+        context.Server());
     bool bInbox = OTDB::Exists(
         legacy_.ClientDataFolder(),
         OTFolders::Inbox().Get(),
@@ -3087,6 +3126,7 @@ bool OTClient::processServerReplyProcessInbox(
         pReplyItem->GetReferenceString(strProcessInboxItem);
 
         std::unique_ptr<Item> pProcessInboxItem(Item::CreateItemFromString(
+            pReplyItem->Wallet(),
             pReplyItem->DataFolder(),
             strProcessInboxItem,
             context.Server(),
@@ -3214,6 +3254,7 @@ bool OTClient::processServerReplyProcessInbox(
                 pServerTransaction->GetReferenceString(strOriginalItem);
 
                 std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
+                    pServerTransaction->Wallet(),
                     pServerTransaction->DataFolder(),
                     strOriginalItem,
                     context.Server(),
@@ -3251,7 +3292,7 @@ bool OTClient::processServerReplyProcessInbox(
                         String strCheque;
                         pOriginalItem->GetAttachment(strCheque);
 
-                        Cheque theCheque{legacy_.ClientDataFolder()};
+                        Cheque theCheque{wallet_, legacy_.ClientDataFolder()};
 
                         if (false ==
                             ((strCheque.GetLength() > 2) &&
@@ -3342,8 +3383,8 @@ bool OTClient::processServerReplyProcessInbox(
                     pServerItem->GetAttachment(strOffer);
                     // contains updated trade.
                     pServerItem->GetNote(strTrade);
-                    OTOffer theOffer{legacy_.ClientDataFolder()};
-                    OTTrade theTrade{legacy_.ClientDataFolder()};
+                    OTOffer theOffer{wallet_, legacy_.ClientDataFolder()};
+                    OTTrade theTrade{wallet_, legacy_.ClientDataFolder()};
                     bool bLoadOfferFromString =
                         theOffer.LoadContractFromString(strOffer);
                     bool bLoadTradeFromString =
@@ -3691,7 +3732,9 @@ bool OTClient::processServerReplyProcessInbox(
                 OTTransaction* pNewTransaction = nullptr;
                 std::unique_ptr<OTTransactionType> pTransType(
                     OTTransactionType::TransactionFactory(
-                        legacy_.ClientDataFolder(), strServerTransaction));
+                        wallet_,
+                        legacy_.ClientDataFolder(),
+                        strServerTransaction));
 
                 pNewTransaction =
                     dynamic_cast<OTTransaction*>(pTransType.get());
@@ -3823,7 +3866,7 @@ bool OTClient::processServerReplyProcessNymbox(
 
     // Load the Nymbox.
     Ledger theNymbox(
-        legacy_.ClientDataFolder(), NYM_ID, NYM_ID, context.Server());
+        wallet_, legacy_.ClientDataFolder(), NYM_ID, NYM_ID, context.Server());
     bool bLoadedNymbox = false;
 
     if (nullptr != pNymbox)  // If a pointer was passed in, then
@@ -3942,6 +3985,7 @@ bool OTClient::processServerReplyProcessNymbox(
         pReplyItem->GetReferenceString(strProcessNymboxItem);
 
         std::unique_ptr<Item> pProcessNymboxItem(Item::CreateItemFromString(
+            pReplyItem->Wallet(),
             pReplyItem->DataFolder(),
             strProcessNymboxItem,
             context.Server(),
@@ -4165,6 +4209,7 @@ bool OTClient::processServerReplyProcessNymbox(
                         std::unique_ptr<OTCronItem> pOriginalCronItem(
                             (strOriginalCronItem.Exists()
                                  ? OTCronItem::NewCronItem(
+                                       wallet_,
                                        legacy_.ClientDataFolder(),
                                        strOriginalCronItem)
                                  : nullptr));
@@ -4172,6 +4217,7 @@ bool OTClient::processServerReplyProcessNymbox(
                         std::unique_ptr<OTCronItem> pUpdatedCronItem(
                             (strUpdatedCronItem.Exists()
                                  ? OTCronItem::NewCronItem(
+                                       wallet_,
                                        legacy_.ClientDataFolder(),
                                        strUpdatedCronItem)
                                  : nullptr));
@@ -4384,12 +4430,14 @@ bool OTClient::processServerReplyProcessNymbox(
                                         "");
 
                                     Ledger thePmntInbox(
+                                        wallet_,
                                         legacy_.ClientDataFolder(),
                                         NYM_ID,
                                         NYM_ID,
                                         context.Server());  // payment inbox
 
                                     Ledger theRecordBox(
+                                        wallet_,
                                         legacy_.ClientDataFolder(),
                                         NYM_ID,
                                         NYM_ID,
@@ -4524,6 +4572,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                         // instrument!
 
                                         OTPayment theOutpayment{
+                                            wallet_,
                                             legacy_.ClientDataFolder()};
 
                                         if (strSentInstrument.Exists() &&
@@ -4538,6 +4587,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                         //                                      if (0 == numlistOutpayment.Count())
                                         {
                                             OTPayment tempPayment{
+                                                wallet_,
                                                 legacy_.ClientDataFolder()};
                                             const String& strCronItem =
                                                 (strUpdatedCronItem.Exists()
@@ -4563,7 +4613,6 @@ bool OTClient::processServerReplyProcessNymbox(
                                              set_receipt_ids) {
                                             std::unique_ptr<OTPayment> pPayment(
                                                 GetInstrumentByReceiptID(
-                                                    legacy_.ClientDataFolder(),
                                                     *context.Nym(),
                                                     receipt_id,
                                                     thePmntInbox));
@@ -4871,6 +4920,7 @@ bool OTClient::processServerReplyProcessNymbox(
 
                                             OTTransaction* pNewTransaction =
                                                 OTTransaction::GenerateTransaction(
+                                                    wallet_,
                                                     theRecordBox,  // recordbox.
                                                     OTTransaction::notice,
                                                     theOriginType,
@@ -4946,6 +4996,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                                 //                                              if (0 == lTransNumForDisplay)
                                                 {
                                                     OTPayment tempPayment{
+                                                        wallet_,
                                                         legacy_
                                                             .ClientDataFolder()};
                                                     const String& strCronItem =
@@ -5208,7 +5259,7 @@ bool OTClient::processServerReplyProcessBox(
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
     }
 
-    Message theOriginalMessage{legacy_.ClientDataFolder()};
+    Message theOriginalMessage{wallet_, legacy_.ClientDataFolder()};
 
     if (strOriginalMessage.Exists() &&
         theOriginalMessage.LoadContractFromString(strOriginalMessage) &&
@@ -5222,8 +5273,13 @@ bool OTClient::processServerReplyProcessBox(
             ACCOUNT_ID = NYM_ID;  // For Nymbox, NymID *is* AcctID.
 
         Ledger theLedger(
-            legacy_.ClientDataFolder(), NYM_ID, ACCOUNT_ID, context.Server()),
+            wallet_,
+            legacy_.ClientDataFolder(),
+            NYM_ID,
+            ACCOUNT_ID,
+            context.Server()),
             theReplyLedger(
+                wallet_,
                 legacy_.ClientDataFolder(),
                 NYM_ID,
                 ACCOUNT_ID,
@@ -5535,7 +5591,11 @@ bool OTClient::processServerReplyGetAccountData(
 
         // Load the ledger object from strInbox
         Ledger theInbox(
-            legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
+            wallet_,
+            legacy_.ClientDataFolder(),
+            NYM_ID,
+            accountID,
+            context.Server());
 
         // I receive the inbox, verify the server's signature, then
         // RE-SIGN IT WITH MY OWN
@@ -5646,7 +5706,11 @@ bool OTClient::processServerReplyGetAccountData(
     if (strOutbox.Exists()) {
         // Load the ledger object from strOutbox.
         Ledger theOutbox(
-            legacy_.ClientDataFolder(), NYM_ID, accountID, context.Server());
+            wallet_,
+            legacy_.ClientDataFolder(),
+            NYM_ID,
+            accountID,
+            context.Server());
 
         // I receive the outbox, verify the server's signature, then RE-SIGN IT
         // WITH MY OWN SIGNATURE, then SAVE it to local storage.  So any FUTURE
@@ -5729,6 +5793,7 @@ bool OTClient::processServerReplyGetMint(const Message& theReply)
     String strMint(theReply.m_ascPayload);
     // Load the mint object from that string...
     std::unique_ptr<Mint> pMint(Mint::MintFactory(
+        wallet_,
         legacy_.ClientDataFolder(),
         theReply.m_strNotaryID,
         theReply.m_strInstrumentDefinitionID));
@@ -6069,7 +6134,7 @@ bool OTClient::processServerReplyUnregisterNym(
 {
     String strOriginalMessage;
     const String strNotaryID(context.Server());
-    Message theOriginalMessage{legacy_.ClientDataFolder()};
+    Message theOriginalMessage{wallet_, legacy_.ClientDataFolder()};
 
     if (theReply.m_ascInReferenceTo.Exists()) {
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
@@ -6103,7 +6168,7 @@ bool OTClient::processServerReplyUnregisterAccount(
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
     }
 
-    Message theOriginalMessage{legacy_.ClientDataFolder()};
+    Message theOriginalMessage{wallet_, legacy_.ClientDataFolder()};
     const String strNotaryID(context.Server());
 
     if (strOriginalMessage.Exists() &&

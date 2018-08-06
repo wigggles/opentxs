@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_CLIENT_CASH_IMPLEMENTATION_HPP
-#define OPENTXS_API_CLIENT_CASH_IMPLEMENTATION_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -148,9 +147,10 @@ protected:
 private:
     friend opentxs::Factory;
 
-    const api::Legacy& legacy_;
+    const Legacy& legacy_;
+    const Wallet& wallet_;
 
-    Cash(const api::Legacy& legacy);
+    Cash(const Legacy& legacy, const Wallet& wallet);
     Cash() = delete;
     Cash(const Cash&) = delete;
     Cash(Cash&&) = delete;
@@ -158,4 +158,3 @@ private:
     Cash& operator=(Cash&&) = delete;
 };
 }  // namespace opentxs::api::client::implementation
-#endif  // OPENTXS_API_CLIENT_CASH_IMPLEMENTATION_HPP

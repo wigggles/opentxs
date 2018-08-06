@@ -7,7 +7,6 @@
 
 #include "opentxs/core/AccountList.hpp"
 
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -19,7 +18,6 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <sys/types.h>
@@ -40,8 +38,10 @@ using namespace io;
 
 namespace opentxs
 {
-AccountList::AccountList(const std::string& dataFolder)
-    : wallet_(OT::App().Wallet())
+AccountList::AccountList(
+    const api::Wallet& wallet,
+    const std::string& dataFolder)
+    : wallet_(wallet)
     , acctType_(Account::voucher)
     , data_folder_(dataFolder)
     , mapAcctIDs_{}
@@ -49,9 +49,10 @@ AccountList::AccountList(const std::string& dataFolder)
 }
 
 AccountList::AccountList(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     Account::AccountType acctType)
-    : wallet_(OT::App().Wallet())
+    : wallet_(wallet)
     , acctType_(acctType)
     , data_folder_(dataFolder)
     , mapAcctIDs_{}

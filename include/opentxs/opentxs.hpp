@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_HPP
-#define OPENTXS_HPP
+#ifndef OPENTXS_OPENTXS_HPP
+#define OPENTXS_OPENTXS_HPP
 
 #ifndef EXPORT
 #define EXPORT
@@ -17,16 +17,18 @@
 #include <opentxs/api/client/Blockchain.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Cash.hpp>
-#include <opentxs/api/client/Client.hpp>
 #include <opentxs/api/client/Contacts.hpp>
 #include <opentxs/api/client/Issuer.hpp>
+#include <opentxs/api/client/Manager.hpp>
 #include <opentxs/api/client/Pair.hpp>
 #include <opentxs/api/client/ServerAction.hpp>
 #include <opentxs/api/client/Sync.hpp>
 #include <opentxs/api/client/UI.hpp>
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
+#include <opentxs/api/server/Manager.hpp>
 #include <opentxs/api/storage/Storage.hpp>
+#include <opentxs/api/Core.hpp>
 #include <opentxs/api/Factory.hpp>
 #include <opentxs/api/HDSeed.hpp>
 #include <opentxs/api/Legacy.hpp>
@@ -34,7 +36,6 @@
 #include <opentxs/api/Wallet.hpp>
 #include <opentxs/cash/Purse.hpp>
 #include <opentxs/client/OTAPI_Exec.hpp>
-#include <opentxs/client/OTRecordList.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include <opentxs/client/OT_API.hpp>
 #include <opentxs/client/ServerAction.hpp>
@@ -156,4 +157,4 @@
 #include <opentxs/Proto.hpp>
 #include <opentxs/Types.hpp>
 
-#endif  // OPENTXS_CORE_API_OT_HPP
+#endif

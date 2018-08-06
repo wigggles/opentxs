@@ -17,9 +17,7 @@
 inline std::string OT_CLI_ReadLine()
 {
     std::string line;
-    if (std::getline(std::cin, line)) {
-        return line;
-    }
+    if (std::getline(std::cin, line)) { return line; }
 
     return "";
 }
@@ -54,4 +52,4 @@ inline std::string OT_CLI_ReadUntilEOF()
     return result;
 }
 
-#endif  // OPENTXS_EXT_HELPERS_HPP
+#endif

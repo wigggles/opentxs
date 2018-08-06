@@ -7,7 +7,7 @@
 
 #include "OTAPI_Func.hpp"
 
-#include "opentxs/api/client/Client.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
@@ -451,6 +451,7 @@ OTAPI_Func::OTAPI_Func(
             targetID_ = targetID;
             instrumentDefinitionID_ = instrumentDefinitionID;
             peer_request_ = PeerRequest::Create(
+                wallet_,
                 context_.Nym(),
                 proto::PEERREQUEST_BAILMENT,
                 instrumentDefinitionID_,
@@ -660,6 +661,7 @@ OTAPI_Func::OTAPI_Func(
         case REQUEST_CONNECTION: {
             targetID_ = targetID;
             peer_request_ = PeerRequest::Create(
+                wallet_,
                 context_.Nym(),
                 proto::PEERREQUEST_CONNECTIONINFO,
                 infoType_,
@@ -705,7 +707,7 @@ OTAPI_Func::OTAPI_Func(
         requestID_ = requestID;
         accountID_ = recipientID;
         peer_reply_ = PeerReply::Create(
-            context_.Nym(), requestID_, context_.Server(), ack);
+            wallet_, context_.Nym(), requestID_, context_.Server(), ack);
 
         OT_ASSERT(peer_reply_)
     } else {
@@ -963,6 +965,7 @@ OTAPI_Func::OTAPI_Func(
             requestID_ = requestID;
             message_ = instructions;
             peer_reply_ = PeerReply::Create(
+                wallet_,
                 context_.Nym(),
                 proto::PEERREQUEST_BAILMENT,
                 requestID_,
@@ -978,6 +981,7 @@ OTAPI_Func::OTAPI_Func(
             requestID_ = requestID;
             message_ = instructions;
             peer_reply_ = PeerReply::Create(
+                wallet_,
                 context_.Nym(),
                 proto::PEERREQUEST_OUTBAILMENT,
                 requestID_,
@@ -1039,6 +1043,7 @@ OTAPI_Func::OTAPI_Func(
             targetID_ = nymID2;
             instrumentDefinitionID_ = targetID;
             peer_request_ = PeerRequest::Create(
+                wallet_,
                 context_.Nym(),
                 proto::PEERREQUEST_OUTBAILMENT,
                 instrumentDefinitionID_,
@@ -1108,6 +1113,7 @@ OTAPI_Func::OTAPI_Func(
             nTransNumsNeeded_ = 0;
             targetID_ = targetID;
             peer_request_ = PeerRequest::Create(
+                wallet_,
                 context_.Nym(),
                 proto::PEERREQUEST_STORESECRET,
                 secretType_,
@@ -1209,6 +1215,7 @@ OTAPI_Func::OTAPI_Func(
         txid_ = txid;
         amount_ = amount;
         peer_request_ = PeerRequest::Create(
+            wallet_,
             context_.Nym(),
             proto::PEERREQUEST_PENDINGBAILMENT,
             instrumentDefinitionID_,
@@ -1364,6 +1371,7 @@ OTAPI_Func::OTAPI_Func(
     switch (theType) {
         case ACKNOWLEDGE_CONNECTION: {
             peer_reply_ = PeerReply::Create(
+                wallet_,
                 context_.Nym(),
                 requestID_,
                 context_.Server(),
@@ -1504,14 +1512,14 @@ void OTAPI_Func::run()
                 OT_ASSERT(purse_)
 
                 payment_ = std::make_unique<OTPayment>(
-                    legacy_.ClientDataFolder(), String(*purse_));
+                    wallet_, legacy_.ClientDataFolder(), String(*purse_));
             }
 
             OT_ASSERT(payment_)
 
             String serialized;
             payment_->GetPaymentContents(serialized);
-            OTPayment payment(legacy_.ClientDataFolder(), serialized);
+            OTPayment payment(wallet_, legacy_.ClientDataFolder(), serialized);
 
             if (!payment.IsValid() || !payment.SetTempValues()) {
                 otOut << OT_METHOD << __FUNCTION__
@@ -1526,7 +1534,7 @@ void OTAPI_Func::run()
 
                 const String& senderPurseString = String(*senderPurse_);
                 OTPayment theSenderPayment(
-                    legacy_.ClientDataFolder(), senderPurseString);
+                    wallet_, legacy_.ClientDataFolder(), senderPurseString);
 
                 if (!theSenderPayment.IsValid() ||
                     !theSenderPayment.SetTempValues()) {
@@ -1556,7 +1564,7 @@ void OTAPI_Func::run()
 
             if (request_ && payment.IsCheque()) {
                 bool workflowUpdated{false};
-                Cheque cheque{legacy_.ClientDataFolder()};
+                Cheque cheque{wallet_, legacy_.ClientDataFolder()};
                 const auto loaded =
                     cheque.LoadContractFromString(payment.Payment());
 

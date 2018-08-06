@@ -9,6 +9,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
@@ -16,7 +17,6 @@
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/api/Server.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
@@ -87,7 +87,7 @@ Server::Server(
 #endif
     const opentxs::api::Legacy& legacy,
     const opentxs::api::Settings& config,
-    const opentxs::api::Server& mint,
+    const opentxs::api::server::Manager& mint,
     const opentxs::api::storage::Storage& storage,
     const opentxs::api::Wallet& wallet)
     : crypto_(crypto)
@@ -109,7 +109,7 @@ Server::Server(
     , m_notaryID(Identifier::Factory())
     , m_strServerNymID()
     , m_nymServer(nullptr)
-    , m_Cron(legacy_)
+    , m_Cron(wallet_, legacy_)
 {
 }
 
@@ -788,7 +788,7 @@ bool Server::DropMessageToNymbox(
     const Message* message{nullptr};
 
     if (nullptr == pMsg) {
-        theMsgAngel.reset(new Message{legacy_.ServerDataFolder()});
+        theMsgAngel.reset(new Message{wallet_, legacy_.ServerDataFolder()});
 
         if (nullptr != szCommand)
             theMsgAngel->m_strCommand = szCommand;
@@ -863,6 +863,7 @@ bool Server::DropMessageToNymbox(
     //
     const String strInMessage(*message);
     Ledger theLedger(
+        wallet_,
         legacy_.ServerDataFolder(),
         RECIPIENT_NYM_ID,
         RECIPIENT_NYM_ID,
@@ -877,7 +878,7 @@ bool Server::DropMessageToNymbox(
          theLedger.VerifySignature(*m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            theLedger, theType, originType::not_applicable, lTransNum);
+            wallet_, theLedger, theType, originType::not_applicable, lTransNum);
 
         if (nullptr != pTransaction)  // The above has an OT_ASSERT within, but
                                       // I just like to check my pointers.

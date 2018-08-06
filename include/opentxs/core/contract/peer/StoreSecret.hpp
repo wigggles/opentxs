@@ -25,8 +25,12 @@ private:
 
     proto::PeerRequest IDVersion(const Lock& lock) const override;
 
-    StoreSecret(const ConstNym& nym, const proto::PeerRequest& serialized);
     StoreSecret(
+        const api::Wallet& wallet,
+        const ConstNym& nym,
+        const proto::PeerRequest& serialized);
+    StoreSecret(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const Identifier& recipientID,
         const proto::SecretType type,
@@ -40,4 +44,4 @@ public:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CONTRACT_PEER_STORESECRET_HPP
+#endif

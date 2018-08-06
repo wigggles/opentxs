@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
-#define OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -78,4 +77,3 @@ private:
     Hash& operator=(Hash&&) = delete;
 };
 }  // namespace opentxs::api::crypto::implementation
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOHASHENGINE_HPP

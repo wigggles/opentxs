@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_UI_INTERNAL_HPP
-#define IMPLEMENTATION_OPENTXS_UI_INTERNAL_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -158,4 +157,3 @@ struct ProfileItem : virtual public ui::ProfileItem {
         const implementation::CustomData& custom) = 0;
 };
 }  // namespace opentxs::ui::internal
-#endif  // IMPLEMENTATION_OPENTXS_UI_INTERNAL_HPP

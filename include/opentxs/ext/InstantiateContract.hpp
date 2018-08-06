@@ -37,6 +37,7 @@
 namespace
 {
 opentxs::Contract* InstantiateContract(
+    const opentxs::api::Wallet& wallet,
     const std::string& dataFolder,
     opentxs::String strInput)
 {
@@ -54,7 +55,7 @@ opentxs::Contract* InstantiateContract(
                 "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                           // chars long.
         {
-            pContract.reset(new OTSmartContract(dataFolder));
+            pContract.reset(new OTSmartContract(wallet, dataFolder));
             OT_ASSERT(pContract);
         }
 
@@ -62,54 +63,54 @@ opentxs::Contract* InstantiateContract(
                 "-----BEGIN SIGNED PAYMENT PLAN-----"))  // this string is 35
                                                          // chars long.
         {
-            pContract.reset(new OTPaymentPlan(dataFolder));
+            pContract.reset(new OTPaymentPlan(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRADE-----"))  // this string is 28
                                                          // chars long.
         {
-            pContract.reset(new OTTrade(dataFolder));
+            pContract.reset(new OTTrade(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED OFFER-----")) {
-            pContract.reset(new OTOffer(dataFolder));
+            pContract.reset(new OTOffer(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
-            pContract.reset(new Cheque(dataFolder));
+            pContract.reset(new Cheque(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
-            pContract.reset(new Cheque(dataFolder));
+            pContract.reset(new Cheque(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
-            pContract.reset(new Cheque(dataFolder));
+            pContract.reset(new Cheque(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
-            pContract.reset(new Message(dataFolder));
+            pContract.reset(new Message(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
 #if OT_CASH
-            pContract.reset(Mint::MintFactory(dataFolder));
+            pContract.reset(Mint::MintFactory(wallet, dataFolder));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
-            pContract.reset(new OTSignedFile(dataFolder));
+            pContract.reset(new OTSignedFile(wallet, dataFolder));
             OT_ASSERT(pContract);
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
 #if OT_CASH
             pContract.reset(
-                Token::LowLevelInstantiate(dataFolder, strFirstLine));
+                Token::LowLevelInstantiate(wallet, dataFolder, strFirstLine));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
 #if OT_CASH
             pContract.reset(
-                Token::LowLevelInstantiate(dataFolder, strFirstLine));
+                Token::LowLevelInstantiate(wallet, dataFolder, strFirstLine));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
 #if OT_CASH
             pContract.reset(
-                Token::LowLevelInstantiate(dataFolder, strFirstLine));
+                Token::LowLevelInstantiate(wallet, dataFolder, strFirstLine));
             OT_ASSERT(pContract);
 #endif  // OT_CASH
         }
@@ -134,4 +135,4 @@ opentxs::Contract* InstantiateContract(
 
 }  // unnamed namespace
 
-#endif  // OPENTXS_EXT_INSTANTIATECONTRACT_HPP
+#endif

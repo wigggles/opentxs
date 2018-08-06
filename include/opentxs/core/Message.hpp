@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTMESSAGE_HPP
-#define OPENTXS_CORE_OTMESSAGE_HPP
+#ifndef OPENTXS_CORE_MESSAGE_HPP
+#define OPENTXS_CORE_MESSAGE_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -96,7 +96,7 @@ public:
     EXPORT static MessageType Type(const std::string& type);
     EXPORT static std::string ReplyCommand(const MessageType type);
 
-    EXPORT Message(const std::string& dataFolder);
+    EXPORT Message(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT virtual ~Message();
 
     bool VerifyContractID() const override;
@@ -207,4 +207,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_OTMESSAGE_HPP
+#endif

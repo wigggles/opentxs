@@ -48,4 +48,4 @@ public:
     EXPORT void Release_Envelope_Decrypt_Output() const;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_CRYPTOSYMMETRICDECRYPTOUTPUT_HPP
+#endif

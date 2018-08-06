@@ -34,6 +34,7 @@
 
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
@@ -507,7 +508,7 @@ bool CredentialSet::Load_Master(
     const OTPasswordData*)
 {
     std::shared_ptr<proto::Credential> serialized;
-    bool loaded = OT::App().DB().Load(strMasterCredID.Get(), serialized);
+    bool loaded = wallet_.LoadCredential(strMasterCredID.Get(), serialized);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Master Credential "
@@ -563,7 +564,7 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
     OT_ASSERT(!GetNymID().empty());
 
     std::shared_ptr<proto::Credential> child;
-    bool loaded = OT::App().DB().Load(strSubID.Get(), child);
+    bool loaded = wallet_.LoadCredential(strSubID.Get(), child);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID

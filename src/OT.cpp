@@ -9,7 +9,7 @@
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/Log.hpp"
 
-#include "api/NativeInternal.hpp"
+#include "internal/api/Internal.hpp"
 
 #include "opentxs/OT.hpp"
 

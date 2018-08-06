@@ -8,7 +8,6 @@
 #include "PayDividendVisitor.hpp"
 
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
@@ -20,7 +19,6 @@
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/OT.hpp"
 
 #include "Server.hpp"
 #include "Transactor.hpp"
@@ -31,6 +29,7 @@
 namespace opentxs
 {
 PayDividendVisitor::PayDividendVisitor(
+    const api::Wallet& wallet,
     const api::Legacy& legacy,
     const Identifier& theNotaryID,
     const Identifier& theNymID,
@@ -39,7 +38,7 @@ PayDividendVisitor::PayDividendVisitor(
     const String& strMemo,
     server::Server& theServer,
     std::int64_t lPayoutPerShare)
-    : AccountVisitor(Identifier::Factory(theNotaryID))
+    : AccountVisitor(wallet, Identifier::Factory(theNotaryID))
     , legacy_(legacy)
     , nymId_(Identifier::Factory(theNymID))
     , payoutUnitTypeId_(Identifier::Factory(thePayoutUnitTypeId))
@@ -112,7 +111,10 @@ bool PayDividendVisitor::Trigger(
     bool bReturnValue = false;
 
     Cheque theVoucher(
-        legacy_.ServerDataFolder(), theNotaryID, Identifier::Factory());
+        wallet_,
+        legacy_.ServerDataFolder(),
+        theNotaryID,
+        Identifier::Factory());
 
     // 10 minutes ==    600 Seconds
     // 1 hour    ==     3600 Seconds
@@ -130,8 +132,8 @@ bool PayDividendVisitor::Trigger(
     // 180 days (6 months).
     // Todo hardcoding.
     TransactionNumber lNewTransactionNumber = 0;
-    auto context = OT::App().Wallet().mutable_ClientContext(
-        theServerNym.ID(), theServerNym.ID());
+    auto context =
+        wallet_.mutable_ClientContext(theServerNym.ID(), theServerNym.ID());
     bool bGotNextTransNum =
         theServer.GetTransactor().issueNextTransactionNumberToNym(
             context.It(), lNewTransactionNumber);  // We save the transaction
@@ -181,7 +183,8 @@ bool PayDividendVisitor::Trigger(
             // Send the voucher to the payments inbox of the recipient.
             //
             const String strVoucher(theVoucher);
-            OTPayment thePayment(legacy_.ServerDataFolder(), strVoucher);
+            OTPayment thePayment(
+                wallet_, legacy_.ServerDataFolder(), strVoucher);
 
             // calls DropMessageToNymbox
             bSent = theServer.SendInstrumentToNym(
@@ -216,7 +219,10 @@ bool PayDividendVisitor::Trigger(
         //
         if (!bSent) {
             Cheque theReturnVoucher(
-                legacy_.ServerDataFolder(), theNotaryID, Identifier::Factory());
+                wallet_,
+                legacy_.ServerDataFolder(),
+                theNotaryID,
+                Identifier::Factory());
 
             const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
                 lPayoutAmount,          // The amount of the cheque.
@@ -248,7 +254,7 @@ bool PayDividendVisitor::Trigger(
                 //
                 const String strReturnVoucher(theReturnVoucher);
                 OTPayment theReturnPayment(
-                    legacy_.ServerDataFolder(), strReturnVoucher);
+                    wallet_, legacy_.ServerDataFolder(), strReturnVoucher);
 
                 // calls DropMessageToNymbox
                 bSent = theServer.SendInstrumentToNym(

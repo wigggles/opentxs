@@ -1,0 +1,148 @@
+// Copyright (c) 2018 The Open-Transactions developers
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+#include "stdafx.hpp"
+
+#include "Internal.hpp"
+
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
+
+#include "api/Wallet.hpp"
+
+#include "Wallet.hpp"
+
+//#define OT_METHOD "opentxs::api::client::implementation::Wallet::"
+
+namespace opentxs
+{
+api::Wallet* Factory::Wallet(
+    const api::client::Manager& client,
+    const api::storage::Storage& storage,
+    const api::Factory& factory,
+    const api::HDSeed& seeds,
+    const api::Legacy& legacy,
+    const network::zeromq::Context& zmq)
+{
+    return new api::client::implementation::Wallet(
+        client, storage, factory, seeds, legacy, zmq);
+}
+}  // namespace opentxs
+
+namespace opentxs::api::client::implementation
+{
+Wallet::Wallet(
+    const api::client::Manager& client,
+    const api::storage::Storage& storage,
+    const api::Factory& factory,
+    const api::HDSeed& seeds,
+    const api::Legacy& legacy,
+    const opentxs::network::zeromq::Context& zmq)
+    : ot_super(client.Instance(), storage, factory, seeds, legacy, zmq)
+    , client_(client)
+{
+}
+
+std::shared_ptr<const opentxs::Context> Wallet::Context(
+    const Identifier& notaryID,
+    const Identifier& clientNymID) const
+{
+    auto serverID = Identifier::Factory(notaryID);
+
+    return context(clientNymID, server_to_nym(serverID));
+}
+
+void Wallet::instantiate_server_context(
+    const proto::Context& serialized,
+    const std::shared_ptr<const opentxs::Nym>& localNym,
+    const std::shared_ptr<const opentxs::Nym>& remoteNym,
+    std::shared_ptr<opentxs::Context>& output) const
+{
+    auto& zmq = client_.ZMQ();
+    const auto& server = serialized.servercontext().serverid();
+    auto& connection = zmq.Server(server);
+    output.reset(new opentxs::ServerContext(
+        *this, legacy_, serialized, localNym, remoteNym, connection));
+}
+
+Editor<opentxs::Context> Wallet::mutable_Context(
+    const Identifier& notaryID,
+    const Identifier& clientNymID) const
+{
+    auto serverID = Identifier::Factory(notaryID);
+    auto base = context(clientNymID, server_to_nym(serverID));
+    std::function<void(opentxs::Context*)> callback =
+        [&](opentxs::Context* in) -> void { this->save(in); };
+
+    OT_ASSERT(base);
+
+    return Editor<opentxs::Context>(base.get(), callback);
+}
+
+Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
+    const Identifier& localNymID,
+    const Identifier& remoteID) const
+{
+    Lock lock(context_map_lock_);
+
+    auto serverID = Identifier::Factory(remoteID);
+    auto remoteNymID = Identifier::Factory(server_to_nym(serverID));
+
+    auto base = context(localNymID, remoteNymID);
+
+    std::function<void(opentxs::Context*)> callback =
+        [&](opentxs::Context* in) -> void { this->save(in); };
+
+    if (base) {
+        OT_ASSERT(proto::CONSENSUSTYPE_SERVER == base->Type());
+    } else {
+        // Obtain nyms.
+        const auto localNym = Nym(localNymID);
+
+        OT_ASSERT_MSG(localNym, "Local nym does not exist in the wallet.");
+
+        const auto remoteNym = Nym(remoteNymID);
+
+        OT_ASSERT_MSG(remoteNym, "Remote nym does not exist in the wallet.");
+
+        // Create a new Context
+        const ContextID contextID = {localNymID.str(), remoteNymID->str()};
+        auto& entry = context_map_[contextID];
+        auto& zmq = client_.ZMQ();
+        auto& connection = zmq.Server(serverID->str());
+        entry.reset(new opentxs::ServerContext(
+            *this, legacy_, localNym, remoteNym, serverID, connection));
+        base = entry;
+    }
+
+    OT_ASSERT(base);
+
+    auto child = dynamic_cast<opentxs::ServerContext*>(base.get());
+
+    OT_ASSERT(nullptr != child);
+
+    return Editor<opentxs::ServerContext>(child, callback);
+}
+
+std::shared_ptr<const opentxs::ServerContext> Wallet::ServerContext(
+    const Identifier& localNymID,
+    const Identifier& remoteID) const
+{
+    auto serverID = Identifier::Factory(remoteID);
+    auto remoteNymID = server_to_nym(serverID);
+    auto base = context(localNymID, remoteNymID);
+
+    auto output = std::dynamic_pointer_cast<const opentxs::ServerContext>(base);
+
+    return output;
+}
+
+std::shared_ptr<const opentxs::Nym> Wallet::signer_nym(
+    const Identifier& id) const
+{
+    return Nym(id);
+}
+}  // namespace opentxs::api::client::implementation

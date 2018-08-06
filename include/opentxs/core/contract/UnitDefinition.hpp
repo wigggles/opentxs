@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTASSETCONTRACT_HPP
-#define OPENTXS_CORE_OTASSETCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_UNITDEFINITION_HPP
+#define OPENTXS_CORE_CONTRACT_UNITDEFINITION_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -33,6 +33,7 @@ private:
         const override;
 
 protected:
+    const api::Wallet& wallet_;
     std::string primary_unit_symbol_;
 
     static OTIdentifier GetID(const proto::UnitDefinition& contract);
@@ -43,8 +44,12 @@ protected:
 
     bool update_signature(const Lock& lock) override;
 
-    UnitDefinition(const ConstNym& nym, const proto::UnitDefinition serialized);
     UnitDefinition(
+        const api::Wallet& wallet,
+        const ConstNym& nym,
+        const proto::UnitDefinition serialized);
+    UnitDefinition(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
@@ -53,6 +58,7 @@ protected:
 
 public:
     EXPORT static UnitDefinition* Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
@@ -62,6 +68,7 @@ public:
         const std::uint32_t& power,
         const std::string& fraction);
     EXPORT static UnitDefinition* Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
@@ -69,12 +76,14 @@ public:
         const std::string& terms,
         const std::uint64_t weight);
     EXPORT static UnitDefinition* Create(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const std::string& shortname,
         const std::string& name,
         const std::string& symbol,
         const std::string& terms);
     EXPORT static UnitDefinition* Factory(
+        const api::Wallet& wallet,
         const ConstNym& nym,
         const proto::UnitDefinition& serialized);
 
@@ -157,4 +166,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_OTASSETCONTRACT_HPP
+#endif

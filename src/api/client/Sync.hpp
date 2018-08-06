@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_CLIENT_SYNC_IMPLEMENTATION_HPP
-#define OPENTXS_API_CLIENT_SYNC_IMPLEMENTATION_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -197,7 +196,7 @@ private:
     const api::client::Contacts& contacts_;
     const api::Legacy& legacy_;
     const api::Settings& config_;
-    const api::client::Client& client_;
+    const api::client::Manager& client_;
     const api::client::ServerAction& server_action_;
     const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
@@ -385,7 +384,7 @@ private:
         const api::client::Contacts& contacts,
         const api::Legacy& legacy,
         const api::Settings& config,
-        const api::client::Client& client,
+        const api::client::Manager& client,
         const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::crypto::Encode& encoding,
@@ -399,4 +398,3 @@ private:
     Sync& operator=(Sync&&) = delete;
 };
 }  // namespace opentxs::api::client::implementation
-#endif  // OPENTXS_API_CLIENT_SYNC_IMPLEMENTATION_HPP

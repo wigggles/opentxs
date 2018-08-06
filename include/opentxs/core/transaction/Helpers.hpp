@@ -89,4 +89,4 @@ bool SetupBoxReceiptFilename(
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_TRANSACTION_HELPERS_HPP
+#endif

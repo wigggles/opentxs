@@ -307,6 +307,7 @@ ReplyMessage::~ReplyMessage()
 
     if (drop_ && context_) {
         UserCommandProcessor::drop_reply_notice_to_nymbox(
+            wallet_,
             String(message_),
             original_.m_strRequestNum.ToLong(),
             drop_status_,

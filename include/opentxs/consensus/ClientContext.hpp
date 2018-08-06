@@ -73,4 +73,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CONSENSUS_CLIENTCONTEXT_HPP
+#endif

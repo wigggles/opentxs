@@ -44,4 +44,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_CONTACTLISTITEM_HPP
+#endif

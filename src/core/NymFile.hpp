@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_CORE_NYMFILE_HPP
-#define IMPLEMENTATION_OPENTXS_CORE_NYMFILE_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -77,6 +76,7 @@ public:
 private:
     friend opentxs::Factory;
 
+    const api::Wallet& wallet_;
     const std::shared_ptr<const Nym> target_nym_{nullptr};
     const std::shared_ptr<const Nym> signer_nym_{nullptr};
     std::int64_t m_lUsageCredits{-1};
@@ -139,6 +139,7 @@ private:
         const Identifier& theInput);
 
     NymFile(
+        const api::Wallet& wallet,
         std::shared_ptr<const Nym> targetNym,
         std::shared_ptr<const Nym> signerNym,
         const std::string& dataFolder);
@@ -149,4 +150,3 @@ private:
     NymFile& operator=(NymFile&&) = delete;
 };
 }  // namespace opentxs::implementation
-#endif  // IMPLEMENTATION_OPENTXS_CORE_NYMFILE_HPP

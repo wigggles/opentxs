@@ -74,4 +74,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-#endif  // OPENTXS_CORE_CRYPTO_PAYMENTCODE_HPP
+#endif

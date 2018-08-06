@@ -78,4 +78,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_CHILDKEYCREDENTIAL_HPP
+#endif

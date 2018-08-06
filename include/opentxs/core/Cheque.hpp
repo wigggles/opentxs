@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTCHEQUE_HPP
-#define OPENTXS_CORE_OTCHEQUE_HPP
+#ifndef OPENTXS_CORE_CHEQUE_HPP
+#define OPENTXS_CORE_CHEQUE_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -82,8 +82,9 @@ public:
                                      // this is where the token saves its
                                      // contents
 
-    EXPORT Cheque(const std::string& dataFolder);
+    EXPORT Cheque(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT Cheque(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
@@ -109,4 +110,4 @@ private:  // Private prevents erroneous use by other classes.
     Cheque() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTCHEQUE_HPP
+#endif

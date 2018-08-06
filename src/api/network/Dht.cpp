@@ -5,30 +5,149 @@
 
 #include "stdafx.hpp"
 
-#include "Dht.hpp"
+#include "Internal.hpp"
 
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/network/Dht.hpp"
+#include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/ReplyCallback.hpp"
+#include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/Types.hpp"
 
 #include "network/DhtConfig.hpp"
 #if OT_DHT
 #include "network/OpenDHT.hpp"
 #endif
 
+#include <cstdint>
 #include <string>
+
+#include "Dht.hpp"
+
+namespace opentxs
+{
+api::network::Dht* Factory::Dht(
+    const int instance,
+    const bool defaultEnable,
+    const api::Settings& settings,
+    const api::Wallet& wallet,
+    const network::zeromq::Context& zmq,
+    std::int64_t& nymPublishInterval,
+    std::int64_t& nymRefreshInterval,
+    std::int64_t& serverPublishInterval,
+    std::int64_t& serverRefreshInterval,
+    std::int64_t& unitPublishInterval,
+    std::int64_t& unitRefreshInterval)
+{
+    DhtConfig config;
+    bool notUsed;
+    settings.CheckSet_bool(
+        "OpenDHT", "enable_dht", defaultEnable, config.enable_dht_, notUsed);
+    settings.CheckSet_long(
+        "OpenDHT",
+        "nym_publish_interval",
+        config.nym_publish_interval_,
+        nymPublishInterval,
+        notUsed);
+    settings.CheckSet_long(
+        "OpenDHT",
+        "nym_refresh_interval",
+        config.nym_refresh_interval_,
+        nymRefreshInterval,
+        notUsed);
+    settings.CheckSet_long(
+        "OpenDHT",
+        "server_publish_interval",
+        config.server_publish_interval_,
+        serverPublishInterval,
+        notUsed);
+    settings.CheckSet_long(
+        "OpenDHT",
+        "server_refresh_interval",
+        config.server_refresh_interval_,
+        serverRefreshInterval,
+        notUsed);
+    settings.CheckSet_long(
+        "OpenDHT",
+        "unit_publish_interval",
+        config.unit_publish_interval_,
+        unitPublishInterval,
+        notUsed);
+    settings.CheckSet_long(
+        "OpenDHT",
+        "unit_refresh_interval",
+        config.unit_refresh_interval_,
+        unitRefreshInterval,
+        notUsed);
+    settings.CheckSet_long(
+        "OpenDHT",
+        "listen_port",
+        config.default_port_,
+        config.listen_port_,
+        notUsed);
+    settings.CheckSet_str(
+        "OpenDHT",
+        "bootstrap_url",
+        String(config.bootstrap_url_),
+        config.bootstrap_url_,
+        notUsed);
+    settings.CheckSet_str(
+        "OpenDHT",
+        "bootstrap_port",
+        String(config.bootstrap_port_),
+        config.bootstrap_port_,
+        notUsed);
+
+    return new api::network::implementation::Dht(instance, config, wallet, zmq);
+}
+}  // namespace opentxs
 
 namespace opentxs::api::network::implementation
 {
-Dht::Dht(DhtConfig& config, const api::Wallet& wallet)
-    : wallet_(wallet)
+Dht::Dht(
+    const int instance,
+    DhtConfig& config,
+    const api::Wallet& wallet,
+    const opentxs::network::zeromq::Context& zmq)
+    : instance_{instance}
+    , wallet_(wallet)
     , config_(new DhtConfig(config))
 #if OT_DHT
     , node_(new opentxs::network::implementation::OpenDHT(*config_))
 #endif
+    , request_nym_callback_{opentxs::network::zeromq::ReplyCallback::Factory(
+          [=](const opentxs::network::zeromq::Message& incoming)
+              -> OTZMQMessage {
+              return this->process_request(incoming, &Dht::GetPublicNym);
+          })}
+    , request_nym_socket_{zmq.ReplySocket(request_nym_callback_, false)}
+    , request_server_callback_{opentxs::network::zeromq::ReplyCallback::Factory(
+          [=](const opentxs::network::zeromq::Message& incoming)
+              -> OTZMQMessage {
+              return this->process_request(incoming, &Dht::GetServerContract);
+          })}
+    , request_server_socket_{zmq.ReplySocket(request_server_callback_, false)}
+    , request_unit_callback_{opentxs::network::zeromq::ReplyCallback::Factory(
+          [=](const opentxs::network::zeromq::Message& incoming)
+              -> OTZMQMessage {
+              return this->process_request(incoming, &Dht::GetUnitDefinition);
+          })}
+    , request_unit_socket_{zmq.ReplySocket(request_unit_callback_, false)}
 {
+    request_nym_socket_->Start(
+        opentxs::network::zeromq::Socket::GetDhtRequestNymEndpoint(instance_));
+    request_server_socket_->Start(
+        opentxs::network::zeromq::Socket::GetDhtRequestServerEndpoint(
+            instance_));
+    request_unit_socket_->Start(
+        opentxs::network::zeromq::Socket::GetDhtRequestUnitEndpoint(instance_));
 }
 
 void Dht::Insert(
@@ -122,6 +241,28 @@ void Dht::GetUnitDefinition(__attribute__((unused))
 
 #if OT_DHT
 const opentxs::network::OpenDHT& Dht::OpenDHT() const { return *node_; }
+
+OTZMQMessage Dht::process_request(
+    const opentxs::network::zeromq::Message& incoming,
+    void (Dht::*get)(const std::string&) const) const
+{
+    OT_ASSERT(nullptr != get)
+
+    bool output{false};
+
+    if (1 == incoming.size()) {
+        const std::string id{incoming.at(0)};
+        const auto nymID = Identifier::Factory(id);
+
+        if (false == nymID->empty()) {
+            output = true;
+            (this->*get)(id);
+        }
+    }
+
+    return opentxs::network::zeromq::Message::Factory(
+        Data::Factory(&output, sizeof(output)));
+}
 
 bool Dht::ProcessPublicNym(
     const api::Wallet& wallet,

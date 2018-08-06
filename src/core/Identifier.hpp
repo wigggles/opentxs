@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_CORE_IDENTIFIER_HPP
-#define IMPLEMENTATION_OPENTXS_CORE_IDENTIFIER_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -73,4 +72,3 @@ private:
     Identifier& operator=(Identifier&& rhs) = delete;
 };
 }  // namespace opentxs::implementation
-#endif  // IMPLEMENTATION_OPENTXS_CORE_IDENTIFIER_HPP

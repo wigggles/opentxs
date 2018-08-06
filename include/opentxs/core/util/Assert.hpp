@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_ASSERT_HPP
-#define OPENTXS_CORE_ASSERT_HPP
+#ifndef OPENTXS_CORE_UTIL_ASSERT_HPP
+#define OPENTXS_CORE_UTIL_ASSERT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -170,4 +170,4 @@ public:
     EXPORT static fpt_Assert_sz_n_sz(doAssert);  // assert
 };
 
-#endif  // OPENTXS_CORE_ASSERT_HPP
+#endif

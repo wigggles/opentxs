@@ -7,8 +7,6 @@
 
 #include "opentxs/core/trade/OTTrade.hpp"
 
-#include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -26,7 +24,6 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 #include <stdlib.h>
@@ -41,8 +38,8 @@ namespace opentxs
 {
 enum { TradeProcessIntervalSeconds = 10 };
 
-OTTrade::OTTrade(const std::string& dataFolder)
-    : ot_super(dataFolder)
+OTTrade::OTTrade(const api::Wallet& wallet, const std::string& dataFolder)
+    : ot_super(wallet, dataFolder)
     , currencyTypeID_(Identifier::Factory())
     , currencyAcctID_(Identifier::Factory())
     , offer_(nullptr)
@@ -57,6 +54,7 @@ OTTrade::OTTrade(const std::string& dataFolder)
 }
 
 OTTrade::OTTrade(
+    const api::Wallet& wallet,
     const std::string& dataFolder,
     const Identifier& notaryID,
     const Identifier& instrumentDefinitionID,
@@ -64,7 +62,13 @@ OTTrade::OTTrade(
     const Identifier& nymID,
     const Identifier& currencyId,
     const Identifier& currencyAcctId)
-    : ot_super(dataFolder, notaryID, instrumentDefinitionID, assetAcctId, nymID)
+    : ot_super(
+          wallet,
+          dataFolder,
+          notaryID,
+          instrumentDefinitionID,
+          assetAcctId,
+          nymID)
     , currencyTypeID_(Identifier::Factory(currencyId))
     , currencyAcctID_(Identifier::Factory(currencyAcctId))
     , offer_(nullptr)
@@ -394,7 +398,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         return nullptr;
     }
 
-    OTOffer* offer = new OTOffer{data_folder_};
+    OTOffer* offer = new OTOffer{wallet_, data_folder_};
     OT_ASSERT(offer != nullptr);
 
     // Trying to load the offer from the trader's original signed request
@@ -654,7 +658,7 @@ void OTTrade::onRemovalFromCron()
             return;
         }
 
-        std::unique_ptr<OTOffer> offer(new OTOffer{data_folder_});
+        std::unique_ptr<OTOffer> offer(new OTOffer{wallet_, data_folder_});
 
         // Trying to load the offer from the trader's original signed request
         // (So I can use it to lookup the Market ID, so I can see if the offer
@@ -809,8 +813,8 @@ void OTTrade::onFinalReceipt(
     auto serverNym = cron->GetServerNym();
     OT_ASSERT(serverNym);
 
-    auto context = OT::App().Wallet().mutable_ClientContext(
-        serverNym->ID(), originator->ID());
+    auto context =
+        wallet_.mutable_ClientContext(serverNym->ID(), originator->ID());
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -1058,8 +1062,7 @@ bool OTTrade::ProcessCron()
         {
             otInfo << "Processing trade: " << GetTransactionNum() << ".\n";
 
-            bStayOnMarket =
-                market->ProcessTrade(OT::App().Wallet(), *this, *offer);
+            bStayOnMarket = market->ProcessTrade(wallet_, *this, *offer);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.
         }

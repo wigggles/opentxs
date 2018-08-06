@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTACCOUNT_HPP
-#define OPENTXS_CORE_OTACCOUNT_HPP
+#ifndef OPENTXS_CORE_ACCOUNT_HPP
+#define OPENTXS_CORE_ACCOUNT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -22,6 +22,14 @@ namespace implementation
 {
 class Wallet;
 }  // namespace implementation
+
+namespace server
+{
+namespace implementation
+{
+class Wallet;
+}  // namespace implementation
+}  // namespace server
 }  // namespace api
 
 class Account : public OTTransactionType
@@ -96,7 +104,9 @@ public:
 private:
     friend OTWallet;
     friend opentxs::api::implementation::Wallet;
+    friend opentxs::api::server::implementation::Wallet;
     friend OTTransactionType* OTTransactionType::TransactionFactory(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         String input);
 
@@ -119,6 +129,7 @@ private:
     OTIdentifier outboxHash_;
 
     static Account* GenerateNewAccount(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& notaryID,
@@ -130,6 +141,7 @@ private:
     // Let's say you don't have or know the NymID, and you just want to load
     // the damn thing up. Then call this function. It will set nymID for you.
     static Account* LoadExistingAccount(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& accountId,
         const Identifier& notaryID);
@@ -164,22 +176,25 @@ private:
     void UpdateContents() override;
 
     Account(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID,
         const String& name);
     Account(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID);
     Account(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& nymID,
         const Identifier& notaryID);
-    Account(const std::string& dataFolder);
+    Account(const api::Wallet& wallet, const std::string& dataFolder);
     Account() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTACCOUNT_HPP
+#endif

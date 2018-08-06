@@ -128,7 +128,7 @@ bool MessageProcessor::processMessage(
     armored.MemSet(messageString.data(), messageString.size());
     String serialized;
     armored.GetString(serialized);
-    Message request{legacy_.ServerDataFolder()};
+    Message request{server_.Wallet(), legacy_.ServerDataFolder()};
 
     if (false == serialized.Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Empty serialized request."
@@ -144,7 +144,7 @@ bool MessageProcessor::processMessage(
         return true;
     }
 
-    Message repy{legacy_.ServerDataFolder()};
+    Message repy{server_.Wallet(), legacy_.ServerDataFolder()};
     const bool processed =
         server_.CommandProcessor().ProcessUserCommand(request, repy);
 

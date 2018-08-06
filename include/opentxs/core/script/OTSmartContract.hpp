@@ -293,8 +293,11 @@ public:
                                      // this is where the ledger saves its
                                      // contents
 
-    EXPORT OTSmartContract(const std::string& dataFolder);
     EXPORT OTSmartContract(
+        const api::Wallet& wallet,
+        const std::string& dataFolder);
+    EXPORT OTSmartContract(
+        const api::Wallet& wallet,
         const std::string& dataFolder,
         const Identifier& NOTARY_ID);
 
@@ -324,7 +327,6 @@ protected:
     const time64_t& GetNextProcessDate() const { return m_tNextProcessDate; }
 
 private:
-    const api::Wallet& wallet_;
     // In OTSmartContract, none of this normal crap is used.
     // The Sender/Recipient are unused.
     // The Opening and Closing Trans#s are unused.
@@ -389,4 +391,4 @@ private:
     OTSmartContract() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
+#endif

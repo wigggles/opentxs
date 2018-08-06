@@ -1,8 +1,8 @@
 // stacktrace.h (c) 2008, Timo Bingmann from http://idlebox.net/
 // published under the WTFPL v2.0
 
-#ifndef STACKTRACE_H
-#define STACKTRACE_H
+#ifndef OPENTXS_CORE_UTIL_STACKTRACE_H
+#define OPENTXS_CORE_UTIL_STACKTRACE_H
 
 #include "opentxs/Forward.hpp"
 
@@ -30,12 +30,12 @@
 static inline void print_stacktrace(ANDROID_UNUSED FILE* out = stderr)
 {
 #ifdef _WIN32
-// TODO: Write Winodws Code
+    // TODO: Write Winodws Code
 
 #elif defined(ANDROID)
-//    android::CallStack cs;
-//    cs.update();
-//    cs.dump();
+    //    android::CallStack cs;
+    //    cs.update();
+    //    cs.dump();
 
 #else
 
@@ -121,4 +121,4 @@ static inline void print_stacktrace(ANDROID_UNUSED FILE* out = stderr)
 #endif
 }
 
-#endif  // STACKTRACE_H
+#endif

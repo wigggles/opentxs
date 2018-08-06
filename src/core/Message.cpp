@@ -222,8 +222,8 @@ const std::map<MessageType, MessageType> Message::reply_message_{
 
 const Message::ReverseTypeMap Message::message_types_ = make_reverse_map();
 
-Message::Message(const std::string& dataFolder)
-    : Contract(dataFolder)
+Message::Message(const api::Wallet& wallet, const std::string& dataFolder)
+    : Contract(wallet, dataFolder)
     , m_bIsSigned(false)
     , m_lNewRequestNum(0)
     , m_lDepth(0)
@@ -305,9 +305,13 @@ bool Message::HarvestTransactionNumbers(
 
     const String strLedger(m_ascPayload);
     Ledger theLedger(
-        data_folder_, MSG_NYM_ID, ACCOUNT_ID, NOTARY_ID);  // We're going to
-                                                           // load a messsage
-                                                           // ledger from *this.
+        wallet_,
+        data_folder_,
+        MSG_NYM_ID,
+        ACCOUNT_ID,
+        NOTARY_ID);  // We're going to
+                     // load a messsage
+                     // ledger from *this.
 
     if (!strLedger.Exists() || !theLedger.LoadLedgerFromString(strLedger)) {
         otErr << __FUNCTION__

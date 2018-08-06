@@ -72,4 +72,4 @@ void TranslateAccountTypeToString(
 }
 }  // namespace
 
-#endif  // OPENTXS_CORE_HELPERS_HPP
+#endif
