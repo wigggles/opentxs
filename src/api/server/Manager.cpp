@@ -6,11 +6,15 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/server/Manager.hpp"
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/HDSeed.hpp"
+#endif
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
@@ -25,7 +29,9 @@
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
+#include "api/storage/StorageInternal.hpp"
 #include "api/Scheduler.hpp"
+#include "api/StorageParent.hpp"
 #include "internal/api/Internal.hpp"
 #include "server/MessageProcessor.hpp"
 #include "server/Server.hpp"
@@ -58,11 +64,7 @@ namespace opentxs
 api::server::Manager* Factory::ServerManager(
     const Flag& running,
     const ArgList& args,
-    const api::storage::Storage& storage,
     const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds,
-#endif
     const api::Legacy& legacy,
     const api::Settings& config,
     const opentxs::network::zeromq::Context& context,
@@ -70,18 +72,7 @@ api::server::Manager* Factory::ServerManager(
     const int instance)
 {
     return new api::server::implementation::Manager(
-        running,
-        args,
-        storage,
-        crypto,
-#if OT_CRYPTO_WITH_BIP39
-        seeds,
-#endif
-        legacy,
-        config,
-        context,
-        dataFolder,
-        instance);
+        running, args, crypto, legacy, config, context, dataFolder, instance);
 }
 }  // namespace opentxs
 
@@ -90,78 +81,74 @@ namespace opentxs::api::server::implementation
 Manager::Manager(
     const Flag& running,
     const ArgList& args,
-    const api::storage::Storage& storage,
     const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds,
-#endif
     const api::Legacy& legacy,
     const api::Settings& config,
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
     : Scheduler(running)
-    , running_{running}
-    , args_(args)
-    , storage_(storage)
+    , StorageParent(running, args, crypto, config, dataFolder)
     , legacy_(legacy)
-    , config_(config)
-    , crypto_(crypto)
-    , seeds_(seeds)
     , zmq_context_(context)
-    , data_folder_(dataFolder)
-    , instance_{instance}
-    , factory_
-{
-    opentxs::Factory::FactoryAPI(
+    , instance_(instance)
+    , seeds_(opentxs::Factory::HDSeed(
+          crypto_.Symmetric(),
+          *storage_,
+          crypto_.BIP32(),
+          crypto_.BIP39(),
+          crypto_.AES()))
+    , factory_(opentxs::Factory::FactoryAPI(
 #if OT_CRYPTO_WITH_BIP39
-        seeds_
+          *seeds_
 #endif
-    )
-}
-,
-    wallet_{opentxs::Factory::Wallet(
-        *this,
-        storage_,
-        *factory_,
-        seeds_,
-        legacy_,
-        zmq_context_)},
-    dht_{opentxs::Factory::Dht(
-        instance_,
-        true,
-        config_,
-        *wallet_,
-        context,
-        nym_publish_interval_,
-        nym_refresh_interval_,
-        server_publish_interval_,
-        server_refresh_interval_,
-        unit_publish_interval_,
-        unit_refresh_interval_)},
-    server_p_(new opentxs::server::Server(
-        crypto_,
+          ))
+    , wallet_(opentxs::Factory::Wallet(
+          *this,
+          *storage_,
+          *factory_,
+          *seeds_,
+          legacy_,
+          zmq_context_))
+    , dht_(opentxs::Factory::Dht(
+          instance_,
+          true,
+          config_,
+          *wallet_,
+          context,
+          nym_publish_interval_,
+          nym_refresh_interval_,
+          server_publish_interval_,
+          server_refresh_interval_,
+          unit_publish_interval_,
+          unit_refresh_interval_))
+    , server_p_(new opentxs::server::Server(
+          crypto_,
 #if OT_CRYPTO_WITH_BIP39
-        seeds_,
+          *seeds_,
 #endif
-        legacy_,
-        config_,
-        *this,
-        storage_,
-        *wallet_)),
-    server_(*server_p_),
-    message_processor_p_(new opentxs::server::MessageProcessor(
-        legacy_,
-        server_,
-        context,
-        running_)),
-    message_processor_(*message_processor_p_)
+          legacy_,
+          config_,
+          *this,
+          *storage_,
+          *wallet_))
+    , server_(*server_p_)
+    , message_processor_p_(new opentxs::server::MessageProcessor(
+          legacy_,
+          server_,
+          context,
+          running_))
+    , message_processor_(*message_processor_p_)
 #if OT_CASH
-        ,
-    mint_thread_(nullptr), mint_lock_(), mint_update_lock_(), mint_scan_lock_(),
-    mints_(), mints_to_check_()
+    , mint_thread_(nullptr)
+    , mint_lock_()
+    , mint_update_lock_()
+    , mint_scan_lock_()
+    , mints_()
+    , mints_to_check_()
 #endif  // OT_CASH
 {
+    OT_ASSERT(seeds_);
     OT_ASSERT(factory_);
     OT_ASSERT(wallet_);
     OT_ASSERT(dht_)
@@ -387,9 +374,12 @@ const Identifier& Manager::ID() const { return server_.GetServerID(); }
 
 void Manager::Init()
 {
-    OT_ASSERT(dht_)
+    OT_ASSERT(dht_);
+    OT_ASSERT(seeds_);
 
-    Scheduler::Start(&storage_, dht_.get());
+    Scheduler::Start(storage_.get(), dht_.get());
+    StorageParent::init(*seeds_);
+    Start();
 }
 
 #if OT_CASH
@@ -532,6 +522,13 @@ void Manager::ScanMints() const
 }
 #endif  // OT_CASH
 
+const api::HDSeed& Manager::Seeds() const
+{
+    OT_ASSERT(seeds_);
+
+    return *seeds_;
+}
+
 void Manager::Start()
 {
     server_.Init();
@@ -554,11 +551,16 @@ void Manager::Start()
 #endif  // OT_CASH
 }
 
+const api::storage::Storage& Manager::Storage() const
+{
+    OT_ASSERT(storage_)
+
+    return *storage_;
+}
+
 void Manager::storage_gc_hook()
 {
-    // if (storage_) { storage_->RunGC(); }
-
-    storage_.RunGC();
+    if (storage_) { storage_->RunGC(); }
 }
 
 #if OT_CASH

@@ -5,8 +5,13 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Editor.hpp"
+#include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/OTStorage.hpp"
 
 #include "storage/drivers/StorageMultiplex.hpp"
 #include "storage/tree/Accounts.hpp"
@@ -51,6 +56,10 @@
 
 #include "Storage.hpp"
 
+#define CLIENT_CONFIG_KEY "client"
+#define SERVER_CONFIG_KEY "server"
+#define STORAGE_CONFIG_KEY "storage"
+
 #define OT_METHOD "opentxs::api::storage::implementation::Storage::"
 
 namespace opentxs
@@ -66,6 +75,190 @@ api::storage::StorageInternal* Factory::Storage(
 {
     return new api::storage::implementation::Storage(
         running, config, primary, migrate, previous, hash, random);
+}
+
+api::storage::StorageInternal* Factory::Storage(
+    const Flag& running,
+    const api::Crypto& crypto,
+    const api::Settings& config,
+    const std::string& dataFolder,
+    const String& defaultPluginCLI,
+    const String& archiveDirectoryCLI,
+    const std::chrono::seconds gcIntervalCLI,
+    String& encryptedDirectoryCLI,
+    StorageConfig& storageConfig)
+{
+    Digest hash = std::bind(
+        static_cast<bool (api::crypto::Hash::*)(
+            const std::uint32_t, const std::string&, std::string&) const>(
+            &api::crypto::Hash::Digest),
+        &(crypto.Hash()),
+        std::placeholders::_1,
+        std::placeholders::_2,
+        std::placeholders::_3);
+    Random random =
+        std::bind(&api::crypto::Encode::RandomFilename, &(crypto.Encode()));
+    std::shared_ptr<OTDB::StorageFS> storage(OTDB::StorageFS::Instantiate());
+    std::string root_path = OTFolders::Common().Get();
+    std::string path;
+
+    if (0 <=
+        storage->ConstructAndCreatePath(
+            path, dataFolder, OTFolders::Common().Get(), ".temp", "", "")) {
+        path.erase(path.end() - 5, path.end());
+    }
+
+    storageConfig.path_ = path;
+    bool notUsed;
+    bool migrate{false};
+    auto old = String::Factory();
+    OTString defaultPlugin = defaultPluginCLI;
+    auto archiveDirectory = String::Factory();
+    auto encryptedDirectory = String::Factory();
+
+    otWarn << OT_METHOD << __FUNCTION__ << ": Using " << defaultPlugin
+           << " as primary storage plugin." << std::endl;
+
+    if (archiveDirectoryCLI.empty()) {
+        archiveDirectory = storageConfig.fs_backup_directory_.c_str();
+    } else {
+        archiveDirectory = archiveDirectoryCLI;
+    }
+
+    if (encryptedDirectoryCLI.empty()) {
+        encryptedDirectory =
+            storageConfig.fs_encrypted_backup_directory_.c_str();
+    } else {
+        encryptedDirectory = encryptedDirectoryCLI;
+    }
+
+    const bool haveGCInterval = (0 != gcIntervalCLI.count());
+    std::int64_t defaultGcInterval{0};
+    std::int64_t configGcInterval{0};
+
+    if (haveGCInterval) {
+        defaultGcInterval = gcIntervalCLI.count();
+    } else {
+        defaultGcInterval = storageConfig.gc_interval_;
+    }
+
+    encryptedDirectoryCLI = encryptedDirectory;
+
+    config.CheckSet_bool(
+        STORAGE_CONFIG_KEY,
+        "auto_publish_nyms",
+        storageConfig.auto_publish_nyms_,
+        storageConfig.auto_publish_nyms_,
+        notUsed);
+    config.CheckSet_bool(
+        STORAGE_CONFIG_KEY,
+        "auto_publish_servers_",
+        storageConfig.auto_publish_servers_,
+        storageConfig.auto_publish_servers_,
+        notUsed);
+    config.CheckSet_bool(
+        STORAGE_CONFIG_KEY,
+        "auto_publish_units_",
+        storageConfig.auto_publish_units_,
+        storageConfig.auto_publish_units_,
+        notUsed);
+    config.CheckSet_long(
+        STORAGE_CONFIG_KEY,
+        "gc_interval",
+        defaultGcInterval,
+        configGcInterval,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "path",
+        String(storageConfig.path_),
+        storageConfig.path_,
+        notUsed);
+#if OT_STORAGE_FS
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "fs_primary",
+        String(storageConfig.fs_primary_bucket_),
+        storageConfig.fs_primary_bucket_,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "fs_secondary",
+        String(storageConfig.fs_secondary_bucket_),
+        storageConfig.fs_secondary_bucket_,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "fs_root_file",
+        String(storageConfig.fs_root_file_),
+        storageConfig.fs_root_file_,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
+        archiveDirectory,
+        storageConfig.fs_backup_directory_,
+        notUsed);
+    archiveDirectory = String(storageConfig.fs_backup_directory_.c_str());
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_FS_ENCRYPTED_BACKUP_DIRECTORY_KEY,
+        encryptedDirectory,
+        storageConfig.fs_encrypted_backup_directory_,
+        notUsed);
+    encryptedDirectory =
+        String(storageConfig.fs_encrypted_backup_directory_.c_str());
+#endif
+#if OT_STORAGE_SQLITE
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "sqlite3_primary",
+        String(storageConfig.sqlite3_primary_bucket_),
+        storageConfig.sqlite3_primary_bucket_,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "sqlite3_secondary",
+        String(storageConfig.sqlite3_secondary_bucket_),
+        storageConfig.sqlite3_secondary_bucket_,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "sqlite3_control",
+        String(storageConfig.sqlite3_control_table_),
+        storageConfig.sqlite3_control_table_,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "sqlite3_root_key",
+        String(storageConfig.sqlite3_root_key_),
+        storageConfig.sqlite3_root_key_,
+        notUsed);
+    config.CheckSet_str(
+        STORAGE_CONFIG_KEY,
+        "sqlite3_db_file",
+        String(storageConfig.sqlite3_db_file_),
+        storageConfig.sqlite3_db_file_,
+        notUsed);
+#endif
+
+    if (haveGCInterval) {
+        storageConfig.gc_interval_ = defaultGcInterval;
+        config.Set_long(
+            STORAGE_CONFIG_KEY, "gc_interval", defaultGcInterval, notUsed);
+    } else {
+        storageConfig.gc_interval_ = configGcInterval;
+    }
+
+    config.Set_str(
+        STORAGE_CONFIG_KEY,
+        STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+        defaultPlugin,
+        notUsed);
+    config.Save();
+
+    return new api::storage::implementation::Storage(
+        running, storageConfig, defaultPlugin, migrate, old, hash, random);
 }
 }  // namespace opentxs
 

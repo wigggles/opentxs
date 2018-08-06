@@ -45,23 +45,13 @@ private:
     const std::chrono::seconds gc_interval_{0};
     OTPassword word_list_{};
     OTPassword passphrase_{};
-    std::string primary_storage_plugin_{};
-    std::string archive_directory_{};
-    std::string encrypted_directory_{};
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
     std::unique_ptr<api::client::internal::Manager> client_;
     mutable ConfigMap config_;
     std::unique_ptr<api::Crypto> crypto_;
-#if OT_CRYPTO_WITH_BIP39
-    std::unique_ptr<api::HDSeed> seeds_;
-#endif
     std::unique_ptr<api::Legacy> legacy_;
-    std::unique_ptr<api::storage::StorageInternal> storage_;
-#if OT_CRYPTO_WITH_BIP39
-    OTSymmetricKey storage_encryption_key_;
-#endif
     std::unique_ptr<api::server::Manager> server_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
@@ -84,11 +74,6 @@ private:
     Native& operator=(const Native&) = delete;
     Native& operator=(Native&&) = delete;
 
-    String get_primary_storage_plugin(
-        const StorageConfig& config,
-        bool& migrate,
-        String& previous) const;
-
     void setup_default_external_password_callback();
 
     void Init_Api();
@@ -96,17 +81,10 @@ private:
     void Init_Crypto();
     void Init_Legacy();
     void Init_Log();
-#if OT_CRYPTO_WITH_BIP39
-    void Init_Seeds();
-#endif
     void Init_Server();
-    void Init_Storage();
-    void Init_StorageBackup();
     void Init() override;
     void recover();
-    void set_storage_encryption();
     void shutdown() override;
-    void start();
 
     ~Native() = default;
 };

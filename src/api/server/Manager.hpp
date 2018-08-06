@@ -10,7 +10,8 @@
 namespace opentxs::api::server::implementation
 {
 class Manager final : opentxs::api::server::Manager,
-                      opentxs::api::implementation::Scheduler
+                      opentxs::api::implementation::Scheduler,
+                      api::implementation::StorageParent
 {
 public:
     const api::Settings& Config() const override { return config_; }
@@ -49,10 +50,10 @@ public:
         Scheduler::Schedule(interval, task, last);
     }
 #if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& Seeds() const override { return seeds_; }
+    const api::HDSeed& Seeds() const override;
 #if OT_CASH
 #endif
-    const api::storage::Storage& Storage() const override { return storage_; }
+    const api::storage::Storage& Storage() const override;
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
     const api::Wallet& Wallet() const override;
@@ -70,18 +71,13 @@ private:
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 #endif  // OT_CASH
 
-    const Flag& running_;
-    const ArgList& args_;
-    const api::storage::Storage& storage_;
     const api::Legacy& legacy_;
-    const api::Settings& config_;
-    const api::Crypto& crypto_;
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds_;
-#endif
     const opentxs::network::zeromq::Context& zmq_context_;
     const std::string data_folder_{""};
     const int instance_{0};
+#if OT_CRYPTO_WITH_BIP39
+    std::unique_ptr<api::HDSeed> seeds_;
+#endif
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::Dht> dht_;
@@ -137,11 +133,7 @@ private:
     Manager(
         const Flag& running,
         const ArgList& args,
-        const api::storage::Storage& storage,
         const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds,
-#endif
         const api::Legacy& legacy,
         const api::Settings& config,
         const opentxs::network::zeromq::Context& context,
