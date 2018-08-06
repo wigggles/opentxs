@@ -28,6 +28,7 @@
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/server/Manager.hpp>
 #include <opentxs/api/storage/Storage.hpp>
+#include <opentxs/api/Core.hpp>
 #include <opentxs/api/Factory.hpp>
 #include <opentxs/api/HDSeed.hpp>
 #include <opentxs/api/Legacy.hpp>

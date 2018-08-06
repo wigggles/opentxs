@@ -14,6 +14,8 @@ class Manager final : opentxs::api::server::Manager,
                       opentxs::api::implementation::Scheduler
 {
 public:
+    const api::Settings& Config() const override { return config_; }
+    const api::Crypto& Crypto() const override { return crypto_; }
     const api::network::Dht& DHT() const override;
     const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
@@ -53,6 +55,11 @@ public:
     const api::storage::Storage& Storage() const override { return storage_; }
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
+    const api::Wallet& Wallet() const override;
+    const opentxs::network::zeromq::Context& ZeroMQ() const override
+    {
+        return zmq_context_;
+    }
 
     ~Manager();
 

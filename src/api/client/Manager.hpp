@@ -19,6 +19,7 @@ public:
     const api::client::Blockchain& Blockchain() const override;
 #endif
     const api::client::Cash& Cash() const override;
+    const api::Settings& Config() const override { return config_; }
     const api::client::Contacts& Contacts() const override;
     const api::Crypto& Crypto() const override { return crypto_; }
     const api::network::Dht& DHT() const override;
@@ -47,6 +48,10 @@ public:
     const api::client::UI& UI() const override;
     const api::Wallet& Wallet() const override;
     const client::Workflow& Workflow() const override;
+    const opentxs::network::zeromq::Context& ZeroMQ() const override
+    {
+        return zmq_context_;
+    }
     const api::network::ZMQ& ZMQ() const override;
 
     void StartActivity() override;

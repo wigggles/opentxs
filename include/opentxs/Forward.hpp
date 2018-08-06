@@ -56,6 +56,7 @@ namespace storage
 class Storage;
 }  // namespace storage
 
+class Core;
 class Crypto;
 class Factory;
 class HDSeed;

@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/api/Core.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -18,7 +20,7 @@ namespace api
 {
 namespace server
 {
-class Manager
+class Manager : virtual public api::Core
 {
 public:
     EXPORT virtual const network::Dht& DHT() const = 0;

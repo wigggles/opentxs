@@ -632,6 +632,13 @@ bool Manager::verify_mint_directory(const std::string& serverID) const
 }
 #endif  // OT_CASH
 
+const api::Wallet& Manager::Wallet() const
+{
+    OT_ASSERT(wallet_);
+
+    return *wallet_;
+}
+
 Manager::~Manager()
 {
     Cleanup();

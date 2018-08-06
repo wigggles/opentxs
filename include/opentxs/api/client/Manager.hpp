@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/api/Core.hpp"
+
 #include <string>
 
 namespace opentxs
@@ -16,7 +18,7 @@ namespace api
 {
 namespace client
 {
-class Manager
+class Manager : virtual public api::Core
 {
 public:
     EXPORT virtual const api::client::Activity& Activity() const = 0;
