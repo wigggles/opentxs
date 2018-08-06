@@ -59,4 +59,4 @@ private:
 }  // namespace crypto
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_CRYPTO_HASH_HPP
+#endif

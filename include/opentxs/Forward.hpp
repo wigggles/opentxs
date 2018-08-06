@@ -327,4 +327,4 @@ struct less<opentxs::OTIdentifier> {
         const opentxs::OTIdentifier& rhs) const;
 };
 }  // namespace std
-#endif  // OPENTXS_FORWARD_HPP
+#endif

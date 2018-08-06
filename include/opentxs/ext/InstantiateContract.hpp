@@ -135,4 +135,4 @@ opentxs::Contract* InstantiateContract(
 
 }  // unnamed namespace
 
-#endif  // OPENTXS_EXT_INSTANTIATECONTRACT_HPP
+#endif

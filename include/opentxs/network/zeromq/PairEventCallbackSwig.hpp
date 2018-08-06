@@ -34,4 +34,4 @@ private:
     PairEventCallbackSwig& operator=(PairEventCallbackSwig&&) = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_PAIREVENTCALLBACKSWIG_HPP
+#endif

@@ -37,4 +37,4 @@ private:
     AccountVisitor() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_ACCOUNTVISITOR_HPP
+#endif

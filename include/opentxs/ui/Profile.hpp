@@ -140,4 +140,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_PROFILE_HPP
+#endif

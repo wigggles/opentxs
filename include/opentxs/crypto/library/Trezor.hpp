@@ -59,4 +59,4 @@ private:
 };
 }  // namespace opentxs::crypto
 #endif  // OT_CRYPTO_USING_TREZOR
-#endif  // OPENTXS_CRYPTO_LIBRARY_TREZOR_HPP
+#endif

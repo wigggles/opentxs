@@ -35,4 +35,4 @@ private:
 }  // namespace crypto
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
-#endif  // OPENTXS_CRYPTO_KEY_ED25519_HPP
+#endif

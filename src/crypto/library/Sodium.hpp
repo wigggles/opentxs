@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SODIUM_HPP
-#define IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SODIUM_HPP
+#pragma once
 
 namespace opentxs::crypto::implementation
 {
@@ -105,4 +104,3 @@ private:
     Sodium();
 };
 }  // namespace opentxs::crypto::implementation
-#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_LIBRARY_SODIUM_HPP

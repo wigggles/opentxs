@@ -44,4 +44,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_ACCOUNTSUMMARYITEM_HPP
+#endif

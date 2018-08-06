@@ -204,4 +204,4 @@ private:
     OTTrade() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_TRADE_OTTRADE_HPP
+#endif

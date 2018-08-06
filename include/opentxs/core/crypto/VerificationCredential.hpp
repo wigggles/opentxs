@@ -59,4 +59,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_VERIFICATIONCREDENTIAL_HPP
+#endif

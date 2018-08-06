@@ -37,4 +37,4 @@ private:
 }  // namespace crypto
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_CRYPTO_UTIL_HPP
+#endif

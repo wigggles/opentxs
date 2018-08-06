@@ -274,4 +274,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CASH
-#endif  // OPENTXS_CASH_TOKEN_HPP
+#endif

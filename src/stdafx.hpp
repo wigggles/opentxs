@@ -5,8 +5,7 @@
 
 #pragma once
 
-#ifndef OPENTXS_CORE_STDAFX_HPP
-#define OPENTXS_CORE_STDAFX_HPP
+#pragma once
 
 #ifdef __APPLE__
 #include "TargetConditionals.h"
@@ -56,5 +55,3 @@ typedef uint16_t USHORT;
 #ifndef OT_USE_CHAI_STDLIB
 #define OT_USE_CHAI_STDLIB
 #endif
-
-#endif  // OPENTXS_CORE_STDAFX_HPP

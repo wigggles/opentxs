@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_SECURITYCONTRACT_HPP
-#define OPENTXS_CORE_SECURITYCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_SECURITYCONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_SECURITYCONTRACT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -46,4 +46,4 @@ public:
     virtual ~SecurityContract() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SECURITYCONTRACT_HPP
+#endif

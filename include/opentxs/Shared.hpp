@@ -48,4 +48,4 @@ private:
 
 };  // class Shared
 }  // namespace opentxs
-#endif  // OPENTXS_SHARED_HPP
+#endif

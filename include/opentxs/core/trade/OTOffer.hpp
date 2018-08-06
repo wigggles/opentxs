@@ -218,4 +218,4 @@ private:
     OTOffer() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_TRADE_OTOFFER_HPP
+#endif

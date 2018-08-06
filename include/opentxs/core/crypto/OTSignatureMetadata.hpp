@@ -59,4 +59,4 @@ private:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_OTSIGNATUREMETADATA_HPP
+#endif

@@ -63,4 +63,4 @@ private:
 };
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OPENTXS_CRYPTO_LIBRARY_SYMMETRICPROVIDER_HPP
+#endif

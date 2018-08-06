@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_API_HDSEED_HPP
-#define IMPLEMENTATION_OPENTXS_API_HDSEED_HPP
+#pragma once
 
 namespace opentxs::api::implementation
 {
@@ -75,4 +74,3 @@ private:
     HDSeed& operator=(HDSeed&&) = delete;
 };
 }  // namespace opentxs::api::implementation
-#endif  // IMPLEMENTATION_OPENTXS_API_HDSEED_HPP

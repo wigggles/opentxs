@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_HPP
-#define OPENTXS_HPP
+#ifndef OPENTXS_OPENTXS_HPP
+#define OPENTXS_OPENTXS_HPP
 
 #ifndef EXPORT
 #define EXPORT
@@ -157,4 +157,4 @@
 #include <opentxs/Proto.hpp>
 #include <opentxs/Types.hpp>
 
-#endif  // OPENTXS_CORE_API_OT_HPP
+#endif

@@ -86,4 +86,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CASH_USING_LUCRE
-#endif  // OPENTXS_CASH_TOKENLUCRE_HPP
+#endif

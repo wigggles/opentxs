@@ -43,4 +43,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_SCRIPT_OTSTASHITEM_HPP
+#endif

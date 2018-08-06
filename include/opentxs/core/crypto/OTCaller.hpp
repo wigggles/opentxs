@@ -53,4 +53,4 @@ public:
                             // nym creation and password change.)
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_OTCALLER_HPP
+#endif

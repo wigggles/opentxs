@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_COMMON_HPP
-#define OPENTXS_CORE_COMMON_HPP
+#ifndef OPENTXS_CORE_UTIL_COMMON_HPP
+#define OPENTXS_CORE_UTIL_COMMON_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -31,8 +31,8 @@ class IFileReadCallBack;
 class IXMLBase;
 
 typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
-}
-}
+}  // namespace io
+}  // namespace irr
 
 #define OT_ERROR_AMOUNT INT64_MIN
 
@@ -133,4 +133,4 @@ EXPORT std::string formatUint(std::uint32_t tt);
 
 #endif
 
-#endif  // OPENTXS_CORE_COMMON_HPP
+#endif

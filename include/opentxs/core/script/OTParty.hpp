@@ -319,4 +319,4 @@ private:
     OTParty& operator=(const OTParty&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SCRIPT_OTPARTY_HPP
+#endif

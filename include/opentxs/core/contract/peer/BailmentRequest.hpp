@@ -41,4 +41,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CONTRACT_PEER_BAILMENTREQUEST_HPP
+#endif

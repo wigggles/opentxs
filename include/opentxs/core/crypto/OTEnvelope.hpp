@@ -59,4 +59,4 @@ private:
     OTData ciphertext_;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_OTENVELOPE_HPP
+#endif

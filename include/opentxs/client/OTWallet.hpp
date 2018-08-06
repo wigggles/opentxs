@@ -119,4 +119,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CLIENT_OTWALLET_HPP
+#endif

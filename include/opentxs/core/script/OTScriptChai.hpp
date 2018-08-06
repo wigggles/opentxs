@@ -46,4 +46,4 @@ public:
 };
 }  // namespace opentxs
 #endif  // OT_SCRIPT_CHAI
-#endif  // OPENTXS_CORE_SCRIPT_OTSCRIPTCHAI_HPP
+#endif

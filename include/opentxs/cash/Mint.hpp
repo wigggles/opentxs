@@ -212,4 +212,4 @@ private:  // Private prevents erroneous use by other classes.
 };
 }  // namespace opentxs
 #endif  // OT_CASH
-#endif  // OPENTXS_CASH_MINT_HPP
+#endif

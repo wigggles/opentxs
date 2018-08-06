@@ -130,4 +130,4 @@ public:
     ~PeerRequest() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CONTRACT_PEER_PEERREQUEST_HPP
+#endif

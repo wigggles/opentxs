@@ -47,4 +47,4 @@ private:
     BailmentNotice() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CONTRACT_PEER_BAILMENTNOTICE_HPP
+#endif

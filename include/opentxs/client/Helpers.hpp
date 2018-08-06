@@ -40,4 +40,4 @@ EXPORT OTPayment* extract_payment_instrument_from_notice(
     const Nym& theNym,
     OTTransaction*& pTransaction);
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_HELPERS_HPP
+#endif

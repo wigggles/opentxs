@@ -135,4 +135,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_SETTINGS_HPP
+#endif

@@ -189,4 +189,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_CREDENTIAL_HPP
+#endif

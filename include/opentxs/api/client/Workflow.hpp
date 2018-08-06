@@ -133,4 +133,4 @@ private:
 }  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_CLIENT_WORKFLOW_HPP
+#endif

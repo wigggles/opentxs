@@ -26,7 +26,8 @@ class Issuer
 {
 public:
     typedef std::pair<OTIdentifier, proto::BailmentReply> BailmentDetails;
-    typedef std::pair<OTIdentifier, proto::ConnectionInfoReply> ConnectionDetails;
+    typedef std::pair<OTIdentifier, proto::ConnectionInfoReply>
+        ConnectionDetails;
 
     enum class RequestStatus : std::int32_t {
         All = -1,
@@ -98,4 +99,4 @@ private:
 }  // namespace client
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_CLIENT_ISSUER_HPP
+#endif

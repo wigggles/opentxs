@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_STRINGUTILS_HPP
-#define OPENTXS_CORE_STRINGUTILS_HPP
+#ifndef OPENTXS_CORE_UTIL_STRINGUTILS_HPP
+#define OPENTXS_CORE_UTIL_STRINGUTILS_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -143,4 +143,4 @@ inline size_t strlcat(char* dst, const char* src, size_t siz)
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_STRINGUTILS_HPP
+#endif

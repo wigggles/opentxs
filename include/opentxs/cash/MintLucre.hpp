@@ -62,4 +62,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CASH_USING_LUCRE
-#endif  // OPENTXS_CASH_MINTLUCRE_HPP
+#endif

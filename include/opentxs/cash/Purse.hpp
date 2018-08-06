@@ -233,4 +233,4 @@ private:
 };
 }  // namespace opentxs
 #endif  // OT_CASH
-#endif  // OPENTXS_CASH_PURSE_HPP
+#endif

@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
-#define OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
+#ifndef OPENTXS_CORE_UTIL_OTWINDOWSREGISTRYTOOLS_HPP
+#define OPENTXS_CORE_UTIL_OTWINDOWSREGISTRYTOOLS_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -40,4 +40,4 @@ public:
 
 #endif
 
-#endif  // OPENTXS_CORE_UTIL_WINDOWSREGISTRYTOOLS_HPP
+#endif

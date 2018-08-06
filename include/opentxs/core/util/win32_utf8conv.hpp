@@ -39,7 +39,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#pragma once
+#ifndef OPENTXS_CORE_UTIL_WIN32_UTF8CONV_HPP
+#define OPENTXS_CORE_UTIL_WIN32_UTF8CONV_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -125,3 +126,4 @@ EXPORT std::string UTF8FromUTF16(const wchar_t* utf16);
 #include "win32_utf8conv_inl.hpp"  // inline implementations
 
 //////////////////////////////////////////////////////////////////////////
+#endif

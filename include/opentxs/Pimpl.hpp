@@ -95,4 +95,4 @@ private:
 };  // class Pimpl
 }  // namespace opentxs
 
-#endif  // OPENTXS_PIMPL_HPP
+#endif

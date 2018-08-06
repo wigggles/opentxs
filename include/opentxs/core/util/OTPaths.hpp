@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTPATHS_HPP
-#define OPENTXS_CORE_OTPATHS_HPP
+#ifndef OPENTXS_CORE_UTIL_OTPATHS_HPP
+#define OPENTXS_CORE_UTIL_OTPATHS_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -188,4 +188,4 @@ private:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_OTPATHS_HPP
+#endif

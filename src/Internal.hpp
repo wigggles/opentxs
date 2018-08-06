@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_FORWARD_INTERNAL_HPP
-#define OPENTXS_FORWARD_INTERNAL_HPP
+#pragma once
 
 #include "opentxs/Forward.hpp"
 #include "opentxs/Proto.hpp"
@@ -305,5 +304,3 @@ class TrezorCrypto;
 }  // namespace opentxs
 
 #include "Factory.hpp"
-
-#endif  // OPENTXS_FORWARD_INTERNAL_HPP

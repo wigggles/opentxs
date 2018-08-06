@@ -51,19 +51,18 @@ private:
     std::int32_t m_nValueBackup{};  // If an integer, the value backup is stored
                                     // here.
     // (So we can see if it has changed since execution)
-    bool m_bValueBackup{
-        false};  // If a bool, the value backup is stored here. (So we
-                 // can check for dirtiness later...)
+    bool m_bValueBackup{false};  // If a bool, the value backup is stored here.
+                                 // (So we can check for dirtiness later...)
     OTBylaw* m_pBylaw{nullptr};  // the Bylaw that this variable belongs to.
-    OTVariable_Type m_Type{
-        Var_Error_Type};  // Currently bool, std::int32_t, or string.
-    OTVariable_Access m_Access{
-        Var_Error_Access};  // Determines how the variable is used inside
-                            // the script.
-    OTScript* m_pScript{
-        nullptr};  // If the variable is set onto a script, this pointer
-                   // gets set. When the variable destructs, it will
-                   // remove itself from the script.
+    OTVariable_Type m_Type{Var_Error_Type};  // Currently bool, std::int32_t, or
+                                             // string.
+    OTVariable_Access m_Access{Var_Error_Access};  // Determines how the
+                                                   // variable is used inside
+                                                   // the script.
+    OTScript* m_pScript{nullptr};  // If the variable is set onto a script, this
+                                   // pointer gets set. When the variable
+                                   // destructs, it will remove itself from the
+                                   // script.
 
 public:
     EXPORT void RegisterForExecution(OTScript& theScript);  // We keep an
@@ -133,4 +132,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_SCRIPT_OTVARIABLE_HPP
+#endif

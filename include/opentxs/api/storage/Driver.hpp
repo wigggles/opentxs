@@ -85,4 +85,4 @@ private:
 }  // namespace storage
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_STORAGE_DRIVER_HPP
+#endif

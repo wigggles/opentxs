@@ -15,7 +15,8 @@
 //
 //////////////////////////////////////////////////////////////////////////
 
-#pragma once
+#ifndef OPENTXS_CORE_UTIL_WIN32_UTF8CONV_INL_HPP
+#define OPENTXS_CORE_UTIL_WIN32_UTF8CONV_INL_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -90,14 +91,14 @@ inline std::wstring UTF16FromUTF8(const std::string& utf8)
     // Get length (in wchar_t's) of resulting UTF-16 string
     //
     const int utf16Length = ::MultiByteToWideChar(
-        CP_UTF8,          // convert from UTF-8
-        conversionFlags,  // flags
-        utf8.data(),      // source UTF-8 string
-        static_cast<int>(
-            utf8.length()),  // length (in chars) of source UTF-8 string
+        CP_UTF8,                          // convert from UTF-8
+        conversionFlags,                  // flags
+        utf8.data(),                      // source UTF-8 string
+        static_cast<int>(utf8.length()),  // length (in chars) of source UTF-8
+                                          // string
         nullptr,             // unused - no conversion done in this step
         static_cast<int>(0)  // request size of destination buffer, in wchar_t's
-        );
+    );
     if (utf16Length == 0) {
         // Error
         DWORD error = ::GetLastError();
@@ -125,11 +126,11 @@ inline std::wstring UTF16FromUTF8(const std::string& utf8)
             0,            // validation was done in previous call,
                           // so speed up things with default flags
             utf8.data(),  // source UTF-8 string
-            static_cast<int>(
-                utf8.length()),  // length (in chars) of source UTF-8 string
-            &utf16[0],           // destination buffer
-            static_cast<int>(
-                utf16.length())  // size of destination buffer, in wchar_t's
+            static_cast<int>(utf8.length()),  // length (in chars) of source
+                                              // UTF-8 string
+            &utf16[0],                        // destination buffer
+            static_cast<int>(utf16.length())  // size of destination buffer, in
+                                              // wchar_t's
             )) {
         // Error
         DWORD error = ::GetLastError();
@@ -169,7 +170,7 @@ inline std::wstring UTF16FromUTF8(const char* utf8)
         utf8Length,       // length (in chars) of source UTF-8 string
         nullptr,          // unused - no conversion done in this step
         0                 // request size of destination buffer, in wchar_t's
-        );
+    );
     if (utf16Length == 0) {
         // Error
         DWORD error = ::GetLastError();
@@ -196,11 +197,11 @@ inline std::wstring UTF16FromUTF8(const char* utf8)
             0,        // validation was done in previous call,
                       // so speed up things with default flags
             utf8,     // source UTF-8 string
-            static_cast<int>(
-                utf8Length),  // length (in chars) of source UTF-8 string
-            &utf16[0],        // destination buffer
-            static_cast<int>(
-                utf16.length())  // size of destination buffer, in wchar_t's
+            static_cast<int>(utf8Length),  // length (in chars) of source UTF-8
+                                           // string
+            &utf16[0],                     // destination buffer
+            static_cast<int>(utf16.length())  // size of destination buffer, in
+                                              // wchar_t's
             )) {
         // Error
         DWORD error = ::GetLastError();
@@ -228,16 +229,16 @@ inline std::string UTF8FromUTF16(const std::wstring& utf16)
     // Get length (in chars) of resulting UTF-8 string
     //
     const int utf8Length = ::WideCharToMultiByte(
-        CP_UTF8,       // convert to UTF-8
-        0,             // default flags
-        utf16.data(),  // source UTF-16 string
-        static_cast<int>(
-            utf16.length()),  // source string length, in wchar_t's,
+        CP_UTF8,                           // convert to UTF-8
+        0,                                 // default flags
+        utf16.data(),                      // source UTF-16 string
+        static_cast<int>(utf16.length()),  // source string length, in
+                                           // wchar_t's,
         nullptr,              // unused - no conversion required in this step
         static_cast<int>(0),  // request buffer size
         nullptr,
         nullptr  // unused
-        );
+    );
     if (utf8Length == 0) {
         // Error
         DWORD error = ::GetLastError();
@@ -305,7 +306,7 @@ inline std::string UTF8FromUTF16(const wchar_t* utf16)
         0,            // request buffer size
         nullptr,
         nullptr  // unused
-        );
+    );
     if (utf8Length == 0) {
         // Error
         DWORD error = ::GetLastError();
@@ -354,3 +355,4 @@ inline std::string UTF8FromUTF16(const wchar_t* utf16)
 }  // namespace utf8util
 
 //////////////////////////////////////////////////////////////////////////
+#endif

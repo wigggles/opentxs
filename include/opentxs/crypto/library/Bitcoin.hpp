@@ -92,4 +92,4 @@ private:
 };
 }  // namespace opentxs::crypto
 #endif  // OT_CRYPTO_USING_LIBBITCOIN
-#endif  // OPENTXS_CRYPTO_LIBRARY_BITCOIN_HPP
+#endif

@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef SRC_API_CLIENT_CLIENT_HPP
-#define SRC_API_CLIENT_CLIENT_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -119,4 +118,3 @@ private:
     Manager& operator=(Manager&&) = delete;
 };
 }  // namespace opentxs::api::client::implementation
-#endif  // SRC_API_CLIENT_CLIENT_HPP

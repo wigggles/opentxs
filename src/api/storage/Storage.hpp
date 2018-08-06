@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
-#define OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -396,4 +395,3 @@ private:
     Storage& operator=(Storage&&) = delete;
 };
 }  // namespace opentxs::api::storage::implementation
-#endif  // OPENTXS_API_STORAGE_IMPLEMENTATION_STORAGE_HPP

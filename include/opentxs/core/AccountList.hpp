@@ -71,4 +71,4 @@ private:
     AccountList() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_ACCOUNTLIST_HPP
+#endif

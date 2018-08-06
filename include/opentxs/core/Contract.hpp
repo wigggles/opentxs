@@ -390,4 +390,4 @@ private:
     Contract() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CONTRACT_HPP
+#endif

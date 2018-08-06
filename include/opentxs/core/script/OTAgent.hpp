@@ -316,4 +316,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_SCRIPT_OTAGENT_HPP
+#endif

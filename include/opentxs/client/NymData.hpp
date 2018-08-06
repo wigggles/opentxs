@@ -250,4 +250,4 @@ private:
     NymData& operator=(NymData&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_NYMDATA_HPP
+#endif

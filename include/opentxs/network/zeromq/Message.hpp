@@ -75,4 +75,4 @@ private:
 }  // namespace zeromq
 }  // namespace network
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_MESSAGE_HPP
+#endif

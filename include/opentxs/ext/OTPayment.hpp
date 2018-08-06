@@ -258,4 +258,4 @@ private:
     OTPayment() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_EXT_OTPAYMENT_HPP
+#endif

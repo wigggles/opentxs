@@ -5,8 +5,8 @@
 
 /** \defgroup native Native API */
 
-#ifndef OPENTXS_CORE_API_NATIVE_HPP
-#define OPENTXS_CORE_API_NATIVE_HPP
+#ifndef OPENTXS_API_NATIVE_HPP
+#define OPENTXS_API_NATIVE_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -48,4 +48,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_API_NATIVE_HPP
+#endif

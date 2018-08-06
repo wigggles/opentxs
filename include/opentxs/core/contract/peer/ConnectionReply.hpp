@@ -51,4 +51,4 @@ public:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CONTRACT_PEER_CONNECTIONREPLY_HPP
+#endif

@@ -352,4 +352,4 @@ private:
     OTScriptable() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SCRIPT_OTSCRIPTABLE_HPP
+#endif

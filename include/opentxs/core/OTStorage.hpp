@@ -1674,4 +1674,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_OTSTORAGE_HPP
+#endif

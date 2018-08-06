@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTITEM_HPP
-#define OPENTXS_CORE_OTITEM_HPP
+#ifndef OPENTXS_CORE_ITEM_HPP
+#define OPENTXS_CORE_ITEM_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -402,4 +402,4 @@ private:  // Private prevents erroneous use by other classes.
     Item() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTITEM_HPP
+#endif

@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_API_WALLET_HPP
-#define IMPLEMENTATION_OPENTXS_API_WALLET_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -352,4 +351,3 @@ private:
     Wallet& operator=(Wallet&&) = delete;
 };
 }  // namespace opentxs::api::implementation
-#endif  // IMPLEMENTATION_OPENTXS_API_WALLET_HPP

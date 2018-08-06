@@ -125,4 +125,4 @@ private:
     mutable std::set<T> set_;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_UNIQUEQUEUE_HPP
+#endif

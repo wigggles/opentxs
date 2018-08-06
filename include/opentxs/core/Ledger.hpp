@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTLEDGER_HPP
-#define OPENTXS_CORE_OTLEDGER_HPP
+#ifndef OPENTXS_CORE_LEDGER_HPP
+#define OPENTXS_CORE_LEDGER_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -285,4 +285,4 @@ private:  // Private prevents erroneous use by other classes.
     Ledger() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTLEDGER_HPP
+#endif

@@ -33,4 +33,4 @@ private:
 };
 }  // namespace opentxs::crypto
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
-#endif  // OPENTXS_CORE_CRYPTO_OTCRYPTO_HPP
+#endif

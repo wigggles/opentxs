@@ -99,4 +99,4 @@ private:  // Private prevents erroneous use by other classes.
     OTSignedFile() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_OTSIGNEDFILE_HPP
+#endif

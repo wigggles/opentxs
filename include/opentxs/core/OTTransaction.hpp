@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_TRANSACTION_HPP
-#define OPENTXS_CORE_TRANSACTION_HPP
+#ifndef OPENTXS_CORE_OTTRANSACTION_HPP
+#define OPENTXS_CORE_OTTRANSACTION_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -806,4 +806,4 @@ private:
     OTTransaction() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_TRANSACTION_HPP
+#endif

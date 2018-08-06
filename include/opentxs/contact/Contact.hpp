@@ -144,4 +144,4 @@ private:
     Contact& operator=(Contact&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CONTACT_CONTACT_HPP
+#endif

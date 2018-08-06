@@ -60,4 +60,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_ACTIVITYTHREAD_HPP
+#endif

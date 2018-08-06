@@ -186,4 +186,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
+#endif

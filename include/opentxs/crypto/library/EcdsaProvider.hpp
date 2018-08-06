@@ -94,4 +94,4 @@ private:
 };
 }  // namespace crypto
 }  // namespace opentxs
-#endif  // OPENTXS_CRYPTO_LIBRARY_ECDSAPROVIDER_HPP
+#endif

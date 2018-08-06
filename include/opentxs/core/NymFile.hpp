@@ -91,4 +91,4 @@ private:
     NymFile& operator=(NymFile&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_NYMFILE_HPP
+#endif

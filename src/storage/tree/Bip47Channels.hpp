@@ -36,8 +36,7 @@
  *
  ************************************************************/
 
-#ifndef OPENTXS_STORAGE_TREE_BIP47_CHANNELS_HPP
-#define OPENTXS_STORAGE_TREE_BIP47_CHANNELS_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -137,4 +136,3 @@ private:
     Bip47Channels operator=(Bip47Channels&&) = delete;
 };
 }  // namespace opentxs::storage
-#endif  // OPENTXS_STORAGE_TREE_BIP47_CHANNELS_HPP

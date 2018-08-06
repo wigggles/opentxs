@@ -171,4 +171,4 @@ private:
         const NymParameters& nymParameters);
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_KEYCREDENTIAL_HPP
+#endif

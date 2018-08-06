@@ -118,4 +118,4 @@ EXPORT std::shared_ptr<OTScript> OTScriptFactory(
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_SCRIPT_OTSCRIPT_HPP
+#endif

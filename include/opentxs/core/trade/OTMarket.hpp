@@ -221,4 +221,4 @@ private:
     OTMarket() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_TRADE_OTMARKET_HPP
+#endif

@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_TYPES_HPP
-#define OPENTXS_CORE_TYPES_HPP
+#ifndef OPENTXS_TYPES_HPP
+#define OPENTXS_TYPES_HPP
 
 #include <cstdint>
 #include <functional>
@@ -424,4 +424,4 @@ enum class RemoteBoxType : std::int8_t {
     Outbox = 2,
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_TYPES_HPP
+#endif

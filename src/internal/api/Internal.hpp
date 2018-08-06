@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_API_NATIVEINTERNAL_HPP
-#define OPENTXS_CORE_API_NATIVEINTERNAL_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -36,4 +35,3 @@ struct Native : virtual public api::Native {
     virtual void shutdown() = 0;
 };
 }  // namespace opentxs::api::internal
-#endif  // OPENTXS_CORE_API_NATIVEINTERNAL_HPP

@@ -52,4 +52,4 @@ private:
 };
 }  // namespace network
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_SERVERCONNECTION_HPP
+#endif

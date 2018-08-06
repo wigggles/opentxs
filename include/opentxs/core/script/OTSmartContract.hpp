@@ -391,4 +391,4 @@ private:
     OTSmartContract() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SCRIPT_OTSMARTCONTRACT_HPP
+#endif

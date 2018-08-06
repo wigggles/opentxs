@@ -3428,4 +3428,4 @@ private:
     OTAPI_Exec operator=(OTAPI_Exec&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_OTAPI_EXEC_HPP
+#endif

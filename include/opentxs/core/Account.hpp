@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_OTACCOUNT_HPP
-#define OPENTXS_CORE_OTACCOUNT_HPP
+#ifndef OPENTXS_CORE_ACCOUNT_HPP
+#define OPENTXS_CORE_ACCOUNT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -197,4 +197,4 @@ private:
     Account() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTACCOUNT_HPP
+#endif

@@ -72,4 +72,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_SCRIPT_OTSTASH_HPP
+#endif

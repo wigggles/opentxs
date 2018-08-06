@@ -70,4 +70,4 @@ private:
 };
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_LOCKABLE_HPP
+#endif

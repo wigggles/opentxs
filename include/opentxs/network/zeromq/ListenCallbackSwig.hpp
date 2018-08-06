@@ -33,4 +33,4 @@ private:
     ListenCallbackSwig& operator=(ListenCallbackSwig&&) = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_NETWORK_ZEROMQ_LISTENCALLBACKSWIG_HPP
+#endif

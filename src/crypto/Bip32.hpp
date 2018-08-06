@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef IMPLEMENTATION_OPENTXS_CRYPTO_BIP32_HPP
-#define IMPLEMENTATION_OPENTXS_CRYPTO_BIP32_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -16,4 +15,3 @@ class Bip32 : virtual public opentxs::crypto::Bip32
 {
 };
 }  // namespace opentxs::crypto::implementation
-#endif  // IMPLEMENTATION_OPENTXS_CRYPTO_BIP32_HPP

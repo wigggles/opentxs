@@ -175,4 +175,4 @@ private:
     OTPartyAccount() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_SCRIPT_OTPARTYACCOUNT_HPP
+#endif

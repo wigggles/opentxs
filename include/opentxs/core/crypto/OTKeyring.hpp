@@ -184,4 +184,4 @@ private:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_OTKEYRING_HPP
+#endif

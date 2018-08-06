@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_UI_MESSAGABLELIST_IMPLEMENTATION_HPP
-#define OPENTXS_UI_MESSAGABLELIST_IMPLEMENTATION_HPP
+#pragma once
 
 #include "Internal.hpp"
 
@@ -63,4 +62,3 @@ private:
     MessagableList& operator=(MessagableList&&) = delete;
 };
 }  // namespace opentxs::ui::implementation
-#endif  // OPENTXS_UI_MESSAGABLELIST_IMPLEMENTATION_HPP

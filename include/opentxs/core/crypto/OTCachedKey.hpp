@@ -235,4 +235,4 @@ private:
     OTCachedKey& operator=(OTCachedKey&&) = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRYPTO_OTCACHEDKEY_HPP
+#endif

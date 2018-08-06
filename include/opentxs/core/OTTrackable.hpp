@@ -77,4 +77,4 @@ private:
     OTTrackable() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTTRACKABLE_HPP
+#endif

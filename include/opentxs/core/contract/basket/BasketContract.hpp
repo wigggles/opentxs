@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
-#define OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#ifndef OPENTXS_CORE_CONTRACT_BASKET_BASKETCONTRACT_HPP
+#define OPENTXS_CORE_CONTRACT_BASKET_BASKETCONTRACT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -68,4 +68,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_BASKET_BASKETCONTRACT_HPP
+#endif

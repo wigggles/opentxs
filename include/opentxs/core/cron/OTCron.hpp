@@ -176,4 +176,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRON_OTCRON_HPP
+#endif

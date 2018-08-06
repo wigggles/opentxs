@@ -56,4 +56,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_ACTIVITYSUMMARYITEM_HPP
+#endif

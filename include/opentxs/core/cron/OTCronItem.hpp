@@ -223,4 +223,4 @@ private:
     OTCronItem() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CRON_OTCRONITEM_HPP
+#endif

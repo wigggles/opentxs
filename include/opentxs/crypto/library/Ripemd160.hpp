@@ -65,4 +65,4 @@ private:
     Ripemd160& operator=(Ripemd160&&) = delete;
 };
 }  // namespace opentxs::crypto
-#endif  // OPENTXS_CRYPTO_LIBRARY_RIPEMD160_HPP
+#endif

@@ -41,10 +41,9 @@ class String;
 class OTPasswordData
 {
 private:
-    OTPassword* m_pMasterPW{
-        nullptr};  // Used only when isForCachedKey is true, for
-                   // output. Points to output value from original
-                   // caller (not owned.)
+    OTPassword* m_pMasterPW{nullptr};  // Used only when isForCachedKey is true,
+                                       // for output. Points to output value
+                                       // from original caller (not owned.)
     const std::string m_strDisplay;
     bool m_bUsingOldSystem{false};  // "Do NOT use CachedKey if this is true."
 
@@ -83,4 +82,4 @@ public:
 
 }  // namespace opentxs
 
-#endif  // OPENTXS_CORE_CRYPTO_OTPASSWORDDATA_HPP
+#endif

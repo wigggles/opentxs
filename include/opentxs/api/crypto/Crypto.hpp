@@ -86,4 +86,4 @@ private:
 };
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_CRYPTO_CRYPTO_HPP
+#endif

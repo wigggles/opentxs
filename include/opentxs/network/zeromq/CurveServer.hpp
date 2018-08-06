@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_NETWORK_ZEROMQ_CURVERSERVER_HPP
-#define OPENTXS_NETWORK_ZEROMQ_CURVERSERVER_HPP
+#ifndef OPENTXS_NETWORK_ZEROMQ_CURVESERVER_HPP
+#define OPENTXS_NETWORK_ZEROMQ_CURVESERVER_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -40,4 +40,4 @@ private:
 }  // namespace network
 }  // namespace opentxs
 
-#endif  // OPENTXS_NETWORK_ZEROMQ_CURVERSERVER_HPP
+#endif

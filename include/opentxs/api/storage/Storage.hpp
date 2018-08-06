@@ -368,4 +368,4 @@ private:
 }  // namespace storage
 }  // namespace api
 }  // namespace opentxs
-#endif  // OPENTXS_API_STORAGE_STORAGE_HPP
+#endif

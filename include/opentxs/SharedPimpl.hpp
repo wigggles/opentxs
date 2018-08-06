@@ -3,8 +3,8 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_SHARED_PIMPL_HPP
-#define OPENTXS_SHARED_PIMPL_HPP
+#ifndef OPENTXS_SHAREDPIMPL_HPP
+#define OPENTXS_SHAREDPIMPL_HPP
 
 #include <cassert>
 #include <memory>
@@ -56,4 +56,4 @@ private:
 };  // class SharedPimpl
 }  // namespace opentxs
 
-#endif  // OPENTXS_SHARED_PIMPL_HPP
+#endif

@@ -43,4 +43,4 @@ public:
     ~OutBailmentRequest() = default;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CONTRACT_PEER_OUTBAILMENTREQUEST_HPP
+#endif

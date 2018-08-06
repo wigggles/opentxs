@@ -35,4 +35,4 @@ private:
 }  // namespace crypto
 }  // namespace opentxs
 #endif  // OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-#endif  // OPENTXS_CRYPTO_KEY_SECP256K1_HPP
+#endif

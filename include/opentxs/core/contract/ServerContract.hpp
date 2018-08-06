@@ -87,4 +87,4 @@ private:
         const proto::ServerContract& serialized);
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_CONTRACT_SERVERCONTRACT_HPP
+#endif

@@ -5,8 +5,8 @@
 
 // OTAgreement is derived from OTCronItem.  It handles re-occuring billing.
 
-#ifndef OPENTXS_CORE_OTAGREEMENT_HPP
-#define OPENTXS_CORE_OTAGREEMENT_HPP
+#ifndef OPENTXS_CORE_RECURRING_OTAGREEMENT_HPP
+#define OPENTXS_CORE_RECURRING_OTAGREEMENT_HPP
 
 #include "opentxs/Forward.hpp"
 
@@ -435,4 +435,4 @@ private:
     OTAgreement() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTAGREEMENT_HPP
+#endif

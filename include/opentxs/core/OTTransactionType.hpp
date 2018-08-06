@@ -725,4 +725,4 @@ private:
     OTTransactionType() = delete;
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CORE_OTTRANSACTIONTYPE_HPP
+#endif

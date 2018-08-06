@@ -77,4 +77,4 @@ private:
     OTMessageOutbuffer& operator=(const OTMessageOutbuffer&);
 };
 }  // namespace opentxs
-#endif  // OPENTXS_CLIENT_OTMESSAGEOUTBUFFER_HPP
+#endif

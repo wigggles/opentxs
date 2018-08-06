@@ -55,4 +55,4 @@ private:
 };
 }  // namespace ui
 }  // namespace opentxs
-#endif  // OPENTXS_UI_CONTACTSUBSECTION_HPP
+#endif
