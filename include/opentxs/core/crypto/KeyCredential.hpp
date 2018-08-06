@@ -106,6 +106,9 @@ public:
                                      // or 'A'
                                      // (authentication key)
 
+    const crypto::key::Keypair& GetKeypair(
+        const proto::AsymmetricKeyType type,
+        const proto::KeyRole role) const;
     bool hasCapability(const NymCapability& capability) const override;
 
     using ot_super::Verify;

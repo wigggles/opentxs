@@ -70,7 +70,7 @@ void MessageProcessor::init(const int port, const OTPassword& privkey)
 {
     if (port == 0) { OT_FAIL; }
 
-    const auto set = reply_socket_->SetCurve(privkey);
+    const auto set = reply_socket_->SetPrivateKey(privkey);
 
     OT_ASSERT(set);
 

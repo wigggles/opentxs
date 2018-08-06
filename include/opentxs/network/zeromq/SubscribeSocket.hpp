@@ -9,11 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/CurveClient.hpp"
 
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::SubscribeSocket::Factory;
-%ignore opentxs::network::zeromq::SubscribeSocket::SetCurve;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::Pimpl(opentxs::network::zeromq::SubscribeSocket const &);
 %ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator opentxs::network::zeromq::SubscribeSocket&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::SubscribeSocket>::operator const opentxs::network::zeromq::SubscribeSocket &;
@@ -29,14 +29,13 @@ namespace network
 {
 namespace zeromq
 {
-class SubscribeSocket : virtual public Socket
+class SubscribeSocket : virtual public Socket, virtual public CurveClient
 {
 public:
     EXPORT static OTZMQSubscribeSocket Factory(
         const class Context& context,
         const ListenCallback& callback);
 
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
     EXPORT virtual ~SubscribeSocket() = default;

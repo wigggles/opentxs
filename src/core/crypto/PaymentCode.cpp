@@ -247,6 +247,11 @@ bool PaymentCode::operator==(const proto::PaymentCode& rhs) const
     return (LHData == RHData);
 }
 
+PaymentCode::operator const crypto::key::Asymmetric&() const
+{
+    return asymmetric_key_;
+}
+
 bool PaymentCode::AddPrivateKeys(
     const std::string& seed,
     const std::uint32_t index)

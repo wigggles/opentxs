@@ -102,6 +102,8 @@ namespace network
 namespace zeromq
 {
 class Context;
+class CurveClient;
+class CurveServer;
 class DealerSocket;
 class FrameIterator;
 class FrameSection;

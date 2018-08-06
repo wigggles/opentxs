@@ -164,22 +164,31 @@ public:
         char cKeyType = '0') const;  // 'S' (signing key) or 'E' (encryption
                                      // key) or 'A' (authentication key)
     EXPORT const crypto::key::Asymmetric& GetPublicAuthKey(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Asymmetric& GetPublicEncrKey(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Asymmetric& GetPublicSignKey(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Asymmetric& GetPrivateSignKey(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Asymmetric& GetPrivateEncrKey(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Asymmetric& GetPrivateAuthKey(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Keypair& GetAuthKeypair(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Keypair& GetEncrKeypair(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT const crypto::key::Keypair& GetSignKeypair(
+        proto::AsymmetricKeyType keytype,
         const String::List* plistRevokedIDs = nullptr) const;
     EXPORT void ClearChildCredentials();
     EXPORT bool WriteCredentials() const;

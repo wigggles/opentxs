@@ -64,11 +64,6 @@ void SubscribeSocket::process_incoming(const Lock& lock, Message& message)
     otWarn << "Done." << std::endl;
 }
 
-bool SubscribeSocket::SetCurve(const ServerContract& contract) const
-{
-    return set_curve(contract);
-}
-
 bool SubscribeSocket::SetSocksProxy(const std::string& proxy) const
 {
     return set_socks_proxy(proxy);

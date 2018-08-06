@@ -81,11 +81,6 @@ void ReplySocket::process_incoming(const Lock&, Message& message)
     }
 }
 
-bool ReplySocket::SetCurve(const OTPassword& key) const
-{
-    return set_curve(key);
-}
-
 bool ReplySocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);

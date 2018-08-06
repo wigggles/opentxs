@@ -23,7 +23,6 @@ public:
     bool Publish(const std::string& data) const override;
     bool Publish(const opentxs::Data& data) const override;
     bool Publish(zeromq::Message& data) const override;
-    bool SetCurve(const OTPassword& key) const override;
     bool Start(const std::string& endpoint) const override;
 
     ~PublishSocket() = default;

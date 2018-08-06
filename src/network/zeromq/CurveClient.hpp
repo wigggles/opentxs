@@ -10,25 +10,32 @@
 
 #include "opentxs/Types.hpp"
 
+#include "opentxs/network/zeromq/CurveClient.hpp"
+
 #include <mutex>
 
 namespace opentxs::network::zeromq::implementation
 {
-class CurveClient
+class CurveClient : virtual public zeromq::CurveClient
 {
+public:
+    bool SetPublicKey(const ServerContract& contract) const override;
+    bool SetPublicKey(const Data& key) const override;
+
 protected:
-    bool set_curve(const ServerContract& contract) const;
+    bool set_public_key(const ServerContract& contract) const;
+    bool set_public_key(const Data& key) const;
 
     CurveClient(std::mutex& lock, void* socket);
     ~CurveClient();
 
 private:
-    std::mutex& curve_lock_;
+    std::mutex& client_curve_lock_;
     // Not owned by this class
-    void* curve_socket_{nullptr};
+    void* client_curve_socket_{nullptr};
 
-    bool set_local_keys(const Lock& lock) const;
-    bool set_remote_key(const Lock& lock, const ServerContract& contract) const;
+    bool set_local_keys() const;
+    bool set_remote_key(const Data& key) const;
 
     CurveClient() = delete;
     CurveClient(const CurveClient&) = delete;

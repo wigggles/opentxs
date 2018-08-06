@@ -19,16 +19,21 @@
 namespace opentxs::network::zeromq::implementation
 {
 CurveServer::CurveServer(std::mutex& lock, void* socket)
-    : curve_lock_(lock)
-    , curve_socket_(socket)
+    : server_curve_lock_(lock)
+    , server_curve_socket_(socket)
 {
 }
 
-bool CurveServer::set_curve(const OTPassword& key) const
+bool CurveServer::SetPrivateKey(const OTPassword& key) const
 {
-    OT_ASSERT(nullptr != curve_socket_);
+    return set_private_key(key);
+}
 
-    Lock lock(curve_lock_);
+bool CurveServer::set_private_key(const OTPassword& key) const
+{
+    OT_ASSERT(nullptr != server_curve_socket_);
+
+    Lock lock(server_curve_lock_);
 
     if (CURVE_KEY_BYTES != key.getMemorySize()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid private key."
@@ -39,7 +44,7 @@ bool CurveServer::set_curve(const OTPassword& key) const
 
     const int server{1};
     auto set = zmq_setsockopt(
-        curve_socket_, ZMQ_CURVE_SERVER, &server, sizeof(server));
+        server_curve_socket_, ZMQ_CURVE_SERVER, &server, sizeof(server));
 
     if (0 != set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to set ZMQ_CURVE_SERVER"
@@ -49,7 +54,7 @@ bool CurveServer::set_curve(const OTPassword& key) const
     }
 
     set = zmq_setsockopt(
-        curve_socket_,
+        server_curve_socket_,
         ZMQ_CURVE_SECRETKEY,
         key.getMemory(),
         key.getMemorySize());
@@ -64,5 +69,5 @@ bool CurveServer::set_curve(const OTPassword& key) const
     return true;
 }
 
-CurveServer::~CurveServer() { curve_socket_ = nullptr; }
+CurveServer::~CurveServer() { server_curve_socket_ = nullptr; }
 }  // namespace opentxs::network::zeromq::implementation

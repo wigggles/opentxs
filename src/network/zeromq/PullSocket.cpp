@@ -45,7 +45,8 @@ PullSocket::PullSocket(
     const bool client,
     const zeromq::ListenCallback& callback,
     const bool startThread)
-    : ot_super(context, SocketType::Subscribe)
+    : ot_super(context, SocketType::Pull)
+    , CurveServer(lock_, socket_)
     , Receiver(lock_, socket_, startThread)
     , client_(client)
     , callback_(callback)

@@ -23,6 +23,8 @@
 
 namespace opentxs
 {
+// This constructor is only used by Swig.  Swig doesn't support move
+// constructors, so this copy constructor implements move semantics.
 NymData::NymData(const NymData& rhs)
     : factory_{rhs.factory_}
     , object_lock_(std::move(const_cast<NymData&>(rhs).object_lock_))

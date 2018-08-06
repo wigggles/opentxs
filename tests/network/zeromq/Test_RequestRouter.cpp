@@ -107,7 +107,7 @@ TEST_F(Test_RequestRouter, Request_Router)
     auto replyMessage = network::zeromq::Message::Factory();
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](const network::zeromq::Message& input) -> void {
+        [this, &replyMessage](network::zeromq::Message& input) -> void {
             // RequestSocket prepends a delimiter and RouterSocket prepends an
             // identity frame.
             EXPECT_EQ(3, input.size());
@@ -169,7 +169,7 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
             testMessage3_, network::zeromq::Message::Factory())};
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessages](const network::zeromq::Message& input) -> void {
+        [this, &replyMessages](network::zeromq::Message& input) -> void {
             // RequestSocket prepends a delimiter and RouterSocket prepends an
             // identity frame.
             EXPECT_EQ(3, input.size());
@@ -247,7 +247,7 @@ TEST_F(Test_RequestRouter, Request_Router_Multipart)
     auto replyMessage = network::zeromq::Message::Factory();
 
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](const network::zeromq::Message& input) -> void {
+        [this, &replyMessage](network::zeromq::Message& input) -> void {
             // RequestSocket prepends a delimiter and RouterSocket prepends an
             // identity frame.
             EXPECT_EQ(6, input.size());

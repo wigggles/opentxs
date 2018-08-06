@@ -39,7 +39,7 @@ PairEventCallback* PairEventCallback::clone() const
     return new PairEventCallback(callback_);
 }
 
-void PairEventCallback::Process(const zeromq::Message& message) const
+void PairEventCallback::Process(zeromq::Message& message) const
 {
     OT_ASSERT(1 == message.Body().size());
 

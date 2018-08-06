@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/CurveServer.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -28,7 +29,7 @@ namespace network
 {
 namespace zeromq
 {
-class PublishSocket : virtual public Socket
+class PublishSocket : virtual public Socket, virtual public CurveServer
 {
 public:
     EXPORT static Pimpl<opentxs::network::zeromq::PublishSocket> Factory(
@@ -37,7 +38,6 @@ public:
     EXPORT virtual bool Publish(const std::string& data) const = 0;
     EXPORT virtual bool Publish(const opentxs::Data& data) const = 0;
     EXPORT virtual bool Publish(network::zeromq::Message& data) const = 0;
-    EXPORT virtual bool SetCurve(const OTPassword& key) const = 0;
 
     EXPORT virtual ~PublishSocket() = default;
 

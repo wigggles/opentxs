@@ -15,7 +15,7 @@ namespace opentxs::network::zeromq::implementation
 class PairEventCallback : virtual public zeromq::PairEventCallback
 {
 public:
-    void Process(const zeromq::Message& message) const override;
+    void Process(zeromq::Message& message) const override;
 
     ~PairEventCallback();
 

@@ -541,7 +541,8 @@ std::string OTAPI_Exec::CreateNymHD(
         case proto::CITEMTYPE_ORGANIZATION:
         case proto::CITEMTYPE_BUSINESS:
         case proto::CITEMTYPE_GOVERNMENT:
-        case proto::CITEMTYPE_SERVER: {
+        case proto::CITEMTYPE_SERVER:
+        case proto::CITEMTYPE_BOT: {
             break;
         }
         default: {

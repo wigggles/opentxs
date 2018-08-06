@@ -9,11 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/CurveClient.hpp"
 
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::DealerSocket::Factory;
-%ignore opentxs::network::zeromq::DealerSocket::SetCurve;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::DealerSocket>::Pimpl(opentxs::network::zeromq::DealerSocket const &);
 %ignore opentxs::Pimpl<opentxs::network::zeromq::DealerSocket>::operator opentxs::network::zeromq::DealerSocket&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::DealerSocket>::operator const opentxs::network::zeromq::DealerSocket &;
@@ -30,7 +30,7 @@ namespace network
 {
 namespace zeromq
 {
-class DealerSocket : virtual public Socket
+class DealerSocket : virtual public Socket, virtual public CurveClient
 {
 public:
     EXPORT static OTZMQDealerSocket Factory(
@@ -42,7 +42,6 @@ public:
     EXPORT virtual bool Send(const std::string& message) const = 0;
     EXPORT virtual bool Send(
         opentxs::network::zeromq::Message& message) const = 0;
-    EXPORT virtual bool SetCurve(const ServerContract& contract) const = 0;
     EXPORT virtual bool SetSocksProxy(const std::string& proxy) const = 0;
 
     EXPORT virtual ~DealerSocket() = default;

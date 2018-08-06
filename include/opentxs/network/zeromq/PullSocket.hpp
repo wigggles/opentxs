@@ -9,11 +9,11 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/network/zeromq/CurveServer.hpp"
 
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::PullSocket::Factory;
-%ignore opentxs::network::zeromq::PullSocket::SetCurve;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::PullSocket>::Pimpl(opentxs::network::zeromq::PullSocket const &);
 %ignore opentxs::Pimpl<opentxs::network::zeromq::PullSocket>::operator opentxs::network::zeromq::PullSocket&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::PullSocket>::operator const opentxs::network::zeromq::PullSocket &;
@@ -29,7 +29,7 @@ namespace network
 {
 namespace zeromq
 {
-class PullSocket : virtual public Socket
+class PullSocket : virtual public Socket, virtual public CurveServer
 {
 public:
     EXPORT static OTZMQPullSocket Factory(

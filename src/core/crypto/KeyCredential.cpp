@@ -623,4 +623,36 @@ bool KeyCredential::hasCapability(const NymCapability& capability) const
 
     return false;
 }
+
+const crypto::key::Keypair& KeyCredential::GetKeypair(
+    const proto::AsymmetricKeyType type,
+    const proto::KeyRole role) const
+{
+    const crypto::key::Keypair* output{nullptr};
+
+    switch (role) {
+        case proto::KEYROLE_AUTH: {
+            output = &authentication_key_.get();
+        } break;
+        case proto::KEYROLE_ENCRYPT: {
+            output = &encryption_key_.get();
+        } break;
+        case proto::KEYROLE_SIGN: {
+            output = &signing_key_.get();
+        } break;
+        default: {
+            throw std::out_of_range("wrong key type");
+        }
+    }
+
+    OT_ASSERT(nullptr != output);
+
+    if (proto::AKEYTYPE_NULL != type) {
+        if (type != output->GetPublicKey().keyType()) {
+            throw std::out_of_range("wrong key type");
+        }
+    }
+
+    return *output;
+}
 }  // namespace opentxs

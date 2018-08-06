@@ -33,6 +33,7 @@ namespace opentxs::network::zeromq::implementation
 {
 PushSocket::PushSocket(const zeromq::Context& context, const bool client)
     : ot_super(context, SocketType::Push)
+    , CurveClient(lock_, socket_)
     , client_(client)
 {
 }

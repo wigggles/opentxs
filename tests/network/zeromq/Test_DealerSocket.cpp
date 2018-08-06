@@ -36,4 +36,5 @@ TEST(DealerSocket, DealerSocket_Factory)
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
 }
 
-// TODO: Add tests for other public member functions: SetCurve, SetSocksProxy
+// TODO: Add tests for other public member functions: SetPublicKey,
+// SetSocksProxy
