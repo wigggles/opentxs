@@ -22,27 +22,16 @@ namespace opentxs
 {
 api::Wallet* Factory::Wallet(
     const api::server::Manager& server,
-    const api::storage::Storage& storage,
-    const api::Factory& factory,
-    const api::HDSeed& seeds,
-    const api::Legacy& legacy,
-    const network::zeromq::Context& zmq)
+    const api::Legacy& legacy)
 {
-    return new api::server::implementation::Wallet(
-        server, storage, factory, seeds, legacy, zmq);
+    return new api::server::implementation::Wallet(server, legacy);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::server::implementation
 {
-Wallet::Wallet(
-    const api::server::Manager& server,
-    const api::storage::Storage& storage,
-    const api::Factory& factory,
-    const api::HDSeed& seeds,
-    const api::Legacy& legacy,
-    const opentxs::network::zeromq::Context& zmq)
-    : ot_super(server.Instance(), storage, factory, seeds, legacy, zmq)
+Wallet::Wallet(const api::server::Manager& server, const api::Legacy& legacy)
+    : ot_super(server, legacy)
     , server_(server)
 {
 }
@@ -76,7 +65,6 @@ void Wallet::instantiate_client_context(
 }
 
 bool Wallet::load_legacy_account(
-    const std::string& dataFolder,
     const Identifier& accountID,
     const eLock& lock,
     Wallet::AccountLock& row) const
@@ -89,7 +77,7 @@ bool Wallet::load_legacy_account(
     OT_ASSERT(verify_lock(lock, rowMutex))
 
     pAccount.reset(Account::LoadExistingAccount(
-        *this, dataFolder, accountID, server_.ID()));
+        *this, core_.DataFolder(), accountID, server_.ID()));
 
     if (false == bool(pAccount)) { return false; }
 
@@ -133,7 +121,7 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(server_.ID() == serverID)
 
-    saved = storage_.Store(
+    saved = core_.Storage().Store(
         accountID.str(),
         serialized.Get(),
         "",

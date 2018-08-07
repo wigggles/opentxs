@@ -1263,7 +1263,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
-    auto account = wallet_.Account(data_folder_, PARTY_ACCT_ID);
+    auto account = wallet_.Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -1474,7 +1474,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the instrument definition.
-    auto account = wallet_.Account(data_folder_, PARTY_ACCT_ID);
+    auto account = wallet_.Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -2202,7 +2202,7 @@ bool OTSmartContract::StashFunds(
 
     // Load up the party's account and get the instrument definition, so we know
     // which stash to get off the stash.
-    auto account = wallet_.mutable_Account(data_folder_, PARTY_ACCT_ID);
+    auto account = wallet_.mutable_Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << "OTSmartContract::StashFunds: ERROR verifying existence of "
@@ -5602,7 +5602,7 @@ bool OTSmartContract::MoveFunds(
 
     // LOAD THE ACCOUNTS
     //
-    auto sourceAccount = wallet_.mutable_Account(data_folder_, SOURCE_ACCT_ID);
+    auto sourceAccount = wallet_.mutable_Account(SOURCE_ACCT_ID);
 
     if (false == bool(sourceAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
@@ -5611,8 +5611,7 @@ bool OTSmartContract::MoveFunds(
         return false;
     }
 
-    auto recipientAccount =
-        wallet_.mutable_Account(data_folder_, RECIPIENT_ACCT_ID);
+    auto recipientAccount = wallet_.mutable_Account(RECIPIENT_ACCT_ID);
 
     if (false == bool(recipientAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "

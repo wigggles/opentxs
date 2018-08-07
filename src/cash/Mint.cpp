@@ -797,7 +797,6 @@ void Mint::GenerateNewMint(
     m_VALID_TO = VALID_TO;
     m_EXPIRATION = MINT_EXPIRATION;
     auto account = wallet.CreateAccount(
-        data_folder_,
         NOTARY_NYM_ID,
         theNotaryID,
         theInstrumentDefinitionID,

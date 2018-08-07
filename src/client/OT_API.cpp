@@ -1213,7 +1213,7 @@ bool OT_API::Wallet_CanRemoveAccount(const Identifier& ACCOUNT_ID) const
     }
 
     const String strAccountID(ACCOUNT_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCOUNT_ID);
+    auto account = wallet_.Account(ACCOUNT_ID);
 
     if (false == bool(account)) return false;
 
@@ -2672,7 +2672,7 @@ bool OT_API::SmartContract_ConfirmAccount(
     // to
     // cleanup.)
     const auto accountID = Identifier::Factory(ACCT_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) return false;
 
@@ -3747,8 +3747,7 @@ bool OT_API::SetAccount_Name(
 
     if (false == bool(pSignerNym)) { return false; }
 
-    auto account =
-        wallet_.mutable_Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.mutable_Account(accountID);
 
     if (false == bool(account)) { return false; }
 
@@ -4017,8 +4016,7 @@ Cheque* OT_API::WriteCheque(
     rLock lock(lock_callback_({SENDER_NYM_ID.str(), NOTARY_ID.str()}));
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nym = context.It().Nym();
-    auto account =
-        wallet_.Account(legacy_.ClientDataFolder(), SENDER_accountID);
+    auto account = wallet_.Account(SENDER_accountID);
 
     if (false == bool(account)) { return nullptr; }
 
@@ -4155,8 +4153,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     auto context = wallet_.mutable_ServerContext(RECIPIENT_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
     auto nym = context.It().Nym();
-    auto account =
-        wallet_.Account(legacy_.ClientDataFolder(), RECIPIENT_accountID);
+    auto account = wallet_.Account(RECIPIENT_accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -4352,8 +4349,7 @@ bool OT_API::ConfirmPaymentPlan(
     auto context = wallet_.mutable_ServerContext(SENDER_NYM_ID, NOTARY_ID);
     auto nymfile = context.It().mutable_Nymfile(__FUNCTION__);
     auto nym = context.It().Nym();
-    auto account =
-        wallet_.Account(legacy_.ClientDataFolder(), SENDER_accountID);
+    auto account = wallet_.Account(SENDER_accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8117,7 +8113,7 @@ Basket* OT_API::GenerateBasketExchange(
     if (nullptr == contract) return nullptr;
     // By this point, contract is a good pointer, and is on the wallet. (No
     // need to cleanup.)
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8204,8 +8200,7 @@ bool OT_API::AddBasketExchangeItem(
 
     if (!contract) { return false; }
 
-    auto account =
-        wallet_.Account(legacy_.ClientDataFolder(), ASSET_ACCOUNT_ID);
+    auto account = wallet_.Account(ASSET_ACCOUNT_ID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8414,7 +8409,7 @@ CommandResult OT_API::exchangeBasket(
     if (false == validBasket) { return output; }
 
     const Identifier& accountID(basket.GetRequestAccountID());
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8616,7 +8611,7 @@ CommandResult OT_API::notarizeWithdrawal(
 
     if (nullptr == wallet) { return output; }
 
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -8835,7 +8830,7 @@ CommandResult OT_API::notarizeDeposit(
         "Depositing a cash purse. Enter passphrase for the purse.");
     const OTPasswordData cashPasswordReason(
         "Depositing a cash purse. Enter master passphrase for wallet.");
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9084,8 +9079,7 @@ CommandResult OT_API::payDividend(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto dividendAccount =
-        wallet_.Account(legacy_.ClientDataFolder(), DIVIDEND_FROM_accountID);
+    auto dividendAccount = wallet_.Account(DIVIDEND_FROM_accountID);
 
     if (false == bool(dividendAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -9099,8 +9093,7 @@ CommandResult OT_API::payDividend(
     if (false == bool(contract)) { return output; }
 
     // issuerAccount is not owned by this function
-    auto issuerAccount = wallet_.IssuerAccount(
-        legacy_.ClientDataFolder(), SHARES_INSTRUMENT_DEFINITION_ID);
+    auto issuerAccount = wallet_.IssuerAccount(SHARES_INSTRUMENT_DEFINITION_ID);
 
     if (false == bool(issuerAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -9345,7 +9338,7 @@ CommandResult OT_API::withdrawVoucher(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9536,7 +9529,7 @@ bool OT_API::DiscardCheque(
 
     if (!pServer) { return false; }
 
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9620,7 +9613,7 @@ CommandResult OT_API::depositCheque(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -9913,7 +9906,7 @@ CommandResult OT_API::depositPaymentPlan(
         bCancelling ? plan.GetRecipientAcctID() : plan.GetSenderAcctID());
 
     {
-        auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+        auto account = wallet_.Account(accountID);
 
         if (false == bool(account)) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -10489,8 +10482,7 @@ CommandResult OT_API::issueMarketOffer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto assetAccount =
-        wallet_.Account(legacy_.ClientDataFolder(), ASSET_ACCOUNT_ID);
+    auto assetAccount = wallet_.Account(ASSET_ACCOUNT_ID);
 
     if (false == bool(assetAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load asset account"
@@ -10499,8 +10491,7 @@ CommandResult OT_API::issueMarketOffer(
         return output;
     }
 
-    auto currencyAccount =
-        wallet_.Account(legacy_.ClientDataFolder(), CURRENCY_ACCOUNT_ID);
+    auto currencyAccount = wallet_.Account(CURRENCY_ACCOUNT_ID);
 
     if (false == bool(currencyAccount)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10944,7 +10935,7 @@ CommandResult OT_API::notarizeTransfer(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCT_FROM);
+    auto account = wallet_.Account(ACCT_FROM);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -11186,7 +11177,7 @@ CommandResult OT_API::processInbox(
     reply.reset();
 
     {
-        auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+        auto account = wallet_.Account(accountID);
 
         if (false == bool(account)) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"
@@ -11424,7 +11415,7 @@ CommandResult OT_API::deleteAssetAccount(
     reply.reset();
 
     {
-        auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCOUNT_ID);
+        auto account = wallet_.Account(ACCOUNT_ID);
 
         if (false == bool(account)) { return output; }
     }
@@ -11485,7 +11476,7 @@ CommandResult OT_API::getBoxReceipt(
     const auto& nymID = nym.ID();
 
     if (nymID != ACCOUNT_ID) {
-        auto account = wallet_.Account(legacy_.ClientDataFolder(), ACCOUNT_ID);
+        auto account = wallet_.Account(ACCOUNT_ID);
 
         if (false == bool(account)) { return output; }
     }
@@ -13099,7 +13090,7 @@ bool OT_API::FinalizeProcessInbox(
     // Below this point, any failure will result in the transaction number being
     // recovered
     Cleanup cleanup(*processInbox, context);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load account"

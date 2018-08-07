@@ -21,33 +21,24 @@ namespace opentxs::api::implementation
 class Wallet : virtual public opentxs::api::Wallet, public Lockable
 {
 public:
-    SharedAccount Account(
-        const std::string& dataFolder,
-        const Identifier& accountID) const override;
+    SharedAccount Account(const Identifier& accountID) const override;
     OTIdentifier AccountPartialMatch(const std::string& hint) const override;
     ExclusiveAccount CreateAccount(
-        const std::string& dataFolder,
         const Identifier& ownerNymID,
         const Identifier& notaryID,
         const Identifier& instrumentDefinitionID,
         const opentxs::Nym& signer,
         Account::AccountType type,
         TransactionNumber stash) const override;
-    bool DeleteAccount(
-        const std::string& dataFolder,
-        const Identifier& accountID) const override;
-    SharedAccount IssuerAccount(
-        const std::string& dataFolder,
-        const Identifier& unitID) const override;
+    bool DeleteAccount(const Identifier& accountID) const override;
+    SharedAccount IssuerAccount(const Identifier& unitID) const override;
     ExclusiveAccount mutable_Account(
-        const std::string& dataFolder,
         const Identifier& accountID) const override;
     bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized) const override;
     bool ImportAccount(
-        const std::string& dataFolder,
         std::unique_ptr<opentxs::Account>& imported) const override;
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
         const Identifier& localNymID,
@@ -77,17 +68,14 @@ public:
             std::chrono::milliseconds(0)) const override;
     ConstNym Nym(const proto::CredentialIndex& nym) const override;
     ConstNym Nym(
-        const std::string& dataFolder,
         const NymParameters& nymParameters,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const override;
     NymData mutable_Nym(const Identifier& id) const override;
     std::unique_ptr<const opentxs::NymFile> Nymfile(
-        const std::string& dataFolder,
         const Identifier& id,
         const OTPasswordData& reason) const override;
     Editor<opentxs::NymFile> mutable_Nymfile(
-        const std::string& dataFolder,
         const Identifier& id,
         const OTPasswordData& reason) const override;
     ConstNym NymByIDPartialMatch(const std::string& partialId) const override;
@@ -199,10 +187,7 @@ protected:
     using ContextID = std::pair<std::string, std::string>;
     using ContextMap = std::map<ContextID, std::shared_ptr<opentxs::Context>>;
 
-    const int instance_{0};
-    const api::storage::Storage& storage_;
-    const api::Factory& factory_;
-    const api::HDSeed& seeds_;
+    const api::Core& core_;
     const api::Legacy& legacy_;
     mutable ContextMap context_map_;
     mutable std::mutex context_map_lock_;
@@ -216,13 +201,7 @@ protected:
     void save(opentxs::Context* context) const;
     OTIdentifier server_to_nym(OTIdentifier& serverID) const;
 
-    Wallet(
-        const int instance,
-        const api::storage::Storage& storage,
-        const api::Factory& factory,
-        const api::HDSeed& seeds,
-        const api::Legacy& legacy,
-        const opentxs::network::zeromq::Context& zmq);
+    Wallet(const api::Core& core, const api::Legacy& legacy);
 
 private:
     using AccountMap = std::map<OTIdentifier, AccountLock>;
@@ -265,7 +244,6 @@ private:
 
     std::string account_alias(const std::string& accountID) const;
     opentxs::Account* account_factory(
-        const std::string& dataFolder,
         const Identifier& accountID,
         const std::string& alias,
         const std::string& serialized) const;
@@ -284,7 +262,6 @@ private:
     {
     }
     virtual bool load_legacy_account(
-        const std::string& dataFolder,
         const Identifier& accountID,
         const eLock& lock,
         AccountLock& row) const
@@ -292,7 +269,6 @@ private:
         return false;
     }
     Editor<opentxs::NymFile> mutable_nymfile(
-        const std::string& dataFolder,
         const std::shared_ptr<const opentxs::Nym>& targetNym,
         const std::shared_ptr<const opentxs::Nym>& signerNym,
         const Identifier& id,
@@ -315,7 +291,6 @@ private:
     /* Throws std::out_of_range for missing accounts */
     AccountLock& account(
         const Lock& lock,
-        const std::string& dataFolder,
         const Identifier& accountID,
         const bool create) const;
     IssuerLock& issuer(

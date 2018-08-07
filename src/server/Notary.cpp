@@ -207,8 +207,8 @@ void Notary::NotarizeTransfer(
 
         // Set the ID on the To Account based on what the transaction request
         // said. (So we can load it up.)
-        auto destinationAccount = wallet_.mutable_Account(
-            legacy_.ServerDataFolder(), pItem->GetDestinationAcctID());
+        auto destinationAccount =
+            wallet_.mutable_Account(pItem->GetDestinationAcctID());
 
         // Only accept transfers with positive amounts.
         if (0 > pItem->GetAmount()) {
@@ -1160,9 +1160,8 @@ void Notary::NotarizeWithdrawal(
                     } else if (
                         false ==
                         bool(
-                            pMintCashReserveAcct = wallet_.mutable_Account(
-                                legacy_.ServerDataFolder(),
-                                pMint->AccountID()))) {
+                            pMintCashReserveAcct =
+                                wallet_.mutable_Account(pMint->AccountID()))) {
                         Log::vError(
                             "Notary::NotarizeWithdrawal: Unable to find cash "
                             "reserve account for Mint (series %d): %s\n",
@@ -1611,8 +1610,8 @@ void Notary::NotarizePayDividend(
             ExclusiveAccount sharesIssuerAccount;
 
             if (pSharesContract) {
-                sharesIssuerAccount = wallet_.mutable_Account(
-                    legacy_.ServerDataFolder(), SHARES_ISSUER_ACCT_ID);
+                sharesIssuerAccount =
+                    wallet_.mutable_Account(SHARES_ISSUER_ACCT_ID);
             }
 
             auto purportedID = Identifier::Factory(context.RemoteNym());
@@ -3023,8 +3022,8 @@ void Notary::NotarizeDeposit(
                 else if (
                     !bSourceAcctAlreadyLoaded &&
                     ((nullptr ==
-                      ((sourceAccount = wallet_.mutable_Account(
-                            legacy_.ServerDataFolder(), SOURCE_ACCT_ID)),
+                      ((sourceAccount =
+                            wallet_.mutable_Account(SOURCE_ACCT_ID)),
                        (pSourceAcct =
                             sourceAccount ? &sourceAccount.get() : nullptr)))))
 
@@ -3099,8 +3098,8 @@ void Notary::NotarizeDeposit(
                     //
                     if (bHasRemitter && !bRemitterAcctAlreadyLoaded &&
                         ((nullptr ==
-                          ((remitterAccount = wallet_.mutable_Account(
-                                legacy_.ServerDataFolder(), REMITTER_ACCT_ID)),
+                          ((remitterAccount =
+                                wallet_.mutable_Account(REMITTER_ACCT_ID)),
                            (pRemitterAcct = remitterAccount
                                                 ? &remitterAccount.get()
                                                 : nullptr))))) {
@@ -3669,8 +3668,8 @@ void Notary::NotarizeDeposit(
                                    "or load Mint.\n");
                         break;
                     } else if (
-                        (pMintCashReserveAcct = wallet_.mutable_Account(
-                             legacy_.ServerDataFolder(), pMint->AccountID())) &&
+                        (pMintCashReserveAcct =
+                             wallet_.mutable_Account(pMint->AccountID())) &&
                         pMintCashReserveAcct) {
                         String strSpendableToken;
                         bool bToken = pToken->GetSpendableString(
@@ -4269,9 +4268,8 @@ void Notary::NotarizePaymentPlan(
 
                             if (!bCancelling)  // ACTIVATING
                             {
-                                recipientAccount = wallet_.mutable_Account(
-                                    legacy_.ServerDataFolder(),
-                                    RECIPIENT_ACCT_ID);
+                                recipientAccount =
+                                    wallet_.mutable_Account(RECIPIENT_ACCT_ID);
                                 pRecipientAcct = &recipientAccount.get();
                             } else  // CANCELLING
                             {
@@ -5713,8 +5711,7 @@ void Notary::NotarizeExchangeBasket(
                            "used for User's main account receipt was not "
                            "available for use...\n");
             } else {  // Load the basket account and make sure it exists.
-                basketAccount = wallet_.mutable_Account(
-                    legacy_.ServerDataFolder(), BASKET_ACCOUNT_ID);
+                basketAccount = wallet_.mutable_Account(BASKET_ACCOUNT_ID);
 
                 if (false == bool(basketAccount)) {
                     Log::Error("ERROR loading the basket account in "
@@ -5838,7 +5835,6 @@ void Notary::NotarizeExchangeBasket(
                                     // exchange...
                                     auto tempUserAccount =
                                         wallet_.mutable_Account(
-                                            legacy_.ServerDataFolder(),
                                             pRequestItem->SUB_ACCOUNT_ID);
 
                                     if (false == bool(tempUserAccount)) {
@@ -5854,7 +5850,6 @@ void Notary::NotarizeExchangeBasket(
 
                                     auto tempServerAccount =
                                         wallet_.mutable_Account(
-                                            legacy_.ServerDataFolder(),
                                             Identifier::Factory(
                                                 serverAccountID));
 
@@ -6554,8 +6549,8 @@ void Notary::NotarizeMarketOffer(
                                          // successful.
 
             // Load up the currency account and validate it.
-            ExclusiveAccount currencyAccount = wallet_.mutable_Account(
-                legacy_.ServerDataFolder(), CURRENCY_ACCT_ID);
+            ExclusiveAccount currencyAccount =
+                wallet_.mutable_Account(CURRENCY_ACCT_ID);
             // Also load up the Trade from inside the transaction item.
             String strOffer;
             OTOffer theOffer{wallet_, legacy_.ServerDataFolder()};
@@ -6885,8 +6880,8 @@ void Notary::NotarizeTransaction(
     const auto lTransactionNumber = tranIn.GetTransactionNum();
     const auto& NYM_ID = context.RemoteNym().ID();
     const String strIDNym(NYM_ID);
-    auto theFromAccount = wallet_.mutable_Account(
-        legacy_.ServerDataFolder(), tranIn.GetPurportedAccountID());
+    auto theFromAccount =
+        wallet_.mutable_Account(tranIn.GetPurportedAccountID());
 
     // Make sure the Account ID loaded from the file matches the one we just set
     // and used as the filename.

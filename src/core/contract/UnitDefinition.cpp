@@ -351,7 +351,7 @@ bool UnitDefinition::VisitAccountRecords(
             } else {
                 const auto& wallet = wallet_;
                 const auto accountID = Identifier::Factory(str_acct_id);
-                auto account = wallet.Account(dataFolder, accountID);
+                auto account = wallet.Account(accountID);
 
                 if (false == bool(account)) {
                     otErr << OT_METHOD << __FUNCTION__

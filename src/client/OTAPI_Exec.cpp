@@ -518,7 +518,8 @@ std::string OTAPI_Exec::CreateNymLegacy(
     nymParameters = std::make_shared<NymParameters>(proto::CREDTYPE_LEGACY);
 #endif
 
-    ConstNym pNym = wallet_.Nym(legacy_.ClientDataFolder(), *nymParameters);
+    ConstNym pNym = wallet_.Nym(*nymParameters);
+
     if (false == bool(pNym))  // Creation failed.
     {
         otOut << OT_METHOD << __FUNCTION__
@@ -567,8 +568,7 @@ std::string OTAPI_Exec::CreateNymHD(
         nymParameters.SetNym(index);
     }
 
-    ConstNym nym =
-        wallet_.Nym(legacy_.ClientDataFolder(), nymParameters, type, name);
+    auto nym = wallet_.Nym(nymParameters, type, name);
 
     if (nullptr == nym) {
         otOut << OT_METHOD << __FUNCTION__ << ": Failed trying to create Nym."
@@ -1613,7 +1613,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         "OTAPI_Exec::Wallet_CanRemoveAccount: Null ACCOUNT_ID passed in.");
 
     const auto theAccountID = Identifier::Factory(ACCOUNT_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), theAccountID);
+    auto account = wallet_.Account(theAccountID);
 
     if (false == bool(account)) {
 
@@ -2007,7 +2007,7 @@ std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
 
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+        wallet_.Nymfile(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         String strOutput;
@@ -2074,8 +2074,7 @@ std::string OTAPI_Exec::GetNym_InboxHash(
         "OTAPI_Exec::GetNym_InboxHash: Null NYM_ID passed in.");
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+    auto pNym = wallet_.Nymfile(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         auto theHash = Identifier::Factory();
@@ -2121,8 +2120,7 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
         "OTAPI_Exec::GetNym_OutboxHash: Null NYM_ID passed in.");
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+    auto pNym = wallet_.Nymfile(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         auto theHash = Identifier::Factory();
@@ -2330,9 +2328,10 @@ std::int32_t OTAPI_Exec::GetNym_OutpaymentsCount(
         "OTAPI_Exec::GetNym_OutpaymentsCount: Null NYM_ID passed in.");
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+    auto pNym = wallet_.Nymfile(theNymID, __FUNCTION__);
+
     if (false == bool(pNym)) return OT_ERROR;
+
     return pNym->GetOutpaymentsCount();
 }
 
@@ -2354,9 +2353,10 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
         return {};
     }
     auto theNymID = Identifier::Factory(NYM_ID);
-    std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+    auto pNym = wallet_.Nymfile(theNymID, __FUNCTION__);
+
     if (false == bool(pNym)) return {};
+
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
         // SENDER:     pMessage->m_strNymID
@@ -2401,7 +2401,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+        wallet_.Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
@@ -2435,7 +2435,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+        wallet_.Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
 
@@ -2473,8 +2473,7 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(
     }
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    Editor<class NymFile> pNym = wallet_.mutable_Nymfile(
-        legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+    auto pNym = wallet_.mutable_Nymfile(theNymID, __FUNCTION__);
 
     if (pNym.It().RemoveOutpaymentsByIndex(nIndex)) {
         // save Nym to local storage, since a payment outmail was erased.
@@ -2518,7 +2517,7 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        wallet_.Nymfile(legacy_.ClientDataFolder(), theNymID, __FUNCTION__);
+        wallet_.Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return false;
     Message* pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (nullptr != pMessage) {
@@ -3317,7 +3316,7 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Name: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
+    auto account = wallet_.Account(theID);
 
     if (false == bool(account)) { return {}; }
 
@@ -3831,7 +3830,7 @@ std::int64_t OTAPI_Exec::GetAccountWallet_Balance(
         "OTAPI_Exec::GetAccountWallet_Balance: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
+    auto account = wallet_.Account(theID);
     return (account) ? account.get().GetBalance() : OT_ERROR_AMOUNT;
 }
 
@@ -3843,7 +3842,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Type: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
+    auto account = wallet_.Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -3858,7 +3857,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
+    auto account = wallet_.Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -3879,7 +3878,7 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
+    auto account = wallet_.Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -3896,7 +3895,7 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
     OT_VERIFY_ID_STR(THE_ID);
 
     const auto theID = Identifier::Factory(THE_ID);
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), theID);
+    auto account = wallet_.Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -6565,9 +6564,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             // Now we need to find the account ID (so we can find the server
             // ID...)
             //
-            auto account = wallet_.Account(
-                legacy_.ClientDataFolder(),
-                theRequestBasket.GetRequestAccountID());
+            auto account =
+                wallet_.Account(theRequestBasket.GetRequestAccountID());
 
             if (false == bool(account)) {
                 const String strAcctID(theRequestBasket.GetRequestAccountID());

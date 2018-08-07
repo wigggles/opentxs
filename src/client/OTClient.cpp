@@ -3414,8 +3414,7 @@ bool OTClient::processServerReplyProcessInbox(
                             pServerItem->GetTransactionNum());
                         pData->completed_count = to_string<std::int32_t>(
                             theTrade.GetCompletedCount());
-                        auto account = wallet_.Account(
-                            legacy_.ClientDataFolder(), accountID);
+                        auto account = wallet_.Account(accountID);
 
                         OT_ASSERT(account)
 
@@ -6179,12 +6178,11 @@ bool OTClient::processServerReplyUnregisterAccount(
         theOriginalMessage.m_strCommand.Compare("unregisterAccount")) {
 
         const auto theAccountID = Identifier::Factory(theReply.m_strAcctID);
-        auto account =
-            wallet_.mutable_Account(legacy_.ClientDataFolder(), theAccountID);
+        auto account = wallet_.mutable_Account(theAccountID);
 
         if (account) {
             account.Release();
-            wallet_.DeleteAccount(legacy_.ClientDataFolder(), theAccountID);
+            wallet_.DeleteAccount(theAccountID);
         }
 
         otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID

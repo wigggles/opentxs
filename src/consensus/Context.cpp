@@ -287,7 +287,7 @@ Editor<class NymFile> Context::mutable_Nymfile(const OTPasswordData& reason)
 {
     OT_ASSERT(nym_)
 
-    return wallet_.mutable_Nymfile(LegacyDataFolder(), nym_->ID(), reason);
+    return wallet_.mutable_Nymfile(nym_->ID(), reason);
 }
 
 std::string Context::Name() const
@@ -313,7 +313,7 @@ std::unique_ptr<const opentxs::NymFile> Context::Nymfile(
 {
     OT_ASSERT(nym_);
 
-    return wallet_.Nymfile(LegacyDataFolder(), nym_->ID(), reason);
+    return wallet_.Nymfile(nym_->ID(), reason);
 }
 
 bool Context::RecoverAvailableNumber(const TransactionNumber& number)

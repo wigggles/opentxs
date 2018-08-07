@@ -45,34 +45,26 @@ namespace api
 class Wallet
 {
 public:
-    EXPORT virtual SharedAccount Account(
-        const std::string& dataFolder,
-        const Identifier& accountID) const = 0;
+    EXPORT virtual SharedAccount Account(const Identifier& accountID) const = 0;
     EXPORT virtual OTIdentifier AccountPartialMatch(
         const std::string& hint) const = 0;
     EXPORT virtual ExclusiveAccount CreateAccount(
-        const std::string& dataFolder,
         const Identifier& ownerNymID,
         const Identifier& notaryID,
         const Identifier& instrumentDefinitionID,
         const class Nym& signer,
         Account::AccountType type,
         TransactionNumber stash) const = 0;
-    EXPORT virtual bool DeleteAccount(
-        const std::string& dataFolder,
-        const Identifier& accountID) const = 0;
+    EXPORT virtual bool DeleteAccount(const Identifier& accountID) const = 0;
     EXPORT virtual SharedAccount IssuerAccount(
-        const std::string& dataFolder,
         const Identifier& unitID) const = 0;
     EXPORT virtual ExclusiveAccount mutable_Account(
-        const std::string& dataFolder,
         const Identifier& accountID) const = 0;
     EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized) const = 0;
     [[deprecated]] virtual bool ImportAccount(
-        const std::string& dataFolder,
         std::unique_ptr<opentxs::Account>& imported) const = 0;
 
     /**   Load a read-only copy of a Context object
@@ -215,7 +207,6 @@ public:
     EXPORT virtual ConstNym Nym(const proto::CredentialIndex& nym) const = 0;
 
     EXPORT virtual ConstNym Nym(
-        const std::string& dataFolder,
         const NymParameters& nymParameters,
         const proto::ContactItemType type = proto::CITEMTYPE_ERROR,
         const std::string name = "") const = 0;
@@ -223,12 +214,10 @@ public:
     EXPORT virtual NymData mutable_Nym(const Identifier& id) const = 0;
 
     EXPORT virtual std::unique_ptr<const class NymFile> Nymfile(
-        const std::string& dataFolder,
         const Identifier& id,
         const OTPasswordData& reason) const = 0;
 
     EXPORT virtual Editor<class NymFile> mutable_Nymfile(
-        const std::string& dataFolder,
         const Identifier& id,
         const OTPasswordData& reason) const = 0;
 

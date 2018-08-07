@@ -334,7 +334,7 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
 
 void AccountActivity::startup()
 {
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), account_id_);
+    auto account = wallet_.Account(account_id_);
 
     if (account) {
         balance_.store(account.get().GetBalance());

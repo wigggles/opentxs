@@ -132,7 +132,7 @@ std::string IssuerItem::Name() const
 
 void IssuerItem::process_account(const Identifier& accountID)
 {
-    const auto account = wallet_.Account(legacy_.ClientDataFolder(), accountID);
+    const auto account = wallet_.Account(accountID);
 
     if (false == bool(account)) { return; }
 

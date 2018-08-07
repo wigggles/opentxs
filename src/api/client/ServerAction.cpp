@@ -271,8 +271,7 @@ ServerAction::Action ServerAction::CreateMarketOffer(
 {
     auto notaryID = Identifier::Factory();
     auto nymID = Identifier::Factory();
-    const auto assetAccount =
-        wallet_.Account(legacy_.ClientDataFolder(), assetAccountID);
+    const auto assetAccount = wallet_.Account(assetAccountID);
 
     if (assetAccount) {
         nymID = assetAccount.get().GetNymID();

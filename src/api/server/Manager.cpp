@@ -103,13 +103,7 @@ Manager::Manager(
           *seeds_
 #endif
           ))
-    , wallet_(opentxs::Factory::Wallet(
-          *this,
-          *storage_,
-          *factory_,
-          *seeds_,
-          legacy_,
-          zmq_context_))
+    , wallet_(opentxs::Factory::Wallet(*this, legacy_))
     , dht_(opentxs::Factory::Dht(
           instance_,
           true,
