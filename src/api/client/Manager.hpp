@@ -10,7 +10,8 @@
 namespace opentxs::api::client::implementation
 {
 class Manager final : opentxs::api::client::internal::Manager,
-                      opentxs::api::implementation::Scheduler
+                      opentxs::api::implementation::Scheduler,
+                      api::implementation::StorageParent
 {
 public:
     const api::client::Activity& Activity() const override;
@@ -40,10 +41,10 @@ public:
         Scheduler::Schedule(interval, task, last);
     }
 #if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& Seeds() const override { return seeds_; }
+    const api::HDSeed& Seeds() const override;
 #endif
     const client::ServerAction& ServerAction() const override;
-    const api::storage::Storage& Storage() const override { return storage_; }
+    const api::storage::Storage& Storage() const override;
     const client::Sync& Sync() const override;
     const api::client::UI& UI() const override;
     const api::Wallet& Wallet() const override;
@@ -63,17 +64,13 @@ public:
 private:
     friend opentxs::Factory;
 
-    const Flag& running_;
-    const api::storage::Storage& storage_;
-    const api::Crypto& crypto_;
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds_;
-#endif
     const api::Legacy& legacy_;
-    const api::Settings& config_;
     const opentxs::network::zeromq::Context& zmq_context_;
     const std::string data_folder_{""};
     const int instance_{0};
+#if OT_CRYPTO_WITH_BIP39
+    std::unique_ptr<api::HDSeed> seeds_;
+#endif
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::ZMQ> zeromq_;
@@ -104,13 +101,10 @@ private:
 
     Manager(
         const Flag& running,
+        const ArgList& args,
         const api::Settings& config,
         const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds,
-#endif
         const api::Legacy& legacy,
-        const api::storage::Storage& storage,
         const opentxs::network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);

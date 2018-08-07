@@ -17,6 +17,7 @@ set(cxx-sources
   Native.cpp
   Scheduler.cpp
   Settings.cpp
+  StorageParent.cpp
   Wallet.cpp
 )
 
@@ -34,6 +35,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Scheduler.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/StorageParent.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
 )
 

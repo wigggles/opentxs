@@ -22,17 +22,23 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
+#if OT_CRYPTO_WITH_BIP39
+#include "opentxs/api/HDSeed.hpp"
+#endif
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 
+#include "api/storage/StorageInternal.hpp"
 #include "api/Scheduler.hpp"
+#include "api/StorageParent.hpp"
 #include "internal/api/Internal.hpp"
 #include "InternalClient.hpp"
 
@@ -48,29 +54,16 @@ namespace opentxs
 {
 api::client::internal::Manager* Factory::ClientManager(
     const Flag& running,
+    const ArgList& args,
     const api::Settings& config,
     const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds,
-#endif
     const api::Legacy& legacy,
-    const api::storage::Storage& storage,
     const network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
 {
     return new api::client::implementation::Manager(
-        running,
-        config,
-        crypto,
-#if OT_CRYPTO_WITH_BIP39
-        seeds,
-#endif
-        legacy,
-        storage,
-        context,
-        dataFolder,
-        instance);
+        running, args, config, crypto, legacy, context, dataFolder, instance);
 }
 }  // namespace opentxs
 
@@ -78,61 +71,65 @@ namespace opentxs::api::client::implementation
 {
 Manager::Manager(
     const Flag& running,
+    const ArgList& args,
     const api::Settings& config,
     const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds,
-#endif
     const api::Legacy& legacy,
-    const api::storage::Storage& storage,
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
     : Scheduler(running)
-    , running_(running)
-    , storage_(storage)
-    , crypto_(crypto)
-#if OT_CRYPTO_WITH_BIP39
-    , seeds_(seeds)
-#endif
+    , StorageParent(running, args, crypto, config, dataFolder)
     , legacy_(legacy)
-    , config_(config)
     , zmq_context_{context}
-    , data_folder_(dataFolder)
-    , instance_{instance}
-    , factory_
+    , instance_
+{
+    instance
+}
+#if OT_CRYPTO_WITH_BIP39
+, seeds_
+{
+    opentxs::Factory::HDSeed(
+        crypto_.Symmetric(),
+        *storage_,
+        crypto_.BIP32(),
+        crypto_.BIP39(),
+        crypto_.AES())
+}
+#endif
+, factory_
 {
     opentxs::Factory::FactoryAPI(
 #if OT_CRYPTO_WITH_BIP39
-        seeds_
+        *seeds_
 #endif
     )
 }
 ,
     wallet_{opentxs::Factory::Wallet(
         *this,
-        storage_,
+        *storage_,
         *factory_,
-        seeds_,
+        *seeds_,
         legacy_,
         zmq_context_)},
     zeromq_{opentxs::Factory::ZMQ(zmq_context_, config_, *wallet_, running_)},
     identity_{opentxs::Factory::Identity(*wallet_)},
     contacts_{opentxs::Factory::Contacts(
-        storage_,
+        *storage_,
         *factory_,
         *wallet_,
         zmq_context_)},
     activity_
 {
     opentxs::Factory::Activity(
-        storage_, *contacts_, *factory_, legacy_, *wallet_, zmq_context_)
+        *storage_, *contacts_, *factory_, legacy_, *wallet_, zmq_context_)
 }
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 , blockchain_
 {
     opentxs::Factory::Blockchain(
-        *activity_, crypto_, seeds_, storage_, *wallet_)
+        *activity_, crypto_, *seeds_, *storage_, *wallet_)
 }
 #endif
 , workflow_{opentxs::Factory::Workflow(
@@ -140,7 +137,7 @@ Manager::Manager(
       *contacts_,
       legacy_,
       *wallet_,
-      storage_,
+      *storage_,
       zmq_context_)},
     ot_api_
 {
@@ -152,11 +149,11 @@ Manager::Manager(
         crypto_,
         *factory_,
 #if OT_CRYPTO_WITH_BIP39
-        seeds_,
+        *seeds_,
 #endif
         *identity_,
         legacy_,
-        storage_,
+        *storage_,
         *wallet_,
         *workflow_,
         *zeromq_,
@@ -194,7 +191,7 @@ Manager::Manager(
         *wallet_,
         *workflow_,
         crypto_.Encode(),
-        storage_,
+        *storage_,
         zmq_context_,
         std::bind(&Manager::get_lock, this, std::placeholders::_1))},
     ui_{opentxs::Factory::UI(
@@ -202,7 +199,7 @@ Manager::Manager(
         *wallet_,
         *workflow_,
         *zeromq_,
-        storage_,
+        *storage_,
         *activity_,
         *contacts_,
         legacy_,
@@ -231,6 +228,7 @@ Manager::Manager(
         unit_refresh_interval_)},
     lock_(), map_lock_(), context_locks_()
 {
+    OT_ASSERT(seeds_);
     OT_ASSERT(factory_);
     OT_ASSERT(wallet_);
     OT_ASSERT(zeromq_);
@@ -327,13 +325,22 @@ std::recursive_mutex& Manager::get_lock(const ContextID context) const
     return context_locks_[context];
 }
 
-void Manager::Init() {}
-
 const OTAPI_Exec& Manager::Exec(const std::string&) const
 {
     OT_ASSERT(otapi_exec_);
 
     return *otapi_exec_;
+}
+
+void Manager::Init()
+{
+    StartWallet();
+
+    OT_ASSERT(seeds_)
+
+    StorageParent::init(*seeds_);
+    StartContacts();
+    StartActivity();
 }
 
 std::recursive_mutex& Manager::Lock(
@@ -364,6 +371,13 @@ const api::client::Pair& Manager::Pair() const
     return *pair_;
 }
 
+const api::HDSeed& Manager::Seeds() const
+{
+    OT_ASSERT(seeds_);
+
+    return *seeds_;
+}
+
 const api::client::ServerAction& Manager::ServerAction() const
 {
     OT_ASSERT(server_action_);
@@ -379,7 +393,7 @@ void Manager::StartActivity()
 
     OT_ASSERT(dht_)
 
-    Scheduler::Start(&storage_, dht_.get());
+    Scheduler::Start(storage_.get(), dht_.get());
 }
 
 void Manager::StartContacts()
@@ -397,14 +411,25 @@ opentxs::OTWallet* Manager::StartWallet()
 
     OT_ASSERT(loaded);
 
-    return ot_api_->GetWallet(nullptr);
+    auto wallet = ot_api_->GetWallet(nullptr);
+
+    OT_ASSERT(nullptr != wallet);
+
+    wallet->SaveWallet();
+
+    return wallet;
+}
+
+const api::storage::Storage& Manager::Storage() const
+{
+    OT_ASSERT(storage_)
+
+    return *storage_;
 }
 
 void Manager::storage_gc_hook()
 {
-    // if (storage_) { storage_->RunGC(); }
-
-    storage_.RunGC();
+    if (storage_) { storage_->RunGC(); }
 }
 
 const api::client::Sync& Manager::Sync() const

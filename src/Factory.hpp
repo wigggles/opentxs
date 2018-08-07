@@ -103,13 +103,10 @@ public:
         const api::Wallet& wallet);
     static api::client::internal::Manager* ClientManager(
         const Flag& running,
+        const ArgList& args,
         const api::Settings& config,
         const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds,
-#endif
         const api::Legacy& legacy,
-        const api::storage::Storage& storage,
         const network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);
@@ -353,11 +350,7 @@ public:
     static api::server::Manager* ServerManager(
         const Flag& running,
         const ArgList& args,
-        const api::storage::Storage& storage,
         const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds,
-#endif
         const api::Legacy& legacy,
         const api::Settings& config,
         const network::zeromq::Context& context,
@@ -374,6 +367,16 @@ public:
         const String& previous,
         const Digest& hash,
         const Random& random);
+    static api::storage::StorageInternal* Storage(
+        const Flag& running,
+        const api::Crypto& crypto,
+        const api::Settings& config,
+        const std::string& dataFolder,
+        const String& defaultPluginCLI,
+        const String& archiveDirectoryCLI,
+        const std::chrono::seconds gcIntervalCLI,
+        String& encryptedDirectoryCLI,
+        StorageConfig& storageConfig);
     static api::crypto::Symmetric* Symmetric(crypto::SymmetricProvider& sodium);
     static api::client::Sync* Sync(
         const Flag& running,
