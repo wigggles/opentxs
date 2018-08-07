@@ -61,6 +61,7 @@ StorageParent::StorageParent(
 #endif
 {
     OT_ASSERT(storage_);
+    OT_ASSERT(false == data_folder_.empty())
 }
 
 void StorageParent::init([[maybe_unused]] const api::HDSeed& seeds)

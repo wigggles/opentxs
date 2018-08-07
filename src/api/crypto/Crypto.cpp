@@ -7,6 +7,7 @@
 
 #include "Crypto.hpp"
 
+#include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
@@ -58,15 +59,19 @@ template class opentxs::Pimpl<opentxs::crypto::key::Symmetric>;
 
 namespace opentxs
 {
-api::Crypto* Factory::Crypto() { return new api::implementation::Crypto(); }
+api::Crypto* Factory::Crypto(const api::Settings& settings)
+{
+    return new api::implementation::Crypto(settings);
+}
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
-Crypto::Crypto()
+Crypto::Crypto(const api::Settings& settings)
     : cached_key_lock_()
     , primary_key_(nullptr)
     , cached_keys_()
+    , config_(opentxs::Factory::CryptoConfig(settings))
 #if OT_CRYPTO_USING_LIBBITCOIN
     , bitcoin_(opentxs::Factory::Bitcoin(*this))
 #endif
@@ -190,6 +195,13 @@ void Crypto::Cleanup()
 #endif
 }
 
+const crypto::Config& Crypto::Config() const
+{
+    OT_ASSERT(config_);
+
+    return *config_;
+}
+
 const OTCachedKey& Crypto::DefaultKey() const
 {
     Lock lock(cached_key_lock_);
@@ -214,7 +226,7 @@ Editor<OTCachedKey> Crypto::mutable_DefaultKey() const
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
 const opentxs::crypto::AsymmetricProvider& Crypto::ED25519() const
 {
-    OT_ASSERT(nullptr != sodium_);
+    OT_ASSERT(sodium_);
 
     return *sodium_;
 }

@@ -12,6 +12,8 @@
 #include "Legacy.hpp"
 
 #define CLIENT_CONFIG_KEY "client"
+#define CRYPTO_CONFIG_KEY "crypto"
+#define LOG_CONFIG_KEY "log"
 #define SERVER_CONFIG_KEY "server"
 #define DATA_FOLDER_EXT "_data"
 #define CONFIG_FILE_EXT ".cfg"
@@ -20,19 +22,17 @@
 
 namespace opentxs
 {
-api::Legacy* Factory::Legacy(const std::string& key)
-{
-    return new api::implementation::Legacy(key);
-}
+api::Legacy* Factory::Legacy() { return new api::implementation::Legacy(); }
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
-Legacy::Legacy(const std::string& key)
-    : client_{key == CLIENT_CONFIG_KEY}
-    , client_data_folder_{std::string(CLIENT_CONFIG_KEY) + DATA_FOLDER_EXT}
+Legacy::Legacy()
+    : client_data_folder_{std::string(CLIENT_CONFIG_KEY) + DATA_FOLDER_EXT}
     , server_data_folder_{std::string(SERVER_CONFIG_KEY) + DATA_FOLDER_EXT}
     , client_config_file_{std::string(CLIENT_CONFIG_KEY) + CONFIG_FILE_EXT}
+    , crypto_config_file_{std::string(CRYPTO_CONFIG_KEY) + CONFIG_FILE_EXT}
+    , log_config_file_{std::string(LOG_CONFIG_KEY) + CONFIG_FILE_EXT}
     , server_config_file_{std::string(SERVER_CONFIG_KEY) + CONFIG_FILE_EXT}
 {
 }
@@ -47,14 +47,9 @@ std::string Legacy::ClientDataFolder() const
     return get_path(client_data_folder_);
 }
 
-std::string Legacy::ConfigFilePath() const
+std::string Legacy::CryptoConfigFilePath() const
 {
-    return client_ ? ClientConfigFilePath() : ServerConfigFilePath();
-}
-
-std::string Legacy::DataFolderPath() const
-{
-    return client_ ? ClientDataFolder() : ServerDataFolder();
+    return get_file(crypto_config_file_);
 }
 
 std::string Legacy::get_file(const std::string& fragment) const
@@ -73,6 +68,11 @@ std::string Legacy::get_path(const std::string& fragment) const
     OT_ASSERT(success)
 
     return output.Get();
+}
+
+std::string Legacy::LogConfigFilePath() const
+{
+    return get_file(log_config_file_);
 }
 
 std::string Legacy::ServerConfigFilePath() const

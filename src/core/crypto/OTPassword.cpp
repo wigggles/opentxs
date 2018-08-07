@@ -506,7 +506,9 @@ std::int32_t OTPassword::setPassword(const std::string& input)
 // Returns size of password (in case truncation is necessary.)
 // Returns -1 in case of error.
 //
-std::int32_t OTPassword::setPassword(const char* szInput, int32_t nInputSize)
+std::int32_t OTPassword::setPassword(
+    const char* szInput,
+    std::int32_t nInputSize)
 {
     return setPassword_uint8(
         reinterpret_cast<const std::uint8_t*>(szInput),

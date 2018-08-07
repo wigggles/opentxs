@@ -157,7 +157,8 @@ public:
         const ui::implementation::ContactSectionRowID& rowID,
         const ui::implementation::ContactSectionSortKey& key,
         const ui::implementation::CustomData& custom);
-    static api::Crypto* Crypto();
+    static api::Crypto* Crypto(const api::Settings& settings);
+    static api::crypto::Config* CryptoConfig(const api::Settings& settings);
     static api::network::Dht* Dht(
         const int instance,
         const bool defaultEnable,
@@ -218,7 +219,7 @@ public:
         const api::storage::Storage& storage,
         const api::Legacy& legacy,
         const proto::ContactItemType currency);
-    static api::Legacy* Legacy(const std::string& key);
+    static api::Legacy* Legacy();
     static ui::implementation::ActivityThreadRowInternal* MailItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const network::zeromq::Context& zmq,

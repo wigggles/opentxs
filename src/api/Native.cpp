@@ -62,9 +62,6 @@
 
 #include "Native.hpp"
 
-#define CLIENT_CONFIG_KEY "client"
-#define SERVER_CONFIG_KEY "server"
-
 #ifndef _PASSWORD_LEN
 #define _PASSWORD_LEN 128
 #endif
@@ -345,7 +342,7 @@ Native::Native(
     , client_(nullptr)
     , config_()
     , crypto_(nullptr)
-    , legacy_(nullptr)
+    , legacy_(opentxs::Factory::Legacy())
     , server_(nullptr)
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
@@ -356,6 +353,8 @@ Native::Native(
     , external_password_callback_{externalPasswordCallback}
 {
     // NOTE: OT_ASSERT is not available until Init() has been called
+
+    assert(legacy_);
 
     if (nullptr == external_password_callback_) {
         setup_default_external_password_callback();
@@ -445,23 +444,17 @@ void Native::HandleSignals(ShutdownCallback* callback) const
 
 void Native::Init()
 {
-    Init_Legacy();
-    Init_Config();  // requires Init_Legacy()
-    Init_Log();     // requires Init_Config()
+    Init_Log();
     Init_Crypto();
-    Init_Api();  // requires Init_Legacy(), Init_Config(), Init_Crypto(),
+    Init_Api();  // requires Init_Log(), Init_Crypto()
 
     if (recover_) { recover(); }
 
-    Init_Server();  // requires Init_Legacy(), Init_Config()
-                    // Init_Crypto(), Init_Log()
+    Init_Server();  // requires Init_Log(), Init_Crypto()
 }
 
 void Native::Init_Api()
 {
-    auto& config = config_[""];
-
-    OT_ASSERT(config);
     OT_ASSERT(crypto_);
     OT_ASSERT(legacy_);
 
@@ -470,7 +463,7 @@ void Native::Init_Api()
     client_.reset(opentxs::Factory::ClientManager(
         running_,
         server_args_,
-        *config,
+        Config(legacy_->ClientConfigFilePath()),
         *crypto_,
         *legacy_,
         zmq_context_,
@@ -480,38 +473,19 @@ void Native::Init_Api()
     OT_ASSERT(client_);
 }
 
-void Native::Init_Config()
+void Native::Init_Crypto()
 {
-    OT_ASSERT(legacy_)
-
-    String strConfigFilePath = legacy_->ConfigFilePath().c_str();
-    config_[""].reset(opentxs::Factory::Settings(strConfigFilePath));
-}
-
-void Native::Init_Crypto() { crypto_.reset(opentxs::Factory::Crypto()); }
-
-void Native::Init_Legacy()
-{
-    if (server_mode_) {
-        legacy_.reset(opentxs::Factory::Legacy(SERVER_CONFIG_KEY));
-    } else {
-        legacy_.reset(opentxs::Factory::Legacy(CLIENT_CONFIG_KEY));
-    }
-
-    OT_ASSERT(legacy_);
+    crypto_.reset(
+        opentxs::Factory::Crypto(Config(legacy_->CryptoConfigFilePath())));
 }
 
 void Native::Init_Log()
 {
-    std::string type{};
+    OT_ASSERT(legacy_)
 
-    if (server_mode_) {
-        type = SERVER_CONFIG_KEY;
-    } else {
-        type = CLIENT_CONFIG_KEY;
-    }
+    const auto init = Log::Init(Config(legacy_->LogConfigFilePath()), "");
 
-    if (false == Log::Init(Config(), type.c_str())) { abort(); }
+    if (false == init) { abort(); }
 }
 
 void Native::Init_Server()
@@ -525,7 +499,7 @@ void Native::Init_Server()
         server_args_,
         *crypto_,
         *legacy_,
-        Config(),
+        Config(legacy_->ServerConfigFilePath()),
         zmq_context_,
         legacy_->ServerDataFolder(),
         1));  // TODO

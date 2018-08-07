@@ -66,7 +66,6 @@ private:
 
     const api::Legacy& legacy_;
     const opentxs::network::zeromq::Context& zmq_context_;
-    const std::string data_folder_{""};
     const int instance_{0};
 #if OT_CRYPTO_WITH_BIP39
     std::unique_ptr<api::HDSeed> seeds_;

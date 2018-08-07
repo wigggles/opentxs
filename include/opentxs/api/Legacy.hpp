@@ -19,8 +19,8 @@ class Legacy
 public:
     EXPORT virtual std::string ClientConfigFilePath() const = 0;
     EXPORT virtual std::string ClientDataFolder() const = 0;
-    EXPORT virtual std::string ConfigFilePath() const = 0;
-    EXPORT virtual std::string DataFolderPath() const = 0;
+    EXPORT virtual std::string CryptoConfigFilePath() const = 0;
+    EXPORT virtual std::string LogConfigFilePath() const = 0;
     EXPORT virtual std::string ServerConfigFilePath() const = 0;
     EXPORT virtual std::string ServerDataFolder() const = 0;
 

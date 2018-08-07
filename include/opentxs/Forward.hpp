@@ -34,6 +34,8 @@ class Workflow;
 
 namespace crypto
 {
+class Config;
+class Crypto;
 class Encode;
 class Hash;
 class Symmetric;

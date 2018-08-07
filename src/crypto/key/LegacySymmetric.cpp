@@ -7,9 +7,9 @@
 
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 
+#include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -362,8 +362,8 @@ namespace opentxs::crypto::key::implementation
 LegacySymmetric::LegacySymmetric()
     : m_bIsGenerated(false)
     , has_hash_check_(Flag::Factory(false))
-    , m_nKeySize(CryptoConfig::SymmetricKeySize() * 8)
-    , m_uIterationCount(CryptoConfig::IterationCount())
+    , m_nKeySize(OT::App().Crypto().Config().SymmetricKeySize() * 8)
+    , m_uIterationCount(OT::App().Crypto().Config().IterationCount())
     , salt_(Data::Factory())
     , iv_(Data::Factory())
     , encrypted_key_(Data::Factory())
@@ -442,7 +442,7 @@ bool LegacySymmetric::ChangePassphrase(
     // the symmetric key itself, whereas the content has its own IV in
     // OTEnvelope.
     //
-    if (!dataIV->Randomize(CryptoConfig::SymmetricIvSize())) {
+    if (!dataIV->Randomize(OT::App().Crypto().Config().SymmetricIvSize())) {
         otErr << __FUNCTION__
               << ": Failed generating iv for changing "
                  "passphrase on a symmetric key. (Returning "
@@ -450,7 +450,7 @@ bool LegacySymmetric::ChangePassphrase(
         return false;
     }
 
-    if (!dataSalt->Randomize(CryptoConfig::SymmetricSaltSize())) {
+    if (!dataSalt->Randomize(OT::App().Crypto().Config().SymmetricSaltSize())) {
         otErr << __FUNCTION__
               << ": Failed generating random salt for changing "
                  "passphrase on a symmetric key. (Returning "
@@ -527,14 +527,14 @@ bool LegacySymmetric::GenerateKey(
     otInfo << "  Begin: " << __FUNCTION__
            << ": GENERATING keys and passwords...\n";
 
-    if (!iv_->Randomize(CryptoConfig::SymmetricIvSize())) {
+    if (!iv_->Randomize(OT::App().Crypto().Config().SymmetricIvSize())) {
         otErr << __FUNCTION__
               << ": Failed generating iv for encrypting a "
                  "symmetric key. (Returning false.)\n";
         return false;
     }
 
-    if (!salt_->Randomize(CryptoConfig::SymmetricSaltSize())) {
+    if (!salt_->Randomize(OT::App().Crypto().Config().SymmetricSaltSize())) {
         otErr << __FUNCTION__
               << ": Failed generating random salt. (Returning false.)\n";
         return false;
@@ -546,13 +546,13 @@ bool LegacySymmetric::GenerateKey(
     OTPassword theActualKey;
 
     {
-        std::int32_t nRes =
-            theActualKey.randomizeMemory(CryptoConfig::SymmetricKeySize());
+        std::int32_t nRes = theActualKey.randomizeMemory(
+            OT::App().Crypto().Config().SymmetricKeySize());
         if (0 > nRes) { OT_FAIL; }
         std::uint32_t uRes =
             static_cast<std::uint32_t>(nRes);  // we need an uint32_t value.
 
-        if (CryptoConfig::SymmetricKeySize() != uRes) {
+        if (OT::App().Crypto().Config().SymmetricKeySize() != uRes) {
             otErr << __FUNCTION__
                   << ": Failed generating symmetric key. (Returning false.)\n";
             return false;
@@ -1260,8 +1260,8 @@ void LegacySymmetric::Release() { Release_SymmetricKey(); }
 void LegacySymmetric::Release_SymmetricKey()
 {
     m_bIsGenerated = false;
-    m_uIterationCount = CryptoConfig::IterationCount();
-    m_nKeySize = CryptoConfig::SymmetricKeySize() * 8;
+    m_uIterationCount = OT::App().Crypto().Config().IterationCount();
+    m_nKeySize = OT::App().Crypto().Config().SymmetricKeySize() * 8;
     salt_->Release();
     iv_->Release();
     encrypted_key_->Release();

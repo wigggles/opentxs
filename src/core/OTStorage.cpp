@@ -2674,8 +2674,8 @@ ot_exit_block:
 
         if (bMakePath && !bFolderExists) {
             otErr << __FUNCTION__
-                  << ": Error: was told to make path, however "
-                     "cannot confirm the path!\n";
+                  << ": Error: was told to make path (" << strFolder
+                  << "), however cannot confirm the path!\n";
             return -4;
         }
         if (!bMakePath && !bFolderExists) {

@@ -22,8 +22,7 @@ class Native final : api::internal::Native
 {
 public:
     const api::client::Manager& Client() const override;
-    const api::Settings& Config(
-        const std::string& path = std::string("")) const override;
+    const api::Settings& Config(const std::string& path) const override;
     const api::Crypto& Crypto() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
     const api::Legacy& Legacy() const override;
@@ -77,9 +76,7 @@ private:
     void setup_default_external_password_callback();
 
     void Init_Api();
-    void Init_Config();
     void Init_Crypto();
-    void Init_Legacy();
     void Init_Log();
     void Init_Server();
     void Init() override;
