@@ -89,10 +89,10 @@ bool safe_strcpy(
 
 extern "C" {
 
-std::int32_t add_ext(X509* cert, int32_t nid, char* value);
+std::int32_t add_ext(X509* cert, std::int32_t nid, char* value);
 
 #ifndef ANDROID
-static void callback(std::int32_t p, int32_t, void*)
+static void callback(std::int32_t p, std::int32_t, void*)
 {
     char c = 'B';
 
@@ -255,7 +255,7 @@ std::int32_t mkcert(
  * because we won't reference any other sections.
  */
 
-std::int32_t add_ext(X509* cert, int32_t nid, char* value)
+std::int32_t add_ext(X509* cert, std::int32_t nid, char* value)
 {
     X509_EXTENSION* ex;
     X509V3_CTX ctx;

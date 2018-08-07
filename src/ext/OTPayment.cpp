@@ -131,7 +131,7 @@ OTPayment::OTPayment(
 // static
 const char* OTPayment::_GetTypeString(paymentType theType)
 {
-    std::int32_t nType = static_cast<int32_t>(theType);
+    std::int32_t nType = static_cast<std::int32_t>(theType);
     return __TypeStringsPayment[nType];
 }
 

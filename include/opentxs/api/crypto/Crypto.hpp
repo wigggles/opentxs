@@ -23,6 +23,7 @@ namespace api
 class Crypto
 {
 public:
+    EXPORT virtual const crypto::Config& Config() const = 0;
     EXPORT virtual const OTCachedKey& DefaultKey() const = 0;
     EXPORT virtual Editor<OTCachedKey> mutable_DefaultKey() const = 0;
     EXPORT virtual const OTCachedKey& CachedKey(const Identifier& id) const = 0;

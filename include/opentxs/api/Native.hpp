@@ -27,7 +27,7 @@ public:
 
     EXPORT virtual const api::client::Manager& Client() const = 0;
     EXPORT virtual const api::Settings& Config(
-        const std::string& path = std::string("")) const = 0;
+        const std::string& path) const = 0;
     EXPORT virtual const api::Crypto& Crypto() const = 0;
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;

@@ -7,9 +7,9 @@
 
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 
+#include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/Letter.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -85,7 +85,7 @@ bool OTEnvelope::Encrypt(
     //
     auto theIV = Data::Factory();
 
-    if (!theIV->Randomize(CryptoConfig::SymmetricIvSize())) {
+    if (!theIV->Randomize(OT::App().Crypto().Config().SymmetricIvSize())) {
         otErr << __FUNCTION__ << ": Failed trying to randomly generate IV.\n";
         return false;
     }
@@ -165,7 +165,8 @@ bool OTEnvelope::Encrypt(
     // Write IV size (in network-order)
     //
     std::uint32_t ivlen =
-        CryptoConfig::SymmetricIvSize();  // Length of IV for this cipher...
+        OT::App().Crypto().Config().SymmetricIvSize();  // Length of IV for this
+                                                        // cipher...
     OT_ASSERT(ivlen >= theIV->size());
     std::uint32_t ivlen_n = htonl(theIV->size());  // Calculate "network-order"
                                                    // version of iv length.
@@ -260,9 +261,10 @@ bool OTEnvelope::Decrypt(
     // Read network-order IV size (and convert to host version)
     //
     const std::uint32_t max_iv_length =
-        CryptoConfig::SymmetricIvSize();  // I believe this is a max length, so
-                                          // it may not match the actual length
-                                          // of the IV.
+        OT::App().Crypto().Config().SymmetricIvSize();  // I believe this is a
+                                                        // max length, so it may
+                                                        // not match the actual
+                                                        // length of the IV.
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //

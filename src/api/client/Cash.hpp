@@ -130,7 +130,7 @@ protected:
         bool bPWProtectOldPurse,
         bool bPWProtectNewPurse) const;
 
-    int32_t withdraw_and_export_cash_low_level(
+    std::int32_t withdraw_and_export_cash_low_level(
         const std::string& server,
         const std::string& mynym,
         const std::string& assetType,

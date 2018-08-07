@@ -112,7 +112,7 @@ Ledger::Ledger(const api::Wallet& wallet, const std::string& dataFolder)
 
 char const* Ledger::_GetTypeString(ledgerType theType)
 {
-    std::int32_t nType = static_cast<int32_t>(theType);
+    std::int32_t nType = static_cast<std::int32_t>(theType);
     return __TypeStringsLedger[nType];
 }
 
@@ -147,7 +147,8 @@ bool Ledger::VerifyAccount(const Nym& theNym)
                                             // errors here.
         } break;
         default: {
-            const std::int32_t nLedgerType = static_cast<int32_t>(GetType());
+            const std::int32_t nLedgerType =
+                static_cast<std::int32_t>(GetType());
             const auto theNymID = Identifier::Factory(theNym);
             const String strNymID(theNymID);
             String strAccountID;

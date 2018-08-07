@@ -14,8 +14,8 @@ class Legacy final : virtual public api::Legacy
 public:
     std::string ClientConfigFilePath() const override;
     std::string ClientDataFolder() const override;
-    std::string ConfigFilePath() const override;
-    std::string DataFolderPath() const override;
+    std::string CryptoConfigFilePath() const override;
+    std::string LogConfigFilePath() const override;
     std::string ServerConfigFilePath() const override;
     std::string ServerDataFolder() const override;
 
@@ -24,17 +24,17 @@ public:
 private:
     friend opentxs::Factory;
 
-    const bool client_{true};
     const std::string client_data_folder_{""};
     const std::string server_data_folder_{""};
     const std::string client_config_file_{""};
+    const std::string crypto_config_file_{""};
+    const std::string log_config_file_{""};
     const std::string server_config_file_{""};
 
     std::string get_path(const std::string& fragment) const;
     std::string get_file(const std::string& fragment) const;
 
-    Legacy(const std::string& key);
-    Legacy() = delete;
+    Legacy();
     Legacy(const Legacy&) = delete;
     Legacy(Legacy&&) = delete;
     Legacy& operator=(const Legacy&) = delete;

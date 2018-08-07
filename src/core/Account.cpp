@@ -136,7 +136,7 @@ Account::Account(
 
 char const* Account::_GetTypeString(AccountType accountType)
 {
-    std::int32_t index = static_cast<int32_t>(accountType);
+    std::int32_t index = static_cast<std::int32_t>(accountType);
     return __TypeStringsAccount[index];
 }
 
@@ -423,7 +423,7 @@ Account* Account::LoadExistingAccount(
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
 
-    String strDataFolder = OT::App().Legacy().DataFolderPath().c_str();
+    String strDataFolder = dataFolder.c_str();
     String strAccountPath = "";
 
     if (!OTPaths::AppendFolder(

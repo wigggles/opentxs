@@ -8,10 +8,10 @@
 #include "Internal.hpp"
 
 #if OT_CRYPTO_USING_OPENSSL
+#include "opentxs/api/crypto/Config.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
-#include "opentxs/core/crypto/Crypto.hpp"
 #include "opentxs/core/crypto/CryptoSymmetricDecryptOutput.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -236,12 +236,10 @@ void ot_openssl_thread_id(CRYPTO_THREADID* id)
 #endif
 
 /*
- locking_function(std::int32_t mode, int32_t n, const char* file, int32_t line)
- is
- needed to perform locking on
- shared data structures. (Note that OpenSSL uses a number of global data
- structures that will
- be implicitly shared whenever multiple threads use OpenSSL.) Multi-threaded
+ locking_function(std::int32_t mode, std::int32_t n, const char* file,
+ std::int32_t line) is needed to perform locking on shared data structures.
+ (Note that OpenSSL uses a number of global data structures that will be
+ implicitly shared whenever multiple threads use OpenSSL.) Multi-threaded
  applications will
  crash at random if it is not set.
 
@@ -287,9 +285,9 @@ OTPassword* OpenSSL::DeriveNewKey(
 
     // Key derivation in OpenSSL.
     //
-    // std::int32_t PKCS5_PBKDF2_HMAC_SHA1(const char*, int32_t, const
+    // std::int32_t PKCS5_PBKDF2_HMAC_SHA1(const char*, std::int32_t, const
     // std::uint8_t*,
-    // std::int32_t, int32_t, int32_t, std::uint8_t*)
+    // std::int32_t, std::int32_t, std::int32_t, std::uint8_t*)
     //
     PKCS5_PBKDF2_HMAC_SHA1(
         reinterpret_cast<const char*>  // If is password... supply password,
@@ -309,7 +307,7 @@ OTPassword* OpenSSL::DeriveNewKey(
     const bool bHaveCheckHash = !dataCheckHash.empty();
 
     auto tmpHashCheck = Data::Factory();
-    tmpHashCheck->SetSize(CryptoConfig::SymmetricKeySize());
+    tmpHashCheck->SetSize(OT::App().Crypto().Config().SymmetricKeySize());
 
     // We take the DerivedKey, and hash it again, then get a 'hash-check'
     // Compare that with the supplied one, (if there is one).
@@ -433,9 +431,11 @@ const EVP_CIPHER* OpenSSL::OpenSSLdp::CipherModeToOpenSSLMode(
 // todo return a smartpointer here.
 OTPassword* OpenSSL::InstantiateBinarySecret() const
 {
-    std::uint8_t* tmp_data = new uint8_t[CryptoConfig::SymmetricKeySize()];
+    std::uint8_t* tmp_data =
+        new uint8_t[OT::App().Crypto().Config().SymmetricKeySize()];
     OTPassword* pNewKey = new OTPassword(
-        static_cast<void*>(&tmp_data[0]), CryptoConfig::SymmetricKeySize());
+        static_cast<void*>(&tmp_data[0]),
+        OT::App().Crypto().Config().SymmetricKeySize());
     OT_ASSERT_MSG(nullptr != pNewKey, "pNewKey = new OTPassword");
 
     if (nullptr != tmp_data) {
@@ -592,9 +592,11 @@ void OpenSSL::Init()
      SSL_library_init() must be called before any other action takes place.
      SSL_library_init() is not reentrant.
      -------------------
-     Then, on http://www.openssl.org/docs/crypto/ERR_load_crypto_strings.html#,
+     Then, on
+     http://www.openssl.org/docs/crypto/ERR_load_OT::App().Crypto().Config().strings.html#,
      in
-     reference to SSL_load_error_strings and ERR_load_crypto_strings, it says:
+     reference to SSL_load_error_strings and
+     ERR_load_OT::App().Crypto().Config().strings, it says:
 
      One of these functions should be called BEFORE generating textual error
      messages.
@@ -610,8 +612,8 @@ void OpenSSL::Init()
     // IN THE OPPOSITE ORDER when we get to OT_Cleanup().
 
     /*
-     - ERR_load_crypto_strings() registers the error strings for all libcrypto
-     functions.
+     - ERR_load_OT::App().Crypto().Config().strings() registers the error
+     strings for all libcrypto functions.
      - SSL_load_error_strings() does the same, but also registers the libssl
      error strings.
      One of these functions should be called before generating textual error
@@ -622,7 +624,8 @@ void OpenSSL::Init()
     SSL_load_error_strings();  // DONE -- corresponds to ERR_free_strings in
                                // OT_Cleanup()   #1
 
-    //  ERR_load_crypto_strings();   // Redundant -- SSL_load_error_strings does
+    //  ERR_load_OT::App().Crypto().Config().strings();   // Redundant --
+    //  SSL_load_error_strings does
     // this already.
     //
     /*
@@ -867,7 +870,7 @@ void OpenSSL::Cleanup()
     // (IOW: Not needed here for app cleanup.)
 }
 
-// #define CryptoConfig::SymmetricBufferSize()   default: 4096
+// #define OT::App().Crypto().Config().SymmetricBufferSize()   default: 4096
 
 bool OpenSSL::ArgumentCheck(
     const bool encrypt,
@@ -1017,16 +1020,17 @@ bool OpenSSL::Encrypt(
 #endif
 
     std::vector<std::uint8_t> vBuffer(
-        CryptoConfig::SymmetricBufferSize());  // 4096
+        OT::App().Crypto().Config().SymmetricBufferSize());  // 4096
     std::vector<std::uint8_t> vBuffer_out(
-        CryptoConfig::SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
     std::int32_t len_out = 0;
 
-    memset(&vBuffer.at(0), 0, CryptoConfig::SymmetricBufferSize());
+    memset(
+        &vBuffer.at(0), 0, OT::App().Crypto().Config().SymmetricBufferSize());
     memset(
         &vBuffer_out.at(0),
         0,
-        CryptoConfig::SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
 
     //
     // This is where the envelope final contents will be placed.
@@ -1149,9 +1153,10 @@ bool OpenSSL::Encrypt(
         //
 
         std::uint32_t len =
-            (lRemainingLength < CryptoConfig::SymmetricBufferSize())
+            (lRemainingLength <
+             OT::App().Crypto().Config().SymmetricBufferSize())
                 ? lRemainingLength
-                : CryptoConfig::SymmetricBufferSize();  // 4096
+                : OT::App().Crypto().Config().SymmetricBufferSize();  // 4096
 
         if (!EVP_EncryptUpdate(
                 pCONTEXT,
@@ -1277,16 +1282,17 @@ bool OpenSSL::Decrypt(
     CipherContext context;
 #endif
     std::vector<std::uint8_t> vBuffer(
-        CryptoConfig::SymmetricBufferSize());  // 4096
+        OT::App().Crypto().Config().SymmetricBufferSize());  // 4096
     std::vector<std::uint8_t> vBuffer_out(
-        CryptoConfig::SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
     std::int32_t len_out = 0;
 
-    memset(&vBuffer.at(0), 0, CryptoConfig::SymmetricBufferSize());
+    memset(
+        &vBuffer.at(0), 0, OT::App().Crypto().Config().SymmetricBufferSize());
     memset(
         &vBuffer_out.at(0),
         0,
-        CryptoConfig::SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
 
     //
     // This is where the plaintext results will be placed.
@@ -1399,9 +1405,10 @@ bool OpenSSL::Decrypt(
         // Resulting value stored in len.
         //
         std::uint32_t len =
-            (lRemainingLength < CryptoConfig::SymmetricBufferSize())
+            (lRemainingLength <
+             OT::App().Crypto().Config().SymmetricBufferSize())
                 ? lRemainingLength
-                : CryptoConfig::SymmetricBufferSize();  // 4096
+                : OT::App().Crypto().Config().SymmetricBufferSize();  // 4096
         lRemainingLength -= len;
 
         if (!EVP_DecryptUpdate(
@@ -1476,11 +1483,9 @@ bool OpenSSL::Decrypt(
 std::int32_t EVP_OpenInit(EVP_CIPHER_CTX* ctx, EVP_CIPHER* type, std::uint8_t*
 ek,
                  std::int32_t ekl, std::uint8_t* iv, EVP_PKEY* priv);
-std::int32_t EVP_OpenUpdate(EVP_CIPHER_CTX* ctx, std::uint8_t* out, int32_t*
-outl,
-std::uint8_t* in, std::int32_t inl);
-std::int32_t EVP_OpenFinal(EVP_CIPHER_CTX* ctx, std::uint8_t* out, int32_t*
-outl);
+std::int32_t EVP_OpenUpdate(EVP_CIPHER_CTX* ctx, std::uint8_t* out,
+std::int32_t* outl, std::uint8_t* in, std::int32_t inl); std::int32_t
+EVP_OpenFinal(EVP_CIPHER_CTX* ctx, std::uint8_t* out, std::int32_t* outl);
 DESCRIPTION
 
 The EVP envelope routines are a high level interface to envelope decryption.
@@ -1622,12 +1627,15 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
-    std::vector<std::uint8_t> vEM(CryptoConfig::PublicKeysizeMax());
-    std::vector<std::uint8_t> vpSignature(CryptoConfig::PublicKeysizeMax());
+    std::vector<std::uint8_t> vEM(
+        OT::App().Crypto().Config().PublicKeysizeMax());
+    std::vector<std::uint8_t> vpSignature(
+        OT::App().Crypto().Config().PublicKeysizeMax());
 
-    OTPassword::zeroMemory(&vEM.at(0), CryptoConfig::PublicKeysizeMax());
     OTPassword::zeroMemory(
-        &vpSignature.at(0), CryptoConfig::PublicKeysizeMax());
+        &vEM.at(0), OT::App().Crypto().Config().PublicKeysizeMax());
+    OTPassword::zeroMemory(
+        &vpSignature.at(0), OT::App().Crypto().Config().PublicKeysizeMax());
 
     // Here, we convert the EVP_PKEY that was passed in, to an RSA key for
     // signing.
@@ -1666,7 +1674,7 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
      uint8_t*
      mHash, const EVP_MD* Hash, std::int32_t sLen);
      */
-    //    std::int32_t RSA_padding_add_xxx(std::uint8_t* to, int32_t tlen,
+    //    std::int32_t RSA_padding_add_xxx(std::uint8_t* to, std::int32_t tlen,
     //                            std::uint8_t *f, std::int32_t fl);
     // RSA_padding_add_xxx() encodes *fl* bytes from *f* so as to fit into
     // *tlen*
@@ -1778,10 +1786,12 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         proto::HASHTYPE_SHA256, strContractToVerify, hash);
 
     std::vector<std::uint8_t> vDecrypted(
-        CryptoConfig::PublicKeysizeMax());  // Contains the decrypted
-                                            // signature.
+        OT::App().Crypto().Config().PublicKeysizeMax());  // Contains the
+                                                          // decrypted
+                                                          // signature.
 
-    OTPassword::zeroMemory(&vDecrypted.at(0), CryptoConfig::PublicKeysizeMax());
+    OTPassword::zeroMemory(
+        &vDecrypted.at(0), OT::App().Crypto().Config().PublicKeysizeMax());
 
     // Here, we convert the EVP_PKEY that was passed in, to an RSA key for
     // signing.
@@ -1793,7 +1803,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         return false;
     }
 
-    const std::int32_t nSignatureSize = static_cast<int32_t>(
+    const std::int32_t nSignatureSize = static_cast<std::int32_t>(
         theSignature.size());  // converting from unsigned to signed (since
                                // openssl wants it that way.)
 
@@ -1873,7 +1883,7 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
     // They SHOULD be the same.
     /*
      std::int32_t RSA_verify_PKCS1_PSS(RSA* rsa, const std::uint8_t* mHash,
-     const EVP_MD* Hash, const uint8_t* EM, int32_t sLen)
+     const EVP_MD* Hash, const uint8_t* EM, std::int32_t sLen)
      */  // rsa        mHash    Hash alg.    EM         sLen
 
     const EVP_MD* md_sha256 = EVP_sha256();
@@ -3536,9 +3546,10 @@ bool OpenSSL::DecryptSessionKey(
     // (Then update encrypted blocks until evp open final...)
     //
     const std::uint32_t max_iv_length =
-        CryptoConfig::SymmetricIvSize();  // I believe this is a max length, so
-                                          // it may not match the actual
-                                          // length.
+        OT::App().Crypto().Config().SymmetricIvSize();  // I believe this is a
+                                                        // max length, so it may
+                                                        // not match the actual
+                                                        // length.
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //
