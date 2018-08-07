@@ -18,7 +18,7 @@ namespace opentxs::api::implementation
 /** \brief Singlton class for providing an interface to process-level resources.
  *  \ingroup native
  */
-class Native final : api::internal::Native
+class Native final : api::internal::Native, Lockable
 {
 public:
     const api::client::Manager& Client() const override;
@@ -28,6 +28,8 @@ public:
     const api::Legacy& Legacy() const override;
     const api::server::Manager& Server() const override;
     bool ServerMode() const override;
+    const api::Core& StartClient(const ArgList& args) const override;
+    const api::Core& StartServer(const ArgList& args) const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
@@ -47,11 +49,11 @@ private:
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
-    std::unique_ptr<api::client::internal::Manager> client_;
+    mutable std::unique_ptr<api::client::internal::Manager> client_;
     mutable ConfigMap config_;
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::Legacy> legacy_;
-    std::unique_ptr<api::server::Manager> server_;
+    mutable std::unique_ptr<api::server::Manager> server_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
@@ -82,6 +84,8 @@ private:
     void Init() override;
     void recover();
     void shutdown() override;
+    void start_client(const Lock& lock, const ArgList& args) const;
+    void start_server(const Lock& lock, const ArgList& args) const;
 
     ~Native() = default;
 };

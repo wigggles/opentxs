@@ -31,6 +31,7 @@
 #include "opentxs/core/util/OTFolders.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Flag.hpp"
+#include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
@@ -455,22 +456,10 @@ void Native::Init()
 
 void Native::Init_Api()
 {
-    OT_ASSERT(crypto_);
-    OT_ASSERT(legacy_);
-
     if (server_mode_) { return; }
 
-    client_.reset(opentxs::Factory::ClientManager(
-        running_,
-        server_args_,
-        Config(legacy_->ClientConfigFilePath()),
-        *crypto_,
-        *legacy_,
-        zmq_context_,
-        legacy_->ClientDataFolder(),
-        0));  // TODO
-
-    OT_ASSERT(client_);
+    Lock lock(lock_);
+    start_client(lock, server_args_);
 }
 
 void Native::Init_Crypto()
@@ -490,21 +479,10 @@ void Native::Init_Log()
 
 void Native::Init_Server()
 {
-    if (false == server_mode_) { return; }
+    if (!server_mode_) { return; }
 
-    OT_ASSERT(crypto_);
-
-    server_.reset(opentxs::Factory::ServerManager(
-        running_,
-        server_args_,
-        *crypto_,
-        *legacy_,
-        Config(legacy_->ServerConfigFilePath()),
-        zmq_context_,
-        legacy_->ServerDataFolder(),
-        1));  // TODO
-
-    OT_ASSERT(server_);
+    Lock lock(lock_);
+    start_server(lock, server_args_);
 }
 
 const api::Legacy& Native::Legacy() const
@@ -589,5 +567,65 @@ void Native::shutdown()
     for (auto& config : config_) { config.second.reset(); }
 
     config_.clear();
+}
+
+void Native::start_client(const Lock& lock, const ArgList& args) const
+{
+    OT_ASSERT(verify_lock(lock))
+    OT_ASSERT(crypto_);
+    OT_ASSERT(legacy_);
+
+    client_.reset(opentxs::Factory::ClientManager(
+        running_,
+        args,
+        Config(legacy_->ClientConfigFilePath()),
+        *crypto_,
+        *legacy_,
+        zmq_context_,
+        legacy_->ClientDataFolder(),
+        0));  // TODO
+
+    OT_ASSERT(client_);
+}
+
+const api::Core& Native::StartClient(const ArgList& args) const
+{
+    Lock lock(lock_);
+
+    if (client_) { return *client_; }
+
+    start_client(lock, args);
+
+    return *client_;
+}
+
+void Native::start_server(const Lock& lock, const ArgList& args) const
+{
+    OT_ASSERT(verify_lock(lock))
+    OT_ASSERT(crypto_);
+    OT_ASSERT(legacy_);
+
+    server_.reset(opentxs::Factory::ServerManager(
+        running_,
+        args,
+        *crypto_,
+        *legacy_,
+        Config(legacy_->ServerConfigFilePath()),
+        zmq_context_,
+        legacy_->ServerDataFolder(),
+        1));  // TODO
+
+    OT_ASSERT(server_);
+}
+
+const api::Core& Native::StartServer(const ArgList& args) const
+{
+    Lock lock(lock_);
+
+    if (server_) { return *server_; }
+
+    start_server(lock, args);
+
+    return *server_;
 }
 }  // namespace opentxs::api::implementation
