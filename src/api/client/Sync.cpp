@@ -1981,7 +1981,7 @@ OTIdentifier Sync::SendCheque(
 
     // The first nym in the vector should be the primary, if a primary is set
     const auto& recipientNymID = nyms[0];
-    auto account = wallet_.Account(legacy_.ClientDataFolder(), sourceAccountID);
+    auto account = wallet_.Account(sourceAccountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid account" << std::endl;
@@ -2038,8 +2038,7 @@ OTIdentifier Sync::SendTransfer(
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
 
-    auto sourceAccount =
-        wallet_.Account(legacy_.ClientDataFolder(), sourceAccountID);
+    auto sourceAccount = wallet_.Account(sourceAccountID);
 
     if (false == bool(sourceAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid source account"
@@ -2048,8 +2047,7 @@ OTIdentifier Sync::SendTransfer(
         return Identifier::Factory();
     }
 
-    auto targetAccount =
-        wallet_.Account(legacy_.ClientDataFolder(), targetAccountID);
+    auto targetAccount = wallet_.Account(targetAccountID);
 
     if (false == bool(targetAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid target account"

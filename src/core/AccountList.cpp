@@ -189,8 +189,7 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
         const auto& accountID = acctIDsIt->second;
-        account = wallet_.mutable_Account(
-            data_folder_, Identifier::Factory(accountID));
+        account = wallet_.mutable_Account(Identifier::Factory(accountID));
 
         if (account) {
             otLog3 << OT_METHOD << __FUNCTION__ << "Successfully loaded "
@@ -205,7 +204,6 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     // Not found. There's no account ID yet for that instrument definition ID.
     // That means we can create it.
     account = wallet_.CreateAccount(
-        data_folder_,
         accountOwnerId,
         notaryID,
         instrumentDefinitionID,

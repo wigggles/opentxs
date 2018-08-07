@@ -717,7 +717,7 @@ bool OTPaymentPlan::ProcessPayment(
     // worry about deleting it, either.) I know for a fact they have both
     // signed pOrigCronItem...
 
-    auto sourceAccount = wallet.mutable_Account(data_folder_, SOURCE_ACCT_ID);
+    auto sourceAccount = wallet.mutable_Account(SOURCE_ACCT_ID);
 
     if (false == bool(sourceAccount)) {
         otOut << "ERROR verifying existence of source account during attempted "
@@ -726,8 +726,7 @@ bool OTPaymentPlan::ProcessPayment(
         return false;
     }
 
-    auto recipientAccount =
-        wallet.mutable_Account(data_folder_, RECIPIENT_ACCT_ID);
+    auto recipientAccount = wallet.mutable_Account(RECIPIENT_ACCT_ID);
 
     if (false == bool(recipientAccount)) {
         otOut << __FUNCTION__

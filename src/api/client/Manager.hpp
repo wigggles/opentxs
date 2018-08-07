@@ -72,7 +72,7 @@ private:
     std::unique_ptr<api::HDSeed> seeds_;
 #endif
     std::unique_ptr<api::Factory> factory_;
-    std::unique_ptr<api::Wallet> wallet_;
+    std::unique_ptr<api::Wallet> wallet_;  // Depends on seeds_, factory_
     std::unique_ptr<api::network::ZMQ> zeromq_;
     std::unique_ptr<api::Identity> identity_;
     std::unique_ptr<api::client::internal::Contacts> contacts_;

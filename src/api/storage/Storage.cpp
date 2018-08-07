@@ -66,19 +66,6 @@ namespace opentxs
 {
 api::storage::StorageInternal* Factory::Storage(
     const Flag& running,
-    const StorageConfig& config,
-    const String& primary,
-    const bool migrate,
-    const String& previous,
-    const Digest& hash,
-    const Random& random)
-{
-    return new api::storage::implementation::Storage(
-        running, config, primary, migrate, previous, hash, random);
-}
-
-api::storage::StorageInternal* Factory::Storage(
-    const Flag& running,
     const api::Crypto& crypto,
     const api::Settings& config,
     const std::string& dataFolder,

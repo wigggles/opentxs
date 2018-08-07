@@ -1227,7 +1227,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         theInbox.SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
-        auto account = wallet_.mutable_Account(data_folder_, ACCOUNT_ID);
+        auto account = wallet_.mutable_Account(ACCOUNT_ID);
 
         // Save inbox to storage. (File, DB, wherever it goes.)
         if (account) {

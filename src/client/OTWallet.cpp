@@ -208,8 +208,7 @@ void OTWallet::DisplayStatistics(String& strOutput) const
 
     for (const auto& it : storage_.AccountList()) {
         const auto& accountID = it.first;
-        const auto account = wallet_.Account(
-            legacy_.ClientDataFolder(), Identifier::Factory(accountID));
+        const auto account = wallet_.Account(Identifier::Factory(accountID));
         account.get().DisplayStatistics(strOutput);
         strOutput.Concatenate(
             "-------------------------------------------------\n\n");
@@ -510,8 +509,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         if (pAccount) {
                             pAccount->SetName(AcctName);
-                            wallet_.ImportAccount(
-                                legacy_.ClientDataFolder(), pAccount);
+                            wallet_.ImportAccount(pAccount);
                         } else {
                             otErr
                                 << __FUNCTION__

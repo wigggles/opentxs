@@ -981,7 +981,7 @@ bool Ledger::GenerateLedger(
     if ((Ledger::inbox == theType) || (Ledger::outbox == theType)) {
         // Have to look up the NymID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        auto account = wallet_.Account(data_folder_, theAcctID);
+        auto account = wallet_.Account(theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());
@@ -992,7 +992,7 @@ bool Ledger::GenerateLedger(
         }
     } else if (Ledger::recordBox == theType) {
         // RecordBox COULD be by NymID OR AcctID. So we TRY to lookup the acct.
-        auto account = wallet_.Account(data_folder_, theAcctID);
+        auto account = wallet_.Account(theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());

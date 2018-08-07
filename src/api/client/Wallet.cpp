@@ -21,27 +21,16 @@ namespace opentxs
 {
 api::Wallet* Factory::Wallet(
     const api::client::Manager& client,
-    const api::storage::Storage& storage,
-    const api::Factory& factory,
-    const api::HDSeed& seeds,
-    const api::Legacy& legacy,
-    const network::zeromq::Context& zmq)
+    const api::Legacy& legacy)
 {
-    return new api::client::implementation::Wallet(
-        client, storage, factory, seeds, legacy, zmq);
+    return new api::client::implementation::Wallet(client, legacy);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-Wallet::Wallet(
-    const api::client::Manager& client,
-    const api::storage::Storage& storage,
-    const api::Factory& factory,
-    const api::HDSeed& seeds,
-    const api::Legacy& legacy,
-    const opentxs::network::zeromq::Context& zmq)
-    : ot_super(client.Instance(), storage, factory, seeds, legacy, zmq)
+Wallet::Wallet(const api::client::Manager& client, const api::Legacy& legacy)
+    : ot_super(client, legacy)
     , client_(client)
 {
 }

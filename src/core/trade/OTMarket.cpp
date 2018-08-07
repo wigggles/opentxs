@@ -1189,14 +1189,13 @@ void OTMarket::ProcessTrade(
     // Make sure have ALL FOUR accounts loaded and checked out.
     // (first nym's asset/currency, and other nym's asset/currency.)
 
-    auto pFirstAssetAcct =
-        wallet.mutable_Account(data_folder_, theTrade.GetSenderAcctID());
+    auto pFirstAssetAcct = wallet.mutable_Account(theTrade.GetSenderAcctID());
     auto pFirstCurrencyAcct =
-        wallet.mutable_Account(data_folder_, theTrade.GetCurrencyAcctID());
+        wallet.mutable_Account(theTrade.GetCurrencyAcctID());
     auto pOtherAssetAcct =
-        wallet.mutable_Account(data_folder_, pOtherTrade->GetSenderAcctID());
+        wallet.mutable_Account(pOtherTrade->GetSenderAcctID());
     auto pOtherCurrencyAcct =
-        wallet.mutable_Account(data_folder_, pOtherTrade->GetCurrencyAcctID());
+        wallet.mutable_Account(pOtherTrade->GetCurrencyAcctID());
 
     if ((!pFirstAssetAcct) || (!pFirstCurrencyAcct)) {
         otOut << "ERROR verifying existence of one of the first trader's "

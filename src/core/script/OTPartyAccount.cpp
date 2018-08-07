@@ -90,7 +90,7 @@ SharedAccount OTPartyAccount::get_account() const
 {
     if (!m_strAcctID.Exists()) { return {}; }
 
-    return wallet_.Account(data_folder_, Identifier::Factory(m_strAcctID));
+    return wallet_.Account(Identifier::Factory(m_strAcctID));
 }
 
 // Every partyaccount has its own authorized agent's name.
@@ -317,8 +317,7 @@ SharedAccount OTPartyAccount::LoadAccount()
         return {};
     }
 
-    auto account =
-        wallet_.Account(data_folder_, Identifier::Factory(m_strAcctID));
+    auto account = wallet_.Account(Identifier::Factory(m_strAcctID));
 
     if (false == bool(account)) {
         otOut << "OTPartyAccount::" << __FUNCTION__

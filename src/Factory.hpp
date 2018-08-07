@@ -361,14 +361,6 @@ public:
     static crypto::Sodium* Sodium();
     static api::storage::StorageInternal* Storage(
         const Flag& running,
-        const StorageConfig& config,
-        const String& primary,
-        const bool migrate,
-        const String& previous,
-        const Digest& hash,
-        const Random& random);
-    static api::storage::StorageInternal* Storage(
-        const Flag& running,
         const api::Crypto& crypto,
         const api::Settings& config,
         const std::string& dataFolder,
@@ -406,18 +398,10 @@ public:
         const Flag& running);
     static api::Wallet* Wallet(
         const api::client::Manager& client,
-        const api::storage::Storage& storage,
-        const api::Factory& factory,
-        const api::HDSeed& seeds,
-        const api::Legacy& legacy,
-        const network::zeromq::Context& zmq);
+        const api::Legacy& legacy);
     static api::Wallet* Wallet(
         const api::server::Manager& server,
-        const api::storage::Storage& storage,
-        const api::Factory& factory,
-        const api::HDSeed& seeds,
-        const api::Legacy& legacy,
-        const network::zeromq::Context& zmq);
+        const api::Legacy& legacy);
     static api::client::Workflow* Workflow(
         const api::client::Activity& activity,
         const api::client::Contacts& contact,

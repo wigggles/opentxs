@@ -215,7 +215,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 #else
     NymParameters nymParameters(proto::CREDTYPE_LEGACY);
 #endif
-    m_nymServer = wallet_.Nym(legacy_.ServerDataFolder(), nymParameters);
+    m_nymServer = wallet_.Nym(nymParameters);
 
     if (false == bool(m_nymServer)) {
         Log::vError("Error: Failed to create server nym\n");

@@ -1817,7 +1817,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         pItemWithIssuedList = pTransactionItem;
     }
 
-    auto account = wallet_.Account(data_folder_, GetRealAccountID());
+    auto account = wallet_.Account(GetRealAccountID());
 
     if (false == bool(account)) {
         otOut << "Failed loading or verifying account for THE_NYM in "

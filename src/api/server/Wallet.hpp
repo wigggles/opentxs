@@ -38,20 +38,13 @@ private:
         const std::shared_ptr<const opentxs::Nym>& remoteNym,
         std::shared_ptr<opentxs::Context>& output) const override;
     bool load_legacy_account(
-        const std::string& dataFolder,
         const Identifier& accountID,
         const eLock& lock,
         AccountLock& row) const override;
     std::shared_ptr<const opentxs::Nym> signer_nym(
         const Identifier& id) const override;
 
-    Wallet(
-        const api::server::Manager& server,
-        const api::storage::Storage& storage,
-        const api::Factory& factory,
-        const api::HDSeed& seeds,
-        const api::Legacy& legacy,
-        const opentxs::network::zeromq::Context& zmq);
+    Wallet(const api::server::Manager& server, const api::Legacy& legacy);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;

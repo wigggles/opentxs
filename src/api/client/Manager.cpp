@@ -105,14 +105,7 @@ Manager::Manager(
 #endif
     )
 }
-,
-    wallet_{opentxs::Factory::Wallet(
-        *this,
-        *storage_,
-        *factory_,
-        *seeds_,
-        legacy_,
-        zmq_context_)},
+, wallet_{opentxs::Factory::Wallet(*this, legacy_)},
     zeromq_{opentxs::Factory::ZMQ(zmq_context_, config_, *wallet_, running_)},
     identity_{opentxs::Factory::Identity(*wallet_)},
     contacts_{opentxs::Factory::Contacts(
