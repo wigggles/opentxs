@@ -56,36 +56,7 @@
 namespace opentxs
 {
 api::server::Manager* Factory::ServerManager(
-    const ArgList& args,
-    const api::storage::Storage& storage,
-    const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds,
-#endif
-    const api::Legacy& legacy,
-    const api::Settings& config,
-    const network::zeromq::Context& context,
     const Flag& running,
-    const int instance)
-{
-    return new api::server::implementation::Manager(
-        args,
-        storage,
-        crypto,
-#if OT_CRYPTO_WITH_BIP39
-        seeds,
-#endif
-        legacy,
-        config,
-        context,
-        running,
-        instance);
-}
-}  // namespace opentxs
-
-namespace opentxs::api::server::implementation
-{
-Manager::Manager(
     const ArgList& args,
     const api::storage::Storage& storage,
     const api::Crypto& crypto,
@@ -95,9 +66,42 @@ Manager::Manager(
     const api::Legacy& legacy,
     const api::Settings& config,
     const opentxs::network::zeromq::Context& context,
+    const std::string& dataFolder,
+    const int instance)
+{
+    return new api::server::implementation::Manager(
+        running,
+        args,
+        storage,
+        crypto,
+#if OT_CRYPTO_WITH_BIP39
+        seeds,
+#endif
+        legacy,
+        config,
+        context,
+        dataFolder,
+        instance);
+}
+}  // namespace opentxs
+
+namespace opentxs::api::server::implementation
+{
+Manager::Manager(
     const Flag& running,
+    const ArgList& args,
+    const api::storage::Storage& storage,
+    const api::Crypto& crypto,
+#if OT_CRYPTO_WITH_BIP39
+    const api::HDSeed& seeds,
+#endif
+    const api::Legacy& legacy,
+    const api::Settings& config,
+    const opentxs::network::zeromq::Context& context,
+    const std::string& dataFolder,
     const int instance)
     : Scheduler(running)
+    , running_{running}
     , args_(args)
     , storage_(storage)
     , legacy_(legacy)
@@ -105,8 +109,8 @@ Manager::Manager(
     , crypto_(crypto)
     , seeds_(seeds)
     , zmq_context_(context)
+    , data_folder_(dataFolder)
     , instance_{instance}
-    , running_{running}
     , factory_
 {
     opentxs::Factory::FactoryAPI(

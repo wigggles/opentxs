@@ -21,6 +21,7 @@ public:
     const api::Settings& Config() const override { return config_; }
     const api::client::Contacts& Contacts() const override;
     const api::Crypto& Crypto() const override { return crypto_; }
+    const std::string& DataFolder() const override { return data_folder_; }
     const api::network::Dht& DHT() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const api::Factory& Factory() const override;
@@ -71,6 +72,7 @@ private:
     const api::Legacy& legacy_;
     const api::Settings& config_;
     const opentxs::network::zeromq::Context& zmq_context_;
+    const std::string data_folder_{""};
     const int instance_{0};
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<api::Wallet> wallet_;
@@ -110,6 +112,7 @@ private:
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const opentxs::network::zeromq::Context& context,
+        const std::string& dataFolder,
         const int instance);
     Manager() = delete;
     Manager(const Manager&) = delete;

@@ -56,6 +56,7 @@ api::client::internal::Manager* Factory::ClientManager(
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const network::zeromq::Context& context,
+    const std::string& dataFolder,
     const int instance)
 {
     return new api::client::implementation::Manager(
@@ -68,6 +69,7 @@ api::client::internal::Manager* Factory::ClientManager(
         legacy,
         storage,
         context,
+        dataFolder,
         instance);
 }
 }  // namespace opentxs
@@ -84,6 +86,7 @@ Manager::Manager(
     const api::Legacy& legacy,
     const api::storage::Storage& storage,
     const opentxs::network::zeromq::Context& context,
+    const std::string& dataFolder,
     const int instance)
     : Scheduler(running)
     , running_(running)
@@ -95,6 +98,7 @@ Manager::Manager(
     , legacy_(legacy)
     , config_(config)
     , zmq_context_{context}
+    , data_folder_(dataFolder)
     , instance_{instance}
     , factory_
 {

@@ -553,6 +553,7 @@ void Native::Init_Api()
         *legacy_,
         *storage_,
         zmq_context_,
+        legacy_->ClientDataFolder(),
         0));  // TODO
 
     OT_ASSERT(client_);
@@ -618,6 +619,7 @@ void Native::Init_Server()
     OT_ASSERT(storage_);
 
     server_.reset(opentxs::Factory::ServerManager(
+        running_,
         server_args_,
         *storage_,
         *crypto_,
@@ -627,7 +629,7 @@ void Native::Init_Server()
         *legacy_,
         Config(),
         zmq_context_,
-        running_,
+        legacy_->ServerDataFolder(),
         1));  // TODO
 
     OT_ASSERT(server_);
