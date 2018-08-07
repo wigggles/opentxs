@@ -111,6 +111,7 @@ public:
         const api::Legacy& legacy,
         const api::storage::Storage& storage,
         const network::zeromq::Context& context,
+        const std::string& dataFolder,
         const int instance);
     static ui::implementation::ContactListExternalInterface* ContactList(
         const network::zeromq::Context& zmq,
@@ -350,6 +351,7 @@ public:
         const api::Legacy& legacy,
         const ContextLockCallback& lockCallback);
     static api::server::Manager* ServerManager(
+        const Flag& running,
         const ArgList& args,
         const api::storage::Storage& storage,
         const api::Crypto& crypto,
@@ -359,7 +361,7 @@ public:
         const api::Legacy& legacy,
         const api::Settings& config,
         const network::zeromq::Context& context,
-        const Flag& running,
+        const std::string& dataFolder,
         const int instance);
     static api::Settings* Settings();
     static api::Settings* Settings(const String& path);

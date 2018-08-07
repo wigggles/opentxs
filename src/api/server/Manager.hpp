@@ -15,6 +15,7 @@ class Manager final : opentxs::api::server::Manager,
 public:
     const api::Settings& Config() const override { return config_; }
     const api::Crypto& Crypto() const override { return crypto_; }
+    const std::string& DataFolder() const override { return data_folder_; }
     const api::network::Dht& DHT() const override;
     const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
@@ -69,6 +70,7 @@ private:
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 #endif  // OT_CASH
 
+    const Flag& running_;
     const ArgList& args_;
     const api::storage::Storage& storage_;
     const api::Legacy& legacy_;
@@ -78,8 +80,8 @@ private:
     const api::HDSeed& seeds_;
 #endif
     const opentxs::network::zeromq::Context& zmq_context_;
+    const std::string data_folder_{""};
     const int instance_{0};
-    const Flag& running_;
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<api::Wallet> wallet_;
     std::unique_ptr<api::network::Dht> dht_;
@@ -133,6 +135,7 @@ private:
     void storage_gc_hook() override;
 
     Manager(
+        const Flag& running,
         const ArgList& args,
         const api::storage::Storage& storage,
         const api::Crypto& crypto,
@@ -142,7 +145,7 @@ private:
         const api::Legacy& legacy,
         const api::Settings& config,
         const opentxs::network::zeromq::Context& context,
-        const Flag& running,
+        const std::string& dataFolder,
         const int instance);
     Manager() = delete;
     Manager(const Manager&) = delete;
