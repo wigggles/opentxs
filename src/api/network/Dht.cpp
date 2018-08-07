@@ -241,6 +241,7 @@ void Dht::GetUnitDefinition(__attribute__((unused))
 
 #if OT_DHT
 const opentxs::network::OpenDHT& Dht::OpenDHT() const { return *node_; }
+#endif
 
 OTZMQMessage Dht::process_request(
     const opentxs::network::zeromq::Message& incoming,
@@ -264,6 +265,7 @@ OTZMQMessage Dht::process_request(
         Data::Factory(&output, sizeof(output)));
 }
 
+#if OT_DHT
 bool Dht::ProcessPublicNym(
     const api::Wallet& wallet,
     const std::string key,
