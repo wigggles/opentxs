@@ -190,9 +190,25 @@ const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
 
 void Crypto::Cleanup()
 {
+    primary_key_.reset();
+    cached_keys_.clear();
+    symmetric_.reset();
+    hash_.reset();
+    encode_.reset();
+#if OT_CRYPTO_USING_LIBSECP256K1
+    secp256k1_.reset();
+#endif
 #if OT_CRYPTO_USING_OPENSSL
     ssl_->Cleanup();
 #endif
+    sodium_.reset();
+#if OT_CRYPTO_USING_TREZOR
+    trezor_.reset();
+#endif
+#if OT_CRYPTO_USING_LIBBITCOIN
+    bitcoin_.reset();
+#endif
+    config_.reset();
 }
 
 const crypto::Config& Crypto::Config() const

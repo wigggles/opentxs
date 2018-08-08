@@ -1260,8 +1260,8 @@ void LegacySymmetric::Release() { Release_SymmetricKey(); }
 void LegacySymmetric::Release_SymmetricKey()
 {
     m_bIsGenerated = false;
-    m_uIterationCount = OT::App().Crypto().Config().IterationCount();
-    m_nKeySize = OT::App().Crypto().Config().SymmetricKeySize() * 8;
+    m_uIterationCount = 0;
+    m_nKeySize = 0;
     salt_->Release();
     iv_->Release();
     encrypted_key_->Release();
