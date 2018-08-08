@@ -72,11 +72,10 @@
 namespace opentxs
 {
 Basket::Basket(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     std::int32_t nCount,
     std::int64_t lMinimumTransferAmount)
-    : Contract(wallet, dataFolder)
+    : Contract(core)
     , m_nSubCount(nCount)
     , m_lMinimumTransfer(lMinimumTransferAmount)
     , m_nTransferMultiple(0)
@@ -88,8 +87,8 @@ Basket::Basket(
 {
 }
 
-Basket::Basket(const api::Wallet& wallet, const std::string& dataFolder)
-    : Basket(wallet, dataFolder, 0, 0)
+Basket::Basket(const api::Core& core)
+    : Basket(core, 0, 0)
 {
 }
 

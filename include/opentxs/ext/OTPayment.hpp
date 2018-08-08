@@ -17,6 +17,15 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
 /*
   The PAYMENT can be of types:
     - CHEQUE, INVOICE, VOUCHER (these are all forms of cheque)
@@ -191,12 +200,6 @@ public:
     // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
     EXPORT bool VerifyCurrentDate(bool& bVerified);
 
-    EXPORT OTPayment(const api::Wallet& wallet, const std::string& dataFolder);
-    EXPORT OTPayment(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strPayment);
-
     EXPORT virtual ~OTPayment();
 
 protected:
@@ -253,7 +256,14 @@ protected:
     void UpdateContents() override;
 
 private:
+    friend api::implementation::Factory;
+
     using ot_super = Contract;
+
+    EXPORT OTPayment(const api::Core& core);
+    EXPORT OTPayment(
+        const api::Core& core,
+        const String& strPayment);
 
     OTPayment() = delete;
 };

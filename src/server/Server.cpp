@@ -16,7 +16,7 @@
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
@@ -92,7 +92,7 @@ Server::Server(const opentxs::api::server::Manager& manager)
     , m_notaryID(Identifier::Factory())
     , m_strServerNymID()
     , m_nymServer(nullptr)
-    , m_Cron(manager_)
+    , m_Cron(manager.Factory().Cron(manager))
 {
 }
 
@@ -101,7 +101,7 @@ void Server::ActivateCron()
     Log::vOutput(
         1,
         "Server::ActivateCron: %s \n",
-        m_Cron.ActivateCron() ? "(STARTED)" : "FAILED");
+        m_Cron->ActivateCron() ? "(STARTED)" : "FAILED");
 }
 
 const api::Core& Server::API() const { return manager_; }
@@ -113,28 +113,29 @@ const api::Core& Server::API() const { return manager_; }
 ///
 void Server::ProcessCron()
 {
-    if (!m_Cron.IsActivated()) return;
+    if (!m_Cron->IsActivated()) return;
 
     bool bAddedNumbers = false;
 
     // Cron requires transaction numbers in order to process.
     // So every time before I call Cron.Process(), I make sure to replenish
     // first.
-    while (m_Cron.GetTransactionCount() < OTCron::GetCronRefillAmount()) {
+    while (m_Cron->GetTransactionCount() < OTCron::GetCronRefillAmount()) {
         std::int64_t lTransNum = 0;
         bool bSuccess = transactor_.issueNextTransactionNumber(lTransNum);
 
         if (bSuccess) {
-            m_Cron.AddTransactionNumber(lTransNum);
+            m_Cron->AddTransactionNumber(lTransNum);
             bAddedNumbers = true;
         } else
             break;
     }
 
-    if (bAddedNumbers) { m_Cron.SaveCron(); }
+    if (bAddedNumbers) { m_Cron->SaveCron(); }
 
-    m_Cron.ProcessCronItems();  // This needs to be called regularly for trades,
-                                // markets, payment plans, etc to process.
+    m_Cron->ProcessCronItems();  // This needs to be called regularly for
+                                 // trades, markets, payment plans, etc to
+                                 // process.
 
     // NOTE:  TODO:  OTHER RE-OCCURRING SERVER FUNCTIONS CAN GO HERE AS WELL!!
     //
@@ -650,7 +651,7 @@ bool Server::SendInstrumentToNym(
         NOTARY_ID,
         SENDER_NYM_ID,
         RECIPIENT_NYM_ID,
-        OTTransaction::instrumentNotice,
+        transactionType::instrumentNotice,
         nullptr,
         &strPayment,
         szCommand);
@@ -668,7 +669,7 @@ bool Server::SendInstrumentToNym(
         NOTARY_ID,
         SENDER_NYM_ID,
         RECIPIENT_NYM_ID,
-        OTTransaction::instrumentNotice,
+        transactionType::instrumentNotice,
         pMsg);
 }
 
@@ -676,7 +677,7 @@ bool Server::DropMessageToNymbox(
     const Identifier& notaryID,
     const Identifier& senderNymID,
     const Identifier& recipientNymID,
-    OTTransaction::transactionType transactionType,
+    transactionType transactionType,
     const Message& msg)
 {
     return DropMessageToNymbox(
@@ -748,7 +749,7 @@ bool Server::DropMessageToNymbox(
     const Identifier& NOTARY_ID,
     const Identifier& SENDER_NYM_ID,
     const Identifier& RECIPIENT_NYM_ID,
-    OTTransaction::transactionType theType,
+    transactionType theType,
     const Message* pMsg,
     const String* pstrMessage,
     const char* szCommand)  // If you pass something here, it will
@@ -772,9 +773,9 @@ bool Server::DropMessageToNymbox(
         return false;
     }
     switch (theType) {
-        case OTTransaction::message:
+        case transactionType::message:
             break;
-        case OTTransaction::instrumentNotice:
+        case transactionType::instrumentNotice:
             break;
         default:
             Log::vError(
@@ -790,17 +791,16 @@ bool Server::DropMessageToNymbox(
     const Message* message{nullptr};
 
     if (nullptr == pMsg) {
-        theMsgAngel.reset(
-            new Message{manager_.Wallet(), manager_.DataFolder()});
+        theMsgAngel.reset(manager_.Factory().Message(manager_).release());
 
         if (nullptr != szCommand)
             theMsgAngel->m_strCommand = szCommand;
         else {
             switch (theType) {
-                case OTTransaction::message:
+                case transactionType::message:
                     theMsgAngel->m_strCommand = "sendNymMessage";
                     break;
-                case OTTransaction::instrumentNotice:
+                case transactionType::instrumentNotice:
                     theMsgAngel->m_strCommand = "sendNymInstrument";
                     break;
                 default:
@@ -865,30 +865,32 @@ bool Server::DropMessageToNymbox(
     // Grab a string copy of message.
     //
     const String strInMessage(*message);
-    Ledger theLedger(
-        manager_.Wallet(),
-        manager_.DataFolder(),
+    auto theLedger{manager_.Factory().Ledger(
+        manager_,
         RECIPIENT_NYM_ID,
         RECIPIENT_NYM_ID,
-        NOTARY_ID);  // The recipient's Nymbox.
+        NOTARY_ID)};  // The
+                      // recipient's
+                      // Nymbox.
     // Drop in the Nymbox
-    if ((theLedger.LoadNymbox() &&  // I think this loads the box receipts too,
-                                    // since I didn't call "LoadNymboxNoVerify"
+    if ((theLedger->LoadNymbox() &&  // I think this loads the box receipts too,
+                                     // since I didn't call "LoadNymboxNoVerify"
          //          theLedger.VerifyAccount(m_nymServer)    &&    // This loads
          // all the Box Receipts, which is unnecessary.
-         theLedger.VerifyContractID() &&  // Instead, we'll verify the IDs and
-                                          // Signature only.
-         theLedger.VerifySignature(*m_nymServer))) {
+         theLedger->VerifyContractID() &&  // Instead, we'll verify the IDs and
+                                           // Signature only.
+         theLedger->VerifySignature(*m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
-        OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            manager_.Wallet(),
-            theLedger,
+        auto pTransaction{manager_.Factory().Transaction(
+            manager_,
+            *theLedger,
             theType,
             originType::not_applicable,
-            lTransNum);
+            lTransNum)};
 
-        if (nullptr != pTransaction)  // The above has an OT_ASSERT within, but
-                                      // I just like to check my pointers.
+        if (false != bool(pTransaction))  // The above has an OT_ASSERT within,
+                                          // but I just like to check my
+                                          // pointers.
         {
             // NOTE: todo: SHOULD this be "in reference to" itself? The reason,
             // I assume we are doing this
@@ -910,17 +912,18 @@ bool Server::DropMessageToNymbox(
 
             pTransaction->SignContract(*m_nymServer);
             pTransaction->SaveContract();
-            theLedger.AddTransaction(*pTransaction);  // Add the message
-                                                      // transaction to the
-                                                      // nymbox. (It will
-                                                      // cleanup.)
+            std::shared_ptr<OTTransaction> transaction{pTransaction.release()};
+            theLedger->AddTransaction(transaction);  // Add the message
+                                                     // transaction to the
+                                                     // nymbox. (It will
+                                                     // cleanup.)
 
-            theLedger.ReleaseSignatures();
-            theLedger.SignContract(*m_nymServer);
-            theLedger.SaveContract();
-            theLedger.SaveNymbox(Identifier::Factory());  // We don't grab the
-                                                          // Nymbox hash here,
-                                                          // since
+            theLedger->ReleaseSignatures();
+            theLedger->SignContract(*m_nymServer);
+            theLedger->SaveContract();
+            theLedger->SaveNymbox(Identifier::Factory());  // We don't grab the
+                                                           // Nymbox hash here,
+                                                           // since
             // nothing important changed (just a message
             // was sent.)
 
@@ -932,7 +935,7 @@ bool Server::DropMessageToNymbox(
             // whenever a receipt is added to a box, and deleted after a receipt
             // is removed from a box.
             //
-            pTransaction->SaveBoxReceipt(theLedger);
+            transaction->SaveBoxReceipt(*theLedger);
 
             return true;
         } else  // should never happen

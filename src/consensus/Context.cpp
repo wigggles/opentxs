@@ -8,6 +8,7 @@
 #include "opentxs/consensus/Context.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
@@ -244,12 +245,8 @@ bool Context::InitializeNymbox()
 {
     Lock lock(lock_);
     const auto& ownerNymID = client_nym_id(lock);
-    std::unique_ptr<Ledger> nymbox(new Ledger(
-        api_.Wallet(),
-        api_.DataFolder(),
-        ownerNymID,
-        server_nym_id(lock),
-        server_id_));
+    auto nymbox{api_.Factory().Ledger(
+        api_, ownerNymID, server_nym_id(lock), server_id_)};
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -259,8 +256,8 @@ bool Context::InitializeNymbox()
         return false;
     }
 
-    const auto generated =
-        nymbox->GenerateLedger(ownerNymID, server_id_, Ledger::nymbox, true);
+    const auto generated = nymbox->GenerateLedger(
+        ownerNymID, server_id_, ledgerType::nymbox, true);
 
     if (false == generated) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to generate nymbox for "

@@ -67,8 +67,7 @@ private:
 
     const Activity& activity_;
     const Contacts& contact_;
-    const Legacy& legacy_;
-    const Wallet& wallet_;
+    const Core& core_;
     const storage::Storage& storage_;
     const opentxs::network::zeromq::Context& zmq_;
     const OTZMQPublishSocket account_publisher_;
@@ -160,8 +159,7 @@ private:
     Workflow(
         const Activity& activity,
         const Contacts& contact,
-        const Legacy& legacy,
-        const Wallet& wallet,
+        const Core& core,
         const storage::Storage& storage,
         const opentxs::network::zeromq::Context& zmq);
     Workflow() = delete;

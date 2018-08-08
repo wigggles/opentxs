@@ -33,6 +33,7 @@ class Context : public Signable
 {
 public:
     std::set<RequestNumber> AcknowledgedNumbers() const;
+    const api::Core& Api() const { return api_; }
     std::size_t AvailableNumbers() const;
     bool HaveLocalNymboxHash() const;
     bool HaveRemoteNymboxHash() const;

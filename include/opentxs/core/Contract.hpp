@@ -79,9 +79,9 @@ public:
     static bool SkipToElement(irr::io::IrrXMLReader*& xml);
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
-    void SetIdentifier(const Identifier& theID);
 
-    const api::Wallet& Wallet() const { return wallet_; }
+    const api::Core& Core() const { return core_; }
+    void SetIdentifier(const Identifier& theID);
 
     // TODO: a contract needs to have certain required fields in order to be
     // accepted for notarization. One of those should be a URL where anyone can
@@ -301,11 +301,8 @@ public:
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT ConstNym GetContractPublicNym() const;
 
-    EXPORT const std::string& DataFolder() const { return data_folder_; }
-
 protected:
-    const api::Wallet& wallet_;
-    const std::string data_folder_{""};
+    const api::Core& core_;
 
     /** Contract name as shown in the wallet. */
     String m_strName;
@@ -369,22 +366,15 @@ protected:
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
     virtual std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml);
 
-    explicit Contract(const api::Wallet& wallet, const std::string& dataFolder);
+    explicit Contract(const api::Core& core);
     explicit Contract(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const String& name,
         const String& foldername,
         const String& filename,
         const String& strID);
-    explicit Contract(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theID);
-    explicit Contract(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strID);
+    explicit Contract(const api::Core& core, const Identifier& theID);
+    explicit Contract(const api::Core& core, const String& strID);
 
 private:
     Contract() = delete;

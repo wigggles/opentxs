@@ -26,6 +26,16 @@ namespace opentxs
 {
 class OTStash;
 
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 class OTSmartContract : public OTCronItem
 {
 private:  // Private prevents erroneous use by other classes.
@@ -293,14 +303,6 @@ public:
                                      // this is where the ledger saves its
                                      // contents
 
-    EXPORT OTSmartContract(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);
-    EXPORT OTSmartContract(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID);
-
     EXPORT virtual ~OTSmartContract();
 
 protected:
@@ -327,6 +329,8 @@ protected:
     const time64_t& GetNextProcessDate() const { return m_tNextProcessDate; }
 
 private:
+    friend api::implementation::Factory;
+
     // In OTSmartContract, none of this normal crap is used.
     // The Sender/Recipient are unused.
     // The Opening and Closing Trans#s are unused.
@@ -387,6 +391,9 @@ private:
         const Identifier& SENDER_NYM_ID,
         const Identifier& RECIPIENT_ACCT_ID,
         const Identifier& RECIPIENT_NYM_ID);
+
+    EXPORT OTSmartContract(const api::Core& core);
+    EXPORT OTSmartContract(const api::Core& core, const Identifier& NOTARY_ID);
 
     OTSmartContract() = delete;
 };

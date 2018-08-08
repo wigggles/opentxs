@@ -28,10 +28,8 @@ namespace opentxs
 {
 // keeping constructor private in order to force people to use the other
 // constructors and therefore provide the requisite IDs.
-OTTransactionType::OTTransactionType(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : Contract(wallet, dataFolder)
+OTTransactionType::OTTransactionType(const api::Core& core)
+    : Contract(core)
     , m_AcctID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory())
     , m_AcctNotaryID(Identifier::Factory())
@@ -51,13 +49,12 @@ OTTransactionType::OTTransactionType(
 }
 
 OTTransactionType::OTTransactionType(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
     originType theOriginType)
-    : Contract(wallet, dataFolder, theAccountID)
+    : Contract(core, theAccountID)
     , m_AcctID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(theNotaryID))
     , m_AcctNotaryID(Identifier::Factory())
@@ -75,14 +72,13 @@ OTTransactionType::OTTransactionType(
 }
 
 OTTransactionType::OTTransactionType(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
     std::int64_t lTransactionNum,
     originType theOriginType)
-    : Contract(wallet, dataFolder, theAccountID)
+    : Contract(core, theAccountID)
     , m_AcctID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(theNotaryID))
     , m_AcctNotaryID(Identifier::Factory())
@@ -117,92 +113,6 @@ originType OTTransactionType::GetOriginTypeFromString(const String& strType)
         theType = originType::origin_error_state;
 
     return theType;
-}
-
-// static -- class factory.
-OTTransactionType* OTTransactionType::TransactionFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    String strInput)
-{
-    String strContract, strFirstLine;  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        OTTransactionType* pContract = nullptr;
-
-        if (strFirstLine.Contains(
-                "-----BEGIN SIGNED TRANSACTION-----"))  // this string is 34
-                                                        // chars long.
-        {
-            pContract = new OTTransaction{wallet, dataFolder};
-            OT_ASSERT(nullptr != pContract);
-        } else if (strFirstLine.Contains(
-                       "-----BEGIN SIGNED TRANSACTION ITEM-----"))  // this
-                                                                    // string is
-                                                                    // 39 chars
-                                                                    // long.
-        {
-            pContract = new Item(wallet, dataFolder);
-            OT_ASSERT(nullptr != pContract);
-        } else if (strFirstLine.Contains(
-                       "-----BEGIN SIGNED LEDGER-----"))  // this string is 29
-                                                          // chars long.
-        {
-            pContract = new Ledger{wallet, dataFolder};
-            OT_ASSERT(nullptr != pContract);
-        } else if (strFirstLine.Contains(
-                       "-----BEGIN SIGNED ACCOUNT-----"))  // this string is 30
-                                                           // chars long.
-        {
-            pContract = new Account{wallet, dataFolder};
-            OT_ASSERT(nullptr != pContract);
-        }
-
-        // The string didn't match any of the options in the factory.
-        //
-
-        const char* szFunc = "OTTransactionType::TransactionFactory";
-        // The string didn't match any of the options in the factory.
-        if (nullptr == pContract) {
-            otOut << szFunc
-                  << ": Object type not yet supported by class factory: "
-                  << strFirstLine << "\n";
-            return nullptr;
-        }
-
-        // This causes pItem to load ASSUMING that the PurportedAcctID and
-        // PurportedNotaryID are correct.
-        // The object is still expected to be internally consistent with its
-        // sub-items, regarding those IDs,
-        // but the big difference is that it will SET the Real Acct and Real
-        // Notary IDs based on the purported
-        // values. This way you can load a transaction without knowing the
-        // account in advance.
-        //
-        pContract->SetLoadInsecure();
-
-        // Does the contract successfully load from the string passed in?
-        if (pContract->LoadContractFromString(strContract)) {
-            // NOTE: this already happens in OTTransaction::ProcessXMLNode and
-            // OTLedger::ProcessXMLNode.
-            // Specifically, it happens when m_bLoadSecurely is set to false.
-            //
-            //          pContract->SetRealNotaryID(pItem->GetPurportedNotaryID());
-            //          pContract->SetRealAccountID(pItem->GetPurportedAccountID());
-
-            return pContract;
-        } else {
-            otOut << szFunc
-                  << ": Failed loading contract from string (first line): "
-                  << strFirstLine << "\n";
-            delete pContract;
-            pContract = nullptr;
-        }
-    }
-
-    return nullptr;
 }
 
 // -----------------------------------

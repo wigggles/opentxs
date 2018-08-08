@@ -294,17 +294,15 @@ private:
 
     const OT_API& otapi_;
     const OTAPI_Exec& exec_;
-    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
-    const api::Legacy& legacy_;
+    const api::Core& core_;
     ContextLockCallback lock_callback_;
 
     ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
-        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const ContextLockCallback& lockCallback);
     ServerAction() = delete;
     ServerAction(const ServerAction&) = delete;

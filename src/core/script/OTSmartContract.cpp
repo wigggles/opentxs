@@ -726,22 +726,19 @@ typedef bool (OTSmartContract::*OT_SM_RetBool_ThrStr)(
 //                                                             std::int64_t
 //                                                             lAmount);
 
-OTSmartContract::OTSmartContract(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : ot_super(wallet, dataFolder)
-    , m_StashAccts(wallet, dataFolder, Account::stash)
+OTSmartContract::OTSmartContract(const api::Core& core)
+    : ot_super(core)
+    , m_StashAccts(core, Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
     InitSmartContract();
 }
 
 OTSmartContract::OTSmartContract(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID)
-    : ot_super(wallet, dataFolder)
-    , m_StashAccts(wallet, dataFolder, Account::stash)
+    : ot_super(core)
+    , m_StashAccts(core, Account::stash)
     , m_tNextProcessDate(OT_TIME_ZERO)
 {
     Instrument::SetNotaryID(NOTARY_ID);
@@ -1263,7 +1260,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
-    auto account = wallet_.Account(PARTY_ACCT_ID);
+    auto account = core_.Wallet().Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -1474,7 +1471,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the instrument definition.
-    auto account = wallet_.Account(PARTY_ACCT_ID);
+    auto account = core_.Wallet().Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -1667,9 +1664,9 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
         const String strReference(*this);
 
         bDroppedNotice = pParty->SendNoticeToParty(
-            data_folder_,
-            true,  // bSuccessMsg=true. True in general means "success" and
-                   // false means "failure."
+            core_.DataFolder(),
+            true,  // bSuccessMsg=true. True in general means
+                   // "success" and false means "failure."
             *pServerNym,
             GetNotaryID(),
             lNewTransactionNumber,
@@ -2202,7 +2199,7 @@ bool OTSmartContract::StashFunds(
 
     // Load up the party's account and get the instrument definition, so we know
     // which stash to get off the stash.
-    auto account = wallet_.mutable_Account(PARTY_ACCT_ID);
+    auto account = core_.Wallet().mutable_Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << "OTSmartContract::StashFunds: ERROR verifying existence of "
@@ -2385,8 +2382,8 @@ bool OTSmartContract::StashFunds(
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    std::unique_ptr<OTCronItem> pOrigCronItem(OTCronItem::LoadCronReceipt(
-        wallet_, data_folder_, GetTransactionNum()));
+    std::unique_ptr<OTCronItem> pOrigCronItem(
+        OTCronItem::LoadCronReceipt(core_, GetTransactionNum()));
 
     OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
                                           // receipt wasn't saved in the first
@@ -2422,7 +2419,7 @@ bool OTSmartContract::StashFunds(
     } else if (nullptr == pPartyNym)  // Else load the First Nym from storage,
                                       // if still not found.
     {
-        pPartyNym = wallet_.Nym(PARTY_NYM_ID);
+        pPartyNym = core_.Wallet().Nym(PARTY_NYM_ID);
         if (nullptr == pPartyNym) {
             otErr << "OTSmartContract::StashFunds: Failure loading or "
                      "verifying party Nym public key: "
@@ -2462,25 +2459,27 @@ bool OTSmartContract::StashFunds(
         // (No need for the stash's inbox -- the server owns it.)
 
         // Load the inbox in case it already exists
-        Ledger thePartyInbox(
-            wallet_, data_folder_, PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID);
+        auto thePartyInbox{core_.Factory().Ledger(
+            core_, PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID)};
+
+        OT_ASSERT(false != bool(thePartyInbox));
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingPartyInbox = thePartyInbox.LoadInbox();
+        bool bSuccessLoadingPartyInbox = thePartyInbox->LoadInbox();
 
         // ...or generate them otherwise...
 
         if (true == bSuccessLoadingPartyInbox)
             bSuccessLoadingPartyInbox =
-                thePartyInbox.VerifyAccount(*pServerNym);
+                thePartyInbox->VerifyAccount(*pServerNym);
         else
             otErr << "OTSmartContract::StashFunds: Failed trying to load "
                      "party's inbox.\n";
         //            OT_FAIL_MSG("ASSERT:  TRYING TO GENERATE INBOX IN STASH
         // FUNDS!!!\n");
         //            bSuccessLoadingPartyInbox        =
-        // thePartyInbox.GenerateLedger(PARTY_ACCT_ID, NOTARY_ID,
+        // thePartyInbox->GenerateLedger(PARTY_ACCT_ID, NOTARY_ID,
         // OTLedger::inbox, true); // bGenerateFile=true
 
         if (!bSuccessLoadingPartyInbox) {
@@ -2500,14 +2499,14 @@ bool OTSmartContract::StashFunds(
                 return false;
             }
 
-            OTTransaction* pTransParty = OTTransaction::GenerateTransaction(
-                wallet_,
-                thePartyInbox,
-                OTTransaction::paymentReceipt,
+            auto pTransParty{core_.Factory().Transaction(
+                core_,
+                *thePartyInbox,
+                transactionType::paymentReceipt,
                 originType::origin_smart_contract,
-                lNewTransactionNumber);
-            // (No need to OT_ASSERT on the above new transaction since it
-            // occurs in GenerateTransaction().)
+                lNewTransactionNumber)};
+
+            OT_ASSERT(false != bool(pTransParty));
 
             // The party's inbox will get a receipt with a new transaction ID on
             // it, owned by the server.
@@ -2518,12 +2517,13 @@ bool OTSmartContract::StashFunds(
             // set up the transaction item (each transaction may have multiple
             // items... but not in this case.)
             //
-            Item* pItemParty = Item::CreateItemFromTransaction(
-                *pTransParty, Item::paymentReceipt, Identifier::Factory());
-            OT_ASSERT(
-                nullptr != pItemParty);  //  may be unnecessary, I'll have to
-                                         // check CreateItemFromTransaction.
-                                         // I'll leave for now.
+            auto pItemParty{core_.Factory().Item(
+                *pTransParty, itemType::paymentReceipt, Identifier::Factory())};
+            OT_ASSERT(false != bool(pItemParty));  //  may be unnecessary, I'll
+                                                   //  have to
+                                                   // check
+                                                   // CreateItemFromTransaction.
+                                                   // I'll leave for now.
 
             pItemParty->SetStatus(Item::rejection);  // the default.
 
@@ -2861,31 +2861,30 @@ bool OTSmartContract::StashFunds(
             pItemParty->SignContract(*pServerNym);
             pItemParty->SaveContract();
 
-            // the Transaction "owns" the item now and will handle cleaning it
-            // up.
-            pTransParty->AddItem(*pItemParty);
+            std::shared_ptr<Item> itemParty{pItemParty.release()};
+            pTransParty->AddItem(itemParty);
             pTransParty->SignContract(*pServerNym);
             pTransParty->SaveContract();
 
             // Here, the transaction we just created is actually added to the
             // inbox ledger.
             // This happens either way, success or fail.
-
-            thePartyInbox.AddTransaction(*pTransParty);
+            std::shared_ptr<OTTransaction> transParty{pTransParty.release()};
+            thePartyInbox->AddTransaction(transParty);
 
             // Release any signatures that were there before (They won't
             // verify anymore anyway, since the content has changed.)
             //
-            thePartyInbox.ReleaseSignatures();
-            thePartyInbox.SignContract(*pServerNym);
-            thePartyInbox.SaveContract();
+            thePartyInbox->ReleaseSignatures();
+            thePartyInbox->SignContract(*pServerNym);
+            thePartyInbox->SaveContract();
 
-            account.get().SaveInbox(thePartyInbox, Identifier::Factory());
+            account.get().SaveInbox(*thePartyInbox, Identifier::Factory());
 
             // This corresponds to the AddTransaction() call just above.
             // These are stored in a separate file now.
             //
-            pTransParty->SaveBoxReceipt(thePartyInbox);
+            transParty->SaveBoxReceipt(*thePartyInbox);
 
             // If success, save the accounts with new balance. (Save inboxes
             // with receipts either way,
@@ -3310,8 +3309,8 @@ void OTSmartContract::onFinalReceipt(
 
         OT_ASSERT(nullptr != pPartyNym);
 
-        auto context =
-            wallet_.mutable_ClientContext(GetNotaryID(), pPartyNym->ID());
+        auto context = core_.Wallet().mutable_ClientContext(
+            GetNotaryID(), pPartyNym->ID());
         const auto opening = pParty->GetOpeningTransNo();
         const bool haveOpening = pParty->GetOpeningTransNo() > 0;
         const bool issuedOpening = context.It().VerifyIssuedNumber(opening);
@@ -5366,23 +5365,17 @@ bool OTSmartContract::MoveFunds(
     // Will need to verify the parties' signatures, as well as attach a copy of
     // it to the receipt.
 
-    OTCronItem* pOrigCronItem = nullptr;
-
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    pOrigCronItem =
-        OTCronItem::LoadCronReceipt(wallet_, data_folder_, GetTransactionNum());
+    std::unique_ptr<OTCronItem> pOrigCronItem =
+        OTCronItem::LoadCronReceipt(core_, GetTransactionNum());
 
-    OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
-                                          // receipt wasn't saved in the first
-                                          // place??
+    OT_ASSERT(false != bool(pOrigCronItem));  // How am I processing it now if
+                                              // the receipt wasn't saved in the
+                                              // first place??
     // TODO: Decide global policy for handling situations where the hard drive
     // stops working, etc.
-
-    // When theOrigPlanGuardian goes out of scope, pOrigCronItem gets deleted
-    // automatically.
-    std::unique_ptr<OTCronItem> theOrigPlanGuardian(pOrigCronItem);
 
     // strOrigPlan is a String copy (a PGP-signed XML file, in string form) of
     // the original Payment Plan request...
@@ -5430,7 +5423,7 @@ bool OTSmartContract::MoveFunds(
     } else if (nullptr == pSenderNym)  // Else load the First Nym from storage,
                                        // if still not found.
     {
-        pSenderNym = wallet_.Nym(SENDER_NYM_ID);
+        pSenderNym = core_.Wallet().Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             String strNymID(SENDER_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
@@ -5453,7 +5446,7 @@ bool OTSmartContract::MoveFunds(
                                           // Disk and point to that, if still
                                           // not found.
     {
-        pRecipientNym = wallet_.Nym(RECIPIENT_NYM_ID);
+        pRecipientNym = core_.Wallet().Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             String strNymID(RECIPIENT_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
@@ -5602,7 +5595,7 @@ bool OTSmartContract::MoveFunds(
 
     // LOAD THE ACCOUNTS
     //
-    auto sourceAccount = wallet_.mutable_Account(SOURCE_ACCT_ID);
+    auto sourceAccount = core_.Wallet().mutable_Account(SOURCE_ACCT_ID);
 
     if (false == bool(sourceAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
@@ -5611,7 +5604,7 @@ bool OTSmartContract::MoveFunds(
         return false;
     }
 
-    auto recipientAccount = wallet_.mutable_Account(RECIPIENT_ACCT_ID);
+    auto recipientAccount = core_.Wallet().mutable_Account(RECIPIENT_ACCT_ID);
 
     if (false == bool(recipientAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "
@@ -5670,32 +5663,28 @@ bool OTSmartContract::MoveFunds(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inboxes in case they already exist
-        Ledger theSenderInbox(
-            wallet_, data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
-            theRecipientInbox(
-                wallet_,
-                data_folder_,
-                RECIPIENT_NYM_ID,
-                RECIPIENT_ACCT_ID,
-                NOTARY_ID);
+        auto theSenderInbox{core_.Factory().Ledger(
+            core_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID)};
+        auto theRecipientInbox{core_.Factory().Ledger(
+            core_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID)};
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingSenderInbox = theSenderInbox.LoadInbox();
-        bool bSuccessLoadingRecipientInbox = theRecipientInbox.LoadInbox();
+        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox();
+        bool bSuccessLoadingRecipientInbox = theRecipientInbox->LoadInbox();
 
         // ...or generate them otherwise...
 
         if (true == bSuccessLoadingSenderInbox)
             bSuccessLoadingSenderInbox =
-                theSenderInbox.VerifyAccount(*pServerNym);
+                theSenderInbox->VerifyAccount(*pServerNym);
         else
             otErr << "OTCronItem::MoveFunds: ERROR loading sender inbox "
                      "ledger.\n";
 
         if (true == bSuccessLoadingRecipientInbox)
             bSuccessLoadingRecipientInbox =
-                theRecipientInbox.VerifyAccount(*pServerNym);
+                theRecipientInbox->VerifyAccount(*pServerNym);
         else
             otErr << "OTCronItem::MoveFunds: ERROR loading recipient inbox "
                      "ledger.\n";
@@ -5715,22 +5704,23 @@ bool OTSmartContract::MoveFunds(
                 return false;
             }
 
-            OTTransaction* pTransSend = OTTransaction::GenerateTransaction(
-                wallet_,
-                theSenderInbox,
-                OTTransaction::paymentReceipt,
+            auto pTransSend{core_.Factory().Transaction(
+                core_,
+                *theSenderInbox,
+                transactionType::paymentReceipt,
                 originType::origin_smart_contract,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            OTTransaction* pTransRecip = OTTransaction::GenerateTransaction(
-                wallet_,
-                theRecipientInbox,
-                OTTransaction::paymentReceipt,
+            OT_ASSERT(false != bool(pTransSend));
+
+            auto pTransRecip{core_.Factory().Transaction(
+                core_,
+                *theRecipientInbox,
+                transactionType::paymentReceipt,
                 originType::origin_smart_contract,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            // (No need to OT_ASSERT on the above transactions since it occurs
-            // in GenerateTransaction().)
+            OT_ASSERT(false != bool(pTransRecip));
 
             // Both inboxes will get receipts with the same (new) transaction ID
             // on them.
@@ -5740,15 +5730,15 @@ bool OTSmartContract::MoveFunds(
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            Item* pItemSend = Item::CreateItemFromTransaction(
-                *pTransSend, Item::paymentReceipt, Identifier::Factory());
-            Item* pItemRecip = Item::CreateItemFromTransaction(
-                *pTransRecip, Item::paymentReceipt, Identifier::Factory());
+            auto pItemSend{core_.Factory().Item(
+                *pTransSend, itemType::paymentReceipt, Identifier::Factory())};
+            auto pItemRecip{core_.Factory().Item(
+                *pTransRecip, itemType::paymentReceipt, Identifier::Factory())};
 
             // these may be unnecessary, I'll have to check
             // CreateItemFromTransaction. I'll leave em.
-            OT_ASSERT(nullptr != pItemSend);
-            OT_ASSERT(nullptr != pItemRecip);
+            OT_ASSERT(false != bool(pItemSend));
+            OT_ASSERT(false != bool(pItemRecip));
 
             pItemSend->SetStatus(Item::rejection);   // the default.
             pItemRecip->SetStatus(Item::rejection);  // the default.
@@ -5986,10 +5976,10 @@ bool OTSmartContract::MoveFunds(
             pItemSend->SaveContract();
             pItemRecip->SaveContract();
 
-            // the Transaction "owns" the item now and will handle cleaning it
-            // up.
-            pTransSend->AddItem(*pItemSend);
-            pTransRecip->AddItem(*pItemRecip);
+            std::shared_ptr<Item> itemSend{pItemSend.release()};
+            pTransSend->AddItem(itemSend);
+            std::shared_ptr<Item> itemRecip{pItemRecip.release()};
+            pTransRecip->AddItem(itemRecip);
 
             pTransSend->SignContract(*pServerNym);
             pTransRecip->SignContract(*pServerNym);
@@ -6001,32 +5991,34 @@ bool OTSmartContract::MoveFunds(
             // ledgers.
             // This happens either way, success or fail.
 
-            theSenderInbox.AddTransaction(*pTransSend);
-            theRecipientInbox.AddTransaction(*pTransRecip);
+            std::shared_ptr<OTTransaction> transSend{pTransSend.release()};
+            theSenderInbox->AddTransaction(transSend);
+            std::shared_ptr<OTTransaction> transRecip{pTransRecip.release()};
+            theRecipientInbox->AddTransaction(transRecip);
 
             // Release any signatures that were there before (They won't
             // verify anymore anyway, since the content has changed.)
-            theSenderInbox.ReleaseSignatures();
-            theRecipientInbox.ReleaseSignatures();
+            theSenderInbox->ReleaseSignatures();
+            theRecipientInbox->ReleaseSignatures();
 
             // Sign both of them.
-            theSenderInbox.SignContract(*pServerNym);
-            theRecipientInbox.SignContract(*pServerNym);
+            theSenderInbox->SignContract(*pServerNym);
+            theRecipientInbox->SignContract(*pServerNym);
 
             // Save both of them internally
-            theSenderInbox.SaveContract();
-            theRecipientInbox.SaveContract();
+            theSenderInbox->SaveContract();
+            theRecipientInbox->SaveContract();
 
             // Save both inboxes to storage. (File, DB, wherever it goes.)
             sourceAccount.get().SaveInbox(
-                theSenderInbox, Identifier::Factory());
+                *theSenderInbox, Identifier::Factory());
             recipientAccount.get().SaveInbox(
-                theRecipientInbox, Identifier::Factory());
+                *theRecipientInbox, Identifier::Factory());
 
             // These correspond to the AddTransaction() calls, just above
             //
-            pTransSend->SaveBoxReceipt(theSenderInbox);
-            pTransRecip->SaveBoxReceipt(theRecipientInbox);
+            transSend->SaveBoxReceipt(*theSenderInbox);
+            transRecip->SaveBoxReceipt(*theRecipientInbox);
 
             // If success, save the accounts with new balance. (Save inboxes
             // with receipts either way,

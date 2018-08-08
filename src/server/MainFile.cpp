@@ -522,10 +522,10 @@ bool MainFile::LoadServerUserAndContract()
     // Make sure the Cron object has a pointer to the server's Nym.
     // (For signing stuff...)
     //
-    server_.m_Cron.SetNotaryID(NOTARY_ID);
-    server_.m_Cron.SetServerNym(serverNym);
+    server_.Cron().SetNotaryID(NOTARY_ID);
+    server_.Cron().SetServerNym(serverNym);
 
-    if (!server_.m_Cron.LoadCron())
+    if (!server_.Cron().LoadCron())
         Log::vError(
             "%s: Failed loading Cron file. (Did you just create "
             "this server?)\n",

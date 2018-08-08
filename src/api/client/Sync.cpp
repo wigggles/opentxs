@@ -13,7 +13,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
@@ -319,7 +319,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
             }
         }
 
-        if (OTTransaction::chequeReceipt == transaction->GetType()) {
+        if (transactionType::chequeReceipt == transaction->GetType()) {
             const auto workflowUpdated =
                 workflow_.ClearCheque(context.Nym()->ID(), *transaction);
 
@@ -386,7 +386,7 @@ bool Sync::AcceptIncoming(
                 return false;
             }
 
-            Utility utility(context.It(), ot_api_, legacy_);
+            Utility utility(context.It(), ot_api_, client_);
             const auto download = utility.getIntermediaryFiles(
                 context.It().Server().str(),
                 context.It().Nym()->ID().str(),
@@ -768,7 +768,10 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    auto cheque = std::make_unique<Cheque>(wallet_, legacy_.ClientDataFolder());
+    auto cheque{client_.Factory().Cheque(client_)};
+
+    OT_ASSERT(false != bool(cheque));
+
     const auto loaded = cheque->LoadContractFromString(payment->Payment());
 
     if (false == loaded) {
@@ -1537,10 +1540,9 @@ bool Sync::publish_server_registration(
 bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
     const
 {
-    auto payment = std::make_shared<OTPayment>(
-        wallet_, legacy_.ClientDataFolder(), String(cheque));
+    auto payment{client_.Factory().Payment(client_, String(cheque))};
 
-    OT_ASSERT(payment)
+    OT_ASSERT(false != bool(payment));
 
     payment->SetTempValuesFromCheque(cheque);
 
@@ -1548,7 +1550,8 @@ bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
         payment->SetTempRecipientNymID(nymID);
     }
 
-    const auto taskID = DepositPayment(nymID, payment);
+    std::shared_ptr<OTPayment> ppayment{payment.release()};
+    const auto taskID = DepositPayment(nymID, ppayment);
 
     return (false == taskID->empty());
 }
@@ -2008,8 +2011,9 @@ OTIdentifier Sync::SendCheque(
         return Identifier::Factory();
     }
 
-    auto payment = std::make_shared<OTPayment>(
-        wallet_, legacy_.ClientDataFolder(), String(*cheque));
+    auto payment{client_.Factory().Payment(client_, String(*cheque))};
+
+    OT_ASSERT(false != bool(payment));
 
     if (false == bool(cheque)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to instantiate payment"
@@ -2024,7 +2028,8 @@ OTIdentifier Sync::SendCheque(
         return Identifier::Factory();
     }
 
-    return PayContact(localNymID, recipientContactID, payment);
+    std::shared_ptr<OTPayment> ppayment{payment.release()};
+    return PayContact(localNymID, recipientContactID, ppayment);
 }
 
 OTIdentifier Sync::SendTransfer(

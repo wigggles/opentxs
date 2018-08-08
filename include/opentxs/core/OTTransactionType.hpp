@@ -10,6 +10,7 @@
 
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/Types.hpp"
 
@@ -22,10 +23,6 @@ class OTTransactionType : public Contract
 {
 public:
     EXPORT void GetNumList(NumList& theOutput);
-    EXPORT static OTTransactionType* TransactionFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput);
     bool Contains(const String& strContains);  // Allows you to string-search
                                                // the raw contract.
     EXPORT bool Contains(const char* szContains);  // Allows you to
@@ -701,23 +698,19 @@ protected:
     // OTTransactionType will require
     // both the Account ID and the NotaryID.
     explicit OTTransactionType(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
         originType theOriginType = originType::not_applicable);
     explicit OTTransactionType(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
         std::int64_t lTransactionNum,
         originType theOriginType = originType::not_applicable);
-    explicit OTTransactionType(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);
+    explicit OTTransactionType(const api::Core& core);
 
 private:
     typedef Contract ot_super;

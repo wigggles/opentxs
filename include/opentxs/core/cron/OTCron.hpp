@@ -15,12 +15,23 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 /** mapOfCronItems:      Mapped (uniquely) to transaction number. */
-typedef std::map<std::int64_t, OTCronItem*> mapOfCronItems;
+typedef std::map<std::int64_t, std::shared_ptr<OTCronItem>> mapOfCronItems;
 /** multimapOfCronItems: Mapped to date the item was added to Cron. */
-typedef std::multimap<time64_t, OTCronItem*> multimapOfCronItems;
+typedef std::multimap<time64_t, std::shared_ptr<OTCronItem>>
+    multimapOfCronItems;
 /** Mapped (uniquely) to market ID. */
-typedef std::map<std::string, OTMarket*> mapOfMarkets;
+typedef std::map<std::string, std::shared_ptr<OTMarket>> mapOfMarkets;
 /** Cron stores a bunch of these on this list, which the server refreshes from
  * time to time. */
 typedef std::list<std::int64_t> listOfLongNumbers;
@@ -33,7 +44,8 @@ private:
     typedef Contract ot_super;
 
 private:
-    const api::Core& server_;
+    friend api::implementation::Factory;
+
     // A list of all valid markets.
     mapOfMarkets m_mapMarkets;
     // Cron Items are found on both lists.
@@ -58,6 +70,8 @@ private:
     static std::int32_t __cron_max_items_per_nym;
 
     static Timer tCron;
+
+    explicit OTCron(const api::Core& server);
 
     OTCron() = delete;
 
@@ -94,23 +108,25 @@ public:
     }
     // RECURRING TRANSACTIONS
     bool AddCronItem(
-        OTCronItem& theItem,
+        std::shared_ptr<OTCronItem> theItem,
         bool bSaveReceipt,
         time64_t tDateAdded);  // Date it was FIRST added to Cron.
     /** if returns false, item wasn't found. */
     bool RemoveCronItem(std::int64_t lTransactionNum, ConstNym theRemover);
-    OTCronItem* GetItemByOfficialNum(std::int64_t lTransactionNum);
-    OTCronItem* GetItemByValidOpeningNum(std::int64_t lOpeningNum);
+    std::shared_ptr<OTCronItem> GetItemByOfficialNum(
+        std::int64_t lTransactionNum);
+    std::shared_ptr<OTCronItem> GetItemByValidOpeningNum(
+        std::int64_t lOpeningNum);
     mapOfCronItems::iterator FindItemOnMap(std::int64_t lTransactionNum);
     multimapOfCronItems::iterator FindItemOnMultimap(
         std::int64_t lTransactionNum);
     // MARKETS
-    bool AddMarket(OTMarket& theMarket, bool bSaveMarketFile = true);
-    bool RemoveMarket(const Identifier& MARKET_ID);  // if returns false,
-                                                     // market wasn't found.
+    bool AddMarket(
+        std::shared_ptr<OTMarket> theMarket,
+        bool bSaveMarketFile = true);
 
-    OTMarket* GetMarket(const Identifier& MARKET_ID);
-    OTMarket* GetOrCreateMarket(
+    std::shared_ptr<OTMarket> GetMarket(const Identifier& MARKET_ID);
+    std::shared_ptr<OTMarket> GetOrCreateMarket(
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_ID,
         const std::int64_t& lScale);
@@ -158,14 +174,11 @@ public:
     bool LoadCron();
     bool SaveCron();
 
-    explicit OTCron(const api::Core& server);
-
     virtual ~OTCron();
 
     void InitCron();
 
     void Release() override;
-    void Release_Cron();
 
     /** return -1 if error, 0 if nothing, and 1 if the node was processed. */
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;

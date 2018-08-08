@@ -59,15 +59,13 @@ protected:
     void SetSenderAcctID(const Identifier& ACCT_ID);
     void SetSenderNymID(const Identifier& NYM_ID);
 
-    OTTrackable(const api::Wallet& wallet, const std::string& dataFolder);
+    OTTrackable(const api::Core& core);
     OTTrackable(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     OTTrackable(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& ACCT_ID,

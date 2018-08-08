@@ -184,8 +184,7 @@ private:
 
     const storage::Storage& storage_;
     const Contacts& contact_;
-    const Factory& factory_;
-    const Legacy& legacy_;
+    const Core& core_;
     const Wallet& wallet_;
     const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex mail_cache_lock_;
@@ -223,9 +222,7 @@ private:
     Activity(
         const storage::Storage& storage,
         const Contacts& contact,
-        const Factory& factory,
-        const Legacy& legacy,
-        const Wallet& wallet,
+        const Core& core,
         const opentxs::network::zeromq::Context& zmq);
     Activity() = delete;
     Activity(const Activity&) = delete;

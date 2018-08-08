@@ -8,6 +8,7 @@
 #include "opentxs/consensus/ServerContext.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -264,11 +265,10 @@ TransactionNumber ServerContext::Highest() const
 std::unique_ptr<Message> ServerContext::initialize_server_command(
     const MessageType type) const
 {
-    std::unique_ptr<Message> output(
-        new Message{api_.Wallet(), api_.DataFolder()});
+    auto output = api_.Factory().Message(api_);
 
-    OT_ASSERT(output);
-    OT_ASSERT(nym_);
+    OT_ASSERT(false != bool(output));
+    OT_ASSERT(false != bool(nym_));
 
     output->m_strCommand.Set(Message::Command(type).data());
     output->m_strNymID = String(nym_->ID());
@@ -590,11 +590,10 @@ std::unique_ptr<Item> ServerContext::Statement(
     // marketOffer that triggered the need for this transaction statement.
     // Since it uses up a transaction number, I will be sure to remove that one
     // from my list before signing the list.
-    output.reset(Item::CreateItemFromTransaction(
-        transaction, Item::transactionStatement, Identifier::Factory()));
+    output = api_.Factory().Item(
+        transaction, itemType::transactionStatement, Identifier::Factory());
 
-    // The above has an ASSERT, so this this will never actually happen.
-    if (!output) { return output; }
+    if (false == bool(output)) { return output; }
 
     const std::set<TransactionNumber> empty;
     auto statement = generate_statement(lock, adding, empty);
@@ -602,7 +601,7 @@ std::unique_ptr<Item> ServerContext::Statement(
     if (!statement) { return output; }
 
     switch (transaction.GetType()) {
-        case OTTransaction::cancelCronItem: {
+        case transactionType::cancelCronItem: {
             if (transaction.GetTransactionNum() > 0) {
                 statement->Remove(transaction.GetTransactionNum());
             }
@@ -611,9 +610,9 @@ std::unique_ptr<Item> ServerContext::Statement(
         // case of market offers and payment plans, in which case the number
         // should NOT be removed, and remains in play until final closure from
         // Cron.
-        case OTTransaction::marketOffer:
-        case OTTransaction::paymentPlan:
-        case OTTransaction::smartContract:
+        case transactionType::marketOffer:
+        case transactionType::paymentPlan:
+        case transactionType::smartContract:
         default: {
         }
     }

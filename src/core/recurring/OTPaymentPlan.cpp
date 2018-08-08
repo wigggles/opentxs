@@ -7,6 +7,8 @@
 
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
@@ -39,10 +41,8 @@
 
 namespace opentxs
 {
-OTPaymentPlan::OTPaymentPlan(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : ot_super(wallet, dataFolder)
+OTPaymentPlan::OTPaymentPlan(const api::Core& core)
+    : ot_super(core)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -50,11 +50,10 @@ OTPaymentPlan::OTPaymentPlan(
 }
 
 OTPaymentPlan::OTPaymentPlan(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bProcessingInitialPayment(false)
     , m_bProcessingPaymentPlan(false)
 {
@@ -62,8 +61,7 @@ OTPaymentPlan::OTPaymentPlan(
 }
 
 OTPaymentPlan::OTPaymentPlan(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& SENDER_ACCT_ID,
@@ -71,8 +69,7 @@ OTPaymentPlan::OTPaymentPlan(
     const Identifier& RECIPIENT_ACCT_ID,
     const Identifier& RECIPIENT_NYM_ID)
     : ot_super(
-          wallet,
-          dataFolder,
+          core,
           NOTARY_ID,
           INSTRUMENT_DEFINITION_ID,
           SENDER_ACCT_ID,
@@ -364,7 +361,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
-    OTPaymentPlan theMerchantCopy{wallet_, data_folder_};
+    OTPaymentPlan theMerchantCopy{core_};
     if (!m_strMerchantSignedCopy.Exists() ||
         !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy)) {
         otErr << "OTPaymentPlan::" << __FUNCTION__
@@ -613,11 +610,12 @@ bool OTPaymentPlan::ProcessPayment(
     // OTCronItem::LoadCronReceipt loads the original version with the user's
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
-    std::unique_ptr<OTCronItem> pOrigCronItem(OTCronItem::LoadCronReceipt(
-        wallet_, data_folder_, GetTransactionNum()));
+    std::unique_ptr<OTCronItem> pOrigCronItem{
+        OTCronItem::LoadCronReceipt(core_, GetTransactionNum())};
 
-    OT_ASSERT(pOrigCronItem);  // How am I processing it now if the
-                               // receipt wasn't saved in the first place??
+    OT_ASSERT(false != bool(pOrigCronItem));  // How am I processing it now if
+                                              // the receipt wasn't saved in the
+                                              // first place??
     // TODO: Decide global policy for handling situations where the hard drive
     // stops working, etc.
 
@@ -659,7 +657,7 @@ bool OTPaymentPlan::ProcessPayment(
         pSenderNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pSenderNym = wallet_.Nym(SENDER_NYM_ID);
+        pSenderNym = core_.Wallet().Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             otErr << "Failure loading Sender Nym in " << __FUNCTION__ << ": "
                   << SENDER_NYM_ID.str() << std::endl;
@@ -678,7 +676,7 @@ bool OTPaymentPlan::ProcessPayment(
         pRecipientNym = pSenderNym;  // theSenderNym is pSenderNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pRecipientNym = wallet_.Nym(RECIPIENT_NYM_ID);
+        pRecipientNym = core_.Wallet().Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             otErr << "Failure loading Recipient Nym in " << __FUNCTION__ << ": "
                   << RECIPIENT_NYM_ID.str() << std::endl;
@@ -794,40 +792,36 @@ bool OTPaymentPlan::ProcessPayment(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        Ledger theSenderInbox(
-            wallet_, data_folder_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID),
-            theRecipientInbox(
-                wallet_,
-                data_folder_,
-                RECIPIENT_NYM_ID,
-                RECIPIENT_ACCT_ID,
-                NOTARY_ID);
+        auto theSenderInbox{core_.Factory().Ledger(
+            core_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID)};
+        auto theRecipientInbox{core_.Factory().Ledger(
+            core_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID)};
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingSenderInbox = theSenderInbox.LoadInbox();
-        bool bSuccessLoadingRecipientInbox = theRecipientInbox.LoadInbox();
+        bool bSuccessLoadingSenderInbox = theSenderInbox->LoadInbox();
+        bool bSuccessLoadingRecipientInbox = theRecipientInbox->LoadInbox();
 
         // ...or generate them otherwise...
         //
         if (true == bSuccessLoadingSenderInbox)
             bSuccessLoadingSenderInbox =
-                theSenderInbox.VerifyAccount(*pServerNym);
+                theSenderInbox->VerifyAccount(*pServerNym);
         else
-            bSuccessLoadingSenderInbox = theSenderInbox.GenerateLedger(
+            bSuccessLoadingSenderInbox = theSenderInbox->GenerateLedger(
                 SOURCE_ACCT_ID,
                 NOTARY_ID,
-                Ledger::inbox,
+                ledgerType::inbox,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingRecipientInbox)
             bSuccessLoadingRecipientInbox =
-                theRecipientInbox.VerifyAccount(*pServerNym);
+                theRecipientInbox->VerifyAccount(*pServerNym);
         else
-            bSuccessLoadingRecipientInbox = theRecipientInbox.GenerateLedger(
+            bSuccessLoadingRecipientInbox = theRecipientInbox->GenerateLedger(
                 RECIPIENT_ACCT_ID,
                 NOTARY_ID,
-                Ledger::inbox,
+                ledgerType::inbox,
                 true);  // bGenerateFile=true
 
         if ((false == bSuccessLoadingSenderInbox) ||
@@ -848,22 +842,23 @@ bool OTPaymentPlan::ProcessPayment(
                 return false;
             }
 
-            OTTransaction* pTransSend = OTTransaction::GenerateTransaction(
-                wallet_,
-                theSenderInbox,
-                OTTransaction::paymentReceipt,
+            auto pTransSend{core_.Factory().Transaction(
+                core_,
+                *theSenderInbox,
+                transactionType::paymentReceipt,
                 originType::origin_payment_plan,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            OTTransaction* pTransRecip = OTTransaction::GenerateTransaction(
-                wallet_,
-                theRecipientInbox,
-                OTTransaction::paymentReceipt,
+            OT_ASSERT(false != bool(pTransSend));
+
+            auto pTransRecip{core_.Factory().Transaction(
+                core_,
+                *theRecipientInbox,
+                transactionType::paymentReceipt,
                 originType::origin_payment_plan,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            // (No need to OT_ASSERT on the above transactions since it occurs
-            // in GenerateTransaction().)
+            OT_ASSERT(false != bool(pTransRecip));
 
             // Both inboxes will get receipts with the same (new) transaction ID
             // on them.
@@ -873,15 +868,13 @@ bool OTPaymentPlan::ProcessPayment(
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            Item* pItemSend = Item::CreateItemFromTransaction(
-                *pTransSend, Item::paymentReceipt, Identifier::Factory());
-            Item* pItemRecip = Item::CreateItemFromTransaction(
-                *pTransRecip, Item::paymentReceipt, Identifier::Factory());
+            auto pItemSend{core_.Factory().Item(
+                *pTransSend, itemType::paymentReceipt, Identifier::Factory())};
+            auto pItemRecip{core_.Factory().Item(
+                *pTransRecip, itemType::paymentReceipt, Identifier::Factory())};
 
-            // these may be unnecessary, I'll have to check
-            // CreateItemFromTransaction. I'll leave em.
-            OT_ASSERT(nullptr != pItemSend);
-            OT_ASSERT(nullptr != pItemRecip);
+            OT_ASSERT(false != bool(pItemSend));
+            OT_ASSERT(false != bool(pItemRecip));
 
             pItemSend->SetStatus(Item::rejection);   // the default.
             pItemRecip->SetStatus(Item::rejection);  // the default.
@@ -1003,12 +996,13 @@ bool OTPaymentPlan::ProcessPayment(
             } else  // bSuccess = false.  The payment failed.
             {
                 pItemSend->SetStatus(Item::rejection);   // sourceAccount
-                                                         // // These are already
+                                                         // // These are
+                                                         // already
                                                          // initialized to
                                                          // false.
                 pItemRecip->SetStatus(Item::rejection);  // recipientAccount
-                                                         // // (But just making
-                                                         // sure...)
+                                                         // // (But just
+                                                         // making sure...)
 
                 pItemSend->SetAmount(0);   // No money changed hands. Just being
                                            // explicit.
@@ -1126,10 +1120,10 @@ bool OTPaymentPlan::ProcessPayment(
             pItemSend->SaveContract();
             pItemRecip->SaveContract();
 
-            // the Transaction "owns" the item now and will handle cleaning it
-            // up.
-            pTransSend->AddItem(*pItemSend);
-            pTransRecip->AddItem(*pItemRecip);
+            std::shared_ptr<Item> itemSend{pItemSend.release()};
+            std::shared_ptr<Item> itemRecip{pItemRecip.release()};
+            pTransSend->AddItem(itemSend);
+            pTransRecip->AddItem(itemRecip);
 
             pTransSend->SignContract(*pServerNym);
             pTransRecip->SignContract(*pServerNym);
@@ -1141,33 +1135,35 @@ bool OTPaymentPlan::ProcessPayment(
             // ledgers.
             // This happens either way, success or fail.
 
-            theSenderInbox.AddTransaction(*pTransSend);
-            theRecipientInbox.AddTransaction(*pTransRecip);
+            std::shared_ptr<OTTransaction> transSend{pTransSend.release()};
+            std::shared_ptr<OTTransaction> transRecip{pTransRecip.release()};
+            theSenderInbox->AddTransaction(transSend);
+            theRecipientInbox->AddTransaction(transRecip);
 
             // Release any signatures that were there before (They won't
             // verify anymore anyway, since the content has changed.)
-            theSenderInbox.ReleaseSignatures();
-            theRecipientInbox.ReleaseSignatures();
+            theSenderInbox->ReleaseSignatures();
+            theRecipientInbox->ReleaseSignatures();
 
             // Sign both of them.
-            theSenderInbox.SignContract(*pServerNym);
-            theRecipientInbox.SignContract(*pServerNym);
+            theSenderInbox->SignContract(*pServerNym);
+            theRecipientInbox->SignContract(*pServerNym);
 
             // Save both of them internally
-            theSenderInbox.SaveContract();
-            theRecipientInbox.SaveContract();
+            theSenderInbox->SaveContract();
+            theRecipientInbox->SaveContract();
 
             // Save both inboxes to storage. (File, DB, wherever it goes.)
             sourceAccount.get().SaveInbox(
-                theSenderInbox, Identifier::Factory());
+                *theSenderInbox, Identifier::Factory());
             recipientAccount.get().SaveInbox(
-                theRecipientInbox, Identifier::Factory());
+                *theRecipientInbox, Identifier::Factory());
 
             // These correspond to the AddTransaction() calls just above. These
             // are stored in separate files now.
             //
-            pTransSend->SaveBoxReceipt(theSenderInbox);
-            pTransRecip->SaveBoxReceipt(theRecipientInbox);
+            transSend->SaveBoxReceipt(*theSenderInbox);
+            transRecip->SaveBoxReceipt(*theRecipientInbox);
 
             // If success, save the accounts with new balance. (Save inboxes
             // with receipts either way,
@@ -1381,7 +1377,7 @@ bool OTPaymentPlan::ProcessCron()
 
         otOut << "Cron: Processing initial payment...\n";
 
-        ProcessInitialPayment(wallet_);
+        ProcessInitialPayment(core_.Wallet());
     }
     // ----------------------------------------------
     // Next, process the payment plan...
@@ -1514,7 +1510,7 @@ bool OTPaymentPlan::ProcessCron()
 
             // This function assumes the payment is due, and it only fails in
             // the case of the payer's account having insufficient funds.
-            ProcessPaymentPlan(wallet_);
+            ProcessPaymentPlan(core_.Wallet());
         }
     }
 

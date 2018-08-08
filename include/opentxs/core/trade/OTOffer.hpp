@@ -19,6 +19,16 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 /*
  OTOffer
 
@@ -134,19 +144,6 @@ public:
                                      // this is where the ledger saves its
                                      // contents
 
-    EXPORT OTOffer(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);  // The constructor contains
-                                         // the 3 variables needed to
-                                         // identify any market.
-    EXPORT OTOffer(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_ID,
-        const std::int64_t& MARKET_SCALE);
-
     EXPORT virtual ~OTOffer();
 
 protected:
@@ -209,11 +206,23 @@ protected:
     }
 
 private:
+    friend api::implementation::Factory;
+
     typedef Instrument ot_super;
 
     time64_t m_tDateAddedToMarket{0};
 
     bool isPowerOfTen(const std::int64_t& x);
+
+    EXPORT OTOffer(const api::Core& core);  // The constructor contains
+                                            // the 3 variables needed to
+                                            // identify any market.
+    EXPORT OTOffer(
+        const api::Core& core,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& CURRENCY_ID,
+        const std::int64_t& MARKET_SCALE);
 
     OTOffer() = delete;
 };

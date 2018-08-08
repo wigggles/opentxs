@@ -22,22 +22,6 @@ typedef std::map<std::int64_t, Armored*> mapOfArmor;
 class Mint : public Contract
 {
 public:
-    // Caller is responsible to delete.
-    static Mint* MintFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);
-    static Mint* MintFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strNotaryID,
-        const String& strInstrumentDefinitionID);
-    static Mint* MintFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strNotaryID,
-        const String& strServerNymID,
-        const String& strInstrumentDefinitionID);
-
     inline std::int32_t GetSeries() const
     {
         return m_nSeries;
@@ -192,15 +176,13 @@ protected:
     OTIdentifier m_CashAccountID;  // The Account ID for the cash reserve
                                    // account.
 
-    Mint(const api::Wallet& wallet, const std::string& dataFolder);
+    Mint(const api::Core& core);
     Mint(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID);
     Mint(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const String& strNotaryID,
         const String& strServerNymID,
         const String& strInstrumentDefinitionID);

@@ -29,6 +29,16 @@ class OTPasswordData;
 class ServerContext;
 class Tag;
 
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 class OTMessageStrategy
 {
 public:
@@ -69,6 +79,8 @@ protected:
     bool m_bIsSigned{false};
 
 private:
+    friend api::implementation::Factory;
+
     typedef std::map<MessageType, std::string> TypeMap;
     typedef std::map<std::string, MessageType> ReverseTypeMap;
 
@@ -79,6 +91,8 @@ private:
     static ReverseTypeMap make_reverse_map();
     static MessageType reply_command(const MessageType& type);
 
+    EXPORT Message(const api::Core& core);
+    
     bool updateContentsByType(Tag& parent);
 
     std::int32_t processXmlNodeAckReplies(
@@ -96,7 +110,6 @@ public:
     EXPORT static MessageType Type(const std::string& type);
     EXPORT static std::string ReplyCommand(const MessageType type);
 
-    EXPORT Message(const api::Wallet& wallet, const std::string& dataFolder);
     EXPORT virtual ~Message();
 
     bool VerifyContractID() const override;

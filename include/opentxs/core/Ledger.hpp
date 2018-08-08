@@ -27,38 +27,29 @@ class Nym;
 class ServerContext;
 class String;
 
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 // transaction ID is a std::int64_t, assigned by the server. Each transaction
 // has one. FIRST the server issues the ID. THEN we create the blank transaction
 // object with the ID in it and store it in our inbox. THEN if we want to send a
 // transaction, we use the blank to do so. If there is no blank available, we
 // message the server and request one.
-typedef std::map<std::int64_t, OTTransaction*> mapOfTransactions;
+typedef std::map<std::int64_t, std::shared_ptr<OTTransaction>>
+    mapOfTransactions;
 
 // the "inbox" and "outbox" functionality is implemented in this class
 class Ledger : public OTTransactionType
 {
 public:
-    enum ledgerType {
-        nymbox,  // the nymbox is per user account (versus per asset account)
-                 // and is used to receive new transaction numbers (and
-                 // messages.)
-        inbox,   // each asset account has an inbox, with pending transfers as
-                 // well as receipts inside.
-        outbox,  // if you SEND a pending transfer, it sits in your outbox until
-                 // it's accepted, rejected, or canceled.
-        message,  // used in OTMessages, to send various lists of transactions
-                  // back and forth.
-        paymentInbox,  // Used for client-side-only storage of incoming cheques,
-                       // invoices, payment plan requests, etc. (Coming in from
-                       // the Nymbox.)
-        recordBox,  // Used for client-side-only storage of completed items from
-                    // the inbox, and the paymentInbox.
-        expiredBox,  // Used for client-side-only storage of expired items from
-                     // the paymentInbox.
-        error_state
-    };  // If you add any types to this list, update the list of strings at the
-    // top of the .CPP file.
-    ledgerType m_Type{error_state};
+    ledgerType m_Type{ledgerType::error_state};
 
     bool m_bLoadedLegacyData{false};  // So the server can tell if it just
                                       // loaded a legacy box or a hashed box.
@@ -78,13 +69,13 @@ public:
     // have to keep the latest receipt, unlike systems that don't store balance
     // agreement.  We also store a list of issued transactions, the new balance,
     // and the outbox hash.
-    EXPORT Item* GenerateBalanceStatement(
+    EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
         const ServerContext& context,
         const Account& theAccount,
         Ledger& theOutbox) const;
-    EXPORT Item* GenerateBalanceStatement(
+    EXPORT std::unique_ptr<Item> GenerateBalanceStatement(
         std::int64_t lAdjustment,
         const OTTransaction& theOwner,
         const ServerContext& context,
@@ -94,31 +85,33 @@ public:
 
     EXPORT void ProduceOutboxReport(Item& theBalanceItem);
 
-    EXPORT bool AddTransaction(OTTransaction& theTransaction);
-    EXPORT bool RemoveTransaction(
-        std::int64_t lTransactionNum,
-        bool bDeleteIt = true);  // if false,
-                                 // transaction wasn't
-                                 // found.
+    EXPORT bool AddTransaction(std::shared_ptr<OTTransaction> theTransaction);
+    EXPORT bool RemoveTransaction(std::int64_t lTransactionNum);  // if false,
+                                                                  // transaction
+                                                                  // wasn't
+                                                                  // found.
 
     EXPORT std::set<std::int64_t> GetTransactionNums(
         const std::set<std::int32_t>* pOnlyForIndices = nullptr) const;
 
-    EXPORT OTTransaction* GetTransaction(
-        OTTransaction::transactionType theType);
-    EXPORT OTTransaction* GetTransaction(std::int64_t lTransactionNum) const;
-    EXPORT OTTransaction* GetTransactionByIndex(std::int32_t nIndex) const;
-    EXPORT OTTransaction* GetFinalReceipt(std::int64_t lReferenceNum);
-    EXPORT OTTransaction* GetTransferReceipt(std::int64_t lNumberOfOrigin);
-    EXPORT OTTransaction* GetChequeReceipt(
-        std::int64_t lChequeNum,
-        Cheque** ppChequeOut = nullptr);  // CALLER RESPONSIBLE
-                                          // TO DELETE.
+    EXPORT std::shared_ptr<OTTransaction> GetTransaction(
+        transactionType theType);
+    EXPORT std::shared_ptr<OTTransaction> GetTransaction(
+        std::int64_t lTransactionNum) const;
+    EXPORT std::shared_ptr<OTTransaction> GetTransactionByIndex(
+        std::int32_t nIndex) const;
+    EXPORT std::shared_ptr<OTTransaction> GetFinalReceipt(
+        std::int64_t lReferenceNum);
+    EXPORT std::shared_ptr<OTTransaction> GetTransferReceipt(
+        std::int64_t lNumberOfOrigin);
+    EXPORT std::shared_ptr<OTTransaction> GetChequeReceipt(
+        std::int64_t lChequeNum);
     EXPORT std::int32_t GetTransactionIndex(
         std::int64_t lTransactionNum);  // if not
                                         // found,
                                         // returns -1
-    EXPORT OTTransaction* GetReplyNotice(const std::int64_t& lRequestNum);
+    EXPORT std::shared_ptr<OTTransaction> GetReplyNotice(
+        const std::int64_t& lRequestNum);
 
     // This calls OTTransactionType::VerifyAccount(), which calls
     // VerifyContractID() as well as VerifySignature().
@@ -208,14 +201,6 @@ public:
     // loaded up, and the NymID will hopefully be loaded up with the rest of
     // it.
     EXPORT void InitLedger();
-    EXPORT static Ledger* GenerateLedger(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const Identifier& theAcctID,
-        const Identifier& theNotaryID,
-        ledgerType theType,
-        bool bCreateFile = false);
 
     EXPORT[[deprecated]] bool GenerateLedger(
         const Identifier& theAcctID,
@@ -232,18 +217,6 @@ public:
     EXPORT static char const* _GetTypeString(ledgerType theType);
     EXPORT char const* GetTypeString() const { return _GetTypeString(m_Type); }
 
-    EXPORT Ledger(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID);
-    EXPORT Ledger(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID);
-
     EXPORT virtual ~Ledger();
 
 protected:
@@ -255,21 +228,24 @@ protected:
                                      // this is where the ledger saves its
                                      // contents
 
-    Ledger(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);  // Hopefully
-                                         // stays
-                                         // here.
-
 private:  // Private prevents erroneous use by other classes.
+    friend api::implementation::Factory;
+
     typedef OTTransactionType ot_super;
-    friend OTTransactionType* OTTransactionType::TransactionFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput);
 
     mapOfTransactions m_mapTransactions;  // a ledger contains a map of
                                           // transactions.
+
+    Ledger(const api::Core& core);
+    EXPORT Ledger(
+        const api::Core& core,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID);
+    EXPORT Ledger(
+        const api::Core& core,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID);
 
     bool generate_ledger(
         const Identifier& theNymID,

@@ -17,12 +17,19 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 class Cheque : public OTTrackable
 {
 public:
-    static std::unique_ptr<Cheque> CreateFromReceipt(
-        const OTTransaction& receipt);
-
     inline void SetAsVoucher(
         const Identifier& remitterNymID,
         const Identifier& remitterAcctID)
@@ -82,13 +89,6 @@ public:
                                      // this is where the token saves its
                                      // contents
 
-    EXPORT Cheque(const api::Wallet& wallet, const std::string& dataFolder);
-    EXPORT Cheque(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-
     EXPORT virtual ~Cheque();
 
 protected:
@@ -105,7 +105,15 @@ protected:
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 private:  // Private prevents erroneous use by other classes.
+    friend api::implementation::Factory;
+
     typedef OTTrackable ot_super;
+
+    EXPORT Cheque(const api::Core& core);
+    EXPORT Cheque(
+        const api::Core& core,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
 
     Cheque() = delete;
 };

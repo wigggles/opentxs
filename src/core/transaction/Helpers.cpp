@@ -7,6 +7,8 @@
 
 #include "opentxs/core/transaction/Helpers.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -124,12 +126,12 @@ const char* GetOriginTypeToString(int originTypeIndex)  // enum originType
 std::int32_t LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml,
     std::int64_t& lNumberOfOrigin,
-    int& theOriginType,
+    originType& theOriginType,
     std::int64_t& lTransactionNum,
     std::int64_t& lInRefTo,
     std::int64_t& lInRefDisplay,
     time64_t& the_DATE_SIGNED,
-    int& theType,
+    transactionType& theType,
     String& strHash,
     std::int64_t& lAdjustment,
     std::int64_t& lDisplayValue,
@@ -162,13 +164,13 @@ std::int32_t LoadAbbreviatedRecord(
 
     if (strOriginNum.Exists()) lNumberOfOrigin = strOriginNum.ToLong();
     if (strOriginType.Exists())
-        theOriginType = static_cast<int>(
-            OTTransactionType::GetOriginTypeFromString(strOriginType));
+        theOriginType =
+            OTTransactionType::GetOriginTypeFromString(strOriginType);
 
     the_DATE_SIGNED = parseTimestamp(strDateSigned.Get());
 
     // Transaction TYPE for the abbreviated record...
-    theType = OTTransaction::error_state;  // default
+    theType = transactionType::error_state;  // default
     const String strAbbrevType =
         xml->getAttributeValue("type");  // the type of inbox receipt, or outbox
                                          // receipt, or nymbox receipt.
@@ -176,7 +178,7 @@ std::int32_t LoadAbbreviatedRecord(
     if (strAbbrevType.Exists()) {
         theType = OTTransaction::GetTypeFromString(strAbbrevType);
 
-        if (OTTransaction::error_state == theType) {
+        if (transactionType::error_state == theType) {
             otErr << "LoadAbbreviatedRecord: Failure: "
                      "error_state was the found type (based on "
                      "string "
@@ -219,7 +221,7 @@ std::int32_t LoadAbbreviatedRecord(
     if (strAbbrevDisplayValue.Exists())
         lDisplayValue = strAbbrevDisplayValue.ToLong();
 
-    if (OTTransaction::replyNotice == theType) {
+    if (transactionType::replyNotice == theType) {
         const String strRequestNum = xml->getAttributeValue("requestNumber");
 
         if (!strRequestNum.Exists()) {
@@ -241,8 +243,8 @@ std::int32_t LoadAbbreviatedRecord(
     // number.
     // (Grab that too.)
     //
-    if ((OTTransaction::finalReceipt == theType) ||
-        (OTTransaction::basketReceipt == theType)) {
+    if ((transactionType::finalReceipt == theType) ||
+        (transactionType::basketReceipt == theType)) {
         const String strAbbrevClosingNum = xml->getAttributeValue("closingNum");
 
         if (!strAbbrevClosingNum.Exists()) {
@@ -258,8 +260,9 @@ std::int32_t LoadAbbreviatedRecord(
 
     // These types carry their own internal list of numbers.
     //
-    if ((nullptr != pNumList) && ((OTTransaction::blank == theType) ||
-                                  (OTTransaction::successNotice == theType))) {
+    if ((nullptr != pNumList) &&
+        ((transactionType::blank == theType) ||
+         (transactionType::successNotice == theType))) {
         const String strNumbers = xml->getAttributeValue("totalListOfNumbers");
         pNumList->Release();
 
@@ -322,13 +325,15 @@ bool VerifyBoxReceiptExists(
     return bExists;
 }
 
-OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, Ledger& theLedger)
+std::unique_ptr<OTTransaction> LoadBoxReceipt(
+    OTTransaction& theAbbrev,
+    Ledger& theLedger)
 {
     const std::int64_t lLedgerType = static_cast<int64_t>(theLedger.GetType());
     return LoadBoxReceipt(theAbbrev, lLedgerType);
 }
 
-OTTransaction* LoadBoxReceipt(
+std::unique_ptr<OTTransaction> LoadBoxReceipt(
     OTTransaction& theAbbrev,
     std::int64_t lLedgerType)
 {
@@ -366,7 +371,7 @@ OTTransaction* LoadBoxReceipt(
     // See if the box receipt exists before trying to load it...
     //
     if (!OTDB::Exists(
-            theAbbrev.DataFolder(),
+            theAbbrev.Core().DataFolder(),
             strFolder1name.Get(),
             strFolder2name.Get(),
             strFolder3name.Get(),
@@ -381,7 +386,7 @@ OTTransaction* LoadBoxReceipt(
     // Try to load the box receipt from local storage.
     //
     std::string strFileContents(OTDB::QueryPlainString(
-        theAbbrev.DataFolder(),
+        theAbbrev.Core().DataFolder(),
         strFolder1name.Get(),  // <=== LOADING FROM DATA STORE.
         strFolder2name.Get(),
         strFolder3name.Get(),
@@ -408,10 +413,10 @@ OTTransaction* LoadBoxReceipt(
     // Finally, try to load the transaction from that string and see if
     // successful.
     //
-    OTTransactionType* pTransType = OTTransactionType::TransactionFactory(
-        theAbbrev.Wallet(), theAbbrev.DataFolder(), strRawFile);
+    auto pTransType =
+        theAbbrev.Core().Factory().Transaction(theAbbrev.Core(), strRawFile);
 
-    if (nullptr == pTransType) {
+    if (false == bool(pTransType)) {
         otErr << __FUNCTION__
               << ": Error instantiating transaction "
                  "type based on strRawFile: "
@@ -421,17 +426,16 @@ OTTransaction* LoadBoxReceipt(
         return nullptr;
     }
 
-    OTTransaction* pBoxReceipt = dynamic_cast<OTTransaction*>(pTransType);
+    std::unique_ptr<OTTransaction> pBoxReceipt{
+        dynamic_cast<OTTransaction*>(pTransType.release())};
 
-    if (nullptr == pBoxReceipt) {
+    if (false == bool(pBoxReceipt)) {
         otErr << __FUNCTION__
               << ": Error dynamic_cast from transaction "
                  "type to transaction, based on strRawFile: "
               << strFolder1name << Log::PathSeparator() << strFolder2name
               << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
               << strFilename << "\n";
-        delete pTransType;
-        pTransType = nullptr;  // cleanup!
         return nullptr;
     }
 
@@ -449,8 +453,6 @@ OTTransaction* LoadBoxReceipt(
               << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
               << strFilename << "\n";
 
-        delete pBoxReceipt;
-        pBoxReceipt = nullptr;
         return nullptr;
     } else
         otInfo << __FUNCTION__ << ": Successfully loaded Box Receipt in:\n"
@@ -568,23 +570,23 @@ bool SetupBoxReceiptFilename(
     std::int64_t lLedgerType = 0;
 
     switch (theLedger.GetType()) {
-        case Ledger::nymbox:
+        case ledgerType::nymbox:
             lLedgerType = 0;
             break;
-        case Ledger::inbox:
+        case ledgerType::inbox:
             lLedgerType = 1;
             break;
-        case Ledger::outbox:
+        case ledgerType::outbox:
             lLedgerType = 2;
             break;
-        //        case OTLedger::message:         lLedgerType = 3;    break;
-        case Ledger::paymentInbox:
+        //        case OTledgerType::message:         lLedgerType = 3;    break;
+        case ledgerType::paymentInbox:
             lLedgerType = 4;
             break;
-        case Ledger::recordBox:
+        case ledgerType::recordBox:
             lLedgerType = 5;
             break;
-        case Ledger::expiredBox:
+        case ledgerType::expiredBox:
             lLedgerType = 6;
             break;
         default:

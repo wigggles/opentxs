@@ -44,11 +44,8 @@
 
 namespace opentxs
 {
-OTMarket::OTMarket(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const char* szFilename)
-    : Contract(wallet, dataFolder)
+OTMarket::OTMarket(const api::Core& core, const char* szFilename)
+    : Contract(core)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_mapBids()
@@ -68,8 +65,8 @@ OTMarket::OTMarket(
     m_strFoldername.Set(OTFolders::Market().Get());
 }
 
-OTMarket::OTMarket(const api::Wallet& wallet, const std::string& dataFolder)
-    : Contract(wallet, dataFolder)
+OTMarket::OTMarket(const api::Core& core)
+    : Contract(core)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_mapBids()
@@ -86,13 +83,12 @@ OTMarket::OTMarket(const api::Wallet& wallet, const std::string& dataFolder)
 }
 
 OTMarket::OTMarket(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& CURRENCY_TYPE_ID,
     const std::int64_t& lScale)
-    : Contract(wallet, dataFolder)
+    : Contract(core)
     , m_pCron(nullptr)
     , m_pTradeList(nullptr)
     , m_mapBids()
@@ -166,27 +162,25 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << ": offer field without value.\n";
             return (-1);  // error condition
         } else {
-            OTOffer* pOffer = new OTOffer(
-                wallet_,
-                data_folder_,
+            auto pOffer{core_.Factory().Offer(
+                core_,
                 m_NOTARY_ID,
                 m_INSTRUMENT_DEFINITION_ID,
                 m_CURRENCY_TYPE_ID,
-                m_lScale);
+                m_lScale)};
 
-            OT_ASSERT(nullptr != pOffer);
+            OT_ASSERT(false != bool(pOffer));
 
+            OTOffer* offer = pOffer.release();
             if (pOffer->LoadContractFromString(strData) &&
-                AddOffer(nullptr, *pOffer, false, tDateAdded))  // bSaveMarket =
-            // false (Don't SAVE
-            // -- we're loading
-            // right now!)
+                AddOffer(nullptr, *offer, false, tDateAdded))
+            // bSaveMarket = false (Don't SAVE -- we're loading right now!)
             {
                 otWarn << "Successfully loaded offer and added to market.\n";
             } else {
                 otErr << "Error adding offer to market while loading market.\n";
-                delete pOffer;
-                pOffer = nullptr;
+                delete offer;
+                offer = nullptr;
                 return (-1);
             }
         }
@@ -805,7 +799,7 @@ bool OTMarket::LoadMarket()
     const char* szFilename = str_MARKET_ID.Get();
 
     bool bSuccess =
-        OTDB::Exists(data_folder_, szFoldername, szFilename, "", "");
+        OTDB::Exists(core_.DataFolder(), szFoldername, szFilename, "", "");
 
     if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename);  // todo ??
 
@@ -823,7 +817,7 @@ bool OTMarket::LoadMarket()
 
         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(OTDB::QueryObject(
             OTDB::STORED_OBJ_TRADE_LIST_MARKET,
-            data_folder_,
+            core_.DataFolder(),
             szFoldername,  // markets
             szSubFolder,   // markets/recent
             str_TRADES_FILE.Get(),
@@ -872,7 +866,7 @@ bool OTMarket::SaveMarket()
         // If this fails, oh well. It's informational, anyway.
         if (!OTDB::StoreObject(
                 *m_pTradeList,
-                data_folder_,
+                core_.DataFolder(),
                 szFoldername,  // markets
                 szSubFolder,   // markets/recent
                 str_TRADES_FILE.Get(),
@@ -1127,7 +1121,7 @@ void OTMarket::ProcessTrade(
         pFirstNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pFirstNym = wallet_.Nym(FIRST_NYM_ID);
+        pFirstNym = core_.Wallet().Nym(FIRST_NYM_ID);
         if (nullptr == pFirstNym) {
             String strNymID(FIRST_NYM_ID);
             otErr << "OTMarket::" << __FUNCTION__
@@ -1150,7 +1144,7 @@ void OTMarket::ProcessTrade(
         pOtherNym = pFirstNym;  // theNym is pFirstNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pOtherNym = wallet_.Nym(OTHER_NYM_ID);
+        pOtherNym = core_.Wallet().Nym(OTHER_NYM_ID);
         if (nullptr == pOtherNym) {
             String strNymID(OTHER_NYM_ID);
             otErr << "Failure loading or verifying Other Nym public key in "
@@ -1286,79 +1280,70 @@ void OTMarket::ProcessTrade(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        Ledger theFirstAssetInbox(
-            wallet_,
-            data_folder_,
-            FIRST_NYM_ID,
-            theTrade.GetSenderAcctID(),
-            NOTARY_ID),
-            theFirstCurrencyInbox(
-                wallet_,
-                data_folder_,
-                FIRST_NYM_ID,
-                theTrade.GetCurrencyAcctID(),
-                NOTARY_ID),
-            theOtherAssetInbox(
-                wallet_,
-                data_folder_,
-                OTHER_NYM_ID,
-                pOtherTrade->GetSenderAcctID(),
-                NOTARY_ID),
-            theOtherCurrencyInbox(
-                wallet_,
-                data_folder_,
-                OTHER_NYM_ID,
-                pOtherTrade->GetCurrencyAcctID(),
-                NOTARY_ID);
+        auto theFirstAssetInbox{core_.Factory().Ledger(
+            core_, FIRST_NYM_ID, theTrade.GetSenderAcctID(), NOTARY_ID)};
+        auto theFirstCurrencyInbox{core_.Factory().Ledger(
+            core_, FIRST_NYM_ID, theTrade.GetCurrencyAcctID(), NOTARY_ID)};
+        auto theOtherAssetInbox{core_.Factory().Ledger(
+            core_, OTHER_NYM_ID, pOtherTrade->GetSenderAcctID(), NOTARY_ID)};
+        auto theOtherCurrencyInbox{core_.Factory().Ledger(
+            core_, OTHER_NYM_ID, pOtherTrade->GetCurrencyAcctID(), NOTARY_ID)};
+
+        OT_ASSERT(false != bool(theFirstAssetInbox));
+        OT_ASSERT(false != bool(theFirstCurrencyInbox));
+        OT_ASSERT(false != bool(theOtherAssetInbox));
+        OT_ASSERT(false != bool(theOtherCurrencyInbox));
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
-        bool bSuccessLoadingFirstAsset = theFirstAssetInbox.LoadInbox();
-        bool bSuccessLoadingFirstCurrency = theFirstCurrencyInbox.LoadInbox();
-        bool bSuccessLoadingOtherAsset = theOtherAssetInbox.LoadInbox();
-        bool bSuccessLoadingOtherCurrency = theOtherCurrencyInbox.LoadInbox();
+        bool bSuccessLoadingFirstAsset = theFirstAssetInbox->LoadInbox();
+        bool bSuccessLoadingFirstCurrency = theFirstCurrencyInbox->LoadInbox();
+        bool bSuccessLoadingOtherAsset = theOtherAssetInbox->LoadInbox();
+        bool bSuccessLoadingOtherCurrency = theOtherCurrencyInbox->LoadInbox();
 
         // ...or generate them otherwise...
 
         if (true == bSuccessLoadingFirstAsset)
             bSuccessLoadingFirstAsset =
-                theFirstAssetInbox.VerifyAccount(*pServerNym);
+                theFirstAssetInbox->VerifyAccount(*pServerNym);
         else
-            bSuccessLoadingFirstAsset = theFirstAssetInbox.GenerateLedger(
+            bSuccessLoadingFirstAsset = theFirstAssetInbox->GenerateLedger(
                 theTrade.GetSenderAcctID(),
                 NOTARY_ID,
-                Ledger::inbox,
+                ledgerType::inbox,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingFirstCurrency)
             bSuccessLoadingFirstCurrency =
-                theFirstCurrencyInbox.VerifyAccount(*pServerNym);
+                theFirstCurrencyInbox->VerifyAccount(*pServerNym);
         else
-            bSuccessLoadingFirstCurrency = theFirstCurrencyInbox.GenerateLedger(
-                theTrade.GetCurrencyAcctID(),
-                NOTARY_ID,
-                Ledger::inbox,
-                true);  // bGenerateFile=true
+            bSuccessLoadingFirstCurrency =
+                theFirstCurrencyInbox->GenerateLedger(
+                    theTrade.GetCurrencyAcctID(),
+                    NOTARY_ID,
+                    ledgerType::inbox,
+                    true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherAsset)
             bSuccessLoadingOtherAsset =
-                theOtherAssetInbox.VerifyAccount(*pServerNym);
+                theOtherAssetInbox->VerifyAccount(*pServerNym);
         else
-            bSuccessLoadingOtherAsset = theOtherAssetInbox.GenerateLedger(
+            bSuccessLoadingOtherAsset = theOtherAssetInbox->GenerateLedger(
                 pOtherTrade->GetSenderAcctID(),
                 NOTARY_ID,
-                Ledger::inbox,
+                ledgerType::inbox,
                 true);  // bGenerateFile=true
 
         if (true == bSuccessLoadingOtherCurrency)
             bSuccessLoadingOtherCurrency =
-                theOtherCurrencyInbox.VerifyAccount(*pServerNym);
+                theOtherCurrencyInbox->VerifyAccount(*pServerNym);
         else
-            bSuccessLoadingOtherCurrency = theOtherCurrencyInbox.GenerateLedger(
-                pOtherTrade->GetCurrencyAcctID(),
-                NOTARY_ID,
-                Ledger::inbox,
-                true);  // bGenerateFile=true
+            bSuccessLoadingOtherCurrency =
+                theOtherCurrencyInbox->GenerateLedger(
+                    pOtherTrade->GetCurrencyAcctID(),
+                    NOTARY_ID,
+                    ledgerType::inbox,
+                    true);  // bGenerateFile=true
 
         if ((false == bSuccessLoadingFirstAsset) ||
             (false == bSuccessLoadingFirstCurrency)) {
@@ -1435,135 +1420,141 @@ void OTMarket::ProcessTrade(
 
             // Start generating the receipts (for all four inboxes.)
 
-            OTTransaction* pTrans1 = OTTransaction::GenerateTransaction(
-                wallet_,
-                theFirstAssetInbox,
-                OTTransaction::marketReceipt,
+            auto pTrans1{core_.Factory().Transaction(
+                core_,
+                *theFirstAssetInbox,
+                transactionType::marketReceipt,
                 originType::origin_market_offer,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            OTTransaction* pTrans2 = OTTransaction::GenerateTransaction(
-                wallet_,
-                theFirstCurrencyInbox,
-                OTTransaction::marketReceipt,
+            OT_ASSERT(false != bool(pTrans1));
+
+            auto pTrans2{core_.Factory().Transaction(
+                core_,
+                *theFirstCurrencyInbox,
+                transactionType::marketReceipt,
                 originType::origin_market_offer,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            OTTransaction* pTrans3 = OTTransaction::GenerateTransaction(
-                wallet_,
-                theOtherAssetInbox,
-                OTTransaction::marketReceipt,
+            OT_ASSERT(false != bool(pTrans2));
+
+            auto pTrans3{core_.Factory().Transaction(
+                core_,
+                *theOtherAssetInbox,
+                transactionType::marketReceipt,
                 originType::origin_market_offer,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            OTTransaction* pTrans4 = OTTransaction::GenerateTransaction(
-                wallet_,
-                theOtherCurrencyInbox,
-                OTTransaction::marketReceipt,
+            OT_ASSERT(false != bool(pTrans3));
+
+            auto pTrans4{core_.Factory().Transaction(
+                core_,
+                *theOtherCurrencyInbox,
+                transactionType::marketReceipt,
                 originType::origin_market_offer,
-                lNewTransactionNumber);
+                lNewTransactionNumber)};
 
-            // (No need to OT_ASSERT on the above transactions since it occurs
-            // in GenerateTransaction().)
+            OT_ASSERT(false != bool(pTrans4));
+
+            std::shared_ptr<OTTransaction> trans1{pTrans1.release()};
+            std::shared_ptr<OTTransaction> trans2{pTrans2.release()};
+            std::shared_ptr<OTTransaction> trans3{pTrans3.release()};
+            std::shared_ptr<OTTransaction> trans4{pTrans4.release()};
 
             // All four inboxes will get receipts with the same (new)
             // transaction ID.
-            // They all have a "reference to" containing the original trade.
-            // The first two will contain theTrade as the reference field,
-            // but the second two contain pOtherTrade as the reference field.
-            // The first two also thus reference a different original
-            // transaction number than the other two.
-            // That's because each end of the trade was originally authorized
-            // separately by each trader, and
-            // in each case he used his own unique transaction number to do so.
+            // They all have a "reference to" containing the original
+            // trade. The first two will contain theTrade as the
+            // reference field, but the second two contain pOtherTrade
+            // as the reference field. The first two also thus reference
+            // a different original transaction number than the other
+            // two. That's because each end of the trade was originally
+            // authorized separately by each trader, and in each case he
+            // used his own unique transaction number to do so.
 
-            // set up the transaction items (each transaction may have multiple
-            // items... but not in this case.)
-            Item* pItem1 = Item::CreateItemFromTransaction(
-                *pTrans1, Item::marketReceipt, Identifier::Factory());
-            Item* pItem2 = Item::CreateItemFromTransaction(
-                *pTrans2, Item::marketReceipt, Identifier::Factory());
-            Item* pItem3 = Item::CreateItemFromTransaction(
-                *pTrans3, Item::marketReceipt, Identifier::Factory());
-            Item* pItem4 = Item::CreateItemFromTransaction(
-                *pTrans4, Item::marketReceipt, Identifier::Factory());
+            // set up the transaction items (each transaction may have
+            // multiple items... but not in this case.)
+            auto pItem1{core_.Factory().Item(
+                *trans1, itemType::marketReceipt, Identifier::Factory())};
+            auto pItem2{core_.Factory().Item(
+                *trans2, itemType::marketReceipt, Identifier::Factory())};
+            auto pItem3{core_.Factory().Item(
+                *trans3, itemType::marketReceipt, Identifier::Factory())};
+            auto pItem4{core_.Factory().Item(
+                *trans4, itemType::marketReceipt, Identifier::Factory())};
 
-            // these may be unnecessary, I'll have to check
-            // CreateItemFromTransaction. I'll leave em.
-            OT_ASSERT(nullptr != pItem1);
-            OT_ASSERT(nullptr != pItem2);
-            OT_ASSERT(nullptr != pItem3);
-            OT_ASSERT(nullptr != pItem4);
+            OT_ASSERT(false != bool(pItem1));
+            OT_ASSERT(false != bool(pItem2));
+            OT_ASSERT(false != bool(pItem3));
+            OT_ASSERT(false != bool(pItem4));
 
-            pItem1->SetStatus(Item::rejection);  // the default.
-            pItem2->SetStatus(Item::rejection);  // the default.
-            pItem3->SetStatus(Item::rejection);  // the default.
-            pItem4->SetStatus(Item::rejection);  // the default.
+            std::shared_ptr<Item> item1{pItem1.release()};
+            std::shared_ptr<Item> item2{pItem2.release()};
+            std::shared_ptr<Item> item3{pItem3.release()};
+            std::shared_ptr<Item> item4{pItem4.release()};
+
+            item1->SetStatus(Item::rejection);  // the default.
+            item2->SetStatus(Item::rejection);  // the default.
+            item3->SetStatus(Item::rejection);  // the default.
+            item4->SetStatus(Item::rejection);  // the default.
 
             // Calculate the amount and remove / add it to the relevant
             // accounts.
-            // Make sure each Account can afford it, and roll back in case of
-            // failure.
+            // Make sure each Account can afford it, and roll back in
+            // case of failure.
 
-            // -- TheTrade will get the PriceLimit offered by theOtherOffer, and
-            // not vice-versa.
-            //    (See explanation below this function if you need to know the
+            // -- TheTrade will get the PriceLimit offered by
+            // theOtherOffer, and not vice-versa.
+            //    (See explanation below this function if you need to
+            //    know the
             // reasoning.)
 
-            // NOTICE: This is one of the reasons why theOtherOffer CANNOT be a
-            // Market order,
-            // because we will be using his price limit to determine the price.
-            // (Another reason FYI, is because Market Orders are only allowed to
-            // process once,
-            // IN TURN.)
+            // NOTICE: This is one of the reasons why theOtherOffer
+            // CANNOT be a Market order, because we will be using his
+            // price limit to determine the price. (Another reason FYI,
+            // is because Market Orders are only allowed to process
+            // once, IN TURN.)
 
             // Some logic described:
             //
             // Calculate the price
-            // I know the amount available for trade is at LEAST the minimum
-            // increment on both
-            // sides, since that was validated before this function was even
-            // called. Therefore,
-            // let's calculate a price based on the largest of the two minimum
+            // I know the amount available for trade is at LEAST the
+            // minimum increment on both sides, since that was validated
+            // before this function was even called. Therefore, let's
+            // calculate a price based on the largest of the two minimum
             // increments.
-            // Figure out which is largest, then divide that by the scale to get
-            // the multiplier.
-            // Multiply THAT by the theOtherOffer's Price Limit to get the price
-            // per minimum increment.
+            // Figure out which is largest, then divide that by the
+            // scale to get the multiplier. Multiply THAT by the
+            // theOtherOffer's Price Limit to get the price per minimum
+            // increment.
             //
-            // Since we are calculating the MINIMUM that must be processed per
-            // round, let's also
-            // calculate the MOST that could be traded between these two offers.
-            // Then let's
-            // mod that to the Scale and remove the remainder, then divide by
-            // the Scale and
-            // multiply by the price (to get the MOST that would have to be
-            // paid, if the offers
-            // fulfilled each other to the maximum possible according to their
-            // limits.)
-            // !! It's better to process it all at once and avoid the loop
-            // entirely.
-            // Plus, there's SUPPOSED to be enough funds in all the accounts to
-            // cover it.
+            // Since we are calculating the MINIMUM that must be
+            // processed per round, let's also calculate the MOST that
+            // could be traded between these two offers. Then let's mod
+            // that to the Scale and remove the remainder, then divide
+            // by the Scale and multiply by the price (to get the MOST
+            // that would have to be paid, if the offers fulfilled each
+            // other to the maximum possible according to their limits.)
+            // !! It's better to process it all at once and avoid the
+            // loop entirely. Plus, there's SUPPOSED to be enough funds
+            // in all the accounts to cover it.
             //
             // Anyway, if there aren't:
             //
-            // Then LOOP (while available >= minimum increment) on both sides of
-            // the trade
-            // Inside, try to move funds across all 4 accounts. If any of them
-            // fail, roll them
-            // back and break. (I'll check balances first to avoid this.)
-            // As long as there's enough available in the accounts to continue
+            // Then LOOP (while available >= minimum increment) on both
+            // sides of the trade Inside, try to move funds across all 4
+            // accounts. If any of them fail, roll them back and break.
+            // (I'll check balances first to avoid this.) As long as
+            // there's enough available in the accounts to continue
             // exchanging the
-            // largest minimum increment, then keep looping like this and moving
-            // the digital assets.
-            // Each time, also, be sure to update the Offer so that less and
-            // less is available on each trade.
-            // At some point, the Trades will run out of authorization to
-            // transfer any more from the accounts.
-            // Perhaps one has a 10,000 bushel total limit and it has been
-            // reached. The trade is complete,
-            // from his side of it, anyway. Then the loop will be over for sure.
+            // largest minimum increment, then keep looping like this
+            // and moving the digital assets. Each time, also, be sure
+            // to update the Offer so that less and less is available on
+            // each trade. At some point, the Trades will run out of
+            // authorization to transfer any more from the accounts.
+            // Perhaps one has a 10,000 bushel total limit and it has
+            // been reached. The trade is complete, from his side of it,
+            // anyway. Then the loop will be over for sure.
 
             auto& pAssetAccountToDebit =
                 theOffer.IsAsk() ? pFirstAssetAcct : pOtherAssetAcct;
@@ -1586,12 +1577,11 @@ void OTMarket::ProcessTrade(
                                                        // 10, and the minimum
                                                        // increment is 50,
                                                        // multiplier is 5..
-            // The price limit is per scale. (Per 10.) So if 1oz gold is $1300,
-            // then 10oz scale
-            // would be $13,000. So if my price limit is per SCALE, I might set
-            // my limit
-            // to $12,000 or $13,000 (PER 10 OZ OF GOLD, which is the SCALE for
-            // this market.)
+            // The price limit is per scale. (Per 10.) So if 1oz gold is
+            // $1300, then 10oz scale would be $13,000. So if my price
+            // limit is per SCALE, I might set my limit to $12,000 or
+            // $13,000 (PER 10 OZ OF GOLD, which is the SCALE for this
+            // market.)
 
             // Calc price of each round.
             std::int64_t lPrice =
@@ -1601,21 +1591,22 @@ void OTMarket::ProcessTrade(
                                                                 // 50, then my
                                                                 // multiplier is
             // 5, which means
-            // multiply my price by 5: $13,000 * 5 == $65,000 for 50 oz. per
-            // minimum inc.
+            // multiply my price by 5: $13,000 * 5 == $65,000 for 50 oz.
+            // per minimum inc.
 
-            // Why am I using the OTHER Offer's price limit, and not my own?
-            // See notes at top and bottom of this function for the answer.
+            // Why am I using the OTHER Offer's price limit, and not my
+            // own? See notes at top and bottom of this function for the
+            // answer.
 
             // There's two ways to process this: in rounds (by minimum
             // increment), for which the numbers were
             // just calulated above...
             //
-            // ...OR based on whatever is the MOST available from BOTH parties.
-            // (Whichever is the least of the
-            // two parties' "Most Available Left To Trade".) So I'll try THAT
-            // first, to avoid processing in
-            // rounds. (Since the funds SHOULD be there...)
+            // ...OR based on whatever is the MOST available from BOTH
+            // parties. (Whichever is the least of the two parties'
+            // "Most Available Left To Trade".) So I'll try THAT first,
+            // to avoid processing in rounds. (Since the funds SHOULD be
+            // there...)
 
             std::int64_t lMostAvailable =
                 ((theOffer.GetAmountAvailable() >
@@ -1632,16 +1623,17 @@ void OTMarket::ProcessTrade(
                                       // it's even to scale (which is how it's
                                       // priced.)
 
-            // We KNOW the amount available on the offer is at least as much as
-            // the minimum increment (on both sides)
-            // because that is verified in the caller function. So we KNOW
+            // We KNOW the amount available on the offer is at least as
+            // much as the minimum increment (on both sides) because
+            // that is verified in the caller function. So we KNOW
             // either side can process the minimum, at least
-            // based on the authorization in the offers (not necessarily in the
-            // accounts themselves, though they are
-            // SUPPOSED to have enough funds to cover it...)
+            // based on the authorization in the offers (not necessarily
+            // in the accounts themselves, though they are SUPPOSED to
+            // have enough funds to cover it...)
             //
-            // Next question is: can both sides process the MOST AVAILABLE? If
-            // so, do THAT, instead of processing by rounds.
+            // Next question is: can both sides process the MOST
+            // AVAILABLE? If so, do THAT, instead of processing by
+            // rounds.
 
             const std::int64_t lOverallMultiplier =
                 lMostAvailable /
@@ -1649,43 +1641,39 @@ void OTMarket::ProcessTrade(
                              // was commented with the line
                              // below it. They go together.
 
-            // Why theOtherOffer's price limit instead of theOffer's? See notes
-            // top/bottom this function.
+            // Why theOtherOffer's price limit instead of theOffer's?
+            // See notes top/bottom this function.
             const std::int64_t lMostPrice =
                 (lOverallMultiplier * theOtherOffer.GetPriceLimit());
-            // TO REMOVE MULTIPLIER FROM PRICE, AT LEAST THE ABOVE LINE WOULD
-            // REMOVE MULTIPLIER.
+            // TO REMOVE MULTIPLIER FROM PRICE, AT LEAST THE ABOVE LINE
+            // WOULD REMOVE MULTIPLIER.
 
-            // To avoid rounds, first I see if I can satisfy the entire order at
-            // once on either side...
+            // To avoid rounds, first I see if I can satisfy the entire
+            // order at once on either side...
             if ((pAssetAccountToDebit.get().GetBalance() >= lMostAvailable) &&
                 (pCurrencyAccountToDebit.get().GetBalance() >=
-                 lMostPrice)) {  // There's enough the accounts to do it all at
-                                 // once! No need for rounds.
+                 lMostPrice)) {  // There's enough the accounts to do it
+                                 // all at once! No need for rounds.
 
                 lMinIncrementPerRound = lMostAvailable;
                 lPrice = lMostPrice;
 
-                // By setting the ABOVE two values the way that I did, it means
-                // the below loop
-                // will execute properly, BUT ONLY ITERATING ONCE. Basically
-                // this section of
-                // code just optimizes that loop when possible by allowing it to
-                // execute
-                // only once.
+                // By setting the ABOVE two values the way that I did,
+                // it means the below loop will execute properly, BUT
+                // ONLY ITERATING ONCE. Basically this section of code
+                // just optimizes that loop when possible by allowing it
+                // to execute only once.
             }
 
-            // Otherwise, I go ahead and process it in rounds, by minimum
-            // increment...
-            // (Since the funds ARE supposed to be there to process the whole
-            // thing, I COULD
-            // choose to cancel the offender right now! I might put an extra fee
+            // Otherwise, I go ahead and process it in rounds, by
+            // minimum increment... (Since the funds ARE supposed to be
+            // there to process the whole thing, I COULD choose to
+            // cancel the offender right now! I might put an extra fee
             // in this loop or
-            // just remove it. The software would still be functional, it would
-            // just enforce the
-            // account having enough funds to cover the full offer at all
-            // times--if it wants to
-            // trade at all.)
+            // just remove it. The software would still be functional,
+            // it would just enforce the account having enough funds to
+            // cover the full offer at all times--if it wants to trade
+            // at all.)
 
             bool bSuccess = false;
 
@@ -1697,16 +1685,20 @@ void OTMarket::ProcessTrade(
                 lTotalPaidOut =
                     0;  // However much is paid for the assets, total.
 
-            // Continuing the example from above, each round I will trade:
-            //        50 oz lMinIncrementPerRound, in return for $65,000 lPrice.
+            // Continuing the example from above, each round I will
+            // trade:
+            //        50 oz lMinIncrementPerRound, in return for $65,000
+            //        lPrice.
             while ((lMinIncrementPerRound <=
                     (theOffer.GetAmountAvailable() -
-                     lOfferFinished)) &&  // The primary offer has at least 50
-                                          // available to trade (buy OR sell)
+                     lOfferFinished)) &&  // The primary offer has at
+                                          // least 50 available to trade
+                                          // (buy OR sell)
                    (lMinIncrementPerRound <=
                     (theOtherOffer.GetAmountAvailable() -
-                     lOtherOfferFinished)) &&  // The other offer has at least
-                                               // 50 available for trade also.
+                     lOtherOfferFinished)) &&  // The other offer has at
+                                               // least 50 available for
+                                               // trade also.
                    (lMinIncrementPerRound <=
                     pAssetAccountToDebit.get().GetBalance()) &&  // Asset Acct
                                                                  // to be
@@ -1720,10 +1712,10 @@ void OTMarket::ProcessTrade(
             // least 65000
             // available.
             {
-                // Within this block, the offer is authorized on both sides, and
-                // there is enough in
-                // each of the relevant accounts to cover the round, (for SURE.)
-                // So let's DO it.
+                // Within this block, the offer is authorized on both
+                // sides, and there is enough in each of the relevant
+                // accounts to cover the round, (for SURE.) So let's DO
+                // it.
 
                 bool bMove1 =
                     pAssetAccountToDebit.get().Debit(lMinIncrementPerRound);
@@ -1732,13 +1724,16 @@ void OTMarket::ProcessTrade(
                     pAssetAccountToCredit.get().Credit(lMinIncrementPerRound);
                 bool bMove4 = pCurrencyAccountToCredit.get().Credit(lPrice);
 
-                // If ANY of these failed, then roll them all back and break.
+                // If ANY of these failed, then roll them all back and
+                // break.
                 if (!bMove1 || !bMove2 || !bMove3 || !bMove4) {
-                    otErr << "Very strange! Funds were available, yet debit or "
+                    otErr << "Very strange! Funds were available, yet "
+                             "debit or "
                              "credit failed while performing trade. "
                              "Attempting rollback!\n";
-                    // We won't save the files anyway, if this failed. So the
-                    // rollback is actually superfluous but somehow worthwhile.
+                    // We won't save the files anyway, if this failed.
+                    // So the rollback is actually superfluous but
+                    // somehow worthwhile.
                     rollback_four_accounts(
                         pAssetAccountToDebit.get(),
                         bMove1,
@@ -1757,10 +1752,10 @@ void OTMarket::ProcessTrade(
                     break;
                 }
 
-                // At this point, we know all the debits and credits were
-                // successful (FOR THIS ROUND.)
-                // Also notice that the Trades and Offers have not been changed
-                // at all--only the accounts.
+                // At this point, we know all the debits and credits
+                // were successful (FOR THIS ROUND.) Also notice that
+                // the Trades and Offers have not been changed at
+                // all--only the accounts.
                 bSuccess = true;
 
                 // So let's adjust the offers to reflect this also...
@@ -1772,48 +1767,46 @@ void OTMarket::ProcessTrade(
                 lTotalPaidOut += lPrice;
             }
 
-            // At this point, it has gone god-knows-how-many rounds, (or just
-            // one) and then broke out,
-            // with bSuccess=false, OR finished properly when the while() terms
-            // were fulfilled, with bSuccess = true.
+            // At this point, it has gone god-knows-how-many rounds, (or
+            // just one) and then broke out, with bSuccess=false, OR
+            // finished properly when the while() terms were fulfilled,
+            // with bSuccess = true.
             //
-            // My point? If there was a screw-up, EVEN if the rollback was
-            // successful, it STILL only rolled-back
-            // the most RECENT round -- There still might have been 20 rounds
-            // processed before the break.
-            // (Funds could still have been moved, even if rollback was
-            // successful.) THEREFORE, DO NOT SAVE if false.
-            // We only save those accounts if bSuccess == true.  The Rollback is
-            // not good enough
+            // My point? If there was a screw-up, EVEN if the rollback
+            // was successful, it STILL only rolled-back the most RECENT
+            // round -- There still might have been 20 rounds processed
+            // before the break. (Funds could still have been moved,
+            // even if rollback was successful.) THEREFORE, DO NOT SAVE
+            // if false. We only save those accounts if bSuccess ==
+            // true.  The Rollback is not good enough
 
             if (true == bSuccess) {
-                // ALL of the four accounts involved need to get a receipt of
-                // this trade in their inboxes...
-                pItem1->SetStatus(Item::acknowledgement);  // pFirstAssetAcct
-                pItem2->SetStatus(Item::acknowledgement);  // pFirstCurrencyAcct
-                pItem3->SetStatus(Item::acknowledgement);  // pOtherAssetAcct
-                pItem4->SetStatus(Item::acknowledgement);  // pOtherCurrencyAcct
+                // ALL of the four accounts involved need to get a
+                // receipt of this trade in their inboxes...
+                item1->SetStatus(Item::acknowledgement);  // pFirstAssetAcct
+                item2->SetStatus(Item::acknowledgement);  // pFirstCurrencyAcct
+                item3->SetStatus(Item::acknowledgement);  // pOtherAssetAcct
+                item4->SetStatus(Item::acknowledgement);  // pOtherCurrencyAcct
 
                 // Everytime a trade processes, a receipt is put in each
                 // account's inbox.
-                // This contains a copy of the current trade (which took money
-                // from the acct.)
+                // This contains a copy of the current trade (which took
+                // money from the acct.)
                 //
-                // ==> So I increment the trade count each time before dropping
-                // the receipt. (I also use a fresh
-                // transaction number when I put it into the inbox.) That way,
-                // the user will never get the same
-                // receipt for the same trade twice. It cannot take funds from
-                // his account, without a new trade
-                // count and a new transaction number on a new receipt. Until
-                // the user accepts the receipt out
-                // of his inbox with a new balance agreement, the existing
-                // receipts can be added up and compared
-                // to the last balance agreement, to verify the current balance.
-                // Every receipt from a processing
-                // trade will have the user's authorization, signature, and
-                // terms, as well as the update in balances
-                // due to the trade, signed by the server.
+                // ==> So I increment the trade count each time before
+                // dropping the receipt. (I also use a fresh transaction
+                // number when I put it into the inbox.) That way, the
+                // user will never get the same receipt for the same
+                // trade twice. It cannot take funds from his account,
+                // without a new trade count and a new transaction
+                // number on a new receipt. Until the user accepts the
+                // receipt out of his inbox with a new balance
+                // agreement, the existing receipts can be added up and
+                // compared to the last balance agreement, to verify the
+                // current balance. Every receipt from a processing
+                // trade will have the user's authorization, signature,
+                // and terms, as well as the update in balances due to
+                // the trade, signed by the server.
 
                 theTrade.IncrementTradesAlreadyDone();
                 pOtherTrade->IncrementTradesAlreadyDone();
@@ -1824,8 +1817,8 @@ void OTMarket::ProcessTrade(
                                                                   // the loop
                                                                   // above.
                 theOtherOffer.IncrementFinishedSoFar(
-                    lOtherOfferFinished);  // I was storing these up in the loop
-                                           // above.
+                    lOtherOfferFinished);  // I was storing these up in
+                                           // the loop above.
 
                 // These have updated values, so let's save them.
                 theTrade.ReleaseSignatures();
@@ -1847,8 +1840,8 @@ void OTMarket::ProcessTrade(
                 m_lLastSalePrice =
                     theOtherOffer.GetPriceLimit();  // Priced per scale.
 
-                // Here we save this trade in a list of the most recent 50
-                // trades.
+                // Here we save this trade in a list of the most recent
+                // 50 trades.
                 {
                     if (nullptr == m_pTradeList) {
                         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(
@@ -1864,7 +1857,8 @@ void OTMarket::ProcessTrade(
                         theOffer.GetTransactionNum();
                     const time64_t theDate = OTTimeGetCurrentTime();
                     const std::int64_t& lPriceLimit =
-                        theOtherOffer.GetPriceLimit();  // Priced per scale.
+                        theOtherOffer.GetPriceLimit();  // Priced per
+                                                        // scale.
                     const std::int64_t& lAmountSold = lOfferFinished;
 
                     pTradeData->transaction_id =
@@ -1876,92 +1870,82 @@ void OTMarket::ProcessTrade(
 
                     m_strLastSaleDate = pTradeData->date;
 
-                    // *pTradeData is CLONED at this time (I'm still responsible
-                    // to delete.)
-                    // That's also why I add it here, after all the above: So
-                    // the data is set right BEFORE the cloning occurs.
+                    // *pTradeData is CLONED at this time (I'm still
+                    // responsible to delete.) That's also why I add it
+                    // here, after all the above: So the data is set
+                    // right BEFORE the cloning occurs.
                     //
                     m_pTradeList->AddTradeDataMarket(*pTradeData);
 
-                    // Here we erase the oldest elements so the list never
-                    // exceeds 50 elements total.
+                    // Here we erase the oldest elements so the list
+                    // never exceeds 50 elements total.
                     //
                     while (m_pTradeList->GetTradeDataMarketCount() >
                            MAX_MARKET_QUERY_DEPTH)
                         m_pTradeList->RemoveTradeDataMarket(0);
                 }
 
-                // Account balances have changed based on these trades that we
-                // just processed.
-                // Make sure to save the Market since it contains those offers
-                // that have just updated.
+                // Account balances have changed based on these trades
+                // that we just processed. Make sure to save the Market
+                // since it contains those offers that have just
+                // updated.
                 SaveMarket();
 
-                // The Trade has changed, and it is stored as a CronItem. So I
-                // save Cron as well, for
-                // the same reason I saved the Market.
+                // The Trade has changed, and it is stored as a
+                // CronItem. So I save Cron as well, for the same reason
+                // I saved the Market.
                 pCron->SaveCron();
             }
 
             //
-            // EVERYTHING BELOW is just about notifying the users, by dropping
-            // the receipt in their
-            // inboxes.
+            // EVERYTHING BELOW is just about notifying the users, by
+            // dropping the receipt in their inboxes.
             //
-            // (The Trade, Offer, Cron, and Market are ALL updated and SAVED as
-            // of this point.)
+            // (The Trade, Offer, Cron, and Market are ALL updated and
+            // SAVED as of this point.)
             //
 
-            // The TRANSACTION will be sent with "In Reference To" information
-            // containing the
-            // ORIGINAL SIGNED TRADE (which includes the ORIGINAL SIGNED OFFER
-            // inside of it.)
+            // The TRANSACTION will be sent with "In Reference To"
+            // information containing the ORIGINAL SIGNED TRADE (which
+            // includes the ORIGINAL SIGNED OFFER inside of it.)
             //
-            // Whereas the TRANSACTION ITEM includes a "Note" containing the
-            // UPDATED TRADE,
-            // (with the SERVER's SIGNATURE) as well as an "attachment"
-            // containing the UPDATED
-            // OFFER (again, with the server's signature on it.)
+            // Whereas the TRANSACTION ITEM includes a "Note" containing
+            // the UPDATED TRADE, (with the SERVER's SIGNATURE) as well
+            // as an "attachment" containing the UPDATED OFFER (again,
+            // with the server's signature on it.)
 
-            // I was doing this above, but had to move it all down here, since
-            // the Trade
+            // I was doing this above, but had to move it all down here,
+            // since the Trade
             //  and Offer have just finally been updated to their final
             // values...
 
-            // Here I make sure that each trader's receipt (each inbox notice)
-            // references the
-            // transaction number that the trader originally used to issue the
-            // trade...
-            // This number is used to match up offers to trades, and used to
-            // track all cron items.
-            // (All Cron items require a transaction from the user to add them
-            // to Cron in the
-            // first place.)
+            // Here I make sure that each trader's receipt (each inbox
+            // notice) references the transaction number that the trader
+            // originally used to issue the trade... This number is used
+            // to match up offers to trades, and used to track all cron
+            // items. (All Cron items require a transaction from the
+            // user to add them to Cron in the first place.)
             //
-            pTrans1->SetReferenceToNum(theTrade.GetTransactionNum());
-            pTrans2->SetReferenceToNum(theTrade.GetTransactionNum());
-            pTrans3->SetReferenceToNum(pOtherTrade->GetTransactionNum());
-            pTrans4->SetReferenceToNum(pOtherTrade->GetTransactionNum());
+            trans1->SetReferenceToNum(theTrade.GetTransactionNum());
+            trans2->SetReferenceToNum(theTrade.GetTransactionNum());
+            trans3->SetReferenceToNum(pOtherTrade->GetTransactionNum());
+            trans4->SetReferenceToNum(pOtherTrade->GetTransactionNum());
 
             // Then, I make sure the Reference string on the Transaction
             // contains the
-            // ORIGINAL TRADE (with the TRADER's SIGNATURE ON IT!) For both
-            // traders.
+            // ORIGINAL TRADE (with the TRADER's SIGNATURE ON IT!) For
+            // both traders.
 
-            OTCronItem* pOrigTrade = nullptr;
-            OTCronItem* pOrigOtherTrade = nullptr;
+            // OTCronItem::LoadCronReceipt loads the original version
+            // with the user's signature. (Updated versions, as
+            // processing occurs, are signed by the server.)
+            auto pOrigTrade = OTCronItem::LoadCronReceipt(
+                core_, theTrade.GetTransactionNum());
+            auto pOrigOtherTrade = OTCronItem::LoadCronReceipt(
+                core_, pOtherTrade->GetTransactionNum());
 
-            // OTCronItem::LoadCronReceipt loads the original version with the
-            // user's signature.
-            // (Updated versions, as processing occurs, are signed by the
-            // server.)
-            pOrigTrade = OTCronItem::LoadCronReceipt(
-                wallet_, data_folder_, theTrade.GetTransactionNum());
-            pOrigOtherTrade = OTCronItem::LoadCronReceipt(
-                wallet_, data_folder_, pOtherTrade->GetTransactionNum());
-
-            OT_ASSERT(nullptr != pOrigTrade);
-            OT_ASSERT(nullptr != pOrigOtherTrade);
+            OT_ASSERT(false != bool(pOrigTrade));
+            OT_ASSERT(false != bool(pOrigOtherTrade));
 
             OT_ASSERT_MSG(
                 pOrigTrade->VerifySignature(*pFirstNym),
@@ -1972,182 +1956,166 @@ void OTMarket::ProcessTrade(
                 "Signature was already verified on Trade when first "
                 "added to market, but now it fails.\n");
 
-            // I now have String copies (PGP-signed XML files) of the original
-            // Trade requests...
-            // Plus I know they were definitely signed by the Nyms (even though
-            // that was already
-            // verified when they were first added to the market--and they have
-            // been signed by the
-            // server nym ever since.)
+            // I now have String copies (PGP-signed XML files) of the
+            // original Trade requests... Plus I know they were
+            // definitely signed by the Nyms (even though that was
+            // already verified when they were first added to the
+            // market--and they have been signed by the server nym ever
+            // since.)
             String strOrigTrade(*pOrigTrade),
                 strOrigOtherTrade(*pOrigOtherTrade);
 
-            // The reference on the transaction contains OTCronItem, in this
-            // case.
-            // The original trade for each party, versus the updated trade
-            // (which is stored
-            // on the marketReceipt item just below here.)
+            // The reference on the transaction contains OTCronItem, in
+            // this case. The original trade for each party, versus the
+            // updated trade (which is stored on the marketReceipt item
+            // just below here.)
             //
-            pTrans1->SetReferenceString(strOrigTrade);
-            pTrans2->SetReferenceString(strOrigTrade);
-            pTrans3->SetReferenceString(strOrigOtherTrade);
-            pTrans4->SetReferenceString(strOrigOtherTrade);
+            trans1->SetReferenceString(strOrigTrade);
+            trans2->SetReferenceString(strOrigTrade);
+            trans3->SetReferenceString(strOrigOtherTrade);
+            trans4->SetReferenceString(strOrigOtherTrade);
 
-            // Make sure to clean these up.
-            // TODO: Run a scanner on the code for memory leaks and buffer
-            // overflows.
-            delete pOrigTrade;
-            pOrigTrade = nullptr;
-            delete pOrigOtherTrade;
-            pOrigOtherTrade = nullptr;
+            // Here's where the item stores the UPDATED TRADE (in its
+            // Note) and the UPDATED OFFER (in its attachment) with the
+            // SERVER's SIGNATURE on both. (As a receipt for each
+            // trader, so they can see their offer updating.)
 
-            // Here's where the item stores the UPDATED TRADE (in its Note)
-            // and the UPDATED OFFER (in its attachment) with the SERVER's
-            // SIGNATURE
-            // on both.
-            // (As a receipt for each trader, so they can see their offer
-            // updating.)
-
-            // Lucky I just signed and saved these trades / offers above, or
-            // they would
-            // still have the old data in them.
+            // Lucky I just signed and saved these trades / offers
+            // above, or they would still have the old data in them.
             String strTrade(theTrade), strOtherTrade(*pOtherTrade),
                 strOffer(theOffer), strOtherOffer(theOtherOffer);
 
             // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
             //
-            pItem1->SetNote(strTrade);
-            pItem2->SetNote(strTrade);
-            pItem3->SetNote(strOtherTrade);
-            pItem4->SetNote(strOtherTrade);
+            item1->SetNote(strTrade);
+            item2->SetNote(strTrade);
+            item3->SetNote(strOtherTrade);
+            item4->SetNote(strOtherTrade);
 
             /*
 
-             NOTE, todo: Someday, need to reverse these, so that the updated
-             Trade is stored in
-             the attachment, and the updated offer is stored in the note. This
-             is much more consistent
-             with other cron receipts, such as paymentReceipt, and finalReceipt.
-             Unfortunately,
-             marketReceipt is already implemented the opposite of these, but I
-             will fix it someday just
-             for consistency. See large notes 2/3rds of the way down in
-             OTTrade::onFinalReceipt().
+             NOTE, todo: Someday, need to reverse these, so that the
+             updated Trade is stored in the attachment, and the updated
+             offer is stored in the note. This is much more consistent
+             with other cron receipts, such as paymentReceipt, and
+             finalReceipt. Unfortunately, marketReceipt is already
+             implemented the opposite of these, but I will fix it
+             someday just for consistency. See large notes 2/3rds of the
+             way down in OTTrade::onFinalReceipt().
 
-             Todo security: really each receipt should contain a copy of BOTH
-             (asset+currency) so
-             the user can calculate the sale price and compare it to the terms
-             on the original offer.
+             Todo security: really each receipt should contain a copy of
+             BOTH (asset+currency) so the user can calculate the sale
+             price and compare it to the terms on the original offer.
              */
 
-            // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the **
-            // item.**
-            // (With the SERVER's signature on it!)
-            // (As a receipt for each trader, so they can see their offer
+            // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the
+            // ** item.** (With the SERVER's signature on it!) (As a
+            // receipt for each trader, so they can see their offer
             // updating.)
-            pItem1->SetAttachment(strOffer);
-            pItem2->SetAttachment(strOffer);
-            pItem3->SetAttachment(strOtherOffer);
-            pItem4->SetAttachment(strOtherOffer);
+            item1->SetAttachment(strOffer);
+            item2->SetAttachment(strOffer);
+            item3->SetAttachment(strOtherOffer);
+            item4->SetAttachment(strOtherOffer);
 
             // Inbox receipts need to clearly show the AMOUNT moved...
-            // Also need to clearly show negative or positive, since that
-            // is otherwise not obvious just because you have a marketReceipt...
+            // Also need to clearly show negative or positive, since
+            // that is otherwise not obvious just because you have a
+            // marketReceipt...
             //
-            // The AMOUNT is stored on the marketReceipt ITEM, on the item list
-            // for
-            // the marketReceipt TRANSACTION.
+            // The AMOUNT is stored on the marketReceipt ITEM, on the
+            // item list for the marketReceipt TRANSACTION.
             //
             if (theOffer.IsAsk())  // I'm selling, he's buying
             {
-                pItem1->SetAmount(lOfferFinished * (-1));  // first asset
-                pItem2->SetAmount(lTotalPaidOut);          // first currency
-                pItem3->SetAmount(lOtherOfferFinished);    // other asset
-                pItem4->SetAmount(lTotalPaidOut * (-1));   // other currency
+                item1->SetAmount(lOfferFinished * (-1));  // first asset
+                item2->SetAmount(lTotalPaidOut);          // first currency
+                item3->SetAmount(lOtherOfferFinished);    // other asset
+                item4->SetAmount(lTotalPaidOut * (-1));   // other currency
             } else  // I'm buying, he's selling
             {
-                pItem1->SetAmount(lOfferFinished);        // first asset
-                pItem2->SetAmount(lTotalPaidOut * (-1));  // first currency
-                pItem3->SetAmount(lOtherOfferFinished * (-1));  // other asset
-                pItem4->SetAmount(lTotalPaidOut);  // other currency
+                item1->SetAmount(lOfferFinished);              // first asset
+                item2->SetAmount(lTotalPaidOut * (-1));        // first currency
+                item3->SetAmount(lOtherOfferFinished * (-1));  // other asset
+                item4->SetAmount(lTotalPaidOut);               // other currency
             }
 
             if (true == bSuccess) {
                 // sign the item
-                pItem1->SignContract(*pServerNym);
-                pItem2->SignContract(*pServerNym);
-                pItem3->SignContract(*pServerNym);
-                pItem4->SignContract(*pServerNym);
+                item1->SignContract(*pServerNym);
+                item2->SignContract(*pServerNym);
+                item3->SignContract(*pServerNym);
+                item4->SignContract(*pServerNym);
 
-                pItem1->SaveContract();
-                pItem2->SaveContract();
-                pItem3->SaveContract();
-                pItem4->SaveContract();
+                item1->SaveContract();
+                item2->SaveContract();
+                item3->SaveContract();
+                item4->SaveContract();
 
-                // the Transaction "owns" the item now and will handle cleaning
-                // it up.
-                pTrans1->AddItem(*pItem1);
-                pTrans2->AddItem(*pItem2);
-                pTrans3->AddItem(*pItem3);
-                pTrans4->AddItem(*pItem4);
+                trans1->AddItem(item1);
+                trans2->AddItem(item2);
+                trans3->AddItem(item3);
+                trans4->AddItem(item4);
 
-                pTrans1->SignContract(*pServerNym);
-                pTrans2->SignContract(*pServerNym);
-                pTrans3->SignContract(*pServerNym);
-                pTrans4->SignContract(*pServerNym);
+                trans1->SignContract(*pServerNym);
+                trans2->SignContract(*pServerNym);
+                trans3->SignContract(*pServerNym);
+                trans4->SignContract(*pServerNym);
 
-                pTrans1->SaveContract();
-                pTrans2->SaveContract();
-                pTrans3->SaveContract();
-                pTrans4->SaveContract();
+                trans1->SaveContract();
+                trans2->SaveContract();
+                trans3->SaveContract();
+                trans4->SaveContract();
 
-                // Here the transactions we just created are actually added to
-                // the ledgers.
-                theFirstAssetInbox.AddTransaction(*pTrans1);
-                theFirstCurrencyInbox.AddTransaction(*pTrans2);
-                theOtherAssetInbox.AddTransaction(*pTrans3);
-                theOtherCurrencyInbox.AddTransaction(*pTrans4);
+                // Here the transactions we just created are actually
+                // added to the ledgers.
+                theFirstAssetInbox->AddTransaction(trans1);
+                theFirstCurrencyInbox->AddTransaction(trans2);
+                theOtherAssetInbox->AddTransaction(trans3);
+                theOtherCurrencyInbox->AddTransaction(trans4);
 
-                // Release any signatures that were there before (They won't
-                // verify anymore anyway, since the content has changed.)
-                theFirstAssetInbox.ReleaseSignatures();
-                theFirstCurrencyInbox.ReleaseSignatures();
-                theOtherAssetInbox.ReleaseSignatures();
-                theOtherCurrencyInbox.ReleaseSignatures();
+                // Release any signatures that were there before (They
+                // won't verify anymore anyway, since the content has
+                // changed.)
+                theFirstAssetInbox->ReleaseSignatures();
+                theFirstCurrencyInbox->ReleaseSignatures();
+                theOtherAssetInbox->ReleaseSignatures();
+                theOtherCurrencyInbox->ReleaseSignatures();
 
                 // Sign all four of them.
-                theFirstAssetInbox.SignContract(*pServerNym);
-                theFirstCurrencyInbox.SignContract(*pServerNym);
-                theOtherAssetInbox.SignContract(*pServerNym);
-                theOtherCurrencyInbox.SignContract(*pServerNym);
+                theFirstAssetInbox->SignContract(*pServerNym);
+                theFirstCurrencyInbox->SignContract(*pServerNym);
+                theOtherAssetInbox->SignContract(*pServerNym);
+                theOtherCurrencyInbox->SignContract(*pServerNym);
 
                 // Save all four of them internally
-                theFirstAssetInbox.SaveContract();
-                theFirstCurrencyInbox.SaveContract();
-                theOtherAssetInbox.SaveContract();
-                theOtherCurrencyInbox.SaveContract();
+                theFirstAssetInbox->SaveContract();
+                theFirstCurrencyInbox->SaveContract();
+                theOtherAssetInbox->SaveContract();
+                theOtherCurrencyInbox->SaveContract();
 
-                // TODO: Better rollback capabilities in case of failures here:
+                // TODO: Better rollback capabilities in case of
+                // failures here:
 
-                // Save the four inboxes to storage. (File, DB, wherever it
-                // goes.)
+                // Save the four inboxes to storage. (File, DB, wherever
+                // it goes.)
 
                 pFirstAssetAcct.get().SaveInbox(
-                    theFirstAssetInbox, Identifier::Factory());
+                    *theFirstAssetInbox, Identifier::Factory());
                 pFirstCurrencyAcct.get().SaveInbox(
-                    theFirstCurrencyInbox, Identifier::Factory());
+                    *theFirstCurrencyInbox, Identifier::Factory());
                 pOtherAssetAcct.get().SaveInbox(
-                    theOtherAssetInbox, Identifier::Factory());
+                    *theOtherAssetInbox, Identifier::Factory());
                 pOtherCurrencyAcct.get().SaveInbox(
-                    theOtherCurrencyInbox, Identifier::Factory());
+                    *theOtherCurrencyInbox, Identifier::Factory());
 
-                // These correspond to the AddTransaction() calls just above.
-                // The actual receipts are stored in separate files now.
+                // These correspond to the AddTransaction() calls just
+                // above. The actual receipts are stored in separate
+                // files now.
                 //
-                pTrans1->SaveBoxReceipt(theFirstAssetInbox);
-                pTrans2->SaveBoxReceipt(theFirstCurrencyInbox);
-                pTrans3->SaveBoxReceipt(theOtherAssetInbox);
-                pTrans4->SaveBoxReceipt(theOtherCurrencyInbox);
+                trans1->SaveBoxReceipt(*theFirstAssetInbox);
+                trans2->SaveBoxReceipt(*theFirstCurrencyInbox);
+                trans3->SaveBoxReceipt(*theOtherAssetInbox);
+                trans4->SaveBoxReceipt(*theOtherCurrencyInbox);
 
                 // Save the four accounts.
                 pFirstAssetAcct.Release();
@@ -2155,71 +2123,62 @@ void OTMarket::ProcessTrade(
                 pOtherAssetAcct.Release();
                 pOtherCurrencyAcct.Release();
             }
-            // If money was short, let's see WHO was short so we can remove his
-            // trade. Also, if money was short, inbox notices only go to the
-            // rejectees. But if success, then notices go to all four inboxes.
+            // If money was short, let's see WHO was short so we can
+            // remove his trade. Also, if money was short, inbox notices
+            // only go to the rejectees. But if success, then notices go
+            // to all four inboxes.
             else {
                 otWarn << "Unable to perform trade in OTMarket::"
                        << __FUNCTION__ << "\n";
 
-                // Let's figure out which one it was and remove his trade and
-                // offer.
+                // Let's figure out which one it was and remove his
+                // trade and offer.
                 bool bFirstTraderIsBroke = false, bOtherTraderIsBroke = false;
 
                 // Here's what's going on here:
-                // "Figure out if this guy was short, or if it was that guy.
-                // Send a notice
-                // to the one who got rejected for being short on cash.
+                // "Figure out if this guy was short, or if it was that
+                // guy. Send a notice to the one who got rejected for
+                // being short on cash.
                 //
-                // Else NEITHER was short, so delete them both with no notice.
+                // Else NEITHER was short, so delete them both with no
+                // notice.
                 //
-                // (After checking both asset accounts, there's another If
-                // statement below where
-                // I repeat this process for the currency accounts as well.)
+                // (After checking both asset accounts, there's another
+                // If statement below where I repeat this process for
+                // the currency accounts as well.)
                 //
-                // This whole section occurs because even though the trade and
-                // offer were valid
-                // and good to go, at least one of the four accounts was short
-                // of funds.
+                // This whole section occurs because even though the
+                // trade and offer were valid and good to go, at least
+                // one of the four accounts was short of funds.
                 //
                 if (pAssetAccountToDebit.get().GetBalance() <
                     lMinIncrementPerRound) {
-                    Item* pTempItem = nullptr;
-                    OTTransaction* pTempTransaction = nullptr;
+                    std::shared_ptr<Item> pTempItem;
+                    std::shared_ptr<OTTransaction> pTempTransaction;
                     Ledger* pTempInbox = nullptr;
 
                     if (pAssetAccountToDebit == pFirstAssetAcct) {
-                        pTempItem = pItem1;
+                        pTempItem = item1;
                         bFirstTraderIsBroke = true;
-                        pTempTransaction = pTrans1;
-                        pTempInbox = &theFirstAssetInbox;
-
-                        delete pItem3;
-                        pItem3 = nullptr;
-                        delete pTrans3;
-                        pTrans3 = nullptr;
+                        pTempTransaction = trans1;
+                        pTempInbox = theFirstAssetInbox.get();
                     } else  // it's the other asset account
                     {
-                        pTempItem = pItem3;
+                        pTempItem = item3;
                         bOtherTraderIsBroke = true;
-                        pTempTransaction = pTrans3;
-                        pTempInbox = &theOtherAssetInbox;
-
-                        delete pItem1;
-                        pItem1 = nullptr;
-                        delete pTrans1;
-                        pTrans1 = nullptr;
+                        pTempTransaction = trans3;
+                        pTempInbox = theOtherAssetInbox.get();
                     }
 
                     pTempItem->SetStatus(Item::rejection);
                     pTempItem->SignContract(*pServerNym);
                     pTempItem->SaveContract();
 
-                    pTempTransaction->AddItem(*pTempItem);
+                    pTempTransaction->AddItem(pTempItem);
                     pTempTransaction->SignContract(*pServerNym);
                     pTempTransaction->SaveContract();
 
-                    pTempInbox->AddTransaction(*pTempTransaction);
+                    pTempInbox->AddTransaction(pTempTransaction);
 
                     pTempInbox->ReleaseSignatures();
                     pTempInbox->SignContract(*pServerNym);
@@ -2227,57 +2186,37 @@ void OTMarket::ProcessTrade(
                     pTempInbox->SaveInbox(Identifier::Factory());
 
                     pTempTransaction->SaveBoxReceipt(*pTempInbox);
-                } else {
-                    delete pItem1;
-                    pItem1 = nullptr;
-                    delete pTrans1;
-                    pTrans1 = nullptr;
-                    delete pItem3;
-                    pItem3 = nullptr;
-                    delete pTrans3;
-                    pTrans3 = nullptr;
                 }
-
-                // This section is identical to the one above, except for the
-                // currency accounts.
+                // This section is identical to the one above, except
+                // for the currency accounts.
                 //
                 if (pCurrencyAccountToDebit.get().GetBalance() < lPrice) {
-                    Item* pTempItem = nullptr;
-                    OTTransaction* pTempTransaction = nullptr;
+                    std::shared_ptr<Item> pTempItem;
+                    std::shared_ptr<OTTransaction> pTempTransaction;
                     Ledger* pTempInbox = nullptr;
 
                     if (pCurrencyAccountToDebit == pFirstCurrencyAcct) {
-                        pTempItem = pItem2;
+                        pTempItem = item2;
                         bFirstTraderIsBroke = true;
-                        pTempTransaction = pTrans2;
-                        pTempInbox = &theFirstCurrencyInbox;
-
-                        delete pItem4;
-                        pItem4 = nullptr;
-                        delete pTrans4;
-                        pTrans4 = nullptr;
+                        pTempTransaction = trans2;
+                        pTempInbox = theFirstCurrencyInbox.get();
                     } else  // it's the other asset account
                     {
-                        pTempItem = pItem4;
+                        pTempItem = item4;
                         bOtherTraderIsBroke = true;
-                        pTempTransaction = pTrans4;
-                        pTempInbox = &theOtherCurrencyInbox;
-
-                        delete pItem2;
-                        pItem2 = nullptr;
-                        delete pTrans2;
-                        pTrans2 = nullptr;
+                        pTempTransaction = trans4;
+                        pTempInbox = theOtherCurrencyInbox.get();
                     }
 
                     pTempItem->SetStatus(Item::rejection);
                     pTempItem->SignContract(*pServerNym);
                     pTempItem->SaveContract();
 
-                    pTempTransaction->AddItem(*pTempItem);
+                    pTempTransaction->AddItem(pTempItem);
                     pTempTransaction->SignContract(*pServerNym);
                     pTempTransaction->SaveContract();
 
-                    pTempInbox->AddTransaction(*pTempTransaction);
+                    pTempInbox->AddTransaction(pTempTransaction);
 
                     pTempInbox->ReleaseSignatures();
                     pTempInbox->SignContract(*pServerNym);
@@ -2285,20 +2224,10 @@ void OTMarket::ProcessTrade(
                     pTempInbox->SaveInbox(Identifier::Factory());
 
                     pTempTransaction->SaveBoxReceipt(*pTempInbox);
-                } else {
-                    delete pItem2;
-                    pItem2 = nullptr;
-                    delete pTrans2;
-                    pTrans2 = nullptr;
-                    delete pItem4;
-                    pItem4 = nullptr;
-                    delete pTrans4;
-                    pTrans4 = nullptr;
                 }
-
-                // If either trader is broke, we flag the trade for removal.
-                // No other trades will process against it and it will be
-                // removed from market soon.
+                // If either trader is broke, we flag the trade for
+                // removal. No other trades will process against it and
+                // it will be removed from market soon.
                 //
                 if (bFirstTraderIsBroke) theTrade.FlagForRemoval();
                 if (bOtherTraderIsBroke) pOtherTrade->FlagForRemoval();
@@ -2308,84 +2237,72 @@ void OTMarket::ProcessTrade(
     }          // "this entire function can be divided..."
 }
 // Let's say pBid->Price is $10. He's bidding $10 as his price limit.
-// If I was ALREADY selling at $11, then NOTHING HAPPENS. (If we're the only two
-// people on the market.)
-// If I was ALREADY SELLING at $8, and a $10 bid came in, it would immediately
-// process our orders and be done.
-// If I was ALREADY BIDDING at $10, and an $8 ask came in, it would immediately
-// process our orders and be done.
+// If I was ALREADY selling at $11, then NOTHING HAPPENS. (If we're the
+// only two people on the market.) If I was ALREADY SELLING at $8, and a
+// $10 bid came in, it would immediately process our orders and be done.
+// If I was ALREADY BIDDING at $10, and an $8 ask came in, it would
+// immediately process our orders and be done.
 //
-// So the question is, who gets WHAT price? Does the transaction occur at $8 or
-// at $10? Do I get my price limit,
-// or does he? Do you split the difference? I decided what to do... here is the
-// REASONING, then CONCLUSION:
+// So the question is, who gets WHAT price? Does the transaction occur
+// at $8 or at $10? Do I get my price limit, or does he? Do you split
+// the difference? I decided what to do... here is the REASONING, then
+// CONCLUSION:
 //
 // REASONING:
 //
-// If I'm already selling for $8, and a $10 bid comes in, he's only going to
-// choose me since I'm the lowest
-// one on the market (and first in line for my price.) Otherwise he has no
-// reason not to choose one of the
-// others who are also available at that low price, instead of choosing me. The
-// server would just pick
-// whoever was next in line.
+// If I'm already selling for $8, and a $10 bid comes in, he's only
+// going to choose me since I'm the lowest one on the market (and first
+// in line for my price.) Otherwise he has no reason not to choose one
+// of the others who are also available at that low price, instead of
+// choosing me. The server would just pick whoever was next in line.
 //
-// And the other sellers also do have a right to get their sales completed,
-// since they ARE willing to sell
-// for $8. Obviously none of the other bids wanted me so far, even though I'm
-// the best deal on my market,
-// or I would have been snapped up already. But I'm still here. The bidder
-// shouldn't pay more than fair market
-// rate, which means more than whatever my competition is charging, and as long
-// as I'm not getting any less
-// than my own ask limit, then I HAVE agreed to the price, and it's fair. (I
-// always could have set it higher.)
+// And the other sellers also do have a right to get their sales
+// completed, since they ARE willing to sell for $8. Obviously none of
+// the other bids wanted me so far, even though I'm the best deal on my
+// market, or I would have been snapped up already. But I'm still here.
+// The bidder shouldn't pay more than fair market rate, which means more
+// than whatever my competition is charging, and as long as I'm not
+// getting any less than my own ask limit, then I HAVE agreed to the
+// price, and it's fair. (I always could have set it higher.)
 //
-// The prices also were different when I came onto the market. Things were
-// different then. Obviously
-// since I'm still here, I wasn't ALWAYS the lowest price. Maybe in fact the
-// price was $3 before, and I had a
-// std::int64_t-standing trade there that said not to sell for less than $8
-// (with a
-// stop order too, so it didn't even
-// activate until then.) THE POINT? I COULD have had the best price on the
-// market THEN, whatever it was, simply
-// by checking it and then setting my limit to match. But I didn't choose that.
-// Instead, I set it to $8 limit,
-// and then my trade sat there waiting for 6 months or god knows how
+// The prices also were different when I came onto the market. Things
+// were different then. Obviously since I'm still here, I wasn't ALWAYS
+// the lowest price. Maybe in fact the price was $3 before, and I had a
+// std::int64_t-standing trade there that said not to sell for less than
+// $8 (with a stop order too, so it didn't even activate until then.)
+// THE POINT? I COULD have had the best price on the market THEN,
+// whatever it was, simply by checking it and then setting my limit to
+// match. But I didn't choose that. Instead, I set it to $8 limit, and
+// then my trade sat there waiting for 6 months or god knows how
 // std::int64_t
 // until it became valid, when market
 // conditions became more favorable to my trade.
-// THEN my trade, at some point, became the lowest price on the market (finally)
-// so when someone's brand
-// new $10 limit bid comes in, he ALSO deserves the best price on the market,
-// just as I had the same
-// opportunity to get the best price when *I* first entered the market. And
-// since I am now first in line with
-// $8 as the best price in the market, he should get it at that $8 price. We
-// have both agreed to it! It is
-// within BOTH of our limits! Notice we also BOTH got our fair shot up front to
-// have the absolute best price,
-// and instead we set our limit outside of what prices were available in order
-// to wait for better offers.
+// THEN my trade, at some point, became the lowest price on the market
+// (finally) so when someone's brand new $10 limit bid comes in, he ALSO
+// deserves the best price on the market, just as I had the same
+// opportunity to get the best price when *I* first entered the market.
+// And since I am now first in line with $8 as the best price in the
+// market, he should get it at that $8 price. We have both agreed to it!
+// It is within BOTH of our limits! Notice we also BOTH got our fair
+// shot up front to have the absolute best price, and instead we set our
+// limit outside of what prices were available in order to wait for
+// better offers.
 //
 //
 // CONCLUSION:
 //
-// THEREFORE: The new Trade should always get the better deal in this function,
-// in the sense that he gets
-// the best price possible (the limit) from the other trade (that was already on
-// the market.) And he gets the
-// number-one best deal available from that side of the market. The existing
-// trade does NOT get theOffer's
-// limit price, but theOffer DOES get the other trade's limit price. This is how
-// it should work. We are not
-// going to "split the difference" -- although we might split a percentage off
-// the difference as a server fee.
-// I haven't thought that through yet (it's an idea suggested by Andrew Muck.)
+// THEREFORE: The new Trade should always get the better deal in this
+// function, in the sense that he gets the best price possible (the
+// limit) from the other trade (that was already on the market.) And he
+// gets the number-one best deal available from that side of the market.
+// The existing trade does NOT get theOffer's limit price, but theOffer
+// DOES get the other trade's limit price. This is how it should work.
+// We are not going to "split the difference" -- although we might split
+// a percentage off the difference as a server fee. I haven't thought
+// that through yet (it's an idea suggested by Andrew Muck.)
 
-// Return True if Trade should stay on the Cron list for more processing.
-// Return False if it should be removed and deleted.
+// Return True if Trade should stay on the Cron list for more
+// processing. Return False if it should be removed and deleted.
 bool OTMarket::ProcessTrade(
     const api::Wallet& wallet,
     OTTrade& theTrade,
@@ -2401,20 +2318,20 @@ bool OTMarket::ProcessTrade(
 
     std::int64_t lRelevantPrice = 0;
 
-    // If I'm trying to SELL something, then I care about the highest bidder.
+    // If I'm trying to SELL something, then I care about the highest
+    // bidder.
     if (theOffer.IsAsk()) lRelevantPrice = GetHighestBidPrice();
 
-    // ...But if I'm trying to BUY something, then I care about the lowest ask
-    // price.
+    // ...But if I'm trying to BUY something, then I care about the
+    // lowest ask price.
     else
         lRelevantPrice = GetLowestAskPrice();
 
-    // If there were no relevant offers (or if they were all market orders, aka:
-    // 0 == lRelevantPrice),
-    // AND if *I* am a market order, then REMOVE me from the market. (Market
-    // orders only process once,
-    // so if we are processing here and we haven't found any potential matches,
-    // we're REMOVED.)
+    // If there were no relevant offers (or if they were all market
+    // orders, aka: 0 == lRelevantPrice), AND if *I* am a market order,
+    // then REMOVE me from the market. (Market orders only process once,
+    // so if we are processing here and we haven't found any potential
+    // matches, we're REMOVED.)
     //
     if ((0 == lRelevantPrice) &&  // Market order has 0 price.
         theOffer.IsMarketOrder()) {
@@ -2423,94 +2340,92 @@ bool OTMarket::ProcessTrade(
                << formatLong(theTrade.GetOpeningNum()) << "\n";
         return false;
     }
-    // If there were no bids/asks (whichever is relevant to this trade) on the
-    // market at ALL,
-    // then lRelevant price will be 0 at this point. In which case we're DONE.
+    // If there were no bids/asks (whichever is relevant to this trade)
+    // on the market at ALL, then lRelevant price will be 0 at this
+    // point. In which case we're DONE.
     //
-    // If I'm selling, and the highest bid is less than my price limit, then
-    // we're DONE.
-    // If I'm buying, and the lowest ask price is higher than my price limit,
-    // then we're DONE.
+    // If I'm selling, and the highest bid is less than my price limit,
+    // then we're DONE. If I'm buying, and the lowest ask price is
+    // higher than my price limit, then we're DONE.
     //
     if ((0 == lRelevantPrice) ||  // If 0, we KNOW we're not a market order,
                                   // since we would have returned already
                                   // (above.)
 
-        // We only care about price-based restrictions if we're a limit order.
-        // (Market orders don't care about price, so they skip this condition.)
+        // We only care about price-based restrictions if we're a limit
+        // order. (Market orders don't care about price, so they skip
+        // this condition.)
         (theOffer.IsLimitOrder() &&
          ((theOffer.IsAsk() && (lRelevantPrice < theOffer.GetPriceLimit())) ||
           (theOffer.IsBid() && (lRelevantPrice > theOffer.GetPriceLimit()))))) {
-        // There is nothing on the market currently within my price limits.
-        // We're DONE. (For now.)
+        // There is nothing on the market currently within my price
+        // limits. We're DONE. (For now.)
         return true;
     }
 
-    // If I got this far, that means there ARE bidders or sellers (whichever the
-    // current trade cares about)
-    // in the market WITHIN THIS TRADE'S PRICE LIMITS. So we're going to go up
-    // the list of what's available, and trade.
+    // If I got this far, that means there ARE bidders or sellers
+    // (whichever the current trade cares about) in the market WITHIN
+    // THIS TRADE'S PRICE LIMITS. So we're going to go up the list of
+    // what's available, and trade.
 
     if (theOffer.IsAsk())  // If I'm selling,
     {
-        // rbegin puts us on the upper bound of the highest bidder (any new
-        // bidders at the same price would
-        // be added at the lower bound, where they are last in line.) The upper
-        // bound, on the other hand, is
-        // first in line.  So we start there, and loop backwards until there are
-        // no other bids within my price range.
+        // rbegin puts us on the upper bound of the highest bidder (any
+        // new bidders at the same price would be added at the lower
+        // bound, where they are last in line.) The upper bound, on the
+        // other hand, is first in line.  So we start there, and loop
+        // backwards until there are no other bids within my price
+        // range.
         for (mapOfOffers::reverse_iterator rr = m_mapBids.rbegin();
              rr != m_mapBids.rend();
              ++rr) {
-            // then I want to start at the highest bidder and loop DOWN until
-            // hitting my price limit.
+            // then I want to start at the highest bidder and loop DOWN
+            // until hitting my price limit.
             OTOffer* pBid = rr->second;
             OT_ASSERT(nullptr != pBid);
 
-            // NOTE: Market orders only process once, and they are processed in
-            // the order they were added to the market.
+            // NOTE: Market orders only process once, and they are
+            // processed in the order they were added to the market.
             //
             // If BOTH offers are market orders, we just skip this bid.
             //
-            // But FURTHERMORE: We ONLY process a market order as theOffer, not
-            // as pBid!
-            // Imagine if pBid is a market order and theOffer isn't -- that
-            // would mean pBid
-            // hasn't been processed yet (since it will only process once.) So
-            // it needs to
-            // wait its turn! It will get its one shot WHEN ITS TURN comes.
+            // But FURTHERMORE: We ONLY process a market order as
+            // theOffer, not as pBid! Imagine if pBid is a market order
+            // and theOffer isn't -- that would mean pBid hasn't been
+            // processed yet (since it will only process once.) So it
+            // needs to wait its turn! It will get its one shot WHEN ITS
+            // TURN comes.
             //
             if (pBid->IsMarketOrder())
                 //          if (theOffer.IsMarketOrder() &&
                 // pBid->IsMarketOrder())
                 //              continue;
                 break;
-            // NOTE: Why break, instead of continue? Because since we are
-            // looping through the bids,
-            // from the HIGHEST down to the LOWEST, and since market orders have
-            // a ZERO price, we know
-            // for a fact that there are not any other non-zero bids. (So we
-            // might as well break.)
+            // NOTE: Why break, instead of continue? Because since we
+            // are looping through the bids, from the HIGHEST down to
+            // the LOWEST, and since market orders have a ZERO price, we
+            // know for a fact that there are not any other non-zero
+            // bids. (So we might as well break.)
 
             // I'm selling.
             //
-            // If the bid is larger than, or equal to, my low-side-limit,
-            // and the amount available is at least my minimum increment, (and
-            // vice versa),
+            // If the bid is larger than, or equal to, my
+            // low-side-limit, and the amount available is at least my
+            // minimum increment, (and vice versa),
             // ...then let's trade!
             //
-            if (theOffer.IsMarketOrder() ||  // If I don't care about price...
+            if (theOffer.IsMarketOrder() ||  // If I don't care about
+                                             // price...
                 (pBid->GetPriceLimit() >=
-                 theOffer.GetPriceLimit()))  // Or if this bid is within my
-                                             // price
-                                             // range...
+                 theOffer.GetPriceLimit()))  // Or if this bid is within
+                                             // my price range...
             {
-                // Notice the above "if" is ONLY based on price... because the
-                // "else" returns!
-                // (Once I am out of my price range, no point to continue
-                // looping.)
+                // Notice the above "if" is ONLY based on price...
+                // because the "else" returns! (Once I am out of my
+                // price range, no point to continue looping.)
                 //
-                // ...So all the other "if"s have to go INSIDE the block here:
+                // ...So all the other "if"s have to go INSIDE the block
+                // here:
                 //
                 if ((pBid->GetAmountAvailable() >=
                      theOffer.GetMinimumIncrement()) &&
@@ -2520,34 +2435,38 @@ bool OTMarket::ProcessTrade(
                     !pBid->GetTrade()->IsFlaggedForRemoval())
 
                     ProcessTrade(
-                        wallet, theTrade, theOffer, *pBid);  // <========
+                        wallet,
+                        theTrade,
+                        theOffer,
+                        *pBid);  // <========
             }
 
-            // Else, the bid is lower than I am willing to sell. (And all the
-            // remaining bids are even lower.)
+            // Else, the bid is lower than I am willing to sell. (And
+            // all the remaining bids are even lower.)
             //
             else if (theOffer.IsLimitOrder()) {
                 pBid = nullptr;
-                return true;  // stay on cron for more processing (for now.)
+                return true;  // stay on cron for more processing (for
+                              // now.)
             }
 
             // The offer has no more trading to do--it's done.
-            if (theTrade.IsFlaggedForRemoval() ||  // during processing, the
-                                                   // trade may have gotten
-                                                   // flagged.
+            if (theTrade.IsFlaggedForRemoval() ||  // during processing,
+                                                   // the trade may have
+                                                   // gotten flagged.
                 (theOffer.GetMinimumIncrement() >
                  theOffer.GetAmountAvailable())) {
 
-                otInfo
-                    << "OTMarket::" << __FUNCTION__
-                    << ": Removing market order: "
-                    << formatLong(theTrade.GetOpeningNum())
-                    << ". IsFlaggedForRemoval: "
-                    << formatBool(theTrade.IsFlaggedForRemoval())
-                    << ". Minimum increment is larger than Amount available: "
-                    << (theOffer.GetMinimumIncrement() >
-                        theOffer.GetAmountAvailable())
-                    << "\n";
+                otInfo << "OTMarket::" << __FUNCTION__
+                       << ": Removing market order: "
+                       << formatLong(theTrade.GetOpeningNum())
+                       << ". IsFlaggedForRemoval: "
+                       << formatBool(theTrade.IsFlaggedForRemoval())
+                       << ". Minimum increment is larger than Amount "
+                          "available: "
+                       << (theOffer.GetMinimumIncrement() >
+                           theOffer.GetAmountAvailable())
+                       << "\n";
 
                 return false;  // remove this trade from cron
             }
@@ -2557,31 +2476,30 @@ bool OTMarket::ProcessTrade(
     }
     // I'm buying
     else {
-        // Begin puts us on the lower bound of the lowest seller (any new
-        // sellers at the same price would
-        // be added at the upper bound for that price, where they are last in
-        // line.) The lower bound, on the other hand, is
-        // first in line.  So we start there, and loop forwards until there are
-        // no other asks within my price range.
+        // Begin puts us on the lower bound of the lowest seller (any
+        // new sellers at the same price would be added at the upper
+        // bound for that price, where they are last in line.) The lower
+        // bound, on the other hand, is first in line.  So we start
+        // there, and loop forwards until there are no other asks within
+        // my price range.
         //
         for (auto& it : m_mapAsks) {
-            // then I want to start at the lowest seller and loop UP until
-            // hitting my price limit.
+            // then I want to start at the lowest seller and loop UP
+            // until hitting my price limit.
             OTOffer* pAsk = it.second;
             OT_ASSERT(nullptr != pAsk);
 
-            // NOTE: Market orders only process once, and they are processed in
-            // the order they were added to the market.
+            // NOTE: Market orders only process once, and they are
+            // processed in the order they were added to the market.
             //
             // If BOTH offers are market orders, we just skip this ask.
             //
-            // But FURTHERMORE: We ONLY process a market order as theOffer, not
-            // as pAsk!
-            // Imagine if pAsk is a market order and theOffer isn't -- that
-            // would mean pAsk
-            // hasn't been processed yet (since it will only process once.) So
-            // it needs to
-            // wait its turn! It will get its one shot WHEN ITS TURN comes.
+            // But FURTHERMORE: We ONLY process a market order as
+            // theOffer, not as pAsk! Imagine if pAsk is a market order
+            // and theOffer isn't -- that would mean pAsk hasn't been
+            // processed yet (since it will only process once.) So it
+            // needs to wait its turn! It will get its one shot WHEN ITS
+            // TURN comes.
             //
             if (pAsk->IsMarketOrder())
                 //          if (theOffer.IsMarketOrder() &&
@@ -2589,22 +2507,21 @@ bool OTMarket::ProcessTrade(
                 continue;
 
             // I'm buying.
-            // If the ask price is less than, or equal to, my price limit,
-            // and the amount available for purchase is at least my minimum
-            // increment, (and vice versa),
+            // If the ask price is less than, or equal to, my price
+            // limit, and the amount available for purchase is at least
+            // my minimum increment, (and vice versa),
             // ...then let's trade!
             //
-            if (theOffer.IsMarketOrder() ||  // If I don't care about price...
+            if (theOffer.IsMarketOrder() ||  // If I don't care about
+                                             // price...
                 (pAsk->GetPriceLimit() <=
-                 theOffer.GetPriceLimit()))  // Or if this ask is within my
-                                             // price
-                                             // range...
+                 theOffer.GetPriceLimit()))  // Or if this ask is within
+                                             // my price range...
             {
-                // Notice the above "if" is ONLY based on price... because the
-                // "else" returns!
-                // (Once I am out of my price range, no point to continue
-                // looping.)
-                // So all the other "if"s have to go INSIDE the block here:
+                // Notice the above "if" is ONLY based on price...
+                // because the "else" returns! (Once I am out of my
+                // price range, no point to continue looping.) So all
+                // the other "if"s have to go INSIDE the block here:
                 //
                 if ((pAsk->GetAmountAvailable() >=
                      theOffer.GetMinimumIncrement()) &&
@@ -2616,30 +2533,30 @@ bool OTMarket::ProcessTrade(
                     ProcessTrade(
                         wallet, theTrade, theOffer, *pAsk);  // <=======
             }
-            // Else, the ask price is higher than I am willing to pay. (And all
-            // the remaining sellers are even HIGHER.)
+            // Else, the ask price is higher than I am willing to pay.
+            // (And all the remaining sellers are even HIGHER.)
             else if (theOffer.IsLimitOrder()) {
                 pAsk = nullptr;
                 return true;  // stay on the market for now.
             }
 
             // The offer has no more trading to do--it's done.
-            if (theTrade.IsFlaggedForRemoval() ||  // during processing, the
-                                                   // trade may have gotten
-                                                   // flagged.
+            if (theTrade.IsFlaggedForRemoval() ||  // during processing,
+                                                   // the trade may have
+                                                   // gotten flagged.
                 (theOffer.GetMinimumIncrement() >
                  theOffer.GetAmountAvailable())) {
 
-                otInfo
-                    << "OTMarket::" << __FUNCTION__
-                    << ": Removing market order: "
-                    << formatLong(theTrade.GetOpeningNum())
-                    << ". IsFlaggedForRemoval: "
-                    << formatBool(theTrade.IsFlaggedForRemoval())
-                    << ". Minimum increment is larger than Amount available: "
-                    << (theOffer.GetMinimumIncrement() >
-                        theOffer.GetAmountAvailable())
-                    << "\n";
+                otInfo << "OTMarket::" << __FUNCTION__
+                       << ": Removing market order: "
+                       << formatLong(theTrade.GetOpeningNum())
+                       << ". IsFlaggedForRemoval: "
+                       << formatBool(theTrade.IsFlaggedForRemoval())
+                       << ". Minimum increment is larger than Amount "
+                          "available: "
+                       << (theOffer.GetMinimumIncrement() >
+                           theOffer.GetAmountAvailable())
+                       << "\n";
 
                 return false;  // remove this trade from the market.
             }
@@ -2697,8 +2614,8 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
             theOffer.GetScale());
     }
 
-    // The above four items must match in order for it to even be the same
-    // MARKET.
+    // The above four items must match in order for it to even be the
+    // same MARKET.
     else if (theOffer.GetMinimumIncrement() <= 0) {
         bValidOffer = false;
         strReason.Format(
@@ -2755,7 +2672,8 @@ void OTMarket::Release_Market()
         m_pTradeList = nullptr;
     }
 
-    // If there were any dynamically allocated objects, clean them up here.
+    // If there were any dynamically allocated objects, clean them up
+    // here.
     while (!m_mapBids.empty()) {
         OTOffer* pOffer = m_mapBids.begin()->second;
         m_mapBids.erase(m_mapBids.begin());
@@ -2772,13 +2690,14 @@ void OTMarket::Release_Market()
 
 void OTMarket::Release()
 {
-    Release_Market();  // since I've overridden the base class, I call it now...
+    Release_Market();  // since I've overridden the base class, I call
+                       // it now...
 
-    Contract::Release();  // since I've overridden the base class, I call it
-                          // now...
+    Contract::Release();  // since I've overridden the base class, I
+                          // call it now...
 
-    // Then I call this to re-initialize everything (just out of convenience.
-    // Not always the right move.)
+    // Then I call this to re-initialize everything (just out of
+    // convenience. Not always the right move.)
     InitMarket();
 }
 

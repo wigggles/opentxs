@@ -86,8 +86,7 @@ private:
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds_;
 #endif
-    const api::Legacy& legacy_;
-    const api::Wallet& wallet_;
+    const api::Core& core_;
     const api::storage::Storage& storage_;
 #if OT_CASH
     // While waiting on server response to withdrawal, store private coin data
@@ -108,8 +107,7 @@ private:
 #if OT_CRYPTO_WITH_BIP39
         const api::HDSeed& seeds,
 #endif
-        const api::Legacy& legacy,
-        const api::Wallet& wallet,
+        const api::Core& core,
         const api::storage::Storage& storage);
     OTWallet() = delete;
     OTWallet(const OTWallet&) = delete;

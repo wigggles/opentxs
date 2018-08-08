@@ -397,7 +397,7 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_TRUE(transaction.IsAbbreviated());
-    EXPECT_EQ(OTTransaction::blank, transaction.GetType());
+    EXPECT_EQ(transactionType::blank, transaction.GetType());
     EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
 }
 
@@ -447,7 +447,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID));
+    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -528,7 +528,7 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_TRUE(transaction.IsAbbreviated());
-    EXPECT_EQ(OTTransaction::successNotice, transaction.GetType());
+    EXPECT_EQ(transactionType::successNotice, transaction.GetType());
     EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
 }
 
@@ -579,7 +579,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice)
         NO_TRANSACTION,
         1);
 
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID));
+    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -939,7 +939,7 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers_Bob)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_TRUE(transaction.IsAbbreviated());
-    EXPECT_EQ(OTTransaction::blank, transaction.GetType());
+    EXPECT_EQ(transactionType::blank, transaction.GetType());
     EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
 }
 
@@ -989,7 +989,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers_bob)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID));
+    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -1114,7 +1114,7 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox_Bob)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_TRUE(transaction.IsAbbreviated());
-    EXPECT_EQ(OTTransaction::successNotice, transaction.GetType());
+    EXPECT_EQ(transactionType::successNotice, transaction.GetType());
     EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
 }
 
@@ -1165,7 +1165,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice_Bob)
         NO_TRANSACTION,
         1);
 
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID));
+    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -1250,7 +1250,7 @@ TEST_F(Test_Basic, send_cheque)
     ASSERT_TRUE(cheque);
 
     std::unique_ptr<OTPayment> payment{
-        new OTPayment(cheque->Wallet(), cheque->DataFolder(), String(*cheque))};
+        client_.Factory().Payment(client_, String(*cheque))};
 
     ASSERT_TRUE(payment);
 
@@ -1328,7 +1328,7 @@ TEST_F(Test_Basic, getNymbox_receive_cheque)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_TRUE(transaction.IsAbbreviated());
-    EXPECT_EQ(OTTransaction::message, transaction.GetType());
+    EXPECT_EQ(transactionType::message, transaction.GetType());
     EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
 }
 
@@ -1378,7 +1378,7 @@ TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID));
+    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -1462,8 +1462,8 @@ TEST_F(Test_Basic, depositCheque)
     ASSERT_TRUE(workflow);
     ASSERT_TRUE(api::client::Workflow::ContainsCheque(*workflow));
 
-    const auto [state, cheque] = api::client::Workflow::InstantiateCheque(
-        client_.Wallet(), client_.DataFolder(), *workflow);
+    const auto [state, cheque] =
+        api::client::Workflow::InstantiateCheque(client_, *workflow);
 
     ASSERT_EQ(proto::PAYMENTWORKFLOWSTATE_CONVEYED, state);
     ASSERT_TRUE(cheque);
@@ -1616,7 +1616,8 @@ TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
 
     EXPECT_EQ(-1 * CHEQUE_AMOUNT, serverAccount.get().GetBalance());
 
-    std::unique_ptr<Ledger> inbox{ clientAccount.get().LoadInbox(*serverContext.It().Nym())};
+    std::unique_ptr<Ledger> inbox{
+        clientAccount.get().LoadInbox(*serverContext.It().Nym())};
 
     ASSERT_TRUE(inbox);
 
@@ -1628,7 +1629,7 @@ TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_TRUE(transaction.IsAbbreviated());
-    EXPECT_EQ(OTTransaction::chequeReceipt, transaction.GetType());
+    EXPECT_EQ(transactionType::chequeReceipt, transaction.GetType());
     EXPECT_FALSE(inbox->LoadBoxReceipt(number));
 }
 
@@ -1648,7 +1649,8 @@ TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
     {
         const auto clientAccount = client_.Wallet().Account(accountID);
 
-        std::unique_ptr<Ledger> inbox{ clientAccount.get().LoadInbox(*serverContext.It().Nym())};
+        std::unique_ptr<Ledger> inbox{
+            clientAccount.get().LoadInbox(*serverContext.It().Nym())};
 
         ASSERT_TRUE(inbox);
 
@@ -1679,7 +1681,8 @@ TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
         NO_TRANSACTION,
         0);
     const auto clientAccount = client_.Wallet().Account(accountID);
-    std::unique_ptr<Ledger> inbox{ clientAccount.get().LoadInbox(*serverContext.It().Nym())};
+    std::unique_ptr<Ledger> inbox{
+        clientAccount.get().LoadInbox(*serverContext.It().Nym())};
 
     ASSERT_TRUE(inbox);
 
@@ -1744,7 +1747,7 @@ TEST_F(Test_Basic, processInbox)
     auto transaction = inbox->GetTransactionByIndex(0);
 
     ASSERT_NE(nullptr, transaction);
-    ASSERT_EQ(OTTransaction::chequeReceipt, transaction->GetType());
+    ASSERT_EQ(transactionType::chequeReceipt, transaction->GetType());
 
     const auto workflow =
         client_.Workflow().ClearCheque(alice_nym_id_, *transaction);

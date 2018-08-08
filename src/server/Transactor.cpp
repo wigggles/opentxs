@@ -36,7 +36,7 @@ Transactor::Transactor(Server& server)
     , transactionNumber_(0)
     , idToBasketMap_()
     , contractIdToBasketAccountId_()
-    , voucherAccounts_(server.API().Wallet(), server.API().DataFolder())
+    , voucherAccounts_(server.API())
 {
 }
 

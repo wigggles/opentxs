@@ -202,13 +202,13 @@ std::int32_t InterpretTransactionMsgReply(
 Utility::Utility(
     ServerContext& context,
     const OT_API& otapi,
-    const api::Legacy& legacy)
+    const api::Core& core)
     : strLastReplyReceived("")
     , delay_ms(50)
     , max_trans_dl(10)
     , context_(context)
     , otapi_(otapi)
-    , legacy_(legacy)
+    , core_(core)
 {
 }
 
@@ -1534,13 +1534,16 @@ bool Utility::insureHaveAllBoxReceipts(
     std::unique_ptr<Ledger> pLedger;
 
     if (0 == nBoxType) {
-        pLedger.reset(otapi_.LoadNymboxNoVerify(theNotaryID, theNymID));
+        pLedger.reset(
+            otapi_.LoadNymboxNoVerify(theNotaryID, theNymID).release());
     } else if (1 == nBoxType) {
         pLedger.reset(
-            otapi_.LoadInboxNoVerify(theNotaryID, theNymID, theAccountID));
+            otapi_.LoadInboxNoVerify(theNotaryID, theNymID, theAccountID)
+                .release());
     } else if (2 == nBoxType) {
         pLedger.reset(
-            otapi_.LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID));
+            otapi_.LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID)
+                .release());
     } else {
         otOut << strLocation
               << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
@@ -1591,7 +1594,7 @@ bool Utility::insureHaveAllBoxReceipts(
         }
 
         const bool bIsReplyNotice =
-            (OTTransaction::replyNotice == pTransaction->GetType());
+            (transactionType::replyNotice == pTransaction->GetType());
 
         const RequestNumber lRequestNum =
             bIsReplyNotice ? pTransaction->GetRequestNum() : 0;

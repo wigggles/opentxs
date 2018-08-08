@@ -23,6 +23,17 @@
 
 namespace opentxs
 {
+
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 /*
  OTTrade
 
@@ -152,17 +163,6 @@ public:
                                      // this is where the ledger saves its
                                      // contents
 
-    EXPORT OTTrade(const api::Wallet& wallet, const std::string& dataFolder);
-    EXPORT OTTrade(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& notaryID,
-        const Identifier& instrumentDefinitionID,
-        const Identifier& assetAcctId,
-        const Identifier& nymID,
-        const Identifier& currencyId,
-        const Identifier& currencyAcctId);
-
     EXPORT virtual ~OTTrade();
 
 protected:
@@ -174,6 +174,8 @@ protected:
     void onRemovalFromCron() override;
 
 private:
+    friend api::implementation::Factory;
+
     typedef OTCronItem ot_super;
 
     OTIdentifier currencyTypeID_;  // GOLD (Asset) is trading for DOLLARS
@@ -200,6 +202,16 @@ private:
                                          // keep track.
 
     String marketOffer_;  // The market offer associated with this trade.
+
+    EXPORT OTTrade(const api::Core& core);
+    EXPORT OTTrade(
+        const api::Core& core,
+        const Identifier& notaryID,
+        const Identifier& instrumentDefinitionID,
+        const Identifier& assetAcctId,
+        const Identifier& nymID,
+        const Identifier& currencyId,
+        const Identifier& currencyAcctId);
 
     OTTrade() = delete;
 };

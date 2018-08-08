@@ -7,6 +7,7 @@
 
 #include "opentxs/core/AccountList.hpp"
 
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -38,23 +39,16 @@ using namespace io;
 
 namespace opentxs
 {
-AccountList::AccountList(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : wallet_(wallet)
+AccountList::AccountList(const api::Core& core)
+    : core_(core)
     , acctType_(Account::voucher)
-    , data_folder_(dataFolder)
     , mapAcctIDs_{}
 {
 }
 
-AccountList::AccountList(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    Account::AccountType acctType)
-    : wallet_(wallet)
+AccountList::AccountList(const api::Core& core, Account::AccountType acctType)
+    : core_(core)
     , acctType_(acctType)
-    , data_folder_(dataFolder)
     , mapAcctIDs_{}
 {
 }
@@ -189,7 +183,8 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
         const auto& accountID = acctIDsIt->second;
-        account = wallet_.mutable_Account(Identifier::Factory(accountID));
+        account =
+            core_.Wallet().mutable_Account(Identifier::Factory(accountID));
 
         if (account) {
             otLog3 << OT_METHOD << __FUNCTION__ << "Successfully loaded "
@@ -203,7 +198,7 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
 
     // Not found. There's no account ID yet for that instrument definition ID.
     // That means we can create it.
-    account = wallet_.CreateAccount(
+    account = core_.Wallet().CreateAccount(
         accountOwnerId,
         notaryID,
         instrumentDefinitionID,

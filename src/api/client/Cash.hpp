@@ -147,10 +147,9 @@ protected:
 private:
     friend opentxs::Factory;
 
-    const Legacy& legacy_;
-    const Wallet& wallet_;
+    const Core& core_;
 
-    Cash(const Legacy& legacy, const Wallet& wallet);
+    Cash(const Core& core);
     Cash() = delete;
     Cash(const Cash&) = delete;
     Cash(Cash&&) = delete;

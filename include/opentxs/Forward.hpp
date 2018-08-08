@@ -226,6 +226,7 @@ class NymParameters;
 class OT;
 class OT_API;
 class OTAgent;
+class OTAgreement;
 class OTAPI_Exec;
 class OTBylaw;
 class OTCachedKey;
@@ -252,10 +253,12 @@ class OTScript;
 class OTScriptable;
 class OTSignature;
 class OTSignatureMetadata;
+class OTSignedFile;
 class OTSmartContract;
 class OTTrackable;
 class OTTrade;
 class OTTransaction;
+class OTTransactionType;
 class OTVariable;
 class OTWallet;
 class PairEventCallbackSwig;
@@ -275,6 +278,9 @@ class Tag;
 #if OT_CASH
 class Token;
 #endif  // OT_CASH
+#if OT_CASH_USING_LUCRE
+class Token_Lucre;
+#endif  // OT_CASH_USING_LUCRE
 class TransactionStatement;
 class UnitDefinition;
 

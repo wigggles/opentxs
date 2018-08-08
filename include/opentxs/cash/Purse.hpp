@@ -20,6 +20,16 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 // A token has no Nym ID, or Account ID, or even a traceable TokenID (the
 // tokenID only becomes relevant after it is spent.) But a purse can be stuffed
 // full of tokens, and can be saved by accountID as filename, and can have its
@@ -41,40 +51,6 @@ typedef std::deque<Armored*> dequeOfTokens;
 class Purse : public Contract
 {
 public:
-    // OTPayment needs to be able to instantiate OTPurse without knowing the
-    // server ID in advance. I decided to add a factory for OTPurse to
-    // facilitate that.
-    EXPORT static Purse* PurseFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput);
-    EXPORT static Purse* PurseFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput,
-        const Identifier& NOTARY_ID);
-    EXPORT static Purse* PurseFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT static Purse* LowLevelInstantiate(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strFirstLine);
-    EXPORT static Purse* LowLevelInstantiate(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strFirstLine,
-        const Identifier& NOTARY_ID);
-    EXPORT static Purse* LowLevelInstantiate(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strFirstLine,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     /// What if you DON'T want to encrypt the purse to your Nym?? What if you
     /// just want to use a passphrase instead? That's what these functions are
@@ -146,31 +122,6 @@ public:
     EXPORT void Release_Purse();
     EXPORT void ReleaseTokens();
 
-    /** just for copy another purse's Server and Instrument Definition Id */
-    EXPORT Purse(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Purse& thePurse);
-    /** similar thing */
-    EXPORT Purse(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    /** Don't use this unless you really don't know the instrument definition
-     * (Like if you're about to read it out of a string.) */
-    EXPORT Purse(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID);
-    /** Normally you really really want to set the instrument definition. */
-    EXPORT Purse(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& NYM_ID);  // NymID optional
-
     EXPORT virtual ~Purse();
 
 protected:
@@ -223,11 +174,28 @@ protected:
                                      // earliest one.
     void RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner);
 
-    Purse(const api::Wallet& wallet,
-          const std::string& dataFolder);  // private
-
 private:
+    friend api::implementation::Factory;
+
     typedef Contract ot_super;
+
+    /** just for copy another purse's Server and Instrument Definition Id */
+    Purse(const api::Core& core, const Purse& thePurse);
+    /** similar thing */
+    Purse(
+        const api::Core& core,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    /** Don't use this unless you really don't know the instrument definition
+     * (Like if you're about to read it out of a string.) */
+    Purse(const api::Core& core, const Identifier& NOTARY_ID);
+    /** Normally you really really want to set the instrument definition. */
+    Purse(
+        const api::Core& core,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& NYM_ID);  // NymID optional
+    Purse(const api::Core& core);
 
     Purse() = delete;
 };

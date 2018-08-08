@@ -48,9 +48,8 @@ private:
 
     static const ListenerDefinitions listeners_;
 
-    const api::Wallet& wallet_;
     const api::storage::Storage& storage_;
-    const api::Legacy& legacy_;
+    const api::Core& core_;
     AccountSummarySortKey key_;
     const std::string& name_;
     std::atomic<bool> connection_{false};
@@ -75,9 +74,8 @@ private:
         const AccountSummaryRowID& rowID,
         const AccountSummarySortKey& sortKey,
         const CustomData& custom,
-        const api::Wallet& wallet,
         const api::storage::Storage& storage,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const proto::ContactItemType currency);
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;

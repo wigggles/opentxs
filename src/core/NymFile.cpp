@@ -8,6 +8,8 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -71,24 +73,21 @@
 namespace opentxs
 {
 internal::NymFile* Factory::NymFile(
-    const api::Wallet& wallet,
+    const api::Core& core,
     std::shared_ptr<const Nym> targetNym,
-    std::shared_ptr<const Nym> signerNym,
-    const std::string& dataFolder)
+    std::shared_ptr<const Nym> signerNym)
 {
-    return new implementation::NymFile(
-        wallet, targetNym, signerNym, dataFolder);
+    return new implementation::NymFile(core, targetNym, signerNym);
 }
 }  // namespace opentxs
 
 namespace opentxs::implementation
 {
 NymFile::NymFile(
-    const api::Wallet& wallet,
+    const api::Core& core,
     std::shared_ptr<const Nym> targetNym,
-    std::shared_ptr<const Nym> signerNym,
-    const std::string& dataFolder)
-    : wallet_{wallet}
+    std::shared_ptr<const Nym> signerNym)
+    : core_{core}
     , target_nym_{targetNym}
     , signer_nym_{signerNym}
     , m_lUsageCredits(0)
@@ -96,7 +95,6 @@ NymFile::NymFile(
     , m_strNymFile()
     , m_strVersion(NYMFILE_VERSION)
     , m_strDescription("")
-    , data_folder_(dataFolder)
     , m_mapInboxHash()
     , m_mapOutboxHash()
     , m_dequeOutpayments()
@@ -105,14 +103,11 @@ NymFile::NymFile(
 }
 
 /// a payments message is a form of transaction, transported via Nymbox
-/// Though the parameter is a reference (forcing you to pass a real object),
-/// the Nym DOES take ownership of the object. Therefore it MUST be allocated
-/// on the heap, NOT the stack, or you will corrupt memory with this call.
-void NymFile::AddOutpayments(Message& theMessage)
+void NymFile::AddOutpayments(std::shared_ptr<Message> theMessage)
 {
     eLock lock(shared_lock_);
 
-    m_dequeOutpayments.push_front(&theMessage);
+    m_dequeOutpayments.push_front(theMessage);
 }
 
 void NymFile::ClearAll()
@@ -122,12 +117,7 @@ void NymFile::ClearAll()
     m_mapInboxHash.clear();
     m_mapOutboxHash.clear();
     m_setAccounts.clear();
-    ClearOutpayments();
-}
-
-void NymFile::ClearOutpayments()
-{
-    while (GetOutpaymentsCount() > 0) RemoveOutpaymentsByIndex(0, true);
+    m_dequeOutpayments.clear();
 }
 
 bool NymFile::CompareID(const Identifier& rhs) const
@@ -302,17 +292,16 @@ bool NymFile::deserialize_nymfile(
                                     true);  // linebreaks == true.
 
                                 if (strMessage.GetLength() > 2) {
-                                    Message* pMessage =
-                                        new Message{wallet_, data_folder_};
+                                    auto pMessage =
+                                        core_.Factory().Message(core_);
 
-                                    OT_ASSERT(nullptr != pMessage);
+                                    OT_ASSERT(false != bool(pMessage));
 
                                     if (pMessage->LoadContractFromString(
                                             strMessage)) {
-                                        m_dequeOutpayments.push_back(
-                                            pMessage);  // takes ownership
-                                    } else {
-                                        delete pMessage;
+                                        std::shared_ptr<Message> message{
+                                            pMessage.release()};
+                                        m_dequeOutpayments.push_back(message);
                                     }
                                 }
                             }
@@ -409,7 +398,8 @@ bool NymFile::GetOutboxHash(
 
 // Look up a transaction by transaction number and see if it is in the ledger.
 // If it is, return a pointer to it, otherwise return nullptr.
-Message* NymFile::GetOutpaymentsByIndex(std::int32_t nIndex) const
+std::shared_ptr<Message> NymFile::GetOutpaymentsByIndex(
+    std::int32_t nIndex) const
 {
     sLock lock(shared_lock_);
     const std::uint32_t uIndex = nIndex;
@@ -424,7 +414,7 @@ Message* NymFile::GetOutpaymentsByIndex(std::int32_t nIndex) const
     return m_dequeOutpayments.at(nIndex);
 }
 
-Message* NymFile::GetOutpaymentsByTransNum(
+std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
     const std::int64_t lTransNum,
     std::unique_ptr<OTPayment>* pReturnPayment /*=nullptr*/,
     std::int32_t* pnReturnIndex /*=nullptr*/) const
@@ -434,8 +424,8 @@ Message* NymFile::GetOutpaymentsByTransNum(
     const std::int32_t nCount = GetOutpaymentsCount();
 
     for (std::int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        Message* pMsg = m_dequeOutpayments.at(nIndex);
-        OT_ASSERT(nullptr != pMsg);
+        auto pMsg = m_dequeOutpayments.at(nIndex);
+        OT_ASSERT(false != bool(pMsg));
         String strPayment;
         std::unique_ptr<OTPayment> payment;
         std::unique_ptr<OTPayment>& pPayment(
@@ -446,7 +436,8 @@ Message* NymFile::GetOutpaymentsByTransNum(
         //
         if (pMsg->m_ascPayload.Exists() &&
             pMsg->m_ascPayload.GetString(strPayment) && strPayment.Exists()) {
-            pPayment.reset(new OTPayment(wallet_, data_folder_, strPayment));
+            pPayment.reset(
+                core_.Factory().Payment(core_, strPayment).release());
 
             // Let's see if it's the cheque we're looking for...
             //
@@ -490,9 +481,10 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
-    OTSignedFile theNymFile(wallet_, data_folder_, OTFolders::Nym(), nymID);
+    auto theNymFile =
+        core_.Factory().SignedFile(core_, OTFolders::Nym(), nymID);
 
-    if (!theNymFile.LoadFile()) {
+    if (!theNymFile->LoadFile()) {
         otWarn << __FUNCTION__ << ": Failed loading a signed nymfile: " << nymID
                << std::endl;
 
@@ -505,7 +497,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
     // 2. That the local subdir and filename match the versions inside the file.
     // 3. That the signature matches for the signer nym who was passed in.
     //
-    if (!theNymFile.VerifyFile()) {
+    if (!theNymFile->VerifyFile()) {
         otErr << __FUNCTION__ << ": Failed verifying nymfile: " << nymID
               << "\n\n";
 
@@ -514,7 +506,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
     const auto& publicSignKey = signer_nym_->GetPublicSignKey();
 
-    if (!theNymFile.VerifyWithKey(publicSignKey)) {
+    if (!theNymFile->VerifyWithKey(publicSignKey)) {
         otErr << __FUNCTION__
               << ": Failed verifying signature on nymfile: " << nymID
               << "\n Signer Nym ID: " << signer_nym_->ID().str() << "\n";
@@ -524,8 +516,8 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
     otInfo << "Loaded and verified signed nymfile. Reading from string...\n";
 
-    if (1 > theNymFile.GetFilePayload().GetLength()) {
-        const auto lLength = theNymFile.GetFilePayload().GetLength();
+    if (1 > theNymFile->GetFilePayload().GetLength()) {
+        const auto lLength = theNymFile->GetFilePayload().GetLength();
 
         otErr << __FUNCTION__ << ": Bad length (" << lLength
               << ") while loading nymfile: " << nymID << "\n";
@@ -534,7 +526,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
     bool converted = false;
     const bool loaded = deserialize_nymfile(
         lock,
-        theNymFile.GetFilePayload(),
+        theNymFile->GetFilePayload(),
         converted,
         nullptr,
         nullptr,
@@ -582,9 +574,7 @@ void NymFile::RemoveAllNumbers(const String* pstrNotaryID)
 }
 
 // if this function returns false, outpayments index was bad.
-bool NymFile::RemoveOutpaymentsByIndex(
-    const std::int32_t nIndex,
-    bool bDeleteIt)
+bool NymFile::RemoveOutpaymentsByIndex(const std::int32_t nIndex)
 {
     const std::uint32_t uIndex = nIndex;
 
@@ -598,30 +588,25 @@ bool NymFile::RemoveOutpaymentsByIndex(
         return false;
     }
 
-    Message* pMessage = m_dequeOutpayments.at(nIndex);
-    OT_ASSERT(nullptr != pMessage);
+    auto pMessage = m_dequeOutpayments.at(nIndex);
+    OT_ASSERT(false != bool(pMessage));
 
     m_dequeOutpayments.erase(m_dequeOutpayments.begin() + uIndex);
-
-    if (bDeleteIt) delete pMessage;
 
     return true;
 }
 
-bool NymFile::RemoveOutpaymentsByTransNum(
-    const std::int64_t lTransNum,
-    bool bDeleteIt /*=true*/)
+bool NymFile::RemoveOutpaymentsByTransNum(const std::int64_t lTransNum)
 {
     std::int32_t nReturnIndex = -1;
 
-    Message* pMsg =
+    auto pMsg =
         this->GetOutpaymentsByTransNum(lTransNum, nullptr, &nReturnIndex);
     const std::uint32_t uIndex = nReturnIndex;
 
     if ((nullptr != pMsg) && (nReturnIndex > (-1)) &&
         (uIndex < m_dequeOutpayments.size())) {
         m_dequeOutpayments.erase(m_dequeOutpayments.begin() + uIndex);
-        if (bDeleteIt) delete pMsg;
         return true;
     }
     return false;
@@ -657,7 +642,7 @@ bool NymFile::ResyncWithServer(
     const String strNymID(target_nym_->ID());
 
     auto context =
-        wallet_.mutable_ServerContext(target_nym_->ID(), theNotaryID);
+        core_.Wallet().mutable_ServerContext(target_nym_->ID(), theNotaryID);
 
     // Remove all issued, transaction, and tentative numbers for a specific
     // server ID,
@@ -676,13 +661,13 @@ bool NymFile::ResyncWithServer(
     // successNotice in the Nymbox. This way, when the notices are processed,
     // they will succeed because the Nym will believe he was expecting them.
     for (auto& it : theNymbox.GetTransactionMap()) {
-        OTTransaction* pTransaction = it.second;
-        OT_ASSERT(nullptr != pTransaction);
+        auto pTransaction = it.second;
+        OT_ASSERT(false != bool(pTransaction));
         //        OTString strTransaction(*pTransaction);
         //        otErr << "TRANSACTION CONTENTS:\n%s\n", strTransaction.Get());
 
         // (a new; ALREADY just added transaction number.)
-        if ((OTTransaction::successNotice !=
+        if ((transactionType::successNotice !=
              pTransaction->GetType()))  // if !successNotice
             continue;
 
@@ -761,8 +746,8 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
 
     if (!(m_dequeOutpayments.empty())) {
         for (std::uint32_t i = 0; i < m_dequeOutpayments.size(); i++) {
-            Message* pMessage = m_dequeOutpayments.at(i);
-            OT_ASSERT(nullptr != pMessage);
+            auto pMessage = m_dequeOutpayments.at(i);
+            OT_ASSERT(false != bool(pMessage));
 
             String strOutpayments(*pMessage);
 
@@ -836,7 +821,7 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
     serialize_nymfile(lock, strNym);
 
     bool bSaved = OTDB::StorePlainString(
-        strNym.Get(), data_folder_, szFoldername, szFilename, "", "");
+        strNym.Get(), core_.DataFolder(), szFoldername, szFilename, "", "");
     if (!bSaved)
         otErr << __FUNCTION__ << ": Error saving file: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
@@ -861,15 +846,15 @@ bool NymFile::save_signed_nymfile(const T& lock)
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
-    OTSignedFile theNymFile(
-        wallet_, data_folder_, OTFolders::Nym().Get(), strNymID);
-    theNymFile.GetFilename(m_strNymFile);
+    auto theNymFile =
+        core_.Factory().SignedFile(core_, OTFolders::Nym().Get(), strNymID);
+    theNymFile->GetFilename(m_strNymFile);
 
     otInfo << "Saving nym to: " << m_strNymFile << "\n";
 
     // First we save this nym to a string...
     // Specifically, the file payload string on the OTSignedFile object.
-    serialize_nymfile(lock, theNymFile.GetFilePayload());
+    serialize_nymfile(lock, theNymFile->GetFilePayload());
 
     // Now the OTSignedFile contains the path, the filename, AND the
     // contents of the Nym itself, saved to a string inside the OTSignedFile
@@ -877,12 +862,12 @@ bool NymFile::save_signed_nymfile(const T& lock)
 
     const auto& privateSignKey = signer_nym_->GetPrivateSignKey();
 
-    if (theNymFile.SignWithKey(privateSignKey) && theNymFile.SaveContract()) {
-        const bool bSaved = theNymFile.SaveFile();
+    if (theNymFile->SignWithKey(privateSignKey) && theNymFile->SaveContract()) {
+        const bool bSaved = theNymFile->SaveFile();
 
         if (!bSaved) {
             otErr << __FUNCTION__
-                  << ": Failed while calling theNymFile.SaveFile() for Nym "
+                  << ": Failed while calling theNymFile->SaveFile() for Nym "
                   << strNymID << " using Signer Nym " << signer_nym_->ID().str()
                   << "\n";
         }

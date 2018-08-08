@@ -21,9 +21,9 @@ public:
     EXPORT virtual bool GetOutboxHash(
         const std::string& acct_id,
         Identifier& theOutput) const = 0;  // client-side
-    EXPORT virtual Message* GetOutpaymentsByIndex(
+    EXPORT virtual std::shared_ptr<Message> GetOutpaymentsByIndex(
         const std::int32_t nIndex) const = 0;
-    EXPORT virtual Message* GetOutpaymentsByTransNum(
+    EXPORT virtual std::shared_ptr<Message> GetOutpaymentsByTransNum(
         const std::int64_t lTransNum,
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
         std::int32_t* pnReturnIndex = nullptr) const = 0;
@@ -36,7 +36,7 @@ public:
     // Whenever a Nym sends a payment, a copy is dropped std::into his
     // Outpayments. (Payments screen.) A payments message is the original
     // OTMessage that this Nym sent.
-    EXPORT virtual void AddOutpayments(Message& theMessage) = 0;
+    EXPORT virtual void AddOutpayments(std::shared_ptr<Message> theMessage) = 0;
     // IMPORTANT NOTE: Not all outpayments have a transaction num!
     // Imagine if you sent a cash purse to someone, for example.
     // The cash withdrawal had a transNum, and the eventual cash
@@ -44,12 +44,9 @@ public:
     // That's okay in your outpayments box since it's like an outmail
     // box. It's not a ledger, so the items inside don't need a txn#.
     EXPORT virtual std::set<std::string>& GetSetAssetAccounts() = 0;
-    EXPORT virtual bool RemoveOutpaymentsByIndex(
-        const std::int32_t nIndex,
-        bool bDeleteIt = true) = 0;
+    EXPORT virtual bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) = 0;
     EXPORT virtual bool RemoveOutpaymentsByTransNum(
-        const std::int64_t lTransNum,
-        bool bDeleteIt = true) = 0;
+        const std::int64_t lTransNum) = 0;
     // ** ResyncWithServer **
     //
     // Not for normal use! (Since you should never get out of sync with the

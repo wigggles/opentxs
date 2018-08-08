@@ -75,8 +75,8 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(verify_lock(lock, rowMutex))
 
-    pAccount.reset(Account::LoadExistingAccount(
-        *this, core_.DataFolder(), accountID, server_.ID()));
+    pAccount.reset(
+        Account::LoadExistingAccount(core_, accountID, server_.ID()));
 
     if (false == bool(pAccount)) { return false; }
 

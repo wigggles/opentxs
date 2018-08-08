@@ -7,6 +7,8 @@
 
 #include "opentxs/core/Message.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/consensus/Context.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -222,8 +224,8 @@ const std::map<MessageType, MessageType> Message::reply_message_{
 
 const Message::ReverseTypeMap Message::message_types_ = make_reverse_map();
 
-Message::Message(const api::Wallet& wallet, const std::string& dataFolder)
-    : Contract(wallet, dataFolder)
+Message::Message(const api::Core& core)
+    : Contract(core)
     , m_bIsSigned(false)
     , m_lNewRequestNum(0)
     , m_lDepth(0)
@@ -304,16 +306,15 @@ bool Message::HarvestTransactionNumbers(
     // in case.
 
     const String strLedger(m_ascPayload);
-    Ledger theLedger(
-        wallet_,
-        data_folder_,
+    auto theLedger = core_.Factory().Ledger(
+        core_,
         MSG_NYM_ID,
         ACCOUNT_ID,
         NOTARY_ID);  // We're going to
                      // load a messsage
                      // ledger from *this.
 
-    if (!strLedger.Exists() || !theLedger.LoadLedgerFromString(strLedger)) {
+    if (!strLedger.Exists() || !theLedger->LoadLedgerFromString(strLedger)) {
         otErr << __FUNCTION__
               << ": ERROR: Failed trying to load message ledger:\n\n"
               << strLedger << "\n\n";
@@ -322,9 +323,9 @@ bool Message::HarvestTransactionNumbers(
 
     // Let's iterate through the transactions inside, and harvest whatever
     // we can...
-    for (auto& it : theLedger.GetTransactionMap()) {
-        OTTransaction* pTransaction = it.second;
-        OT_ASSERT(nullptr != pTransaction);
+    for (auto& it : theLedger->GetTransactionMap()) {
+        auto pTransaction = it.second;
+        OT_ASSERT(false != bool(pTransaction));
 
         // NOTE: You would ONLY harvest the transaction numbers if your
         // request failed.

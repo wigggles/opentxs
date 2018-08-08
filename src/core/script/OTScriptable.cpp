@@ -7,6 +7,8 @@
 
 #include "opentxs/core/script/OTScriptable.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
@@ -62,84 +64,13 @@
 
 namespace opentxs
 {
-OTScriptable::OTScriptable(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : Contract(wallet, dataFolder)
+OTScriptable::OTScriptable(const api::Core& core)
+    : Contract(core)
     , m_bCalculatingID(false)
     ,  // This is not serialized.
     m_bSpecifyInstrumentDefinitionID(false)
     , m_bSpecifyParties(false)  // These are.
 {
-}
-
-OTScriptable* OTScriptable::InstantiateScriptable(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strInput)
-{
-    static char buf[45] = "";
-
-    if (!strInput.Exists()) {
-        otErr << __FUNCTION__ << ": Failure: Input string is empty.\n";
-        return nullptr;
-    }
-
-    String strContract(strInput);
-
-    if (!strContract.DecodeIfArmored(false))  // bEscapedIsAllowed=true
-                                              // by default.
-    {
-        otErr << __FUNCTION__
-              << ": Input string apparently was encoded and "
-                 "then failed decoding. Contents: \n"
-              << strInput << "\n";
-        return nullptr;
-    }
-
-    // At this point, strContract contains the actual contents, whether they
-    // were originally ascii-armored OR NOT. (And they are also now trimmed,
-    // either way.)
-    //
-    strContract.reset();  // for sgets
-    buf[0] = 0;           // probably unnecessary.
-    bool bGotLine = strContract.sgets(buf, 40);
-
-    if (!bGotLine) return nullptr;
-
-    OTCronItem* pItem = nullptr;
-
-    String strFirstLine(buf);
-    strContract.reset();  // set the "file" pointer within this string back to
-                          // index 0.
-
-    // Now I feel pretty safe -- the string I'm examining is within
-    // the first 45 characters of the beginning of the contract, and
-    // it will NOT contain the escape "- " sequence. From there, if
-    // it contains the proper sequence, I will instantiate that type.
-    if (!strFirstLine.Exists() || strFirstLine.Contains("- -")) return nullptr;
-
-    // There are actually two factories that load smart contracts. See
-    // OTCronItem.
-    //
-    else if (strFirstLine.Contains(
-                 "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
-                                                           // chars long.
-    {
-        pItem = new OTSmartContract{wallet, dataFolder};
-        OT_ASSERT(nullptr != pItem);
-    }
-
-    // The string didn't match any of the options in the factory.
-    if (nullptr == pItem) return nullptr;
-
-    // Does the contract successfully load from the string passed in?
-    if (pItem->LoadContractFromString(strContract))
-        return pItem;
-    else
-        delete pItem;
-
-    return nullptr;
 }
 
 // virtual
@@ -725,7 +656,7 @@ bool OTScriptable::SendNoticeToAllParties(
         if (0 != pParty->GetOpeningTransNo()) {
             if (false ==
                 pParty->SendNoticeToParty(
-                    data_folder_,
+                    core_.DataFolder(),
                     bSuccessMsg,  // "success" notice? or "failure" notice?
                     theServerNym,
                     theNotaryID,
@@ -1148,17 +1079,14 @@ bool OTScriptable::VerifyPartyAuthorization(
     // the original signature, no matter WHO is authorized now. Otherwise your
     // entire contract falls apart.
 
-    OTScriptable* pPartySignedCopy = OTScriptable::InstantiateScriptable(
-        wallet_, data_folder_, theParty.GetMySignedCopy());
-    std::unique_ptr<OTScriptable> theCopyAngel;
+    auto pPartySignedCopy{
+        core_.Factory().Scriptable(core_, theParty.GetMySignedCopy())};
 
-    if (nullptr == pPartySignedCopy) {
+    if (false == bool(pPartySignedCopy)) {
         otErr << __FUNCTION__
               << ": Error loading party's signed copy of "
                  "agreement. Has it been executed?\n";
         return false;
-    } else {
-        theCopyAngel.reset(pPartySignedCopy);
     }
 
     const bool bSigVerified =
@@ -1330,18 +1258,16 @@ bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
     // the original signature, no matter WHO is authorized now. Otherwise your
     // entire contract falls apart.
 
-    OTScriptable* pPartySignedCopy = OTScriptable::InstantiateScriptable(
-        wallet_, data_folder_, pParty->GetMySignedCopy());
-    std::unique_ptr<OTScriptable> theCopyAngel;
+    auto pPartySignedCopy{
+        core_.Factory().Scriptable(core_, pParty->GetMySignedCopy())};
 
-    if (nullptr == pPartySignedCopy) {
+    if (false == bool(pPartySignedCopy)) {
         otErr << "OTScriptable::VerifyNymAsAgent: Error loading party's ("
               << pParty->GetPartyName()
               << ") signed copy of agreement. Has it been executed?\n";
         pParty->ClearTemporaryPointers();
         return false;
-    } else
-        theCopyAngel.reset(pPartySignedCopy);
+    }
 
     const bool bSigVerified =
         pAuthorizingAgent->VerifySignature(*pPartySignedCopy);
@@ -1893,18 +1819,15 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
         OT_ASSERT(nullptr != pParty);
 
         if (pParty->GetMySignedCopy().Exists()) {
-            OTScriptable* pPartySignedCopy =
-                OTScriptable::InstantiateScriptable(
-                    wallet_, data_folder_, pParty->GetMySignedCopy());
-            std::unique_ptr<OTScriptable> theCopyAngel;
+            auto pPartySignedCopy{
+                core_.Factory().Scriptable(core_, pParty->GetMySignedCopy())};
 
-            if (nullptr == pPartySignedCopy) {
+            if (false == bool(pPartySignedCopy)) {
                 otErr << __FUNCTION__ << ": Error loading party's ("
                       << current_party_name
                       << ") signed copy of agreement. Has it been executed?\n";
                 return false;
-            } else
-                theCopyAngel.reset(pPartySignedCopy);
+            }
 
             if (!Compare(*pPartySignedCopy))  // <==== For all signed
                                               // copies, we compare them to
@@ -2457,8 +2380,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                               << "s: Expected openingTransNo in party.\n";
 
                     OTParty* pParty = new OTParty(
-                        wallet_,
-                        data_folder_,
+                        core_.Wallet(),
+                        core_.DataFolder(),
                         strName.Exists() ? strName.Get() : "PARTY_ERROR_NAME",
                         strOwnerType.Compare("nym") ? true : false,
                         strOwnerID.Get(),
@@ -2585,7 +2508,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // already-loaded parties.
 
                                 OTAgent* pAgent = new OTAgent(
-                                    wallet_,
+                                    core_.Wallet(),
                                     bRepsHimself,
                                     bIsIndividual,
                                     strAgentName,

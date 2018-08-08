@@ -221,6 +221,181 @@ enum class ContractType : std::uint8_t {
     UNIT = 3,
 };
 
+enum class itemType : std::uint8_t {
+    // TRANSFER
+    transfer,    // this item is an outgoing transfer, probably part of an
+                 // outoing transaction.
+    atTransfer,  // Server reply.
+
+    // NYMBOX RESOLUTION
+    acceptTransaction,  // this item is a client-side acceptance of a
+                        // transaction number (a blank) in my Nymbox
+    atAcceptTransaction,
+    acceptMessage,  // this item is a client-side acceptance of a message in
+                    // my Nymbox
+    atAcceptMessage,
+    acceptNotice,  // this item is a client-side acceptance of a server
+                   // notification in my Nymbox
+    atAcceptNotice,
+
+    // INBOX RESOLUTION
+    acceptPending,  // this item is a client-side acceptance of a pending
+                    // transfer
+    atAcceptPending,
+    rejectPending,  // this item is a client-side rejection of a pending
+                    // transfer
+    atRejectPending,
+
+    // RECEIPT ACKNOWLEDGMENT / DISPUTE
+    acceptCronReceipt,     // this item is a client-side acceptance of a cron
+                           // receipt in his inbox.
+    atAcceptCronReceipt,   // this item is a server reply to that acceptance.
+    acceptItemReceipt,     // this item is a client-side acceptance of an item
+                           // receipt in his inbox.
+    atAcceptItemReceipt,   // this item is a server reply to that acceptance.
+    disputeCronReceipt,    // this item is a client dispute of a cron receipt
+                           // in his inbox.
+    atDisputeCronReceipt,  // Server reply to dispute message.
+    disputeItemReceipt,    // this item is a client dispute of an item receipt
+                           // in his inbox.
+    atDisputeItemReceipt,  // Server reply to dispute message.
+
+    // Sometimes the attachment will be an OTItem, and sometimes it will be
+    // an OTPaymentPlan or OTTrade.  These different types above help the
+    // code to differentiate.
+    acceptFinalReceipt,     // this item is a client-side acceptance of a final
+                            // receipt in his inbox. (All related receipts must
+                            // also be closed!)
+    atAcceptFinalReceipt,   // server reply
+    acceptBasketReceipt,    // this item is a client-side acceptance of a
+                            // basket receipt in his inbox.
+    atAcceptBasketReceipt,  // server reply
+    disputeFinalReceipt,    // this item is a client-side rejection of a final
+    // receipt in his inbox. (All related receipts must
+    // also be closed!)
+    atDisputeFinalReceipt,   // server reply
+    disputeBasketReceipt,    // this item is a client-side rejection of a
+                             // basket receipt in his inbox.
+    atDisputeBasketReceipt,  // server reply
+
+    // FEEs
+    serverfee,  // this item is a fee from the transaction server (per
+                // contract)
+    atServerfee,
+    issuerfee,  // this item is a fee from the issuer (per contract)
+    atIssuerfee,
+    // INFO (BALANCE, HASH, etc) these are still all messages with replies.
+    balanceStatement,  // this item is a statement of balance. (For asset
+                       // account.)
+    atBalanceStatement,
+    transactionStatement,  // this item is a transaction statement. (For Nym
+                           // -- which numbers are assigned to him.)
+    atTransactionStatement,
+    // CASH WITHDRAWAL / DEPOSIT
+    withdrawal,  // this item is a cash withdrawal (of chaumian blinded
+                 // tokens)
+    atWithdrawal,
+    deposit,  // this item is a cash deposit (of a purse containing blinded
+              // tokens.)
+    atDeposit,
+    // CHEQUES AND VOUCHERS
+    withdrawVoucher,  // this item is a request to purchase a voucher (a
+                      // cashier's cheque)
+    atWithdrawVoucher,
+    depositCheque,    // this item is a request to deposit a cheque
+    atDepositCheque,  // this item is a server response to that request.
+    // PAYING DIVIDEND ON SHARES OF STOCK
+    payDividend,    // this item is a request to pay a dividend.
+    atPayDividend,  // the server reply to that request.
+    // TRADING ON MARKETS
+    marketOffer,    // this item is an offer to be put on a market.
+    atMarketOffer,  // server reply or updated notification regarding a
+                    // market offer.
+    // PAYMENT PLANS
+    paymentPlan,    // this item is a new payment plan
+    atPaymentPlan,  // server reply or updated notification regarding a
+                    // payment plan.
+    // SMART CONTRACTS
+    smartContract,    // this item is a new smart contract
+    atSmartContract,  // server reply or updated notification regarding a
+                      // smart contract.
+    // CANCELLING: Market Offers and Payment Plans.
+    cancelCronItem,    // this item is intended to cancel a market offer or
+                       // payment plan.
+    atCancelCronItem,  // reply from the server regarding said cancellation.
+    // EXCHANGE IN/OUT OF A BASKET CURRENCY
+    exchangeBasket,    // this item is an exchange in/out of a basket
+                       // currency.
+    atExchangeBasket,  // reply from the server regarding said exchange.
+    // Now these three receipts have a dual use:  as the receipts in the
+    // inbox, and also
+    // as the representation for transactions in the inbox report (for
+    // balance statements.)
+    // Actually chequeReceipt is ONLY used for inbox report, and otherwise
+    // is not actually
+    // needed for real cheque receipts.  marketReceipt and paymentReceipt
+    // are used as real
+    // receipts, and also in inbox reports to represent transaction items in
+    // an inbox.
+    chequeReceipt,  // Currently don't create an OTItem for cheque receipt
+                    // in
+                    // inbox. Not needed.
+    // I also don't create one for the transfer receipt, currently.
+    // (Although near the top, I do have item types to go in a processInbox
+    // message and
+    // clear those transaction types out of my inbox.)
+    voucherReceipt,   // Newest addition. This is so users can close a
+                      // transaction number used on a voucher.
+    marketReceipt,    // server receipt dropped into inbox as result of market
+                      // trading.
+    paymentReceipt,   // server receipt dropped into an inbox as result of
+                      // payment occuring.
+    transferReceipt,  // server receipt dropped into an inbox as result of
+                      // transfer being accepted.
+    finalReceipt,     // server receipt dropped into inbox / nymbox as result
+                      // of
+                      // cron item expiring or being canceled.
+    basketReceipt,    // server receipt dropped into inbox as result of a
+                      // basket exchange.
+    replyNotice,      // server notice of a reply that nym should have already
+                      // received as a response to a request.
+    // (Some are so important, a copy of the server reply is dropped to your
+    // nymbox, to make SURE you got it and processed it.)
+    successNotice,  // server notice dropped into nymbox as result of a
+                    // transaction# being successfully signed out.
+    notice,         // server notice dropped into nymbox as result of a smart
+                    // contract processing.
+    // Also could be used for ballots / elections, corporate meetings /
+    // minutes, etc.
+    // finalReceipt is also basically a notice (in the Nymbox, anyway) but
+    // it still is
+    // information that you have to act on as soon as you receive it,
+    // whereas THIS kind
+    // of notice isn't so hardcore. It's more laid-back.
+    error_state  // error state versus error status
+};
+
+enum class ledgerType : std::uint8_t {
+    nymbox,   // the nymbox is per user account (versus per asset account)
+              // and is used to receive new transaction numbers (and
+              // messages.)
+    inbox,    // each asset account has an inbox, with pending transfers as
+              // well as receipts inside.
+    outbox,   // if you SEND a pending transfer, it sits in your outbox until
+              // it's accepted, rejected, or canceled.
+    message,  // used in OTMessages, to send various lists of transactions
+              // back and forth.
+    paymentInbox,  // Used for client-side-only storage of incoming cheques,
+                   // invoices, payment plan requests, etc. (Coming in from
+                   // the Nymbox.)
+    recordBox,     // Used for client-side-only storage of completed items from
+                   // the inbox, and the paymentInbox.
+    expiredBox,    // Used for client-side-only storage of expired items from
+                   // the paymentInbox.
+    error_state
+};  // If you add any types to this list, update the list of strings at the
+// top of Ledger.cpp.
+
 // originType is DISPLAY ONLY. Used in OTTransaction and OTItem.
 // sometimes an OTItem is used to represent an OTTransaction.
 // (for example, processInbox transaction has a processInbox item that
@@ -249,6 +424,87 @@ enum class originType : std::int8_t {
     origin_pay_dividend,    // SOME voucherReceipts are from a payDividend.
     origin_error_state
 };
+
+// a transaction can be blank (issued from server)
+// or pending (in the inbox/outbox)
+// or it can be a "process inbox" transaction
+// might also be in the nymbox.
+enum class transactionType : std::int8_t {
+    // ***** INBOX / OUTBOX / NYMBOX
+
+    // NYMBOX
+    blank,          // freshly issued transaction number, not used yet
+                    // (the server drops these into the nymbox.)
+    message,        // A message from one user to another, also in the nymbox.
+    notice,         // A notice from the server. Used in Nymbox.
+    replyNotice,    // A copy of a server reply to a previous request you
+                    // sent.
+                    // (To make SURE you get the reply.)
+    successNotice,  // A transaction # has successfully been signed out.
+
+    // INBOX / OUTBOX (pending transfer)
+    pending,  // Server puts this in your outbox (when sending) and
+              // recipient's inbox.
+
+    // INBOX / receipts
+    transferReceipt,  // the server drops this into your inbox, when someone
+                      // accepts your transfer.
+    chequeReceipt,    // the server drops this into your inbox, when someone
+                      // deposits your cheque.
+    voucherReceipt,   // the server drops this into your inbox, when someone
+                      // deposits your voucher.
+    marketReceipt,    // server periodically drops this into your inbox if an
+                      // offer is live.
+    paymentReceipt,   // the server drops this into people's inboxes, every
+                      // time a payment processes. (from a payment plan or a
+                      // smart contract)
+    finalReceipt,     // the server drops this into your in/nym box(es), when a
+                      // CronItem expires or is canceled.
+    basketReceipt,    // the server drops this into your inboxes, when a
+                      // basket
+                      // exchange is processed.
+
+    // PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
+    instrumentNotice,     // Receive these in paymentInbox (by way of Nymbox),
+                          // and send in Outpayments (like Outmail).) (When
+                          // done, they go to recordBox or expiredBox to await
+                          // deletion.)
+    instrumentRejection,  // When someone rejects your invoice from his
+                          // paymentInbox, you get one of these in YOUR
+                          // paymentInbox.
+
+    // **** MESSAGES ****
+    processNymbox,    // process nymbox transaction    // comes from client
+    atProcessNymbox,  // process nymbox reply          // comes from server
+    processInbox,     // process inbox transaction     // comes from client
+    atProcessInbox,   // process inbox reply           // comes from server
+    transfer,      // or "spend". This transaction is a request to transfer from
+                   // one account to another
+    atTransfer,    // reply from the server regarding a transfer request
+    deposit,       // this transaction is a deposit (cash or cheque)
+    atDeposit,     // reply from the server regarding a deposit request
+    withdrawal,    // this transaction is a withdrawal (cash or voucher)
+    atWithdrawal,  // reply from the server regarding a withdrawal request
+    marketOffer,   // this transaction is a market offer
+    atMarketOffer,     // reply from the server regarding a market offer
+    paymentPlan,       // this transaction is a payment plan
+    atPaymentPlan,     // reply from the server regarding a payment plan
+    smartContract,     // this transaction is a smart contract
+    atSmartContract,   // reply from the server regarding a smart contract
+    cancelCronItem,    // this transaction is intended to cancel a market
+                       // offer
+                       // or payment plan.
+    atCancelCronItem,  // reply from the server regarding said cancellation.
+    exchangeBasket,    // this transaction is an exchange in/out of a basket
+                       // currency.
+    atExchangeBasket,  // reply from the server regarding said exchange.
+    payDividend,       // this transaction is dividend payment (to all
+                       // shareholders...)
+    atPayDividend,     // reply from the server regarding said dividend
+                       // payment.
+    error_state
+};  // If you add any types to this list, update the list of strings at the
+// top of OTTransaction.cpp.
 
 enum class SendResult : std::int8_t {
     TRANSACTION_NUMBERS = -3,

@@ -7,7 +7,7 @@
 
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -44,9 +44,8 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::Wallet& wallet,
     const api::storage::Storage& storage,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::IssuerItem(
@@ -57,9 +56,8 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
         rowID,
         sortKey,
         custom,
-        wallet,
         storage,
-        legacy,
+        core,
         currency);
 }
 }  // namespace opentxs
@@ -79,19 +77,17 @@ IssuerItem::IssuerItem(
     const AccountSummaryRowID& rowID,
     const AccountSummarySortKey& sortKey,
     [[maybe_unused]] const CustomData& custom,
-    const api::Wallet& wallet,
     const api::storage::Storage& storage,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const proto::ContactItemType currency)
     : IssuerItemList(parent.WidgetID(), parent.NymID(), zmq, publisher, contact)
     , IssuerItemRow(parent, Identifier::Factory(rowID), true)
-    , wallet_{wallet}
     , storage_{storage}
-    , legacy_{legacy}
+    , core_{core}
     , key_{sortKey}
     , name_{std::get<1>(key_)}
     , connection_{std::get<0>(key_)}
-    , issuer_{wallet.Issuer(parent.NymID(), rowID)}
+    , issuer_{core_.Wallet().Issuer(parent.NymID(), rowID)}
     , currency_{currency}
 {
     OT_ASSERT(issuer_)
@@ -118,7 +114,7 @@ void IssuerItem::construct_row(
             id,
             index,
             custom,
-            wallet_,
+            core_.Wallet(),
             storage_));
     names_.emplace(id, index);
 }
@@ -132,7 +128,7 @@ std::string IssuerItem::Name() const
 
 void IssuerItem::process_account(const Identifier& accountID)
 {
-    const auto account = wallet_.Account(accountID);
+    const auto account = core_.Wallet().Account(accountID);
 
     if (false == bool(account)) { return; }
 

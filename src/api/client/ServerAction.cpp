@@ -6,7 +6,8 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -29,13 +30,12 @@ namespace opentxs
 api::client::ServerAction* Factory::ServerAction(
     const OT_API& otapi,
     const OTAPI_Exec& exec,
-    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const ContextLockCallback& lockCallback)
 {
     return new api::client::implementation::ServerAction(
-        otapi, exec, wallet, workflow, legacy, lockCallback);
+        otapi, exec, workflow, core, lockCallback);
 }
 }  // namespace opentxs
 
@@ -44,15 +44,13 @@ namespace opentxs::api::client::implementation
 ServerAction::ServerAction(
     const OT_API& otapi,
     const OTAPI_Exec& exec,
-    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const ContextLockCallback& lockCallback)
     : otapi_(otapi)
     , exec_(exec)
-    , wallet_(wallet)
     , workflow_(workflow)
-    , legacy_(legacy)
+    , core_(core)
     , lock_callback_(lockCallback)
 {
 }
@@ -67,9 +65,8 @@ ServerAction::Action ServerAction::AcknowledgeBailment(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_BAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -93,9 +90,8 @@ ServerAction::Action ServerAction::AcknowledgeConnection(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_CONNECTION,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -119,9 +115,8 @@ ServerAction::Action ServerAction::AcknowledgeNotice(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_NOTICE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -141,9 +136,8 @@ ServerAction::Action ServerAction::AcknowledgeOutbailment(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_OUTBAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -168,9 +162,8 @@ ServerAction::Action ServerAction::ActivateSmartContract(
     return Action(new OTAPI_Func(
         ACTIVATE_SMART_CONTRACT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -191,9 +184,8 @@ ServerAction::Action ServerAction::AddServerClaim(
     return Action(new OTAPI_Func(
         SERVER_ADD_CLAIM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -213,9 +205,8 @@ ServerAction::Action ServerAction::AdjustUsageCredits(
     return Action(new OTAPI_Func(
         ADJUST_USAGE_CREDITS,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -246,9 +237,8 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -271,7 +261,7 @@ ServerAction::Action ServerAction::CreateMarketOffer(
 {
     auto notaryID = Identifier::Factory();
     auto nymID = Identifier::Factory();
-    const auto assetAccount = wallet_.Account(assetAccountID);
+    const auto assetAccount = core_.Wallet().Account(assetAccountID);
 
     if (assetAccount) {
         nymID = assetAccount.get().GetNymID();
@@ -286,9 +276,8 @@ ServerAction::Action ServerAction::CreateMarketOffer(
     return Action(new OTAPI_Func(
         CREATE_MARKET_OFFER,
         lock_callback_({nymID->str(), notaryID->str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         nymID,
         notaryID,
         exec_,
@@ -320,9 +309,8 @@ ServerAction::Action ServerAction::DepositCashPurse(
     return Action(new OTAPI_Func(
         DEPOSIT_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -346,9 +334,8 @@ ServerAction::Action ServerAction::DepositCheque(
     return Action(new OTAPI_Func(
         DEPOSIT_CHEQUE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -365,9 +352,8 @@ ServerAction::Action ServerAction::DepositPaymentPlan(
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -383,8 +369,8 @@ bool ServerAction::DownloadAccount(
     const bool forceDownload) const
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
-    auto context = wallet_.mutable_ServerContext(localNymID, serverID);
-    Utility MsgUtil(context.It(), otapi_, legacy_);
+    auto context = core_.Wallet().mutable_ServerContext(localNymID, serverID);
+    Utility MsgUtil(context.It(), otapi_, core_);
     const auto output = MsgUtil.getIntermediaryFiles(
         serverID.str(), localNymID.str(), accountID.str(), forceDownload);
 
@@ -401,9 +387,8 @@ ServerAction::Action ServerAction::DownloadBoxReceipt(
     return Action(new OTAPI_Func(
         GET_BOX_RECEIPT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -421,9 +406,8 @@ ServerAction::Action ServerAction::DownloadContract(
     return Action(new OTAPI_Func(
         GET_CONTRACT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -438,9 +422,8 @@ ServerAction::Action ServerAction::DownloadMarketList(
     return Action(new OTAPI_Func(
         GET_MARKET_LIST,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -456,9 +439,8 @@ ServerAction::Action ServerAction::DownloadMarketOffers(
     return Action(new OTAPI_Func(
         GET_MARKET_OFFERS,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -475,9 +457,8 @@ ServerAction::Action ServerAction::DownloadMarketRecentTrades(
     return Action(new OTAPI_Func(
         GET_MARKET_RECENT_TRADES,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -494,9 +475,8 @@ ServerAction::Action ServerAction::DownloadMint(
     return Action(new OTAPI_Func(
         GET_MINT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -511,8 +491,8 @@ bool ServerAction::GetTransactionNumbers(
     const std::size_t quantity) const
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
-    auto context = wallet_.mutable_ServerContext(localNymID, serverID);
-    Utility MsgUtil(context.It(), otapi_, legacy_);
+    auto context = core_.Wallet().mutable_ServerContext(localNymID, serverID);
+    Utility MsgUtil(context.It(), otapi_, core_);
     auto available = context.It().AvailableNumbers();
 
     if (available < quantity) {
@@ -521,9 +501,8 @@ bool ServerAction::GetTransactionNumbers(
         auto action = Action(new OTAPI_Func(
             GET_TRANSACTION_NUMBERS,
             lock_callback_({localNymID.str(), serverID.str()}),
-            wallet_,
             workflow_,
-            legacy_,
+            core_,
             localNymID,
             serverID,
             exec_,
@@ -568,9 +547,8 @@ ServerAction::Action ServerAction::DownloadNym(
     return Action(new OTAPI_Func(
         CHECK_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -583,8 +561,8 @@ bool ServerAction::DownloadNymbox(
     const Identifier& serverID) const
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
-    auto context = wallet_.mutable_ServerContext(localNymID, serverID);
-    Utility util(context.It(), otapi_, legacy_);
+    auto context = core_.Wallet().mutable_ServerContext(localNymID, serverID);
+    Utility util(context.It(), otapi_, core_);
 
     if (0 >= context.It().UpdateRequestNumber()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -614,9 +592,8 @@ ServerAction::Action ServerAction::DownloadNymMarketOffers(
     return Action(new OTAPI_Func(
         GET_NYM_MARKET_OFFERS,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -639,9 +616,8 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
     return Action(new OTAPI_Func(
         EXCHANGE_BASKET,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -668,9 +644,8 @@ ServerAction::Action ServerAction::ExchangeCash(
     return Action(new OTAPI_Func(
         EXCHANGE_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -689,9 +664,8 @@ ServerAction::Action ServerAction::InitiateBailment(
     return Action(new OTAPI_Func(
         INITIATE_BAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -711,9 +685,8 @@ ServerAction::Action ServerAction::InitiateOutbailment(
     return Action(new OTAPI_Func(
         INITIATE_OUTBAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -733,9 +706,8 @@ ServerAction::Action ServerAction::InitiateRequestConnection(
     return Action(new OTAPI_Func(
         REQUEST_CONNECTION,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -755,9 +727,8 @@ ServerAction::Action ServerAction::InitiateStoreSecret(
     return Action(new OTAPI_Func(
         STORE_SECRET,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -776,9 +747,8 @@ ServerAction::Action ServerAction::IssueBasketCurrency(
     return Action(new OTAPI_Func(
         ISSUE_BASKET,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -794,9 +764,8 @@ ServerAction::Action ServerAction::IssueUnitDefinition(
     return Action(new OTAPI_Func(
         ISSUE_ASSET_TYPE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -818,9 +787,8 @@ ServerAction::Action ServerAction::KillMarketOffer(
     return Action(new OTAPI_Func(
         KILL_MARKET_OFFER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -843,9 +811,8 @@ ServerAction::Action ServerAction::KillPaymentPlan(
     return Action(new OTAPI_Func(
         KILL_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -866,9 +833,8 @@ ServerAction::Action ServerAction::NotifyBailment(
     return Action(new OTAPI_Func(
         NOTIFY_BAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -896,9 +862,8 @@ ServerAction::Action ServerAction::PayDividend(
     return Action(new OTAPI_Func(
         PAY_DIVIDEND,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -923,9 +888,8 @@ ServerAction::Action ServerAction::ProcessInbox(
     return Action(new OTAPI_Func(
         PROCESS_INBOX,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -942,9 +906,8 @@ ServerAction::Action ServerAction::PublishNym(
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -960,9 +923,8 @@ ServerAction::Action ServerAction::PublishServerContract(
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_SERVER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -978,9 +940,8 @@ ServerAction::Action ServerAction::PublishUnitDefinition(
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_UNIT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -996,9 +957,8 @@ ServerAction::Action ServerAction::RegisterAccount(
     return Action(new OTAPI_Func(
         CREATE_ASSET_ACCT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1013,9 +973,8 @@ ServerAction::Action ServerAction::RegisterNym(
     return Action(new OTAPI_Func(
         REGISTER_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1030,9 +989,8 @@ ServerAction::Action ServerAction::RequestAdmin(
     return Action(new OTAPI_Func(
         REQUEST_ADMIN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1054,17 +1012,19 @@ ServerAction::Action ServerAction::SendCash(
     if (recipientCopy) strRecip = String(*recipientCopy);
     if (senderCopy) strSend = String(*senderCopy);
 
-    std::unique_ptr<const Purse> pRecip(
-        Purse::PurseFactory(wallet_, legacy_.ClientDataFolder(), strRecip));
-    std::unique_ptr<const Purse> pSend(
-        Purse::PurseFactory(wallet_, legacy_.ClientDataFolder(), strSend));
+    std::unique_ptr<const Purse> pRecip(core_.Factory().Purse(core_, strRecip));
+
+    OT_ASSERT(false != bool(pRecip));
+
+    std::unique_ptr<const Purse> pSend(core_.Factory().Purse(core_, strSend));
+
+    OT_ASSERT(false != bool(pSend));
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1084,9 +1044,8 @@ ServerAction::Action ServerAction::SendMessage(
     return Action(new OTAPI_Func(
         SEND_USER_MESSAGE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1103,27 +1062,28 @@ ServerAction::Action ServerAction::SendPayment(
 {
     String strPayment;
 
-    if (!payment || !payment->GetPaymentContents(strPayment)) {
+    if (false == bool(payment) || !payment->GetPaymentContents(strPayment)) {
         otErr << "ServerAction::SendPayment: Empty payment argument - "
                  "should never happen!\n";
         OT_FAIL;
     }
 
-    auto pPayment = std::make_unique<const OTPayment>(
-        wallet_, legacy_.ClientDataFolder(), strPayment);
+    auto pPayment{core_.Factory().Payment(core_, strPayment)};
+    std::unique_ptr<const OTPayment> cPayment{pPayment.release()};
+
+    OT_ASSERT(false != bool(cPayment));
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
         otapi_,
         recipientNymID,
-        pPayment));
+        cPayment));
 }
 
 ServerAction::Action ServerAction::SendTransfer(
@@ -1142,9 +1102,8 @@ ServerAction::Action ServerAction::SendTransfer(
     return Action(new OTAPI_Func(
         SEND_TRANSFER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1165,9 +1124,8 @@ ServerAction::Action ServerAction::TriggerClause(
     return Action(new OTAPI_Func(
         TRIGGER_CLAUSE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1185,9 +1143,8 @@ ServerAction::Action ServerAction::UnregisterAccount(
     return Action(new OTAPI_Func(
         DELETE_ASSET_ACCT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1202,9 +1159,8 @@ ServerAction::Action ServerAction::UnregisterNym(
     return Action(new OTAPI_Func(
         DELETE_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1226,9 +1182,8 @@ ServerAction::Action ServerAction::WithdrawCash(
     return Action(new OTAPI_Func(
         WITHDRAW_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,
@@ -1254,9 +1209,8 @@ ServerAction::Action ServerAction::WithdrawVoucher(
     return Action(new OTAPI_Func(
         WITHDRAW_VOUCHER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        wallet_,
         workflow_,
-        legacy_,
+        core_,
         localNymID,
         serverID,
         exec_,

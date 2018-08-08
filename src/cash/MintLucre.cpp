@@ -38,32 +38,25 @@ namespace opentxs
 
 #if OT_CASH_USING_LUCRE
 
-MintLucre::MintLucre(const api::Wallet& wallet, const std::string& dataFolder)
-    : ot_super(wallet, dataFolder)
+MintLucre::MintLucre(const api::Core& core)
+    : ot_super(core)
 {
 }
 
 MintLucre::MintLucre(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
-    : ot_super(wallet, dataFolder, strNotaryID, strInstrumentDefinitionID)
+    : ot_super(core, strNotaryID, strInstrumentDefinitionID)
 {
 }
 
 MintLucre::MintLucre(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
-    : ot_super(
-          wallet,
-          dataFolder,
-          strNotaryID,
-          strServerNymID,
-          strInstrumentDefinitionID)
+    : ot_super(core, strNotaryID, strServerNymID, strInstrumentDefinitionID)
 {
 }
 
