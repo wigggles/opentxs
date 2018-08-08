@@ -12617,7 +12617,10 @@ CommandResult OT_API::registerNym(ServerContext& context) const
     if (SendResult::VALID_REPLY == status) {
         OT_ASSERT(reply);
 
-        if (reply->m_bSuccess) { context.SetRevision(nym.Revision()); }
+        if (reply->m_bSuccess) {
+            context.SetRevision(nym.Revision());
+            context.SetRequest(message->m_strRequestNum.ToLong());
+        }
     }
 
     return output;
