@@ -12,7 +12,7 @@
 
 void OTTestEnvironment::SetUp()
 {
-    opentxs::ArgList args;
+    opentxs::ArgList args{{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}};
     opentxs::OT::ClientFactory(args);
 }
 

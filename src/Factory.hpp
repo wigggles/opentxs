@@ -371,6 +371,45 @@ public:
         String& encryptedDirectoryCLI,
         StorageConfig& storageConfig);
     static api::crypto::Symmetric* Symmetric(crypto::SymmetricProvider& sodium);
+#if OT_STORAGE_FS
+    static opentxs::api::storage::Plugin* StorageFSArchive(
+        const api::storage::Storage& storage,
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random,
+        const Flag& bucket,
+        const std::string& folder,
+        crypto::key::Symmetric& key);
+    static opentxs::api::storage::Plugin* StorageFSGC(
+        const api::storage::Storage& storage,
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random,
+        const Flag& bucket);
+#endif
+    static opentxs::api::storage::Plugin* StorageMemDB(
+        const api::storage::Storage& storage,
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random,
+        const Flag& bucket);
+    static opentxs::api::storage::Multiplex* StorageMultiplex(
+        const api::storage::Storage& storage,
+        const Flag& primaryBucket,
+        const StorageConfig& config,
+        const String& primary,
+        const bool migrate,
+        const String& previous,
+        const Digest& hash,
+        const Random& random);
+#if OT_STORAGE_SQLITE
+    static opentxs::api::storage::Plugin* StorageSqlite3(
+        const api::storage::Storage& storage,
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random,
+        const Flag& bucket);
+#endif
     static api::client::Sync* Sync(
         const Flag& running,
         const OT_API& otapi,

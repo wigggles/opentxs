@@ -5,31 +5,54 @@
 
 #include "stdafx.hpp"
 
-#include "StorageMultiplex.hpp"
-
+#include "opentxs/api/storage/Multiplex.hpp"
 #include "opentxs/api/storage/Plugin.hpp"
 #if OT_STORAGE_FS
 #include "opentxs/core/crypto/OTPassword.hpp"
 #endif
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
+#include "opentxs/Types.hpp"
 
-#if OT_STORAGE_FS
-#include "StorageFSGC.hpp"
-#include "StorageFSArchive.hpp"
-#endif
-#if OT_STORAGE_SQLITE
-#include "StorageSqlite3.hpp"
-#endif
 #include "storage/tree/Root.hpp"
 #include "storage/tree/Tree.hpp"
 #include "storage/StorageConfig.hpp"
 
 #include <limits>
+#include <memory>
+#include <vector>
+
+#include "StorageMultiplex.hpp"
 
 #define OT_METHOD "opentxs::StorageMultiplex::"
 
 namespace opentxs
+{
+opentxs::api::storage::Multiplex* Factory::StorageMultiplex(
+    const api::storage::Storage& storage,
+    const Flag& primaryBucket,
+    const StorageConfig& config,
+    const String& primary,
+    const bool migrate,
+    const String& previous,
+    const Digest& hash,
+    const Random& random)
+{
+    return new opentxs::storage::implementation::StorageMultiplex(
+        storage,
+        primaryBucket,
+        config,
+        primary,
+        migrate,
+        previous,
+        hash,
+        random);
+}
+}  // namespace opentxs
+
+namespace opentxs::storage::implementation
 {
 StorageMultiplex::StorageMultiplex(
     const api::storage::Storage& storage,
@@ -52,7 +75,7 @@ StorageMultiplex::StorageMultiplex(
     Init_StorageMultiplex(primary, migrate, previous);
 }
 
-std::string StorageMultiplex::best_root(bool& primaryOutOfSync)
+std::string StorageMultiplex::BestRoot(bool& primaryOutOfSync)
 {
     OT_ASSERT(primary_plugin_);
 
@@ -128,7 +151,9 @@ void StorageMultiplex::init(
     const std::string& primary,
     std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
 {
-    if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == primary) {
+    if (OT_STORAGE_PRIMARY_PLUGIN_MEMDB == primary) {
+        init_memdb(plugin);
+    } else if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == primary) {
         init_sqlite(plugin);
     } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == primary) {
         init_fs(plugin);
@@ -143,13 +168,22 @@ void StorageMultiplex::init_fs(
 #if OT_STORAGE_FS
     otInfo << OT_METHOD << __FUNCTION__
            << ": Initializing primary filesystem plugin." << std::endl;
-    plugin.reset(
-        new StorageFSGC(storage_, config_, digest_, random_, primary_bucket_));
+    plugin.reset(Factory::StorageFSGC(
+        storage_, config_, digest_, random_, primary_bucket_));
 #else
     otErr << OT_METHOD << __FUNCTION__ << ": Filesystem driver not compiled in."
           << std::endl;
     OT_FAIL;
 #endif
+}
+
+void StorageMultiplex::init_memdb(
+    std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
+{
+    otInfo << OT_METHOD << __FUNCTION__
+           << ": Initializing primary MemDB plugin." << std::endl;
+    plugin.reset(Factory::StorageMemDB(
+        storage_, config_, digest_, random_, primary_bucket_));
 }
 
 void StorageMultiplex::init_sqlite(
@@ -158,7 +192,7 @@ void StorageMultiplex::init_sqlite(
 #if OT_STORAGE_SQLITE
     otInfo << OT_METHOD << __FUNCTION__
            << ": Initializing primary sqlite3 plugin." << std::endl;
-    plugin.reset(new StorageSqlite3(
+    plugin.reset(Factory::StorageSqlite3(
         storage_, config_, digest_, random_, primary_bucket_));
 #else
     otErr << OT_METHOD << __FUNCTION__ << ": Sqlite3 driver not compiled in."
@@ -186,7 +220,7 @@ void StorageMultiplex::InitBackup()
     if (config_.fs_backup_directory_.empty()) { return; }
 
 #if OT_STORAGE_FS
-    backup_plugins_.emplace_back(new StorageFSArchive(
+    backup_plugins_.emplace_back(Factory::StorageFSArchive(
         storage_,
         config_,
         digest_,
@@ -205,7 +239,7 @@ void StorageMultiplex::InitEncryptedBackup([
     if (config_.fs_encrypted_backup_directory_.empty()) { return; }
 
 #if OT_STORAGE_FS
-    backup_plugins_.emplace_back(new StorageFSArchive(
+    backup_plugins_.emplace_back(Factory::StorageFSArchive(
         storage_,
         config_,
         digest_,
@@ -441,7 +475,7 @@ bool StorageMultiplex::StoreRoot(const bool commit, const std::string& hash)
     return primary_plugin_->StoreRoot(commit, hash);
 }
 
-void StorageMultiplex::synchronize_plugins(
+void StorageMultiplex::SynchronizePlugins(
     const std::string& hash,
     const storage::Root& root,
     const bool syncPrimary)
@@ -499,4 +533,4 @@ void StorageMultiplex::synchronize_plugins(
 }
 
 StorageMultiplex::~StorageMultiplex() { Cleanup_StorageMultiplex(); }
-}  // namespace opentxs
+}  // namespace opentxs::storage::implementation

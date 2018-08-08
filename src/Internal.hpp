@@ -46,6 +46,9 @@ struct Native;
 
 namespace storage
 {
+class Driver;
+class Multiplex;
+class Plugin;
 class StorageInternal;
 }  // namespace storage
 }  // namespace api
@@ -79,6 +82,11 @@ class Proxy;
 
 namespace storage
 {
+namespace implementation
+{
+class StorageMultiplex;
+}  // namespace implementation
+
 class Accounts;
 class Bip47Channels;
 class BlockchainTransactions;
@@ -92,7 +100,6 @@ class Nyms;
 class PaymentWorkflows;
 class PeerReplies;
 class PeerRequests;
-class Root;
 class Seeds;
 class Servers;
 class Thread;
@@ -297,7 +304,6 @@ class LowLevelKeyGenerator;
 class OpenSSL;
 #endif
 class StorageConfig;
-class StorageMultiplex;
 #if OT_CRYPTO_USING_TREZOR
 class TrezorCrypto;
 #endif

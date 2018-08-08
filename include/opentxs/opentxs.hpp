@@ -42,6 +42,8 @@
 #include <opentxs/client/ServerAction.hpp>
 #include <opentxs/client/SwigWrap.hpp>
 #include <opentxs/client/Utility.hpp>
+#include <opentxs/consensus/ClientContext.hpp>
+#include <opentxs/consensus/Context.hpp>
 #include <opentxs/consensus/ServerContext.hpp>
 #include <opentxs/contact/Contact.hpp>
 #include <opentxs/contact/ContactData.hpp>

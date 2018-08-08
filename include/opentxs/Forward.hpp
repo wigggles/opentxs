@@ -152,6 +152,11 @@ class Server;
 class UserCommandProcessor;
 }  // namespace server
 
+namespace storage
+{
+class Root;
+}  // namespace storage
+
 namespace ui
 {
 class AccountActivity;

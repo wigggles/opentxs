@@ -34,6 +34,8 @@ public:
     EXPORT virtual const api::Legacy& Legacy() const = 0;
     EXPORT virtual const api::server::Manager& Server() const = 0;
     EXPORT virtual bool ServerMode() const = 0;
+    EXPORT virtual const Core& StartClient(const ArgList& args) const = 0;
+    EXPORT virtual const Core& StartServer(const ArgList& args) const = 0;
 
     EXPORT virtual ~Native() = default;
 

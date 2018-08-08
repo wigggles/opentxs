@@ -5,27 +5,9 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #if OT_STORAGE_SQLITE
-
-#include "storage/Plugin.hpp"
-
-extern "C" {
-#include <sqlite3.h>
-}
-
-#include <atomic>
-#include <mutex>
-#include <sstream>
-#include <tuple>
-#include <vector>
-
-namespace opentxs
+namespace opentxs::storage::implementation
 {
-class StorageConfig;
-class StorageMultiplex;
-
 // SQLite3 implementation of opentxs::storage
 class StorageSqlite3 : public virtual Plugin,
                        public virtual opentxs::api::storage::Driver
@@ -47,7 +29,7 @@ public:
 private:
     typedef Plugin ot_super;
 
-    friend class StorageMultiplex;
+    friend Factory;
 
     std::string folder_;
     mutable std::mutex transaction_lock_;
@@ -98,5 +80,5 @@ private:
     StorageSqlite3& operator=(const StorageSqlite3&) = delete;
     StorageSqlite3& operator=(StorageSqlite3&&) = delete;
 };
-}  // namespace opentxs
+}  // namespace opentxs::storage::implementation
 #endif  // OT_STORAGE_SQLITE

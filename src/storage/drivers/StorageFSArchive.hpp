@@ -5,15 +5,8 @@
 
 #pragma once
 
-#include "Internal.hpp"
-
 #if OT_STORAGE_FS
-
-#include "StorageFS.hpp"
-
-#include <memory>
-
-namespace opentxs
+namespace opentxs::storage::implementation
 {
 class StorageFSArchive : public StorageFS,
                          public virtual opentxs::api::storage::Driver
@@ -29,7 +22,7 @@ public:
     ~StorageFSArchive();
 
 private:
-    friend class StorageMultiplex;
+    friend Factory;
 
     crypto::key::Symmetric& encryption_key_;
     const bool encrypted_{false};
@@ -59,6 +52,6 @@ private:
     StorageFSArchive& operator=(const StorageFSArchive&) = delete;
     StorageFSArchive& operator=(StorageFSArchive&&) = delete;
 };
-}  // namespace opentxs
+}  // namespace opentxs::storage::implementation
 
 #endif  // OT_STORAGE_FS

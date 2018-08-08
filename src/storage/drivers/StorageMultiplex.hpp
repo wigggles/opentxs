@@ -7,36 +7,9 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/api/storage/Driver.hpp"
-#include "opentxs/crypto/key/Symmetric.hpp"
-#include "opentxs/Types.hpp"
-
-#include <memory>
-#include <vector>
-
-namespace opentxs
+namespace opentxs::storage::implementation
 {
-namespace api
-{
-namespace storage
-{
-class Plugin;
-class Storage;
-
-namespace implementation
-{
-class Storage;
-}  // namespace implementation
-}  // namespace storage
-}  // namespace api
-
-namespace storage
-{
-class Root;
-class Tree;
-}  // namespace storage
-
-class StorageMultiplex : virtual public opentxs::api::storage::Driver
+class StorageMultiplex : virtual public opentxs::api::storage::Multiplex
 {
 public:
     bool EmptyBucket(const bool bucket) const override;
@@ -67,10 +40,19 @@ public:
         std::string& key) const override;
     bool StoreRoot(const bool commit, const std::string& hash) const override;
 
+    std::string BestRoot(bool& primaryOutOfSync) override;
+    void InitBackup() override;
+    void InitEncryptedBackup(crypto::key::Symmetric& key) override;
+    opentxs::api::storage::Driver& Primary() override;
+    void SynchronizePlugins(
+        const std::string& hash,
+        const storage::Root& root,
+        const bool syncPrimary) override;
+
     ~StorageMultiplex();
 
 private:
-    friend class api::storage::implementation::Storage;
+    friend Factory;
 
     const api::storage::Storage& storage_;
     const Flag& primary_bucket_;
@@ -102,19 +84,12 @@ private:
         const std::string& primary,
         std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
     void init_fs(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
+    void init_memdb(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
     void init_sqlite(std::unique_ptr<opentxs::api::storage::Plugin>& plugin);
     void Init_StorageMultiplex(
         const String& primary,
         const bool migrate,
         const String& previous);
-    void InitBackup();
-    void InitEncryptedBackup(crypto::key::Symmetric& key);
     void migrate_primary(const std::string& from, const std::string& to);
-    opentxs::api::storage::Driver& Primary();
-    void synchronize_plugins(
-        const std::string& hash,
-        const storage::Root& root,
-        const bool syncPrimary);
-    std::string best_root(bool& primaryOutOfSync);
 };
-}  // namespace opentxs
+}  // namespace opentxs::storage::implementation
