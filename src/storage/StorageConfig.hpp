@@ -13,6 +13,7 @@
 #include <string>
 
 #define OT_STORAGE_PRIMARY_PLUGIN_SQLITE "sqlite"
+#define OT_STORAGE_PRIMARY_PLUGIN_MEMDB "mem"
 #define OT_STORAGE_PRIMARY_PLUGIN_FS "fs"
 #define STORAGE_CONFIG_PRIMARY_PLUGIN_KEY "primary_plugin"
 #define STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY "fs_backup_directory"

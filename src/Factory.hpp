@@ -387,6 +387,12 @@ public:
         const Random& random,
         const Flag& bucket);
 #endif
+    static opentxs::api::storage::Plugin* StorageMemDB(
+        const api::storage::Storage& storage,
+        const StorageConfig& config,
+        const Digest& hash,
+        const Random& random,
+        const Flag& bucket);
     static opentxs::api::storage::Multiplex* StorageMultiplex(
         const api::storage::Storage& storage,
         const Flag& primaryBucket,

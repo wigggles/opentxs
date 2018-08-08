@@ -9,6 +9,7 @@ set(cxx-sources
   StorageFS.cpp
   StorageFSGC.cpp
   StorageFSArchive.cpp
+  StorageMemDB.cpp
   StorageMultiplex.cpp
   StorageSqlite3.cpp
 )
@@ -17,6 +18,7 @@ set(cxx-headers
   StorageFS.hpp
   StorageFSGC.hpp
   StorageFSArchive.hpp
+  StorageMemDB.hpp
   StorageMultiplex.hpp
   StorageSqlite3.hpp
 )

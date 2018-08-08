@@ -151,7 +151,9 @@ void StorageMultiplex::init(
     const std::string& primary,
     std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
 {
-    if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == primary) {
+    if (OT_STORAGE_PRIMARY_PLUGIN_MEMDB == primary) {
+        init_memdb(plugin);
+    } else if (OT_STORAGE_PRIMARY_PLUGIN_SQLITE == primary) {
         init_sqlite(plugin);
     } else if (OT_STORAGE_PRIMARY_PLUGIN_FS == primary) {
         init_fs(plugin);
@@ -173,6 +175,15 @@ void StorageMultiplex::init_fs(
           << std::endl;
     OT_FAIL;
 #endif
+}
+
+void StorageMultiplex::init_memdb(
+    std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
+{
+    otInfo << OT_METHOD << __FUNCTION__
+           << ": Initializing primary MemDB plugin." << std::endl;
+    plugin.reset(Factory::StorageMemDB(
+        storage_, config_, digest_, random_, primary_bucket_));
 }
 
 void StorageMultiplex::init_sqlite(
