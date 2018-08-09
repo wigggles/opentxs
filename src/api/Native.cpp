@@ -614,9 +614,9 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
         running_,
         args,
         *crypto_,
-        Config(legacy_->ServerConfigFilePath()),
+        Config(legacy_->ServerConfigFilePath(next)),
         zmq_context_,
-        legacy_->ServerDataFolder(),
+        legacy_->ServerDataFolder(next),
         next));
 }
 

@@ -21,8 +21,9 @@ public:
     EXPORT virtual std::string ClientDataFolder() const = 0;
     EXPORT virtual std::string CryptoConfigFilePath() const = 0;
     EXPORT virtual std::string LogConfigFilePath() const = 0;
-    EXPORT virtual std::string ServerConfigFilePath() const = 0;
-    EXPORT virtual std::string ServerDataFolder() const = 0;
+    EXPORT virtual std::string ServerConfigFilePath(
+        const int instance) const = 0;
+    EXPORT virtual std::string ServerDataFolder(const int instance) const = 0;
 
     virtual ~Legacy() = default;
 
