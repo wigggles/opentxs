@@ -18,12 +18,15 @@
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/DealerSocket.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
+#include "opentxs/network/zeromq/RouterSocket.hpp"
 
 #include "Server.hpp"
 #include "UserCommandProcessor.hpp"
@@ -48,13 +51,29 @@ MessageProcessor::MessageProcessor(
     : server_(server)
     , running_(running)
     , context_(context)
-    , reply_socket_callback_(network::zeromq::ReplyCallback::Factory(
-          [this](const network::zeromq::Message& incoming) -> OTZMQMessage {
-              return this->processSocket(incoming);
+    , frontend_callback_(network::zeromq::ListenCallback::Factory(
+          [=](const network::zeromq::Message& incoming) -> void {
+              this->process_frontend(incoming);
           }))
-    , reply_socket_(context.ReplySocket(reply_socket_callback_.get(), false))
+    , frontend_socket_(context.RouterSocket(frontend_callback_.get(), false))
+    , backend_callback_(network::zeromq::ReplyCallback::Factory(
+          [=](const network::zeromq::Message& incoming) -> OTZMQMessage {
+              return this->process_backend(incoming);
+          }))
+    , backend_socket_(context.ReplySocket(backend_callback_.get(), false))
+    , internal_callback_(network::zeromq::ListenCallback::Factory(
+          [=](const network::zeromq::Message& incoming) -> void {
+              this->process_internal(incoming);
+          }))
+    , internal_socket_(context.DealerSocket(internal_callback_, true))
     , thread_(nullptr)
+    , internal_endpoint_(
+          std::string("inproc://opentxs/notary/") + Identifier::Random()->str())
 {
+    auto bound = backend_socket_->Start(internal_endpoint_);
+    bound &= internal_socket_->Start(internal_endpoint_);
+
+    OT_ASSERT(bound);
 }
 
 void MessageProcessor::cleanup()
@@ -72,7 +91,7 @@ void MessageProcessor::init(
 {
     if (port == 0) { OT_FAIL; }
 
-    const auto set = reply_socket_->SetPrivateKey(privkey);
+    const auto set = frontend_socket_->SetPrivateKey(privkey);
 
     OT_ASSERT(set);
 
@@ -87,7 +106,7 @@ void MessageProcessor::init(
     }
 
     endpoint << std::to_string(port);
-    const auto bound = reply_socket_->Start(endpoint.str());
+    const auto bound = frontend_socket_->Start(endpoint.str());
 
     OT_ASSERT(bound);
 
@@ -103,7 +122,7 @@ void MessageProcessor::run()
         const auto timeout = server_.ComputeTimeout();
 
         if (timeout <= 0) {
-            // ProcessCron and processSocket must not run simultaneously
+            // ProcessCron and process_backend must not run simultaneously
             Lock lock(lock_);
             server_.ProcessCron();
         }
@@ -112,10 +131,10 @@ void MessageProcessor::run()
     }
 }
 
-OTZMQMessage MessageProcessor::processSocket(
+OTZMQMessage MessageProcessor::process_backend(
     const network::zeromq::Message& incoming)
 {
-    // ProcessCron and processSocket must not run simultaneously
+    // ProcessCron and process_backend must not run simultaneously
     Lock lock(lock_);
     std::string reply{};
 
@@ -132,6 +151,20 @@ OTZMQMessage MessageProcessor::processSocket(
     output->AddFrame(reply);
 
     return output;
+}
+
+void MessageProcessor::process_frontend(
+    const network::zeromq::Message& incoming)
+{
+    OTZMQMessage request{incoming};
+    internal_socket_->Send(request);
+}
+
+void MessageProcessor::process_internal(
+    const network::zeromq::Message& incoming)
+{
+    OTZMQMessage reply{incoming};
+    frontend_socket_->Send(reply);
 }
 
 bool MessageProcessor::processMessage(

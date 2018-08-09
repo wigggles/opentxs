@@ -10,6 +10,7 @@
 
 #include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/network/zeromq/CurveClient.hpp"
+#include "opentxs/network/zeromq/CurveServer.hpp"
 
 #ifdef SWIG
 // clang-format off
@@ -29,7 +30,9 @@ namespace network
 {
 namespace zeromq
 {
-class RouterSocket : virtual public Socket, virtual public CurveClient
+class RouterSocket : virtual public Socket,
+                     virtual public CurveClient,
+                     virtual public CurveServer
 {
 public:
     EXPORT static OTZMQRouterSocket Factory(

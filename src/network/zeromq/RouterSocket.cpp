@@ -39,6 +39,7 @@ RouterSocket::RouterSocket(
     const zeromq::ListenCallback& callback)
     : ot_super(context, SocketType::Router)
     , CurveClient(lock_, socket_)
+    , CurveServer(lock_, socket_)
     , Receiver(lock_, socket_, true)
     , callback_(callback)
     , client_(client)
