@@ -25,7 +25,7 @@ public:
         : client_(dynamic_cast<const opentxs::api::client::Manager&>(
               opentxs::OT::App().Client()))
         , server_(dynamic_cast<const opentxs::api::server::Manager&>(
-              opentxs::OT::App().StartServer({}, 0)))
+              opentxs::OT::App().StartServer({{"inproc", {"0"}}}, 0)))
         , SeedA_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "spike nominee miss inquiry fee nothing belt list other daughter "
               "leave valley twelve gossip paper",

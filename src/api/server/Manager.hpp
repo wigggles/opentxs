@@ -23,6 +23,7 @@ public:
     const std::string GetDefaultBindIP() const override;
     const std::string GetEEP() const override;
     const std::string GetExternalIP() const override;
+    const std::string GetInproc() const override;
     const std::string GetListenCommand() const override;
     const std::string GetListenNotify() const override;
     const std::string GetOnion() const override;

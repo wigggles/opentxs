@@ -1980,7 +1980,8 @@ ConstServerContract Wallet::Server(
     const std::string& nymid,
     const std::string& name,
     const std::string& terms,
-    const std::list<ServerContract::Endpoint>& endpoints) const
+    const std::list<ServerContract::Endpoint>& endpoints,
+    const std::uint32_t version) const
 {
     std::string server;
 
@@ -1988,8 +1989,8 @@ ConstServerContract Wallet::Server(
 
     if (nym) {
         std::unique_ptr<ServerContract> contract;
-        contract.reset(
-            ServerContract::Create(*this, nym, endpoints, terms, name));
+        contract.reset(ServerContract::Create(
+            *this, nym, endpoints, terms, name, version));
 
         if (contract) {
 

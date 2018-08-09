@@ -52,18 +52,22 @@ std::string Legacy::CryptoConfigFilePath() const
     return get_file(crypto_config_file_);
 }
 
-std::string Legacy::get_file(const std::string& fragment) const
+std::string Legacy::get_file(const std::string& fragment, const int instance)
+    const
 {
-    const auto output = get_path(fragment);
+    const auto output = get_path(fragment, instance);
 
     return {output.c_str(), output.size() - 1};
 }
 
-std::string Legacy::get_path(const std::string& fragment) const
+std::string Legacy::get_path(const std::string& fragment, const int instance)
+    const
 {
+    const auto name =
+        (0 == instance) ? fragment : fragment + "-" + std::to_string(instance);
     String output{""};
-    const auto success = OTPaths::AppendFolder(
-        output, OTPaths::AppDataFolder(), fragment.c_str());
+    const auto success =
+        OTPaths::AppendFolder(output, OTPaths::AppDataFolder(), name.c_str());
 
     OT_ASSERT(success)
 
@@ -75,13 +79,13 @@ std::string Legacy::LogConfigFilePath() const
     return get_file(log_config_file_);
 }
 
-std::string Legacy::ServerConfigFilePath() const
+std::string Legacy::ServerConfigFilePath(const int instance) const
 {
-    return get_file(server_config_file_);
+    return get_file(server_config_file_, instance);
 }
 
-std::string Legacy::ServerDataFolder() const
+std::string Legacy::ServerDataFolder(const int instance) const
 {
-    return get_path(server_data_folder_);
+    return get_path(server_data_folder_, instance);
 }
 }  // namespace opentxs::api::implementation

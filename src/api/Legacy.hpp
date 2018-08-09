@@ -16,8 +16,8 @@ public:
     std::string ClientDataFolder() const override;
     std::string CryptoConfigFilePath() const override;
     std::string LogConfigFilePath() const override;
-    std::string ServerConfigFilePath() const override;
-    std::string ServerDataFolder() const override;
+    std::string ServerConfigFilePath(const int instance) const override;
+    std::string ServerDataFolder(const int instance) const override;
 
     ~Legacy() = default;
 
@@ -31,8 +31,10 @@ private:
     const std::string log_config_file_{""};
     const std::string server_config_file_{""};
 
-    std::string get_path(const std::string& fragment) const;
-    std::string get_file(const std::string& fragment) const;
+    std::string get_path(const std::string& fragment, const int instance = 0)
+        const;
+    std::string get_file(const std::string& fragment, const int instance = 0)
+        const;
 
     Legacy();
     Legacy(const Legacy&) = delete;

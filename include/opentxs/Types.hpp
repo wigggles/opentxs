@@ -42,6 +42,7 @@ class String;
 #define MESSAGE_SUCCESS_FALSE 0
 #define MESSAGE_SUCCESS_TRUE 1
 #define FIRST_REQUEST_NUMBER 1
+#define SERVER_CONTRACT_CREATE_VERSION 1
 
 typedef std::map<std::string, std::set<std::string>> ArgList;
 

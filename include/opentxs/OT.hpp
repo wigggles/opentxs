@@ -24,6 +24,7 @@
 #define OPENTXS_ARG_EXTERNALIP "externalip"
 #define OPENTXS_ARG_GC "gc"
 #define OPENTXS_ARG_INIT "only-init"
+#define OPENTXS_ARG_INPROC "inproc"
 #define OPENTXS_ARG_LISTENCOMMAND "listencommand"
 #define OPENTXS_ARG_LISTENNOTIFY "listennotify"
 #define OPENTXS_ARG_NAME "name"

@@ -111,8 +111,9 @@ std::string ServerConnection::endpoint() const
 {
     std::uint32_t port{0};
     std::string hostname{""};
+    proto::AddressType type{};
     const auto have =
-        remote_contract_->ConnectInfo(hostname, port, address_type_);
+        remote_contract_->ConnectInfo(hostname, port, type, address_type_);
 
     if (false == have) {
         otErr << OT_METHOD << __FUNCTION__
@@ -122,11 +123,32 @@ std::string ServerConnection::endpoint() const
         OT_FAIL;
     }
 
-    const std::string endpoint =
-        "tcp://" + hostname + ":" + std::to_string(port);
+    const auto endpoint = form_endpoint(type, hostname, port);
     otErr << "Establishing connection to: " << endpoint << std::endl;
 
     return endpoint;
+}
+
+std::string ServerConnection::form_endpoint(
+    proto::AddressType type,
+    std::string hostname,
+    std::uint32_t port) const
+{
+    std::string output{};
+
+    if (proto::ADDRESSTYPE_INPROC == type) {
+        output += "inproc://opentxs/notary/";
+        output += hostname;
+        output += ":";
+        output += std::to_string(port);
+    } else {
+        output += "tcp://";
+        output += hostname;
+        output += ":";
+        output += std::to_string(port);
+    }
+
+    return output;
 }
 
 zeromq::RequestSocket& ServerConnection::get_socket(const Lock& lock)

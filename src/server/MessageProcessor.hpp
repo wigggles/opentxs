@@ -29,7 +29,10 @@ public:
         const Flag& running);
 
     EXPORT void cleanup();
-    EXPORT void init(const int port, const OTPassword& privkey);
+    EXPORT void init(
+        const bool inproc,
+        const int port,
+        const OTPassword& privkey);
     EXPORT void Start();
 
     EXPORT ~MessageProcessor();
