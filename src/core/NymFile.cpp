@@ -7,9 +7,7 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -42,7 +40,6 @@
 #include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -174,10 +171,6 @@ bool NymFile::deserialize_nymfile(
     irr::io::IrrXMLReader* xml = irr::io::createIrrXMLReader(strNymXML);
     OT_ASSERT(nullptr != xml);
     std::unique_ptr<irr::io::IrrXMLReader> theCleanup(xml);
-    const auto serverMode = OT::App().ServerMode();
-    OTIdentifier serverID{Identifier::Factory()};
-
-    if (serverMode) { serverID = OT::App().Server().ID(); }
 
     // parse the file until end reached
     while (xml && xml->read()) {

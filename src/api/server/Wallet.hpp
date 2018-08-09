@@ -44,7 +44,7 @@ private:
     std::shared_ptr<const opentxs::Nym> signer_nym(
         const Identifier& id) const override;
 
-    Wallet(const api::server::Manager& server, const api::Legacy& legacy);
+    Wallet(const api::server::Manager& server);
     Wallet() = delete;
     Wallet(const Wallet&) = delete;
     Wallet(Wallet&&) = delete;

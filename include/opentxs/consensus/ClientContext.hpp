@@ -23,14 +23,12 @@ private:
 
 public:
     ClientContext(
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
+        const api::Core& api,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server);
     ClientContext(
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
+        const api::Core& api,
         const proto::Context& serialized,
         const ConstNym& local,
         const ConstNym& remote,
@@ -38,7 +36,6 @@ public:
 
     bool hasOpenTransactions() const;
     std::size_t IssuedNumbers(const std::set<TransactionNumber>& exclude) const;
-    std::string LegacyDataFolder() const override;
     std::size_t OpenCronItems() const;
     proto::ConsensusType Type() const override;
     bool Verify(

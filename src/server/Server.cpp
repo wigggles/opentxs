@@ -11,12 +11,12 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Core.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
@@ -80,36 +80,19 @@ std::int32_t OTCron::__cron_max_items_per_nym =
 // active at the same time.
 #endif
 
-Server::Server(
-    const opentxs::api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-    const opentxs::api::HDSeed& seeds,
-#endif
-    const opentxs::api::Legacy& legacy,
-    const opentxs::api::Settings& config,
-    const opentxs::api::server::Manager& mint,
-    const opentxs::api::storage::Storage& storage,
-    const opentxs::api::Wallet& wallet)
-    : crypto_(crypto)
-#if OT_CRYPTO_WITH_BIP39
-    , seeds_(seeds)
-#endif
-    , legacy_(legacy)
-    , config_(config)
-    , mint_(mint)
-    , storage_(storage)
-    , wallet_(wallet)
-    , mainFile_(*this, crypto_, legacy_, wallet_)
-    , notary_(*this, legacy_, mint_, wallet_)
-    , transactor_(legacy_, this)
-    , userCommandProcessor_(*this, legacy_, config_, mint_, wallet_)
+Server::Server(const opentxs::api::server::Manager& manager)
+    : manager_(manager)
+    , mainFile_(*this)
+    , notary_(*this, manager_)
+    , transactor_(*this)
+    , userCommandProcessor_(*this, manager_)
     , m_strWalletFilename()
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
     , m_notaryID(Identifier::Factory())
     , m_strServerNymID()
     , m_nymServer(nullptr)
-    , m_Cron(wallet_, legacy_)
+    , m_Cron(manager_)
 {
 }
 
@@ -120,6 +103,8 @@ void Server::ActivateCron()
         "Server::ActivateCron: %s \n",
         m_Cron.ActivateCron() ? "(STARTED)" : "FAILED");
 }
+
+const api::Core& Server::API() const { return manager_; }
 
 /// Currently the test server calls this 10 times per second.
 /// It also processes all the input/output at the same rate.
@@ -184,7 +169,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 {
 #if OT_CRYPTO_WITH_BIP39
     const auto backup = OTDB::QueryPlainString(
-        legacy_.ServerDataFolder(), SEED_BACKUP_FILE, "", "", "");
+        manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
     std::string seed{};
 
     if (false == backup.empty()) {
@@ -195,7 +180,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         OTPassword words;
         phrase.setPassword(parsed.first);
         words.setPassword(parsed.second);
-        seed = seeds_.ImportSeed(words, phrase);
+        seed = manager_.Seeds().ImportSeed(words, phrase);
 
         if (seed.empty()) {
             otErr << OT_METHOD << __FUNCTION__ << ": Seed restoration failed."
@@ -215,7 +200,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 #else
     NymParameters nymParameters(proto::CREDTYPE_LEGACY);
 #endif
-    m_nymServer = wallet_.Nym(nymParameters);
+    m_nymServer = manager_.Wallet().Nym(nymParameters);
 
     if (false == bool(m_nymServer)) {
         Log::vError("Error: Failed to create server nym\n");
@@ -227,32 +212,32 @@ void Server::CreateMainFile(bool& mainFileExists)
     const OTIdentifier nymID = m_nymServer->ID();
 
     const std::string defaultTerms = "This is an example server contract.";
-    const std::string& userTerms = mint_.GetUserTerms();
+    const std::string& userTerms = manager_.GetUserTerms();
     std::string terms = userTerms;
 
     if (1 > userTerms.size()) { terms = defaultTerms; }
 
     const std::string defaultExternalIP = DEFAULT_EXTERNAL_IP;
-    const std::string& userExternalIP = mint_.GetExternalIP();
+    const std::string& userExternalIP = manager_.GetExternalIP();
     std::string hostname = userExternalIP;
 
     if (5 > hostname.size()) { hostname = defaultExternalIP; }
 
     const std::string defaultBindIP = DEFAULT_BIND_IP;
-    const std::string& userBindIP = mint_.GetDefaultBindIP();
+    const std::string& userBindIP = manager_.GetDefaultBindIP();
     std::string bindIP = userBindIP;
 
     if (5 > bindIP.size()) { bindIP = defaultBindIP; }
 
     bool notUsed = false;
-    config_.Set_str(
+    manager_.Config().Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_BIND_KEY,
         String(bindIP),
         notUsed);
 
     const std::uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
-    const std::string& userCommandPort = mint_.GetCommandPort();
+    const std::string& userCommandPort = manager_.GetCommandPort();
     std::uint32_t commandPort = 0;
     bool needPort = true;
 
@@ -273,7 +258,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         needPort = false;
     }
 
-    const std::string& userListenCommand = mint_.GetListenCommand();
+    const std::string& userListenCommand = manager_.GetListenCommand();
     std::uint32_t listenCommand = 0;
     bool needListenCommand = true;
 
@@ -294,7 +279,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         needListenCommand = false;
     }
 
-    config_.Set_str(
+    manager_.Config().Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_COMMAND_KEY,
         String(std::to_string(listenCommand)),
@@ -302,7 +287,7 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     const std::uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
 
-    const std::string& userListenNotification = mint_.GetListenNotify();
+    const std::string& userListenNotification = manager_.GetListenNotify();
     std::uint32_t listenNotification = 0;
     bool needListenNotification = true;
 
@@ -325,14 +310,14 @@ void Server::CreateMainFile(bool& mainFileExists)
         needListenNotification = false;
     }
 
-    config_.Set_str(
+    manager_.Config().Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_NOTIFY_KEY,
         String(std::to_string(listenNotification)),
         notUsed);
 
     const std::string defaultName = DEFAULT_NAME;
-    const std::string& userName = mint_.GetUserName();
+    const std::string& userName = manager_.GetUserName();
     std::string name = userName;
 
     if (1 > name.size()) { name = defaultName; }
@@ -344,7 +329,7 @@ void Server::CreateMainFile(bool& mainFileExists)
                                   commandPort,
                                   1};
     endpoints.push_back(ipv4);
-    const std::string& onion = mint_.GetOnion();
+    const std::string& onion = manager_.GetOnion();
 
     if (0 < onion.size()) {
         ServerContract::Endpoint tor{proto::ADDRESSTYPE_ONION,
@@ -355,7 +340,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         endpoints.push_back(tor);
     }
 
-    const std::string& eep = mint_.GetEEP();
+    const std::string& eep = manager_.GetEEP();
 
     if (0 < eep.size()) {
         ServerContract::Endpoint i2p{proto::ADDRESSTYPE_EEP,
@@ -367,10 +352,10 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 
     std::shared_ptr<const ServerContract> pContract{};
-    auto& wallet = wallet_;
+    auto& wallet = manager_.Wallet();
     const String existing =
         OTDB::QueryPlainString(
-            legacy_.ServerDataFolder(), SERVER_CONTRACT_FILE, "", "", "")
+            manager_.DataFolder(), SERVER_CONTRACT_FILE, "", "", "")
             .data();
 
     if (existing.empty()) {
@@ -402,7 +387,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 
     std::string strCachedKey;
-    auto& cachedKey = crypto_.DefaultKey();
+    auto& cachedKey = manager_.Crypto().DefaultKey();
 
     if (cachedKey.IsGenerated()) {
         Armored ascMasterContents;
@@ -419,7 +404,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     OT_ASSERT(m_nymServer)
 
     {
-        auto nymData = wallet_.mutable_Nym(nymID);
+        auto nymData = manager_.Wallet().mutable_Nym(nymID);
 
         if (false == nymData.SetScope(proto::CITEMTYPE_SERVER, name, true)) {
             OT_FAIL
@@ -428,7 +413,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         if (false == nymData.SetCommonName(pContract->ID()->str())) { OT_FAIL }
     }
 
-    m_nymServer = wallet_.Nym(nymID);
+    m_nymServer = manager_.Wallet().Nym(nymID);
 
     OT_ASSERT(m_nymServer)
 
@@ -438,7 +423,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(
         strBookended.Get(),
-        legacy_.ServerDataFolder(),
+        manager_.DataFolder(),
         SERVER_CONTRACT_FILE,
         "",
         "",
@@ -447,10 +432,11 @@ void Server::CreateMainFile(bool& mainFileExists)
     otOut << "Your server contract has been saved as " << SERVER_CONTRACT_FILE
           << " in the server data directory." << std::endl;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-    const std::string defaultFingerprint = storage_.DefaultSeed();
+    const std::string defaultFingerprint = manager_.Storage().DefaultSeed();
 
-    const std::string words = seeds_.Words(defaultFingerprint);
-    const std::string passphrase = seeds_.Passphrase(defaultFingerprint);
+    const std::string words = manager_.Seeds().Words(defaultFingerprint);
+    const std::string passphrase =
+        manager_.Seeds().Passphrase(defaultFingerprint);
 #else
     const std::string words;
     const std::string passphrase;
@@ -464,24 +450,25 @@ void Server::CreateMainFile(bool& mainFileExists)
     json += "\" }\n";
 
     OTDB::StorePlainString(
-        json, legacy_.ServerDataFolder(), SEED_BACKUP_FILE, "", "", "");
+        json, manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
 
     mainFileExists = mainFile_.CreateMainFile(
         strBookended.Get(), strNotaryID, "", nymID->str(), strCachedKey);
 
-    config_.Save();
+    manager_.Config().Save();
 }
 
 void Server::Init(bool readOnly)
 {
     m_bReadOnly = readOnly;
 
-    if (!ConfigLoader::load(crypto_, config_, WalletFilename())) {
+    if (!ConfigLoader::load(
+            manager_.Crypto(), manager_.Config(), WalletFilename())) {
         Log::vError("Unable to Load Config File!");
         OT_FAIL;
     }
 
-    String dataPath = legacy_.ServerDataFolder().c_str();
+    String dataPath = manager_.DataFolder().c_str();
 
     // PID -- Make sure we're not running two copies of OT on the same data
     // simultaneously here.
@@ -560,14 +547,11 @@ void Server::Init(bool readOnly)
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
 
     // Load up the transaction number and other Server data members.
-    bool mainFileExists = WalletFilename().Exists()
-                              ? OTDB::Exists(
-                                    legacy_.ServerDataFolder(),
-                                    ".",
-                                    WalletFilename().Get(),
-                                    "",
-                                    "")
-                              : false;
+    bool mainFileExists =
+        WalletFilename().Exists()
+            ? OTDB::Exists(
+                  manager_.DataFolder(), ".", WalletFilename().Get(), "", "")
+            : false;
 
     if (false == mainFileExists) {
         if (readOnly) {
@@ -585,11 +569,7 @@ void Server::Init(bool readOnly)
         if (false == mainFile_.LoadMainFile(readOnly)) {
             Log::vError("Error in Loading Main File, re-creating.\n");
             OTDB::EraseValueByKey(
-                legacy_.ServerDataFolder(),
-                ".",
-                WalletFilename().Get(),
-                "",
-                "");
+                manager_.DataFolder(), ".", WalletFilename().Get(), "", "");
             CreateMainFile(mainFileExists);
 
             OT_ASSERT(mainFileExists);
@@ -598,12 +578,12 @@ void Server::Init(bool readOnly)
         }
     }
 
-    auto password = crypto_.Encode().Nonce(16);
+    auto password = manager_.Crypto().Encode().Nonce(16);
     String notUsed;
     bool ignored;
-    config_.CheckSet_str(
+    manager_.Config().CheckSet_str(
         "permissions", "admin_password", password, notUsed, ignored);
-    config_.Save();
+    manager_.Config().Save();
 
     // With the Server's private key loaded, and the latest transaction number
     // loaded, and all the various other data (contracts, etc) the server is now
@@ -612,7 +592,7 @@ void Server::Init(bool readOnly)
 
 bool Server::LoadServerNym(const Identifier& nymID)
 {
-    auto nym = wallet_.Nym(nymID);
+    auto nym = manager_.Wallet().Nym(nymID);
     if (nullptr == nym) { return false; }
 
     m_nymServer = nym;
@@ -788,7 +768,8 @@ bool Server::DropMessageToNymbox(
     const Message* message{nullptr};
 
     if (nullptr == pMsg) {
-        theMsgAngel.reset(new Message{wallet_, legacy_.ServerDataFolder()});
+        theMsgAngel.reset(
+            new Message{manager_.Wallet(), manager_.DataFolder()});
 
         if (nullptr != szCommand)
             theMsgAngel->m_strCommand = szCommand;
@@ -814,7 +795,7 @@ bool Server::DropMessageToNymbox(
         // Load up the recipient's public key (so we can encrypt the envelope
         // to him that will contain the payment instrument.)
         //
-        ConstNym nymRecipient = wallet_.Nym(RECIPIENT_NYM_ID);
+        ConstNym nymRecipient = manager_.Wallet().Nym(RECIPIENT_NYM_ID);
 
         const crypto::key::Asymmetric& thePubkey =
             nymRecipient->GetPublicEncrKey();
@@ -863,8 +844,8 @@ bool Server::DropMessageToNymbox(
     //
     const String strInMessage(*message);
     Ledger theLedger(
-        wallet_,
-        legacy_.ServerDataFolder(),
+        manager_.Wallet(),
+        manager_.DataFolder(),
         RECIPIENT_NYM_ID,
         RECIPIENT_NYM_ID,
         NOTARY_ID);  // The recipient's Nymbox.
@@ -878,7 +859,11 @@ bool Server::DropMessageToNymbox(
          theLedger.VerifySignature(*m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
         OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-            wallet_, theLedger, theType, originType::not_applicable, lTransNum);
+            manager_.Wallet(),
+            theLedger,
+            theType,
+            originType::not_applicable,
+            lTransNum);
 
         if (nullptr != pTransaction)  // The above has an OT_ASSERT within, but
                                       // I just like to check my pointers.
@@ -954,14 +939,14 @@ bool Server::GetConnectInfo(std::string& strHostname, std::uint32_t& nPort)
     bool notUsed = false;
     std::int64_t port = 0;
 
-    const bool haveIP = config_.CheckSet_str(
+    const bool haveIP = manager_.Config().CheckSet_str(
         SERVER_CONFIG_LISTEN_SECTION,
         "bindip",
         String(DEFAULT_BIND_IP),
         strHostname,
         notUsed);
 
-    const bool havePort = config_.CheckSet_long(
+    const bool havePort = manager_.Config().CheckSet_long(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_COMMAND_KEY,
         DEFAULT_COMMAND_PORT,
@@ -973,14 +958,14 @@ bool Server::GetConnectInfo(std::string& strHostname, std::uint32_t& nPort)
 
     nPort = port;
 
-    config_.Save();
+    manager_.Config().Save();
 
     return (haveIP && havePort);
 }
 
 std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
 {
-    auto contract = wallet_.Server(m_notaryID);
+    auto contract = manager_.Wallet().Server(m_notaryID);
 
     OT_ASSERT(contract);
 
@@ -997,7 +982,7 @@ Server::~Server()
     //
     //    OTLog::vError("m_strDataPath: %s\n", m_strDataPath.Get());
     //    OTLog::vError("SERVER_PID_FILENAME: %s\n", SERVER_PID_FILENAME);
-    String strDataPath = legacy_.ServerDataFolder().c_str();
+    String strDataPath = manager_.DataFolder().c_str();
 
     if (!m_bReadOnly) {
         String strPIDPath;

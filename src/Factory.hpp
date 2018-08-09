@@ -352,7 +352,6 @@ public:
         const Flag& running,
         const ArgList& args,
         const api::Crypto& crypto,
-        const api::Legacy& legacy,
         const api::Settings& config,
         const network::zeromq::Context& context,
         const std::string& dataFolder,
@@ -436,12 +435,8 @@ public:
         const api::Legacy& legacy,
         const network::zeromq::Context& zmq,
         const Flag& running);
-    static api::Wallet* Wallet(
-        const api::client::Manager& client,
-        const api::Legacy& legacy);
-    static api::Wallet* Wallet(
-        const api::server::Manager& server,
-        const api::Legacy& legacy);
+    static api::Wallet* Wallet(const api::client::Manager& client);
+    static api::Wallet* Wallet(const api::server::Manager& server);
     static api::client::Workflow* Workflow(
         const api::client::Activity& activity,
         const api::client::Contacts& contact,

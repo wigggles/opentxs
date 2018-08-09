@@ -32,10 +32,20 @@ public:
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
     EXPORT virtual const api::Legacy& Legacy() const = 0;
-    EXPORT virtual const api::server::Manager& Server() const = 0;
+    /** Throws std::out_of_range if the specified server does not exist. */
+    EXPORT virtual const api::server::Manager& Server(
+        const int instance) const = 0;
     EXPORT virtual bool ServerMode() const = 0;
     EXPORT virtual const Core& StartClient(const ArgList& args) const = 0;
-    EXPORT virtual const Core& StartServer(const ArgList& args) const = 0;
+    /** Start up a new server
+     *
+     *  If the specified instance exists, it will be returned.
+     *
+     *  Otherwise the next instance will be created
+     */
+    EXPORT virtual const Core& StartServer(
+        const ArgList& args,
+        const int instance) const = 0;
 
     EXPORT virtual ~Native() = default;
 

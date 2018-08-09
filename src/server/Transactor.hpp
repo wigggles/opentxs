@@ -17,26 +17,15 @@
 
 namespace opentxs
 {
-
-class Account;
-class ClientContext;
-class Identifier;
-class Mint;
-class Nym;
-
 namespace server
 {
-
-class MainFile;
-class Server;
-
 class Transactor
 {
     friend class MainFile;
 
 public:
-    explicit Transactor(const api::Legacy& legacy, Server* server);
-    ~Transactor();
+    explicit Transactor(Server& server);
+    ~Transactor() = default;
 
     bool issueNextTransactionNumber(TransactionNumber& txNumber);
     bool issueNextTransactionNumberToNym(
@@ -80,7 +69,7 @@ public:
 private:
     typedef std::map<std::string, std::string> BasketsMap;
 
-    const api::Legacy& legacy_;
+    Server& server_;
     // This stores the last VALID AND ISSUED transaction number.
     TransactionNumber transactionNumber_;
     // maps basketId with basketAccountId
@@ -91,8 +80,6 @@ private:
     BasketsMap contractIdToBasketAccountId_;
     // The list of voucher accounts (see GetVoucherAccount below for details)
     AccountList voucherAccounts_;
-
-    Server* server_;  // TODO: remove later when feasible
 
     Transactor() = delete;
 };

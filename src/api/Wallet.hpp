@@ -188,7 +188,6 @@ protected:
     using ContextMap = std::map<ContextID, std::shared_ptr<opentxs::Context>>;
 
     const api::Core& core_;
-    const api::Legacy& legacy_;
     mutable ContextMap context_map_;
     mutable std::mutex context_map_lock_;
 
@@ -201,7 +200,7 @@ protected:
     void save(opentxs::Context* context) const;
     OTIdentifier server_to_nym(OTIdentifier& serverID) const;
 
-    Wallet(const api::Core& core, const api::Legacy& legacy);
+    Wallet(const api::Core& core);
 
 private:
     using AccountMap = std::map<OTIdentifier, AccountLock>;

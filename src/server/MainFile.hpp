@@ -11,32 +11,12 @@
 
 namespace opentxs
 {
-class String;
-
-namespace api
-{
-class Crypto;
-class Manager;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-}  // namespace api
-
 namespace server
 {
-
-class Server;
-
 class MainFile
 {
 public:
-    explicit MainFile(
-        Server& server,
-        const opentxs::api::Crypto& crypto_,
-        const opentxs::api::Legacy& legacy,
-        const opentxs::api::Wallet& wallet_);
+    explicit MainFile(Server& server);
 
     bool CreateMainFile(
         const std::string& strContract,
@@ -50,10 +30,7 @@ public:
     bool SaveMainFileToString(String& filename);
 
 private:
-    Server& server_;  // TODO: remove when feasible
-    const opentxs::api::Legacy& legacy_;
-    const opentxs::api::Crypto& crypto_;
-    const opentxs::api::Wallet& wallet_;
+    Server& server_;
     std::string version_;
 
     MainFile() = delete;

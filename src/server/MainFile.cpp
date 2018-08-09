@@ -8,8 +8,7 @@
 #include "MainFile.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -44,15 +43,8 @@
 namespace opentxs::server
 {
 
-MainFile::MainFile(
-    Server& server,
-    const opentxs::api::Crypto& crypto,
-    const opentxs::api::Legacy& legacy,
-    const opentxs::api::Wallet& wallet)
+MainFile::MainFile(Server& server)
     : server_(server)
-    , legacy_(legacy)
-    , crypto_(crypto)
-    , wallet_(wallet)
     , version_()
 {
 }
@@ -62,7 +54,7 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     Tag tag("notaryServer");
 
     // We're on version 2.0 since adding the master key.
-    auto& cachedKey = crypto_.DefaultKey();
+    auto& cachedKey = server_.API().Crypto().DefaultKey();
     tag.add_attribute("version", cachedKey.IsGenerated() ? "2.0" : version_);
     tag.add_attribute("notaryID", server_.GetServerID().str());
     tag.add_attribute("serverNymID", server_.GetServerNym().ID().str());
@@ -159,7 +151,7 @@ bool MainFile::SaveMainFile()
     //
     const bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        legacy_.ServerDataFolder(),
+        server_.API().DataFolder(),
         ".",
         server_.WalletFilename().Get(),
         "",
@@ -183,7 +175,7 @@ bool MainFile::CreateMainFile(
 {
     if (!OTDB::StorePlainString(
             strContract,
-            legacy_.ServerDataFolder(),
+            server_.API().DataFolder(),
             OTFolders::Contract().Get(),
             strNotaryID,
             "",
@@ -194,7 +186,7 @@ bool MainFile::CreateMainFile(
 
     if (!strCert.empty() && !OTDB::StorePlainString(
                                 strCert,
-                                legacy_.ServerDataFolder(),
+                                server_.API().DataFolder(),
                                 OTFolders::Cert().Get(),
                                 strNymID,
                                 "",
@@ -233,7 +225,7 @@ bool MainFile::CreateMainFile(
 
     if (!OTDB::StorePlainString(
             str_Notary,
-            legacy_.ServerDataFolder(),
+            server_.API().DataFolder(),
             ".",
             "notaryServer.xml",
             "",
@@ -244,7 +236,7 @@ bool MainFile::CreateMainFile(
     }
     Armored ascCachedKey;
     ascCachedKey.Set(strCachedKey.c_str());
-    auto& cachedKey = crypto_.LoadDefaultKey(ascCachedKey);
+    auto& cachedKey = server_.API().Crypto().LoadDefaultKey(ascCachedKey);
 
     if (!cachedKey.HasHashCheck()) {
         OTPassword tempPassword;
@@ -280,7 +272,7 @@ bool MainFile::CreateMainFile(
 bool MainFile::LoadMainFile(bool bReadOnly)
 {
     if (!OTDB::Exists(
-            legacy_.ServerDataFolder(),
+            server_.API().DataFolder(),
             ".",
             server_.WalletFilename().Get(),
             "",
@@ -292,7 +284,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         return false;
     }
     String strFileContents(OTDB::QueryPlainString(
-        legacy_.ServerDataFolder(),
+        server_.API().DataFolder(),
         ".",
         server_.WalletFilename().Get(),
         "",
@@ -390,7 +382,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             // We successfully loaded the masterKey from file,
                             // so let's SET it as the master key globally...
                             auto& cachedKey =
-                                crypto_.LoadDefaultKey(ascCachedKey);
+                                server_.API().Crypto().LoadDefaultKey(
+                                    ascCachedKey);
 
                             if (!cachedKey.HasHashCheck()) {
                                 OTPassword tempPassword;
@@ -507,7 +500,8 @@ bool MainFile::LoadServerUserAndContract()
     OT_ASSERT(!server_.GetServerID().str().empty());
     OT_ASSERT(!server_.ServerNymID().empty());
 
-    serverNym = wallet_.Nym(Identifier::Factory(server_.ServerNymID()));
+    serverNym =
+        server_.API().Wallet().Nym(Identifier::Factory(server_.ServerNymID()));
 
     if (serverNym->HasCapability(NymCapability::SIGN_MESSAGE)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Server nym is viable."
@@ -538,7 +532,7 @@ bool MainFile::LoadServerUserAndContract()
             szFunc);
     Log::vOutput(0, "%s: Loading the server contract...\n", szFunc);
 
-    auto pContract = wallet_.Server(NOTARY_ID);
+    auto pContract = server_.API().Wallet().Server(NOTARY_ID);
 
     if (pContract) {
         Log::Output(0, "\n** Main Server Contract Verified **\n");

@@ -38,7 +38,7 @@ public:
     bool HaveRemoteNymboxHash() const;
     std::string Name() const override;
     bool NymboxHashMatch() const;
-    virtual std::string LegacyDataFolder() const = 0;
+    std::string LegacyDataFolder() const;
     OTIdentifier LocalNymboxHash() const;
     std::unique_ptr<const class NymFile> Nymfile(
         const OTPasswordData& reason) const;
@@ -70,8 +70,7 @@ public:
     virtual ~Context() = default;
 
 protected:
-    const api::Wallet& wallet_;
-    const api::Legacy& legacy_;
+    const api::Core& api_;
     const OTIdentifier server_id_;
     std::shared_ptr<const class Nym> remote_nym_{};
     std::set<TransactionNumber> available_transaction_numbers_{};
@@ -98,15 +97,13 @@ protected:
         const std::set<RequestNumber>& req);
 
     Context(
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
+        const api::Core& api,
         const std::uint32_t targetVersion,
         const ConstNym& local,
         const ConstNym& remote,
         const Identifier& server);
     Context(
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
+        const api::Core& api,
         const std::uint32_t targetVersion,
         const proto::Context& serialized,
         const ConstNym& local,

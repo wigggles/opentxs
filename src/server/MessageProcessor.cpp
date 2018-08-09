@@ -8,6 +8,7 @@
 #include "MessageProcessor.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -41,12 +42,10 @@ namespace opentxs::server
 {
 
 MessageProcessor::MessageProcessor(
-    const api::Legacy& legacy,
     Server& server,
     const network::zeromq::Context& context,
     const Flag& running)
-    : legacy_{legacy}
-    , server_(server)
+    : server_(server)
     , running_(running)
     , context_(context)
     , reply_socket_callback_(network::zeromq::ReplyCallback::Factory(
@@ -128,7 +127,7 @@ bool MessageProcessor::processMessage(
     armored.MemSet(messageString.data(), messageString.size());
     String serialized;
     armored.GetString(serialized);
-    Message request{server_.Wallet(), legacy_.ServerDataFolder()};
+    Message request{server_.API().Wallet(), server_.API().DataFolder()};
 
     if (false == serialized.Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Empty serialized request."
@@ -144,7 +143,7 @@ bool MessageProcessor::processMessage(
         return true;
     }
 
-    Message repy{server_.Wallet(), legacy_.ServerDataFolder()};
+    Message repy{server_.API().Wallet(), server_.API().DataFolder()};
     const bool processed =
         server_.CommandProcessor().ProcessUserCommand(request, repy);
 

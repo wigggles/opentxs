@@ -44,6 +44,14 @@ namespace internal
 struct Native;
 }  // namespace internal
 
+namespace server
+{
+namespace implementation
+{
+class Manager;
+}  // namespace implementation
+}  // namespace server
+
 namespace storage
 {
 class Driver;
@@ -79,6 +87,11 @@ class Proxy;
 }  // namespace implementation
 }  // namespace zeromq
 }  // namespace network
+
+namespace server
+{
+class ReplyMessage;
+}  // namespace server
 
 namespace storage
 {

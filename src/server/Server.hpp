@@ -23,29 +23,17 @@
 #include <string>
 #include <tuple>
 
-namespace opentxs
-{
-namespace api
-{
-namespace server
-{
-namespace implementation
-{
-class Manager;
-}  // namespace implementation
-}  // namespace server
-}  // namespace api
-namespace server
+namespace opentxs::server
 {
 class Server
 {
 public:
+    const api::Core& API() const;
     bool GetConnectInfo(std::string& hostname, std::uint32_t& port) const;
     const Identifier& GetServerID() const;
     const Nym& GetServerNym() const;
     std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
     bool IsFlaggedForShutdown() const;
-    const api::Wallet& Wallet() const { return wallet_; }
 
     void ActivateCron();
     UserCommandProcessor& CommandProcessor() { return userCommandProcessor_; }
@@ -85,15 +73,7 @@ private:
     const std::uint32_t MIN_TCP_PORT = 1024;
     const std::uint32_t MAX_TCP_PORT = 63356;
 
-    const opentxs::api::Crypto& crypto_;
-#if OT_CRYPTO_WITH_BIP39
-    const opentxs::api::HDSeed& seeds_;
-#endif
-    const opentxs::api::Legacy& legacy_;
-    const opentxs::api::Settings& config_;
-    const opentxs::api::server::Manager& mint_;
-    const opentxs::api::storage::Storage& storage_;
-    const opentxs::api::Wallet& wallet_;
+    const opentxs::api::server::Manager& manager_;
     MainFile mainFile_;
     Notary notary_;
     Transactor transactor_;
@@ -136,21 +116,11 @@ private:
         const Identifier& recipientNymID,
         const Message& msg);
 
-    Server(
-        const opentxs::api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-        const opentxs::api::HDSeed& seeds,
-#endif
-        const opentxs::api::Legacy& legacy,
-        const opentxs::api::Settings& config,
-        const opentxs::api::server::Manager& mint,
-        const opentxs::api::storage::Storage& storage,
-        const opentxs::api::Wallet& wallet);
+    Server(const opentxs::api::server::Manager& manager);
     Server() = delete;
     Server(const Server&) = delete;
     Server(Server&&) = delete;
     Server& operator=(const Server&) = delete;
     Server& operator=(Server&&) = delete;
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

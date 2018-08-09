@@ -22,8 +22,10 @@ public:
     std::shared_ptr<const ServerContract> server_contract_;
 
     Test_RegisterNym()
-        : client_(dynamic_cast<const opentxs::api::client::Manager&>(opentxs::OT::App().Client()))
-        , server_(dynamic_cast<const opentxs::api::server::Manager&>(opentxs::OT::App().StartServer({})))
+        : client_(dynamic_cast<const opentxs::api::client::Manager&>(
+              opentxs::OT::App().Client()))
+        , server_(dynamic_cast<const opentxs::api::server::Manager&>(
+              opentxs::OT::App().StartServer({}, 0)))
         , SeedA_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
               "spike nominee miss inquiry fee nothing belt list other daughter "
               "leave valley twelve gossip paper",
@@ -49,20 +51,18 @@ TEST_F(Test_RegisterNym, ServerContract)
 
     ASSERT_TRUE(server_contract_);
 
-    const auto clientVersion = client_.Wallet().Server(server_contract_->PublicContract());
+    const auto clientVersion =
+        client_.Wallet().Server(server_contract_->PublicContract());
 
     ASSERT_TRUE(clientVersion);
-
 }
 
 TEST_F(Test_RegisterNym, Register)
 {
     auto serverContext = client_.Wallet().mutable_ServerContext(
-        Identifier::Factory(AliceNymID_),
-        server_.ID());
+        Identifier::Factory(AliceNymID_), server_.ID());
     auto clientContext = server_.Wallet().ClientContext(
-        server_.NymID(),
-        Identifier::Factory(AliceNymID_));
+        server_.NymID(), Identifier::Factory(AliceNymID_));
 
     EXPECT_FALSE(clientContext);
 
@@ -75,8 +75,7 @@ TEST_F(Test_RegisterNym, Register)
     EXPECT_EQ(SendResult::VALID_REPLY, result);
 
     clientContext = server_.Wallet().ClientContext(
-        server_.NymID(),
-        Identifier::Factory(AliceNymID_));
+        server_.NymID(), Identifier::Factory(AliceNymID_));
 
     ASSERT_TRUE(clientContext);
 
@@ -86,11 +85,9 @@ TEST_F(Test_RegisterNym, Register)
 TEST_F(Test_RegisterNym, Reregister)
 {
     auto serverContext = client_.Wallet().mutable_ServerContext(
-        Identifier::Factory(AliceNymID_),
-        server_.ID());
+        Identifier::Factory(AliceNymID_), server_.ID());
     auto clientContext = server_.Wallet().ClientContext(
-        server_.NymID(),
-        Identifier::Factory(AliceNymID_));
+        server_.NymID(), Identifier::Factory(AliceNymID_));
 
     ASSERT_TRUE(clientContext);
 
@@ -103,8 +100,7 @@ TEST_F(Test_RegisterNym, Reregister)
     EXPECT_EQ(SendResult::VALID_REPLY, result);
 
     clientContext = server_.Wallet().ClientContext(
-        server_.NymID(),
-        Identifier::Factory(AliceNymID_));
+        server_.NymID(), Identifier::Factory(AliceNymID_));
 
     ASSERT_TRUE(clientContext);
 

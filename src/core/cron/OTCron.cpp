@@ -7,6 +7,7 @@
 
 #include "opentxs/core/cron/OTCron.hpp"
 
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
@@ -54,9 +55,9 @@ std::int32_t OTCron::__cron_max_items_per_nym =
 
 Timer OTCron::tCron(true);
 
-OTCron::OTCron(const api::Wallet& wallet, const api::Legacy& legacy)
-    : Contract(wallet, legacy.ServerDataFolder())
-    , legacy_{legacy}
+OTCron::OTCron(const api::Core& server)
+    : Contract(server.Wallet(), server.DataFolder())
+    , server_(server)
     , m_mapMarkets()
     , m_mapCronItems()
     , m_multimapCronItems()
