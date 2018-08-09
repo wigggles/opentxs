@@ -141,7 +141,8 @@ public:
         const std::string& nymid,
         const std::string& name,
         const std::string& terms,
-        const std::list<ServerContract::Endpoint>& endpoints) const override;
+        const std::list<ServerContract::Endpoint>& endpoints,
+        const std::uint32_t version) const override;
     ObjectList ServerList() const override;
     bool SetNymAlias(const Identifier& id, const std::string& alias)
         const override;

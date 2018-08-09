@@ -41,6 +41,10 @@ private:
 
     ServerConnection* clone() const override { return nullptr; }
     std::string endpoint() const;
+    std::string form_endpoint(
+        proto::AddressType type,
+        std::string hostname,
+        std::uint32_t port) const;
     void publish() const;
     void set_curve(const Lock& lock, zeromq::RequestSocket& socket) const;
     void set_proxy(const Lock& lock, zeromq::RequestSocket& socket) const;

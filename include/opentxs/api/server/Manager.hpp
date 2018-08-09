@@ -29,6 +29,7 @@ public:
     EXPORT virtual const std::string GetDefaultBindIP() const = 0;
     EXPORT virtual const std::string GetEEP() const = 0;
     EXPORT virtual const std::string GetExternalIP() const = 0;
+    EXPORT virtual const std::string GetInproc() const = 0;
     EXPORT virtual const std::string GetListenCommand() const = 0;
     EXPORT virtual const std::string GetListenNotify() const = 0;
     EXPORT virtual const std::string GetOnion() const = 0;

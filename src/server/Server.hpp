@@ -29,7 +29,10 @@ class Server
 {
 public:
     const api::Core& API() const;
-    bool GetConnectInfo(std::string& hostname, std::uint32_t& port) const;
+    bool GetConnectInfo(
+        proto::AddressType& type,
+        std::string& hostname,
+        std::uint32_t& port) const;
     const Identifier& GetServerID() const;
     const Nym& GetServerNym() const;
     std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;

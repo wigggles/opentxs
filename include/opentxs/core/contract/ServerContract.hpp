@@ -37,7 +37,8 @@ public:
         const ConstNym& nym,
         const std::list<Endpoint>& endpoints,
         const std::string& terms,
-        const std::string& name);
+        const std::string& name,
+        const std::uint32_t version);
     static ServerContract* Factory(
         const api::Wallet& wallet,
         const ConstNym& nym,
@@ -46,7 +47,8 @@ public:
     bool ConnectInfo(
         std::string& strHostname,
         std::uint32_t& nPort,
-        const proto::AddressType& preferred = proto::ADDRESSTYPE_IPV4) const;
+        proto::AddressType& actual,
+        const proto::AddressType& preferred) const;
     proto::ServerContract Contract() const;
     std::string EffectiveName() const;
     std::string Name() const override { return name_; }

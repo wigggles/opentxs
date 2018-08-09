@@ -245,12 +245,16 @@ void Manager::generate_mint(
 const std::string Manager::get_arg(const std::string& argName) const
 {
     auto argIt = args_.find(argName);
+
     if (args_.end() != argIt) {
         const auto& argItems = argIt->second;
+
         OT_ASSERT(2 > argItems.size());
         OT_ASSERT(0 < argItems.size());
+
         return *argItems.cbegin();
     }
+
     return {};
 }
 
@@ -269,6 +273,11 @@ const std::string Manager::GetEEP() const { return get_arg(OPENTXS_ARG_EEP); }
 const std::string Manager::GetExternalIP() const
 {
     return get_arg(OPENTXS_ARG_EXTERNALIP);
+}
+
+const std::string Manager::GetInproc() const
+{
+    return get_arg(OPENTXS_ARG_INPROC);
 }
 
 const std::string Manager::GetListenCommand() const
@@ -510,7 +519,8 @@ void Manager::Start()
     server_.ActivateCron();
     std::string hostname{};
     std::uint32_t port{0};
-    const auto connectInfo = server_.GetConnectInfo(hostname, port);
+    proto::AddressType type{proto::ADDRESSTYPE_INPROC};
+    const auto connectInfo = server_.GetConnectInfo(type, hostname, port);
 
     OT_ASSERT(connectInfo);
 
@@ -519,7 +529,8 @@ void Manager::Start()
 
     OT_ASSERT(privateKey);
 
-    message_processor_.init(port, *privateKey);
+    message_processor_.init(
+        (proto::ADDRESSTYPE_INPROC == type), port, *privateKey);
     message_processor_.Start();
 #if OT_CASH
     ScanMints();

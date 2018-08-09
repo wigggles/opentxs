@@ -323,32 +323,48 @@ void Server::CreateMainFile(bool& mainFileExists)
     if (1 > name.size()) { name = defaultName; }
 
     std::list<ServerContract::Endpoint> endpoints;
-    ServerContract::Endpoint ipv4{proto::ADDRESSTYPE_IPV4,
-                                  proto::PROTOCOLVERSION_LEGACY,
-                                  hostname,
-                                  commandPort,
-                                  1};
-    endpoints.push_back(ipv4);
-    const std::string& onion = manager_.GetOnion();
+    const auto inproc = manager_.GetInproc();
+    const bool useInproc = !inproc.empty();
 
-    if (0 < onion.size()) {
-        ServerContract::Endpoint tor{proto::ADDRESSTYPE_ONION,
-                                     proto::PROTOCOLVERSION_LEGACY,
-                                     onion,
-                                     commandPort,
-                                     1};
-        endpoints.push_back(tor);
-    }
+    if (useInproc) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Creating inproc contract"
+              << std::endl;
+        ServerContract::Endpoint inproc{proto::ADDRESSTYPE_INPROC,
+                                        proto::PROTOCOLVERSION_LEGACY,
+                                        manager_.GetInproc(),
+                                        commandPort,
+                                        2};
+        endpoints.push_back(inproc);
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Creating standard contract"
+              << std::endl;
+        ServerContract::Endpoint ipv4{proto::ADDRESSTYPE_IPV4,
+                                      proto::PROTOCOLVERSION_LEGACY,
+                                      hostname,
+                                      commandPort,
+                                      1};
+        endpoints.push_back(ipv4);
+        const std::string& onion = manager_.GetOnion();
 
-    const std::string& eep = manager_.GetEEP();
+        if (0 < onion.size()) {
+            ServerContract::Endpoint tor{proto::ADDRESSTYPE_ONION,
+                                         proto::PROTOCOLVERSION_LEGACY,
+                                         onion,
+                                         commandPort,
+                                         1};
+            endpoints.push_back(tor);
+        }
 
-    if (0 < eep.size()) {
-        ServerContract::Endpoint i2p{proto::ADDRESSTYPE_EEP,
-                                     proto::PROTOCOLVERSION_LEGACY,
-                                     eep,
-                                     commandPort,
-                                     1};
-        endpoints.push_back(i2p);
+        const std::string& eep = manager_.GetEEP();
+
+        if (0 < eep.size()) {
+            ServerContract::Endpoint i2p{proto::ADDRESSTYPE_EEP,
+                                         proto::PROTOCOLVERSION_LEGACY,
+                                         eep,
+                                         commandPort,
+                                         1};
+            endpoints.push_back(i2p);
+        }
     }
 
     std::shared_ptr<const ServerContract> pContract{};
@@ -359,7 +375,12 @@ void Server::CreateMainFile(bool& mainFileExists)
             .data();
 
     if (existing.empty()) {
-        pContract = wallet.Server(nymID->str(), name, terms, endpoints);
+        pContract = wallet.Server(
+            nymID->str(),
+            name,
+            terms,
+            endpoints,
+            (useInproc) ? 2 : SERVER_CONTRACT_CREATE_VERSION);
     } else {
         otErr << OT_METHOD << __FUNCTION__
               << ": Existing contract found. Restoring." << std::endl;
@@ -371,10 +392,11 @@ void Server::CreateMainFile(bool& mainFileExists)
     std::string strNotaryID;
 
     if (pContract) {
-        std::string strHostname;
-        std::uint32_t nPort = 0;
+        std::string strHostname{};
+        std::uint32_t nPort{0};
+        proto::AddressType type{};
 
-        if (!pContract->ConnectInfo(strHostname, nPort)) {
+        if (!pContract->ConnectInfo(strHostname, nPort, type, type)) {
             otOut << __FUNCTION__
                   << ": Unable to retrieve connection info from "
                      "this contract. Please fix that first; see "
@@ -433,7 +455,6 @@ void Server::CreateMainFile(bool& mainFileExists)
           << " in the server data directory." << std::endl;
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const std::string defaultFingerprint = manager_.Storage().DefaultSeed();
-
     const std::string words = manager_.Seeds().Words(defaultFingerprint);
     const std::string passphrase =
         manager_.Seeds().Passphrase(defaultFingerprint);
@@ -933,9 +954,23 @@ bool Server::DropMessageToNymbox(
     return false;
 }
 
-bool Server::GetConnectInfo(std::string& strHostname, std::uint32_t& nPort)
-    const
+bool Server::GetConnectInfo(
+    proto::AddressType& type,
+    std::string& strHostname,
+    std::uint32_t& nPort) const
 {
+    auto contract = manager_.Wallet().Server(m_notaryID);
+
+    OT_ASSERT(contract);
+
+    std::string contractHostname{};
+    std::uint32_t contractPort{};
+
+    const auto haveEndpoints =
+        contract->ConnectInfo(contractHostname, contractPort, type, type);
+
+    OT_ASSERT(haveEndpoints)
+
     bool notUsed = false;
     std::int64_t port = 0;
 

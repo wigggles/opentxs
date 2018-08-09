@@ -65,7 +65,10 @@ void MessageProcessor::cleanup()
     }
 }
 
-void MessageProcessor::init(const int port, const OTPassword& privkey)
+void MessageProcessor::init(
+    const bool inproc,
+    const int port,
+    const OTPassword& privkey)
 {
     if (port == 0) { OT_FAIL; }
 
@@ -73,10 +76,24 @@ void MessageProcessor::init(const int port, const OTPassword& privkey)
 
     OT_ASSERT(set);
 
-    const auto endpoint = std::string("tcp://*:") + std::to_string(port);
-    const auto bound = reply_socket_->Start(endpoint);
+    std::stringstream endpoint{};
+
+    if (inproc) {
+        endpoint << "inproc://opentxs/notary/";
+        endpoint << std::to_string(server_.API().Instance());
+        endpoint << ":";
+    } else {
+        endpoint << std::string("tcp://*:");
+    }
+
+    endpoint << std::to_string(port);
+    const auto bound = reply_socket_->Start(endpoint.str());
 
     OT_ASSERT(bound);
+
+    otErr << std::endl
+          << OT_METHOD << __FUNCTION__ << ": Bound to endpoint "
+          << endpoint.str() << std::endl;
 }
 
 void MessageProcessor::run()

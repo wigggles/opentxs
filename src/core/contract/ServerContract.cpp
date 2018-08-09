@@ -64,7 +64,8 @@ ServerContract* ServerContract::Create(
     const ConstNym& nym,
     const std::list<ServerContract::Endpoint>& endpoints,
     const std::string& terms,
-    const std::string& name)
+    const std::string& name,
+    const std::uint32_t version)
 {
     OT_ASSERT(nym);
     OT_ASSERT(nym->HasCapability(NymCapability::AUTHENTICATE_CONNECTION));
@@ -72,7 +73,7 @@ ServerContract* ServerContract::Create(
     ServerContract* contract = new ServerContract(wallet, nym);
 
     if (nullptr != contract) {
-        contract->version_ = 1;
+        contract->version_ = version;
         contract->listen_params_ = endpoints;
         contract->conditions_ = terms;
         nym->TransportKey(contract->transport_key_);
@@ -141,6 +142,7 @@ OTIdentifier ServerContract::GetID(const Lock& lock) const
 bool ServerContract::ConnectInfo(
     std::string& strHostname,
     std::uint32_t& nPort,
+    proto::AddressType& actual,
     const proto::AddressType& preferred) const
 {
     if (0 < listen_params_.size()) {
@@ -152,6 +154,7 @@ bool ServerContract::ConnectInfo(
             if (preferred == type) {
                 strHostname = url;
                 nPort = port;
+                actual = type;
 
                 return true;
             }
@@ -159,10 +162,12 @@ bool ServerContract::ConnectInfo(
 
         // If we didn't find the preferred type, return the first result
         const auto& endpoint = listen_params_.front();
+        const auto& type = std::get<0>(endpoint);
         const auto& url = std::get<2>(endpoint);
         const auto& port = std::get<3>(endpoint);
         strHostname = url;
         nPort = port;
+        actual = type;
 
         return true;
     }
