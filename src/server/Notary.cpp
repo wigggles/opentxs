@@ -8,8 +8,8 @@
 #include "Notary.hpp"
 
 #include "opentxs/api/server/Manager.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
@@ -62,21 +62,14 @@
 
 namespace opentxs::server
 {
-
 typedef std::vector<ExclusiveAccount> listOfAccounts;
 #if OT_CASH
 typedef std::deque<Token*> dequeOfTokenPtrs;
 #endif  // OT_CASH
 
-Notary::Notary(
-    Server& server,
-    const opentxs::api::Legacy& legacy,
-    const opentxs::api::server::Manager& mint,
-    const opentxs::api::Wallet& wallet)
+Notary::Notary(Server& server, const opentxs::api::server::Manager& manager)
     : server_(server)
-    , legacy_(legacy)
-    , mint_(mint)
-    , wallet_(wallet)
+    , manager_(manager)
 {
 }
 
@@ -208,7 +201,7 @@ void Notary::NotarizeTransfer(
         // Set the ID on the To Account based on what the transaction request
         // said. (So we can load it up.)
         auto destinationAccount =
-            wallet_.mutable_Account(pItem->GetDestinationAcctID());
+            manager_.Wallet().mutable_Account(pItem->GetDestinationAcctID());
 
         // Only accept transfers with positive amounts.
         if (0 > pItem->GetAmount()) {
@@ -280,14 +273,14 @@ void Notary::NotarizeTransfer(
 
             // Load the inbox/outbox in case they already exist
             Ledger theFromOutbox(
-                wallet_,
-                legacy_.ServerDataFolder(),
+                manager_.Wallet(),
+                manager_.DataFolder(),
                 NYM_ID,
                 IDFromAccount,
                 NOTARY_ID),
                 theToInbox(
-                    wallet_,
-                    legacy_.ServerDataFolder(),
+                    manager_.Wallet(),
+                    manager_.DataFolder(),
                     pItem->GetDestinationAcctID(),
                     NOTARY_ID);
 
@@ -360,14 +353,14 @@ void Notary::NotarizeTransfer(
                 //
                 OTTransaction* pTEMPOutboxTransaction =
                     OTTransaction::GenerateTransaction(
-                        wallet_,
+                        manager_.Wallet(),
                         *pOutbox,
                         OTTransaction::pending,
                         originType::not_applicable,
                         lNewTransactionNumber);
                 OTTransaction* pOutboxTransaction =
                     OTTransaction::GenerateTransaction(
-                        wallet_,
+                        manager_.Wallet(),
                         theFromOutbox,
                         OTTransaction::pending,
                         originType::not_applicable,
@@ -375,7 +368,7 @@ void Notary::NotarizeTransfer(
 
                 OTTransaction* pInboxTransaction =
                     OTTransaction::GenerateTransaction(
-                        wallet_,
+                        manager_.Wallet(),
                         theToInbox,
                         OTTransaction::pending,
                         originType::not_applicable,
@@ -804,13 +797,13 @@ void Notary::NotarizeWithdrawal(
                 Identifier::Factory(voucherReserveAccount.get());
 
             Cheque theVoucher(
-                wallet_,
-                legacy_.ServerDataFolder(),
+                manager_.Wallet(),
+                manager_.DataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID),
                 theVoucherRequest(
-                    wallet_,
-                    legacy_.ServerDataFolder(),
+                    manager_.Wallet(),
+                    manager_.DataFolder(),
                     NOTARY_ID,
                     INSTRUMENT_DEFINITION_ID);
 
@@ -1096,13 +1089,13 @@ void Notary::NotarizeWithdrawal(
             // for each token and it's amount/denomination
 
             Purse thePurse(
-                wallet_,
-                legacy_.ServerDataFolder(),
+                manager_.Wallet(),
+                manager_.DataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);
             Purse theOutputPurse(
-                wallet_,
-                legacy_.ServerDataFolder(),
+                manager_.Wallet(),
+                manager_.DataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);
             Token* pToken = nullptr;
@@ -1146,7 +1139,7 @@ void Notary::NotarizeWithdrawal(
                     // So I grab a copy here for later...
                     theDeque.push_front(pToken);
 
-                    pMint = mint_.GetPrivateMint(
+                    pMint = manager_.GetPrivateMint(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (false == bool(pMint)) {
@@ -1158,10 +1151,10 @@ void Notary::NotarizeWithdrawal(
                         bSuccess = false;
                         break;  // Once there's a failure, we ditch the loop.
                     } else if (
-                        false ==
-                        bool(
-                            pMintCashReserveAcct =
-                                wallet_.mutable_Account(pMint->AccountID()))) {
+                        false == bool(
+                                     pMintCashReserveAcct =
+                                         manager_.Wallet().mutable_Account(
+                                             pMint->AccountID()))) {
                         Log::vError(
                             "Notary::NotarizeWithdrawal: Unable to find cash "
                             "reserve account for Mint (series %d): %s\n",
@@ -1566,7 +1559,7 @@ void Notary::NotarizePayDividend(
         // This response item is IN RESPONSE to pItem and its Owner Transaction.
         pResponseBalanceItem->SetReferenceToNum(pItem->GetTransactionNum());
         const std::int64_t lTotalCostOfDividend = pItem->GetAmount();
-        Cheque theVoucherRequest{wallet_, legacy_.ServerDataFolder()};
+        Cheque theVoucherRequest{manager_.Wallet(), manager_.DataFolder()};
         String strVoucherRequest;
         // When paying a dividend, you create a voucher request (the same as in
         // withdrawVoucher). It's just for information
@@ -1605,13 +1598,13 @@ void Notary::NotarizePayDividend(
             // definition as theSourceAccount.get().)
             const Identifier& SHARES_INSTRUMENT_DEFINITION_ID =
                 theVoucherRequest.GetInstrumentDefinitionID();
-            auto pSharesContract = wallet_.UnitDefinition(
+            auto pSharesContract = manager_.Wallet().UnitDefinition(
                 theVoucherRequest.GetInstrumentDefinitionID());
             ExclusiveAccount sharesIssuerAccount;
 
             if (pSharesContract) {
                 sharesIssuerAccount =
-                    wallet_.mutable_Account(SHARES_ISSUER_ACCT_ID);
+                    manager_.Wallet().mutable_Account(SHARES_ISSUER_ACCT_ID);
             }
 
             auto purportedID = Identifier::Factory(context.RemoteNym());
@@ -1907,8 +1900,7 @@ void Notary::NotarizePayDividend(
                                 // asset accounts for the share type,
                                 // and send a voucher to the owner of each one.
                                 PayDividendVisitor actionPayDividend(
-                                    wallet_,
-                                    legacy_,
+                                    server_,
                                     NOTARY_ID,
                                     NYM_ID,
                                     PAYOUT_INSTRUMENT_DEFINITION_ID,
@@ -1916,7 +1908,6 @@ void Notary::NotarizePayDividend(
                                     strInReferenceTo,  // Memo for each voucher
                                                        // (containing original
                                                        // payout request pItem)
-                                    server_,
                                     lAmountPerShare);
 
                                 // Loops through all the accounts for a given
@@ -1931,7 +1922,7 @@ void Notary::NotarizePayDividend(
                                 //
                                 const bool bForEachAcct =
                                     pSharesContract->VisitAccountRecords(
-                                        legacy_.ServerDataFolder(),
+                                        manager_.DataFolder(),
                                         actionPayDividend);  // <================
                                                              // pay all the
                                                              // dividends here.
@@ -2011,8 +2002,8 @@ void Notary::NotarizePayDividend(
                                         lTotalCostOfDividend,
                                         lLeftovers);
                                     Cheque theVoucher(
-                                        wallet_,
-                                        legacy_.ServerDataFolder(),
+                                        manager_.Wallet(),
+                                        manager_.DataFolder(),
                                         NOTARY_ID,
                                         PAYOUT_INSTRUMENT_DEFINITION_ID);
 
@@ -2129,8 +2120,8 @@ void Notary::NotarizePayDividend(
                                             //
                                             const String strVoucher(theVoucher);
                                             OTPayment thePayment(
-                                                wallet_,
-                                                legacy_.ServerDataFolder(),
+                                                manager_.Wallet(),
+                                                manager_.DataFolder(),
                                                 strVoucher);
 
                                             // calls DropMessageToNymbox
@@ -2434,8 +2425,8 @@ void Notary::NotarizeDeposit(
             String strCheque;
             pItem->GetAttachment(strCheque);
             Cheque theCheque(
-                wallet_,
-                legacy_.ServerDataFolder(),
+                manager_.Wallet(),
+                manager_.DataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);  // allocated on the stack :-)
             bool bLoadContractFromString =
@@ -2600,7 +2591,7 @@ void Notary::NotarizeDeposit(
 
                         OTTransaction* pInboxTransaction =
                             OTTransaction::GenerateTransaction(
-                                wallet_,
+                                manager_.Wallet(),
                                 *pInbox,
                                 OTTransaction::chequeReceipt,
                                 originType::not_applicable,
@@ -2744,14 +2735,14 @@ void Notary::NotarizeDeposit(
                     strRemitterNymID(REMITTER_NYM_ID),
                     strRemitterAcctID(REMITTER_ACCT_ID);
                 Ledger theSenderInbox(
-                    wallet_,
-                    legacy_.ServerDataFolder(),
+                    manager_.Wallet(),
+                    manager_.DataFolder(),
                     SENDER_NYM_ID,
                     SOURCE_ACCT_ID,
                     NOTARY_ID);  // chequeReceipt goes here.
                 Ledger theRemitterInbox(
-                    wallet_,
-                    legacy_.ServerDataFolder(),
+                    manager_.Wallet(),
+                    manager_.DataFolder(),
                     REMITTER_NYM_ID,
                     REMITTER_ACCT_ID,
                     NOTARY_ID);  // voucherReceipt goes here.
@@ -2761,8 +2752,8 @@ void Notary::NotarizeDeposit(
                 Account* pSourceAcct{nullptr};
                 ExclusiveAccount sourceAccount{};
                 ExclusiveAccount remitterAccount{};
-                auto pRemitterNym = wallet_.Nym(REMITTER_NYM_ID);
-                auto pSenderNym = wallet_.Nym(SENDER_NYM_ID);
+                auto pRemitterNym = manager_.Wallet().Nym(REMITTER_NYM_ID);
+                auto pSenderNym = manager_.Wallet().Nym(SENDER_NYM_ID);
 
                 // Don't want to overwrite files or db records in cases where
                 // the sender is also the depositor.
@@ -2859,7 +2850,8 @@ void Notary::NotarizeDeposit(
                 // If the depositor IS the sender, pSenderNym points to
                 // depositor, and we're already loaded.
                 if (bDepositorIsSender) {
-                    pSenderNym = wallet_.Nym(context.RemoteNym().ID());
+                    pSenderNym =
+                        manager_.Wallet().Nym(context.RemoteNym().ID());
                 }
                 // If the server IS the sender, pSenderNym points to the server,
                 // and we're already loaded.
@@ -2875,7 +2867,8 @@ void Notary::NotarizeDeposit(
                     // If the depositor IS the remitter, pRemitterNym points to
                     // depositor, and we're already loaded.
                     if (bDepositorIsRemitter) {
-                        pRemitterNym = wallet_.Nym(context.RemoteNym().ID());
+                        pRemitterNym =
+                            manager_.Wallet().Nym(context.RemoteNym().ID());
                     }
                     // If the server IS the remitter, pRemitterNym points to the
                     // server, and we're already loaded.
@@ -2925,7 +2918,7 @@ void Notary::NotarizeDeposit(
                     }
                 }
 
-                auto sContext = wallet_.mutable_ClientContext(
+                auto sContext = manager_.Wallet().mutable_ClientContext(
                     server_.GetServerNym().ID(),
                     (bHasRemitter ? pRemitterNym : pSenderNym)->ID());
 
@@ -3023,7 +3016,7 @@ void Notary::NotarizeDeposit(
                     !bSourceAcctAlreadyLoaded &&
                     ((nullptr ==
                       ((sourceAccount =
-                            wallet_.mutable_Account(SOURCE_ACCT_ID)),
+                            manager_.Wallet().mutable_Account(SOURCE_ACCT_ID)),
                        (pSourceAcct =
                             sourceAccount ? &sourceAccount.get() : nullptr)))))
 
@@ -3098,8 +3091,8 @@ void Notary::NotarizeDeposit(
                     //
                     if (bHasRemitter && !bRemitterAcctAlreadyLoaded &&
                         ((nullptr ==
-                          ((remitterAccount =
-                                wallet_.mutable_Account(REMITTER_ACCT_ID)),
+                          ((remitterAccount = manager_.Wallet().mutable_Account(
+                                REMITTER_ACCT_ID)),
                            (pRemitterAcct = remitterAccount
                                                 ? &remitterAccount.get()
                                                 : nullptr))))) {
@@ -3410,7 +3403,7 @@ void Notary::NotarizeDeposit(
 
                                 OTTransaction* pInboxTransaction =
                                     OTTransaction::GenerateTransaction(
-                                        wallet_,
+                                        manager_.Wallet(),
                                         *pInboxWhereReceiptGoes,
                                         theCheque.HasRemitter()
                                             ? OTTransaction::voucherReceipt
@@ -3614,8 +3607,8 @@ void Notary::NotarizeDeposit(
             pItem->GetAttachment(strPurse);
 
             Purse thePurse(
-                wallet_,
-                legacy_.ServerDataFolder(),
+                manager_.Wallet(),
+                manager_.DataFolder(),
                 NOTARY_ID,
                 INSTRUMENT_DEFINITION_ID);
 
@@ -3660,7 +3653,7 @@ void Notary::NotarizeDeposit(
                         thePurse.Pop(server_.GetServerNym()));
                     if (!pToken) { break; }
 
-                    pMint = mint_.GetPrivateMint(
+                    pMint = manager_.GetPrivateMint(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (false == bool(pMint)) {
@@ -3669,7 +3662,8 @@ void Notary::NotarizeDeposit(
                         break;
                     } else if (
                         (pMintCashReserveAcct =
-                             wallet_.mutable_Account(pMint->AccountID())) &&
+                             manager_.Wallet().mutable_Account(
+                                 pMint->AccountID())) &&
                         pMintCashReserveAcct) {
                         String strSpendableToken;
                         bool bToken = pToken->GetSpendableString(
@@ -4025,7 +4019,7 @@ void Notary::NotarizePaymentPlan(
             String strPaymentPlan;
             pItem->GetAttachment(strPaymentPlan);
             OTPaymentPlan* pPlan =
-                new OTPaymentPlan{wallet_, legacy_.ServerDataFolder()};
+                new OTPaymentPlan{manager_.Wallet(), manager_.DataFolder()};
 
             OT_ASSERT(nullptr != pPlan);
 
@@ -4175,7 +4169,7 @@ void Notary::NotarizePaymentPlan(
                     // (When doing a transfer, normally 2nd acct is the Payee.)
                     const auto RECIPIENT_ACCT_ID =
                         Identifier::Factory(pPlan->GetRecipientAcctID());
-                    auto rContext = wallet_.mutable_ClientContext(
+                    auto rContext = manager_.Wallet().mutable_ClientContext(
                         server_.GetServerNym().ID(),
                         pPlan->GetRecipientNymID());
                     if (!bCancelling &&
@@ -4269,7 +4263,8 @@ void Notary::NotarizePaymentPlan(
                             if (!bCancelling)  // ACTIVATING
                             {
                                 recipientAccount =
-                                    wallet_.mutable_Account(RECIPIENT_ACCT_ID);
+                                    manager_.Wallet().mutable_Account(
+                                        RECIPIENT_ACCT_ID);
                                 pRecipientAcct = &recipientAccount.get();
                             } else  // CANCELLING
                             {
@@ -4473,8 +4468,8 @@ void Notary::NotarizePaymentPlan(
                                             lOtherNewTransNumber);
 
                                     if (false == pPlan->SendNoticeToAllParties(
-                                                     wallet_,
-                                                     legacy_.ServerDataFolder(),
+                                                     manager_.Wallet(),
+                                                     manager_.DataFolder(),
                                                      true,  // bSuccessMsg=true
                                                      server_.GetServerNym(),
                                                      NOTARY_ID,
@@ -4524,8 +4519,8 @@ void Notary::NotarizePaymentPlan(
                                             lOtherNewTransNumber);
 
                                     if (false == pPlan->SendNoticeToAllParties(
-                                                     wallet_,
-                                                     legacy_.ServerDataFolder(),
+                                                     manager_.Wallet(),
+                                                     manager_.DataFolder(),
                                                      false,
                                                      server_.GetServerNym(),
                                                      NOTARY_ID,
@@ -4706,7 +4701,7 @@ void Notary::NotarizeSmartContract(
             String strContract;
             pItem->GetAttachment(strContract);
             OTSmartContract* pContract = new OTSmartContract(
-                wallet_, legacy_.ServerDataFolder(), NOTARY_ID);
+                manager_.Wallet(), manager_.DataFolder(), NOTARY_ID);
             OT_ASSERT(nullptr != pContract);
 
             // If we failed to load the smart contract...
@@ -5495,7 +5490,7 @@ void Notary::NotarizeCancelCronItem(
                     (pCronItem->CanRemoveItemFromCron(context))) {
                     bSuccess = server_.Cron().RemoveCronItem(
                         pCronItem->GetTransactionNum(),
-                        wallet_.Nym(context.RemoteNym().ID()));
+                        manager_.Wallet().Nym(context.RemoteNym().ID()));
                 }
 
                 // If we were just successful in removing the offer from the
@@ -5674,7 +5669,7 @@ void Notary::NotarizeExchangeBasket(
 
             // Here's the request from the user.
             String strBasket;
-            Basket theRequestBasket{wallet_, legacy_.ServerDataFolder()};
+            Basket theRequestBasket{manager_.Wallet(), manager_.DataFolder()};
 
             pItem->GetAttachment(strBasket);
 
@@ -5711,7 +5706,8 @@ void Notary::NotarizeExchangeBasket(
                            "used for User's main account receipt was not "
                            "available for use...\n");
             } else {  // Load the basket account and make sure it exists.
-                basketAccount = wallet_.mutable_Account(BASKET_ACCOUNT_ID);
+                basketAccount =
+                    manager_.Wallet().mutable_Account(BASKET_ACCOUNT_ID);
 
                 if (false == bool(basketAccount)) {
                     Log::Error("ERROR loading the basket account in "
@@ -5727,7 +5723,8 @@ void Notary::NotarizeExchangeBasket(
                                "Notary::NotarizeExchangeBasket\n");
                 } else {
                     // Now we get a pointer to its asset contract...
-                    auto pContract = wallet_.UnitDefinition(BASKET_CONTRACT_ID);
+                    auto pContract =
+                        manager_.Wallet().UnitDefinition(BASKET_CONTRACT_ID);
 
                     const BasketContract* basket = nullptr;
 
@@ -5834,7 +5831,7 @@ void Notary::NotarizeExchangeBasket(
                                     // Load up the two accounts and perform the
                                     // exchange...
                                     auto tempUserAccount =
-                                        wallet_.mutable_Account(
+                                        manager_.Wallet().mutable_Account(
                                             pRequestItem->SUB_ACCOUNT_ID);
 
                                     if (false == bool(tempUserAccount)) {
@@ -5849,7 +5846,7 @@ void Notary::NotarizeExchangeBasket(
                                     }
 
                                     auto tempServerAccount =
-                                        wallet_.mutable_Account(
+                                        manager_.Wallet().mutable_Account(
                                             Identifier::Factory(
                                                 serverAccountID));
 
@@ -6041,7 +6038,7 @@ void Notary::NotarizeExchangeBasket(
                                             OTTransaction* pInboxTransaction =
                                                 OTTransaction::
                                                     GenerateTransaction(
-                                                        wallet_,
+                                                        manager_.Wallet(),
                                                         *pSubInbox,
                                                         OTTransaction::
                                                             basketReceipt,
@@ -6241,7 +6238,7 @@ void Notary::NotarizeExchangeBasket(
 
                                     OTTransaction* pInboxTransaction =
                                         OTTransaction::GenerateTransaction(
-                                            wallet_,
+                                            manager_.Wallet(),
                                             *pInbox,
                                             OTTransaction::basketReceipt,
                                             originType::not_applicable,
@@ -6550,13 +6547,14 @@ void Notary::NotarizeMarketOffer(
 
             // Load up the currency account and validate it.
             ExclusiveAccount currencyAccount =
-                wallet_.mutable_Account(CURRENCY_ACCT_ID);
+                manager_.Wallet().mutable_Account(CURRENCY_ACCT_ID);
             // Also load up the Trade from inside the transaction item.
             String strOffer;
-            OTOffer theOffer{wallet_, legacy_.ServerDataFolder()};
+            OTOffer theOffer{manager_.Wallet(), manager_.DataFolder()};
             String strTrade;
             pItem->GetAttachment(strTrade);
-            OTTrade* pTrade = new OTTrade{wallet_, legacy_.ServerDataFolder()};
+            OTTrade* pTrade =
+                new OTTrade{manager_.Wallet(), manager_.DataFolder()};
 
             OT_ASSERT(nullptr != pTrade);
 
@@ -6881,7 +6879,7 @@ void Notary::NotarizeTransaction(
     const auto& NYM_ID = context.RemoteNym().ID();
     const String strIDNym(NYM_ID);
     auto theFromAccount =
-        wallet_.mutable_Account(tranIn.GetPurportedAccountID());
+        manager_.Wallet().mutable_Account(tranIn.GetPurportedAccountID());
 
     // Make sure the Account ID loaded from the file matches the one we just set
     // and used as the filename.
@@ -7275,7 +7273,7 @@ void Notary::NotarizeProcessNymbox(
     const auto& NOTARY_ID = context.Server();
     std::set<TransactionNumber> newNumbers;
     Ledger theNymbox(
-        wallet_, legacy_.ServerDataFolder(), NYM_ID, NYM_ID, NOTARY_ID);
+        manager_.Wallet(), manager_.DataFolder(), NYM_ID, NYM_ID, NOTARY_ID);
     String strNymID(NYM_ID);
     bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
 
@@ -7669,7 +7667,7 @@ void Notary::NotarizeProcessNymbox(
                                 //
                                 OTTransaction* pSuccessNotice =
                                     OTTransaction::GenerateTransaction(
-                                        wallet_,
+                                        manager_.Wallet(),
                                         theNymbox,
                                         OTTransaction::successNotice,
                                         originType::not_applicable,
@@ -7828,7 +7826,7 @@ void Notary::NotarizeProcessNymbox(
     tranOut.SaveContract();
 
     if (bNymboxHashRegenerated) {
-        auto clientContext = wallet_.mutable_ClientContext(
+        auto clientContext = manager_.Wallet().mutable_ClientContext(
             server_.GetServerNym().ID(), context.RemoteNym().ID());
         clientContext.It().SetLocalNymboxHash(NYMBOX_HASH);
     }
@@ -8203,7 +8201,7 @@ void Notary::NotarizeProcessInbox(
                 pServerTransaction->GetReferenceString(strOriginalItem);
 
                 std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
-                    wallet_,
+                    manager_.Wallet(),
                     pServerTransaction->DataFolder(),
                     strOriginalItem,
                     NOTARY_ID,
@@ -8243,10 +8241,10 @@ void Notary::NotarizeProcessInbox(
                         // a Cheque object.
                         String strCheque;
                         pOriginalItem->GetAttachment(strCheque);
-                        Cheque theCheque{
-                            wallet_,
-                            legacy_.ServerDataFolder()};  // allocated on the
-                                                          // stack :-)
+                        Cheque theCheque{manager_.Wallet(),
+                                         manager_.DataFolder()};  // allocated
+                                                                  // on the
+                                                                  // stack :-)
 
                         if (false ==
                             ((strCheque.GetLength() > 2) &&
@@ -8543,7 +8541,11 @@ void Notary::NotarizeProcessInbox(
         // theAcctID is the ID on the client Account that was
         // passed in.
         Ledger theInbox(
-            wallet_, legacy_.ServerDataFolder(), NYM_ID, ACCOUNT_ID, NOTARY_ID);
+            manager_.Wallet(),
+            manager_.DataFolder(),
+            NYM_ID,
+            ACCOUNT_ID,
+            NOTARY_ID);
 
         OTTransaction* pServerTransaction = nullptr;
 
@@ -8712,7 +8714,7 @@ void Notary::NotarizeProcessInbox(
             pServerTransaction->GetReferenceString(strOriginalItem);
 
             std::unique_ptr<Item> pOriginalItem(Item::CreateItemFromString(
-                wallet_,
+                manager_.Wallet(),
                 pServerTransaction->DataFolder(),
                 strOriginalItem,
                 NOTARY_ID,
@@ -8858,13 +8860,13 @@ void Notary::NotarizeProcessInbox(
                     // put a notice of this acceptance for the
                     // sender's records.
                     Ledger theFromOutbox(
-                        wallet_,
-                        legacy_.ServerDataFolder(),
+                        manager_.Wallet(),
+                        manager_.DataFolder(),
                         IDFromAccount,
                         NOTARY_ID),  // Sender's *OUTBOX*
                         theFromInbox(
-                            wallet_,
-                            legacy_.ServerDataFolder(),
+                            manager_.Wallet(),
+                            manager_.DataFolder(),
                             IDFromAccount,
                             NOTARY_ID);  // Sender's *INBOX*
 
@@ -8916,7 +8918,7 @@ void Notary::NotarizeProcessInbox(
                         // notice the sender of acceptance.)
                         OTTransaction* pInboxTransaction =
                             OTTransaction::GenerateTransaction(
-                                wallet_,
+                                manager_.Wallet(),
                                 theFromInbox,
                                 OTTransaction::transferReceipt,
                                 originType::not_applicable,

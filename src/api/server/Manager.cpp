@@ -24,7 +24,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
-#include <opentxs/core/OTStorage.hpp>
+#include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
@@ -65,14 +65,13 @@ api::server::Manager* Factory::ServerManager(
     const Flag& running,
     const ArgList& args,
     const api::Crypto& crypto,
-    const api::Legacy& legacy,
     const api::Settings& config,
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
 {
     return new api::server::implementation::Manager(
-        running, args, crypto, legacy, config, context, dataFolder, instance);
+        running, args, crypto, config, context, dataFolder, instance);
 }
 }  // namespace opentxs
 
@@ -82,14 +81,12 @@ Manager::Manager(
     const Flag& running,
     const ArgList& args,
     const api::Crypto& crypto,
-    const api::Legacy& legacy,
     const api::Settings& config,
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
     : Scheduler(running)
     , StorageParent(running, args, crypto, config, dataFolder)
-    , legacy_(legacy)
     , zmq_context_(context)
     , instance_(instance)
     , seeds_(opentxs::Factory::HDSeed(
@@ -103,7 +100,7 @@ Manager::Manager(
           *seeds_
 #endif
           ))
-    , wallet_(opentxs::Factory::Wallet(*this, legacy_))
+    , wallet_(opentxs::Factory::Wallet(*this))
     , dht_(opentxs::Factory::Dht(
           instance_,
           true,
@@ -116,22 +113,10 @@ Manager::Manager(
           server_refresh_interval_,
           unit_publish_interval_,
           unit_refresh_interval_))
-    , server_p_(new opentxs::server::Server(
-          crypto_,
-#if OT_CRYPTO_WITH_BIP39
-          *seeds_,
-#endif
-          legacy_,
-          config_,
-          *this,
-          *storage_,
-          *wallet_))
+    , server_p_(new opentxs::server::Server(*this))
     , server_(*server_p_)
-    , message_processor_p_(new opentxs::server::MessageProcessor(
-          legacy_,
-          server_,
-          context,
-          running_))
+    , message_processor_p_(
+          new opentxs::server::MessageProcessor(server_, context, running_))
     , message_processor_(*message_processor_p_)
 #if OT_CASH
     , mint_thread_(nullptr)
@@ -387,7 +372,7 @@ std::int32_t Manager::last_generated_series(
         const std::string filename =
             unitID + SERIES_DIVIDER + std::to_string(output);
         const auto exists = OTDB::Exists(
-            legacy_.ServerDataFolder(),
+            data_folder_,
             OTFolders::Mint().Get(),
             serverID.c_str(),
             filename.c_str(),
@@ -407,11 +392,7 @@ std::shared_ptr<Mint> Manager::load_private_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<Mint> mint(Mint::MintFactory(
-        *wallet_,
-        legacy_.ServerDataFolder(),
-        String(ID()),
-        String(NymID()),
-        unitID.c_str()));
+        *wallet_, data_folder_, String(ID()), String(NymID()), unitID.c_str()));
 
     OT_ASSERT(mint);
 
@@ -426,7 +407,7 @@ std::shared_ptr<Mint> Manager::load_public_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<Mint> mint(Mint::MintFactory(
-        *wallet_, legacy_.ServerDataFolder(), String(ID()), unitID.c_str()));
+        *wallet_, data_folder_, String(ID()), unitID.c_str()));
 
     OT_ASSERT(mint);
 
@@ -620,8 +601,8 @@ bool Manager::verify_mint_directory(const std::string& serverID) const
     bool created{false};
     String serverDir{""};
     String mintDir{""};
-    const auto haveMint = OTPaths::AppendFolder(
-        mintDir, legacy_.ServerDataFolder().c_str(), OTFolders::Mint());
+    const auto haveMint =
+        OTPaths::AppendFolder(mintDir, data_folder_.c_str(), OTFolders::Mint());
     const auto haveServer =
         OTPaths::AppendFolder(serverDir, mintDir, serverID.c_str());
 

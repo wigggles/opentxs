@@ -24,7 +24,6 @@ class MessageProcessor : Lockable
 {
 public:
     EXPORT explicit MessageProcessor(
-        const api::Legacy& legacy,
         Server& server,
         const network::zeromq::Context& context,
         const Flag& running);
@@ -36,7 +35,6 @@ public:
     EXPORT ~MessageProcessor();
 
 private:
-    const api::Legacy& legacy_;
     Server& server_;
     const Flag& running_;
     [[maybe_unused]] const network::zeromq::Context& context_;

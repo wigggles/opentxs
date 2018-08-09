@@ -54,12 +54,14 @@
 #include "storage/StorageConfig.hpp"
 #include "Scheduler.hpp"
 
+#include <algorithm>
 #include <atomic>
 #include <ctime>
 #include <limits>
 #include <map>
 #include <mutex>
 #include <string>
+#include <vector>
 
 #include "Native.hpp"
 
@@ -344,7 +346,7 @@ Native::Native(
     , config_()
     , crypto_(nullptr)
     , legacy_(opentxs::Factory::Legacy())
-    , server_(nullptr)
+    , server_()
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
     , server_args_(args)
@@ -511,11 +513,13 @@ void Native::recover()
     }
 }
 
-const api::server::Manager& Native::Server() const
+const api::server::Manager& Native::Server(const int instance) const
 {
-    OT_ASSERT(server_);
+    auto& output = server_.at(instance);
 
-    return *server_;
+    OT_ASSERT(output);
+
+    return *output;
 }
 
 bool Native::ServerMode() const { return server_mode_; }
@@ -549,7 +553,7 @@ void Native::shutdown()
         callback();
     }
 
-    if (false == bool(server_)) {
+    if (client_) {
         OT_ASSERT(client_);
 
         auto wallet = client_->OTAPI().GetWallet(nullptr);
@@ -559,7 +563,7 @@ void Native::shutdown()
         wallet->SaveWallet();
     }
 
-    server_.reset();
+    server_.clear();
     client_.reset();
     crypto_.reset();
     Log::Cleanup();
@@ -603,29 +607,33 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
 {
     OT_ASSERT(verify_lock(lock))
     OT_ASSERT(crypto_);
-    OT_ASSERT(legacy_);
 
-    server_.reset(opentxs::Factory::ServerManager(
+    const auto next = server_.size();
+
+    server_.emplace_back(opentxs::Factory::ServerManager(
         running_,
         args,
         *crypto_,
-        *legacy_,
         Config(legacy_->ServerConfigFilePath()),
         zmq_context_,
         legacy_->ServerDataFolder(),
-        1));  // TODO
-
-    OT_ASSERT(server_);
+        next));
 }
 
-const api::Core& Native::StartServer(const ArgList& args) const
+const api::Core& Native::StartServer(const ArgList& args, const int instance)
+    const
 {
     Lock lock(lock_);
 
-    if (server_) { return *server_; }
+    const std::size_t count = std::max(0, instance);
+    const std::size_t effective = std::min(count, server_.size());
 
-    start_server(lock, args);
+    if (effective == server_.size()) { start_server(lock, args); }
 
-    return *server_;
+    const auto& output = server_.at(effective);
+
+    OT_ASSERT(output)
+
+    return *output;
 }
 }  // namespace opentxs::api::implementation

@@ -7,7 +7,7 @@
 
 #include "opentxs/consensus/ServerContext.hpp"
 
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -69,13 +69,12 @@ ServerContext::ManagedNumber::~ManagedNumber()
 }
 
 ServerContext::ServerContext(
-    const api::Wallet& wallet,
-    const api::Legacy& legacy,
+    const api::Core& api,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server,
     network::ServerConnection& connection)
-    : ot_super(wallet, legacy, CURRENT_VERSION, local, remote, server)
+    : ot_super(api, CURRENT_VERSION, local, remote, server)
     , connection_(connection)
     , admin_password_("")
     , admin_attempted_(Flag::Factory(false))
@@ -87,15 +86,13 @@ ServerContext::ServerContext(
 }
 
 ServerContext::ServerContext(
-    const api::Wallet& wallet,
-    const api::Legacy& legacy,
+    const api::Core& api,
     const proto::Context& serialized,
     const ConstNym& local,
     const ConstNym& remote,
     network::ServerConnection& connection)
     : ot_super(
-          wallet,
-          legacy,
+          api,
           CURRENT_VERSION,
           serialized,
           local,
@@ -261,7 +258,7 @@ std::unique_ptr<Message> ServerContext::initialize_server_command(
     const MessageType type) const
 {
     std::unique_ptr<Message> output(
-        new Message{wallet_, legacy_.ClientDataFolder()});
+        new Message{api_.Wallet(), api_.DataFolder()});
 
     OT_ASSERT(output);
     OT_ASSERT(nym_);
@@ -361,11 +358,6 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
 }
 
 bool ServerContext::isAdmin() const { return admin_success_.get(); }
-
-std::string ServerContext::LegacyDataFolder() const
-{
-    return legacy_.ServerDataFolder();
-}
 
 ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
     const MessageType reason)
@@ -645,7 +637,7 @@ bool ServerContext::ShouldRename(const std::string& defaultName) const
         return false;
     }
 
-    auto contract = wallet_.Server(server_id_);
+    auto contract = api_.Wallet().Server(server_id_);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Missing server contract."

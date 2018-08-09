@@ -33,7 +33,7 @@ private:
     typedef Contract ot_super;
 
 private:
-    const api::Legacy& legacy_;
+    const api::Core& server_;
     // A list of all valid markets.
     mapOfMarkets m_mapMarkets;
     // Cron Items are found on both lists.
@@ -158,7 +158,7 @@ public:
     bool LoadCron();
     bool SaveCron();
 
-    explicit OTCron(const api::Wallet& wallet, const api::Legacy& legacy);
+    explicit OTCron(const api::Core& server);
 
     virtual ~OTCron();
 

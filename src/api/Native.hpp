@@ -26,10 +26,11 @@ public:
     const api::Crypto& Crypto() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
     const api::Legacy& Legacy() const override;
-    const api::server::Manager& Server() const override;
+    const api::server::Manager& Server(const int instance) const override;
     bool ServerMode() const override;
     const api::Core& StartClient(const ArgList& args) const override;
-    const api::Core& StartServer(const ArgList& args) const override;
+    const api::Core& StartServer(const ArgList& args, const int instance)
+        const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
@@ -53,7 +54,7 @@ private:
     mutable ConfigMap config_;
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::Legacy> legacy_;
-    mutable std::unique_ptr<api::server::Manager> server_;
+    mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;

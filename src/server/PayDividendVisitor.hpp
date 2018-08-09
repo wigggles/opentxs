@@ -26,7 +26,7 @@ class Server;
 // methods that it needs...)
 class PayDividendVisitor : public AccountVisitor
 {
-    const api::Legacy& legacy_;
+    server::Server& server_;
     const OTIdentifier nymId_;
     const OTIdentifier payoutUnitTypeId_;
     const OTIdentifier voucherAcctId_;
@@ -34,8 +34,6 @@ class PayDividendVisitor : public AccountVisitor
                                   // the payDividend transaction request.
                                   // (Stored in the memo field for each
                                   // voucher.)
-    server::Server* m_pServer{nullptr};  // no need to cleanup. It's here for
-                                         // convenience only.
     std::int64_t m_lPayoutPerShare{0};
     std::int64_t m_lAmountPaidOut{0};   // as we pay each voucher out, we keep a
                                         // running count.
@@ -46,26 +44,25 @@ class PayDividendVisitor : public AccountVisitor
 
 public:
     PayDividendVisitor(
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
+        server::Server& theServer,
         const Identifier& theNotaryID,
         const Identifier& theNymID,
         const Identifier& thePayoutUnitTypeId,
         const Identifier& theVoucherAcctID,
         const String& strMemo,
-        server::Server& theServer,
         std::int64_t lPayoutPerShare);
-    virtual ~PayDividendVisitor();
 
     const OTIdentifier GetNymID() { return nymId_; }
     const OTIdentifier GetPayoutUnitTypeId() { return payoutUnitTypeId_; }
     const OTIdentifier GetVoucherAcctID() { return voucherAcctId_; }
     String* GetMemo() { return m_pstrMemo; }
-    server::Server* GetServer() { return m_pServer; }
+    server::Server& GetServer() { return server_; }
     std::int64_t GetPayoutPerShare() { return m_lPayoutPerShare; }
     std::int64_t GetAmountPaidOut() { return m_lAmountPaidOut; }
     std::int64_t GetAmountReturned() { return m_lAmountReturned; }
 
     bool Trigger(const Account& theAccount) override;
+
+    virtual ~PayDividendVisitor();
 };
 }  // namespace opentxs

@@ -8,9 +8,9 @@
 #include "UserCommandProcessor.hpp"
 
 #include "opentxs/api/server/Manager.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Legacy.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
@@ -164,15 +164,9 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
 
 UserCommandProcessor::UserCommandProcessor(
     Server& server,
-    const opentxs::api::Legacy& legacy,
-    const opentxs::api::Settings& config,
-    const opentxs::api::server::Manager& mint,
-    const opentxs::api::Wallet& wallet)
+    const opentxs::api::server::Manager& manager)
     : server_(server)
-    , legacy_(legacy)
-    , config_(config)
-    , mint_(mint)
-    , wallet_(wallet)
+    , manager_(manager)
 {
 }
 
@@ -215,7 +209,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
 
     std::unique_ptr<OTTransaction> transaction{nullptr};
     transaction.reset(OTTransaction::GenerateTransaction(
-        wallet_,
+        server_.API().Wallet(),
         nymbox,
         OTTransaction::blank,
         originType::not_applicable,
@@ -274,7 +268,11 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     auto numlist_ack_reply = reply.Acknowledged();
     const auto nymID = Identifier::Factory(context.RemoteNym().ID());
     Ledger nymbox(
-        wallet_, legacy_.ServerDataFolder(), nymID, nymID, context.Server());
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        nymID,
+        context.Server());
 
     if (nymbox.LoadNymbox() && nymbox.VerifySignature(server_.GetServerNym())) {
         bool bIsDirtyNymbox = false;
@@ -501,12 +499,14 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
 
     String overrideNym;
     bool keyExists = false;
-    config_.Check_str("permissions", "override_nym_id", overrideNym, keyExists);
+    server_.API().Config().Check_str(
+        "permissions", "override_nym_id", overrideNym, keyExists);
     const bool haveAdmin = keyExists && overrideNym.Exists();
     const bool isAdmin = haveAdmin && (overrideNym == requestingNym);
 
     if (isAdmin) {
-        auto nym = wallet_.mutable_Nym(server_.GetServerNym().ID());
+        auto nym =
+            server_.API().Wallet().mutable_Nym(server_.GetServerNym().ID());
         otErr << "Before:\n" << std::string(nym.Claims()) << std::endl;
         nym.AddClaim(claim);
         otErr << "After:\n" << std::string(nym.Claims()) << std::endl;
@@ -523,7 +523,7 @@ bool UserCommandProcessor::cmd_check_nym(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_check_nym);
 
-    auto nym = wallet_.Nym(Identifier::Factory(targetNym));
+    auto nym = server_.API().Wallet().Nym(Identifier::Factory(targetNym));
 
     if (nym) {
         reply.SetPayload(proto::ProtoAsData(nym->asPublicNym()));
@@ -546,7 +546,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     const auto& context = reply.Context();
     const auto& serverNym = *context.Nym();
-    auto account = wallet_.mutable_Account(accountID);
+    auto account = server_.API().Wallet().mutable_Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error loading account "
@@ -604,7 +604,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     }
 
     const auto& contractID = account.get().GetInstrumentDefinitionID();
-    auto contract = wallet_.UnitDefinition(contractID);
+    auto contract = server_.API().Wallet().UnitDefinition(contractID);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load unit definition"
@@ -615,7 +615,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
 
     if (contract->Type() == proto::UNITTYPE_SECURITY) {
         if (false == contract->EraseAccountRecord(
-                         legacy_.ServerDataFolder(), accountID)) {
+                         server_.API().DataFolder(), accountID)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to delete account record " << String(contractID)
                   << std::endl;
@@ -625,12 +625,12 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     }
 
     reply.SetSuccess(true);
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = server_.API().Wallet().mutable_Nymfile(
+        reply.Context().RemoteNym().ID(), __FUNCTION__);
     auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.erase(String(accountID).Get());
     account.Release();
-    wallet_.DeleteAccount(accountID);
+    server_.API().Wallet().DeleteAccount(accountID);
     reply.DropToNymbox(false);
 
     return true;
@@ -643,8 +643,8 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
 // fails.)
 bool UserCommandProcessor::cmd_delete_user(ReplyMessage& reply) const
 {
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = server_.API().Wallet().mutable_Nymfile(
+        reply.Context().RemoteNym().ID(), __FUNCTION__);
     const auto& msgIn = reply.Original();
     auto& context = reply.Context();
 
@@ -724,7 +724,7 @@ bool UserCommandProcessor::cmd_get_account_data(ReplyMessage& reply) const
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
-    auto account = wallet_.mutable_Account(accountID);
+    auto account = server_.API().Wallet().mutable_Account(accountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load account "
@@ -882,10 +882,10 @@ bool UserCommandProcessor::cmd_get_instrument_definition(
         Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
 
     auto serialized = Data::Factory();
-    auto unitDefiniton = wallet_.UnitDefinition(contractID);
+    auto unitDefiniton = server_.API().Wallet().UnitDefinition(contractID);
     // Perhaps the provided ID is actually a server contract, not an
     // instrument definition?
-    auto server = wallet_.Server(contractID);
+    auto server = server_.API().Wallet().Server(contractID);
 
     if (unitDefiniton) {
         reply.SetSuccess(true);
@@ -995,7 +995,7 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_mint);
 
     const auto& unitID = msgIn.m_strInstrumentDefinitionID;
-    auto mint = mint_.GetPublicMint(Identifier::Factory(unitID));
+    auto mint = manager_.GetPublicMint(Identifier::Factory(unitID));
 
     if (mint) {
         reply.SetSuccess(true);
@@ -1151,7 +1151,11 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
     bool bSavedNymbox = false;
     const auto& serverID = context.Server();
     Ledger theLedger(
-        wallet_, legacy_.ServerDataFolder(), nymID, nymID, serverID);
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        nymID,
+        serverID);
     NumList theNumlist;
 
     for (std::int32_t i = 0; i < ISSUE_NUMBER_BATCH; i++) {
@@ -1257,8 +1261,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // currency as a sub-currency is if it's already issued on this server.
     for (auto& it : serialized.basket().item()) {
         const auto& subcontractID = it.unit();
-        auto contract =
-            wallet_.UnitDefinition(Identifier::Factory(subcontractID));
+        auto contract = server_.API().Wallet().UnitDefinition(
+            Identifier::Factory(subcontractID));
 
         if (!contract) {
             otErr << OT_METHOD << __FUNCTION__ << ": Missing subcurrency "
@@ -1278,7 +1282,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // client.) This loop also adds the BASKET_ID and the NEW ACCOUNT ID to a
     // map on the server for later reference.
     for (auto& it : *serialized.mutable_basket()->mutable_item()) {
-        auto newAccount = wallet_.CreateAccount(
+        auto newAccount = server_.API().Wallet().CreateAccount(
             serverNymID,
             serverID,
             Identifier::Factory(it.unit()),
@@ -1298,8 +1302,8 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         }
     }
 
-    if (false ==
-        BasketContract::FinalizeTemplate(wallet_, serverNym, serialized)) {
+    if (false == BasketContract::FinalizeTemplate(
+                     server_.API().Wallet(), serverNym, serialized)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to finalize basket contract." << std::endl;
 
@@ -1313,7 +1317,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         return false;
     }
 
-    const auto contract = wallet_.UnitDefinition(serialized);
+    const auto contract = server_.API().Wallet().UnitDefinition(serialized);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1344,7 +1348,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     // sub-contract, in order to store the reserves. That's what makes the
     // basket work.
 
-    auto basketAccount = wallet_.CreateAccount(
+    auto basketAccount = server_.API().Wallet().CreateAccount(
         serverNymID, serverID, contractID, *serverNym, Account::basket, 0);
 
     if (false == bool(basketAccount)) {
@@ -1366,7 +1370,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
         BASKET_ID, basketAccountID, contractID);
     server_.GetMainFile().SaveMainFile();
 #if OT_CASH
-    mint_.UpdateMint(basketAccountID);
+    manager_.UpdateMint(basketAccountID);
 #endif  // OT_CASH
     basketAccount.Release();
 
@@ -1388,10 +1392,14 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID));
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        wallet_,
-        legacy_.ServerDataFolder(),
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
         serverNymID,
         accountID,
         serverID,
@@ -1417,7 +1425,8 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
 
     // Returning before this point will result in the reply message
     // m_bSuccess = false, and no reply ledger
-    FinalizeResponse response(wallet_, serverNym, reply, *responseLedger);
+    FinalizeResponse response(
+        server_.API().Wallet(), serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
     // Returning after this point will result in the reply message
@@ -1436,7 +1445,7 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
 
         const auto inputNumber = transaction->GetTransactionNum();
         response.SetResponse(OTTransaction::GenerateTransaction(
-            wallet_,
+            server_.API().Wallet(),
             *responseLedger,
             OTTransaction::error_state,
             originType::not_applicable,
@@ -1503,10 +1512,14 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID));
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        wallet_,
-        legacy_.ServerDataFolder(),
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
         serverNymID,
         accountID,
         serverID,
@@ -1530,7 +1543,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    auto account = wallet_.mutable_Account(accountID);
+    auto account = server_.API().Wallet().mutable_Account(accountID);
 
     if (false == bool(account)) { return false; }
 
@@ -1582,11 +1595,12 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     // Returning after this point will result in the reply message
     // m_bSuccess = true, and a signed reply ledger containing at least one
     // transaction
-    FinalizeResponse response(wallet_, serverNym, reply, *responseLedger);
+    FinalizeResponse response(
+        server_.API().Wallet(), serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
     response.SetResponse(OTTransaction::GenerateTransaction(
-        wallet_,
+        server_.API().Wallet(),
         *responseLedger,
         OTTransaction::error_state,
         originType::not_applicable,
@@ -1646,10 +1660,14 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     const auto& serverNymID = serverNym.ID();
     auto nymboxHash = Identifier::Factory();
     std::unique_ptr<Ledger> input(new Ledger(
-        wallet_, legacy_.ServerDataFolder(), nymID, nymID, serverID));
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        nymID,
+        serverID));
     std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        wallet_,
-        legacy_.ServerDataFolder(),
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
         serverNymID,
         nymID,
         serverID,
@@ -1675,7 +1693,8 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
 
     // Returning before this point will result in the reply message
     // m_bSuccess = false, and no reply ledger
-    FinalizeResponse response(wallet_, serverNym, reply, *responseLedger);
+    FinalizeResponse response(
+        server_.API().Wallet(), serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
     // Returning after this point will result in the reply message
@@ -1694,7 +1713,7 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
 
         const auto inputNumber = transaction->GetTransactionNum();
         response.SetResponse(OTTransaction::GenerateTransaction(
-            wallet_,
+            server_.API().Wallet(),
             *responseLedger,
             OTTransaction::error_state,
             originType::not_applicable,
@@ -1759,8 +1778,8 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
         // whether or not it's actually issued on this server." Future options
         // might include "issue", "audit", "contract", etc.
         if (0 == status.compare("exists")) {
-            auto pContract =
-                wallet_.UnitDefinition(Identifier::Factory(unitID));
+            auto pContract = server_.API().Wallet().UnitDefinition(
+                Identifier::Factory(unitID));
 
             if (pContract) {
                 newMap[unitID] = "true";
@@ -1794,7 +1813,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto contractID =
         Identifier::Factory(msgIn.m_strInstrumentDefinitionID);
-    auto account = wallet_.CreateAccount(
+    auto account = server_.API().Wallet().CreateAccount(
         nymID, serverID, contractID, serverNym, Account::user, 0);
 
     // If we successfully create the account, then bundle it in the message XML
@@ -1806,8 +1825,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         return false;
     }
 
-    auto contract =
-        wallet_.UnitDefinition(account.get().GetInstrumentDefinitionID());
+    auto contract = server_.API().Wallet().UnitDefinition(
+        account.get().GetInstrumentDefinitionID());
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load unit definition"
@@ -1820,7 +1839,7 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
         // The instrument definition keeps a list of all accounts for that type.
         // (For shares, not for currencies.)
         if (false == contract->AddAccountRecord(
-                         legacy_.ServerDataFolder(), account.get())) {
+                         server_.API().DataFolder(), account.get())) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to add account record " << String(contractID)
                   << std::endl;
@@ -1832,9 +1851,17 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
     auto accountID = Identifier::Factory();
     account.get().GetIdentifier(accountID);
     Ledger outbox(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID);
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID);
     Ledger inbox(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID);
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID);
     bool inboxLoaded = inbox.LoadInbox();
     bool outboxLoaded = outbox.LoadOutbox();
 
@@ -1889,8 +1916,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     reply.SetSuccess(true);
     reply.SetAccount(String(accountID));
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = server_.API().Wallet().mutable_Nymfile(
+        reply.Context().RemoteNym().ID(), __FUNCTION__);
     auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.insert(String(accountID).Get());
     reply.SetPayload(String(account.get()));
@@ -1912,21 +1939,21 @@ bool UserCommandProcessor::cmd_register_contract(ReplyMessage& reply) const
         case (ContractType::NYM): {
             const auto nym = proto::DataToProto<proto::CredentialIndex>(
                 Data::Factory(msgIn.m_ascPayload));
-            reply.SetSuccess(bool(wallet_.Nym(nym)));
+            reply.SetSuccess(bool(server_.API().Wallet().Nym(nym)));
 
             break;
         }
         case (ContractType::SERVER): {
             const auto server = proto::DataToProto<proto::ServerContract>(
                 Data::Factory(msgIn.m_ascPayload));
-            reply.SetSuccess(bool(wallet_.Server(server)));
+            reply.SetSuccess(bool(server_.API().Wallet().Server(server)));
 
             break;
         }
         case (ContractType::UNIT): {
             const auto unit = proto::DataToProto<proto::UnitDefinition>(
                 Data::Factory(msgIn.m_ascPayload));
-            reply.SetSuccess(bool(wallet_.UnitDefinition(unit)));
+            reply.SetSuccess(bool(server_.API().Wallet().UnitDefinition(unit)));
 
             break;
         }
@@ -1950,7 +1977,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_issue_asset);
 
-    auto contract = wallet_.UnitDefinition(contractID);
+    auto contract = server_.API().Wallet().UnitDefinition(contractID);
 
     // Make sure the contract isn't already available on this server.
     if (contract) {
@@ -1970,7 +1997,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
-    contract = wallet_.UnitDefinition(serialized);
+    contract = server_.API().Wallet().UnitDefinition(serialized);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid contract" << std::endl;
@@ -1990,7 +2017,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    auto account = wallet_.CreateAccount(
+    auto account = server_.API().Wallet().CreateAccount(
         nymID, serverID, contractID, serverNym, Account::issuer, 0);
 
     if (false == bool(account)) {
@@ -2009,9 +2036,17 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     Log::Output(0, "Generating inbox/outbox for new issuer acct. \n");
 
     Ledger outbox(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID);
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID);
     Ledger inbox(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID);
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID);
 
     bool inboxLoaded = inbox.LoadInbox();
     bool outboxLoaded = outbox.LoadOutbox();
@@ -2065,13 +2100,13 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     reply.SetSuccess(true);
     account.Release();
-    auto nymfile =
-        wallet_.mutable_Nymfile(reply.Context().RemoteNym().ID(), __FUNCTION__);
+    auto nymfile = server_.API().Wallet().mutable_Nymfile(
+        reply.Context().RemoteNym().ID(), __FUNCTION__);
     auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
     theAccountSet.insert(accountID->str());
     reply.DropToNymbox(false);
 #if OT_CASH
-    mint_.UpdateMint(contractID);
+    manager_.UpdateMint(contractID);
 #endif  // OT_CASH
 
     return true;
@@ -2085,7 +2120,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     auto serialized = proto::DataToProto<proto::CredentialIndex>(
         Data::Factory(reply.Original().m_ascPayload));
-    auto sender_nym = wallet_.Nym(serialized);
+    auto sender_nym = server_.API().Wallet().Nym(serialized);
 
     if (false == bool(sender_nym)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2134,8 +2169,8 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
 
     auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
     Ledger theNymbox(
-        wallet_,
-        legacy_.ServerDataFolder(),
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
         sender_nym->ID(),
         sender_nym->ID(),
         NOTARY_ID);
@@ -2168,7 +2203,8 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
           << ": Success registering Nym credentials." << std::endl;
     String strNymContents;
     // This will save the nymfile.
-    auto nymfile = wallet_.mutable_Nymfile(sender_nym->ID(), __FUNCTION__);
+    auto nymfile =
+        server_.API().Wallet().mutable_Nymfile(sender_nym->ID(), __FUNCTION__);
     nymfile.It().SerializeNymFile(strNymContents);
     reply.SetPayload(strNymContents);
     reply.SetSuccess(true);
@@ -2188,9 +2224,9 @@ bool UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const
 
     std::string overrideNym, password;
     bool notUsed = false;
-    config_.CheckSet_str(
+    server_.API().Config().CheckSet_str(
         "permissions", "override_nym_id", "", overrideNym, notUsed);
-    config_.CheckSet_str(
+    server_.API().Config().CheckSet_str(
         "permissions", "admin_password", "", password, notUsed);
     const bool noAdminYet = overrideNym.empty();
     const bool passwordSet = !password.empty();
@@ -2207,12 +2243,12 @@ bool UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const
     }
 
     if (readyForAdmin) {
-        reply.SetSuccess(config_.Set_str(
+        reply.SetSuccess(server_.API().Config().Set_str(
             "permissions", "override_nym_id", requestingNym, notUsed));
 
         if (reply.Success()) {
             otErr << __FUNCTION__ << ": override nym set." << std::endl;
-            config_.Save();
+            server_.API().Config().Save();
         }
     } else {
         if (duplicateRequest) {
@@ -2400,7 +2436,8 @@ bool UserCommandProcessor::cmd_usage_credits(ReplyMessage& reply) const
         nymID = targetNymID;
     }
 
-    auto nymfile = wallet_.mutable_Nymfile(targetNymID, __FUNCTION__);
+    auto nymfile =
+        server_.API().Wallet().mutable_Nymfile(targetNymID, __FUNCTION__);
     auto nymbox = load_nymbox(targetNymID, serverID, serverNym, true);
 
     if (false == bool(nymbox)) {
@@ -2436,8 +2473,12 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
     const Identifier& server,
     const Nym& serverNym) const
 {
-    std::unique_ptr<Ledger> nymbox(
-        new Ledger(wallet_, legacy_.ServerDataFolder(), nymID, nymID, server));
+    std::unique_ptr<Ledger> nymbox(new Ledger(
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        nymID,
+        server));
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2627,7 +2668,11 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
 
     std::unique_ptr<Ledger> inbox;
     inbox.reset(new Ledger(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID));
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID));
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2666,7 +2711,11 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
 {
     std::unique_ptr<Ledger> nymbox;
     nymbox.reset(new Ledger(
-        wallet_, legacy_.ServerDataFolder(), nymID, nymID, serverID));
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        nymID,
+        serverID));
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2715,7 +2764,11 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
 
     std::unique_ptr<Ledger> outbox;
     outbox.reset(new Ledger(
-        wallet_, legacy_.ServerDataFolder(), nymID, accountID, serverID));
+        server_.API().Wallet(),
+        server_.API().DataFolder(),
+        nymID,
+        accountID,
+        serverID));
 
     if (false == bool(outbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2755,7 +2808,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     const std::string command(msgIn.m_strCommand.Get());
     const auto type = Message::Type(command);
     ReplyMessage reply(
-        wallet_,
+        server_.API().Wallet(),
         server_.GetServerID(),
         server_.GetServerNym(),
         msgIn,

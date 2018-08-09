@@ -13,7 +13,6 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
@@ -75,9 +74,8 @@ const std::map<std::string, proto::ContactItemType> Wallet::unit_of_account_{
     {"BCH", proto::CITEMTYPE_BCH},   {"BCT", proto::CITEMTYPE_TNBCH},
 };
 
-Wallet::Wallet(const api::Core& core, const api::Legacy& legacy)
+Wallet::Wallet(const api::Core& core)
     : core_(core)
-    , legacy_{legacy}
     , context_map_()
     , context_map_lock_()
     , account_map_()

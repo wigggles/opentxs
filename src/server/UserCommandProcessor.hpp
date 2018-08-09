@@ -14,34 +14,8 @@
 
 namespace opentxs
 {
-class Account;
-class ClientContext;
-class Data;
-class Identifier;
-class Ledger;
-class Message;
-class Nym;
-class NumList;
-class OTTransaction;
-class String;
-
-namespace api
-{
-class Manager;
-class Settings;
-
-namespace client
-{
-class Wallet;
-}  // namespace client
-}  // namespace api
-
 namespace server
 {
-
-class Server;
-class ReplyMessage;
-
 class UserCommandProcessor
 {
 public:
@@ -96,10 +70,7 @@ private:
     };
 
     Server& server_;
-    const opentxs::api::Legacy& legacy_;
-    const opentxs::api::Settings& config_;
-    const opentxs::api::server::Manager& mint_;
-    const opentxs::api::Wallet& wallet_;
+    const opentxs::api::server::Manager& manager_;
 
     bool add_numbers_to_nymbox(
         const TransactionNumber transactionNumber,
@@ -192,10 +163,7 @@ private:
 
     UserCommandProcessor(
         Server& server,
-        const opentxs::api::Legacy& legacy,
-        const opentxs::api::Settings& config,
-        const opentxs::api::server::Manager& mint,
-        const opentxs::api::Wallet& wallet);
+        const opentxs::api::server::Manager& manager);
     UserCommandProcessor() = delete;
     UserCommandProcessor(const UserCommandProcessor&) = delete;
     UserCommandProcessor(UserCommandProcessor&&) = delete;

@@ -71,7 +71,6 @@ private:
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 #endif  // OT_CASH
 
-    const api::Legacy& legacy_;
     const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
 #if OT_CRYPTO_WITH_BIP39
@@ -80,7 +79,8 @@ private:
     std::unique_ptr<api::Factory> factory_;
     std::unique_ptr<api::Wallet> wallet_;  // Depends on seeds_, factory_
     std::unique_ptr<api::network::Dht> dht_;
-    std::unique_ptr<opentxs::server::Server> server_p_;
+    std::unique_ptr<opentxs::server::Server> server_p_;  // Depends on seeds_,
+                                                         // wallet_, storage_
     opentxs::server::Server& server_;
     std::unique_ptr<opentxs::server::MessageProcessor> message_processor_p_;
     opentxs::server::MessageProcessor& message_processor_;
@@ -133,7 +133,6 @@ private:
         const Flag& running,
         const ArgList& args,
         const api::Crypto& crypto,
-        const api::Legacy& legacy,
         const api::Settings& config,
         const opentxs::network::zeromq::Context& context,
         const std::string& dataFolder,

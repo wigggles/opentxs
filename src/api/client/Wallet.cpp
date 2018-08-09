@@ -9,6 +9,7 @@
 
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 
 #include "api/Wallet.hpp"
@@ -19,18 +20,16 @@
 
 namespace opentxs
 {
-api::Wallet* Factory::Wallet(
-    const api::client::Manager& client,
-    const api::Legacy& legacy)
+api::Wallet* Factory::Wallet(const api::client::Manager& client)
 {
-    return new api::client::implementation::Wallet(client, legacy);
+    return new api::client::implementation::Wallet(client);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-Wallet::Wallet(const api::client::Manager& client, const api::Legacy& legacy)
-    : ot_super(client, legacy)
+Wallet::Wallet(const api::client::Manager& client)
+    : ot_super(client)
     , client_(client)
 {
 }
@@ -54,7 +53,7 @@ void Wallet::instantiate_server_context(
     const auto& server = serialized.servercontext().serverid();
     auto& connection = zmq.Server(server);
     output.reset(new opentxs::ServerContext(
-        *this, legacy_, serialized, localNym, remoteNym, connection));
+        client_, serialized, localNym, remoteNym, connection));
 }
 
 Editor<opentxs::Context> Wallet::mutable_Context(
@@ -103,7 +102,7 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
         auto& zmq = client_.ZMQ();
         auto& connection = zmq.Server(serverID->str());
         entry.reset(new opentxs::ServerContext(
-            *this, legacy_, localNym, remoteNym, serverID, connection));
+            client_, localNym, remoteNym, serverID, connection));
         base = entry;
     }
 

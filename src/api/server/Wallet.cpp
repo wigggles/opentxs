@@ -9,6 +9,7 @@
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 
@@ -20,18 +21,16 @@
 
 namespace opentxs
 {
-api::Wallet* Factory::Wallet(
-    const api::server::Manager& server,
-    const api::Legacy& legacy)
+api::Wallet* Factory::Wallet(const api::server::Manager& server)
 {
-    return new api::server::implementation::Wallet(server, legacy);
+    return new api::server::implementation::Wallet(server);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::server::implementation
 {
-Wallet::Wallet(const api::server::Manager& server, const api::Legacy& legacy)
-    : ot_super(server, legacy)
+Wallet::Wallet(const api::server::Manager& server)
+    : ot_super(server)
     , server_(server)
 {
 }
@@ -61,7 +60,7 @@ void Wallet::instantiate_client_context(
     std::shared_ptr<opentxs::Context>& output) const
 {
     output.reset(new opentxs::ClientContext(
-        *this, legacy_, serialized, localNym, remoteNym, server_.ID()));
+        server_, serialized, localNym, remoteNym, server_.ID()));
 }
 
 bool Wallet::load_legacy_account(
@@ -163,8 +162,8 @@ Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
         // Create a new Context
         const ContextID contextID = {serverNymID.str(), remoteNymID.str()};
         auto& entry = context_map_[contextID];
-        entry.reset(new opentxs::ClientContext(
-            *this, legacy_, local, remote, serverID));
+        entry.reset(
+            new opentxs::ClientContext(server_, local, remote, serverID));
         base = entry;
     }
 
