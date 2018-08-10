@@ -159,6 +159,16 @@ const api::network::Dht& Manager::DHT() const
     return *dht_;
 }
 
+void Manager::DropIncoming(const int count) const
+{
+    return message_processor_.DropIncoming(count);
+}
+
+void Manager::DropOutgoing(const int count) const
+{
+    return message_processor_.DropOutgoing(count);
+}
+
 const api::Factory& Manager::Factory() const
 {
     OT_ASSERT(factory_)

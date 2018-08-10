@@ -24,6 +24,10 @@ class Manager : virtual public api::Core
 {
 public:
     EXPORT virtual const network::Dht& DHT() const = 0;
+    /** Drop a specified number of incoming requests for testing purposes */
+    EXPORT virtual void DropIncoming(const int count) const = 0;
+    /** Drop a specified number of outgoing replies for testing purposes */
+    EXPORT virtual void DropOutgoing(const int count) const = 0;
     EXPORT virtual const api::Factory& Factory() const = 0;
     EXPORT virtual const std::string GetCommandPort() const = 0;
     EXPORT virtual const std::string GetDefaultBindIP() const = 0;

@@ -18,6 +18,8 @@ public:
     const api::Crypto& Crypto() const override { return crypto_; }
     const std::string& DataFolder() const override { return data_folder_; }
     const api::network::Dht& DHT() const override;
+    void DropIncoming(const int count) const override;
+    void DropOutgoing(const int count) const override;
     const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
     const std::string GetDefaultBindIP() const override;

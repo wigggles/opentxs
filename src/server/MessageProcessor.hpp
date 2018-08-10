@@ -21,14 +21,17 @@ namespace opentxs::server
 class MessageProcessor : Lockable
 {
 public:
-    explicit MessageProcessor(
-        Server& server,
-        const network::zeromq::Context& context,
-        const Flag& running);
+    void DropIncoming(const int count) const;
+    void DropOutgoing(const int count) const;
 
     void cleanup();
     void init(const bool inproc, const int port, const OTPassword& privkey);
     void Start();
+
+    explicit MessageProcessor(
+        Server& server,
+        const network::zeromq::Context& context,
+        const Flag& running);
 
     ~MessageProcessor();
 
@@ -44,6 +47,9 @@ private:
     OTZMQDealerSocket internal_socket_;
     std::unique_ptr<std::thread> thread_{nullptr};
     const std::string internal_endpoint_;
+    mutable std::mutex counter_lock_;
+    mutable int drop_incoming_{0};
+    mutable int drop_outgoing_{0};
 
     void process_frontend(const network::zeromq::Message& incoming);
     void process_internal(const network::zeromq::Message& incoming);

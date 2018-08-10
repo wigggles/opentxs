@@ -69,6 +69,9 @@ MessageProcessor::MessageProcessor(
     , thread_(nullptr)
     , internal_endpoint_(
           std::string("inproc://opentxs/notary/") + Identifier::Random()->str())
+    , counter_lock_()
+    , drop_incoming_(0)
+    , drop_outgoing_(0)
 {
     auto bound = backend_socket_->Start(internal_endpoint_);
     bound &= internal_socket_->Start(internal_endpoint_);
@@ -82,6 +85,18 @@ void MessageProcessor::cleanup()
         thread_->join();
         thread_.reset();
     }
+}
+
+void MessageProcessor::DropIncoming(const int count) const
+{
+    Lock lock(counter_lock_);
+    drop_incoming_ = count;
+}
+
+void MessageProcessor::DropOutgoing(const int count) const
+{
+    Lock lock(counter_lock_);
+    drop_outgoing_ = count;
 }
 
 void MessageProcessor::init(
@@ -156,15 +171,27 @@ OTZMQMessage MessageProcessor::process_backend(
 void MessageProcessor::process_frontend(
     const network::zeromq::Message& incoming)
 {
-    OTZMQMessage request{incoming};
-    internal_socket_->Send(request);
+    Lock lock(counter_lock_);
+
+    if (0 < drop_incoming_) {
+        --drop_incoming_;
+    } else {
+        OTZMQMessage request{incoming};
+        internal_socket_->Send(request);
+    }
 }
 
 void MessageProcessor::process_internal(
     const network::zeromq::Message& incoming)
 {
-    OTZMQMessage reply{incoming};
-    frontend_socket_->Send(reply);
+    Lock lock(counter_lock_);
+
+    if (0 < drop_outgoing_) {
+        --drop_outgoing_;
+    } else {
+        OTZMQMessage reply{incoming};
+        frontend_socket_->Send(reply);
+    }
 }
 
 bool MessageProcessor::processMessage(
