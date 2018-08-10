@@ -58,6 +58,7 @@ public:
     bool ConsumeAvailable(const TransactionNumber& number);
     bool ConsumeIssued(const TransactionNumber& number);
     RequestNumber IncrementRequest();
+    bool InitializeNymbox();
     Editor<class NymFile> mutable_Nymfile(const OTPasswordData& reason);
     virtual bool OpenCronItem(const TransactionNumber) { return false; }
     bool RecoverAvailableNumber(const TransactionNumber& number);
@@ -118,8 +119,10 @@ private:
 
     const std::uint32_t target_version_{0};
 
+    virtual const Identifier& client_nym_id(const Lock& lock) const = 0;
     proto::Context contract(const Lock& lock) const;
     proto::Context IDVersion(const Lock& lock) const;
+    virtual const Identifier& server_nym_id(const Lock& lock) const = 0;
     proto::Context SigVersion(const Lock& lock) const;
     bool validate(const Lock& lock) const override;
     bool verify_signature(const Lock& lock, const proto::Signature& signature)

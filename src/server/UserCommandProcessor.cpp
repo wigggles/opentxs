@@ -2143,7 +2143,6 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
     if (false == reply.LoadContext()) { return false; }
 
     auto& context = reply.Context();
-    const auto& serverNym = *context.Nym();
 
     // The below block is for the case where the Nym is re-registering, even
     // though he's already registered on this Notary.
@@ -2152,6 +2151,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
     // own nymfile.
     if (0 != context.Request()) { return reregister_nym(reply); }
 
+    context.IncrementRequest();
     reply.SetSuccess(msgIn.WriteContract(
         OTFolders::UserAcct().Get(), msgIn.m_strNymID.Get()));
 
@@ -2167,37 +2167,8 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
           << ": Success saving new user account verification file."
           << std::endl;
 
-    auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
-    Ledger theNymbox(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        sender_nym->ID(),
-        sender_nym->ID(),
-        NOTARY_ID);
-    bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
-
-    if (bSuccessLoadingNymbox) {
-        // That's strange, this user didn't exist... but maybe I allow
-        // people to drop notes anyway, so then the nymbox might already
-        // exist, with usage tokens and messages inside....
-        bSuccessLoadingNymbox =
-            (theNymbox.VerifyContractID() &&
-             theNymbox.VerifyAccount(serverNym));
-    } else {
-        bSuccessLoadingNymbox =
-            theNymbox.GenerateLedger(
-                sender_nym->ID(), NOTARY_ID, Ledger::nymbox, true) &&
-            theNymbox.SignContract(serverNym) && theNymbox.SaveContract() &&
-            theNymbox.SaveNymbox(Identifier::Factory());
-    }
-
-    if (!bSuccessLoadingNymbox) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Error during nym "
-              << "registration. Failed verifying or generating nymbox for "
-              << "nym: " << msgIn.m_strNymID << std::endl;
-
-        return true;
-    }
+    context.InitializeNymbox();
+    context.SetRemoteNymboxHash(context.LocalNymboxHash());
 
     otErr << OT_METHOD << __FUNCTION__
           << ": Success registering Nym credentials." << std::endl;
@@ -2979,6 +2950,8 @@ bool UserCommandProcessor::ProcessUserCommand(
 
 bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
 {
+    auto& context = reply.Context();
+    context.IncrementRequest();
     const auto& msgIn = reply.Original();
     otLog3 << OT_METHOD << __FUNCTION__
            << ": Re-registering nym: " << msgIn.m_strNymID << std::endl;
@@ -2991,14 +2964,15 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
 
     nymfile->SerializeNymFile(strNymContents);
     reply.SetPayload(strNymContents);
-    auto& context = reply.Context();
     const auto& serverNym = *context.Nym();
     const auto& serverID = context.Server();
     const auto& targetNymID = nym.ID();
     auto nymbox = load_nymbox(targetNymID, serverID, serverNym, false);
 
     if (false == bool(nymbox)) {
-        nymbox = create_nymbox(targetNymID, serverID, serverNym);
+        context.InitializeNymbox();
+        nymbox = load_nymbox(targetNymID, serverID, serverNym, false);
+        context.SetRemoteNymboxHash(context.LocalNymboxHash());
     }
 
     if (false == bool(nymbox)) {
@@ -3009,9 +2983,6 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
         return false;
     }
 
-    auto nymboxHash = Identifier::Factory();
-    nymbox->CalculateNymboxHash(nymboxHash);
-    context.SetLocalNymboxHash(nymboxHash);
     reply.SetSuccess(true);
 
     return true;

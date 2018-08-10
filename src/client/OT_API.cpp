@@ -12617,10 +12617,12 @@ CommandResult OT_API::registerNym(ServerContext& context) const
     if (SendResult::VALID_REPLY == status) {
         OT_ASSERT(reply);
 
-        if (reply->m_bSuccess) {
-            context.SetRevision(nym.Revision());
-            context.SetRequest(message->m_strRequestNum.ToLong());
-        }
+        if (reply->m_bSuccess) { context.SetRevision(nym.Revision()); }
+    }
+
+    if (0 == requestNum) {
+        context.InitializeNymbox();
+        context.SetRemoteNymboxHash(context.LocalNymboxHash());
     }
 
     return output;

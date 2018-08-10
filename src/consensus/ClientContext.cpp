@@ -11,6 +11,7 @@
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/Nym.hpp"
 
 #define CURRENT_VERSION 1
 
@@ -64,6 +65,13 @@ bool ClientContext::AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers)
     }
 
     return (added == offered);
+}
+
+const Identifier& ClientContext::client_nym_id(const Lock& lock) const
+{
+    OT_ASSERT(remote_nym_);
+
+    return remote_nym_->ID();
 }
 
 bool ClientContext::CloseCronItem(const TransactionNumber number)
@@ -144,6 +152,13 @@ proto::Context ClientContext::serialize(const Lock& lock) const
     for (const auto& it : open_cron_items_) { client.add_opencronitems(it); }
 
     return output;
+}
+
+const Identifier& ClientContext::server_nym_id(const Lock& lock) const
+{
+    OT_ASSERT(nym_);
+
+    return nym_->ID();
 }
 
 proto::ConsensusType ClientContext::Type() const

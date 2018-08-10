@@ -146,6 +146,7 @@ private:
         std::set<TransactionNumber>& good,
         std::set<TransactionNumber>& bad);
 
+    const Identifier& client_nym_id(const Lock& lock) const override;
     bool finalize_server_command(Message& command) const;
     std::unique_ptr<TransactionStatement> generate_statement(
         const Lock& lock,
@@ -160,14 +161,14 @@ private:
         const RequestNumber provided,
         const bool withAcknowledgments,
         const bool withNymboxHash);
-    using ot_super::serialize;
-    proto::Context serialize(const Lock& lock) const override;
-
     using ot_super::remove_acknowledged_number;
     bool remove_acknowledged_number(const Lock& lock, const Message& reply);
     bool remove_tentative_number(
         const Lock& lock,
         const TransactionNumber& number);
+    using ot_super::serialize;
+    proto::Context serialize(const Lock& lock) const override;
+    const Identifier& server_nym_id(const Lock& lock) const override;
     TransactionNumber update_highest(
         const Lock& lock,
         const std::set<TransactionNumber>& numbers,

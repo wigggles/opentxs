@@ -10,6 +10,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
@@ -237,6 +238,64 @@ RequestNumber Context::IncrementRequest()
     Lock lock(lock_);
 
     return ++request_number_;
+}
+
+bool Context::InitializeNymbox()
+{
+    Lock lock(lock_);
+    const auto& ownerNymID = client_nym_id(lock);
+    std::unique_ptr<Ledger> nymbox(new Ledger(
+        api_.Wallet(),
+        api_.DataFolder(),
+        ownerNymID,
+        server_nym_id(lock),
+        server_id_));
+
+    if (false == bool(nymbox)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to instantiate nymbox for " << ownerNymID.str()
+              << std::endl;
+
+        return false;
+    }
+
+    const auto generated =
+        nymbox->GenerateLedger(ownerNymID, server_id_, Ledger::nymbox, true);
+
+    if (false == generated) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to generate nymbox for "
+              << ownerNymID.str() << std::endl;
+
+        return false;
+    }
+
+    nymbox->ReleaseSignatures();
+
+    OT_ASSERT(nym_)
+
+    if (false == nymbox->SignContract(*nym_)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to sign nymbox for "
+              << ownerNymID.str() << std::endl;
+
+        return false;
+    }
+
+    if (false == nymbox->SaveContract()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to serialize nymbox for " << ownerNymID.str()
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == nymbox->SaveNymbox(local_nymbox_hash_)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to save nymbox for "
+              << ownerNymID.str() << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 bool Context::insert_available_number(const TransactionNumber& number)
