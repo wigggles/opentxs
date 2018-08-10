@@ -327,8 +327,9 @@ void Server::CreateMainFile(bool& mainFileExists)
     const bool useInproc = !inproc.empty();
 
     if (useInproc) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Creating inproc contract"
-              << std::endl;
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Creating inproc contract for instance "
+              << manager_.GetInproc() << std::endl;
         ServerContract::Endpoint inproc{proto::ADDRESSTYPE_INPROC,
                                         proto::PROTOCOLVERSION_LEGACY,
                                         manager_.GetInproc(),

@@ -380,6 +380,13 @@ Native::Native(
     }
 }
 
+int Native::client_instance(const int count)
+{
+    // NOTE: Instance numbers must not collide between clients and servers.
+    // Clients use even numbers and servers use odd numbers.
+    return (2 * count);
+}
+
 const api::client::Manager& Native::Client() const
 {
     if (server_mode_) { OT_FAIL; }
@@ -513,6 +520,13 @@ void Native::recover()
     }
 }
 
+int Native::server_instance(const int count)
+{
+    // NOTE: Instance numbers must not collide between clients and servers.
+    // Clients use even numbers and servers use odd numbers.
+    return (2 * count) + 1;
+}
+
 const api::server::Manager& Native::Server(const int instance) const
 {
     auto& output = server_.at(instance);
@@ -579,10 +593,8 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
     OT_ASSERT(crypto_);
     OT_ASSERT(legacy_);
 
-    // NOTE: Instance numbers must not collide between clients and servers.
-    // Clients use even numbers and servers use odd numbers.
     // TODO: Only one client is currently supported
-    const auto instance = 0;
+    const auto instance = client_instance(0);
     client_.reset(opentxs::Factory::ClientManager(
         running_,
         args,
@@ -613,9 +625,7 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
     OT_ASSERT(crypto_);
 
     const auto next = server_.size();
-    // NOTE: Instance numbers must not collide between clients and servers.
-    // Clients use even numbers and servers use odd numbers.
-    const auto instance = (2 * next) + 1;
+    const auto instance = server_instance(next);
 
     server_.emplace_back(opentxs::Factory::ServerManager(
         running_,
@@ -627,15 +637,27 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
         instance));
 }
 
-const api::Core& Native::StartServer(const ArgList& args, const int instance)
-    const
+const api::Core& Native::StartServer(
+    const ArgList& args,
+    const int instance,
+    const bool inproc) const
 {
     Lock lock(lock_);
 
     const std::size_t count = std::max(0, instance);
     const std::size_t effective = std::min(count, server_.size());
 
-    if (effective == server_.size()) { start_server(lock, args); }
+    if (effective == server_.size()) {
+        ArgList arguments{args};
+
+        if (inproc) {
+            auto& inprocSet = arguments[OPENTXS_ARG_INPROC];
+            inprocSet.clear();
+            inprocSet.insert(std::to_string(server_instance(effective)));
+        }
+
+        start_server(lock, arguments);
+    }
 
     const auto& output = server_.at(effective);
 
