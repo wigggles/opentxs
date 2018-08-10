@@ -579,6 +579,10 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
     OT_ASSERT(crypto_);
     OT_ASSERT(legacy_);
 
+    // NOTE: Instance numbers must not collide between clients and servers.
+    // Clients use even numbers and servers use odd numbers.
+    // TODO: Only one client is currently supported
+    const auto instance = 0;
     client_.reset(opentxs::Factory::ClientManager(
         running_,
         args,
@@ -587,7 +591,7 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
         *legacy_,
         zmq_context_,
         legacy_->ClientDataFolder(),
-        0));  // TODO
+        instance));
 
     OT_ASSERT(client_);
 }
@@ -609,6 +613,9 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
     OT_ASSERT(crypto_);
 
     const auto next = server_.size();
+    // NOTE: Instance numbers must not collide between clients and servers.
+    // Clients use even numbers and servers use odd numbers.
+    const auto instance = (2 * next) + 1;
 
     server_.emplace_back(opentxs::Factory::ServerManager(
         running_,
@@ -617,7 +624,7 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
         Config(legacy_->ServerConfigFilePath(next)),
         zmq_context_,
         legacy_->ServerDataFolder(next),
-        next));
+        instance));
 }
 
 const api::Core& Native::StartServer(const ArgList& args, const int instance)

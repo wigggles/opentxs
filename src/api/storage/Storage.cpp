@@ -56,8 +56,6 @@
 
 #include "Storage.hpp"
 
-#define CLIENT_CONFIG_KEY "client"
-#define SERVER_CONFIG_KEY "server"
 #define STORAGE_CONFIG_KEY "storage"
 
 #define OT_METHOD "opentxs::api::storage::implementation::Storage::"
