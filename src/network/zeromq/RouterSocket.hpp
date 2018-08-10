@@ -10,6 +10,7 @@
 #include "opentxs/network/zeromq/RouterSocket.hpp"
 
 #include "CurveClient.hpp"
+#include "CurveServer.hpp"
 #include "Receiver.hpp"
 #include "Socket.hpp"
 
@@ -18,6 +19,7 @@ namespace opentxs::network::zeromq::implementation
 class RouterSocket : virtual public zeromq::RouterSocket,
                      public Socket,
                      CurveClient,
+                     CurveServer,
                      Receiver
 {
 public:

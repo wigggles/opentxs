@@ -16,40 +16,47 @@
 #include <string>
 #include <thread>
 
-namespace opentxs
-{
-namespace server
+namespace opentxs::server
 {
 class MessageProcessor : Lockable
 {
 public:
-    EXPORT explicit MessageProcessor(
+    void DropIncoming(const int count) const;
+    void DropOutgoing(const int count) const;
+
+    void cleanup();
+    void init(const bool inproc, const int port, const OTPassword& privkey);
+    void Start();
+
+    explicit MessageProcessor(
         Server& server,
         const network::zeromq::Context& context,
         const Flag& running);
 
-    EXPORT void cleanup();
-    EXPORT void init(
-        const bool inproc,
-        const int port,
-        const OTPassword& privkey);
-    EXPORT void Start();
-
-    EXPORT ~MessageProcessor();
+    ~MessageProcessor();
 
 private:
     Server& server_;
     const Flag& running_;
     [[maybe_unused]] const network::zeromq::Context& context_;
-    OTZMQReplyCallback reply_socket_callback_;
-    OTZMQReplySocket reply_socket_;
+    OTZMQListenCallback frontend_callback_;
+    OTZMQRouterSocket frontend_socket_;
+    OTZMQReplyCallback backend_callback_;
+    OTZMQReplySocket backend_socket_;
+    OTZMQListenCallback internal_callback_;
+    OTZMQDealerSocket internal_socket_;
     std::unique_ptr<std::thread> thread_{nullptr};
+    const std::string internal_endpoint_;
+    mutable std::mutex counter_lock_;
+    mutable int drop_incoming_{0};
+    mutable int drop_outgoing_{0};
 
+    void process_frontend(const network::zeromq::Message& incoming);
+    void process_internal(const network::zeromq::Message& incoming);
     bool processMessage(const std::string& messageString, std::string& reply);
-    OTZMQMessage processSocket(const network::zeromq::Message& incoming);
+    OTZMQMessage process_backend(const network::zeromq::Message& incoming);
     void run();
 
     MessageProcessor() = delete;
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server
