@@ -45,7 +45,8 @@ public:
      */
     EXPORT virtual const Core& StartServer(
         const ArgList& args,
-        const int instance) const = 0;
+        const int instance,
+        const bool inproc) const = 0;
 
     EXPORT virtual ~Native() = default;
 

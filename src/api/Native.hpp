@@ -29,8 +29,10 @@ public:
     const api::server::Manager& Server(const int instance) const override;
     bool ServerMode() const override;
     const api::Core& StartClient(const ArgList& args) const override;
-    const api::Core& StartServer(const ArgList& args, const int instance)
-        const override;
+    const api::Core& StartServer(
+        const ArgList& args,
+        const int instance,
+        const bool inproc) const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
@@ -62,6 +64,9 @@ private:
     std::unique_ptr<OTCallback> null_callback_{nullptr};
     std::unique_ptr<OTCaller> default_external_password_callback_{nullptr};
     OTCaller* external_password_callback_{nullptr};
+
+    static int client_instance(const int count);
+    static int server_instance(const int count);
 
     explicit Native(
         Flag& running,
