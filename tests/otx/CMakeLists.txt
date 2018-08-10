@@ -7,7 +7,7 @@ set(name unittests-opentxs-otx)
 
 set(cxx-sources
   ${PROJECT_SOURCE_DIR}/tests/main.cpp
-  Test_RegisterNym.cpp
+  Test_Basic.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 

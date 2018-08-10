@@ -59,8 +59,10 @@ public:
 private:
     std::set<TransactionNumber> open_cron_items_{};
 
+    const Identifier& client_nym_id(const Lock& lock) const override;
     using ot_super::serialize;
     proto::Context serialize(const Lock& lock) const override;
+    const Identifier& server_nym_id(const Lock& lock) const override;
 
     ClientContext() = delete;
     ClientContext(const ClientContext&) = delete;

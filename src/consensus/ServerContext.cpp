@@ -186,6 +186,13 @@ const std::string& ServerContext::AdminPassword() const
     return admin_password_;
 }
 
+const Identifier& ServerContext::client_nym_id(const Lock& lock) const
+{
+    OT_ASSERT(nym_);
+
+    return nym_->ID();
+}
+
 network::ServerConnection& ServerContext::Connection() { return connection_; }
 
 bool ServerContext::finalize_server_command(Message& command) const
@@ -462,6 +469,8 @@ bool ServerContext::RemoveTentativeNumber(const TransactionNumber& number)
     return remove_tentative_number(lock, number);
 }
 
+std::uint64_t ServerContext::Revision() const { return revision_.load(); }
+
 void ServerContext::scan_number_set(
     const std::set<TransactionNumber>& input,
     TransactionNumber& highest,
@@ -475,8 +484,6 @@ void ServerContext::scan_number_set(
         highest = *input.crbegin();
     }
 }
-
-std::uint64_t ServerContext::Revision() const { return revision_.load(); }
 
 proto::Context ServerContext::serialize(const Lock& lock) const
 {
@@ -500,6 +507,13 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     }
 
     return output;
+}
+
+const Identifier& ServerContext::server_nym_id(const Lock& lock) const
+{
+    OT_ASSERT(remote_nym_);
+
+    return remote_nym_->ID();
 }
 
 void ServerContext::SetAdminAttempted()
