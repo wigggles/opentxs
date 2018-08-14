@@ -444,10 +444,6 @@ public:
         const api::Wallet& wallet,
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq);
-    static api::network::ZMQ* ZMQ(
-        const network::zeromq::Context& context,
-        const api::Settings& config,
-        const api::Wallet& wallet,
-        const Flag& running);
+    static api::network::ZMQ* ZMQ(const api::Core& api, const Flag& running);
 };
 }  // namespace opentxs

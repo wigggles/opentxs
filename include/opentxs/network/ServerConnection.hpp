@@ -21,16 +21,14 @@ class ServerConnection
 {
 public:
     EXPORT static OTServerConnection Factory(
+        const api::Core& api,
         const api::network::ZMQ& zmq,
-        const api::Wallet& wallet,
         const zeromq::PublishSocket& updates,
         const std::shared_ptr<const ServerContract>& contract);
 
     EXPORT virtual bool ChangeAddressType(const proto::AddressType type) = 0;
     EXPORT virtual bool ClearProxy() = 0;
     EXPORT virtual bool EnableProxy() = 0;
-    EXPORT virtual NetworkReplyRaw Send(const std::string& message) = 0;
-    EXPORT virtual NetworkReplyString Send(const String& message) = 0;
     EXPORT virtual NetworkReplyMessage Send(const Message& message) = 0;
     EXPORT virtual bool Status() const = 0;
 
