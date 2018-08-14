@@ -8,6 +8,7 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -37,27 +38,16 @@ template class opentxs::Pimpl<opentxs::network::ServerConnection>;
 
 namespace opentxs
 {
-api::network::ZMQ* Factory::ZMQ(
-    const network::zeromq::Context& context,
-    const api::Settings& config,
-    const api::Wallet& wallet,
-    const Flag& running)
+api::network::ZMQ* Factory::ZMQ(const api::Core& api, const Flag& running)
 {
-    return new api::network::implementation::ZMQ(
-        context, config, wallet, running);
+    return new api::network::implementation::ZMQ(api, running);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::network::implementation
 {
-ZMQ::ZMQ(
-    const opentxs::network::zeromq::Context& context,
-    const api::Settings& config,
-    const api::Wallet& wallet,
-    const Flag& running)
-    : context_(context)
-    , config_(config)
-    , wallet_{wallet}
+ZMQ::ZMQ(const api::Core& api, const Flag& running)
+    : api_(api)
     , running_(running)
     , linger_(std::chrono::seconds(CLIENT_SOCKET_LINGER_SECONDS))
     , receive_timeout_(std::chrono::seconds(CLIENT_RECV_TIMEOUT))
@@ -66,7 +56,7 @@ ZMQ::ZMQ(
     , lock_()
     , socks_proxy_()
     , server_connections_()
-    , status_publisher_(context.PublishSocket())
+    , status_publisher_(api_.ZeroMQ().PublishSocket())
 {
     status_publisher_->Start(
         opentxs::network::zeromq::Socket::ConnectionStatusEndpoint);
@@ -78,7 +68,7 @@ ZMQ::ZMQ(
 
 const opentxs::network::zeromq::Context& ZMQ::Context() const
 {
-    return context_;
+    return api_.ZeroMQ();
 }
 
 proto::AddressType ZMQ::DefaultAddressType() const
@@ -88,14 +78,14 @@ proto::AddressType ZMQ::DefaultAddressType() const
         static_cast<std::int64_t>(proto::ADDRESSTYPE_IPV4)};
     std::int64_t configuredType{
         static_cast<std::int64_t>(proto::ADDRESSTYPE_ERROR)};
-    config_.CheckSet_long(
+    api_.Config().CheckSet_long(
         "Connection",
         "preferred_address_type",
         defaultType,
         configuredType,
         changed);
 
-    if (changed) { config_.Save(); }
+    if (changed) { api_.Config().Save(); }
 
     return static_cast<proto::AddressType>(configuredType);
 }
@@ -106,23 +96,23 @@ void ZMQ::init(const Lock& lock) const
 
     bool notUsed{false};
     std::int64_t linger{0};
-    config_.CheckSet_long(
+    api_.Config().CheckSet_long(
         "latency", "linger", CLIENT_SOCKET_LINGER_SECONDS, linger, notUsed);
     linger_.store(std::chrono::seconds(linger));
     std::int64_t send{0};
-    config_.CheckSet_long(
+    api_.Config().CheckSet_long(
         "latency", "send_timeout", CLIENT_SEND_TIMEOUT, send, notUsed);
     send_timeout_.store(std::chrono::seconds(send));
     std::int64_t receive{0};
-    config_.CheckSet_long(
+    api_.Config().CheckSet_long(
         "latency", "recv_timeout", CLIENT_RECV_TIMEOUT, receive, notUsed);
     receive_timeout_.store(std::chrono::seconds(receive));
     String socks{};
     bool haveSocksConfig{false};
-    const bool configChecked =
-        config_.Check_str("Connection", "socks_proxy", socks, haveSocksConfig);
+    const bool configChecked = api_.Config().Check_str(
+        "Connection", "socks_proxy", socks, haveSocksConfig);
     std::int64_t keepAlive{0};
-    config_.CheckSet_long(
+    api_.Config().CheckSet_long(
         "Connection", "keep_alive", KEEP_ALIVE_SECONDS, keepAlive, notUsed);
     keep_alive_.store(std::chrono::seconds(keepAlive));
 
@@ -130,7 +120,7 @@ void ZMQ::init(const Lock& lock) const
         socks_proxy_ = socks.Get();
     }
 
-    config_.Save();
+    api_.Config().Save();
 }
 
 std::chrono::seconds ZMQ::KeepAlive() const { return keep_alive_.load(); }
@@ -170,14 +160,14 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
 
     if (server_connections_.end() != existing) { return existing->second; }
 
-    auto contract = wallet_.Server(Identifier::Factory(id));
+    auto contract = api_.Wallet().Server(Identifier::Factory(id));
 
     OT_ASSERT(contract)
 
     auto [it, created] = server_connections_.emplace(
         id,
         opentxs::network::ServerConnection::Factory(
-            *this, wallet_, status_publisher_, contract));
+            api_, *this, status_publisher_, contract));
     auto& connection = it->second;
 
     OT_ASSERT(created);
@@ -190,8 +180,8 @@ opentxs::network::ServerConnection& ZMQ::Server(const std::string& id) const
 bool ZMQ::SetSocksProxy(const std::string& proxy) const
 {
     bool notUsed{false};
-    bool set =
-        config_.Set_str("Connection", "socks_proxy", String{proxy}, notUsed);
+    bool set = api_.Config().Set_str(
+        "Connection", "socks_proxy", String{proxy}, notUsed);
 
     if (false == set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to set socks proxy."
@@ -200,7 +190,7 @@ bool ZMQ::SetSocksProxy(const std::string& proxy) const
         return false;
     }
 
-    if (false == config_.Save()) {
+    if (false == api_.Config().Save()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to set save config."
               << std::endl;
 

@@ -16,8 +16,6 @@ public:
     bool ChangeAddressType(const proto::AddressType type) override;
     bool ClearProxy() override;
     bool EnableProxy() override;
-    NetworkReplyRaw Send(const std::string& message) override;
-    NetworkReplyString Send(const String& message) override;
     NetworkReplyMessage Send(const Message& message) override;
     bool Status() const override;
 
@@ -27,17 +25,20 @@ private:
     friend opentxs::network::ServerConnection;
 
     const api::network::ZMQ& zmq_;
-    const api::Wallet& wallet_;
+    const api::Core& api_;
     const zeromq::PublishSocket& updates_;
     const std::string server_id_{};
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
     std::unique_ptr<std::thread> thread_{nullptr};
-    OTZMQRequestSocket socket_;
+    OTZMQListenCallback callback_;
+    OTZMQDealerSocket socket_;
     std::atomic<std::time_t> last_activity_{0};
     OTFlag socket_ready_;
     OTFlag status_;
     OTFlag use_proxy_;
+    std::mutex incoming_lock_;
+    std::map<RequestNumber, std::unique_ptr<Message>> incoming_;
 
     ServerConnection* clone() const override { return nullptr; }
     std::string endpoint() const;
@@ -45,20 +46,22 @@ private:
         proto::AddressType type,
         std::string hostname,
         std::uint32_t port) const;
+    std::chrono::time_point<std::chrono::system_clock> get_timeout();
     void publish() const;
-    void set_curve(const Lock& lock, zeromq::RequestSocket& socket) const;
-    void set_proxy(const Lock& lock, zeromq::RequestSocket& socket) const;
-    void set_timeouts(const Lock& lock, zeromq::RequestSocket& socket) const;
-    OTZMQRequestSocket socket(const Lock& lock) const;
+    void set_curve(const Lock& lock, zeromq::DealerSocket& socket) const;
+    void set_proxy(const Lock& lock, zeromq::DealerSocket& socket) const;
+    void set_timeouts(const Lock& lock, zeromq::DealerSocket& socket) const;
+    OTZMQDealerSocket socket(const Lock& lock) const;
 
     void activity_timer();
-    zeromq::RequestSocket& get_socket(const Lock& lock);
+    zeromq::DealerSocket& get_socket(const Lock& lock);
+    void process_incoming(const zeromq::Message& in);
     void reset_socket(const Lock& lock);
     void reset_timer();
 
     ServerConnection(
+        const api::Core& api,
         const api::network::ZMQ& zmq,
-        const api::Wallet& wallet,
         const zeromq::PublishSocket& updates,
         const std::shared_ptr<const ServerContract>& contract);
     ServerConnection() = delete;
