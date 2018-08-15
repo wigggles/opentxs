@@ -5225,7 +5225,9 @@ bool OTClient::processServerReplyProcessNymbox(
     pNymbox->ReleaseSignatures();
     pNymbox->SignContract(*context.Nym());
     pNymbox->SaveContract();
-    pNymbox->SaveNymbox(Identifier::Factory());
+    auto nymboxHash = Identifier::Factory();
+    pNymbox->SaveNymbox(nymboxHash);
+    context.SetLocalNymboxHash(nymboxHash);
 
     return true;
 }

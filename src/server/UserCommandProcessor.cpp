@@ -2568,10 +2568,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     auto NYMBOX_HASH = Identifier::Factory();
     theNymbox.SaveNymbox(NYMBOX_HASH);
     pReplyNotice->SaveBoxReceipt(theNymbox);
-
-    if (context.RemoteNym().CompareID(nymID)) {
-        context.SetLocalNymboxHash(NYMBOX_HASH);
-    }
+    context.SetLocalNymboxHash(NYMBOX_HASH);
 }
 
 bool UserCommandProcessor::hash_check(

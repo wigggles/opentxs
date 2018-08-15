@@ -3810,6 +3810,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3829,6 +3830,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
 
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
