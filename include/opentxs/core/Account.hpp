@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/Contract.hpp"
+#include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -86,6 +87,7 @@ public:
     EXPORT bool Credit(const Amount amount);
     EXPORT bool GetInboxHash(Identifier& output);
     EXPORT bool GetOutboxHash(Identifier& output);
+    EXPORT bool InitBoxes(const Nym& signer);
     // If you pass the identifier in, the inbox hash is recorded there
     EXPORT bool SaveInbox(Ledger& box);
     EXPORT bool SaveInbox(Ledger& box, Identifier& hash);
@@ -148,6 +150,10 @@ private:
 
     bool SaveContractWallet(Tag& parent) const override;
 
+    bool create_box(
+        std::unique_ptr<Ledger>& box,
+        const Nym& signer,
+        const Ledger::ledgerType type);
     bool GenerateNewAccount(
         const Nym& server,
         const Identifier& userNymID,

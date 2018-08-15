@@ -140,6 +140,54 @@ char const* Account::_GetTypeString(AccountType accountType)
     return __TypeStringsAccount[index];
 }
 
+bool Account::create_box(
+    std::unique_ptr<Ledger>& box,
+    const Nym& signer,
+    const Ledger::ledgerType type)
+{
+    const auto& nymID = GetNymID();
+    const auto& accountID = GetRealAccountID();
+    const auto& serverID = GetRealNotaryID();
+    box.reset(new Ledger(wallet_, data_folder_, nymID, accountID, serverID));
+
+    if (false == bool(box)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to construct ledger"
+              << std::endl;
+
+        return false;
+    }
+
+    const auto created =
+        box->CreateLedger(nymID, accountID, serverID, type, true);
+
+    if (false == created) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to generate box"
+              << std::endl;
+
+        return false;
+    }
+
+    const auto signature = box->SignContract(signer);
+
+    if (false == signature) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to sign box"
+              << std::endl;
+
+        return false;
+    }
+
+    const auto serialized = box->SaveContract();
+
+    if (false == serialized) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to serialize box"
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
 bool Account::LoadContractFromString(const String& theStr)
 {
     return OTTransactionType::LoadContractFromString(theStr);
@@ -291,6 +339,62 @@ bool Account::GetOutboxHash(Identifier& output)
     }
 
     return false;
+}
+
+bool Account::InitBoxes(const Nym& signer)
+{
+    otErr << OT_METHOD << __FUNCTION__ << ": Generating inbox/outbox."
+          << std::endl;
+    std::unique_ptr<Ledger> inbox{LoadInbox(signer)};
+    std::unique_ptr<Ledger> outbox{LoadInbox(signer)};
+
+    if (inbox) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Inbox already exists."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == create_box(inbox, signer, Ledger::inbox)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create inbox"
+              << std::endl;
+
+        return false;
+    }
+
+    OT_ASSERT(inbox);
+
+    if (false == SaveInbox(*inbox)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save inbox"
+              << std::endl;
+
+        return false;
+    }
+
+    if (outbox) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Inbox already exists."
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == create_box(outbox, signer, Ledger::outbox)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create outbox"
+              << std::endl;
+
+        return false;
+    }
+
+    OT_ASSERT(outbox);
+
+    if (false == SaveOutbox(*outbox)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to save outbox"
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 // TODO:  add an override so that OTAccount, when it loads up, it performs the

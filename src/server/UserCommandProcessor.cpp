@@ -2033,66 +2033,9 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     reply.SetAccount(String(accountID));
     server_.GetMainFile().SaveMainFile();
 
-    Log::Output(0, "Generating inbox/outbox for new issuer acct. \n");
-
-    Ledger outbox(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID);
-    Ledger inbox(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID);
-
-    bool inboxLoaded = inbox.LoadInbox();
-    bool outboxLoaded = outbox.LoadOutbox();
-
-    if (inboxLoaded) {
-        inboxLoaded = inbox.VerifyAccount(serverNym);
-    } else {
-        inboxLoaded =
-            inbox.CreateLedger(nymID, accountID, serverID, Ledger::inbox, true);
-
-        if (inboxLoaded) { inboxLoaded = inbox.SignContract(serverNym); }
-
-        if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
-
-        if (inboxLoaded) {
-            inboxLoaded = account.get().SaveInbox(inbox, Identifier::Factory());
-        }
-    }
-
-    if (outboxLoaded) {
-        outboxLoaded = outbox.VerifyAccount(serverNym);
-    } else {
-        outboxLoaded = outbox.CreateLedger(
-            nymID, accountID, serverID, Ledger::outbox, true);
-
-        if (outboxLoaded) { outboxLoaded = outbox.SignContract(serverNym); }
-
-        if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
-
-        if (outboxLoaded) {
-            outboxLoaded =
-                account.get().SaveOutbox(outbox, Identifier::Factory());
-        }
-    }
-
-    if (false == inboxLoaded) {
+    if (false == account.get().InitBoxes(serverNym)) {
         otErr << OT_METHOD << __FUNCTION__
-              << ": Error generating inbox for account " << String(accountID)
-              << std::endl;
-
-        return false;
-    }
-
-    if (false == outboxLoaded) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Error generating outbox for account " << String(accountID)
+              << ": Error initializing boxes for account " << accountID->str()
               << std::endl;
 
         return false;
