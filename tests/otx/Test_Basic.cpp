@@ -163,5 +163,118 @@ TEST_F(Test_Basic, Reregister)
     ASSERT_TRUE(clientContext);
     EXPECT_EQ(serverContext.It().Request(), clientContext->Request());
     EXPECT_EQ(serverContext.It().Request(), 3);
+    EXPECT_NE(
+        serverContext.It().LocalNymboxHash(), clientContext->LocalNymboxHash());
+    EXPECT_EQ(
+        serverContext.It().RemoteNymboxHash(),
+        clientContext->LocalNymboxHash());
+}
+
+TEST_F(Test_Basic, getNymbox)
+{
+    auto serverContext = client_.Wallet().mutable_ServerContext(
+        Identifier::Factory(AliceNymID_), server_.ID());
+    auto clientContext = server_.Wallet().ClientContext(
+        server_.NymID(), Identifier::Factory(AliceNymID_));
+
+    EXPECT_EQ(serverContext.It().Request(), 3);
+    ASSERT_TRUE(clientContext);
+
+    const auto [requestNumber, transactionNumber, reply] =
+        client_.OTAPI().getNymbox(serverContext.It());
+    const auto& [result, message] = reply;
+
+    EXPECT_EQ(3, requestNumber);
+    EXPECT_EQ(0, transactionNumber);
+    EXPECT_EQ(SendResult::VALID_REPLY, result);
+
+    clientContext = server_.Wallet().ClientContext(
+        server_.NymID(), Identifier::Factory(AliceNymID_));
+
+    ASSERT_TRUE(clientContext);
+    EXPECT_EQ(serverContext.It().Request(), clientContext->Request());
+    EXPECT_EQ(serverContext.It().Request(), 4);
+    EXPECT_EQ(
+        serverContext.It().LocalNymboxHash(), clientContext->LocalNymboxHash());
+    EXPECT_EQ(
+        serverContext.It().RemoteNymboxHash(),
+        clientContext->LocalNymboxHash());
+
+    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(serverContext.It().Server(), serverContext.It().Nym()->ID())};
+
+    ASSERT_TRUE(nymbox);
+
+    const auto& transactionMap = nymbox->GetTransactionMap();
+
+    ASSERT_TRUE(1 == transactionMap.size());
+
+    const TransactionNumber number{transactionMap.begin()->first};
+    const auto& transaction = *transactionMap.begin()->second;
+
+    EXPECT_TRUE(transaction.IsAbbreviated());
+    EXPECT_EQ(OTTransaction::blank, transaction.GetType());
+    EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
+}
+
+TEST_F(Test_Basic, getBoxReceipt_transaction_numbers)
+{
+    auto serverContext = client_.Wallet().mutable_ServerContext(
+        Identifier::Factory(AliceNymID_), server_.ID());
+    auto clientContext = server_.Wallet().ClientContext(
+        server_.NymID(), Identifier::Factory(AliceNymID_));
+    const auto& nymID = serverContext.It().Nym()->ID();
+    const auto& serverID = serverContext.It().Server();
+
+    EXPECT_EQ(serverContext.It().Request(), 4);
+    ASSERT_TRUE(clientContext);
+
+    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(serverID, nymID)};
+
+    ASSERT_TRUE(nymbox);
+
+    TransactionNumber number{0};
+
+    {
+        const auto& transactionMap = nymbox->GetTransactionMap();
+
+        ASSERT_TRUE(1 == transactionMap.size());
+
+        number = {transactionMap.begin()->first};
+        nymbox.reset();
+    }
+
+    ASSERT_NE(0, number);
+
+    const auto [requestNumber, transactionNumber, reply] =
+        client_.OTAPI().getBoxReceipt(serverContext.It(), nymID, 0, number);
+    const auto& [result, message] = reply;
+
+    EXPECT_EQ(4, requestNumber);
+    EXPECT_EQ(0, transactionNumber);
+    EXPECT_EQ(SendResult::VALID_REPLY, result);
+
+    clientContext = server_.Wallet().ClientContext(
+        server_.NymID(), Identifier::Factory(AliceNymID_));
+
+    ASSERT_TRUE(clientContext);
+    EXPECT_EQ(serverContext.It().Request(), clientContext->Request());
+    EXPECT_EQ(serverContext.It().Request(), 5);
+    EXPECT_EQ(
+        serverContext.It().LocalNymboxHash(), clientContext->LocalNymboxHash());
+    EXPECT_EQ(
+        serverContext.It().RemoteNymboxHash(),
+        clientContext->LocalNymboxHash());
+
+    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID));
+
+    ASSERT_TRUE(nymbox);
+
+    const auto& transactionMap = nymbox->GetTransactionMap();
+
+    ASSERT_TRUE(1 == transactionMap.size());
+
+    const auto& transaction = *transactionMap.begin()->second;
+
+    EXPECT_FALSE(transaction.IsAbbreviated());
 }
 }  // namespace
