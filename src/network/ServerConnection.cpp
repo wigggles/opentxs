@@ -280,9 +280,10 @@ NetworkReplyMessage ServerConnection::Send(const Message& message)
     if (false == envelope.Exists()) { return output; }
 
     Lock socketLock(lock_);
-    auto sent = get_socket(socketLock)
-                    .Send(network::zeromq::Message::Factory(
-                        std::string(envelope.Get())));
+    auto request =
+        network::zeromq::Message::Factory(std::string(envelope.Get()));
+    request->EnsureDelimiter();
+    auto sent = get_socket(socketLock).Send(request);
 
     if (false == sent) { return output; }
 
