@@ -7738,7 +7738,6 @@ void Notary::NotarizeProcessNymbox(
                                 theNymbox);  // faster.
                             theNymbox.RemoveTransaction(
                                 pServerTransaction->GetTransactionNum());
-
                             theNymbox.ReleaseSignatures();
                             theNymbox.SignContract(server_.GetServerNym());
                             theNymbox.SaveContract();

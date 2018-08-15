@@ -302,9 +302,6 @@ void ReplyMessage::SetTargetNym(const String& nymID)
 
 ReplyMessage::~ReplyMessage()
 {
-    message_.SignContract(signer_);
-    message_.SaveContract();
-
     if (drop_ && context_) {
         UserCommandProcessor::drop_reply_notice_to_nymbox(
             wallet_,
@@ -315,8 +312,9 @@ ReplyMessage::~ReplyMessage()
             server_);
     }
 
-    if (context_ && context_->It().HaveLocalNymboxHash()) {
-        SetNymboxHash(context_->It().LocalNymboxHash());
-    }
+    if (context_) { SetNymboxHash(context_->It().LocalNymboxHash()); }
+
+    message_.SignContract(signer_);
+    message_.SaveContract();
 }
 }  // namespace opentxs::server
