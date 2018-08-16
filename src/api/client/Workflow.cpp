@@ -426,6 +426,8 @@ bool Workflow::ClearCheque(
     if (false == bool(cheque)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to load cheque from receipt." << std::endl;
+
+        return false;
     }
 
     if (false == isCheque(*cheque)) { return false; }

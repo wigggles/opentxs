@@ -2513,6 +2513,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.Exists()) {
@@ -2534,6 +2535,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // If successful, we need to read 2 more things: inReferenceTo and
@@ -2679,6 +2681,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
         pTag->add_attribute(
             "boxType",  // outbox is 2.
@@ -2705,6 +2708,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         String strTransactionNum = xml->getAttributeValue("transactionNum");
@@ -2971,6 +2975,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
@@ -2991,6 +2996,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // If successful or failure, we need to read 2 more things:
@@ -3665,6 +3671,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
         pTag->add_attribute("nymID", m.m_strNymID.Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
         pTag->add_attribute("accountID", m.m_strAcctID.Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
@@ -3685,6 +3692,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
         // If successful or failure, we need to read 2 more things:

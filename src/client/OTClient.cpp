@@ -139,6 +139,65 @@ bool OTClient::add_item_to_workflow(
     return true;
 }
 
+bool OTClient::init_new_account(
+    const Identifier& accountID,
+    ServerContext& context) const
+{
+    auto account = wallet_.mutable_Account(accountID);
+
+    OT_ASSERT(account);
+
+    if (false == account.get().InitBoxes(*context.Nym())) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error initializing boxes for account " << accountID.str()
+              << std::endl;
+
+        return false;
+    }
+
+    auto inboxHash = Identifier::Factory();
+    auto outboxHash = Identifier::Factory();
+    auto haveHash = account.get().GetInboxHash(inboxHash);
+
+    if (false == haveHash) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get inbox hash"
+              << std::endl;
+
+        return false;
+    }
+
+    haveHash = account.get().GetOutboxHash(outboxHash);
+
+    if (false == haveHash) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get outbox hash"
+              << std::endl;
+
+        return false;
+    }
+
+    account.Release();
+    auto nymfile = context.mutable_Nymfile("");
+    auto hashSet = nymfile.It().SetInboxHash(accountID.str(), inboxHash);
+
+    if (false == hashSet) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to set inbox hash on nymfile" << std::endl;
+
+        return false;
+    }
+
+    hashSet = nymfile.It().SetOutboxHash(accountID.str(), outboxHash);
+
+    if (false == hashSet) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to set outbox hash on nymfile" << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
 void OTClient::QueueOutgoingMessage(const Message& theMessage)
 {
     String serialized{};
@@ -2560,6 +2619,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
     Ledger* pNymbox,
     ServerContext& context)
 {
+    setRecentHash(theReply, false, context);
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverNym = context.RemoteNym();
@@ -2934,6 +2994,8 @@ bool OTClient::processServerReplyProcessInbox(
     OTTransaction* pTransaction,
     OTTransaction* pReplyTransaction)
 {
+    setRecentHash(theReply, false, context);
+
     OT_ASSERT(nullptr != pTransaction);
 
     const auto& NYM_ID = context.Nym()->ID();
@@ -6215,58 +6277,8 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__ << ": Saved new issuer account."
                   << std::endl;
-            auto account = wallet_.mutable_Account(accountID);
 
-            OT_ASSERT(account);
-
-            if (false == account.get().InitBoxes(*context.Nym())) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Error initializing boxes for account "
-                      << accountID.str() << std::endl;
-
-                return false;
-            }
-
-            auto inboxHash = Identifier::Factory();
-            auto outboxHash = Identifier::Factory();
-            auto haveHash = account.get().GetInboxHash(inboxHash);
-
-            if (false == haveHash) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to get inbox hash" << std::endl;
-
-                return false;
-            }
-
-            haveHash = account.get().GetOutboxHash(outboxHash);
-
-            if (false == haveHash) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to get outbox hash" << std::endl;
-
-                return false;
-            }
-
-            account.Release();
-            auto nymfile = context.mutable_Nymfile("");
-            auto hashSet =
-                nymfile.It().SetInboxHash(accountID.str(), inboxHash);
-
-            if (false == hashSet) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to set inbox hash on nymfile" << std::endl;
-
-                return false;
-            }
-
-            hashSet = nymfile.It().SetOutboxHash(accountID.str(), outboxHash);
-
-            if (false == hashSet) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed to set outbox hash on nymfile" << std::endl;
-
-                return false;
-            }
+            return init_new_account(accountID, context);
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
                   << std::endl;
@@ -6283,6 +6295,8 @@ bool OTClient::processServerReplyRegisterAccount(
     const Identifier& accountID,
     ServerContext& context)
 {
+    setRecentHash(theReply, false, context);
+
     if (theReply.m_ascPayload.GetLength()) {
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
@@ -6294,7 +6308,7 @@ bool OTClient::processServerReplyRegisterAccount(
             otErr << OT_METHOD << __FUNCTION__
                   << ": Saved updated account file." << std::endl;
 
-            return true;
+            return init_new_account(accountID, context);
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
                   << std::endl;

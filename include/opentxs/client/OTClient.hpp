@@ -70,6 +70,8 @@ private:
         const Message& message,
         const PeerObject& peerObject,
         const TransactionNumber number);
+    bool init_new_account(const Identifier& accountID, ServerContext& context)
+        const;
     void ProcessIncomingTransaction(
         const Message& theReply,
         ServerContext& context,
