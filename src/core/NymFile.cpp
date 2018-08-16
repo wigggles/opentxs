@@ -902,35 +902,9 @@ bool NymFile::SetHash(
     const std::string& str_id,
     const Identifier& theInput)  // client-side
 {
-    bool bSuccess = false;
+    the_map.emplace(str_id, theInput);
 
-    auto find_it = the_map.find(str_id);
-
-    if (the_map.end() != find_it)  // found something for that str_id
-    {
-        // The call has succeeded
-        the_map.erase(find_it);
-        OTIdentifier pID = Identifier::Factory(theInput);
-        OT_ASSERT(!pID->empty())
-        the_map.emplace(str_id, pID);
-        bSuccess = true;
-    }
-
-    // If I didn't find it in the list above (whether the list is empty or
-    // not....)
-    // that means it does not exist. (So create it.)
-    //
-    if (!bSuccess) {
-        OTIdentifier pID = Identifier::Factory(theInput);
-        OT_ASSERT(!pID->empty())
-        the_map.emplace(str_id, pID);
-    }
-    //    if (bSuccess)
-    //    {
-    //        SaveSignedNymFile(SIGNER_NYM);
-    //    }
-
-    return bSuccess;
+    return true;
 }
 
 bool NymFile::SetInboxHash(

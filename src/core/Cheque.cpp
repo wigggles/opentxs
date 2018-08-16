@@ -78,7 +78,13 @@ std::unique_ptr<Cheque> Cheque::CreateFromReceipt(const OTTransaction& receipt)
         receipt.GetRealNotaryID(),
         receipt.GetReferenceToNum()));
 
-    OT_ASSERT(item)
+    if (false == bool(item)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to extract cheque from receipt "
+              << "(maybe it's abbreviated)" << std::endl;
+
+        return nullptr;
+    }
 
     String serializedCheque{};
     item->GetAttachment(serializedCheque);

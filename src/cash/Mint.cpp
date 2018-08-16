@@ -123,7 +123,7 @@ Mint* Mint::MintFactory(
     pMint = new MintLucre(wallet, dataFolder);
 #elif OT_CASH_USING_MAGIC_MONEY
     //  pMint = new Mint_MagicMoney;
-    otErr << __FUCNTION__
+    otErr << __FUNCTION__
           << ": Open-Transactions doesn't support Magic Money "
              "by Pr0duct Cypher (yet), "
           << "so it's impossible to instantiate a mint.\n";
@@ -810,6 +810,8 @@ void Mint::GenerateNewMint(
     } else {
         otErr << "Error creating cash reserve account for new mint.\n";
     }
+
+    account.Release();
 
     if (nDenom1) {
         AddDenomination(

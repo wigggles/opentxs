@@ -195,7 +195,11 @@ void Manager::generate_mint(
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(series);
     mint.reset(Mint::MintFactory(
-        *wallet_, serverID.c_str(), nymID.c_str(), unitID.c_str()));
+        *wallet_,
+        data_folder_,
+        serverID.c_str(),
+        nymID.c_str(),
+        unitID.c_str()));
 
     OT_ASSERT(mint)
 
@@ -643,13 +647,13 @@ const api::Wallet& Manager::Wallet() const
 
 Manager::~Manager()
 {
-    Cleanup();
-
 #if OT_CASH
     if (mint_thread_) {
         mint_thread_->join();
         mint_thread_.reset();
     }
 #endif  // OT_CASH
+
+    Cleanup();
 }
 }  // namespace opentxs::api::server::implementation

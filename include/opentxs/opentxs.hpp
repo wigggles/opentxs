@@ -24,6 +24,7 @@
 #include <opentxs/api/client/ServerAction.hpp>
 #include <opentxs/api/client/Sync.hpp>
 #include <opentxs/api/client/UI.hpp>
+#include <opentxs/api/client/Workflow.hpp>
 #include <opentxs/api/crypto/Config.hpp>
 #include <opentxs/api/crypto/Crypto.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
