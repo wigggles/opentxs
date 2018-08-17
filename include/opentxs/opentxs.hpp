@@ -110,6 +110,8 @@
 #include <opentxs/crypto/library/SymmetricProvider.hpp>
 #include <opentxs/crypto/Bip32.hpp>
 #include <opentxs/crypto/Bip39.hpp>
+#include <opentxs/otx/Reply.hpp>
+#include <opentxs/otx/Request.hpp>
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/iterator/Bidirectional.hpp>

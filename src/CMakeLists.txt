@@ -28,6 +28,7 @@ add_subdirectory(server)
 add_subdirectory(contact)
 add_subdirectory(ui)
 add_subdirectory(util)
+add_subdirectory(otx)
 
 if(TREZORCRYPTO_EXPORT)
   set(trezor $<TARGET_OBJECTS:TrezorCrypto>)
@@ -109,6 +110,7 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-iterator protobuf)
   add_dependencies(opentxs-network-zeromq protobuf)
   add_dependencies(opentxs-network protobuf)
+  add_dependencies(opentxs-otx protobuf)
   add_dependencies(opentxs-recurring protobuf)
   add_dependencies(opentxs-script protobuf)
   add_dependencies(opentxs-server protobuf)
@@ -215,6 +217,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-iterator>
   $<TARGET_OBJECTS:opentxs-network-zeromq>
   $<TARGET_OBJECTS:opentxs-network>
+  $<TARGET_OBJECTS:opentxs-otx>
   $<TARGET_OBJECTS:opentxs-recurring>
   $<TARGET_OBJECTS:opentxs-script>
   $<TARGET_OBJECTS:opentxs-server>
