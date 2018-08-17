@@ -31,9 +31,7 @@ namespace opentxs
 class OTMessageOutbuffer : Lockable
 {
 public:
-    EXPORT OTMessageOutbuffer(
-        const api::Wallet& wallet,
-        const api::Legacy& legacy);
+    EXPORT OTMessageOutbuffer(const api::Core& core);
 
     EXPORT void Clear(
         const String& notaryID,
@@ -46,9 +44,9 @@ public:
     // same request number, deletes the old one before adding the new one. In
     // the future may contemplate using multimap here instead (if completeness
     // becomes desired over uniqueness.)
-    EXPORT void AddSentMessage(Message& message);
+    EXPORT void AddSentMessage(std::shared_ptr<Message> message);
     // null == not found. caller NOT responsible to delete.
-    EXPORT Message* GetSentMessage(
+    EXPORT std::shared_ptr<Message> GetSentMessage(
         const std::int64_t& requestNum,
         const String& notaryID,
         const String& nymId);
@@ -58,19 +56,18 @@ public:
         const String& notaryID,
         const String& nymId);
     // null == not found. caller NOT responsible to delete.
-    EXPORT Message* GetSentMessage(const OTTransaction& transaction);
+    EXPORT std::shared_ptr<Message> GetSentMessage(
+        const OTTransaction& transaction);
     // true == it was removed. false == it wasn't found.
     EXPORT bool RemoveSentMessage(const OTTransaction& transaction);
 
     EXPORT ~OTMessageOutbuffer();
 
 private:
-    typedef std::multimap<std::int64_t, Message*> mapOfMessages;
+    typedef std::multimap<std::int64_t, std::shared_ptr<Message>> mapOfMessages;
 
-    const api::Wallet& wallet_;
-    const api::Legacy& legacy_;
+    const api::Core& core_;
     mapOfMessages messagesMap_{};
-    String dataFolder_{};
 
     OTMessageOutbuffer() = delete;
     OTMessageOutbuffer(const OTMessageOutbuffer&);

@@ -62,16 +62,19 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 class Basket : public Contract
 {
 public:
-    EXPORT Basket(const api::Wallet& wallet, const std::string& dataFolder);
-    EXPORT Basket(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        std::int32_t nCount,
-        std::int64_t lMinimumTransferAmount);
-
     EXPORT virtual ~Basket();
 
     void UpdateContents() override;
@@ -175,6 +178,14 @@ protected:
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 private:
+    friend api::implementation::Factory;
+
+    EXPORT Basket(const api::Core& core);
+    EXPORT Basket(
+        const api::Core& core,
+        std::int32_t nCount,
+        std::int64_t lMinimumTransferAmount);
+
     void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
 
     Basket() = delete;

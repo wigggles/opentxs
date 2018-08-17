@@ -206,21 +206,34 @@ opentxs::Account* Wallet::account_factory(
     const std::string& alias,
     const std::string& serialized) const
 {
-    std::unique_ptr<OTTransactionType> deserialized{
-        OTTransactionType::TransactionFactory(
-            *this, core_.DataFolder(), serialized.c_str())};
+    String strContract, strFirstLine;
+    const bool bProcessed =
+        Contract::DearmorAndTrim(serialized.c_str(), strContract, strFirstLine);
 
-    if (false == bool(deserialized)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to deserialize account."
+    if (false == bProcessed) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to dearmor serialized account." << std::endl;
+
+        return nullptr;
+    }
+
+    auto account = new opentxs::Account{core_};
+    if (nullptr == account) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create account."
               << std::endl;
 
         return nullptr;
     }
 
-    std::unique_ptr<opentxs::Account> output{
-        dynamic_cast<opentxs::Account*>(deserialized.release())};
+    account->SetLoadInsecure();
+    auto deserialized = account->LoadContractFromString(strContract);
 
-    OT_ASSERT(output)
+    if (false == deserialized) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to deserialize account."
+              << std::endl;
+
+        return nullptr;
+    }
 
     const auto signerID = core_.Storage().AccountSigner(accountID);
 
@@ -240,16 +253,16 @@ opentxs::Account* Wallet::account_factory(
         return nullptr;
     }
 
-    if (false == output->VerifySignature(*signerNym)) {
+    if (false == account->VerifySignature(*signerNym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature."
               << std::endl;
 
         return nullptr;
     }
 
-    output->SetName(alias.c_str());
+    account->SetName(alias.c_str());
 
-    return output.release();
+    return account;
 }
 
 OTIdentifier Wallet::AccountPartialMatch(const std::string& hint) const
@@ -294,8 +307,7 @@ ExclusiveAccount Wallet::CreateAccount(
     try {
         std::unique_ptr<opentxs::Account> newAccount(
             opentxs::Account::GenerateNewAccount(
-                *this,
-                core_.DataFolder(),
+                core_,
                 signer.ID(),
                 notaryID,
                 signer,
@@ -463,7 +475,7 @@ bool Wallet::UpdateAccount(
     const auto& localNym = *context.Nym();
     std::unique_ptr<opentxs::Account> newAccount{nullptr};
     newAccount.reset(new opentxs::Account(
-        *this, core_.DataFolder(), localNym.ID(), accountID, context.Server()));
+        core_, localNym.ID(), accountID, context.Server()));
 
     if (false == bool(newAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to construct account"
@@ -1080,9 +1092,8 @@ std::unique_ptr<const opentxs::NymFile> Wallet::Nymfile(
     if (false == bool(targetNym)) { return {}; }
     if (false == bool(signerNym)) { return {}; }
 
-    auto nymfile =
-        std::unique_ptr<opentxs::internal::NymFile>(opentxs::Factory::NymFile(
-            *this, targetNym, signerNym, core_.DataFolder()));
+    auto nymfile = std::unique_ptr<opentxs::internal::NymFile>(
+        opentxs::Factory::NymFile(core_, targetNym, signerNym));
 
     OT_ASSERT(nymfile)
 
@@ -1113,9 +1124,8 @@ Editor<opentxs::NymFile> Wallet::mutable_nymfile(
     const Identifier& id,
     const OTPasswordData& reason) const
 {
-    auto nymfile =
-        std::unique_ptr<opentxs::internal::NymFile>(opentxs::Factory::NymFile(
-            *this, targetNym, signerNym, core_.DataFolder()));
+    auto nymfile = std::unique_ptr<opentxs::internal::NymFile>(
+        opentxs::Factory::NymFile(core_, targetNym, signerNym));
 
     OT_ASSERT(nymfile)
 

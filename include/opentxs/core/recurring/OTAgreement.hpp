@@ -371,8 +371,7 @@ public:
 
      */
     EXPORT bool SendNoticeToAllParties(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         bool bSuccessMsg,
         const Nym& theServerNym,
         const Identifier& theNotaryID,
@@ -386,8 +385,7 @@ public:
 
     // Nym receives an OTItem::acknowledgment or OTItem::rejection.
     EXPORT static bool DropServerNoticeToNymbox(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         bool bSuccessMsg,
         const Nym& theServerNym,
         const Identifier& NOTARY_ID,
@@ -400,21 +398,6 @@ public:
         String* pstrAttachment,
         const Identifier& actualNymID);
 
-    OTAgreement(const api::Wallet& wallet, const std::string& dataFolder);
-    OTAgreement(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    OTAgreement(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& SENDER_ACCT_ID,
-        const Identifier& SENDER_NYM_ID,
-        const Identifier& RECIPIENT_ACCT_ID,
-        const Identifier& RECIPIENT_NYM_ID);
     virtual ~OTAgreement();
 
     void InitAgreement();
@@ -431,7 +414,21 @@ public:
                                      // this
                                      // is where the ledger saves its contents
 
-private:
+protected:
+    OTAgreement(const api::Core& core);
+    OTAgreement(
+        const api::Core& core,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID);
+    OTAgreement(
+        const api::Core& core,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& SENDER_ACCT_ID,
+        const Identifier& SENDER_NYM_ID,
+        const Identifier& RECIPIENT_ACCT_ID,
+        const Identifier& RECIPIENT_NYM_ID);
+
     OTAgreement() = delete;
 };
 }  // namespace opentxs

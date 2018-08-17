@@ -9,7 +9,7 @@
 
 namespace opentxs::implementation
 {
-typedef std::deque<Message*> dequeOfMail;
+typedef std::deque<std::shared_ptr<Message>> dequeOfMail;
 typedef std::map<std::string, OTIdentifier> mapOfIdentifiers;
 
 class NymFile final : public opentxs::internal::NymFile, Lockable
@@ -23,8 +23,9 @@ public:
     bool GetOutboxHash(
         const std::string& acct_id,
         Identifier& theOutput) const override;  // client-side
-    Message* GetOutpaymentsByIndex(const std::int32_t nIndex) const override;
-    Message* GetOutpaymentsByTransNum(
+    std::shared_ptr<Message> GetOutpaymentsByIndex(
+        const std::int32_t nIndex) const override;
+    std::shared_ptr<Message> GetOutpaymentsByTransNum(
         const std::int64_t lTransNum,
         std::unique_ptr<OTPayment>* pReturnPayment = nullptr,
         std::int32_t* pnReturnIndex = nullptr) const override;
@@ -42,19 +43,15 @@ public:
     }
     bool SerializeNymFile(String& output) const override;
 
-    void AddOutpayments(Message& theMessage) override;
+    void AddOutpayments(std::shared_ptr<Message> theMessage) override;
     std::set<std::string>& GetSetAssetAccounts() override
     {
         sLock lock(shared_lock_);
 
         return m_setAccounts;
     }
-    bool RemoveOutpaymentsByIndex(
-        const std::int32_t nIndex,
-        bool bDeleteIt = true) override;
-    bool RemoveOutpaymentsByTransNum(
-        const std::int64_t lTransNum,
-        bool bDeleteIt = true) override;
+    bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) override;
+    bool RemoveOutpaymentsByTransNum(const std::int64_t lTransNum) override;
     bool ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
         override;
     bool SaveSignedNymFile(const Nym& SIGNER_NYM);
@@ -76,7 +73,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Wallet& wallet_;
+    const api::Core& core_;
     const std::shared_ptr<const Nym> target_nym_{nullptr};
     const std::shared_ptr<const Nym> signer_nym_{nullptr};
     std::int64_t m_lUsageCredits{-1};
@@ -84,7 +81,6 @@ private:
     String m_strNymFile;
     String m_strVersion;
     String m_strDescription;
-    const std::string data_folder_{""};
 
     // Whenever client downloads Inbox, its hash is stored here. (When
     // downloading account, can compare ITS inbox hash to this one, to see if I
@@ -108,7 +104,6 @@ private:
         Identifier& theOutput) const;
 
     void ClearAll();
-    void ClearOutpayments();
     bool DeserializeNymFile(
         const String& strNym,
         bool& converted,
@@ -139,10 +134,9 @@ private:
         const Identifier& theInput);
 
     NymFile(
-        const api::Wallet& wallet,
+        const api::Core& core,
         std::shared_ptr<const Nym> targetNym,
-        std::shared_ptr<const Nym> signerNym,
-        const std::string& dataFolder);
+        std::shared_ptr<const Nym> signerNym);
     NymFile() = delete;
     NymFile(const NymFile&) = delete;
     NymFile(NymFile&&) = delete;

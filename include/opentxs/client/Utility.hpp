@@ -54,7 +54,7 @@ public:
     EXPORT Utility(
         ServerContext& context,
         const OT_API& otapi,
-        const api::Legacy& legacy);
+        const api::Core& core);
 
     EXPORT void delay() const;
     EXPORT std::int32_t getAndProcessNymbox_3(
@@ -148,7 +148,7 @@ public:
 protected:
     ServerContext& context_;
     const OT_API& otapi_;
-    const api::Legacy& legacy_;
+    const api::Core& core_;
 
     Utility() = delete;
     Utility(const Utility&) = delete;

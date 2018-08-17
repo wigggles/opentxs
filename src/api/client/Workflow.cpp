@@ -9,7 +9,8 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -43,13 +44,12 @@ namespace opentxs
 api::client::Workflow* Factory::Workflow(
     const api::client::Activity& activity,
     const api::client::Contacts& contact,
-    const api::Legacy& legacy,
-    const api::Wallet& wallet,
+    const api::Core& core,
     const api::storage::Storage& storage,
     const network::zeromq::Context& zmq)
 {
     return new api::client::implementation::Workflow(
-        activity, contact, legacy, wallet, storage, zmq);
+        activity, contact, core, storage, zmq);
 }
 }  // namespace opentxs
 
@@ -92,8 +92,7 @@ std::string Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
 }
 
 Workflow::Cheque Workflow::InstantiateCheque(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const proto::PaymentWorkflow& workflow)
 {
     Cheque output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
@@ -104,7 +103,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            cheque.reset(new opentxs::Cheque{wallet, dataFolder});
+            cheque.reset(core.Factory().Cheque(core).release());
 
             OT_ASSERT(cheque)
 
@@ -140,14 +139,12 @@ namespace implementation
 Workflow::Workflow(
     const api::client::Activity& activity,
     const api::client::Contacts& contact,
-    const api::Legacy& legacy,
-    const api::Wallet& wallet,
+    const api::Core& core,
     const storage::Storage& storage,
     const opentxs::network::zeromq::Context& zmq)
     : activity_(activity)
     , contact_(contact)
-    , legacy_(legacy)
-    , wallet_(wallet)
+    , core_(core)
     , storage_(storage)
     , zmq_(zmq)
     , account_publisher_(zmq.PublishSocket())
@@ -421,7 +418,7 @@ bool Workflow::ClearCheque(
         return false;
     }
 
-    auto cheque = opentxs::Cheque::CreateFromReceipt(receipt);
+    auto cheque{core_.Factory().Cheque(receipt)};
 
     if (false == bool(cheque)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -850,7 +847,7 @@ Workflow::Cheque Workflow::LoadCheque(
         return {};
     }
 
-    return InstantiateCheque(wallet_, legacy_.ClientDataFolder(), *workflow);
+    return InstantiateCheque(core_, *workflow);
 }
 
 Workflow::Cheque Workflow::LoadChequeByWorkflow(
@@ -870,7 +867,7 @@ Workflow::Cheque Workflow::LoadChequeByWorkflow(
         return {};
     }
 
-    return InstantiateCheque(wallet_, legacy_.ClientDataFolder(), *workflow);
+    return InstantiateCheque(core_, *workflow);
 }
 
 std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(

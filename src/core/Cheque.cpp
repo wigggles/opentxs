@@ -28,12 +28,12 @@
 using namespace irr;
 using namespace io;
 
-#define OT_METHOD "opentxs::Cheque::"
+//#define OT_METHOD "opentxs::Cheque::"
 
 namespace opentxs
 {
-Cheque::Cheque(const api::Wallet& wallet, const std::string& dataFolder)
-    : ot_super(wallet, dataFolder)
+Cheque::Cheque(const api::Core& core)
+    : ot_super(core)
     , m_lAmount(0)
     , m_strMemo()
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
@@ -46,11 +46,10 @@ Cheque::Cheque(const api::Wallet& wallet, const std::string& dataFolder)
 }
 
 Cheque::Cheque(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
     , m_strMemo()
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
@@ -60,42 +59,6 @@ Cheque::Cheque(
     , m_bHasRemitter(false)
 {
     InitCheque();
-}
-
-std::unique_ptr<Cheque> Cheque::CreateFromReceipt(const OTTransaction& receipt)
-{
-    std::unique_ptr<Cheque> output{
-        new Cheque{receipt.Wallet(), receipt.DataFolder()}};
-
-    OT_ASSERT(output)
-
-    String serializedItem{};
-    receipt.GetReferenceString(serializedItem);
-    std::unique_ptr<Item> item(Item::CreateItemFromString(
-        receipt.Wallet(),
-        receipt.DataFolder(),
-        serializedItem,
-        receipt.GetRealNotaryID(),
-        receipt.GetReferenceToNum()));
-
-    if (false == bool(item)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed to extract cheque from receipt "
-              << "(maybe it's abbreviated)" << std::endl;
-
-        return nullptr;
-    }
-
-    String serializedCheque{};
-    item->GetAttachment(serializedCheque);
-    const auto loaded = output->LoadContractFromString(serializedCheque);
-
-    if (false == loaded) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to load cheque,"
-              << std::endl;
-    }
-
-    return output;
 }
 
 void Cheque::UpdateContents()

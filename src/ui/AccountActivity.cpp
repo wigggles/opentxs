@@ -7,7 +7,7 @@
 
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -49,11 +49,10 @@ ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
-    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::client::Contacts& contact,
     const api::storage::Storage& storage,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
 {
@@ -61,11 +60,10 @@ ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
         zmq,
         publisher,
         sync,
-        wallet,
         workflow,
         contact,
         storage,
-        legacy,
+        core,
         nymID,
         accountID);
 }
@@ -84,19 +82,17 @@ AccountActivity::AccountActivity(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
     const api::client::Sync& sync,
-    const api::Wallet& wallet,
     const api::client::Workflow& workflow,
     const api::client::Contacts& contact,
     const api::storage::Storage& storage,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
     : AccountActivityList(nymID, zmq, publisher, contact)
     , sync_(sync)
-    , wallet_(wallet)
     , workflow_(workflow)
     , storage_(storage)
-    , legacy_(legacy)
+    , core_(core)
     , balance_(0)
     , account_id_(accountID)
     , contract_(nullptr)
@@ -126,8 +122,7 @@ void AccountActivity::construct_row(
             index,
             custom,
             sync_,
-            wallet_,
-            legacy_,
+            core_,
             nym_id_,
             account_id_));
     names_.emplace(id, index);
@@ -334,14 +329,14 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
 
 void AccountActivity::startup()
 {
-    auto account = wallet_.Account(account_id_);
+    auto account = core_.Wallet().Account(account_id_);
 
     if (account) {
         balance_.store(account.get().GetBalance());
         UpdateNotify();
         eLock lock(shared_lock_);
-        contract_ =
-            wallet_.UnitDefinition(storage_.AccountContract(account_id_));
+        contract_ = core_.Wallet().UnitDefinition(
+            storage_.AccountContract(account_id_));
     }
 
     account.Release();

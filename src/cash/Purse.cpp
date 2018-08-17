@@ -7,6 +7,8 @@
 
 #include "opentxs/cash/Purse.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Token.hpp"
@@ -46,8 +48,8 @@ namespace opentxs
 typedef std::map<std::string, Token*> mapOfTokenPointers;
 
 // private, used by factory.
-Purse::Purse(const api::Wallet& wallet, const std::string& dataFolder)
-    : Contract(wallet, dataFolder)
+Purse::Purse(const api::Core& core)
+    : Contract(core)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory())
@@ -55,7 +57,7 @@ Purse::Purse(const api::Wallet& wallet, const std::string& dataFolder)
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
+    , m_pSymmetricKey(crypto::key::LegacySymmetric::Blank())
     , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
@@ -63,11 +65,8 @@ Purse::Purse(const api::Wallet& wallet, const std::string& dataFolder)
     InitPurse();
 }
 
-Purse::Purse(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const Purse& thePurse)
-    : Contract(wallet, dataFolder)
+Purse::Purse(const api::Core& core, const Purse& thePurse)
+    : Contract(core)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(thePurse.GetNotaryID()))
@@ -76,7 +75,7 @@ Purse::Purse(
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
+    , m_pSymmetricKey(crypto::key::LegacySymmetric::Blank())
     , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
@@ -88,11 +87,8 @@ Purse::Purse(
 // Perhaps you know you're about to read this purse from a string and you
 // know the instrument definition is in there anyway. So you use this
 // constructor.
-Purse::Purse(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const Identifier& NOTARY_ID)
-    : Contract(wallet, dataFolder)
+Purse::Purse(const api::Core& core, const Identifier& NOTARY_ID)
+    : Contract(core)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(NOTARY_ID))
@@ -100,7 +96,7 @@ Purse::Purse(
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
+    , m_pSymmetricKey(crypto::key::LegacySymmetric::Blank())
     , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
@@ -109,11 +105,10 @@ Purse::Purse(
 }
 
 Purse::Purse(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : Contract(wallet, dataFolder)
+    : Contract(core)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory(NOTARY_ID))
@@ -121,7 +116,7 @@ Purse::Purse(
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
+    , m_pSymmetricKey(crypto::key::LegacySymmetric::Blank())
     , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
@@ -130,12 +125,11 @@ Purse::Purse(
 }
 
 Purse::Purse(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& NYM_ID)
-    : Contract(wallet, dataFolder)
+    : Contract(core)
     , m_dequeTokens()
     , m_NymID(Identifier::Factory(NYM_ID))
     , m_NotaryID(Identifier::Factory(NOTARY_ID))
@@ -143,7 +137,7 @@ Purse::Purse(
     , m_lTotalValue(0)
     , m_bPasswordProtected(false)
     , m_bIsNymIDIncluded(false)
-    , m_pSymmetricKey(nullptr)
+    , m_pSymmetricKey(crypto::key::LegacySymmetric::Blank())
     , m_pCachedKey(nullptr)
     , m_tLatestValidFrom(OT_TIME_ZERO)
     , m_tEarliestValidTo(OT_TIME_ZERO)
@@ -521,200 +515,6 @@ bool Purse::Merge(
     return bSuccess;
 }
 
-// static -- class factory.
-//
-Purse* Purse::LowLevelInstantiate(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strFirstLine,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-{
-    Purse* pPurse = nullptr;
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
-                                                                // is
-    // 28 chars long.
-    // todo
-    // hardcoding.
-    {
-        pPurse =
-            new Purse(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-        OT_ASSERT(nullptr != pPurse);
-    }
-    return pPurse;
-}
-
-Purse* Purse::LowLevelInstantiate(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strFirstLine,
-    const Identifier& NOTARY_ID)
-{
-    Purse* pPurse = nullptr;
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
-                                                                // is
-    // 28 chars long.
-    // todo
-    // hardcoding.
-    {
-        pPurse = new Purse(wallet, dataFolder, NOTARY_ID);
-        OT_ASSERT(nullptr != pPurse);
-    }
-    return pPurse;
-}
-
-Purse* Purse::LowLevelInstantiate(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strFirstLine)
-{
-    Purse* pPurse = nullptr;
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
-                                                                // is
-    // 28 chars long.
-    // todo
-    // hardcoding.
-    {
-        pPurse = new Purse{wallet, dataFolder};
-        OT_ASSERT(nullptr != pPurse);
-    }
-    return pPurse;
-}
-
-// static -- class factory.
-//
-// Checks the notaryID / InstrumentDefinitionID, so you don't have to.
-//
-Purse* Purse::PurseFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    String strInput,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-{
-    String strContract, strFirstLine;  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(
-            wallet,
-            dataFolder,
-            strFirstLine,
-            NOTARY_ID,
-            INSTRUMENT_DEFINITION_ID);
-
-        // The string didn't match any of the options in the factory.
-        if (nullptr == pPurse) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pPurse->LoadContractFromString(strContract)) {
-            const char* szFunc = "Purse::PurseFactory";
-            if (NOTARY_ID != pPurse->GetNotaryID()) {
-                const String strNotaryID(NOTARY_ID),
-                    strPurseNotaryID(pPurse->GetNotaryID());
-                otErr << szFunc << ": Failure: NotaryID on purse ("
-                      << strPurseNotaryID
-                      << ") doesn't match expected "
-                         "server ID ("
-                      << strNotaryID << ").\n";
-                delete pPurse;
-                pPurse = nullptr;
-            } else if (
-                INSTRUMENT_DEFINITION_ID !=
-                pPurse->GetInstrumentDefinitionID()) {
-                const String strInstrumentDefinitionID(
-                    INSTRUMENT_DEFINITION_ID),
-                    strPurseInstrumentDefinitionID(
-                        pPurse->GetInstrumentDefinitionID());
-                otErr << szFunc
-                      << ": Failure: InstrumentDefinitionID on purse ("
-                      << strPurseInstrumentDefinitionID
-                      << ") doesn't match expected "
-                         "instrument definition id ("
-                      << strInstrumentDefinitionID << ").\n";
-                delete pPurse;
-                pPurse = nullptr;
-            } else
-                return pPurse;
-        } else {
-            delete pPurse;
-            pPurse = nullptr;
-        }
-    }
-
-    return nullptr;
-}
-
-// Checks the notaryID, so you don't have to.
-//
-Purse* Purse::PurseFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    String strInput,
-    const Identifier& NOTARY_ID)
-{
-    String strContract, strFirstLine;  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        Purse* pPurse = Purse::LowLevelInstantiate(
-            wallet, dataFolder, strFirstLine, NOTARY_ID);
-
-        // The string didn't match any of the options in the factory.
-        if (nullptr == pPurse) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pPurse->LoadContractFromString(strContract)) {
-            if (NOTARY_ID != pPurse->GetNotaryID()) {
-                const String strNotaryID(NOTARY_ID),
-                    strPurseNotaryID(pPurse->GetNotaryID());
-                otErr << "Purse::PurseFactory"
-                      << ": Failure: NotaryID on purse (" << strPurseNotaryID
-                      << ") doesn't match expected server ID (" << strNotaryID
-                      << ").\n";
-                delete pPurse;
-                pPurse = nullptr;
-            } else
-                return pPurse;
-        } else {
-            delete pPurse;
-            pPurse = nullptr;
-        }
-    }
-
-    return nullptr;
-}
-
-Purse* Purse::PurseFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    String strInput)
-{
-    //  const char * szFunc = "Purse::PurseFactory";
-
-    String strContract, strFirstLine;  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        Purse* pPurse =
-            Purse::LowLevelInstantiate(wallet, dataFolder, strFirstLine);
-
-        // The string didn't match any of the options in the factory.
-        if (nullptr == pPurse) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pPurse->LoadContractFromString(strContract))
-            return pPurse;
-        else
-            delete pPurse;
-    }
-
-    return nullptr;
-}
-
 void Purse::InitPurse()
 {
     m_strContractType.Set("PURSE");
@@ -780,7 +580,7 @@ bool Purse::LoadPurse(
             .Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
     if (false == OTDB::Exists(
-                     data_folder_,
+                     core_.DataFolder(),
                      szFolder1name,
                      szFolder2name,
                      szFolder3name,
@@ -792,7 +592,7 @@ bool Purse::LoadPurse(
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
-        data_folder_,
+        core_.DataFolder(),
         szFolder1name,
         szFolder2name,
         szFolder3name,
@@ -874,7 +674,7 @@ bool Purse::SavePurse(
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        data_folder_,
+        core_.DataFolder(),
         szFolder1name,
         szFolder2name,
         szFolder3name,
@@ -1349,20 +1149,18 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
     if (bSuccess) {
         // Create a new token with the same server and instrument definition ids
         // as this purse.
-        Token* pToken = Token::TokenFactory(strToken, *this);
-        OT_ASSERT(nullptr != pToken);
+        auto pToken{core_.Factory().Token(strToken, *this)};
+        OT_ASSERT(false != bool(pToken));
 
         if (pToken->GetInstrumentDefinitionID() != m_InstrumentDefinitionID ||
             pToken->GetNotaryID() != m_NotaryID) {
-            delete pToken;
-            pToken = nullptr;
 
             otErr << __FUNCTION__
                   << ": ERROR: Cash token with wrong server or "
                      "instrument definition.\n";
         } else {
             // CALLER is responsible to delete this token.
-            return pToken;
+            return pToken.release();
         }
     } else
         otErr << __FUNCTION__ << ": Failure: theOwner.Open_or_Decrypt.\n";
@@ -1452,8 +1250,8 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
             // Create a new token with the same server and instrument definition
             // ids as this
             // purse.
-            Token* pToken = Token::TokenFactory(strToken, *this);
-            OT_ASSERT(nullptr != pToken);
+            auto pToken{core_.Factory().Token(strToken, *this)};
+            OT_ASSERT(false != bool(pToken));
 
             if (m_tLatestValidFrom < pToken->GetValidFrom()) {
                 m_tLatestValidFrom = pToken->GetValidFrom();

@@ -5,6 +5,8 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
@@ -201,9 +203,9 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 {
     if (status_->On()) { publish(); }
 
-    auto message = std::make_unique<Message>(api_.Wallet(), api_.DataFolder());
+    auto message{api_.Factory().Message(api_)};
 
-    OT_ASSERT(message);
+    OT_ASSERT(false != bool(message));
 
     if (1 != in.Body().size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
@@ -269,9 +271,9 @@ NetworkReplyMessage ServerConnection::Send(const Message& message)
     NetworkReplyMessage output{SendResult::ERROR, nullptr};
     auto& status = output.first;
     auto& reply = output.second;
-    reply.reset(new Message{api_.Wallet(), api_.DataFolder()});
+    reply.reset(api_.Factory().Message(api_).release());
 
-    OT_ASSERT(reply);
+    OT_ASSERT(false != bool(reply));
 
     String raw;
     message.SaveContractRaw(raw);

@@ -20,6 +20,16 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 typedef std::map<std::int32_t, Armored*> mapOfPrototokens;
 
 /*
@@ -72,34 +82,6 @@ public:
     // Another 1000.  These provide more security but they also cost more in
     // terms of resources to process all those prototokens.
     EXPORT static std::int32_t GetMinimumPrototokenCount();
-    /** Preparing to polymorphize tokens. This will allow us to instantiate
-     * LucreTokens, and other types of tokens, dynamically, without having to
-     * know beforehand which OTToken subclass we're dealing with. */
-    EXPORT static Token* TokenFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput);
-    EXPORT static Token* TokenFactory(String strInput, const Purse& thePurse);
-    EXPORT static Token* TokenFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT static Token* LowLevelInstantiate(const Purse& thePurse);
-    EXPORT static Token* LowLevelInstantiate(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strFirstLine);
-    EXPORT static Token* LowLevelInstantiate(
-        const String& strFirstLine,
-        const Purse& thePurse);
-    EXPORT static Token* LowLevelInstantiate(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strFirstLine,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID);
     EXPORT virtual ~Token();
 
     EXPORT void Release_Token();
@@ -138,12 +120,6 @@ public:
 
     // Lucre step 1 (in OTMint) Generate New Mint
 
-    EXPORT static Token* InstantiateAndGenerateTokenRequest(
-        const Purse& thePurse,
-        const Nym& theNym,
-        Mint& theMint,
-        std::int64_t lDenomination,
-        std::int32_t nTokenCount = Token::GetMinimumPrototokenCount());
     /** Lucre Step 3: Mint signs token (in OTMint) */
     inline std::int32_t GetSeries() const { return m_nSeries; }
     /** (Called by the mint when signing.) */
@@ -195,6 +171,8 @@ public:
         std::int32_t nTokenIndex);
 
 protected:
+    friend api::implementation::Factory;
+
     bool m_bPasswordProtected{false};  // this token might be encrypted to a
                                        // passphrase, instead of a Nym.
 
@@ -256,16 +234,12 @@ protected:
 
     Token& operator=(const Token& rhs);
 
-    Token(const api::Wallet& wallet, const std::string& dataFolder);
+    Token(const api::Core& core);
     Token(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    Token(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Purse& thePurse);
+    Token(const api::Core& core, const Purse& thePurse);
 
 private:
     typedef Instrument ot_super;

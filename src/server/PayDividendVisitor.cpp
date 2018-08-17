@@ -8,6 +8,7 @@
 #include "PayDividendVisitor.hpp"
 
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/Account.hpp"
@@ -94,11 +95,10 @@ bool PayDividendVisitor::Trigger(
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    Cheque theVoucher(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        theNotaryID,
-        Identifier::Factory());
+    auto theVoucher{server_.API().Factory().Cheque(
+        server_.API(), theNotaryID, Identifier::Factory())};
+
+    OT_ASSERT(false != bool(theVoucher));
 
     // 10 minutes ==    600 Seconds
     // 1 hour    ==     3600 Seconds
@@ -126,7 +126,7 @@ bool PayDividendVisitor::Trigger(
     // the voucher account, needs to verify the transaction # on the
     // cheque (to prevent double-spending of cheques.)
     if (bGotNextTransNum) {
-        const bool bIssueVoucher = theVoucher.IssueCheque(
+        const bool bIssueVoucher = theVoucher->IssueCheque(
             lPayoutAmount,          // The amount of the cheque.
             lNewTransactionNumber,  // Requiring a transaction number prevents
                                     // double-spending of cheques.
@@ -160,22 +160,24 @@ bool PayDividendVisitor::Trigger(
             // the remitter, which is unusual for vouchers, but necessary in the
             // case of dividends.
             //
-            theVoucher.SetAsVoucher(theServerNymID, theVoucherAcctID);
-            theVoucher.SignContract(theServerNym);
-            theVoucher.SaveContract();
+            theVoucher->SetAsVoucher(theServerNymID, theVoucherAcctID);
+            theVoucher->SignContract(theServerNym);
+            theVoucher->SaveContract();
 
             // Send the voucher to the payments inbox of the recipient.
             //
-            const String strVoucher(theVoucher);
-            OTPayment thePayment(
-                server_.API().Wallet(), server_.API().DataFolder(), strVoucher);
+            const String strVoucher(*theVoucher);
+            auto thePayment{
+                server_.API().Factory().Payment(server_.API(), strVoucher)};
+
+            OT_ASSERT(false != bool(thePayment));
 
             // calls DropMessageToNymbox
             bSent = server_.SendInstrumentToNym(
                 theNotaryID,
                 theServerNymID,  // sender nym
                 RECIPIENT_ID,    // recipient nym
-                thePayment,
+                *thePayment,
                 "payDividend");    // todo: hardcoding.
             bReturnValue = bSent;  // <======= RETURN VALUE.
             if (bSent)
@@ -202,13 +204,12 @@ bool PayDividendVisitor::Trigger(
         // came from.
         //
         if (!bSent) {
-            Cheque theReturnVoucher(
-                server_.API().Wallet(),
-                server_.API().DataFolder(),
-                theNotaryID,
-                Identifier::Factory());
+            auto theReturnVoucher{server_.API().Factory().Cheque(
+                server_.API(), theNotaryID, Identifier::Factory())};
 
-            const bool bIssueReturnVoucher = theReturnVoucher.IssueCheque(
+            OT_ASSERT(false != bool(theReturnVoucher));
+
+            const bool bIssueReturnVoucher = theReturnVoucher->IssueCheque(
                 lPayoutAmount,          // The amount of the cheque.
                 lNewTransactionNumber,  // Requiring a transaction number
                                         // prevents double-spending of cheques.
@@ -229,25 +230,26 @@ bool PayDividendVisitor::Trigger(
                 // to
                 // "VOUCHER" instead of "CHEQUE".
                 //
-                theReturnVoucher.SetAsVoucher(theServerNymID, theVoucherAcctID);
-                theReturnVoucher.SignContract(theServerNym);
-                theReturnVoucher.SaveContract();
+                theReturnVoucher->SetAsVoucher(
+                    theServerNymID, theVoucherAcctID);
+                theReturnVoucher->SignContract(theServerNym);
+                theReturnVoucher->SaveContract();
 
                 // Return the voucher back to the payments inbox of the original
                 // sender.
                 //
-                const String strReturnVoucher(theReturnVoucher);
-                OTPayment theReturnPayment(
-                    server_.API().Wallet(),
-                    server_.API().DataFolder(),
-                    strReturnVoucher);
+                const String strReturnVoucher(*theReturnVoucher);
+                auto theReturnPayment{server_.API().Factory().Payment(
+                    server_.API(), strReturnVoucher)};
+
+                OT_ASSERT(false != bool(theReturnPayment));
 
                 // calls DropMessageToNymbox
                 bSent = server_.SendInstrumentToNym(
                     theNotaryID,
                     theServerNymID,  // sender nym
                     theSenderNymID,  // recipient nym (original sender.)
-                    theReturnPayment,
+                    *theReturnPayment,
                     "payDividend");  // todo: hardcoding.
                 if (bSent)
                     m_lAmountReturned +=

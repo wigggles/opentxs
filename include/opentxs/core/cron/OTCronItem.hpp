@@ -68,17 +68,11 @@ public:
     inline void FlagForRemoval() { m_bRemovalFlag = true; }
     inline void SetCronPointer(OTCron& theCron) { m_pCron = &theCron; }
 
-    EXPORT static OTCronItem* NewCronItem(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strCronItem);
-    EXPORT static OTCronItem* LoadCronReceipt(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+    EXPORT static std::unique_ptr<OTCronItem> LoadCronReceipt(
+        const api::Core& core,
         const TransactionNumber& lTransactionNum);  // Server-side only.
-    EXPORT static OTCronItem* LoadActiveCronReceipt(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+    EXPORT static std::unique_ptr<OTCronItem> LoadActiveCronReceipt(
+        const api::Core& core,
         const TransactionNumber& lTransactionNum,
         const Identifier& notaryID);  // Client-side only.
     EXPORT static bool EraseActiveCronReceipt(
@@ -195,18 +189,16 @@ protected:
     void ClearClosingNumbers();
 
     OTCronItem(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
     OTCronItem(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& ACCT_ID,
         const Identifier& NYM_ID);
-    OTCronItem(const api::Wallet& wallet, const std::string& dataFolder);
+    OTCronItem(const api::Core& core);
 
 private:
     typedef OTTrackable ot_super;

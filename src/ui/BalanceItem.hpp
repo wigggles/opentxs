@@ -33,7 +33,6 @@ public:
 
 protected:
     const api::client::Sync& sync_;
-    const api::Wallet& wallet_;
     const OTIdentifier nym_id_;
     const StorageBox type_{StorageBox::UNKNOWN};
     std::string text_{""};
@@ -51,7 +50,6 @@ protected:
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
         const api::client::Sync& sync,
-        const api::Wallet& wallet,
         const Identifier& nymID,
         const Identifier& accountID);
 
@@ -80,7 +78,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Legacy& legacy_;
+    const api::Core& core_;
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
     mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
 
@@ -99,8 +97,7 @@ private:
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
         const api::client::Sync& sync,
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& accountID);
 

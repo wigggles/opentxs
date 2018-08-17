@@ -70,10 +70,8 @@ public:
     EXPORT bool IsIssuer() const;
     // For accounts used by smart contracts, to stash funds while running.
     EXPORT bool IsStashAcct() const { return (acctType_ == stash); }
-    // Caller responsible to delete.
-    EXPORT Ledger* LoadInbox(const Nym& nym) const;
-    // Caller responsible to delete.
-    EXPORT Ledger* LoadOutbox(const Nym& nym) const;
+    EXPORT std::unique_ptr<Ledger> LoadInbox(const Nym& nym) const;
+    EXPORT std::unique_ptr<Ledger> LoadOutbox(const Nym& nym) const;
     // Compares the NymID loaded from the account file with whatever Nym the
     // programmer wants to verify.
     EXPORT bool VerifyOwner(const Nym& candidate) const;
@@ -107,10 +105,6 @@ private:
     friend OTWallet;
     friend opentxs::api::implementation::Wallet;
     friend opentxs::api::server::implementation::Wallet;
-    friend OTTransactionType* OTTransactionType::TransactionFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String input);
 
     AccountType acctType_{err_acct};
     // These are all the variables from the account file itself.
@@ -131,8 +125,7 @@ private:
     OTIdentifier outboxHash_;
 
     static Account* GenerateNewAccount(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& notaryID,
         const Nym& serverNym,
@@ -143,8 +136,7 @@ private:
     // Let's say you don't have or know the NymID, and you just want to load
     // the damn thing up. Then call this function. It will set nymID for you.
     static Account* LoadExistingAccount(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& accountId,
         const Identifier& notaryID);
 
@@ -153,7 +145,7 @@ private:
     bool create_box(
         std::unique_ptr<Ledger>& box,
         const Nym& signer,
-        const Ledger::ledgerType type);
+        const ledgerType type);
     bool GenerateNewAccount(
         const Nym& server,
         const Identifier& userNymID,
@@ -182,24 +174,21 @@ private:
     void UpdateContents() override;
 
     Account(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID,
         const String& name);
     Account(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& accountId,
         const Identifier& notaryID);
     Account(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& notaryID);
-    Account(const api::Wallet& wallet, const std::string& dataFolder);
+    Account(const api::Core& core);
     Account() = delete;
 };
 }  // namespace opentxs

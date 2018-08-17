@@ -7,6 +7,8 @@
 
 #include "opentxs/client/Helpers.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -35,17 +37,15 @@ namespace opentxs
 // the transaction ID of one of those receipts might contain
 // a purse or something, that the caller wants to retrieve.
 //
-// Caller is responsible to delete.
-//
-OTPayment* GetInstrumentByReceiptID(
+std::shared_ptr<OTPayment> GetInstrumentByReceiptID(
     const Nym& theNym,
     const std::int64_t& lReceiptId,
     Ledger& ledger)
 {
     OT_VERIFY_MIN_BOUND(lReceiptId, 1);
 
-    OTTransaction* pTransaction = ledger.GetTransaction(lReceiptId);
-    if (nullptr == pTransaction) {
+    auto pTransaction = ledger.GetTransaction(lReceiptId);
+    if (false == bool(pTransaction)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": supposedly good receipt ID, but uncovered nullptr "
                  "transaction: "
@@ -55,15 +55,15 @@ OTPayment* GetInstrumentByReceiptID(
     return GetInstrument(theNym, ledger, pTransaction);
 }
 // ------------------------------------------------------------
-OTPayment* GetInstrumentByIndex(
+std::shared_ptr<OTPayment> GetInstrumentByIndex(
     const Nym& theNym,
     const std::int32_t& nIndex,
     Ledger& ledger)
 {
     OT_VERIFY_BOUNDS(nIndex, 0, ledger.GetTransactionCount());
 
-    OTTransaction* pTransaction = ledger.GetTransactionByIndex(nIndex);
-    if (nullptr == pTransaction) {
+    auto pTransaction = ledger.GetTransactionByIndex(nIndex);
+    if (false == bool(pTransaction)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": supposedly good index, but uncovered nullptr transaction: "
               << nIndex << "\n";
@@ -75,14 +75,13 @@ OTPayment* GetInstrumentByIndex(
 // For paymentsInbox and possibly the Nym's recordbox / expired box.
 // (Starting to write it now...)
 // Returns financial instrument contained in receipt.
-// Caller responsible to delete.
 //
-OTPayment* GetInstrument(
+std::shared_ptr<OTPayment> GetInstrument(
     const Nym& theNym,
     Ledger& ledger,
-    OTTransaction*& pTransaction)
+    std::shared_ptr<OTTransaction> pTransaction)
 {
-    OT_ASSERT(nullptr != pTransaction);
+    OT_ASSERT(false != bool(pTransaction));
 
     const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
@@ -104,7 +103,7 @@ OTPayment* GetInstrument(
         pTransaction =
             ledger.GetTransaction(static_cast<std::int64_t>(lTransactionNum));
 
-        if (nullptr == pTransaction) {
+        if (false == bool(pTransaction)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": good index but uncovered nullptr "
                      "after trying to load full version of abbreviated receipt "
@@ -130,9 +129,9 @@ OTPayment* GetInstrument(
     object, 3. ...which contains the actual instrument.
     */
 
-    if ((OTTransaction::instrumentNotice != pTransaction->GetType()) &&
-        (OTTransaction::payDividend != pTransaction->GetType()) &&
-        (OTTransaction::notice != pTransaction->GetType())) {
+    if ((transactionType::instrumentNotice != pTransaction->GetType()) &&
+        (transactionType::payDividend != pTransaction->GetType()) &&
+        (transactionType::notice != pTransaction->GetType())) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failure: Expected OTTransaction::instrumentNotice, "
                  "::payDividend or ::notice, "
@@ -146,27 +145,27 @@ OTPayment* GetInstrument(
     // not abbreviated, and is one of the accepted receipt types
     // that would contain the sort of instrument we're looking for.
     //
-    OTPayment* pPayment =
+    auto pPayment =
         extract_payment_instrument_from_notice(theNym, pTransaction);
 
     return pPayment;
 }
 
 // Low-level.
-OTPayment* extract_payment_instrument_from_notice(
+std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
     const Nym& theNym,
-    OTTransaction*& pTransaction)
+    std::shared_ptr<OTTransaction> pTransaction)
 {
     const bool bValidNotice =
-        (OTTransaction::instrumentNotice == pTransaction->GetType()) ||
-        (OTTransaction::payDividend == pTransaction->GetType()) ||
-        (OTTransaction::notice == pTransaction->GetType());
+        (transactionType::instrumentNotice == pTransaction->GetType()) ||
+        (transactionType::payDividend == pTransaction->GetType()) ||
+        (transactionType::notice == pTransaction->GetType());
     OT_NEW_ASSERT_MSG(
         bValidNotice, "Invalid receipt type passed to this function.");
     // ----------------------------------------------------------------
-    if ((OTTransaction::instrumentNotice ==
+    if ((transactionType::instrumentNotice ==
          pTransaction->GetType()) ||  // It's encrypted.
-        (OTTransaction::payDividend == pTransaction->GetType())) {
+        (transactionType::payDividend == pTransaction->GetType())) {
         String strMsg;
         pTransaction->GetReferenceString(strMsg);
 
@@ -178,9 +177,8 @@ OTPayment* extract_payment_instrument_from_notice(
             return nullptr;
         }
         // --------------------
-        std::unique_ptr<Message> pMsg(
-            new Message{pTransaction->Wallet(), pTransaction->DataFolder()});
-        if (!pMsg) {
+        auto pMsg{pTransaction->Core().Factory().Message(pTransaction->Core())};
+        if (false == bool(pMsg)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Null:  Assert while allocating memory "
                      "for an OTMessage!\n";
@@ -227,32 +225,32 @@ OTPayment* extract_payment_instrument_from_notice(
             // strEnvelopeContents contains a PURSE or CHEQUE
             // (etc) and not specifically a generic "PAYMENT".
             //
-            std::unique_ptr<OTPayment> pPayment(new OTPayment(
-                pTransaction->Wallet(),
-                pTransaction->DataFolder(),
-                strEnvelopeContents));
-            if (!pPayment || !pPayment->IsValid())
+            auto pPayment{pTransaction->Core().Factory().Payment(
+                pTransaction->Core(), strEnvelopeContents)};
+            if (false == bool(pPayment) || !pPayment->IsValid())
                 otOut << OT_METHOD << __FUNCTION__
                       << ": Failed: after decryption, payment is invalid. "
                          "Contents:\n\n"
                       << strEnvelopeContents << "\n\n";
             else  // success.
             {
-                return pPayment.release();  // Caller responsible to delete.
+                std::shared_ptr<OTPayment> payment{pPayment.release()};
+                return payment;
             }
         }
-    } else if (OTTransaction::notice == pTransaction->GetType()) {
+    } else if (transactionType::notice == pTransaction->GetType()) {
         String strNotice(*pTransaction);
-        std::unique_ptr<OTPayment> pPayment(new OTPayment(
-            pTransaction->Wallet(), pTransaction->DataFolder(), strNotice));
+        auto pPayment{pTransaction->Core().Factory().Payment(
+            pTransaction->Core(), strNotice)};
 
-        if (!pPayment || !pPayment->IsValid())
+        if (false == bool(pPayment) || !pPayment->IsValid())
             otOut << OT_METHOD << __FUNCTION__
                   << ": Failed: the notice is invalid. Contents:\n\n"
                   << strNotice << "\n\n";
         else  // success.
         {
-            return pPayment.release();  // Caller responsible to delete.
+            std::shared_ptr<OTPayment> payment{pPayment.release()};
+            return payment;
         }
     }
 

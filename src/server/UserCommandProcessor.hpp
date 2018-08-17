@@ -44,7 +44,7 @@ private:
     {
     public:
         FinalizeResponse(
-            const api::Wallet& wallet,
+            const api::Core& core,
             const Nym& nym,
             ReplyMessage& reply,
             Ledger& ledger);
@@ -61,7 +61,7 @@ private:
         ~FinalizeResponse();
 
     private:
-        const api::Wallet& wallet_;
+        const api::Core& core_;
         const Nym& nym_;
         ReplyMessage& reply_;
         Ledger& ledger_;

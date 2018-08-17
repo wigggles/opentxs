@@ -66,11 +66,11 @@
 namespace opentxs::server
 {
 UserCommandProcessor::FinalizeResponse::FinalizeResponse(
-    const api::Wallet& wallet,
+    const api::Core& core,
     const Nym& nym,
     ReplyMessage& reply,
     Ledger& ledger)
-    : wallet_{wallet}
+    : core_{core}
     , nym_(nym)
     , reply_(reply)
     , ledger_(ledger)
@@ -107,12 +107,14 @@ void UserCommandProcessor::FinalizeResponse::SetResponse(
 UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
 {
     if ((false == bool(response_)) && (0 == counter_)) {
-        response_.reset(OTTransaction::GenerateTransaction(
-            wallet_,
-            ledger_,
-            OTTransaction::error_state,
-            originType::not_applicable,
-            0));
+        response_.reset(core_.Factory()
+                            .Transaction(
+                                core_,
+                                ledger_,
+                                transactionType::error_state,
+                                originType::not_applicable,
+                                0)
+                            .release());
 
         if (false == response_->SignContract(nym_)) {
             otErr << OT_METHOD << __FUNCTION__
@@ -128,7 +130,8 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
             OT_FAIL;
         }
 
-        if (false == ledger_.AddTransaction(*response_.release())) {
+        std::shared_ptr<OTTransaction> presponse{response_.release()};
+        if (false == ledger_.AddTransaction(presponse)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to add response transaction to response ledger."
                   << std::endl;
@@ -197,7 +200,7 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
     }
 
     // Note: I decided against adding newly-requested transaction
-    // numbers to existing OTTransaction::blanks in the Nymbox.
+    // numbers to existing transactionType::blanks in the Nymbox.
     // Why not? Because once the user downloads the Box Receipt, he will
     // think he has it already, when the Server meanwhile
     // has a new version of that same Box Receipt. But the user will
@@ -207,13 +210,14 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
     // numbers now, we don't NEED to be able to combine them
     // anyway, since the problem is still effectively solved.
 
-    std::unique_ptr<OTTransaction> transaction{nullptr};
-    transaction.reset(OTTransaction::GenerateTransaction(
-        server_.API().Wallet(),
+    auto transaction{manager_.Factory().Transaction(
+        manager_,
         nymbox,
-        OTTransaction::blank,
+        transactionType::blank,
         originType::not_applicable,
-        transactionNumber));
+        transactionNumber)};
+
+    OT_ASSERT(false != bool(transaction));
 
     if (transaction) {
         transaction->AddNumbersToTransaction(newNumbers);
@@ -227,7 +231,8 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
         // receipt is removed from a box.
         transaction->SaveBoxReceipt(nymbox);
 
-        nymbox.AddTransaction(*transaction.release());
+        std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
+        nymbox.AddTransaction(ptransaction);
         nymbox.ReleaseSignatures();
         nymbox.SignContract(server_.GetServerNym());
         nymbox.SaveContract();
@@ -267,14 +272,13 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     // list, we will want to save (at the end.)
     auto numlist_ack_reply = reply.Acknowledged();
     const auto nymID = Identifier::Factory(context.RemoteNym().ID());
-    Ledger nymbox(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        nymID,
-        context.Server());
+    auto nymbox{
+        manager_.Factory().Ledger(manager_, nymID, nymID, context.Server())};
 
-    if (nymbox.LoadNymbox() && nymbox.VerifySignature(server_.GetServerNym())) {
+    OT_ASSERT(false != bool(nymbox));
+
+    if (nymbox->LoadNymbox() &&
+        nymbox->VerifySignature(server_.GetServerNym())) {
         bool bIsDirtyNymbox = false;
 
         for (auto& it : numlist_ack_reply) {
@@ -291,14 +295,13 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
             if (!context.VerifyAcknowledgedNumber(lRequestNum)) {
                 // Verify whether a replyNotice exists in the Nymbox, with
                 // that lRequestNum
-                OTTransaction* pReplyNotice =
-                    nymbox.GetReplyNotice(lRequestNum);
+                auto pReplyNotice = nymbox->GetReplyNotice(lRequestNum);
 
-                if (nullptr != pReplyNotice) {
+                if (false != bool(pReplyNotice)) {
                     // If so, remove it...
                     const bool bDeleted =
-                        pReplyNotice->DeleteBoxReceipt(nymbox);
-                    const bool bRemoved = nymbox.RemoveTransaction(
+                        pReplyNotice->DeleteBoxReceipt(*nymbox);
+                    const bool bRemoved = nymbox->RemoveTransaction(
                         pReplyNotice->GetTransactionNum());  // deletes
                     pReplyNotice = nullptr;
                     // (pReplyNotice is deleted, below this point,
@@ -319,10 +322,10 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
         }
 
         if (bIsDirtyNymbox) {
-            nymbox.ReleaseSignatures();
-            nymbox.SignContract(server_.GetServerNym());
-            nymbox.SaveContract();
-            nymbox.SaveNymbox(Identifier::Factory());
+            nymbox->ReleaseSignatures();
+            nymbox->SignContract(server_.GetServerNym());
+            nymbox->SaveContract();
+            nymbox->SaveNymbox(Identifier::Factory());
         }
     }
 
@@ -857,7 +860,7 @@ bool UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
     // that's doesn't mean we're going to fail HERE, now does it?)
     transaction = box->GetTransaction(number);
 
-    if (false == verify_transaction(transaction, serverNym)) {
+    if (false == verify_transaction(transaction.get(), serverNym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid box item."
               << std::endl;
 
@@ -935,10 +938,10 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
 
     if (depth < 0) { depth = 0; }
 
-    auto market =
+    const auto market =
         server_.Cron().GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
-    if (nullptr == market) { return false; }
+    if (false == bool(market)) { return false; }
 
     Armored output{};
     std::int32_t nOfferCount{0};
@@ -965,10 +968,10 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_recent_trades);
 
-    auto market =
+    const auto market =
         server_.Cron().GetMarket(Identifier::Factory(msgIn.m_strNymID2));
 
-    if (nullptr == market) { return false; }
+    if (false == bool(market)) { return false; }
 
     Armored output;
     std::int32_t count = 0;
@@ -1150,12 +1153,10 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
     bool bSuccess = true;
     bool bSavedNymbox = false;
     const auto& serverID = context.Server();
-    Ledger theLedger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        nymID,
-        serverID);
+    auto theLedger{manager_.Factory().Ledger(manager_, nymID, nymID, serverID)};
+
+    OT_ASSERT(false != bool(theLedger));
+
     NumList theNumlist;
 
     for (std::int32_t i = 0; i < ISSUE_NUMBER_BATCH; i++) {
@@ -1190,14 +1191,14 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
             transactionNumber,
             theNumlist,
             bSavedNymbox,
-            theLedger,
+            *theLedger,
             NYMBOX_HASH));
     }
 
     if (bSavedNymbox) {
         context.SetLocalNymboxHash(NYMBOX_HASH);
     } else if (reply.Success()) {
-        theLedger.CalculateNymboxHash(NYMBOX_HASH);
+        theLedger->CalculateNymboxHash(NYMBOX_HASH);
         context.SetLocalNymboxHash(NYMBOX_HASH);
     }
 
@@ -1391,23 +1392,17 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     const auto& serverNymID = serverNym.ID();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
-    std::unique_ptr<Ledger> input(new Ledger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID));
-    std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
+    auto input{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto responseLedger{manager_.Factory().Ledger(
+        manager_,
         serverNymID,
         accountID,
         serverID,
-        Ledger::message,
-        false));
+        ledgerType::message,
+        false)};
 
-    OT_ASSERT(input);
-    OT_ASSERT(responseLedger);
+    OT_ASSERT(false != bool(input));
+    OT_ASSERT(false != bool(responseLedger));
 
     if (false == hash_check(context, nymboxHash)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Nymbox hash mismatch."
@@ -1425,8 +1420,7 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
 
     // Returning before this point will result in the reply message
     // m_bSuccess = false, and no reply ledger
-    FinalizeResponse response(
-        server_.API().Wallet(), serverNym, reply, *responseLedger);
+    FinalizeResponse response(manager_, serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
     // Returning after this point will result in the reply message
@@ -1444,12 +1438,14 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
         }
 
         const auto inputNumber = transaction->GetTransactionNum();
-        response.SetResponse(OTTransaction::GenerateTransaction(
-            server_.API().Wallet(),
-            *responseLedger,
-            OTTransaction::error_state,
-            originType::not_applicable,
-            inputNumber));
+        response.SetResponse(manager_.Factory()
+                                 .Transaction(
+                                     manager_,
+                                     *responseLedger,
+                                     transactionType::error_state,
+                                     originType::not_applicable,
+                                     inputNumber)
+                                 .release());
 
         bool success{false};
         server_.GetNotary().NotarizeTransaction(
@@ -1476,7 +1472,8 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
             "Transaction number and response number should "
             "always be the same. (But this time, they weren't.)");
 
-        if (false == responseLedger->AddTransaction(*response.Release())) {
+        std::shared_ptr<OTTransaction> ptransaction{response.Release()};
+        if (false == responseLedger->AddTransaction(ptransaction)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to add response transaction to response ledger."
                   << std::endl;
@@ -1511,23 +1508,17 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     const auto& nym = reply.Context().RemoteNym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
-    std::unique_ptr<Ledger> input(new Ledger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID));
-    std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
+    auto input{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto responseLedger{manager_.Factory().Ledger(
+        manager_,
         serverNymID,
         accountID,
         serverID,
-        Ledger::message,
-        false));
+        ledgerType::message,
+        false)};
 
-    OT_ASSERT(input);
-    OT_ASSERT(responseLedger);
+    OT_ASSERT(false != bool(input));
+    OT_ASSERT(false != bool(responseLedger));
 
     if (false == hash_check(context, nymboxHash)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Nymbox hash mismatch."
@@ -1547,7 +1538,7 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
 
     if (false == bool(account)) { return false; }
 
-    auto processInbox = input->GetTransaction(OTTransaction::processInbox);
+    auto processInbox = input->GetTransaction(transactionType::processInbox);
 
     if (nullptr == processInbox) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1595,16 +1586,17 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     // Returning after this point will result in the reply message
     // m_bSuccess = true, and a signed reply ledger containing at least one
     // transaction
-    FinalizeResponse response(
-        server_.API().Wallet(), serverNym, reply, *responseLedger);
+    FinalizeResponse response(manager_, serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
-    response.SetResponse(OTTransaction::GenerateTransaction(
-        server_.API().Wallet(),
-        *responseLedger,
-        OTTransaction::error_state,
-        originType::not_applicable,
-        inputNumber));
+    response.SetResponse(manager_.Factory()
+                             .Transaction(
+                                 manager_,
+                                 *responseLedger,
+                                 transactionType::error_state,
+                                 originType::not_applicable,
+                                 inputNumber)
+                             .release());
     bool transactionSuccess{false};
     server_.GetNotary().NotarizeProcessInbox(
         context,
@@ -1636,7 +1628,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         "Transaction number and response number should "
         "always be the same. (But this time, they weren't.)");
 
-    if (false == responseLedger->AddTransaction(*response.Release())) {
+    std::shared_ptr<OTTransaction> ptransaction{response.Release()};
+    if (false == responseLedger->AddTransaction(ptransaction)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to add response transaction to response ledger."
               << std::endl;
@@ -1659,23 +1652,12 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     auto nymboxHash = Identifier::Factory();
-    std::unique_ptr<Ledger> input(new Ledger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        nymID,
-        serverID));
-    std::unique_ptr<Ledger> responseLedger(Ledger::GenerateLedger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        serverNymID,
-        nymID,
-        serverID,
-        Ledger::message,
-        false));
+    auto input{manager_.Factory().Ledger(manager_, nymID, nymID, serverID)};
+    auto responseLedger{manager_.Factory().Ledger(
+        manager_, serverNymID, nymID, serverID, ledgerType::message, false)};
 
-    OT_ASSERT(input);
-    OT_ASSERT(responseLedger);
+    OT_ASSERT(false != bool(input));
+    OT_ASSERT(false != bool(responseLedger));
 
     if (false == hash_check(context, nymboxHash)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Nymbox hash mismatch."
@@ -1693,8 +1675,7 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
 
     // Returning before this point will result in the reply message
     // m_bSuccess = false, and no reply ledger
-    FinalizeResponse response(
-        server_.API().Wallet(), serverNym, reply, *responseLedger);
+    FinalizeResponse response(manager_, serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
     // Returning after this point will result in the reply message
@@ -1712,12 +1693,14 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
         }
 
         const auto inputNumber = transaction->GetTransactionNum();
-        response.SetResponse(OTTransaction::GenerateTransaction(
-            server_.API().Wallet(),
-            *responseLedger,
-            OTTransaction::error_state,
-            originType::not_applicable,
-            transaction->GetTransactionNum()));
+        response.SetResponse(manager_.Factory()
+                                 .Transaction(
+                                     manager_,
+                                     *responseLedger,
+                                     transactionType::error_state,
+                                     originType::not_applicable,
+                                     transaction->GetTransactionNum())
+                                 .release());
 
         bool success{false};
         server_.GetNotary().NotarizeProcessNymbox(
@@ -1738,7 +1721,8 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
             "Transaction number and response number should "
             "always be the same. (But this time, they weren't.)");
 
-        if (false == responseLedger->AddTransaction(*response.Release())) {
+        std::shared_ptr<OTTransaction> ptransaction{response.Release()};
+        if (false == responseLedger->AddTransaction(ptransaction)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to add response transaction to response ledger."
                   << std::endl;
@@ -1850,51 +1834,47 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     auto accountID = Identifier::Factory();
     account.get().GetIdentifier(accountID);
-    Ledger outbox(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID);
-    Ledger inbox(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID);
-    bool inboxLoaded = inbox.LoadInbox();
-    bool outboxLoaded = outbox.LoadOutbox();
+    auto outbox{
+        manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto inbox{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+
+    OT_ASSERT(false != bool(outbox));
+    OT_ASSERT(false != bool(inbox));
+
+    bool inboxLoaded = inbox->LoadInbox();
+    bool outboxLoaded = outbox->LoadOutbox();
 
     // ...or generate them otherwise...
 
     if (inboxLoaded) {
-        inboxLoaded = inbox.VerifyAccount(serverNym);
+        inboxLoaded = inbox->VerifyAccount(serverNym);
     } else {
-        inboxLoaded =
-            inbox.CreateLedger(nymID, accountID, serverID, Ledger::inbox, true);
+        inboxLoaded = inbox->CreateLedger(
+            nymID, accountID, serverID, ledgerType::inbox, true);
 
-        if (inboxLoaded) { inboxLoaded = inbox.SignContract(serverNym); }
+        if (inboxLoaded) { inboxLoaded = inbox->SignContract(serverNym); }
 
-        if (inboxLoaded) { inboxLoaded = inbox.SaveContract(); }
+        if (inboxLoaded) { inboxLoaded = inbox->SaveContract(); }
 
         if (inboxLoaded) {
-            inboxLoaded = account.get().SaveInbox(inbox, Identifier::Factory());
+            inboxLoaded =
+                account.get().SaveInbox(*inbox, Identifier::Factory());
         }
     }
 
     if (true == outboxLoaded) {
-        outboxLoaded = outbox.VerifyAccount(serverNym);
+        outboxLoaded = outbox->VerifyAccount(serverNym);
     } else {
-        outboxLoaded = outbox.CreateLedger(
-            nymID, accountID, serverID, Ledger::outbox, true);
+        outboxLoaded = outbox->CreateLedger(
+            nymID, accountID, serverID, ledgerType::outbox, true);
 
-        if (outboxLoaded) { outboxLoaded = outbox.SignContract(serverNym); }
+        if (outboxLoaded) { outboxLoaded = outbox->SignContract(serverNym); }
 
-        if (outboxLoaded) { outboxLoaded = outbox.SaveContract(); }
+        if (outboxLoaded) { outboxLoaded = outbox->SaveContract(); }
 
         if (outboxLoaded) {
             outboxLoaded =
-                account.get().SaveOutbox(outbox, Identifier::Factory());
+                account.get().SaveOutbox(*outbox, Identifier::Factory());
         }
     }
 
@@ -2034,6 +2014,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
     server_.GetMainFile().SaveMainFile();
 
     if (false == account.get().InitBoxes(serverNym)) {
+
         otErr << OT_METHOD << __FUNCTION__
               << ": Error initializing boxes for account " << accountID->str()
               << std::endl;
@@ -2212,7 +2193,7 @@ bool UserCommandProcessor::send_message_to_nym(
         NOTARY_ID,
         SENDER_NYM_ID,
         RECIPIENT_NYM_ID,
-        OTTransaction::message,
+        transactionType::message,
         pMsg);
 }
 
@@ -2242,7 +2223,7 @@ bool UserCommandProcessor::cmd_trigger_clause(ReplyMessage& reply) const
     OTSmartContract* smartContract{nullptr};
     auto cronItem = server_.Cron().GetItemByValidOpeningNum(number);
 
-    if (nullptr == cronItem) {
+    if (false == bool(cronItem)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Can not find smart contract based on transaction number "
               << number << std::endl;
@@ -2250,7 +2231,7 @@ bool UserCommandProcessor::cmd_trigger_clause(ReplyMessage& reply) const
         return false;
     }
 
-    smartContract = dynamic_cast<OTSmartContract*>(cronItem);
+    smartContract = dynamic_cast<OTSmartContract*>(cronItem.get());
 
     if (nullptr == smartContract) {
         otErr << OT_METHOD << __FUNCTION__ << ": Cron item  " << number
@@ -2387,12 +2368,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
     const Identifier& server,
     const Nym& serverNym) const
 {
-    std::unique_ptr<Ledger> nymbox(new Ledger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        nymID,
-        server));
+    auto nymbox{manager_.Factory().Ledger(manager_, nymID, nymID, server)};
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2402,7 +2378,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
         return {};
     }
 
-    if (false == nymbox->GenerateLedger(nymID, server, Ledger::nymbox, true)) {
+    if (false ==
+        nymbox->GenerateLedger(nymID, server, ledgerType::nymbox, true)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to generate nymbox for "
               << String(nymID) << std::endl;
 
@@ -2436,14 +2413,17 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    Ledger theNymbox(
-        wallet, context.LegacyDataFolder(), nymID, nymID, serverID);
-    bool bSuccessLoadingNymbox = theNymbox.LoadNymbox();
+    auto theNymbox{
+        server.API().Factory().Ledger(server.API(), nymID, nymID, serverID)};
+
+    OT_ASSERT(false != bool(theNymbox));
+
+    bool bSuccessLoadingNymbox = theNymbox->LoadNymbox();
 
     if (true == bSuccessLoadingNymbox) {
         bSuccessLoadingNymbox =
-            (theNymbox.VerifyContractID() &&
-             theNymbox.VerifySignature(serverNym));
+            (theNymbox->VerifyContractID() &&
+             theNymbox->VerifySignature(serverNym));
     }
 
     if (!bSuccessLoadingNymbox) {
@@ -2462,24 +2442,24 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
         lReplyNoticeTransNum = 0;
         otErr << OT_METHOD << __FUNCTION__
               << "Error getting next transaction number for an "
-              << "OTTransaction::replyNotice." << std::endl;
+              << "transactionType::replyNotice." << std::endl;
 
         return;
     }
 
-    OTTransaction* pReplyNotice = OTTransaction::GenerateTransaction(
-        wallet,
-        theNymbox,
-        OTTransaction::replyNotice,
+    auto pReplyNotice{server.API().Factory().Transaction(
+        server.API(),
+        *theNymbox,
+        transactionType::replyNotice,
         originType::not_applicable,
-        lReplyNoticeTransNum);
+        lReplyNoticeTransNum)};
 
-    OT_ASSERT(nullptr != pReplyNotice);
+    OT_ASSERT(false != bool(pReplyNotice));
 
-    Item* pReplyNoticeItem = Item::CreateItemFromTransaction(
-        *pReplyNotice, Item::replyNotice, Identifier::Factory());
+    auto pReplyNoticeItem{server.API().Factory().Item(
+        *pReplyNotice, itemType::replyNotice, Identifier::Factory())};
 
-    OT_ASSERT(nullptr != pReplyNoticeItem);
+    OT_ASSERT(false != bool(pReplyNoticeItem));
 
     // Nymbox notice is always a success. It's just a notice. (The message
     // inside it will have success/failure also, and any transaction inside that
@@ -2498,19 +2478,21 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     // MESSAGE was successful. (Meaning, the balance agreement might have
     // failed, and the transaction might have failed, but the MESSAGE ITSELF
     // must be a success, in order for the replyNotice to appear in the Nymbox.)
-    pReplyNotice->AddItem(*pReplyNoticeItem);
+    std::shared_ptr<Item> replyNoticeItem{pReplyNoticeItem.release()};
+    pReplyNotice->AddItem(replyNoticeItem);
     pReplyNotice->SetRequestNum(lRequestNum);
     pReplyNotice->SetReplyTransSuccess(bReplyTransSuccess);
     pReplyNotice->SignContract(serverNym);
     pReplyNotice->SaveContract();
-    // Add the replyNotice to the nymbox. It takes ownership.
-    theNymbox.AddTransaction(*pReplyNotice);
-    theNymbox.ReleaseSignatures();
-    theNymbox.SignContract(serverNym);
-    theNymbox.SaveContract();
+    // Add the replyNotice to the nymbox.
+    std::shared_ptr<OTTransaction> replyNotice{pReplyNotice.release()};
+    theNymbox->AddTransaction(replyNotice);
+    theNymbox->ReleaseSignatures();
+    theNymbox->SignContract(serverNym);
+    theNymbox->SaveContract();
     auto NYMBOX_HASH = Identifier::Factory();
-    theNymbox.SaveNymbox(NYMBOX_HASH);
-    pReplyNotice->SaveBoxReceipt(theNymbox);
+    theNymbox->SaveNymbox(NYMBOX_HASH);
+    replyNotice->SaveBoxReceipt(*theNymbox);
     context.SetLocalNymboxHash(NYMBOX_HASH);
 }
 
@@ -2577,13 +2559,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
         return {};
     }
 
-    std::unique_ptr<Ledger> inbox;
-    inbox.reset(new Ledger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID));
+    auto inbox{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2620,13 +2596,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
     const Nym& serverNym,
     const bool verifyAccount) const
 {
-    std::unique_ptr<Ledger> nymbox;
-    nymbox.reset(new Ledger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        nymID,
-        serverID));
+    auto nymbox{manager_.Factory().Ledger(manager_, nymID, nymID, serverID)};
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2673,13 +2643,8 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
         return {};
     }
 
-    std::unique_ptr<Ledger> outbox;
-    outbox.reset(new Ledger(
-        server_.API().Wallet(),
-        server_.API().DataFolder(),
-        nymID,
-        accountID,
-        serverID));
+    auto outbox{
+        manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
 
     if (false == bool(outbox)) {
         otErr << OT_METHOD << __FUNCTION__

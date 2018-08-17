@@ -6,6 +6,7 @@
 #include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Purse.hpp"
@@ -22,20 +23,17 @@
 
 namespace opentxs
 {
-api::client::Cash* Factory::Cash(
-    const api::Legacy& legacy,
-    const api::Wallet& wallet)
+api::client::Cash* Factory::Cash(const api::Core& core)
 {
-    return new api::client::implementation::Cash(legacy, wallet);
+    return new api::client::implementation::Cash(core);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 #if OT_CASH
-Cash::Cash(const Legacy& legacy, const Wallet& wallet)
-    : legacy_(legacy)
-    , wallet_(wallet)
+Cash::Cash(const Core& core)
+    : core_(core)
 {
 }
 
@@ -260,16 +258,14 @@ std::int32_t Cash::withdraw_and_export_cash_low_level(
     }
     // By this point, exportedCash and retainedCopy should both be valid.
 
-    std::shared_ptr<const Purse> pRecipientCopy(Purse::PurseFactory(
-        wallet_, legacy_.ClientDataFolder(), String(exportedCash)));
-    std::shared_ptr<const Purse> pSenderCopy(Purse::PurseFactory(
-        wallet_, legacy_.ClientDataFolder(), String(retainedCopy)));
+    auto pRecipientCopy{core_.Factory().Purse(core_, String(exportedCash))};
+    auto pSenderCopy{core_.Factory().Purse(core_, String(retainedCopy))};
 
     OT_ASSERT(pRecipientCopy);
     OT_ASSERT(pSenderCopy);
 
-    recipientCopy = pRecipientCopy;
-    senderCopy = pSenderCopy;
+    recipientCopy.reset(pRecipientCopy.release());
+    senderCopy.reset(pSenderCopy.release());
 
     return 1;
 }
@@ -330,13 +326,14 @@ std::int32_t Cash::send_cash(
     }
     // By this point, exportedCash and retainedCopy should both be valid.
 
-    std::shared_ptr<const Purse> recipientCopy(Purse::PurseFactory(
-        wallet_, legacy_.ClientDataFolder(), String(exportedCash)));
-    std::shared_ptr<const Purse> senderCopy(Purse::PurseFactory(
-        wallet_, legacy_.ClientDataFolder(), String(retainedCopy)));
+    auto recipientCopy{core_.Factory().Purse(core_, String(exportedCash))};
+    auto senderCopy{core_.Factory().Purse(core_, String(retainedCopy))};
 
     OT_ASSERT(recipientCopy);
     OT_ASSERT(senderCopy);
+
+    std::shared_ptr<const Purse> precipientCopy{recipientCopy.release()};
+    std::shared_ptr<const Purse> psenderCopy{senderCopy.release()};
 
     response = OT::App()
                    .Client()
@@ -345,8 +342,8 @@ std::int32_t Cash::send_cash(
                        Identifier::Factory(mynym),
                        Identifier::Factory(server),
                        Identifier::Factory(hisnym),
-                       recipientCopy,
-                       senderCopy)
+                       precipientCopy,
+                       psenderCopy)
                    ->Run();
     if (1 != VerifyMessageSuccess(response)) {
         // cannot send cash so try to re-import into sender's purse
@@ -563,8 +560,7 @@ std::int32_t Cash::deposit_purse_low_level(
         return -1;
     }
 
-    std::unique_ptr<Purse> purse(Purse::PurseFactory(
-        wallet_, legacy_.ClientDataFolder(), String(newPurse)));
+    auto purse{core_.Factory().Purse(core_, String(newPurse))};
 
     OT_ASSERT(purse);
 

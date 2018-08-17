@@ -7,6 +7,8 @@
 
 #include "opentxs/core/recurring/OTAgreement.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -39,10 +41,8 @@
 
 namespace opentxs
 {
-OTAgreement::OTAgreement(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : ot_super(wallet, dataFolder)
+OTAgreement::OTAgreement(const api::Core& core)
+    : ot_super(core)
     , m_RECIPIENT_ACCT_ID(Identifier::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_strConsideration()
@@ -53,11 +53,10 @@ OTAgreement::OTAgreement(
 }
 
 OTAgreement::OTAgreement(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_RECIPIENT_ACCT_ID(Identifier::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_strConsideration()
@@ -68,8 +67,7 @@ OTAgreement::OTAgreement(
 }
 
 OTAgreement::OTAgreement(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& SENDER_ACCT_ID,
@@ -77,8 +75,7 @@ OTAgreement::OTAgreement(
     const Identifier& RECIPIENT_ACCT_ID,
     const Identifier& RECIPIENT_NYM_ID)
     : ot_super(
-          wallet,
-          dataFolder,
+          core,
           NOTARY_ID,
           INSTRUMENT_DEFINITION_ID,
           SENDER_ACCT_ID,
@@ -100,8 +97,7 @@ void OTAgreement::setCustomerNymId(const Identifier& NYM_ID)
 }
 
 bool OTAgreement::SendNoticeToAllParties(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     bool bSuccessMsg,
     const Nym& theServerNym,
     const Identifier& theNotaryID,
@@ -117,8 +113,7 @@ bool OTAgreement::SendNoticeToAllParties(
 
     // Sender
     if (!OTAgreement::DropServerNoticeToNymbox(
-            wallet,
-            dataFolder,
+            core,
             bSuccessMsg,  // "success" notice? or "failure" notice?
             theServerNym,
             theNotaryID,
@@ -136,8 +131,7 @@ bool OTAgreement::SendNoticeToAllParties(
 
     // Recipient
     if (!OTAgreement::DropServerNoticeToNymbox(
-            wallet,
-            dataFolder,
+            core,
             bSuccessMsg,  // "success" notice? or "failure" notice?
             theServerNym,
             theNotaryID,
@@ -158,8 +152,7 @@ bool OTAgreement::SendNoticeToAllParties(
 // Used by payment plans and smart contracts. Nym receives an
 // OTItem::acknowledgment or OTItem::rejection.
 bool OTAgreement::DropServerNoticeToNymbox(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     bool bSuccessMsg,
     const Nym& theServerNym,
     const Identifier& NOTARY_ID,
@@ -172,15 +165,18 @@ bool OTAgreement::DropServerNoticeToNymbox(
     String* pstrAttachment,
     const Identifier& actualNymID)
 {
-    Ledger theLedger(wallet, dataFolder, NYM_ID, NYM_ID, NOTARY_ID);
+    auto theLedger{core.Factory().Ledger(core, NYM_ID, NYM_ID, NOTARY_ID)};
+
+    OT_ASSERT(false != bool(theLedger));
+
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theLedger.LoadNymbox();
+    bool bSuccessLoading = theLedger->LoadNymbox();
 
     if (true == bSuccessLoading) {
-        bSuccessLoading = theLedger.VerifyAccount(theServerNym);
+        bSuccessLoading = theLedger->VerifyAccount(theServerNym);
     } else {
-        bSuccessLoading = theLedger.GenerateLedger(
-            NYM_ID, NOTARY_ID, Ledger::nymbox, true);  // bGenerateFile=true
+        bSuccessLoading = theLedger->GenerateLedger(
+            NYM_ID, NOTARY_ID, ledgerType::nymbox, true);  // bGenerateFile=true
     }
 
     if (!bSuccessLoading) {
@@ -191,25 +187,26 @@ bool OTAgreement::DropServerNoticeToNymbox(
         return false;
     }
 
-    OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-        wallet,
-        theLedger,
-        OTTransaction::notice,
+    auto pTransaction{core.Factory().Transaction(
+        core,
+        *theLedger,
+        transactionType::notice,
         theOriginType,
-        lNewTransactionNumber);
+        lNewTransactionNumber)};
 
-    if (nullptr != pTransaction) {
+    if (false != bool(pTransaction)) {
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
         // OTScriptable
 
         // Set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        Item* pItem1 = Item::CreateItemFromTransaction(
-            *pTransaction, Item::notice, Identifier::Factory());
-        OT_ASSERT(nullptr != pItem1);  // This may be unnecessary, I'll have to
-                                       // check CreateItemFromTransaction. I'll
-                                       // leave it for now.
+        auto pItem1{core.Factory().Item(
+            *pTransaction, itemType::notice, Identifier::Factory())};
+        OT_ASSERT(false != bool(pItem1));  // This may be unnecessary, I'll have
+                                           // to check
+                                           // CreateItemFromTransaction. I'll
+                                           // leave it for now.
 
         pItem1->SetStatus(
             bSuccessMsg ? Item::acknowledgement
@@ -240,8 +237,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
             pItem1->SetNote(*pstrNote);  // in markets, this is updated trade.
         }
 
-        // Nothing is special stored here so far for OTTransaction::notice, but
-        // the option is always there.
+        // Nothing is special stored here so far for transactionType::notice,
+        // but the option is always there.
         //
         if (nullptr != pstrAttachment) {
             pItem1->SetAttachment(*pstrAttachment);
@@ -253,36 +250,38 @@ bool OTAgreement::DropServerNoticeToNymbox(
         pItem1->SaveContract();
 
         // the Transaction "owns" the item now and will handle cleaning it up.
-        pTransaction->AddItem(*pItem1);
+        std::shared_ptr<Item> item{pItem1.release()};
+        pTransaction->AddItem(item);
 
         pTransaction->SignContract(theServerNym);
         pTransaction->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
-        theLedger.AddTransaction(*pTransaction);
+        std::shared_ptr<OTTransaction> transaction{pTransaction.release()};
+        theLedger->AddTransaction(transaction);
 
         // Release any signatures that were there before (They won't
         // verify anymore anyway, since the content has changed.)
-        theLedger.ReleaseSignatures();
+        theLedger->ReleaseSignatures();
 
         // Sign and save.
-        theLedger.SignContract(theServerNym);
-        theLedger.SaveContract();
+        theLedger->SignContract(theServerNym);
+        theLedger->SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
 
         auto theNymboxHash = Identifier::Factory();
 
         // Save nymbox to storage. (File, DB, wherever it goes.)
-        (theLedger.SaveNymbox(theNymboxHash));
+        (theLedger->SaveNymbox(theNymboxHash));
 
         // Corresponds to the AddTransaction() call just above. These
         // are stored in a separate file now.
         //
-        pTransaction->SaveBoxReceipt(theLedger);
+        transaction->SaveBoxReceipt(*theLedger);
 
         auto context =
-            wallet.mutable_ClientContext(theServerNym.ID(), actualNymID);
+            core.Wallet().mutable_ClientContext(theServerNym.ID(), actualNymID);
         context.It().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions
@@ -397,8 +396,8 @@ void OTAgreement::onFinalReceipt(
             : 0;  // index 0 is closing number for sender, since
                   // GetTransactionNum() is his opening #.
     const String strNotaryID(GetNotaryID());
-    auto oContext =
-        wallet_.mutable_ClientContext(pServerNym->ID(), theOriginator->ID());
+    auto oContext = core_.Wallet().mutable_ClientContext(
+        pServerNym->ID(), theOriginator->ID());
 
     if ((lSenderOpeningNumber > 0) &&
         oContext.It().VerifyIssuedNumber(lSenderOpeningNumber)) {
@@ -462,8 +461,8 @@ void OTAgreement::onFinalReceipt(
                  "theOriginator.VerifyTransactionNum(lSenderClosingNumber)\n";
     }
 
-    auto rContext =
-        wallet_.mutable_ClientContext(pServerNym->ID(), GetRecipientNymID());
+    auto rContext = core_.Wallet().mutable_ClientContext(
+        pServerNym->ID(), GetRecipientNymID());
 
     if ((lRecipientOpeningNumber > 0) &&
         rContext.It().VerifyIssuedNumber(lRecipientOpeningNumber)) {

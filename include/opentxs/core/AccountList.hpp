@@ -48,22 +48,16 @@ public:
                                // created here. Otherwise set to false;
         std::int64_t stashTransNum = 0);
 
-    explicit AccountList(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);
-    explicit AccountList(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        Account::AccountType acctType);
+    explicit AccountList(const api::Core& core);
+    explicit AccountList(const api::Core& core, Account::AccountType acctType);
 
     ~AccountList();
 
 private:
     typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
 
-    const api::Wallet& wallet_;
+    const api::Core& core_;
     Account::AccountType acctType_;
-    const std::string data_folder_{""};
 
     /** AcctIDs as second mapped by ASSET TYPE ID as first. */
     String::Map mapAcctIDs_;

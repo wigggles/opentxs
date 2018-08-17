@@ -7,7 +7,8 @@
 
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -32,28 +33,22 @@
 
 namespace opentxs
 {
-OTMessageOutbuffer::OTMessageOutbuffer(
-    const api::Wallet& wallet,
-    const api::Legacy& legacy)
-    : wallet_(wallet)
-    , legacy_(legacy)
-    , messagesMap_()
-    , dataFolder_(legacy_.ClientDataFolder())
+OTMessageOutbuffer::OTMessageOutbuffer(const api::Core& core)
+    : core_{core}
+    , messagesMap_{}
 {
-    OT_ASSERT(dataFolder_.Exists());
 }
 
-void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
-                                                              // allocated.
+void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
 {
     Lock lock(lock_);
     std::int64_t lRequestNum = 0;
 
-    if (theMessage.m_strRequestNum.Exists())
-        lRequestNum = theMessage.m_strRequestNum.ToLong();  // The map index
-                                                            // is the request
-                                                            // number on the
-                                                            // message itself.
+    if (theMessage->m_strRequestNum.Exists())
+        lRequestNum = theMessage->m_strRequestNum.ToLong();  // The map index
+                                                             // is the request
+                                                             // number on the
+                                                             // message itself.
 
     // It's technically possible to have TWO messages (from two different
     // servers) that happen to have the same request number. So we verify
@@ -67,20 +62,18 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 
         if (lTempReqNum != lRequestNum) { continue; }
 
-        Message* pMsg = it->second;
-        OT_ASSERT(nullptr != pMsg);
+        auto pMsg = it->second;
+        OT_ASSERT(false != bool(pMsg));
 
         //
         // If a server ID was passed in, but doesn't match the server ID on this
         // message,
         // Then skip this one. (Same with the NymID.)
         //
-        if (!theMessage.m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
-            !theMessage.m_strNymID.Compare(pMsg->m_strNymID)) {
+        if (!theMessage->m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
+            !theMessage->m_strNymID.Compare(pMsg->m_strNymID)) {
             continue;
         } else {
-            delete pMsg;
-            pMsg = nullptr;
             messagesMap_.erase(it);
             break;
         }
@@ -90,10 +83,9 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
     // Now that we KNOW there's nothing already there with that request number
     // (for that
     // server ID and Nym ID), we go ahead and add the new message to the map.
-    // (And take ownership.)
     //
-    messagesMap_.insert(
-        std::pair<std::int64_t, Message*>(lRequestNum, &theMessage));
+    messagesMap_.insert(std::pair<std::int64_t, std::shared_ptr<Message>>(
+        lRequestNum, theMessage));
 
     //
     // Save it to local storage, in case we don't see the reply until the next
@@ -105,7 +97,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
         "%s%s%s",
         OTFolders::Nym().Get(),
         Log::PathSeparator(),
-        theMessage.m_strNotaryID.Get());
+        theMessage->m_strNotaryID.Get());
     strFolder2.Format(
         "%s%s%s",
         strFolder1.Get(),
@@ -116,22 +108,24 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
         "%s%s%s",
         strFolder2.Get(),
         Log::PathSeparator(),
-        theMessage.m_strNymID.Get());
+        theMessage->m_strNymID.Get());
 
     String strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
 
-    OTPaths::AppendFolder(strFolderPath, dataFolder_, strFolder);
-    OTPaths::AppendFolder(strFolder1Path, dataFolder_, strFolder1);
-    OTPaths::AppendFolder(strFolder2Path, dataFolder_, strFolder2);
+    OTPaths::AppendFolder(strFolderPath, core_.DataFolder().c_str(), strFolder);
+    OTPaths::AppendFolder(
+        strFolder1Path, core_.DataFolder().c_str(), strFolder1);
+    OTPaths::AppendFolder(
+        strFolder2Path, core_.DataFolder().c_str(), strFolder2);
 
     OTPaths::ConfirmCreateFolder(strFolderPath, bAlreadyExists, bIsNewFolder);
     OTPaths::ConfirmCreateFolder(strFolder1Path, bAlreadyExists, bIsNewFolder);
     OTPaths::ConfirmCreateFolder(strFolder2Path, bAlreadyExists, bIsNewFolder);
 
     String strFile;
-    strFile.Format("%s.msg", theMessage.m_strRequestNum.Get());
+    strFile.Format("%s.msg", theMessage->m_strRequestNum.Get());
 
-    theMessage.SaveContract(strFolder.Get(), strFile.Get());
+    theMessage->SaveContract(strFolder.Get(), strFile.Get());
 
     // We also keep a list of the request numbers, so let's load it up, add the
     // number
@@ -140,17 +134,9 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(
-            legacy_.ClientDataFolder(),
-            strFolder.Get(),
-            str_data_filename,
-            "",
-            "")) {
+            core_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
         String strNumList(OTDB::QueryPlainString(
-            legacy_.ClientDataFolder(),
-            strFolder.Get(),
-            str_data_filename,
-            "",
-            ""));
+            core_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Add(lRequestNum);  // Add the new request number to it.
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -162,16 +148,16 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 
             const std::int64_t& lTempReqNum = it->first;
 
-            Message* pMsg = it->second;
-            OT_ASSERT(nullptr != pMsg);
+            auto pMsg = it->second;
+            OT_ASSERT(false != bool(pMsg));
 
             //
             // If a server ID was passed in, but doesn't match the server ID on
             // this message,
             // Then skip this one. (Same with the NymID.)
             //
-            if (!theMessage.m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
-                !theMessage.m_strNymID.Compare(pMsg->m_strNymID)) {
+            if (!theMessage->m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
+                !theMessage->m_strNymID.Compare(pMsg->m_strNymID)) {
                 ++it;
                 continue;
             } else {
@@ -192,7 +178,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 
     if (!OTDB::StorePlainString(
             strOutput.Get(),
-            legacy_.ClientDataFolder(),
+            core_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
@@ -207,7 +193,7 @@ void OTMessageOutbuffer::AddSentMessage(Message& theMessage)  // must be heap
 // that comes back from this function. The buffer maintains
 // ownership until you call RemoveSentMessage().
 
-Message* OTMessageOutbuffer::GetSentMessage(
+std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
     const std::int64_t& lRequestNum,
     const String& strNotaryID,
     const String& strNymID)
@@ -221,8 +207,8 @@ Message* OTMessageOutbuffer::GetSentMessage(
 
         if (lTempReqNum != lRequestNum) { continue; }
 
-        Message* pMsg = it->second;
-        OT_ASSERT(nullptr != pMsg);
+        auto pMsg = it->second;
+        OT_ASSERT(false != bool(pMsg));
 
         //
         // If a server ID was passed in, but doesn't match the server ID on this
@@ -255,18 +241,14 @@ Message* OTMessageOutbuffer::GetSentMessage(
     NumList theNumList;
     std::string str_data_filename("sent.dat");
     if (OTDB::Exists(
-            legacy_.ClientDataFolder(),
+            core_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
             ""))  // todo hardcoding.
     {
         String strNumList(OTDB::QueryPlainString(
-            legacy_.ClientDataFolder(),
-            strFolder.Get(),
-            str_data_filename,
-            "",
-            ""));
+            core_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
 
         if (strNumList.Exists()) theNumList.Add(strNumList);
 
@@ -275,25 +257,24 @@ Message* OTMessageOutbuffer::GetSentMessage(
             // "doesn't exist" if it doesn't appear on the official list.
             // The list is what matters -- the message is just the contents
             // referencedby that list.
-            Message* pMsg = new Message{wallet_, legacy_.ClientDataFolder()};
-
-            OT_ASSERT(nullptr != pMsg);
-
-            std::unique_ptr<Message> theMsgAngel(pMsg);
+            auto pMsg = core_.Factory().Message(core_);
+            OT_ASSERT(false != bool(pMsg));
+            std::shared_ptr<Message> message{pMsg.release()};
 
             if (OTDB::Exists(
-                    legacy_.ClientDataFolder(),
+                    core_.DataFolder(),
                     strFolder.Get(),
                     strFile.Get(),
                     "",
                     "") &&
-                pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
+                message->LoadContract(strFolder.Get(), strFile.Get())) {
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
                 //
-                messagesMap_.insert(std::pair<std::int64_t, Message*>(
-                    lRequestNum, theMsgAngel.release()));
-                return pMsg;
+                messagesMap_.insert(
+                    std::pair<std::int64_t, std::shared_ptr<Message>>(
+                        lRequestNum, message));
+                return message;
             }
         }
     }
@@ -323,9 +304,9 @@ void OTMessageOutbuffer::Clear(
 
     while (it != messagesMap_.end()) {
         const std::int64_t& lRequestNum = it->first;
-        Message* pThisMsg = it->second;
+        auto pThisMsg = it->second;
 
-        OT_ASSERT(nullptr != pThisMsg);
+        OT_ASSERT(false != bool(pThisMsg));
 
         // If a server ID was passed in, but doesn't match the server ID on this
         // message, Then skip this one. (Same with the NymID.)
@@ -482,13 +463,13 @@ void OTMessageOutbuffer::Clear(
         std::string str_data_filename("sent.dat");
 
         if (OTDB::Exists(
-                legacy_.ClientDataFolder(),
+                core_.DataFolder(),
                 strFolder.Get(),
                 str_data_filename,
                 "",
                 "")) {
             String strNumList(OTDB::QueryPlainString(
-                legacy_.ClientDataFolder(),
+                core_.DataFolder(),
                 strFolder.Get(),
                 str_data_filename,
                 "",
@@ -503,7 +484,7 @@ void OTMessageOutbuffer::Clear(
         theNumList.Output(strOutput);
         const bool saved = OTDB::StorePlainString(
             strOutput.Get(),
-            legacy_.ClientDataFolder(),
+            core_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
@@ -516,28 +497,16 @@ void OTMessageOutbuffer::Clear(
 
         // Make sure any messages being erased here, are also erased from local
         // storage.
-        std::unique_ptr<Message> storedMessage(
-            new Message{wallet_, legacy_.ClientDataFolder()});
+        auto storedMessage = core_.Factory().Message(core_);
 
-        OT_ASSERT(storedMessage);
+        OT_ASSERT(false != bool(storedMessage));
 
         if (OTDB::Exists(
-                legacy_.ClientDataFolder(),
-                strFolder.Get(),
-                strFile.Get(),
-                "",
-                "") &&
+                core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
             storedMessage->LoadContract(strFolder.Get(), strFile.Get())) {
             OTDB::EraseValueByKey(
-                legacy_.ClientDataFolder(),
-                strFolder.Get(),
-                strFile.Get(),
-                "",
-                "");
+                core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
         }
-
-        delete pThisMsg;
-        pThisMsg = nullptr;
 
         it = messagesMap_.erase(it);
     }
@@ -576,8 +545,8 @@ bool OTMessageOutbuffer::RemoveSentMessage(
             continue;
         }
 
-        Message* pMsg = it->second;
-        OT_ASSERT(nullptr != pMsg);
+        auto pMsg = it->second;
+        OT_ASSERT(false != bool(pMsg));
 
         //
         // If a server ID was passed in, but doesn't match the server ID on this
@@ -588,9 +557,6 @@ bool OTMessageOutbuffer::RemoveSentMessage(
             ++it;
             continue;
         } else {
-            delete pMsg;
-            pMsg = nullptr;
-
             auto temp_it = it;
             ++temp_it;
             messagesMap_.erase(it);
@@ -613,17 +579,9 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(
-            legacy_.ClientDataFolder(),
-            strFolder.Get(),
-            str_data_filename,
-            "",
-            "")) {
+            core_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
         String strNumList(OTDB::QueryPlainString(
-            legacy_.ClientDataFolder(),
-            strFolder.Get(),
-            str_data_filename,
-            "",
-            ""));
+            core_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Remove(lRequestNum);
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -635,8 +593,8 @@ bool OTMessageOutbuffer::RemoveSentMessage(
 
             const std::int64_t& lTempReqNum = it->first;
 
-            Message* pMsg = it->second;
-            OT_ASSERT(nullptr != pMsg);
+            auto pMsg = it->second;
+            OT_ASSERT(false != bool(pMsg));
 
             //
             // If a server ID was passed in, but doesn't match the server ID on
@@ -668,7 +626,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     theNumList.Output(strOutput);
     if (!OTDB::StorePlainString(
             strOutput.Get(),
-            legacy_.ClientDataFolder(),
+            core_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
@@ -680,26 +638,22 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     // Now that we've updated the numlist in local storage, let's
     // erase the sent message itself...
     //
-    Message* pMsg = new Message{wallet_, legacy_.ClientDataFolder()};
-    OT_ASSERT(nullptr != pMsg);
-    std::unique_ptr<Message> theMsgAngel(pMsg);
+    auto pMsg = core_.Factory().Message(core_);
+    OT_ASSERT(false != bool(pMsg));
 
     if (OTDB::Exists(
-            legacy_.ClientDataFolder(),
-            strFolder.Get(),
-            strFile.Get(),
-            "",
-            "") &&
+            core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
         pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
         OTDB::EraseValueByKey(
-            legacy_.ClientDataFolder(), strFolder.Get(), strFile.Get(), "", "");
+            core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
         return true;
     }
 
     return bReturnValue;
 }
 
-Message* OTMessageOutbuffer::GetSentMessage(const OTTransaction& theTransaction)
+std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
+    const OTTransaction& theTransaction)
 {
     const std::int64_t& lRequestNum = theTransaction.GetRequestNum();
     const String strNotaryID(theTransaction.GetPurportedNotaryID());

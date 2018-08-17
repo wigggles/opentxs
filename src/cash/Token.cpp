@@ -7,6 +7,8 @@
 
 #include "opentxs/cash/Token.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/cash/Mint.hpp"
 #include "opentxs/cash/Purse.hpp"
 #if OT_CASH_USING_LUCRE
@@ -65,8 +67,8 @@ namespace opentxs
 // (more prototokens == more resource cost, but more security.)
 const std::int32_t Token__nMinimumPrototokenCount = 1;
 
-Token::Token(const api::Wallet& wallet, const std::string& dataFolder)
-    : Instrument(wallet, dataFolder)
+Token::Token(const api::Core& core)
+    : Instrument(core)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -79,11 +81,10 @@ Token::Token(const api::Wallet& wallet, const std::string& dataFolder)
 }
 
 Token::Token(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : Instrument(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -99,11 +100,8 @@ Token::Token(
     // So they are initialized there now.
 }
 
-Token::Token(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const Purse& thePurse)
-    : Instrument(wallet, dataFolder)
+Token::Token(const api::Core& core, const Purse& thePurse)
+    : Instrument(core)
     , m_bPasswordProtected(false)
     , m_lDenomination(0)
     , m_nTokenCount(0)
@@ -200,230 +198,6 @@ void Token::ReleasePrototokens()
     m_nTokenCount = 0;
 }
 
-// static -- class factory.
-//
-Token* Token::LowLevelInstantiate(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strFirstLine,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-{
-    Token* pToken = nullptr;
-
-#if OT_CASH_USING_LUCRE
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
-                                                               // 27 chars long.
-    {
-        pToken = new Token_Lucre(
-            wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-        OT_ASSERT(nullptr != pToken);
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
-                                                          // chars long.
-    {
-        pToken = new Token_Lucre(
-            wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-        OT_ASSERT(nullptr != pToken);
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
-                                                                // is
-    // 39 chars long.
-    {
-        pToken = new Token_Lucre(
-            wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-        OT_ASSERT(nullptr != pToken);
-    }
-#else
-    otErr << __FUNCTION__
-          << ": Open-Transactions is not built for any digital "
-             "cash algorithms. (Failure.)";
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-
-Token* Token::LowLevelInstantiate(
-    const String& strFirstLine,
-    const Purse& thePurse)
-{
-    Token* pToken = nullptr;
-
-#if OT_CASH_USING_LUCRE
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
-                                                               // 27 chars long.
-    {
-        pToken =
-            new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
-        OT_ASSERT(nullptr != pToken);
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
-                                                          // chars long.
-    {
-        pToken =
-            new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
-        OT_ASSERT(nullptr != pToken);
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
-                                                                // is
-    // 39 chars long.
-    {
-        pToken =
-            new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
-        OT_ASSERT(nullptr != pToken);
-    }
-#else
-    otErr << __FUNCTION__
-          << ": Open-Transactions is not built for any digital "
-             "cash algorithms. (Failure.)";
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-
-Token* Token::LowLevelInstantiate(const Purse& thePurse)
-{
-    Token* pToken = nullptr;
-
-#if OT_CASH_USING_LUCRE
-    pToken =
-        new Token_Lucre(thePurse.Wallet(), thePurse.DataFolder(), thePurse);
-    OT_ASSERT(nullptr != pToken);
-#else
-    otErr << __FUNCTION__
-          << ": Open-Transactions is not built for any digital "
-             "cash algorithms. (Failure.)";
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-
-Token* Token::LowLevelInstantiate(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strFirstLine)
-{
-    Token* pToken = nullptr;
-
-#if OT_CASH_USING_LUCRE
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
-                                                               // 27 chars long.
-    {
-        pToken = new Token_Lucre{
-            wallet,
-            dataFolder,
-        };
-        OT_ASSERT(nullptr != pToken);
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
-                                                          // chars long.
-    {
-        pToken = new Token_Lucre{
-            wallet,
-            dataFolder,
-        };
-        OT_ASSERT(nullptr != pToken);
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
-                                                                // is
-    // 39 chars long.
-    {
-        pToken = new Token_Lucre{
-            wallet,
-            dataFolder,
-        };
-        OT_ASSERT(nullptr != pToken);
-    }
-#else
-    otErr << __FUNCTION__
-          << ": Open-Transactions is not built for any digital "
-             "cash algorithms. (Failure.)";
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-
-// static -- class factory.
-//
-Token* Token::TokenFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    String strInput,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID)
-{
-    String strContract, strFirstLine;  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        Token* pToken = LowLevelInstantiate(
-            wallet,
-            dataFolder,
-            strFirstLine,
-            NOTARY_ID,
-            INSTRUMENT_DEFINITION_ID);
-
-        // The string didn't match any of the options in the factory.
-        if (nullptr == pToken) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pToken->LoadContractFromString(strContract))
-            return pToken;
-        else
-            delete pToken;
-    }
-
-    return nullptr;
-}
-
-Token* Token::TokenFactory(String strInput, const Purse& thePurse)
-{
-    String strContract, strFirstLine;  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        Token* pToken = LowLevelInstantiate(strFirstLine, thePurse);
-
-        // The string didn't match any of the options in the factory.
-        if (nullptr == pToken) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pToken->LoadContractFromString(strContract))
-            return pToken;
-        else
-            delete pToken;
-    }
-
-    return nullptr;
-}
-
-Token* Token::TokenFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    String strInput)
-{
-    String strContract, strFirstLine;  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        Token* pToken = LowLevelInstantiate(wallet, dataFolder, strFirstLine);
-
-        // The string didn't match any of the options in the factory.
-        if (nullptr == pToken) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pToken->LoadContractFromString(strContract))
-            return pToken;
-        else
-            delete pToken;
-    }
-
-    return nullptr;
-}
-
 // Note: ALL failures will return true, even if the token has NOT already been
 // spent, and the failure was actually due to a directory creation error. Why,
 // you might ask? Because no matter WHAT is causing the failure, any return of
@@ -455,7 +229,7 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
         "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
-        data_folder_,
+        core_.DataFolder(),
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
         strTokenHash.Get(),
@@ -494,7 +268,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
     // See if the spent token file ALREADY EXISTS...
     bool bTokenIsPresent = OTDB::Exists(
-        data_folder_,
+        core_.DataFolder(),
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
         strTokenHash.Get(),
@@ -529,7 +303,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
     const bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        data_folder_,
+        core_.DataFolder(),
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
         strTokenHash.Get(),
@@ -960,29 +734,6 @@ bool Token::GetPrivatePrototoken(
         }
     }
     return false;
-}
-
-// static
-Token* Token::InstantiateAndGenerateTokenRequest(
-    const Purse& thePurse,
-    const Nym& theNym,
-    Mint& theMint,
-    std::int64_t lDenomination,
-    std::int32_t nTokenCount)
-{
-    Token* pToken = LowLevelInstantiate(thePurse);  // already asserts.
-    OT_ASSERT(nullptr != pToken);                   // Just for good measure.
-
-    const bool bGeneratedRequest = pToken->GenerateTokenRequest(
-        theNym, theMint, lDenomination, nTokenCount);
-
-    if (!bGeneratedRequest) {
-        otErr << __FUNCTION__ << ": Failed trying to generate token request.\n";
-        delete pToken;
-        pToken = nullptr;
-    }
-
-    return pToken;
 }
 
 inline bool Token::ChooseIndex(const std::int32_t nIndex)

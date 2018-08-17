@@ -115,8 +115,7 @@ Manager::Manager(
         zmq_context_)},
     activity_
 {
-    opentxs::Factory::Activity(
-        *storage_, *contacts_, *factory_, legacy_, *wallet_, zmq_context_)
+    opentxs::Factory::Activity(*storage_, *contacts_, *this, zmq_context_)
 }
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 , blockchain_
@@ -128,8 +127,7 @@ Manager::Manager(
 , workflow_{opentxs::Factory::Workflow(
       *activity_,
       *contacts_,
-      legacy_,
-      *wallet_,
+      *this,
       *storage_,
       zmq_context_)},
     ot_api_
@@ -158,20 +156,18 @@ Manager::Manager(
         config_,
         *contacts_,
         crypto_,
-        *factory_,
+        this->Factory(),
         *identity_,
-        legacy_,
-        *wallet_,
+        *this,
         *zeromq_,
         *ot_api_,
         std::bind(&Manager::get_lock, this, std::placeholders::_1))},
-    cash_{opentxs::Factory::Cash(legacy_, *wallet_)},
+    cash_{opentxs::Factory::Cash(*this)},
     server_action_{opentxs::Factory::ServerAction(
         *ot_api_,
         *otapi_exec_,
-        *wallet_,
         *workflow_,
-        legacy_,
+        *this,
         std::bind(&Manager::get_lock, this, std::placeholders::_1))},
     sync_{opentxs::Factory::Sync(
         running_,
@@ -195,7 +191,7 @@ Manager::Manager(
         *storage_,
         *activity_,
         *contacts_,
-        legacy_,
+        *this,
         zmq_context_,
         running_)},
     pair_{opentxs::Factory::Pair(

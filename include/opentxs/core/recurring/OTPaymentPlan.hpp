@@ -19,6 +19,16 @@ namespace opentxs
 
 class Nym;
 
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 #define PLAN_PROCESS_INTERVAL OTTimeGetTimeFromSeconds(10)
 
 /*
@@ -210,25 +220,24 @@ public:
                                      // this
                                      // is where the ledger saves its contents
 
-    EXPORT OTPaymentPlan(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);
-    EXPORT OTPaymentPlan(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+    EXPORT virtual ~OTPaymentPlan();
+
+private:
+    friend api::implementation::Factory;
+
+    OTPaymentPlan(const api::Core& core);
+    OTPaymentPlan(
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    EXPORT OTPaymentPlan(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+    OTPaymentPlan(
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,
         const Identifier& SENDER_NYM_ID,
         const Identifier& RECIPIENT_ACCT_ID,
         const Identifier& RECIPIENT_NYM_ID);
-
-    EXPORT virtual ~OTPaymentPlan();
 
 protected:
     // "INITIAL PAYMENT" protected SET METHODS

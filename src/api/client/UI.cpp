@@ -46,7 +46,7 @@ api::client::UI* Factory::UI(
     const api::storage::Storage& storage,
     const api::client::Activity& activity,
     const api::client::Contacts& contact,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const network::zeromq::Context& zmq,
     const Flag& running)
 {
@@ -58,7 +58,7 @@ api::client::UI* Factory::UI(
         storage,
         activity,
         contact,
-        legacy,
+        core,
         zmq,
         running);
 }
@@ -74,7 +74,7 @@ UI::UI(
     const api::storage::Storage& storage,
     const api::client::Activity& activity,
     const api::client::Contacts& contact,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const opentxs::network::zeromq::Context& zmq,
     const Flag& running)
     : sync_(sync)
@@ -84,7 +84,7 @@ UI::UI(
     , storage_(storage)
     , activity_(activity)
     , contact_(contact)
-    , legacy_(legacy)
+    , core_(core)
     , zmq_(zmq)
     , running_(running)
     , accounts_()
@@ -113,11 +113,10 @@ const ui::AccountActivity& UI::AccountActivity(
             zmq_,
             widget_update_publisher_,
             sync_,
-            wallet_,
             workflow_,
             contact_,
             storage_,
-            legacy_,
+            core_,
             nymID,
             accountID));
     }
@@ -139,11 +138,10 @@ const ui::AccountSummary& UI::AccountSummary(
         output.reset(opentxs::Factory::AccountSummary(
             zmq_,
             widget_update_publisher_,
-            wallet_,
             connection_,
             storage_,
             contact_,
-            legacy_,
+            core_,
             nymID,
             currency));
     }

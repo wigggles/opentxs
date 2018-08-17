@@ -52,10 +52,9 @@ private:
     static const ListenerDefinitions listeners_;
 
     const api::client::Sync& sync_;
-    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
     const api::storage::Storage& storage_;
-    const api::Legacy& legacy_;
+    const api::Core& core_;
     mutable std::atomic<Amount> balance_{0};
     const OTIdentifier account_id_;
     std::shared_ptr<const UnitDefinition> contract_{nullptr};
@@ -82,11 +81,10 @@ private:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
-        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::client::Contacts& contact,
         const api::storage::Storage& storage,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& accountID);
     AccountActivity() = delete;

@@ -194,12 +194,8 @@ void Manager::generate_mint(
     const std::string nymID{NymID().str()};
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(series);
-    mint.reset(Mint::MintFactory(
-        *wallet_,
-        data_folder_,
-        serverID.c_str(),
-        nymID.c_str(),
-        unitID.c_str()));
+    mint.reset(
+        factory_->Mint(server_.API(), nymID.c_str(), unitID.c_str()).release());
 
     OT_ASSERT(mint)
 
@@ -414,10 +410,12 @@ std::shared_ptr<Mint> Manager::load_private_mint(
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    std::shared_ptr<Mint> mint(Mint::MintFactory(
-        *wallet_, data_folder_, String(ID()), String(NymID()), unitID.c_str()));
+    std::shared_ptr<Mint> mint{
+        factory_
+            ->Mint(server_.API(), String(ID()), String(NymID()), unitID.c_str())
+            .release()};
 
-    OT_ASSERT(mint);
+    OT_ASSERT(false != bool(mint));
 
     return verify_mint(lock, unitID, seriesID, mint);
 }
@@ -429,10 +427,10 @@ std::shared_ptr<Mint> Manager::load_public_mint(
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    std::shared_ptr<Mint> mint(Mint::MintFactory(
-        *wallet_, data_folder_, String(ID()), unitID.c_str()));
+    std::shared_ptr<Mint> mint{
+        factory_->Mint(server_.API(), String(ID()), unitID.c_str()).release()};
 
-    OT_ASSERT(mint);
+    OT_ASSERT(false != bool(mint));
 
     return verify_mint(lock, unitID, seriesID, mint);
 }

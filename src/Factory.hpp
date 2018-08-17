@@ -15,21 +15,19 @@ public:
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
         const api::client::Sync& sync,
-        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::client::Contacts& contact,
         const api::storage::Storage& storage,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& accountID);
     static ui::implementation::AccountSummaryExternalInterface* AccountSummary(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
-        const api::Wallet& wallet,
         const api::network::ZMQ& connection,
         const api::storage::Storage& storage,
         const api::client::Contacts& contact,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const Identifier& nymID,
         const proto::ContactItemType currency);
     static ui::implementation::IssuerItemRowInternal* AccountSummaryItem(
@@ -45,9 +43,7 @@ public:
     static api::client::internal::Activity* Activity(
         const api::storage::Storage& storage,
         const api::client::Contacts& contact,
-        const api::Factory& factory,
-        const api::Legacy& legacy,
-        const api::Wallet& wallet,
+        const api::Core& core,
         const network::zeromq::Context& zmq);
     static ui::implementation::ActivitySummaryExternalInterface*
     ActivitySummary(
@@ -85,8 +81,7 @@ public:
         const ui::implementation::AccountActivitySortKey& sortKey,
         const ui::implementation::CustomData& custom,
         const api::client::Sync& sync,
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const Identifier& nymID,
         const Identifier& accountID);
     static crypto::Bitcoin* Bitcoin(const api::Crypto& crypto);
@@ -98,9 +93,7 @@ public:
         const api::storage::Storage& storage,
         const api::Wallet& wallet);
 #endif
-    static api::client::Cash* Cash(
-        const api::Legacy& legacy,
-        const api::Wallet& wallet);
+    static api::client::Cash* Cash(const api::Core& core);
     static api::client::internal::Manager* ClientManager(
         const Flag& running,
         const ArgList& args,
@@ -215,9 +208,8 @@ public:
         const ui::implementation::AccountSummaryRowID& rowID,
         const ui::implementation::AccountSummarySortKey& sortKey,
         const ui::implementation::CustomData& custom,
-        const api::Wallet& wallet,
         const api::storage::Storage& storage,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const proto::ContactItemType currency);
     static api::Legacy* Legacy();
     static ui::implementation::ActivityThreadRowInternal* MailItem(
@@ -257,10 +249,9 @@ public:
         OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();
     static internal::NymFile* NymFile(
-        const api::Wallet& wallet,
+        const api::Core& core,
         std::shared_ptr<const Nym> targetNym,
-        std::shared_ptr<const Nym> signerNym,
-        const std::string& dataFolder);
+        std::shared_ptr<const Nym> signerNym);
     static crypto::OpenSSL* OpenSSL();
     static api::client::Pair* Pair(
         const Flag& running,
@@ -344,9 +335,8 @@ public:
     static api::client::ServerAction* ServerAction(
         const OT_API& otapi,
         const OTAPI_Exec& exec,
-        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const ContextLockCallback& lockCallback);
     static api::server::Manager* ServerManager(
         const Flag& running,
@@ -432,7 +422,7 @@ public:
         const api::storage::Storage& storage,
         const api::client::Activity& activity,
         const api::client::Contacts& contact,
-        const api::Legacy& legacy,
+        const api::Core& core,
         const network::zeromq::Context& zmq,
         const Flag& running);
     static api::Wallet* Wallet(const api::client::Manager& client);
@@ -440,8 +430,7 @@ public:
     static api::client::Workflow* Workflow(
         const api::client::Activity& activity,
         const api::client::Contacts& contact,
-        const api::Legacy& legacy,
-        const api::Wallet& wallet,
+        const api::Core& core,
         const api::storage::Storage& storage,
         const network::zeromq::Context& zmq);
     static api::network::ZMQ* ZMQ(const api::Core& api, const Flag& running);

@@ -7,6 +7,7 @@
 #define OPENTXS_CORE_TRANSACTION_HELPERS_HPP
 
 #include "opentxs/Forward.hpp"
+#include "opentxs/Types.hpp"
 
 #include "opentxs/core/OTTransaction.hpp"
 
@@ -29,12 +30,12 @@ EXPORT const char* GetOriginTypeToString(int originTypeIndex);  // enum
 std::int32_t LoadAbbreviatedRecord(
     irr::io::IrrXMLReader*& xml,
     std::int64_t& lNumberOfOrigin,
-    int& theOriginType,
+    originType& theOriginType,
     std::int64_t& lTransactionNum,
     std::int64_t& lInRefTo,
     std::int64_t& lInRefDisplay,
     time64_t& the_DATE_SIGNED,
-    int& theType,
+    transactionType& theType,
     String& strHash,
     std::int64_t& lAdjustment,
     std::int64_t& lDisplayValue,
@@ -52,9 +53,11 @@ EXPORT bool VerifyBoxReceiptExists(
     std::int32_t nBoxType,  // 0/nymbox, 1/inbox, 2/outbox
     const std::int64_t& lTransactionNum);
 
-OTTransaction* LoadBoxReceipt(OTTransaction& theAbbrev, Ledger& theLedger);
+std::unique_ptr<OTTransaction> LoadBoxReceipt(
+    OTTransaction& theAbbrev,
+    Ledger& theLedger);
 
-EXPORT OTTransaction* LoadBoxReceipt(
+EXPORT std::unique_ptr<OTTransaction> LoadBoxReceipt(
     OTTransaction& theAbbrev,
     std::int64_t lLedgerType);
 

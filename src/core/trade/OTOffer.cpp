@@ -32,8 +32,8 @@
 
 namespace opentxs
 {
-OTOffer::OTOffer(const api::Wallet& wallet, const std::string& dataFolder)
-    : Instrument(wallet, dataFolder)
+OTOffer::OTOffer(const api::Core& core)
+    : Instrument(core)
     , m_pTrade(nullptr)
     , m_CURRENCY_TYPE_ID(Identifier::Factory())
     , m_bSelling(false)
@@ -49,13 +49,12 @@ OTOffer::OTOffer(const api::Wallet& wallet, const std::string& dataFolder)
 }
 
 OTOffer::OTOffer(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& CURRENCY_ID,
     const std::int64_t& lScale)
-    : Instrument(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_pTrade(nullptr)
     , m_CURRENCY_TYPE_ID(Identifier::Factory(CURRENCY_ID))
     , m_bSelling(false)

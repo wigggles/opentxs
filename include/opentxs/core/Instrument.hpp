@@ -62,10 +62,9 @@ protected:
         m_NotaryID = NOTARY_ID;
     }
 
-    Instrument(const api::Wallet& wallet, const std::string& dataFolder);
+    Instrument(const api::Core& core);
     Instrument(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
 

@@ -256,9 +256,7 @@ public:
     EXPORT bool VerifySignature(
         const String& strContract,
         const Identifier& theSignerNymID,
-        Contract** ppContract = nullptr) const;  // If you use this optional
-                                                 // parameter, then YOU are
-    // responsible to clean it up.
+        std::unique_ptr<Contract>* ppContract = nullptr) const;
 
     /// Verify and Retrieve XML Contents.
     EXPORT bool VerifyAndRetrieveXMLContents(
@@ -473,49 +471,49 @@ public:
     EXPORT std::int64_t GetBasketMemberMinimumTransferAmount(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID,
         std::int32_t nIndex) const;
-    EXPORT Ledger* LoadNymbox(
+    EXPORT std::unique_ptr<Ledger> LoadNymbox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
 
-    EXPORT Ledger* LoadNymboxNoVerify(
+    EXPORT std::unique_ptr<Ledger> LoadNymboxNoVerify(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
 
-    EXPORT Ledger* LoadInbox(
+    EXPORT std::unique_ptr<Ledger> LoadInbox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
-    EXPORT Ledger* LoadInboxNoVerify(
+    EXPORT std::unique_ptr<Ledger> LoadInboxNoVerify(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
-    EXPORT Ledger* LoadOutbox(
+    EXPORT std::unique_ptr<Ledger> LoadOutbox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
-    EXPORT Ledger* LoadOutboxNoVerify(
+    EXPORT std::unique_ptr<Ledger> LoadOutboxNoVerify(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
-    EXPORT Ledger* LoadPaymentInbox(
+    EXPORT std::unique_ptr<Ledger> LoadPaymentInbox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
 
-    EXPORT Ledger* LoadPaymentInboxNoVerify(
+    EXPORT std::unique_ptr<Ledger> LoadPaymentInboxNoVerify(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
     // LoadRecordBox
     // Note: depending on the record type, the Account ID may contain the User
     // ID.
-    EXPORT Ledger* LoadRecordBox(
+    EXPORT std::unique_ptr<Ledger> LoadRecordBox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
 
-    EXPORT Ledger* LoadRecordBoxNoVerify(
+    EXPORT std::unique_ptr<Ledger> LoadRecordBoxNoVerify(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID,
         const Identifier& ACCOUNT_ID) const;
@@ -527,11 +525,11 @@ public:
         std::int32_t nIndex,
         bool bClearAll = false  // if true, nIndex is ignored.
         ) const;
-    EXPORT Ledger* LoadExpiredBox(
+    EXPORT std::unique_ptr<Ledger> LoadExpiredBox(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
 
-    EXPORT Ledger* LoadExpiredBoxNoVerify(
+    EXPORT std::unique_ptr<Ledger> LoadExpiredBoxNoVerify(
         const Identifier& NOTARY_ID,
         const Identifier& NYM_ID) const;
 
@@ -574,18 +572,18 @@ public:
         Ledger& theLedger,
         const std::int64_t& TRANSACTION_NUMBER) const;
 
-    EXPORT std::unique_ptr<OTPayment> Ledger_GetInstrument(
+    EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrument(
         const Identifier& theNymID,
         const Ledger& theLedger,
         const std::int32_t& nIndex) const;
     // The functions immediately above and blow this comment
     // have good reason for having their parameters in a different order.
-    EXPORT std::unique_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
+    EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
         const Ledger& theLedger,
         const Identifier& theNymID,
         const std::int64_t& lReceiptId) const;
 
-    EXPORT std::unique_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
+    EXPORT std::shared_ptr<OTPayment> Ledger_GetInstrumentByReceiptID(
         const Identifier& theNymID,
         const Ledger& theLedger,
         const std::int64_t& lReceiptId) const;
@@ -1231,7 +1229,7 @@ private:
     ContextLockCallback lock_callback_;
 
     bool add_accept_item(
-        const Item::itemType type,
+        const itemType type,
         const TransactionNumber originNumber,
         const TransactionNumber referenceNumber,
         const String& note,
@@ -1262,9 +1260,8 @@ private:
         const Identifier& notaryID,
         const OTTransaction& source,
         String& note) const;
-    Item::itemType response_type(
-        const OTTransaction::transactionType sourceType,
-        const bool success) const;
+    itemType response_type(const transactionType sourceType, const bool success)
+        const;
     NetworkReplyMessage send_message(
         const std::set<ServerContext::ManagedNumber>& pending,
         ServerContext& context,

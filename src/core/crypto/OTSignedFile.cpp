@@ -7,6 +7,8 @@
 
 #include "opentxs/core/crypto/OTSignedFile.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/util/Tag.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -25,20 +27,17 @@
 
 namespace opentxs
 {
-OTSignedFile::OTSignedFile(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : Contract(wallet, dataFolder)
+OTSignedFile::OTSignedFile(const api::Core& core)
+    : Contract(core)
 {
     m_strContractType.Set("FILE");
 }
 
 OTSignedFile::OTSignedFile(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const String& LOCAL_SUBDIR,
     const String& FILE_NAME)
-    : Contract(wallet, dataFolder)
+    : Contract(core)
 {
     m_strContractType.Set("FILE");
 
@@ -46,11 +45,10 @@ OTSignedFile::OTSignedFile(
 }
 
 OTSignedFile::OTSignedFile(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const char* LOCAL_SUBDIR,
     const String& FILE_NAME)
-    : Contract(wallet, dataFolder)
+    : Contract(core)
 {
     m_strContractType.Set("FILE");
 
@@ -60,11 +58,10 @@ OTSignedFile::OTSignedFile(
 }
 
 OTSignedFile::OTSignedFile(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const char* LOCAL_SUBDIR,
     const char* FILE_NAME)
-    : Contract(wallet, dataFolder)
+    : Contract(core)
 {
     m_strContractType.Set("FILE");
 
@@ -206,7 +203,11 @@ bool OTSignedFile::LoadFile()
     // m_strFoldername.Get(), m_strFilename.Get());
 
     if (OTDB::Exists(
-            data_folder_, m_strFoldername.Get(), m_strFilename.Get(), "", ""))
+            core_.DataFolder(),
+            m_strFoldername.Get(),
+            m_strFilename.Get(),
+            "",
+            ""))
         return LoadContract();
 
     return false;

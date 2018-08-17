@@ -7,6 +7,8 @@
 
 #include "opentxs/core/cron/OTCronItem.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
@@ -28,6 +30,7 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+//#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -53,8 +56,8 @@
 
 namespace opentxs
 {
-OTCronItem::OTCronItem(const api::Wallet& wallet, const std::string& dataFolder)
-    : ot_super(wallet, dataFolder)
+OTCronItem::OTCronItem(const api::Core& core)
+    : ot_super(core)
     , m_dequeClosingNumbers{}
     , m_pCancelerNymID(Identifier::Factory())
     , m_bCanceled(false)
@@ -70,11 +73,10 @@ OTCronItem::OTCronItem(const api::Wallet& wallet, const std::string& dataFolder)
 }
 
 OTCronItem::OTCronItem(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : ot_super(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_dequeClosingNumbers{}
     , m_pCancelerNymID(Identifier::Factory())
     , m_bCanceled(false)
@@ -90,19 +92,12 @@ OTCronItem::OTCronItem(
 }
 
 OTCronItem::OTCronItem(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& ACCT_ID,
     const Identifier& NYM_ID)
-    : ot_super(
-          wallet,
-          dataFolder,
-          NOTARY_ID,
-          INSTRUMENT_DEFINITION_ID,
-          ACCT_ID,
-          NYM_ID)
+    : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID, ACCT_ID, NYM_ID)
     , m_dequeClosingNumbers{}
     , m_pCancelerNymID(Identifier::Factory())
     , m_bCanceled(false)
@@ -118,72 +113,8 @@ OTCronItem::OTCronItem(
     InitCronItem();
 }
 
-OTCronItem* OTCronItem::NewCronItem(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strCronItem)
-{
-    static char buf[45] = "";
-
-    if (!strCronItem.Exists()) {
-        otErr << __FUNCTION__
-              << ": Empty string was passed in (returning nullptr.)\n";
-        return nullptr;
-    }
-
-    String strContract(strCronItem);
-
-    if (!strContract.DecodeIfArmored(false)) {
-        otErr << __FUNCTION__
-              << ": Input string apparently was encoded and "
-                 "then failed decoding. Contents: \n"
-              << strCronItem << "\n";
-        return nullptr;
-    }
-
-    strContract.reset();  // for sgets
-    buf[0] = 0;           // probably unnecessary.
-    bool bGotLine = strContract.sgets(buf, 40);
-
-    if (!bGotLine) return nullptr;
-
-    String strFirstLine(buf);
-    // set the "file" pointer within this string back to index 0.
-    strContract.reset();
-
-    // Now I feel pretty safe -- the string I'm examining is within
-    // the first 45 characters of the beginning of the contract, and
-    // it will NOT contain the escape "- " sequence. From there, if
-    // it contains the proper sequence, I will instantiate that type.
-    if (!strFirstLine.Exists() || strFirstLine.Contains("- -")) return nullptr;
-
-    // By this point we know already that it's not escaped.
-    // BUT it might still be ARMORED!
-
-    std::unique_ptr<OTCronItem> pItem;
-    // this string is 35 chars long.
-    if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
-        pItem.reset(new OTPaymentPlan{wallet, dataFolder});
-    }
-    // this string is 28 chars long.
-    else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) {
-        pItem.reset(new OTTrade(wallet, dataFolder));
-    }
-    // this string is 36 chars long.
-    else if (strFirstLine.Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
-        pItem.reset(new OTSmartContract(wallet, dataFolder));
-    } else {
-        return nullptr;
-    }
-
-    // Does the contract successfully load from the string passed in?
-    if (pItem->LoadContractFromString(strContract)) { return pItem.release(); }
-    return nullptr;
-}
-
-OTCronItem* OTCronItem::LoadCronReceipt(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+std::unique_ptr<OTCronItem> OTCronItem::LoadCronReceipt(
+    const api::Core& core,
     const TransactionNumber& lTransactionNum)
 {
     String strFilename;
@@ -192,7 +123,7 @@ OTCronItem* OTCronItem::LoadCronReceipt(
     const char* szFoldername = OTFolders::Cron().Get();
     const char* szFilename = strFilename.Get();
 
-    if (!OTDB::Exists(dataFolder, szFoldername, szFilename, "", "")) {
+    if (!OTDB::Exists(core.DataFolder(), szFoldername, szFilename, "", "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
@@ -200,10 +131,10 @@ OTCronItem* OTCronItem::LoadCronReceipt(
     }
 
     String strFileContents(OTDB::QueryPlainString(
-        dataFolder, szFoldername, szFilename, "", ""));  // <===
-                                                         // LOADING
-                                                         // FROM DATA
-                                                         // STORE.
+        core.DataFolder(), szFoldername, szFilename, "", ""));  // <===
+                                                                // LOADING
+                                                                // FROM DATA
+                                                                // STORE.
 
     if (strFileContents.GetLength() < 2) {
         otErr << "OTCronItem::" << __FUNCTION__
@@ -217,13 +148,12 @@ OTCronItem* OTCronItem::LoadCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return OTCronItem::NewCronItem(wallet, dataFolder, strFileContents);
+        return core.Factory().CronItem(core, strFileContents);
 }
 
 // static
-OTCronItem* OTCronItem::LoadActiveCronReceipt(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+std::unique_ptr<OTCronItem> OTCronItem::LoadActiveCronReceipt(
+    const api::Core& core,
     const TransactionNumber& lTransactionNum,
     const Identifier& notaryID)  // Client-side only.
 {
@@ -234,7 +164,11 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     const char* szFilename = strFilename.Get();
 
     if (!OTDB::Exists(
-            dataFolder, szFoldername, strNotaryID.Get(), szFilename, "")) {
+            core.DataFolder(),
+            szFoldername,
+            strNotaryID.Get(),
+            szFilename,
+            "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
@@ -243,7 +177,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
     }
 
     String strFileContents(OTDB::QueryPlainString(
-        dataFolder,
+        core.DataFolder(),
         szFoldername,
         strNotaryID.Get(),
         szFilename,
@@ -263,7 +197,7 @@ OTCronItem* OTCronItem::LoadActiveCronReceipt(
         // Therefore there's no need HERE in
         // THIS function to do any decoding...
         //
-        return OTCronItem::NewCronItem(wallet, dataFolder, strFileContents);
+        return core.Factory().CronItem(core, strFileContents);
 }
 
 // static
@@ -458,7 +392,11 @@ bool OTCronItem::SaveActiveCronReceipt(
     const char* szFilename = strFilename.Get();  // cron/TRANSACTION_NUM.crn
 
     if (OTDB::Exists(
-            data_folder_, szFoldername, strNotaryID.Get(), szFilename, "")) {
+            core_.DataFolder(),
+            szFoldername,
+            strNotaryID.Get(),
+            szFilename,
+            "")) {
         otInfo << "OTCronItem::" << __FUNCTION__
                << ": Cron Record already exists for transaction "
                << GetTransactionNum() << " " << szFoldername
@@ -478,7 +416,7 @@ bool OTCronItem::SaveActiveCronReceipt(
         NumList numlist;
 
         if (OTDB::Exists(
-                data_folder_,
+                core_.DataFolder(),
                 szFoldername,
                 strNotaryID.Get(),
                 strListFilename.Get(),
@@ -486,7 +424,7 @@ bool OTCronItem::SaveActiveCronReceipt(
             // Load up existing list, to add the new transaction num to it.
             //
             String strNumlist(OTDB::QueryPlainString(
-                data_folder_,
+                core_.DataFolder(),
                 szFoldername,
                 strNotaryID.Get(),
                 strListFilename.Get(),
@@ -527,7 +465,7 @@ bool OTCronItem::SaveActiveCronReceipt(
 
             bool bSaved = OTDB::StorePlainString(
                 strFinal.Get(),
-                data_folder_,
+                core_.DataFolder(),
                 szFoldername,
                 strNotaryID.Get(),
                 strListFilename.Get(),
@@ -557,7 +495,7 @@ bool OTCronItem::SaveActiveCronReceipt(
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        data_folder_,
+        core_.DataFolder(),
         szFoldername,
         strNotaryID.Get(),
         szFilename,
@@ -593,7 +531,7 @@ bool OTCronItem::SaveCronReceipt()
     const char* szFoldername = OTFolders::Cron().Get();  // cron
     const char* szFilename = strFilename.Get();  // cron/TRANSACTION_NUM.crn
 
-    if (OTDB::Exists(data_folder_, szFoldername, szFilename, "", "")) {
+    if (OTDB::Exists(core_.DataFolder(), szFoldername, szFilename, "", "")) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Cron Record already exists for transaction "
               << GetTransactionNum() << " " << szFoldername
@@ -615,7 +553,7 @@ bool OTCronItem::SaveCronReceipt()
     }
 
     bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), data_folder_, szFoldername, szFilename, "", "");
+        strFinal.Get(), core_.DataFolder(), szFoldername, szFilename, "", "");
 
     if (!bSaved) {
         otErr << "OTCronItem::" << __FUNCTION__
@@ -865,13 +803,12 @@ void OTCronItem::HookRemovalFromCron(
         // information,
         // containing the ORIGINAL SIGNED REQUEST.
         //
-        OTCronItem* pOrigCronItem = OTCronItem::LoadCronReceipt(
-            wallet, data_folder_, GetTransactionNum());
+        std::unique_ptr<OTCronItem> pOrigCronItem =
+            OTCronItem::LoadCronReceipt(core_, GetTransactionNum());
         // OTCronItem::LoadCronReceipt loads the original version with the
         // user's signature.
         // (Updated versions, as processing occurs, are signed by the server.)
-        OT_ASSERT(nullptr != pOrigCronItem);
-        std::unique_ptr<OTCronItem> theCronItemAngel(pOrigCronItem);
+        OT_ASSERT(false != bool(pOrigCronItem));
 
         // Note: elsewhere, we verify the Nym's signature. But in this place, we
         // verify the SERVER's
@@ -940,7 +877,7 @@ void OTCronItem::HookRemovalFromCron(
             const OTIdentifier NYM_ID =
                 Identifier::Factory(pOrigCronItem->GetSenderNymID());
 
-            pOriginator = wallet_.Nym(NYM_ID);
+            pOriginator = core_.Wallet().Nym(NYM_ID);
         }
 
         // pOriginator should NEVER be nullptr by this point, unless there was
@@ -982,8 +919,8 @@ void OTCronItem::onFinalReceipt(
 {
     OT_ASSERT(nullptr != serverNym_);
 
-    auto context =
-        wallet_.mutable_ClientContext(serverNym_->ID(), theOriginator->ID());
+    auto context = core_.Wallet().mutable_ClientContext(
+        serverNym_->ID(), theOriginator->ID());
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
@@ -1105,21 +1042,24 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const char* szFunc = "OTCronItem::DropFinalReceiptToInbox";
 
     // Load the inbox in case it already exists.
-    Ledger theInbox(wallet_, data_folder_, NYM_ID, ACCOUNT_ID, GetNotaryID());
+    auto theInbox{
+        core_.Factory().Ledger(core_, NYM_ID, ACCOUNT_ID, GetNotaryID())};
+
+    OT_ASSERT(false != bool(theInbox));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theInbox.LoadInbox();
+    bool bSuccessLoading = theInbox->LoadInbox();
 
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theInbox.VerifyAccount(pServerNym);
+        bSuccessLoading = theInbox->VerifyAccount(pServerNym);
     else
         otErr << szFunc << ": ERROR loading inbox ledger.\n";
     //      otErr << szFunc << ": ERROR loading inbox ledger.\n";
     //  else
-    //      bSuccessLoading = theInbox.GenerateLedger(ACCOUNT_ID, GetNotaryID(),
-    //      OTLedger::inbox, true); // bGenerateFile=true
+    //      bSuccessLoading = theInbox->GenerateLedger(ACCOUNT_ID,
+    //      GetNotaryID(), OTLedger::inbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
         otErr << szFunc
@@ -1129,29 +1069,25 @@ bool OTCronItem::DropFinalReceiptToInbox(
     } else {
         // Start generating the receipts
 
-        OTTransaction* pTrans1 = OTTransaction::GenerateTransaction(
-            wallet_,
-            theInbox,
-            OTTransaction::finalReceipt,
+        auto pTrans1{core_.Factory().Transaction(
+            core_,
+            *theInbox,
+            transactionType::finalReceipt,
             theOriginType,
-            lNewTransactionNumber);
-        // (No need to OT_ASSERT on the above transaction since it occurs in
-        // GenerateTransaction().)
+            lNewTransactionNumber)};
 
         // The inbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
         // cron item.
 
-        OT_ASSERT(nullptr != pTrans1);
+        OT_ASSERT(false != bool(pTrans1));
 
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        Item* pItem1 = Item::CreateItemFromTransaction(
-            *pTrans1, Item::finalReceipt, Identifier::Factory());
+        auto pItem1{core_.Factory().Item(
+            *pTrans1, itemType::finalReceipt, Identifier::Factory())};
 
-        // This may be unnecessary, I'll have to check
-        // CreateItemFromTransaction. I'll leave it for now.
-        OT_ASSERT(nullptr != pItem1);
+        OT_ASSERT(false != bool(pItem1));
 
         pItem1->SetStatus(Item::acknowledgement);
 
@@ -1209,31 +1145,32 @@ bool OTCronItem::DropFinalReceiptToInbox(
         pItem1->SignContract(pServerNym);
         pItem1->SaveContract();
 
-        // the Transaction "owns" the item now and will handle cleaning it up.
-        pTrans1->AddItem(*pItem1);
+        std::shared_ptr<Item> item1{pItem1.release()};
+        pTrans1->AddItem(item1);
 
         pTrans1->SignContract(pServerNym);
         pTrans1->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
-        theInbox.AddTransaction(*pTrans1);
+        std::shared_ptr<OTTransaction> trans1{pTrans1.release()};
+        theInbox->AddTransaction(trans1);
 
         // Release any signatures that were there before (They won't
         // verify anymore anyway, since the content has changed.)
-        theInbox.ReleaseSignatures();
+        theInbox->ReleaseSignatures();
 
         // Sign and save.
-        theInbox.SignContract(pServerNym);
-        theInbox.SaveContract();
+        theInbox->SignContract(pServerNym);
+        theInbox->SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
-        auto account = wallet_.mutable_Account(ACCOUNT_ID);
+        auto account = core_.Wallet().mutable_Account(ACCOUNT_ID);
 
         // Save inbox to storage. (File, DB, wherever it goes.)
         if (account) {
             OT_ASSERT(ACCOUNT_ID == account.get().GetPurportedAccountID());
 
-            if (account.get().SaveInbox(theInbox, Identifier::Factory())) {
+            if (account.get().SaveInbox(*theInbox, Identifier::Factory())) {
                 account.Release();  // inbox hash has changed here, so we save
                                     // the account to reflect that change.
             } else {
@@ -1244,7 +1181,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         } else  // todo: would the account EVER be null here? Should never be.
                 // Therefore should we save the inbox here?
         {
-            theInbox.SaveInbox(Identifier::Factory());
+            theInbox->SaveInbox(Identifier::Factory());
         }
 
         // Notice above, if the account loads but fails to verify, then we do
@@ -1254,7 +1191,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // Corresponds to the AddTransaction() just above.
         // Details are stored in separate file these days.
         //
-        pTrans1->SaveBoxReceipt(theInbox);
+        trans1->SaveBoxReceipt(*theInbox);
 
         return true;  // Really this true should be predicated on ALL the above
                       // functions returning true. Right?
@@ -1286,19 +1223,22 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     const char* szFunc =
         "OTCronItem::DropFinalReceiptToNymbox";  // RESUME!!!!!!!
 
-    Ledger theLedger(wallet_, data_folder_, NYM_ID, NYM_ID, GetNotaryID());
+    auto theLedger{
+        core_.Factory().Ledger(core_, NYM_ID, NYM_ID, GetNotaryID())};
+
+    OT_ASSERT(false != bool(theLedger));
 
     // Inbox will receive notification of something ALREADY DONE.
-    bool bSuccessLoading = theLedger.LoadNymbox();
+    bool bSuccessLoading = theLedger->LoadNymbox();
 
     // ...or generate it otherwise...
 
     if (true == bSuccessLoading)
-        bSuccessLoading = theLedger.VerifyAccount(*pServerNym);
+        bSuccessLoading = theLedger->VerifyAccount(*pServerNym);
     else
         otErr << szFunc << ": Unable to load Nymbox.\n";
     //    else
-    //        bSuccessLoading        = theLedger.GenerateLedger(NYM_ID,
+    //        bSuccessLoading        = theLedger->GenerateLedger(NYM_ID,
     // GetNotaryID(), OTLedger::nymbox, true); // bGenerateFile=true
 
     if (!bSuccessLoading) {
@@ -1308,20 +1248,15 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         return false;
     }
 
-    OTTransaction* pTransaction = OTTransaction::GenerateTransaction(
-        wallet_,
-        theLedger,
-        OTTransaction::finalReceipt,
+    auto pTransaction{core_.Factory().Transaction(
+        core_,
+        *theLedger,
+        transactionType::finalReceipt,
         theOriginType,
-        lNewTransactionNumber);
+        lNewTransactionNumber)};
 
-    if (nullptr != pTransaction)  // The above has an OT_ASSERT within, but I
-                                  // just like to check my pointers.
-    {
-        pTransaction->SetOriginType(theOriginType);  // Todo, verify we can just
-                                                     // remove this line. (It's
-                                                     // already passed in
-                                                     // GenerateTransaction.)
+    if (false != bool(pTransaction)) {
+        pTransaction->SetOriginType(theOriginType);
 
         // The nymbox will get a receipt with the new transaction ID.
         // That receipt has an "in reference to" field containing the original
@@ -1329,12 +1264,10 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // set up the transaction items (each transaction may have multiple
         // items... but not in this case.)
-        Item* pItem1 = Item::CreateItemFromTransaction(
-            *pTransaction, Item::finalReceipt, Identifier::Factory());
+        auto pItem1{core_.Factory().Item(
+            *pTransaction, itemType::finalReceipt, Identifier::Factory())};
 
-        // This may be unnecessary, I'll have to check
-        // CreateItemFromTransaction. I'll leave it for now.
-        OT_ASSERT(nullptr != pItem1);
+        OT_ASSERT(false != bool(pItem1));
 
         pItem1->SetStatus(Item::acknowledgement);
 
@@ -1397,40 +1330,42 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         pItem1->SignContract(*pServerNym);
         pItem1->SaveContract();
 
-        // the Transaction "owns" the item now and will handle cleaning it up.
-        pTransaction->AddItem(*pItem1);
+        std::shared_ptr<Item> item1{pItem1.release()};
+        pTransaction->AddItem(item1);
 
         pTransaction->SignContract(*pServerNym);
         pTransaction->SaveContract();
 
         // Here the transaction we just created is actually added to the ledger.
-        theLedger.AddTransaction(*pTransaction);
+        std::shared_ptr<OTTransaction> transaction{pTransaction.release()};
+        theLedger->AddTransaction(transaction);
 
         // Release any signatures that were there before (They won't
         // verify anymore anyway, since the content has changed.)
-        theLedger.ReleaseSignatures();
+        theLedger->ReleaseSignatures();
 
         // Sign and save.
-        theLedger.SignContract(*pServerNym);
-        theLedger.SaveContract();
+        theLedger->SignContract(*pServerNym);
+        theLedger->SaveContract();
 
         // TODO: Better rollback capabilities in case of failures here:
 
         auto theNymboxHash = Identifier::Factory();
 
         // Save nymbox to storage. (File, DB, wherever it goes.)
-        theLedger.SaveNymbox(theNymboxHash);
+        theLedger->SaveNymbox(theNymboxHash);
 
         // This corresponds to the AddTransaction() call just above.
         // These are stored in a separate file now.
         //
-        pTransaction->SaveBoxReceipt(theLedger);
+        transaction->SaveBoxReceipt(*theLedger);
 
         // Update the NymboxHash (in the nymfile.)
         //
 
         const auto ACTUAL_NYM_ID = Identifier::Factory(NYM_ID);
-        auto context = wallet_.mutable_ClientContext(pServerNym->ID(), NYM_ID);
+        auto context =
+            core_.Wallet().mutable_ClientContext(pServerNym->ID(), NYM_ID);
         context.It().SetLocalNymboxHash(theNymboxHash);
 
         // Really this true should be predicated on ALL the above functions

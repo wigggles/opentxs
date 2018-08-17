@@ -67,7 +67,7 @@ private:
     const api::storage::Storage& storage_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contact_;
-    const api::Legacy& legacy_;
+    const api::Core& core_;
     const opentxs::network::zeromq::Context& zmq_;
     const Flag& running_;
     mutable AccountActivityMap accounts_{};
@@ -88,7 +88,7 @@ private:
        const api::storage::Storage& storage,
        const api::client::Activity& activity,
        const api::client::Contacts& contact,
-       const api::Legacy& legacy,
+       const api::Core& core,
        const opentxs::network::zeromq::Context& zmq,
        const Flag& running);
     UI() = delete;

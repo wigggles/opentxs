@@ -17,8 +17,8 @@
 
 namespace opentxs
 {
-Instrument::Instrument(const api::Wallet& wallet, const std::string& dataFolder)
-    : OTScriptable(wallet, dataFolder)
+Instrument::Instrument(const api::Core& core)
+    : OTScriptable(core)
     , m_InstrumentDefinitionID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory())
     , m_VALID_FROM(OT_TIME_ZERO)
@@ -28,11 +28,10 @@ Instrument::Instrument(const api::Wallet& wallet, const std::string& dataFolder)
 }
 
 Instrument::Instrument(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : OTScriptable(wallet, dataFolder)
+    : OTScriptable(core)
     , m_InstrumentDefinitionID(Identifier::Factory(INSTRUMENT_DEFINITION_ID))
     , m_NotaryID(Identifier::Factory(NOTARY_ID))
     , m_VALID_FROM(OT_TIME_ZERO)

@@ -52,8 +52,7 @@ public:
     static bool ContainsCheque(const proto::PaymentWorkflow& workflow);
     static std::string ExtractCheque(const proto::PaymentWorkflow& workflow);
     static Cheque InstantiateCheque(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const proto::PaymentWorkflow& workflow);
 
     /** Record a cheque cancellation or cancellation attempt */

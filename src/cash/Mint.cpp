@@ -7,6 +7,7 @@
 
 #include "opentxs/cash/Mint.hpp"
 
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/cash/MintLucre.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -36,12 +37,11 @@
 namespace opentxs
 {
 Mint::Mint(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
-    : Contract(wallet, dataFolder, strInstrumentDefinitionID)
+    : Contract(core, strInstrumentDefinitionID)
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory(strNotaryID))
@@ -66,11 +66,10 @@ Mint::Mint(
 }
 
 Mint::Mint(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
-    : Contract(wallet, dataFolder, strInstrumentDefinitionID)
+    : Contract(core, strInstrumentDefinitionID)
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory(strNotaryID))
@@ -94,8 +93,8 @@ Mint::Mint(
     InitMint();
 }
 
-Mint::Mint(const api::Wallet& wallet, const std::string& dataFolder)
-    : Contract(wallet, dataFolder)
+Mint::Mint(const api::Core& core)
+    : Contract(core)
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory())
@@ -110,89 +109,6 @@ Mint::Mint(const api::Wallet& wallet, const std::string& dataFolder)
     , m_CashAccountID(Identifier::Factory())
 {
     InitMint();
-}
-
-// static
-Mint* Mint::MintFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-{
-    Mint* pMint = nullptr;
-
-#if OT_CASH_USING_LUCRE
-    pMint = new MintLucre(wallet, dataFolder);
-#elif OT_CASH_USING_MAGIC_MONEY
-    //  pMint = new Mint_MagicMoney;
-    otErr << __FUNCTION__
-          << ": Open-Transactions doesn't support Magic Money "
-             "by Pr0duct Cypher (yet), "
-          << "so it's impossible to instantiate a mint.\n";
-#else
-    otErr
-        << __FUNCTION__
-        << ": Open-Transactions isn't built with any digital cash algorithms, "
-        << "so it's impossible to instantiate a mint.\n";
-#endif
-    return pMint;
-}
-
-// static
-Mint* Mint::MintFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strNotaryID,
-    const String& strInstrumentDefinitionID)
-{
-    Mint* pMint = nullptr;
-
-#if OT_CASH_USING_LUCRE
-    pMint = new MintLucre(
-        wallet, dataFolder, strNotaryID, strInstrumentDefinitionID);
-#elif OT_CASH_USING_MAGIC_MONEY
-    //  pMint = new OTMint_MagicMoney;
-    otErr << __FUNCTION__
-          << ": Open-Transactions doesn't support Magic Money "
-             "by Pr0duct Cypher (yet), "
-          << "so it's impossible to instantiate a mint.\n";
-#else
-    otErr
-        << __FUNCTION__
-        << ": Open-Transactions isn't built with any digital cash algorithms, "
-        << "so it's impossible to instantiate a mint.\n";
-#endif
-    return pMint;
-}
-
-// static
-Mint* Mint::MintFactory(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
-    const String& strNotaryID,
-    const String& strServerNymID,
-    const String& strInstrumentDefinitionID)
-{
-    Mint* pMint = nullptr;
-
-#if OT_CASH_USING_LUCRE
-    pMint = new MintLucre(
-        wallet,
-        dataFolder,
-        strNotaryID,
-        strServerNymID,
-        strInstrumentDefinitionID);
-#elif OT_CASH_USING_MAGIC_MONEY
-    //  pMint = new OTMint_MagicMoney;
-    otErr << __FUNCTION__
-          << ": Open-Transactions doesn't support Magic Money "
-             "by Pr0duct Cypher (yet), "
-          << "so it's impossible to instantiate a mint.\n";
-#else
-    otErr
-        << __FUNCTION__
-        << ": Open-Transactions isn't built with any digital cash algorithms, "
-        << "so it's impossible to instantiate a mint.\n";
-#endif
-    return pMint;
 }
 
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
@@ -319,7 +235,7 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
             .Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
 
     if (!OTDB::Exists(
-            data_folder_, szFolder1name, szFolder2name, szFilename, "")) {
+            core_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
         otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
               << szFilename << "\n";
@@ -327,7 +243,7 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
-        data_folder_,
+        core_.DataFolder(),
         szFolder1name,
         szFolder2name,
         szFilename,
@@ -408,7 +324,7 @@ bool Mint::SaveMint(const char* szAppend)
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        data_folder_,
+        core_.DataFolder(),
         szFolder1name,
         szFolder2name,
         szFilename,

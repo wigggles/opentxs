@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -48,24 +49,15 @@ namespace opentxs
 ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::Wallet& wallet,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::client::Contacts& contact,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const Identifier& nymID,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::AccountSummary(
-        zmq,
-        publisher,
-        wallet,
-        connection,
-        storage,
-        contact,
-        legacy,
-        nymID,
-        currency);
+        zmq, publisher, connection, storage, contact, core, nymID, currency);
 }
 }  // namespace opentxs
 
@@ -85,18 +77,16 @@ const Widget::ListenerDefinitions AccountSummary::listeners_{
 AccountSummary::AccountSummary(
     const network::zeromq::Context& zmq,
     const network::zeromq::PublishSocket& publisher,
-    const api::Wallet& wallet,
     const api::network::ZMQ& connection,
     const api::storage::Storage& storage,
     const api::client::Contacts& contact,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const Identifier& nymID,
     const proto::ContactItemType currency)
     : AccountSummaryList(nymID, zmq, publisher, contact)
-    , wallet_{wallet}
     , connection_{connection}
     , storage_{storage}
-    , legacy_{legacy}
+    , core_{core}
     , currency_{currency}
     , issuers_{}
     , server_issuer_map_{}
@@ -124,9 +114,8 @@ void AccountSummary::construct_row(
             id,
             index,
             custom,
-            wallet_,
             storage_,
-            legacy_,
+            core_,
             currency_));
     names_.emplace(id, index);
 }
@@ -138,7 +127,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     AccountSummarySortKey output{false, DEFAULT_ISSUER_NAME};
     auto& [state, name] = output;
 
-    const auto issuer = wallet_.Issuer(nymID, issuerID);
+    const auto issuer = core_.Wallet().Issuer(nymID, issuerID);
 
     if (false == bool(issuer)) { return output; }
 
@@ -146,7 +135,7 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (serverID->empty()) { return output; }
 
-    auto server = wallet_.Server(serverID);
+    auto server = core_.Wallet().Server(serverID);
 
     if (false == bool(server)) { return output; }
 
@@ -257,7 +246,7 @@ void AccountSummary::process_server(const OTIdentifier& serverID)
 
 void AccountSummary::startup()
 {
-    const auto issuers = wallet_.IssuerList(nym_id_);
+    const auto issuers = core_.Wallet().IssuerList(nym_id_);
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << issuers.size()
            << " issuers." << std::endl;
 

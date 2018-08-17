@@ -20,7 +20,17 @@
 
 namespace opentxs
 {
-typedef std::list<Item*> listOfItems;
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
+typedef std::list<std::shared_ptr<Item>> listOfItems;
 
 // Item as in "Transaction Item"
 // An OTLedger contains a list of transactions (pending transactions, inbox or
@@ -36,160 +46,6 @@ typedef std::list<Item*> listOfItems;
 class Item : public OTTransactionType
 {
 public:
-    enum itemType {
-        // TRANSFER
-        transfer,    // this item is an outgoing transfer, probably part of an
-                     // outoing transaction.
-        atTransfer,  // Server reply.
-
-        // NYMBOX RESOLUTION
-        acceptTransaction,  // this item is a client-side acceptance of a
-                            // transaction number (a blank) in my Nymbox
-        atAcceptTransaction,
-        acceptMessage,  // this item is a client-side acceptance of a message in
-                        // my Nymbox
-        atAcceptMessage,
-        acceptNotice,  // this item is a client-side acceptance of a server
-                       // notification in my Nymbox
-        atAcceptNotice,
-
-        // INBOX RESOLUTION
-        acceptPending,  // this item is a client-side acceptance of a pending
-                        // transfer
-        atAcceptPending,
-        rejectPending,  // this item is a client-side rejection of a pending
-                        // transfer
-        atRejectPending,
-
-        // RECEIPT ACKNOWLEDGMENT / DISPUTE
-        acceptCronReceipt,    // this item is a client-side acceptance of a cron
-                              // receipt in his inbox.
-        atAcceptCronReceipt,  // this item is a server reply to that acceptance.
-        acceptItemReceipt,  // this item is a client-side acceptance of an item
-                            // receipt in his inbox.
-        atAcceptItemReceipt,  // this item is a server reply to that acceptance.
-        disputeCronReceipt,   // this item is a client dispute of a cron receipt
-                              // in his inbox.
-        atDisputeCronReceipt,  // Server reply to dispute message.
-        disputeItemReceipt,  // this item is a client dispute of an item receipt
-                             // in his inbox.
-        atDisputeItemReceipt,  // Server reply to dispute message.
-
-        // Sometimes the attachment will be an OTItem, and sometimes it will be
-        // an OTPaymentPlan or OTTrade.  These different types above help the
-        // code to differentiate.
-        acceptFinalReceipt,  // this item is a client-side acceptance of a final
-                             // receipt in his inbox. (All related receipts must
-                             // also be closed!)
-        atAcceptFinalReceipt,   // server reply
-        acceptBasketReceipt,    // this item is a client-side acceptance of a
-                                // basket receipt in his inbox.
-        atAcceptBasketReceipt,  // server reply
-        disputeFinalReceipt,  // this item is a client-side rejection of a final
-        // receipt in his inbox. (All related receipts must
-        // also be closed!)
-        atDisputeFinalReceipt,   // server reply
-        disputeBasketReceipt,    // this item is a client-side rejection of a
-                                 // basket receipt in his inbox.
-        atDisputeBasketReceipt,  // server reply
-
-        // FEEs
-        serverfee,  // this item is a fee from the transaction server (per
-                    // contract)
-        atServerfee,
-        issuerfee,  // this item is a fee from the issuer (per contract)
-        atIssuerfee,
-        // INFO (BALANCE, HASH, etc) these are still all messages with replies.
-        balanceStatement,  // this item is a statement of balance. (For asset
-                           // account.)
-        atBalanceStatement,
-        transactionStatement,  // this item is a transaction statement. (For Nym
-                               // -- which numbers are assigned to him.)
-        atTransactionStatement,
-        // CASH WITHDRAWAL / DEPOSIT
-        withdrawal,  // this item is a cash withdrawal (of chaumian blinded
-                     // tokens)
-        atWithdrawal,
-        deposit,  // this item is a cash deposit (of a purse containing blinded
-                  // tokens.)
-        atDeposit,
-        // CHEQUES AND VOUCHERS
-        withdrawVoucher,  // this item is a request to purchase a voucher (a
-                          // cashier's cheque)
-        atWithdrawVoucher,
-        depositCheque,    // this item is a request to deposit a cheque
-        atDepositCheque,  // this item is a server response to that request.
-        // PAYING DIVIDEND ON SHARES OF STOCK
-        payDividend,    // this item is a request to pay a dividend.
-        atPayDividend,  // the server reply to that request.
-        // TRADING ON MARKETS
-        marketOffer,    // this item is an offer to be put on a market.
-        atMarketOffer,  // server reply or updated notification regarding a
-                        // market offer.
-        // PAYMENT PLANS
-        paymentPlan,    // this item is a new payment plan
-        atPaymentPlan,  // server reply or updated notification regarding a
-                        // payment plan.
-        // SMART CONTRACTS
-        smartContract,    // this item is a new smart contract
-        atSmartContract,  // server reply or updated notification regarding a
-                          // smart contract.
-        // CANCELLING: Market Offers and Payment Plans.
-        cancelCronItem,    // this item is intended to cancel a market offer or
-                           // payment plan.
-        atCancelCronItem,  // reply from the server regarding said cancellation.
-        // EXCHANGE IN/OUT OF A BASKET CURRENCY
-        exchangeBasket,    // this item is an exchange in/out of a basket
-                           // currency.
-        atExchangeBasket,  // reply from the server regarding said exchange.
-        // Now these three receipts have a dual use:  as the receipts in the
-        // inbox, and also
-        // as the representation for transactions in the inbox report (for
-        // balance statements.)
-        // Actually chequeReceipt is ONLY used for inbox report, and otherwise
-        // is not actually
-        // needed for real cheque receipts.  marketReceipt and paymentReceipt
-        // are used as real
-        // receipts, and also in inbox reports to represent transaction items in
-        // an inbox.
-        chequeReceipt,  // Currently don't create an OTItem for cheque receipt
-                        // in
-                        // inbox. Not needed.
-        // I also don't create one for the transfer receipt, currently.
-        // (Although near the top, I do have item types to go in a processInbox
-        // message and
-        // clear those transaction types out of my inbox.)
-        voucherReceipt,  // Newest addition. This is so users can close a
-                         // transaction number used on a voucher.
-        marketReceipt,  // server receipt dropped into inbox as result of market
-                        // trading.
-        paymentReceipt,   // server receipt dropped into an inbox as result of
-                          // payment occuring.
-        transferReceipt,  // server receipt dropped into an inbox as result of
-                          // transfer being accepted.
-        finalReceipt,   // server receipt dropped into inbox / nymbox as result
-                        // of
-                        // cron item expiring or being canceled.
-        basketReceipt,  // server receipt dropped into inbox as result of a
-                        // basket exchange.
-        replyNotice,    // server notice of a reply that nym should have already
-                        // received as a response to a request.
-        // (Some are so important, a copy of the server reply is dropped to your
-        // nymbox, to make SURE you got it and processed it.)
-        successNotice,  // server notice dropped into nymbox as result of a
-                        // transaction# being successfully signed out.
-        notice,  // server notice dropped into nymbox as result of a smart
-                 // contract processing.
-        // Also could be used for ballots / elections, corporate meetings /
-        // minutes, etc.
-        // finalReceipt is also basically a notice (in the Nymbox, anyway) but
-        // it still is
-        // information that you have to act on as soon as you receive it,
-        // whereas THIS kind
-        // of notice isn't so hardcore. It's more laid-back.
-        error_state  // error state versus error status
-    };
-
     // FOR EXAMPLE:  A client may send a TRANSFER request, setting type to
     // Transfer and status to Request.
     //                 The server may respond with type atTransfer and status
@@ -219,16 +75,17 @@ public:
     EXPORT void CalculateNumberOfOrigin() override;
     // used for looping through the items in a few places.
     inline listOfItems& GetItemList() { return m_listItems; }
-    Item* GetItem(std::int32_t nIndex);  // While processing an item, you may
-                                         // wish
+    std::shared_ptr<Item> GetItem(std::int32_t nIndex);  // While processing an
+                                                         // item, you may wish
     // to query it for sub-items of a certain
     // type.
-    Item* GetItemByTransactionNum(std::int64_t lTransactionNumber);  // While
+    std::shared_ptr<Item> GetItemByTransactionNum(
+        std::int64_t lTransactionNumber);  // While
     // processing
     // an item, you
     // may
     // wish to query it for sub-items
-    Item* GetFinalReceiptItemByReferenceNum(
+    std::shared_ptr<Item> GetFinalReceiptItemByReferenceNum(
         std::int64_t lReferenceNumber);  // The final receipt item MAY be
                                          // present, and co-relates to others
                                          // that share its "in reference to"
@@ -243,9 +100,8 @@ public:
     {
         return static_cast<std::int32_t>(m_listItems.size());
     }
-    void AddItem(Item& theItem);  // You have to allocate the item on the heap
-                                  // and then pass it in as a reference.
-    // OTItem will take care of it from there and will delete it in destructor.
+    void AddItem(std::shared_ptr<Item> theItem);
+
     void ReleaseItems();
     void Release_Item();
     void Release() override;
@@ -295,8 +151,8 @@ public:
         const bool bIsRealTransaction = true) const;
     inline Item::itemStatus GetStatus() const { return m_Status; }
     inline void SetStatus(const Item::itemStatus& theVal) { m_Status = theVal; }
-    inline Item::itemType GetType() const { return m_Type; }
-    inline void SetType(Item::itemType theType) { m_Type = theType; }
+    inline itemType GetType() const { return m_Type; }
+    inline void SetType(itemType theType) { m_Type = theType; }
     inline std::int64_t GetAmount() const { return m_lAmount; }
     inline void SetAmount(std::int64_t lAmount) { m_lAmount = lAmount; }
     EXPORT void GetNote(String& theStr) const;
@@ -308,44 +164,12 @@ public:
     {
         m_AcctToID = theID;
     }
-    EXPORT static Item* CreateItemFromString(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strItem,
-        const Identifier& theNotaryID,
-        std::int64_t lTransactionNumber);
-    EXPORT static Item* CreateItemFromTransaction(
-        const OTTransaction& theOwner,
-        Item::itemType theType,
-        const Identifier& pDestinationAcctID);
-    EXPORT static void GetStringFromType(
-        Item::itemType theType,
-        String& strType);
+    EXPORT static void GetStringFromType(itemType theType, String& strType);
     inline void GetTypeString(String& strType) const
     {
         GetStringFromType(GetType(), strType);
     }
     void InitItem();
-
-    Item(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const Item& theOwner);  // From owner we can get acct ID, server ID,
-                                // and transaction Num
-    Item(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const OTTransaction& theOwner);  // From owner we can get acct ID,
-                                         // server ID, and transaction Num
-    Item(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const OTTransaction& theOwner,
-        Item::itemType theType,
-        const Identifier& pDestinationAcctID);
 
     virtual ~Item();
 
@@ -361,7 +185,7 @@ protected:
     listOfItems m_listItems;
     // the item type. Could be a transfer, a fee, a balance or client
     // accept/rejecting an item
-    itemType m_Type{error_state};
+    itemType m_Type{itemType::error_state};
     // request, acknowledgment, or rejection.
     itemStatus m_Status{error_status};
     // Used for balance agreement. The user puts transaction "1" in his outbox
@@ -383,22 +207,36 @@ protected:
     // contents
     void UpdateContents() override;
 
+private:  // Private prevents erroneous use by other classes.
+    friend api::implementation::Factory;
+
+    typedef OTTransactionType ot_super;
+
+    itemType GetItemTypeFromString(const String& strType);
+
     // There is the OTTransaction transfer, which is a transaction type, and
     // there is also the OTItem transfer, which is an item type. They are
     // related. Every transaction has a list of items, and these perform the
     // transaction. A transaction trying to TRANSFER would have these items:
     // transfer, serverfee, balance, and possibly outboxhash.
-    Item(const api::Wallet& wallet, const std::string& dataFolder);
+    Item(const api::Core& core);
+    Item(
+        const api::Core& core,
+        const Identifier& theNymID,
+        const Item& theOwner);  // From owner we can get acct ID, server ID,
+                                // and transaction Num
+    Item(
+        const api::Core& core,
+        const Identifier& theNymID,
+        const OTTransaction& theOwner);  // From owner we can get acct ID,
+                                         // server ID, and transaction Num
+    Item(
+        const api::Core& core,
+        const Identifier& theNymID,
+        const OTTransaction& theOwner,
+        itemType theType,
+        const Identifier& pDestinationAcctID);
 
-private:  // Private prevents erroneous use by other classes.
-    typedef OTTransactionType ot_super;
-
-    friend OTTransactionType* OTTransactionType::TransactionFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput);
-
-    Item::itemType GetItemTypeFromString(const String& strType);
     Item() = delete;
 };
 }  // namespace opentxs

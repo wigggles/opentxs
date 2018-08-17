@@ -48,16 +48,16 @@ public:
         OTWallet& theWallet,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts,
-        const api::Legacy& legacy,
-        const api::Wallet& wallet,
+        const api::Core& core,
         const api::client::Workflow& workflow);
 
 private:
     OTWallet& m_pWallet;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
-    const api::Legacy& legacy_;
+    const api::Core& core_;
     const api::Wallet& wallet_;
+    const api::Factory& factory_;
     const api::client::Workflow& workflow_;
     OTMessageOutbuffer m_MessageOutbuffer;
 
@@ -75,7 +75,7 @@ private:
     void ProcessIncomingTransaction(
         const Message& theReply,
         ServerContext& context,
-        OTTransaction* pTransaction,
+        std::shared_ptr<OTTransaction> pTransaction,
         String& strReceiptID) const;
     void ProcessIncomingTransactions(
         const Message& theReply,
@@ -93,7 +93,7 @@ private:
         OTTransaction& theTransaction) const;
     void ProcessDepositChequeResponse(
         const ServerContext& context,
-        Item* pReplyItem) const;
+        std::shared_ptr<Item> pReplyItem) const;
     void ProcessPayDividendResponse(OTTransaction& theTransaction) const;
     void load_str_trans_add_to_ledger(
         const Identifier& the_nym_id,
@@ -175,11 +175,11 @@ private:
         const Identifier& accountID,
         ServerContext& context);
     void ProcessIncomingCronItemReply(
-        Item* pReplyItem,
+        std::shared_ptr<Item> pReplyItem,
         std::unique_ptr<OTCronItem>& pCronItem,
         ServerContext& context,
         const TransactionNumber& lNymOpeningNumber,
-        OTTransaction* pTransaction,
+        std::shared_ptr<OTTransaction> pTransaction,
         const String& strCronItem) const;
 };
 }  // namespace opentxs

@@ -8,7 +8,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Workflow.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -45,8 +45,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::AccountActivitySortKey& sortKey,
     const ui::implementation::CustomData& custom,
     const api::client::Sync& sync,
-    const api::Wallet& wallet,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
 {
@@ -64,8 +63,7 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
                 sortKey,
                 custom,
                 sync,
-                wallet,
-                legacy,
+                core,
                 nymID,
                 accountID);
         }
@@ -91,12 +89,10 @@ BalanceItem::BalanceItem(
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
     const api::client::Sync& sync,
-    const api::Wallet& wallet,
     const Identifier& nymID,
     const Identifier& accountID)
     : BalanceItemRow(parent, zmq, publisher, contact, rowID, true)
     , sync_(sync)
-    , wallet_(wallet)
     , nym_id_(Identifier::Factory(nymID))
     , type_(extract_type(recover_workflow(custom)))
     , text_("")
@@ -115,8 +111,7 @@ ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
     const api::client::Sync& sync,
-    const api::Wallet& wallet,
-    const api::Legacy& legacy,
+    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
     : BalanceItem(
@@ -128,10 +123,9 @@ ChequeBalanceItem::ChequeBalanceItem(
           sortKey,
           custom,
           sync,
-          wallet,
           nymID,
           accountID)
-    , legacy_(legacy)
+    , core_(core)
     , cheque_(nullptr)
 {
     startup_.reset(new std::thread(&ChequeBalanceItem::startup, this, custom));
@@ -288,7 +282,7 @@ bool ChequeBalanceItem::get_contract() const
 
     eLock lock(shared_lock_);
     const auto& contractID = cheque_->GetInstrumentDefinitionID();
-    contract_ = wallet_.UnitDefinition(contractID);
+    contract_ = core_.Wallet().UnitDefinition(contractID);
 
     if (contract_) { return true; }
 
@@ -322,9 +316,7 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
-    cheque_ = api::client::Workflow::InstantiateCheque(
-                  wallet_, legacy_.ClientDataFolder(), workflow)
-                  .second;
+    cheque_ = api::client::Workflow::InstantiateCheque(core_, workflow).second;
 
     OT_ASSERT(cheque_)
 

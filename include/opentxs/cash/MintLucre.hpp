@@ -21,6 +21,16 @@ namespace opentxs
 class Nym;
 class Token;
 
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 // SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
 
 class MintLucre : public Mint
@@ -44,18 +54,17 @@ public:
     EXPORT ~MintLucre() = default;
 
 private:
-    typedef Mint ot_super;
-    friend Mint;  // for the factory.
+    friend api::implementation::Factory;
 
-    MintLucre(const api::Wallet& wallet, const std::string& dataFolder);
+    typedef Mint ot_super;
+
+    MintLucre(const api::Core& core);
     EXPORT MintLucre(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID);
     EXPORT MintLucre(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const String& strNotaryID,
         const String& strServerNymID,
         const String& strInstrumentDefinitionID);

@@ -17,27 +17,25 @@ namespace opentxs
 // the transaction ID of one of those receipts might contain
 // a purse or something, that the caller wants to retrieve.
 //
-// Caller is responsible to delete.
-EXPORT OTPayment* GetInstrumentByReceiptID(
+EXPORT std::shared_ptr<OTPayment> GetInstrumentByReceiptID(
     const Nym& theNym,
     const std::int64_t& lReceiptId,
     Ledger& ledger);
 
-EXPORT OTPayment* GetInstrumentByIndex(
+EXPORT std::shared_ptr<OTPayment> GetInstrumentByIndex(
     const Nym& theNym,
     const std::int32_t& nIndex,
     Ledger& ledger);
 
 // returns financial instrument inside pTransaction.
 // (Cheque, Purse, etc.)
-// Caller is responsible to delete.
-EXPORT OTPayment* GetInstrument(
+EXPORT std::shared_ptr<OTPayment> GetInstrument(
     const Nym& theNym,
     Ledger& ledger,
-    OTTransaction*& pTransaction);
+    std::shared_ptr<OTTransaction> pTransaction);
 
-EXPORT OTPayment* extract_payment_instrument_from_notice(
+EXPORT std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
     const Nym& theNym,
-    OTTransaction*& pTransaction);
+    std::shared_ptr<OTTransaction> pTransaction);
 }  // namespace opentxs
 #endif

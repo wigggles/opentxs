@@ -13,6 +13,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/util/Common.hpp"
@@ -25,6 +27,16 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 #define MAX_MARKET_QUERY_DEPTH                                                 \
     50  // todo add this to the ini file. (Now that we actually have one.)
 
@@ -144,22 +156,11 @@ public:
                                      // this is where the ledger saves its
                                      // contents
 
-    OTMarket(const api::Wallet& wallet, const std::string& dataFolder);
-    OTMarket(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const char* szFilename);
-    OTMarket(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& CURRENCY_TYPE_ID,
-        const std::int64_t& lScale);
-
     virtual ~OTMarket();
 
 private:
+    friend api::implementation::Factory;
+
     typedef Contract ot_super;
 
     OTCron* m_pCron{nullptr};  // The Cron object that owns this Market.
@@ -203,6 +204,15 @@ private:
     // that it stays VERY clear which instrument definition is up for sale, and
     // which instrument definition (currency type) it is being priced in. Other
     // than that, the two are technically interchangeable.
+
+    OTMarket(const api::Core& core);
+    OTMarket(const api::Core& core, const char* szFilename);
+    OTMarket(
+        const api::Core& core,
+        const Identifier& NOTARY_ID,
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const Identifier& CURRENCY_TYPE_ID,
+        const std::int64_t& lScale);
 
     void rollback_four_accounts(
         Account& p1,

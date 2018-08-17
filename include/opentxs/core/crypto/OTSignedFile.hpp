@@ -15,32 +15,19 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
 
 class OTSignedFile : public Contract
 {
 public:
-    // These assume SetFilename() was already called,
-    // or at least one of the constructors that uses it.
-    //
-    EXPORT explicit OTSignedFile(
-        const api::Wallet& wallet,
-        const std::string& dataFolder);
-    EXPORT explicit OTSignedFile(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& LOCAL_SUBDIR,
-        const String& FILE_NAME);
-    EXPORT explicit OTSignedFile(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const char* LOCAL_SUBDIR,
-        const String& FILE_NAME);
-    EXPORT explicit OTSignedFile(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const char* LOCAL_SUBDIR,
-        const char* FILE_NAME);
-
     EXPORT bool LoadFile();
     EXPORT bool SaveFile();
     bool VerifyFile();  // Returns true or false, whether actual subdir/file
@@ -94,7 +81,26 @@ protected:
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
 private:  // Private prevents erroneous use by other classes.
+    friend api::implementation::Factory;
+
     typedef Contract ot_super;
+
+    // These assume SetFilename() was already called,
+    // or at least one of the constructors that uses it.
+    //
+    explicit OTSignedFile(const api::Core& core);
+    explicit OTSignedFile(
+        const api::Core& core,
+        const String& LOCAL_SUBDIR,
+        const String& FILE_NAME);
+    explicit OTSignedFile(
+        const api::Core& core,
+        const char* LOCAL_SUBDIR,
+        const String& FILE_NAME);
+    explicit OTSignedFile(
+        const api::Core& core,
+        const char* LOCAL_SUBDIR,
+        const char* FILE_NAME);
 
     OTSignedFile() = delete;
 };

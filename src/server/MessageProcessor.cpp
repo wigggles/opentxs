@@ -9,7 +9,7 @@
 
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Legacy.hpp"
+#include "opentxs/api/Factory.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -204,7 +204,7 @@ bool MessageProcessor::processMessage(
     armored.MemSet(messageString.data(), messageString.size());
     String serialized;
     armored.GetString(serialized);
-    Message request{server_.API().Wallet(), server_.API().DataFolder()};
+    auto request{server_.API().Factory().Message(server_.API())};
 
     if (false == serialized.Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Empty serialized request."
@@ -213,29 +213,32 @@ bool MessageProcessor::processMessage(
         return true;
     }
 
-    if (false == request.LoadContractFromString(serialized)) {
+    if (false == request->LoadContractFromString(serialized)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed to deserialized request." << std::endl;
 
         return true;
     }
 
-    Message repy{server_.API().Wallet(), server_.API().DataFolder()};
+    auto replymsg{server_.API().Factory().Message(server_.API())};
+
+    OT_ASSERT(false != bool(replymsg));
+
     const bool processed =
-        server_.CommandProcessor().ProcessUserCommand(request, repy);
+        server_.CommandProcessor().ProcessUserCommand(*request, *replymsg);
 
     if (false == processed) {
         otWarn << OT_METHOD << __FUNCTION__
-               << ": Failed to process user command " << request.m_strCommand
+               << ": Failed to process user command " << request->m_strCommand
                << std::endl;
-        otInfo << String(request) << std::endl;
+        otInfo << String(*request) << std::endl;
     } else {
         otWarn << OT_METHOD << __FUNCTION__
                << ": Successfully processed user command "
-               << request.m_strCommand << std::endl;
+               << request->m_strCommand << std::endl;
     }
 
-    String serializedReply(repy);
+    String serializedReply(*replymsg);
 
     if (false == serializedReply.Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to serialize reply."

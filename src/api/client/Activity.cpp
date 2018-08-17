@@ -40,13 +40,11 @@ namespace opentxs
 api::client::internal::Activity* Factory::Activity(
     const api::storage::Storage& storage,
     const api::client::Contacts& contact,
-    const api::Factory& factory,
-    const api::Legacy& legacy,
-    const api::Wallet& wallet,
+    const api::Core& core,
     const network::zeromq::Context& zmq)
 {
     return new api::client::implementation::Activity(
-        storage, contact, factory, legacy, wallet, zmq);
+        storage, contact, core, zmq);
 }
 }  // namespace opentxs
 
@@ -55,15 +53,12 @@ namespace opentxs::api::client::implementation
 Activity::Activity(
     const storage::Storage& storage,
     const Contacts& contact,
-    const Factory& factory,
-    const Legacy& legacy,
-    const Wallet& wallet,
+    const Core& core,
     const opentxs::network::zeromq::Context& zmq)
     : storage_(storage)
     , contact_(contact)
-    , factory_(factory)
-    , legacy_(legacy)
-    , wallet_(wallet)
+    , core_(core)
+    , wallet_(core_.Wallet())
     , zmq_(zmq)
     , mail_cache_lock_()
     , mail_cache_()
@@ -197,8 +192,7 @@ Activity::ChequeData Activity::Cheque(
 
     OT_ASSERT(workflow)
 
-    auto instantiated = client::Workflow::InstantiateCheque(
-        wallet_, legacy_.ClientDataFolder(), *workflow);
+    auto instantiated = client::Workflow::InstantiateCheque(core_, *workflow);
     cheque.reset(std::get<1>(instantiated).release());
 
     OT_ASSERT(cheque)
@@ -280,7 +274,7 @@ std::unique_ptr<Message> Activity::Mail(
         return output;
     }
 
-    output.reset(new Message{wallet_, legacy_.ClientDataFolder()});
+    output.reset(core_.Factory().Message(core_).release());
 
     OT_ASSERT(output);
 
@@ -460,7 +454,7 @@ void Activity::MigrateLegacyThreads() const
 
                 if (1 == nymCount) {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto paymentCode = factory_.PaymentCode("");
+                    auto paymentCode = core_.Factory().PaymentCode("");
 #endif
                     auto newContact = contact_.NewContact(
                         "",

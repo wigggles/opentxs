@@ -16,6 +16,16 @@
 
 namespace opentxs
 {
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 /*
 Here's a rough sketch of the protocol:
 
@@ -61,16 +71,14 @@ public:
     EXPORT ~Token_Lucre() = default;
 
 private:
-    Token_Lucre(const api::Wallet& wallet, const std::string& dataFolder);
+    friend api::implementation::Factory;
+
+    Token_Lucre(const api::Core& core);
     Token_Lucre(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
+        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID);
-    Token_Lucre(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Purse& thePurse);
+    Token_Lucre(const api::Core& core, const Purse& thePurse);
 
     bool GenerateTokenRequest(
         const Nym& theNym,
@@ -78,9 +86,7 @@ private:
         std::int64_t lDenomination,
         std::int32_t nTokenCount = Token::GetMinimumPrototokenCount()) override;
 
-private:
     typedef Token ot_super;
-    friend class Token;  // for the factory.
 
     Token_Lucre() = delete;
 };

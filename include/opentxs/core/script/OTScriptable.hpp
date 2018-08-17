@@ -208,10 +208,6 @@ public:
 
     EXPORT virtual void RegisterOTNativeCallsWithScript(OTScript& theScript);
     EXPORT virtual bool Compare(OTScriptable& rhs) const;
-    EXPORT static OTScriptable* InstantiateScriptable(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const String& strInput);
 
     // Make sure a string contains only alpha, numeric, or '_'
     // And make sure it's not blank. This is for script variable names, clause
@@ -342,7 +338,7 @@ protected:
                         // smart contract would normally want to log its
                         // transaction #, not just the clause name.)
 
-    OTScriptable(const api::Wallet& wallet, const std::string& dataFolder);
+    OTScriptable(const api::Core& core);
 
 private:
     typedef Contract ot_super;

@@ -40,13 +40,13 @@ public:
 
     void ActivateCron();
     UserCommandProcessor& CommandProcessor() { return userCommandProcessor_; }
-    std::int64_t ComputeTimeout() { return m_Cron.computeTimeout(); }
-    OTCron& Cron() { return m_Cron; }
+    std::int64_t ComputeTimeout() { return m_Cron->computeTimeout(); }
+    OTCron& Cron() { return *m_Cron; }
     bool DropMessageToNymbox(
         const Identifier& notaryID,
         const Identifier& senderNymID,
         const Identifier& recipientNymID,
-        OTTransaction::transactionType transactionType,
+        transactionType transactionType,
         const Message& msg);
     MainFile& GetMainFile() { return mainFile_; }
     Notary& GetNotary() { return notary_; }
@@ -94,7 +94,8 @@ private:
     // This is the server's own contract, containing its public key and
     // connect info.
     ConstNym m_nymServer;
-    OTCron m_Cron;  // This is where re-occurring and expiring tasks go.
+    std::unique_ptr<OTCron> m_Cron;  // This is where re-occurring and expiring
+                                     // tasks go.
 
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
@@ -103,7 +104,7 @@ private:
         const Identifier& notaryID,
         const Identifier& senderNymID,
         const Identifier& recipientNymID,
-        OTTransaction::transactionType transactionType,
+        transactionType transactionType,
         const Message* msg = nullptr,
         const String* messageString = nullptr,
         const char* command = nullptr);

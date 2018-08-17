@@ -16,10 +16,8 @@
 
 namespace opentxs
 {
-OTTrackable::OTTrackable(
-    const api::Wallet& wallet,
-    const std::string& dataFolder)
-    : Instrument(wallet, dataFolder)
+OTTrackable::OTTrackable(const api::Core& core)
+    : Instrument(core)
     , m_lTransactionNum(0)
     , m_SENDER_ACCT_ID(Identifier::Factory())
     , m_SENDER_NYM_ID(Identifier::Factory())
@@ -28,11 +26,10 @@ OTTrackable::OTTrackable(
 }
 
 OTTrackable::OTTrackable(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID)
-    : Instrument(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
     , m_SENDER_ACCT_ID(Identifier::Factory())
     , m_SENDER_NYM_ID(Identifier::Factory())
@@ -41,13 +38,12 @@ OTTrackable::OTTrackable(
 }
 
 OTTrackable::OTTrackable(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& ACCT_ID,
     const Identifier& NYM_ID)
-    : Instrument(wallet, dataFolder, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
+    : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lTransactionNum(0)
     , m_SENDER_ACCT_ID(Identifier::Factory())
     , m_SENDER_NYM_ID(Identifier::Factory())

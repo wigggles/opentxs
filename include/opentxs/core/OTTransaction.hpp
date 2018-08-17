@@ -15,6 +15,16 @@
 namespace opentxs
 {
 
+namespace api
+{
+namespace implementation
+{
+
+class Factory;
+
+}  // namespace implementation
+}  // namespace api
+
 /*
 WHEN THE server receives a transaction request, it receives a MESSAGE containing
 an ascii-armored LEDGER.
@@ -316,92 +326,12 @@ same time that it is first being
  */
 class OTTransaction : public OTTransactionType
 {
-    friend OTTransactionType* OTTransactionType::TransactionFactory(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        String strInput);
-
 public:
     // a transaction can be blank (issued from server)
     // or pending (in the inbox/outbox)
     // or it can be a "process inbox" transaction
     // might also be in the nymbox.
-    enum transactionType {
-        // ***** INBOX / OUTBOX / NYMBOX
-
-        // NYMBOX
-        blank,        // freshly issued transaction number, not used yet
-                      // (the server drops these into the nymbox.)
-        message,      // A message from one user to another, also in the nymbox.
-        notice,       // A notice from the server. Used in Nymbox.
-        replyNotice,  // A copy of a server reply to a previous request you
-                      // sent.
-                      // (To make SURE you get the reply.)
-        successNotice,  // A transaction # has successfully been signed out.
-
-        // INBOX / OUTBOX (pending transfer)
-        pending,  // Server puts this in your outbox (when sending) and
-                  // recipient's inbox.
-
-        // INBOX / receipts
-        transferReceipt,  // the server drops this into your inbox, when someone
-                          // accepts your transfer.
-        chequeReceipt,    // the server drops this into your inbox, when someone
-                          // deposits your cheque.
-        voucherReceipt,   // the server drops this into your inbox, when someone
-                          // deposits your voucher.
-        marketReceipt,   // server periodically drops this into your inbox if an
-                         // offer is live.
-        paymentReceipt,  // the server drops this into people's inboxes, every
-                         // time a payment processes. (from a payment plan or a
-                         // smart contract)
-        finalReceipt,  // the server drops this into your in/nym box(es), when a
-                       // CronItem expires or is canceled.
-        basketReceipt,  // the server drops this into your inboxes, when a
-                        // basket
-                        // exchange is processed.
-
-        // PAYMENT INBOX / PAYMENT OUTBOX / RECORD BOX
-        instrumentNotice,  // Receive these in paymentInbox (by way of Nymbox),
-                           // and send in Outpayments (like Outmail).) (When
-                           // done, they go to recordBox or expiredBox to await
-                           // deletion.)
-        instrumentRejection,  // When someone rejects your invoice from his
-                              // paymentInbox, you get one of these in YOUR
-                              // paymentInbox.
-
-        // **** MESSAGES ****
-        processNymbox,    // process nymbox transaction    // comes from client
-        atProcessNymbox,  // process nymbox reply          // comes from server
-        processInbox,     // process inbox transaction     // comes from client
-        atProcessInbox,   // process inbox reply           // comes from server
-        transfer,  // or "spend". This transaction is a request to transfer from
-                   // one account to another
-        atTransfer,     // reply from the server regarding a transfer request
-        deposit,        // this transaction is a deposit (cash or cheque)
-        atDeposit,      // reply from the server regarding a deposit request
-        withdrawal,     // this transaction is a withdrawal (cash or voucher)
-        atWithdrawal,   // reply from the server regarding a withdrawal request
-        marketOffer,    // this transaction is a market offer
-        atMarketOffer,  // reply from the server regarding a market offer
-        paymentPlan,    // this transaction is a payment plan
-        atPaymentPlan,  // reply from the server regarding a payment plan
-        smartContract,  // this transaction is a smart contract
-        atSmartContract,   // reply from the server regarding a smart contract
-        cancelCronItem,    // this transaction is intended to cancel a market
-                           // offer
-                           // or payment plan.
-        atCancelCronItem,  // reply from the server regarding said cancellation.
-        exchangeBasket,    // this transaction is an exchange in/out of a basket
-                           // currency.
-        atExchangeBasket,  // reply from the server regarding said exchange.
-        payDividend,       // this transaction is dividend payment (to all
-                           // shareholders...)
-        atPayDividend,     // reply from the server regarding said dividend
-                           // payment.
-        error_state
-    };  // If you add any types to this list, update the list of strings at the
-    // top of the .CPP file.
+    // See transactionType in Types.hpp.
 
     void Release() override;
     EXPORT std::int64_t GetNumberOfOrigin() override;
@@ -505,23 +435,6 @@ public:
     // amount (depending on type) and return
     // it.
 
-    EXPORT static OTTransaction* GenerateTransaction(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
-        transactionType theType,
-        originType theOriginType = originType::not_applicable,
-        std::int64_t lTransactionNum = 0);
-
-    EXPORT static OTTransaction* GenerateTransaction(
-        const api::Wallet& wallet,
-        const Ledger& theOwner,
-        transactionType theType,
-        originType theOriginType = originType::not_applicable,
-        std::int64_t lTransactionNum = 0);
-
     transactionType GetType() const;
     void SetType(transactionType theType);
 
@@ -558,13 +471,14 @@ public:
 
     // While processing a transaction, you may wish to query it for items of a
     // certain type.
-    EXPORT Item* GetItem(Item::itemType theType);
+    EXPORT std::shared_ptr<Item> GetItem(itemType theType);
 
-    EXPORT Item* GetItemInRefTo(std::int64_t lReference);
+    EXPORT std::shared_ptr<Item> GetItemInRefTo(std::int64_t lReference);
 
-    EXPORT void AddItem(Item& theItem);  // You have to allocate the item on
-                                         // the heap and then pass it in as a
-                                         // reference.
+    EXPORT void AddItem(std::shared_ptr<Item> theItem);  // You have to allocate
+                                                         // the item on the heap
+                                                         // and then pass it in
+                                                         // as a reference.
     // OTTransaction will take care of it from there and will delete it in
     // destructor.
     // used for looping through the items in a few places.
@@ -624,52 +538,6 @@ public:
         bool bReplyWasFailure,         // false until positively asserted.
         bool bTransactionWasSuccess,   // false until positively asserted.
         bool bTransactionWasFailure);  // false until positively asserted.
-
-    EXPORT explicit OTTransaction(
-        const api::Wallet& wallet,
-        const Ledger& theOwner);
-
-    EXPORT explicit OTTransaction(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
-        originType theOriginType = originType::not_applicable);
-
-    EXPORT explicit OTTransaction(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
-        std::int64_t lTransactionNum,
-        originType theOriginType = originType::not_applicable);
-
-    // THIS constructor only used when loading an abbreviated box receipt
-    // (inbox, nymbox, or outbox receipt).
-    // The full receipt is loaded only after the abbreviated ones are loaded,
-    // and verified against them.
-    EXPORT OTTransaction(
-        const api::Wallet& wallet,
-        const std::string& dataFolder,
-        const Identifier& theNymID,
-        const Identifier& theAccountID,
-        const Identifier& theNotaryID,
-        const std::int64_t& lNumberOfOrigin,
-        originType theOriginType,
-        const std::int64_t& lTransactionNum,
-        const std::int64_t& lInRefTo,
-        const std::int64_t& lInRefDisplay,
-        time64_t the_DATE_SIGNED,
-        transactionType theType,
-        const String& strHash,
-        const std::int64_t& lAdjustment,
-        const std::int64_t& lDisplayValue,
-        const std::int64_t& lClosingNum,
-        const std::int64_t& lRequestNum,
-        bool bReplyTransSuccess,
-        NumList* pNumList = nullptr);
 
     EXPORT virtual ~OTTransaction();
 
@@ -744,9 +612,10 @@ protected:
 
     time64_t m_DATE_SIGNED{0};  // The date, in seconds, when the instrument was
                                 // last signed.
-    transactionType m_Type{error_state};  // blank, pending, processInbox,
-                                          // transfer, deposit, withdrawal,
-                                          // trade, etc.
+    transactionType m_Type{
+        transactionType::error_state};  // blank, pending, processInbox,
+                                        // transfer, deposit, withdrawal,
+                                        // trade, etc.
     listOfItems m_listItems;  // the various items in this transaction.
 
     TransactionNumber m_lClosingTransactionNo{0};  // used by finalReceipt
@@ -802,7 +671,50 @@ protected:
                                      // contents
 
 private:
-    OTTransaction(const api::Wallet& wallet, const std::string& dataFolder);
+    friend api::implementation::Factory;
+
+    OTTransaction(const api::Core& core);
+    OTTransaction(const api::Core& core, const Ledger& theOwner);
+
+    OTTransaction(
+        const api::Core& core,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        originType theOriginType = originType::not_applicable);
+
+    OTTransaction(
+        const api::Core& core,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        std::int64_t lTransactionNum,
+        originType theOriginType = originType::not_applicable);
+
+    // THIS constructor only used when loading an abbreviated box receipt
+    // (inbox, nymbox, or outbox receipt).
+    // The full receipt is loaded only after the abbreviated ones are loaded,
+    // and verified against them.
+    OTTransaction(
+        const api::Core& core,
+        const Identifier& theNymID,
+        const Identifier& theAccountID,
+        const Identifier& theNotaryID,
+        const std::int64_t& lNumberOfOrigin,
+        originType theOriginType,
+        const std::int64_t& lTransactionNum,
+        const std::int64_t& lInRefTo,
+        const std::int64_t& lInRefDisplay,
+        time64_t the_DATE_SIGNED,
+        transactionType theType,
+        const String& strHash,
+        const std::int64_t& lAdjustment,
+        const std::int64_t& lDisplayValue,
+        const std::int64_t& lClosingNum,
+        const std::int64_t& lRequestNum,
+        bool bReplyTransSuccess,
+        NumList* pNumList = nullptr);
+
     OTTransaction() = delete;
 };
 }  // namespace opentxs

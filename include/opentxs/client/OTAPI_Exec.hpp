@@ -3403,8 +3403,7 @@ private:
     const api::Crypto& crypto_;
     const api::Factory& factory_;
     const api::Identity& identity_;
-    const api::Legacy& legacy_;
-    const api::Wallet& wallet_;
+    const api::Core& manager_;
     const api::network::ZMQ& zeromq_;
     const OT_API& ot_api_;
     ContextLockCallback lock_callback_;
@@ -3416,8 +3415,7 @@ private:
         const api::Crypto& crypto,
         const api::Factory& factory,
         const api::Identity& identity,
-        const api::Legacy& legacy,
-        const api::Wallet& wallet,
+        const api::Core& manager,
         const api::network::ZMQ& zeromq,
         const OT_API& otapi,
         const ContextLockCallback& lockCallback);

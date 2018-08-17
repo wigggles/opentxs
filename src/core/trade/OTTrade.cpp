@@ -38,8 +38,8 @@ namespace opentxs
 {
 enum { TradeProcessIntervalSeconds = 10 };
 
-OTTrade::OTTrade(const api::Wallet& wallet, const std::string& dataFolder)
-    : ot_super(wallet, dataFolder)
+OTTrade::OTTrade(const api::Core& core)
+    : ot_super(core)
     , currencyTypeID_(Identifier::Factory())
     , currencyAcctID_(Identifier::Factory())
     , offer_(nullptr)
@@ -54,21 +54,14 @@ OTTrade::OTTrade(const api::Wallet& wallet, const std::string& dataFolder)
 }
 
 OTTrade::OTTrade(
-    const api::Wallet& wallet,
-    const std::string& dataFolder,
+    const api::Core& core,
     const Identifier& notaryID,
     const Identifier& instrumentDefinitionID,
     const Identifier& assetAcctId,
     const Identifier& nymID,
     const Identifier& currencyId,
     const Identifier& currencyAcctId)
-    : ot_super(
-          wallet,
-          dataFolder,
-          notaryID,
-          instrumentDefinitionID,
-          assetAcctId,
-          nymID)
+    : ot_super(core, notaryID, instrumentDefinitionID, assetAcctId, nymID)
     , currencyTypeID_(Identifier::Factory(currencyId))
     , currencyAcctID_(Identifier::Factory(currencyAcctId))
     , offer_(nullptr)
@@ -371,15 +364,15 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         const auto OFFER_MARKET_ID = Identifier::Factory(*offer_);
 
         if (market != nullptr) {
-            OTMarket* pMarket = GetCron()->GetMarket(OFFER_MARKET_ID);
+            auto pMarket = GetCron()->GetMarket(OFFER_MARKET_ID);
 
             // Sometimes the caller function would like a copy of this market
             // pointer, when available.
             // So I pass it back to him here, if he wants. That way he doesn't
             // have to do this work again
             // to look it up.
-            if (pMarket != nullptr)
-                *market = pMarket;  // <=================
+            if (false != bool(pMarket))
+                *market = pMarket.get();  // <=================
             else
                 otErr << "OTTrade::" << __FUNCTION__
                       << ": offer_ already exists, yet unable to find the "
@@ -398,16 +391,14 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         return nullptr;
     }
 
-    OTOffer* offer = new OTOffer{wallet_, data_folder_};
-    OT_ASSERT(offer != nullptr);
+    auto offer{core_.Factory().Offer(core_)};
+    OT_ASSERT(false != bool(offer));
 
     // Trying to load the offer from the trader's original signed request
     // (So I can use it to lookup the Market ID, so I can see the offer is
     // already there on the market.)
     if (!offer->LoadContractFromString(marketOffer_)) {
         otErr << "Error loading offer from string in OTTrade::GetOffer\n";
-        delete offer;
-        offer = nullptr;
         return nullptr;
     }
 
@@ -431,16 +422,14 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
     // markets folder,
     // actually, without making it impossible for certain Nyms to get rid of
     // certain issued #s.
-    OTMarket* pMarket = GetCron()->GetOrCreateMarket(
+    auto pMarket = GetCron()->GetOrCreateMarket(
         GetInstrumentDefinitionID(), GetCurrencyID(), offer->GetScale());
 
     // Couldn't find (or create) the market.
-    if (pMarket == nullptr) {
+    if (false == bool(pMarket)) {
         otOut
             << "OTTrade::" << __FUNCTION__
             << ": Unable to find or create market within requested parameters.";
-        delete offer;
-        offer = nullptr;
         return nullptr;
     }
 
@@ -451,7 +440,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         // So I pass it back to him here, if he wants. That way he doesn't have
         // to do this work again
         // to look it up.
-        *market = pMarket;
+        *market = pMarket.get();
     }
 
     // At this point, I have heap-allocated the offer, used it to get the Market
@@ -481,11 +470,6 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
     if (marketOffer != nullptr) {
         offer_ = marketOffer;
 
-        // Since the Offer already exists on the market, no need anymore for the
-        // one we allocated above (to get the market ID.) So we delete it now.
-        delete offer;
-        offer = nullptr;
-
         offer_->SetTrade(*this);
 
         return offer_;
@@ -514,7 +498,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
                      "supposedly the right market.)\n";
         } else {
             // SUCCESS!
-            offer_ = offer;
+            offer_ = offer.release();
 
             hasTradeActivated_ = true;
 
@@ -579,7 +563,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
                          "though supposedly the right market.)\n";
             } else {
                 // SUCCESS!
-                offer_ = offer;
+                offer_ = offer.release();
 
                 stopActivated_ = true;
                 hasTradeActivated_ = true;
@@ -619,9 +603,6 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         }
     }
 
-    delete offer;
-    offer = nullptr;
-
     return nullptr;
 }
 
@@ -658,7 +639,9 @@ void OTTrade::onRemovalFromCron()
             return;
         }
 
-        std::unique_ptr<OTOffer> offer(new OTOffer{wallet_, data_folder_});
+        auto offer{core_.Factory().Offer(core_)};
+
+        OT_ASSERT(false != bool(offer));
 
         // Trying to load the offer from the trader's original signed request
         // (So I can use it to lookup the Market ID, so I can see if the offer
@@ -677,12 +660,12 @@ void OTTrade::onRemovalFromCron()
         transactionNum = offer_->GetTransactionNum();
     }
 
-    OTMarket* market = cron->GetOrCreateMarket(
+    auto market = cron->GetOrCreateMarket(
         GetInstrumentDefinitionID(), GetCurrencyID(), scale);
 
     // Couldn't find (or create) the market.
     //
-    if (market == nullptr) {
+    if (false == bool(market)) {
         otErr << "Unable to find market within requested parameters in "
                  "OTTrade::onRemovalFromCron.\n";
         return;
@@ -814,7 +797,7 @@ void OTTrade::onFinalReceipt(
     OT_ASSERT(serverNym);
 
     auto context =
-        wallet_.mutable_ClientContext(serverNym->ID(), originator->ID());
+        core_.Wallet().mutable_ClientContext(serverNym->ID(), originator->ID());
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -1062,7 +1045,7 @@ bool OTTrade::ProcessCron()
         {
             otInfo << "Processing trade: " << GetTransactionNum() << ".\n";
 
-            bStayOnMarket = market->ProcessTrade(wallet_, *this, *offer);
+            bStayOnMarket = market->ProcessTrade(core_.Wallet(), *this, *offer);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.
         }
