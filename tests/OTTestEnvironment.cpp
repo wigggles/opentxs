@@ -13,7 +13,7 @@
 void OTTestEnvironment::SetUp()
 {
     opentxs::ArgList args{{OPENTXS_ARG_STORAGE_PLUGIN, {"mem"}}};
-    opentxs::OT::ClientFactory(args);
+    opentxs::OT::Start(args);
 }
 
 void OTTestEnvironment::TearDown() { opentxs::OT::Cleanup(); }

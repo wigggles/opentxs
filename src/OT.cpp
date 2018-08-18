@@ -6,7 +6,9 @@
 #include "stdafx.hpp"
 #include "Internal.hpp"
 
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/client/OT_API.hpp"
 #include "opentxs/core/Log.hpp"
 
 #include "internal/api/Internal.hpp"
@@ -37,24 +39,14 @@ void OT::Cleanup()
     }
 }
 
-void OT::ClientFactory(
+const api::client::Manager& OT::ClientFactory(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback,
-    const bool recover)
+    OTCaller* externalPasswordCallback)
 {
-    OT_ASSERT(nullptr == instance_pointer_);
+    auto& ot = Start(args, gcInterval, externalPasswordCallback);
 
-    instance_pointer_ = Factory::Native(
-        running_, args, recover, false, gcInterval, externalPasswordCallback);
-
-    OT_ASSERT(nullptr != instance_pointer_);
-
-    auto ot = dynamic_cast<api::internal::Native*>(instance_pointer_);
-
-    OT_ASSERT(nullptr != ot);
-
-    ot->Init();
+    return ot.StartClient(args, 0);
 }
 
 void OT::Join()
@@ -66,16 +58,47 @@ void OT::Join()
 
 const opentxs::Flag& OT::Running() { return running_; }
 
-void OT::ServerFactory(
+const api::client::Manager& OT::RecoverClient(
+    const ArgList& args,
+    const std::string& words,
+    const std::string& passphrase,
+    const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback)
+{
+    auto& ot = Start(args, gcInterval, externalPasswordCallback);
+    auto& client = ot.StartClient(args, 0);
+
+    if (0 < words.size()) {
+        auto& api = client.OTAPI();
+        OTPassword wordList{};
+        OTPassword phrase{};
+        wordList.setPassword(words);
+        phrase.setPassword(passphrase);
+        api.Wallet_ImportSeed(wordList, phrase);
+    }
+
+    return client;
+}
+
+const api::server::Manager& OT::ServerFactory(
     const ArgList& args,
     const std::chrono::seconds gcInterval,
-    OTCaller* externalPasswordCallback,
-    const bool recover)
+    OTCaller* externalPasswordCallback)
+{
+    auto& ot = Start(args, gcInterval, externalPasswordCallback);
+
+    return ot.StartServer(args, 0, false);
+}
+
+const api::Native& OT::Start(
+    const ArgList& args,
+    const std::chrono::seconds gcInterval,
+    OTCaller* externalPasswordCallback)
 {
     OT_ASSERT(nullptr == instance_pointer_);
 
-    instance_pointer_ = Factory::Native(
-        running_, args, recover, true, gcInterval, externalPasswordCallback);
+    instance_pointer_ =
+        Factory::Native(running_, args, gcInterval, externalPasswordCallback);
 
     OT_ASSERT(nullptr != instance_pointer_);
 
@@ -84,5 +107,7 @@ void OT::ServerFactory(
     OT_ASSERT(nullptr != ot);
 
     ot->Init();
+
+    return *instance_pointer_;
 }
 }  // namespace opentxs

@@ -29,43 +29,59 @@ class Test_ContactList : public ::testing::Test
 {
 public:
     using WidgetUpdateCounter = std::map<std::string, int>;
+    const opentxs::api::client::Manager& client_;
 
-    const std::string fingerprint_{OT::App().Client().Exec().Wallet_ImportSeed(
-        "response seminar brave tip suit recall often sound stick owner "
-        "lottery motion",
-        "")};
-    const OTIdentifier nym_id_{
-        Identifier::Factory(OT::App().Client().Exec().CreateNymHD(
-            proto::CITEMTYPE_INDIVIDUAL,
-            ALICE_NYM_NAME,
-            fingerprint_,
-            0))};
-    std::string contact_widget_id_{""};
+    const std::string fingerprint_;
+    const OTIdentifier nym_id_;
+    std::string contact_widget_id_;
     WidgetUpdateCounter counter_;
     std::mutex counter_lock_;
-    OTZMQListenCallback callback_{network::zeromq::ListenCallback::Factory(
-        [=](const network::zeromq::Message& message) -> void {
-            ASSERT_EQ(1, message.size());
-            IncrementCounter(message.at(0));
-        })};
-    OTZMQSubscribeSocket subscriber_{setup_listener(callback_)};
-    const ui::ContactList& contact_list_{
-        OT::App().Client().UI().ContactList(nym_id_)};
-    std::thread loop_{&Test_ContactList::loop, this};
-    std::atomic<bool> shutdown_{false};
-    const OTPaymentCode bob_payment_code_{
-        OT::App().Client().Factory().PaymentCode(BOB_PAYMENT_CODE)};
-    OTIdentifier bob_contact_id_{Identifier::Factory()};
-    const OTPaymentCode chris_payment_code_{
-        OT::App().Client().Factory().PaymentCode(CHRIS_PAYMENT_CODE)};
-    OTIdentifier chris_contact_id_{Identifier::Factory()};
+    OTZMQListenCallback callback_;
+    OTZMQSubscribeSocket subscriber_;
+    const ui::ContactList& contact_list_;
+    std::thread loop_;
+    std::atomic<bool> shutdown_;
+    const OTPaymentCode bob_payment_code_;
+    OTIdentifier bob_contact_id_;
+    const OTPaymentCode chris_payment_code_;
+    OTIdentifier chris_contact_id_;
+
+    Test_ContactList()
+        : client_(opentxs::OT::App().StartClient({}, 0))
+        , fingerprint_(client_.Exec().Wallet_ImportSeed(
+              "response seminar brave tip suit recall often sound stick owner "
+              "lottery motion",
+              ""))
+        , nym_id_(Identifier::Factory(client_.Exec().CreateNymHD(
+              proto::CITEMTYPE_INDIVIDUAL,
+              ALICE_NYM_NAME,
+              fingerprint_,
+              0)))
+        , contact_widget_id_("")
+        , counter_()
+        , counter_lock_()
+        , callback_(network::zeromq::ListenCallback::Factory(
+              [=](const network::zeromq::Message& message) -> void {
+                  ASSERT_EQ(1, message.size());
+                  IncrementCounter(message.at(0));
+              }))
+        , subscriber_(setup_listener(client_, callback_))
+        , contact_list_(client_.UI().ContactList(nym_id_))
+        , loop_(&Test_ContactList::loop, this)
+        , shutdown_(false)
+        , bob_payment_code_(client_.Factory().PaymentCode(BOB_PAYMENT_CODE))
+        , bob_contact_id_(Identifier::Factory())
+        , chris_payment_code_(client_.Factory().PaymentCode(CHRIS_PAYMENT_CODE))
+        , chris_contact_id_(Identifier::Factory())
+    {
+    }
 
     static OTZMQSubscribeSocket setup_listener(
+        const opentxs::api::client::Manager& api,
         const network::zeromq::ListenCallback& callback)
     {
-        auto output =
-            OT::App().Client().ZMQ().Context().SubscribeSocket(callback);
-        output->Start(OT::App().Client().Endpoints().WidgetUpdate());
+        auto output = api.ZMQ().Context().SubscribeSocket(callback);
+        output->Start(api.Endpoints().WidgetUpdate());
 
         return output;
     }
@@ -212,7 +228,7 @@ TEST_F(Test_ContactList, Contact_List)
 
     while (GetCounter(contact_widget_id_) < 2) { ; }
 
-    const auto bob = OT::App().Client().Contacts().NewContact(
+    const auto bob = client_.Contacts().NewContact(
         BOB_NYM_NAME, bob_payment_code_->ID(), bob_payment_code_);
 
     ASSERT_EQ(true, bool(bob));
@@ -223,7 +239,7 @@ TEST_F(Test_ContactList, Contact_List)
 
     while (GetCounter(contact_widget_id_) < 4) { ; }
 
-    const auto chris = OT::App().Client().Contacts().NewContact(
+    const auto chris = client_.Contacts().NewContact(
         CHRIS_NYM_NAME, chris_payment_code_->ID(), chris_payment_code_);
 
     ASSERT_EQ(true, bool(chris));

@@ -197,8 +197,6 @@ public:
     static api::internal::Native* Native(
         Flag& running,
         const ArgList& args,
-        const bool recover,
-        const bool serverMode,
         const std::chrono::seconds gcInterval,
         OTCaller* externalPasswordCallback = nullptr);
     static OTCallback* NullCallback();

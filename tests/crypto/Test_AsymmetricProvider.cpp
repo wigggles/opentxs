@@ -14,11 +14,8 @@ namespace
 class Test_Signatures : public ::testing::Test
 {
 public:
-    const std::string fingerprint_{
-        opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
-            "response seminar brave tip suit recall often sound stick owner "
-            "lottery motion",
-            "")};
+    const opentxs::api::client::Manager& client_;
+    const std::string fingerprint_;
     const proto::HashType hash_sha256_{proto::HASHTYPE_SHA256};
     const proto::HashType hash_sha512_{proto::HASHTYPE_SHA512};
     const proto::HashType hash_blake160_{proto::HASHTYPE_BLAKE2B160};
@@ -32,30 +29,51 @@ public:
     const OTData plaintext_2{
         Data::Factory(plaintext_string_2_.data(), plaintext_string_2_.size())};
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-    OTAsymmetricKey ed25519_hd_{get_hd_key(fingerprint_, EcdsaCurve::ED25519)};
-    const crypto::AsymmetricProvider& ed25519_{OT::App().Crypto().ED25519()};
+    OTAsymmetricKey ed25519_hd_;
+    const crypto::AsymmetricProvider& ed25519_;
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    OTAsymmetricKey secp256k1_hd_{
-        get_hd_key(fingerprint_, EcdsaCurve::SECP256K1)};
-    const crypto::AsymmetricProvider& secp256k1_{
-        OT::App().Crypto().SECP256K1()};
+    OTAsymmetricKey secp256k1_hd_;
+    const crypto::AsymmetricProvider& secp256k1_;
 #endif
 #if OT_CRYPTO_USING_LIBSECP256K1
 #if OT_CRYPTO_USING_TREZOR
-    const crypto::AsymmetricProvider& trezor_{
-        dynamic_cast<const crypto::AsymmetricProvider&>(
-            OT::App().Crypto().BIP32())};
+    const crypto::AsymmetricProvider& trezor_;
 #endif  // OT_CRYPTO_USING_TREZOR
 #endif  // OT_CRYPTO_USING_LIBSECP256K1
 
+    Test_Signatures()
+        : client_(opentxs::OT::App().StartClient({}, 0))
+        , fingerprint_(client_.Exec().Wallet_ImportSeed(
+              "response seminar brave tip suit recall often sound stick owner "
+              "lottery motion",
+              ""))
+#if OT_CRYPTO_SUPPORTED_KEY_ED25519
+        , ed25519_hd_(get_hd_key(client_, fingerprint_, EcdsaCurve::ED25519))
+        , ed25519_(client_.Crypto().ED25519())
+#endif
+#if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
+        , secp256k1_hd_(
+              get_hd_key(client_, fingerprint_, EcdsaCurve::SECP256K1))
+        , secp256k1_(client_.Crypto().SECP256K1())
+#endif
+#if OT_CRYPTO_USING_LIBSECP256K1
+#if OT_CRYPTO_USING_TREZOR
+        , trezor_(dynamic_cast<const crypto::AsymmetricProvider&>(
+              client_.Crypto().BIP32()))
+#endif  // OT_CRYPTO_USING_TREZOR
+#endif  // OT_CRYPTO_USING_LIBSECP256K1
+    {
+    }
+
     static OTAsymmetricKey get_hd_key(
+        const opentxs::api::client::Manager& api,
         const std::string& fingerprint,
         const EcdsaCurve& curve)
     {
         std::string id{fingerprint};
         std::uint32_t notUsed{0};
-        auto seed = OT::App().Client().Seeds().Seed(id, notUsed);
+        auto seed = api.Seeds().Seed(id, notUsed);
         proto::HDPath path{};
         path.set_version(1);
         path.set_root(id.c_str(), id.size());
@@ -69,7 +87,7 @@ public:
             static_cast<std::uint32_t>(Bip32Child::SIGN_KEY) |
             static_cast<std::uint32_t>(Bip32Child::HARDENED));
         const auto serialized =
-            OT::App().Crypto().BIP32().GetHDKey(curve, *seed, path);
+            api.Crypto().BIP32().GetHDKey(curve, *seed, path);
 
         return crypto::key::Asymmetric::Factory(*serialized);
     }

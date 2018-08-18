@@ -21,14 +21,15 @@ namespace opentxs::api::implementation
 class Native final : api::internal::Native, Lockable
 {
 public:
-    const api::client::Manager& Client() const override;
+    const api::client::Manager& Client(const int instance) const override;
     const api::Settings& Config(const std::string& path) const override;
     const api::Crypto& Crypto() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
     const api::server::Manager& Server(const int instance) const override;
-    bool ServerMode() const override;
-    const api::Core& StartClient(const ArgList& args) const override;
-    const api::Core& StartServer(
+    const api::client::Manager& StartClient(
+        const ArgList& args,
+        const int instance) const override;
+    const api::server::Manager& StartServer(
         const ArgList& args,
         const int instance,
         const bool inproc) const override;
@@ -43,18 +44,17 @@ private:
     typedef std::map<std::string, std::unique_ptr<api::Settings>> ConfigMap;
 
     Flag& running_;
-    const bool recover_{false};
-    const bool server_mode_{false};
     const std::chrono::seconds gc_interval_{0};
     OTPassword word_list_{};
     OTPassword passphrase_{};
     mutable std::mutex config_lock_;
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
-    mutable std::unique_ptr<api::client::internal::Manager> client_;
     mutable ConfigMap config_;
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::Legacy> legacy_;
+    mutable std::vector<std::unique_ptr<api::client::internal::Manager>>
+        client_;
     mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
     OTZMQContext zmq_context_;
     mutable std::unique_ptr<Signals> signal_handler_;
@@ -70,8 +70,6 @@ private:
     explicit Native(
         Flag& running,
         const ArgList& args,
-        const bool recover,
-        const bool serverMode,
         const std::chrono::seconds gcInterval,
         OTCaller* externalPasswordCallback = nullptr);
     Native() = delete;
@@ -82,12 +80,9 @@ private:
 
     void setup_default_external_password_callback();
 
-    void Init_Api();
     void Init_Crypto();
     void Init_Log();
-    void Init_Server();
     void Init() override;
-    void recover();
     void shutdown() override;
     void start_client(const Lock& lock, const ArgList& args) const;
     void start_server(const Lock& lock, const ArgList& args) const;
