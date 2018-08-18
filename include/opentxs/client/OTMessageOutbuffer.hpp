@@ -66,7 +66,7 @@ public:
 private:
     typedef std::multimap<std::int64_t, std::shared_ptr<Message>> mapOfMessages;
 
-    const api::Core& core_;
+    const api::Core& api_;
     mapOfMessages messagesMap_{};
 
     OTMessageOutbuffer() = delete;

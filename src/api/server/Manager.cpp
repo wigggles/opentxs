@@ -94,11 +94,7 @@ Manager::Manager(
           crypto_.BIP32(),
           crypto_.BIP39(),
           crypto_.AES()))
-    , factory_(opentxs::Factory::FactoryAPI(
-#if OT_CRYPTO_WITH_BIP39
-          *seeds_
-#endif
-          ))
+    , factory_(opentxs::Factory::FactoryAPI(*this))
     , wallet_(opentxs::Factory::Wallet(*this))
     , dht_(opentxs::Factory::Dht(
           instance_,
@@ -193,8 +189,7 @@ void Manager::generate_mint(
     const std::string nymID{NymID().str()};
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(series);
-    mint.reset(
-        factory_->Mint(server_.API(), nymID.c_str(), unitID.c_str()).release());
+    mint.reset(factory_->Mint(nymID.c_str(), unitID.c_str()).release());
 
     OT_ASSERT(mint)
 
@@ -410,8 +405,7 @@ std::shared_ptr<Mint> Manager::load_private_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<Mint> mint{
-        factory_
-            ->Mint(server_.API(), String(ID()), String(NymID()), unitID.c_str())
+        factory_->Mint(String(ID()), String(NymID()), unitID.c_str())
             .release()};
 
     OT_ASSERT(false != bool(mint));
@@ -427,7 +421,7 @@ std::shared_ptr<Mint> Manager::load_public_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<Mint> mint{
-        factory_->Mint(server_.API(), String(ID()), unitID.c_str()).release()};
+        factory_->Mint(String(ID()), unitID.c_str()).release()};
 
     OT_ASSERT(false != bool(mint));
 

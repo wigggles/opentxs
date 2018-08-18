@@ -83,210 +83,153 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
-        const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi);
+        const Identifier& serverID);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const std::string& password);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const proto::UnitDefinition& unitDefinition);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& nymID2);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& targetID,
         const proto::ConnectionInfoType& infoType);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& nymID2,
         const std::int64_t& int64Val);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& accountID,
         std::unique_ptr<Ledger>& ledger);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& targetID,
         const Identifier& instrumentDefinitionID);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& accountID,
         std::unique_ptr<Cheque>& cheque);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& nymID2,
         std::unique_ptr<Purse>& purse);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         std::unique_ptr<OTPaymentPlan>& paymentPlan);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const TransactionNumber& transactionNumber,
         const std::string& clause,
         const std::string& parameter);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         std::unique_ptr<const OTPayment>& payment);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         const std::string& message);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& accountID,
         const RemoteBoxType& remoteBoxType,
         const TransactionNumber& transactionNumber);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& accountID,
         const std::string& agentName,
         std::unique_ptr<OTSmartContract>& contract);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         const Identifier& requestID,
         const std::string& instructions);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         const Identifier& requestID,
         const bool ack);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& nymID2,
         const Identifier& targetID,
         const Amount& amount,
@@ -294,12 +237,9 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& targetID,
         const std::string& primary,
         const std::string& secondary,
@@ -307,24 +247,18 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         std::unique_ptr<const Purse>& purse,
         std::unique_ptr<const Purse>& senderPurse);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         const Identifier& requestID,
         const Identifier& instrumentDefinitionID,
@@ -333,12 +267,9 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         bool primary,
         const proto::ContactSectionName& sectionName,
         const proto::ContactItemType& itemType,
@@ -346,12 +277,9 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& instrumentDefinitionID,
         const Identifier& basketID,
         const Identifier& accountID,
@@ -360,12 +288,9 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& recipientID,
         const Identifier& requestID,
         const std::string& url,
@@ -376,12 +301,9 @@ public:
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
         const Identifier& assetAccountID,
         const Identifier& currencyAccountID,
         const Amount& scale,
@@ -448,13 +370,9 @@ private:
     time64_t lifetime_{OT_TIME_ZERO};
     std::int32_t nRequestNum_{-1};
     std::int32_t nTransNumsNeeded_{0};
-    const api::Wallet& wallet_;
-    const api::client::Workflow& workflow_;
-    const api::Core& core_;
+    const api::client::Manager& api_;
     Editor<ServerContext> context_editor_;
     ServerContext& context_;
-    const OTAPI_Exec& exec_;
-    const OT_API& otapi_;
     CommandResult last_attempt_;
     const bool is_transaction_{false};
     std::shared_ptr<PeerReply> peer_reply_;
@@ -487,10 +405,7 @@ private:
 
     explicit OTAPI_Func(
         std::recursive_mutex& apilock,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
-        const OTAPI_Exec& exec,
-        const OT_API& otapi,
+        const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
         const OTAPI_Func_Type type);

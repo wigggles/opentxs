@@ -83,11 +83,11 @@ IssuerItem::IssuerItem(
     : IssuerItemList(parent.WidgetID(), parent.NymID(), zmq, publisher, contact)
     , IssuerItemRow(parent, Identifier::Factory(rowID), true)
     , storage_{storage}
-    , core_{core}
+    , api_{core}
     , key_{sortKey}
     , name_{std::get<1>(key_)}
     , connection_{std::get<0>(key_)}
-    , issuer_{core_.Wallet().Issuer(parent.NymID(), rowID)}
+    , issuer_{api_.Wallet().Issuer(parent.NymID(), rowID)}
     , currency_{currency}
 {
     OT_ASSERT(issuer_)
@@ -114,7 +114,7 @@ void IssuerItem::construct_row(
             id,
             index,
             custom,
-            core_.Wallet(),
+            api_.Wallet(),
             storage_));
     names_.emplace(id, index);
 }
@@ -128,7 +128,7 @@ std::string IssuerItem::Name() const
 
 void IssuerItem::process_account(const Identifier& accountID)
 {
-    const auto account = core_.Wallet().Account(accountID);
+    const auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) { return; }
 

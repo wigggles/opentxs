@@ -134,11 +134,14 @@ class OTCachedKey
 {
 public:
     EXPORT static std::shared_ptr<OTCachedKey> CreateMasterPassword(
+        const api::Crypto& crypto,
         OTPassword& theOutput,
         const char* szDisplay = nullptr,
         std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
 
-    EXPORT explicit OTCachedKey(const Armored& ascCachedKey);
+    EXPORT explicit OTCachedKey(
+        const api::Crypto& crypto,
+        const Armored& ascCachedKey);
     EXPORT bool GetIdentifier(Identifier& theIdentifier) const;
     EXPORT bool GetIdentifier(String& strIdentifier) const;
     /** For Nyms, which have a global master key serving as their "passphrase"
@@ -189,6 +192,7 @@ public:
 private:
     friend class api::implementation::Crypto;
 
+    const api::Crypto& crypto_;
     mutable std::mutex general_lock_;
     mutable std::mutex master_password_lock_;
     mutable OTFlag shutdown_;
@@ -227,6 +231,7 @@ private:
     void reset_master_password();
 
     explicit OTCachedKey(
+        const api::Crypto& crypto,
         const std::int32_t nTimeoutSeconds = OT_MASTER_KEY_TIMEOUT);
     OTCachedKey() = delete;
     OTCachedKey(const OTCachedKey&) = delete;

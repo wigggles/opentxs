@@ -93,7 +93,7 @@ public:
         const api::storage::Storage& storage,
         const api::Wallet& wallet);
 #endif
-    static api::client::Cash* Cash(const api::Core& core);
+    static api::client::Cash* Cash(const api::client::Manager& api);
     static api::client::internal::Manager* ClientManager(
         const Flag& running,
         const ArgList& args,
@@ -168,11 +168,7 @@ public:
     static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
     static crypto::key::Ed25519* Ed25519Key(const proto::KeyRole role);
     static api::crypto::Encode* Encode(const crypto::EncodingProvider& base58);
-    static api::Factory* FactoryAPI(
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds
-#endif
-    );
+    static api::Factory* FactoryAPI(const api::Core& api);
     static api::crypto::Hash* Hash(
         const api::crypto::Encode& encode,
         const crypto::HashingProvider& ssl,
@@ -251,7 +247,7 @@ public:
         const api::Core& core,
         std::shared_ptr<const Nym> targetNym,
         std::shared_ptr<const Nym> signerNym);
-    static crypto::OpenSSL* OpenSSL();
+    static crypto::OpenSSL* OpenSSL(const api::Crypto& crypto);
     static api::client::Pair* Pair(
         const Flag& running,
         const api::client::Manager& client);
@@ -319,6 +315,7 @@ public:
     static crypto::key::RSA* RSAKey(const String& publicKey);
     static crypto::key::RSA* RSAKey(const proto::KeyRole role);
     static crypto::Secp256k1* Secp256k1(
+        const api::Crypto& crypto,
         const api::crypto::Util& util,
         const crypto::EcdsaProvider& ecdsa);
     static crypto::key::Secp256k1* Secp256k1Key(
@@ -326,10 +323,7 @@ public:
     static crypto::key::Secp256k1* Secp256k1Key(const String& publicKey);
     static crypto::key::Secp256k1* Secp256k1Key(const proto::KeyRole role);
     static api::client::ServerAction* ServerAction(
-        const OT_API& otapi,
-        const OTAPI_Exec& exec,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const ContextLockCallback& lockCallback);
     static api::server::Manager* ServerManager(
         const Flag& running,
@@ -341,7 +335,7 @@ public:
         const int instance);
     static api::Settings* Settings();
     static api::Settings* Settings(const String& path);
-    static crypto::Sodium* Sodium();
+    static crypto::Sodium* Sodium(const api::Crypto& crypto);
     static api::storage::StorageInternal* Storage(
         const Flag& running,
         const api::Crypto& crypto,

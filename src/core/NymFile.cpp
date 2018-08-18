@@ -87,7 +87,7 @@ NymFile::NymFile(
     const api::Core& core,
     std::shared_ptr<const Nym> targetNym,
     std::shared_ptr<const Nym> signerNym)
-    : core_{core}
+    : api_{core}
     , target_nym_{targetNym}
     , signer_nym_{signerNym}
     , m_lUsageCredits(0)
@@ -292,8 +292,7 @@ bool NymFile::deserialize_nymfile(
                                     true);  // linebreaks == true.
 
                                 if (strMessage.GetLength() > 2) {
-                                    auto pMessage =
-                                        core_.Factory().Message(core_);
+                                    auto pMessage = api_.Factory().Message();
 
                                     OT_ASSERT(false != bool(pMessage));
 
@@ -436,8 +435,7 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
         //
         if (pMsg->m_ascPayload.Exists() &&
             pMsg->m_ascPayload.GetString(strPayment) && strPayment.Exists()) {
-            pPayment.reset(
-                core_.Factory().Payment(core_, strPayment).release());
+            pPayment.reset(api_.Factory().Payment(strPayment).release());
 
             // Let's see if it's the cheque we're looking for...
             //
@@ -481,8 +479,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
-    auto theNymFile =
-        core_.Factory().SignedFile(core_, OTFolders::Nym(), nymID);
+    auto theNymFile = api_.Factory().SignedFile(OTFolders::Nym(), nymID);
 
     if (!theNymFile->LoadFile()) {
         otWarn << __FUNCTION__ << ": Failed loading a signed nymfile: " << nymID
@@ -642,7 +639,7 @@ bool NymFile::ResyncWithServer(
     const String strNymID(target_nym_->ID());
 
     auto context =
-        core_.Wallet().mutable_ServerContext(target_nym_->ID(), theNotaryID);
+        api_.Wallet().mutable_ServerContext(target_nym_->ID(), theNotaryID);
 
     // Remove all issued, transaction, and tentative numbers for a specific
     // server ID,
@@ -821,7 +818,7 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
     serialize_nymfile(lock, strNym);
 
     bool bSaved = OTDB::StorePlainString(
-        strNym.Get(), core_.DataFolder(), szFoldername, szFilename, "", "");
+        strNym.Get(), api_.DataFolder(), szFoldername, szFilename, "", "");
     if (!bSaved)
         otErr << __FUNCTION__ << ": Error saving file: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
@@ -847,7 +844,7 @@ bool NymFile::save_signed_nymfile(const T& lock)
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
     auto theNymFile =
-        core_.Factory().SignedFile(core_, OTFolders::Nym().Get(), strNymID);
+        api_.Factory().SignedFile(OTFolders::Nym().Get(), strNymID);
     theNymFile->GetFilename(m_strNymFile);
 
     otInfo << "Saving nym to: " << m_strNymFile << "\n";

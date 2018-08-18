@@ -10,52 +10,42 @@ namespace opentxs::api::implementation
 class Factory final : public opentxs::api::Factory
 {
 public:
+    std::unique_ptr<opentxs::Basket> Basket() const override;
     std::unique_ptr<opentxs::Basket> Basket(
-        const api::Core& core) const override;
-    std::unique_ptr<opentxs::Basket> Basket(
-        const api::Core& core,
         std::int32_t nCount,
         std::int64_t lMinimumTransferAmount) const override;
 
     std::unique_ptr<opentxs::Cheque> Cheque(
         const OTTransaction& receipt) const override;
+    std::unique_ptr<opentxs::Cheque> Cheque() const override;
     std::unique_ptr<opentxs::Cheque> Cheque(
-        const api::Core& core) const override;
-    std::unique_ptr<opentxs::Cheque> Cheque(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
 
     std::unique_ptr<opentxs::Contract> Contract(
-        const api::Core& core,
         const String& strCronItem) const override;
 
     std::unique_ptr<OTCron> Cron(const api::Core& server) const override;
 
     std::unique_ptr<OTCronItem> CronItem(
-        const api::Core& core,
         const String& strCronItem) const override;
 
     std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const Identifier& theNymID,
         const opentxs::Item& theOwner) const override;  // From owner we can get
                                                         // acct ID, server ID,
                                                         // and transaction Num
     std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const Identifier& theNymID,
         const OTTransaction& theOwner) const override;  // From owner we can get
                                                         // acct ID, server ID,
                                                         // and transaction Num
     std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const Identifier& theNymID,
         const OTTransaction& theOwner,
         itemType theType,
         const Identifier& pDestinationAcctID) const override;
     std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const String& strItem,
         const Identifier& theNotaryID,
         std::int64_t lTransactionNumber) const override;
@@ -65,64 +55,52 @@ public:
         const Identifier& pDestinationAcctID) const override;
 
     std::unique_ptr<opentxs::Ledger> Ledger(
-        const api::Core& core,
         const Identifier& theAccountID,
         const Identifier& theNotaryID) const override;
     std::unique_ptr<opentxs::Ledger> Ledger(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID) const override;
     std::unique_ptr<opentxs::Ledger> Ledger(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAcctID,
         const Identifier& theNotaryID,
         ledgerType theType,
         bool bCreateFile = false) const override;
 
-    std::unique_ptr<OTMarket> Market(const api::Core& core) const override;
-    std::unique_ptr<OTMarket> Market(
-        const api::Core& core,
-        const char* szFilename) const override;
+    std::unique_ptr<OTMarket> Market() const override;
+    std::unique_ptr<OTMarket> Market(const char* szFilename) const override;
     virtual std::unique_ptr<OTMarket> Market(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_TYPE_ID,
         const std::int64_t& lScale) const override;
 
-    std::unique_ptr<opentxs::Message> Message(
-        const api::Core& core) const override;
+    std::unique_ptr<opentxs::Message> Message() const override;
 
 #if OT_CASH
-    std::unique_ptr<opentxs::Mint> Mint(const api::Core& core) const override;
+    std::unique_ptr<opentxs::Mint> Mint() const override;
     std::unique_ptr<opentxs::Mint> Mint(
-        const api::Core& core,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID) const override;
     std::unique_ptr<opentxs::Mint> Mint(
-        const api::Core& core,
         const String& strNotaryID,
         const String& strServerNymID,
         const String& strInstrumentDefinitionID) const override;
 #endif
 
+    std::unique_ptr<OTOffer> Offer() const override;  // The constructor
+                                                      // contains the 3
+                                                      // variables needed to
+                                                      // identify any market.
     std::unique_ptr<OTOffer> Offer(
-        const api::Core& core) const override;  // The constructor contains
-                                                // the 3 variables needed to
-                                                // identify any market.
-    std::unique_ptr<OTOffer> Offer(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_ID,
         const std::int64_t& MARKET_SCALE) const override;
 
-    std::unique_ptr<OTPayment> Payment(const api::Core& core) const override;
-    std::unique_ptr<OTPayment> Payment(
-        const api::Core& core,
-        const String& strPayment) const override;
+    std::unique_ptr<OTPayment> Payment() const override;
+    std::unique_ptr<OTPayment> Payment(const String& strPayment) const override;
 
 #if OT_CRYPTO_WITH_BIP39
     OTPaymentCode PaymentCode(const std::string& base58) const override;
@@ -137,14 +115,11 @@ public:
         const std::uint8_t bitmessageStream = 0) const override;
 #endif
 
+    std::unique_ptr<OTPaymentPlan> PaymentPlan() const override;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const api::Core& core) const override;
-    std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
     std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,
@@ -155,76 +130,56 @@ public:
 #if OT_CASH
     /** just for copy another purse's Server and Instrument Definition Id */
     std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const opentxs::Purse& thePurse) const override;
     /** similar thing */
     std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
     /** Don't use this unless you really don't know the instrument definition
      * (Like if you're about to read it out of a string.) */
     std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const Identifier& NOTARY_ID) const override;
     /** Normally you really really want to set the instrument definition. */
     std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& NYM_ID) const override;  // NymID optional
-    std::unique_ptr<opentxs::Purse> Purse(
-        const opentxs::Purse& thePurse) const override;
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID in advance.
+    std::unique_ptr<opentxs::Purse> Purse(String strInput) const override;
     std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
-        String strInput) const override;
-    std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         String strInput,
         const Identifier& NOTARY_ID) const override;
     std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
 #endif  // OT_CASH
 
     std::unique_ptr<OTScriptable> Scriptable(
-        const api::Core& core,
         const String& strCronItem) const override;
 
+    std::unique_ptr<OTSignedFile> SignedFile() const override;
     std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core) const override;
-    std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core,
         const String& LOCAL_SUBDIR,
         const String& FILE_NAME) const override;
     std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core,
         const char* LOCAL_SUBDIR,
         const String& FILE_NAME) const override;
     std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core,
         const char* LOCAL_SUBDIR,
         const char* FILE_NAME) const override;
 
+    std::unique_ptr<OTSmartContract> SmartContract() const override;
     std::unique_ptr<OTSmartContract> SmartContract(
-        const api::Core& core) const override;
-    std::unique_ptr<OTSmartContract> SmartContract(
-        const api::Core& core,
         const Identifier& NOTARY_ID) const override;
 
 #if OT_CASH
-    std::unique_ptr<opentxs::Token> Token(
-        const api::Core& core,
-        String strInput) const override;
+    std::unique_ptr<opentxs::Token> Token(String strInput) const override;
     std::unique_ptr<opentxs::Token> Token(
         String strInput,
         const opentxs::Purse& thePurse) const override;
     std::unique_ptr<opentxs::Token> Token(
-        const api::Core& core,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
@@ -237,20 +192,16 @@ public:
 #endif
 
 #if OT_CASH_USING_LUCRE
+    std::unique_ptr<Token_Lucre> TokenLucre() const override;
     std::unique_ptr<Token_Lucre> TokenLucre(
-        const api::Core& core) const override;
-    std::unique_ptr<Token_Lucre> TokenLucre(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
     std::unique_ptr<Token_Lucre> TokenLucre(
-        const api::Core& core,
         const opentxs::Purse& thePurse) const override;
 #endif
 
-    std::unique_ptr<OTTrade> Trade(const api::Core& core) const override;
+    std::unique_ptr<OTTrade> Trade() const override;
     std::unique_ptr<OTTrade> Trade(
-        const api::Core& core,
         const Identifier& notaryID,
         const Identifier& instrumentDefinitionID,
         const Identifier& assetAcctId,
@@ -259,20 +210,16 @@ public:
         const Identifier& currencyAcctId) const override;
 
     std::unique_ptr<OTTransactionType> Transaction(
-        const api::Core& core,
         const String& strCronItem) const override;
 
     std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const opentxs::Ledger& theOwner) const override;
     std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
         originType theOriginType = originType::not_applicable) const override;
     std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
@@ -283,7 +230,6 @@ public:
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
     std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
@@ -302,7 +248,6 @@ public:
         bool bReplyTransSuccess,
         NumList* pNumList = nullptr) const override;
     std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
@@ -310,7 +255,6 @@ public:
         originType theOriginType = originType::not_applicable,
         std::int64_t lTransactionNum = 0) const override;
     std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const opentxs::Ledger& theOwner,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
@@ -321,20 +265,15 @@ public:
 private:
     friend opentxs::Factory;
 
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds_;
-#endif
+    const api::Core& api_;
 
 #if OT_CASH
     std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const api::Core& core,
         const String& strFirstLine) const override;
     std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const api::Core& core,
         const String& strFirstLine,
         const Identifier& NOTARY_ID) const override;
     std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const api::Core& core,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
@@ -342,23 +281,17 @@ private:
     std::unique_ptr<opentxs::Token> TokenLowLevel(
         const opentxs::Purse& thePurse) const override;
     std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const api::Core& core,
         const String& strFirstLine) const override;
     std::unique_ptr<opentxs::Token> TokenLowLevel(
         const String& strFirstLine,
         const opentxs::Purse& thePurse) const override;
     std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const api::Core& core,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
 #endif  // OT_CASH
 
-    Factory(
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds
-#endif
-    );
+    Factory(const api::Core& api);
     Factory() = delete;
     Factory(const Factory&) = delete;
     Factory(Factory&&) = delete;

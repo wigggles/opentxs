@@ -527,7 +527,7 @@ bool Ledger::LoadGeneric(ledgerType theType, const String* pString)
     else  // Loading FROM A FILE.
     {
         if (!OTDB::Exists(
-                core_.DataFolder(),
+                api_.DataFolder(),
                 szFolder1name,
                 szFolder2name,
                 szFilename,
@@ -542,7 +542,7 @@ bool Ledger::LoadGeneric(ledgerType theType, const String* pString)
         // Try to load the ledger from local storage.
         //
         std::string strFileContents(OTDB::QueryPlainString(
-            core_.DataFolder(),
+            api_.DataFolder(),
             szFolder1name,
             szFolder2name,
             szFilename,
@@ -670,7 +670,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        core_.DataFolder(),
+        api_.DataFolder(),
         szFolder1name,
         szFolder2name,
         szFilename,
@@ -928,7 +928,7 @@ bool Ledger::generate_ledger(
                                 // "outbox/NOTARY_ID/ACCT_ID")
 
         if (OTDB::Exists(
-                core_.DataFolder(),
+                api_.DataFolder(),
                 szFolder1name,
                 szFolder2name,
                 szFilename,
@@ -969,7 +969,7 @@ bool Ledger::GenerateLedger(
     if ((ledgerType::inbox == theType) || (ledgerType::outbox == theType)) {
         // Have to look up the NymID here. No way around it. We need that ID.
         // Plus it helps verify things.
-        auto account = core_.Wallet().Account(theAcctID);
+        auto account = api_.Wallet().Account(theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());
@@ -980,7 +980,7 @@ bool Ledger::GenerateLedger(
         }
     } else if (ledgerType::recordBox == theType) {
         // RecordBox COULD be by NymID OR AcctID. So we TRY to lookup the acct.
-        auto account = core_.Wallet().Account(theAcctID);
+        auto account = api_.Wallet().Account(theAcctID);
 
         if (account) {
             nymID = Identifier::Factory(account.get().GetNymID());
@@ -1209,8 +1209,7 @@ std::shared_ptr<OTTransaction> Ledger::GetTransferReceipt(
             String strReference;
             pTransaction->GetReferenceString(strReference);
 
-            auto pOriginalItem{core_.Factory().Item(
-                core_,
+            auto pOriginalItem{api_.Factory().Item(
                 strReference,
                 pTransaction->GetPurportedNotaryID(),
                 pTransaction->GetReferenceToNum())};
@@ -1286,8 +1285,7 @@ std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
         String strDepositChequeMsg;
         pCurrentReceipt->GetReferenceString(strDepositChequeMsg);
 
-        auto pOriginalItem{core_.Factory().Item(
-            core_,
+        auto pOriginalItem{api_.Factory().Item(
             strDepositChequeMsg,
             GetPurportedNotaryID(),
             pCurrentReceipt->GetReferenceToNum())};
@@ -1311,7 +1309,7 @@ std::shared_ptr<OTTransaction> Ledger::GetChequeReceipt(std::int64_t lChequeNum)
             String strCheque;
             pOriginalItem->GetAttachment(strCheque);
 
-            auto pCheque{core_.Factory().Cheque(core_)};
+            auto pCheque{api_.Factory().Cheque()};
             OT_ASSERT(false != bool(pCheque));
 
             if (!((strCheque.GetLength() > 2) &&
@@ -1448,7 +1446,7 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     // theOwner is the withdrawal, or deposit, or whatever, that wants to change
     // the account balance, and thus that needs a new balance agreement signed.
     //
-    auto pBalanceItem{core_.Factory().Item(
+    auto pBalanceItem{api_.Factory().Item(
         theOwner,
         itemType::balanceStatement,
         Identifier::Factory())};  // <=== balanceStatement type, with
@@ -2012,8 +2010,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // constructor for abbreviated transactions
                     // which is ONLY used here.
                     //
-                    auto pTransaction{core_.Factory().Transaction(
-                        core_,
+                    auto pTransaction{api_.Factory().Transaction(
                         NYM_ID,
                         ACCOUNT_ID,
                         NOTARY_ID,
@@ -2209,11 +2206,8 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             //            OTTransaction * pTransaction = new
             // OTTransaction(GetNymID(), GetRealAccountID(),
             // GetRealNotaryID());
-            auto pTransaction{core_.Factory().Transaction(
-                core_,
-                GetNymID(),
-                GetPurportedAccountID(),
-                GetPurportedNotaryID())};
+            auto pTransaction{api_.Factory().Transaction(
+                GetNymID(), GetPurportedAccountID(), GetPurportedNotaryID())};
             OT_ASSERT(false != bool(pTransaction));
 
             // Need this set before the LoadContractFromString().
@@ -2281,7 +2275,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                         const bool bBoxReceiptAlreadyExists =
                             VerifyBoxReceiptExists(
-                                core_.DataFolder(),
+                                api_.DataFolder(),
                                 transaction->GetRealNotaryID(),
                                 transaction->GetNymID(),
                                 transaction->GetRealAccountID(),  // If Nymbox

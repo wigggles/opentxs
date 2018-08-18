@@ -125,7 +125,7 @@ ChequeBalanceItem::ChequeBalanceItem(
           sync,
           nymID,
           accountID)
-    , core_(core)
+    , api_(core)
     , cheque_(nullptr)
 {
     startup_.reset(new std::thread(&ChequeBalanceItem::startup, this, custom));
@@ -282,7 +282,7 @@ bool ChequeBalanceItem::get_contract() const
 
     eLock lock(shared_lock_);
     const auto& contractID = cheque_->GetInstrumentDefinitionID();
-    contract_ = core_.Wallet().UnitDefinition(contractID);
+    contract_ = api_.Wallet().UnitDefinition(contractID);
 
     if (contract_) { return true; }
 
@@ -316,7 +316,7 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     const auto workflow = extract_custom<proto::PaymentWorkflow>(custom, 0);
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
-    cheque_ = api::client::Workflow::InstantiateCheque(core_, workflow).second;
+    cheque_ = api::client::Workflow::InstantiateCheque(api_, workflow).second;
 
     OT_ASSERT(cheque_)
 

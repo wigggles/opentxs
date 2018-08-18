@@ -103,7 +103,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            cheque.reset(core.Factory().Cheque(core).release());
+            cheque.reset(core.Factory().Cheque().release());
 
             OT_ASSERT(cheque)
 
@@ -144,7 +144,7 @@ Workflow::Workflow(
     const opentxs::network::zeromq::Context& zmq)
     : activity_(activity)
     , contact_(contact)
-    , core_(core)
+    , api_(core)
     , storage_(storage)
     , zmq_(zmq)
     , account_publisher_(zmq.PublishSocket())
@@ -418,7 +418,7 @@ bool Workflow::ClearCheque(
         return false;
     }
 
-    auto cheque{core_.Factory().Cheque(receipt)};
+    auto cheque{api_.Factory().Cheque(receipt)};
 
     if (false == bool(cheque)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -847,7 +847,7 @@ Workflow::Cheque Workflow::LoadCheque(
         return {};
     }
 
-    return InstantiateCheque(core_, *workflow);
+    return InstantiateCheque(api_, *workflow);
 }
 
 Workflow::Cheque Workflow::LoadChequeByWorkflow(
@@ -867,7 +867,7 @@ Workflow::Cheque Workflow::LoadChequeByWorkflow(
         return {};
     }
 
-    return InstantiateCheque(core_, *workflow);
+    return InstantiateCheque(api_, *workflow);
 }
 
 std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(

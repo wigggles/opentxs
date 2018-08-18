@@ -92,11 +92,7 @@ Manager::Manager(
       crypto_.AES()))
 #endif
       ,
-    factory_(opentxs::Factory::FactoryAPI(
-#if OT_CRYPTO_WITH_BIP39
-        *seeds_
-#endif
-        )),
+    factory_(opentxs::Factory::FactoryAPI(*this)),
     wallet_(opentxs::Factory::Wallet(*this)),
     zeromq_(opentxs::Factory::ZMQ(*this, running_)),
     identity_(opentxs::Factory::Identity(*wallet_)),
@@ -139,9 +135,6 @@ Manager::Manager(
         std::bind(&Manager::get_lock, this, std::placeholders::_1))),
     cash_(opentxs::Factory::Cash(*this)),
     server_action_(opentxs::Factory::ServerAction(
-        *ot_api_,
-        *otapi_exec_,
-        *workflow_,
         *this,
         std::bind(&Manager::get_lock, this, std::placeholders::_1))),
     sync_(opentxs::Factory::Sync(

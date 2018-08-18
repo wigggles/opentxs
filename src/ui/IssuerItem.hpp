@@ -49,7 +49,7 @@ private:
     static const ListenerDefinitions listeners_;
 
     const api::storage::Storage& storage_;
-    const api::Core& core_;
+    const api::Core& api_;
     AccountSummarySortKey key_;
     const std::string& name_;
     std::atomic<bool> connection_{false};

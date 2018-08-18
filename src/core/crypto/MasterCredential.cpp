@@ -33,6 +33,7 @@
 
 #include "opentxs/core/crypto/MasterCredential.hpp"
 
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
@@ -59,26 +60,24 @@
 namespace opentxs
 {
 MasterCredential::MasterCredential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
-    : ot_super(factory, wallet, theOwner, serializedCred)
+    : ot_super(api, theOwner, serializedCred)
 {
     role_ = proto::CREDROLE_MASTERKEY;
     auto source = std::make_shared<NymIDSource>(
-        factory, serializedCred.masterdata().source());
+        api_.Factory(), serializedCred.masterdata().source());
     owner_backlink_->SetSource(source);
     source_proof_.reset(
         new proto::SourceProof(serializedCred.masterdata().sourceproof()));
 }
 
 MasterCredential::MasterCredential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(factory, wallet, theOwner, nymParameters)
+    : ot_super(api, theOwner, nymParameters)
 {
     role_ = proto::CREDROLE_MASTERKEY;
 
@@ -93,7 +92,7 @@ MasterCredential::MasterCredential(
             "non self-signed credentials not yet implemented");
 
         source = std::make_shared<NymIDSource>(
-            factory_,
+            api_.Factory(),
             nymParameters,
             *(signing_key_->GetPublicKey().Serialize()));
         sourceProof->set_version(1);
@@ -105,9 +104,9 @@ MasterCredential::MasterCredential(
         sourceProof->set_version(1);
         sourceProof->set_type(proto::SOURCEPROOFTYPE_SIGNATURE);
 
-        auto bip47Source = factory_.PaymentCode(
+        auto bip47Source = api_.Factory().PaymentCode(
             nymParameters.Seed(), nymParameters.Nym(), PAYMENT_CODE_VERSION);
-        source = std::make_shared<NymIDSource>(factory_, bip47Source);
+        source = std::make_shared<NymIDSource>(api_.Factory(), bip47Source);
     }
 #endif
 

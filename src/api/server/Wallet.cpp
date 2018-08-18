@@ -75,8 +75,7 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(verify_lock(lock, rowMutex))
 
-    pAccount.reset(
-        Account::LoadExistingAccount(core_, accountID, server_.ID()));
+    pAccount.reset(Account::LoadExistingAccount(api_, accountID, server_.ID()));
 
     if (false == bool(pAccount)) { return false; }
 
@@ -120,7 +119,7 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(server_.ID() == serverID)
 
-    saved = core_.Storage().Store(
+    saved = api_.Storage().Store(
         accountID.str(),
         serialized.Get(),
         "",

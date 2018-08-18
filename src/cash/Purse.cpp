@@ -7,9 +7,9 @@
 
 #include "opentxs/cash/Purse.hpp"
 
+#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Token.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
@@ -28,7 +28,6 @@
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/OTStringXML.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -224,7 +223,7 @@ const OTCachedKey& Purse::GetInternalMaster()
     // copied, the caller will never see the properly loaded version of that
     // master key.
 
-    return OT::App().Crypto().CachedKey(*m_pCachedKey);
+    return api_.Crypto().CachedKey(*m_pCachedKey);
 }
 
 // INTERNAL KEY: For adding a PASSPHRASE to a PURSE.
@@ -282,6 +281,7 @@ bool Purse::GenerateInternalKey()
     // thePassphrase and m_pCachedKey are BOTH output from the below function.
     //
     m_pCachedKey = OTCachedKey::CreateMasterPassword(
+        api_.Crypto(),
         thePassphrase,
         strDisplay.Get());  // std::int32_t
                             // nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT)
@@ -298,6 +298,7 @@ bool Purse::GenerateInternalKey()
     }
 
     m_pSymmetricKey = crypto::key::LegacySymmetric::Factory(
+        api_.Crypto(),
         thePassphrase);  // Creates the symmetric key here
                          // based on the passphrase from
                          // purse's master key.
@@ -580,7 +581,7 @@ bool Purse::LoadPurse(
             .Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
     if (false == OTDB::Exists(
-                     core_.DataFolder(),
+                     api_.DataFolder(),
                      szFolder1name,
                      szFolder2name,
                      szFolder3name,
@@ -592,7 +593,7 @@ bool Purse::LoadPurse(
     }
 
     std::string strFileContents(OTDB::QueryPlainString(
-        core_.DataFolder(),
+        api_.DataFolder(),
         szFolder1name,
         szFolder2name,
         szFolder3name,
@@ -674,7 +675,7 @@ bool Purse::SavePurse(
 
     bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        core_.DataFolder(),
+        api_.DataFolder(),
         szFolder1name,
         szFolder2name,
         szFolder3name,
@@ -942,7 +943,8 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // m_pSymmetricKey is nullptr.
         //
         // (It's only now that I bother instantiating.)
-        auto pSymmetricKey = crypto::key::LegacySymmetric::Factory();
+        auto pSymmetricKey =
+            crypto::key::LegacySymmetric::Factory(api_.Crypto());
 
         OT_ASSERT_MSG(
             pSymmetricKey.get(),
@@ -1021,7 +1023,8 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         //
         // (It's only now that I bother instantiating.)
         //
-        std::shared_ptr<OTCachedKey> pCachedKey(new OTCachedKey(ascValue));
+        std::shared_ptr<OTCachedKey> pCachedKey(
+            new OTCachedKey(api_.Crypto(), ascValue));
         //        OT_ASSERT_MSG(nullptr != pCachedKey, "Purse::ProcessXMLNode:
         // Assert: nullptr != new OTCachedKey \n");
 
@@ -1149,7 +1152,7 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
     if (bSuccess) {
         // Create a new token with the same server and instrument definition ids
         // as this purse.
-        auto pToken{core_.Factory().Token(strToken, *this)};
+        auto pToken{api_.Factory().Token(strToken, *this)};
         OT_ASSERT(false != bool(pToken));
 
         if (pToken->GetInstrumentDefinitionID() != m_InstrumentDefinitionID ||
@@ -1250,7 +1253,7 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
             // Create a new token with the same server and instrument definition
             // ids as this
             // purse.
-            auto pToken{core_.Factory().Token(strToken, *this)};
+            auto pToken{api_.Factory().Token(strToken, *this)};
             OT_ASSERT(false != bool(pToken));
 
             if (m_tLatestValidFrom < pToken->GetValidFrom()) {

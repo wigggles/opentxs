@@ -203,7 +203,7 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 {
     if (status_->On()) { publish(); }
 
-    auto message{api_.Factory().Message(api_)};
+    auto message{api_.Factory().Message()};
 
     OT_ASSERT(false != bool(message));
 
@@ -271,7 +271,7 @@ NetworkReplyMessage ServerConnection::Send(const Message& message)
     NetworkReplyMessage output{SendResult::ERROR, nullptr};
     auto& status = output.first;
     auto& reply = output.second;
-    reply.reset(api_.Factory().Message(api_).release());
+    reply.reset(api_.Factory().Message().release());
 
     OT_ASSERT(false != bool(reply));
 

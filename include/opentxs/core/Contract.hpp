@@ -80,7 +80,7 @@ public:
     static bool SkipToTextField(irr::io::IrrXMLReader*& xml);
     static bool SkipAfterLoadingField(irr::io::IrrXMLReader*& xml);
 
-    const api::Core& Core() const { return core_; }
+    const api::Core& API() const { return api_; }
     void SetIdentifier(const Identifier& theID);
 
     // TODO: a contract needs to have certain required fields in order to be
@@ -302,7 +302,7 @@ public:
     EXPORT ConstNym GetContractPublicNym() const;
 
 protected:
-    const api::Core& core_;
+    const api::Core& api_;
 
     /** Contract name as shown in the wallet. */
     String m_strName;

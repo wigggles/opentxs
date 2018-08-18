@@ -162,8 +162,7 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                   << ": offer field without value.\n";
             return (-1);  // error condition
         } else {
-            auto pOffer{core_.Factory().Offer(
-                core_,
+            auto pOffer{api_.Factory().Offer(
                 m_NOTARY_ID,
                 m_INSTRUMENT_DEFINITION_ID,
                 m_CURRENCY_TYPE_ID,
@@ -799,7 +798,7 @@ bool OTMarket::LoadMarket()
     const char* szFilename = str_MARKET_ID.Get();
 
     bool bSuccess =
-        OTDB::Exists(core_.DataFolder(), szFoldername, szFilename, "", "");
+        OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "");
 
     if (bSuccess) bSuccess = LoadContract(szFoldername, szFilename);  // todo ??
 
@@ -817,7 +816,7 @@ bool OTMarket::LoadMarket()
 
         m_pTradeList = dynamic_cast<OTDB::TradeListMarket*>(OTDB::QueryObject(
             OTDB::STORED_OBJ_TRADE_LIST_MARKET,
-            core_.DataFolder(),
+            api_.DataFolder(),
             szFoldername,  // markets
             szSubFolder,   // markets/recent
             str_TRADES_FILE.Get(),
@@ -866,7 +865,7 @@ bool OTMarket::SaveMarket()
         // If this fails, oh well. It's informational, anyway.
         if (!OTDB::StoreObject(
                 *m_pTradeList,
-                core_.DataFolder(),
+                api_.DataFolder(),
                 szFoldername,  // markets
                 szSubFolder,   // markets/recent
                 str_TRADES_FILE.Get(),
@@ -1121,7 +1120,7 @@ void OTMarket::ProcessTrade(
         pFirstNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pFirstNym = core_.Wallet().Nym(FIRST_NYM_ID);
+        pFirstNym = api_.Wallet().Nym(FIRST_NYM_ID);
         if (nullptr == pFirstNym) {
             String strNymID(FIRST_NYM_ID);
             otErr << "OTMarket::" << __FUNCTION__
@@ -1144,7 +1143,7 @@ void OTMarket::ProcessTrade(
         pOtherNym = pFirstNym;  // theNym is pFirstNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pOtherNym = core_.Wallet().Nym(OTHER_NYM_ID);
+        pOtherNym = api_.Wallet().Nym(OTHER_NYM_ID);
         if (nullptr == pOtherNym) {
             String strNymID(OTHER_NYM_ID);
             otErr << "Failure loading or verifying Other Nym public key in "
@@ -1280,14 +1279,14 @@ void OTMarket::ProcessTrade(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        auto theFirstAssetInbox{core_.Factory().Ledger(
-            core_, FIRST_NYM_ID, theTrade.GetSenderAcctID(), NOTARY_ID)};
-        auto theFirstCurrencyInbox{core_.Factory().Ledger(
-            core_, FIRST_NYM_ID, theTrade.GetCurrencyAcctID(), NOTARY_ID)};
-        auto theOtherAssetInbox{core_.Factory().Ledger(
-            core_, OTHER_NYM_ID, pOtherTrade->GetSenderAcctID(), NOTARY_ID)};
-        auto theOtherCurrencyInbox{core_.Factory().Ledger(
-            core_, OTHER_NYM_ID, pOtherTrade->GetCurrencyAcctID(), NOTARY_ID)};
+        auto theFirstAssetInbox{api_.Factory().Ledger(
+            FIRST_NYM_ID, theTrade.GetSenderAcctID(), NOTARY_ID)};
+        auto theFirstCurrencyInbox{api_.Factory().Ledger(
+            FIRST_NYM_ID, theTrade.GetCurrencyAcctID(), NOTARY_ID)};
+        auto theOtherAssetInbox{api_.Factory().Ledger(
+            OTHER_NYM_ID, pOtherTrade->GetSenderAcctID(), NOTARY_ID)};
+        auto theOtherCurrencyInbox{api_.Factory().Ledger(
+            OTHER_NYM_ID, pOtherTrade->GetCurrencyAcctID(), NOTARY_ID)};
 
         OT_ASSERT(false != bool(theFirstAssetInbox));
         OT_ASSERT(false != bool(theFirstCurrencyInbox));
@@ -1420,8 +1419,8 @@ void OTMarket::ProcessTrade(
 
             // Start generating the receipts (for all four inboxes.)
 
-            auto pTrans1{core_.Factory().Transaction(
-                core_,
+            auto pTrans1{api_.Factory().Transaction(
+
                 *theFirstAssetInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -1429,8 +1428,8 @@ void OTMarket::ProcessTrade(
 
             OT_ASSERT(false != bool(pTrans1));
 
-            auto pTrans2{core_.Factory().Transaction(
-                core_,
+            auto pTrans2{api_.Factory().Transaction(
+
                 *theFirstCurrencyInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -1438,8 +1437,8 @@ void OTMarket::ProcessTrade(
 
             OT_ASSERT(false != bool(pTrans2));
 
-            auto pTrans3{core_.Factory().Transaction(
-                core_,
+            auto pTrans3{api_.Factory().Transaction(
+
                 *theOtherAssetInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -1447,8 +1446,8 @@ void OTMarket::ProcessTrade(
 
             OT_ASSERT(false != bool(pTrans3));
 
-            auto pTrans4{core_.Factory().Transaction(
-                core_,
+            auto pTrans4{api_.Factory().Transaction(
+
                 *theOtherCurrencyInbox,
                 transactionType::marketReceipt,
                 originType::origin_market_offer,
@@ -1474,13 +1473,13 @@ void OTMarket::ProcessTrade(
 
             // set up the transaction items (each transaction may have
             // multiple items... but not in this case.)
-            auto pItem1{core_.Factory().Item(
+            auto pItem1{api_.Factory().Item(
                 *trans1, itemType::marketReceipt, Identifier::Factory())};
-            auto pItem2{core_.Factory().Item(
+            auto pItem2{api_.Factory().Item(
                 *trans2, itemType::marketReceipt, Identifier::Factory())};
-            auto pItem3{core_.Factory().Item(
+            auto pItem3{api_.Factory().Item(
                 *trans3, itemType::marketReceipt, Identifier::Factory())};
-            auto pItem4{core_.Factory().Item(
+            auto pItem4{api_.Factory().Item(
                 *trans4, itemType::marketReceipt, Identifier::Factory())};
 
             OT_ASSERT(false != bool(pItem1));
@@ -1939,10 +1938,10 @@ void OTMarket::ProcessTrade(
             // OTCronItem::LoadCronReceipt loads the original version
             // with the user's signature. (Updated versions, as
             // processing occurs, are signed by the server.)
-            auto pOrigTrade = OTCronItem::LoadCronReceipt(
-                core_, theTrade.GetTransactionNum());
+            auto pOrigTrade =
+                OTCronItem::LoadCronReceipt(api_, theTrade.GetTransactionNum());
             auto pOrigOtherTrade = OTCronItem::LoadCronReceipt(
-                core_, pOtherTrade->GetTransactionNum());
+                api_, pOtherTrade->GetTransactionNum());
 
             OT_ASSERT(false != bool(pOrigTrade));
             OT_ASSERT(false != bool(pOrigOtherTrade));

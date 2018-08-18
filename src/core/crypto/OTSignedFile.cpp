@@ -203,7 +203,7 @@ bool OTSignedFile::LoadFile()
     // m_strFoldername.Get(), m_strFilename.Get());
 
     if (OTDB::Exists(
-            core_.DataFolder(),
+            api_.DataFolder(),
             m_strFoldername.Get(),
             m_strFilename.Get(),
             "",

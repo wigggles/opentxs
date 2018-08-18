@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -28,29 +29,19 @@
 namespace opentxs
 {
 api::client::ServerAction* Factory::ServerAction(
-    const OT_API& otapi,
-    const OTAPI_Exec& exec,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const ContextLockCallback& lockCallback)
 {
-    return new api::client::implementation::ServerAction(
-        otapi, exec, workflow, core, lockCallback);
+    return new api::client::implementation::ServerAction(api, lockCallback);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 ServerAction::ServerAction(
-    const OT_API& otapi,
-    const OTAPI_Exec& exec,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const ContextLockCallback& lockCallback)
-    : otapi_(otapi)
-    , exec_(exec)
-    , workflow_(workflow)
-    , core_(core)
+    : api_(api)
     , lock_callback_(lockCallback)
 {
 }
@@ -65,12 +56,9 @@ ServerAction::Action ServerAction::AcknowledgeBailment(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_BAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         recipientID,
         requestID,
         instructions));
@@ -90,12 +78,9 @@ ServerAction::Action ServerAction::AcknowledgeConnection(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_CONNECTION,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         recipientID,
         requestID,
         url,
@@ -115,12 +100,9 @@ ServerAction::Action ServerAction::AcknowledgeNotice(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_NOTICE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         recipientID,
         requestID,
         ack));
@@ -136,12 +118,9 @@ ServerAction::Action ServerAction::AcknowledgeOutbailment(
     return Action(new OTAPI_Func(
         ACKNOWLEDGE_OUTBAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         recipientID,
         requestID,
         details));
@@ -162,12 +141,9 @@ ServerAction::Action ServerAction::ActivateSmartContract(
     return Action(new OTAPI_Func(
         ACTIVATE_SMART_CONTRACT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         agentName,
         contract));
@@ -184,12 +160,9 @@ ServerAction::Action ServerAction::AddServerClaim(
     return Action(new OTAPI_Func(
         SERVER_ADD_CLAIM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         primary,
         section,
         type,
@@ -205,12 +178,9 @@ ServerAction::Action ServerAction::AdjustUsageCredits(
     return Action(new OTAPI_Func(
         ADJUST_USAGE_CREDITS,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID,
         adjustment));
 }
@@ -237,12 +207,9 @@ ServerAction::Action ServerAction::CancelPaymentPlan(
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         plan->GetRecipientAcctID(),
         plan));
 }
@@ -261,7 +228,7 @@ ServerAction::Action ServerAction::CreateMarketOffer(
 {
     auto notaryID = Identifier::Factory();
     auto nymID = Identifier::Factory();
-    const auto assetAccount = core_.Wallet().Account(assetAccountID);
+    const auto assetAccount = api_.Wallet().Account(assetAccountID);
 
     if (assetAccount) {
         nymID = assetAccount.get().GetNymID();
@@ -276,12 +243,9 @@ ServerAction::Action ServerAction::CreateMarketOffer(
     return Action(new OTAPI_Func(
         CREATE_MARKET_OFFER,
         lock_callback_({nymID->str(), notaryID->str()}),
-        workflow_,
-        core_,
+        api_,
         nymID,
         notaryID,
-        exec_,
-        otapi_,
         assetAccountID,
         currencyAccountID,
         scale,
@@ -309,12 +273,9 @@ ServerAction::Action ServerAction::DepositCashPurse(
     return Action(new OTAPI_Func(
         DEPOSIT_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         purse));
 }
@@ -334,12 +295,9 @@ ServerAction::Action ServerAction::DepositCheque(
     return Action(new OTAPI_Func(
         DEPOSIT_CHEQUE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         cheque));
 }
@@ -352,12 +310,9 @@ ServerAction::Action ServerAction::DepositPaymentPlan(
     return Action(new OTAPI_Func(
         DEPOSIT_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         plan->GetSenderAcctID(),
         plan));
 }
@@ -369,8 +324,8 @@ bool ServerAction::DownloadAccount(
     const bool forceDownload) const
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
-    auto context = core_.Wallet().mutable_ServerContext(localNymID, serverID);
-    Utility MsgUtil(context.It(), otapi_, core_);
+    auto context = api_.Wallet().mutable_ServerContext(localNymID, serverID);
+    Utility MsgUtil(context.It(), api_);
     const auto output = MsgUtil.getIntermediaryFiles(
         serverID.str(), localNymID.str(), accountID.str(), forceDownload);
 
@@ -387,12 +342,9 @@ ServerAction::Action ServerAction::DownloadBoxReceipt(
     return Action(new OTAPI_Func(
         GET_BOX_RECEIPT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         box,
         item));
@@ -406,12 +358,9 @@ ServerAction::Action ServerAction::DownloadContract(
     return Action(new OTAPI_Func(
         GET_CONTRACT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         contractID));
 }
 
@@ -422,12 +371,9 @@ ServerAction::Action ServerAction::DownloadMarketList(
     return Action(new OTAPI_Func(
         GET_MARKET_LIST,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
-        serverID,
-        exec_,
-        otapi_));
+        serverID));
 }
 
 ServerAction::Action ServerAction::DownloadMarketOffers(
@@ -439,12 +385,9 @@ ServerAction::Action ServerAction::DownloadMarketOffers(
     return Action(new OTAPI_Func(
         GET_MARKET_OFFERS,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         marketID,
         depth));
 }
@@ -457,12 +400,9 @@ ServerAction::Action ServerAction::DownloadMarketRecentTrades(
     return Action(new OTAPI_Func(
         GET_MARKET_RECENT_TRADES,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         marketID));
 }
 
@@ -475,12 +415,9 @@ ServerAction::Action ServerAction::DownloadMint(
     return Action(new OTAPI_Func(
         GET_MINT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         instrumentDefinitionID));
 }
 #endif  // OT_CASH
@@ -491,8 +428,8 @@ bool ServerAction::GetTransactionNumbers(
     const std::size_t quantity) const
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
-    auto context = core_.Wallet().mutable_ServerContext(localNymID, serverID);
-    Utility MsgUtil(context.It(), otapi_, core_);
+    auto context = api_.Wallet().mutable_ServerContext(localNymID, serverID);
+    Utility MsgUtil(context.It(), api_);
     auto available = context.It().AvailableNumbers();
 
     if (available < quantity) {
@@ -501,12 +438,9 @@ bool ServerAction::GetTransactionNumbers(
         auto action = Action(new OTAPI_Func(
             GET_TRANSACTION_NUMBERS,
             lock_callback_({localNymID.str(), serverID.str()}),
-            workflow_,
-            core_,
+            api_,
             localNymID,
-            serverID,
-            exec_,
-            otapi_));
+            serverID));
         auto response = action->Run();
         if (response.empty()) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to obtain "
@@ -547,12 +481,9 @@ ServerAction::Action ServerAction::DownloadNym(
     return Action(new OTAPI_Func(
         CHECK_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID));
 }
 
@@ -561,8 +492,8 @@ bool ServerAction::DownloadNymbox(
     const Identifier& serverID) const
 {
     rLock lock(lock_callback_({localNymID.str(), serverID.str()}));
-    auto context = core_.Wallet().mutable_ServerContext(localNymID, serverID);
-    Utility util(context.It(), otapi_, core_);
+    auto context = api_.Wallet().mutable_ServerContext(localNymID, serverID);
+    Utility util(context.It(), api_);
 
     if (0 >= context.It().UpdateRequestNumber()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -592,12 +523,9 @@ ServerAction::Action ServerAction::DownloadNymMarketOffers(
     return Action(new OTAPI_Func(
         GET_NYM_MARKET_OFFERS,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
-        serverID,
-        exec_,
-        otapi_));
+        serverID));
 }
 
 ServerAction::Action ServerAction::ExchangeBasketCurrency(
@@ -616,17 +544,14 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
     return Action(new OTAPI_Func(
         EXCHANGE_BASKET,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         instrumentDefinitionID,
         basketID,
         accountID,
         direction,
-        otapi_.GetBasketMemberCount(basketID)));
+        api_.OTAPI().GetBasketMemberCount(basketID)));
 }
 
 #if OT_CASH
@@ -644,12 +569,9 @@ ServerAction::Action ServerAction::ExchangeCash(
     return Action(new OTAPI_Func(
         EXCHANGE_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         instrumentDefinitionID,
         purse));
 }
@@ -664,12 +586,9 @@ ServerAction::Action ServerAction::InitiateBailment(
     return Action(new OTAPI_Func(
         INITIATE_BAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID,
         instrumentDefinitionID));
 }
@@ -685,12 +604,9 @@ ServerAction::Action ServerAction::InitiateOutbailment(
     return Action(new OTAPI_Func(
         INITIATE_OUTBAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID,
         instrumentDefinitionID,
         amount,
@@ -706,12 +622,9 @@ ServerAction::Action ServerAction::InitiateRequestConnection(
     return Action(new OTAPI_Func(
         REQUEST_CONNECTION,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID,
         type));
 }
@@ -727,12 +640,9 @@ ServerAction::Action ServerAction::InitiateStoreSecret(
     return Action(new OTAPI_Func(
         STORE_SECRET,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID,
         primary,
         secondary,
@@ -747,12 +657,9 @@ ServerAction::Action ServerAction::IssueBasketCurrency(
     return Action(new OTAPI_Func(
         ISSUE_BASKET,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         basket));
 }
 
@@ -764,12 +671,9 @@ ServerAction::Action ServerAction::IssueUnitDefinition(
     return Action(new OTAPI_Func(
         ISSUE_ASSET_TYPE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         contract));
 }
 
@@ -787,12 +691,9 @@ ServerAction::Action ServerAction::KillMarketOffer(
     return Action(new OTAPI_Func(
         KILL_MARKET_OFFER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         number));
 }
@@ -811,12 +712,9 @@ ServerAction::Action ServerAction::KillPaymentPlan(
     return Action(new OTAPI_Func(
         KILL_PAYMENT_PLAN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         number));
 }
@@ -833,12 +731,9 @@ ServerAction::Action ServerAction::NotifyBailment(
     return Action(new OTAPI_Func(
         NOTIFY_BAILMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID,
         requestID,
         instrumentDefinitionID,
@@ -862,12 +757,9 @@ ServerAction::Action ServerAction::PayDividend(
     return Action(new OTAPI_Func(
         PAY_DIVIDEND,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         instrumentDefinitionID,
         amountPerShare,
@@ -888,12 +780,9 @@ ServerAction::Action ServerAction::ProcessInbox(
     return Action(new OTAPI_Func(
         PROCESS_INBOX,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         ledger));
 }
@@ -906,12 +795,9 @@ ServerAction::Action ServerAction::PublishNym(
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetNymID));
 }
 
@@ -923,12 +809,9 @@ ServerAction::Action ServerAction::PublishServerContract(
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_SERVER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         targetServerID));
 }
 
@@ -940,12 +823,9 @@ ServerAction::Action ServerAction::PublishUnitDefinition(
     return Action(new OTAPI_Func(
         REGISTER_CONTRACT_UNIT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         unitDefinitionID));
 }
 
@@ -957,12 +837,9 @@ ServerAction::Action ServerAction::RegisterAccount(
     return Action(new OTAPI_Func(
         CREATE_ASSET_ACCT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         instrumentDefinitionID));
 }
 
@@ -973,12 +850,9 @@ ServerAction::Action ServerAction::RegisterNym(
     return Action(new OTAPI_Func(
         REGISTER_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
-        serverID,
-        exec_,
-        otapi_));
+        serverID));
 }
 
 ServerAction::Action ServerAction::RequestAdmin(
@@ -989,12 +863,9 @@ ServerAction::Action ServerAction::RequestAdmin(
     return Action(new OTAPI_Func(
         REQUEST_ADMIN,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         password));
 }
 
@@ -1012,23 +883,20 @@ ServerAction::Action ServerAction::SendCash(
     if (recipientCopy) strRecip = String(*recipientCopy);
     if (senderCopy) strSend = String(*senderCopy);
 
-    std::unique_ptr<const Purse> pRecip(core_.Factory().Purse(core_, strRecip));
+    std::unique_ptr<const Purse> pRecip(api_.Factory().Purse(strRecip));
 
     OT_ASSERT(false != bool(pRecip));
 
-    std::unique_ptr<const Purse> pSend(core_.Factory().Purse(core_, strSend));
+    std::unique_ptr<const Purse> pSend(api_.Factory().Purse(strSend));
 
     OT_ASSERT(false != bool(pSend));
 
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         recipientNymID,
         pRecip,
         pSend));
@@ -1044,12 +912,9 @@ ServerAction::Action ServerAction::SendMessage(
     return Action(new OTAPI_Func(
         SEND_USER_MESSAGE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         recipientNymID,
         message));
 }
@@ -1068,7 +933,7 @@ ServerAction::Action ServerAction::SendPayment(
         OT_FAIL;
     }
 
-    auto pPayment{core_.Factory().Payment(core_, strPayment)};
+    auto pPayment{api_.Factory().Payment(strPayment)};
     std::unique_ptr<const OTPayment> cPayment{pPayment.release()};
 
     OT_ASSERT(false != bool(cPayment));
@@ -1076,12 +941,9 @@ ServerAction::Action ServerAction::SendPayment(
     return Action(new OTAPI_Func(
         SEND_USER_INSTRUMENT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         recipientNymID,
         cPayment));
 }
@@ -1102,12 +964,9 @@ ServerAction::Action ServerAction::SendTransfer(
     return Action(new OTAPI_Func(
         SEND_TRANSFER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         senderAccountID,
         recipientAccountID,
         amount,
@@ -1124,12 +983,9 @@ ServerAction::Action ServerAction::TriggerClause(
     return Action(new OTAPI_Func(
         TRIGGER_CLAUSE,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         transactionNumber,
         clause,
         parameter));
@@ -1143,12 +999,9 @@ ServerAction::Action ServerAction::UnregisterAccount(
     return Action(new OTAPI_Func(
         DELETE_ASSET_ACCT,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID));
 }
 
@@ -1159,12 +1012,9 @@ ServerAction::Action ServerAction::UnregisterNym(
     return Action(new OTAPI_Func(
         DELETE_NYM,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
-        serverID,
-        exec_,
-        otapi_));
+        serverID));
 }
 
 #if OT_CASH
@@ -1182,12 +1032,9 @@ ServerAction::Action ServerAction::WithdrawCash(
     return Action(new OTAPI_Func(
         WITHDRAW_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         amount));
 }
@@ -1209,12 +1056,9 @@ ServerAction::Action ServerAction::WithdrawVoucher(
     return Action(new OTAPI_Func(
         WITHDRAW_VOUCHER,
         lock_callback_({localNymID.str(), serverID.str()}),
-        workflow_,
-        core_,
+        api_,
         localNymID,
         serverID,
-        exec_,
-        otapi_,
         accountID,
         recipientNymID,
         amount,

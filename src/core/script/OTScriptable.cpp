@@ -656,7 +656,7 @@ bool OTScriptable::SendNoticeToAllParties(
         if (0 != pParty->GetOpeningTransNo()) {
             if (false ==
                 pParty->SendNoticeToParty(
-                    core_.DataFolder(),
+                    api_,
                     bSuccessMsg,  // "success" notice? or "failure" notice?
                     theServerNym,
                     theNotaryID,
@@ -1080,7 +1080,7 @@ bool OTScriptable::VerifyPartyAuthorization(
     // entire contract falls apart.
 
     auto pPartySignedCopy{
-        core_.Factory().Scriptable(core_, theParty.GetMySignedCopy())};
+        api_.Factory().Scriptable(theParty.GetMySignedCopy())};
 
     if (false == bool(pPartySignedCopy)) {
         otErr << __FUNCTION__
@@ -1258,8 +1258,7 @@ bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
     // the original signature, no matter WHO is authorized now. Otherwise your
     // entire contract falls apart.
 
-    auto pPartySignedCopy{
-        core_.Factory().Scriptable(core_, pParty->GetMySignedCopy())};
+    auto pPartySignedCopy{api_.Factory().Scriptable(pParty->GetMySignedCopy())};
 
     if (false == bool(pPartySignedCopy)) {
         otErr << "OTScriptable::VerifyNymAsAgent: Error loading party's ("
@@ -1820,7 +1819,7 @@ bool OTScriptable::VerifyThisAgainstAllPartiesSignedCopies()
 
         if (pParty->GetMySignedCopy().Exists()) {
             auto pPartySignedCopy{
-                core_.Factory().Scriptable(core_, pParty->GetMySignedCopy())};
+                api_.Factory().Scriptable(pParty->GetMySignedCopy())};
 
             if (false == bool(pPartySignedCopy)) {
                 otErr << __FUNCTION__ << ": Error loading party's ("
@@ -2380,8 +2379,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                               << "s: Expected openingTransNo in party.\n";
 
                     OTParty* pParty = new OTParty(
-                        core_.Wallet(),
-                        core_.DataFolder(),
+                        api_.Wallet(),
+                        api_.DataFolder(),
                         strName.Exists() ? strName.Get() : "PARTY_ERROR_NAME",
                         strOwnerType.Compare("nym") ? true : false,
                         strOwnerID.Get(),
@@ -2508,7 +2507,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // already-loaded parties.
 
                                 OTAgent* pAgent = new OTAgent(
-                                    core_.Wallet(),
+                                    api_.Wallet(),
                                     bRepsHimself,
                                     bIsIndividual,
                                     strAgentName,

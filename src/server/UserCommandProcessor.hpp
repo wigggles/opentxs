@@ -61,7 +61,7 @@ private:
         ~FinalizeResponse();
 
     private:
-        const api::Core& core_;
+        const api::Core& api_;
         const Nym& nym_;
         ReplyMessage& reply_;
         Ledger& ledger_;

@@ -1260,7 +1260,7 @@ std::string OTSmartContract::GetAcctBalance(std::string from_acct_name)
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account so we can get the balance.
-    auto account = core_.Wallet().Account(PARTY_ACCT_ID);
+    auto account = api_.Wallet().Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -1471,7 +1471,7 @@ std::string OTSmartContract::GetInstrumentDefinitionIDofAcct(
     const auto PARTY_ACCT_ID = Identifier::Factory(pFromAcct->GetAcctID());
 
     // Load up the party's account and get the instrument definition.
-    auto account = core_.Wallet().Account(PARTY_ACCT_ID);
+    auto account = api_.Wallet().Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << OT_METHOD << __FUNCTION__ << ": ERROR loading source account."
@@ -1664,7 +1664,7 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
         const String strReference(*this);
 
         bDroppedNotice = pParty->SendNoticeToParty(
-            core_.DataFolder(),
+            api_,
             true,  // bSuccessMsg=true. True in general means
                    // "success" and false means "failure."
             *pServerNym,
@@ -2199,7 +2199,7 @@ bool OTSmartContract::StashFunds(
 
     // Load up the party's account and get the instrument definition, so we know
     // which stash to get off the stash.
-    auto account = core_.Wallet().mutable_Account(PARTY_ACCT_ID);
+    auto account = api_.Wallet().mutable_Account(PARTY_ACCT_ID);
 
     if (false == bool(account)) {
         otOut << "OTSmartContract::StashFunds: ERROR verifying existence of "
@@ -2383,7 +2383,7 @@ bool OTSmartContract::StashFunds(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem(
-        OTCronItem::LoadCronReceipt(core_, GetTransactionNum()));
+        OTCronItem::LoadCronReceipt(api_, GetTransactionNum()));
 
     OT_ASSERT(nullptr != pOrigCronItem);  // How am I processing it now if the
                                           // receipt wasn't saved in the first
@@ -2419,7 +2419,7 @@ bool OTSmartContract::StashFunds(
     } else if (nullptr == pPartyNym)  // Else load the First Nym from storage,
                                       // if still not found.
     {
-        pPartyNym = core_.Wallet().Nym(PARTY_NYM_ID);
+        pPartyNym = api_.Wallet().Nym(PARTY_NYM_ID);
         if (nullptr == pPartyNym) {
             otErr << "OTSmartContract::StashFunds: Failure loading or "
                      "verifying party Nym public key: "
@@ -2459,8 +2459,8 @@ bool OTSmartContract::StashFunds(
         // (No need for the stash's inbox -- the server owns it.)
 
         // Load the inbox in case it already exists
-        auto thePartyInbox{core_.Factory().Ledger(
-            core_, PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID)};
+        auto thePartyInbox{
+            api_.Factory().Ledger(PARTY_NYM_ID, PARTY_ACCT_ID, NOTARY_ID)};
 
         OT_ASSERT(false != bool(thePartyInbox));
 
@@ -2499,8 +2499,7 @@ bool OTSmartContract::StashFunds(
                 return false;
             }
 
-            auto pTransParty{core_.Factory().Transaction(
-                core_,
+            auto pTransParty{api_.Factory().Transaction(
                 *thePartyInbox,
                 transactionType::paymentReceipt,
                 originType::origin_smart_contract,
@@ -2517,7 +2516,7 @@ bool OTSmartContract::StashFunds(
             // set up the transaction item (each transaction may have multiple
             // items... but not in this case.)
             //
-            auto pItemParty{core_.Factory().Item(
+            auto pItemParty{api_.Factory().Item(
                 *pTransParty, itemType::paymentReceipt, Identifier::Factory())};
             OT_ASSERT(false != bool(pItemParty));  //  may be unnecessary, I'll
                                                    //  have to
@@ -3309,8 +3308,8 @@ void OTSmartContract::onFinalReceipt(
 
         OT_ASSERT(nullptr != pPartyNym);
 
-        auto context = core_.Wallet().mutable_ClientContext(
-            GetNotaryID(), pPartyNym->ID());
+        auto context =
+            api_.Wallet().mutable_ClientContext(GetNotaryID(), pPartyNym->ID());
         const auto opening = pParty->GetOpeningTransNo();
         const bool haveOpening = pParty->GetOpeningTransNo() > 0;
         const bool issuedOpening = context.It().VerifyIssuedNumber(opening);
@@ -5369,7 +5368,7 @@ bool OTSmartContract::MoveFunds(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem =
-        OTCronItem::LoadCronReceipt(core_, GetTransactionNum());
+        OTCronItem::LoadCronReceipt(api_, GetTransactionNum());
 
     OT_ASSERT(false != bool(pOrigCronItem));  // How am I processing it now if
                                               // the receipt wasn't saved in the
@@ -5423,7 +5422,7 @@ bool OTSmartContract::MoveFunds(
     } else if (nullptr == pSenderNym)  // Else load the First Nym from storage,
                                        // if still not found.
     {
-        pSenderNym = core_.Wallet().Nym(SENDER_NYM_ID);
+        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             String strNymID(SENDER_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
@@ -5446,7 +5445,7 @@ bool OTSmartContract::MoveFunds(
                                           // Disk and point to that, if still
                                           // not found.
     {
-        pRecipientNym = core_.Wallet().Nym(RECIPIENT_NYM_ID);
+        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             String strNymID(RECIPIENT_NYM_ID);
             otErr << "OTCronItem::MoveFunds: Failure loading or verifying "
@@ -5595,7 +5594,7 @@ bool OTSmartContract::MoveFunds(
 
     // LOAD THE ACCOUNTS
     //
-    auto sourceAccount = core_.Wallet().mutable_Account(SOURCE_ACCT_ID);
+    auto sourceAccount = api_.Wallet().mutable_Account(SOURCE_ACCT_ID);
 
     if (false == bool(sourceAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of source "
@@ -5604,7 +5603,7 @@ bool OTSmartContract::MoveFunds(
         return false;
     }
 
-    auto recipientAccount = core_.Wallet().mutable_Account(RECIPIENT_ACCT_ID);
+    auto recipientAccount = api_.Wallet().mutable_Account(RECIPIENT_ACCT_ID);
 
     if (false == bool(recipientAccount)) {
         otOut << "OTCronItem::MoveFunds: ERROR verifying existence of "
@@ -5663,10 +5662,10 @@ bool OTSmartContract::MoveFunds(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inboxes in case they already exist
-        auto theSenderInbox{core_.Factory().Ledger(
-            core_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID)};
-        auto theRecipientInbox{core_.Factory().Ledger(
-            core_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID)};
+        auto theSenderInbox{
+            api_.Factory().Ledger(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID)};
+        auto theRecipientInbox{api_.Factory().Ledger(
+            RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID)};
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -5704,8 +5703,7 @@ bool OTSmartContract::MoveFunds(
                 return false;
             }
 
-            auto pTransSend{core_.Factory().Transaction(
-                core_,
+            auto pTransSend{api_.Factory().Transaction(
                 *theSenderInbox,
                 transactionType::paymentReceipt,
                 originType::origin_smart_contract,
@@ -5713,8 +5711,7 @@ bool OTSmartContract::MoveFunds(
 
             OT_ASSERT(false != bool(pTransSend));
 
-            auto pTransRecip{core_.Factory().Transaction(
-                core_,
+            auto pTransRecip{api_.Factory().Transaction(
                 *theRecipientInbox,
                 transactionType::paymentReceipt,
                 originType::origin_smart_contract,
@@ -5730,9 +5727,9 @@ bool OTSmartContract::MoveFunds(
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            auto pItemSend{core_.Factory().Item(
+            auto pItemSend{api_.Factory().Item(
                 *pTransSend, itemType::paymentReceipt, Identifier::Factory())};
-            auto pItemRecip{core_.Factory().Item(
+            auto pItemRecip{api_.Factory().Item(
                 *pTransRecip, itemType::paymentReceipt, Identifier::Factory())};
 
             // these may be unnecessary, I'll have to check

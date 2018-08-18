@@ -48,10 +48,11 @@ extern "C" {
 namespace opentxs
 {
 crypto::Secp256k1* Factory::Secp256k1(
+    const api::Crypto& crypto,
     const api::crypto::Util& util,
     const crypto::EcdsaProvider& ecdsa)
 {
-    return new crypto::implementation::Secp256k1(util, ecdsa);
+    return new crypto::implementation::Secp256k1(crypto, util, ecdsa);
 }
 }  // namespace opentxs
 
@@ -60,9 +61,11 @@ namespace opentxs::crypto::implementation
 bool Secp256k1::Initialized_ = false;
 
 Secp256k1::Secp256k1(
+    const api::Crypto& crypto,
     const api::crypto::Util& ssl,
     const crypto::EcdsaProvider& ecdsa)
-    : context_(secp256k1_context_create(
+    : EcdsaProvider(crypto)
+    , context_(secp256k1_context_create(
           SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY))
     , ecdsa_(ecdsa)
     , ssl_(ssl)
@@ -106,8 +109,7 @@ bool Secp256k1::Sign(
     const OTPassword* exportPassword) const
 {
     auto hash = Data::Factory();
-    bool haveDigest =
-        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) {
         otErr << __FUNCTION__ << ": Failed to obtain the contract hash."
@@ -173,8 +175,7 @@ bool Secp256k1::Verify(
     [[maybe_unused]] const OTPasswordData* pPWData) const
 {
     auto hash = Data::Factory();
-    bool haveDigest =
-        OT::App().Crypto().Hash().Digest(hashType, plaintext, hash);
+    bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
 
     if (!haveDigest) { return false; }
 

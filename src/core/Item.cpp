@@ -926,7 +926,7 @@ void Item::CalculateNumberOfOrigin()
         case itemType::depositCheque:  // this item is a request to deposit a
                                        // cheque.
         {
-            const auto theCheque{core_.Factory().Cheque(core_)};
+            const auto theCheque{api_.Factory().Cheque()};
             String strAttachment;
             GetAttachment(strAttachment);
 
@@ -964,11 +964,8 @@ void Item::CalculateNumberOfOrigin()
             // contains the number
             // of origin as its transaction number.
             //
-            const auto pOriginalItem{core_.Factory().Item(
-                core_,
-                strReference,
-                GetPurportedNotaryID(),
-                GetReferenceToNum())};
+            const auto pOriginalItem{api_.Factory().Item(
+                strReference, GetPurportedNotaryID(), GetReferenceToNum())};
             OT_ASSERT(false != bool(pOriginalItem));
 
             if (((m_Type == itemType::atDepositCheque) &&
@@ -1442,9 +1439,9 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // That's okay, because I'm setting it below with
             // pItem->SetTransactionNum...
             std::shared_ptr<Item> pItem{
-                new Item(core_, GetNymID(), *this)};  // But I've also got
-                                                      // ITEM types with
-                                                      // the same names...
+                new Item(api_, GetNymID(), *this)};  // But I've also got
+                                                     // ITEM types with
+                                                     // the same names...
             // That way, it will translate the string and set the type
             // correctly.
             OT_ASSERT(false != bool(pItem));  // That way I can use each item to

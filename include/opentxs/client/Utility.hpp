@@ -51,10 +51,7 @@ public:
     std::int32_t delay_ms{};
     std::int32_t max_trans_dl{};
 
-    EXPORT Utility(
-        ServerContext& context,
-        const OT_API& otapi,
-        const api::Core& core);
+    EXPORT Utility(ServerContext& context, const api::client::Manager& api);
 
     EXPORT void delay() const;
     EXPORT std::int32_t getAndProcessNymbox_3(
@@ -147,8 +144,7 @@ public:
 
 protected:
     ServerContext& context_;
-    const OT_API& otapi_;
-    const api::Core& core_;
+    const api::client::Manager& api_;
 
     Utility() = delete;
     Utility(const Utility&) = delete;

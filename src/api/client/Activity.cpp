@@ -56,8 +56,8 @@ Activity::Activity(
     const opentxs::network::zeromq::Context& zmq)
     : storage_(storage)
     , contact_(contact)
-    , core_(core)
-    , wallet_(core_.Wallet())
+    , api_(core)
+    , wallet_(api_.Wallet())
     , zmq_(zmq)
     , mail_cache_lock_()
     , mail_cache_()
@@ -191,7 +191,7 @@ Activity::ChequeData Activity::Cheque(
 
     OT_ASSERT(workflow)
 
-    auto instantiated = client::Workflow::InstantiateCheque(core_, *workflow);
+    auto instantiated = client::Workflow::InstantiateCheque(api_, *workflow);
     cheque.reset(std::get<1>(instantiated).release());
 
     OT_ASSERT(cheque)
@@ -273,7 +273,7 @@ std::unique_ptr<Message> Activity::Mail(
         return output;
     }
 
-    output.reset(core_.Factory().Message(core_).release());
+    output.reset(api_.Factory().Message().release());
 
     OT_ASSERT(output);
 
@@ -453,7 +453,7 @@ void Activity::MigrateLegacyThreads() const
 
                 if (1 == nymCount) {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto paymentCode = core_.Factory().PaymentCode("");
+                    auto paymentCode = api_.Factory().PaymentCode("");
 #endif
                     auto newContact = contact_.NewContact(
                         "",

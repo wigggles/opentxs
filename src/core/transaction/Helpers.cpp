@@ -371,7 +371,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // See if the box receipt exists before trying to load it...
     //
     if (!OTDB::Exists(
-            theAbbrev.Core().DataFolder(),
+            theAbbrev.API().DataFolder(),
             strFolder1name.Get(),
             strFolder2name.Get(),
             strFolder3name.Get(),
@@ -386,7 +386,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // Try to load the box receipt from local storage.
     //
     std::string strFileContents(OTDB::QueryPlainString(
-        theAbbrev.Core().DataFolder(),
+        theAbbrev.API().DataFolder(),
         strFolder1name.Get(),  // <=== LOADING FROM DATA STORE.
         strFolder2name.Get(),
         strFolder3name.Get(),
@@ -413,8 +413,7 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // Finally, try to load the transaction from that string and see if
     // successful.
     //
-    auto pTransType =
-        theAbbrev.Core().Factory().Transaction(theAbbrev.Core(), strRawFile);
+    auto pTransType = theAbbrev.API().Factory().Transaction(strRawFile);
 
     if (false == bool(pTransType)) {
         otErr << __FUNCTION__

@@ -40,14 +40,14 @@ using namespace io;
 namespace opentxs
 {
 AccountList::AccountList(const api::Core& core)
-    : core_(core)
+    : api_(core)
     , acctType_(Account::voucher)
     , mapAcctIDs_{}
 {
 }
 
 AccountList::AccountList(const api::Core& core, Account::AccountType acctType)
-    : core_(core)
+    : api_(core)
     , acctType_(acctType)
     , mapAcctIDs_{}
 {
@@ -183,8 +183,7 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
     // Account ID *IS* already there for this instrument definition
     if (mapAcctIDs_.end() != acctIDsIt) {
         const auto& accountID = acctIDsIt->second;
-        account =
-            core_.Wallet().mutable_Account(Identifier::Factory(accountID));
+        account = api_.Wallet().mutable_Account(Identifier::Factory(accountID));
 
         if (account) {
             otLog3 << OT_METHOD << __FUNCTION__ << "Successfully loaded "
@@ -198,7 +197,7 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
 
     // Not found. There's no account ID yet for that instrument definition ID.
     // That means we can create it.
-    account = core_.Wallet().CreateAccount(
+    account = api_.Wallet().CreateAccount(
         accountOwnerId,
         notaryID,
         instrumentDefinitionID,

@@ -84,7 +84,7 @@ UI::UI(
     , storage_(storage)
     , activity_(activity)
     , contact_(contact)
-    , core_(core)
+    , api_(core)
     , zmq_(zmq)
     , running_(running)
     , accounts_()
@@ -116,7 +116,7 @@ const ui::AccountActivity& UI::AccountActivity(
             workflow_,
             contact_,
             storage_,
-            core_,
+            api_,
             nymID,
             accountID));
     }
@@ -141,7 +141,7 @@ const ui::AccountSummary& UI::AccountSummary(
             connection_,
             storage_,
             contact_,
-            core_,
+            api_,
             nymID,
             currency));
     }

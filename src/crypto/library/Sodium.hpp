@@ -101,6 +101,11 @@ private:
     std::size_t SaltSize(const proto::SymmetricKeyType type) const override;
     std::size_t TagSize(const proto::SymmetricMode mode) const override;
 
-    Sodium();
+    Sodium(const api::Crypto& crypto);
+    Sodium() = delete;
+    Sodium(const Sodium&) = delete;
+    Sodium(Sodium&&) = delete;
+    Sodium& operator=(const Sodium&) = delete;
+    Sodium& operator=(Sodium&&) = delete;
 };
 }  // namespace opentxs::crypto::implementation

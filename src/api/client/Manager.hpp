@@ -84,7 +84,10 @@ private:
                                       // workflow_
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
     std::unique_ptr<api::client::Cash> cash_;
-    std::unique_ptr<api::client::ServerAction> server_action_;
+    std::unique_ptr<api::client::ServerAction> server_action_;  // Depends on
+                                                                // ot_api_,
+                                                                // otapi_exec_,
+                                                                // workflow_
     std::unique_ptr<api::client::Sync> sync_;  // Depends on ot_api_,
                                                // otapi_exec_, contacts_,
                                                // server_action_, wallet_,

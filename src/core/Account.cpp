@@ -146,8 +146,7 @@ bool Account::create_box(
     const auto& nymID = GetNymID();
     const auto& accountID = GetRealAccountID();
     const auto& serverID = GetRealNotaryID();
-    box.reset(
-        core_.Factory().Ledger(core_, nymID, accountID, serverID).release());
+    box.reset(api_.Factory().Ledger(nymID, accountID, serverID).release());
 
     if (false == bool(box)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to construct ledger"
@@ -194,8 +193,8 @@ bool Account::LoadContractFromString(const String& theStr)
 
 std::unique_ptr<Ledger> Account::LoadInbox(const Nym& nym) const
 {
-    auto box{core_.Factory().Ledger(
-        core_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+    auto box{api_.Factory().Ledger(
+        GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(false != bool(box));
 
@@ -211,8 +210,8 @@ std::unique_ptr<Ledger> Account::LoadInbox(const Nym& nym) const
 
 std::unique_ptr<Ledger> Account::LoadOutbox(const Nym& nym) const
 {
-    auto box{core_.Factory().Ledger(
-        core_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+    auto box{api_.Factory().Ledger(
+        GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
     OT_ASSERT(false != bool(box));
 
@@ -286,8 +285,8 @@ bool Account::GetInboxHash(Identifier& output)
     } else if (
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
-        auto inbox{core_.Factory().Ledger(
-            core_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+        auto inbox{api_.Factory().Ledger(
+            GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
         OT_ASSERT(false != bool(inbox));
 
@@ -312,8 +311,8 @@ bool Account::GetOutboxHash(Identifier& output)
     } else if (
         !GetNymID().empty() && !GetRealAccountID().empty() &&
         !GetRealNotaryID().empty()) {
-        auto outbox{core_.Factory().Ledger(
-            core_, GetNymID(), GetRealAccountID(), GetRealNotaryID())};
+        auto outbox{api_.Factory().Ledger(
+            GetNymID(), GetRealAccountID(), GetRealNotaryID())};
 
         OT_ASSERT(false != bool(outbox));
 
@@ -633,7 +632,7 @@ bool Account::GenerateNewAccount(
     // Then we try to load it, in order to make sure that it doesn't already
     // exist.
     if (OTDB::Exists(
-            core_.DataFolder(),
+            api_.DataFolder(),
             m_strFoldername.Get(),
             m_strFilename.Get(),
             "",

@@ -33,7 +33,7 @@ private:
 
     const api::network::ZMQ& connection_;
     const api::storage::Storage& storage_;
-    const api::Core& core_;
+    const api::Core& api_;
     const proto::ContactItemType currency_;
     std::set<OTIdentifier> issuers_;
     std::map<OTIdentifier, OTIdentifier> server_issuer_map_;

@@ -142,10 +142,7 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
 
 OTAPI_Func::OTAPI_Func(
     std::recursive_mutex& apiLock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
     const OTAPI_Func_Type type)
@@ -189,13 +186,9 @@ OTAPI_Func::OTAPI_Func(
     , lifetime_(OT_TIME_ZERO)
     , nRequestNum_(-1)
     , nTransNumsNeeded_(0)
-    , wallet_(core.Wallet())
-    , workflow_(workflow)
-    , core_(core)
-    , context_editor_(wallet_.mutable_ServerContext(nymID, serverID))
+    , api_(api)
+    , context_editor_(api_.Wallet().mutable_ServerContext(nymID, serverID))
     , context_(context_editor_.It())
-    , exec_(exec)
-    , otapi_(otapi)
     , last_attempt_()
     , is_transaction_(type_type_.at(type))
     , peer_reply_(nullptr)
@@ -223,13 +216,10 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
-    const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    const Identifier& serverID)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     if (theType == DELETE_NYM) {
         nTransNumsNeeded_ = 0;           // Is this true?
@@ -250,14 +240,11 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const std::string& password)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -281,14 +268,11 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const proto::UnitDefinition& unitDefinition)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case (ISSUE_BASKET):
@@ -306,14 +290,11 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& nymID2)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case CREATE_ASSET_ACCT: {
@@ -349,15 +330,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& accountID,
     std::unique_ptr<Ledger>& ledger)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case PROCESS_INBOX: {
@@ -375,22 +353,19 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& targetID,
     const Identifier& instrumentDefinitionID)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case INITIATE_BAILMENT: {
             targetID_ = targetID;
             instrumentDefinitionID_ = instrumentDefinitionID;
             peer_request_ = PeerRequest::Create(
-                wallet_,
+                api_.Wallet(),
                 context_.Nym(),
                 proto::PEERREQUEST_BAILMENT,
                 instrumentDefinitionID_,
@@ -408,15 +383,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& accountID,
     std::unique_ptr<Cheque>& cheque)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case DEPOSIT_CHEQUE: {
@@ -434,15 +406,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& nymID2,
     std::unique_ptr<Purse>& purse)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case DEPOSIT_CASH: {
@@ -465,15 +434,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     std::unique_ptr<OTPaymentPlan>& paymentPlan)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -494,15 +460,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& nymID2,
     const std::int64_t& int64val)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case ADJUST_USAGE_CREDITS: {
@@ -534,15 +497,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& targetID,
     const proto::ConnectionInfoType& infoType)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     infoType_ = infoType;
 
@@ -550,7 +510,7 @@ OTAPI_Func::OTAPI_Func(
         case REQUEST_CONNECTION: {
             targetID_ = targetID;
             peer_request_ = PeerRequest::Create(
-                wallet_,
+                api_.Wallet(),
                 context_.Nym(),
                 proto::PEERREQUEST_CONNECTIONINFO,
                 infoType_,
@@ -570,23 +530,20 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     const Identifier& requestID,
     const bool ack)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     if (theType == ACKNOWLEDGE_NOTICE) {
         nTransNumsNeeded_ = 0;
         requestID_ = requestID;
         accountID_ = recipientID;
         peer_reply_ = PeerReply::Create(
-            wallet_, context_.Nym(), requestID_, context_.Server(), ack);
+            api_.Wallet(), context_.Nym(), requestID_, context_.Server(), ack);
 
         OT_ASSERT(peer_reply_)
     } else {
@@ -599,16 +556,13 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const TransactionNumber& transactionNumber,
     const std::string& clause,
     const std::string& parameter)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -637,15 +591,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     std::unique_ptr<const OTPayment>& payment)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
 
@@ -663,15 +614,12 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     const std::string& message)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -696,16 +644,13 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& accountID,
     const RemoteBoxType& remoteBoxType,
     const TransactionNumber& transactionNumber)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
 
@@ -724,16 +669,13 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& accountID,
     const std::string& agentName,
     std::unique_ptr<OTSmartContract>& contract)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -752,7 +694,7 @@ OTAPI_Func::OTAPI_Func(
                                  // on the contract.;
         contract_.reset(contract.release());  // the smart contract itself.;
 
-        std::int32_t nNumsNeeded = exec_.SmartContract_CountNumsNeeded(
+        std::int32_t nNumsNeeded = api_.Exec().SmartContract_CountNumsNeeded(
             String(*contract_).Get(), agentName_);
 
         if (nNumsNeeded > 0) { nTransNumsNeeded_ = nNumsNeeded; }
@@ -766,16 +708,13 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     const Identifier& requestID,
     const std::string& instructions)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case ACKNOWLEDGE_BAILMENT: {
@@ -784,7 +723,7 @@ OTAPI_Func::OTAPI_Func(
             requestID_ = requestID;
             message_ = instructions;
             peer_reply_ = PeerReply::Create(
-                wallet_,
+                api_.Wallet(),
                 context_.Nym(),
                 proto::PEERREQUEST_BAILMENT,
                 requestID_,
@@ -800,7 +739,7 @@ OTAPI_Func::OTAPI_Func(
             requestID_ = requestID;
             message_ = instructions;
             peer_reply_ = PeerReply::Create(
-                wallet_,
+                api_.Wallet(),
                 context_.Nym(),
                 proto::PEERREQUEST_OUTBAILMENT,
                 requestID_,
@@ -820,17 +759,14 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& nymID2,
     const Identifier& targetID,
     const Amount& amount,
     const std::string& message)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     amount_ = amount;
     nTransNumsNeeded_ = 0;
@@ -852,7 +788,7 @@ OTAPI_Func::OTAPI_Func(
             targetID_ = nymID2;
             instrumentDefinitionID_ = targetID;
             peer_request_ = PeerRequest::Create(
-                wallet_,
+                api_.Wallet(),
                 context_.Nym(),
                 proto::PEERREQUEST_OUTBAILMENT,
                 instrumentDefinitionID_,
@@ -881,17 +817,14 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& targetID,
     const std::string& primary,
     const std::string& secondary,
     const proto::SecretType& secretType)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     primary_ = primary;
     secondary_ = secondary;
@@ -912,7 +845,7 @@ OTAPI_Func::OTAPI_Func(
             nTransNumsNeeded_ = 0;
             targetID_ = targetID;
             peer_request_ = PeerRequest::Create(
-                wallet_,
+                api_.Wallet(),
                 context_.Nym(),
                 proto::PEERREQUEST_STORESECRET,
                 secretType_,
@@ -934,16 +867,13 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     std::unique_ptr<const Purse>& purse,
     std::unique_ptr<const Purse>& senderPurse)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
 
@@ -965,18 +895,15 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     const Identifier& requestID,
     const Identifier& instrumentDefinitionID,
     const std::string& txid,
     const Amount& amount)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -994,7 +921,7 @@ OTAPI_Func::OTAPI_Func(
         txid_ = txid;
         amount_ = amount;
         peer_request_ = PeerRequest::Create(
-            wallet_,
+            api_.Wallet(),
             context_.Nym(),
             proto::PEERREQUEST_PENDINGBAILMENT,
             instrumentDefinitionID_,
@@ -1015,17 +942,14 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     bool primary,
     const proto::ContactSectionName& sectionName,
     const proto::ContactItemType& itemType,
     const std::string& value)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     const std::string strError =
         "Warning: Empty std::string passed to OTAPI_Func.OTAPI_Func() as: ";
@@ -1050,18 +974,15 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& instrumentDefinitionID,
     const Identifier& basketID,
     const Identifier& accountID,
     bool direction,
     std::int32_t nTransNumsNeeded)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     if (EXCHANGE_BASKET == theType) {
         // FYI. This is a transaction.
@@ -1078,12 +999,9 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& recipientID,
     const Identifier& requestID,
     const std::string& url,
@@ -1091,7 +1009,7 @@ OTAPI_Func::OTAPI_Func(
     const std::string& password,
     const std::string& key,
     bool ack)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     accountID_ = recipientID;
     requestID_ = requestID;
@@ -1120,7 +1038,7 @@ OTAPI_Func::OTAPI_Func(
     switch (theType) {
         case ACKNOWLEDGE_CONNECTION: {
             peer_reply_ = PeerReply::Create(
-                wallet_,
+                api_.Wallet(),
                 context_.Nym(),
                 requestID_,
                 context_.Server(),
@@ -1143,12 +1061,9 @@ OTAPI_Func::OTAPI_Func(
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
-    const api::client::Workflow& workflow,
-    const api::Core& core,
+    const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const OTAPI_Exec& exec,
-    const OT_API& otapi,
     const Identifier& assetAccountID,
     const Identifier& currencyAccountID,
     const Amount& scale,
@@ -1159,7 +1074,7 @@ OTAPI_Func::OTAPI_Func(
     const time64_t lifetime,
     const Amount& activationPrice,
     const std::string& stopSign)
-    : OTAPI_Func(apilock, workflow, core, exec, otapi, nymID, serverID, theType)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     if (VerifyStringVal(stopSign)) { stopSign_ = stopSign; }
 
@@ -1234,30 +1149,30 @@ void OTAPI_Func::run()
 
     switch (type_) {
         case CHECK_NYM: {
-            last_attempt_ = otapi_.checkNym(context_, targetID_);
+            last_attempt_ = api_.OTAPI().checkNym(context_, targetID_);
         } break;
         case REGISTER_NYM: {
-            last_attempt_ = otapi_.registerNym(context_);
+            last_attempt_ = api_.OTAPI().registerNym(context_);
         } break;
         case DELETE_NYM: {
-            last_attempt_ = otapi_.unregisterNym(context_);
+            last_attempt_ = api_.OTAPI().unregisterNym(context_);
         } break;
         case SEND_USER_MESSAGE: {
-            last_attempt_ = otapi_.sendNymMessage(
+            last_attempt_ = api_.OTAPI().sendNymMessage(
                 context_, recipientID_, message_, message_id_);
         } break;
         case SEND_USER_INSTRUMENT: {
             if (cash_) {
                 OT_ASSERT(purse_)
 
-                payment_ = core_.Factory().Payment(core_, String(*purse_));
+                payment_ = api_.Factory().Payment(String(*purse_));
             }
 
             OT_ASSERT(payment_)
 
             String serialized;
             payment_->GetPaymentContents(serialized);
-            auto payment{core_.Factory().Payment(core_, serialized)};
+            auto payment{api_.Factory().Payment(serialized)};
 
             if (!payment->IsValid() || !payment->SetTempValues()) {
                 otOut << OT_METHOD << __FUNCTION__
@@ -1272,7 +1187,7 @@ void OTAPI_Func::run()
 
                 const String& senderPurseString = String(*senderPurse_);
                 auto theSenderPayment{
-                    core_.Factory().Payment(core_, senderPurseString)};
+                    api_.Factory().Payment(senderPurseString)};
 
                 if (!theSenderPayment->IsValid() ||
                     !theSenderPayment->SetTempValues()) {
@@ -1284,7 +1199,7 @@ void OTAPI_Func::run()
                     return;
                 }
 
-                last_attempt_ = otapi_.sendNymInstrument(
+                last_attempt_ = api_.OTAPI().sendNymInstrument(
                     context_,
                     request_,
                     recipientID_,
@@ -1292,7 +1207,7 @@ void OTAPI_Func::run()
                     true,
                     theSenderPayment.get());
             } else {
-                last_attempt_ = otapi_.sendNymInstrument(
+                last_attempt_ = api_.OTAPI().sendNymInstrument(
                     context_,
                     request_,
                     recipientID_,
@@ -1302,7 +1217,7 @@ void OTAPI_Func::run()
 
             if (request_ && payment->IsCheque()) {
                 bool workflowUpdated{false};
-                auto cheque{core_.Factory().Cheque(core_)};
+                auto cheque{api_.Factory().Cheque()};
                 const auto loaded =
                     cheque->LoadContractFromString(payment->Payment());
 
@@ -1313,12 +1228,12 @@ void OTAPI_Func::run()
                 }
 
                 if (payment->IsCancelledCheque()) {
-                    workflowUpdated = workflow_.CancelCheque(
+                    workflowUpdated = api_.Workflow().CancelCheque(
                         *cheque,
                         *request_,
                         std::get<1>(std::get<2>(last_attempt_)).get());
                 } else {
-                    workflowUpdated = workflow_.SendCheque(
+                    workflowUpdated = api_.Workflow().SendCheque(
                         *cheque,
                         *request_,
                         std::get<1>(std::get<2>(last_attempt_)).get());
@@ -1334,48 +1249,50 @@ void OTAPI_Func::run()
             }
         } break;
         case GET_NYM_MARKET_OFFERS: {
-            last_attempt_ = otapi_.getNymMarketOffers(context_);
+            last_attempt_ = api_.OTAPI().getNymMarketOffers(context_);
         } break;
         case CREATE_ASSET_ACCT: {
             last_attempt_ =
-                otapi_.registerAccount(context_, instrumentDefinitionID_);
+                api_.OTAPI().registerAccount(context_, instrumentDefinitionID_);
         } break;
         case DELETE_ASSET_ACCT: {
-            last_attempt_ = otapi_.deleteAssetAccount(context_, accountID_);
+            last_attempt_ =
+                api_.OTAPI().deleteAssetAccount(context_, accountID_);
         } break;
         case ACTIVATE_SMART_CONTRACT: {
             OT_ASSERT(contract_)
 
-            last_attempt_ = otapi_.activateSmartContract(
+            last_attempt_ = api_.OTAPI().activateSmartContract(
                 context_, String(*contract_).Get());
         } break;
         case TRIGGER_CLAUSE: {
-            last_attempt_ = otapi_.triggerClause(
+            last_attempt_ = api_.OTAPI().triggerClause(
                 context_,
                 transactionNumber_,
                 clause_.c_str(),
                 triggerParameter.Exists() ? &triggerParameter : nullptr);
         } break;
         case EXCHANGE_BASKET: {
-            last_attempt_ = otapi_.exchangeBasket(
+            last_attempt_ = api_.OTAPI().exchangeBasket(
                 context_,
                 instrumentDefinitionID_,
                 String(basketID_).Get(),
                 direction_);
         } break;
         case GET_CONTRACT: {
-            last_attempt_ = otapi_.getInstrumentDefinition(
+            last_attempt_ = api_.OTAPI().getInstrumentDefinition(
                 context_, instrumentDefinitionID_);
         } break;
         case GET_MINT: {
-            last_attempt_ = otapi_.getMint(context_, instrumentDefinitionID_);
+            last_attempt_ =
+                api_.OTAPI().getMint(context_, instrumentDefinitionID_);
         } break;
         case ISSUE_BASKET: {
-            last_attempt_ = otapi_.issueBasket(context_, unitDefinition_);
+            last_attempt_ = api_.OTAPI().issueBasket(context_, unitDefinition_);
         } break;
         case ISSUE_ASSET_TYPE: {
-            last_attempt_ =
-                otapi_.registerInstrumentDefinition(context_, unitDefinition_);
+            last_attempt_ = api_.OTAPI().registerInstrumentDefinition(
+                context_, unitDefinition_);
         } break;
         case EXCHANGE_CASH: {
 #if OT_CASH
@@ -1384,15 +1301,15 @@ void OTAPI_Func::run()
 #endif  // OT_CASH
         } break;
         case KILL_MARKET_OFFER: {
-            last_attempt_ =
-                otapi_.cancelCronItem(context_, accountID_, transactionNumber_);
+            last_attempt_ = api_.OTAPI().cancelCronItem(
+                context_, accountID_, transactionNumber_);
         } break;
         case KILL_PAYMENT_PLAN: {
-            last_attempt_ =
-                otapi_.cancelCronItem(context_, accountID_, transactionNumber_);
+            last_attempt_ = api_.OTAPI().cancelCronItem(
+                context_, accountID_, transactionNumber_);
         } break;
         case GET_BOX_RECEIPT: {
-            last_attempt_ = otapi_.getBoxReceipt(
+            last_attempt_ = api_.OTAPI().getBoxReceipt(
                 context_,
                 accountID_,
                 static_cast<std::uint32_t>(remoteBoxType_),
@@ -1401,14 +1318,14 @@ void OTAPI_Func::run()
         case PROCESS_INBOX: {
             OT_ASSERT(ledger_)
 
-            last_attempt_ = otapi_.processInbox(
+            last_attempt_ = api_.OTAPI().processInbox(
                 context_, accountID_, String(*ledger_).Get());
         } break;
         case DEPOSIT_CASH: {
 #if OT_CASH
             OT_ASSERT(purse_)
 
-            last_attempt_ = otapi_.notarizeDeposit(
+            last_attempt_ = api_.OTAPI().notarizeDeposit(
                 context_, accountID_, String(*purse_).Get());
 #endif  // OT_CASH
         } break;
@@ -1416,26 +1333,26 @@ void OTAPI_Func::run()
             OT_ASSERT(cheque_)
 
             last_attempt_ =
-                otapi_.depositCheque(context_, accountID_, *cheque_);
+                api_.OTAPI().depositCheque(context_, accountID_, *cheque_);
         } break;
         case DEPOSIT_PAYMENT_PLAN: {
             OT_ASSERT(paymentPlan_)
 
-            last_attempt_ = otapi_.depositPaymentPlan(
+            last_attempt_ = api_.OTAPI().depositPaymentPlan(
                 context_, String(*paymentPlan_).Get());
         } break;
         case WITHDRAW_CASH: {
 #if OT_CASH
             last_attempt_ =
-                otapi_.notarizeWithdrawal(context_, accountID_, amount_);
+                api_.OTAPI().notarizeWithdrawal(context_, accountID_, amount_);
 #endif  // OT_CASH
         } break;
         case WITHDRAW_VOUCHER: {
-            last_attempt_ = otapi_.withdrawVoucher(
+            last_attempt_ = api_.OTAPI().withdrawVoucher(
                 context_, accountID_, recipientID_, message_.c_str(), amount_);
         } break;
         case PAY_DIVIDEND: {
-            last_attempt_ = otapi_.payDividend(
+            last_attempt_ = api_.OTAPI().payDividend(
                 context_,
                 accountID_,
                 instrumentDefinitionID_,
@@ -1443,17 +1360,19 @@ void OTAPI_Func::run()
                 amount_);
         } break;
         case SEND_TRANSFER: {
-            last_attempt_ = otapi_.notarizeTransfer(
+            last_attempt_ = api_.OTAPI().notarizeTransfer(
                 context_, accountID_, targetID_, amount_, message_.c_str());
         } break;
         case GET_MARKET_LIST: {
-            last_attempt_ = otapi_.getMarketList(context_);
+            last_attempt_ = api_.OTAPI().getMarketList(context_);
         } break;
         case GET_MARKET_OFFERS: {
-            last_attempt_ = otapi_.getMarketOffers(context_, marketID_, depth_);
+            last_attempt_ =
+                api_.OTAPI().getMarketOffers(context_, marketID_, depth_);
         } break;
         case GET_MARKET_RECENT_TRADES: {
-            last_attempt_ = otapi_.getMarketRecentTrades(context_, marketID_);
+            last_attempt_ =
+                api_.OTAPI().getMarketRecentTrades(context_, marketID_);
         } break;
         case CREATE_MARKET_OFFER: {
             const auto ASSET_ACCT_ID = Identifier::Factory(accountID_);
@@ -1487,13 +1406,14 @@ void OTAPI_Func::run()
             }
 
             const auto str_asset_notary_id =
-                exec_.GetAccountWallet_NotaryID(accountID_->str());
+                api_.Exec().GetAccountWallet_NotaryID(accountID_->str());
             const auto str_currency_notary_id =
-                exec_.GetAccountWallet_NotaryID(currencyAccountID_->str());
+                api_.Exec().GetAccountWallet_NotaryID(
+                    currencyAccountID_->str());
             const auto str_asset_nym_id =
-                exec_.GetAccountWallet_NymID(accountID_->str());
+                api_.Exec().GetAccountWallet_NymID(accountID_->str());
             const auto str_currency_nym_id =
-                exec_.GetAccountWallet_NymID(currencyAccountID_->str());
+                api_.Exec().GetAccountWallet_NymID(currencyAccountID_->str());
 
             if (str_asset_notary_id.empty() || str_currency_notary_id.empty() ||
                 str_asset_nym_id.empty() || str_currency_nym_id.empty()) {
@@ -1504,7 +1424,7 @@ void OTAPI_Func::run()
                 return;
             }
 
-            last_attempt_ = otapi_.issueMarketOffer(
+            last_attempt_ = api_.OTAPI().issueMarketOffer(
                 context_,
                 ASSET_ACCT_ID,
                 CURRENCY_ACCT_ID,
@@ -1519,32 +1439,32 @@ void OTAPI_Func::run()
         } break;
         case ADJUST_USAGE_CREDITS: {
             last_attempt_ =
-                otapi_.usageCredits(context_, targetID_, adjustment_);
+                api_.OTAPI().usageCredits(context_, targetID_, adjustment_);
         } break;
         case INITIATE_BAILMENT: {
             OT_ASSERT(peer_request_);
 
-            last_attempt_ =
-                otapi_.initiatePeerRequest(context_, targetID_, peer_request_);
+            last_attempt_ = api_.OTAPI().initiatePeerRequest(
+                context_, targetID_, peer_request_);
         } break;
         case INITIATE_OUTBAILMENT: {
             OT_ASSERT(peer_request_);
 
-            last_attempt_ =
-                otapi_.initiatePeerRequest(context_, targetID_, peer_request_);
+            last_attempt_ = api_.OTAPI().initiatePeerRequest(
+                context_, targetID_, peer_request_);
         } break;
         case NOTIFY_BAILMENT: {
             OT_ASSERT(peer_request_);
 
-            last_attempt_ =
-                otapi_.initiatePeerRequest(context_, accountID_, peer_request_);
+            last_attempt_ = api_.OTAPI().initiatePeerRequest(
+                context_, accountID_, peer_request_);
         } break;
         case REQUEST_CONNECTION:
         case STORE_SECRET: {
             OT_ASSERT(peer_request_);
 
-            last_attempt_ =
-                otapi_.initiatePeerRequest(context_, targetID_, peer_request_);
+            last_attempt_ = api_.OTAPI().initiatePeerRequest(
+                context_, targetID_, peer_request_);
         } break;
         case ACKNOWLEDGE_BAILMENT:
         case ACKNOWLEDGE_OUTBAILMENT:
@@ -1552,26 +1472,26 @@ void OTAPI_Func::run()
         case ACKNOWLEDGE_CONNECTION: {
             OT_ASSERT(peer_reply_);
 
-            last_attempt_ = otapi_.initiatePeerReply(
+            last_attempt_ = api_.OTAPI().initiatePeerReply(
                 context_, accountID_, requestID_, peer_reply_);
         } break;
         case REGISTER_CONTRACT_NYM: {
-            last_attempt_ =
-                otapi_.registerContract(context_, ContractType::NYM, targetID_);
+            last_attempt_ = api_.OTAPI().registerContract(
+                context_, ContractType::NYM, targetID_);
         } break;
         case REGISTER_CONTRACT_SERVER: {
-            last_attempt_ = otapi_.registerContract(
+            last_attempt_ = api_.OTAPI().registerContract(
                 context_, ContractType::SERVER, targetID_);
         } break;
         case REGISTER_CONTRACT_UNIT: {
-            last_attempt_ = otapi_.registerContract(
+            last_attempt_ = api_.OTAPI().registerContract(
                 context_, ContractType::UNIT, instrumentDefinitionID_);
         } break;
         case REQUEST_ADMIN: {
-            last_attempt_ = otapi_.requestAdmin(context_, password_);
+            last_attempt_ = api_.OTAPI().requestAdmin(context_, password_);
         } break;
         case SERVER_ADD_CLAIM: {
-            last_attempt_ = otapi_.serverAddClaim(
+            last_attempt_ = api_.OTAPI().serverAddClaim(
                 context_,
                 std::to_string(static_cast<std::uint32_t>(sectionName_)),
                 std::to_string(static_cast<std::uint32_t>(itemType_)),
@@ -1579,7 +1499,7 @@ void OTAPI_Func::run()
                 isPrimary_);
         } break;
         case GET_TRANSACTION_NUMBERS: {
-            last_attempt_ = otapi_.getTransactionNumbers(context_);
+            last_attempt_ = api_.OTAPI().getTransactionNumbers(context_);
         } break;
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Error: unhandled function "
@@ -1638,7 +1558,7 @@ std::int32_t OTAPI_Func::send()
 
 std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
 {
-    Utility MsgUtil(context_, otapi_, core_);
+    Utility MsgUtil(context_, api_);
     std::string strLocation =
         "OTAPI_Func::SendTransaction: " + type_name_.at(type_);
 
@@ -1656,7 +1576,7 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
 
     // GET TRANSACTION NUMBERS HERE IF NECESSARY.
     //
-    std::int32_t getnym_trnsnum_count = exec_.GetNym_TransactionNumCount(
+    std::int32_t getnym_trnsnum_count = api_.Exec().GetNym_TransactionNumCount(
         context_.Server().str(), context_.Nym()->ID().str());
     std::int32_t configTxnCount = MsgUtil.getNbrTransactionCount();
     bool b1 = (nTransNumsNeeded_ > configTxnCount);
@@ -1729,7 +1649,7 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             bWillRetryAfterThis = false;
         }
 
-        if (exec_.CheckConnection(context_.Server().str())) {
+        if (api_.Exec().CheckConnection(context_.Server().str())) {
             strResult =
                 send_once(true, bWillRetryAfterThis, bCanRetryAfterThis);
         }
@@ -1758,14 +1678,14 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
 
 std::string OTAPI_Func::send_request()
 {
-    Utility MsgUtil(context_, otapi_, core_);
+    Utility MsgUtil(context_, api_);
     bool bCanRetryAfterThis{false};
     send_once(false, true, bCanRetryAfterThis);
     const auto& result = std::get<0>(std::get<2>(last_attempt_));
     const bool needRetry = (SendResult::VALID_REPLY != result);
 
     if (needRetry && bCanRetryAfterThis) {
-        if (exec_.CheckConnection(context_.Server().str())) {
+        if (api_.Exec().CheckConnection(context_.Server().str())) {
             send_once(false, false, bCanRetryAfterThis);
         }
     }
@@ -1782,7 +1702,7 @@ std::string OTAPI_Func::send_once(
     const bool bWillRetryAfterThis,
     bool& bCanRetryAfterThis)
 {
-    Utility MsgUtil(context_, otapi_, core_);
+    Utility MsgUtil(context_, api_);
     std::string strLocation =
         "OTAPI_Func::SendRequestOnce: " + type_name_.at(type_);
     ;
@@ -1848,7 +1768,7 @@ std::string OTAPI_Func::send_once(
         if (bMsgReplySuccess)  // If message was success, then let's see if
                                // the transaction was, too.
         {
-            nBalanceSuccess = exec_.Message_GetBalanceAgreementSuccess(
+            nBalanceSuccess = api_.Exec().Message_GetBalanceAgreementSuccess(
                 context_.Server().str(),
                 context_.Nym()->ID().str(),
                 accountID_->str(),
@@ -1871,7 +1791,7 @@ std::string OTAPI_Func::send_once(
                 // transaction numbers were harvested from it.
                 //
                 std::int32_t nTransCancelled =
-                    exec_.Message_IsTransactionCanceled(
+                    api_.Exec().Message_IsTransactionCanceled(
                         context_.Server().str(),
                         context_.Nym()->ID().str(),
                         accountID_->str(),
@@ -1882,7 +1802,7 @@ std::string OTAPI_Func::send_once(
                 // and we check for success/failure as normal...
                 //
                 if (1 != nTransCancelled) {
-                    nTransSuccess = exec_.Message_GetTransactionSuccess(
+                    nTransSuccess = api_.Exec().Message_GetTransactionSuccess(
                         context_.Server().str(),
                         context_.Nym()->ID().str(),
                         accountID_->str(),
@@ -2088,7 +2008,7 @@ std::string OTAPI_Func::send_once(
                 // or flush it.
                 //
                 else if (bWasSent && (nProcessNymboxResult > 1)) {
-                    std::string strNymbox = exec_.LoadNymboxNoVerify(
+                    std::string strNymbox = api_.Exec().LoadNymboxNoVerify(
                         context_.Server().str(),
                         context_.Nym()->ID().str());  // FLUSH SENT
                                                       // MESSAGES!!!!
@@ -2096,7 +2016,7 @@ std::string OTAPI_Func::send_once(
                                                       // HARVEST.);
 
                     if (VerifyStringVal(strNymbox)) {
-                        exec_.FlushSentMessages(
+                        api_.Exec().FlushSentMessages(
                             false,
                             context_.Server().str(),
                             context_.Nym()->ID().str(),

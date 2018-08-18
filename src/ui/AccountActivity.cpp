@@ -92,7 +92,7 @@ AccountActivity::AccountActivity(
     , sync_(sync)
     , workflow_(workflow)
     , storage_(storage)
-    , core_(core)
+    , api_(core)
     , balance_(0)
     , account_id_(accountID)
     , contract_(nullptr)
@@ -122,7 +122,7 @@ void AccountActivity::construct_row(
             index,
             custom,
             sync_,
-            core_,
+            api_,
             nym_id_,
             account_id_));
     names_.emplace(id, index);
@@ -329,14 +329,14 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
 
 void AccountActivity::startup()
 {
-    auto account = core_.Wallet().Account(account_id_);
+    auto account = api_.Wallet().Account(account_id_);
 
     if (account) {
         balance_.store(account.get().GetBalance());
         UpdateNotify();
         eLock lock(shared_lock_);
-        contract_ = core_.Wallet().UnitDefinition(
-            storage_.AccountContract(account_id_));
+        contract_ =
+            api_.Wallet().UnitDefinition(storage_.AccountContract(account_id_));
     }
 
     account.Release();

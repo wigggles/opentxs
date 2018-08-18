@@ -176,7 +176,7 @@ bool VerifyBalanceReceipt(
     // Load the last successful BALANCE STATEMENT...
 
     auto tranOut{context.Api().Factory().Transaction(
-        context.Api(), NOTARY_NYM_ID, accountID, NOTARY_ID)};
+        NOTARY_NYM_ID, accountID, NOTARY_ID)};
 
     OT_ASSERT(false != bool(tranOut));
 
@@ -1950,15 +1950,13 @@ bool OT_API::SignContract(
     }
     //
     std::unique_ptr<Contract> contract(
-        client_.Factory().Transaction(client_, strContract).release());
+        client_.Factory().Transaction(strContract).release());
 
     if (false == bool(contract))
-        contract.reset(
-            client_.Factory().Scriptable(client_, strContract).release());
+        contract.reset(client_.Factory().Scriptable(strContract).release());
 
     if (false == bool(contract))
-        contract.reset(
-            client_.Factory().Contract(client_, strContract).release());
+        contract.reset(client_.Factory().Contract(strContract).release());
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2012,15 +2010,13 @@ bool OT_API::AddSignature(
     }
     //
     std::unique_ptr<Contract> contract(
-        client_.Factory().Transaction(client_, strContract).release());
+        client_.Factory().Transaction(strContract).release());
 
     if (false == bool(contract))
-        contract.reset(
-            client_.Factory().Scriptable(client_, strContract).release());
+        contract.reset(client_.Factory().Scriptable(strContract).release());
 
     if (false == bool(contract))
-        contract.reset(
-            client_.Factory().Contract(client_, strContract).release());
+        contract.reset(client_.Factory().Contract(strContract).release());
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2062,15 +2058,13 @@ bool OT_API::VerifySignature(
     }
     //
     std::unique_ptr<Contract> contract(
-        client_.Factory().Transaction(client_, strContract).release());
+        client_.Factory().Transaction(strContract).release());
 
     if (false == bool(contract))
-        contract.reset(
-            client_.Factory().Scriptable(client_, strContract).release());
+        contract.reset(client_.Factory().Scriptable(strContract).release());
 
     if (false == bool(contract))
-        contract.reset(
-            client_.Factory().Contract(client_, strContract).release());
+        contract.reset(client_.Factory().Contract(strContract).release());
 
     if (false == bool(contract)) {
         otErr << "OT_API::VerifySignature: I tried my best. Unable to "
@@ -2183,7 +2177,7 @@ bool OT_API::Create_SmartContract(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract = client_.Factory().SmartContract(client_);
+    auto contract = client_.Factory().SmartContract();
     OT_ASSERT_MSG(
         false != bool(contract),
         "OT_API::Create_SmartContract: ASSERT "
@@ -2224,7 +2218,7 @@ bool OT_API::SmartContract_SetDates(
     // to
     // cleanup.)
 
-    auto contract{client_.Factory().CronItem(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().CronItem(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2266,7 +2260,7 @@ bool OT_API::SmartContract_AddParty(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract(client_.Factory().Scriptable(client_, THE_CONTRACT));
+    auto contract(client_.Factory().Scriptable(THE_CONTRACT));
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2355,7 +2349,7 @@ bool OT_API::SmartContract_RemoveParty(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2399,7 +2393,7 @@ bool OT_API::SmartContract_AddAccount(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_AddAccount: Error loading "
                  "smart contract:\n\n"
@@ -2500,7 +2494,7 @@ bool OT_API::SmartContract_RemoveAccount(
     // By this point, nymfile is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_RemoveAccount: Error loading "
                  "smart contract:\n\n"
@@ -2541,7 +2535,7 @@ std::int32_t OT_API::SmartContract_CountNumsNeeded(
 {
     std::int32_t nReturnValue = 0;
     const std::string str_agent_name(AGENT_NAME.Get());
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_CountNumsNeeded: Error loading "
                  "smart contract. \n";
@@ -2582,7 +2576,7 @@ bool OT_API::SmartContract_ConfirmAccount(
 
     // By this point, account is a good pointer, and is on the wallet. (No need
     // to cleanup.)
-    auto pScriptable{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto pScriptable{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(pScriptable)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2740,7 +2734,7 @@ bool OT_API::SmartContract_ConfirmAccount(
 
 bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 {
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2753,7 +2747,7 @@ bool OT_API::Smart_ArePartiesSpecified(const String& THE_CONTRACT) const
 
 bool OT_API::Smart_AreAssetTypesSpecified(const String& THE_CONTRACT) const
 {
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2784,7 +2778,7 @@ bool OT_API::SmartContract_ConfirmParty(
     // to
     // cleanup.)
 
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error loading smart contract:\n\n"
@@ -2864,7 +2858,7 @@ bool OT_API::SmartContract_ConfirmParty(
     // have to track it until it's activated or until we cancel it.)
     //
     const String strInstrument(*contract);
-    auto pMessage = client_.Factory().Message(client_);
+    auto pMessage = client_.Factory().Message();
     OT_ASSERT(false != bool(pMessage));
 
     const String strNymID(NYM_ID);
@@ -2902,7 +2896,7 @@ bool OT_API::SmartContract_AddBylaw(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_AddBylaw: Error loading smart "
                  "contract:\n\n"
@@ -2960,7 +2954,7 @@ bool OT_API::SmartContract_RemoveBylaw(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_RemoveBylaw: Error loading smart "
                  "contract:\n\n"
@@ -3006,7 +3000,7 @@ bool OT_API::SmartContract_AddHook(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_AddHook: Error loading smart "
                  "contract:\n\n"
@@ -3065,7 +3059,7 @@ bool OT_API::SmartContract_RemoveHook(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_RemoveHook: Error loading smart "
                  "contract:\n\n"
@@ -3120,7 +3114,7 @@ bool OT_API::SmartContract_AddCallback(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_AddCallback: Error loading "
                  "smart contract:\n\n"
@@ -3183,7 +3177,7 @@ bool OT_API::SmartContract_RemoveCallback(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::SmartContract_RemoveCallback: Error loading "
                  "smart contract:\n\n"
@@ -3236,7 +3230,7 @@ bool OT_API::SmartContract_AddClause(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3305,7 +3299,7 @@ bool OT_API::SmartContract_UpdateClause(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3360,7 +3354,7 @@ bool OT_API::SmartContract_RemoveClause(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3423,7 +3417,7 @@ bool OT_API::SmartContract_AddVariable(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3534,7 +3528,7 @@ bool OT_API::SmartContract_RemoveVariable(
     // By this point, nym is a good pointer, and is on the wallet. (No need
     // to
     // cleanup.)
-    auto contract{client_.Factory().Scriptable(client_, THE_CONTRACT)};
+    auto contract{client_.Factory().Scriptable(THE_CONTRACT)};
     if (false == bool(contract)) {
         otErr << "OT_API::" << __FUNCTION__
               << ": Error loading "
@@ -3774,7 +3768,7 @@ bool OT_API::HarvestClosingNumbers(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = client_.Wallet().mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto pCronItem{client_.Factory().CronItem(client_, THE_CRON_ITEM)};
+    auto pCronItem{client_.Factory().CronItem(THE_CRON_ITEM)};
 
     if (false == bool(pCronItem)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -3818,7 +3812,7 @@ bool OT_API::HarvestAllNumbers(
 {
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     auto context = client_.Wallet().mutable_ServerContext(NYM_ID, NOTARY_ID);
-    auto pCronItem{client_.Factory().CronItem(client_, THE_CRON_ITEM)};
+    auto pCronItem{client_.Factory().CronItem(THE_CRON_ITEM)};
 
     if (false == bool(pCronItem)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -3930,7 +3924,6 @@ Cheque* OT_API::WriteCheque(
 
     // At this point, I know that number contains one I can use.
     auto pCheque{client_.Factory().Cheque(
-        client_,
         account.get().GetRealNotaryID(),
         account.get().GetInstrumentDefinitionID())};
     OT_ASSERT_MSG(
@@ -4054,12 +4047,11 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // and
     // sent it to him.)
     if (pSENDER_accountID.empty()) {
-        pPlan.reset(client_.Factory()
-                        .PaymentPlan(
-                            client_,
-                            NOTARY_ID,
-                            account.get().GetInstrumentDefinitionID())
-                        .release());
+        pPlan.reset(
+            client_.Factory()
+                .PaymentPlan(
+                    NOTARY_ID, account.get().GetInstrumentDefinitionID())
+                .release());
 
         OT_ASSERT_MSG(
             false != bool(pPlan),
@@ -4073,7 +4065,6 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     } else {
         pPlan.reset(client_.Factory()
                         .PaymentPlan(
-                            client_,
                             NOTARY_ID,
                             account.get().GetInstrumentDefinitionID(),
                             pSENDER_accountID,
@@ -4182,7 +4173,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     // have to track it until it's deposited or until we cancel it.)
     //
     const String strInstrument(*pPlan);
-    auto pMessage = client_.Factory().Message(client_);
+    auto pMessage = client_.Factory().Message();
     OT_ASSERT(false != bool(pMessage));
 
     const String strNymID(RECIPIENT_NYM_ID), strNymID2(SENDER_NYM_ID);
@@ -4285,7 +4276,7 @@ bool OT_API::ConfirmPaymentPlan(
     // have to track it until it's deposited or until we cancel it.)
     //
     const String strInstrument(thePlan);
-    auto pMessage = client_.Factory().Message(client_);
+    auto pMessage = client_.Factory().Message();
     OT_ASSERT(false != bool(pMessage));
 
     const String strNymID(SENDER_NYM_ID), strNymID2(RECIPIENT_NYM_ID);
@@ -4335,8 +4326,8 @@ Purse* OT_API::LoadPurse(
     }
 
     auto nym = context->Nym();
-    auto pPurse{client_.Factory().Purse(
-        client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID)};
+    auto pPurse{
+        client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID)};
     OT_ASSERT_MSG(
         false != bool(pPurse),
         "Error allocating memory in the OT API.");  // responsible to
@@ -4405,8 +4396,8 @@ Purse* OT_API::CreatePurse(
     const Identifier& OWNER_ID) const
 {
     rLock lock(lock_callback_({OWNER_ID.str(), NOTARY_ID.str()}));
-    auto pPurse{client_.Factory().Purse(
-        client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID)};
+    auto pPurse{
+        client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID)};
     OT_ASSERT_MSG(
         false != bool(pPurse),
         "Error allocating memory in the OT API.");  // responsible to
@@ -4427,8 +4418,7 @@ Purse* OT_API::CreatePurse_Passphrase(
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    auto pPurse{
-        client_.Factory().Purse(client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+    auto pPurse{client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
     OT_ASSERT_MSG(
         false != bool(pPurse),
         "Error allocating memory in the OT API.");  // responsible to
@@ -4758,8 +4748,7 @@ Token* OT_API::Purse_Peek(
             ? "Enter the passphrase for this purse. (Purse_Peek)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    auto thePurse{
-        client_.Factory().Purse(client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+    auto thePurse{client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
     OTPassword thePassword;  // Only used in the case of password-protected
                              // purses.
     // What's going on here?
@@ -4848,8 +4837,7 @@ Purse* OT_API::Purse_Pop(
             ? "Enter the passphrase for this purse. (Purse_Pop)"
             : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
-    auto pPurse{
-        client_.Factory().Purse(client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+    auto pPurse{client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
 
     OTPassword thePassword;  // Only used in the case of password-protected
                              // purses.
@@ -4918,7 +4906,7 @@ Purse* OT_API::Purse_Empty(
                                  : pstrDisplay->Get());
     //  OTPasswordData thePWData(strReason);
     auto pPurse{client_.Factory().Purse(
-        client_, THE_PURSE, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+        THE_PURSE, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
 
     if (false == bool(pPurse)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -4975,8 +4963,8 @@ Purse* OT_API::Purse_Push(
         return nullptr;
     }
     String strToken(THE_TOKEN);
-    auto token{client_.Factory().Token(
-        client_, strToken, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+    auto token{
+        client_.Factory().Token(strToken, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
 
     if (false == bool(token))  // TokenFactory instantiates AND loads from
                                // string.
@@ -4986,8 +4974,7 @@ Purse* OT_API::Purse_Push(
               << THE_TOKEN << "\n\n";
         return nullptr;
     }
-    auto pPurse{
-        client_.Factory().Purse(client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+    auto pPurse{client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
 
     OT_ASSERT(false != bool(pPurse));
 
@@ -5080,7 +5067,7 @@ bool OT_API::Wallet_ImportPurse(
     // to
     // cleanup.)
     auto pNewPurse{
-        client_.Factory().Purse(client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+        client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by a
     // symmetric
@@ -5126,7 +5113,7 @@ bool OT_API::Wallet_ImportPurse(
     {
         pOldPurse.reset(
             client_.Factory()
-                .Purse(client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID)
+                .Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID)
                 .release());
     } else if (!pOldPurse->VerifySignature(*nym)) {
         otErr
@@ -5272,8 +5259,8 @@ Token* OT_API::Token_ChangeOwner(
     {
         // if the old owner is a Purse (symmetric+master key), the entire
         // purse is loaded.
-        auto pOldPurse{client_.Factory().Purse(
-            client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+        auto pOldPurse{
+            client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
         OT_ASSERT(false != bool(pOldPurse));
         pOldOwner = LoadPurseAndOwnerForMerge(
             OLD_OWNER,
@@ -5313,8 +5300,8 @@ Token* OT_API::Token_ChangeOwner(
     {
         // if the new owner is a Purse (symmetric+master key), the entire purse
         // is loaded.
-        auto pNewPurse{client_.Factory().Purse(
-            client_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+        auto pNewPurse{
+            client_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
         OT_ASSERT(false != bool(pNewPurse));
         pNewOwner = LoadPurseAndOwnerForMerge(
             NEW_OWNER,
@@ -5349,7 +5336,7 @@ Token* OT_API::Token_ChangeOwner(
     // (By this point, pOldOwner and pNewOwner should both be good to go.)
     //
     auto token{client_.Factory().Token(
-        client_, THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+        THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
     OT_ASSERT(false != bool(token));
     if (false == token->ReassignOwnership(
                      *pOldOwner,   // must be private, if a Nym.
@@ -5398,8 +5385,7 @@ Mint* OT_API::LoadMint(
               << strNotaryID << " \n";
         return nullptr;
     }
-    auto mint{client_.Factory().Mint(
-        client_, strNotaryID, strInstrumentDefinitionID)};
+    auto mint{client_.Factory().Mint(strNotaryID, strInstrumentDefinitionID)};
     OT_ASSERT_MSG(
         false != bool(mint),
         "OT_API::LoadMint: Error allocating memory in the OT API");
@@ -5434,7 +5420,7 @@ std::unique_ptr<Ledger> OT_API::LoadNymbox(
 
     auto nym = context->Nym();
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, NYM_ID, NOTARY_ID, ledgerType::nymbox)};
+        NYM_ID, NYM_ID, NOTARY_ID, ledgerType::nymbox)};
 
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API.");
@@ -5466,7 +5452,7 @@ std::unique_ptr<Ledger> OT_API::LoadNymboxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, NYM_ID, NOTARY_ID, ledgerType::nymbox)};
+        NYM_ID, NYM_ID, NOTARY_ID, ledgerType::nymbox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API.");
     // ---------------------------------------------
@@ -5502,7 +5488,7 @@ std::unique_ptr<Ledger> OT_API::LoadInbox(
     // By this point, nym is a good pointer, and is on the wallet.
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::inbox)};
+        NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::inbox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API.");
 
@@ -5538,7 +5524,7 @@ std::unique_ptr<Ledger> OT_API::LoadInboxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::inbox)};
+        NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::inbox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5577,7 +5563,7 @@ std::unique_ptr<Ledger> OT_API::LoadOutbox(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::outbox)};
+        NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::outbox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5614,7 +5600,7 @@ std::unique_ptr<Ledger> OT_API::LoadOutboxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::outbox)};
+        NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::outbox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5647,7 +5633,7 @@ std::unique_ptr<Ledger> OT_API::LoadPaymentInbox(
     auto nym = context->Nym();
 
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, NYM_ID, NOTARY_ID, ledgerType::paymentInbox)};
+        NYM_ID, NYM_ID, NOTARY_ID, ledgerType::paymentInbox)};
 
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
@@ -5675,7 +5661,7 @@ std::unique_ptr<Ledger> OT_API::LoadPaymentInboxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, NYM_ID, NOTARY_ID, ledgerType::paymentInbox)};
+        NYM_ID, NYM_ID, NOTARY_ID, ledgerType::paymentInbox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5712,7 +5698,7 @@ std::unique_ptr<Ledger> OT_API::LoadRecordBox(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::recordBox)};
+        NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::recordBox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5744,7 +5730,7 @@ std::unique_ptr<Ledger> OT_API::LoadRecordBoxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::recordBox)};
+        NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::recordBox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5780,7 +5766,7 @@ std::unique_ptr<Ledger> OT_API::LoadExpiredBox(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, NYM_ID, NOTARY_ID, ledgerType::expiredBox)};
+        NYM_ID, NYM_ID, NOTARY_ID, ledgerType::expiredBox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5810,7 +5796,7 @@ std::unique_ptr<Ledger> OT_API::LoadExpiredBoxNoVerify(
     // (No need to cleanup later.)
     // ---------------------------------------------
     auto pLedger{client_.Factory().Ledger(
-        client_, NYM_ID, NYM_ID, NOTARY_ID, ledgerType::expiredBox)};
+        NYM_ID, NYM_ID, NOTARY_ID, ledgerType::expiredBox)};
     OT_NEW_ASSERT_MSG(
         false != bool(pLedger), "Error allocating memory in the OT API");
 
@@ -5846,15 +5832,10 @@ bool OT_API::ClearExpired(
     std::unique_ptr<Ledger> pExpiredBox(LoadExpiredBox(NOTARY_ID, NYM_ID));
 
     if (false == bool(pExpiredBox)) {
-        pExpiredBox.reset(client_.Factory()
-                              .Ledger(
-                                  client_,
-                                  NYM_ID,
-                                  NYM_ID,
-                                  NOTARY_ID,
-                                  ledgerType::expiredBox,
-                                  true)
-                              .release());
+        pExpiredBox.reset(
+            client_.Factory()
+                .Ledger(NYM_ID, NYM_ID, NOTARY_ID, ledgerType::expiredBox, true)
+                .release());
 
         if (false == bool(pExpiredBox)) {
             otErr << OT_METHOD << __FUNCTION__
@@ -6170,7 +6151,7 @@ bool OT_API::RecordPayment(
 
         if (nullptr == pRecordBox) {
             pRecordBox = client_.Factory().Ledger(
-                client_,
+
                 NYM_ID,
                 NYM_ID,
                 TRANSPORT_NOTARY_ID,
@@ -6185,7 +6166,7 @@ bool OT_API::RecordPayment(
         }
         if (nullptr == pExpiredBox) {
             pExpiredBox = client_.Factory().Ledger(
-                client_,
+
                 NYM_ID,
                 NYM_ID,
                 TRANSPORT_NOTARY_ID,
@@ -6314,7 +6295,7 @@ bool OT_API::RecordPayment(
                   << nIndex << ".\n";
             return false;
         }
-        auto thePayment{client_.Factory().Payment(client_, strInstrument)};
+        auto thePayment{client_.Factory().Payment(strInstrument)};
 
         OT_ASSERT(false != bool(thePayment));
 
@@ -6983,7 +6964,6 @@ bool OT_API::RecordPayment(
 
                                             auto theSenderInbox{
                                                 client_.Factory().Ledger(
-                                                    client_,
                                                     NYM_ID,
                                                     accountID,
                                                     paymentNotaryId)};
@@ -7044,7 +7024,7 @@ bool OT_API::RecordPayment(
                            // cheque, most likely.)
                     {
                         auto theSenderInbox{client_.Factory().Ledger(
-                            client_, NYM_ID, theSenderAcctID, paymentNotaryId)};
+                            NYM_ID, theSenderAcctID, paymentNotaryId)};
 
                         OT_ASSERT(false != bool(theSenderInbox));
 
@@ -7206,7 +7186,6 @@ bool OT_API::RecordPayment(
                 (lPaymentTransNum > 0)) {
 
                 auto pNewTransaction{client_.Factory().Transaction(
-                    client_,
                     *pActualBox,
                     transactionType::notice,
                     theOriginType,
@@ -7341,15 +7320,11 @@ bool OT_API::ClearRecord(
         LoadRecordBox(NOTARY_ID, NYM_ID, ACCOUNT_ID));
 
     if (false == bool(pRecordBox)) {
-        pRecordBox.reset(client_.Factory()
-                             .Ledger(
-                                 client_,
-                                 NYM_ID,
-                                 ACCOUNT_ID,
-                                 NOTARY_ID,
-                                 ledgerType::recordBox,
-                                 true)
-                             .release());
+        pRecordBox.reset(
+            client_.Factory()
+                .Ledger(
+                    NYM_ID, ACCOUNT_ID, NOTARY_ID, ledgerType::recordBox, true)
+                .release());
 
         if (false == bool(pRecordBox)) {
             otErr << OT_METHOD << __FUNCTION__
@@ -7907,9 +7882,7 @@ Basket* OT_API::GenerateBasketExchange(
                  "exchange.\n";
     } else {
         pRequestBasket.reset(
-            client_.Factory()
-                .Basket(client_, currencies, contract->Weight())
-                .release());
+            client_.Factory().Basket(currencies, contract->Weight()).release());
         OT_ASSERT_MSG(
             false != bool(pRequestBasket),
             "OT_API::GenerateBasketExchange: Error allocating "
@@ -8138,7 +8111,7 @@ CommandResult OT_API::exchangeBasket(
 
     if (nullptr == contract) { return output; }
 
-    auto basket{client_.Factory().Basket(client_)};
+    auto basket{client_.Factory().Basket()};
 
     OT_ASSERT(false != bool(basket));
 
@@ -8207,7 +8180,6 @@ CommandResult OT_API::exchangeBasket(
           << managedNumber << std::endl;
     transactionNum = managedNumber;
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         accountID,
         serverID,
@@ -8257,7 +8229,7 @@ CommandResult OT_API::exchangeBasket(
     transaction->AddItem(pbalanceItem);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, accountID, serverID)};
     ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
@@ -8307,7 +8279,7 @@ CommandResult OT_API::getTransactionNumbers(ServerContext& context) const
         return output;
     }
 
-    auto message{client_.Factory().Message(client_)};
+    auto message{client_.Factory().Message()};
     requestNum = m_pClient->ProcessUserCommand(
         MessageType::getTransactionNumbers,
         context,
@@ -8378,8 +8350,7 @@ CommandResult OT_API::notarizeWithdrawal(
         return output;
     }
 
-    auto mint{
-        client_.Factory().Mint(client_, String(serverID), String(contractID))};
+    auto mint{client_.Factory().Mint(String(serverID), String(contractID))};
 
     if (false == bool(mint)) { return output; }
 
@@ -8423,7 +8394,6 @@ CommandResult OT_API::notarizeWithdrawal(
           << managedNumber << std::endl;
     transactionNum = managedNumber;
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         accountID,
         serverID,
@@ -8439,13 +8409,11 @@ CommandResult OT_API::notarizeWithdrawal(
     if (false == bool(item)) { return output; }
 
     item->SetNote(String("Gimme cash!"));
-    auto purse{
-        client_.Factory().Purse(client_, serverID, contractID, serverNymID)};
+    auto purse{client_.Factory().Purse(serverID, contractID, serverNymID)};
 
     if (false == bool(purse)) { return output; }
 
-    auto purseCopy{
-        client_.Factory().Purse(client_, serverID, contractID, serverNymID)};
+    auto purseCopy{client_.Factory().Purse(serverID, contractID, serverNymID)};
 
     if (false == bool(purseCopy)) { return output; }
 
@@ -8517,7 +8485,7 @@ CommandResult OT_API::notarizeWithdrawal(
     transaction->AddItem(pbalanceItem);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, accountID, serverID)};
     ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
@@ -8610,7 +8578,6 @@ CommandResult OT_API::notarizeDeposit(
     transactionNum = managedNumber;
 
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         accountID,
         serverID,
@@ -8639,7 +8606,7 @@ CommandResult OT_API::notarizeDeposit(
 
     const auto& contractID = account.get().GetInstrumentDefinitionID();
     auto outputPurse{
-        client_.Factory().Purse(client_, serverID, contractID, serverNym.ID())};
+        client_.Factory().Purse(serverID, contractID, serverNym.ID())};
 
     // What's going on here?
     // A purse can be encrypted by a private key (controlled by a Nym) or by
@@ -8655,7 +8622,7 @@ CommandResult OT_API::notarizeDeposit(
     // of the purse operations will care, since they can use pOwner either
     // way.)
     OTPassword pursePassword;
-    auto sourcePurse{client_.Factory().Purse(client_, *outputPurse)};
+    auto sourcePurse{client_.Factory().Purse(*outputPurse)};
     std::unique_ptr<OTNym_or_SymmetricKey> purseOwner(LoadPurseAndOwnerForMerge(
         THE_PURSE,
         *sourcePurse,
@@ -8744,7 +8711,7 @@ CommandResult OT_API::notarizeDeposit(
     transaction->AddItem(pbalanceItem);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, accountID, serverID)};
     ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
@@ -8924,8 +8891,8 @@ CommandResult OT_API::payDividend(
     // cheque when it constructs the actual voucher (to the dividend payee.)
     // And remember there might be a hundred shareholders, so the server
     // would create a hundred vouchers in that case.
-    auto theRequestVoucher{client_.Factory().Cheque(
-        client_, serverID, SHARES_INSTRUMENT_DEFINITION_ID)};
+    auto theRequestVoucher{
+        client_.Factory().Cheque(serverID, SHARES_INSTRUMENT_DEFINITION_ID)};
     const bool bIssueCheque = theRequestVoucher->IssueCheque(
         AMOUNT_PER_SHARE,  // <====== Server needs this (AMOUNT_PER_SHARE.)
         transactionNum,    // server actually ignores this and supplies its
@@ -8973,7 +8940,6 @@ CommandResult OT_API::payDividend(
     }
 
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         DIVIDEND_FROM_accountID,
         serverID,
@@ -9026,8 +8992,8 @@ CommandResult OT_API::payDividend(
     transaction->AddItem(pbalanceItem);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{client_.Factory().Ledger(
-        client_, nymID, DIVIDEND_FROM_accountID, serverID)};
+    auto ledger{
+        client_.Factory().Ledger(nymID, DIVIDEND_FROM_accountID, serverID)};
     ledger->GenerateLedger(
         DIVIDEND_FROM_accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
@@ -9117,8 +9083,7 @@ CommandResult OT_API::withdrawVoucher(
     // The server only uses the memo, amount, and recipient from this cheque
     // when it
     // constructs the actual voucher.
-    auto theRequestVoucher{
-        client_.Factory().Cheque(client_, serverID, contractID)};
+    auto theRequestVoucher{client_.Factory().Cheque(serverID, contractID)};
 
     OT_ASSERT(false != bool(theRequestVoucher));
 
@@ -9153,7 +9118,6 @@ CommandResult OT_API::withdrawVoucher(
     if (!bIssueCheque) { return output; }
 
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         accountID,
         serverID,
@@ -9186,7 +9150,7 @@ CommandResult OT_API::withdrawVoucher(
     transaction->AddItem(pbalanceItem);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, accountID, serverID)};
     ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
@@ -9291,7 +9255,7 @@ bool OT_API::DiscardCheque(
     //  (No need to cleanup.)  pServer and account are also good.
     //
     const String strNotaryID(NOTARY_ID), strNymID(NYM_ID);
-    auto theCheque{client_.Factory().Cheque(client_, NOTARY_ID, contractID)};
+    auto theCheque{client_.Factory().Cheque(NOTARY_ID, contractID)};
 
     if (!theCheque->LoadContractFromString(THE_CHEQUE)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -9387,7 +9351,7 @@ CommandResult OT_API::depositCheque(
     // "depositing" it back into the same account it's drawn on.
     bool bCancellingCheque{false};
     auto copy{client_.Factory().Cheque(
-        client_, serverID, account.get().GetInstrumentDefinitionID())};
+        serverID, account.get().GetInstrumentDefinitionID())};
 
     if (theCheque.HasRemitter()) {
         bCancellingCheque =
@@ -9490,7 +9454,6 @@ CommandResult OT_API::depositCheque(
           << managedNumber << std::endl;
     transactionNum = managedNumber;
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         accountID,
         serverID,
@@ -9534,7 +9497,7 @@ CommandResult OT_API::depositCheque(
     transaction->SignContract(nym);
     transaction->SaveContract();
 
-    auto ledger{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, accountID, serverID)};
     const bool generated =
         ledger->GenerateLedger(accountID, serverID, ledgerType::message);
 
@@ -9603,7 +9566,7 @@ CommandResult OT_API::depositPaymentPlan(
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
 
-    auto plan{client_.Factory().PaymentPlan(client_)};
+    auto plan{client_.Factory().PaymentPlan()};
 
     OT_ASSERT(false != bool(plan));
 
@@ -9663,7 +9626,6 @@ CommandResult OT_API::depositPaymentPlan(
 
     const auto openingNumber = plan->GetOpeningNumber(nymID);
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         accountID,
         serverID,
@@ -9691,7 +9653,7 @@ CommandResult OT_API::depositPaymentPlan(
     transaction->AddItem(pstatement);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, accountID, serverID)};
 
     OT_ASSERT(false != bool(ledger));
 
@@ -9775,8 +9737,7 @@ CommandResult OT_API::activateSmartContract(
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
     std::unique_ptr<OTSmartContract> contract =
-        OT::App().Client().Factory().SmartContract(
-            OT::App().Client(), serverID);
+        client_.Factory().SmartContract(serverID);
 
     if (false == contract->LoadContractFromString(THE_SMART_CONTRACT)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -9997,7 +9958,6 @@ CommandResult OT_API::activateSmartContract(
 
     contract->SaveContract();
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         accountID,
         serverID,
@@ -10025,7 +9985,7 @@ CommandResult OT_API::activateSmartContract(
     transaction->AddItem(pstatement);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, accountID, serverID)};
     ledger->GenerateLedger(accountID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
@@ -10132,7 +10092,6 @@ CommandResult OT_API::cancelCronItem(
           << managedNumber << std::endl;
     transactionNum = managedNumber;
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         ASSET_ACCOUNT_ID,
         serverID,
@@ -10163,8 +10122,7 @@ CommandResult OT_API::cancelCronItem(
     transaction->SaveContract();
 
     // set up the ledger
-    auto ledger{
-        client_.Factory().Ledger(client_, nymID, ASSET_ACCOUNT_ID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, ASSET_ACCOUNT_ID, serverID)};
     ledger->GenerateLedger(ASSET_ACCOUNT_ID, serverID, ledgerType::message);
     std::shared_ptr<OTTransaction> ptransaction{transaction.release()};
     ledger->AddTransaction(ptransaction);
@@ -10371,12 +10329,11 @@ CommandResult OT_API::issueMarketOffer(
     }
 
     auto offer{client_.Factory().Offer(
-        client_, serverID, assetContractID, currencyContractID, lMarketScale)};
+        serverID, assetContractID, currencyContractID, lMarketScale)};
 
     OT_ASSERT(false != bool(offer));
 
     auto trade{client_.Factory().Trade(
-        client_,
         serverID,
         assetContractID,
         ASSET_ACCOUNT_ID,
@@ -10467,7 +10424,6 @@ CommandResult OT_API::issueMarketOffer(
           << "\nValid From: " << OTTimeGetSecondsFromTime(VALID_FROM)
           << "  To: " << OTTimeGetSecondsFromTime(VALID_TO) << std::endl;
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         ASSET_ACCOUNT_ID,
         serverID,
@@ -10497,8 +10453,7 @@ CommandResult OT_API::issueMarketOffer(
     transaction->AddItem(pstatement);
     transaction->SignContract(nym);
     transaction->SaveContract();
-    auto ledger{
-        client_.Factory().Ledger(client_, nymID, ASSET_ACCOUNT_ID, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, ASSET_ACCOUNT_ID, serverID)};
 
     OT_ASSERT(false != bool(ledger));
 
@@ -10707,7 +10662,6 @@ CommandResult OT_API::notarizeTransfer(
           << managedNumber << std::endl;
     transactionNum = managedNumber;
     auto transaction{client_.Factory().Transaction(
-        client_,
         nymID,
         ACCT_FROM,
         serverID,
@@ -10758,7 +10712,6 @@ CommandResult OT_API::notarizeTransfer(
     // (server can't sign something inaccurate!) So I throw a dummy on
     // there before generating balance statement.
     auto outboxTransaction{client_.Factory().Transaction(
-        client_,
         *outbox,
         transactionType::pending,
         originType::not_applicable,
@@ -10793,7 +10746,7 @@ CommandResult OT_API::notarizeTransfer(
     transaction->SaveContract();
 
     // set up the ledger
-    auto ledger{client_.Factory().Ledger(client_, nymID, ACCT_FROM, serverID)};
+    auto ledger{client_.Factory().Ledger(nymID, ACCT_FROM, serverID)};
     ledger->GenerateLedger(
         ACCT_FROM,
         serverID,
@@ -10864,7 +10817,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    auto nymbox{client_.Factory().Ledger(client_, nymID, nymID, serverID)};
+    auto nymbox{client_.Factory().Ledger(nymID, nymID, serverID)};
 
     if (false == nymbox->LoadNymbox()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10890,7 +10843,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
         return output;
     }
 
-    auto message{client_.Factory().Message(client_)};
+    auto message{client_.Factory().Message()};
     const auto accepted =
         m_pClient->AcceptEntireNymbox(*nymbox, context, *message);
     requestNum = atoi(message->m_strRequestNum.Get());
@@ -11522,7 +11475,7 @@ CommandResult OT_API::sendNymMessage(
     if (false == reply->m_bSuccess) { return output; }
 
     // store a copy in the outmail.
-    auto sent{client_.Factory().Message(client_)};
+    auto sent{client_.Factory().Message()};
 
     OT_ASSERT(false != bool(sent));
 
@@ -11649,7 +11602,7 @@ CommandResult OT_API::sendNymInstrument(
         }
     }
 
-    auto theMessage{client_.Factory().Message(client_)};
+    auto theMessage{client_.Factory().Message()};
 
     OT_ASSERT(false != bool(theMessage));
 
@@ -11662,7 +11615,7 @@ CommandResult OT_API::sendNymInstrument(
     // That way if send fails, at least you still already have your
     // own outgoing copy, and thus retain the theoretical ability
     // to later attempt a re-send.
-    auto pMessageLocalCopy{client_.Factory().Message(client_)};
+    auto pMessageLocalCopy{client_.Factory().Message()};
 
     OT_ASSERT(false != bool(pMessageLocalCopy));
 
@@ -12432,7 +12385,7 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
     transactionNum = 0;
     status = SendResult::ERROR;
     reply.reset();
-    auto message{client_.Factory().Message(client_)};
+    auto message{client_.Factory().Message()};
     requestNum = m_pClient->ProcessUserCommand(
         MessageType::unregisterNym,
         context,
@@ -12738,7 +12691,7 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
 
     processInbox.reset(
         client_.Factory()
-            .Ledger(client_, nymID, accountID, serverID, ledgerType::message)
+            .Ledger(nymID, accountID, serverID, ledgerType::message)
             .release());
 
     if (false == bool(processInbox)) {
@@ -12897,7 +12850,7 @@ bool OT_API::FinalizeProcessInbox(
     }
 
     bool boxesLoaded = true;
-    auto outbox{client_.Factory().Ledger(client_, nymID, accountID, serverID)};
+    auto outbox{client_.Factory().Ledger(nymID, accountID, serverID)};
     boxesLoaded &= (boxesLoaded && outbox->LoadOutbox());
     boxesLoaded &= (boxesLoaded && outbox->VerifyAccount(*nym));
 
@@ -13111,8 +13064,7 @@ bool OT_API::find_standard(
         case itemType::acceptItemReceipt: {
             String reference;
             serverTransaction.GetReferenceString(reference);
-            auto original{
-                client_.Factory().Item(client_, reference, notaryID, number)};
+            auto original{client_.Factory().Item(reference, notaryID, number)};
 
             if (false == bool(original)) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -13130,7 +13082,7 @@ bool OT_API::find_standard(
                 case itemType::depositCheque: {
                     String attachment;
                     original->GetAttachment(attachment);
-                    auto cheque{client_.Factory().Cheque(client_)};
+                    auto cheque{client_.Factory().Cheque()};
 
                     OT_ASSERT(false != bool(cheque));
 
@@ -13244,7 +13196,6 @@ OTTransaction* OT_API::get_or_create_process_inbox(
               << number << std::endl;
 
         auto newProcessInbox{client_.Factory().Transaction(
-            client_,
             nymID,
             accountID,
             serverID,
@@ -13354,7 +13305,7 @@ TransactionNumber OT_API::get_origin(
             }
 
             auto original{client_.Factory().Item(
-                client_, reference, notaryID, source.GetReferenceToNum())};
+                reference, notaryID, source.GetReferenceToNum())};
 
             if (false == bool(original)) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -13412,7 +13363,7 @@ std::set<std::unique_ptr<Cheque>> OT_API::extract_cheques(
     Ledger& inbox) const
 {
     std::set<std::unique_ptr<Cheque>> output;
-    auto ledger(client_.Factory().Ledger(client_, nymID, accountID, serverID));
+    auto ledger(client_.Factory().Ledger(nymID, accountID, serverID));
 
     OT_ASSERT(ledger);
 
@@ -13433,8 +13384,7 @@ std::set<std::unique_ptr<Cheque>> OT_API::extract_cheques(
 
         String reference;
         inboxItem->GetReferenceString(reference);
-        auto item{
-            client_.Factory().Item(client_, reference, serverID, inboxNumber)};
+        auto item{client_.Factory().Item(reference, serverID, inboxNumber)};
 
         OT_ASSERT(false != bool(item));
 

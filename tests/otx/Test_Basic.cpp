@@ -1250,7 +1250,7 @@ TEST_F(Test_Basic, send_cheque)
     ASSERT_TRUE(cheque);
 
     std::unique_ptr<OTPayment> payment{
-        client_.Factory().Payment(client_, String(*cheque))};
+        client_.Factory().Payment(String(*cheque))};
 
     ASSERT_TRUE(payment);
 

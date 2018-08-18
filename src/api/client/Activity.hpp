@@ -184,7 +184,7 @@ private:
 
     const storage::Storage& storage_;
     const Contacts& contact_;
-    const Core& core_;
+    const Core& api_;
     const Wallet& wallet_;
     const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex mail_cache_lock_;

@@ -361,7 +361,7 @@ bool OTPaymentPlan::CompareAgreement(const OTAgreement& rhs) const
 bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
-    OTPaymentPlan theMerchantCopy{core_};
+    OTPaymentPlan theMerchantCopy{api_};
     if (!m_strMerchantSignedCopy.Exists() ||
         !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy)) {
         otErr << "OTPaymentPlan::" << __FUNCTION__
@@ -611,7 +611,7 @@ bool OTPaymentPlan::ProcessPayment(
     // signature.
     // (Updated versions, as processing occurs, are signed by the server.)
     std::unique_ptr<OTCronItem> pOrigCronItem{
-        OTCronItem::LoadCronReceipt(core_, GetTransactionNum())};
+        OTCronItem::LoadCronReceipt(api_, GetTransactionNum())};
 
     OT_ASSERT(false != bool(pOrigCronItem));  // How am I processing it now if
                                               // the receipt wasn't saved in the
@@ -657,7 +657,7 @@ bool OTPaymentPlan::ProcessPayment(
         pSenderNym = pServerNym;
     } else  // Else load the First Nym from storage.
     {
-        pSenderNym = core_.Wallet().Nym(SENDER_NYM_ID);
+        pSenderNym = api_.Wallet().Nym(SENDER_NYM_ID);
         if (nullptr == pSenderNym) {
             otErr << "Failure loading Sender Nym in " << __FUNCTION__ << ": "
                   << SENDER_NYM_ID.str() << std::endl;
@@ -676,7 +676,7 @@ bool OTPaymentPlan::ProcessPayment(
         pRecipientNym = pSenderNym;  // theSenderNym is pSenderNym
     } else  // Otherwise load the Other Nym from Disk and point to that.
     {
-        pRecipientNym = core_.Wallet().Nym(RECIPIENT_NYM_ID);
+        pRecipientNym = api_.Wallet().Nym(RECIPIENT_NYM_ID);
         if (nullptr == pRecipientNym) {
             otErr << "Failure loading Recipient Nym in " << __FUNCTION__ << ": "
                   << RECIPIENT_NYM_ID.str() << std::endl;
@@ -792,10 +792,10 @@ bool OTPaymentPlan::ProcessPayment(
         // IF they can be loaded up from file, or generated, that is.
 
         // Load the inbox/outbox in case they already exist
-        auto theSenderInbox{core_.Factory().Ledger(
-            core_, SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID)};
-        auto theRecipientInbox{core_.Factory().Ledger(
-            core_, RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID)};
+        auto theSenderInbox{
+            api_.Factory().Ledger(SENDER_NYM_ID, SOURCE_ACCT_ID, NOTARY_ID)};
+        auto theRecipientInbox{api_.Factory().Ledger(
+            RECIPIENT_NYM_ID, RECIPIENT_ACCT_ID, NOTARY_ID)};
 
         // ALL inboxes -- no outboxes. All will receive notification of
         // something ALREADY DONE.
@@ -842,8 +842,7 @@ bool OTPaymentPlan::ProcessPayment(
                 return false;
             }
 
-            auto pTransSend{core_.Factory().Transaction(
-                core_,
+            auto pTransSend{api_.Factory().Transaction(
                 *theSenderInbox,
                 transactionType::paymentReceipt,
                 originType::origin_payment_plan,
@@ -851,8 +850,7 @@ bool OTPaymentPlan::ProcessPayment(
 
             OT_ASSERT(false != bool(pTransSend));
 
-            auto pTransRecip{core_.Factory().Transaction(
-                core_,
+            auto pTransRecip{api_.Factory().Transaction(
                 *theRecipientInbox,
                 transactionType::paymentReceipt,
                 originType::origin_payment_plan,
@@ -868,9 +866,9 @@ bool OTPaymentPlan::ProcessPayment(
 
             // set up the transaction items (each transaction may have multiple
             // items... but not in this case.)
-            auto pItemSend{core_.Factory().Item(
+            auto pItemSend{api_.Factory().Item(
                 *pTransSend, itemType::paymentReceipt, Identifier::Factory())};
-            auto pItemRecip{core_.Factory().Item(
+            auto pItemRecip{api_.Factory().Item(
                 *pTransRecip, itemType::paymentReceipt, Identifier::Factory())};
 
             OT_ASSERT(false != bool(pItemSend));
@@ -1377,7 +1375,7 @@ bool OTPaymentPlan::ProcessCron()
 
         otOut << "Cron: Processing initial payment...\n";
 
-        ProcessInitialPayment(core_.Wallet());
+        ProcessInitialPayment(api_.Wallet());
     }
     // ----------------------------------------------
     // Next, process the payment plan...
@@ -1510,7 +1508,7 @@ bool OTPaymentPlan::ProcessCron()
 
             // This function assumes the payment is due, and it only fails in
             // the case of the payer's account having insufficient funds.
-            ProcessPaymentPlan(core_.Wallet());
+            ProcessPaymentPlan(api_.Wallet());
         }
     }
 

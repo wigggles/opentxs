@@ -112,8 +112,6 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Crypto& crypto_;
-
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
     bool ECDH(
         const Data& publicKey,

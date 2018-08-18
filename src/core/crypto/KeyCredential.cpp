@@ -35,7 +35,7 @@
 #include "opentxs/core/crypto/KeyCredential.hpp"
 
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
@@ -56,7 +56,6 @@
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
 #endif
-#include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -66,11 +65,10 @@
 namespace opentxs
 {
 KeyCredential::KeyCredential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
-    : ot_super(factory, wallet, theOwner, serializedCred)
+    : ot_super(api, theOwner, serializedCred)
     , signing_key_(deserialize_key(proto::KEYROLE_SIGN, serializedCred))
     , authentication_key_(deserialize_key(proto::KEYROLE_AUTH, serializedCred))
     , encryption_key_(deserialize_key(proto::KEYROLE_ENCRYPT, serializedCred))
@@ -78,14 +76,15 @@ KeyCredential::KeyCredential(
 }
 
 KeyCredential::KeyCredential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& theOwner,
     const NymParameters& nymParameters)
-    : ot_super(factory, wallet, theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
-    , signing_key_(new_key(proto::KEYROLE_SIGN, nymParameters))
-    , authentication_key_(new_key(proto::KEYROLE_AUTH, nymParameters))
-    , encryption_key_(new_key(proto::KEYROLE_ENCRYPT, nymParameters))
+    : ot_super(api, theOwner, KEY_CREDENTIAL_VERSION, nymParameters)
+    , signing_key_(new_key(api_.Crypto(), proto::KEYROLE_SIGN, nymParameters))
+    , authentication_key_(
+          new_key(api_.Crypto(), proto::KEYROLE_AUTH, nymParameters))
+    , encryption_key_(
+          new_key(api_.Crypto(), proto::KEYROLE_ENCRYPT, nymParameters))
 {
 }
 
@@ -266,6 +265,7 @@ OTKeypair KeyCredential::deserialize_key(
 }
 
 OTKeypair KeyCredential::new_key(
+    const api::Crypto& crypto,
     const proto::KeyRole role,
     const NymParameters& nymParameters)
 {
@@ -282,6 +282,7 @@ OTKeypair KeyCredential::new_key(
     OT_ASSERT(nymParameters.Entropy())
 
     return derive_hd_keypair(
+        crypto,
         *nymParameters.Entropy(),
         nymParameters.Seed(),
         nymParameters.Nym(),
@@ -313,6 +314,7 @@ bool KeyCredential::New(const NymParameters& nymParameters)
 
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 OTKeypair KeyCredential::derive_hd_keypair(
+    const api::Crypto& crypto,
     const OTPassword& seed,
     const std::string& fingerprint,
     const std::uint32_t nym,
@@ -355,7 +357,7 @@ OTKeypair KeyCredential::derive_hd_keypair(
             break;
     }
 
-    auto privateKey = OT::App().Crypto().BIP32().GetHDKey(curve, seed, keyPath);
+    auto privateKey = crypto.BIP32().GetHDKey(curve, seed, keyPath);
 
     OT_ASSERT(privateKey)
 
@@ -365,15 +367,15 @@ OTKeypair KeyCredential::derive_hd_keypair(
     switch (curve) {
 #if OT_CRYPTO_SUPPORTED_KEY_SECP256K1
         case (EcdsaCurve::SECP256K1): {
-            engine = dynamic_cast<const crypto::EcdsaProvider*>(
-                &OT::App().Crypto().SECP256K1());
+            engine =
+                dynamic_cast<const crypto::EcdsaProvider*>(&crypto.SECP256K1());
             break;
         }
 #endif
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
         case (EcdsaCurve::ED25519): {
-            engine = dynamic_cast<const crypto::EcdsaProvider*>(
-                &OT::App().Crypto().ED25519());
+            engine =
+                dynamic_cast<const crypto::EcdsaProvider*>(&crypto.ED25519());
             break;
         }
 #endif

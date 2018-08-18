@@ -86,7 +86,7 @@ AccountSummary::AccountSummary(
     : AccountSummaryList(nymID, zmq, publisher, contact)
     , connection_{connection}
     , storage_{storage}
-    , core_{core}
+    , api_{core}
     , currency_{currency}
     , issuers_{}
     , server_issuer_map_{}
@@ -115,7 +115,7 @@ void AccountSummary::construct_row(
             index,
             custom,
             storage_,
-            core_,
+            api_,
             currency_));
     names_.emplace(id, index);
 }
@@ -127,7 +127,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     AccountSummarySortKey output{false, DEFAULT_ISSUER_NAME};
     auto& [state, name] = output;
 
-    const auto issuer = core_.Wallet().Issuer(nymID, issuerID);
+    const auto issuer = api_.Wallet().Issuer(nymID, issuerID);
 
     if (false == bool(issuer)) { return output; }
 
@@ -135,7 +135,7 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (serverID->empty()) { return output; }
 
-    auto server = core_.Wallet().Server(serverID);
+    auto server = api_.Wallet().Server(serverID);
 
     if (false == bool(server)) { return output; }
 
@@ -246,7 +246,7 @@ void AccountSummary::process_server(const OTIdentifier& serverID)
 
 void AccountSummary::startup()
 {
-    const auto issuers = core_.Wallet().IssuerList(nym_id_);
+    const auto issuers = api_.Wallet().IssuerList(nym_id_);
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << issuers.size()
            << " issuers." << std::endl;
 

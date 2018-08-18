@@ -67,7 +67,7 @@ private:
 
     const Activity& activity_;
     const Contacts& contact_;
-    const Core& core_;
+    const Core& api_;
     const storage::Storage& storage_;
     const opentxs::network::zeromq::Context& zmq_;
     const OTZMQPublishSocket account_publisher_;

@@ -78,7 +78,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Core& core_;
+    const api::Core& api_;
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
     mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
 

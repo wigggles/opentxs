@@ -18,79 +18,16 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/HashingProvider.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
-#include "opentxs/OT.hpp"
 
 #include "EcdsaProvider.hpp"
 
-namespace opentxs::crypto
-{
-bool EcdsaProvider::DecryptPrivateKey(
-    const proto::Ciphertext& encryptedKey,
-    const OTPasswordData& password,
-    OTPassword& plaintextKey)
-{
-    auto key = OT::App().Crypto().Symmetric().Key(
-        encryptedKey.key(), encryptedKey.mode());
-
-    if (!key.get()) { return false; }
-
-    return key->Decrypt(encryptedKey, password, plaintextKey);
-}
-
-bool EcdsaProvider::DecryptPrivateKey(
-    const proto::Ciphertext& encryptedKey,
-    const proto::Ciphertext& encryptedChaincode,
-    const OTPasswordData& password,
-    OTPassword& key,
-    OTPassword& chaincode)
-{
-    auto sessionKey = OT::App().Crypto().Symmetric().Key(
-        encryptedKey.key(), encryptedKey.mode());
-
-    const bool keyDecrypted = sessionKey->Decrypt(encryptedKey, password, key);
-    const bool chaincodeDecrypted =
-        sessionKey->Decrypt(encryptedChaincode, password, chaincode);
-
-    return (keyDecrypted && chaincodeDecrypted);
-}
-
-bool EcdsaProvider::EncryptPrivateKey(
-    const OTPassword& plaintextKey,
-    const OTPasswordData& password,
-    proto::Ciphertext& encryptedKey)
-{
-    auto key = OT::App().Crypto().Symmetric().Key(password);
-
-    if (!key.get()) { return false; }
-
-    auto blank = Data::Factory();
-
-    return key->Encrypt(plaintextKey, blank, password, encryptedKey, true);
-}
-
-bool EcdsaProvider::EncryptPrivateKey(
-    const OTPassword& key,
-    const OTPassword& chaincode,
-    const OTPasswordData& password,
-    proto::Ciphertext& encryptedKey,
-    proto::Ciphertext& encryptedChaincode)
-{
-    auto sessionKey = OT::App().Crypto().Symmetric().Key(password);
-
-    if (!sessionKey.get()) { return false; }
-
-    auto blank = Data::Factory();
-    const bool keyEncrypted =
-        sessionKey->Encrypt(key, blank, password, encryptedKey, true);
-    const bool chaincodeEncrypted = sessionKey->Encrypt(
-        chaincode, blank, password, encryptedChaincode, false);
-
-    return (keyEncrypted && chaincodeEncrypted);
-}
-}  // namespace opentxs::crypto
-
 namespace opentxs::crypto::implementation
 {
+EcdsaProvider::EcdsaProvider(const api::Crypto& crypto)
+    : crypto_(crypto)
+{
+}
+
 bool EcdsaProvider::AsymmetricKeyToECPrivatekey(
     const crypto::key::EllipticCurve& asymmetricKey,
     const OTPasswordData& passwordData,
@@ -109,8 +46,7 @@ bool EcdsaProvider::AsymmetricKeyToECPrivkey(
     const OTPasswordData& passwordData,
     OTPassword& privkey) const
 {
-    BinarySecret masterPassword(
-        OT::App().Crypto().AES().InstantiateBinarySecretSP());
+    BinarySecret masterPassword(crypto_.AES().InstantiateBinarySecretSP());
 
     return ImportECPrivatekey(asymmetricKey, passwordData, privkey);
 }
@@ -120,6 +56,34 @@ bool EcdsaProvider::AsymmetricKeyToECPubkey(
     Data& pubkey) const
 {
     return asymmetricKey.GetKey(pubkey);
+}
+
+bool EcdsaProvider::DecryptPrivateKey(
+    const proto::Ciphertext& encryptedKey,
+    const OTPasswordData& password,
+    OTPassword& plaintextKey) const
+{
+    auto key = crypto_.Symmetric().Key(encryptedKey.key(), encryptedKey.mode());
+
+    if (!key.get()) { return false; }
+
+    return key->Decrypt(encryptedKey, password, plaintextKey);
+}
+
+bool EcdsaProvider::DecryptPrivateKey(
+    const proto::Ciphertext& encryptedKey,
+    const proto::Ciphertext& encryptedChaincode,
+    const OTPasswordData& password,
+    OTPassword& key,
+    OTPassword& chaincode) const
+{
+    auto sessionKey =
+        crypto_.Symmetric().Key(encryptedKey.key(), encryptedKey.mode());
+    const bool keyDecrypted = sessionKey->Decrypt(encryptedKey, password, key);
+    const bool chaincodeDecrypted =
+        sessionKey->Decrypt(encryptedChaincode, password, chaincode);
+
+    return (keyDecrypted && chaincodeDecrypted);
 }
 
 bool EcdsaProvider::DecryptSessionKeyECDH(
@@ -145,8 +109,7 @@ bool EcdsaProvider::DecryptSessionKeyECDH(
     }
 
     // Calculate ECDH shared secret
-    BinarySecret ECDHSecret(
-        OT::App().Crypto().AES().InstantiateBinarySecretSP());
+    BinarySecret ECDHSecret(crypto_.AES().InstantiateBinarySecretSP());
     bool haveECDH = ECDH(publicDHKey, privateDHKey, *ECDHSecret);
 
     if (!haveECDH) {
@@ -179,6 +142,40 @@ bool EcdsaProvider::ECPubkeyToAsymmetricKey(
     return asymmetricKey.SetKey(pubkey);
 }
 
+bool EcdsaProvider::EncryptPrivateKey(
+    const OTPassword& plaintextKey,
+    const OTPasswordData& password,
+    proto::Ciphertext& encryptedKey) const
+{
+    auto key = crypto_.Symmetric().Key(password);
+
+    if (!key.get()) { return false; }
+
+    auto blank = Data::Factory();
+
+    return key->Encrypt(plaintextKey, blank, password, encryptedKey, true);
+}
+
+bool EcdsaProvider::EncryptPrivateKey(
+    const OTPassword& key,
+    const OTPassword& chaincode,
+    const OTPasswordData& password,
+    proto::Ciphertext& encryptedKey,
+    proto::Ciphertext& encryptedChaincode) const
+{
+    auto sessionKey = crypto_.Symmetric().Key(password);
+
+    if (!sessionKey.get()) { return false; }
+
+    auto blank = Data::Factory();
+    const bool keyEncrypted =
+        sessionKey->Encrypt(key, blank, password, encryptedKey, true);
+    const bool chaincodeEncrypted = sessionKey->Encrypt(
+        chaincode, blank, password, encryptedChaincode, false);
+
+    return (keyEncrypted && chaincodeEncrypted);
+}
+
 bool EcdsaProvider::EncryptSessionKeyECDH(
     const crypto::key::EllipticCurve& privateKey,
     const crypto::key::EllipticCurve& publicKey,
@@ -195,8 +192,7 @@ bool EcdsaProvider::EncryptSessionKeyECDH(
         return false;
     }
 
-    BinarySecret dhPrivateKey(
-        OT::App().Crypto().AES().InstantiateBinarySecretSP());
+    BinarySecret dhPrivateKey(crypto_.AES().InstantiateBinarySecretSP());
 
     OT_ASSERT(dhPrivateKey);
 
@@ -277,8 +273,7 @@ bool EcdsaProvider::PrivateToPublic(
     const proto::Ciphertext& privateKey,
     Data& publicKey) const
 {
-    BinarySecret plaintextKey(
-        OT::App().Crypto().AES().InstantiateBinarySecretSP());
+    BinarySecret plaintextKey(crypto_.AES().InstantiateBinarySecretSP());
     OTPasswordData password(__FUNCTION__);
     const bool decrypted =
         DecryptPrivateKey(privateKey, password, *plaintextKey);

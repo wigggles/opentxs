@@ -61,7 +61,7 @@ Contract::Contract(
     const String& foldername,
     const String& filename,
     const String& strID)
-    : core_{core}
+    : api_{core}
     , m_strName(name)
     , m_strFoldername(foldername)
     , m_strFilename(filename)
@@ -1037,7 +1037,7 @@ bool Contract::WriteContract(
     }
 
     const bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), core_.DataFolder(), folder, filename, "", "");
+        strFinal.Get(), api_.DataFolder(), folder, filename, "", "");
 
     if (!bSaved) {
         otErr << OT_METHOD << __FUNCTION__ << "Error saving file: " << folder
@@ -1074,17 +1074,17 @@ bool Contract::LoadContractRawFile()
 
     if (!m_strFoldername.Exists() || !m_strFilename.Exists()) return false;
 
-    if (!OTDB::Exists(core_.DataFolder(), szFoldername, szFilename, "", "")) {
+    if (!OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "")) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
     String strFileContents(OTDB::QueryPlainString(
-        core_.DataFolder(), szFoldername, szFilename, "", ""));  // <===
-                                                                 // LOADING
-                                                                 // FROM DATA
-                                                                 // STORE.
+        api_.DataFolder(), szFoldername, szFilename, "", ""));  // <===
+                                                                // LOADING
+                                                                // FROM DATA
+                                                                // STORE.
 
     if (!strFileContents.Exists()) {
         otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
@@ -1913,7 +1913,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
             } else  // theSigner has Credentials, so we'll add him to the
                     // contract.
             {
-                auto pNym = core_.Wallet().Nym(theSigner.ID());
+                auto pNym = api_.Wallet().Nym(theSigner.ID());
                 if (nullptr == pNym) {
                     otErr << __FUNCTION__ << ": failed to load signing nym."
                           << std::endl;
@@ -2090,7 +2090,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         }
 
         auto nymId = Identifier::Factory(strSignerNymID);
-        auto pNym = core_.Wallet().Nym(nymId);
+        auto pNym = api_.Wallet().Nym(nymId);
 
         if (nullptr == pNym) {
             otErr << __FUNCTION__ << ": Failure loading signing nym "

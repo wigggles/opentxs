@@ -12,7 +12,6 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/HDSeed.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/MasterCredential.hpp"
@@ -31,7 +30,6 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/Bip32.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
@@ -78,20 +76,25 @@ OTPaymentCode PaymentCode::Factory(const PaymentCode& rhs)
 }
 
 OTPaymentCode PaymentCode::Factory(
+    const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const std::string& base58)
 {
-    return OTPaymentCode(new implementation::PaymentCode(seeds, base58));
+    return OTPaymentCode(
+        new implementation::PaymentCode(crypto, seeds, base58));
 }
 
 OTPaymentCode PaymentCode::Factory(
+    const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const proto::PaymentCode& serialized)
 {
-    return OTPaymentCode(new implementation::PaymentCode(seeds, serialized));
+    return OTPaymentCode(
+        new implementation::PaymentCode(crypto, seeds, serialized));
 }
 
 OTPaymentCode PaymentCode::Factory(
+    const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const std::string& seed,
     const std::uint32_t nym,
@@ -101,6 +104,7 @@ OTPaymentCode PaymentCode::Factory(
     const std::uint8_t bitmessageStream)
 {
     return OTPaymentCode(new implementation::PaymentCode(
+        crypto,
         seeds,
         seed,
         nym,
@@ -113,8 +117,12 @@ OTPaymentCode PaymentCode::Factory(
 
 namespace opentxs::implementation
 {
-PaymentCode::PaymentCode(const api::HDSeed& seeds, const std::string& base58)
-    : seeds_{seeds}
+PaymentCode::PaymentCode(
+    const api::Crypto& crypto,
+    const api::HDSeed& seeds,
+    const std::string& base58)
+    : crypto_(crypto)
+    , seeds_{seeds}
     , version_(0)
     , seed_("")
     , index_(-1)
@@ -125,7 +133,7 @@ PaymentCode::PaymentCode(const api::HDSeed& seeds, const std::string& base58)
     , bitmessage_version_(0)
     , bitmessage_stream_(0)
 {
-    std::string rawCode = OT::App().Crypto().Encode().IdentifierDecode(base58);
+    std::string rawCode = crypto_.Encode().IdentifierDecode(base58);
 
     if (SERIALIZED_BYTES == rawCode.size()) {
         version_ = rawCode[VERSION_OFFSET];
@@ -155,9 +163,11 @@ PaymentCode::PaymentCode(const api::HDSeed& seeds, const std::string& base58)
 }
 
 PaymentCode::PaymentCode(
+    const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const proto::PaymentCode& paycode)
-    : seeds_{seeds}
+    : crypto_(crypto)
+    , seeds_{seeds}
     , version_(paycode.version())
     , seed_("")
     , index_(-1)
@@ -186,6 +196,7 @@ PaymentCode::PaymentCode(
 }
 
 PaymentCode::PaymentCode(
+    const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const std::string& seed,
     const std::uint32_t nym,
@@ -193,7 +204,8 @@ PaymentCode::PaymentCode(
     const bool bitmessage,
     const std::uint8_t bitmessageVersion,
     const std::uint8_t bitmessageStream)
-    : seeds_{seeds}
+    : crypto_(crypto)
+    , seeds_{seeds}
     , version_(version)
     , seed_(seed)
     , index_(nym)
@@ -204,7 +216,8 @@ PaymentCode::PaymentCode(
     , bitmessage_version_(bitmessageVersion)
     , bitmessage_stream_(bitmessageStream)
 {
-    auto [success, chainCode, publicKey] = make_key(seeds_, seed_, index_);
+    auto [success, chainCode, publicKey] =
+        make_key(crypto_, seeds_, seed_, index_);
 
     if (success) {
         chain_code_.swap(chainCode);
@@ -214,6 +227,7 @@ PaymentCode::PaymentCode(
 
 PaymentCode::PaymentCode(const PaymentCode& rhs)
     : opentxs::PaymentCode()
+    , crypto_{rhs.crypto_}
     , seeds_{rhs.seeds_}
     , version_(rhs.version_)
     , seed_(rhs.seed_)
@@ -270,6 +284,7 @@ bool PaymentCode::AddPrivateKeys(
     }
 
     const PaymentCode candidate(
+        crypto_,
         seeds_,
         seed,
         index,
@@ -315,7 +330,7 @@ const std::string PaymentCode::asBase58() const
         auto binaryVersion =
             Data::Factory(serialized.data(), serialized.size());
 
-        return OT::App().Crypto().Encode().IdentifierEncode(binaryVersion);
+        return crypto_.Encode().IdentifierEncode(binaryVersion);
     } else {
 
         return {};
@@ -376,6 +391,7 @@ const OTIdentifier PaymentCode::ID() const
 }
 
 std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
+    const api::Crypto& crypto,
     const api::HDSeed& seeds,
     const std::string& seed,
     const std::uint32_t index)
@@ -393,15 +409,14 @@ std::tuple<bool, std::unique_ptr<OTPassword>, OTData> PaymentCode::make_key(
         OT_ASSERT(chainCode)
 
         OTPassword privkey{};
-        auto symmetricKey = OT::App().Crypto().Symmetric().Key(
+        auto symmetricKey = crypto.Symmetric().Key(
             privatekey->encryptedkey().key(),
             privatekey->encryptedkey().mode());
         OTPasswordData password(__FUNCTION__);
         symmetricKey->Decrypt(privatekey->chaincode(), password, *chainCode);
         proto::AsymmetricKey key{};
         bool haveKey{false};
-        haveKey = dynamic_cast<const crypto::EcdsaProvider&>(
-                      OT::App().Crypto().SECP256K1())
+        haveKey = dynamic_cast<const crypto::EcdsaProvider&>(crypto.SECP256K1())
                       .PrivateToPublic(*privatekey, key);
 
         if (haveKey) {
@@ -499,9 +514,9 @@ bool PaymentCode::Sign(
     auto existingKeyData = Data::Factory();
     auto compareKeyData = Data::Factory();
     proto::AsymmetricKey compareKey;
-    const bool haveKey = dynamic_cast<const crypto::EcdsaProvider&>(
-                             OT::App().Crypto().SECP256K1())
-                             .PrivateToPublic(*privatekey, compareKey);
+    const bool haveKey =
+        dynamic_cast<const crypto::EcdsaProvider&>(crypto_.SECP256K1())
+            .PrivateToPublic(*privatekey, compareKey);
 
     if (!haveKey) { return false; }
 

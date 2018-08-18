@@ -73,7 +73,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Core& core_;
+    const api::Core& api_;
     const std::shared_ptr<const Nym> target_nym_{nullptr};
     const std::shared_ptr<const Nym> signer_nym_{nullptr};
     std::int64_t m_lUsageCredits{-1};

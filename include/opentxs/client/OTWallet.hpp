@@ -86,7 +86,7 @@ private:
 #if OT_CRYPTO_WITH_BIP39
     const api::HDSeed& seeds_;
 #endif
-    const api::Core& core_;
+    const api::Core& api_;
     const api::storage::Storage& storage_;
 #if OT_CASH
     // While waiting on server response to withdrawal, store private coin data

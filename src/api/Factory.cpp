@@ -40,49 +40,33 @@
 
 namespace opentxs
 {
-api::Factory* Factory::FactoryAPI(
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds
-#endif
-)
+api::Factory* Factory::FactoryAPI(const api::Core& api)
 {
-    return new api::implementation::Factory(
-#if OT_CRYPTO_WITH_BIP39
-        seeds
-#endif
-    );
+    return new api::implementation::Factory(api);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
-Factory::Factory(
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds
-#endif
-    )
-    :
-#if OT_CRYPTO_WITH_BIP39
-    seeds_(seeds)
-#endif
+Factory::Factory(const api::Core& api)
+    : api_(api)
 {
 }
 
-std::unique_ptr<opentxs::Basket> Factory::Basket(const api::Core& core) const
+std::unique_ptr<opentxs::Basket> Factory::Basket() const
 {
     std::unique_ptr<opentxs::Basket> basket;
-    basket.reset(new opentxs::Basket(core));
+    basket.reset(new opentxs::Basket(api_));
 
     return basket;
 }
 
 std::unique_ptr<opentxs::Basket> Factory::Basket(
-    const api::Core& core,
     std::int32_t nCount,
     std::int64_t lMinimumTransferAmount) const
 {
     std::unique_ptr<opentxs::Basket> basket;
-    basket.reset(new opentxs::Basket(core, nCount, lMinimumTransferAmount));
+    basket.reset(new opentxs::Basket(api_, nCount, lMinimumTransferAmount));
 
     return basket;
 }
@@ -90,15 +74,13 @@ std::unique_ptr<opentxs::Basket> Factory::Basket(
 std::unique_ptr<opentxs::Cheque> Factory::Cheque(
     const OTTransaction& receipt) const
 {
-    std::unique_ptr<opentxs::Cheque> output{
-        new opentxs::Cheque{receipt.Core()}};
+    std::unique_ptr<opentxs::Cheque> output{new opentxs::Cheque{receipt.API()}};
 
     OT_ASSERT(output)
 
     String serializedItem{};
     receipt.GetReferenceString(serializedItem);
     std::unique_ptr<opentxs::Item> item{Item(
-        receipt.Core(),
         serializedItem,
         receipt.GetRealNotaryID(),
         receipt.GetReferenceToNum())};
@@ -116,28 +98,26 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
     return output;
 }
 
-std::unique_ptr<opentxs::Cheque> Factory::Cheque(const api::Core& core) const
+std::unique_ptr<opentxs::Cheque> Factory::Cheque() const
 {
     std::unique_ptr<opentxs::Cheque> cheque;
-    cheque.reset(new opentxs::Cheque(core));
+    cheque.reset(new opentxs::Cheque(api_));
 
     return cheque;
 }
 
 std::unique_ptr<opentxs::Cheque> Factory::Cheque(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     std::unique_ptr<opentxs::Cheque> cheque;
     cheque.reset(
-        new opentxs::Cheque(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+        new opentxs::Cheque(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
 
     return cheque;
 }
 
 std::unique_ptr<opentxs::Contract> Factory::Contract(
-    const opentxs::api::Core& core,
     const opentxs::String& strInput) const
 {
 
@@ -154,7 +134,7 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
                 "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                           // chars long.
         {
-            pContract.reset(new OTSmartContract(core));
+            pContract.reset(new OTSmartContract(api_));
             OT_ASSERT(false != bool(pContract));
         }
 
@@ -162,54 +142,53 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
                 "-----BEGIN SIGNED PAYMENT PLAN-----"))  // this string is 35
                                                          // chars long.
         {
-            pContract.reset(new OTPaymentPlan(core));
+            pContract.reset(new OTPaymentPlan(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRADE-----"))  // this string is 28
                                                          // chars long.
         {
-            pContract.reset(new OTTrade(core));
+            pContract.reset(new OTTrade(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains("-----BEGIN SIGNED OFFER-----")) {
-            pContract.reset(new OTOffer(core));
+            pContract.reset(new OTOffer(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
-            pContract.reset(new opentxs::Cheque(core));
+            pContract.reset(new opentxs::Cheque(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
-            pContract.reset(new opentxs::Cheque(core));
+            pContract.reset(new opentxs::Cheque(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
-            pContract.reset(new opentxs::Cheque(core));
+            pContract.reset(new opentxs::Cheque(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
-            pContract.reset(new opentxs::Message(core));
+            pContract.reset(new opentxs::Message(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
 #if OT_CASH
-            auto mint = Mint(core);
+            auto mint = Mint();
             pContract.reset(mint.release());
             OT_ASSERT(false != bool(pContract));
 #endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
-            //            pContract.reset(new OTSignedFile(core));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
 #if OT_CASH
-            auto token = TokenLowLevel(core, strFirstLine);
+            auto token = TokenLowLevel(strFirstLine);
             pContract.reset(token.release());
             OT_ASSERT(false != bool(pContract));
 #endif  // OT_CASH
         } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
 #if OT_CASH
-            auto token = TokenLowLevel(core, strFirstLine);
+            auto token = TokenLowLevel(strFirstLine);
             pContract.reset(token.release());
             OT_ASSERT(false != bool(pContract));
 #endif  // OT_CASH
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
 #if OT_CASH
-            auto token = TokenLowLevel(core, strFirstLine);
+            auto token = TokenLowLevel(strFirstLine);
             pContract.reset(token.release());
             OT_ASSERT(false != bool(pContract));
 #endif  // OT_CASH
@@ -241,9 +220,7 @@ std::unique_ptr<OTCron> Factory::Cron(const api::Core& server) const
     return cron;
 }
 
-std::unique_ptr<OTCronItem> Factory::CronItem(
-    const api::Core& core,
-    const String& strCronItem) const
+std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
 {
     static char buf[45] = "";
 
@@ -285,15 +262,15 @@ std::unique_ptr<OTCronItem> Factory::CronItem(
     std::unique_ptr<OTCronItem> pItem;
     // this string is 35 chars long.
     if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
-        pItem.reset(new OTPaymentPlan(core));
+        pItem.reset(new OTPaymentPlan(api_));
     }
     // this string is 28 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) {
-        pItem.reset(new OTTrade(core));
+        pItem.reset(new OTTrade(api_));
     }
     // this string is 36 chars long.
     else if (strFirstLine.Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
-        pItem.reset(new OTSmartContract(core));
+        pItem.reset(new OTSmartContract(api_));
     } else {
         return nullptr;
     }
@@ -305,29 +282,26 @@ std::unique_ptr<OTCronItem> Factory::CronItem(
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const api::Core& core,
     const Identifier& theNymID,
     const opentxs::Item& theOwner) const
 {
     std::unique_ptr<opentxs::Item> item;
-    item.reset(new opentxs::Item(core, theNymID, theOwner));
+    item.reset(new opentxs::Item(api_, theNymID, theOwner));
 
     return item;
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const api::Core& core,
     const Identifier& theNymID,
     const OTTransaction& theOwner) const
 {
     std::unique_ptr<opentxs::Item> item;
-    item.reset(new opentxs::Item(core, theNymID, theOwner));
+    item.reset(new opentxs::Item(api_, theNymID, theOwner));
 
     return item;
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const api::Core& core,
     const Identifier& theNymID,
     const OTTransaction& theOwner,
     itemType theType,
@@ -335,7 +309,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 {
     std::unique_ptr<opentxs::Item> item;
     item.reset(new opentxs::Item(
-        core, theNymID, theOwner, theType, pDestinationAcctID));
+        api_, theNymID, theOwner, theType, pDestinationAcctID));
 
     return item;
 }
@@ -348,7 +322,6 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 // we need
 // to verify that the user ID is actually the owner of the AccountID. TOdo that.
 std::unique_ptr<opentxs::Item> Factory::Item(
-    const api::Core& core,
     const String& strItem,
     const Identifier& theNotaryID,
     std::int64_t lTransactionNumber) const
@@ -359,7 +332,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
         return nullptr;
     }
 
-    std::unique_ptr<opentxs::Item> pItem{new opentxs::Item(core)};
+    std::unique_ptr<opentxs::Item> pItem{new opentxs::Item(api_)};
 
     // So when it loads its own server ID, we can compare to this one.
     pItem->SetRealNotaryID(theNotaryID);
@@ -401,7 +374,7 @@ std::unique_ptr<opentxs::Item> Factory::Item(
     const Identifier& pDestinationAcctID) const
 {
     std::unique_ptr<opentxs::Item> pItem{new opentxs::Item(
-        theOwner.Core(),
+        theOwner.API(),
         theOwner.GetNymID(),
         theOwner,
         theType,
@@ -416,31 +389,28 @@ std::unique_ptr<opentxs::Item> Factory::Item(
 }
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
-    const api::Core& core,
     const Identifier& theAccountID,
     const Identifier& theNotaryID) const
 {
     std::unique_ptr<opentxs::Ledger> ledger;
-    ledger.reset(new opentxs::Ledger(core, theAccountID, theNotaryID));
+    ledger.reset(new opentxs::Ledger(api_, theAccountID, theNotaryID));
 
     return ledger;
 }
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
-    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID) const
 {
     std::unique_ptr<opentxs::Ledger> ledger;
     ledger.reset(
-        new opentxs::Ledger(core, theNymID, theAccountID, theNotaryID));
+        new opentxs::Ledger(api_, theNymID, theAccountID, theNotaryID));
 
     return ledger;
 }
 
 std::unique_ptr<opentxs::Ledger> Factory::Ledger(
-    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAcctID,
     const Identifier& theNotaryID,
@@ -448,7 +418,7 @@ std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     bool bCreateFile) const
 {
     std::unique_ptr<opentxs::Ledger> ledger;
-    ledger.reset(new opentxs::Ledger(core, theNymID, theAcctID, theNotaryID));
+    ledger.reset(new opentxs::Ledger(api_, theNymID, theAcctID, theNotaryID));
 
     ledger->generate_ledger(
         theNymID, theAcctID, theNotaryID, theType, bCreateFile);
@@ -456,26 +426,23 @@ std::unique_ptr<opentxs::Ledger> Factory::Ledger(
     return ledger;
 }
 
-std::unique_ptr<OTMarket> Factory::Market(const api::Core& core) const
+std::unique_ptr<OTMarket> Factory::Market() const
 {
     std::unique_ptr<opentxs::OTMarket> market;
-    market.reset(new opentxs::OTMarket(core));
+    market.reset(new opentxs::OTMarket(api_));
+
+    return market;
+}
+
+std::unique_ptr<OTMarket> Factory::Market(const char* szFilename) const
+{
+    std::unique_ptr<opentxs::OTMarket> market;
+    market.reset(new opentxs::OTMarket(api_, szFilename));
 
     return market;
 }
 
 std::unique_ptr<OTMarket> Factory::Market(
-    const api::Core& core,
-    const char* szFilename) const
-{
-    std::unique_ptr<opentxs::OTMarket> market;
-    market.reset(new opentxs::OTMarket(core, szFilename));
-
-    return market;
-}
-
-std::unique_ptr<OTMarket> Factory::Market(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& CURRENCY_TYPE_ID,
@@ -483,25 +450,25 @@ std::unique_ptr<OTMarket> Factory::Market(
 {
     std::unique_ptr<opentxs::OTMarket> market;
     market.reset(new opentxs::OTMarket(
-        core, NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_TYPE_ID, lScale));
+        api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_TYPE_ID, lScale));
 
     return market;
 }
 
-std::unique_ptr<opentxs::Message> Factory::Message(const api::Core& core) const
+std::unique_ptr<opentxs::Message> Factory::Message() const
 {
     std::unique_ptr<opentxs::Message> message;
-    message.reset(new opentxs::Message(core));
+    message.reset(new opentxs::Message(api_));
 
     return message;
 }
 
-std::unique_ptr<opentxs::Mint> Factory::Mint(const api::Core& core) const
+std::unique_ptr<opentxs::Mint> Factory::Mint() const
 {
     std::unique_ptr<opentxs::Mint> pMint;
 
 #if OT_CASH_USING_LUCRE
-    pMint.reset(new MintLucre(core));
+    pMint.reset(new MintLucre(api_));
     OT_ASSERT(false != bool(pMint));
 #elif OT_CASH_USING_MAGIC_MONEY
     otErr << __FUCNTION__
@@ -518,14 +485,13 @@ std::unique_ptr<opentxs::Mint> Factory::Mint(const api::Core& core) const
 }
 
 std::unique_ptr<opentxs::Mint> Factory::Mint(
-    const api::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID) const
 {
     std::unique_ptr<opentxs::Mint> pMint;
 
 #if OT_CASH_USING_LUCRE
-    pMint.reset(new MintLucre(core, strNotaryID, strInstrumentDefinitionID));
+    pMint.reset(new MintLucre(api_, strNotaryID, strInstrumentDefinitionID));
     OT_ASSERT(false != bool(pMint));
 #elif OT_CASH_USING_MAGIC_MONEY
     otErr << __FUNCTION__
@@ -542,7 +508,6 @@ std::unique_ptr<opentxs::Mint> Factory::Mint(
 }
 
 std::unique_ptr<opentxs::Mint> Factory::Mint(
-    const api::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID) const
@@ -551,7 +516,7 @@ std::unique_ptr<opentxs::Mint> Factory::Mint(
 
 #if OT_CASH_USING_LUCRE
     pMint.reset(new MintLucre(
-        core, strNotaryID, strServerNymID, strInstrumentDefinitionID));
+        api_, strNotaryID, strServerNymID, strInstrumentDefinitionID));
     OT_ASSERT(false != bool(pMint));
 #elif OT_CASH_USING_MAGIC_MONEY
     otErr << __FUNCTION__
@@ -567,16 +532,15 @@ std::unique_ptr<opentxs::Mint> Factory::Mint(
     return pMint;
 }
 
-std::unique_ptr<OTOffer> Factory::Offer(const api::Core& core) const
+std::unique_ptr<OTOffer> Factory::Offer() const
 {
     std::unique_ptr<OTOffer> offer;
-    offer.reset(new OTOffer(core));
+    offer.reset(new OTOffer(api_));
 
     return offer;
 }
 
 std::unique_ptr<OTOffer> Factory::Offer(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& CURRENCY_ID,
@@ -584,25 +548,23 @@ std::unique_ptr<OTOffer> Factory::Offer(
 {
     std::unique_ptr<OTOffer> offer;
     offer.reset(new OTOffer(
-        core, NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_ID, MARKET_SCALE));
+        api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_ID, MARKET_SCALE));
 
     return offer;
 }
 
-std::unique_ptr<OTPayment> Factory::Payment(const api::Core& core) const
+std::unique_ptr<OTPayment> Factory::Payment() const
 {
     std::unique_ptr<OTPayment> payment;
-    payment.reset(new OTPayment(core));
+    payment.reset(new OTPayment(api_));
 
     return payment;
 }
 
-std::unique_ptr<OTPayment> Factory::Payment(
-    const api::Core& core,
-    const String& strPayment) const
+std::unique_ptr<OTPayment> Factory::Payment(const String& strPayment) const
 {
     std::unique_ptr<OTPayment> payment;
-    payment.reset(new OTPayment(core, strPayment));
+    payment.reset(new OTPayment(api_, strPayment));
 
     return payment;
 }
@@ -610,12 +572,13 @@ std::unique_ptr<OTPayment> Factory::Payment(
 #if OT_CRYPTO_WITH_BIP39
 OTPaymentCode Factory::PaymentCode(const std::string& base58) const
 {
-    return opentxs::PaymentCode::Factory(seeds_, base58);
+    return opentxs::PaymentCode::Factory(api_.Crypto(), api_.Seeds(), base58);
 }
 
 OTPaymentCode Factory::PaymentCode(const proto::PaymentCode& serialized) const
 {
-    return opentxs::PaymentCode::Factory(seeds_, serialized);
+    return opentxs::PaymentCode::Factory(
+        api_.Crypto(), api_.Seeds(), serialized);
 }
 
 OTPaymentCode Factory::PaymentCode(
@@ -627,7 +590,8 @@ OTPaymentCode Factory::PaymentCode(
     const std::uint8_t bitmessageStream) const
 {
     return opentxs::PaymentCode::Factory(
-        seeds_,
+        api_.Crypto(),
+        api_.Seeds(),
         seed,
         nym,
         version,
@@ -637,28 +601,26 @@ OTPaymentCode Factory::PaymentCode(
 }
 #endif
 
-std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(const api::Core& core) const
+std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan() const
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
-    paymentplan.reset(new OTPaymentPlan(core));
+    paymentplan.reset(new OTPaymentPlan(api_));
 
     return paymentplan;
 }
 
 std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(
-        new OTPaymentPlan(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+        new OTPaymentPlan(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
 
     return paymentplan;
 }
 
 std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& SENDER_ACCT_ID,
@@ -668,7 +630,7 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
 {
     std::unique_ptr<OTPaymentPlan> paymentplan;
     paymentplan.reset(new OTPaymentPlan(
-        core,
+        api_,
         NOTARY_ID,
         INSTRUMENT_DEFINITION_ID,
         SENDER_ACCT_ID,
@@ -681,68 +643,53 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
 
 #if OT_CASH
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const api::Core& core,
     const opentxs::Purse& thePurse) const
 {
     std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(new opentxs::Purse(core, thePurse));
+    purse.reset(new opentxs::Purse(api_, thePurse));
 
     return purse;
 }
 
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(new opentxs::Purse(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    purse.reset(new opentxs::Purse(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
 
     return purse;
 }
 
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const api::Core& core,
     const Identifier& NOTARY_ID) const
 {
     std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(new opentxs::Purse(core, NOTARY_ID));
+    purse.reset(new opentxs::Purse(api_, NOTARY_ID));
 
     return purse;
 }
 
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID,
     const Identifier& NYM_ID) const
 {
     std::unique_ptr<opentxs::Purse> purse;
     purse.reset(
-        new opentxs::Purse(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID));
+        new opentxs::Purse(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID));
 
     return purse;
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const opentxs::Purse& thePurse) const
-{
-    std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(new opentxs::Purse(thePurse));
-
-    return purse;
-}
-
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const api::Core& core,
-    String strInput) const
+std::unique_ptr<opentxs::Purse> Factory::Purse(String strInput) const
 {
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        auto pPurse = PurseLowLevel(core, strFirstLine);
+        auto pPurse = PurseLowLevel(strFirstLine);
 
         // The string didn't match any of the options in the factory.
         if (false == bool(pPurse)) return nullptr;
@@ -755,7 +702,6 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
 }
 
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const api::Core& core,
     String strInput,
     const Identifier& NOTARY_ID) const
 {
@@ -764,7 +710,7 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        auto pPurse = PurseLowLevel(core, strFirstLine, NOTARY_ID);
+        auto pPurse = PurseLowLevel(strFirstLine, NOTARY_ID);
 
         // The string didn't match any of the options in the factory.
         if (false == bool(pPurse)) return nullptr;
@@ -787,7 +733,6 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
 }
 
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const api::Core& core,
     String strInput,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
@@ -797,8 +742,8 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        auto pPurse = PurseLowLevel(
-            core, strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        auto pPurse =
+            PurseLowLevel(strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (false == bool(pPurse)) return nullptr;
@@ -836,7 +781,6 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
 }
 
 std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
-    const api::Core& core,
     const String& strFirstLine) const
 {
     if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
@@ -845,7 +789,7 @@ std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
     // todo
     // hardcoding.
     {
-        std::unique_ptr<opentxs::Purse> pPurse{new opentxs::Purse(core)};
+        std::unique_ptr<opentxs::Purse> pPurse{new opentxs::Purse(api_)};
         OT_ASSERT(false != bool(pPurse));
         return pPurse;
     }
@@ -853,7 +797,6 @@ std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
 }
 
 std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
-    const api::Core& core,
     const String& strFirstLine,
     const Identifier& NOTARY_ID) const
 {
@@ -864,7 +807,7 @@ std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
     // hardcoding.
     {
         std::unique_ptr<opentxs::Purse> pPurse{
-            new opentxs::Purse(core, NOTARY_ID)};
+            new opentxs::Purse(api_, NOTARY_ID)};
         OT_ASSERT(false != bool(pPurse));
         return pPurse;
     }
@@ -872,7 +815,6 @@ std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
 }
 
 std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
-    const api::Core& core,
     const String& strFirstLine,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
@@ -884,7 +826,7 @@ std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
     // hardcoding.
     {
         std::unique_ptr<opentxs::Purse> pPurse{
-            new opentxs::Purse(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+            new opentxs::Purse(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
         OT_ASSERT(false != bool(pPurse));
         return pPurse;
     }
@@ -892,9 +834,7 @@ std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
 }
 #endif  // OT_CASH
 
-std::unique_ptr<OTScriptable> Factory::Scriptable(
-    const api::Core& core,
-    const String& strInput) const
+std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
 {
     static char buf[45] = "";
 
@@ -944,7 +884,7 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(
                  "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                            // chars long.
     {
-        pItem.reset(new OTSmartContract(core));
+        pItem.reset(new OTSmartContract(api_));
         OT_ASSERT(false != bool(pItem));
     }
 
@@ -957,61 +897,56 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(
     return nullptr;
 }
 
-std::unique_ptr<OTSignedFile> Factory::SignedFile(const api::Core& core) const
+std::unique_ptr<OTSignedFile> Factory::SignedFile() const
 {
     std::unique_ptr<OTSignedFile> signedfile;
-    signedfile.reset(new OTSignedFile(core));
+    signedfile.reset(new OTSignedFile(api_));
 
     return signedfile;
 }
 
 std::unique_ptr<OTSignedFile> Factory::SignedFile(
-    const api::Core& core,
     const String& LOCAL_SUBDIR,
     const String& FILE_NAME) const
 {
     std::unique_ptr<OTSignedFile> signedfile;
-    signedfile.reset(new OTSignedFile(core, LOCAL_SUBDIR, FILE_NAME));
+    signedfile.reset(new OTSignedFile(api_, LOCAL_SUBDIR, FILE_NAME));
 
     return signedfile;
 }
 std::unique_ptr<OTSignedFile> Factory::SignedFile(
-    const api::Core& core,
     const char* LOCAL_SUBDIR,
     const String& FILE_NAME) const
 {
     std::unique_ptr<OTSignedFile> signedfile;
-    signedfile.reset(new OTSignedFile(core, LOCAL_SUBDIR, FILE_NAME));
+    signedfile.reset(new OTSignedFile(api_, LOCAL_SUBDIR, FILE_NAME));
 
     return signedfile;
 }
 
 std::unique_ptr<OTSignedFile> Factory::SignedFile(
-    const api::Core& core,
     const char* LOCAL_SUBDIR,
     const char* FILE_NAME) const
 {
     std::unique_ptr<OTSignedFile> signedfile;
-    signedfile.reset(new OTSignedFile(core, LOCAL_SUBDIR, FILE_NAME));
+    signedfile.reset(new OTSignedFile(api_, LOCAL_SUBDIR, FILE_NAME));
 
     return signedfile;
 }
 
-std::unique_ptr<OTSmartContract> Factory::SmartContract(
-    const api::Core& core) const
+std::unique_ptr<OTSmartContract> Factory::SmartContract() const
 {
     std::unique_ptr<OTSmartContract> smartcontract;
-    smartcontract.reset(new OTSmartContract(core));
+    smartcontract.reset(new OTSmartContract(api_));
 
     return smartcontract;
 }
 
 std::unique_ptr<OTSmartContract> Factory::SmartContract(
-    const api::Core& core,
     const Identifier& NOTARY_ID) const
 {
     std::unique_ptr<OTSmartContract> smartcontract;
-    smartcontract.reset(new OTSmartContract(core, NOTARY_ID));
+    smartcontract.reset(new OTSmartContract(api_, NOTARY_ID));
 
     return smartcontract;
 }
@@ -1020,7 +955,6 @@ std::unique_ptr<OTSmartContract> Factory::SmartContract(
 // static -- class factory.
 //
 std::unique_ptr<opentxs::Token> Factory::Token(
-    const api::Core& core,
     String strInput,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
@@ -1030,8 +964,8 @@ std::unique_ptr<opentxs::Token> Factory::Token(
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        std::unique_ptr<opentxs::Token> pToken = TokenLowLevel(
-            core, strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
+        std::unique_ptr<opentxs::Token> pToken =
+            TokenLowLevel(strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
 
         // The string didn't match any of the options in the factory.
         if (false == bool(pToken)) return nullptr;
@@ -1043,17 +977,14 @@ std::unique_ptr<opentxs::Token> Factory::Token(
     return nullptr;
 }
 
-std::unique_ptr<opentxs::Token> Factory::Token(
-    const api::Core& core,
-    String strInput) const
+std::unique_ptr<opentxs::Token> Factory::Token(String strInput) const
 {
     String strContract, strFirstLine;  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
-        std::unique_ptr<opentxs::Token> pToken =
-            TokenLowLevel(core, strFirstLine);
+        std::unique_ptr<opentxs::Token> pToken = TokenLowLevel(strFirstLine);
 
         // The string didn't match any of the options in the factory.
         if (false == bool(pToken)) return nullptr;
@@ -1108,7 +1039,6 @@ std::unique_ptr<Token> Factory::Token(
 }
 
 std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
-    const api::Core& core,
     const String& strFirstLine,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
@@ -1120,14 +1050,14 @@ std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
                                                                // 27 chars long.
     {
         pToken.reset(
-            new Token_Lucre(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+            new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
         OT_ASSERT(false != bool(pToken));
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
         pToken.reset(
-            new Token_Lucre(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+            new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
         OT_ASSERT(false != bool(pToken));
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
@@ -1135,7 +1065,7 @@ std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
     // 39 chars long.
     {
         pToken.reset(
-            new Token_Lucre(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+            new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
         OT_ASSERT(false != bool(pToken));
     }
 #else
@@ -1157,20 +1087,20 @@ std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
                                                                // 27 chars long.
     {
-        pToken.reset(new Token_Lucre(thePurse.Core(), thePurse));
+        pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
         OT_ASSERT(false != bool(pToken));
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
-        pToken.reset(new Token_Lucre(thePurse.Core(), thePurse));
+        pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
         OT_ASSERT(false != bool(pToken));
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
                                                                 // is
     // 39 chars long.
     {
-        pToken.reset(new Token_Lucre(thePurse.Core(), thePurse));
+        pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
         OT_ASSERT(false != bool(pToken));
     }
 #else
@@ -1188,7 +1118,7 @@ std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
     std::unique_ptr<opentxs::Token> pToken;
 
 #if OT_CASH_USING_LUCRE
-    pToken.reset(new Token_Lucre(thePurse.Core(), thePurse));
+    pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
     OT_ASSERT(false != bool(pToken));
 #else
     otErr << __FUNCTION__
@@ -1200,7 +1130,6 @@ std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
 }
 
 std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
-    const api::Core& core,
     const String& strFirstLine) const
 {
     std::unique_ptr<opentxs::Token> pToken;
@@ -1209,20 +1138,20 @@ std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
     if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
                                                                // 27 chars long.
     {
-        pToken.reset(new Token_Lucre(core));
+        pToken.reset(new Token_Lucre(api_));
         OT_ASSERT(false != bool(pToken));
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
                                                           // chars long.
     {
-        pToken.reset(new Token_Lucre(core));
+        pToken.reset(new Token_Lucre(api_));
         OT_ASSERT(false != bool(pToken));
     } else if (strFirstLine.Contains(
                    "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
                                                                 // is
     // 39 chars long.
     {
-        pToken.reset(new Token_Lucre(core));
+        pToken.reset(new Token_Lucre(api_));
         OT_ASSERT(false != bool(pToken));
     }
 #else
@@ -1236,46 +1165,43 @@ std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
 #endif  // OT_CASH
 
 #if OT_CASH_USING_LUCRE
-std::unique_ptr<Token_Lucre> Factory::TokenLucre(const api::Core& core) const
+std::unique_ptr<Token_Lucre> Factory::TokenLucre() const
 {
     std::unique_ptr<Token_Lucre> token;
-    token.reset(new Token_Lucre(core));
+    token.reset(new Token_Lucre(api_));
 
     return token;
 }
 
 std::unique_ptr<Token_Lucre> Factory::TokenLucre(
-    const api::Core& core,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
     std::unique_ptr<Token_Lucre> token;
-    token.reset(new Token_Lucre(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    token.reset(new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
 
     return token;
 }
 
 std::unique_ptr<Token_Lucre> Factory::TokenLucre(
-    const api::Core& core,
     const opentxs::Purse& thePurse) const
 {
     std::unique_ptr<Token_Lucre> token;
-    token.reset(new Token_Lucre(core, thePurse));
+    token.reset(new Token_Lucre(api_, thePurse));
 
     return token;
 }
 #endif
 
-std::unique_ptr<OTTrade> Factory::Trade(const api::Core& core) const
+std::unique_ptr<OTTrade> Factory::Trade() const
 {
     std::unique_ptr<OTTrade> trade;
-    trade.reset(new OTTrade(core));
+    trade.reset(new OTTrade(api_));
 
     return trade;
 }
 
 std::unique_ptr<OTTrade> Factory::Trade(
-    const api::Core& core,
     const Identifier& notaryID,
     const Identifier& instrumentDefinitionID,
     const Identifier& assetAcctId,
@@ -1285,7 +1211,7 @@ std::unique_ptr<OTTrade> Factory::Trade(
 {
     std::unique_ptr<OTTrade> trade;
     trade.reset(new OTTrade(
-        core,
+        api_,
         notaryID,
         instrumentDefinitionID,
         assetAcctId,
@@ -1297,7 +1223,6 @@ std::unique_ptr<OTTrade> Factory::Trade(
 }
 
 std::unique_ptr<OTTransactionType> Factory::Transaction(
-    const api::Core& core,
     const String& strInput) const
 {
     String strContract, strFirstLine;  // output for the below function.
@@ -1311,7 +1236,7 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
                 "-----BEGIN SIGNED TRANSACTION-----"))  // this string is 34
                                                         // chars long.
         {
-            pContract.reset(new OTTransaction(core));
+            pContract.reset(new OTTransaction(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED TRANSACTION ITEM-----"))  // this
@@ -1319,13 +1244,13 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
                                                                     // 39 chars
                                                                     // long.
         {
-            pContract.reset(new opentxs::Item(core));
+            pContract.reset(new opentxs::Item(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED LEDGER-----"))  // this string is 29
                                                           // chars long.
         {
-            pContract.reset(new opentxs::Ledger(core));
+            pContract.reset(new opentxs::Ledger(api_));
             OT_ASSERT(false != bool(pContract));
         } else if (strFirstLine.Contains(
                        "-----BEGIN SIGNED ACCOUNT-----"))  // this string is 30
@@ -1378,17 +1303,15 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const api::Core& core,
     const opentxs::Ledger& theOwner) const
 {
     std::unique_ptr<OTTransaction> transaction;
-    transaction.reset(new OTTransaction(core, theOwner));
+    transaction.reset(new OTTransaction(api_, theOwner));
 
     return transaction;
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
@@ -1396,13 +1319,12 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
-        core, theNymID, theAccountID, theNotaryID, theOriginType));
+        api_, theNymID, theAccountID, theNotaryID, theOriginType));
 
     return transaction;
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
@@ -1411,7 +1333,7 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
-        core,
+        api_,
         theNymID,
         theAccountID,
         theNotaryID,
@@ -1425,7 +1347,6 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 // The full receipt is loaded only after the abbreviated ones are loaded,
 // and verified against them.
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
@@ -1446,7 +1367,7 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
-        core,
+        api_,
         theNymID,
         theAccountID,
         theNotaryID,
@@ -1469,14 +1390,12 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const api::Core& core,
     const opentxs::Ledger& theOwner,
     transactionType theType,
     originType theOriginType /*=originType::not_applicable*/,
     std::int64_t lTransactionNum /*=0*/) const
 {
     auto pTransaction = Transaction(
-        core,
         theOwner.GetNymID(),
         theOwner.GetPurportedAccountID(),
         theOwner.GetPurportedNotaryID(),
@@ -1489,7 +1408,6 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 }
 
 std::unique_ptr<OTTransaction> Factory::Transaction(
-    const api::Core& core,
     const Identifier& theNymID,
     const Identifier& theAccountID,
     const Identifier& theNotaryID,
@@ -1499,7 +1417,7 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 {
     std::unique_ptr<OTTransaction> transaction;
     transaction.reset(new OTTransaction(
-        core,
+        api_,
         theNymID,
         theAccountID,
         theNotaryID,
@@ -1519,5 +1437,4 @@ std::unique_ptr<OTTransaction> Factory::Transaction(
 
     return transaction;
 }
-
 }  // namespace opentxs::api::implementation

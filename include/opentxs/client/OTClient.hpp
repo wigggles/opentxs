@@ -55,7 +55,7 @@ private:
     OTWallet& m_pWallet;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
-    const api::Core& core_;
+    const api::Core& api_;
     const api::Wallet& wallet_;
     const api::Factory& factory_;
     const api::client::Workflow& workflow_;

@@ -342,7 +342,7 @@ bool Sync::AcceptIncoming(
                 return false;
             }
 
-            Utility utility(context.It(), client_.OTAPI(), client_);
+            Utility utility(context.It(), client_);
             const auto download = utility.getIntermediaryFiles(
                 context.It().Server().str(),
                 context.It().Nym()->ID().str(),
@@ -724,7 +724,7 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    auto cheque{client_.Factory().Cheque(client_)};
+    auto cheque{client_.Factory().Cheque()};
 
     OT_ASSERT(false != bool(cheque));
 
@@ -1499,7 +1499,7 @@ bool Sync::publish_server_registration(
 bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
     const
 {
-    auto payment{client_.Factory().Payment(client_, String(cheque))};
+    auto payment{client_.Factory().Payment(String(cheque))};
 
     OT_ASSERT(false != bool(payment));
 
@@ -1972,7 +1972,7 @@ OTIdentifier Sync::SendCheque(
         return Identifier::Factory();
     }
 
-    auto payment{client_.Factory().Payment(client_, String(*cheque))};
+    auto payment{client_.Factory().Payment(String(*cheque))};
 
     OT_ASSERT(false != bool(payment));
 
