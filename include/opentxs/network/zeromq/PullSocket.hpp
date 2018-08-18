@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/network/zeromq/CurveServer.hpp"
 
 #ifdef SWIG
@@ -29,7 +28,7 @@ namespace network
 {
 namespace zeromq
 {
-class PullSocket : virtual public Socket, virtual public CurveServer
+class PullSocket : virtual public CurveServer
 {
 public:
     EXPORT static OTZMQPullSocket Factory(

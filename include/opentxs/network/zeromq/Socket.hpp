@@ -34,6 +34,7 @@
 %ignore opentxs::network::zeromq::Socket::Context;
 %ignore opentxs::network::zeromq::Socket::SetTimeouts;
 %ignore opentxs::network::zeromq::Socket::operator void*() const;
+%template(ZMQMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::Message>>;
 %rename(ZMQSocket) opentxs::network::zeromq::Socket;
 // clang-format on
 #endif  // SWIG

@@ -31,6 +31,7 @@
 
 namespace opentxs
 {
+#ifndef SWIG
 bool operator==(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Identifier& rhs);
@@ -40,6 +41,7 @@ bool operator!=(
 bool operator<(
     const opentxs::Pimpl<opentxs::Identifier>& lhs,
     const opentxs::Pimpl<opentxs::Identifier>& rhs);
+#endif
 
 /** An Identifier is basically a 256 bit hash value. This class makes it easy to
  * convert IDs back and forth to strings. */

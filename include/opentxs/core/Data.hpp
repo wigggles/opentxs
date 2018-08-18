@@ -91,7 +91,9 @@ public:
 #endif
     EXPORT virtual std::byte& at(const std::size_t position) = 0;
     EXPORT virtual iterator begin() = 0;
+#ifndef SWIG
     EXPORT virtual void* data() = 0;
+#endif
     EXPORT virtual void Concatenate(
         const void* data,
         const std::size_t& size) = 0;

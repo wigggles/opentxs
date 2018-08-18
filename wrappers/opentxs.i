@@ -12,7 +12,7 @@
 %include "std_pair.i"
 %include "std_string.i";
 %include "std_vector.i";
-%include "typemaps.i"
+%include "typemaps.i";
 
 // add the following to every .cxx file.
 %inline %{
@@ -82,6 +82,8 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/network/zeromq/FrameSection.hpp"
 %include "../../include/opentxs/network/zeromq/Message.hpp"
 %include "../../include/opentxs/network/zeromq/Socket.hpp"
+%include "../../include/opentxs/network/zeromq/CurveClient.hpp"
+%include "../../include/opentxs/network/zeromq/CurveServer.hpp"
 %include "../../include/opentxs/network/zeromq/PublishSocket.hpp"
 %include "../../include/opentxs/network/zeromq/ListenCallbackSwig.hpp"
 %include "../../include/opentxs/network/zeromq/ListenCallback.hpp"

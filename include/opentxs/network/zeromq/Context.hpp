@@ -17,6 +17,7 @@
 %ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator opentxs::network::zeromq::Context&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator const opentxs::network::zeromq::Context &;
 %ignore opentxs::network::zeromq::Context::operator void*() const;
+%ignore opentxs::network::zeromq::Context::EncodePrivateZ85 const;
 %rename(assign) operator=(const opentxs::network::zeromq::Context&);
 %rename(ZMQContext) opentxs::network::zeromq::Context;
 %template(OTZMQContext) opentxs::Pimpl<opentxs::network::zeromq::Context>;
