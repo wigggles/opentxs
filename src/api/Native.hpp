@@ -25,7 +25,6 @@ public:
     const api::Settings& Config(const std::string& path) const override;
     const api::Crypto& Crypto() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
-    const api::Legacy& Legacy() const override;
     const api::server::Manager& Server(const int instance) const override;
     bool ServerMode() const override;
     const api::Core& StartClient(const ArgList& args) const override;

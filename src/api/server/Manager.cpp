@@ -7,7 +7,6 @@
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"

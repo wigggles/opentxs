@@ -99,7 +99,6 @@ public:
         const ArgList& args,
         const api::Settings& config,
         const api::Crypto& crypto,
-        const api::Legacy& legacy,
         const network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);
@@ -255,13 +254,7 @@ public:
     static crypto::OpenSSL* OpenSSL();
     static api::client::Pair* Pair(
         const Flag& running,
-        const api::client::Sync& sync,
-        const api::client::ServerAction& action,
-        const api::Wallet& wallet,
-        const api::Legacy& legacy,
-        const OT_API& otapi,
-        const OTAPI_Exec& exec,
-        const network::zeromq::Context& context);
+        const api::client::Manager& client);
     static ui::implementation::PayableExternalInterface* PayableList(
         const network::zeromq::Context& zmq,
         const network::zeromq::PublishSocket& publisher,
@@ -401,17 +394,7 @@ public:
 #endif
     static api::client::Sync* Sync(
         const Flag& running,
-        const OT_API& otapi,
-        const OTAPI_Exec& exec,
-        const api::client::Contacts& contacts,
-        const api::Settings& config,
         const api::client::Manager& api,
-        const api::Legacy& legacy,
-        const api::Wallet& wallet,
-        const api::client::Workflow& workflow,
-        const api::crypto::Encode& encoding,
-        const api::storage::Storage& storage,
-        const network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     static crypto::Trezor* Trezor(const api::Crypto& crypto);
     static api::client::UI* UI(

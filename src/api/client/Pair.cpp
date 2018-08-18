@@ -10,7 +10,6 @@
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -57,16 +56,9 @@ namespace opentxs
 {
 api::client::Pair* Factory::Pair(
     const Flag& running,
-    const api::client::Sync& sync,
-    const api::client::ServerAction& action,
-    const api::Wallet& wallet,
-    const api::Legacy& legacy,
-    const opentxs::OT_API& otapi,
-    const opentxs::OTAPI_Exec& exec,
-    const opentxs::network::zeromq::Context& context)
+    const api::client::Manager& client)
 {
-    return new api::client::implementation::Pair(
-        running, sync, action, wallet, legacy, otapi, exec, context);
+    return new api::client::implementation::Pair(running, client);
 }
 }  // namespace opentxs
 
@@ -80,23 +72,9 @@ Pair::Cleanup::Cleanup(Flag& run)
 
 Pair::Cleanup::~Cleanup() { run_.Off(); }
 
-Pair::Pair(
-    const Flag& running,
-    const api::client::Sync& sync,
-    const client::ServerAction& action,
-    const api::Wallet& wallet,
-    const Legacy& legacy,
-    const opentxs::OT_API& otapi,
-    const opentxs::OTAPI_Exec& exec,
-    const opentxs::network::zeromq::Context& context)
+Pair::Pair(const Flag& running, const api::client::Manager& client)
     : running_(running)
-    , sync_(sync)
-    , action_(action)
-    , wallet_(wallet)
-    , legacy_(legacy)
-    , ot_api_(otapi)
-    , exec_(exec)
-    , zmq_(context)
+    , client_(client)
     , status_lock_()
     , pairing_(Flag::Factory(false))
     , last_refresh_(0)
@@ -104,8 +82,8 @@ Pair::Pair(
     , refresh_thread_(nullptr)
     , pair_status_()
     , update_()
-    , pair_event_(context.PublishSocket())
-    , pending_bailment_(context.PublishSocket())
+    , pair_event_(client.ZeroMQ().PublishSocket())
+    , pending_bailment_(client.ZeroMQ().PublishSocket())
 {
     refresh_thread_.reset(new std::thread(&Pair::check_refresh, this));
     pair_event_->Start(opentxs::network::zeromq::Socket::PairEventEndpoint);
@@ -125,7 +103,7 @@ bool Pair::AddIssuer(
         return false;
     }
 
-    if (!wallet_.IsLocalNym(localNymID.str())) {
+    if (!client_.Wallet().IsLocalNym(localNymID.str())) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid local nym"
               << std::endl;
 
@@ -139,7 +117,7 @@ bool Pair::AddIssuer(
         return false;
     }
 
-    auto editor = wallet_.mutable_Issuer(localNymID, issuerNymID);
+    auto editor = client_.Wallet().mutable_Issuer(localNymID, issuerNymID);
     auto& issuer = editor.It();
     const bool needPairingCode = issuer.PairingCode().empty();
     const bool havePairingCode = (false == pairingCode.empty());
@@ -157,7 +135,7 @@ bool Pair::CheckIssuer(
     const Identifier& localNymID,
     const Identifier& unitDefinitionID) const
 {
-    const auto contract = wallet_.UnitDefinition(unitDefinitionID);
+    const auto contract = client_.Wallet().UnitDefinition(unitDefinitionID);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -190,7 +168,7 @@ void Pair::check_refresh() const
     bool update{false};
 
     while (running_) {
-        const auto current = sync_.RefreshCount();
+        const auto current = client_.Sync().RefreshCount();
         const auto previous = last_refresh_.exchange(current);
 
         if (previous != current) { refresh(); }
@@ -204,10 +182,10 @@ void Pair::check_refresh() const
 std::map<OTIdentifier, std::set<OTIdentifier>> Pair::create_issuer_map() const
 {
     std::map<OTIdentifier, std::set<OTIdentifier>> output;
-    const auto nymList = ot_api_.LocalNymList();
+    const auto nymList = client_.OTAPI().LocalNymList();
 
     for (const auto& nymID : nymList) {
-        output[nymID] = wallet_.IssuerList(nymID);
+        output[nymID] = client_.Wallet().IssuerList(nymID);
     }
 
     return output;
@@ -221,7 +199,7 @@ std::pair<bool, OTIdentifier> Pair::get_connection(
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, requestID] = output;
-    auto action = action_.InitiateRequestConnection(
+    auto action = client_.ServerAction().InitiateRequestConnection(
         localNymID, serverID, issuerNymID, type);
     action->Run();
 
@@ -246,7 +224,7 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
 {
     std::pair<bool, OTIdentifier> output(false, Identifier::Factory());
     auto& [success, requestID] = output;
-    const auto contract = wallet_.UnitDefinition(unitID);
+    const auto contract = client_.Wallet().UnitDefinition(unitID);
 
     if (false == bool(contract)) {
         queue_unit_definition(nymID, serverID, unitID);
@@ -254,7 +232,8 @@ std::pair<bool, OTIdentifier> Pair::initiate_bailment(
         return output;
     }
 
-    auto action = action_.InitiateBailment(nymID, serverID, issuerID, unitID);
+    auto action = client_.ServerAction().InitiateBailment(
+        nymID, serverID, issuerID, unitID);
     action->Run();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) { return output; }
@@ -274,7 +253,7 @@ std::string Pair::IssuerDetails(
     const Identifier& localNymID,
     const Identifier& issuerNymID) const
 {
-    auto issuer = wallet_.Issuer(localNymID, issuerNymID);
+    auto issuer = client_.Wallet().Issuer(localNymID, issuerNymID);
 
     if (false == bool(issuer)) { return {}; }
 
@@ -309,7 +288,7 @@ bool Pair::need_registration(
     const Identifier& localNymID,
     const Identifier& serverID) const
 {
-    auto context = wallet_.ServerContext(localNymID, serverID);
+    auto context = client_.Wallet().ServerContext(localNymID, serverID);
 
     if (context) { return (0 == context->Request()); }
 
@@ -328,13 +307,13 @@ void Pair::process_connection_info(
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = Identifier::Factory(reply.recipient());
-    auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
+    auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_CONNECTIONINFO, requestID, replyID);
 
     if (added) {
-        wallet_.PeerRequestComplete(nymID, replyID);
+        client_.Wallet().PeerRequestComplete(nymID, replyID);
         update_.Push(Identifier::Random(), true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
@@ -346,12 +325,12 @@ void Pair::process_peer_replies(const Lock& lock, const Identifier& nymID) const
 {
     OT_ASSERT(verify_lock(lock, peer_lock_));
 
-    auto replies = wallet_.PeerReplyIncoming(nymID);
+    auto replies = client_.Wallet().PeerReplyIncoming(nymID);
 
     for (const auto& it : replies) {
         const auto replyID = Identifier::Factory(it.first);
-        const auto reply =
-            wallet_.PeerReply(nymID, replyID, StorageBox::INCOMINGPEERREPLY);
+        const auto reply = client_.Wallet().PeerReply(
+            nymID, replyID, StorageBox::INCOMINGPEERREPLY);
 
         if (false == bool(reply)) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to load peer reply "
@@ -399,12 +378,12 @@ void Pair::process_peer_requests(const Lock& lock, const Identifier& nymID)
 {
     OT_ASSERT(verify_lock(lock, peer_lock_));
 
-    const auto requests = wallet_.PeerRequestIncoming(nymID);
+    const auto requests = client_.Wallet().PeerRequestIncoming(nymID);
 
     for (const auto& it : requests) {
         const auto requestID = Identifier::Factory(it.first);
         std::time_t time{};
-        const auto request = wallet_.PeerRequest(
+        const auto request = client_.Wallet().PeerRequest(
             nymID, requestID, StorageBox::INCOMINGPEERREQUEST, time);
 
         if (false == bool(request)) {
@@ -450,7 +429,7 @@ void Pair::process_pending_bailment(
     const auto requestID = Identifier::Factory(request.id());
     const auto issuerNymID = Identifier::Factory(request.initiator());
     const auto serverID = Identifier::Factory(request.server());
-    auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
+    auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
         issuer.AddRequest(proto::PEERREQUEST_PENDINGBAILMENT, requestID);
@@ -466,7 +445,7 @@ void Pair::process_pending_bailment(
                   << ": Failed to set request as used on issuer." << std::endl;
         }
 
-        auto action = action_.AcknowledgeNotice(
+        auto action = client_.ServerAction().AcknowledgeNotice(
             nymID, serverID, issuerNymID, requestID, true);
         action->Run();
 
@@ -496,13 +475,13 @@ void Pair::process_request_bailment(
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = Identifier::Factory(reply.recipient());
-    auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
+    auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_BAILMENT, requestID, replyID);
 
     if (added) {
-        wallet_.PeerRequestComplete(nymID, replyID);
+        client_.Wallet().PeerRequestComplete(nymID, replyID);
         update_.Push(Identifier::Random(), true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
@@ -522,13 +501,13 @@ void Pair::process_request_outbailment(
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = Identifier::Factory(reply.recipient());
-    auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
+    auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_OUTBAILMENT, requestID, replyID);
 
     if (added) {
-        wallet_.PeerRequestComplete(nymID, replyID);
+        client_.Wallet().PeerRequestComplete(nymID, replyID);
         update_.Push(Identifier::Random(), true);
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to add reply."
@@ -548,13 +527,13 @@ void Pair::process_store_secret(
     const auto requestID = Identifier::Factory(reply.cookie());
     const auto replyID = Identifier::Factory(reply.id());
     const auto issuerNymID = Identifier::Factory(reply.recipient());
-    auto editor = wallet_.mutable_Issuer(nymID, issuerNymID);
+    auto editor = client_.Wallet().mutable_Issuer(nymID, issuerNymID);
     auto& issuer = editor.It();
     const auto added =
         issuer.AddReply(proto::PEERREQUEST_STORESECRET, requestID, replyID);
 
     if (added) {
-        wallet_.PeerRequestComplete(nymID, replyID);
+        client_.Wallet().PeerRequestComplete(nymID, replyID);
         update_.Push(Identifier::Random(), true);
         proto::PairEvent event;
         event.set_version(1);
@@ -581,8 +560,8 @@ void Pair::queue_nym_download(
     const Identifier& localNymID,
     const Identifier& targetNymID) const
 {
-    sync_.StartIntroductionServer(localNymID);
-    sync_.FindNym(targetNymID);
+    client_.Sync().StartIntroductionServer(localNymID);
+    client_.Sync().FindNym(targetNymID);
 }
 
 void Pair::queue_nym_registration(
@@ -590,15 +569,15 @@ void Pair::queue_nym_registration(
     const Identifier& serverID,
     const bool setData) const
 {
-    sync_.RegisterNym(nymID, serverID, setData);
+    client_.Sync().RegisterNym(nymID, serverID, setData);
 }
 
 void Pair::queue_server_contract(
     const Identifier& nymID,
     const Identifier& serverID) const
 {
-    sync_.StartIntroductionServer(nymID);
-    sync_.FindServer(serverID);
+    client_.Sync().StartIntroductionServer(nymID);
+    client_.Sync().FindServer(serverID);
 }
 
 void Pair::queue_unit_definition(
@@ -606,7 +585,7 @@ void Pair::queue_unit_definition(
     const Identifier& serverID,
     const Identifier& unitID) const
 {
-    sync_.ScheduleDownloadContract(nymID, serverID, unitID);
+    client_.Sync().ScheduleDownloadContract(nymID, serverID, unitID);
 }
 
 void Pair::refresh() const
@@ -622,7 +601,7 @@ std::pair<bool, OTIdentifier> Pair::register_account(
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, accountID] = output;
-    const auto contract = wallet_.UnitDefinition(unitID);
+    const auto contract = client_.Wallet().UnitDefinition(unitID);
 
     if (false == bool(contract)) {
         queue_unit_definition(nymID, serverID, unitID);
@@ -630,7 +609,8 @@ std::pair<bool, OTIdentifier> Pair::register_account(
         return output;
     }
 
-    auto action = action_.RegisterAccount(nymID, serverID, unitID);
+    auto action =
+        client_.ServerAction().RegisterAccount(nymID, serverID, unitID);
     action->Run();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) { return output; }
@@ -654,7 +634,7 @@ void Pair::state_machine(
     Lock lock(status_lock_);
     auto& [status, trusted] = pair_status_[{localNymID, issuerNymID}];
     lock.unlock();
-    const auto issuerNym = wallet_.Nym(issuerNymID);
+    const auto issuerNym = client_.Wallet().Nym(issuerNymID);
 
     if (false == bool(issuerNym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Issuer nym not yet downloaded."
@@ -693,7 +673,7 @@ void Pair::state_machine(
                << contractSection->Size() << " contracts." << std::endl;
     }
 
-    auto editor = wallet_.mutable_Issuer(localNymID, issuerNymID);
+    auto editor = client_.Wallet().mutable_Issuer(localNymID, issuerNymID);
     auto& issuer = editor.It();
     trusted = issuer.Paired();
     bool needStoreSecret{false};
@@ -712,7 +692,7 @@ void Pair::state_machine(
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Local nym not registered on issuer's notary."
                       << std::endl;
-                auto contract = wallet_.Server(serverID);
+                auto contract = client_.Wallet().Server(serverID);
 
                 SHUTDOWN()
 
@@ -745,8 +725,8 @@ void Pair::state_machine(
             if (trusted) {
                 needStoreSecret = (false == issuer.StoreSecretComplete()) &&
                                   (false == issuer.StoreSecretInitiated());
-                auto editor =
-                    wallet_.mutable_ServerContext(localNymID, serverID);
+                auto editor = client_.Wallet().mutable_ServerContext(
+                    localNymID, serverID);
                 auto& context = editor.It();
 
                 if (context.AdminPassword() != issuer.PairingCode()) {
@@ -889,13 +869,13 @@ std::pair<bool, OTIdentifier> Pair::store_secret(
 {
     std::pair<bool, OTIdentifier> output{false, Identifier::Factory()};
     auto& [success, requestID] = output;
-    auto action = action_.InitiateStoreSecret(
+    auto action = client_.ServerAction().InitiateStoreSecret(
         localNymID,
         serverID,
         issuerNymID,
         proto::SECRETTYPE_BIP39,
-        exec_.Wallet_GetWords(),
-        exec_.Wallet_GetPassphrase());
+        client_.Exec().Wallet_GetWords(),
+        client_.Exec().Wallet_GetPassphrase());
     action->Run();
 
     if (SendResult::VALID_REPLY != action->LastSendResult()) { return output; }

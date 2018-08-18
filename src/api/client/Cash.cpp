@@ -7,7 +7,6 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/ServerAction.hpp"

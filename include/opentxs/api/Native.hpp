@@ -31,7 +31,6 @@ public:
     EXPORT virtual const api::Crypto& Crypto() const = 0;
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
-    EXPORT virtual const api::Legacy& Legacy() const = 0;
     /** Throws std::out_of_range if the specified server does not exist. */
     EXPORT virtual const api::server::Manager& Server(
         const int instance) const = 0;

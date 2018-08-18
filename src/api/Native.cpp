@@ -494,13 +494,6 @@ void Native::Init_Server()
     start_server(lock, server_args_);
 }
 
-const api::Legacy& Native::Legacy() const
-{
-    OT_ASSERT(legacy_)
-
-    return *legacy_;
-}
-
 void Native::recover()
 {
     OT_ASSERT(client_);
@@ -594,15 +587,15 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
     OT_ASSERT(legacy_);
 
     // TODO: Only one client is currently supported
-    const auto instance = client_instance(0);
+    const int next{0};
+    const auto instance = client_instance(next);
     client_.reset(opentxs::Factory::ClientManager(
         running_,
         args,
-        Config(legacy_->ClientConfigFilePath()),
+        Config(legacy_->ClientConfigFilePath(next)),
         *crypto_,
-        *legacy_,
         zmq_context_,
-        legacy_->ClientDataFolder(),
+        legacy_->ClientDataFolder(next),
         instance));
 
     OT_ASSERT(client_);

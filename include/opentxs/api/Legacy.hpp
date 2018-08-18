@@ -17,15 +17,16 @@ namespace api
 class Legacy
 {
 public:
-    EXPORT virtual std::string ClientConfigFilePath() const = 0;
-    EXPORT virtual std::string ClientDataFolder() const = 0;
+    EXPORT virtual std::string ClientConfigFilePath(
+        const int instance) const = 0;
+    EXPORT virtual std::string ClientDataFolder(const int instance) const = 0;
     EXPORT virtual std::string CryptoConfigFilePath() const = 0;
     EXPORT virtual std::string LogConfigFilePath() const = 0;
     EXPORT virtual std::string ServerConfigFilePath(
         const int instance) const = 0;
     EXPORT virtual std::string ServerDataFolder(const int instance) const = 0;
 
-    virtual ~Legacy() = default;
+    EXPORT virtual ~Legacy() = default;
 
 protected:
     Legacy() = default;

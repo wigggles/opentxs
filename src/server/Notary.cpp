@@ -9,7 +9,6 @@
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"

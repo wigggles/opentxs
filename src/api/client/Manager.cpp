@@ -57,13 +57,12 @@ api::client::internal::Manager* Factory::ClientManager(
     const ArgList& args,
     const api::Settings& config,
     const api::Crypto& crypto,
-    const api::Legacy& legacy,
     const network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
 {
     return new api::client::implementation::Manager(
-        running, args, config, crypto, legacy, context, dataFolder, instance);
+        running, args, config, crypto, context, dataFolder, instance);
 }
 }  // namespace opentxs
 
@@ -74,84 +73,60 @@ Manager::Manager(
     const ArgList& args,
     const api::Settings& config,
     const api::Crypto& crypto,
-    const api::Legacy& legacy,
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
     : Scheduler(running)
     , StorageParent(running, args, crypto, config, dataFolder)
-    , legacy_(legacy)
     , zmq_context_{context}
     , instance_
 {
     instance
 }
 #if OT_CRYPTO_WITH_BIP39
-, seeds_
-{
-    opentxs::Factory::HDSeed(
-        crypto_.Symmetric(),
-        *storage_,
-        crypto_.BIP32(),
-        crypto_.BIP39(),
-        crypto_.AES())
-}
+, seeds_(opentxs::Factory::HDSeed(
+      crypto_.Symmetric(),
+      *storage_,
+      crypto_.BIP32(),
+      crypto_.BIP39(),
+      crypto_.AES()))
 #endif
-, factory_
-{
-    opentxs::Factory::FactoryAPI(
+      ,
+    factory_(opentxs::Factory::FactoryAPI(
 #if OT_CRYPTO_WITH_BIP39
         *seeds_
 #endif
-    )
-}
-, wallet_{opentxs::Factory::Wallet(*this)},
-    zeromq_{opentxs::Factory::ZMQ(*this, running_)},
-    identity_{opentxs::Factory::Identity(*wallet_)},
-    contacts_{opentxs::Factory::Contacts(
+        )),
+    wallet_(opentxs::Factory::Wallet(*this)),
+    zeromq_(opentxs::Factory::ZMQ(*this, running_)),
+    identity_(opentxs::Factory::Identity(*wallet_)),
+    contacts_(opentxs::Factory::Contacts(
         *storage_,
         *factory_,
         *wallet_,
-        zmq_context_)},
-    activity_
-{
-    opentxs::Factory::Activity(*storage_, *contacts_, *this, zmq_context_)
-}
+        zmq_context_)),
+    activity_(
+        opentxs::Factory::Activity(*storage_, *contacts_, *this, zmq_context_))
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-, blockchain_
-{
-    opentxs::Factory::Blockchain(
-        *activity_, crypto_, *seeds_, *storage_, *wallet_)
-}
-#endif
-, workflow_{opentxs::Factory::Workflow(
-      *activity_,
-      *contacts_,
-      *this,
-      *storage_,
-      zmq_context_)},
-    ot_api_
-{
-    new OT_API(
+        ,
+    blockchain_(opentxs::Factory::Blockchain(
         *activity_,
-        *this,
-        config_,
-        *contacts_,
         crypto_,
-        *factory_,
-#if OT_CRYPTO_WITH_BIP39
         *seeds_,
-#endif
-        *identity_,
-        legacy_,
         *storage_,
-        *wallet_,
-        *workflow_,
-        *zeromq_,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))
-}
-,
-    otapi_exec_{new OTAPI_Exec(
+        *wallet_))
+#endif
+        ,
+    workflow_(opentxs::Factory::Workflow(
+        *activity_,
+        *contacts_,
+        *this,
+        *storage_,
+        zmq_context_)),
+    ot_api_(new OT_API(
+        *this,
+        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
+    otapi_exec_(new OTAPI_Exec(
         *activity_,
         config_,
         *contacts_,
@@ -161,29 +136,19 @@ Manager::Manager(
         *this,
         *zeromq_,
         *ot_api_,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))},
-    cash_{opentxs::Factory::Cash(*this)},
-    server_action_{opentxs::Factory::ServerAction(
+        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
+    cash_(opentxs::Factory::Cash(*this)),
+    server_action_(opentxs::Factory::ServerAction(
         *ot_api_,
         *otapi_exec_,
         *workflow_,
         *this,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))},
-    sync_{opentxs::Factory::Sync(
+        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
+    sync_(opentxs::Factory::Sync(
         running_,
-        *ot_api_,
-        *otapi_exec_,
-        *contacts_,
-        config_,
         *this,
-        legacy_,
-        *wallet_,
-        *workflow_,
-        crypto_.Encode(),
-        *storage_,
-        zmq_context_,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))},
-    ui_{opentxs::Factory::UI(
+        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
+    ui_(opentxs::Factory::UI(
         *sync_,
         *wallet_,
         *workflow_,
@@ -193,17 +158,9 @@ Manager::Manager(
         *contacts_,
         *this,
         zmq_context_,
-        running_)},
-    pair_{opentxs::Factory::Pair(
-        running_,
-        *sync_,
-        *server_action_,
-        *wallet_,
-        legacy_,
-        *ot_api_,
-        *otapi_exec_,
-        zmq_context_)},
-    dht_{opentxs::Factory::Dht(
+        running_)),
+    pair_(opentxs::Factory::Pair(running_, *this)),
+    dht_(opentxs::Factory::Dht(
         instance_,
         false,
         config_,
@@ -214,7 +171,7 @@ Manager::Manager(
         server_publish_interval_,
         server_refresh_interval_,
         unit_publish_interval_,
-        unit_refresh_interval_)},
+        unit_refresh_interval_)),
     lock_(), map_lock_(), context_locks_()
 {
     OT_ASSERT(seeds_);

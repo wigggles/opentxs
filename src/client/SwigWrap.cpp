@@ -21,7 +21,6 @@
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_API.hpp"

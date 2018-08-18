@@ -64,7 +64,6 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Legacy& legacy_;
     const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
 #if OT_CRYPTO_WITH_BIP39
@@ -80,13 +79,20 @@ private:
     std::unique_ptr<api::client::Blockchain> blockchain_;
 #endif
     std::unique_ptr<api::client::Workflow> workflow_;
-    std::unique_ptr<OT_API> ot_api_;
+    std::unique_ptr<OT_API> ot_api_;  // Depends on activity_, config_,
+                                      // contacts_, factory_, seeds_, wallet_,
+                                      // workflow_
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
     std::unique_ptr<api::client::Cash> cash_;
     std::unique_ptr<api::client::ServerAction> server_action_;
-    std::unique_ptr<api::client::Sync> sync_;
+    std::unique_ptr<api::client::Sync> sync_;  // Depends on ot_api_,
+                                               // otapi_exec_, contacts_,
+                                               // server_action_, wallet_,
+                                               // workflow_, zeromq_
     std::unique_ptr<api::client::UI> ui_;
-    std::unique_ptr<api::client::Pair> pair_;
+    std::unique_ptr<api::client::Pair> pair_;  // Depends on sync_,
+                                               // server_action_, wallet_,
+                                               // ot_api_, otapi_exec_, zeromq_
     std::unique_ptr<api::network::Dht> dht_;
     mutable std::recursive_mutex lock_;
     mutable std::mutex map_lock_;
@@ -103,7 +109,6 @@ private:
         const ArgList& args,
         const api::Settings& config,
         const api::Crypto& crypto,
-        const api::Legacy& legacy,
         const opentxs::network::zeromq::Context& context,
         const std::string& dataFolder,
         const int instance);

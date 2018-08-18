@@ -7,7 +7,6 @@
 
 #include "opentxs/core/OTStorage.hpp"
 
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/util/OTPaths.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -2673,9 +2672,8 @@ ot_exit_block:
         const bool bFolderExists = OTPaths::PathExists(strFolder.c_str());
 
         if (bMakePath && !bFolderExists) {
-            otErr << __FUNCTION__
-                  << ": Error: was told to make path (" << strFolder
-                  << "), however cannot confirm the path!\n";
+            otErr << __FUNCTION__ << ": Error: was told to make path ("
+                  << strFolder << "), however cannot confirm the path!\n";
             return -4;
         }
         if (!bMakePath && !bFolderExists) {
