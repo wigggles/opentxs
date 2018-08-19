@@ -7,14 +7,9 @@
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/api/network/Dht.hpp"
-#include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Endpoints.hpp"
-#if OT_CRYPTO_WITH_BIP39
-#include "opentxs/api/HDSeed.hpp"
-#endif
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
 #endif  // OT_CASH
@@ -30,8 +25,7 @@
 #include "opentxs/Types.hpp"
 
 #include "api/storage/StorageInternal.hpp"
-#include "api/Scheduler.hpp"
-#include "api/StorageParent.hpp"
+#include "api/Core.hpp"
 #include "internal/api/Internal.hpp"
 #include "server/MessageProcessor.hpp"
 #include "server/Server.hpp"
@@ -85,30 +79,7 @@ Manager::Manager(
     const opentxs::network::zeromq::Context& context,
     const std::string& dataFolder,
     const int instance)
-    : Scheduler(running)
-    , StorageParent(running, args, crypto, config, dataFolder)
-    , zmq_context_(context)
-    , instance_(instance)
-    , endpoints_(opentxs::Factory::Endpoints(zmq_context_, instance_))
-#if OT_CRYPTO_WITH_BIP39
-    , seeds_(opentxs::Factory::HDSeed(
-          crypto_.Symmetric(),
-          *storage_,
-          crypto_.BIP32(),
-          crypto_.BIP39(),
-          crypto_.AES()))
-#endif
-    , factory_(opentxs::Factory::FactoryAPI(*this))
-    , wallet_(opentxs::Factory::Wallet(*this))
-    , dht_(opentxs::Factory::Dht(
-          true,
-          *this,
-          nym_publish_interval_,
-          nym_refresh_interval_,
-          server_publish_interval_,
-          server_refresh_interval_,
-          unit_publish_interval_,
-          unit_refresh_interval_))
+    : Core(running, args, crypto, config, context, dataFolder, instance, true)
     , server_p_(new opentxs::server::Server(*this))
     , server_(*server_p_)
     , message_processor_p_(
@@ -123,10 +94,9 @@ Manager::Manager(
     , mints_to_check_()
 #endif  // OT_CASH
 {
-    OT_ASSERT(seeds_);
-    OT_ASSERT(factory_);
+    wallet_.reset(opentxs::Factory::Wallet(*this));
+
     OT_ASSERT(wallet_);
-    OT_ASSERT(dht_)
     OT_ASSERT(server_p_);
     OT_ASSERT(message_processor_p_);
 
@@ -144,15 +114,7 @@ void Manager::Cleanup()
     message_processor_.cleanup();
     message_processor_p_.reset();
     server_p_.reset();
-    wallet_.reset();
-    factory_.reset();
-}
-
-const api::network::Dht& Manager::DHT() const
-{
-    OT_ASSERT(dht_)
-
-    return *dht_;
+    Core::cleanup();
 }
 
 void Manager::DropIncoming(const int count) const
@@ -163,20 +125,6 @@ void Manager::DropIncoming(const int count) const
 void Manager::DropOutgoing(const int count) const
 {
     return message_processor_.DropOutgoing(count);
-}
-
-const api::Endpoints& Manager::Endpoints() const
-{
-    OT_ASSERT(endpoints_)
-
-    return *endpoints_;
-}
-
-const api::Factory& Manager::Factory() const
-{
-    OT_ASSERT(factory_)
-
-    return *factory_;
 }
 
 #if OT_CASH
@@ -519,13 +467,6 @@ void Manager::ScanMints() const
 }
 #endif  // OT_CASH
 
-const api::HDSeed& Manager::Seeds() const
-{
-    OT_ASSERT(seeds_);
-
-    return *seeds_;
-}
-
 void Manager::Start()
 {
     server_.Init();
@@ -548,18 +489,6 @@ void Manager::Start()
 #if OT_CASH
     ScanMints();
 #endif  // OT_CASH
-}
-
-const api::storage::Storage& Manager::Storage() const
-{
-    OT_ASSERT(storage_)
-
-    return *storage_;
-}
-
-void Manager::storage_gc_hook()
-{
-    if (storage_) { storage_->RunGC(); }
 }
 
 #if OT_CASH
@@ -636,13 +565,6 @@ bool Manager::verify_mint_directory(const std::string& serverID) const
     return OTPaths::BuildFolderPath(serverDir, created);
 }
 #endif  // OT_CASH
-
-const api::Wallet& Manager::Wallet() const
-{
-    OT_ASSERT(wallet_);
-
-    return *wallet_;
-}
 
 Manager::~Manager()
 {

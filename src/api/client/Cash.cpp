@@ -4,8 +4,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/api/client/Cash.hpp"
-#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/ServerAction.hpp"
@@ -20,18 +20,22 @@
 
 namespace opentxs
 {
-api::client::Cash* Factory::Cash(const api::client::Manager& api)
+api::client::Cash* Factory::Cash(
+    const api::Core& api,
+    const api::client::ServerAction& serverAction)
 {
-    return new api::client::implementation::Cash(api);
+    return new api::client::implementation::Cash(api, serverAction);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 #if OT_CASH
-Cash::Cash(const api::client::Manager& api)
+Cash::Cash(const api::Core& api, const client::ServerAction& serverAction)
     : api_(api)
+    , server_action_(serverAction)
 {
+    // WARNING: do not access api_.Wallet() during construction
 }
 
 bool Cash::deposit_cash(
@@ -332,7 +336,7 @@ std::int32_t Cash::send_cash(
     std::shared_ptr<const Purse> precipientCopy{recipientCopy.release()};
     std::shared_ptr<const Purse> psenderCopy{senderCopy.release()};
 
-    response = api_.ServerAction()
+    response = server_action_
                    .SendCash(
                        Identifier::Factory(mynym),
                        Identifier::Factory(server),
@@ -559,7 +563,7 @@ std::int32_t Cash::deposit_purse_low_level(
 
     OT_ASSERT(purse);
 
-    auto action = api_.ServerAction().DepositCashPurse(
+    auto action = server_action_.DepositCashPurse(
         Identifier::Factory(nymID),
         Identifier::Factory(notaryID),
         Identifier::Factory(accountID),
@@ -580,7 +584,7 @@ std::int32_t Cash::deposit_purse_low_level(
         // etc)
         // since they have probably changed from this operation.
         //
-        bool bRetrieved = api_.ServerAction().DownloadAccount(
+        bool bRetrieved = server_action_.DownloadAccount(
             Identifier::Factory(recipientNymID),
             Identifier::Factory(notaryID),
             Identifier::Factory(accountID),
@@ -665,7 +669,7 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
     std::string assetContract = SwigWrap::GetAssetType_Contract(assetType);
     if (assetContract.empty()) {
         std::string response =
-            api_.ServerAction()
+            server_action_
                 .DownloadContract(theNymID, theNotaryID, theAssetType)
                 ->Run();
         if (1 != VerifyMessageSuccess(response)) {
@@ -687,14 +691,13 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
     }
 
     std::string response =
-        api_.ServerAction()
-            .WithdrawCash(theNymID, theNotaryID, theAcctID, amount)
+        server_action_.WithdrawCash(theNymID, theNotaryID, theAcctID, amount)
             ->Run();
     std::int32_t reply = InterpretTransactionMsgReply(
         server, mynym, myacct, "withdraw_cash", response);
     if (1 != reply) { return reply; }
 
-    if (!api_.ServerAction().DownloadAccount(
+    if (!server_action_.DownloadAccount(
             theNymID, theNotaryID, theAcctID, true)) {
         otOut << "Error retrieving intermediary files for account.\n";
         return -1;
@@ -710,7 +713,7 @@ std::string Cash::check_nym(
     const std::string& nymID,
     const std::string& targetNymID) const
 {
-    auto action = api_.ServerAction().DownloadNym(
+    auto action = server_action_.DownloadNym(
         opentxs::Identifier::Factory(nymID),
         opentxs::Identifier::Factory(notaryID),
         opentxs::Identifier::Factory(targetNymID));
@@ -757,7 +760,7 @@ std::string Cash::load_or_retrieve_mint(
                   "missing or expired. Downloading from "
                   "server...\n";
 
-        response = api_.ServerAction()
+        response = server_action_
                        .DownloadMint(
                            Identifier::Factory(nymID),
                            Identifier::Factory(notaryID),

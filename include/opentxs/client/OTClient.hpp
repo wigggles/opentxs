@@ -46,18 +46,16 @@ public:
 
     explicit OTClient(
         OTWallet& theWallet,
+        const api::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts,
-        const api::Core& core,
         const api::client::Workflow& workflow);
 
 private:
     OTWallet& m_pWallet;
+    const api::Core& api_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
-    const api::Core& api_;
-    const api::Wallet& wallet_;
-    const api::Factory& factory_;
     const api::client::Workflow& workflow_;
     OTMessageOutbuffer m_MessageOutbuffer;
 

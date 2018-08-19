@@ -29,10 +29,8 @@ public:
         const ui::implementation::IssuerItemSortKey& sortKey,
         const ui::implementation::CustomData& custom);
     static api::client::internal::Activity* Activity(
-        const api::storage::Storage& storage,
-        const api::client::Contacts& contact,
-        const api::Core& core,
-        const network::zeromq::Context& zmq);
+        const api::Core& api,
+        const api::client::Contacts& contact);
     static ui::implementation::ActivitySummaryExternalInterface*
     ActivitySummary(
         const api::client::Manager& api,
@@ -65,13 +63,12 @@ public:
     static crypto::Bitcoin* Bitcoin(const api::Crypto& crypto);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static api::client::Blockchain* Blockchain(
-        const api::client::Activity& activity,
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
-        const api::storage::Storage& storage,
-        const api::Wallet& wallet);
+        const api::Core& api,
+        const api::client::Activity& activity);
 #endif
-    static api::client::Cash* Cash(const api::client::Manager& api);
+    static api::client::Cash* Cash(
+        const api::Core& api,
+        const api::client::ServerAction& serverAction);
     static api::client::internal::Manager* ClientManager(
         const Flag& running,
         const ArgList& args,
@@ -154,7 +151,7 @@ public:
         const crypto::Bip39& bip39,
         const crypto::LegacySymmetricProvider& aes);
 #endif
-    static api::Identity* Identity(const api::Wallet& wallet);
+    static api::Identity* Identity(const api::Core& api);
     static api::client::Issuer* Issuer(
         const api::Wallet& wallet,
         const Identifier& nymID,
@@ -341,11 +338,9 @@ public:
     static api::Wallet* Wallet(const api::client::Manager& client);
     static api::Wallet* Wallet(const api::server::Manager& server);
     static api::client::Workflow* Workflow(
+        const api::Core& api,
         const api::client::Activity& activity,
-        const api::client::Contacts& contact,
-        const api::Core& core,
-        const api::storage::Storage& storage,
-        const network::zeromq::Context& zmq);
+        const api::client::Contacts& contact);
     static api::network::ZMQ* ZMQ(const api::Core& api, const Flag& running);
 };
 }  // namespace opentxs

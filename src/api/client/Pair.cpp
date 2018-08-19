@@ -86,6 +86,7 @@ Pair::Pair(const Flag& running, const api::client::Manager& client)
     , pair_event_(client.ZeroMQ().PublishSocket())
     , pending_bailment_(client.ZeroMQ().PublishSocket())
 {
+    // WARNING: do not access client_.Wallet() during construction
     refresh_thread_.reset(new std::thread(&Pair::check_refresh, this));
     pair_event_->Start(client_.Endpoints().PairEvent());
     pending_bailment_->Start(client_.Endpoints().PendingBailment());

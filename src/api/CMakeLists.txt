@@ -10,6 +10,7 @@ add_subdirectory(server)
 add_subdirectory(storage)
 
 set(cxx-sources
+  Core.cpp
   Endpoints.cpp
   Factory.cpp
   HDSeed.cpp
@@ -29,6 +30,7 @@ file(GLOB cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
   ${CMAKE_CURRENT_SOURCE_DIR}/../internal/api/Internal.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Core.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Endpoints.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Factory.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/HDSeed.hpp

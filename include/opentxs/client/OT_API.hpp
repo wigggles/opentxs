@@ -1198,7 +1198,11 @@ private:
 
     class Pid;
 
-    const api::client::Manager& client_;
+    const api::Core& api_;
+    const api::client::Activity& activity_;
+    const api::client::Contacts& contacts_;
+    const api::client::Workflow& workflow_;
+    const api::network::ZMQ& zmq_;
     bool m_bDefaultStore{false};
     String m_strDataPath;
     mutable String m_strWalletFilename;
@@ -1261,7 +1265,11 @@ private:
     bool LoadConfigFile();
 
     OT_API(
-        const api::client::Manager& client,
+        const api::Core& api,
+        const api::client::Activity& activity,
+        const api::client::Contacts& contacts,
+        const api::client::Workflow& workflow,
+        const api::network::ZMQ& zmq,
         const ContextLockCallback& lockCallback);
     OT_API() = delete;
     OT_API(const OT_API&) = delete;

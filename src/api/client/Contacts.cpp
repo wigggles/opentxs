@@ -48,6 +48,7 @@ Contacts::Contacts(const api::Core& api)
     , contact_name_map_(build_name_map(api.Storage()))
     , publisher_(api.ZeroMQ().PublishSocket())
 {
+    // WARNING: do not access api_.Wallet() during construction
     publisher_->Start(api_.Endpoints().ContactUpdate());
 }
 

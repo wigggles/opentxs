@@ -58,11 +58,8 @@ private:
 
     friend opentxs::Factory;
 
+    const api::Core& api_;
     const api::client::Activity& activity_;
-    const api::Crypto& crypto_;
-    const api::HDSeed& seeds_;
-    const api::storage::Storage& storage_;
-    const api::Wallet& wallet_;
     mutable std::mutex lock_;
     mutable IDLock nym_lock_;
     mutable IDLock account_lock_;
@@ -97,12 +94,7 @@ private:
         const std::string& fromContact,
         const std::string& toContact) const;
 
-    Blockchain(
-        const api::client::Activity& activity,
-        const api::Crypto& crypto,
-        const api::HDSeed& seeds,
-        const api::storage::Storage& storage,
-        const api::Wallet& wallet);
+    Blockchain(const api::Core& api, const api::client::Activity& activity);
     Blockchain() = delete;
     Blockchain(const Blockchain&) = delete;
     Blockchain(Blockchain&&) = delete;

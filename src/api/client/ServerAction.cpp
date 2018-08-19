@@ -44,6 +44,7 @@ ServerAction::ServerAction(
     : api_(api)
     , lock_callback_(lockCallback)
 {
+    // WARNING: do not access api_.Wallet() during construction
 }
 
 ServerAction::Action ServerAction::AcknowledgeBailment(

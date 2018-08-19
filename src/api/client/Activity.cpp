@@ -9,6 +9,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -38,33 +39,24 @@
 namespace opentxs
 {
 api::client::internal::Activity* Factory::Activity(
-    const api::storage::Storage& storage,
-    const api::client::Contacts& contact,
-    const api::Core& core,
-    const network::zeromq::Context& zmq)
+    const api::Core& api,
+    const api::client::Contacts& contact)
 {
-    return new api::client::implementation::Activity(
-        storage, contact, core, zmq);
+    return new api::client::implementation::Activity(api, contact);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-Activity::Activity(
-    const storage::Storage& storage,
-    const Contacts& contact,
-    const Core& core,
-    const opentxs::network::zeromq::Context& zmq)
-    : storage_(storage)
+Activity::Activity(const api::Core& api, const client::Contacts& contact)
+    : api_(api)
     , contact_(contact)
-    , api_(core)
-    , wallet_(api_.Wallet())
-    , zmq_(zmq)
     , mail_cache_lock_()
     , mail_cache_()
     , publisher_lock_()
     , thread_publishers_()
 {
+    // WARNING: do not access api_.Wallet() during construction
 }
 
 void Activity::activity_preload_thread(
@@ -72,7 +64,7 @@ void Activity::activity_preload_thread(
     const std::size_t count) const
 {
     const std::string nymID = nym->str();
-    auto threads = storage_.ThreadList(nymID, false);
+    auto threads = api_.Storage().ThreadList(nymID, false);
 
     for (const auto& it : threads) {
         const auto& threadID = it.first;
@@ -89,7 +81,7 @@ bool Activity::AddBlockchainTransaction(
     eLock lock(shared_lock_);
     const std::string sNymID = nymID.str();
     const std::string sthreadID = threadID.str();
-    const auto threadList = storage_.ThreadList(sNymID, false);
+    const auto threadList = api_.Storage().ThreadList(sNymID, false);
     bool threadExists = false;
 
     for (const auto it : threadList) {
@@ -102,10 +94,10 @@ bool Activity::AddBlockchainTransaction(
     }
 
     if (false == threadExists) {
-        storage_.CreateThread(sNymID, sthreadID, {sthreadID});
+        api_.Storage().CreateThread(sNymID, sthreadID, {sthreadID});
     }
 
-    const bool saved = storage_.Store(
+    const bool saved = api_.Storage().Store(
         sNymID, sthreadID, transaction.txid(), transaction.time(), {}, {}, box);
 
     if (saved) { publish(nymID, sthreadID); }
@@ -124,7 +116,7 @@ bool Activity::AddPaymentEvent(
     eLock lock(shared_lock_);
     const std::string sNymID = nymID.str();
     const std::string sthreadID = threadID.str();
-    const auto threadList = storage_.ThreadList(sNymID, false);
+    const auto threadList = api_.Storage().ThreadList(sNymID, false);
     bool threadExists = false;
 
     for (const auto it : threadList) {
@@ -137,10 +129,10 @@ bool Activity::AddPaymentEvent(
     }
 
     if (false == threadExists) {
-        storage_.CreateThread(sNymID, sthreadID, {sthreadID});
+        api_.Storage().CreateThread(sNymID, sthreadID, {sthreadID});
     }
 
-    const bool saved = storage_.Store(
+    const bool saved = api_.Storage().Store(
         sNymID,
         sthreadID,
         itemID.str(),
@@ -162,7 +154,8 @@ Activity::ChequeData Activity::Cheque(
 {
     ChequeData output;
     auto& [cheque, contract] = output;
-    auto [type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
+    auto [type, state] =
+        api_.Storage().PaymentWorkflowState(nym.str(), workflowID);
     [[maybe_unused]] const auto& notUsed = state;
 
     switch (type) {
@@ -181,7 +174,7 @@ Activity::ChequeData Activity::Cheque(
     }
 
     std::shared_ptr<proto::PaymentWorkflow> workflow{nullptr};
-    const auto loaded = storage_.Load(nym.str(), workflowID, workflow);
+    const auto loaded = api_.Storage().Load(nym.str(), workflowID, workflow);
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Workflow " << workflowID
@@ -198,7 +191,7 @@ Activity::ChequeData Activity::Cheque(
     OT_ASSERT(cheque)
 
     const auto& unit = cheque->GetInstrumentDefinitionID();
-    contract = wallet_.UnitDefinition(unit);
+    contract = api_.Wallet().UnitDefinition(unit);
 
     if (false == bool(contract)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -227,7 +220,7 @@ const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
     if (thread_publishers_.end() != it) { return it->second; }
 
     const auto& [publisher, inserted] =
-        thread_publishers_.emplace(nymID, zmq_.PublishSocket());
+        thread_publishers_.emplace(nymID, api_.ZeroMQ().PublishSocket());
 
     OT_ASSERT(inserted)
 
@@ -245,7 +238,7 @@ bool Activity::MoveIncomingBlockchainTransaction(
     const Identifier& toThreadID,
     const std::string& txid) const
 {
-    return storage_.MoveThreadItem(
+    return api_.Storage().MoveThreadItem(
         nymID.str(), fromThreadID.str(), toThreadID.str(), txid);
 }
 
@@ -256,7 +249,7 @@ std::unique_ptr<Message> Activity::Mail(
 {
     std::string raw, alias;
     const bool loaded =
-        storage_.Load(nym.str(), id.str(), box, raw, alias, true);
+        api_.Storage().Load(nym.str(), id.str(), box, raw, alias, true);
 
     std::unique_ptr<Message> output;
 
@@ -316,7 +309,7 @@ std::string Activity::Mail(
     std::string alias = contact->Label();
     const std::string contactID = contact->ID().str();
     const auto& threadID = contactID;
-    const auto threadList = storage_.ThreadList(nymID, false);
+    const auto threadList = api_.Storage().ThreadList(nymID, false);
     bool threadExists = false;
 
     for (const auto it : threadList) {
@@ -329,10 +322,10 @@ std::string Activity::Mail(
     }
 
     if (false == threadExists) {
-        storage_.CreateThread(nymID, threadID, {contactID});
+        api_.Storage().CreateThread(nymID, threadID, {contactID});
     }
 
-    const bool saved = storage_.Store(
+    const bool saved = api_.Storage().Store(
         localName.Get(),
         threadID,
         output,
@@ -359,7 +352,7 @@ std::string Activity::Mail(
 
 ObjectList Activity::Mail(const Identifier& nym, const StorageBox box) const
 {
-    return storage_.NymBoxList(nym.str(), box);
+    return api_.Storage().NymBoxList(nym.str(), box);
 }
 
 bool Activity::MailRemove(
@@ -370,7 +363,7 @@ bool Activity::MailRemove(
     const std::string nymid = nym.str();
     const std::string mail = id.str();
 
-    return storage_.RemoveNymBoxItem(nymid, box, mail);
+    return api_.Storage().RemoveNymBoxItem(nymid, box, mail);
 }
 
 std::shared_ptr<const std::string> Activity::MailText(
@@ -403,7 +396,7 @@ bool Activity::MarkRead(
     const std::string thread = threadId.str();
     const std::string item = itemId.str();
 
-    return storage_.SetReadState(nym, thread, item, false);
+    return api_.Storage().SetReadState(nym, thread, item, false);
 }
 
 bool Activity::MarkUnread(
@@ -415,7 +408,7 @@ bool Activity::MarkUnread(
     const std::string thread = threadId.str();
     const std::string item = itemId.str();
 
-    return storage_.SetReadState(nym, thread, item, true);
+    return api_.Storage().SetReadState(nym, thread, item, true);
 }
 
 void Activity::MigrateLegacyThreads() const
@@ -425,11 +418,11 @@ void Activity::MigrateLegacyThreads() const
 
     for (const auto& it : contact_.ContactList()) { contacts.insert(it.first); }
 
-    const auto nymlist = storage_.NymList();
+    const auto nymlist = api_.Storage().NymList();
 
     for (const auto& it1 : nymlist) {
         const auto& nymID = it1.first;
-        const auto threadList = storage_.ThreadList(nymID, false);
+        const auto threadList = api_.Storage().ThreadList(nymID, false);
 
         for (const auto& it2 : threadList) {
             const auto& originalThreadID = it2.first;
@@ -441,11 +434,11 @@ void Activity::MigrateLegacyThreads() const
                 contact_.ContactID(Identifier::Factory(originalThreadID));
 
             if (false == contactID->empty()) {
-                storage_.RenameThread(
+                api_.Storage().RenameThread(
                     nymID, originalThreadID, contactID->str());
             } else {
                 std::shared_ptr<proto::StorageThread> thread;
-                storage_.Load(nymID, originalThreadID, thread);
+                api_.Storage().Load(nymID, originalThreadID, thread);
 
                 OT_ASSERT(thread);
 
@@ -466,7 +459,7 @@ void Activity::MigrateLegacyThreads() const
 
                     OT_ASSERT(newContact);
 
-                    storage_.RenameThread(
+                    api_.Storage().RenameThread(
                         nymID, originalThreadID, newContact->ID().str());
                 } else {
                     // Multi-party chats were not implemented prior to the
@@ -493,7 +486,8 @@ std::shared_ptr<const std::string> Activity::PaymentText(
     const std::string& workflowID) const
 {
     std::shared_ptr<std::string> output;
-    auto [type, state] = storage_.PaymentWorkflowState(nym.str(), workflowID);
+    auto [type, state] =
+        api_.Storage().PaymentWorkflowState(nym.str(), workflowID);
     [[maybe_unused]] const auto& notUsed = state;
 
     switch (type) {
@@ -513,7 +507,7 @@ std::shared_ptr<const std::string> Activity::PaymentText(
     }
 
     std::shared_ptr<proto::PaymentWorkflow> workflow{nullptr};
-    const auto loaded = storage_.Load(nym.str(), workflowID, workflow);
+    const auto loaded = api_.Storage().Load(nym.str(), workflowID, workflow);
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Workflow " << workflowID
@@ -570,7 +564,7 @@ void Activity::preload(
         return;
     }
 
-    auto nym = wallet_.Nym(nymID);
+    auto nym = api_.Wallet().Nym(nymID);
 
     if (false == bool(nym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load recipent nym."
@@ -581,8 +575,8 @@ void Activity::preload(
 
     otErr << OT_METHOD << __FUNCTION__ << ": Decrypting message " << id->str()
           << std::endl;
-    auto peerObject =
-        PeerObject::Factory(contact_, wallet_, nym, message->m_ascPayload);
+    auto peerObject = PeerObject::Factory(
+        contact_, api_.Wallet(), nym, message->m_ascPayload);
     otErr << OT_METHOD << __FUNCTION__ << ": Message " << id->str()
           << " decrypted." << std::endl;
 
@@ -643,7 +637,7 @@ std::shared_ptr<proto::StorageThread> Activity::Thread(
 {
     sLock lock(shared_lock_);
     std::shared_ptr<proto::StorageThread> output;
-    storage_.Load(nymID.str(), threadID.str(), output);
+    api_.Storage().Load(nymID.str(), threadID.str(), output);
 
     return output;
 }
@@ -655,7 +649,7 @@ void Activity::thread_preload_thread(
     const std::size_t count) const
 {
     std::shared_ptr<proto::StorageThread> thread{};
-    const bool loaded = storage_.Load(nymID, threadID, thread);
+    const bool loaded = api_.Storage().Load(nymID, threadID, thread);
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load thread "
@@ -710,7 +704,7 @@ std::string Activity::ThreadPublisher(const Identifier& nym) const
 ObjectList Activity::Threads(const Identifier& nym, const bool unreadOnly) const
 {
     const std::string nymID = nym.str();
-    auto output = storage_.ThreadList(nymID, unreadOnly);
+    auto output = api_.Storage().ThreadList(nymID, unreadOnly);
 
     for (auto& it : output) {
         const auto& threadID = it.first;
@@ -723,7 +717,7 @@ ObjectList Activity::Threads(const Identifier& nym, const bool unreadOnly) const
                 const auto& name = contact->Label();
 
                 if (label != name) {
-                    storage_.SetThreadAlias(nymID, threadID, name);
+                    api_.Storage().SetThreadAlias(nymID, threadID, name);
                     label = name;
                 }
             }
@@ -738,11 +732,11 @@ std::size_t Activity::UnreadCount(const Identifier& nymId) const
     const std::string nym = nymId.str();
     std::size_t output{0};
 
-    const auto& threads = storage_.ThreadList(nym, true);
+    const auto& threads = api_.Storage().ThreadList(nym, true);
 
     for (const auto& it : threads) {
         const auto& threadId = it.first;
-        output += storage_.UnreadCount(nym, threadId);
+        output += api_.Storage().UnreadCount(nym, threadId);
     }
 
     return output;

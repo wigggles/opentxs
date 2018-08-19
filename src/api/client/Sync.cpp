@@ -207,6 +207,7 @@ Sync::Sync(
     , account_subscriber_(
           client_.ZeroMQ().SubscribeSocket(account_subscriber_callback_.get()))
 {
+    // WARNING: do not access client_.Wallet() during construction
     const auto endpoint = client_.Endpoints().AccountUpdate();
     otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
            << std::endl;

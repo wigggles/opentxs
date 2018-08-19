@@ -182,11 +182,8 @@ private:
     typedef std::map<OTIdentifier, std::shared_ptr<const std::string>>
         MailCache;
 
-    const storage::Storage& storage_;
-    const Contacts& contact_;
-    const Core& api_;
-    const Wallet& wallet_;
-    const opentxs::network::zeromq::Context& zmq_;
+    const api::Core& api_;
+    const client::Contacts& contact_;
     mutable std::mutex mail_cache_lock_;
     mutable MailCache mail_cache_;
     mutable std::mutex publisher_lock_;
@@ -219,11 +216,7 @@ private:
         std::string& endpoint) const;
     void publish(const Identifier& nymID, const std::string& threadID) const;
 
-    Activity(
-        const storage::Storage& storage,
-        const Contacts& contact,
-        const Core& core,
-        const opentxs::network::zeromq::Context& zmq);
+    Activity(const api::Core& api, const client::Contacts& contact);
     Activity() = delete;
     Activity(const Activity&) = delete;
     Activity(Activity&&) = delete;

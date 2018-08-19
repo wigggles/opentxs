@@ -29,7 +29,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Wallet& wallet_;
+    const api::Core& api_;
 
     bool AddInternalVerification(
         bool& changed,
@@ -80,7 +80,7 @@ private:
         const Nym& nym,
         const OTPasswordData* pPWData = nullptr) const;
 
-    Identity(const api::Wallet& wallet);
+    Identity(const api::Core& api);
     Identity() = delete;
     Identity(const Identity&) = delete;
     Identity(Identity&&) = delete;

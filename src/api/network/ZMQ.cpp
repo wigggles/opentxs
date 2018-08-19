@@ -59,6 +59,7 @@ ZMQ::ZMQ(const api::Core& api, const Flag& running)
     , server_connections_()
     , status_publisher_(api_.ZeroMQ().PublishSocket())
 {
+    // WARNING: do not access api_.Wallet() during construction
     status_publisher_->Start(api_.Endpoints().ConnectionStatus());
 
     Lock lock(lock_);

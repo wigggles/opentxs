@@ -61,6 +61,7 @@ UI::UI(const api::client::Manager& api, const Flag& running)
     , messagable_lists_()
     , widget_update_publisher_(api_.ZeroMQ().PublishSocket())
 {
+    // WARNING: do not access api_.Wallet() during construction
     widget_update_publisher_->Start(api_.Endpoints().WidgetUpdate());
 }
 
