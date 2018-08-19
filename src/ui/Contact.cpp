@@ -6,6 +6,8 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactSection.hpp"
@@ -41,12 +43,11 @@
 namespace opentxs
 {
 ui::implementation::ContactExternalInterface* Factory::ContactWidget(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& contactID)
 {
-    return new ui::implementation::Contact(zmq, publisher, contact, contactID);
+    return new ui::implementation::Contact(api, publisher, contactID);
 }
 }  // namespace opentxs
 
@@ -60,18 +61,16 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
     {proto::CONTACTSECTION_COMMUNICATION, 0},
     {proto::CONTACTSECTION_PROFILE, 1}};
 
-const Widget::ListenerDefinitions Contact::listeners_{
-    {network::zeromq::Socket::ContactUpdateEndpoint,
-     new MessageProcessor<Contact>(&Contact::process_contact)},
-};
-
 Contact::Contact(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& contactID)
-    : ContactType(contactID, zmq, publisher, contact)
-    , name_(contact.ContactName(contactID))
+    : ContactType(api, publisher, contactID)
+    , listeners_({
+          {api_.Endpoints().ContactUpdate(),
+           new MessageProcessor<Contact>(&Contact::process_contact)},
+      })
+    , name_(api_.Contacts().ContactName(contactID))
     , payment_code_()
 {
     // NOTE nym_id_ is actually the contact id
@@ -96,7 +95,7 @@ void Contact::construct_row(
     items_[index].emplace(
         id,
         Factory::ContactSectionWidget(
-            *this, zmq_, publisher_, contact_manager_, id, index, custom));
+            *this, api_, publisher_, id, index, custom));
 }
 
 std::string Contact::ContactID() const { return nym_id_->str(); }
@@ -155,7 +154,7 @@ void Contact::process_contact(const network::zeromq::Message& message)
 
     if (contactID != nym_id_) { return; }
 
-    const auto contact = contact_manager_.Contact(contactID);
+    const auto contact = api_.Contacts().Contact(contactID);
 
     OT_ASSERT(contact)
 
@@ -171,7 +170,7 @@ void Contact::startup()
 {
     otErr << OT_METHOD << __FUNCTION__ << ": Loading contact " << nym_id_->str()
           << std::endl;
-    const auto contact = contact_manager_.Contact(nym_id_);
+    const auto contact = api_.Contacts().Contact(nym_id_);
 
     OT_ASSERT(contact)
 

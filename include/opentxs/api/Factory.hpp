@@ -22,52 +22,42 @@ namespace api
 class Factory
 {
 public:
+    EXPORT virtual std::unique_ptr<opentxs::Basket> Basket() const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Basket> Basket(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Basket> Basket(
-        const api::Core& core,
         std::int32_t nCount,
         std::int64_t lMinimumTransferAmount) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque(
         const OTTransaction& receipt) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque() const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Cheque> Cheque(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Contract> Contract(
-        const api::Core& core,
         const String& strCronItem) const = 0;
 
     EXPORT virtual std::unique_ptr<OTCron> Cron(
         const api::Core& server) const = 0;
 
     EXPORT virtual std::unique_ptr<OTCronItem> CronItem(
-        const api::Core& core,
         const String& strCronItem) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const Identifier& theNymID,
         const Item& theOwner) const = 0;  // From owner we can get acct ID,
                                           // server ID, and transaction Num
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const Identifier& theNymID,
         const OTTransaction& theOwner) const = 0;  // From owner we can get acct
                                                    // ID, server ID, and
                                                    // transaction Num
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const Identifier& theNymID,
         const OTTransaction& theOwner,
         itemType theType,
         const Identifier& pDestinationAcctID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
-        const api::Core& core,
         const String& strItem,
         const Identifier& theNotaryID,
         std::int64_t lTransactionNumber) const = 0;
@@ -77,66 +67,53 @@ public:
         const Identifier& pDestinationAcctID) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Ledger> Ledger(
-        const api::Core& core,
         const Identifier& theAccountID,
         const Identifier& theNotaryID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Ledger> Ledger(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Ledger> Ledger(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAcctID,
         const Identifier& theNotaryID,
         ledgerType theType,
         bool bCreateFile = false) const = 0;
 
+    EXPORT virtual std::unique_ptr<OTMarket> Market() const = 0;
     EXPORT virtual std::unique_ptr<OTMarket> Market(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<OTMarket> Market(
-        const api::Core& core,
         const char* szFilename) const = 0;
     EXPORT virtual std::unique_ptr<OTMarket> Market(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_TYPE_ID,
         const std::int64_t& lScale) const = 0;
 
-    EXPORT virtual std::unique_ptr<opentxs::Message> Message(
-        const api::Core& core) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::Message> Message() const = 0;
 
 #if OT_CASH
+    EXPORT virtual std::unique_ptr<opentxs::Mint> Mint() const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Mint> Mint(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Mint> Mint(
-        const api::Core& core,
         const String& strNotaryID,
         const String& strInstrumentDefinitionID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Mint> Mint(
-        const api::Core& core,
         const String& strNotaryID,
         const String& strServerNymID,
         const String& strInstrumentDefinitionID) const = 0;
 #endif
 
+    EXPORT virtual std::unique_ptr<OTOffer> Offer()
+        const = 0;  // The constructor contains
+                    // the 3 variables needed to
+                    // identify any market.
     EXPORT virtual std::unique_ptr<OTOffer> Offer(
-        const api::Core& core) const = 0;  // The constructor contains
-                                           // the 3 variables needed to
-                                           // identify any market.
-    EXPORT virtual std::unique_ptr<OTOffer> Offer(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& CURRENCY_ID,
         const std::int64_t& MARKET_SCALE) const = 0;
 
+    EXPORT virtual std::unique_ptr<OTPayment> Payment() const = 0;
     EXPORT virtual std::unique_ptr<OTPayment> Payment(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<OTPayment> Payment(
-        const api::Core& core,
         const String& strPayment) const = 0;
 
 #if OT_CRYPTO_WITH_BIP39
@@ -153,14 +130,11 @@ public:
         const std::uint8_t bitmessageStream = 0) const = 0;
 #endif
 
+    EXPORT virtual std::unique_ptr<OTPaymentPlan> PaymentPlan() const = 0;
     EXPORT virtual std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
     EXPORT virtual std::unique_ptr<OTPaymentPlan> PaymentPlan(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& SENDER_ACCT_ID,
@@ -171,65 +145,49 @@ public:
 #if OT_CASH
     /** just for copy another purse's Server and Instrument Definition Id */
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const opentxs::Purse& thePurse) const = 0;
     /** similar thing */
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
     /** Don't use this unless you really don't know the instrument definition
      * (Like if you're about to read it out of a string.) */
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const Identifier& NOTARY_ID) const = 0;
     /** Normally you really really want to set the instrument definition. */
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& NYM_ID) const = 0;  // NymID optional
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const opentxs::Purse& thePurse) const = 0;
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID in advance.
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         String strInput) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         String strInput,
         const Identifier& NOTARY_ID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const api::Core& core,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
 #endif  // OT_CASH
 
     EXPORT virtual std::unique_ptr<OTScriptable> Scriptable(
-        const api::Core& core,
         const String& strCronItem) const = 0;
 
+    EXPORT virtual std::unique_ptr<OTSignedFile> SignedFile() const = 0;
     EXPORT virtual std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core,
         const String& LOCAL_SUBDIR,
         const String& FILE_NAME) const = 0;
     EXPORT virtual std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core,
         const char* LOCAL_SUBDIR,
         const String& FILE_NAME) const = 0;
     EXPORT virtual std::unique_ptr<OTSignedFile> SignedFile(
-        const api::Core& core,
         const char* LOCAL_SUBDIR,
         const char* FILE_NAME) const = 0;
 
+    EXPORT virtual std::unique_ptr<OTSmartContract> SmartContract() const = 0;
     EXPORT virtual std::unique_ptr<OTSmartContract> SmartContract(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<OTSmartContract> SmartContract(
-        const api::Core& core,
         const Identifier& NOTARY_ID) const = 0;
 
 #if OT_CASH
@@ -237,13 +195,11 @@ public:
      * LucreTokens, and other types of tokens, dynamically, without having to
      * know beforehand which OTToken subclass we're dealing with. */
     EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        const api::Core& core,
         String strInput) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> Token(
         String strInput,
         const opentxs::Purse& thePurse) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        const api::Core& core,
         String strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
@@ -256,21 +212,16 @@ public:
 #endif
 
 #if OT_CASH_USING_LUCRE
+    EXPORT virtual std::unique_ptr<Token_Lucre> TokenLucre() const = 0;
     EXPORT virtual std::unique_ptr<Token_Lucre> TokenLucre(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<Token_Lucre> TokenLucre(
-        const api::Core& core,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
     EXPORT virtual std::unique_ptr<Token_Lucre> TokenLucre(
-        const api::Core& core,
         const opentxs::Purse& thePurse) const = 0;
 #endif
 
+    EXPORT virtual std::unique_ptr<OTTrade> Trade() const = 0;
     EXPORT virtual std::unique_ptr<OTTrade> Trade(
-        const api::Core& core) const = 0;
-    EXPORT virtual std::unique_ptr<OTTrade> Trade(
-        const api::Core& core,
         const Identifier& notaryID,
         const Identifier& instrumentDefinitionID,
         const Identifier& assetAcctId,
@@ -279,20 +230,16 @@ public:
         const Identifier& currencyAcctId) const = 0;
 
     EXPORT virtual std::unique_ptr<OTTransactionType> Transaction(
-        const api::Core& core,
         const String& strCronItem) const = 0;
 
     EXPORT virtual std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const opentxs::Ledger& theOwner) const = 0;
     EXPORT virtual std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
         originType theOriginType = originType::not_applicable) const = 0;
     EXPORT virtual std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
@@ -303,7 +250,6 @@ public:
     // The full receipt is loaded only after the abbreviated ones are loaded,
     // and verified against them.
     EXPORT virtual std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
@@ -322,7 +268,6 @@ public:
         bool bReplyTransSuccess,
         NumList* pNumList = nullptr) const = 0;
     EXPORT virtual std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const Identifier& theNymID,
         const Identifier& theAccountID,
         const Identifier& theNotaryID,
@@ -330,7 +275,6 @@ public:
         originType theOriginType = originType::not_applicable,
         std::int64_t lTransactionNum = 0) const = 0;
     EXPORT virtual std::unique_ptr<OTTransaction> Transaction(
-        const api::Core& core,
         const opentxs::Ledger& theOwner,
         transactionType theType,
         originType theOriginType = originType::not_applicable,
@@ -344,14 +288,11 @@ protected:
 private:
 #if OT_CASH
     EXPORT virtual std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const api::Core& core,
         const String& strFirstLine) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const api::Core& core,
         const String& strFirstLine,
         const Identifier& NOTARY_ID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const api::Core& core,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
@@ -359,13 +300,11 @@ private:
     EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
         const opentxs::Purse& thePurse) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const api::Core& core,
         const String& strFirstLine) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
         const String& strFirstLine,
         const opentxs::Purse& thePurse) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const api::Core& core,
         const String& strFirstLine,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;

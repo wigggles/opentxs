@@ -60,7 +60,7 @@ void Wallet::instantiate_client_context(
     std::shared_ptr<opentxs::Context>& output) const
 {
     output.reset(new opentxs::ClientContext(
-        server_, serialized, localNym, remoteNym, server_.ID()));
+        api_, serialized, localNym, remoteNym, server_.ID()));
 }
 
 bool Wallet::load_legacy_account(
@@ -75,8 +75,7 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(verify_lock(lock, rowMutex))
 
-    pAccount.reset(
-        Account::LoadExistingAccount(core_, accountID, server_.ID()));
+    pAccount.reset(Account::LoadExistingAccount(api_, accountID, server_.ID()));
 
     if (false == bool(pAccount)) { return false; }
 
@@ -120,7 +119,7 @@ bool Wallet::load_legacy_account(
 
     OT_ASSERT(server_.ID() == serverID)
 
-    saved = core_.Storage().Store(
+    saved = api_.Storage().Store(
         accountID.str(),
         serialized.Get(),
         "",
@@ -162,8 +161,7 @@ Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
         // Create a new Context
         const ContextID contextID = {serverNymID.str(), remoteNymID.str()};
         auto& entry = context_map_[contextID];
-        entry.reset(
-            new opentxs::ClientContext(server_, local, remote, serverID));
+        entry.reset(new opentxs::ClientContext(api_, local, remote, serverID));
         base = entry;
     }
 

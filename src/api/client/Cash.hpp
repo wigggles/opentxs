@@ -147,9 +147,10 @@ protected:
 private:
     friend opentxs::Factory;
 
-    const Core& core_;
+    const api::Core& api_;
+    const client::ServerAction& server_action_;
 
-    Cash(const Core& core);
+    Cash(const api::Core& api, const client::ServerAction& serverAction);
     Cash() = delete;
     Cash(const Cash&) = delete;
     Cash(Cash&&) = delete;

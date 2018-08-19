@@ -15,6 +15,7 @@ namespace
 class Test_CreateNymHD : public ::testing::Test
 {
 public:
+    const opentxs::api::client::Manager& client_;
     std::string SeedA_;
     std::string SeedB_;
     std::string SeedC_;
@@ -23,32 +24,24 @@ public:
     std::string Alice, Bob;
 
     Test_CreateNymHD()
+        : client_(opentxs::OT::App().StartClient({}, 0))
         // these fingerprints are deterministic so we can share them among tests
-        : SeedA_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
+        , SeedA_(client_.Exec().Wallet_ImportSeed(
               "spike nominee miss inquiry fee nothing belt list other daughter "
               "leave valley twelve gossip paper",
               ""))
-        , SeedB_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
+        , SeedB_(client_.Exec().Wallet_ImportSeed(
               "glimpse destroy nation advice seven useless candy move number "
               "toast insane anxiety proof enjoy lumber",
               ""))
-        , SeedC_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
-              "park cabbage quit",
-              ""))
-        , SeedD_(opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
-              "federal dilemma rare",
-              ""))
-        , Alice(opentxs::OT::App().Client().Exec().CreateNymHD(
-              proto::CITEMTYPE_INDIVIDUAL,
-              "Alice",
-              SeedA_,
-              0))
+        , SeedC_(client_.Exec().Wallet_ImportSeed("park cabbage quit", ""))
+        , SeedD_(client_.Exec().Wallet_ImportSeed("federal dilemma rare", ""))
+        , Alice(
+              client_.Exec()
+                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0))
         , AliceID("ot24XFA1wKynjaAB59dx7PwEzGg37U8Q2yXG")
-        , Bob(opentxs::OT::App().Client().Exec().CreateNymHD(
-              proto::CITEMTYPE_INDIVIDUAL,
-              "Bob",
-              SeedB_,
-              0))
+        , Bob(client_.Exec()
+                  .CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0))
         , BobID("ot274uRuN1VezD47R7SqAH27s2WKP1U5jKWk")
         , EveID("otwz4jCuiVg7UF2i1NgCSvTWeDS29EAHeL6")
         , FrankID("ot2BqchYuY5r747PnGK3SuM4A8bCLtuGASqY")
@@ -65,19 +58,15 @@ TEST_F(Test_CreateNymHD, TestNym_DeterministicIDs)
 
 TEST_F(Test_CreateNymHD, TestNym_ABCD)
 {
-    auto Charly = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto Charly = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Charly", SeedA_, 1);
-    auto Dave = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto Dave = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
 
-    const ConstNym NymA =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Alice));
-    const ConstNym NymB =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Bob));
-    const ConstNym NymC =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Charly));
-    const ConstNym NymD =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Dave));
+    const ConstNym NymA = client_.Wallet().Nym(Identifier::Factory(Alice));
+    const ConstNym NymB = client_.Wallet().Nym(Identifier::Factory(Bob));
+    const ConstNym NymC = client_.Wallet().Nym(Identifier::Factory(Charly));
+    const ConstNym NymD = client_.Wallet().Nym(Identifier::Factory(Dave));
 
     // Alice
     proto::HDPath pathA;
@@ -124,10 +113,9 @@ TEST_F(Test_CreateNymHD, TestNym_ABCD)
 
 TEST_F(Test_CreateNymHD, TestNym_Dave)
 {
-    const auto Dave = opentxs::OT::App().Client().Exec().CreateNymHD(
+    const auto Dave = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Dave", SeedB_, 1);
-    const ConstNym NymD =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Dave));
+    const ConstNym NymD = client_.Wallet().Nym(Identifier::Factory(Dave));
 
     proto::HDPath pathD;
     EXPECT_TRUE(NymD.get()->Path(pathD));
@@ -147,12 +135,11 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
 {
 
     // EXPECT_STREQ(EveID.c_str(), Eve.c_str());
-    auto NewEve = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto NewEve = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Eve", SeedB_, 2);
     EXPECT_STREQ(EveID.c_str(), NewEve.c_str());
 
-    const ConstNym NymE =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(NewEve));
+    const ConstNym NymE = client_.Wallet().Nym(Identifier::Factory(NewEve));
 
     proto::HDPath pathE;
     EXPECT_TRUE(NymE.get()->Path(pathE));
@@ -170,18 +157,16 @@ TEST_F(Test_CreateNymHD, TestNym_Eve)
 
 TEST_F(Test_CreateNymHD, TestNym_Frank)
 {
-    auto Frank = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto Frank = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Frank", SeedB_, 3);
-    auto Frank2 = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto Frank2 = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Frank", SeedA_, 3);
 
     EXPECT_STRNE(Frank.c_str(), Frank2.c_str());
     EXPECT_STREQ(FrankID.c_str(), Frank.c_str());
 
-    const ConstNym NymF =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Frank));
-    const ConstNym NymF2 =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(Frank2));
+    const ConstNym NymF = client_.Wallet().Nym(Identifier::Factory(Frank));
+    const ConstNym NymF2 = client_.Wallet().Nym(Identifier::Factory(Frank2));
 
     proto::HDPath pathF, pathF2;
     EXPECT_TRUE(NymF.get()->Path(pathF));
@@ -206,16 +191,14 @@ TEST_F(Test_CreateNymHD, TestNym_Frank)
 
 TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
 {
-    auto NymID1 = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto NymID1 = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedC_, 0);
 
-    auto NymID2 = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto NymID2 = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedC_, 0);
 
-    const ConstNym Nym1 =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(NymID1));
-    const ConstNym Nym2 =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(NymID2));
+    const ConstNym Nym1 = client_.Wallet().Nym(Identifier::Factory(NymID1));
+    const ConstNym Nym2 = client_.Wallet().Nym(Identifier::Factory(NymID2));
 
     proto::HDPath path1, path2;
     EXPECT_TRUE(Nym1.get()->Path(path1));
@@ -229,16 +212,14 @@ TEST_F(Test_CreateNymHD, TestNym_NonnegativeIndex)
 
 TEST_F(Test_CreateNymHD, TestNym_NegativeIndex)
 {
-    auto NymID1 = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto NymID1 = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym1", SeedD_, -1);
 
-    auto NymID2 = opentxs::OT::App().Client().Exec().CreateNymHD(
+    auto NymID2 = client_.Exec().CreateNymHD(
         proto::CITEMTYPE_INDIVIDUAL, "Nym2", SeedD_, -1);
 
-    const ConstNym Nym1 =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(NymID1));
-    const ConstNym Nym2 =
-        opentxs::OT::App().Client().Wallet().Nym(Identifier::Factory(NymID2));
+    const ConstNym Nym1 = client_.Wallet().Nym(Identifier::Factory(NymID1));
+    const ConstNym Nym2 = client_.Wallet().Nym(Identifier::Factory(NymID2));
 
     proto::HDPath path1, path2;
     EXPECT_TRUE(Nym1.get()->Path(path1));

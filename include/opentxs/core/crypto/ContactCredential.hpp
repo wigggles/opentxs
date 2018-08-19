@@ -18,9 +18,6 @@
 
 namespace opentxs
 {
-
-class String;
-
 class ContactCredential : public Credential
 {
 private:
@@ -35,13 +32,11 @@ private:
         const SerializationSignatureFlag asSigned) const override;
 
     ContactCredential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& parent,
         const proto::Credential& credential);
     ContactCredential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& parent,
         const NymParameters& nymParameters);
     ContactCredential() = delete;
@@ -73,7 +68,5 @@ public:
 
     virtual ~ContactCredential() = default;
 };
-
 }  // namespace opentxs
-
 #endif

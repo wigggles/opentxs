@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/network/zeromq/CurveClient.hpp"
 #include "opentxs/network/zeromq/CurveServer.hpp"
 
@@ -30,9 +29,7 @@ namespace network
 {
 namespace zeromq
 {
-class RouterSocket : virtual public Socket,
-                     virtual public CurveClient,
-                     virtual public CurveServer
+class RouterSocket : virtual public CurveServer, virtual public CurveClient
 {
 public:
     EXPORT static OTZMQRouterSocket Factory(

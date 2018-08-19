@@ -204,7 +204,7 @@ bool MessageProcessor::processMessage(
     armored.MemSet(messageString.data(), messageString.size());
     String serialized;
     armored.GetString(serialized);
-    auto request{server_.API().Factory().Message(server_.API())};
+    auto request{server_.API().Factory().Message()};
 
     if (false == serialized.Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Empty serialized request."
@@ -220,7 +220,7 @@ bool MessageProcessor::processMessage(
         return true;
     }
 
-    auto replymsg{server_.API().Factory().Message(server_.API())};
+    auto replymsg{server_.API().Factory().Message()};
 
     OT_ASSERT(false != bool(replymsg));
 

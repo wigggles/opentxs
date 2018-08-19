@@ -32,14 +32,13 @@ namespace opentxs
 {
 ui::internal::ContactListItem* Factory::ContactListItem(
     const ui::implementation::ContactListInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::ContactListRowID& rowID,
     const ui::implementation::ContactListSortKey& key)
 {
     return new ui::implementation::ContactListItem(
-        parent, zmq, publisher, contact, rowID, key);
+        parent, api, publisher, rowID, key);
 }
 }  // namespace opentxs
 
@@ -47,12 +46,11 @@ namespace opentxs::ui::implementation
 {
 ContactListItem::ContactListItem(
     const ContactListInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ContactListRowID& rowID,
     const ContactListSortKey& key)
-    : ContactListItemRow(parent, zmq, publisher, contact, rowID, true)
+    : ContactListItemRow(parent, api, publisher, rowID, true)
     , key_(key)
 {
 }

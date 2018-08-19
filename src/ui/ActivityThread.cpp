@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -46,34 +47,26 @@ template class std::
 namespace opentxs
 {
 ui::ActivityThread* Factory::ActivityThread(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Sync& sync,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const Identifier& threadID)
 {
     return new ui::implementation::ActivityThread(
-        zmq, publisher, sync, activity, contact, nymID, threadID);
+        api, publisher, nymID, threadID);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
 ActivityThread::ActivityThread(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Sync& sync,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const Identifier& threadID)
-    : ActivityThreadList(nymID, zmq, publisher, contact)
-    , listeners_{{activity.ThreadPublisher(nymID),
+    : ActivityThreadList(api, publisher, nymID)
+    , listeners_{{api_.Activity().ThreadPublisher(nymID),
         new MessageProcessor<ActivityThread>(&ActivityThread::process_thread)},}
-    , activity_(activity)
-    , sync_(sync)
     , threadID_(Identifier::Factory(threadID))
     , participants_()
     , contact_lock_()
@@ -97,7 +90,7 @@ ActivityThread::ActivityThread(
 bool ActivityThread::check_draft(const ActivityThreadRowID& id) const
 {
     const auto& taskID = std::get<0>(id);
-    const auto [status, contactID] = sync_.MessageStatus(taskID);
+    const auto [status, contactID] = api_.Sync().MessageStatus(taskID);
     [[maybe_unused]] const auto& notUsed = contactID;
 
     switch (status) {
@@ -174,29 +167,19 @@ void ActivityThread::construct_row(
             items_[index].emplace(
                 id,
                 Factory::MailItem(
-                    *this,
-                    zmq_,
-                    publisher_,
-                    contact_manager_,
-                    nym_id_,
-                    id,
-                    index,
-                    custom,
-                    activity_));
+                    *this, api_, publisher_, nym_id_, id, index, custom));
         } break;
         case StorageBox::DRAFT: {
             items_[index].emplace(
                 id,
                 Factory::MailItem(
                     *this,
-                    zmq_,
+                    api_,
                     publisher_,
-                    contact_manager_,
                     nym_id_,
                     id,
                     index,
                     custom,
-                    activity_,
                     false,
                     true));
         } break;
@@ -205,15 +188,7 @@ void ActivityThread::construct_row(
             items_[index].emplace(
                 id,
                 Factory::PaymentItem(
-                    *this,
-                    zmq_,
-                    publisher_,
-                    contact_manager_,
-                    nym_id_,
-                    id,
-                    index,
-                    custom,
-                    activity_));
+                    *this, api_, publisher_, nym_id_, id, index, custom));
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:
@@ -239,7 +214,7 @@ std::string ActivityThread::DisplayName() const
     std::set<std::string> names{};
 
     for (const auto& contactID : participants_) {
-        auto name = contact_manager_.ContactName(contactID);
+        auto name = api_.Contacts().ContactName(contactID);
 
         if (name.empty()) {
             names.emplace(contactID->str());
@@ -267,7 +242,7 @@ void ActivityThread::init_contact()
         return;
     }
 
-    auto contact = contact_manager_.Contact(*participants_.cbegin());
+    auto contact = api_.Contacts().Contact(*participants_.cbegin());
     Lock lock(contact_lock_);
     contact_ = contact;
     lock.unlock();
@@ -343,7 +318,7 @@ void ActivityThread::process_thread(const network::zeromq::Message& message)
 
     if (threadID_ != threadID) { return; }
 
-    const auto thread = activity_.Thread(nym_id_, threadID_);
+    const auto thread = api_.Activity().Thread(nym_id_, threadID_);
 
     OT_ASSERT(thread)
 
@@ -396,7 +371,7 @@ bool ActivityThread::SendDraft() const
     }
 
     const auto taskID =
-        sync_.MessageContact(nym_id_, *participants_.begin(), draft_);
+        api_.Sync().MessageContact(nym_id_, *participants_.begin(), draft_);
 
     // if (taskID.empty())
     if (taskID->empty()) {
@@ -429,7 +404,7 @@ bool ActivityThread::SetDraft(const std::string& draft) const
 
 void ActivityThread::startup()
 {
-    const auto thread = activity_.Thread(nym_id_, threadID_);
+    const auto thread = api_.Activity().Thread(nym_id_, threadID_);
 
     if (thread) {
         load_thread(*thread);

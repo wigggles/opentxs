@@ -82,13 +82,11 @@ protected:
         const bool onlyPrivate = false);
 
     KeyCredential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& owner,
         const NymParameters& nymParameters);
     KeyCredential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& owner,
         const proto::Credential& serializedCred);
 
@@ -158,6 +156,7 @@ private:
         const proto::Credential& credential);
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     static OTKeypair derive_hd_keypair(
+        const api::Crypto& crypto,
         const OTPassword& seed,
         const std::string& fingerprint,
         const std::uint32_t nym,
@@ -167,6 +166,7 @@ private:
         const proto::KeyRole role);
 #endif
     static OTKeypair new_key(
+        const api::Crypto& crypto,
         const proto::KeyRole role,
         const NymParameters& nymParameters);
 };

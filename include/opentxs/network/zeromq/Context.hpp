@@ -17,6 +17,7 @@
 %ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator opentxs::network::zeromq::Context&;
 %ignore opentxs::Pimpl<opentxs::network::zeromq::Context>::operator const opentxs::network::zeromq::Context &;
 %ignore opentxs::network::zeromq::Context::operator void*() const;
+%ignore opentxs::network::zeromq::Context::EncodePrivateZ85 const;
 %rename(assign) operator=(const opentxs::network::zeromq::Context&);
 %rename(ZMQContext) opentxs::network::zeromq::Context;
 %template(OTZMQContext) opentxs::Pimpl<opentxs::network::zeromq::Context>;
@@ -39,11 +40,21 @@ public:
 
     EXPORT virtual operator void*() const = 0;
 
+    EXPORT virtual std::string BuildEndpoint(
+        const std::string& path,
+        const int instance,
+        const int version) const = 0;
+    EXPORT virtual std::string BuildEndpoint(
+        const std::string& path,
+        const int instance,
+        const int version,
+        const std::string& suffix) const = 0;
     EXPORT virtual Pimpl<network::zeromq::DealerSocket> DealerSocket(
         const ListenCallback& callback,
         const bool client) const = 0;
     EXPORT virtual Pimpl<network::zeromq::SubscribeSocket> PairEventListener(
-        const PairEventCallback& callback) const = 0;
+        const PairEventCallback& callback,
+        const int instance) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(
         const ListenCallback& callback) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(

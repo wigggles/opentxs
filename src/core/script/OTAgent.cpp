@@ -623,7 +623,7 @@ bool OTAgent::DropFinalReceiptToNymbox(
 }
 
 bool OTAgent::DropServerNoticeToNymbox(
-    const std::string& dataFolder,
+    const api::Core& api,
     bool bSuccessMsg,  // Added this so we can notify smart contract parties
                        // when
                        // it FAILS to activate.
@@ -644,7 +644,7 @@ bool OTAgent::DropServerNoticeToNymbox(
     if (true == bNymID) {
 
         return OTAgreement::DropServerNoticeToNymbox(
-            OT::App().Client(),
+            api,
             bSuccessMsg,
             theServerNym,
             theNotaryID,

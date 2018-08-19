@@ -14,6 +14,7 @@
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/HDSeed.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Data.hpp"
@@ -60,34 +61,25 @@
 namespace opentxs
 {
 api::client::Blockchain* Factory::Blockchain(
-    const api::client::Activity& activity,
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
-    const api::storage::Storage& storage,
-    const api::Wallet& wallet)
+    const api::Core& api,
+    const api::client::Activity& activity)
 {
-    return new api::client::implementation::Blockchain(
-        activity, crypto, seeds, storage, wallet);
+    return new api::client::implementation::Blockchain(api, activity);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
 Blockchain::Blockchain(
-    const api::client::Activity& activity,
-    const api::Crypto& crypto,
-    const api::HDSeed& seeds,
-    const api::storage::Storage& storage,
-    const api::Wallet& wallet)
-    : activity_(activity)
-    , crypto_(crypto)
-    , seeds_(seeds)
-    , storage_(storage)
-    , wallet_(wallet)
+    const api::Core& api,
+    const api::client::Activity& activity)
+    : api_(api)
+    , activity_(activity)
     , lock_()
     , nym_lock_()
     , account_lock_()
 {
+    // WARNING: do not access api_.Wallet() during construction
 }
 
 std::shared_ptr<proto::Bip44Account> Blockchain::Account(
@@ -113,7 +105,7 @@ std::set<OTIdentifier> Blockchain::AccountList(
     const proto::ContactItemType type) const
 {
     std::set<OTIdentifier> output;
-    auto list = storage_.BlockchainAccountList(nymID.str(), type);
+    auto list = api_.Storage().BlockchainAccountList(nymID.str(), type);
 
     for (const auto& accountID : list) {
         // output.emplace(String(accountID.c_str()));
@@ -223,7 +215,7 @@ std::unique_ptr<proto::Bip44Address> Blockchain::AllocateAddress(
     otErr << OT_METHOD << __FUNCTION__ << ": Address " << newAddress.address()
           << " allocated." << std::endl;
     newAddress.set_label(label);
-    const auto saved = storage_.Store(sNymID, type, *account);
+    const auto saved = api_.Storage().Store(sNymID, type, *account);
 
     if (false == saved) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
@@ -281,7 +273,7 @@ bool Blockchain::AssignAddress(
 
     // check: does the activity thread exist between nym and contact?
     bool threadExists = false;
-    const auto threadList = storage_.ThreadList(sNymID, false);
+    const auto threadList = api_.Storage().ThreadList(sNymID, false);
     for (const auto it : threadList) {
         const auto& id = it.first;
 
@@ -318,7 +310,7 @@ bool Blockchain::AssignAddress(
         }
     }
 
-    return storage_.Store(sNymID, type, *account);
+    return api_.Storage().Store(sNymID, type, *account);
 }
 
 Bip44Type Blockchain::bip44_type(const proto::ContactItemType type) const
@@ -375,7 +367,7 @@ std::string Blockchain::calculate_address(
 {
     const auto& path = account.path();
     auto fingerprint = path.root();
-    auto serialized = seeds_.AccountChildKey(path, chain, index);
+    auto serialized = api_.Seeds().AccountChildKey(path, chain, index);
 
     if (false == bool(serialized)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to derive key."
@@ -422,14 +414,15 @@ std::string Blockchain::calculate_address(
     auto ripemd160 = Data::Factory();
     auto pubkeyHash = Data::Factory();
 
-    if (!crypto_.Hash().Digest(proto::HASHTYPE_SHA256, pubkey, sha256)) {
+    if (!api_.Crypto().Hash().Digest(proto::HASHTYPE_SHA256, pubkey, sha256)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to calculate sha256."
               << std::endl;
 
         return {};
     }
 
-    if (!crypto_.Hash().Digest(proto::HASHTYPE_RIMEMD160, sha256, pubkeyHash)) {
+    if (!api_.Crypto().Hash().Digest(
+            proto::HASHTYPE_RIMEMD160, sha256, pubkeyHash)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to calculate rimemd160."
               << std::endl;
 
@@ -445,7 +438,7 @@ std::string Blockchain::calculate_address(
 
     OT_ASSERT(21 == preimage->size());
 
-    return crypto_.Encode().IdentifierEncode(preimage);
+    return api_.Crypto().Encode().IdentifierEncode(preimage);
 }
 
 proto::Bip44Address& Blockchain::find_address(
@@ -507,7 +500,7 @@ std::shared_ptr<proto::Bip44Account> Blockchain::load_account(
     const std::string& accountID) const
 {
     std::shared_ptr<proto::Bip44Account> account{nullptr};
-    storage_.Load(nymID, accountID, account);
+    api_.Storage().Load(nymID, accountID, account);
 
     return account;
 }
@@ -575,7 +568,7 @@ OTIdentifier Blockchain::NewAccount(
     LOCK_NYM()
 
     const std::string sNymID = nymID.str();
-    auto existing = storage_.BlockchainAccountList(sNymID, type);
+    auto existing = api_.Storage().BlockchainAccountList(sNymID, type);
 
     if (0 < existing.size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Account already exists."
@@ -584,7 +577,7 @@ OTIdentifier Blockchain::NewAccount(
         return Identifier::Factory(*existing.begin());
     }
 
-    auto nym = wallet_.Nym(nymID);
+    auto nym = api_.Wallet().Nym(nymID);
 
     if (false == bool(nym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Nym does not exist."
@@ -633,7 +626,7 @@ OTIdentifier Blockchain::NewAccount(
     account.clear_internaladdress();
     account.clear_externaladdress();
 
-    const bool saved = storage_.Store(sNymID, type, account);
+    const bool saved = api_.Storage().Store(sNymID, type, account);
 
     if (saved) { return accountID; }
 
@@ -685,7 +678,7 @@ bool Blockchain::StoreIncoming(
 
     if (false == exists) { address.add_incoming(transaction.txid()); }
 
-    auto saved = storage_.Store(sNymID, account->type(), *account);
+    auto saved = api_.Storage().Store(sNymID, account->type(), *account);
 
     if (false == saved) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
@@ -694,7 +687,7 @@ bool Blockchain::StoreIncoming(
         return false;
     }
 
-    saved = storage_.Store(transaction);
+    saved = api_.Storage().Store(transaction);
 
     if (false == saved) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to save transaction."
@@ -732,7 +725,7 @@ bool Blockchain::StoreOutgoing(
 
     const auto& txid = transaction.txid();
     account->add_outgoing(txid);
-    auto saved = storage_.Store(sNymID, account->type(), *account);
+    auto saved = api_.Storage().Store(sNymID, account->type(), *account);
 
     if (false == saved) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
@@ -741,7 +734,7 @@ bool Blockchain::StoreOutgoing(
         return false;
     }
 
-    saved = storage_.Store(transaction);
+    saved = api_.Storage().Store(transaction);
 
     if (false == saved) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to save transaction."
@@ -764,7 +757,7 @@ std::shared_ptr<proto::BlockchainTransaction> Blockchain::Transaction(
 {
     std::shared_ptr<proto::BlockchainTransaction> output;
 
-    if (false == storage_.Load(txid, output, false)) {
+    if (false == api_.Storage().Load(txid, output, false)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load transaction."
               << std::endl;
     }

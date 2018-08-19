@@ -52,13 +52,20 @@ namespace
 class Test_Bitcoin_Providers : public ::testing::Test
 {
 public:
-    const api::Crypto& crypto_{OT::App().Crypto()};
+    const opentxs::api::client::Manager& client_;
+    const api::Crypto& crypto_;
 #if OT_CRYPTO_USING_TREZOR
     const std::unique_ptr<crypto::Trezor> trezor_{Factory::Trezor(crypto_)};
 #endif
 #if OT_CRYPTO_USING_LIBBITCOIN
     const std::unique_ptr<crypto::Bitcoin> bitcoin_{Factory::Bitcoin(crypto_)};
 #endif
+
+    Test_Bitcoin_Providers()
+        : client_(opentxs::OT::App().StartClient({}, 0))
+        , crypto_(client_.Crypto())
+    {
+    }
 
     bool example_test_1(const crypto::Bip32& library)
     {

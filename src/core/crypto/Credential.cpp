@@ -34,7 +34,7 @@
 #include "opentxs/core/crypto/Credential.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
@@ -48,7 +48,6 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
-#include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <list>
@@ -65,8 +64,7 @@ namespace opentxs
  * stored as an Contract, and it must be signed by the master key. (which is
  * also an Credential.) */
 std::unique_ptr<Credential> Credential::Factory(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& parent,
     const proto::Credential& serialized,
     const proto::KeyMode& mode,
@@ -84,28 +82,24 @@ std::unique_ptr<Credential> Credential::Factory(
     }
 
     switch (serialized.role()) {
-        case proto::CREDROLE_MASTERKEY:
-            result.reset(
-                new MasterCredential(factory, wallet, parent, serialized));
+        case proto::CREDROLE_MASTERKEY: {
+            result.reset(new MasterCredential(api, parent, serialized));
 
-            break;
-        case proto::CREDROLE_CHILDKEY:
-            result.reset(
-                new ChildKeyCredential(factory, wallet, parent, serialized));
+        } break;
+        case proto::CREDROLE_CHILDKEY: {
+            result.reset(new ChildKeyCredential(api, parent, serialized));
 
-            break;
-        case proto::CREDROLE_CONTACT:
-            result.reset(
-                new ContactCredential(factory, wallet, parent, serialized));
+        } break;
+        case proto::CREDROLE_CONTACT: {
+            result.reset(new ContactCredential(api, parent, serialized));
 
-            break;
-        case proto::CREDROLE_VERIFY:
-            result.reset(new VerificationCredential(
-                factory, wallet, parent, serialized));
+        } break;
+        case proto::CREDROLE_VERIFY: {
+            result.reset(new VerificationCredential(api, parent, serialized));
 
-            break;
-        default:
-            break;
+        } break;
+        default: {
+        }
     }
 
     if (!result->Validate()) { result.reset(); }
@@ -114,32 +108,28 @@ std::unique_ptr<Credential> Credential::Factory(
 }
 
 Credential::Credential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& theOwner,
     const std::uint32_t version,
     const NymParameters& nymParameters)
     : ot_super(ConstNym(), version)
+    , api_(api)
     , type_(nymParameters.credentialType())
     , mode_(proto::KEYMODE_PRIVATE)
     , owner_backlink_(&theOwner)
-    , factory_{factory}
-    , wallet_(wallet)
 {
 }
 
 Credential::Credential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& theOwner,
     const proto::Credential& serializedCred)
     : ot_super(ConstNym(), serializedCred.version())
+    , api_(api)
     , type_(serializedCred.type())
     , role_(serializedCred.role())
     , mode_(serializedCred.mode())
     , owner_backlink_(&theOwner)
-    , factory_{factory}
-    , wallet_(wallet)
 {
     if (serializedCred.has_nymid()) {
         nym_id_ = serializedCred.nymid();
@@ -471,7 +461,7 @@ bool Credential::Save() const
         return false;
     }
 
-    const bool bSaved = wallet_.SaveCredential(*serializedProto);
+    const bool bSaved = api_.Wallet().SaveCredential(*serializedProto);
 
     if (!bSaved) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error saving credential"

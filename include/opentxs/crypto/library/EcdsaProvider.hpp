@@ -17,27 +17,6 @@ namespace crypto
 class EcdsaProvider
 {
 public:
-    EXPORT static bool DecryptPrivateKey(
-        const proto::Ciphertext& encryptedKey,
-        const OTPasswordData& password,
-        OTPassword& plaintextKey);
-    EXPORT static bool DecryptPrivateKey(
-        const proto::Ciphertext& encryptedKey,
-        const proto::Ciphertext& encryptedChaincode,
-        const OTPasswordData& password,
-        OTPassword& key,
-        OTPassword& chaincode);
-    EXPORT static bool EncryptPrivateKey(
-        const OTPassword& plaintextKey,
-        const OTPasswordData& password,
-        proto::Ciphertext& encryptedKey);
-    EXPORT static bool EncryptPrivateKey(
-        const OTPassword& key,
-        const OTPassword& chaincode,
-        const OTPasswordData& password,
-        proto::Ciphertext& encryptedKey,
-        proto::Ciphertext& encryptedChaincode);
-
     EXPORT virtual bool AsymmetricKeyToECPrivatekey(
         const crypto::key::EllipticCurve& asymmetricKey,
         const OTPasswordData& passwordData,

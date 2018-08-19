@@ -27,6 +27,9 @@
 
 template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 
+#define INPROC_PREFIX "inproc://opentxs/"
+#define PATH_SEPERATOR "/"
+
 namespace opentxs::network::zeromq
 {
 OTZMQContext Context::Factory()
@@ -77,6 +80,24 @@ Context::operator void*() const
     return context_;
 }
 
+std::string Context::BuildEndpoint(
+    const std::string& path,
+    const int instance,
+    const int version) const
+{
+    return std::string(INPROC_PREFIX) + std::to_string(instance) +
+           PATH_SEPERATOR + path + PATH_SEPERATOR + std::to_string(version);
+}
+
+std::string Context::BuildEndpoint(
+    const std::string& path,
+    const int instance,
+    const int version,
+    const std::string& suffix) const
+{
+    return BuildEndpoint(path, instance, version) + PATH_SEPERATOR + suffix;
+}
+
 Context* Context::clone() const { return new Context; }
 
 OTZMQDealerSocket Context::DealerSocket(
@@ -87,9 +108,11 @@ OTZMQDealerSocket Context::DealerSocket(
 }
 
 OTZMQSubscribeSocket Context::PairEventListener(
-    const PairEventCallback& callback) const
+    const PairEventCallback& callback,
+    const int instance) const
 {
-    return OTZMQSubscribeSocket(new class PairEventListener(*this, callback));
+    return OTZMQSubscribeSocket(
+        new class PairEventListener(*this, callback, instance));
 }
 
 OTZMQPairSocket Context::PairSocket(

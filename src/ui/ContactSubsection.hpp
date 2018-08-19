@@ -55,9 +55,8 @@ private:
 
     ContactSubsection(
         const ContactSectionInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const ContactSectionRowID& rowID,
         const ContactSectionSortKey& key,
         const CustomData& custom);

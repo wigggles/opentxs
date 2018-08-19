@@ -29,9 +29,8 @@ protected:
 
     ContactListItem(
         const ContactListInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const ContactListRowID& rowID,
         const ContactListSortKey& key);
 

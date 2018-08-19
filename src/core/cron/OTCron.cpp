@@ -9,7 +9,6 @@
 
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
 #include "opentxs/core/trade/OTMarket.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -396,7 +395,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "value.\n";
             return (-1);  // error condition
         } else {
-            auto pItem{core_.Factory().CronItem(core_, strData)};
+            auto pItem{api_.Factory().CronItem(strData)};
 
             if (false == bool(pItem)) {
                 otErr
@@ -460,8 +459,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 
         // LoadMarket() needs this info to do its thing.
-        auto pMarket{core_.Factory().Market(
-            core_, m_NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale)};
+        auto pMarket{api_.Factory().Market(
+            m_NOTARY_ID, INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale)};
 
         OT_ASSERT(false != bool(pMarket));
 
@@ -619,7 +618,7 @@ void OTCron::ProcessCronItems()
             continue;
         }
         pItem->HookRemovalFromCron(
-            core_.Wallet(), nullptr, GetNextTransactionNumber());
+            api_.Wallet(), nullptr, GetNextTransactionNumber());
         otOut << "OTCron::" << __FUNCTION__
               << ": Removing cron item: " << pItem->GetTransactionNum() << "\n";
         it = m_multimapCronItems.erase(it);
@@ -776,7 +775,7 @@ bool OTCron::RemoveCronItem(
                                                               // multimap also.
 
         pItem->HookRemovalFromCron(
-            core_.Wallet(), theRemover, GetNextTransactionNumber());
+            api_.Wallet(), theRemover, GetNextTransactionNumber());
 
         m_mapCronItems.erase(it_map);            // Remove from MAP.
         m_multimapCronItems.erase(it_multimap);  // Remove from MULTIMAP.
@@ -993,8 +992,8 @@ std::shared_ptr<OTMarket> OTCron::GetOrCreateMarket(
     const Identifier& CURRENCY_ID,
     const std::int64_t& lScale)
 {
-    auto pMarket{core_.Factory().Market(
-        core_, GetNotaryID(), INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale)};
+    auto pMarket{api_.Factory().Market(
+        GetNotaryID(), INSTRUMENT_DEFINITION_ID, CURRENCY_ID, lScale)};
 
     OT_ASSERT(false != bool(pMarket));
 

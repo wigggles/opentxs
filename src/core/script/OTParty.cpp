@@ -950,7 +950,7 @@ bool OTParty::DropFinalReceiptToNymboxes(
 }
 
 bool OTParty::SendNoticeToParty(
-    const std::string& dataFolder,
+    const api::Core& api,
     bool bSuccessMsg,
     const Nym& theServerNym,
     const Identifier& theNotaryID,
@@ -978,7 +978,7 @@ bool OTParty::SendNoticeToParty(
                 "Unexpected nullptr agent pointer in party map.");
 
             if (false == pAgent->DropServerNoticeToNymbox(
-                             dataFolder,
+                             api,
                              bSuccessMsg,
                              theServerNym,
                              theNotaryID,

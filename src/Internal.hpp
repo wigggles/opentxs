@@ -25,6 +25,7 @@ struct Manager;
 
 namespace implementation
 {
+class Core;
 class Native;
 class Storage;
 }  // namespace implementation

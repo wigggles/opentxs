@@ -306,8 +306,7 @@ bool Message::HarvestTransactionNumbers(
     // in case.
 
     const String strLedger(m_ascPayload);
-    auto theLedger = core_.Factory().Ledger(
-        core_,
+    auto theLedger = api_.Factory().Ledger(
         MSG_NYM_ID,
         ACCOUNT_ID,
         NOTARY_ID);  // We're going to

@@ -6,7 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
@@ -32,17 +32,18 @@
 
 namespace opentxs
 {
-api::Identity* Factory::Identity(const api::Wallet& wallet)
+api::Identity* Factory::Identity(const api::Core& api)
 {
-    return new api::implementation::Identity(wallet);
+    return new api::implementation::Identity(api);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::implementation
 {
-Identity::Identity(const api::Wallet& wallet)
-    : wallet_(wallet)
+Identity::Identity(const api::Core& api)
+    : api_(api)
 {
+    // WARNING: do not access api_.Wallet() during construction
 }
 
 bool Identity::AddInternalVerification(
@@ -319,7 +320,7 @@ std::unique_ptr<proto::VerificationSet> Identity::Verify(
             const bool updated = onNym.SetVerificationSet(*revised);
 
             if (updated) {
-                wallet_.Nym(onNym.asPublicNym());
+                api_.Wallet().Nym(onNym.asPublicNym());
 
                 return revised;
             } else {

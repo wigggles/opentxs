@@ -95,8 +95,8 @@ bool PayDividendVisitor::Trigger(
     // just having it get lost in the ether.)
     bool bReturnValue = false;
 
-    auto theVoucher{server_.API().Factory().Cheque(
-        server_.API(), theNotaryID, Identifier::Factory())};
+    auto theVoucher{
+        server_.API().Factory().Cheque(theNotaryID, Identifier::Factory())};
 
     OT_ASSERT(false != bool(theVoucher));
 
@@ -167,8 +167,7 @@ bool PayDividendVisitor::Trigger(
             // Send the voucher to the payments inbox of the recipient.
             //
             const String strVoucher(*theVoucher);
-            auto thePayment{
-                server_.API().Factory().Payment(server_.API(), strVoucher)};
+            auto thePayment{server_.API().Factory().Payment(strVoucher)};
 
             OT_ASSERT(false != bool(thePayment));
 
@@ -205,7 +204,7 @@ bool PayDividendVisitor::Trigger(
         //
         if (!bSent) {
             auto theReturnVoucher{server_.API().Factory().Cheque(
-                server_.API(), theNotaryID, Identifier::Factory())};
+                theNotaryID, Identifier::Factory())};
 
             OT_ASSERT(false != bool(theReturnVoucher));
 
@@ -239,8 +238,8 @@ bool PayDividendVisitor::Trigger(
                 // sender.
                 //
                 const String strReturnVoucher(*theReturnVoucher);
-                auto theReturnPayment{server_.API().Factory().Payment(
-                    server_.API(), strReturnVoucher)};
+                auto theReturnPayment{
+                    server_.API().Factory().Payment(strReturnVoucher)};
 
                 OT_ASSERT(false != bool(theReturnPayment));
 

@@ -33,18 +33,18 @@ extern "C" {
 
 namespace opentxs
 {
-crypto::Sodium* Factory::Sodium()
+crypto::Sodium* Factory::Sodium(const api::Crypto& crypto)
 {
-    return new crypto::implementation::Sodium();
+    return new crypto::implementation::Sodium(crypto);
 }
 }  // namespace opentxs
 
 namespace opentxs::crypto::implementation
 {
-Sodium::Sodium()
+Sodium::Sodium(const api::Crypto& crypto)
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
     : AsymmetricProvider()
-    , EcdsaProvider()
+    , EcdsaProvider(crypto)
 #endif  // OT_CRYPTO_SUPPORTED_KEY_ED25519
 {
     const auto result = ::sodium_init();

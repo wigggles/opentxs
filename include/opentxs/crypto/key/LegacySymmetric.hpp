@@ -24,16 +24,20 @@ class LegacySymmetric
 {
 public:
     static OTLegacySymmetricKey Blank();
-    static OTLegacySymmetricKey Factory();
-    static OTLegacySymmetricKey Factory(const OTPassword& thePassword);
+    static OTLegacySymmetricKey Factory(const api::Crypto& crypto);
+    static OTLegacySymmetricKey Factory(
+        const api::Crypto& crypto,
+        const OTPassword& thePassword);
     // If you already have the passphrase, you can pass it in as an optional
     // arg. That way if you have to use it 100 times in a row, the user doesn't
     // actually have to TYPE it 100 times in a row.
     EXPORT static bool CreateNewKey(
+        const api::Crypto& crypto,
         String& strOutput,
         const String* pstrDisplay = nullptr,
         const OTPassword* pAlreadyHavePW = nullptr);
     EXPORT static bool Decrypt(
+        const api::Crypto& crypto,
         const String& strKey,
         String& strCiphertext,
         String& strOutput,
@@ -46,6 +50,7 @@ public:
         const String* pstrDisplay = nullptr,
         const OTPassword* pAlreadyHavePW = nullptr);
     EXPORT static bool Encrypt(
+        const api::Crypto& crypto,
         const String& strKey,
         const String& strPlaintext,
         String& strOutput,

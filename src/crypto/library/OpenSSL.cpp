@@ -86,9 +86,9 @@ void EVP_MD_CTX_free(EVP_MD_CTX* context) { delete context; }
 
 namespace opentxs
 {
-crypto::OpenSSL* Factory::OpenSSL()
+crypto::OpenSSL* Factory::OpenSSL(const api::Crypto& crypto)
 {
-    return new crypto::implementation::OpenSSL;
+    return new crypto::implementation::OpenSSL(crypto);
 }
 }  // namespace opentxs
 
@@ -130,7 +130,33 @@ public:
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
 #endif
+
+    OpenSSLdp(const api::Crypto& crypto)
+        : crypto_(crypto)
+    {
+    }
+
+private:
+    const api::Crypto& crypto_;
+
+    OpenSSLdp() = delete;
+    OpenSSLdp(OpenSSLdp&) = delete;
+    OpenSSLdp(const OpenSSLdp&&) = delete;
+    OpenSSLdp& operator=(OpenSSLdp&) = delete;
+    OpenSSLdp& operator=(const OpenSSLdp&&) = delete;
 };
+
+OpenSSL::OpenSSL(const api::Crypto& crypto)
+    :
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+    AsymmetricProvider()
+    ,
+#endif
+    crypto_(crypto)
+    , dp_(new OpenSSLdp(crypto_))
+    , lock_()
+{
+}
 
 OpenSSL::CipherContext::CipherContext()
     : context_(EVP_CIPHER_CTX_new())
@@ -160,19 +186,6 @@ OpenSSL::DigestContext::~DigestContext()
 }
 
 OpenSSL::DigestContext::operator EVP_MD_CTX*() { return context_; }
-
-OpenSSL::OpenSSL()
-    :
-#if OT_CRYPTO_SUPPORTED_KEY_RSA
-    AsymmetricProvider()
-    ,
-#endif
-    dp_(new OpenSSLdp)
-    , lock_()
-{
-}
-
-OpenSSL::~OpenSSL() {}
 
 extern "C" {
 #if OPENSSL_VERSION_NUMBER - 0 < 0x10000000L
@@ -307,7 +320,7 @@ OTPassword* OpenSSL::DeriveNewKey(
     const bool bHaveCheckHash = !dataCheckHash.empty();
 
     auto tmpHashCheck = Data::Factory();
-    tmpHashCheck->SetSize(OT::App().Crypto().Config().SymmetricKeySize());
+    tmpHashCheck->SetSize(crypto_.Config().SymmetricKeySize());
 
     // We take the DerivedKey, and hash it again, then get a 'hash-check'
     // Compare that with the supplied one, (if there is one).
@@ -431,11 +444,9 @@ const EVP_CIPHER* OpenSSL::OpenSSLdp::CipherModeToOpenSSLMode(
 // todo return a smartpointer here.
 OTPassword* OpenSSL::InstantiateBinarySecret() const
 {
-    std::uint8_t* tmp_data =
-        new uint8_t[OT::App().Crypto().Config().SymmetricKeySize()];
+    std::uint8_t* tmp_data = new uint8_t[crypto_.Config().SymmetricKeySize()];
     OTPassword* pNewKey = new OTPassword(
-        static_cast<void*>(&tmp_data[0]),
-        OT::App().Crypto().Config().SymmetricKeySize());
+        static_cast<void*>(&tmp_data[0]), crypto_.Config().SymmetricKeySize());
     OT_ASSERT_MSG(nullptr != pNewKey, "pNewKey = new OTPassword");
 
     if (nullptr != tmp_data) {
@@ -593,10 +604,10 @@ void OpenSSL::Init()
      SSL_library_init() is not reentrant.
      -------------------
      Then, on
-     http://www.openssl.org/docs/crypto/ERR_load_OT::App().Crypto().Config().strings.html#,
+     http://www.openssl.org/docs/crypto/ERR_load_crypto_.Config().strings.html#,
      in
      reference to SSL_load_error_strings and
-     ERR_load_OT::App().Crypto().Config().strings, it says:
+     ERR_load_crypto_.Config().strings, it says:
 
      One of these functions should be called BEFORE generating textual error
      messages.
@@ -612,7 +623,7 @@ void OpenSSL::Init()
     // IN THE OPPOSITE ORDER when we get to OT_Cleanup().
 
     /*
-     - ERR_load_OT::App().Crypto().Config().strings() registers the error
+     - ERR_load_crypto_.Config().strings() registers the error
      strings for all libcrypto functions.
      - SSL_load_error_strings() does the same, but also registers the libssl
      error strings.
@@ -624,7 +635,7 @@ void OpenSSL::Init()
     SSL_load_error_strings();  // DONE -- corresponds to ERR_free_strings in
                                // OT_Cleanup()   #1
 
-    //  ERR_load_OT::App().Crypto().Config().strings();   // Redundant --
+    //  ERR_load_crypto_.Config().strings();   // Redundant --
     //  SSL_load_error_strings does
     // this already.
     //
@@ -870,7 +881,7 @@ void OpenSSL::Cleanup()
     // (IOW: Not needed here for app cleanup.)
 }
 
-// #define OT::App().Crypto().Config().SymmetricBufferSize()   default: 4096
+// #define crypto_.Config().SymmetricBufferSize()   default: 4096
 
 bool OpenSSL::ArgumentCheck(
     const bool encrypt,
@@ -1020,17 +1031,16 @@ bool OpenSSL::Encrypt(
 #endif
 
     std::vector<std::uint8_t> vBuffer(
-        OT::App().Crypto().Config().SymmetricBufferSize());  // 4096
+        crypto_.Config().SymmetricBufferSize());  // 4096
     std::vector<std::uint8_t> vBuffer_out(
-        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        crypto_.Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
     std::int32_t len_out = 0;
 
-    memset(
-        &vBuffer.at(0), 0, OT::App().Crypto().Config().SymmetricBufferSize());
+    memset(&vBuffer.at(0), 0, crypto_.Config().SymmetricBufferSize());
     memset(
         &vBuffer_out.at(0),
         0,
-        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        crypto_.Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
 
     //
     // This is where the envelope final contents will be placed.
@@ -1153,10 +1163,9 @@ bool OpenSSL::Encrypt(
         //
 
         std::uint32_t len =
-            (lRemainingLength <
-             OT::App().Crypto().Config().SymmetricBufferSize())
+            (lRemainingLength < crypto_.Config().SymmetricBufferSize())
                 ? lRemainingLength
-                : OT::App().Crypto().Config().SymmetricBufferSize();  // 4096
+                : crypto_.Config().SymmetricBufferSize();  // 4096
 
         if (!EVP_EncryptUpdate(
                 pCONTEXT,
@@ -1282,17 +1291,16 @@ bool OpenSSL::Decrypt(
     CipherContext context;
 #endif
     std::vector<std::uint8_t> vBuffer(
-        OT::App().Crypto().Config().SymmetricBufferSize());  // 4096
+        crypto_.Config().SymmetricBufferSize());  // 4096
     std::vector<std::uint8_t> vBuffer_out(
-        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        crypto_.Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
     std::int32_t len_out = 0;
 
-    memset(
-        &vBuffer.at(0), 0, OT::App().Crypto().Config().SymmetricBufferSize());
+    memset(&vBuffer.at(0), 0, crypto_.Config().SymmetricBufferSize());
     memset(
         &vBuffer_out.at(0),
         0,
-        OT::App().Crypto().Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
+        crypto_.Config().SymmetricBufferSize() + EVP_MAX_IV_LENGTH);
 
     //
     // This is where the plaintext results will be placed.
@@ -1405,10 +1413,9 @@ bool OpenSSL::Decrypt(
         // Resulting value stored in len.
         //
         std::uint32_t len =
-            (lRemainingLength <
-             OT::App().Crypto().Config().SymmetricBufferSize())
+            (lRemainingLength < crypto_.Config().SymmetricBufferSize())
                 ? lRemainingLength
-                : OT::App().Crypto().Config().SymmetricBufferSize();  // 4096
+                : crypto_.Config().SymmetricBufferSize();  // 4096
         lRemainingLength -= len;
 
         if (!EVP_DecryptUpdate(
@@ -1622,20 +1629,16 @@ bool OpenSSL::OpenSSLdp::SignContractDefaultHash(
     // This stores the message digest, pre-encrypted, but with the padding
     // added.
     auto hash = Data::Factory();
-    OT::App().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256, strContractUnsigned, hash);
+    crypto_.Hash().Digest(proto::HASHTYPE_SHA256, strContractUnsigned, hash);
 
     // This stores the final signature, when the EM value has been signed by RSA
     // private key.
-    std::vector<std::uint8_t> vEM(
-        OT::App().Crypto().Config().PublicKeysizeMax());
-    std::vector<std::uint8_t> vpSignature(
-        OT::App().Crypto().Config().PublicKeysizeMax());
+    std::vector<std::uint8_t> vEM(crypto_.Config().PublicKeysizeMax());
+    std::vector<std::uint8_t> vpSignature(crypto_.Config().PublicKeysizeMax());
 
+    OTPassword::zeroMemory(&vEM.at(0), crypto_.Config().PublicKeysizeMax());
     OTPassword::zeroMemory(
-        &vEM.at(0), OT::App().Crypto().Config().PublicKeysizeMax());
-    OTPassword::zeroMemory(
-        &vpSignature.at(0), OT::App().Crypto().Config().PublicKeysizeMax());
+        &vpSignature.at(0), crypto_.Config().PublicKeysizeMax());
 
     // Here, we convert the EVP_PKEY that was passed in, to an RSA key for
     // signing.
@@ -1782,16 +1785,15 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
 
     // 32 bytes, double sha256
     auto hash = Data::Factory();
-    OT::App().Crypto().Hash().Digest(
-        proto::HASHTYPE_SHA256, strContractToVerify, hash);
+    crypto_.Hash().Digest(proto::HASHTYPE_SHA256, strContractToVerify, hash);
 
     std::vector<std::uint8_t> vDecrypted(
-        OT::App().Crypto().Config().PublicKeysizeMax());  // Contains the
-                                                          // decrypted
-                                                          // signature.
+        crypto_.Config().PublicKeysizeMax());  // Contains the
+                                               // decrypted
+                                               // signature.
 
     OTPassword::zeroMemory(
-        &vDecrypted.at(0), OT::App().Crypto().Config().PublicKeysizeMax());
+        &vDecrypted.at(0), crypto_.Config().PublicKeysizeMax());
 
     // Here, we convert the EVP_PKEY that was passed in, to an RSA key for
     // signing.
@@ -3546,10 +3548,10 @@ bool OpenSSL::DecryptSessionKey(
     // (Then update encrypted blocks until evp open final...)
     //
     const std::uint32_t max_iv_length =
-        OT::App().Crypto().Config().SymmetricIvSize();  // I believe this is a
-                                                        // max length, so it may
-                                                        // not match the actual
-                                                        // length.
+        crypto_.Config().SymmetricIvSize();  // I believe this is a
+                                             // max length, so it may
+                                             // not match the actual
+                                             // length.
 
     // Read the IV SIZE (network order version -- convert to host version.)
     //

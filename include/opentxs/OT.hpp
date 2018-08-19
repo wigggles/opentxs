@@ -38,11 +38,6 @@
 
 namespace opentxs
 {
-namespace api
-{
-class Native;
-}
-
 /** \brief Static methods for starting up the native api.
  *  \ingroup native
  */
@@ -61,18 +56,26 @@ public:
      *  are complete.
      */
     static void Cleanup();
-    static void ClientFactory(
+    static const api::client::Manager& ClientFactory(
         const ArgList& args,
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        OTCaller* externalPasswordCallback = nullptr,
-        const bool recover = false);
+        OTCaller* externalPasswordCallback = nullptr);
+    static const api::client::Manager& RecoverClient(
+        const ArgList& args,
+        const std::string& words,
+        const std::string& passphrase,
+        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        OTCaller* externalPasswordCallback = nullptr);
     static void Join();
     static const opentxs::Flag& Running();
-    static void ServerFactory(
+    static const api::server::Manager& ServerFactory(
         const ArgList& args,
         const std::chrono::seconds gcInterval = std::chrono::seconds(0),
-        OTCaller* externalPasswordCallback = nullptr,
-        const bool recover = false);
+        OTCaller* externalPasswordCallback = nullptr);
+    static const api::Native& Start(
+        const ArgList& args,
+        const std::chrono::seconds gcInterval = std::chrono::seconds(0),
+        OTCaller* externalPasswordCallback = nullptr);
 
 private:
     static api::Native* instance_pointer_;

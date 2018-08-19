@@ -33,7 +33,7 @@
 #include "opentxs/core/crypto/CredentialSet.hpp"
 
 #include "opentxs/api/storage/Storage.hpp"
-#include "opentxs/api/Native.hpp"
+#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/ChildKeyCredential.hpp"
 #include "opentxs/core/crypto/ContactCredential.hpp"
@@ -68,11 +68,8 @@
 
 namespace opentxs
 {
-CredentialSet::CredentialSet(
-    const api::Factory& factory,
-    const api::Wallet& wallet)
-    : factory_{factory}
-    , wallet_{wallet}
+CredentialSet::CredentialSet(const api::Core& api)
+    : api_(api)
     , m_MasterCredential{nullptr}
     , m_mapCredentials{}
     , m_mapRevokedCredentials{}
@@ -86,12 +83,10 @@ CredentialSet::CredentialSet(
 }
 
 CredentialSet::CredentialSet(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     const proto::KeyMode mode,
     const proto::CredentialSet& serializedCredentialSet)
-    : factory_{factory}
-    , wallet_(wallet)
+    : api_(api)
     , m_MasterCredential{nullptr}
     , m_mapCredentials{}
     , m_mapRevokedCredentials{}
@@ -112,11 +107,7 @@ CredentialSet::CredentialSet(
         }
     } else {
         auto master = Credential::Factory(
-            factory_,
-            wallet_,
-            *this,
-            serializedCredentialSet.mastercredential(),
-            mode);
+            api_, *this, serializedCredentialSet.mastercredential(), mode);
 
         if (master) {
             m_MasterCredential.reset(
@@ -130,13 +121,11 @@ CredentialSet::CredentialSet(
 }
 
 CredentialSet::CredentialSet(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     const NymParameters& nymParameters,
     std::uint32_t version,
     const OTPasswordData*)
-    : factory_{factory}
-    , wallet_(wallet)
+    : api_(api)
     , m_MasterCredential{nullptr}
     , m_mapCredentials{}
     , m_mapRevokedCredentials{}
@@ -291,8 +280,7 @@ std::string CredentialSet::AddChildKeyCredential(
     revisedParameters.SetCredIndex(index_++);
 #endif
     std::unique_ptr<Credential> childCred =
-        Credential::Create<ChildKeyCredential>(
-            factory_, wallet_, *this, revisedParameters);
+        Credential::Create<ChildKeyCredential>(api_, *this, revisedParameters);
 
     if (!childCred) {
         otErr << __FUNCTION__ << ": Failed to instantiate child key credential."
@@ -333,8 +321,8 @@ bool CredentialSet::CreateMasterCredential(const NymParameters& nymParameters)
         return false;
     }
 
-    m_MasterCredential = Credential::Create<MasterCredential>(
-        factory_, wallet_, *this, nymParameters);
+    m_MasterCredential =
+        Credential::Create<MasterCredential>(api_, *this, nymParameters);
 
     if (m_MasterCredential) {
         index_++;
@@ -362,7 +350,6 @@ String CredentialSet::MasterAsString() const
         return "";
     }
 }
-
 
 // When exporting a Nym, you don't want his private keys encrypted to the
 // cached key for the wallet, so you have to load them up, and then pause
@@ -478,12 +465,7 @@ bool CredentialSet::Load_MasterFromString(
     }
 
     auto master = Credential::Factory(
-        factory_,
-        wallet_,
-        *this,
-        *serializedCred,
-        mode_,
-        proto::CREDROLE_MASTERKEY);
+        api_, *this, *serializedCred, mode_, proto::CREDROLE_MASTERKEY);
 
     if (master) {
         m_MasterCredential.reset(
@@ -508,7 +490,8 @@ bool CredentialSet::Load_Master(
     const OTPasswordData*)
 {
     std::shared_ptr<proto::Credential> serialized;
-    bool loaded = wallet_.LoadCredential(strMasterCredID.Get(), serialized);
+    bool loaded =
+        api_.Wallet().LoadCredential(strMasterCredID.Get(), serialized);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Master Credential "
@@ -519,12 +502,7 @@ bool CredentialSet::Load_Master(
     }
 
     auto master = Credential::Factory(
-        factory_,
-        wallet_,
-        *this,
-        *serialized,
-        mode_,
-        proto::CREDROLE_MASTERKEY);
+        api_, *this, *serialized, mode_, proto::CREDROLE_MASTERKEY);
 
     if (master) {
         m_MasterCredential.reset(
@@ -546,8 +524,7 @@ bool CredentialSet::LoadChildKeyCredentialFromString(
 
     if (!serialized) { return false; }
 
-    auto child =
-        Credential::Factory(factory_, wallet_, *this, *serialized, mode_);
+    auto child = Credential::Factory(api_, *this, *serialized, mode_);
 
     if (child) {
         m_mapCredentials[strSubID.Get()].swap(child);
@@ -564,7 +541,7 @@ bool CredentialSet::LoadChildKeyCredential(const String& strSubID)
     OT_ASSERT(!GetNymID().empty());
 
     std::shared_ptr<proto::Credential> child;
-    bool loaded = wallet_.LoadCredential(strSubID.Get(), child);
+    bool loaded = api_.Wallet().LoadCredential(strSubID.Get(), child);
 
     if (!loaded) {
         otErr << __FUNCTION__ << ": Failure: Key Credential " << strSubID
@@ -592,8 +569,7 @@ bool CredentialSet::LoadChildKeyCredential(
         return false;
     }
 
-    auto child =
-        Credential::Factory(factory_, wallet_, *this, serializedCred, mode_);
+    auto child = Credential::Factory(api_, *this, serializedCred, mode_);
 
     if (child) {
         m_mapCredentials[serializedCred.id()].swap(child);
@@ -1087,8 +1063,7 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
     nymParameters.SetContactData(contactData);
 
     std::unique_ptr<Credential> newChildCredential =
-        Credential::Create<ContactCredential>(
-            factory_, wallet_, *this, nymParameters);
+        Credential::Create<ContactCredential>(api_, *this, nymParameters);
 
     if (!newChildCredential) { return false; }
 
@@ -1114,8 +1089,7 @@ bool CredentialSet::AddVerificationCredential(
     nymParameters.SetVerificationSet(verificationSet);
 
     std::unique_ptr<Credential> newChildCredential =
-        Credential::Create<VerificationCredential>(
-            factory_, wallet_, *this, nymParameters);
+        Credential::Create<VerificationCredential>(api_, *this, nymParameters);
 
     if (!newChildCredential) { return false; }
 

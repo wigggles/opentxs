@@ -21,7 +21,6 @@
 #include "opentxs/api/crypto/Util.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -96,14 +95,16 @@ bool SwigWrap::AppRecover(
     const std::string& encryptedDirectory)
 {
     ArgList args;
-    args[OPENTXS_ARG_WORDS].emplace(words);
-    args[OPENTXS_ARG_PASSPHRASE].emplace(passphrase);
     args[OPENTXS_ARG_STORAGE_PLUGIN].emplace(storagePlugin);
     args[OPENTXS_ARG_BACKUP_DIRECTORY].emplace(archiveDirectory);
     args[OPENTXS_ARG_ENCRYPTED_DIRECTORY].emplace(encryptedDirectory);
 
-    OT::ClientFactory(
-        args, std::chrono::seconds(gcInterval), externalPasswordCallback, true);
+    OT::RecoverClient(
+        args,
+        words,
+        passphrase,
+        std::chrono::seconds(gcInterval),
+        externalPasswordCallback);
 
     return true;
 }
@@ -3694,5 +3695,10 @@ std::string SwigWrap::AvailableServers(const std::string& nymID)
     }
 
     return comma(available);
+}
+
+const api::Endpoints& SwigWrap::ZeroMQ_Endpoints()
+{
+    return client_->Endpoints();
 }
 }  // namespace opentxs

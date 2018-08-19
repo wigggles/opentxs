@@ -11,73 +11,76 @@ using namespace opentxs;
 
 namespace
 {
+class Test_AccountList : public ::testing::Test
+{
+public:
+    const opentxs::api::client::Manager& client_;
+
+    Test_AccountList()
+        : client_(opentxs::OT::App().StartClient({}, 0))
+    {
+    }
+};
 
 /* Tests new account and size
  */
-
-TEST(Test_AccountList, testList)
+TEST_F(Test_AccountList, testList)
 {
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const auto AliceNymID = opentxs::OT::App().Client().Exec().CreateNymHD(
-        INDIVIDUAL, "testList_Alice", "", 10);
+    const auto AliceNymID =
+        client_.Exec().CreateNymHD(INDIVIDUAL, "testList_Alice", "", 10);
     std::cout << "Created Alice's Nym: " << AliceNymID << " !!\n";
-    const auto AliceNymID2 = opentxs::OT::App().Client().Exec().CreateNymHD(
-        INDIVIDUAL, "testList_Alice", "", 11);
+    const auto AliceNymID2 =
+        client_.Exec().CreateNymHD(INDIVIDUAL, "testList_Alice", "", 11);
     std::cout << "Created Alice's 2nd Nym: " << AliceNymID2 << " !!\n";
-    const auto BobNymID = opentxs::OT::App().Client().Exec().CreateNymHD(
-        INDIVIDUAL, "testList_Bob", "", 20);
+    const auto BobNymID =
+        client_.Exec().CreateNymHD(INDIVIDUAL, "testList_Bob", "", 20);
     std::cout << "Created Bob's Nym: " << BobNymID << " !!\n";
 
     ASSERT_EQ(
         0,
-        opentxs::OT::App()
-            .Client()
-            .Blockchain()
+        client_.Blockchain()
             .AccountList(Identifier::Factory(AliceNymID), proto::CITEMTYPE_BTC)
             .size());
 
-    OTIdentifier AliceAccountID = OT::App().Client().Blockchain().NewAccount(
+    OTIdentifier AliceAccountID = client_.Blockchain().NewAccount(
         Identifier::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
     std::cout << "Created Alice's Account: " << String(AliceAccountID).Get()
               << " !!\n";
 
-    OTIdentifier AliceAccountID2 = OT::App().Client().Blockchain().NewAccount(
+    OTIdentifier AliceAccountID2 = client_.Blockchain().NewAccount(
         Identifier::Factory(AliceNymID2),
         BlockchainAccountType::BIP32,
         proto::CITEMTYPE_BTC);
     std::cout << "Created Alice's 2nd Account: "
               << String(AliceAccountID2).Get() << " !!\n";
 
-    const std::set<OTIdentifier> as =
-        opentxs::OT::App().Client().Blockchain().AccountList(
-            Identifier::Factory(AliceNymID), proto::CITEMTYPE_BTC);
-    const std::set<OTIdentifier> bs =
-        opentxs::OT::App().Client().Blockchain().AccountList(
-            Identifier::Factory(BobNymID), proto::CITEMTYPE_BTC);
+    const std::set<OTIdentifier> as = client_.Blockchain().AccountList(
+        Identifier::Factory(AliceNymID), proto::CITEMTYPE_BTC);
+    const std::set<OTIdentifier> bs = client_.Blockchain().AccountList(
+        Identifier::Factory(BobNymID), proto::CITEMTYPE_BTC);
     EXPECT_EQ(1, as.size());
     ASSERT_EQ(0, bs.size());
 
-    OTIdentifier BobAccountID = OT::App().Client().Blockchain().NewAccount(
+    OTIdentifier BobAccountID = client_.Blockchain().NewAccount(
         Identifier::Factory(BobNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
 
-    const std::set<OTIdentifier> bcs =
-        opentxs::OT::App().Client().Blockchain().AccountList(
-            Identifier::Factory(BobNymID), proto::CITEMTYPE_BTC);
+    const std::set<OTIdentifier> bcs = client_.Blockchain().AccountList(
+        Identifier::Factory(BobNymID), proto::CITEMTYPE_BTC);
     EXPECT_EQ(1, bcs.size());
 
-    OTIdentifier AliceLTCAccountID = OT::App().Client().Blockchain().NewAccount(
+    OTIdentifier AliceLTCAccountID = client_.Blockchain().NewAccount(
         Identifier::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_LTC);
 
-    const std::set<OTIdentifier> als =
-        opentxs::OT::App().Client().Blockchain().AccountList(
-            Identifier::Factory(AliceNymID), proto::CITEMTYPE_LTC);
+    const std::set<OTIdentifier> als = client_.Blockchain().AccountList(
+        Identifier::Factory(AliceNymID), proto::CITEMTYPE_LTC);
     EXPECT_EQ(1, als.size());
 }
 }  // namespace

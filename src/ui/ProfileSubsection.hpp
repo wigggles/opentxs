@@ -52,8 +52,6 @@ private:
 
     static bool check_type(const ProfileSubsectionRowID type);
 
-    const api::Wallet& wallet_;
-
     void construct_row(
         const ProfileSubsectionRowID& id,
         const ProfileSubsectionSortKey& index,
@@ -70,13 +68,11 @@ private:
 
     ProfileSubsection(
         const ProfileSectionInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const ProfileSectionRowID& rowID,
         const ProfileSectionSortKey& key,
-        const CustomData& custom,
-        const api::Wallet& wallet);
+        const CustomData& custom);
     ProfileSubsection() = delete;
     ProfileSubsection(const ProfileSubsection&) = delete;
     ProfileSubsection(ProfileSubsection&&) = delete;

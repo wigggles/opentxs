@@ -54,13 +54,7 @@ private:
     typedef std::pair<OTIdentifier, OTIdentifier> IssuerID;
 
     const Flag& running_;
-    const client::Sync& sync_;
-    const client::ServerAction& action_;
-    const api::Wallet& wallet_;
-    const Legacy& legacy_;
-    const opentxs::OT_API& ot_api_;
-    const opentxs::OTAPI_Exec& exec_;
-    const opentxs::network::zeromq::Context& zmq_;
+    const api::client::Manager& client_;
     mutable std::mutex peer_lock_{};
     mutable std::mutex status_lock_{};
     mutable OTFlag pairing_;
@@ -139,15 +133,7 @@ private:
     void update_pairing() const;
     void update_peer() const;
 
-    Pair(
-        const Flag& running,
-        const client::Sync& sync,
-        const client::ServerAction& action,
-        const api::Wallet& wallet,
-        const Legacy& legacy,
-        const opentxs::OT_API& otapi,
-        const opentxs::OTAPI_Exec& exec,
-        const opentxs::network::zeromq::Context& context);
+    Pair(const Flag& running, const api::client::Manager& client);
     Pair() = delete;
     Pair(const Pair&) = delete;
     Pair(Pair&&) = delete;

@@ -13,7 +13,6 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
@@ -73,19 +72,18 @@ namespace opentxs
 {
 OTClient::OTClient(
     OTWallet& theWallet,
+    const api::Core& core,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
-    const api::Core& core,
     const api::client::Workflow& workflow)
     : m_pWallet(theWallet)
+    , api_(core)
     , activity_(activity)
     , contacts_(contacts)
-    , core_(core)
-    , wallet_(core_.Wallet())
-    , factory_(core_.Factory())
     , workflow_(workflow)
-    , m_MessageOutbuffer(core_)
+    , m_MessageOutbuffer(api_)
 {
+    // WARNING: do not access api_.Wallet() during construction
 }
 
 bool OTClient::add_item_to_workflow(
@@ -93,7 +91,7 @@ bool OTClient::add_item_to_workflow(
     const Message& transportItem,
     const std::string& item) const
 {
-    auto message = factory_.Message(core_);
+    auto message = api_.Factory().Message();
 
     OT_ASSERT(false != bool(message));
 
@@ -117,7 +115,7 @@ bool OTClient::add_item_to_workflow(
         return false;
     }
 
-    auto payment = factory_.Payment(core_, plaintext);
+    auto payment = api_.Factory().Payment(plaintext);
 
     OT_ASSERT(false != bool(payment));
 
@@ -125,7 +123,7 @@ bool OTClient::add_item_to_workflow(
 
     if (payment->IsCancelledCheque()) { return false; }
 
-    auto cheque = factory_.Cheque(core_);
+    auto cheque = api_.Factory().Cheque();
 
     OT_ASSERT(false != bool(cheque));
 
@@ -153,7 +151,7 @@ bool OTClient::init_new_account(
     const Identifier& accountID,
     ServerContext& context) const
 {
-    auto account = wallet_.mutable_Account(accountID);
+    auto account = api_.Wallet().mutable_Account(accountID);
 
     OT_ASSERT(account);
 
@@ -231,7 +229,7 @@ void OTClient::QueueOutgoingMessage(const Message& theMessage)
     // So I can save the request number when sending a message, check for it
     // later in the Nymbox, and then worst case, look it up in the Outbuffer and
     // get my fucking transaction numbers back again!
-    auto pMsg = factory_.Message(core_);
+    auto pMsg = api_.Factory().Message();
 
     OT_ASSERT(false != bool(pMsg));
 
@@ -297,13 +295,12 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
     if (add_item_to_workflow(*context.Nym(), message, payment)) { return true; }
 
     const bool bExists = OTDB::Exists(
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::PaymentInbox().Get(),
         strNotaryID.Get(),
         strNymID.Get(),
         "");
-    auto thePmntInbox = factory_.Ledger(
-        core_,
+    auto thePmntInbox = api_.Factory().Ledger(
         nymID,
         nymID,
         context.Server());  // payment
@@ -344,8 +341,7 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
     // After all, if the notary had created it (as normally happens) then
     // that's the Txn# that would have been on it anyway.
     //
-    auto pTransaction = factory_.Transaction(
-        core_,
+    auto pTransaction = api_.Factory().Transaction(
         *thePmntInbox,
         transactionType::instrumentNotice,
         originType::not_applicable,
@@ -435,8 +431,8 @@ bool OTClient::AcceptEntireNymbox(
 
     // the message to the server will contain a ledger to be processed for a
     // specific acct. (in this case no acct, but user ID used twice instead.)
-    auto processLedger = factory_.Ledger(
-        core_, theNymbox.GetNymID(), theNymbox.GetNymID(), context.Server());
+    auto processLedger = api_.Factory().Ledger(
+        theNymbox.GetNymID(), theNymbox.GetNymID(), context.Server());
 
     OT_ASSERT(false != bool(processLedger));
 
@@ -449,8 +445,7 @@ bool OTClient::AcceptEntireNymbox(
     processLedger->GenerateLedger(
         theNymbox.GetNymID(), context.Server(), ledgerType::message);
 
-    auto pAcceptTransaction = factory_.Transaction(
-        core_,
+    auto pAcceptTransaction = api_.Factory().Transaction(
         theNymbox.GetNymID(),
         theNymbox.GetNymID(),
         context.Server(),
@@ -504,7 +499,7 @@ bool OTClient::AcceptEntireNymbox(
         pTransaction->GetReferenceString(strRespTo);
 
         if ((transactionType::message == pTransaction->GetType())) {
-            auto pAcceptItem = factory_.Item(
+            auto pAcceptItem = api_.Factory().Item(
                 *acceptTransaction,
                 itemType::acceptMessage,
                 Identifier::Factory());
@@ -535,7 +530,7 @@ bool OTClient::AcceptEntireNymbox(
         // INSTRUMENT (From Another Nym)
         else if ((transactionType::instrumentNotice ==
                   pTransaction->GetType())) {
-            auto pAcceptItem = factory_.Item(
+            auto pAcceptItem = api_.Factory().Item(
                 *acceptTransaction,
                 itemType::acceptNotice,
                 Identifier::Factory());
@@ -564,7 +559,7 @@ bool OTClient::AcceptEntireNymbox(
 
         // SERVER NOTIFICATION
         else if ((transactionType::notice == pTransaction->GetType())) {
-            auto pAcceptItem = factory_.Item(
+            auto pAcceptItem = api_.Factory().Item(
                 *acceptTransaction,
                 itemType::acceptNotice,
                 Identifier::Factory());
@@ -638,7 +633,7 @@ bool OTClient::AcceptEntireNymbox(
                 }
             }
 
-            auto pAcceptItem = factory_.Item(
+            auto pAcceptItem = api_.Factory().Item(
                 *acceptTransaction,
                 itemType::acceptNotice,
                 Identifier::Factory());
@@ -693,7 +688,7 @@ bool OTClient::AcceptEntireNymbox(
             // But if we HAVEN'T already seen the server's reply, then lucky for
             // us he dropped a copy into the Nymbox! Now we can process it!
             else {
-                auto pAcceptItem = factory_.Item(
+                auto pAcceptItem = api_.Factory().Item(
                     *acceptTransaction,
                     itemType::acceptNotice,
                     Identifier::Factory());
@@ -740,7 +735,7 @@ bool OTClient::AcceptEntireNymbox(
                                  "replyNotice. (It appears to "
                                  "be zero length.)\n";
                     } else {
-                        auto pMessage = factory_.Message(core_);
+                        auto pMessage = api_.Factory().Message();
                         OT_ASSERT_MSG(
                             false != bool(pMessage),
                             "OTClient::AcceptEntireNymbox: OTMessage "
@@ -835,7 +830,7 @@ bool OTClient::AcceptEntireNymbox(
                 }
             }
 
-            auto pAcceptItem = factory_.Item(
+            auto pAcceptItem = api_.Factory().Item(
                 *acceptTransaction,
                 itemType::acceptTransaction,
                 Identifier::Factory());
@@ -908,11 +903,11 @@ bool OTClient::AcceptEntireNymbox(
             // actively running on Cron. So we don't want to keep it on our list
             // of "active" cron items if we know it's already inactive.
             OTCronItem::EraseActiveCronReceipt(
-                core_.DataFolder(),
+                api_.DataFolder(),
                 pTransaction->GetReferenceToNum(),
                 nymID,
                 pTransaction->GetPurportedNotaryID());
-            auto pAcceptItem = factory_.Item(
+            auto pAcceptItem = api_.Factory().Item(
                 *acceptTransaction,
                 itemType::acceptFinalReceipt,
                 Identifier::Factory());
@@ -1051,7 +1046,7 @@ void OTClient::load_str_trans_add_to_ledger(
     //
     if (nullptr != ledger.GetTransaction(lTransNum)) { return; }
     // -----------------------------------------
-    auto pTransType = factory_.Transaction(core_, str_trans_to_add);
+    auto pTransType = api_.Factory().Transaction(str_trans_to_add);
 
     if (false == bool(pTransType)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1215,28 +1210,26 @@ void OTClient::ProcessIncomingCronItemReply(
     //  if (OTItem::rejection == pReplyItem->GetStatus())
     {
         const bool bExists1 = OTDB::Exists(
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::PaymentInbox().Get(),
             strNotaryID.Get(),
             String(context.Nym()->ID()).Get(),
             "");
         const bool bExists2 = OTDB::Exists(
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::RecordBox().Get(),
             strNotaryID.Get(),
             String(context.Nym()->ID()).Get(),
             "");
 
-        auto thePmntInbox = factory_.Ledger(
-            core_,
+        auto thePmntInbox = api_.Factory().Ledger(
             NYM_ID,
             NYM_ID,
             context.Server());  // payment inbox
 
         OT_ASSERT(false != bool(thePmntInbox));
 
-        auto theRecordBox = factory_.Ledger(
-            core_,
+        auto theRecordBox = api_.Factory().Ledger(
             NYM_ID,
             NYM_ID,
             context.Server());  // record box
@@ -1327,7 +1320,7 @@ void OTClient::ProcessIncomingCronItemReply(
             // equivalent to saying: if ("X,Y".VerifyAny("X")) which RETURNS
             // TRUE -- and we have found the instrument!
 
-            auto theOutpayment = factory_.Payment(core_);
+            auto theOutpayment = api_.Factory().Payment();
 
             OT_ASSERT(false != bool(theOutpayment));
 
@@ -1478,8 +1471,7 @@ void OTClient::ProcessIncomingCronItemReply(
                         theOriginType = originType::origin_smart_contract;
                 }
 
-                auto pNewTransaction = factory_.Transaction(
-                    core_,
+                auto pNewTransaction = api_.Factory().Transaction(
                     *theRecordBox,  // recordbox.
                     transactionType::notice,
                     theOriginType,
@@ -1495,7 +1487,7 @@ void OTClient::ProcessIncomingCronItemReply(
                     // of the payment plan, (The one I just activated -- since I
                     // was the final signer...)
                     //
-                    auto pNewItem = factory_.Item(
+                    auto pNewItem = api_.Factory().Item(
                         *pNewTransaction,
                         itemType::notice,
                         Identifier::Factory());
@@ -1669,7 +1661,7 @@ void OTClient::ProcessIncomingTransaction(
 
                 auto pTempTransType =
                     strOriginalItem.Exists()
-                        ? factory_.Transaction(core_, strOriginalItem)
+                        ? api_.Factory().Transaction(strOriginalItem)
                         : nullptr;
 
                 auto pOriginalItem(
@@ -1679,7 +1671,7 @@ void OTClient::ProcessIncomingTransaction(
 
                 if (false != bool(pOriginalItem)) {
                     String strBasket;
-                    auto theRequestBasket = factory_.Basket(core_);
+                    auto theRequestBasket = api_.Factory().Basket();
 
                     OT_ASSERT(false != bool(theRequestBasket));
 
@@ -1727,7 +1719,7 @@ void OTClient::ProcessIncomingTransaction(
 
                 auto pTempTransType =
                     strOriginalItem.Exists()
-                        ? factory_.Transaction(core_, strOriginalItem)
+                        ? api_.Factory().Transaction(strOriginalItem)
                         : nullptr;
 
                 auto pOriginalItem(
@@ -1808,7 +1800,7 @@ void OTClient::ProcessIncomingTransaction(
 
                 auto pTempTransType =
                     strOriginalItem.Exists()
-                        ? factory_.Transaction(core_, strOriginalItem)
+                        ? api_.Factory().Transaction(strOriginalItem)
                         : nullptr;
 
                 std::unique_ptr<Item> pOriginalItem(
@@ -1836,7 +1828,7 @@ void OTClient::ProcessIncomingTransaction(
 
                     auto pCronItem(
                         strCronItem.Exists()
-                            ? factory_.CronItem(core_, strCronItem)
+                            ? api_.Factory().CronItem(strCronItem)
                             : nullptr);
                     if (false != bool(pCronItem))  // the  original smart
                                                    // contract or
@@ -1930,7 +1922,7 @@ void OTClient::ProcessIncomingTransaction(
 
         OTDB::StorePlainString(
             strFinal.Get(),
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
             strReceiptFilename.Get(),
@@ -1946,7 +1938,7 @@ void OTClient::ProcessIncomingTransaction(
 
         OTDB::StorePlainString(
             strFinal.Get(),
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::Receipt().Get(),
             strNotaryID.Get(),
             strReceiptFilename.Get(),
@@ -2009,8 +2001,7 @@ void OTClient::ProcessIncomingTransactions(
     // lose it.)
     // So let's just check to see if it's a withdrawal...
     //
-    auto theLedger =
-        factory_.Ledger(core_, NYM_ID, accountID, context.Server());
+    auto theLedger = api_.Factory().Ledger(NYM_ID, accountID, context.Server());
 
     OT_ASSERT(false != bool(theLedger));
 
@@ -2116,8 +2107,8 @@ void OTClient::ProcessDepositChequeResponse(
     // depositCheque request, and if that cheque is found inside
     // the Payments Inbox, then move it to the record box.
     //
-    auto pLedger = factory_.Ledger(
-        core_, nymID, nymID, serverID, ledgerType::paymentInbox);
+    auto pLedger =
+        api_.Factory().Ledger(nymID, nymID, serverID, ledgerType::paymentInbox);
 
     if (false == bool(pLedger) || !pLedger->LoadPaymentInbox() ||
         !pLedger->VerifyAccount(nym)) {
@@ -2139,7 +2130,7 @@ void OTClient::ProcessDepositChequeResponse(
     Item* pOriginalItem{nullptr};
     pReplyItem->GetReferenceString(strOriginalDepositItem);
 
-    auto pTransType = factory_.Transaction(core_, strOriginalDepositItem);
+    auto pTransType = api_.Factory().Transaction(strOriginalDepositItem);
 
     if (false != bool(pTransType)) {
         pOriginalItem = dynamic_cast<Item*>(pTransType.get());
@@ -2147,7 +2138,7 @@ void OTClient::ProcessDepositChequeResponse(
     if (nullptr == pOriginalItem) {
         return;  // Todo log something?
     }
-    auto theCheque = factory_.Cheque(core_);
+    auto theCheque = api_.Factory().Cheque();
 
     OT_ASSERT(false != bool(theCheque));
 
@@ -2227,13 +2218,12 @@ void OTClient::ProcessDepositChequeResponse(
         const String strNymID(nymID);
         const String strNotaryID(serverID);
         const bool bExists = OTDB::Exists(
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::RecordBox().Get(),
             strNotaryID.Get(),
             strNymID.Get(),
             "");
-        auto theRecordBox = factory_.Ledger(
-            core_,
+        auto theRecordBox = api_.Factory().Ledger(
             nymID,
             nymID,
             serverID);  // record box
@@ -2345,7 +2335,7 @@ void OTClient::ProcessWithdrawalResponse(
         if ((itemType::atWithdrawVoucher == pItem->GetType()) &&
             (Item::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
-            auto theVoucher = factory_.Cheque(core_);
+            auto theVoucher = api_.Factory().Cheque();
 
             OT_ASSERT(false != bool(theVoucher));
 
@@ -2368,7 +2358,7 @@ void OTClient::ProcessWithdrawalResponse(
             String strPurse;
             pItem->GetAttachment(strPurse);
 
-            auto thePurse = factory_.Purse(core_, context.Server());
+            auto thePurse = api_.Factory().Purse(context.Server());
 
             OT_ASSERT(false != bool(thePurse));
 
@@ -2382,8 +2372,8 @@ void OTClient::ProcessWithdrawalResponse(
 
                 String strInstrumentDefinitionID(
                     thePurse->GetInstrumentDefinitionID());
-                auto pMint = factory_.Mint(
-                    core_, strNotaryID, strInstrumentDefinitionID);
+                auto pMint =
+                    api_.Factory().Mint(strNotaryID, strInstrumentDefinitionID);
 
                 OT_ASSERT(false != bool(pMint));
 
@@ -2398,7 +2388,7 @@ void OTClient::ProcessWithdrawalResponse(
                 // try to load that purse first, then add the token, then save
                 // it
                 // again.
-                auto theWalletPurse = factory_.Purse(*thePurse);
+                auto theWalletPurse = api_.Factory().Purse(*thePurse);
 
                 OT_ASSERT(false != bool(theWalletPurse));
 
@@ -2514,7 +2504,7 @@ bool OTClient::processServerReplyCheckNym(
     auto serialized = proto::DataToProto<proto::CredentialIndex>(
         Data::Factory(theReply.m_ascPayload));
 
-    auto nym = wallet_.Nym(serialized);
+    auto nym = api_.Wallet().Nym(serialized);
 
     if (nym) {
         contacts_.Update(serialized);
@@ -2590,7 +2580,7 @@ bool OTClient::processServerReplyGetNymBox(
         "replyNotice into the nymbox.");
 
     // Load the ledger object from that string.
-    auto theNymbox = factory_.Ledger(core_, NYM_ID, NYM_ID, context.Server());
+    auto theNymbox = api_.Factory().Ledger(NYM_ID, NYM_ID, context.Server());
 
     OT_ASSERT(false != bool(theNymbox));
 
@@ -2711,7 +2701,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
         std::unique_ptr<OTTransactionType> pTransType;
 
         if (strTransTypeObject.Exists())
-            pTransType = factory_.Transaction(core_, strTransTypeObject);
+            pTransType = api_.Factory().Transaction(strTransTypeObject);
 
         if (false == bool(pTransType))
             otErr << OT_METHOD << __FUNCTION__
@@ -2775,7 +2765,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                 if (transactionType::message == rcpt_type) {
                     String strOTMessage;
                     pBoxReceipt->GetReferenceString(strOTMessage);
-                    auto pMessage = factory_.Message(core_);
+                    auto pMessage = api_.Factory().Message();
 
                     OT_ASSERT(false != bool(pMessage));
 
@@ -2805,7 +2795,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                         if (recipientNymId == nymID) {
                             const auto peerObject = PeerObject::Factory(
                                 contacts_,
-                                wallet_,
+                                api_.Wallet(),
                                 context.Nym(),
                                 pMessage->m_ascPayload);
                             proto::PeerObjectType type =
@@ -2837,11 +2827,11 @@ bool OTClient::processServerReplyGetBoxReceipt(
                                     }
                                 } break;
                                 case (proto::PEEROBJECT_REQUEST): {
-                                    wallet_.PeerRequestReceive(
+                                    api_.Wallet().PeerRequestReceive(
                                         recipientNymId, *peerObject);
                                 } break;
                                 case (proto::PEEROBJECT_RESPONSE): {
-                                    wallet_.PeerReplyReceive(
+                                    api_.Wallet().PeerReplyReceive(
                                         recipientNymId, *peerObject);
                                 } break;
                                 default: {
@@ -2877,13 +2867,12 @@ bool OTClient::processServerReplyGetBoxReceipt(
                         OT_FAIL;
                     }
                     const bool bExists = OTDB::Exists(
-                        core_.DataFolder(),
+                        api_.DataFolder(),
                         OTFolders::PaymentInbox().Get(),
                         strNotaryID.Get(),
                         String(context.Nym()->ID()).Get(),
                         "");
-                    auto thePmntInbox = factory_.Ledger(
-                        core_,
+                    auto thePmntInbox = api_.Factory().Ledger(
                         nymID,
                         nymID,
                         context.Server());  // payment inbox
@@ -3055,17 +3044,17 @@ bool OTClient::processServerReplyProcessInbox(
     OT_ASSERT(nullptr != pReplyTransaction)
 
     // Load the inbox.
-    auto theInbox = factory_.Ledger(core_, NYM_ID, accountID, context.Server());
+    auto theInbox = api_.Factory().Ledger(NYM_ID, accountID, context.Server());
 
     OT_ASSERT(false != bool(theInbox));
 
     auto theRecordBox =
-        factory_.Ledger(core_, NYM_ID, accountID, context.Server());
+        api_.Factory().Ledger(NYM_ID, accountID, context.Server());
 
     OT_ASSERT(false != bool(theRecordBox));
 
     bool bInbox = OTDB::Exists(
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Inbox().Get(),
         strNotaryID.Get(),
         theReply.m_strAcctID.Get(),
@@ -3083,7 +3072,7 @@ bool OTClient::processServerReplyProcessInbox(
 
     bool bLoadedRecordBox = false;
     bool bRecordBoxExists = OTDB::Exists(
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::RecordBox().Get(),
         strNotaryID.Get(),
         theReply.m_strAcctID.Get(),
@@ -3226,8 +3215,7 @@ bool OTClient::processServerReplyProcessInbox(
         String strProcessInboxItem;
         pReplyItem->GetReferenceString(strProcessInboxItem);
 
-        auto pProcessInboxItem = factory_.Item(
-            core_,
+        auto pProcessInboxItem = api_.Factory().Item(
             strProcessInboxItem,
             context.Server(),
             pReplyItem->GetReferenceToNum());
@@ -3354,8 +3342,7 @@ bool OTClient::processServerReplyProcessInbox(
                 String strOriginalItem;
                 pServerTransaction->GetReferenceString(strOriginalItem);
 
-                auto pOriginalItem = factory_.Item(
-                    core_,
+                auto pOriginalItem = api_.Factory().Item(
                     strOriginalItem,
                     context.Server(),
                     pServerTransaction->GetReferenceToNum());
@@ -3392,7 +3379,7 @@ bool OTClient::processServerReplyProcessInbox(
                         String strCheque;
                         pOriginalItem->GetAttachment(strCheque);
 
-                        auto theCheque = factory_.Cheque(core_);
+                        auto theCheque = api_.Factory().Cheque();
 
                         OT_ASSERT(false != bool(theCheque));
 
@@ -3486,15 +3473,15 @@ bool OTClient::processServerReplyProcessInbox(
                     pServerItem->GetAttachment(strOffer);
                     // contains updated trade.
                     pServerItem->GetNote(strTrade);
-                    auto theOffer = factory_.Offer(core_);
+                    auto theOffer = api_.Factory().Offer();
 
                     OT_ASSERT(false != bool(theOffer));
 
-                    auto theTrade = factory_.Trade(OT::App().Client());
+                    auto theTrade = api_.Factory().Trade();
 
                     OT_ASSERT(false != bool(theTrade));
 
-                    OT::App().Client().Factory().Trade(OT::App().Client());
+                    api_.Factory().Trade();
                     bool bLoadOfferFromString =
                         theOffer->LoadContractFromString(strOffer);
                     bool bLoadTradeFromString =
@@ -3524,7 +3511,7 @@ bool OTClient::processServerReplyProcessInbox(
                             pServerItem->GetTransactionNum());
                         pData->completed_count = to_string<std::int32_t>(
                             theTrade->GetCompletedCount());
-                        auto account = wallet_.Account(accountID);
+                        auto account = api_.Wallet().Account(accountID);
 
                         OT_ASSERT(account)
 
@@ -3606,7 +3593,7 @@ bool OTClient::processServerReplyProcessInbox(
                         std::unique_ptr<OTDB::TradeListNym> pList;
 
                         if (OTDB::Exists(
-                                core_.DataFolder(),
+                                api_.DataFolder(),
                                 OTFolders::Nym().Get(),
                                 "trades",  // todo stop
                                            // hardcoding.
@@ -3615,7 +3602,7 @@ bool OTClient::processServerReplyProcessInbox(
                             pList.reset(dynamic_cast<OTDB::TradeListNym*>(
                                 OTDB::QueryObject(
                                     OTDB::STORED_OBJ_TRADE_LIST_NYM,
-                                    core_.DataFolder(),
+                                    api_.DataFolder(),
                                     OTFolders::Nym().Get(),
                                     "trades",  // todo stop
                                     // hardcoding.
@@ -3726,7 +3713,7 @@ bool OTClient::processServerReplyProcessInbox(
                         }
                         if (false == OTDB::StoreObject(
                                          *pList,
-                                         core_.DataFolder(),
+                                         api_.DataFolder(),
                                          OTFolders::Nym().Get(),
                                          "trades",  // todo stop hardcoding.
                                          strNotaryID.Get(),
@@ -3777,7 +3764,7 @@ bool OTClient::processServerReplyProcessInbox(
                 // others.
                 //
                 OTCronItem::EraseActiveCronReceipt(
-                    core_.DataFolder(),
+                    api_.DataFolder(),
                     pServerTransaction->GetReferenceToNum(),
                     context.Nym()->ID(),
                     pServerTransaction->GetPurportedNotaryID());
@@ -3840,7 +3827,7 @@ bool OTClient::processServerReplyProcessInbox(
                 const String strServerTransaction(*pServerTransaction);
                 std::shared_ptr<OTTransaction> pNewTransaction;
                 auto pTransType =
-                    factory_.Transaction(core_, strServerTransaction);
+                    api_.Factory().Transaction(strServerTransaction);
 
                 pNewTransaction.reset(
                     dynamic_cast<OTTransaction*>(pTransType.get()));
@@ -3971,7 +3958,7 @@ bool OTClient::processServerReplyProcessNymbox(
     // TIME IS DONE.)
 
     // Load the Nymbox.
-    auto theNymbox = factory_.Ledger(core_, NYM_ID, NYM_ID, context.Server());
+    auto theNymbox = api_.Factory().Ledger(NYM_ID, NYM_ID, context.Server());
 
     OT_ASSERT(false != bool(theNymbox));
 
@@ -4092,8 +4079,7 @@ bool OTClient::processServerReplyProcessNymbox(
         String strProcessNymboxItem;
         pReplyItem->GetReferenceString(strProcessNymboxItem);
 
-        auto pProcessNymboxItem = factory_.Item(
-            core_,
+        auto pProcessNymboxItem = api_.Factory().Item(
             strProcessNymboxItem,
             context.Server(),
             0 /* 0 is the "transaction number"*/);  // todo stop hardcoding
@@ -4316,12 +4302,12 @@ bool OTClient::processServerReplyProcessNymbox(
                         //
                         auto pOriginalCronItem =
                             (strOriginalCronItem.Exists()
-                                 ? factory_.CronItem(core_, strOriginalCronItem)
+                                 ? api_.Factory().CronItem(strOriginalCronItem)
                                  : nullptr);
 
                         auto pUpdatedCronItem =
                             (strUpdatedCronItem.Exists()
-                                 ? factory_.CronItem(core_, strUpdatedCronItem)
+                                 ? api_.Factory().CronItem(strUpdatedCronItem)
                                  : nullptr);
 
                         std::unique_ptr<OTCronItem>& pCronItem =
@@ -4813,28 +4799,26 @@ bool OTClient::processServerReplyProcessNymbox(
                                 //                                  // REJECTION
                                 {
                                     const bool bExists1 = OTDB::Exists(
-                                        core_.DataFolder(),
+                                        api_.DataFolder(),
                                         OTFolders::PaymentInbox().Get(),
                                         strNotaryID.Get(),
                                         String(context.Nym()->ID()).Get(),
                                         "");
                                     const bool bExists2 = OTDB::Exists(
-                                        core_.DataFolder(),
+                                        api_.DataFolder(),
                                         OTFolders::RecordBox().Get(),
                                         strNotaryID.Get(),
                                         String(context.Nym()->ID()).Get(),
                                         "");
 
-                                    auto thePmntInbox = factory_.Ledger(
-                                        core_,
+                                    auto thePmntInbox = api_.Factory().Ledger(
                                         NYM_ID,
                                         NYM_ID,
                                         context.Server());  // payment inbox
 
                                     OT_ASSERT(false != bool(thePmntInbox));
 
-                                    auto theRecordBox = factory_.Ledger(
-                                        core_,
+                                    auto theRecordBox = api_.Factory().Ledger(
                                         NYM_ID,
                                         NYM_ID,
                                         context.Server());  // record box
@@ -5255,7 +5239,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                         // instrument!
 
                                         auto theOutpayment =
-                                            factory_.Payment(core_);
+                                            api_.Factory().Payment();
 
                                         OT_ASSERT(false != bool(theOutpayment));
 
@@ -5271,7 +5255,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                         //                                      if (0 == numlistOutpayment.Count())
                                         {
                                             auto tempPayment =
-                                                factory_.Payment(core_);
+                                                api_.Factory().Payment();
 
                                             OT_ASSERT(
                                                 false != bool(tempPayment));
@@ -5726,8 +5710,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                             // actual notice in my Nymbox.
 
                                             auto pNewTransaction =
-                                                factory_.Transaction(
-                                                    core_,
+                                                api_.Factory().Transaction(
                                                     *theRecordBox,  // recordbox.
                                                     transactionType::notice,
                                                     theOriginType,
@@ -5761,7 +5744,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                                 if (false !=
                                                     bool(pNoticeItem)) {
                                                     auto pNewItem =
-                                                        factory_.Item(
+                                                        api_.Factory().Item(
                                                             *pNewTransaction,
                                                             itemType::notice,
                                                             Identifier::
@@ -5806,7 +5789,8 @@ bool OTClient::processServerReplyProcessNymbox(
                                                 // if (0 == lTransNumForDisplay)
                                                 {
                                                     auto tempPayment =
-                                                        factory_.Payment(core_);
+                                                        api_.Factory()
+                                                            .Payment();
 
                                                     OT_ASSERT(
                                                         false !=
@@ -6028,7 +6012,7 @@ bool OTClient::processServerReplyProcessNymbox(
                 // keep it on our list of "active" cron items if we know it's
                 // already inactive.
                 OTCronItem::EraseActiveCronReceipt(
-                    core_.DataFolder(),
+                    api_.DataFolder(),
                     pServerTransaction->GetReferenceToNum(),
                     context.Nym()->ID(),
                     pServerTransaction->GetPurportedNotaryID());
@@ -6093,7 +6077,7 @@ bool OTClient::processServerReplyProcessBox(
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
     }
 
-    auto theOriginalMessage = factory_.Message(core_);
+    auto theOriginalMessage = api_.Factory().Message();
 
     OT_ASSERT(false != bool(theOriginalMessage));
 
@@ -6109,12 +6093,12 @@ bool OTClient::processServerReplyProcessBox(
             ACCOUNT_ID = NYM_ID;  // For Nymbox, NymID *is* AcctID.
 
         auto theLedger =
-            factory_.Ledger(core_, NYM_ID, ACCOUNT_ID, context.Server());
+            api_.Factory().Ledger(NYM_ID, ACCOUNT_ID, context.Server());
 
         OT_ASSERT(false != bool(theLedger));
 
         auto theReplyLedger =
-            factory_.Ledger(core_, NYM_ID, ACCOUNT_ID, context.Server());
+            api_.Factory().Ledger(NYM_ID, ACCOUNT_ID, context.Server());
 
         OT_ASSERT(false != bool(theReplyLedger));
 
@@ -6335,7 +6319,7 @@ bool OTClient::processServerReplyProcessBox(
                     if (nullptr != pReplyItem) {
                         OTDB::StorePlainString(
                             strFinal.Get(),
-                            core_.DataFolder(),
+                            api_.DataFolder(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
                             strReceiptFilename.Get(),
@@ -6352,7 +6336,7 @@ bool OTClient::processServerReplyProcessBox(
 
                         OTDB::StorePlainString(
                             strFinal.Get(),
-                            core_.DataFolder(),
+                            api_.DataFolder(),
                             OTFolders::Receipt().Get(),
                             strNotaryID.Get(),
                             strReceiptFilename.Get(),
@@ -6404,7 +6388,7 @@ bool OTClient::processServerReplyGetAccountData(
 
     if (strAccount.Exists()) {
         const auto updated =
-            wallet_.UpdateAccount(accountID, context, strAccount);
+            api_.Wallet().UpdateAccount(accountID, context, strAccount);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__
@@ -6425,7 +6409,7 @@ bool OTClient::processServerReplyGetAccountData(
 
         // Load the ledger object from strInbox
         auto theInbox =
-            factory_.Ledger(core_, NYM_ID, accountID, context.Server());
+            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
 
         OT_ASSERT(false != bool(theInbox));
 
@@ -6513,7 +6497,7 @@ bool OTClient::processServerReplyGetAccountData(
                     // called for market offers, but whatever. It is for the
                     // others.
                     OTCronItem::EraseActiveCronReceipt(
-                        core_.DataFolder(),
+                        api_.DataFolder(),
                         pTempTrans->GetReferenceToNum(),
                         context.Nym()->ID(),
                         pTempTrans->GetPurportedNotaryID());
@@ -6538,7 +6522,7 @@ bool OTClient::processServerReplyGetAccountData(
     if (strOutbox.Exists()) {
         // Load the ledger object from strOutbox.
         auto theOutbox =
-            factory_.Ledger(core_, NYM_ID, accountID, context.Server());
+            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
 
         OT_ASSERT(false != bool(theOutbox));
 
@@ -6600,7 +6584,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
 
     auto serialized = proto::DataToProto<proto::UnitDefinition>(raw.get());
 
-    auto contract = wallet_.UnitDefinition(serialized);
+    auto contract = api_.Wallet().UnitDefinition(serialized);
 
     if (contract) {
 
@@ -6609,7 +6593,7 @@ bool OTClient::processServerReplyGetInstrumentDefinition(
         // Maybe it's actually a server contract?
         auto serialized = proto::DataToProto<proto::ServerContract>(raw.get());
 
-        auto contract = wallet_.Server(serialized);
+        auto contract = api_.Wallet().Server(serialized);
 
         if (contract) { return (purportedID != serialized.id()); }
     }
@@ -6623,8 +6607,8 @@ bool OTClient::processServerReplyGetMint(const Message& theReply)
     // base64-Decode the server reply's payload into strMint
     String strMint(theReply.m_ascPayload);
     // Load the mint object from that string...
-    auto pMint = factory_.Mint(
-        core_, theReply.m_strNotaryID, theReply.m_strInstrumentDefinitionID);
+    auto pMint = api_.Factory().Mint(
+        theReply.m_strNotaryID, theReply.m_strInstrumentDefinitionID);
 
     OT_ASSERT(false != bool(pMint));
 
@@ -6654,7 +6638,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
             strMarketDatafile.Get(),
@@ -6703,7 +6687,7 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pMarketList,
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
         strMarketDatafile.Get(),
@@ -6735,7 +6719,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
             "offers",                      // "markets/<notaryID>/offers"
@@ -6786,7 +6770,7 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList,
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
         "offers",                      // "markets/<notaryID>/offers"
@@ -6817,7 +6801,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::Market().Get(),     // "markets"
             theReply.m_strNotaryID.Get(),  // "markets/<notaryID>recent", //
                                            // "markets/<notaryID>/recent"
@@ -6869,7 +6853,7 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pTradeList,
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Market().Get(),     // "markets"
         theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
         "recent",                      // "markets/<notaryID>/recent"
@@ -6897,7 +6881,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
     //
     if (theReply.m_lDepth == 0) {
         bool bSuccessErase = pStorage->EraseValueByKey(
-            core_.DataFolder(),
+            api_.DataFolder(),
             OTFolders::Nym().Get(),        // "nyms"
             theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
             "offers",                      // "nyms/<notaryID>/offers"
@@ -6947,7 +6931,7 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     bool bSuccessStore = pStorage->StoreObject(
         *pOfferList,
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Nym().Get(),        // "nyms"
         theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
         "offers",                      // "nyms/<notaryID>/offers",
@@ -6964,7 +6948,7 @@ bool OTClient::processServerReplyUnregisterNym(
 {
     String strOriginalMessage;
     const String strNotaryID(context.Server());
-    auto theOriginalMessage = factory_.Message(core_);
+    auto theOriginalMessage = api_.Factory().Message();
 
     OT_ASSERT(false != bool(theOriginalMessage));
 
@@ -7000,7 +6984,7 @@ bool OTClient::processServerReplyUnregisterAccount(
         theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
     }
 
-    auto theOriginalMessage = factory_.Message(core_);
+    auto theOriginalMessage = api_.Factory().Message();
 
     OT_ASSERT(false != bool(theOriginalMessage));
 
@@ -7014,11 +6998,11 @@ bool OTClient::processServerReplyUnregisterAccount(
         theOriginalMessage->m_strCommand.Compare("unregisterAccount")) {
 
         const auto theAccountID = Identifier::Factory(theReply.m_strAcctID);
-        auto account = wallet_.mutable_Account(theAccountID);
+        auto account = api_.Wallet().mutable_Account(theAccountID);
 
         if (account) {
             account.Release();
-            wallet_.DeleteAccount(theAccountID);
+            api_.Wallet().DeleteAccount(theAccountID);
         }
 
         otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID
@@ -7044,7 +7028,7 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
         const auto updated =
-            wallet_.UpdateAccount(accountID, context, strAcctContents);
+            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__ << ": Saved new issuer account."
@@ -7074,7 +7058,7 @@ bool OTClient::processServerReplyRegisterAccount(
         // is stored, and returns a normal string in strAcctContents.
         String strAcctContents(theReply.m_ascPayload);
         const auto updated =
-            wallet_.UpdateAccount(accountID, context, strAcctContents);
+            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__

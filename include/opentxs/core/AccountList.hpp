@@ -56,7 +56,7 @@ public:
 private:
     typedef std::map<std::string, std::weak_ptr<Account>> MapOfWeakAccounts;
 
-    const api::Core& core_;
+    const api::Core& api_;
     Account::AccountType acctType_;
 
     /** AcctIDs as second mapped by ASSET TYPE ID as first. */

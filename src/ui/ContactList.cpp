@@ -6,6 +6,8 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -39,33 +41,30 @@
 namespace opentxs
 {
 ui::implementation::ContactListExternalInterface* Factory::ContactList(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID)
 {
-    return new ui::implementation::ContactList(zmq, publisher, contact, nymID);
+    return new ui::implementation::ContactList(api, publisher, nymID);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions ContactList::listeners_{
-    {network::zeromq::Socket::ContactUpdateEndpoint,
-     new MessageProcessor<ContactList>(&ContactList::process_contact)},
-};
-
 ContactList::ContactList(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID)
-    : ContactListList(nymID, zmq, publisher, contact)
-    , owner_contact_id_(contact.ContactID(nymID))
+    : ContactListList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().ContactUpdate(),
+           new MessageProcessor<ContactList>(&ContactList::process_contact)},
+      })
+    , owner_contact_id_(api_.Contacts().ContactID(nymID))
     , owner_(nullptr)
 {
     owner_.reset(Factory::ContactListItem(
-        *this, zmq, publisher_, contact, owner_contact_id_, "Owner"));
+        *this, api, publisher_, owner_contact_id_, "Owner"));
 
     OT_ASSERT(owner_)
 
@@ -105,9 +104,7 @@ void ContactList::construct_row(
 {
     names_.emplace(id, index);
     items_[index].emplace(
-        id,
-        Factory::ContactListItem(
-            *this, zmq_, publisher_, contact_manager_, id, index));
+        id, Factory::ContactListItem(*this, api_, publisher_, id, index));
 }
 
 /** Returns owner contact. Sets up iterators for next row */
@@ -133,13 +130,13 @@ void ContactList::process_contact(const network::zeromq::Message& message)
 
     OT_ASSERT(false == contactID->empty())
 
-    const auto name = contact_manager_.ContactName(contactID);
+    const auto name = api_.Contacts().ContactName(contactID);
     add_item(contactID, name, {});
 }
 
 void ContactList::startup()
 {
-    const auto contacts = contact_manager_.ContactList();
+    const auto contacts = api_.Contacts().ContactList();
     otErr << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
           << " contacts." << std::endl;
 

@@ -9,7 +9,6 @@
 
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
-#include "opentxs/api/Native.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/SwigWrap.hpp"
@@ -18,7 +17,6 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
-#include "opentxs/OT.hpp"
 
 #include <ostream>
 
@@ -199,16 +197,12 @@ std::int32_t InterpretTransactionMsgReply(
     return 1;
 }
 
-Utility::Utility(
-    ServerContext& context,
-    const OT_API& otapi,
-    const api::Core& core)
+Utility::Utility(ServerContext& context, const api::client::Manager& api)
     : strLastReplyReceived("")
     , delay_ms(50)
     , max_trans_dl(10)
     , context_(context)
-    , otapi_(otapi)
-    , core_(core)
+    , api_(api)
 {
 }
 
@@ -245,7 +239,8 @@ std::int32_t Utility::getNymboxLowLevel()
 std::int32_t Utility::getNymboxLowLevel(bool& bWasSent)
 {
     bWasSent = false;
-    auto [nRequestNum, transactionNum, result] = otapi_.getNymbox(context_);
+    auto [nRequestNum, transactionNum, result] =
+        api_.OTAPI().getNymbox(context_);
     const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = transactionNum;
 
@@ -795,7 +790,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // just the getNymbox msg.)
         //
         //
-        //            void OT::App().Client().Exec().FlushSentMessages(
+        //            void api_.Exec().FlushSentMessages(
         //            std::int32_t //
         // bHarvestingForRetry, // bHarvestingForRetry is actually OT_BOOL
         //                              const char * NOTARY_ID,
@@ -814,8 +809,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
             notaryID, nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
 
         if (VerifyStringVal(strNymbox)) {
-
-            OT::App().Client().Exec().FlushSentMessages(
+            api_.Exec().FlushSentMessages(
                 false,  // harvesting for retry = = OT_FALSE. None of the things
                 // are being re-tried by the time they are being flushed.
                 // They were already old news.;
@@ -1167,7 +1161,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     notaryID,
                     nymID);  // FLUSH SENT MESSAGES!!!!  (AND HARVEST.);
                 if (VerifyStringVal(strNymbox)) {
-                    OT::App().Client().Exec().FlushSentMessages(
+                    api_.Exec().FlushSentMessages(
                         false,  // harvesting for retry = = OT_FALSE
                         notaryID,
                         nymID,
@@ -1344,7 +1338,7 @@ std::int32_t Utility::processNymbox(
 
     // Next, we have to make sure we have all the BOX RECEIPTS downloaded
     // for this Nymbox.
-    const auto [nProcess, trans, result] = otapi_.processNymbox(context_);
+    const auto [nProcess, trans, result] = api_.OTAPI().processNymbox(context_);
     const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = trans;
     [[maybe_unused]] const auto& notUsed2 = status;
@@ -1423,12 +1417,8 @@ bool Utility::getBoxReceiptLowLevel(
     std::string strLocation = "Utility::getBoxReceiptLowLevel";
     bWasSent = false;
 
-    auto [nRequestNum, transactionNum, result] =
-        OT::App().Client().OTAPI().getBoxReceipt(
-            context_,
-            Identifier::Factory(accountID),
-            nBoxType,
-            strTransactionNum);
+    auto [nRequestNum, transactionNum, result] = api_.OTAPI().getBoxReceipt(
+        context_, Identifier::Factory(accountID), nBoxType, strTransactionNum);
     const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = transactionNum;
     [[maybe_unused]] const auto& notUsed3 = nRequestNum;
@@ -1535,14 +1525,16 @@ bool Utility::insureHaveAllBoxReceipts(
 
     if (0 == nBoxType) {
         pLedger.reset(
-            otapi_.LoadNymboxNoVerify(theNotaryID, theNymID).release());
+            api_.OTAPI().LoadNymboxNoVerify(theNotaryID, theNymID).release());
     } else if (1 == nBoxType) {
         pLedger.reset(
-            otapi_.LoadInboxNoVerify(theNotaryID, theNymID, theAccountID)
+            api_.OTAPI()
+                .LoadInboxNoVerify(theNotaryID, theNymID, theAccountID)
                 .release());
     } else if (2 == nBoxType) {
         pLedger.reset(
-            otapi_.LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID)
+            api_.OTAPI()
+                .LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID)
                 .release());
     } else {
         otOut << strLocation
@@ -1601,14 +1593,14 @@ bool Utility::insureHaveAllBoxReceipts(
 
         const bool bShouldDownload =
             (!bIsReplyNotice || (bIsReplyNotice && (0 < lRequestNum) &&
-                                 !otapi_.HaveAlreadySeenReply(
+                                 !api_.OTAPI().HaveAlreadySeenReply(
                                      theNotaryID, theNymID, lRequestNum)));
 
         // This block executes if we should download it (assuming we
         // haven't already, which it also checks for.)
         //
         if (bShouldDownload) {
-            bool bHaveBoxReceipt = otapi_.DoesBoxReceiptExist(
+            bool bHaveBoxReceipt = api_.OTAPI().DoesBoxReceiptExist(
                 theNotaryID, theNymID, theAccountID, nBoxType, lTransactionNum);
             if (!bHaveBoxReceipt) {
                 otWarn << strLocation
@@ -2285,7 +2277,7 @@ std::int32_t Utility::getInboxAccount(
     bWasSentAccount = false;
     bWasSentInbox = false;
     auto [nRequestNum, transactionNum, result] =
-        otapi_.getAccountData(context_, Identifier::Factory(accountID));
+        api_.OTAPI().getAccountData(context_, Identifier::Factory(accountID));
     const auto& [status, reply] = result;
     [[maybe_unused]] const auto& notUsed1 = transactionNum;
     [[maybe_unused]] const auto& notUsed2 = nRequestNum;

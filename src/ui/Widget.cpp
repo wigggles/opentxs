@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -18,10 +19,10 @@
 namespace opentxs::ui::implementation
 {
 Widget::Widget(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Identifier& id)
-    : zmq_(zmq)
+    : api_(api)
     , publisher_(publisher)
     , widget_id_(Identifier::Factory(id))
     , callbacks_()
@@ -30,9 +31,9 @@ Widget::Widget(
 }
 
 Widget::Widget(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher)
-    : Widget(zmq, publisher, Identifier::Random())
+    : Widget(api, publisher, Identifier::Random())
 {
 }
 
@@ -45,8 +46,8 @@ void Widget::setup_listeners(const ListenerDefinitions& definitions)
                 [=](const network::zeromq::Message& message) -> void {
                     (*copy)(this, message);
                 }));
-        auto& socket =
-            listeners_.emplace_back(zmq_.SubscribeSocket(nextCallback.get()));
+        auto& socket = listeners_.emplace_back(
+            api_.ZeroMQ().SubscribeSocket(nextCallback.get()));
         const auto listening = socket->Start(endpoint);
 
         OT_ASSERT(listening)

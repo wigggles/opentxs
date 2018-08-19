@@ -28,8 +28,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    static const ListenerDefinitions listeners_;
-
+    const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
     std::shared_ptr<ContactListRowInternal> owner_;
 
@@ -52,9 +51,8 @@ private:
     void startup();
 
     ContactList(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const Identifier& nymID);
     ContactList() = delete;
     ContactList(const ContactList&) = delete;

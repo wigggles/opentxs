@@ -67,12 +67,13 @@ public:
     void Release() override;
     void Release_SymmetricKey();
 
-    LegacySymmetric();
-    LegacySymmetric(const OTPassword& thePassword);
+    LegacySymmetric(const api::Crypto& crypto);
+    LegacySymmetric(const api::Crypto& crypto, const OTPassword& thePassword);
 
     virtual ~LegacySymmetric();
 
 private:
+    const api::Crypto& crypto_;
     // GetKey asserts if this is false; GenerateKey asserts if it's true.
     bool m_bIsGenerated{false};
     // If a hash-check fo the Derived Key has been made yet.
@@ -115,6 +116,7 @@ private:
     bool serialize_from(const Lock& lock, Data& theInput);
     bool serialize_from(const Lock& lock, const Armored& ascInput);
 
+    LegacySymmetric() = delete;
     LegacySymmetric(const LegacySymmetric&);
     LegacySymmetric(LegacySymmetric&&) = delete;
     LegacySymmetric& operator=(const LegacySymmetric&) = delete;

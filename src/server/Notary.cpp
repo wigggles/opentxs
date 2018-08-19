@@ -9,7 +9,6 @@
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
@@ -284,10 +283,10 @@ void Notary::NotarizeTransfer(
             // IF they can be loaded up from file, or generated, that is.
 
             // Load the inbox/outbox in case they already exist
-            auto theFromOutbox{manager_.Factory().Ledger(
-                manager_, NYM_ID, IDFromAccount, NOTARY_ID)};
+            auto theFromOutbox{
+                manager_.Factory().Ledger(NYM_ID, IDFromAccount, NOTARY_ID)};
             auto theToInbox{manager_.Factory().Ledger(
-                manager_, pItem->GetDestinationAcctID(), NOTARY_ID)};
+                pItem->GetDestinationAcctID(), NOTARY_ID)};
 
             bool bSuccessLoadingInbox = theToInbox->LoadInbox();
             bool bSuccessLoadingOutbox = theFromOutbox->LoadOutbox();
@@ -357,7 +356,6 @@ void Notary::NotarizeTransfer(
                 // pOutbox.
                 //
                 auto pTEMPOutboxTransaction{manager_.Factory().Transaction(
-                    manager_,
                     *pOutbox,
                     transactionType::pending,
                     originType::not_applicable,
@@ -366,7 +364,6 @@ void Notary::NotarizeTransfer(
                 OT_ASSERT(false != bool(pTEMPOutboxTransaction));
 
                 auto pOutboxTransaction{manager_.Factory().Transaction(
-                    manager_,
                     *theFromOutbox,
                     transactionType::pending,
                     originType::not_applicable,
@@ -375,7 +372,6 @@ void Notary::NotarizeTransfer(
                 OT_ASSERT(false != bool(pOutboxTransaction));
 
                 auto pInboxTransaction{manager_.Factory().Transaction(
-                    manager_,
                     *theToInbox,
                     transactionType::pending,
                     originType::not_applicable,
@@ -812,10 +808,10 @@ void Notary::NotarizeWithdrawal(
             auto VOUCHER_ACCOUNT_ID =
                 Identifier::Factory(voucherReserveAccount.get());
 
-            auto theVoucher{manager_.Factory().Cheque(
-                manager_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-            auto theVoucherRequest{manager_.Factory().Cheque(
-                manager_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+            auto theVoucher{
+                manager_.Factory().Cheque(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+            auto theVoucherRequest{
+                manager_.Factory().Cheque(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
 
             bool bLoadContractFromString =
                 theVoucherRequest->LoadContractFromString(strVoucherRequest);
@@ -1098,10 +1094,10 @@ void Notary::NotarizeWithdrawal(
             // the Debits are done one-at-a-time
             // for each token and it's amount/denomination
 
-            auto thePurse{manager_.Factory().Purse(
-                manager_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-            auto theOutputPurse{manager_.Factory().Purse(
-                manager_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+            auto thePurse{
+                manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+            auto theOutputPurse{
+                manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
             Token* pToken = nullptr;
             dequeOfTokenPtrs theDeque;
 
@@ -1569,7 +1565,7 @@ void Notary::NotarizePayDividend(
         // This response item is IN RESPONSE to pItem and its Owner Transaction.
         pResponseBalanceItem->SetReferenceToNum(pItem->GetTransactionNum());
         const std::int64_t lTotalCostOfDividend = pItem->GetAmount();
-        auto theVoucherRequest{manager_.Factory().Cheque(manager_)};
+        auto theVoucherRequest{manager_.Factory().Cheque()};
 
         OT_ASSERT(false != bool(theVoucherRequest));
 
@@ -2015,7 +2011,6 @@ void Notary::NotarizePayDividend(
                                         lTotalCostOfDividend,
                                         lLeftovers);
                                     auto theVoucher{manager_.Factory().Cheque(
-                                        manager_,
                                         NOTARY_ID,
                                         PAYOUT_INSTRUMENT_DEFINITION_ID)};
 
@@ -2134,7 +2129,7 @@ void Notary::NotarizePayDividend(
                                                 *theVoucher);
                                             auto thePayment{
                                                 manager_.Factory().Payment(
-                                                    manager_, strVoucher)};
+                                                    strVoucher)};
 
                                             // calls DropMessageToNymbox
                                             bSent = server_.SendInstrumentToNym(
@@ -2441,8 +2436,8 @@ void Notary::NotarizeDeposit(
             // Get the cheque from the Item and load it up into a Cheque object.
             String strCheque;
             pItem->GetAttachment(strCheque);
-            auto theCheque{manager_.Factory().Cheque(
-                manager_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+            auto theCheque{
+                manager_.Factory().Cheque(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
             bool bLoadContractFromString =
                 theCheque->LoadContractFromString(strCheque);
 
@@ -2604,7 +2599,6 @@ void Notary::NotarizeDeposit(
                             lNewTransactionNumber);
 
                         auto pInboxTransaction{manager_.Factory().Transaction(
-                            manager_,
                             *pInbox,
                             transactionType::chequeReceipt,
                             originType::not_applicable,
@@ -2753,18 +2747,19 @@ void Notary::NotarizeDeposit(
                     strRemitterNymID(REMITTER_NYM_ID),
                     strRemitterAcctID(REMITTER_ACCT_ID);
                 auto theSenderInbox{manager_.Factory().Ledger(
-                    manager_,
                     SENDER_NYM_ID,
                     SOURCE_ACCT_ID,
-                    NOTARY_ID)};  // chequeReceipt goes here.
+                    NOTARY_ID)};  // chequeReceipt
+                                  // goes here.
 
                 OT_ASSERT(false != bool(theSenderInbox));
 
                 auto theRemitterInbox{manager_.Factory().Ledger(
-                    manager_,
                     REMITTER_NYM_ID,
                     REMITTER_ACCT_ID,
-                    NOTARY_ID)};  // voucherReceipt goes here.
+                    NOTARY_ID)};  // voucherReceipt
+                                  // goes
+                                  // here.
                 OT_ASSERT(false != bool(theRemitterInbox));
 
                 Ledger* pSenderInbox = theSenderInbox.get();
@@ -3425,7 +3420,6 @@ void Notary::NotarizeDeposit(
 
                                 auto pInboxTransaction{
                                     manager_.Factory().Transaction(
-                                        manager_,
                                         *pInboxWhereReceiptGoes,
                                         theCheque->HasRemitter()
                                             ? transactionType::voucherReceipt
@@ -3632,9 +3626,8 @@ void Notary::NotarizeDeposit(
             String strPurse;
             pItem->GetAttachment(strPurse);
 
-            auto thePurse{manager_.Factory().Purse(
-                manager_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-
+            auto thePurse{
+                manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
             bool bLoadContractFromString =
                 thePurse->LoadContractFromString(strPurse);
 
@@ -4047,7 +4040,7 @@ void Notary::NotarizePaymentPlan(
             // Also load up the Payment Plan from inside the transaction item.
             String strPaymentPlan;
             pItem->GetAttachment(strPaymentPlan);
-            auto pPlan = manager_.Factory().PaymentPlan(manager_);
+            auto pPlan = manager_.Factory().PaymentPlan();
 
             OT_ASSERT(nullptr != pPlan);
 
@@ -4721,8 +4714,7 @@ void Notary::NotarizeSmartContract(
             // Also load up the smart contract from inside the transaction item.
             String strContract;
             pItem->GetAttachment(strContract);
-            auto pContract{
-                manager_.Factory().SmartContract(manager_, NOTARY_ID)};
+            auto pContract{manager_.Factory().SmartContract(NOTARY_ID)};
             OT_ASSERT(false != bool(pContract));
 
             // If we failed to load the smart contract...
@@ -5716,7 +5708,7 @@ void Notary::NotarizeExchangeBasket(
 
             // Here's the request from the user.
             String strBasket;
-            auto theRequestBasket{manager_.Factory().Basket(manager_)};
+            auto theRequestBasket{manager_.Factory().Basket()};
 
             OT_ASSERT(false != bool(theRequestBasket));
 
@@ -6100,7 +6092,6 @@ void Notary::NotarizeExchangeBasket(
 
                                             auto pInboxTransaction{
                                                 manager_.Factory().Transaction(
-                                                    manager_,
                                                     *pSubInbox,
                                                     transactionType::
                                                         basketReceipt,
@@ -6315,7 +6306,6 @@ void Notary::NotarizeExchangeBasket(
 
                                     auto pInboxTransaction{
                                         manager_.Factory().Transaction(
-                                            manager_,
                                             *pInbox,
                                             transactionType::basketReceipt,
                                             originType::not_applicable,
@@ -6647,13 +6637,13 @@ void Notary::NotarizeMarketOffer(
                 manager_.Wallet().mutable_Account(CURRENCY_ACCT_ID);
             // Also load up the Trade from inside the transaction item.
             String strOffer;
-            auto theOffer{manager_.Factory().Offer(manager_)};
+            auto theOffer{manager_.Factory().Offer()};
 
             OT_ASSERT(false != bool(theOffer));
 
             String strTrade;
             pItem->GetAttachment(strTrade);
-            auto pTrade = manager_.Factory().Trade(manager_);
+            auto pTrade = manager_.Factory().Trade();
 
             OT_ASSERT(false != bool(pTrade));
 
@@ -7350,8 +7340,7 @@ void Notary::NotarizeProcessNymbox(
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto& NOTARY_ID = context.Server();
     std::set<TransactionNumber> newNumbers;
-    auto theNymbox{
-        manager_.Factory().Ledger(manager_, NYM_ID, NYM_ID, NOTARY_ID)};
+    auto theNymbox{manager_.Factory().Ledger(NYM_ID, NYM_ID, NOTARY_ID)};
 
     OT_ASSERT(false != bool(theNymbox));
 
@@ -7771,7 +7760,6 @@ void Notary::NotarizeProcessNymbox(
                                 //
                                 auto pSuccessNotice{
                                     manager_.Factory().Transaction(
-                                        manager_,
                                         *theNymbox,
                                         transactionType::successNotice,
                                         originType::not_applicable,
@@ -8317,7 +8305,6 @@ void Notary::NotarizeProcessInbox(
                 pServerTransaction->GetReferenceString(strOriginalItem);
 
                 auto pOriginalItem{manager_.Factory().Item(
-                    manager_,
                     strOriginalItem,
                     NOTARY_ID,
                     pServerTransaction->GetReferenceToNum())};
@@ -8356,7 +8343,7 @@ void Notary::NotarizeProcessInbox(
                         // a Cheque object.
                         String strCheque;
                         pOriginalItem->GetAttachment(strCheque);
-                        auto theCheque{manager_.Factory().Cheque(manager_)};
+                        auto theCheque{manager_.Factory().Cheque()};
 
                         OT_ASSERT(false != bool(theCheque));
 
@@ -8664,8 +8651,7 @@ void Notary::NotarizeProcessInbox(
         // process it.
         // theAcctID is the ID on the client Account that was
         // passed in.
-        auto theInbox{
-            manager_.Factory().Ledger(manager_, NYM_ID, ACCOUNT_ID, NOTARY_ID)};
+        auto theInbox{manager_.Factory().Ledger(NYM_ID, ACCOUNT_ID, NOTARY_ID)};
 
         OT_ASSERT(false != bool(theInbox));
 
@@ -8848,7 +8834,6 @@ void Notary::NotarizeProcessInbox(
             pServerTransaction->GetReferenceString(strOriginalItem);
 
             auto pOriginalItem{manager_.Factory().Item(
-                manager_,
                 strOriginalItem,
                 NOTARY_ID,
                 pServerTransaction->GetReferenceToNum())};
@@ -8995,11 +8980,11 @@ void Notary::NotarizeProcessInbox(
                     // put a notice of this acceptance for the
                     // sender's records.
                     auto theFromOutbox{manager_.Factory().Ledger(
-                        manager_, IDFromAccount, NOTARY_ID)};  // Sender's
-                                                               // *OUTBOX*
+                        IDFromAccount, NOTARY_ID)};  // Sender's
+                                                     // *OUTBOX*
                     auto theFromInbox{manager_.Factory().Ledger(
-                        manager_, IDFromAccount, NOTARY_ID)};  // Sender's
-                                                               // *INBOX*
+                        IDFromAccount, NOTARY_ID)};  // Sender's
+                                                     // *INBOX*
 
                     OT_ASSERT(false != bool(theFromOutbox));
                     OT_ASSERT(false != bool(theFromInbox));
@@ -9051,7 +9036,6 @@ void Notary::NotarizeProcessInbox(
                         // Generate a new transaction... (to
                         // notice the sender of acceptance.)
                         auto pInboxTransaction{manager_.Factory().Transaction(
-                            manager_,
                             *theFromInbox,
                             transactionType::transferReceipt,
                             originType::not_applicable,

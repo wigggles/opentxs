@@ -292,17 +292,11 @@ public:
 private:
     friend opentxs::Factory;
 
-    const OT_API& otapi_;
-    const OTAPI_Exec& exec_;
-    const api::client::Workflow& workflow_;
-    const api::Core& core_;
+    const api::client::Manager& api_;
     ContextLockCallback lock_callback_;
 
     ServerAction(
-        const OT_API& otapi,
-        const OTAPI_Exec& exec,
-        const api::client::Workflow& workflow,
-        const api::Core& core,
+        const api::client::Manager& api,
         const ContextLockCallback& lockCallback);
     ServerAction() = delete;
     ServerAction(const ServerAction&) = delete;

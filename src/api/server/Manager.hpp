@@ -9,18 +9,11 @@
 
 namespace opentxs::api::server::implementation
 {
-class Manager final : opentxs::api::server::Manager,
-                      opentxs::api::implementation::Scheduler,
-                      api::implementation::StorageParent
+class Manager final : opentxs::api::server::Manager, api::implementation::Core
 {
 public:
-    const api::Settings& Config() const override { return config_; }
-    const api::Crypto& Crypto() const override { return crypto_; }
-    const std::string& DataFolder() const override { return data_folder_; }
-    const api::network::Dht& DHT() const override;
     void DropIncoming(const int count) const override;
     void DropOutgoing(const int count) const override;
-    const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
     const std::string GetDefaultBindIP() const override;
     const std::string GetEEP() const override;
@@ -39,31 +32,13 @@ public:
     const std::string GetUserName() const override;
     const std::string GetUserTerms() const override;
     const Identifier& ID() const override;
-    int Instance() const override { return instance_; }
     const Identifier& NymID() const override;
 #if OT_CASH
     void ScanMints() const override;
 #endif  // OT_CASH
-    void Schedule(
-        const std::chrono::seconds& interval,
-        const PeriodicTask& task,
-        const std::chrono::seconds& last =
-            std::chrono::seconds(0)) const override
-    {
-        Scheduler::Schedule(interval, task, last);
-    }
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& Seeds() const override;
 #if OT_CASH
-#endif
-    const api::storage::Storage& Storage() const override;
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
-    const api::Wallet& Wallet() const override;
-    const opentxs::network::zeromq::Context& ZeroMQ() const override
-    {
-        return zmq_context_;
-    }
 
     ~Manager();
 
@@ -74,16 +49,7 @@ private:
     typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
 #endif  // OT_CASH
 
-    const opentxs::network::zeromq::Context& zmq_context_;
-    const int instance_{0};
-#if OT_CRYPTO_WITH_BIP39
-    std::unique_ptr<api::HDSeed> seeds_;
-#endif
-    std::unique_ptr<api::Factory> factory_;
-    std::unique_ptr<api::Wallet> wallet_;  // Depends on seeds_, factory_
-    std::unique_ptr<api::network::Dht> dht_;
-    std::unique_ptr<opentxs::server::Server> server_p_;  // Depends on seeds_,
-                                                         // wallet_, storage_
+    std::unique_ptr<opentxs::server::Server> server_p_;
     opentxs::server::Server& server_;
     std::unique_ptr<opentxs::server::MessageProcessor> message_processor_p_;
     opentxs::server::MessageProcessor& message_processor_;
@@ -130,7 +96,6 @@ private:
     void Cleanup();
     void Init();
     void Start() override;
-    void storage_gc_hook() override;
 
     Manager(
         const Flag& running,

@@ -5,9 +5,11 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -46,53 +48,32 @@
 namespace opentxs
 {
 ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Sync& sync,
-    const api::client::Workflow& workflow,
-    const api::client::Contacts& contact,
-    const api::storage::Storage& storage,
-    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
 {
     return new ui::implementation::AccountActivity(
-        zmq,
-        publisher,
-        sync,
-        workflow,
-        contact,
-        storage,
-        core,
-        nymID,
-        accountID);
+        api, publisher, nymID, accountID);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions AccountActivity::listeners_{
-    {network::zeromq::Socket::WorkflowAccountUpdateEndpoint,
-     new MessageProcessor<AccountActivity>(&AccountActivity::process_workflow)},
-    {network::zeromq::Socket::AccountUpdateEndpoint,
-     new MessageProcessor<AccountActivity>(&AccountActivity::process_balance)},
-};
-
 AccountActivity::AccountActivity(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Sync& sync,
-    const api::client::Workflow& workflow,
-    const api::client::Contacts& contact,
-    const api::storage::Storage& storage,
-    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
-    : AccountActivityList(nymID, zmq, publisher, contact)
-    , sync_(sync)
-    , workflow_(workflow)
-    , storage_(storage)
-    , core_(core)
+    : AccountActivityList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().WorkflowAccountUpdate(),
+           new MessageProcessor<AccountActivity>(
+               &AccountActivity::process_workflow)},
+          {api_.Endpoints().AccountUpdate(),
+           new MessageProcessor<AccountActivity>(
+               &AccountActivity::process_balance)},
+      })
     , balance_(0)
     , account_id_(accountID)
     , contract_(nullptr)
@@ -114,17 +95,7 @@ void AccountActivity::construct_row(
     items_[index].emplace(
         id,
         Factory::BalanceItem(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            custom,
-            sync_,
-            core_,
-            nym_id_,
-            account_id_));
+            *this, api_, publisher_, id, index, custom, nym_id_, account_id_));
     names_.emplace(id, index);
 }
 
@@ -297,7 +268,7 @@ void AccountActivity::process_workflow(
     const Identifier& workflowID,
     std::set<AccountActivityRowID>& active)
 {
-    const auto workflow = workflow_.LoadWorkflow(nym_id_, workflowID);
+    const auto workflow = api_.Workflow().LoadWorkflow(nym_id_, workflowID);
 
     OT_ASSERT(workflow)
 
@@ -329,18 +300,19 @@ void AccountActivity::process_workflow(const network::zeromq::Message& message)
 
 void AccountActivity::startup()
 {
-    auto account = core_.Wallet().Account(account_id_);
+    auto account = api_.Wallet().Account(account_id_);
 
     if (account) {
         balance_.store(account.get().GetBalance());
         UpdateNotify();
         eLock lock(shared_lock_);
-        contract_ = core_.Wallet().UnitDefinition(
-            storage_.AccountContract(account_id_));
+        contract_ = api_.Wallet().UnitDefinition(
+            api_.Storage().AccountContract(account_id_));
     }
 
     account.Release();
-    const auto workflows = workflow_.WorkflowsByAccount(nym_id_, account_id_);
+    const auto workflows =
+        api_.Workflow().WorkflowsByAccount(nym_id_, account_id_);
     std::set<AccountActivityRowID> active{};
 
     for (const auto& id : workflows) { process_workflow(id, active); }

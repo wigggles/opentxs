@@ -245,8 +245,8 @@ bool Context::InitializeNymbox()
 {
     Lock lock(lock_);
     const auto& ownerNymID = client_nym_id(lock);
-    auto nymbox{api_.Factory().Ledger(
-        api_, ownerNymID, server_nym_id(lock), server_id_)};
+    auto nymbox{
+        api_.Factory().Ledger(ownerNymID, server_nym_id(lock), server_id_)};
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__

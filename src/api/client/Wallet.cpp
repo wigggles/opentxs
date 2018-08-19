@@ -53,7 +53,7 @@ void Wallet::instantiate_server_context(
     const auto& server = serialized.servercontext().serverid();
     auto& connection = zmq.Server(server);
     output.reset(new opentxs::ServerContext(
-        client_, serialized, localNym, remoteNym, connection));
+        api_, serialized, localNym, remoteNym, connection));
 }
 
 Editor<opentxs::Context> Wallet::mutable_Context(
@@ -102,7 +102,7 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
         auto& zmq = client_.ZMQ();
         auto& connection = zmq.Server(serverID->str());
         entry.reset(new opentxs::ServerContext(
-            client_, localNym, remoteNym, serverID, connection));
+            api_, localNym, remoteNym, serverID, connection));
         base = entry;
     }
 

@@ -22,15 +22,14 @@ namespace opentxs
 {
 ui::implementation::ContactSubsectionRowInternal* Factory::ContactItemWidget(
     const ui::implementation::ContactSubsectionInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::ContactSubsectionRowID& rowID,
     const ui::implementation::ContactSubsectionSortKey& sortKey,
     const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ContactItem(
-        parent, zmq, publisher, contact, rowID, sortKey, custom);
+        parent, api, publisher, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
@@ -38,13 +37,12 @@ namespace opentxs::ui::implementation
 {
 ContactItem::ContactItem(
     const ContactSubsectionInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ContactSubsectionRowID& rowID,
     const ContactSubsectionSortKey& sortKey,
     const CustomData& custom)
-    : ContactItemRow(parent, zmq, publisher, contact, rowID, true)
+    : ContactItemRow(parent, api, publisher, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
 {

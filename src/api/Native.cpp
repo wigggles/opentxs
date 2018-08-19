@@ -69,7 +69,7 @@
 #define _PASSWORD_LEN 128
 #endif
 
-#define OT_METHOD "opentxs::api::implementation::Native::"
+//#define OT_METHOD "opentxs::api::implementation::Native::"
 
 namespace
 {
@@ -311,18 +311,11 @@ namespace opentxs
 api::internal::Native* Factory::Native(
     Flag& running,
     const ArgList& args,
-    const bool recover,
-    const bool serverMode,
     const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
 {
     return new api::implementation::Native(
-        running,
-        args,
-        recover,
-        serverMode,
-        gcInterval,
-        externalPasswordCallback);
+        running, args, gcInterval, externalPasswordCallback);
 }
 }  // namespace opentxs
 
@@ -331,21 +324,17 @@ namespace opentxs::api::implementation
 Native::Native(
     Flag& running,
     const ArgList& args,
-    const bool recover,
-    const bool serverMode,
     const std::chrono::seconds gcInterval,
     OTCaller* externalPasswordCallback)
     : running_(running)
-    , recover_(recover)
-    , server_mode_(serverMode)
     , gc_interval_(gcInterval)
     , config_lock_()
     , task_list_lock_()
     , signal_handler_lock_()
-    , client_(nullptr)
     , config_()
     , crypto_(nullptr)
     , legacy_(opentxs::Factory::Legacy())
+    , client_()
     , server_()
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , signal_handler_(nullptr)
@@ -387,13 +376,13 @@ int Native::client_instance(const int count)
     return (2 * count);
 }
 
-const api::client::Manager& Native::Client() const
+const api::client::Manager& Native::Client(const int instance) const
 {
-    if (server_mode_) { OT_FAIL; }
+    auto& output = client_.at(instance);
 
-    OT_ASSERT(client_);
+    OT_ASSERT(output);
 
-    return *client_;
+    return *output;
 }
 
 const api::Settings& Native::Config(const std::string& path) const
@@ -456,19 +445,6 @@ void Native::Init()
 {
     Init_Log();
     Init_Crypto();
-    Init_Api();  // requires Init_Log(), Init_Crypto()
-
-    if (recover_) { recover(); }
-
-    Init_Server();  // requires Init_Log(), Init_Crypto()
-}
-
-void Native::Init_Api()
-{
-    if (server_mode_) { return; }
-
-    Lock lock(lock_);
-    start_client(lock, server_args_);
 }
 
 void Native::Init_Crypto()
@@ -486,40 +462,6 @@ void Native::Init_Log()
     if (false == init) { abort(); }
 }
 
-void Native::Init_Server()
-{
-    if (!server_mode_) { return; }
-
-    Lock lock(lock_);
-    start_server(lock, server_args_);
-}
-
-const api::Legacy& Native::Legacy() const
-{
-    OT_ASSERT(legacy_)
-
-    return *legacy_;
-}
-
-void Native::recover()
-{
-    OT_ASSERT(client_);
-    OT_ASSERT(crypto_);
-    OT_ASSERT(recover_);
-    OT_ASSERT(0 < word_list_.getPasswordSize());
-
-    auto& api = client_->OTAPI();
-    const auto fingerprint = api.Wallet_ImportSeed(word_list_, passphrase_);
-
-    if (fingerprint.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to import seed."
-              << std::endl;
-    } else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Imported seed " << fingerprint
-              << std::endl;
-    }
-}
-
 int Native::server_instance(const int count)
 {
     // NOTE: Instance numbers must not collide between clients and servers.
@@ -535,8 +477,6 @@ const api::server::Manager& Native::Server(const int instance) const
 
     return *output;
 }
-
-bool Native::ServerMode() const { return server_mode_; }
 
 void Native::setup_default_external_password_callback()
 {
@@ -567,18 +507,18 @@ void Native::shutdown()
         callback();
     }
 
-    if (client_) {
-        OT_ASSERT(client_);
+    for (const auto& client : client_) {
+        if (client) {
+            auto wallet = client->OTAPI().GetWallet(nullptr);
 
-        auto wallet = client_->OTAPI().GetWallet(nullptr);
+            OT_ASSERT(nullptr != wallet);
 
-        OT_ASSERT(nullptr != wallet);
-
-        wallet->SaveWallet();
+            wallet->SaveWallet();
+        }
     }
 
     server_.clear();
-    client_.reset();
+    client_.clear();
     crypto_.reset();
     Log::Cleanup();
 
@@ -593,30 +533,37 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
     OT_ASSERT(crypto_);
     OT_ASSERT(legacy_);
 
-    // TODO: Only one client is currently supported
-    const auto instance = client_instance(0);
-    client_.reset(opentxs::Factory::ClientManager(
+    const int next = client_.size();
+    const auto instance = client_instance(next);
+    client_.emplace_back(opentxs::Factory::ClientManager(
         running_,
         args,
-        Config(legacy_->ClientConfigFilePath()),
+        Config(legacy_->ClientConfigFilePath(next)),
         *crypto_,
-        *legacy_,
         zmq_context_,
-        legacy_->ClientDataFolder(),
+        legacy_->ClientDataFolder(next),
         instance));
-
-    OT_ASSERT(client_);
 }
 
-const api::Core& Native::StartClient(const ArgList& args) const
+const api::client::Manager& Native::StartClient(
+    const ArgList& args,
+    const int instance) const
 {
     Lock lock(lock_);
 
-    if (client_) { return *client_; }
+    const std::size_t count = std::max(0, instance);
+    const std::size_t effective = std::min(count, client_.size());
 
-    start_client(lock, args);
+    if (effective == client_.size()) {
+        ArgList arguments{args};
+        start_client(lock, arguments);
+    }
 
-    return *client_;
+    const auto& output = client_.at(effective);
+
+    OT_ASSERT(output)
+
+    return *output;
 }
 
 void Native::start_server(const Lock& lock, const ArgList& args) const
@@ -624,9 +571,8 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
     OT_ASSERT(verify_lock(lock))
     OT_ASSERT(crypto_);
 
-    const auto next = server_.size();
-    const auto instance = server_instance(next);
-
+    const auto next{server_.size()};
+    const auto instance{server_instance(next)};
     server_.emplace_back(opentxs::Factory::ServerManager(
         running_,
         args,
@@ -637,7 +583,7 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
         instance));
 }
 
-const api::Core& Native::StartServer(
+const api::server::Manager& Native::StartServer(
     const ArgList& args,
     const int instance,
     const bool inproc) const

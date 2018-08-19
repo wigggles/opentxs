@@ -8,9 +8,12 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/network/zeromq/Socket.hpp"
+
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::network::zeromq::DealerSocket::SetPrivateKey;
+%ignore opentxs::network::zeromq::CurveServer::SetPrivateKey;
+%interface(opentxs::network::zeromq::CurveServer);
 // clang-format on
 #endif  // SWIG
 
@@ -20,7 +23,7 @@ namespace network
 {
 namespace zeromq
 {
-class CurveServer
+class CurveServer : virtual public Socket
 {
 public:
     EXPORT virtual bool SetPrivateKey(const OTPassword& key) const = 0;

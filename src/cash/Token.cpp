@@ -229,7 +229,7 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
         "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
         strTokenHash.Get(),
@@ -268,7 +268,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
     // See if the spent token file ALREADY EXISTS...
     bool bTokenIsPresent = OTDB::Exists(
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
         strTokenHash.Get(),
@@ -303,7 +303,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 
     const bool bSaved = OTDB::StorePlainString(
         strFinal.Get(),
-        core_.DataFolder(),
+        api_.DataFolder(),
         OTFolders::Spent().Get(),
         strAssetFolder.Get(),
         strTokenHash.Get(),

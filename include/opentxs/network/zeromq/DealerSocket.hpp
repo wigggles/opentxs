@@ -8,7 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/network/zeromq/Socket.hpp"
 #include "opentxs/network/zeromq/CurveClient.hpp"
 
 #ifdef SWIG
@@ -19,7 +18,6 @@
 %ignore opentxs::Pimpl<opentxs::network::zeromq::DealerSocket>::operator const opentxs::network::zeromq::DealerSocket &;
 %rename(assign) operator=(const opentxs::network::zeromq::DealerSocket&);
 %rename(ZMQDealerSocket) opentxs::network::zeromq::DealerSocket;
-%template(ZMQMessageSendResult) std::pair<opentxs::SendResult, Pimpl<opentxs::network::zeromq::Message>>;
 %template(OTZMQDealerSocket) opentxs::Pimpl<opentxs::network::zeromq::DealerSocket>;
 // clang-format on
 #endif  // SWIG
@@ -30,7 +28,7 @@ namespace network
 {
 namespace zeromq
 {
-class DealerSocket : virtual public Socket, virtual public CurveClient
+class DealerSocket : virtual public CurveClient
 {
 public:
     EXPORT static OTZMQDealerSocket Factory(

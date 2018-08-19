@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -42,14 +43,11 @@
 namespace opentxs
 {
 api::client::Workflow* Factory::Workflow(
+    const api::Core& api,
     const api::client::Activity& activity,
-    const api::client::Contacts& contact,
-    const api::Core& core,
-    const api::storage::Storage& storage,
-    const network::zeromq::Context& zmq)
+    const api::client::Contacts& contact)
 {
-    return new api::client::implementation::Workflow(
-        activity, contact, core, storage, zmq);
+    return new api::client::implementation::Workflow(api, activity, contact);
 }
 }  // namespace opentxs
 
@@ -103,7 +101,7 @@ Workflow::Cheque Workflow::InstantiateCheque(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
-            cheque.reset(core.Factory().Cheque(core).release());
+            cheque.reset(core.Factory().Cheque().release());
 
             OT_ASSERT(cheque)
 
@@ -137,20 +135,16 @@ Workflow::Cheque Workflow::InstantiateCheque(
 namespace implementation
 {
 Workflow::Workflow(
+    const api::Core& api,
     const api::client::Activity& activity,
-    const api::client::Contacts& contact,
-    const api::Core& core,
-    const storage::Storage& storage,
-    const opentxs::network::zeromq::Context& zmq)
-    : activity_(activity)
+    const api::client::Contacts& contact)
+    : api_(api)
+    , activity_(activity)
     , contact_(contact)
-    , core_(core)
-    , storage_(storage)
-    , zmq_(zmq)
-    , account_publisher_(zmq.PublishSocket())
+    , account_publisher_(api_.ZeroMQ().PublishSocket())
 {
-    const auto endpoint =
-        opentxs::network::zeromq::Socket::WorkflowAccountUpdateEndpoint;
+    // WARNING: do not access api_.Wallet() during construction
+    const auto endpoint = api_.Endpoints().WorkflowAccountUpdate();
     otWarn << OT_METHOD << __FUNCTION__ << ": Binding to " << endpoint
            << std::endl;
     const auto bound = account_publisher_->Start(endpoint);
@@ -418,7 +412,7 @@ bool Workflow::ClearCheque(
         return false;
     }
 
-    auto cheque{core_.Factory().Cheque(receipt)};
+    auto cheque{api_.Factory().Cheque(receipt)};
 
     if (false == bool(cheque)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -704,7 +698,7 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_id(
     const std::string& workflowID) const
 {
     std::shared_ptr<proto::PaymentWorkflow> output{nullptr};
-    const auto loaded = storage_.Load(nymID, workflowID, output);
+    const auto loaded = api_.Storage().Load(nymID, workflowID, output);
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Workflow " << workflowID
@@ -738,7 +732,8 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::get_workflow_by_source(
     const std::string& nymID,
     const std::string& sourceID) const
 {
-    const auto workflowID = storage_.PaymentWorkflowLookup(nymID, sourceID);
+    const auto workflowID =
+        api_.Storage().PaymentWorkflowLookup(nymID, sourceID);
 
     if (workflowID.empty()) { return {}; }
 
@@ -817,7 +812,7 @@ std::set<OTIdentifier> Workflow::List(
     const proto::PaymentWorkflowState state) const
 {
     const auto input =
-        storage_.PaymentWorkflowsByState(nymID.str(), type, state);
+        api_.Storage().PaymentWorkflowsByState(nymID.str(), type, state);
     std::set<OTIdentifier> output{};
     std::transform(
         input.begin(),
@@ -847,7 +842,7 @@ Workflow::Cheque Workflow::LoadCheque(
         return {};
     }
 
-    return InstantiateCheque(core_, *workflow);
+    return InstantiateCheque(api_, *workflow);
 }
 
 Workflow::Cheque Workflow::LoadChequeByWorkflow(
@@ -867,7 +862,7 @@ Workflow::Cheque Workflow::LoadChequeByWorkflow(
         return {};
     }
 
-    return InstantiateCheque(core_, *workflow);
+    return InstantiateCheque(api_, *workflow);
 }
 
 std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(
@@ -930,7 +925,7 @@ bool Workflow::save_workflow(
 
     OT_ASSERT(valid)
 
-    const auto saved = storage_.Store(nymID, workflow);
+    const auto saved = api_.Storage().Store(nymID, workflow);
 
     OT_ASSERT(saved)
 
@@ -1034,7 +1029,7 @@ std::vector<OTIdentifier> Workflow::WorkflowsByAccount(
 {
     std::vector<OTIdentifier> output{};
     const auto workflows =
-        storage_.PaymentWorkflowsByAccount(nymID.str(), accountID.str());
+        api_.Storage().PaymentWorkflowsByAccount(nymID.str(), accountID.str());
     std::transform(
         workflows.begin(),
         workflows.end(),

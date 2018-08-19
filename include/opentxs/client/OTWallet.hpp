@@ -82,12 +82,7 @@ public:
 private:
     friend OT_API;
 
-    const api::Crypto& crypto_;
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds_;
-#endif
-    const api::Core& core_;
-    const api::storage::Storage& storage_;
+    const api::Core& api_;
 #if OT_CASH
     // While waiting on server response to withdrawal, store private coin data
     // here for unblinding
@@ -102,13 +97,7 @@ private:
     bool save_contract(const Lock& lock, String& strContract);
     bool save_wallet(const Lock& lock, const char* szFilename = nullptr);
 
-    OTWallet(
-        const api::Crypto& crypto,
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds,
-#endif
-        const api::Core& core,
-        const api::storage::Storage& storage);
+    OTWallet(const api::Core& api);
     OTWallet() = delete;
     OTWallet(const OTWallet&) = delete;
     OTWallet(OTWallet&&) = delete;

@@ -3702,6 +3702,8 @@ public:
 
     EXPORT static std::string AvailableServers(const std::string& nymID);
 
+    EXPORT static const api::Endpoints& ZeroMQ_Endpoints();
+
 private:
     friend api::client::implementation::Manager;
 

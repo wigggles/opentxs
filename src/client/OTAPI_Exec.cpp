@@ -92,27 +92,22 @@ const std::int32_t OT_ERROR = (-1);
 #endif
 
 OTAPI_Exec::OTAPI_Exec(
+    const api::Core& api,
     const api::client::Activity& activity,
-    const api::Settings& config,
     const api::client::Contacts& contacts,
-    const api::Crypto& crypto,
-    const api::Factory& factory,
-    const api::Identity& identity,
-    const api::Core& manager,
     const api::network::ZMQ& zeromq,
+    const api::Identity& identity,
     const OT_API& otapi,
     const ContextLockCallback& lockCallback)
-    : activity_(activity)
-    , config_(config)
+    : api_(api)
+    , activity_(activity)
     , contacts_(contacts)
-    , crypto_(crypto)
-    , factory_(manager.Factory())
-    , identity_(identity)
-    , manager_(manager)
     , zeromq_(zeromq)
+    , identity_(identity)
     , ot_api_(otapi)
     , lock_callback_(lockCallback)
 {
+    // WARNING: do not access api_.Wallet() during construction
 }
 
 void OTAPI_Exec::SetAppBinaryFolder(const std::string& strFolder)
@@ -151,10 +146,10 @@ bool OTAPI_Exec::CheckSetConfigSection(
 {
     bool b_isNewSection = false;
 
-    const bool bSuccess = config_.CheckSetSection(
+    const bool bSuccess = api_.Config().CheckSetSection(
         strSection.c_str(), strComment.c_str(), b_isNewSection);
     if (bSuccess && b_isNewSection) {
-        if (!config_.Save()) {
+        if (!api_.Config().Save()) {
             Log::vError(
                 "%s: Error: Unable to save updated config file.\n",
                 __FUNCTION__);
@@ -171,11 +166,11 @@ bool OTAPI_Exec::SetConfig_str(
     const std::string& strValue) const
 {
     bool b_isNew = false;
-    const bool bSuccess = config_.Set_str(
+    const bool bSuccess = api_.Config().Set_str(
         strSection.c_str(), strKey.c_str(), strValue.c_str(), b_isNew);
 
     if (bSuccess && b_isNew) {
-        if (!config_.Save()) {
+        if (!api_.Config().Save()) {
             Log::vError(
                 "%s: Error: Unable to save updated config file.\n",
                 __FUNCTION__);
@@ -192,11 +187,11 @@ bool OTAPI_Exec::SetConfig_long(
     const std::int64_t& lValue) const
 {
     bool b_isNew = false;
-    const bool bSuccess =
-        config_.Set_long(strSection.c_str(), strKey.c_str(), lValue, b_isNew);
+    const bool bSuccess = api_.Config().Set_long(
+        strSection.c_str(), strKey.c_str(), lValue, b_isNew);
 
     if (bSuccess && b_isNew) {
-        if (!config_.Save()) {
+        if (!api_.Config().Save()) {
             Log::vError(
                 "%s: Error: Unable to save updated config file.\n",
                 __FUNCTION__);
@@ -213,11 +208,11 @@ bool OTAPI_Exec::SetConfig_bool(
     const bool bValue) const
 {
     bool b_isNew = false;
-    const bool bSuccess =
-        config_.Set_bool(strSection.c_str(), strKey.c_str(), bValue, b_isNew);
+    const bool bSuccess = api_.Config().Set_bool(
+        strSection.c_str(), strKey.c_str(), bValue, b_isNew);
 
     if (bSuccess && b_isNew) {
-        if (!config_.Save()) {
+        if (!api_.Config().Save()) {
             Log::vError(
                 "%s: Error: Unable to save updated config file.\n",
                 __FUNCTION__);
@@ -234,7 +229,7 @@ std::string OTAPI_Exec::GetConfig_str(
 {
     String strOutput;
     bool bKeyExists = false;
-    const bool bSuccess = config_.Check_str(
+    const bool bSuccess = api_.Config().Check_str(
         strSection.c_str(), strKey.c_str(), strOutput, bKeyExists);
     std::string str_result = "";
 
@@ -249,7 +244,7 @@ std::int64_t OTAPI_Exec::GetConfig_long(
 {
     std::int64_t lOutput = 0;
     bool bKeyExists = false;
-    const bool bSuccess = config_.Check_long(
+    const bool bSuccess = api_.Config().Check_long(
         strSection.c_str(), strKey.c_str(), lOutput, bKeyExists);
 
     if (bSuccess && bKeyExists) return lOutput;
@@ -263,7 +258,7 @@ bool OTAPI_Exec::GetConfig_bool(
 {
     bool bOutput = false;
     bool bKeyExists = false;
-    const bool bSuccess = config_.Check_bool(
+    const bool bSuccess = api_.Config().Check_bool(
         strSection.c_str(), strKey.c_str(), bOutput, bKeyExists);
 
     if (bSuccess && bKeyExists) return bOutput;
@@ -518,7 +513,7 @@ std::string OTAPI_Exec::CreateNymLegacy(
     nymParameters = std::make_shared<NymParameters>(proto::CREDTYPE_LEGACY);
 #endif
 
-    ConstNym pNym = manager_.Wallet().Nym(*nymParameters);
+    ConstNym pNym = api_.Wallet().Nym(*nymParameters);
 
     if (false == bool(pNym))  // Creation failed.
     {
@@ -568,7 +563,7 @@ std::string OTAPI_Exec::CreateNymHD(
         nymParameters.SetNym(index);
     }
 
-    auto nym = manager_.Wallet().Nym(nymParameters, type, name);
+    auto nym = api_.Wallet().Nym(nymParameters, type, name);
 
     if (nullptr == nym) {
         otOut << OT_METHOD << __FUNCTION__ << ": Failed trying to create Nym."
@@ -578,7 +573,7 @@ std::string OTAPI_Exec::CreateNymHD(
     }
 
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = factory_.PaymentCode(nym->PaymentCode());
+    auto code = api_.Factory().PaymentCode(nym->PaymentCode());
 #endif
     contacts_.NewContact(
         name,
@@ -619,7 +614,7 @@ std::string OTAPI_Exec::GetNym_ActiveCronItemIDs(
     std::string str_return;
 
     if (OTCronItem::GetActiveCronTransNums(
-            numlist, manager_.DataFolder(), nymId, notaryID)) {
+            numlist, api_.DataFolder(), nymId, notaryID)) {
         String strOutput;
         numlist.Output(strOutput);
         str_return = strOutput.Get();
@@ -649,7 +644,7 @@ std::string OTAPI_Exec::GetActiveCronItem(
     const std::int64_t lTransactionNum = lTransNum;
 
     const auto pCronItem{
-        OTCronItem::LoadActiveCronReceipt(manager_, lTransactionNum, notaryID)};
+        OTCronItem::LoadActiveCronReceipt(api_, lTransactionNum, notaryID)};
     if (false != bool(pCronItem)) {
         const String strCronItem(*pCronItem);
 
@@ -666,7 +661,7 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) return {};
     const std::string str_return(pNym->Source().asString().Get());
     return str_return;
@@ -680,7 +675,7 @@ std::string OTAPI_Exec::GetNym_Description(const std::string& NYM_ID) const
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) return {};
     const std::string str_return(pNym->GetDescription().Get());
     return str_return;
@@ -696,7 +691,7 @@ std::string OTAPI_Exec::GetNym_MasterCredentialContents(
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) return {};
 
     auto serialized = pNym->MasterCredentialContents(CREDENTIAL_ID);
@@ -716,7 +711,7 @@ std::string OTAPI_Exec::GetNym_RevokedCredContents(
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) { return {}; }
 
     auto serialized = pNym->RevokedCredentialContents(CREDENTIAL_ID);
@@ -747,7 +742,7 @@ std::string OTAPI_Exec::GetNym_ChildCredentialContents(
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) return {};
 
     auto serialized =
@@ -779,7 +774,7 @@ bool OTAPI_Exec::RevokeChildCredential(
     }
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
 
     if (false == bool(pNym)) { return false; }
 
@@ -829,7 +824,7 @@ std::string OTAPI_Exec::GetContactData_Base64(const std::string& NYM_ID) const
 
     if (str_result.empty()) return {};
 
-    return crypto_.Encode().DataEncode(str_result);
+    return api_.Crypto().Encode().DataEncode(str_result);
 }
 
 /// Returns a serialized protobuf (binary) stored in a std::string.
@@ -867,7 +862,7 @@ bool OTAPI_Exec::SetContactData_Base64(
         return false;
     }
 
-    std::string str_decoded = crypto_.Encode().DataDecode(THE_DATA);
+    std::string str_decoded = api_.Crypto().Encode().DataDecode(THE_DATA);
 
     return SetContactData(NYM_ID, str_decoded);
 }
@@ -887,14 +882,14 @@ bool OTAPI_Exec::SetContactData(
         return false;
     }
     opentxs::OTIdentifier nymID = Identifier::Factory(NYM_ID);
-    NymData pNym = manager_.Wallet().mutable_Nym(nymID);
+    NymData pNym = api_.Wallet().mutable_Nym(nymID);
 
     // ------------------------------
     auto contactData =
         proto::StringToProto<proto::ContactData>(String(THE_DATA));
     // ------------------------------
     if (pNym.SetContactData(contactData)) {
-        return bool(manager_.Wallet().Nym(pNym.asPublicNym()));
+        return bool(api_.Wallet().Nym(pNym.asPublicNym()));
     }
 
     return false;
@@ -916,7 +911,7 @@ bool OTAPI_Exec::SetClaim_Base64(
         return false;
     }
 
-    std::string str_decoded = crypto_.Encode().DataDecode(claim);
+    std::string str_decoded = api_.Crypto().Encode().DataDecode(claim);
 
     return SetClaim(nymID, section, str_decoded);
 }
@@ -930,7 +925,7 @@ bool OTAPI_Exec::SetClaim(
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
     }
-    NymData pNym = manager_.Wallet().mutable_Nym(Identifier::Factory(nymID));
+    NymData pNym = api_.Wallet().mutable_Nym(Identifier::Factory(nymID));
 
     // ------------------------------
     const auto item = proto::DataToProto<proto::ContactItem>(
@@ -959,7 +954,7 @@ bool OTAPI_Exec::DeleteClaim(
         otErr << OT_METHOD << __FUNCTION__ << ": nullptr nymID passed in!\n";
         return false;
     }
-    NymData pNym = manager_.Wallet().mutable_Nym(Identifier::Factory(nymID));
+    NymData pNym = api_.Wallet().mutable_Nym(Identifier::Factory(nymID));
 
     return pNym.DeleteClaim(Identifier::Factory(claimID));
 }
@@ -973,12 +968,12 @@ std::string OTAPI_Exec::GetVerificationSet_Base64(
 
     if (str_result.empty()) return {};
 
-    return crypto_.Encode().DataEncode(str_result);
+    return api_.Crypto().Encode().DataEncode(str_result);
 }
 
 std::string OTAPI_Exec::GetVerificationSet(const std::string& nymID) const
 {
-    const auto pNym = manager_.Wallet().Nym(Identifier::Factory(nymID));
+    const auto pNym = api_.Wallet().Nym(Identifier::Factory(nymID));
 
     if (!pNym) { return {}; }
 
@@ -1004,7 +999,7 @@ std::string OTAPI_Exec::SetVerification_Base64(
         changed, onNym, claimantNymID, claimID, polarity, start, end);
     if (str_result.empty()) return {};
 
-    return crypto_.Encode().DataEncode(str_result);
+    return api_.Crypto().Encode().DataEncode(str_result);
 }
 
 std::string OTAPI_Exec::SetVerification(
@@ -1020,7 +1015,7 @@ std::string OTAPI_Exec::SetVerification(
         otErr << OT_METHOD << __FUNCTION__ << ": empty onNym passed in!\n";
         return {};
     }
-    NymData pNym = manager_.Wallet().mutable_Nym(Identifier::Factory(onNym));
+    NymData pNym = api_.Wallet().mutable_Nym(Identifier::Factory(onNym));
 
     // ------------------------------
     auto verifications = identity_.Verify(
@@ -1047,7 +1042,7 @@ std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
         return {};
     }
 
-    auto pContract{factory_.Contract(manager_, strContract)};
+    auto pContract{api_.Factory().Contract(strContract)};
 
     if (false != bool(pContract)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -1085,7 +1080,7 @@ std::string OTAPI_Exec::CalculateContractID(
         return {};
     }
 
-    auto pContract{factory_.Contract(manager_, strContract)};
+    auto pContract{api_.Factory().Contract(strContract)};
 
     if (false != bool(pContract)) {
         auto idOutput = Identifier::Factory();
@@ -1146,7 +1141,7 @@ std::string OTAPI_Exec::CreateCurrencyContract(
         return output;
     }
 
-    auto pContract = manager_.Wallet().UnitDefinition(
+    auto pContract = api_.Wallet().UnitDefinition(
         NYM_ID, shortname, name, symbol, terms, tla, power, fraction);
 
     if (pContract) {
@@ -1185,8 +1180,8 @@ std::string OTAPI_Exec::CreateSecurityContract(
         return output;
     }
 
-    auto pContract = manager_.Wallet().UnitDefinition(
-        NYM_ID, shortname, name, symbol, terms);
+    auto pContract =
+        api_.Wallet().UnitDefinition(NYM_ID, shortname, name, symbol, terms);
 
     if (pContract) {
         output = pContract->ID()->str();
@@ -1211,7 +1206,7 @@ std::string OTAPI_Exec::GetServer_Contract(
     const std::string& NOTARY_ID) const  // Return's Server's contract (based on
                                          // server ID)
 {
-    auto pServer = manager_.Wallet().Server(Identifier::Factory(NOTARY_ID));
+    auto pServer = api_.Wallet().Server(Identifier::Factory(NOTARY_ID));
 
     if (!pServer) { return {}; }
 
@@ -1226,7 +1221,7 @@ std::string OTAPI_Exec::GetServer_Contract(
 std::int32_t OTAPI_Exec::GetCurrencyDecimalPower(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto unit = manager_.Wallet().UnitDefinition(
+    auto unit = api_.Wallet().UnitDefinition(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return -1;
@@ -1237,7 +1232,7 @@ std::int32_t OTAPI_Exec::GetCurrencyDecimalPower(
 std::string OTAPI_Exec::GetCurrencyTLA(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto unit = manager_.Wallet().UnitDefinition(
+    auto unit = api_.Wallet().UnitDefinition(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return {};
@@ -1248,7 +1243,7 @@ std::string OTAPI_Exec::GetCurrencyTLA(
 std::string OTAPI_Exec::GetCurrencySymbol(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto pContract = manager_.Wallet().UnitDefinition(
+    auto pContract = api_.Wallet().UnitDefinition(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 
     if (!pContract) { return {}; }
@@ -1275,7 +1270,7 @@ std::int64_t OTAPI_Exec::StringToAmountLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    auto unit = manager_.Wallet().UnitDefinition(
+    auto unit = api_.Wallet().UnitDefinition(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) { return -1; }
@@ -1307,7 +1302,7 @@ std::string OTAPI_Exec::FormatAmountLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    auto unit = manager_.Wallet().UnitDefinition(
+    auto unit = api_.Wallet().UnitDefinition(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return {};
@@ -1346,7 +1341,7 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
     const std::string& THOUSANDS_SEP,
     const std::string& DECIMAL_POINT) const
 {
-    auto unit = manager_.Wallet().UnitDefinition(
+    auto unit = api_.Wallet().UnitDefinition(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 
     if (!unit) return {};
@@ -1363,7 +1358,7 @@ std::string OTAPI_Exec::FormatAmountWithoutSymbolLocale(
 std::string OTAPI_Exec::GetAssetType_Contract(
     const std::string& INSTRUMENT_DEFINITION_ID) const
 {
-    auto pContract = manager_.Wallet().UnitDefinition(
+    auto pContract = api_.Wallet().UnitDefinition(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID));
 
     if (!pContract) { return {}; }
@@ -1383,7 +1378,7 @@ std::string OTAPI_Exec::AddServerContract(const std::string& strContract) const
     } else {
         auto serialized =
             proto::StringToProto<proto::ServerContract>(String(strContract));
-        auto contract = manager_.Wallet().Server(serialized);
+        auto contract = api_.Wallet().Server(serialized);
 
         if (contract) { return contract->ID()->str(); }
     }
@@ -1402,7 +1397,7 @@ std::string OTAPI_Exec::AddUnitDefinition(const std::string& strContract) const
     } else {
         auto serialized =
             proto::StringToProto<proto::UnitDefinition>(String(strContract));
-        auto contract = manager_.Wallet().UnitDefinition(serialized);
+        auto contract = api_.Wallet().UnitDefinition(serialized);
 
         if (contract) { return contract->ID()->str(); }
     }
@@ -1417,13 +1412,13 @@ std::int32_t OTAPI_Exec::GetNymCount(void) const
 
 std::int32_t OTAPI_Exec::GetServerCount(void) const
 {
-    const auto servers = manager_.Wallet().ServerList();
+    const auto servers = api_.Wallet().ServerList();
     return servers.size();
 }
 
 std::int32_t OTAPI_Exec::GetAssetTypeCount(void) const
 {
-    const auto units = manager_.Wallet().UnitDefinitionList();
+    const auto units = api_.Wallet().UnitDefinitionList();
     return units.size();
 }
 
@@ -1476,7 +1471,7 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
     //
     auto theID = Identifier::Factory(NOTARY_ID);
 
-    if (manager_.Wallet().RemoveServer(theID)) {
+    if (api_.Wallet().RemoveServer(theID)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Removed server contract from the wallet: " << NOTARY_ID
               << "\n";
@@ -1525,7 +1520,7 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(
 
     auto theID = Identifier::Factory(INSTRUMENT_DEFINITION_ID);
 
-    if (manager_.Wallet().RemoveUnitDefinition(theID)) {
+    if (api_.Wallet().RemoveUnitDefinition(theID)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Removed unit definition contract from the wallet: "
               << INSTRUMENT_DEFINITION_ID << "\n";
@@ -1610,7 +1605,7 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         "OTAPI_Exec::Wallet_CanRemoveAccount: Null ACCOUNT_ID passed in.");
 
     const auto theAccountID = Identifier::Factory(ACCOUNT_ID);
-    auto account = manager_.Wallet().Account(theAccountID);
+    auto account = api_.Wallet().Account(theAccountID);
 
     if (false == bool(account)) {
 
@@ -1825,7 +1820,7 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
     // (We STILL confirm whether he's found in the wallet...)
     //
     if (!thePartialID->empty()) {
-        auto constNym = manager_.Wallet().Nym(thePartialID);
+        auto constNym = api_.Wallet().Nym(thePartialID);
         if (constNym) { pObject = constNym.get(); }
     }
 
@@ -1837,7 +1832,7 @@ std::string OTAPI_Exec::Wallet_GetNymIDFromPartial(
     // we know about, so now we can go ahead and search for it as a PARTIAL
     // ID...
     //
-    auto constNym = manager_.Wallet().NymByIDPartialMatch(PARTIAL_ID);
+    auto constNym = api_.Wallet().NymByIDPartialMatch(PARTIAL_ID);
     if (constNym) { pObject = constNym.get(); }
 
     if (nullptr != pObject)  // Found it (as partial ID.)
@@ -1859,7 +1854,7 @@ std::string OTAPI_Exec::Wallet_GetNotaryIDFromPartial(
         return {};
     }
 
-    const auto servers = manager_.Wallet().ServerList();
+    const auto servers = api_.Wallet().ServerList();
     std::string fullID = "";
 
     // Search as an id
@@ -1898,16 +1893,16 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
     ConstUnitDefinition pUnit;  // shared_ptr to const.
 
     // See if it's available using the full length ID.
-    if (!theID->empty()) pUnit = manager_.Wallet().UnitDefinition(theID);
+    if (!theID->empty()) pUnit = api_.Wallet().UnitDefinition(theID);
 
     if (!pUnit) {
-        const auto units = manager_.Wallet().UnitDefinitionList();
+        const auto units = api_.Wallet().UnitDefinitionList();
 
         // See if it's available using the partial length ID.
         for (auto& it : units) {
             if (0 == it.first.compare(0, PARTIAL_ID.length(), PARTIAL_ID)) {
-                pUnit = manager_.Wallet().UnitDefinition(
-                    Identifier::Factory(it.first));
+                pUnit =
+                    api_.Wallet().UnitDefinition(Identifier::Factory(it.first));
                 break;
             }
         }
@@ -1915,7 +1910,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
             // See if it's available using the full length name.
             for (auto& it : units) {
                 if (0 == it.second.compare(0, it.second.length(), PARTIAL_ID)) {
-                    pUnit = manager_.Wallet().UnitDefinition(
+                    pUnit = api_.Wallet().UnitDefinition(
                         Identifier::Factory(it.first));
                     break;
                 }
@@ -1926,7 +1921,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
                 for (auto& it : units) {
                     if (0 ==
                         it.second.compare(0, PARTIAL_ID.length(), PARTIAL_ID)) {
-                        pUnit = manager_.Wallet().UnitDefinition(
+                        pUnit = api_.Wallet().UnitDefinition(
                             Identifier::Factory(it.first));
                         break;
                     }
@@ -1948,7 +1943,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
 std::string OTAPI_Exec::Wallet_GetAccountIDFromPartial(
     const std::string& PARTIAL_ID) const
 {
-    return manager_.Wallet().AccountPartialMatch(PARTIAL_ID)->str();
+    return api_.Wallet().AccountPartialMatch(PARTIAL_ID)->str();
 }
 
 /// based on Index this returns the Nym's ID
@@ -1972,7 +1967,7 @@ std::string OTAPI_Exec::GetNym_ID(const std::int32_t& nIndex) const
 /// Returns Nym Name (based on NymID)
 std::string OTAPI_Exec::GetNym_Name(const std::string& NYM_ID) const
 {
-    auto nym = manager_.Wallet().Nym(Identifier::Factory(NYM_ID));
+    auto nym = api_.Wallet().Nym(Identifier::Factory(NYM_ID));
 
     if (!nym) { return {}; }
 
@@ -2005,7 +2000,7 @@ std::string OTAPI_Exec::GetNym_Stats(const std::string& NYM_ID) const
 
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+        api_.Wallet().Nymfile(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         String strOutput;
@@ -2033,7 +2028,7 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_NymboxHash: Null NYM_ID passed in.");
 
-    auto context = manager_.Wallet().ServerContext(
+    auto context = api_.Wallet().ServerContext(
         Identifier::Factory(NYM_ID), Identifier::Factory(NOTARY_ID));
 
     return context->LocalNymboxHash()->str();
@@ -2052,7 +2047,7 @@ std::string OTAPI_Exec::GetNym_RecentHash(
         !NYM_ID.empty(),
         "OTAPI_Exec::GetNym_RecentHash: Null NYM_ID passed in.");
 
-    auto context = manager_.Wallet().ServerContext(
+    auto context = api_.Wallet().ServerContext(
         Identifier::Factory(NYM_ID), Identifier::Factory(NOTARY_ID));
 
     return context->RemoteNymboxHash()->str();
@@ -2072,7 +2067,7 @@ std::string OTAPI_Exec::GetNym_InboxHash(
         "OTAPI_Exec::GetNym_InboxHash: Null NYM_ID passed in.");
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+    auto pNym = api_.Wallet().Nymfile(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         auto theHash = Identifier::Factory();
@@ -2118,7 +2113,7 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
         "OTAPI_Exec::GetNym_OutboxHash: Null NYM_ID passed in.");
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+    auto pNym = api_.Wallet().Nymfile(theNymID, __FUNCTION__);
 
     if (nullptr != pNym) {
         auto theHash = Identifier::Factory();
@@ -2229,7 +2224,7 @@ bool OTAPI_Exec::Nym_VerifyMailByIndex(
     if (!message) { return false; }
 
     auto senderNym =
-        manager_.Wallet().Nym(Identifier::Factory(message->m_strNymID));
+        api_.Wallet().Nym(Identifier::Factory(message->m_strNymID));
 
     if (!senderNym) { return false; }
 
@@ -2303,7 +2298,7 @@ bool OTAPI_Exec::Nym_VerifyOutmailByIndex(
     if (!message) { return false; }
 
     auto senderNym =
-        manager_.Wallet().Nym(Identifier::Factory(message->m_strNymID));
+        api_.Wallet().Nym(Identifier::Factory(message->m_strNymID));
 
     if (!senderNym) { return false; }
 
@@ -2328,7 +2323,7 @@ std::int32_t OTAPI_Exec::GetNym_OutpaymentsCount(
         "OTAPI_Exec::GetNym_OutpaymentsCount: Null NYM_ID passed in.");
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+    auto pNym = api_.Wallet().Nymfile(theNymID, __FUNCTION__);
 
     if (false == bool(pNym)) return OT_ERROR;
 
@@ -2353,7 +2348,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
         return {};
     }
     auto theNymID = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+    auto pNym = api_.Wallet().Nymfile(theNymID, __FUNCTION__);
 
     if (false == bool(pNym)) return {};
 
@@ -2370,7 +2365,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
         if (pMessage->m_ascPayload.Exists() &&
             pMessage->m_ascPayload.GetString(strPayment) &&
             strPayment.Exists()) {
-            auto thePayment{factory_.Payment(manager_, strPayment)};
+            auto thePayment{api_.Factory().Payment(strPayment)};
 
             if (thePayment->IsValid()) {
                 std::string pBuf = strPayment.Get();
@@ -2400,7 +2395,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+        api_.Wallet().Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     auto pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (false != bool(pMessage)) {
@@ -2434,7 +2429,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+        api_.Wallet().Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return {};
     auto pMessage = pNym->GetOutpaymentsByIndex(nIndex);
 
@@ -2472,7 +2467,7 @@ bool OTAPI_Exec::Nym_RemoveOutpaymentsByIndex(
     }
 
     auto theNymID = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().mutable_Nymfile(theNymID, __FUNCTION__);
+    auto pNym = api_.Wallet().mutable_Nymfile(theNymID, __FUNCTION__);
 
     if (pNym.It().RemoveOutpaymentsByIndex(nIndex)) {
         // save Nym to local storage, since a payment outmail was erased.
@@ -2516,7 +2511,7 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
     }
     auto theNymID = Identifier::Factory(NYM_ID);
     std::unique_ptr<const class NymFile> pNym =
-        manager_.Wallet().Nymfile(theNymID, __FUNCTION__);
+        api_.Wallet().Nymfile(theNymID, __FUNCTION__);
     if (false == bool(pNym)) return false;
     auto pMessage = pNym->GetOutpaymentsByIndex(nIndex);
     if (false != bool(pMessage)) {
@@ -2524,7 +2519,7 @@ bool OTAPI_Exec::Nym_VerifyOutpaymentsByIndex(
         const auto theSenderNymID = Identifier::Factory(pMessage->m_strNymID);
 
         // Grab a pointer to that Nym (if its public key is in my wallet.)
-        ConstNym pSenderNym = manager_.Wallet().Nym(theSenderNymID);
+        ConstNym pSenderNym = api_.Wallet().Nym(theSenderNymID);
 
         // If it's there, use it to verify the signature on the message.
         // return true if successful signature verification.
@@ -2559,7 +2554,7 @@ std::int64_t OTAPI_Exec::Instrmnt_GetAmount(
         return -1;
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2591,7 +2586,7 @@ std::int64_t OTAPI_Exec::Instrmnt_GetTransNum(
         return -1;
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2625,7 +2620,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
         return OTTimeGetTimeFromSeconds(-1);
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2661,7 +2656,7 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(
         return OTTimeGetTimeFromSeconds(-1);
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2697,7 +2692,7 @@ std::string OTAPI_Exec::Instrmnt_GetType(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2736,7 +2731,7 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2776,7 +2771,7 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2817,7 +2812,7 @@ std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2859,7 +2854,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2900,7 +2895,7 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2942,7 +2937,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -2983,7 +2978,7 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -3024,7 +3019,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -3066,7 +3061,7 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
         return {};
     }
     const String strInstrument(THE_INSTRUMENT);
-    auto thePayment{factory_.Payment(manager_, strInstrument)};
+    auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -3179,7 +3174,7 @@ bool OTAPI_Exec::SetServer_Name(
         return false;
     }
 
-    const bool bSuccess = manager_.Wallet().SetServerAlias(
+    const bool bSuccess = api_.Wallet().SetServerAlias(
         Identifier::Factory(NOTARY_ID), STR_NEW_NAME);
 
     return bSuccess;
@@ -3202,7 +3197,7 @@ bool OTAPI_Exec::SetAssetType_Name(
         return false;
     }
 
-    const bool bSuccess = manager_.Wallet().SetUnitDefinitionAlias(
+    const bool bSuccess = api_.Wallet().SetUnitDefinitionAlias(
         Identifier::Factory(INSTRUMENT_DEFINITION_ID), STR_NEW_NAME);
 
     return bSuccess;
@@ -3232,7 +3227,7 @@ std::int32_t OTAPI_Exec::GetNym_TransactionNumCount(
     auto theNotaryID = Identifier::Factory(NOTARY_ID);
     auto theNymID = Identifier::Factory(NYM_ID);
 
-    auto context = manager_.Wallet().ServerContext(theNymID, theNotaryID);
+    auto context = api_.Wallet().ServerContext(theNymID, theNotaryID);
 
     return context->AvailableNumbers();
 }
@@ -3247,7 +3242,7 @@ std::string OTAPI_Exec::GetServer_ID(const std::int32_t& nIndex) const
     }
 
     std::uint32_t index(nIndex);
-    auto servers = manager_.Wallet().ServerList();
+    auto servers = api_.Wallet().ServerList();
 
     if (index <= servers.size()) {
         ObjectList::iterator it = servers.begin();
@@ -3261,7 +3256,7 @@ std::string OTAPI_Exec::GetServer_ID(const std::int32_t& nIndex) const
 // Return's Server's name (based on server ID)
 std::string OTAPI_Exec::GetServer_Name(const std::string& THE_ID) const
 {
-    auto pServer = manager_.Wallet().Server(Identifier::Factory(THE_ID));
+    auto pServer = api_.Wallet().Server(Identifier::Factory(THE_ID));
 
     if (!pServer) { return {}; }
 
@@ -3278,7 +3273,7 @@ std::string OTAPI_Exec::GetAssetType_ID(const std::int32_t& nIndex) const
     }
 
     std::uint32_t index(nIndex);
-    auto units = manager_.Wallet().UnitDefinitionList();
+    auto units = api_.Wallet().UnitDefinitionList();
 
     if (index <= units.size()) {
         ObjectList::iterator it = units.begin();
@@ -3292,8 +3287,7 @@ std::string OTAPI_Exec::GetAssetType_ID(const std::int32_t& nIndex) const
 // Returns instrument definition Name based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
 {
-    auto pContract =
-        manager_.Wallet().UnitDefinition(Identifier::Factory(THE_ID));
+    auto pContract = api_.Wallet().UnitDefinition(Identifier::Factory(THE_ID));
 
     if (!pContract) { return {}; }
 
@@ -3303,7 +3297,7 @@ std::string OTAPI_Exec::GetAssetType_Name(const std::string& THE_ID) const
 // Returns instrument definition TLA based on Instrument Definition ID
 std::string OTAPI_Exec::GetAssetType_TLA(const std::string& THE_ID) const
 {
-    auto unit = manager_.Wallet().UnitDefinition(Identifier::Factory(THE_ID));
+    auto unit = api_.Wallet().UnitDefinition(Identifier::Factory(THE_ID));
 
     if (!unit) return {};
 
@@ -3318,7 +3312,7 @@ std::string OTAPI_Exec::GetAccountWallet_Name(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Name: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = manager_.Wallet().Account(theID);
+    auto account = api_.Wallet().Account(theID);
 
     if (false == bool(account)) { return {}; }
 
@@ -3511,7 +3505,7 @@ std::string OTAPI_Exec::CreateSymmetricKey() const
     std::string strDisplay = "OTAPI: Creating a new symmetric key.";
     const String otstrDisplay(strDisplay);
     const bool bSuccess = crypto::key::LegacySymmetric::CreateNewKey(
-        strOutput, &otstrDisplay);  // pAlreadyHavePW=""
+        api_.Crypto(), strOutput, &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return {};
 
@@ -3548,6 +3542,7 @@ std::string OTAPI_Exec::SymmetricEncrypt(
     std::string strDisplay = "OTAPI: Password-protecting a plaintext.";
     const String otstrDisplay(strDisplay);
     const bool bSuccess = crypto::key::LegacySymmetric::Encrypt(
+        api_.Crypto(),
         strKey,
         strPlaintext,
         strOutput,
@@ -3580,7 +3575,11 @@ std::string OTAPI_Exec::SymmetricDecrypt(
         "OTAPI: Decrypting a password-protected ciphertext.";
     const String otstrDisplay(strDisplay);
     const bool bSuccess = crypto::key::LegacySymmetric::Decrypt(
-        strKey, strCiphertext, strOutput, &otstrDisplay);  // pAlreadyHavePW=""
+        api_.Crypto(),
+        strKey,
+        strCiphertext,
+        strOutput,
+        &otstrDisplay);  // pAlreadyHavePW=""
 
     if (!bSuccess) return {};
 
@@ -3832,7 +3831,7 @@ std::int64_t OTAPI_Exec::GetAccountWallet_Balance(
         "OTAPI_Exec::GetAccountWallet_Balance: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = manager_.Wallet().Account(theID);
+    auto account = api_.Wallet().Account(theID);
     return (account) ? account.get().GetBalance() : OT_ERROR_AMOUNT;
 }
 
@@ -3844,7 +3843,7 @@ std::string OTAPI_Exec::GetAccountWallet_Type(const std::string& THE_ID) const
         "OTAPI_Exec::GetAccountWallet_Type: Null THE_ID passed in.");
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = manager_.Wallet().Account(theID);
+    auto account = api_.Wallet().Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -3859,7 +3858,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = manager_.Wallet().Account(theID);
+    auto account = api_.Wallet().Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -3880,7 +3879,7 @@ std::string OTAPI_Exec::GetAccountWallet_NotaryID(
     OT_VERIFY_ID_STR(THE_ID);
 
     auto theID = Identifier::Factory(THE_ID);
-    auto account = manager_.Wallet().Account(theID);
+    auto account = api_.Wallet().Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -3897,7 +3896,7 @@ std::string OTAPI_Exec::GetAccountWallet_NymID(const std::string& THE_ID) const
     OT_VERIFY_ID_STR(THE_ID);
 
     const auto theID = Identifier::Factory(THE_ID);
-    auto account = manager_.Wallet().Account(theID);
+    auto account = api_.Wallet().Account(theID);
 
     if (false == bool(account)) return {};
 
@@ -4304,7 +4303,7 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
     const auto theSenderAcctID = Identifier::Factory(SENDER_ACCT_ID);
     const auto theRecipientNymID = Identifier::Factory(RECIPIENT_NYM_ID);
 
-    auto thePlan{factory_.PaymentPlan(manager_)};
+    auto thePlan{api_.Factory().PaymentPlan()};
 
     OT_ASSERT(false != bool(thePlan));
 
@@ -5198,7 +5197,7 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5254,7 +5253,7 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     OT_VERIFY_STD_STR(PARTY_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5284,8 +5283,7 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
 
     // FYI, this block comes from
     // OTScriptable::VerifyThisAgainstAllPartiesSignedCopies.
-    auto pPartySignedCopy(
-        factory_.Scriptable(manager_, pParty->GetMySignedCopy()));
+    auto pPartySignedCopy(api_.Factory().Scriptable(pParty->GetMySignedCopy()));
 
     if (nullptr == pPartySignedCopy) {
         const std::string current_party_name(pParty->GetPartyName());
@@ -5329,7 +5327,7 @@ std::int32_t OTAPI_Exec::Smart_GetPartyCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << " Failed trying to load smart contract from string:\n\n"
@@ -5346,7 +5344,7 @@ std::int32_t OTAPI_Exec::Smart_GetBylawCount(
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5365,7 +5363,7 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5395,7 +5393,7 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(
     OT_VERIFY_STD_STR(THE_CONTRACT);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5426,7 +5424,7 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5455,7 +5453,7 @@ std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5483,7 +5481,7 @@ std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5511,7 +5509,7 @@ std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string : \n\n"
@@ -5539,7 +5537,7 @@ std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5568,7 +5566,7 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5611,7 +5609,7 @@ std::string OTAPI_Exec::Clause_GetContents(
     OT_VERIFY_STD_STR(CLAUSE_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5651,7 +5649,7 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5693,7 +5691,7 @@ std::string OTAPI_Exec::Variable_GetType(
     OT_VERIFY_STD_STR(VARIABLE_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5736,7 +5734,7 @@ std::string OTAPI_Exec::Variable_GetAccess(
     OT_VERIFY_STD_STR(VARIABLE_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5779,7 +5777,7 @@ std::string OTAPI_Exec::Variable_GetContents(
     OT_VERIFY_STD_STR(VARIABLE_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5829,7 +5827,7 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5861,7 +5859,7 @@ std::int32_t OTAPI_Exec::Hook_GetClauseCount(
     OT_VERIFY_STD_STR(HOOK_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5901,7 +5899,7 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(
     OT_VERIFY_STD_STR(HOOK_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5947,7 +5945,7 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
     OT_VERIFY_STD_STR(BYLAW_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -5979,7 +5977,7 @@ std::string OTAPI_Exec::Callback_GetClause(
     OT_VERIFY_STD_STR(CALLBACK_NAME);
 
     const String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6016,7 +6014,7 @@ std::int32_t OTAPI_Exec::Party_GetAcctCount(
     OT_VERIFY_STD_STR(PARTY_NAME);
 
     String strContract(THE_CONTRACT);
-    auto pScriptable(factory_.Scriptable(manager_, strContract));
+    auto pScriptable(api_.Factory().Scriptable(strContract));
     if (nullptr == pScriptable) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6045,7 +6043,7 @@ std::int32_t OTAPI_Exec::Party_GetAgentCount(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6077,7 +6075,7 @@ std::string OTAPI_Exec::Party_GetID(
 
     String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6107,7 +6105,7 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6151,7 +6149,7 @@ std::string OTAPI_Exec::Party_GetAcctID(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6195,7 +6193,7 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6241,7 +6239,7 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6284,7 +6282,7 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6329,7 +6327,7 @@ std::string OTAPI_Exec::Party_GetAgentID(
 
     const String strContract(THE_CONTRACT);
     std::unique_ptr<OTScriptable> pScriptable(
-        factory_.Scriptable(manager_, strContract));
+        api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Failed trying to load smart contract from string:\n\n"
@@ -6438,7 +6436,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     const auto theNymID = Identifier::Factory(NYM_ID);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
     const String strMsg(THE_MESSAGE);
 
     if (!strMsg.Exists()) {
@@ -6459,7 +6457,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         // Unfortunately the ONLY reason we are loading up this cron item here,
         // is so we can get the server ID off of it.
         //
-        auto pCronItem{factory_.CronItem(manager_, strCronItem)};
+        auto pCronItem{api_.Factory().CronItem(strCronItem)};
         if (false == bool(pCronItem)) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Failed trying to load message from string.";
@@ -6496,9 +6494,9 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
         otOut << OT_METHOD << __FUNCTION__
               << ": Attempting to harvest transaction numbers "
                  "from a basket currency exchange request...\n";
-        if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return false; }
+        if (!api_.Wallet().IsLocalNym(NYM_ID)) { return false; }
 
-        auto theRequestBasket{factory_.Basket(manager_)};
+        auto theRequestBasket{api_.Factory().Basket()};
 
         if (theRequestBasket->LoadContractFromString(strBasket)) {
             if (!theRequestBasket->IsExchanging()) {
@@ -6511,8 +6509,8 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             // Now we need to find the account ID (so we can find the server
             // ID...)
             //
-            auto account = manager_.Wallet().Account(
-                theRequestBasket->GetRequestAccountID());
+            auto account =
+                api_.Wallet().Account(theRequestBasket->GetRequestAccountID());
 
             if (false == bool(account)) {
                 const String strAcctID(theRequestBasket->GetRequestAccountID());
@@ -6525,7 +6523,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             // Now let's get the server ID...
             const auto serverID =
                 Identifier::Factory(account.get().GetPurportedNotaryID());
-            auto pServer = manager_.Wallet().Server(serverID);
+            auto pServer = api_.Wallet().Server(serverID);
 
             if (!pServer) {
                 const String strNotaryID(serverID);
@@ -6538,7 +6536,7 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             }
 
             auto context =
-                manager_.Wallet().mutable_ServerContext(theNymID, serverID);
+                api_.Wallet().mutable_ServerContext(theNymID, serverID);
             theRequestBasket->HarvestClosingNumbers(
                 context.It(), serverID, true);
 
@@ -6647,7 +6645,7 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
     String strPubkey;  // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) return {};
     if (false == pNym->GetPublicEncrKey().GetPublicKey(strPubkey))  // bEscaped
                                                                     // defaults
@@ -6675,7 +6673,7 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
     String strPubkey;  // For the output
     OTPasswordData thePWData(OT_PW_DISPLAY);
     auto nym_id = Identifier::Factory(NYM_ID);
-    auto pNym = manager_.Wallet().Nym(nym_id);
+    auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) return {};
     if (false == pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         String strNymID(nym_id);
@@ -6702,7 +6700,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
 
     String strPubkey;  // For the output
     auto nym_id = Identifier::Factory(NYM_ID);
-    ConstNym pNym = manager_.Wallet().Nym(nym_id);
+    ConstNym pNym = api_.Wallet().Nym(nym_id);
 
     if (false == bool(pNym)) { return {}; }
 
@@ -6727,7 +6725,7 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
     String strPubkey;  // For the output
     auto nym_id = Identifier::Factory(NYM_ID);
     // No need to cleanup.
-    ConstNym pNym = manager_.Wallet().Nym(nym_id);
+    ConstNym pNym = api_.Wallet().Nym(nym_id);
 
     if (false == bool(pNym)) { return {}; }
 
@@ -6756,7 +6754,7 @@ bool OTAPI_Exec::VerifyUserPrivateKey(
 {
     OT_VERIFY_ID_STR(NYM_ID);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return false; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return false; }
 
     return true;
 }
@@ -6839,7 +6837,7 @@ std::string OTAPI_Exec::LoadServerContract(
 
     // There is an OT_ASSERT in here for memory failure,
     // but it still might return "" if various verification fails.
-    auto pContract = manager_.Wallet().Server(theNotaryID);
+    auto pContract = api_.Wallet().Server(theNotaryID);
 
     if (!pContract) {
         otOut << OT_METHOD << __FUNCTION__
@@ -6950,7 +6948,7 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
                      "receipt (from abbreviated.) Thus, saving "
                      "abbreviated version instead, so I can "
                      "still return SOMETHING.\n";
-            ConstNym pNym = manager_.Wallet().Nym(theNymID);
+            ConstNym pNym = api_.Wallet().Nym(theNymID);
             if (false == bool(pNym)) { return {}; }
             pTransaction->ReleaseSignatures();
             pTransaction->SignContract(*pNym);
@@ -7459,8 +7457,7 @@ std::int32_t OTAPI_Exec::Ledger_GetCount(
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     String strLedger(THE_LEDGER);
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7492,8 +7489,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionNums(
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     String strLedger(THE_LEDGER);
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7540,7 +7536,7 @@ std::string OTAPI_Exec::Ledger_CreateResponse(
     const auto& processInbox = std::get<0>(response);
     const auto& inbox = std::get<1>(response);
     // -------------------------------------------------------
-    auto nym = manager_.Wallet().Nym(theNymID);  // Sanity check.
+    auto nym = api_.Wallet().Nym(theNymID);  // Sanity check.
     OT_ASSERT(nym);
 
     bool success{(bool(processInbox) && bool(inbox))};
@@ -7590,8 +7586,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByIndex(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     // -------------------------------------------------------
     String strLedger(THE_LEDGER);
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
     //  std::set<std::int64_t> setUnloaded;
 
     if (!theLedger->LoadLedgerFromString(strLedger)
@@ -7661,8 +7656,7 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
 
     String strLedger(THE_LEDGER);
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7826,8 +7820,7 @@ std::string OTAPI_Exec::Ledger_GetInstrument_lowlevel(
     // ----------------------------------------------------
     OT_VERIFY_STD_STR(THE_LEDGER);
     String strLedger(THE_LEDGER);
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadLedgerFromString(strLedger)
         //      || !theLedger->LoadBoxReceipts(&setUnloaded)    // This is
@@ -7923,8 +7916,7 @@ std::int64_t OTAPI_Exec::Ledger_GetTransactionIDByIndex(
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
 
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
     String strLedger(THE_LEDGER);
     if (!theLedger->LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7965,8 +7957,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     String strLedger(THE_LEDGER);
     String strTransaction(THE_TRANSACTION);
     // ----------------------------------------------
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -7982,7 +7973,7 @@ std::string OTAPI_Exec::Ledger_AddTransaction(
     // At this point, I know theLedger loaded successfully.
     //
     auto pTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (false == bool(pTransaction)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error allocating memory: "
@@ -8048,7 +8039,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
     String strLedger(THE_LEDGER);
     auto responseLedger{
-        factory_.Ledger(manager_, theNymID, theAcctID, theNotaryID)};
+        api_.Factory().Ledger(theNymID, theAcctID, theNotaryID)};
 
     OT_ASSERT(false != bool(responseLedger));
 
@@ -8068,7 +8059,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
     //
     String strTransaction(THE_TRANSACTION);
     auto originalTransaction{
-        factory_.Transaction(manager_, theNymID, theAcctID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAcctID, theNotaryID)};
 
     if (!originalTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAcctID);
@@ -8115,7 +8106,7 @@ std::string OTAPI_Exec::Transaction_CreateResponse(
 
     if (output) {
         // ----------------------------------------------
-        auto context = manager_.Wallet().ServerContext(theNymID, theNotaryID);
+        auto context = api_.Wallet().ServerContext(theNymID, theNotaryID);
         auto& nym = *context->Nym();
         // ----------------------------------------------
         processInbox->ReleaseSignatures();
@@ -8165,7 +8156,7 @@ std::string OTAPI_Exec::Ledger_FinalizeResponse(
     // By this point, pNym is a good pointer, and is on the wallet.
     // (No need to cleanup.)
     auto responseLedger{
-        factory_.Ledger(manager_, theNymID, theAcctID, theNotaryID)};
+        api_.Factory().Ledger(theNymID, theAcctID, theNotaryID)};
 
     if (!responseLedger->LoadLedgerFromString(strLedger)) {
         String strAcctID(theAcctID);
@@ -8238,10 +8229,10 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
     const String strTransaction(THE_TRANSACTION);
     String strOutput;
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8279,7 +8270,7 @@ std::string OTAPI_Exec::Transaction_GetVoucher(
             (Item::acknowledgement == pItem->GetStatus())) {
             String strVoucher;
             pItem->GetAttachment(strVoucher);
-            auto theVoucher{factory_.Cheque(manager_)};
+            auto theVoucher{api_.Factory().Cheque()};
 
             if (theVoucher->LoadContractFromString(strVoucher))  // Todo
                                                                  // additional
@@ -8319,10 +8310,10 @@ std::string OTAPI_Exec::Transaction_GetSenderNymID(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     const String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8398,12 +8389,12 @@ std::string OTAPI_Exec::Transaction_GetRecipientNymID(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8494,10 +8485,10 @@ std::string OTAPI_Exec::Transaction_GetSenderAcctID(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8576,10 +8567,10 @@ std::string OTAPI_Exec::Transaction_GetRecipientAcctID(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8664,10 +8655,10 @@ std::string OTAPI_Exec::Pending_GetNote(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8724,11 +8715,8 @@ std::string OTAPI_Exec::Pending_GetNote(
               << ": No reference string found on transaction.\n";
         return {};
     }
-    auto pItem{factory_.Item(
-        manager_,
-        strReference,
-        theNotaryID,
-        pTransaction->GetReferenceToNum())};
+    auto pItem{api_.Factory().Item(
+        strReference, theNotaryID, pTransaction->GetReferenceToNum())};
 
     if (false == bool(pItem)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -8774,10 +8762,10 @@ std::int64_t OTAPI_Exec::Transaction_GetAmount(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR_AMOUNT; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR_AMOUNT; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8851,10 +8839,10 @@ std::int64_t OTAPI_Exec::Transaction_GetDisplayReferenceToNum(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return -1; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return -1; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8891,10 +8879,10 @@ std::string OTAPI_Exec::Transaction_GetType(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return {}; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryIDv)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryIDv)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -8938,10 +8926,10 @@ std::int64_t OTAPI_Exec::ReplyNotice_GetRequestNum(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return -1; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return -1; }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strNymID(theNymID);
@@ -8987,12 +8975,12 @@ time64_t OTAPI_Exec::Transaction_GetDateSigned(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) {
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) {
         return OTTimeGetTimeFromSeconds(-1);
     }
 
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9033,12 +9021,12 @@ std::int32_t OTAPI_Exec::Transaction_GetSuccess(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR; }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9112,12 +9100,12 @@ std::int32_t OTAPI_Exec::Transaction_IsCanceled(
                theAccountID = Identifier::Factory(ACCOUNT_ID);
 
     String strTransaction(THE_TRANSACTION);
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR; }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9201,12 +9189,12 @@ std::int32_t OTAPI_Exec::Transaction_GetBalanceAgreementSuccess(
 
     String strTransaction(THE_TRANSACTION);
 
-    if (!manager_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR; }
+    if (!api_.Wallet().IsLocalNym(NYM_ID)) { return OT_ERROR; }
 
     // By this point, pNym is a good pointer, and is on the wallet. (No need
     // to cleanup.)
     auto theTransaction{
-        factory_.Transaction(manager_, theNymID, theAccountID, theNotaryID)};
+        api_.Factory().Transaction(theNymID, theAccountID, theNotaryID)};
 
     if (!theTransaction->LoadContractFromString(strTransaction)) {
         String strAcctID(theAccountID);
@@ -9291,7 +9279,7 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
                theNymID = Identifier::Factory(NYM_ID),
                theAccountID = Identifier::Factory(ACCOUNT_ID);
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -9320,8 +9308,7 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
         return OT_ERROR;
     }
 
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadLedgerFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -9396,8 +9383,8 @@ bool OTAPI_Exec::SavePurse(
                theNymID = Identifier::Factory(NYM_ID);
     const String strPurse(THE_PURSE);
     bool bSuccess = false;
-    auto thePurse{factory_.Purse(
-        manager_, theNotaryID, theInstrumentDefinitionID, theNymID)};
+    auto thePurse{
+        api_.Factory().Purse(theNotaryID, theInstrumentDefinitionID, theNymID)};
 
     if (strPurse.Exists() && thePurse->LoadContractFromString(strPurse)) {
         // NOTE: no need to verify the server / instrument definition id
@@ -9485,8 +9472,7 @@ std::int64_t OTAPI_Exec::Purse_GetTotalValue(
                theInstrumentDefinitionID =
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID);
     String strPurse(THE_PURSE);
-    auto thePurse{
-        factory_.Purse(manager_, theNotaryID, theInstrumentDefinitionID)};
+    auto thePurse{api_.Factory().Purse(theNotaryID, theInstrumentDefinitionID)};
 
     if (!thePurse->LoadContractFromString(strPurse)) {
         String strInstrumentDefinitionID(theInstrumentDefinitionID);
@@ -9517,8 +9503,7 @@ std::int32_t OTAPI_Exec::Purse_Count(
                theInstrumentDefinitionID =
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID);
     const String strPurse(THE_PURSE);
-    auto thePurse{
-        factory_.Purse(manager_, theNotaryID, theInstrumentDefinitionID)};
+    auto thePurse{api_.Factory().Purse(theNotaryID, theInstrumentDefinitionID)};
 
     if (strPurse.Exists() && thePurse->LoadContractFromString(strPurse) &&
         (thePurse->GetNotaryID() == theNotaryID) &&
@@ -9542,7 +9527,7 @@ bool OTAPI_Exec::Purse_HasPassword(
 
     const auto theNotaryID = Identifier::Factory(NOTARY_ID);
     const String strPurse(THE_PURSE);
-    auto thePurse{factory_.Purse(manager_, theNotaryID)};
+    auto thePurse{api_.Factory().Purse(theNotaryID)};
 
     if (strPurse.Exists() && thePurse->LoadContractFromString(strPurse) &&
         (thePurse->GetNotaryID() == theNotaryID)) {
@@ -9574,7 +9559,7 @@ std::string OTAPI_Exec::CreatePurse(
                theSignerID = Identifier::Factory(SIGNER_ID);
     OTPasswordData thePWData(
         "Creating a cash purse. Enter wallet master password.");
-    auto context = manager_.Wallet().ServerContext(theOwnerID, theNotaryID);
+    auto context = api_.Wallet().ServerContext(theOwnerID, theNotaryID);
     auto& signerNym = *context->Nym();
 
     std::unique_ptr<Purse> pPurse(ot_api_.CreatePurse(
@@ -9612,7 +9597,7 @@ std::string OTAPI_Exec::CreatePurse_Passphrase(
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID),
                theSignerID = Identifier::Factory(SIGNER_ID);
     OTPasswordData thePWData("Creating a password-protected cash purse.");
-    auto context = manager_.Wallet().ServerContext(theSignerID, theNotaryID);
+    auto context = api_.Wallet().ServerContext(theSignerID, theNotaryID);
     auto& nym = *context->Nym();
 
     std::unique_ptr<Purse> pPurse(
@@ -9657,7 +9642,7 @@ std::string OTAPI_Exec::Purse_Peek(
         std::string(OT_METHOD) + __FUNCTION__;  //"OTAPI_Exec::Purse_Peek";
     // If false, then the purse MUST be password-protected.
     if (false == OWNER_ID.empty()) {
-        if (!manager_.Wallet().IsLocalNym(OWNER_ID)) { return {}; }
+        if (!api_.Wallet().IsLocalNym(OWNER_ID)) { return {}; }
     }
 
     auto theOwnerID = Identifier::Factory(OWNER_ID);
@@ -9724,7 +9709,7 @@ std::string OTAPI_Exec::Purse_Pop(
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID),
                theNymID = Identifier::Factory(OWNER_OR_SIGNER_ID);
     const String strPurse(THE_PURSE);
-    auto context = manager_.Wallet().ServerContext(theNymID, theNotaryID);
+    auto context = api_.Wallet().ServerContext(theNymID, theNotaryID);
 
     auto& nym = *context->Nym();
 
@@ -9810,7 +9795,7 @@ std::string OTAPI_Exec::Purse_Empty(
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID),
                theNymID = Identifier::Factory(SIGNER_ID);
     const String strPurse(THE_PURSE);
-    auto context = manager_.Wallet().ServerContext(theNymID, theNotaryID);
+    auto context = api_.Wallet().ServerContext(theNymID, theNotaryID);
 
     auto& nym = *context->Nym();
 
@@ -9882,7 +9867,7 @@ std::string OTAPI_Exec::Purse_Push(
 
     // If false, then the purse MUST be password-protected.
     if (false == OWNER_ID.empty()) {
-        const auto exists = bool(manager_.Wallet().Nym(theOwnerID));
+        const auto exists = bool(api_.Wallet().Nym(theOwnerID));
 
         if (false == exists) { return {}; }
     }
@@ -9905,7 +9890,7 @@ std::string OTAPI_Exec::Purse_Push(
     strReason.empty();
     if (pPurse) {
         const auto theSignerID = Identifier::Factory(SIGNER_ID);
-        auto context = manager_.Wallet().ServerContext(
+        auto context = api_.Wallet().ServerContext(
             theSignerID, Identifier::Factory(NOTARY_ID));
 
         auto& signerNym = *context->Nym();
@@ -10066,8 +10051,8 @@ std::string OTAPI_Exec::Token_GetID(
     String strOutput("0");
 
     String strToken(THE_TOKEN);
-    auto pToken{factory_.Token(
-        manager_, strToken, theNotaryID, theInstrumentDefinitionID)};
+    auto pToken{
+        api_.Factory().Token(strToken, theNotaryID, theInstrumentDefinitionID)};
 
     if (false != bool(pToken))  // TokenFactory instantiates AND loads from
                                 // string.
@@ -10102,8 +10087,8 @@ std::int64_t OTAPI_Exec::Token_GetDenomination(
     String strOutput("0");
 
     String strToken(THE_TOKEN);
-    auto pToken{factory_.Token(
-        manager_, strToken, theNotaryID, theInstrumentDefinitionID)};
+    auto pToken{
+        api_.Factory().Token(strToken, theNotaryID, theInstrumentDefinitionID)};
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10132,8 +10117,8 @@ std::int32_t OTAPI_Exec::Token_GetSeries(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    auto pToken{factory_.Token(
-        manager_, strToken, theNotaryID, theInstrumentDefinitionID)};
+    auto pToken{
+        api_.Factory().Token(strToken, theNotaryID, theInstrumentDefinitionID)};
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
         return pToken->GetSeries();
@@ -10160,8 +10145,8 @@ time64_t OTAPI_Exec::Token_GetValidFrom(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    auto pToken{factory_.Token(
-        manager_, strToken, theNotaryID, theInstrumentDefinitionID)};
+    auto pToken{
+        api_.Factory().Token(strToken, theNotaryID, theInstrumentDefinitionID)};
 
     if (nullptr != pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10189,8 +10174,8 @@ time64_t OTAPI_Exec::Token_GetValidTo(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    auto pToken{factory_.Token(
-        manager_, strToken, theNotaryID, theInstrumentDefinitionID)};
+    auto pToken{
+        api_.Factory().Token(strToken, theNotaryID, theInstrumentDefinitionID)};
 
     if (pToken)  // TokenFactory instantiates AND loads from string.
     {
@@ -10207,7 +10192,7 @@ std::string OTAPI_Exec::Token_GetInstrumentDefinitionID(
     String strOutput;
 
     String strToken(THE_TOKEN);
-    auto pToken{factory_.Token(manager_, strToken)};
+    auto pToken{api_.Factory().Token(strToken)};
 
     if (false != bool(pToken))  // TokenFactory instantiates AND loads from
                                 // string.
@@ -10227,7 +10212,7 @@ std::string OTAPI_Exec::Token_GetNotaryID(const std::string& THE_TOKEN) const
     String strOutput;
 
     String strToken(THE_TOKEN);
-    auto pToken{factory_.Token(manager_, strToken)};
+    auto pToken{api_.Factory().Token(strToken)};
 
     if (false != bool(pToken))  // TokenFactory instantiates AND loads from
                                 // string.
@@ -10404,7 +10389,7 @@ std::int64_t OTAPI_Exec::Message_GetUsageCredits(
     }
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists()) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10449,7 +10434,7 @@ std::int32_t OTAPI_Exec::completePeerReply(
     const auto nym = Identifier::Factory(nymID);
     const auto reply = Identifier::Factory(replyID);
 
-    return manager_.Wallet().PeerReplyComplete(nym, reply);
+    return api_.Wallet().PeerReplyComplete(nym, reply);
 }
 
 std::int32_t OTAPI_Exec::completePeerRequest(
@@ -10459,14 +10444,14 @@ std::int32_t OTAPI_Exec::completePeerRequest(
     const auto nym = Identifier::Factory(nymID);
     const auto request = Identifier::Factory(requestID);
 
-    return manager_.Wallet().PeerRequestComplete(nym, request);
+    return api_.Wallet().PeerRequestComplete(nym, request);
 }
 
 std::list<std::string> OTAPI_Exec::getSentRequests(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerRequestSent(nym);
+    const auto requests = api_.Wallet().PeerRequestSent(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10478,7 +10463,7 @@ std::list<std::string> OTAPI_Exec::getIncomingRequests(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerRequestIncoming(nym);
+    const auto requests = api_.Wallet().PeerRequestIncoming(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10490,7 +10475,7 @@ std::list<std::string> OTAPI_Exec::getFinishedRequests(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerRequestFinished(nym);
+    const auto requests = api_.Wallet().PeerRequestFinished(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10502,7 +10487,7 @@ std::list<std::string> OTAPI_Exec::getProcessedRequests(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerRequestProcessed(nym);
+    const auto requests = api_.Wallet().PeerRequestProcessed(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10514,7 +10499,7 @@ std::list<std::string> OTAPI_Exec::getSentReplies(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerReplySent(nym);
+    const auto requests = api_.Wallet().PeerReplySent(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10526,7 +10511,7 @@ std::list<std::string> OTAPI_Exec::getIncomingReplies(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerReplyIncoming(nym);
+    const auto requests = api_.Wallet().PeerReplyIncoming(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10538,7 +10523,7 @@ std::list<std::string> OTAPI_Exec::getFinishedReplies(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerReplyFinished(nym);
+    const auto requests = api_.Wallet().PeerReplyFinished(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10550,7 +10535,7 @@ std::list<std::string> OTAPI_Exec::getProcessedReplies(
     const std::string& nymID) const
 {
     const auto nym = Identifier::Factory(nymID);
-    const auto requests = manager_.Wallet().PeerReplyProcessed(nym);
+    const auto requests = api_.Wallet().PeerReplyProcessed(nym);
     std::list<std::string> output;
 
     for (auto& item : requests) { output.push_back(item.first); }
@@ -10565,7 +10550,7 @@ std::string OTAPI_Exec::getRequest(
 {
     std::time_t notUsed = 0;
 
-    auto request = manager_.Wallet().PeerRequest(
+    auto request = api_.Wallet().PeerRequest(
         Identifier::Factory(nymID),
         Identifier::Factory(requestID),
         box,
@@ -10599,7 +10584,7 @@ std::string OTAPI_Exec::getRequest_Base64(
         }
     }
 
-    return crypto_.Encode().DataEncode(output);
+    return api_.Crypto().Encode().DataEncode(output);
 }
 
 std::string OTAPI_Exec::getReply(
@@ -10607,7 +10592,7 @@ std::string OTAPI_Exec::getReply(
     const std::string& replyID,
     const StorageBox box) const
 {
-    auto reply = manager_.Wallet().PeerReply(
+    auto reply = api_.Wallet().PeerReply(
         Identifier::Factory(nymID), Identifier::Factory(replyID), box);
 
     if (reply) { return proto::ProtoAsString(*reply); }
@@ -10637,7 +10622,7 @@ std::string OTAPI_Exec::getReply_Base64(
         }
     }
 
-    return crypto_.Encode().DataEncode(output);
+    return api_.Crypto().Encode().DataEncode(output);
 }
 
 // GENERATE BASKET CREATION REQUEST
@@ -10656,13 +10641,12 @@ std::string OTAPI_Exec::GenerateBasketCreation(
     const std::string& terms,
     const std::uint64_t weight) const
 {
-    auto serverContract =
-        manager_.Wallet().Server(Identifier::Factory(serverID));
+    auto serverContract = api_.Wallet().Server(Identifier::Factory(serverID));
 
     if (!serverContract) { return {}; }
 
     auto basketTemplate = UnitDefinition::Create(
-        manager_.Wallet(),
+        api_.Wallet(),
         serverContract->Nym(),
         shortname,
         name,
@@ -10787,7 +10771,7 @@ std::string OTAPI_Exec::AddBasketExchangeItem(
                theInstrumentDefinitionID =
                    Identifier::Factory(INSTRUMENT_DEFINITION_ID),
                theAssetAcctID = Identifier::Factory(ASSET_ACCT_ID);
-    auto theBasket{factory_.Basket(manager_)};
+    auto theBasket{api_.Factory().Basket()};
 
     OT_ASSERT(false != bool(theBasket));
 
@@ -10929,7 +10913,7 @@ void OTAPI_Exec::FlushSentMessages(
     const auto theNotaryID = Identifier::Factory(NOTARY_ID),
                theNymID = Identifier::Factory(NYM_ID);
     const String strLedger(THE_NYMBOX);
-    auto theLedger{factory_.Ledger(manager_, theNymID, theNymID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theNymID, theNotaryID)};
 
     OT_ASSERT(false != bool(theLedger));
 
@@ -10964,7 +10948,7 @@ bool OTAPI_Exec::ResyncNymWithServer(
          theNymID = Identifier::Factory(NYM_ID);
     const String strMessage(THE_MESSAGE), strNymID(theNymID);
 
-    auto context = manager_.Wallet().mutable_ServerContext(theNymID,
+    auto context = api_.Wallet().mutable_ServerContext(theNymID,
     theNotaryID);
 
     auto nymfile = context.It().mutable_Nymfile(legacy_.ClientDataFolder(),
@@ -11068,7 +11052,7 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() || !theMessage->LoadContractFromString(strMessage))
         return {};
@@ -11090,7 +11074,7 @@ std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() || !theMessage->LoadContractFromString(strMessage))
         return {};
@@ -11112,7 +11096,7 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -11157,7 +11141,7 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -11202,7 +11186,7 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -11250,7 +11234,7 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
 
     String strMessage(THE_MESSAGE);
 
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -11294,7 +11278,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -11343,7 +11327,7 @@ std::int32_t OTAPI_Exec::Message_GetSuccess(
 {
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
     String strMessage(THE_MESSAGE);
 
     if (!strMessage.Exists()) {
@@ -11404,7 +11388,7 @@ std::int32_t OTAPI_Exec::Message_GetDepth(const std::string& THE_MESSAGE) const
     OT_VERIFY_STD_STR(THE_MESSAGE);
 
     String strMessage(THE_MESSAGE);
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() || !theMessage->LoadContractFromString(strMessage))
         return OT_ERROR;
@@ -11434,7 +11418,7 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 
     String strMessage(THE_MESSAGE);
 
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -11463,8 +11447,7 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
         return OT_ERROR;
     }
 
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadContractFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -11524,7 +11507,7 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
 
     String strMessage(THE_MESSAGE);
 
-    auto theMessage{factory_.Message(manager_)};
+    auto theMessage{api_.Factory().Message()};
 
     if (!strMessage.Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
@@ -11553,8 +11536,7 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
         return OT_ERROR;
     }
 
-    auto theLedger{
-        factory_.Ledger(manager_, theNymID, theAccountID, theNotaryID)};
+    auto theLedger{api_.Factory().Ledger(theNymID, theAccountID, theNotaryID)};
 
     if (!theLedger->LoadContractFromString(strLedger)) {
         String strAcctID(theAccountID);
@@ -11683,7 +11665,7 @@ bool OTAPI_Exec::AddClaim(
     const std::int64_t start,
     const std::int64_t end) const
 {
-    auto nym = manager_.Wallet().mutable_Nym(Identifier::Factory(nymID));
+    auto nym = api_.Wallet().mutable_Nym(Identifier::Factory(nymID));
 
     return ot_api_.AddClaim(
         nym,

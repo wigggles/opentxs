@@ -57,6 +57,8 @@ public:
     virtual ~EcdsaProvider() = default;
 
 protected:
+    const api::Crypto& crypto_;
+
     bool AsymmetricKeyToECPubkey(
         const crypto::key::EllipticCurve& asymmetricKey,
         Data& pubkey) const;
@@ -64,8 +66,28 @@ protected:
         const proto::Ciphertext& asymmetricKey,
         const OTPasswordData& passwordData,
         OTPassword& privkey) const;
+    bool DecryptPrivateKey(
+        const proto::Ciphertext& encryptedKey,
+        const OTPasswordData& password,
+        OTPassword& plaintextKey) const;
+    bool DecryptPrivateKey(
+        const proto::Ciphertext& encryptedKey,
+        const proto::Ciphertext& encryptedChaincode,
+        const OTPasswordData& password,
+        OTPassword& key,
+        OTPassword& chaincode) const;
+    bool EncryptPrivateKey(
+        const OTPassword& plaintextKey,
+        const OTPasswordData& password,
+        proto::Ciphertext& encryptedKey) const;
+    bool EncryptPrivateKey(
+        const OTPassword& key,
+        const OTPassword& chaincode,
+        const OTPasswordData& password,
+        proto::Ciphertext& encryptedKey,
+        proto::Ciphertext& encryptedChaincode) const;
 
-    EcdsaProvider() = default;
+    EcdsaProvider(const api::Crypto& crypto);
 
 private:
     virtual bool ECDH(
@@ -75,6 +97,7 @@ private:
     virtual bool ScalarBaseMultiply(const OTPassword& seed, Data& publicKey)
         const = 0;
 
+    EcdsaProvider() = delete;
     EcdsaProvider(const EcdsaProvider&) = delete;
     EcdsaProvider(EcdsaProvider&&) = delete;
     EcdsaProvider& operator=(const EcdsaProvider&) = delete;

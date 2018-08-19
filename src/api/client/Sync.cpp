@@ -13,6 +13,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -121,33 +122,10 @@ namespace opentxs
 {
 api::client::Sync* Factory::Sync(
     const Flag& running,
-    const OT_API& otapi,
-    const OTAPI_Exec& exec,
-    const api::client::Contacts& contacts,
-    const api::Settings& config,
     const api::client::Manager& client,
-    const api::Legacy& legacy,
-    const api::Wallet& wallet,
-    const api::client::Workflow& workflow,
-    const api::crypto::Encode& encoding,
-    const api::storage::Storage& storage,
-    const network::zeromq::Context& zmq,
     const ContextLockCallback& lockCallback)
 {
-    return new api::client::implementation::Sync(
-        running,
-        otapi,
-        exec,
-        contacts,
-        legacy,
-        config,
-        client,
-        wallet,
-        workflow,
-        encoding,
-        storage,
-        zmq,
-        lockCallback);
+    return new api::client::implementation::Sync(running, client, lockCallback);
 }
 }  // namespace opentxs
 
@@ -204,32 +182,11 @@ MCL/PCUJ6FIMhej+ROPk41604x1jeswkkRmXRNjzLlVdiJ/pQMxG4tJ0UQwpxHxrr0IaBA==
 
 Sync::Sync(
     const Flag& running,
-    const OT_API& otapi,
-    const opentxs::OTAPI_Exec& exec,
-    const api::client::Contacts& contacts,
-    const api::Legacy& legacy,
-    const api::Settings& config,
     const api::client::Manager& client,
-    const api::Wallet& wallet,
-    const api::client::Workflow& workflow,
-    const api::crypto::Encode& encoding,
-    const api::storage::Storage& storage,
-    const opentxs::network::zeromq::Context& zmq,
     const ContextLockCallback& lockCallback)
     : lock_callback_(lockCallback)
     , running_(running)
-    , ot_api_(otapi)
-    , exec_(exec)
-    , contacts_(contacts)
-    , legacy_(legacy)
-    , config_(config)
     , client_(client)
-    , server_action_(client.ServerAction())
-    , wallet_(wallet)
-    , workflow_(workflow)
-    , encoding_(encoding)
-    , storage_(storage)
-    , zmq_(zmq)
     , introduction_server_lock_()
     , nym_fetch_lock_()
     , task_status_lock_()
@@ -248,10 +205,10 @@ Sync::Sync(
                   this->process_account(message);
               }))
     , account_subscriber_(
-          zmq_.SubscribeSocket(account_subscriber_callback_.get()))
+          client_.ZeroMQ().SubscribeSocket(account_subscriber_callback_.get()))
 {
-    const auto& endpoint =
-        opentxs::network::zeromq::Socket::AccountUpdateEndpoint;
+    // WARNING: do not access client_.Wallet() during construction
+    const auto endpoint = client_.Endpoints().AccountUpdate();
     otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
            << std::endl;
     const auto listening = account_subscriber_->Start(endpoint);
@@ -268,7 +225,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
     std::pair<bool, std::size_t> output{false, 0};
     auto& [success, remaining] = output;
     const std::string account = accountID.str();
-    auto processInbox = ot_api_.CreateProcessInbox(accountID, context);
+    auto processInbox = client_.OTAPI().CreateProcessInbox(accountID, context);
     auto& response = std::get<0>(processInbox);
     auto& inbox = std::get<1>(processInbox);
 
@@ -320,8 +277,8 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
         }
 
         if (transactionType::chequeReceipt == transaction->GetType()) {
-            const auto workflowUpdated =
-                workflow_.ClearCheque(context.Nym()->ID(), *transaction);
+            const auto workflowUpdated = client_.Workflow().ClearCheque(
+                context.Nym()->ID(), *transaction);
 
             if (workflowUpdated) {
                 otErr << OT_METHOD << __FUNCTION__ << ": Updated workflow."
@@ -332,7 +289,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
             }
         }
 
-        const bool accepted = ot_api_.IncludeResponse(
+        const bool accepted = client_.OTAPI().IncludeResponse(
             accountID, true, context, *transaction, *response);
 
         if (!accepted) {
@@ -343,8 +300,8 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
         }
     }
 
-    const bool finalized =
-        ot_api_.FinalizeProcessInbox(accountID, context, *response, *inbox);
+    const bool finalized = client_.OTAPI().FinalizeProcessInbox(
+        accountID, context, *response, *inbox);
 
     if (false == finalized) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to finalize response."
@@ -353,7 +310,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
         return output;
     }
 
-    auto action = server_action_.ProcessInbox(
+    auto action = client_.ServerAction().ProcessInbox(
         context.Nym()->ID(), context.Server(), accountID, response);
     action->Run();
     success = (SendResult::VALID_REPLY == action->LastSendResult());
@@ -368,7 +325,7 @@ bool Sync::AcceptIncoming(
     const std::size_t max) const
 {
     rLock apiLock(lock_callback_({nymID.str(), serverID.str()}));
-    auto context = wallet_.mutable_ServerContext(nymID, serverID);
+    auto context = client_.Wallet().mutable_ServerContext(nymID, serverID);
     std::size_t remaining{1};
     std::size_t retries{PROCESS_INBOX_RETRIES};
 
@@ -386,7 +343,7 @@ bool Sync::AcceptIncoming(
                 return false;
             }
 
-            Utility utility(context.It(), ot_api_, client_);
+            Utility utility(context.It(), client_);
             const auto download = utility.getIntermediaryFiles(
                 context.It().Server().str(),
                 context.It().Nym()->ID().str(),
@@ -450,8 +407,8 @@ Depositability Sync::can_deposit(
 
     if (Depositability::READY != output) { return output; }
 
-    const bool registered =
-        exec_.IsNym_RegisteredAtServer(recipient.str(), depositServer->str());
+    const bool registered = client_.Exec().IsNym_RegisteredAtServer(
+        recipient.str(), depositServer->str());
 
     if (false == registered) {
         schedule_download_nymbox(recipient, depositServer);
@@ -507,7 +464,7 @@ Messagability Sync::can_message(
     OTIdentifier& recipientNymID,
     OTIdentifier& serverID) const
 {
-    auto senderNym = wallet_.Nym(senderNymID);
+    auto senderNym = client_.Wallet().Nym(senderNymID);
 
     if (false == bool(senderNym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load sender nym "
@@ -526,7 +483,7 @@ Messagability Sync::can_message(
         return Messagability::INVALID_SENDER;
     }
 
-    const auto contact = contacts_.Contact(recipientContactID);
+    const auto contact = client_.Contacts().Contact(recipientContactID);
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Recipient contact "
@@ -548,7 +505,7 @@ Messagability Sync::can_message(
     std::shared_ptr<const Nym> recipientNym{nullptr};
 
     for (const auto& it : nyms) {
-        recipientNym = wallet_.Nym(it);
+        recipientNym = client_.Wallet().Nym(it);
 
         if (recipientNym) {
             recipientNymID = Identifier::Factory(it);
@@ -583,8 +540,8 @@ Messagability Sync::can_message(
         return Messagability::NO_SERVER_CLAIM;
     }
 
-    const bool registered =
-        exec_.IsNym_RegisteredAtServer(senderNymID.str(), serverID->str());
+    const bool registered = client_.Exec().IsNym_RegisteredAtServer(
+        senderNymID.str(), serverID->str());
 
     if (false == registered) {
         schedule_download_nymbox(senderNymID, serverID);
@@ -664,7 +621,7 @@ bool Sync::check_registration(
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
 
-    context = wallet_.ServerContext(nymID, serverID);
+    context = client_.Wallet().ServerContext(nymID, serverID);
     RequestNumber request{0};
 
     if (context) {
@@ -683,7 +640,7 @@ bool Sync::check_registration(
     const auto output = register_nym(Identifier::Random(), nymID, serverID);
 
     if (output) {
-        context = wallet_.ServerContext(nymID, serverID);
+        context = client_.Wallet().ServerContext(nymID, serverID);
 
         OT_ASSERT(context)
     }
@@ -695,7 +652,7 @@ bool Sync::check_server_contract(const Identifier& serverID) const
 {
     OT_ASSERT(false == serverID.empty())
 
-    const auto serverContract = wallet_.Server(serverID);
+    const auto serverContract = client_.Wallet().Server(serverID);
 
     if (serverContract) { return true; }
 
@@ -711,7 +668,7 @@ OTIdentifier Sync::check_server_name(const ServerContext& context) const
     const auto null = Identifier::Factory();
     const auto& nymID = context.Nym()->ID();
     const auto& serverID = context.Server();
-    const auto server = wallet_.Server(serverID);
+    const auto server = client_.Wallet().Server(serverID);
 
     OT_ASSERT(server)
 
@@ -720,7 +677,7 @@ OTIdentifier Sync::check_server_name(const ServerContext& context) const
 
     if (myName == hisName) { return null; }
 
-    auto action = server_action_.AddServerClaim(
+    auto action = client_.ServerAction().AddServerClaim(
         nymID,
         serverID,
         proto::CONTACTSECTION_SCOPE,
@@ -768,7 +725,7 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    auto cheque{client_.Factory().Cheque(client_)};
+    auto cheque{client_.Factory().Cheque()};
 
     OT_ASSERT(false != bool(cheque));
 
@@ -780,8 +737,8 @@ bool Sync::deposit_cheque(
         return finish_task(taskID, false);
     }
 
-    auto action =
-        server_action_.DepositCheque(nymID, serverID, accountID, cheque);
+    auto action = client_.ServerAction().DepositCheque(
+        nymID, serverID, accountID, cheque);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -809,13 +766,14 @@ bool Sync::deposit_cheque(
 std::size_t Sync::DepositCheques(const Identifier& nymID) const
 {
     std::size_t output{0};
-    const auto workflows = workflow_.List(
+    const auto workflows = client_.Workflow().List(
         nymID,
         proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE,
         proto::PAYMENTWORKFLOWSTATE_CONVEYED);
 
     for (const auto& id : workflows) {
-        const auto chequeState = workflow_.LoadChequeByWorkflow(nymID, id);
+        const auto chequeState =
+            client_.Workflow().LoadChequeByWorkflow(nymID, id);
         const auto& [state, cheque] = chequeState;
 
         if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) { continue; }
@@ -837,7 +795,7 @@ std::size_t Sync::DepositCheques(
     if (chequeIDs.empty()) { return DepositCheques(nymID); }
 
     for (const auto& id : chequeIDs) {
-        const auto chequeState = workflow_.LoadCheque(nymID, id);
+        const auto chequeState = client_.Workflow().LoadCheque(nymID, id);
         const auto& [state, cheque] = chequeState;
 
         if (proto::PAYMENTWORKFLOWSTATE_CONVEYED != state) { continue; }
@@ -909,8 +867,8 @@ bool Sync::download_account(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == accountID.empty())
 
-    const auto success =
-        server_action_.DownloadAccount(nymID, serverID, accountID, false);
+    const auto success = client_.ServerAction().DownloadAccount(
+        nymID, serverID, accountID, false);
 
     return finish_task(taskID, success);
 }
@@ -925,7 +883,8 @@ bool Sync::download_contract(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == contractID.empty())
 
-    auto action = server_action_.DownloadContract(nymID, serverID, contractID);
+    auto action =
+        client_.ServerAction().DownloadContract(nymID, serverID, contractID);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -960,7 +919,8 @@ bool Sync::download_nym(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    auto action = server_action_.DownloadNym(nymID, serverID, targetNymID);
+    auto action =
+        client_.ServerAction().DownloadNym(nymID, serverID, targetNymID);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -992,7 +952,7 @@ bool Sync::download_nymbox(
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
 
-    const auto success = server_action_.DownloadNymbox(nymID, serverID);
+    const auto success = client_.ServerAction().DownloadNymbox(nymID, serverID);
 
     return finish_task(taskID, success);
 }
@@ -1040,7 +1000,7 @@ bool Sync::find_nym(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetID.empty())
 
-    const auto nym = wallet_.Nym(targetID);
+    const auto nym = client_.Wallet().Nym(targetID);
 
     if (nym) {
         missing_nyms_.CancelByValue(targetID);
@@ -1066,7 +1026,7 @@ bool Sync::find_server(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetID.empty())
 
-    const auto serverContract = wallet_.Server(targetID);
+    const auto serverContract = client_.Wallet().Server(targetID);
 
     if (serverContract) {
         missing_servers_.CancelByValue(targetID);
@@ -1136,8 +1096,8 @@ bool Sync::get_admin(
 
     {
         const std::string serverPassword(password.getPassword());
-        auto action =
-            server_action_.RequestAdmin(nymID, serverID, serverPassword);
+        auto action = client_.ServerAction().RequestAdmin(
+            nymID, serverID, serverPassword);
         action->Run();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1149,7 +1109,7 @@ bool Sync::get_admin(
         }
     }
 
-    auto mContext = wallet_.mutable_ServerContext(nymID, serverID);
+    auto mContext = client_.Wallet().mutable_ServerContext(nymID, serverID);
     auto& context = mContext.It();
     context.SetAdminAttempted();
 
@@ -1168,7 +1128,7 @@ OTIdentifier Sync::get_introduction_server(const Lock& lock) const
 
     bool keyFound = false;
     String serverID;
-    const bool config = config_.Check_str(
+    const bool config = client_.Config().Check_str(
         MASTER_SECTION, INTRODUCTION_SERVER_KEY, serverID, keyFound);
 
     if (!config || !keyFound || !serverID.Exists()) {
@@ -1206,7 +1166,7 @@ OTIdentifier Sync::import_default_introduction_server(const Lock& lock) const
 
     const auto serialized = proto::StringToProto<proto::ServerContract>(
         DEFAULT_INTRODUCTION_SERVER.c_str());
-    const auto instantiated = wallet_.Server(serialized);
+    const auto instantiated = client_.Wallet().Server(serialized);
 
     OT_ASSERT(instantiated)
 
@@ -1246,7 +1206,7 @@ bool Sync::message_nym(
     OT_ASSERT(false == targetNymID.empty())
 
     auto action =
-        server_action_.SendMessage(nymID, serverID, targetNymID, text);
+        client_.ServerAction().SendMessage(nymID, serverID, targetNymID, text);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1288,8 +1248,8 @@ bool Sync::pay_nym(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    auto action =
-        server_action_.SendPayment(nymID, serverID, targetNymID, payment);
+    auto action = client_.ServerAction().SendPayment(
+        nymID, serverID, targetNymID, payment);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1335,7 +1295,7 @@ bool Sync::pay_nym_cash(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    auto action = server_action_.SendCash(
+    auto action = client_.ServerAction().SendCash(
         nymID, serverID, targetNymID, recipientCopy, senderCopy);
     action->Run();
 
@@ -1499,8 +1459,8 @@ bool Sync::publish_server_contract(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == contractID.empty())
 
-    auto action =
-        server_action_.PublishServerContract(nymID, serverID, contractID);
+    auto action = client_.ServerAction().PublishServerContract(
+        nymID, serverID, contractID);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1532,7 +1492,7 @@ bool Sync::publish_server_registration(
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
 
-    auto nym = wallet_.mutable_Nym(nymID);
+    auto nym = client_.Wallet().mutable_Nym(nymID);
 
     return nym.AddPreferredOTServer(serverID.str(), forcePrimary);
 }
@@ -1540,7 +1500,7 @@ bool Sync::publish_server_registration(
 bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
     const
 {
-    auto payment{client_.Factory().Payment(client_, String(cheque))};
+    auto payment{client_.Factory().Payment(String(cheque))};
 
     OT_ASSERT(false != bool(payment));
 
@@ -1572,8 +1532,8 @@ std::uint64_t Sync::RefreshCount() const { return refresh_counter_.load(); }
 void Sync::refresh_accounts() const
 {
     otInfo << OT_METHOD << __FUNCTION__ << ": Begin" << std::endl;
-    const auto serverList = wallet_.ServerList();
-    const auto accounts = storage_.AccountList();
+    const auto serverList = client_.Wallet().ServerList();
+    const auto accounts = client_.Storage().AccountList();
 
     for (const auto server : serverList) {
         SHUTDOWN()
@@ -1582,12 +1542,12 @@ void Sync::refresh_accounts() const
         otWarn << OT_METHOD << __FUNCTION__ << ": Considering server "
                << serverID->str() << std::endl;
 
-        for (const auto& nymID : ot_api_.LocalNymList()) {
+        for (const auto& nymID : client_.OTAPI().LocalNymList()) {
             SHUTDOWN()
             otWarn << OT_METHOD << __FUNCTION__ << ": Nym " << nymID->str()
                    << " ";
             const bool registered =
-                ot_api_.IsNym_RegisteredAtServer(nymID, serverID);
+                client_.OTAPI().IsNym_RegisteredAtServer(nymID, serverID);
 
             if (registered) {
                 otWarn << "is ";
@@ -1607,8 +1567,8 @@ void Sync::refresh_accounts() const
     for (const auto& it : accounts) {
         SHUTDOWN()
         const auto accountID = Identifier::Factory(it.first);
-        const auto nymID = storage_.AccountOwner(accountID);
-        const auto serverID = storage_.AccountServer(accountID);
+        const auto nymID = client_.Storage().AccountOwner(accountID);
+        const auto serverID = client_.Storage().AccountServer(accountID);
         otWarn << OT_METHOD << __FUNCTION__ << ": Account " << accountID->str()
                << ":\n"
                << "  * Owned by nym: " << nymID->str() << "\n"
@@ -1623,13 +1583,14 @@ void Sync::refresh_accounts() const
 
 void Sync::refresh_contacts() const
 {
-    for (const auto& it : contacts_.ContactList()) {
+    for (const auto& it : client_.Contacts().ContactList()) {
         SHUTDOWN()
 
         const auto& contactID = it.first;
         otInfo << OT_METHOD << __FUNCTION__
                << ": Considering contact: " << contactID << std::endl;
-        const auto contact = contacts_.Contact(Identifier::Factory(contactID));
+        const auto contact =
+            client_.Contacts().Contact(Identifier::Factory(contactID));
 
         OT_ASSERT(contact);
 
@@ -1648,12 +1609,12 @@ void Sync::refresh_contacts() const
         for (const auto& nymID : nymList) {
             SHUTDOWN()
 
-            const auto nym = wallet_.Nym(nymID);
+            const auto nym = client_.Wallet().Nym(nymID);
             otInfo << OT_METHOD << __FUNCTION__
                    << ": Considering nym: " << nymID->str() << std::endl;
 
             if (nym) {
-                contacts_.Update(nym->asPublicNym());
+                client_.Contacts().Update(nym->asPublicNym());
             } else {
                 otInfo << OT_METHOD << __FUNCTION__
                        << ": We don't have credentials for this nym. "
@@ -1721,7 +1682,8 @@ bool Sync::register_account(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == unitID.empty())
 
-    auto action = server_action_.RegisterAccount(nymID, serverID, unitID);
+    auto action =
+        client_.ServerAction().RegisterAccount(nymID, serverID, unitID);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1754,7 +1716,7 @@ bool Sync::register_nym(
     OT_ASSERT(false == serverID.empty())
 
     set_contact(nymID, serverID);
-    auto action = server_action_.RegisterNym(nymID, serverID);
+    auto action = client_.ServerAction().RegisterNym(nymID, serverID);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1924,7 +1886,7 @@ bool Sync::send_transfer(
     const std::int64_t value,
     const std::string& memo) const
 {
-    auto action = server_action_.SendTransfer(
+    auto action = client_.ServerAction().SendTransfer(
         localNymID, serverID, sourceAccountID, targetAccountID, value, memo);
     action->Run();
 
@@ -1965,7 +1927,7 @@ OTIdentifier Sync::SendCheque(
         return Identifier::Factory();
     }
 
-    const auto contact = contacts_.Contact(recipientContactID);
+    const auto contact = client_.Contacts().Contact(recipientContactID);
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid contact" << std::endl;
@@ -1984,7 +1946,7 @@ OTIdentifier Sync::SendCheque(
 
     // The first nym in the vector should be the primary, if a primary is set
     const auto& recipientNymID = nyms[0];
-    auto account = wallet_.Account(sourceAccountID);
+    auto account = client_.Wallet().Account(sourceAccountID);
 
     if (false == bool(account)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid account" << std::endl;
@@ -1994,7 +1956,7 @@ OTIdentifier Sync::SendCheque(
 
     const auto& notaryID = account.get().GetRealNotaryID();
     account.Release();
-    std::unique_ptr<Cheque> cheque(ot_api_.WriteCheque(
+    std::unique_ptr<Cheque> cheque(client_.OTAPI().WriteCheque(
         notaryID,
         value,
         Clock::to_time_t(validFrom),
@@ -2011,7 +1973,7 @@ OTIdentifier Sync::SendCheque(
         return Identifier::Factory();
     }
 
-    auto payment{client_.Factory().Payment(client_, String(*cheque))};
+    auto payment{client_.Factory().Payment(String(*cheque))};
 
     OT_ASSERT(false != bool(payment));
 
@@ -2043,7 +2005,7 @@ OTIdentifier Sync::SendTransfer(
     CHECK_ARGS(localNymID, serverID, targetAccountID)
     CHECK_NYM(sourceAccountID)
 
-    auto sourceAccount = wallet_.Account(sourceAccountID);
+    auto sourceAccount = client_.Wallet().Account(sourceAccountID);
 
     if (false == bool(sourceAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid source account"
@@ -2052,7 +2014,7 @@ OTIdentifier Sync::SendTransfer(
         return Identifier::Factory();
     }
 
-    auto targetAccount = wallet_.Account(targetAccountID);
+    auto targetAccount = client_.Wallet().Account(targetAccountID);
 
     if (false == bool(targetAccount)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid target account"
@@ -2096,7 +2058,7 @@ OTIdentifier Sync::SendTransfer(
 void Sync::set_contact(const Identifier& nymID, const Identifier& serverID)
     const
 {
-    auto nym = wallet_.mutable_Nym(nymID);
+    auto nym = client_.Wallet().mutable_Nym(nymID);
     const auto server = nym.PreferredOTServer();
 
     if (server.empty()) { nym.AddPreferredOTServer(serverID.str(), true); }
@@ -2108,7 +2070,7 @@ OTIdentifier Sync::set_introduction_server(
 {
     OT_ASSERT(verify_lock(lock, introduction_server_lock_));
 
-    auto instantiated = wallet_.Server(contract.PublicContract());
+    auto instantiated = client_.Wallet().Server(contract.PublicContract());
 
     if (false == bool(instantiated)) { return Identifier::Factory(); }
 
@@ -2118,12 +2080,12 @@ OTIdentifier Sync::set_introduction_server(
     OT_ASSERT(introduction_server_id_)
 
     bool dontCare = false;
-    const bool set = config_.Set_str(
+    const bool set = client_.Config().Set_str(
         MASTER_SECTION, INTRODUCTION_SERVER_KEY, String(id), dontCare);
 
     OT_ASSERT(set)
 
-    config_.Save();
+    client_.Config().Save();
 
     return id;
 }
@@ -2613,11 +2575,11 @@ Depositability Sync::valid_account(
 {
     std::set<OTIdentifier> matchingAccounts{};
 
-    for (const auto& it : storage_.AccountList()) {
+    for (const auto& it : client_.Storage().AccountList()) {
         const auto accountID = Identifier::Factory(it.first);
-        const auto nymID = storage_.AccountOwner(accountID);
-        const auto serverID = storage_.AccountServer(accountID);
-        const auto unitID = storage_.AccountContract(accountID);
+        const auto nymID = client_.Storage().AccountOwner(accountID);
+        const auto serverID = client_.Storage().AccountServer(accountID);
+        const auto unitID = client_.Storage().AccountContract(accountID);
 
         if (nymID != recipient) { continue; }
 

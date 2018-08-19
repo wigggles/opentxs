@@ -74,13 +74,11 @@ private:
     bool New(const NymParameters& nymParameters) override;
 
     MasterCredential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& theOwner,
         const proto::Credential& serializedCred);
     MasterCredential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& theOwner,
         const NymParameters& nymParameters);
     MasterCredential() = delete;

@@ -133,7 +133,7 @@ public:
     void Cleanup() override;
     void Init() override;
 
-    ~OpenSSL();
+    ~OpenSSL() = default;
 
 private:
     friend opentxs::Factory;
@@ -173,6 +173,7 @@ private:
         DigestContext& operator=(DigestContext&&) = delete;
     };
 
+    const api::Crypto& crypto_;
     std::unique_ptr<OpenSSLdp> dp_;
     mutable std::mutex lock_;
 
@@ -189,7 +190,12 @@ private:
     void thread_setup() const;
     void thread_cleanup() const;
 
-    OpenSSL();
+    OpenSSL(const api::Crypto& crypto);
+    OpenSSL() = delete;
+    OpenSSL(const OpenSSL&) = delete;
+    OpenSSL(OpenSSL&&) = delete;
+    OpenSSL& operator=(const OpenSSL&) = delete;
+    OpenSSL& operator=(OpenSSL&&) = delete;
 };
 }  // namespace opentxs::crypto::implementation
 #endif  // OT_CRYPTO_USING_OPENSSL

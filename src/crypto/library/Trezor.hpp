@@ -96,7 +96,6 @@ private:
         const override;
 #endif
 
-    const api::Crypto& crypto_;
 #if OT_CRYPTO_WITH_BIP32
     const curve_info* secp256k1_{nullptr};
 

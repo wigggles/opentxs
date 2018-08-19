@@ -302,7 +302,7 @@ public:
         String* pstrAttachment = nullptr);
 
     bool DropServerNoticeToNymbox(
-        const std::string& dataFolder,
+        const api::Core& api,
         bool bSuccessMsg,  // the notice can be "acknowledgment" or "rejection"
         const Nym& theServerNym,
         const Identifier& theNotaryID,
@@ -313,7 +313,5 @@ public:
         String* pstrAttachment = nullptr,
         Nym* pActualNym = nullptr);
 };
-
 }  // namespace opentxs
-
 #endif

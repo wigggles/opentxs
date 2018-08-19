@@ -10,7 +10,6 @@
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Identity.hpp"
-#include "opentxs/api/Legacy.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
@@ -70,7 +69,7 @@ UserCommandProcessor::FinalizeResponse::FinalizeResponse(
     const Nym& nym,
     ReplyMessage& reply,
     Ledger& ledger)
-    : core_{core}
+    : api_{core}
     , nym_(nym)
     , reply_(reply)
     , ledger_(ledger)
@@ -107,9 +106,8 @@ void UserCommandProcessor::FinalizeResponse::SetResponse(
 UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
 {
     if ((false == bool(response_)) && (0 == counter_)) {
-        response_.reset(core_.Factory()
+        response_.reset(api_.Factory()
                             .Transaction(
-                                core_,
                                 ledger_,
                                 transactionType::error_state,
                                 originType::not_applicable,
@@ -211,7 +209,6 @@ bool UserCommandProcessor::add_numbers_to_nymbox(
     // anyway, since the problem is still effectively solved.
 
     auto transaction{manager_.Factory().Transaction(
-        manager_,
         nymbox,
         transactionType::blank,
         originType::not_applicable,
@@ -272,8 +269,7 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
     // list, we will want to save (at the end.)
     auto numlist_ack_reply = reply.Acknowledged();
     const auto nymID = Identifier::Factory(context.RemoteNym().ID());
-    auto nymbox{
-        manager_.Factory().Ledger(manager_, nymID, nymID, context.Server())};
+    auto nymbox{manager_.Factory().Ledger(nymID, nymID, context.Server())};
 
     OT_ASSERT(false != bool(nymbox));
 
@@ -1153,7 +1149,7 @@ bool UserCommandProcessor::cmd_get_transaction_numbers(
     bool bSuccess = true;
     bool bSavedNymbox = false;
     const auto& serverID = context.Server();
-    auto theLedger{manager_.Factory().Ledger(manager_, nymID, nymID, serverID)};
+    auto theLedger{manager_.Factory().Ledger(nymID, nymID, serverID)};
 
     OT_ASSERT(false != bool(theLedger));
 
@@ -1392,14 +1388,9 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
     const auto& serverNymID = serverNym.ID();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
-    auto input{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto input{manager_.Factory().Ledger(nymID, accountID, serverID)};
     auto responseLedger{manager_.Factory().Ledger(
-        manager_,
-        serverNymID,
-        accountID,
-        serverID,
-        ledgerType::message,
-        false)};
+        serverNymID, accountID, serverID, ledgerType::message, false)};
 
     OT_ASSERT(false != bool(input));
     OT_ASSERT(false != bool(responseLedger));
@@ -1440,7 +1431,6 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
         const auto inputNumber = transaction->GetTransactionNum();
         response.SetResponse(manager_.Factory()
                                  .Transaction(
-                                     manager_,
                                      *responseLedger,
                                      transactionType::error_state,
                                      originType::not_applicable,
@@ -1508,14 +1498,9 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     const auto& nym = reply.Context().RemoteNym();
     const auto accountID = Identifier::Factory(msgIn.m_strAcctID);
     auto nymboxHash = Identifier::Factory();
-    auto input{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto input{manager_.Factory().Ledger(nymID, accountID, serverID)};
     auto responseLedger{manager_.Factory().Ledger(
-        manager_,
-        serverNymID,
-        accountID,
-        serverID,
-        ledgerType::message,
-        false)};
+        serverNymID, accountID, serverID, ledgerType::message, false)};
 
     OT_ASSERT(false != bool(input));
     OT_ASSERT(false != bool(responseLedger));
@@ -1591,7 +1576,6 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     reply.DropToNymbox(true);
     response.SetResponse(manager_.Factory()
                              .Transaction(
-                                 manager_,
                                  *responseLedger,
                                  transactionType::error_state,
                                  originType::not_applicable,
@@ -1652,9 +1636,9 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
     const auto& serverNym = *context.Nym();
     const auto& serverNymID = serverNym.ID();
     auto nymboxHash = Identifier::Factory();
-    auto input{manager_.Factory().Ledger(manager_, nymID, nymID, serverID)};
+    auto input{manager_.Factory().Ledger(nymID, nymID, serverID)};
     auto responseLedger{manager_.Factory().Ledger(
-        manager_, serverNymID, nymID, serverID, ledgerType::message, false)};
+        serverNymID, nymID, serverID, ledgerType::message, false)};
 
     OT_ASSERT(false != bool(input));
     OT_ASSERT(false != bool(responseLedger));
@@ -1695,7 +1679,6 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
         const auto inputNumber = transaction->GetTransactionNum();
         response.SetResponse(manager_.Factory()
                                  .Transaction(
-                                     manager_,
                                      *responseLedger,
                                      transactionType::error_state,
                                      originType::not_applicable,
@@ -1834,9 +1817,8 @@ bool UserCommandProcessor::cmd_register_account(ReplyMessage& reply) const
 
     auto accountID = Identifier::Factory();
     account.get().GetIdentifier(accountID);
-    auto outbox{
-        manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
-    auto inbox{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto outbox{manager_.Factory().Ledger(nymID, accountID, serverID)};
+    auto inbox{manager_.Factory().Ledger(nymID, accountID, serverID)};
 
     OT_ASSERT(false != bool(outbox));
     OT_ASSERT(false != bool(inbox));
@@ -2368,7 +2350,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
     const Identifier& server,
     const Nym& serverNym) const
 {
-    auto nymbox{manager_.Factory().Ledger(manager_, nymID, nymID, server)};
+    auto nymbox{manager_.Factory().Ledger(nymID, nymID, server)};
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2413,8 +2395,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
     const auto& serverNym = *context.Nym();
-    auto theNymbox{
-        server.API().Factory().Ledger(server.API(), nymID, nymID, serverID)};
+    auto theNymbox{server.API().Factory().Ledger(nymID, nymID, serverID)};
 
     OT_ASSERT(false != bool(theNymbox));
 
@@ -2448,7 +2429,6 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     }
 
     auto pReplyNotice{server.API().Factory().Transaction(
-        server.API(),
         *theNymbox,
         transactionType::replyNotice,
         originType::not_applicable,
@@ -2559,7 +2539,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(
         return {};
     }
 
-    auto inbox{manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto inbox{manager_.Factory().Ledger(nymID, accountID, serverID)};
 
     if (false == bool(inbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2596,7 +2576,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_nymbox(
     const Nym& serverNym,
     const bool verifyAccount) const
 {
-    auto nymbox{manager_.Factory().Ledger(manager_, nymID, nymID, serverID)};
+    auto nymbox{manager_.Factory().Ledger(nymID, nymID, serverID)};
 
     if (false == bool(nymbox)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -2643,8 +2623,7 @@ std::unique_ptr<Ledger> UserCommandProcessor::load_outbox(
         return {};
     }
 
-    auto outbox{
-        manager_.Factory().Ledger(manager_, nymID, accountID, serverID)};
+    auto outbox{manager_.Factory().Ledger(nymID, accountID, serverID)};
 
     if (false == bool(outbox)) {
         otErr << OT_METHOD << __FUNCTION__

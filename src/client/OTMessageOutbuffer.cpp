@@ -34,7 +34,7 @@
 namespace opentxs
 {
 OTMessageOutbuffer::OTMessageOutbuffer(const api::Core& core)
-    : core_{core}
+    : api_{core}
     , messagesMap_{}
 {
 }
@@ -112,11 +112,11 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
 
     String strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
 
-    OTPaths::AppendFolder(strFolderPath, core_.DataFolder().c_str(), strFolder);
+    OTPaths::AppendFolder(strFolderPath, api_.DataFolder().c_str(), strFolder);
     OTPaths::AppendFolder(
-        strFolder1Path, core_.DataFolder().c_str(), strFolder1);
+        strFolder1Path, api_.DataFolder().c_str(), strFolder1);
     OTPaths::AppendFolder(
-        strFolder2Path, core_.DataFolder().c_str(), strFolder2);
+        strFolder2Path, api_.DataFolder().c_str(), strFolder2);
 
     OTPaths::ConfirmCreateFolder(strFolderPath, bAlreadyExists, bIsNewFolder);
     OTPaths::ConfirmCreateFolder(strFolder1Path, bAlreadyExists, bIsNewFolder);
@@ -134,9 +134,9 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(
-            core_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
+            api_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
         String strNumList(OTDB::QueryPlainString(
-            core_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
+            api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Add(lRequestNum);  // Add the new request number to it.
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -178,7 +178,7 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
 
     if (!OTDB::StorePlainString(
             strOutput.Get(),
-            core_.DataFolder(),
+            api_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
@@ -241,14 +241,14 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
     NumList theNumList;
     std::string str_data_filename("sent.dat");
     if (OTDB::Exists(
-            core_.DataFolder(),
+            api_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
             ""))  // todo hardcoding.
     {
         String strNumList(OTDB::QueryPlainString(
-            core_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
+            api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
 
         if (strNumList.Exists()) theNumList.Add(strNumList);
 
@@ -257,12 +257,12 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
             // "doesn't exist" if it doesn't appear on the official list.
             // The list is what matters -- the message is just the contents
             // referencedby that list.
-            auto pMsg = core_.Factory().Message(core_);
+            auto pMsg = api_.Factory().Message();
             OT_ASSERT(false != bool(pMsg));
             std::shared_ptr<Message> message{pMsg.release()};
 
             if (OTDB::Exists(
-                    core_.DataFolder(),
+                    api_.DataFolder(),
                     strFolder.Get(),
                     strFile.Get(),
                     "",
@@ -463,17 +463,13 @@ void OTMessageOutbuffer::Clear(
         std::string str_data_filename("sent.dat");
 
         if (OTDB::Exists(
-                core_.DataFolder(),
+                api_.DataFolder(),
                 strFolder.Get(),
                 str_data_filename,
                 "",
                 "")) {
             String strNumList(OTDB::QueryPlainString(
-                core_.DataFolder(),
-                strFolder.Get(),
-                str_data_filename,
-                "",
-                ""));
+                api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
 
             if (strNumList.Exists()) { theNumList.Add(strNumList); }
 
@@ -484,7 +480,7 @@ void OTMessageOutbuffer::Clear(
         theNumList.Output(strOutput);
         const bool saved = OTDB::StorePlainString(
             strOutput.Get(),
-            core_.DataFolder(),
+            api_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
@@ -497,15 +493,15 @@ void OTMessageOutbuffer::Clear(
 
         // Make sure any messages being erased here, are also erased from local
         // storage.
-        auto storedMessage = core_.Factory().Message(core_);
+        auto storedMessage = api_.Factory().Message();
 
         OT_ASSERT(false != bool(storedMessage));
 
         if (OTDB::Exists(
-                core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
+                api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
             storedMessage->LoadContract(strFolder.Get(), strFile.Get())) {
             OTDB::EraseValueByKey(
-                core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
+                api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
         }
 
         it = messagesMap_.erase(it);
@@ -579,9 +575,9 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(
-            core_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
+            api_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
         String strNumList(OTDB::QueryPlainString(
-            core_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
+            api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
         if (strNumList.Exists()) theNumList.Add(strNumList);
         theNumList.Remove(lRequestNum);
     } else  // it doesn't exist on disk, so let's just create it from the list
@@ -626,7 +622,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     theNumList.Output(strOutput);
     if (!OTDB::StorePlainString(
             strOutput.Get(),
-            core_.DataFolder(),
+            api_.DataFolder(),
             strFolder.Get(),
             str_data_filename,
             "",
@@ -638,14 +634,14 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     // Now that we've updated the numlist in local storage, let's
     // erase the sent message itself...
     //
-    auto pMsg = core_.Factory().Message(core_);
+    auto pMsg = api_.Factory().Message();
     OT_ASSERT(false != bool(pMsg));
 
     if (OTDB::Exists(
-            core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
+            api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
         pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
         OTDB::EraseValueByKey(
-            core_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
+            api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
         return true;
     }
 

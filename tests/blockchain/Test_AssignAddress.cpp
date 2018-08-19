@@ -11,28 +11,33 @@ using namespace opentxs;
 
 namespace
 {
+class Test_Blockchain : public ::testing::Test
+{
+public:
+    const opentxs::api::client::Manager& client_;
 
-/*
- */
+    Test_Blockchain()
+        : client_(opentxs::OT::App().StartClient({}, 0))
+    {
+    }
+};
 
-TEST(Test_Blockchain, testAssignIncomingAddress)
+TEST_F(Test_Blockchain, testAssignIncomingAddress)
 {
     // create nym and account
     static const proto::ContactItemType INDIVIDUAL =
         proto::CITEMTYPE_INDIVIDUAL;
-    const auto Alice = opentxs::OT::App().Client().Exec().CreateNymHD(
-        INDIVIDUAL, "Alice", "", 30);
+    const auto Alice = client_.Exec().CreateNymHD(INDIVIDUAL, "Alice", "", 30);
     std::cout << "Created Alice's Nym: " << Alice << " !!\n";
-    const auto Bob = opentxs::OT::App().Client().Exec().CreateNymHD(
-        INDIVIDUAL, "Bob", "", 40);
+    const auto Bob = client_.Exec().CreateNymHD(INDIVIDUAL, "Bob", "", 40);
     std::cout << "Created Bob's Nym: " << Bob << " !!\n";
 
-    OTIdentifier AliceAccountID = OT::App().Client().Blockchain().NewAccount(
+    OTIdentifier AliceAccountID = client_.Blockchain().NewAccount(
         Identifier::Factory(Alice),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
     std::shared_ptr<proto::Bip44Account> AliceAccount =
-        OT::App().Client().Blockchain().Account(
+        client_.Blockchain().Account(
             Identifier::Factory(Alice), AliceAccountID);
 
     // std::cout << "Created Account " << String(AliceAccount).Get() << " !!\n";
@@ -46,7 +51,7 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
     // Allocate address, check internal index is 1
     const std::string label = "Address label";
     std::unique_ptr<proto::Bip44Address> AccountAddress =
-        opentxs::OT::App().Client().Blockchain().AllocateAddress(
+        client_.Blockchain().AllocateAddress(
             Identifier::Factory(Alice),
             Identifier::Factory(AliceAccountID),
             label,
@@ -60,7 +65,7 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
 
     //
 
-    bool assigned = opentxs::OT::App().Client().Blockchain().AssignAddress(
+    bool assigned = client_.Blockchain().AssignAddress(
         Identifier::Factory(Alice),
         Identifier::Factory(AliceAccountID),
         0,
@@ -72,7 +77,7 @@ TEST(Test_Blockchain, testAssignIncomingAddress)
 
     // Check assignment
     std::unique_ptr<proto::Bip44Address> AddrPtr =
-        opentxs::OT::App().Client().Blockchain().LoadAddress(
+        client_.Blockchain().LoadAddress(
             Identifier::Factory(Alice),
             Identifier::Factory(AliceAccountID),
             0,

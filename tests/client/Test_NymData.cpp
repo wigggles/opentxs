@@ -13,18 +13,19 @@ namespace
 class Test_NymData : public ::testing::Test
 {
 public:
+    const opentxs::api::client::Manager& client_;
+    opentxs::NymData nymData_;
+
     Test_NymData()
-        : nymData_(opentxs::OT::App().Client().Wallet().mutable_Nym(
-              opentxs::Identifier::Factory(
-                  opentxs::OT::App().Client().Exec().CreateNymHD(
-                      opentxs::proto::CITEMTYPE_INDIVIDUAL,
-                      "testNym",
-                      "",
-                      -1))))
+        : client_(opentxs::OT::App().StartClient({}, 0))
+        , nymData_(client_.Wallet().mutable_Nym(
+              opentxs::Identifier::Factory(client_.Exec().CreateNymHD(
+                  opentxs::proto::CITEMTYPE_INDIVIDUAL,
+                  "testNym",
+                  "",
+                  -1))))
     {
     }
-
-    opentxs::NymData nymData_;
 };
 
 static const auto& paymentCode = "PM8TJKxypQfFUaHfSq59nn82EjdGU4SpHcp2ssa4GxPsh"

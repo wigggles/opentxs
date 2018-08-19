@@ -3397,26 +3397,20 @@ contract
 private:
     friend class api::client::implementation::Manager;
 
+    const api::Core& api_;
     const api::client::Activity& activity_;
-    const api::Settings& config_;
     const api::client::Contacts& contacts_;
-    const api::Crypto& crypto_;
-    const api::Factory& factory_;
-    const api::Identity& identity_;
-    const api::Core& manager_;
     const api::network::ZMQ& zeromq_;
+    const api::Identity& identity_;
     const OT_API& ot_api_;
     ContextLockCallback lock_callback_;
 
     OTAPI_Exec(
+        const api::Core& api,
         const api::client::Activity& activity,
-        const api::Settings& config,
         const api::client::Contacts& contacts,
-        const api::Crypto& crypto,
-        const api::Factory& factory,
-        const api::Identity& identity,
-        const api::Core& manager,
         const api::network::ZMQ& zeromq,
+        const api::Identity& identity,
         const OT_API& otapi,
         const ContextLockCallback& lockCallback);
     OTAPI_Exec() = delete;

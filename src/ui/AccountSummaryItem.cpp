@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
@@ -33,25 +34,14 @@ namespace opentxs
 {
 ui::implementation::IssuerItemRowInternal* Factory::AccountSummaryItem(
     const ui::implementation::IssuerItemInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::IssuerItemRowID& rowID,
     const ui::implementation::IssuerItemSortKey& sortKey,
-    const ui::implementation::CustomData& custom,
-    const api::Wallet& wallet,
-    const api::storage::Storage& storage)
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::AccountSummaryItem(
-        parent,
-        zmq,
-        publisher,
-        contact,
-        rowID,
-        sortKey,
-        custom,
-        wallet,
-        storage);
+        parent, api, publisher, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
@@ -59,22 +49,18 @@ namespace opentxs::ui::implementation
 {
 AccountSummaryItem::AccountSummaryItem(
     const IssuerItemInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const IssuerItemRowID& rowID,
     const IssuerItemSortKey& sortKey,
-    const CustomData& custom,
-    const api::Wallet& wallet,
-    const api::storage::Storage& storage)
-    : AccountSummaryItemRow(parent, zmq, publisher, contact, rowID, true)
-    , wallet_{wallet}
-    , storage_{storage}
+    const CustomData& custom)
+    : AccountSummaryItemRow(parent, api, publisher, rowID, true)
     , account_id_{std::get<0>(row_id_).get()}
     , currency_{std::get<1>(row_id_)}
     , balance_{extract_custom<Amount>(custom)}
     , name_{sortKey}
-    , contract_{wallet_.UnitDefinition(storage_.AccountContract(account_id_))}
+    , contract_{api_.Wallet().UnitDefinition(
+          api_.Storage().AccountContract(account_id_))}
 {
 }
 
@@ -82,8 +68,8 @@ std::string AccountSummaryItem::DisplayBalance() const
 {
     if (false == bool(contract_)) {
         eLock lock(shared_lock_);
-        contract_ =
-            wallet_.UnitDefinition(storage_.AccountContract(account_id_));
+        contract_ = api_.Wallet().UnitDefinition(
+            api_.Storage().AccountContract(account_id_));
     }
 
     sLock lock(shared_lock_);

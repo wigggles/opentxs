@@ -12,8 +12,8 @@ namespace opentxs::api::implementation
 class Legacy final : virtual public api::Legacy
 {
 public:
-    std::string ClientConfigFilePath() const override;
-    std::string ClientDataFolder() const override;
+    std::string ClientConfigFilePath(const int instance) const override;
+    std::string ClientDataFolder(const int instance) const override;
     std::string CryptoConfigFilePath() const override;
     std::string LogConfigFilePath() const override;
     std::string ServerConfigFilePath(const int instance) const override;

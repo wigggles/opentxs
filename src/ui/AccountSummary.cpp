@@ -7,8 +7,10 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -47,46 +49,37 @@
 namespace opentxs
 {
 ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::network::ZMQ& connection,
-    const api::storage::Storage& storage,
-    const api::client::Contacts& contact,
-    const api::Core& core,
     const Identifier& nymID,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::AccountSummary(
-        zmq, publisher, connection, storage, contact, core, nymID, currency);
+        api, publisher, nymID, currency);
 }
 }  // namespace opentxs
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions AccountSummary::listeners_{
-    {network::zeromq::Socket::IssuerUpdateEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_issuer)},
-    {network::zeromq::Socket::ServerUpdateEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_server)},
-    {network::zeromq::Socket::ConnectionStatusEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_connection)},
-    {network::zeromq::Socket::NymDownloadEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_nym)},
-};
-
 AccountSummary::AccountSummary(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::network::ZMQ& connection,
-    const api::storage::Storage& storage,
-    const api::client::Contacts& contact,
-    const api::Core& core,
     const Identifier& nymID,
     const proto::ContactItemType currency)
-    : AccountSummaryList(nymID, zmq, publisher, contact)
-    , connection_{connection}
-    , storage_{storage}
-    , core_{core}
+    : AccountSummaryList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().IssuerUpdate(),
+           new MessageProcessor<AccountSummary>(
+               &AccountSummary::process_issuer)},
+          {api_.Endpoints().ServerUpdate(),
+           new MessageProcessor<AccountSummary>(
+               &AccountSummary::process_server)},
+          {api_.Endpoints().ConnectionStatus(),
+           new MessageProcessor<AccountSummary>(
+               &AccountSummary::process_connection)},
+          {api_.Endpoints().NymDownload(),
+           new MessageProcessor<AccountSummary>(&AccountSummary::process_nym)},
+      })
     , currency_{currency}
     , issuers_{}
     , server_issuer_map_{}
@@ -107,16 +100,7 @@ void AccountSummary::construct_row(
     items_[index].emplace(
         id,
         Factory::IssuerItem(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            custom,
-            storage_,
-            core_,
-            currency_));
+            *this, api_, publisher_, id, index, custom, currency_));
     names_.emplace(id, index);
 }
 
@@ -127,7 +111,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     AccountSummarySortKey output{false, DEFAULT_ISSUER_NAME};
     auto& [state, name] = output;
 
-    const auto issuer = core_.Wallet().Issuer(nymID, issuerID);
+    const auto issuer = api_.Wallet().Issuer(nymID, issuerID);
 
     if (false == bool(issuer)) { return output; }
 
@@ -135,7 +119,7 @@ AccountSummarySortKey AccountSummary::extract_key(
 
     if (serverID->empty()) { return output; }
 
-    auto server = core_.Wallet().Server(serverID);
+    auto server = api_.Wallet().Server(serverID);
 
     if (false == bool(server)) { return output; }
 
@@ -145,7 +129,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     server_issuer_map_.emplace(serverID, Identifier::Factory(issuerID));
     lock.unlock();
 
-    switch (connection_.Status(serverID->str())) {
+    switch (api_.ZMQ().Status(serverID->str())) {
         case ConnectionState::ACTIVE: {
             state = true;
         }
@@ -246,7 +230,7 @@ void AccountSummary::process_server(const OTIdentifier& serverID)
 
 void AccountSummary::startup()
 {
-    const auto issuers = core_.Wallet().IssuerList(nym_id_);
+    const auto issuers = api_.Wallet().IssuerList(nym_id_);
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << issuers.size()
            << " issuers." << std::endl;
 

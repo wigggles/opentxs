@@ -18,6 +18,7 @@ public:
     EXPORT virtual const api::Settings& Config() const = 0;
     EXPORT virtual const api::Crypto& Crypto() const = 0;
     EXPORT virtual const std::string& DataFolder() const = 0;
+    EXPORT virtual const api::Endpoints& Endpoints() const = 0;
     EXPORT virtual const network::Dht& DHT() const = 0;
     EXPORT virtual const api::Factory& Factory() const = 0;
     EXPORT virtual int Instance() const = 0;

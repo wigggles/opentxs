@@ -84,7 +84,7 @@ protected:
     using ListenerDefinition = std::pair<std::string, MessageFunctor*>;
     using ListenerDefinitions = std::vector<ListenerDefinition>;
 
-    const network::zeromq::Context& zmq_;
+    const api::client::Manager& api_;
     const network::zeromq::PublishSocket& publisher_;
     const OTIdentifier widget_id_;
 
@@ -92,11 +92,11 @@ protected:
     void UpdateNotify() const;
 
     Widget(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
         const Identifier& id);
     Widget(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher);
 
 private:

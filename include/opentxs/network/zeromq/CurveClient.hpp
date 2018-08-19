@@ -8,9 +8,12 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/network/zeromq/Socket.hpp"
+
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::network::zeromq::DealerSocket::SetPublicKey;
+%ignore opentxs::network::zeromq::CurveClient::SetPublicKey;
+%interface(opentxs::network::zeromq::CurveClient);
 // clang-format on
 #endif  // SWIG
 
@@ -20,7 +23,7 @@ namespace network
 {
 namespace zeromq
 {
-class CurveClient
+class CurveClient : virtual public Socket
 {
 public:
     EXPORT virtual bool SetPublicKey(const ServerContract& contract) const = 0;

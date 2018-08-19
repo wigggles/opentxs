@@ -81,8 +81,6 @@ private:
     friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
-    const api::client::Activity& activity_;
-    const api::client::Sync& sync_;
     const OTIdentifier threadID_;
     std::set<OTIdentifier> participants_;
     mutable std::mutex contact_lock_;
@@ -108,11 +106,8 @@ private:
     void startup();
 
     ActivityThread(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Sync& sync,
-        const api::client::Activity& activity,
-        const api::client::Contacts& contact,
         const Identifier& nymID,
         const Identifier& threadID);
 

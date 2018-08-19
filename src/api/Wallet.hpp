@@ -188,7 +188,7 @@ protected:
     using ContextID = std::pair<std::string, std::string>;
     using ContextMap = std::map<ContextID, std::shared_ptr<opentxs::Context>>;
 
-    const api::Core& core_;
+    const api::Core& api_;
     mutable ContextMap context_map_;
     mutable std::mutex context_map_lock_;
 

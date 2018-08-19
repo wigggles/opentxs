@@ -46,10 +46,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    static const ListenerDefinitions listeners_;
-
-    const api::storage::Storage& storage_;
-    const api::Core& core_;
+    const ListenerDefinitions listeners_;
     AccountSummarySortKey key_;
     const std::string& name_;
     std::atomic<bool> connection_{false};
@@ -68,14 +65,11 @@ private:
 
     IssuerItem(
         const AccountSummaryInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const AccountSummaryRowID& rowID,
         const AccountSummarySortKey& sortKey,
         const CustomData& custom,
-        const api::storage::Storage& storage,
-        const api::Core& core,
         const proto::ContactItemType currency);
     IssuerItem() = delete;
     IssuerItem(const IssuerItem&) = delete;

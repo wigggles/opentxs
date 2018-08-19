@@ -78,9 +78,9 @@ Crypto::Crypto(const api::Settings& settings)
 #if OT_CRYPTO_USING_TREZOR
     , trezor_(opentxs::Factory::Trezor(*this))
 #endif
-    , sodium_(opentxs::Factory::Sodium())
+    , sodium_(opentxs::Factory::Sodium(*this))
 #if OT_CRYPTO_USING_OPENSSL
-    , ssl_(opentxs::Factory::OpenSSL())
+    , ssl_(opentxs::Factory::OpenSSL(*this))
 #endif
     , util_(*sodium_)
 #if OT_CRYPTO_USING_LIBBITCOIN
@@ -97,7 +97,7 @@ Crypto::Crypto(const api::Settings& settings)
     , bip39_(*trezor_)
 #endif
 #if OT_CRYPTO_USING_LIBSECP256K1
-    , secp256k1_(opentxs::Factory::Secp256k1(util_, secp256k1_helper_))
+    , secp256k1_(opentxs::Factory::Secp256k1(*this, util_, secp256k1_helper_))
     , secp256k1_provider_(*secp256k1_)
 #elif OT_CRYPTO_USING_LIBBITCOIN
     , secp256k1_provider_(*bitcoin_)
@@ -160,7 +160,7 @@ const OTCachedKey& Crypto::CachedKey(const Identifier& id) const
         OT_FAIL_MSG("This function is broken, this never should have "
                     "happened.");
 
-        output.reset(new OTCachedKey(OT_MASTER_KEY_TIMEOUT));
+        output.reset(new OTCachedKey(*this, OT_MASTER_KEY_TIMEOUT));
     }
 
     OT_ASSERT(output);
@@ -180,7 +180,7 @@ const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
 
         OT_ASSERT(haveSerialized);
 
-        output.reset(new OTCachedKey(serialized));
+        output.reset(new OTCachedKey(*this, serialized));
     }
 
     OT_ASSERT(output);
@@ -293,7 +293,7 @@ void Crypto::Init()
 void Crypto::init_default_key(const Lock&) const
 {
     if (false == bool(primary_key_)) {
-        primary_key_.reset(new OTCachedKey(OT_MASTER_KEY_TIMEOUT));
+        primary_key_.reset(new OTCachedKey(*this, OT_MASTER_KEY_TIMEOUT));
     }
 }
 

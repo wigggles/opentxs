@@ -791,7 +791,7 @@ bool Server::DropMessageToNymbox(
     const Message* message{nullptr};
 
     if (nullptr == pMsg) {
-        theMsgAngel.reset(manager_.Factory().Message(manager_).release());
+        theMsgAngel.reset(manager_.Factory().Message().release());
 
         if (nullptr != szCommand)
             theMsgAngel->m_strCommand = szCommand;
@@ -866,12 +866,9 @@ bool Server::DropMessageToNymbox(
     //
     const String strInMessage(*message);
     auto theLedger{manager_.Factory().Ledger(
-        manager_,
-        RECIPIENT_NYM_ID,
-        RECIPIENT_NYM_ID,
-        NOTARY_ID)};  // The
-                      // recipient's
-                      // Nymbox.
+        RECIPIENT_NYM_ID, RECIPIENT_NYM_ID, NOTARY_ID)};  // The
+                                                          // recipient's
+                                                          // Nymbox.
     // Drop in the Nymbox
     if ((theLedger->LoadNymbox() &&  // I think this loads the box receipts too,
                                      // since I didn't call "LoadNymboxNoVerify"
@@ -882,11 +879,7 @@ bool Server::DropMessageToNymbox(
          theLedger->VerifySignature(*m_nymServer))) {
         // Create the instrumentNotice to put in the Nymbox.
         auto pTransaction{manager_.Factory().Transaction(
-            manager_,
-            *theLedger,
-            theType,
-            originType::not_applicable,
-            lTransNum)};
+            *theLedger, theType, originType::not_applicable, lTransNum)};
 
         if (false != bool(pTransaction))  // The above has an OT_ASSERT within,
                                           // but I just like to check my

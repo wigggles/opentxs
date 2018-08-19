@@ -96,14 +96,8 @@ Bitcoin::Bitcoin(const api::Crypto& crypto)
 #else
     :
 #endif
-    EcdsaProvider()
+    EcdsaProvider(crypto)
 #endif
-#if OT_CRYPTO_WITH_BIP32 || OT_CRYPTO_SUPPORTED_KEY_SECP256K1
-    ,
-#else
-    :
-#endif
-    crypto_(crypto)
 {
 }
 

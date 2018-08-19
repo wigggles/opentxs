@@ -56,8 +56,7 @@ public:
     static serializedCredential ExtractArmoredCredential(
         const Armored& armoredCredential);
     static std::unique_ptr<Credential> Factory(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& parent,
         const proto::Credential& serialized,
         const proto::KeyMode& mode,
@@ -65,14 +64,13 @@ public:
 
     template <class C>
     static std::unique_ptr<C> Create(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& owner,
         const NymParameters& nymParameters)
     {
         std::unique_ptr<C> credential;
 
-        credential.reset(new C(factory, wallet, owner, nymParameters));
+        credential.reset(new C(api, owner, nymParameters));
 
         if (!credential) {
             otErr << __FUNCTION__ << ": Failed to construct credential."
@@ -114,14 +112,13 @@ private:
     bool verify_master_signature(const Lock& lock) const;
 
 protected:
+    const api::Core& api_;
     proto::CredentialType type_ = proto::CREDTYPE_ERROR;
     proto::CredentialRole role_ = proto::CREDROLE_ERROR;
     proto::KeyMode mode_ = proto::KEYMODE_ERROR;
     CredentialSet* owner_backlink_ = nullptr;  // Do not cleanup.
     std::string master_id_;
     std::string nym_id_;
-    const api::Factory& factory_;
-    const api::Wallet& wallet_;
 
     virtual serializedCredential serialize(
         const Lock& lock,
@@ -134,13 +131,11 @@ protected:
     virtual bool New(const NymParameters& nymParameters);
 
     Credential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& owner,
         const proto::Credential& serializedCred);
     Credential(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         CredentialSet& owner,
         const std::uint32_t version,
         const NymParameters& nymParameters);

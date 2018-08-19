@@ -177,7 +177,7 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
             return nullptr;
         }
         // --------------------
-        auto pMsg{pTransaction->Core().Factory().Message(pTransaction->Core())};
+        auto pMsg{pTransaction->API().Factory().Message()};
         if (false == bool(pMsg)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Null:  Assert while allocating memory "
@@ -225,8 +225,8 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
             // strEnvelopeContents contains a PURSE or CHEQUE
             // (etc) and not specifically a generic "PAYMENT".
             //
-            auto pPayment{pTransaction->Core().Factory().Payment(
-                pTransaction->Core(), strEnvelopeContents)};
+            auto pPayment{
+                pTransaction->API().Factory().Payment(strEnvelopeContents)};
             if (false == bool(pPayment) || !pPayment->IsValid())
                 otOut << OT_METHOD << __FUNCTION__
                       << ": Failed: after decryption, payment is invalid. "
@@ -240,8 +240,7 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
         }
     } else if (transactionType::notice == pTransaction->GetType()) {
         String strNotice(*pTransaction);
-        auto pPayment{pTransaction->Core().Factory().Payment(
-            pTransaction->Core(), strNotice)};
+        auto pPayment{pTransaction->API().Factory().Payment(strNotice)};
 
         if (false == bool(pPayment) || !pPayment->IsValid())
             otOut << OT_METHOD << __FUNCTION__

@@ -32,8 +32,8 @@ private:
 
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
-    static const ListenerDefinitions listeners_;
 
+    const ListenerDefinitions listeners_;
     std::string name_;
     std::string payment_code_;
 
@@ -56,9 +56,8 @@ private:
     void startup();
 
     Contact(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const Identifier& nymID);
     Contact() = delete;
     Contact(const Contact&) = delete;

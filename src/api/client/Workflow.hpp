@@ -65,11 +65,9 @@ public:
 private:
     friend opentxs::Factory;
 
+    const api::Core& api_;
     const Activity& activity_;
     const Contacts& contact_;
-    const Core& core_;
-    const storage::Storage& storage_;
-    const opentxs::network::zeromq::Context& zmq_;
     const OTZMQPublishSocket account_publisher_;
 
     static bool can_accept_cheque(const proto::PaymentWorkflow& workflow);
@@ -157,11 +155,9 @@ private:
         std::chrono::time_point<std::chrono::system_clock> time) const;
 
     Workflow(
+        const api::Core& api,
         const Activity& activity,
-        const Contacts& contact,
-        const Core& core,
-        const storage::Storage& storage,
-        const opentxs::network::zeromq::Context& zmq);
+        const Contacts& contact);
     Workflow() = delete;
     Workflow(const Workflow&) = delete;
     Workflow(Workflow&&) = delete;

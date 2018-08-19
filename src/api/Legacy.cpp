@@ -37,14 +37,14 @@ Legacy::Legacy()
 {
 }
 
-std::string Legacy::ClientConfigFilePath() const
+std::string Legacy::ClientConfigFilePath(const int instance) const
 {
-    return get_file(client_config_file_);
+    return get_file(client_config_file_, instance);
 }
 
-std::string Legacy::ClientDataFolder() const
+std::string Legacy::ClientDataFolder(const int instance) const
 {
-    return get_path(client_data_folder_);
+    return get_path(client_data_folder_, instance);
 }
 
 std::string Legacy::CryptoConfigFilePath() const

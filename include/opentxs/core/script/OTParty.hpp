@@ -83,7 +83,7 @@ public:
         String* pstrNote = nullptr,
         String* pstrAttachment = nullptr);
     bool SendNoticeToParty(
-        const std::string& dataFolder,
+        const api::Core& api,
         bool bSuccessMsg,
         const Nym& theServerNym,
         const Identifier& theNotaryID,

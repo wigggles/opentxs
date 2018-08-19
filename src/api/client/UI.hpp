@@ -60,15 +60,7 @@ private:
         std::unique_ptr<ui::PayableList>>;
     using ProfileMap = std::map<OTIdentifier, std::unique_ptr<ui::Profile>>;
 
-    const api::client::Sync& sync_;
-    const api::Wallet& wallet_;
-    const api::client::Workflow& workflow_;
-    const api::network::ZMQ& connection_;
-    const api::storage::Storage& storage_;
-    const api::client::Activity& activity_;
-    const api::client::Contacts& contact_;
-    const api::Core& core_;
-    const opentxs::network::zeromq::Context& zmq_;
+    const api::client::Manager& api_;
     const Flag& running_;
     mutable AccountActivityMap accounts_{};
     mutable AccountSummaryMap accounts_summaries_{};
@@ -81,16 +73,7 @@ private:
     mutable ProfileMap profiles_{};
     OTZMQPublishSocket widget_update_publisher_;
 
-    UI(const api::client::Sync& sync,
-       const api::Wallet& wallet,
-       const api::client::Workflow& workflow,
-       const api::network::ZMQ& connection,
-       const api::storage::Storage& storage,
-       const api::client::Activity& activity,
-       const api::client::Contacts& contact,
-       const api::Core& core,
-       const opentxs::network::zeromq::Context& zmq,
-       const Flag& running);
+    UI(const api::client::Manager& api, const Flag& running);
     UI() = delete;
     UI(const UI&) = delete;
     UI(UI&&) = delete;

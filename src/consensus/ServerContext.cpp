@@ -265,7 +265,7 @@ TransactionNumber ServerContext::Highest() const
 std::unique_ptr<Message> ServerContext::initialize_server_command(
     const MessageType type) const
 {
-    auto output = api_.Factory().Message(api_);
+    auto output = api_.Factory().Message();
 
     OT_ASSERT(false != bool(output));
     OT_ASSERT(false != bool(nym_));

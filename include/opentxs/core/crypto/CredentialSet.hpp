@@ -72,17 +72,13 @@ typedef std::shared_ptr<proto::CredentialSet> SerializedCredentialSet;
 class CredentialSet
 {
 public:
+    EXPORT CredentialSet(const api::Core& api);
     EXPORT CredentialSet(
-        const api::Factory& factory,
-        const api::Wallet& wallet);
-    EXPORT CredentialSet(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         const proto::KeyMode mode,
         const proto::CredentialSet& serializedCredentialSet);
     EXPORT CredentialSet(
-        const api::Factory& factory,
-        const api::Wallet& wallet,
+        const api::Core& api,
         const NymParameters& nymParameters,
         std::uint32_t version,
         const OTPasswordData* pPWData = nullptr);
@@ -286,8 +282,7 @@ public:
     EXPORT ~CredentialSet();
 
 private:
-    const api::Factory& factory_;
-    const api::Wallet& wallet_;
+    const api::Core& api_;
     std::unique_ptr<MasterCredential> m_MasterCredential;
     mapOfCredentials m_mapCredentials;
     mapOfCredentials m_mapRevokedCredentials;

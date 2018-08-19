@@ -54,7 +54,10 @@ private:
     bool ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
         const override;
 
-    Secp256k1(const api::crypto::Util& ssl, const crypto::EcdsaProvider& ecdsa);
+    Secp256k1(
+        const api::Crypto& crypto,
+        const api::crypto::Util& ssl,
+        const crypto::EcdsaProvider& ecdsa);
     Secp256k1() = delete;
 };
 }  // namespace opentxs::crypto::implementation

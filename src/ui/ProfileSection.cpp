@@ -41,16 +41,14 @@ namespace opentxs
 {
 ui::implementation::ProfileRowInternal* Factory::ProfileSectionWidget(
     const ui::implementation::ProfileInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::ProfileRowID& rowID,
     const ui::implementation::ProfileSortKey& key,
-    const ui::implementation::CustomData& custom,
-    const api::Wallet& wallet)
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ProfileSection(
-        parent, zmq, publisher, contact, rowID, key, custom, wallet);
+        parent, api, publisher, rowID, key, custom);
 }
 }  // namespace opentxs
 
@@ -156,21 +154,13 @@ namespace opentxs::ui::implementation
 {
 ProfileSection::ProfileSection(
     const ProfileInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ProfileRowID& rowID,
     const ProfileSortKey& key,
-    const CustomData& custom,
-    const api::Wallet& wallet)
-    : ProfileSectionList(
-          parent.WidgetID(),
-          parent.NymID(),
-          zmq,
-          publisher,
-          contact)
+    const CustomData& custom)
+    : ProfileSectionList(api, publisher, parent.NymID(), parent.WidgetID())
     , ProfileSectionRow(parent, rowID, true)
-    , wallet_(wallet)
 {
     init();
     startup_.reset(new std::thread(&ProfileSection::startup, this, custom));
@@ -206,14 +196,7 @@ void ProfileSection::construct_row(
     items_[index].emplace(
         id,
         Factory::ProfileSubsectionWidget(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            custom,
-            wallet_));
+            *this, api_, publisher_, id, index, custom));
 }
 
 bool ProfileSection::Delete(const int type, const std::string& claimID) const

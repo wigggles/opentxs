@@ -27,7 +27,6 @@ private:
     friend opentxs::Factory;
 
     const ListenerDefinitions listeners_;
-    const api::client::Activity& activity_;
     const Flag& running_;
 
     static const proto::StorageThreadItem& newest_item(
@@ -45,10 +44,8 @@ private:
     void startup();
 
     ActivitySummary(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Activity& activity,
-        const api::client::Contacts& contact,
         const Flag& running,
         const Identifier& nymID);
     ActivitySummary() = delete;

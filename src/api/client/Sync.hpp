@@ -191,18 +191,7 @@ private:
 
     ContextLockCallback lock_callback_;
     const Flag& running_;
-    const OT_API& ot_api_;
-    const opentxs::OTAPI_Exec& exec_;
-    const api::client::Contacts& contacts_;
-    const api::Legacy& legacy_;
-    const api::Settings& config_;
     const api::client::Manager& client_;
-    const api::client::ServerAction& server_action_;
-    const api::Wallet& wallet_;
-    const api::client::Workflow& workflow_;
-    const api::crypto::Encode& encoding_;
-    const api::storage::Storage& storage_;
-    const opentxs::network::zeromq::Context& zmq_;
     mutable std::mutex introduction_server_lock_{};
     mutable std::mutex nym_fetch_lock_{};
     mutable std::mutex task_status_lock_{};
@@ -379,17 +368,7 @@ private:
 
     Sync(
         const Flag& running,
-        const OT_API& otapi,
-        const opentxs::OTAPI_Exec& exec,
-        const api::client::Contacts& contacts,
-        const api::Legacy& legacy,
-        const api::Settings& config,
         const api::client::Manager& client,
-        const api::Wallet& wallet,
-        const api::client::Workflow& workflow,
-        const api::crypto::Encode& encoding,
-        const api::storage::Storage& storage,
-        const opentxs::network::zeromq::Context& zmq,
         const ContextLockCallback& lockCallback);
     Sync() = delete;
     Sync(const Sync&) = delete;

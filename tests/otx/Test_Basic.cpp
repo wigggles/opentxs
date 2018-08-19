@@ -44,39 +44,47 @@ public:
     static const std::shared_ptr<const ServerContract> server_contract_;
     static const std::shared_ptr<const UnitDefinition> asset_contract_1_;
 
-    const opentxs::api::client::Manager& client_;
+    const opentxs::api::client::Manager& client_1_;
+    const opentxs::api::client::Manager& client_2_;
     const opentxs::api::server::Manager& server_;
     const Identifier& server_id_;
 
     Test_Basic()
-        : client_(dynamic_cast<const opentxs::api::client::Manager&>(
-              opentxs::OT::App().Client()))
-        , server_(dynamic_cast<const opentxs::api::server::Manager&>(
-              opentxs::OT::App().StartServer(args_, 0, true)))
+        : client_1_(OT::App().StartClient(args_, 0))
+        , client_2_(OT::App().StartClient(args_, 1))
+        , server_(OT::App().StartServer(args_, 0, true))
         , server_id_(server_.ID())
     {
         if (false == init_) { init(); }
     }
 
+    void import_server_contract(
+        const ServerContract& contract,
+        const opentxs::api::client::Manager& client)
+    {
+        auto clientVersion =
+            client.Wallet().Server(server_contract_->PublicContract());
+
+        OT_ASSERT(clientVersion)
+
+        client.Sync().SetIntroductionServer(*clientVersion);
+    }
+
     void init()
     {
-        const_cast<std::string&>(SeedA_) =
-            opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
-                "spike nominee miss inquiry fee nothing belt list other "
-                "daughter leave valley twelve gossip paper",
-                "");
-        const_cast<std::string&>(SeedB_) =
-            opentxs::OT::App().Client().Exec().Wallet_ImportSeed(
-                "trim thunder unveil reduce crop cradle zone inquiry "
-                "anchor skate property fringe obey butter text tank drama "
-                "palm guilt pudding laundry stay axis prosper",
-                "");
-        const_cast<std::string&>(Alice_) =
-            opentxs::OT::App().Client().Exec().CreateNymHD(
-                proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
-        const_cast<std::string&>(Bob_) =
-            opentxs::OT::App().Client().Exec().CreateNymHD(
-                proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0);
+        const_cast<std::string&>(SeedA_) = client_1_.Exec().Wallet_ImportSeed(
+            "spike nominee miss inquiry fee nothing belt list other "
+            "daughter leave valley twelve gossip paper",
+            "");
+        const_cast<std::string&>(SeedB_) = client_2_.Exec().Wallet_ImportSeed(
+            "trim thunder unveil reduce crop cradle zone inquiry "
+            "anchor skate property fringe obey butter text tank drama "
+            "palm guilt pudding laundry stay axis prosper",
+            "");
+        const_cast<std::string&>(Alice_) = client_1_.Exec().CreateNymHD(
+            proto::CITEMTYPE_INDIVIDUAL, "Alice", SeedA_, 0);
+        const_cast<std::string&>(Bob_) = client_2_.Exec().CreateNymHD(
+            proto::CITEMTYPE_INDIVIDUAL, "Bob", SeedB_, 0);
         const_cast<OTIdentifier&>(alice_nym_id_) = Identifier::Factory(Alice_);
         const_cast<OTIdentifier&>(bob_nym_id_) = Identifier::Factory(Bob_);
         const_cast<std::shared_ptr<const ServerContract>&>(server_contract_) =
@@ -85,19 +93,16 @@ public:
         OT_ASSERT(server_contract_);
         OT_ASSERT(false == server_id_.empty());
 
-        const auto clientVersion =
-            client_.Wallet().Server(server_contract_->PublicContract());
+        import_server_contract(*server_contract_, client_1_);
+        import_server_contract(*server_contract_, client_2_);
 
-        OT_ASSERT(clientVersion)
-
-        client_.Sync().SetIntroductionServer(*clientVersion);
         init_ = true;
     }
 
     void create_unit_definition()
     {
         const_cast<std::shared_ptr<const UnitDefinition>&>(asset_contract_1_) =
-            client_.Wallet().UnitDefinition(
+            client_1_.Wallet().UnitDefinition(
                 alice_nym_id_->str(),
                 UNIT_DEFINITION_CONTRACT_NAME,
                 UNIT_DEFINITION_TERMS,
@@ -113,7 +118,7 @@ public:
 
     OTIdentifier find_issuer_account()
     {
-        const auto accounts = client_.Storage().AccountsByOwner(alice_nym_id_);
+        const auto accounts = client_1_.Storage().AccountsByOwner(alice_nym_id_);
 
         OT_ASSERT(1 == accounts.size());
 
@@ -126,7 +131,7 @@ public:
 
         OT_ASSERT(false == accountID->empty());
 
-        const auto output = client_.Storage().AccountContract(accountID);
+        const auto output = client_1_.Storage().AccountContract(accountID);
 
         OT_ASSERT(false == output->empty());
 
@@ -135,7 +140,7 @@ public:
 
     OTIdentifier find_user_account()
     {
-        const auto accounts = client_.Storage().AccountsByOwner(bob_nym_id_);
+        const auto accounts = client_2_.Storage().AccountsByOwner(bob_nym_id_);
 
         OT_ASSERT(1 == accounts.size());
 
@@ -184,6 +189,7 @@ public:
     }
 
     void verify_state_post(
+        const opentxs::api::client::Manager& client,
         const ClientContext& clientContext,
         const ServerContext& serverContext,
         const RequestNumber initialRequestNumber,
@@ -226,7 +232,7 @@ public:
         EXPECT_EQ(messageSuccess, message->m_bSuccess);
 
         std::unique_ptr<Ledger> nymbox{
-            client_.OTAPI().LoadNymbox(server_id_, serverContext.Nym()->ID())};
+            client.OTAPI().LoadNymbox(server_id_, serverContext.Nym()->ID())};
 
         ASSERT_TRUE(nymbox);
         EXPECT_TRUE(nymbox->VerifyAccount(*serverContext.Nym()));
@@ -253,7 +259,7 @@ const std::shared_ptr<const UnitDefinition> Test_Basic::asset_contract_1_{
 TEST_F(Test_Basic, getRequestNumber_not_registered)
 {
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -275,7 +281,7 @@ TEST_F(Test_Basic, registerNym_first_time)
 {
     const RequestNumber sequence{0};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -283,11 +289,12 @@ TEST_F(Test_Basic, registerNym_first_time)
     EXPECT_FALSE(clientContext);
 
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().registerNym(serverContext.It());
+        client_1_.OTAPI().registerNym(serverContext.It());
     const auto& [result, message] = reply;
     clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -305,7 +312,7 @@ TEST_F(Test_Basic, getTransactionNumbers_first_time)
 {
     const RequestNumber sequence{1};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -313,9 +320,10 @@ TEST_F(Test_Basic, getTransactionNumbers_first_time)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getTransactionNumbers(serverContext.It());
+        client_1_.OTAPI().getTransactionNumbers(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -333,7 +341,7 @@ TEST_F(Test_Basic, Reregister)
 {
     const RequestNumber sequence{2};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -341,9 +349,10 @@ TEST_F(Test_Basic, Reregister)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().registerNym(serverContext.It());
+        client_1_.OTAPI().registerNym(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -362,7 +371,7 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers)
 {
     const RequestNumber sequence{3};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -370,9 +379,10 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_1_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -384,7 +394,7 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(
+    std::unique_ptr<Ledger> nymbox{client_1_.OTAPI().LoadNymbox(
         serverContext.It().Server(), serverContext.It().Nym()->ID())};
 
     ASSERT_TRUE(nymbox);
@@ -405,7 +415,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers)
 {
     const RequestNumber sequence{4};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
     const auto& nymID = serverContext.It().Nym()->ID();
@@ -413,7 +423,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{client_1_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -432,10 +442,11 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getBoxReceipt(
+        client_1_.OTAPI().getBoxReceipt(
             serverContext.It(), nymID, NYMBOX_TYPE, number);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -447,7 +458,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
+    nymbox.reset(client_1_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -464,7 +475,7 @@ TEST_F(Test_Basic, processNymbox)
 {
     const RequestNumber sequence{5};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -472,9 +483,10 @@ TEST_F(Test_Basic, processNymbox)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().processNymbox(serverContext.It());
+        client_1_.OTAPI().processNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -492,7 +504,7 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox)
 {
     const RequestNumber sequence{6};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -500,9 +512,10 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_1_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -515,7 +528,7 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox)
         NO_TRANSACTION,
         1);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(
+    std::unique_ptr<Ledger> nymbox{client_1_.OTAPI().LoadNymbox(
         serverContext.It().Server(), serverContext.It().Nym()->ID())};
 
     ASSERT_TRUE(nymbox);
@@ -536,7 +549,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice)
 {
     const RequestNumber sequence{7};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
     const auto& nymID = serverContext.It().Nym()->ID();
@@ -544,7 +557,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{client_1_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -563,10 +576,11 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getBoxReceipt(
+        client_1_.OTAPI().getBoxReceipt(
             serverContext.It(), nymID, NYMBOX_TYPE, number);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -579,7 +593,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice)
         NO_TRANSACTION,
         1);
 
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
+    nymbox.reset(client_1_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -596,7 +610,7 @@ TEST_F(Test_Basic, issueAsset)
 {
     const RequestNumber sequence{8};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -605,10 +619,11 @@ TEST_F(Test_Basic, issueAsset)
     create_unit_definition();
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().registerInstrumentDefinition(
+        client_1_.OTAPI().registerInstrumentDefinition(
             serverContext.It(), asset_contract_1_->PublicContract());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -624,7 +639,7 @@ TEST_F(Test_Basic, issueAsset)
 
     ASSERT_FALSE(accountID->empty());
 
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_1_.Wallet().Account(accountID);
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(clientAccount);
@@ -641,7 +656,7 @@ TEST_F(Test_Basic, getAccountData_after_issuer_account)
 {
     const RequestNumber sequence{9};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -653,9 +668,10 @@ TEST_F(Test_Basic, getAccountData_after_issuer_account)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getAccountData(serverContext.It(), accountID);
+        client_1_.OTAPI().getAccountData(serverContext.It(), accountID);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -668,7 +684,7 @@ TEST_F(Test_Basic, getAccountData_after_issuer_account)
         NO_TRANSACTION,
         1);
 
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_1_.Wallet().Account(accountID);
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(clientAccount);
@@ -685,7 +701,7 @@ TEST_F(Test_Basic, getNymbox_after_registerInstrumentDefinition)
 {
     const RequestNumber sequence{10};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -693,9 +709,10 @@ TEST_F(Test_Basic, getNymbox_after_registerInstrumentDefinition)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_1_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -713,7 +730,7 @@ TEST_F(Test_Basic, processNymbox_after_registerInstrumentDefinition)
 {
     const RequestNumber sequence{11};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -721,9 +738,10 @@ TEST_F(Test_Basic, processNymbox_after_registerInstrumentDefinition)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().processNymbox(serverContext.It());
+        client_1_.OTAPI().processNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -741,7 +759,7 @@ TEST_F(Test_Basic, registerNym_Bob)
 {
     const RequestNumber sequence{0};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -749,11 +767,12 @@ TEST_F(Test_Basic, registerNym_Bob)
     EXPECT_FALSE(clientContext);
 
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().registerNym(serverContext.It());
+        client_2_.OTAPI().registerNym(serverContext.It());
     const auto& [result, message] = reply;
     clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -771,7 +790,7 @@ TEST_F(Test_Basic, getInstrumentDefinition)
 {
     const RequestNumber sequence{1};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -779,12 +798,13 @@ TEST_F(Test_Basic, getInstrumentDefinition)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getInstrumentDefinition(
+        client_2_.OTAPI().getInstrumentDefinition(
             serverContext.It(), find_unit_definition_id());
     const auto& [result, message] = reply;
     clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -802,7 +822,7 @@ TEST_F(Test_Basic, registerAccount)
 {
     const RequestNumber sequence{2};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -810,12 +830,13 @@ TEST_F(Test_Basic, registerAccount)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().registerAccount(
+        client_2_.OTAPI().registerAccount(
             serverContext.It(), find_unit_definition_id());
     const auto& [result, message] = reply;
     clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -831,7 +852,7 @@ TEST_F(Test_Basic, registerAccount)
 
     ASSERT_FALSE(accountID->empty());
 
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_2_.Wallet().Account(accountID);
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(clientAccount);
@@ -848,7 +869,7 @@ TEST_F(Test_Basic, getNymbox_after_registerAccount)
 {
     const RequestNumber sequence{3};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -856,9 +877,10 @@ TEST_F(Test_Basic, getNymbox_after_registerAccount)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_2_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -876,7 +898,7 @@ TEST_F(Test_Basic, getTransactionNumbers_Bob)
 {
     const RequestNumber sequence{4};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -884,9 +906,10 @@ TEST_F(Test_Basic, getTransactionNumbers_Bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getTransactionNumbers(serverContext.It());
+        client_2_.OTAPI().getTransactionNumbers(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -904,7 +927,7 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers_Bob)
 {
     const RequestNumber sequence{5};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -912,9 +935,10 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers_Bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_2_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -926,7 +950,7 @@ TEST_F(Test_Basic, getNymbox_after_transaction_numbers_Bob)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(
+    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(
         serverContext.It().Server(), serverContext.It().Nym()->ID())};
 
     ASSERT_TRUE(nymbox);
@@ -947,7 +971,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers_bob)
 {
     const RequestNumber sequence{6};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
     const auto& nymID = serverContext.It().Nym()->ID();
@@ -955,7 +979,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers_bob)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -974,10 +998,11 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers_bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getBoxReceipt(
+        client_2_.OTAPI().getBoxReceipt(
             serverContext.It(), nymID, NYMBOX_TYPE, number);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -989,7 +1014,7 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers_bob)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
+    nymbox.reset(client_2_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -1006,7 +1031,7 @@ TEST_F(Test_Basic, processNymbox_bob)
 {
     const RequestNumber sequence{7};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1014,9 +1039,10 @@ TEST_F(Test_Basic, processNymbox_bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().processNymbox(serverContext.It());
+        client_2_.OTAPI().processNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1034,7 +1060,7 @@ TEST_F(Test_Basic, getAccountData_after_user_account)
 {
     const RequestNumber sequence{8};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1046,9 +1072,10 @@ TEST_F(Test_Basic, getAccountData_after_user_account)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getAccountData(serverContext.It(), accountID);
+        client_2_.OTAPI().getAccountData(serverContext.It(), accountID);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1061,7 +1088,7 @@ TEST_F(Test_Basic, getAccountData_after_user_account)
         NO_TRANSACTION,
         0);
 
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_2_.Wallet().Account(accountID);
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(clientAccount);
@@ -1078,7 +1105,7 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox_Bob)
 {
     const RequestNumber sequence{9};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1086,9 +1113,10 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox_Bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_2_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1101,7 +1129,7 @@ TEST_F(Test_Basic, getNymbox_after_processNymbox_Bob)
         NO_TRANSACTION,
         1);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(
+    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(
         serverContext.It().Server(), serverContext.It().Nym()->ID())};
 
     ASSERT_TRUE(nymbox);
@@ -1122,7 +1150,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice_Bob)
 {
     const RequestNumber sequence{10};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
     const auto& nymID = serverContext.It().Nym()->ID();
@@ -1130,7 +1158,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice_Bob)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -1149,10 +1177,11 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice_Bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getBoxReceipt(
+        client_2_.OTAPI().getBoxReceipt(
             serverContext.It(), nymID, NYMBOX_TYPE, number);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1165,7 +1194,7 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice_Bob)
         NO_TRANSACTION,
         1);
 
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
+    nymbox.reset(client_2_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -1182,7 +1211,7 @@ TEST_F(Test_Basic, processNymbox_after_accept_transaction_numbers_bob)
 {
     const RequestNumber sequence{11};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1190,9 +1219,10 @@ TEST_F(Test_Basic, processNymbox_after_accept_transaction_numbers_bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().processNymbox(serverContext.It());
+        client_2_.OTAPI().processNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1210,7 +1240,7 @@ TEST_F(Test_Basic, getNymbox_after_clearing_nymbox_1_Bob)
 {
     const RequestNumber sequence{12};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1218,9 +1248,10 @@ TEST_F(Test_Basic, getNymbox_after_clearing_nymbox_1_Bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_2_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1234,9 +1265,38 @@ TEST_F(Test_Basic, getNymbox_after_clearing_nymbox_1_Bob)
         0);
 }
 
+TEST_F(Test_Basic, checkNym)
+{
+    const RequestNumber sequence{12};
+    auto serverContext =
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+    auto clientContext =
+        server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
+
+    ASSERT_TRUE(clientContext);
+
+    verify_state_pre(*clientContext, serverContext.It(), sequence);
+    const auto [requestNumber, transactionNumber, reply] =
+        client_1_.OTAPI().checkNym(serverContext.It(), bob_nym_id_);
+    const auto& [result, message] = reply;
+    verify_state_post(
+        client_1_,
+        *clientContext,
+        serverContext.It(),
+        sequence,
+        requestNumber,
+        transactionNumber,
+        result,
+        message,
+        SUCCESS,
+        NYMBOX_UPDATED,
+        NO_TRANSACTION,
+        0);
+}
+
 TEST_F(Test_Basic, send_cheque)
 {
-    std::unique_ptr<Cheque> cheque{client_.OTAPI().WriteCheque(
+    std::unique_ptr<Cheque> cheque{client_1_.OTAPI().WriteCheque(
         server_id_,
         CHEQUE_AMOUNT,
         0,
@@ -1250,13 +1310,13 @@ TEST_F(Test_Basic, send_cheque)
     ASSERT_TRUE(cheque);
 
     std::unique_ptr<OTPayment> payment{
-        client_.Factory().Payment(client_, String(*cheque))};
+        client_1_.Factory().Payment(String(*cheque))};
 
     ASSERT_TRUE(payment);
 
-    const RequestNumber sequence{12};
+    const RequestNumber sequence{13};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -1264,10 +1324,11 @@ TEST_F(Test_Basic, send_cheque)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().sendNymInstrument(
+        client_1_.OTAPI().sendNymInstrument(
             serverContext.It(), request, bob_nym_id_, *payment, false);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1283,7 +1344,7 @@ TEST_F(Test_Basic, send_cheque)
     ASSERT_TRUE(request);
 
     auto workflow =
-        client_.Workflow().SendCheque(*cheque, *request, message.get());
+        client_1_.Workflow().SendCheque(*cheque, *request, message.get());
 
     EXPECT_TRUE(workflow);
 }
@@ -1292,7 +1353,7 @@ TEST_F(Test_Basic, getNymbox_receive_cheque)
 {
     const RequestNumber sequence{13};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1300,9 +1361,10 @@ TEST_F(Test_Basic, getNymbox_receive_cheque)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_2_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1315,7 +1377,7 @@ TEST_F(Test_Basic, getNymbox_receive_cheque)
         NO_TRANSACTION,
         1);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(
+    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(
         serverContext.It().Server(), serverContext.It().Nym()->ID())};
 
     ASSERT_TRUE(nymbox);
@@ -1336,7 +1398,7 @@ TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)
 {
     const RequestNumber sequence{14};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
     const auto& nymID = serverContext.It().Nym()->ID();
@@ -1344,7 +1406,7 @@ TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -1363,10 +1425,11 @@ TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getBoxReceipt(
+        client_2_.OTAPI().getBoxReceipt(
             serverContext.It(), nymID, NYMBOX_TYPE, number);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1378,7 +1441,7 @@ TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)
         NYMBOX_SAME,
         NO_TRANSACTION,
         1);
-    nymbox.reset(client_.OTAPI().LoadNymbox(serverID, nymID).release());
+    nymbox.reset(client_2_.OTAPI().LoadNymbox(serverID, nymID).release());
 
     ASSERT_TRUE(nymbox);
 
@@ -1395,7 +1458,7 @@ TEST_F(Test_Basic, processNymbox_incoming_cheque)
 {
     const RequestNumber sequence{15};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1403,9 +1466,10 @@ TEST_F(Test_Basic, processNymbox_incoming_cheque)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().processNymbox(serverContext.It());
+        client_2_.OTAPI().processNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1423,7 +1487,7 @@ TEST_F(Test_Basic, getNymbox_after_clearing_nymbox_2_Bob)
 {
     const RequestNumber sequence{16};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1431,9 +1495,10 @@ TEST_F(Test_Basic, getNymbox_after_clearing_nymbox_2_Bob)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_2_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1451,26 +1516,26 @@ TEST_F(Test_Basic, depositCheque)
 {
     const auto accountID = find_user_account();
     const auto workflows =
-        client_.Storage().PaymentWorkflowList(bob_nym_id_->str());
+        client_2_.Storage().PaymentWorkflowList(bob_nym_id_->str());
 
     ASSERT_EQ(1, workflows.size());
 
     const auto& workflowID = Identifier::Factory(workflows.begin()->first);
     const auto workflow =
-        client_.Workflow().LoadWorkflow(bob_nym_id_, workflowID);
+        client_2_.Workflow().LoadWorkflow(bob_nym_id_, workflowID);
 
     ASSERT_TRUE(workflow);
     ASSERT_TRUE(api::client::Workflow::ContainsCheque(*workflow));
 
     const auto [state, cheque] =
-        api::client::Workflow::InstantiateCheque(client_, *workflow);
+        api::client::Workflow::InstantiateCheque(client_2_, *workflow);
 
     ASSERT_EQ(proto::PAYMENTWORKFLOWSTATE_CONVEYED, state);
     ASSERT_TRUE(cheque);
 
     const RequestNumber sequence{17};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1478,9 +1543,10 @@ TEST_F(Test_Basic, depositCheque)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().depositCheque(serverContext.It(), accountID, *cheque);
+        client_2_.OTAPI().depositCheque(serverContext.It(), accountID, *cheque);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1502,7 +1568,7 @@ TEST_F(Test_Basic, getAccountData_after_deposit_cheque)
 {
     const RequestNumber sequence{18};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1514,9 +1580,10 @@ TEST_F(Test_Basic, getAccountData_after_deposit_cheque)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getAccountData(serverContext.It(), accountID);
+        client_2_.OTAPI().getAccountData(serverContext.It(), accountID);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1529,7 +1596,7 @@ TEST_F(Test_Basic, getAccountData_after_deposit_cheque)
         NO_TRANSACTION,
         0);
 
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_2_.Wallet().Account(accountID);
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(clientAccount);
@@ -1548,7 +1615,7 @@ TEST_F(Test_Basic, getNymbox_after_deposit_cheque)
 {
     const RequestNumber sequence{19};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
+        client_2_.Wallet().mutable_ServerContext(bob_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
 
@@ -1556,9 +1623,10 @@ TEST_F(Test_Basic, getNymbox_after_deposit_cheque)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_2_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_2_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1574,9 +1642,9 @@ TEST_F(Test_Basic, getNymbox_after_deposit_cheque)
 
 TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
 {
-    const RequestNumber sequence{13};
+    const RequestNumber sequence{14};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -1588,9 +1656,10 @@ TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getAccountData(serverContext.It(), accountID);
+        client_1_.OTAPI().getAccountData(serverContext.It(), accountID);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1602,7 +1671,7 @@ TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
         NYMBOX_UPDATED,
         NO_TRANSACTION,
         0);
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_1_.Wallet().Account(accountID);
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(clientAccount);
@@ -1636,9 +1705,9 @@ TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
 TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
 {
     const auto accountID = find_issuer_account();
-    const RequestNumber sequence{14};
+    const RequestNumber sequence{15};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -1647,7 +1716,7 @@ TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
     TransactionNumber number{0};
 
     {
-        const auto clientAccount = client_.Wallet().Account(accountID);
+        const auto clientAccount = client_1_.Wallet().Account(accountID);
 
         std::unique_ptr<Ledger> inbox{
             clientAccount.get().LoadInbox(*serverContext.It().Nym())};
@@ -1665,10 +1734,11 @@ TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getBoxReceipt(
+        client_1_.OTAPI().getBoxReceipt(
             serverContext.It(), accountID, INBOX_TYPE, number);
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1680,7 +1750,7 @@ TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
         NYMBOX_UPDATED,
         NO_TRANSACTION,
         0);
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_1_.Wallet().Account(accountID);
     std::unique_ptr<Ledger> inbox{
         clientAccount.get().LoadInbox(*serverContext.It().Nym())};
 
@@ -1697,9 +1767,9 @@ TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
 
 TEST_F(Test_Basic, getNymbox_after_cheque_deposited)
 {
-    const RequestNumber sequence{15};
+    const RequestNumber sequence{16};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -1707,9 +1777,10 @@ TEST_F(Test_Basic, getNymbox_after_cheque_deposited)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_1_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1725,9 +1796,9 @@ TEST_F(Test_Basic, getNymbox_after_cheque_deposited)
 
 TEST_F(Test_Basic, processInbox)
 {
-    const RequestNumber sequence{16};
+    const RequestNumber sequence{17};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -1738,7 +1809,7 @@ TEST_F(Test_Basic, processInbox)
     ASSERT_FALSE(accountID->empty());
 
     auto [response, inbox] =
-        client_.OTAPI().CreateProcessInbox(accountID, serverContext.It());
+        client_1_.OTAPI().CreateProcessInbox(accountID, serverContext.It());
 
     ASSERT_TRUE(response);
     ASSERT_TRUE(inbox);
@@ -1750,26 +1821,27 @@ TEST_F(Test_Basic, processInbox)
     ASSERT_EQ(transactionType::chequeReceipt, transaction->GetType());
 
     const auto workflow =
-        client_.Workflow().ClearCheque(alice_nym_id_, *transaction);
+        client_1_.Workflow().ClearCheque(alice_nym_id_, *transaction);
 
     EXPECT_TRUE(workflow);
 
-    const auto accepted = client_.OTAPI().IncludeResponse(
+    const auto accepted = client_1_.OTAPI().IncludeResponse(
         accountID, true, serverContext.It(), *transaction, *response);
 
     ASSERT_TRUE(accepted);
 
-    const auto finalized = client_.OTAPI().FinalizeProcessInbox(
+    const auto finalized = client_1_.OTAPI().FinalizeProcessInbox(
         accountID, serverContext.It(), *response, *inbox);
 
     ASSERT_TRUE(finalized);
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().processInbox(
+        client_1_.OTAPI().processInbox(
             serverContext.It(), accountID, String(*response));
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,
@@ -1782,7 +1854,7 @@ TEST_F(Test_Basic, processInbox)
         TRANSACTION,
         0);
 
-    const auto clientAccount = client_.Wallet().Account(accountID);
+    const auto clientAccount = client_1_.Wallet().Account(accountID);
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(clientAccount);
@@ -1799,9 +1871,9 @@ TEST_F(Test_Basic, processInbox)
 
 TEST_F(Test_Basic, getNymbox_after_processInbox)
 {
-    const RequestNumber sequence{17};
+    const RequestNumber sequence{18};
     auto serverContext =
-        client_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
     auto clientContext =
         server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
 
@@ -1809,9 +1881,10 @@ TEST_F(Test_Basic, getNymbox_after_processInbox)
 
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
-        client_.OTAPI().getNymbox(serverContext.It());
+        client_1_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
     verify_state_post(
+        client_1_,
         *clientContext,
         serverContext.It(),
         sequence,

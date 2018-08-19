@@ -90,11 +90,10 @@ Claim ContactCredential::asClaim(
 }
 
 ContactCredential::ContactCredential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& parent,
     const proto::Credential& credential)
-    : ot_super(factory, wallet, parent, credential)
+    : ot_super(api, parent, credential)
 {
     mode_ = proto::KEYMODE_NULL;
     master_id_ = credential.childdata().masterid();
@@ -102,16 +101,10 @@ ContactCredential::ContactCredential(
 }
 
 ContactCredential::ContactCredential(
-    const api::Factory& factory,
-    const api::Wallet& wallet,
+    const api::Core& api,
     CredentialSet& parent,
     const NymParameters& nymParameters)
-    : ot_super(
-          factory,
-          wallet,
-          parent,
-          CONTACT_CREDENTIAL_VERSION,
-          nymParameters)
+    : ot_super(api, parent, CONTACT_CREDENTIAL_VERSION, nymParameters)
 {
     mode_ = proto::KEYMODE_NULL;
     role_ = proto::CREDROLE_CONTACT;

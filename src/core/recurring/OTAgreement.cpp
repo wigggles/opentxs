@@ -165,7 +165,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
     String* pstrAttachment,
     const Identifier& actualNymID)
 {
-    auto theLedger{core.Factory().Ledger(core, NYM_ID, NYM_ID, NOTARY_ID)};
+    auto theLedger{core.Factory().Ledger(NYM_ID, NYM_ID, NOTARY_ID)};
 
     OT_ASSERT(false != bool(theLedger));
 
@@ -188,7 +188,6 @@ bool OTAgreement::DropServerNoticeToNymbox(
     }
 
     auto pTransaction{core.Factory().Transaction(
-        core,
         *theLedger,
         transactionType::notice,
         theOriginType,
@@ -396,7 +395,7 @@ void OTAgreement::onFinalReceipt(
             : 0;  // index 0 is closing number for sender, since
                   // GetTransactionNum() is his opening #.
     const String strNotaryID(GetNotaryID());
-    auto oContext = core_.Wallet().mutable_ClientContext(
+    auto oContext = api_.Wallet().mutable_ClientContext(
         pServerNym->ID(), theOriginator->ID());
 
     if ((lSenderOpeningNumber > 0) &&
@@ -461,7 +460,7 @@ void OTAgreement::onFinalReceipt(
                  "theOriginator.VerifyTransactionNum(lSenderClosingNumber)\n";
     }
 
-    auto rContext = core_.Wallet().mutable_ClientContext(
+    auto rContext = api_.Wallet().mutable_ClientContext(
         pServerNym->ID(), GetRecipientNymID());
 
     if ((lRecipientOpeningNumber > 0) &&

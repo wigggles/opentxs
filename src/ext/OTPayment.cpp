@@ -168,7 +168,7 @@ bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
         // Perform instantiation of a purse, then use it to set the temp values,
         // then cleans it up again before returning success/fail.
         //
-        std::unique_ptr<Purse> pPurse(InstantiatePurse(core_.Wallet()));
+        std::unique_ptr<Purse> pPurse(InstantiatePurse(api_.Wallet()));
 
         if (!pPurse) {
             otErr << __FUNCTION__
@@ -423,7 +423,7 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(core_, strCronItem));
+            new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -748,7 +748,7 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(core_, strCronItem));
+            new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -876,7 +876,7 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(core_, strCronItem));
+            new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -997,7 +997,7 @@ bool OTPayment::GetClosingNum(
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(core_, strCronItem));
+            new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -1114,7 +1114,7 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
         }
         // -------------------------------------------
         std::unique_ptr<OTPayment> pCronItemPayment(
-            new OTPayment(core_, strCronItem));
+            new OTPayment(api_, strCronItem));
 
         if (!pCronItemPayment || !pCronItemPayment->IsValid() ||
             !pCronItemPayment->SetTempValues()) {
@@ -1678,7 +1678,7 @@ OTTrackable* OTPayment::Instantiate() const
         case CHEQUE:
         case VOUCHER:
         case INVOICE:
-            pContract = core_.Factory().Contract(core_, m_strPayment);
+            pContract = api_.Factory().Contract(m_strPayment);
 
             if (false != bool(pContract)) {
                 pCheque = dynamic_cast<Cheque*>(pContract.release());
@@ -1698,7 +1698,7 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case PAYMENT_PLAN:
-            pContract = core_.Factory().Contract(core_, m_strPayment);
+            pContract = api_.Factory().Contract(m_strPayment);
 
             if (false != bool(pContract)) {
                 pPaymentPlan =
@@ -1719,7 +1719,7 @@ OTTrackable* OTPayment::Instantiate() const
             break;
 
         case SMART_CONTRACT:
-            pContract = core_.Factory().Contract(core_, m_strPayment);
+            pContract = api_.Factory().Contract(m_strPayment);
 
             if (false != bool(pContract)) {
                 pSmartContract =
@@ -1792,7 +1792,7 @@ OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
 OTTransaction* OTPayment::InstantiateNotice() const
 {
     if (m_strPayment.Exists() && (OTPayment::NOTICE == GetType())) {
-        auto pType = core_.Factory().Transaction(core_, m_strPayment);
+        auto pType = api_.Factory().Transaction(m_strPayment);
 
         if (false == bool(pType)) {
             otErr << __FUNCTION__
@@ -1833,7 +1833,7 @@ OTTransaction* OTPayment::InstantiateNotice() const
 Purse* OTPayment::InstantiatePurse(const api::Wallet& wallet) const
 {
     if (OTPayment::PURSE == GetType()) {
-        auto purse = core_.Factory().Purse(core_, m_strPayment);
+        auto purse = api_.Factory().Purse(m_strPayment);
         OT_ASSERT(false != bool(purse));
         return purse.release();
     } else

@@ -1198,34 +1198,20 @@ private:
 
     class Pid;
 
+    const api::Core& api_;
     const api::client::Activity& activity_;
-    const api::client::Manager& client_;
-    const api::Settings& config_;
     const api::client::Contacts& contacts_;
-    const api::Crypto& crypto_;
-    const api::Factory& factory_;
-#if OT_CRYPTO_WITH_BIP39
-    const api::HDSeed& seeds_;
-#endif
-    const api::Identity& identity_;
-    const api::Legacy& legacy_;
-    const api::storage::Storage& storage_;
-    const api::Wallet& wallet_;
     const api::client::Workflow& workflow_;
-    const api::network::ZMQ& zeromq_;
-
+    const api::network::ZMQ& zmq_;
     bool m_bDefaultStore{false};
-
     String m_strDataPath;
     mutable String m_strWalletFilename;
     String m_strWalletFilePath;
     String m_strConfigFilename;
     String m_strConfigFilePath;
-
     std::unique_ptr<Pid> pid_;
     OTWallet* m_pWallet{nullptr};
     std::unique_ptr<OTClient> m_pClient;
-
     ContextLockCallback lock_callback_;
 
     bool add_accept_item(
@@ -1279,19 +1265,9 @@ private:
     bool LoadConfigFile();
 
     OT_API(
+        const api::Core& api,
         const api::client::Activity& activity,
-        const api::client::Manager& client,
-        const api::Settings& config,
         const api::client::Contacts& contacts,
-        const api::Crypto& crypto,
-        const api::Factory& factory,
-#if OT_CRYPTO_WITH_BIP39
-        const api::HDSeed& seeds,
-#endif
-        const api::Identity& identity,
-        const api::Legacy& legacy,
-        const api::storage::Storage& storage,
-        const api::Wallet& wallet,
         const api::client::Workflow& workflow,
         const api::network::ZMQ& zmq,
         const ContextLockCallback& lockCallback);

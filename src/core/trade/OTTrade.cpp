@@ -391,7 +391,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
         return nullptr;
     }
 
-    auto offer{core_.Factory().Offer(core_)};
+    auto offer{api_.Factory().Offer()};
     OT_ASSERT(false != bool(offer));
 
     // Trying to load the offer from the trader's original signed request
@@ -639,7 +639,7 @@ void OTTrade::onRemovalFromCron()
             return;
         }
 
-        auto offer{core_.Factory().Offer(core_)};
+        auto offer{api_.Factory().Offer()};
 
         OT_ASSERT(false != bool(offer));
 
@@ -797,7 +797,7 @@ void OTTrade::onFinalReceipt(
     OT_ASSERT(serverNym);
 
     auto context =
-        core_.Wallet().mutable_ClientContext(serverNym->ID(), originator->ID());
+        api_.Wallet().mutable_ClientContext(serverNym->ID(), originator->ID());
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -1045,7 +1045,7 @@ bool OTTrade::ProcessCron()
         {
             otInfo << "Processing trade: " << GetTransactionNum() << ".\n";
 
-            bStayOnMarket = market->ProcessTrade(core_.Wallet(), *this, *offer);
+            bStayOnMarket = market->ProcessTrade(api_.Wallet(), *this, *offer);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.
         }

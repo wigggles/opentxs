@@ -9,6 +9,7 @@
 
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
@@ -17,6 +18,10 @@
 #include <zmq.h>
 
 template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
+
+#define PAIR_ENDPOINT_PATH "pair"
+#define PAIR_ENDPOINT_INSTANCE -1
+#define PAIR_ENDPOINT_VERSION 1
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::PairSocket::"
 
@@ -85,8 +90,11 @@ PairSocket::PairSocket(
     : PairSocket(
           context,
           callback,
-          opentxs::network::zeromq::Socket::PairEndpointPrefix +
-              Identifier::Random()->str(),
+          context.BuildEndpoint(
+              PAIR_ENDPOINT_PATH,
+              PAIR_ENDPOINT_INSTANCE,
+              PAIR_ENDPOINT_VERSION,
+              Identifier::Random()->str()),
           true,
           startThread)
 {

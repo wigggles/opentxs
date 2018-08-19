@@ -12,72 +12,7 @@
 
 #include <zmq.h>
 
-#define INPROC_PREFIX "inproc://opentxs/"
-#define INSTANCE_SEPERATOR "/"
-#define ENDPOINT_VERSION_1 1
-#define DHT_NYM_REQUEST_ENDPOINT "dht/requestnym"
-#define DHT_SERVER_REQUEST_ENDPOINT "dht/requestserver"
-#define DHT_UNIT_REQUEST_ENDPOINT "dht/requestunit"
-#define ACCOUNT_UPDATE_ENDPOINT "inproc://opentxs/accountupdate/1"
-#define CONTACT_UPDATE_ENDPOINT "inproc://opentxs/contactupdate/1"
-#define CONNECTION_STATUS_ENDPOINT "inproc://opentxs/connectionstatus/1"
-#define ISSUER_UPDATE_ENDPOINT "inproc://opentxs/issuerupdate/1"
-#define NYM_UPDATE_ENDPOINT "inproc://opentxs/nymupdate/1"
-#define PAIR_EVENT_ENDPOINT "inproc://opentxs/pairevent/1"
-#define PAIR_ENDPOINT_PREFIX "inproc://opentxs/1/pair/"
-#define PENDING_BAILMENT_ENDPOINT                                              \
-    "inproc://opentxs/peerrequest/pendingbailment/1"
-#define SERVER_UPDATE_ENDPOINT "inproc://opentxs/serverupdate/1"
-#define THREAD_UPDATE_ENDPOINT "inproc://opentxs/threadupdate/1/"
-#define WIDGET_UPDATE_ENDPOINT "inproc://opentxs/ui/widgetupdate/1"
-#define WORKFLOW_ACCOUNT_UPDATE_ENDPOINT                                       \
-    "inproc://opentxs/ui/workflowupdate/account/1"
-
 #define OT_METHOD "opentxs::network::zeromq::implementation::Socket::"
-
-namespace opentxs::network::zeromq
-{
-const std::string Socket::AccountUpdateEndpoint{ACCOUNT_UPDATE_ENDPOINT};
-const std::string Socket::ContactUpdateEndpoint{CONTACT_UPDATE_ENDPOINT};
-const std::string Socket::ConnectionStatusEndpoint{CONNECTION_STATUS_ENDPOINT};
-const std::string Socket::IssuerUpdateEndpoint{ISSUER_UPDATE_ENDPOINT};
-const std::string Socket::NymDownloadEndpoint{NYM_UPDATE_ENDPOINT};
-const std::string Socket::PairEndpointPrefix{PAIR_ENDPOINT_PREFIX};
-const std::string Socket::PairEventEndpoint{PAIR_EVENT_ENDPOINT};
-const std::string Socket::PendingBailmentEndpoint{PENDING_BAILMENT_ENDPOINT};
-const std::string Socket::ServerUpdateEndpoint{SERVER_UPDATE_ENDPOINT};
-const std::string Socket::ThreadUpdateEndpoint{THREAD_UPDATE_ENDPOINT};
-const std::string Socket::WidgetUpdateEndpoint{WIDGET_UPDATE_ENDPOINT};
-const std::string Socket::WorkflowAccountUpdateEndpoint{
-    WORKFLOW_ACCOUNT_UPDATE_ENDPOINT};
-
-std::string build_inproc_path(
-    const std::string& path,
-    const int instance,
-    const int version)
-{
-    return std::string(INPROC_PREFIX) + std::to_string(instance) +
-           INSTANCE_SEPERATOR + path + std::to_string(version);
-}
-
-std::string Socket::GetDhtRequestNymEndpoint(const int instance)
-{
-    return build_inproc_path(
-        DHT_NYM_REQUEST_ENDPOINT, instance, ENDPOINT_VERSION_1);
-}
-
-std::string Socket::GetDhtRequestServerEndpoint(const int instance)
-{
-    return build_inproc_path(
-        DHT_SERVER_REQUEST_ENDPOINT, instance, ENDPOINT_VERSION_1);
-}
-
-std::string Socket::GetDhtRequestUnitEndpoint(const int instance)
-{
-    return build_inproc_path(
-        DHT_UNIT_REQUEST_ENDPOINT, instance, ENDPOINT_VERSION_1);
-}
-}  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {

@@ -23,13 +23,12 @@ public:
 #endif
     void RegisterCallbacks(const CallbackMap& callbacks) const override;
 
-    ~Dht();
+    ~Dht() = default;
 
 private:
     friend opentxs::Factory;
 
-    const int instance_{0};
-    const api::Wallet& wallet_;
+    const api::Core& api_;
     mutable CallbackMap callback_map_{};
     std::unique_ptr<const DhtConfig> config_{nullptr};
 #if OT_DHT
@@ -64,10 +63,7 @@ private:
         const opentxs::network::zeromq::Message& incoming,
         void (Dht::*get)(const std::string&) const) const;
 
-    Dht(const int instance,
-        DhtConfig& config,
-        const api::Wallet& wallet,
-        const opentxs::network::zeromq::Context& zmq);
+    Dht(DhtConfig& config, const api::Core& api);
     Dht() = delete;
     Dht(const Dht&) = delete;
     Dht(Dht&&) = delete;
