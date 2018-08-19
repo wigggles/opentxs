@@ -16,11 +16,21 @@ class Context : virtual public zeromq::Context
 public:
     operator void*() const override;
 
+    std::string BuildEndpoint(
+        const std::string& path,
+        const int instance,
+        const int version) const override;
+    std::string BuildEndpoint(
+        const std::string& path,
+        const int instance,
+        const int version,
+        const std::string& suffix) const override;
     OTZMQDealerSocket DealerSocket(
         const ListenCallback& callback,
         const bool client) const override;
     OTZMQSubscribeSocket PairEventListener(
-        const PairEventCallback& callback) const override;
+        const PairEventCallback& callback,
+        const int instance) const override;
     OTZMQPairSocket PairSocket(const opentxs::network::zeromq::ListenCallback&
                                    callback) const override;
     OTZMQPairSocket PairSocket(

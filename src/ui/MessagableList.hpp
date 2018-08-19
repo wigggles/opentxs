@@ -28,8 +28,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    static const ListenerDefinitions listeners_;
-
+    const ListenerDefinitions listeners_;
     const OTIdentifier owner_contact_id_;
 
     void construct_row(

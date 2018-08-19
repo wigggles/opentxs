@@ -90,11 +90,7 @@ public:
         const network::zeromq::PublishSocket& publisher,
         const ui::implementation::ContactListRowID& rowID,
         const ui::implementation::ContactListSortKey& key);
-    static api::client::internal::Contacts* Contacts(
-        const api::storage::Storage& storage,
-        const api::Factory& factory,
-        const api::Wallet& wallet,
-        const network::zeromq::Context& context);
+    static api::client::internal::Contacts* Contacts(const api::Core& api);
     static ui::implementation::ContactExternalInterface* ContactWidget(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
@@ -124,11 +120,8 @@ public:
     static api::Crypto* Crypto(const api::Settings& settings);
     static api::crypto::Config* CryptoConfig(const api::Settings& settings);
     static api::network::Dht* Dht(
-        const int instance,
         const bool defaultEnable,
-        const api::Settings& settings,
-        const api::Wallet& wallet,
-        const network::zeromq::Context& zmq,
+        const api::Core& api,
         std::int64_t& nymPublishInterval,
         std::int64_t& nymRefreshInterval,
         std::int64_t& serverPublishInterval,
@@ -140,6 +133,9 @@ public:
     static crypto::key::Ed25519* Ed25519Key(const String& publicKey);
     static crypto::key::Ed25519* Ed25519Key(const proto::KeyRole role);
     static api::crypto::Encode* Encode(const crypto::EncodingProvider& base58);
+    static api::Endpoints* Endpoints(
+        const network::zeromq::Context& zmq,
+        const int instance);
     static api::Factory* FactoryAPI(const api::Core& api);
     static api::crypto::Hash* Hash(
         const api::crypto::Encode& encode,

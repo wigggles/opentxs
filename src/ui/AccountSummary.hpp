@@ -29,8 +29,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    static const ListenerDefinitions listeners_;
-
+    const ListenerDefinitions listeners_;
     const proto::ContactItemType currency_;
     std::set<OTIdentifier> issuers_;
     std::map<OTIdentifier, OTIdentifier> server_issuer_map_;

@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -149,8 +150,7 @@ Workflow::Workflow(
     , zmq_(zmq)
     , account_publisher_(zmq.PublishSocket())
 {
-    const auto endpoint =
-        opentxs::network::zeromq::Socket::WorkflowAccountUpdateEndpoint;
+    const auto endpoint = api_.Endpoints().WorkflowAccountUpdate();
     otWarn << OT_METHOD << __FUNCTION__ << ": Binding to " << endpoint
            << std::endl;
     const auto bound = account_publisher_->Start(endpoint);

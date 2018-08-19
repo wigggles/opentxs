@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactSection.hpp"
@@ -60,16 +61,15 @@ const std::map<proto::ContactSectionName, int> Contact::sort_keys_{
     {proto::CONTACTSECTION_COMMUNICATION, 0},
     {proto::CONTACTSECTION_PROFILE, 1}};
 
-const Widget::ListenerDefinitions Contact::listeners_{
-    {network::zeromq::Socket::ContactUpdateEndpoint,
-     new MessageProcessor<Contact>(&Contact::process_contact)},
-};
-
 Contact::Contact(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Identifier& contactID)
     : ContactType(api, publisher, contactID)
+    , listeners_({
+          {api_.Endpoints().ContactUpdate(),
+           new MessageProcessor<Contact>(&Contact::process_contact)},
+      })
     , name_(api_.Contacts().ContactName(contactID))
     , payment_code_()
 {

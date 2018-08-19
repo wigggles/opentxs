@@ -3694,4 +3694,9 @@ std::string SwigWrap::AvailableServers(const std::string& nymID)
 
     return comma(available);
 }
+
+const api::Endpoints& SwigWrap::ZeroMQ_Endpoints()
+{
+    return client_->Endpoints();
+}
 }  // namespace opentxs

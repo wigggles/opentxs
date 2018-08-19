@@ -40,11 +40,21 @@ public:
 
     EXPORT virtual operator void*() const = 0;
 
+    EXPORT virtual std::string BuildEndpoint(
+        const std::string& path,
+        const int instance,
+        const int version) const = 0;
+    EXPORT virtual std::string BuildEndpoint(
+        const std::string& path,
+        const int instance,
+        const int version,
+        const std::string& suffix) const = 0;
     EXPORT virtual Pimpl<network::zeromq::DealerSocket> DealerSocket(
         const ListenCallback& callback,
         const bool client) const = 0;
     EXPORT virtual Pimpl<network::zeromq::SubscribeSocket> PairEventListener(
-        const PairEventCallback& callback) const = 0;
+        const PairEventCallback& callback,
+        const int instance) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(
         const ListenCallback& callback) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PairSocket> PairSocket(

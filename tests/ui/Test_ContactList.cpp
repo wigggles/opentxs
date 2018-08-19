@@ -65,7 +65,7 @@ public:
     {
         auto output =
             OT::App().Client().ZMQ().Context().SubscribeSocket(callback);
-        output->Start(network::zeromq::Socket::WidgetUpdateEndpoint);
+        output->Start(OT::App().Client().Endpoints().WidgetUpdate());
 
         return output;
     }

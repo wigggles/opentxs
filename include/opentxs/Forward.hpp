@@ -60,6 +60,7 @@ class Storage;
 
 class Core;
 class Crypto;
+class Endpoints;
 class Factory;
 class HDSeed;
 class Identity;

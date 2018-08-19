@@ -9,6 +9,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -53,11 +54,6 @@ ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions IssuerItem::listeners_{
-    {network::zeromq::Socket::AccountUpdateEndpoint,
-     new MessageProcessor<IssuerItem>(&IssuerItem::process_account)},
-};
-
 IssuerItem::IssuerItem(
     const AccountSummaryInternalInterface& parent,
     const api::client::Manager& api,
@@ -68,6 +64,10 @@ IssuerItem::IssuerItem(
     const proto::ContactItemType currency)
     : IssuerItemList(api, publisher, parent.NymID(), parent.WidgetID())
     , IssuerItemRow(parent, Identifier::Factory(rowID), true)
+    , listeners_({
+          {api_.Endpoints().AccountUpdate(),
+           new MessageProcessor<IssuerItem>(&IssuerItem::process_account)},
+      })
     , key_{sortKey}
     , name_{std::get<1>(key_)}
     , connection_{std::get<0>(key_)}

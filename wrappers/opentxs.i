@@ -100,6 +100,7 @@ typedef int64_t time64_t;
 %include "../../include/opentxs/network/zeromq/DealerSocket.hpp"
 %include "../../include/opentxs/network/zeromq/RouterSocket.hpp"
 %include "../../include/opentxs/network/zeromq/Context.hpp"
+%include "../../include/opentxs/api/Endpoints.hpp"
 %include "../../include/opentxs/client/SwigWrap.hpp"
 
 // add the following to every .cxx file.

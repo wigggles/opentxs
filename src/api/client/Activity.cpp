@@ -9,6 +9,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -219,8 +220,7 @@ const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
     const Identifier& nymID,
     std::string& endpoint) const
 {
-    endpoint =
-        opentxs::network::zeromq::Socket::ThreadUpdateEndpoint + nymID.str();
+    endpoint = api_.Endpoints().ThreadUpdate(nymID.str());
     Lock lock(publisher_lock_);
     auto it = thread_publishers_.find(nymID);
 

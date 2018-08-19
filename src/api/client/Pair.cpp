@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Issuer.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -86,9 +87,8 @@ Pair::Pair(const Flag& running, const api::client::Manager& client)
     , pending_bailment_(client.ZeroMQ().PublishSocket())
 {
     refresh_thread_.reset(new std::thread(&Pair::check_refresh, this));
-    pair_event_->Start(opentxs::network::zeromq::Socket::PairEventEndpoint);
-    pending_bailment_->Start(
-        opentxs::network::zeromq::Socket::PendingBailmentEndpoint);
+    pair_event_->Start(client_.Endpoints().PairEvent());
+    pending_bailment_->Start(client_.Endpoints().PendingBailment());
 }
 
 bool Pair::AddIssuer(

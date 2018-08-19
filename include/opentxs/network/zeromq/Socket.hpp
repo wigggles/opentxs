@@ -50,24 +50,6 @@ class Socket
 public:
     using MultipartSendResult = std::pair<SendResult, OTZMQMessage>;
 
-    EXPORT static const std::string AccountUpdateEndpoint;
-    EXPORT static const std::string ConnectionStatusEndpoint;
-    EXPORT static const std::string ContactUpdateEndpoint;
-    EXPORT static const std::string IssuerUpdateEndpoint;
-    EXPORT static const std::string NymDownloadEndpoint;
-    EXPORT static const std::string PairEndpointPrefix;
-    EXPORT static const std::string PairEventEndpoint;
-    EXPORT static const std::string PendingBailmentEndpoint;
-    EXPORT static const std::string ServerUpdateEndpoint;
-    EXPORT static const std::string ThreadUpdateEndpoint;
-    EXPORT static const std::string WidgetUpdateEndpoint;
-    EXPORT static const std::string WorkflowAccountUpdateEndpoint;
-
-    EXPORT static std::string GetDhtRequestNymEndpoint(const int instance = 0);
-    EXPORT static std::string GetDhtRequestServerEndpoint(
-        const int instance = 0);
-    EXPORT static std::string GetDhtRequestUnitEndpoint(const int instance = 0);
-
     EXPORT virtual operator void*() const = 0;
 
     EXPORT virtual bool Close() const = 0;

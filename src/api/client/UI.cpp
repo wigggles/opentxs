@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/FrameSection.hpp"
@@ -60,8 +61,7 @@ UI::UI(const api::client::Manager& api, const Flag& running)
     , messagable_lists_()
     , widget_update_publisher_(api_.ZeroMQ().PublishSocket())
 {
-    widget_update_publisher_->Start(
-        opentxs::network::zeromq::Socket::WidgetUpdateEndpoint);
+    widget_update_publisher_->Start(api_.Endpoints().WidgetUpdate());
 }
 
 const ui::AccountActivity& UI::AccountActivity(

@@ -12,6 +12,7 @@
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
@@ -100,23 +101,13 @@ Wallet::Wallet(const api::Core& core)
     , dht_server_requester_{api_.ZeroMQ().RequestSocket()}
     , dht_unit_requester_{api_.ZeroMQ().RequestSocket()}
 {
-    account_publisher_->Start(
-        opentxs::network::zeromq::Socket::AccountUpdateEndpoint);
-    issuer_publisher_->Start(
-        opentxs::network::zeromq::Socket::IssuerUpdateEndpoint);
-    nym_publisher_->Start(
-        opentxs::network::zeromq::Socket::NymDownloadEndpoint);
-    server_publisher_->Start(
-        opentxs::network::zeromq::Socket::ServerUpdateEndpoint);
-    dht_nym_requester_->Start(
-        opentxs::network::zeromq::Socket::GetDhtRequestNymEndpoint(
-            core.Instance()));
-    dht_server_requester_->Start(
-        opentxs::network::zeromq::Socket::GetDhtRequestServerEndpoint(
-            core.Instance()));
-    dht_unit_requester_->Start(
-        opentxs::network::zeromq::Socket::GetDhtRequestUnitEndpoint(
-            core.Instance()));
+    account_publisher_->Start(api_.Endpoints().AccountUpdate());
+    issuer_publisher_->Start(api_.Endpoints().IssuerUpdate());
+    nym_publisher_->Start(api_.Endpoints().NymDownload());
+    server_publisher_->Start(api_.Endpoints().ServerUpdate());
+    dht_nym_requester_->Start(api_.Endpoints().DhtRequestNym());
+    dht_server_requester_->Start(api_.Endpoints().DhtRequestServer());
+    dht_unit_requester_->Start(api_.Endpoints().DhtRequestUnit());
 }
 
 Wallet::AccountLock& Wallet::account(

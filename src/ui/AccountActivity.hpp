@@ -49,8 +49,7 @@ private:
         std::pair<AccountActivitySortKey, const proto::PaymentEvent*>;
     using RowKey = std::pair<proto::PaymentEventType, EventRow>;
 
-    static const ListenerDefinitions listeners_;
-
+    const ListenerDefinitions listeners_;
     mutable std::atomic<Amount> balance_{0};
     const OTIdentifier account_id_;
     std::shared_ptr<const UnitDefinition> contract_{nullptr};

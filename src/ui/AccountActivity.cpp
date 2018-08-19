@@ -9,6 +9,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -59,19 +60,20 @@ ui::implementation::AccountActivityExternalInterface* Factory::AccountActivity(
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions AccountActivity::listeners_{
-    {network::zeromq::Socket::WorkflowAccountUpdateEndpoint,
-     new MessageProcessor<AccountActivity>(&AccountActivity::process_workflow)},
-    {network::zeromq::Socket::AccountUpdateEndpoint,
-     new MessageProcessor<AccountActivity>(&AccountActivity::process_balance)},
-};
-
 AccountActivity::AccountActivity(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Identifier& nymID,
     const Identifier& accountID)
     : AccountActivityList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().WorkflowAccountUpdate(),
+           new MessageProcessor<AccountActivity>(
+               &AccountActivity::process_workflow)},
+          {api_.Endpoints().AccountUpdate(),
+           new MessageProcessor<AccountActivity>(
+               &AccountActivity::process_balance)},
+      })
     , balance_(0)
     , account_id_(accountID)
     , contract_(nullptr)

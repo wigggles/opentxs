@@ -21,6 +21,7 @@
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
@@ -79,83 +80,76 @@ Manager::Manager(
     : Scheduler(running)
     , StorageParent(running, args, crypto, config, dataFolder)
     , zmq_context_{context}
-    , instance_
-{
-    instance
-}
+    , instance_(instance)
+    , endpoints_(opentxs::Factory::Endpoints(zmq_context_, instance_))
 #if OT_CRYPTO_WITH_BIP39
-, seeds_(opentxs::Factory::HDSeed(
-      crypto_.Symmetric(),
-      *storage_,
-      crypto_.BIP32(),
-      crypto_.BIP39(),
-      crypto_.AES()))
+    , seeds_(opentxs::Factory::HDSeed(
+          crypto_.Symmetric(),
+          *storage_,
+          crypto_.BIP32(),
+          crypto_.BIP39(),
+          crypto_.AES()))
 #endif
-      ,
-    factory_(opentxs::Factory::FactoryAPI(*this)),
-    wallet_(opentxs::Factory::Wallet(*this)),
-    zeromq_(opentxs::Factory::ZMQ(*this, running_)),
-    identity_(opentxs::Factory::Identity(*wallet_)),
-    contacts_(opentxs::Factory::Contacts(
-        *storage_,
-        *factory_,
-        *wallet_,
-        zmq_context_)),
-    activity_(
-        opentxs::Factory::Activity(*storage_, *contacts_, *this, zmq_context_))
+    , factory_(opentxs::Factory::FactoryAPI(*this))
+    , wallet_(opentxs::Factory::Wallet(*this))
+    , zeromq_(opentxs::Factory::ZMQ(*this, running_))
+    , identity_(opentxs::Factory::Identity(*wallet_))
+    , contacts_(opentxs::Factory::Contacts(*this))
+    , activity_(opentxs::Factory::Activity(
+          *storage_,
+          *contacts_,
+          *this,
+          zmq_context_))
 #if OT_CRYPTO_SUPPORTED_KEY_HD
-        ,
-    blockchain_(opentxs::Factory::Blockchain(
-        *activity_,
-        crypto_,
-        *seeds_,
-        *storage_,
-        *wallet_))
+    , blockchain_(opentxs::Factory::Blockchain(
+          *activity_,
+          crypto_,
+          *seeds_,
+          *storage_,
+          *wallet_))
 #endif
-        ,
-    workflow_(opentxs::Factory::Workflow(
-        *activity_,
-        *contacts_,
-        *this,
-        *storage_,
-        zmq_context_)),
-    ot_api_(new OT_API(
-        *this,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
-    otapi_exec_(new OTAPI_Exec(
-        *activity_,
-        config_,
-        *contacts_,
-        crypto_,
-        this->Factory(),
-        *identity_,
-        *this,
-        *zeromq_,
-        *ot_api_,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
-    cash_(opentxs::Factory::Cash(*this)),
-    server_action_(opentxs::Factory::ServerAction(
-        *this,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
-    sync_(opentxs::Factory::Sync(
-        running_,
-        *this,
-        std::bind(&Manager::get_lock, this, std::placeholders::_1))),
-    ui_(opentxs::Factory::UI(*this, running_)),
-    pair_(opentxs::Factory::Pair(running_, *this)),
-    dht_(opentxs::Factory::Dht(
-        instance_,
-        false,
-        config_,
-        *wallet_,
-        context,
-        nym_publish_interval_,
-        nym_refresh_interval_,
-        server_publish_interval_,
-        server_refresh_interval_,
-        unit_publish_interval_,
-        unit_refresh_interval_)),
-    lock_(), map_lock_(), context_locks_()
+    , workflow_(opentxs::Factory::Workflow(
+          *activity_,
+          *contacts_,
+          *this,
+          *storage_,
+          zmq_context_))
+    , ot_api_(new OT_API(
+          *this,
+          std::bind(&Manager::get_lock, this, std::placeholders::_1)))
+    , otapi_exec_(new OTAPI_Exec(
+          *activity_,
+          config_,
+          *contacts_,
+          crypto_,
+          this->Factory(),
+          *identity_,
+          *this,
+          *zeromq_,
+          *ot_api_,
+          std::bind(&Manager::get_lock, this, std::placeholders::_1)))
+    , cash_(opentxs::Factory::Cash(*this))
+    , server_action_(opentxs::Factory::ServerAction(
+          *this,
+          std::bind(&Manager::get_lock, this, std::placeholders::_1)))
+    , sync_(opentxs::Factory::Sync(
+          running_,
+          *this,
+          std::bind(&Manager::get_lock, this, std::placeholders::_1)))
+    , ui_(opentxs::Factory::UI(*this, running_))
+    , pair_(opentxs::Factory::Pair(running_, *this))
+    , dht_(opentxs::Factory::Dht(
+          false,
+          *this,
+          nym_publish_interval_,
+          nym_refresh_interval_,
+          server_publish_interval_,
+          server_refresh_interval_,
+          unit_publish_interval_,
+          unit_refresh_interval_))
+    , lock_()
+    , map_lock_()
+    , context_locks_()
 {
     OT_ASSERT(seeds_);
     OT_ASSERT(factory_);
@@ -238,6 +232,13 @@ const api::network::Dht& Manager::DHT() const
     OT_ASSERT(dht_)
 
     return *dht_;
+}
+
+const api::Endpoints& Manager::Endpoints() const
+{
+    OT_ASSERT(endpoints_)
+
+    return *endpoints_;
 }
 
 const api::Factory& Manager::Factory() const

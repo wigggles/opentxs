@@ -32,8 +32,8 @@ private:
 
     static const std::set<proto::ContactSectionName> allowed_types_;
     static const std::map<proto::ContactSectionName, int> sort_keys_;
-    static const ListenerDefinitions listeners_;
 
+    const ListenerDefinitions listeners_;
     std::string name_;
     std::string payment_code_;
 

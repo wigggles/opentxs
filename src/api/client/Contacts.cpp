@@ -7,6 +7,8 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -31,33 +33,22 @@
 
 namespace opentxs
 {
-api::client::internal::Contacts* Factory::Contacts(
-    const api::storage::Storage& storage,
-    const api::Factory& factory,
-    const api::Wallet& wallet,
-    const network::zeromq::Context& context)
+api::client::internal::Contacts* Factory::Contacts(const api::Core& api)
 {
-    return new opentxs::api::client::implementation::Contacts(
-        storage, factory, wallet, context);
+    return new opentxs::api::client::implementation::Contacts(api);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-Contacts::Contacts(
-    const api::storage::Storage& storage,
-    const api::Factory& factory,
-    const api::Wallet& wallet,
-    const opentxs::network::zeromq::Context& context)
-    : storage_(storage)
-    , factory_{factory}
-    , wallet_(wallet)
+Contacts::Contacts(const api::Core& api)
+    : api_(api)
     , lock_()
     , contact_map_()
-    , contact_name_map_(build_name_map(storage))
-    , publisher_(context.PublishSocket())
+    , contact_name_map_(build_name_map(api.Storage()))
+    , publisher_(api.ZeroMQ().PublishSocket())
 {
-    publisher_->Start(opentxs::network::zeromq::Socket::ContactUpdateEndpoint);
+    publisher_->Start(api_.Endpoints().ContactUpdate());
 }
 
 Contacts::ContactMap::iterator Contacts::add_contact(
@@ -86,7 +77,8 @@ OTIdentifier Contacts::address_to_contact(
         throw std::runtime_error("lock error");
     }
 
-    const auto contact = storage_.BlockchainAddressOwner(currency, address);
+    const auto contact =
+        api_.Storage().BlockchainAddressOwner(currency, address);
 
     return Identifier::Factory(contact);
 }
@@ -158,7 +150,8 @@ std::shared_ptr<const class Contact> Contacts::contact(
     const rLock& lock,
     const std::string& label) const
 {
-    std::unique_ptr<class Contact> contact(new class Contact(wallet_, label));
+    std::unique_ptr<class Contact> contact(
+        new class Contact(api_.Wallet(), label));
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to create new contact."
@@ -178,7 +171,7 @@ std::shared_ptr<const class Contact> Contacts::contact(
     auto it = add_contact(lock, contact.release());
     auto& output = it->second.second;
 
-    if (false == storage_.Store(*output)) {
+    if (false == api_.Storage().Store(*output)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to create save contact."
               << std::endl;
         contact_map_.erase(it);
@@ -199,10 +192,13 @@ std::shared_ptr<const class Contact> Contacts::Contact(
 
 OTIdentifier Contacts::ContactID(const Identifier& nymID) const
 {
-    return Identifier::Factory(storage_.ContactOwnerNym(nymID.str()));
+    return Identifier::Factory(api_.Storage().ContactOwnerNym(nymID.str()));
 }
 
-ObjectList Contacts::ContactList() const { return storage_.ContactList(); }
+ObjectList Contacts::ContactList() const
+{
+    return api_.Storage().ContactList();
+}
 
 std::string Contacts::ContactName(const Identifier& contactID) const
 {
@@ -216,14 +212,14 @@ std::string Contacts::ContactName(const Identifier& contactID) const
 
 void Contacts::import_contacts(const rLock& lock)
 {
-    auto nyms = wallet_.NymList();
+    auto nyms = api_.Wallet().NymList();
 
     for (const auto& it : nyms) {
         const auto nymID = Identifier::Factory(it.first);
-        const auto contactID = storage_.ContactOwnerNym(nymID->str());
+        const auto contactID = api_.Storage().ContactOwnerNym(nymID->str());
 
         if (contactID.empty()) {
-            const auto nym = wallet_.Nym(nymID);
+            const auto nym = api_.Wallet().Nym(nymID);
 
             if (false == bool(nym)) {
                 throw std::runtime_error("Unable to load nym");
@@ -235,7 +231,7 @@ void Contacts::import_contacts(const rLock& lock)
                 case proto::CITEMTYPE_BUSINESS:
                 case proto::CITEMTYPE_GOVERNMENT: {
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-                    auto code = factory_.PaymentCode(nym->PaymentCode());
+                    auto code = api_.Factory().PaymentCode(nym->PaymentCode());
 #endif
                     new_contact(
                         lock,
@@ -260,7 +256,7 @@ void Contacts::init_nym_map(const rLock& lock)
 {
     otErr << OT_METHOD << __FUNCTION__ << ": Upgrading indices" << std::endl;
 
-    for (const auto& it : storage_.ContactList()) {
+    for (const auto& it : api_.Storage().ContactList()) {
         const auto& contactID = Identifier::Factory(it.first);
         auto loaded = load_contact(lock, contactID);
 
@@ -281,7 +277,7 @@ void Contacts::init_nym_map(const rLock& lock)
         if (proto::CITEMTYPE_ERROR == type) {
             otErr << OT_METHOD << __FUNCTION__ << ": Invalid contact "
                   << it.first << std::endl;
-            storage_.DeleteContact(it.first);
+            api_.Storage().DeleteContact(it.first);
         }
 
         const auto nyms = contact->Nyms();
@@ -289,7 +285,7 @@ void Contacts::init_nym_map(const rLock& lock)
         for (const auto& nym : nyms) { update_nym_map(lock, nym, *contact); }
     }
 
-    storage_.ContactSaveIndices();
+    api_.Storage().ContactSaveIndices();
 }
 
 Contacts::ContactMap::iterator Contacts::load_contact(
@@ -301,7 +297,7 @@ Contacts::ContactMap::iterator Contacts::load_contact(
     }
 
     std::shared_ptr<proto::Contact> serialized{nullptr};
-    const auto loaded = storage_.Load(id.str(), serialized, SILENT);
+    const auto loaded = api_.Storage().Load(id.str(), serialized, SILENT);
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load contact "
@@ -313,7 +309,7 @@ Contacts::ContactMap::iterator Contacts::load_contact(
     OT_ASSERT(serialized);
 
     std::unique_ptr<class Contact> contact(
-        new class Contact(wallet_, *serialized));
+        new class Contact(api_.Wallet(), *serialized));
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__
@@ -374,14 +370,14 @@ std::shared_ptr<const class Contact> Contacts::Merge(
     auto& rhs = const_cast<class Contact&>(*childContact);
     lhs += rhs;
 
-    if (false == storage_.Store(rhs)) {
+    if (false == api_.Storage().Store(rhs)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to create save child contact." << std::endl;
 
         OT_FAIL;
     }
 
-    if (false == storage_.Store(lhs)) {
+    if (false == api_.Storage().Store(lhs)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to create save parent contact." << std::endl;
 
@@ -453,7 +449,7 @@ std::shared_ptr<const class Contact> Contacts::new_contact(
         inputNymID);
 
     if (haveNymID) {
-        const auto contactID = storage_.ContactOwnerNym(nymID.str());
+        const auto contactID = api_.Storage().ContactOwnerNym(nymID.str());
 
         if (false == contactID.empty()) {
 
@@ -480,7 +476,7 @@ std::shared_ptr<const class Contact> Contacts::new_contact(
     auto& mContact = output->It();
 
     if (false == nymID.empty()) {
-        auto nym = wallet_.Nym(nymID);
+        auto nym = api_.Wallet().Nym(nymID);
 
         if (nym) {
             mContact.AddNym(nym, true);
@@ -556,7 +552,7 @@ std::shared_ptr<const class Contact> Contacts::NewContactFromAddress(
         OT_FAIL;
     }
 
-    if (false == storage_.Store(contact)) {
+    if (false == api_.Storage().Store(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to save contact."
               << std::endl;
 
@@ -574,15 +570,15 @@ OTIdentifier Contacts::NymToContact(const Identifier& nymID) const
 
     // Contact does not yet exist. Create it.
     std::string label{""};
-    auto nym = wallet_.Nym(nymID);
+    auto nym = api_.Wallet().Nym(nymID);
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-    auto code = factory_.PaymentCode("");
+    auto code = api_.Factory().PaymentCode("");
 #endif
 
     if (nym) {
         label = nym->Claims().Name();
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        code = factory_.PaymentCode(nym->PaymentCode());
+        code = api_.Factory().PaymentCode(nym->PaymentCode());
 #endif
     }
 
@@ -637,7 +633,7 @@ void Contacts::save(class Contact* contact) const
 {
     OT_ASSERT(nullptr != contact);
 
-    if (false == storage_.Store(*contact)) {
+    if (false == api_.Storage().Store(*contact)) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to create or save contact." << std::endl;
 
@@ -646,7 +642,7 @@ void Contacts::save(class Contact* contact) const
 
     const auto& id = contact->ID();
 
-    if (false == storage_.SetContactAlias(id.str(), contact->Label())) {
+    if (false == api_.Storage().SetContactAlias(id.str(), contact->Label())) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Unable to create or save contact." << std::endl;
 
@@ -659,7 +655,7 @@ void Contacts::save(class Contact* contact) const
 
 void Contacts::start()
 {
-    const auto level = storage_.ContactUpgradeLevel();
+    const auto level = api_.Storage().ContactUpgradeLevel();
 
     switch (level) {
         case 0:
@@ -677,7 +673,7 @@ void Contacts::start()
 std::shared_ptr<const class Contact> Contacts::Update(
     const proto::CredentialIndex& serialized) const
 {
-    auto nym = wallet_.Nym(serialized);
+    auto nym = api_.Wallet().Nym(serialized);
 
     if (false == bool(nym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid nym." << std::endl;
@@ -701,7 +697,7 @@ std::shared_ptr<const class Contact> Contacts::Update(
 
     const auto& nymID = nym->ID();
     rLock lock(lock_);
-    const auto contactIdentifier = storage_.ContactOwnerNym(nymID.str());
+    const auto contactIdentifier = api_.Storage().ContactOwnerNym(nymID.str());
     const auto contactID = Identifier::Factory(contactIdentifier);
 
     if (contactIdentifier.empty()) {
@@ -709,7 +705,7 @@ std::shared_ptr<const class Contact> Contacts::Update(
               << " is not associated with a contact. Creating a new contact."
               << std::endl;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
-        auto code = factory_.PaymentCode(nym->PaymentCode());
+        auto code = api_.Factory().PaymentCode(nym->PaymentCode());
 #endif
         return new_contact(
             lock,
@@ -736,7 +732,7 @@ std::shared_ptr<const class Contact> Contacts::Update(
 
     OT_ASSERT(output);
 
-    storage_.RelabelThread(output->ID().str(), output->Label());
+    api_.Storage().RelabelThread(output->ID().str(), output->Label());
 
     return output;
 }
@@ -787,7 +783,7 @@ void Contacts::update_nym_map(
         throw std::runtime_error("lock error");
     }
 
-    const auto contactIdentifier = storage_.ContactOwnerNym(nymID->str());
+    const auto contactIdentifier = api_.Storage().ContactOwnerNym(nymID->str());
     const bool exists = (false == contactIdentifier.empty());
     const auto& incomingID = contact.ID();
     const auto contactID = Identifier::Factory(contactIdentifier);
@@ -810,7 +806,7 @@ void Contacts::update_nym_map(
 
             oldContact->RemoveNym(nymID);
 
-            if (false == storage_.Store(*oldContact)) {
+            if (false == api_.Storage().Store(*oldContact)) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Unable to create or save contact." << std::endl;
 
@@ -821,7 +817,7 @@ void Contacts::update_nym_map(
                   << std::endl;
             contact.RemoveNym(nymID);
 
-            if (false == storage_.Store(contact)) {
+            if (false == api_.Storage().Store(contact)) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Unable to create or save contact." << std::endl;
 

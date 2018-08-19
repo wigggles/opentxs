@@ -24,6 +24,7 @@ public:
     const api::Crypto& Crypto() const override { return crypto_; }
     const std::string& DataFolder() const override { return data_folder_; }
     const api::network::Dht& DHT() const override;
+    const api::Endpoints& Endpoints() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     const api::Factory& Factory() const override;
     int Instance() const override { return instance_; }
@@ -66,6 +67,7 @@ private:
 
     const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
+    std::unique_ptr<api::Endpoints> endpoints_;
 #if OT_CRYPTO_WITH_BIP39
     std::unique_ptr<api::HDSeed> seeds_;
 #endif

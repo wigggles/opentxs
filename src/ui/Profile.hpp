@@ -58,8 +58,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    static const ListenerDefinitions listeners_;
-
+    const ListenerDefinitions listeners_;
     std::string name_;
     std::string payment_code_;
 

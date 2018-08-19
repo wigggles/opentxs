@@ -23,12 +23,10 @@ namespace server
 class Manager : virtual public api::Core
 {
 public:
-    EXPORT virtual const network::Dht& DHT() const = 0;
     /** Drop a specified number of incoming requests for testing purposes */
     EXPORT virtual void DropIncoming(const int count) const = 0;
     /** Drop a specified number of outgoing replies for testing purposes */
     EXPORT virtual void DropOutgoing(const int count) const = 0;
-    EXPORT virtual const api::Factory& Factory() const = 0;
     EXPORT virtual const std::string GetCommandPort() const = 0;
     EXPORT virtual const std::string GetDefaultBindIP() const = 0;
     EXPORT virtual const std::string GetEEP() const = 0;
@@ -47,22 +45,11 @@ public:
     EXPORT virtual const std::string GetUserName() const = 0;
     EXPORT virtual const std::string GetUserTerms() const = 0;
     EXPORT virtual const Identifier& ID() const = 0;
-    EXPORT virtual int Instance() const = 0;
     EXPORT virtual const Identifier& NymID() const = 0;
 #if OT_CASH
     EXPORT virtual void ScanMints() const = 0;
 #endif  // OT_CASH
-    /** Adds a task to the periodic task list with the specified interval. By
-     * default, schedules for immediate execution. */
-    EXPORT virtual void Schedule(
-        const std::chrono::seconds& interval,
-        const opentxs::PeriodicTask& task,
-        const std::chrono::seconds& last = std::chrono::seconds(0)) const = 0;
-#if OT_CRYPTO_WITH_BIP39
-    EXPORT virtual const api::HDSeed& Seeds() const = 0;
-#endif
 #if OT_CASH
-    EXPORT virtual const storage::Storage& Storage() const = 0;
     EXPORT virtual void UpdateMint(const Identifier& unitID) const = 0;
 #endif  // OT_CASH
 

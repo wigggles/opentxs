@@ -13,6 +13,7 @@
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -206,8 +207,7 @@ Sync::Sync(
     , account_subscriber_(
           client_.ZeroMQ().SubscribeSocket(account_subscriber_callback_.get()))
 {
-    const auto& endpoint =
-        opentxs::network::zeromq::Socket::AccountUpdateEndpoint;
+    const auto endpoint = client_.Endpoints().AccountUpdate();
     otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
            << std::endl;
     const auto listening = account_subscriber_->Start(endpoint);

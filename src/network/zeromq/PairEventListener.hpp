@@ -20,11 +20,14 @@ private:
     friend zeromq::implementation::Context;
     typedef SubscribeSocket ot_super;
 
+    const int instance_;
+
     PairEventListener* clone() const override;
 
     PairEventListener(
         const zeromq::Context& context,
-        const zeromq::PairEventCallback& callback);
+        const zeromq::PairEventCallback& callback,
+        const int instance);
     PairEventListener() = delete;
     PairEventListener(const PairEventListener&) = delete;
     PairEventListener(PairEventListener&&) = delete;

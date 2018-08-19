@@ -9,6 +9,7 @@
 
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -58,8 +59,7 @@ ZMQ::ZMQ(const api::Core& api, const Flag& running)
     , server_connections_()
     , status_publisher_(api_.ZeroMQ().PublishSocket())
 {
-    status_publisher_->Start(
-        opentxs::network::zeromq::Socket::ConnectionStatusEndpoint);
+    status_publisher_->Start(api_.Endpoints().ConnectionStatus());
 
     Lock lock(lock_);
 

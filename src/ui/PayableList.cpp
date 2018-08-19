@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Sync.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -53,19 +54,18 @@ ui::PayableList* Factory::PayableList(
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions PayableList::listeners_{
-    {network::zeromq::Socket::ContactUpdateEndpoint,
-     new MessageProcessor<PayableList>(&PayableList::process_contact)},
-    {network::zeromq::Socket::NymDownloadEndpoint,
-     new MessageProcessor<PayableList>(&PayableList::process_nym)},
-};
-
 PayableList::PayableList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Identifier& nymID,
     const proto::ContactItemType& currency)
     : PayableListList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().ContactUpdate(),
+           new MessageProcessor<PayableList>(&PayableList::process_contact)},
+          {api_.Endpoints().NymDownload(),
+           new MessageProcessor<PayableList>(&PayableList::process_nym)},
+      })
     , owner_contact_id_(Identifier::Factory(last_id_))
     , currency_(currency)
 {

@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -64,16 +65,15 @@ const std::map<proto::ContactSectionName, int> Profile::sort_keys_{
     {proto::CONTACTSECTION_COMMUNICATION, 0},
     {proto::CONTACTSECTION_PROFILE, 1}};
 
-const Widget::ListenerDefinitions Profile::listeners_{
-    {network::zeromq::Socket::NymDownloadEndpoint,
-     new MessageProcessor<Profile>(&Profile::process_nym)},
-};
-
 Profile::Profile(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Identifier& nymID)
     : ProfileList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().NymDownload(),
+           new MessageProcessor<Profile>(&Profile::process_nym)},
+      })
     , name_(nym_name(api_.Wallet(), nymID))
     , payment_code_()
 {

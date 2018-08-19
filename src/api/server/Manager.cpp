@@ -11,6 +11,7 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/api/network/Dht.hpp"
 #include "opentxs/api/storage/Storage.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
@@ -88,20 +89,20 @@ Manager::Manager(
     , StorageParent(running, args, crypto, config, dataFolder)
     , zmq_context_(context)
     , instance_(instance)
+    , endpoints_(opentxs::Factory::Endpoints(zmq_context_, instance_))
+#if OT_CRYPTO_WITH_BIP39
     , seeds_(opentxs::Factory::HDSeed(
           crypto_.Symmetric(),
           *storage_,
           crypto_.BIP32(),
           crypto_.BIP39(),
           crypto_.AES()))
+#endif
     , factory_(opentxs::Factory::FactoryAPI(*this))
     , wallet_(opentxs::Factory::Wallet(*this))
     , dht_(opentxs::Factory::Dht(
-          instance_,
           true,
-          config_,
-          *wallet_,
-          context,
+          *this,
           nym_publish_interval_,
           nym_refresh_interval_,
           server_publish_interval_,
@@ -162,6 +163,13 @@ void Manager::DropIncoming(const int count) const
 void Manager::DropOutgoing(const int count) const
 {
     return message_processor_.DropOutgoing(count);
+}
+
+const api::Endpoints& Manager::Endpoints() const
+{
+    OT_ASSERT(endpoints_)
+
+    return *endpoints_;
 }
 
 const api::Factory& Manager::Factory() const

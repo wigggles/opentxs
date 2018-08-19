@@ -16,14 +16,6 @@
 #define CURVE_KEY_BYTES 32
 #define CURVE_KEY_Z85_BYTES 40
 
-namespace opentxs::network::zeromq
-{
-std::string build_inproc_path(
-    const std::string& path,
-    const int instance,
-    const int version);
-}  // namespace opentxs::network::zeromq
-
 namespace opentxs::network::zeromq::implementation
 {
 class Socket : virtual public zeromq::Socket, public Lockable

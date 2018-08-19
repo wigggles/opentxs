@@ -8,6 +8,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Sync.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -50,18 +51,18 @@ ui::implementation::MessagableExternalInterface* Factory::MessagableList(
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions MessagableList::listeners_{
-    {network::zeromq::Socket::ContactUpdateEndpoint,
-     new MessageProcessor<MessagableList>(&MessagableList::process_contact)},
-    {network::zeromq::Socket::NymDownloadEndpoint,
-     new MessageProcessor<MessagableList>(&MessagableList::process_nym)},
-};
-
 MessagableList::MessagableList(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Identifier& nymID)
     : MessagableListList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().ContactUpdate(),
+           new MessageProcessor<MessagableList>(
+               &MessagableList::process_contact)},
+          {api_.Endpoints().NymDownload(),
+           new MessageProcessor<MessagableList>(&MessagableList::process_nym)},
+      })
     , owner_contact_id_(Identifier::Factory(last_id_))
 {
     init();

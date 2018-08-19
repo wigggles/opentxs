@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -60,23 +61,25 @@ ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
 
 namespace opentxs::ui::implementation
 {
-const Widget::ListenerDefinitions AccountSummary::listeners_{
-    {network::zeromq::Socket::IssuerUpdateEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_issuer)},
-    {network::zeromq::Socket::ServerUpdateEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_server)},
-    {network::zeromq::Socket::ConnectionStatusEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_connection)},
-    {network::zeromq::Socket::NymDownloadEndpoint,
-     new MessageProcessor<AccountSummary>(&AccountSummary::process_nym)},
-};
-
 AccountSummary::AccountSummary(
     const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
     const Identifier& nymID,
     const proto::ContactItemType currency)
     : AccountSummaryList(api, publisher, nymID)
+    , listeners_({
+          {api_.Endpoints().IssuerUpdate(),
+           new MessageProcessor<AccountSummary>(
+               &AccountSummary::process_issuer)},
+          {api_.Endpoints().ServerUpdate(),
+           new MessageProcessor<AccountSummary>(
+               &AccountSummary::process_server)},
+          {api_.Endpoints().ConnectionStatus(),
+           new MessageProcessor<AccountSummary>(
+               &AccountSummary::process_connection)},
+          {api_.Endpoints().NymDownload(),
+           new MessageProcessor<AccountSummary>(&AccountSummary::process_nym)},
+      })
     , currency_{currency}
     , issuers_{}
     , server_issuer_map_{}

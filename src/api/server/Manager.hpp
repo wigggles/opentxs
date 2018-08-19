@@ -20,6 +20,7 @@ public:
     const api::network::Dht& DHT() const override;
     void DropIncoming(const int count) const override;
     void DropOutgoing(const int count) const override;
+    const api::Endpoints& Endpoints() const override;
     const api::Factory& Factory() const override;
     const std::string GetCommandPort() const override;
     const std::string GetDefaultBindIP() const override;
@@ -76,6 +77,7 @@ private:
 
     const opentxs::network::zeromq::Context& zmq_context_;
     const int instance_{0};
+    std::unique_ptr<api::Endpoints> endpoints_;
 #if OT_CRYPTO_WITH_BIP39
     std::unique_ptr<api::HDSeed> seeds_;
 #endif

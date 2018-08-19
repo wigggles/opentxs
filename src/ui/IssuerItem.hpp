@@ -46,8 +46,7 @@ public:
 private:
     friend opentxs::Factory;
 
-    static const ListenerDefinitions listeners_;
-
+    const ListenerDefinitions listeners_;
     AccountSummarySortKey key_;
     const std::string& name_;
     std::atomic<bool> connection_{false};
