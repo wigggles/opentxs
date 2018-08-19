@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -25,52 +26,38 @@ namespace opentxs
 {
 ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::client::Activity& activity,
     const bool loading,
     const bool pending)
 {
     return new ui::implementation::MailItem(
         parent,
-        zmq,
+        api,
         publisher,
-        contact,
         nymID,
         rowID,
         sortKey,
         custom,
-        activity,
         loading,
         pending);
 }
 
 ui::implementation::ActivityThreadRowInternal* Factory::MailItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom,
-    const api::client::Activity& activity)
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::MailItem(
-        parent,
-        zmq,
-        publisher,
-        contact,
-        nymID,
-        rowID,
-        sortKey,
-        custom,
-        activity);
+        parent, api, publisher, nymID, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
@@ -78,26 +65,22 @@ namespace opentxs::ui::implementation
 {
 MailItem::MailItem(
     const ActivityThreadInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
-    const api::client::Activity& activity,
     const bool loading,
     const bool pending)
     : ActivityThreadItem(
           parent,
-          zmq,
+          api,
           publisher,
-          contact,
           nymID,
           rowID,
           sortKey,
           custom,
-          activity,
           loading,
           pending)
     , load_(nullptr)
@@ -108,24 +91,20 @@ MailItem::MailItem(
 
 MailItem::MailItem(
     const ActivityThreadInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom,
-    const api::client::Activity& activity)
+    const CustomData& custom)
     : MailItem(
           parent,
-          zmq,
+          api,
           publisher,
-          contact,
           nymID,
           rowID,
           sortKey,
           custom,
-          activity,
           true,
           false)
 {
@@ -162,7 +141,7 @@ void MailItem::load()
     switch (box_) {
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
-            text = activity_.MailText(nym_id_, item_id_, box_);
+            text = api_.Activity().MailText(nym_id_, item_id_, box_);
         } break;
         case StorageBox::SENTPEERREQUEST:
         case StorageBox::INCOMINGPEERREQUEST:

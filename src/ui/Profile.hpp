@@ -60,7 +60,6 @@ private:
 
     static const ListenerDefinitions listeners_;
 
-    const api::Wallet& wallet_;
     std::string name_;
     std::string payment_code_;
 
@@ -88,10 +87,8 @@ private:
     void startup();
 
     Profile(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
-        const api::Wallet& wallet,
         const Identifier& nymID);
     Profile() = delete;
     Profile(const Profile&) = delete;

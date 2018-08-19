@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -42,10 +43,8 @@ namespace opentxs
 {
 ui::implementation::ActivitySummaryRowInternal* Factory::ActivitySummaryItem(
     const ui::implementation::ActivitySummaryInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivitySummaryRowID& rowID,
     const ui::implementation::ActivitySummarySortKey& sortKey,
@@ -53,16 +52,7 @@ ui::implementation::ActivitySummaryRowInternal* Factory::ActivitySummaryItem(
     const Flag& running)
 {
     return new ui::implementation::ActivitySummaryItem(
-        parent,
-        zmq,
-        publisher,
-        activity,
-        contact,
-        nymID,
-        rowID,
-        sortKey,
-        custom,
-        running);
+        parent, api, publisher, nymID, rowID, sortKey, custom, running);
 }
 }  // namespace opentxs
 
@@ -70,17 +60,14 @@ namespace opentxs::ui::implementation
 {
 ActivitySummaryItem::ActivitySummaryItem(
     const ActivitySummaryInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivitySummaryRowID& rowID,
     const ActivitySummarySortKey& sortKey,
     const CustomData& custom,
     const Flag& running)
-    : ActivitySummaryItemRow(parent, zmq, publisher, contact, rowID, true)
-    , activity_(activity)
+    : ActivitySummaryItemRow(parent, api, publisher, rowID, true)
     , running_(running)
     , nym_id_(Identifier::Factory(nymID))
     , key_{sortKey}
@@ -103,7 +90,7 @@ std::string ActivitySummaryItem::DisplayName() const
 {
     sLock lock(shared_lock_);
 
-    if (display_name_.empty()) { return contact_.ContactName(row_id_); }
+    if (display_name_.empty()) { return api_.Contacts().ContactName(row_id_); }
 
     return display_name_;
 }
@@ -115,8 +102,8 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
     switch (box) {
         case StorageBox::MAILINBOX:
         case StorageBox::MAILOUTBOX: {
-            auto text =
-                activity_.MailText(nym_id_, Identifier::Factory(itemID), box);
+            auto text = api_.Activity().MailText(
+                nym_id_, Identifier::Factory(itemID), box);
 
             if (text) {
 
@@ -128,7 +115,7 @@ std::string ActivitySummaryItem::find_text(const ItemLocator& locator) const
         } break;
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
-            auto text = activity_.PaymentText(nym_id_, itemID, accountID);
+            auto text = api_.Activity().PaymentText(nym_id_, itemID, accountID);
 
             if (text) {
 

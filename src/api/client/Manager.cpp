@@ -141,17 +141,7 @@ Manager::Manager(
         running_,
         *this,
         std::bind(&Manager::get_lock, this, std::placeholders::_1))),
-    ui_(opentxs::Factory::UI(
-        *sync_,
-        *wallet_,
-        *workflow_,
-        *zeromq_,
-        *storage_,
-        *activity_,
-        *contacts_,
-        *this,
-        zmq_context_,
-        running_)),
+    ui_(opentxs::Factory::UI(*this, running_)),
     pair_(opentxs::Factory::Pair(running_, *this)),
     dht_(opentxs::Factory::Dht(
         instance_,

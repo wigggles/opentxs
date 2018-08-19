@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/Core.hpp"
@@ -38,14 +39,11 @@ namespace opentxs
 {
 ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
     const ui::implementation::AccountActivityInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::AccountActivityRowID& rowID,
     const ui::implementation::AccountActivitySortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::client::Sync& sync,
-    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
 {
@@ -56,14 +54,11 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
             return new ui::implementation::ChequeBalanceItem(
                 parent,
-                zmq,
+                api,
                 publisher,
-                contact,
                 rowID,
                 sortKey,
                 custom,
-                sync,
-                core,
                 nymID,
                 accountID);
         }
@@ -82,17 +77,14 @@ namespace opentxs::ui::implementation
 {
 BalanceItem::BalanceItem(
     const AccountActivityInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
-    const api::client::Sync& sync,
     const Identifier& nymID,
     const Identifier& accountID)
-    : BalanceItemRow(parent, zmq, publisher, contact, rowID, true)
-    , sync_(sync)
+    : BalanceItemRow(parent, api, publisher, rowID, true)
     , nym_id_(Identifier::Factory(nymID))
     , type_(extract_type(recover_workflow(custom)))
     , text_("")
@@ -104,28 +96,22 @@ BalanceItem::BalanceItem(
 
 ChequeBalanceItem::ChequeBalanceItem(
     const AccountActivityInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const AccountActivityRowID& rowID,
     const AccountActivitySortKey& sortKey,
     const CustomData& custom,
-    const api::client::Sync& sync,
-    const api::Core& core,
     const Identifier& nymID,
     const Identifier& accountID)
     : BalanceItem(
           parent,
-          zmq,
+          api,
           publisher,
-          contact,
           rowID,
           sortKey,
           custom,
-          sync,
           nymID,
           accountID)
-    , api_(core)
     , cheque_(nullptr)
 {
     startup_.reset(new std::thread(&ChequeBalanceItem::startup, this, custom));
@@ -267,10 +253,10 @@ std::string ChequeBalanceItem::get_contact_name(const Identifier& nymID) const
     if (nymID.empty()) { return {}; }
 
     std::string output{nymID.str()};
-    const auto contactID = contact_.ContactID(nymID);
+    const auto contactID = api_.Contacts().ContactID(nymID);
 
     if (false == contactID->empty()) {
-        output = contact_.ContactName(contactID);
+        output = api_.Contacts().ContactName(contactID);
     }
 
     return output;
@@ -286,8 +272,8 @@ bool ChequeBalanceItem::get_contract() const
 
     if (contract_) { return true; }
 
-    sync_.ScheduleDownloadContract(
-        nym_id_, sync_.IntroductionServer(), contractID);
+    api_.Sync().ScheduleDownloadContract(
+        nym_id_, api_.Sync().IntroductionServer(), contractID);
 
     return false;
 }

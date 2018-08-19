@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -41,15 +42,13 @@
 namespace opentxs
 {
 ui::implementation::ActivitySummaryExternalInterface* Factory::ActivitySummary(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
     const Flag& running,
     const Identifier& nymID)
 {
     return new ui::implementation::ActivitySummary(
-        zmq, publisher, activity, contact, running, nymID);
+        api, publisher, running, nymID);
 }
 }  // namespace opentxs
 
@@ -57,18 +56,15 @@ namespace opentxs::ui::implementation
 {
 
 ActivitySummary::ActivitySummary(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
     const Flag& running,
     const Identifier& nymID)
-    : ActivitySummaryList(nymID, zmq, publisher, contact)
-    , listeners_{{activity.ThreadPublisher(nymID),
+    : ActivitySummaryList(api, publisher, nymID)
+    , listeners_{{api_.Activity().ThreadPublisher(nymID),
         new MessageProcessor<ActivitySummary>(
             &ActivitySummary::process_thread)},
 }
-    , activity_(activity)
     , running_(running)
 {
     init();
@@ -86,16 +82,7 @@ void ActivitySummary::construct_row(
     items_[index].emplace(
         id,
         Factory::ActivitySummaryItem(
-            *this,
-            zmq_,
-            publisher_,
-            activity_,
-            contact_manager_,
-            nym_id_,
-            id,
-            index,
-            custom,
-            running_));
+            *this, api_, publisher_, nym_id_, id, index, custom, running_));
     names_.emplace(id, index);
 }
 
@@ -106,7 +93,7 @@ std::string ActivitySummary::display_name(
 
     for (const auto& participant : thread.participant()) {
         auto name =
-            contact_manager_.ContactName(Identifier::Factory(participant));
+            api_.Contacts().ContactName(Identifier::Factory(participant));
 
         if (name.empty()) {
             names.emplace(participant);
@@ -160,7 +147,7 @@ const proto::StorageThreadItem& ActivitySummary::newest_item(
 void ActivitySummary::process_thread(const std::string& id)
 {
     const auto threadID = Identifier::Factory(id);
-    const auto thread = activity_.Thread(nym_id_, threadID);
+    const auto thread = api_.Activity().Thread(nym_id_, threadID);
 
     OT_ASSERT(thread);
 
@@ -190,7 +177,7 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
 
 void ActivitySummary::startup()
 {
-    const auto threads = activity_.Threads(nym_id_, false);
+    const auto threads = api_.Activity().Threads(nym_id_, false);
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << threads.size()
            << " threads." << std::endl;
 

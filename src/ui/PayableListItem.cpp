@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -27,16 +28,15 @@ namespace opentxs
 {
 ui::internal::PayableListItem* Factory::PayableListItem(
     const ui::implementation::PayableInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::PayableListRowID& rowID,
     const ui::implementation::PayableListSortKey& key,
     const std::string& paymentcode,
     const proto::ContactItemType& currency)
 {
     return new ui::implementation::PayableListItem(
-        parent, zmq, publisher, contact, rowID, key, paymentcode, currency);
+        parent, api, publisher, rowID, key, paymentcode, currency);
 }
 }  // namespace opentxs
 
@@ -44,14 +44,13 @@ namespace opentxs::ui::implementation
 {
 PayableListItem::PayableListItem(
     const PayableInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const PayableListRowID& rowID,
     const PayableListSortKey& key,
     const std::string& paymentcode,
     const proto::ContactItemType& currency)
-    : ot_super(parent, zmq, publisher, contact, rowID, key)
+    : ot_super(parent, api, publisher, rowID, key)
     , payment_code_(paymentcode)
     , currency_(currency)
 {
@@ -69,7 +68,7 @@ void PayableListItem::reindex(
     const CustomData& custom)
 {
     ot_super::reindex(key, custom);
-    const auto contact = contact_.Contact(row_id_);
+    const auto contact = api_.Contacts().Contact(row_id_);
 
     OT_ASSERT(contact);
 

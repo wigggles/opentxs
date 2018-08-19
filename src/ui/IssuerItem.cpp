@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -38,27 +39,15 @@ namespace opentxs
 {
 ui::implementation::AccountSummaryRowInternal* Factory::IssuerItem(
     const ui::implementation::AccountSummaryInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::AccountSummaryRowID& rowID,
     const ui::implementation::AccountSummarySortKey& sortKey,
     const ui::implementation::CustomData& custom,
-    const api::storage::Storage& storage,
-    const api::Core& core,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::IssuerItem(
-        parent,
-        zmq,
-        publisher,
-        contact,
-        rowID,
-        sortKey,
-        custom,
-        storage,
-        core,
-        currency);
+        parent, api, publisher, rowID, sortKey, custom, currency);
 }
 }  // namespace opentxs
 
@@ -71,19 +60,14 @@ const Widget::ListenerDefinitions IssuerItem::listeners_{
 
 IssuerItem::IssuerItem(
     const AccountSummaryInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const AccountSummaryRowID& rowID,
     const AccountSummarySortKey& sortKey,
     [[maybe_unused]] const CustomData& custom,
-    const api::storage::Storage& storage,
-    const api::Core& core,
     const proto::ContactItemType currency)
-    : IssuerItemList(parent.WidgetID(), parent.NymID(), zmq, publisher, contact)
+    : IssuerItemList(api, publisher, parent.NymID(), parent.WidgetID())
     , IssuerItemRow(parent, Identifier::Factory(rowID), true)
-    , storage_{storage}
-    , api_{core}
     , key_{sortKey}
     , name_{std::get<1>(key_)}
     , connection_{std::get<0>(key_)}
@@ -107,15 +91,7 @@ void IssuerItem::construct_row(
     items_[index].emplace(
         id,
         Factory::AccountSummaryItem(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            custom,
-            api_.Wallet(),
-            storage_));
+            *this, api_, publisher_, id, index, custom));
     names_.emplace(id, index);
 }
 
@@ -148,7 +124,8 @@ void IssuerItem::process_account(const network::zeromq::Message& message)
     OT_ASSERT(2 == message.Body().size())
 
     const auto accountID = Identifier::Factory(message.Body().at(0));
-    const IssuerItemRowID rowID{accountID, {storage_.AccountUnit(accountID)}};
+    const IssuerItemRowID rowID{accountID,
+                                {api_.Storage().AccountUnit(accountID)}};
 
     if (1 == names_.count(rowID)) { process_account(accountID); }
 }

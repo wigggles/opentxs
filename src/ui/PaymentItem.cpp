@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Activity.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -27,25 +28,15 @@ namespace opentxs
 {
 ui::implementation::ActivityThreadRowInternal* Factory::PaymentItem(
     const ui::implementation::ActivityThreadInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ui::implementation::ActivityThreadRowID& rowID,
     const ui::implementation::ActivityThreadSortKey& sortKey,
-    const ui::implementation::CustomData& custom,
-    const api::client::Activity& activity)
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::PaymentItem(
-        parent,
-        zmq,
-        publisher,
-        contact,
-        nymID,
-        rowID,
-        sortKey,
-        custom,
-        activity);
+        parent, api, publisher, nymID, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
@@ -53,24 +44,20 @@ namespace opentxs::ui::implementation
 {
 PaymentItem::PaymentItem(
     const ActivityThreadInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
-    const CustomData& custom,
-    const api::client::Activity& activity)
+    const CustomData& custom)
     : ActivityThreadItem(
           parent,
-          zmq,
+          api,
           publisher,
-          contact,
           nymID,
           rowID,
           sortKey,
           custom,
-          activity,
           true,
           false)
     , display_amount_()
@@ -131,10 +118,10 @@ void PaymentItem::load()
     switch (box_) {
         case StorageBox::INCOMINGCHEQUE:
         case StorageBox::OUTGOINGCHEQUE: {
-            text = activity_.PaymentText(
+            text = api_.Activity().PaymentText(
                 nym_id_, item_id_.str(), account_id_.str());
-            const auto [cheque, contract] =
-                activity_.Cheque(nym_id_, item_id_.str(), account_id_.str());
+            const auto [cheque, contract] = api_.Activity().Cheque(
+                nym_id_, item_id_.str(), account_id_.str());
 
             if (cheque) {
                 memo = cheque->GetMemo().Get();

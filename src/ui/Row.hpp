@@ -18,17 +18,13 @@ class Row : public RowType<InterfaceType, ParentType, IdentifierType>,
             public Lockable
 {
 protected:
-    const api::client::Contacts& contact_;
-
     Row(const ParentType& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const IdentifierType id,
         const bool valid)
         : RowType<InterfaceType, ParentType, IdentifierType>(parent, id, valid)
-        , Widget(zmq, publisher, parent.WidgetID())
-        , contact_(contact)
+        , Widget(api, publisher, parent.WidgetID())
     {
     }
     Row() = delete;

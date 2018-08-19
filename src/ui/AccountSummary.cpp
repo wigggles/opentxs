@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Issuer.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
@@ -47,17 +48,13 @@
 namespace opentxs
 {
 ui::implementation::AccountSummaryExternalInterface* Factory::AccountSummary(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::network::ZMQ& connection,
-    const api::storage::Storage& storage,
-    const api::client::Contacts& contact,
-    const api::Core& core,
     const Identifier& nymID,
     const proto::ContactItemType currency)
 {
     return new ui::implementation::AccountSummary(
-        zmq, publisher, connection, storage, contact, core, nymID, currency);
+        api, publisher, nymID, currency);
 }
 }  // namespace opentxs
 
@@ -75,18 +72,11 @@ const Widget::ListenerDefinitions AccountSummary::listeners_{
 };
 
 AccountSummary::AccountSummary(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::network::ZMQ& connection,
-    const api::storage::Storage& storage,
-    const api::client::Contacts& contact,
-    const api::Core& core,
     const Identifier& nymID,
     const proto::ContactItemType currency)
-    : AccountSummaryList(nymID, zmq, publisher, contact)
-    , connection_{connection}
-    , storage_{storage}
-    , api_{core}
+    : AccountSummaryList(api, publisher, nymID)
     , currency_{currency}
     , issuers_{}
     , server_issuer_map_{}
@@ -107,16 +97,7 @@ void AccountSummary::construct_row(
     items_[index].emplace(
         id,
         Factory::IssuerItem(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            custom,
-            storage_,
-            api_,
-            currency_));
+            *this, api_, publisher_, id, index, custom, currency_));
     names_.emplace(id, index);
 }
 
@@ -145,7 +126,7 @@ AccountSummarySortKey AccountSummary::extract_key(
     server_issuer_map_.emplace(serverID, Identifier::Factory(issuerID));
     lock.unlock();
 
-    switch (connection_.Status(serverID->str())) {
+    switch (api_.ZMQ().Status(serverID->str())) {
         case ConnectionState::ACTIVE: {
             state = true;
         }

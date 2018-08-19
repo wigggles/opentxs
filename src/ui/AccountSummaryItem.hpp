@@ -28,8 +28,6 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Wallet& wallet_;
-    const api::storage::Storage& storage_;
     const Identifier& account_id_;
     const proto::ContactItemType& currency_;
     mutable std::atomic<Amount> balance_{0};
@@ -38,14 +36,11 @@ private:
 
     AccountSummaryItem(
         const IssuerItemInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const IssuerItemRowID& rowID,
         const IssuerItemSortKey& sortKey,
-        const CustomData& custom,
-        const api::Wallet& wallet,
-        const api::storage::Storage& storage);
+        const CustomData& custom);
     AccountSummaryItem() = delete;
     AccountSummaryItem(const AccountSummaryItem&) = delete;
     AccountSummaryItem(AccountSummaryItem&&) = delete;

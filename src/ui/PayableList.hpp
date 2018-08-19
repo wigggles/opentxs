@@ -30,7 +30,6 @@ private:
 
     static const ListenerDefinitions listeners_;
 
-    const api::client::Sync& sync_;
     const OTIdentifier owner_contact_id_;
     const proto::ContactItemType currency_;
 
@@ -51,10 +50,8 @@ private:
     void startup();
 
     PayableList(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
-        const api::client::Sync& sync,
         const Identifier& nymID,
         const proto::ContactItemType& currency);
     PayableList() = delete;

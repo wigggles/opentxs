@@ -32,7 +32,6 @@ public:
     virtual ~BalanceItem() override;
 
 protected:
-    const api::client::Sync& sync_;
     const OTIdentifier nym_id_;
     const StorageBox type_{StorageBox::UNKNOWN};
     std::string text_{""};
@@ -43,13 +42,11 @@ protected:
 
     BalanceItem(
         const AccountActivityInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
-        const api::client::Sync& sync,
         const Identifier& nymID,
         const Identifier& accountID);
 
@@ -78,7 +75,6 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Core& api_;
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
     mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
 
@@ -90,14 +86,11 @@ private:
 
     ChequeBalanceItem(
         const AccountActivityInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const AccountActivityRowID& rowID,
         const AccountActivitySortKey& sortKey,
         const CustomData& custom,
-        const api::client::Sync& sync,
-        const api::Core& core,
         const Identifier& nymID,
         const Identifier& accountID);
 

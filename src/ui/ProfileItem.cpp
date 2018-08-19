@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/ContactItem.hpp"
@@ -22,16 +23,14 @@ namespace opentxs
 {
 ui::implementation::ProfileSubsectionRowInternal* Factory::ProfileItemWidget(
     const ui::implementation::ProfileSubsectionInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::ProfileSubsectionRowID& rowID,
     const ui::implementation::ProfileSubsectionSortKey& sortKey,
-    const ui::implementation::CustomData& custom,
-    const api::Wallet& wallet)
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ProfileItem(
-        parent, zmq, publisher, contact, rowID, sortKey, custom, wallet);
+        parent, api, publisher, rowID, sortKey, custom);
 }
 }  // namespace opentxs
 
@@ -39,15 +38,12 @@ namespace opentxs::ui::implementation
 {
 ProfileItem::ProfileItem(
     const ProfileSubsectionInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ProfileSubsectionRowID& rowID,
     const ProfileSubsectionSortKey& sortKey,
-    const CustomData& custom,
-    const api::Wallet& wallet)
-    : ProfileItemRow(parent, zmq, publisher, contact, rowID, true)
-    , wallet_(wallet)
+    const CustomData& custom)
+    : ProfileItemRow(parent, api, publisher, rowID, true)
     , item_{new opentxs::ContactItem(
           extract_custom<opentxs::ContactItem>(custom))}
 {
@@ -55,7 +51,7 @@ ProfileItem::ProfileItem(
 
 bool ProfileItem::add_claim(const Claim& claim) const
 {
-    auto nym = wallet_.mutable_Nym(parent_.NymID());
+    auto nym = api_.Wallet().mutable_Nym(parent_.NymID());
 
     return nym.AddClaim(claim);
 }
@@ -83,7 +79,7 @@ Claim ProfileItem::as_claim() const
 
 bool ProfileItem::Delete() const
 {
-    auto nym = wallet_.mutable_Nym(parent_.NymID());
+    auto nym = api_.Wallet().mutable_Nym(parent_.NymID());
 
     return nym.DeleteClaim(row_id_);
 }

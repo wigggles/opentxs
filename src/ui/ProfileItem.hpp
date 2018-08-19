@@ -56,7 +56,6 @@ public:
 private:
     friend opentxs::Factory;
 
-    const api::Wallet& wallet_;
     std::unique_ptr<opentxs::ContactItem> item_{nullptr};
 
     bool add_claim(const Claim& claim) const;
@@ -64,13 +63,11 @@ private:
 
     ProfileItem(
         const ProfileSubsectionInternalInterface& parent,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const ProfileSubsectionRowID& rowID,
         const ProfileSubsectionSortKey& sortKey,
-        const CustomData& custom,
-        const api::Wallet& wallet);
+        const CustomData& custom);
     ProfileItem() = delete;
     ProfileItem(const ProfileItem&) = delete;
     ProfileItem(ProfileItem&&) = delete;

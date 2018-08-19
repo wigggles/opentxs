@@ -41,15 +41,14 @@ namespace opentxs
 {
 ui::implementation::ContactRowInternal* Factory::ContactSectionWidget(
     const ui::implementation::ContactInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::ContactRowID& rowID,
     const ui::implementation::ContactSortKey& key,
     const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ContactSection(
-        parent, zmq, publisher, contact, rowID, key, custom);
+        parent, api, publisher, rowID, key, custom);
 }
 }  // namespace opentxs
 
@@ -134,18 +133,16 @@ const std::map<proto::ContactSectionName, std::map<proto::ContactItemType, int>>
 
 ContactSection::ContactSection(
     const ContactInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ContactRowID& rowID,
     const ContactSortKey& key,
     const CustomData& custom)
     : ContactSectionList(
-          parent.WidgetID(),
-          Identifier::Factory(parent.ContactID()),
-          zmq,
+          api,
           publisher,
-          contact)
+          Identifier::Factory(parent.ContactID()),
+          parent.WidgetID())
     , ContactSectionRow(parent, rowID, true)
 {
     init();
@@ -175,7 +172,7 @@ void ContactSection::construct_row(
     items_[index].emplace(
         id,
         Factory::ContactSubsectionWidget(
-            *this, zmq_, publisher_, contact_manager_, id, index, custom));
+            *this, api_, publisher_, id, index, custom));
 }
 
 std::set<ContactSectionRowID> ContactSection::process_section(

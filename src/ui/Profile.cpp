@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -45,14 +46,11 @@ template struct std::pair<int, std::string>;
 namespace opentxs
 {
 ui::Profile* Factory::ProfileWidget(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
-    const api::Wallet& wallet,
     const Identifier& nymID)
 {
-    return new ui::implementation::Profile(
-        zmq, publisher, contact, wallet, nymID);
+    return new ui::implementation::Profile(api, publisher, nymID);
 }
 }  // namespace opentxs
 
@@ -72,14 +70,11 @@ const Widget::ListenerDefinitions Profile::listeners_{
 };
 
 Profile::Profile(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
-    const api::Wallet& wallet,
     const Identifier& nymID)
-    : ProfileList(nymID, zmq, publisher, contact)
-    , wallet_(wallet)
-    , name_(nym_name(wallet, nymID))
+    : ProfileList(api, publisher, nymID)
+    , name_(nym_name(api_.Wallet(), nymID))
     , payment_code_()
 {
     init();
@@ -96,7 +91,7 @@ bool Profile::AddClaim(
     const bool primary,
     const bool active) const
 {
-    auto nym = wallet_.mutable_Nym(nym_id_);
+    auto nym = api_.Wallet().mutable_Nym(nym_id_);
 
     switch (section) {
         case proto::CONTACTSECTION_SCOPE: {
@@ -187,14 +182,7 @@ void Profile::construct_row(
     items_[index].emplace(
         id,
         Factory::ProfileSectionWidget(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            custom,
-            wallet_));
+            *this, api_, publisher_, id, index, custom));
 }
 
 bool Profile::Delete(
@@ -272,7 +260,7 @@ void Profile::process_nym(const network::zeromq::Message& message)
 
     if (nymID != nym_id_) { return; }
 
-    const auto nym = wallet_.Nym(nymID);
+    const auto nym = api_.Wallet().Nym(nymID);
 
     OT_ASSERT(nym)
 
@@ -330,7 +318,7 @@ void Profile::startup()
 {
     otErr << OT_METHOD << __FUNCTION__ << ": Loading nym " << nym_id_->str()
           << std::endl;
-    const auto nym = wallet_.Nym(nym_id_);
+    const auto nym = api_.Wallet().Nym(nym_id_);
 
     OT_ASSERT(nym)
 

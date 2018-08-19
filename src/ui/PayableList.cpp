@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
@@ -41,15 +42,12 @@
 namespace opentxs
 {
 ui::PayableList* Factory::PayableList(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
-    const api::client::Sync& sync,
     const Identifier& nymID,
     const proto::ContactItemType& currency)
 {
-    return new ui::implementation::PayableList(
-        zmq, publisher, contact, sync, nymID, currency);
+    return new ui::implementation::PayableList(api, publisher, nymID, currency);
 }
 }  // namespace opentxs
 
@@ -63,14 +61,11 @@ const Widget::ListenerDefinitions PayableList::listeners_{
 };
 
 PayableList::PayableList(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
-    const api::client::Sync& sync,
     const Identifier& nymID,
     const proto::ContactItemType& currency)
-    : PayableListList(nymID, zmq, publisher, contact)
-    , sync_(sync)
+    : PayableListList(api, publisher, nymID)
     , owner_contact_id_(Identifier::Factory(last_id_))
     , currency_(currency)
 {
@@ -98,14 +93,7 @@ void PayableList::construct_row(
     items_[index].emplace(
         id,
         Factory::PayableListItem(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            *paymentCode,
-            currency_));
+            *this, api_, publisher_, id, index, *paymentCode, currency_));
 }
 
 const Identifier& PayableList::ID() const { return owner_contact_id_; }
@@ -116,7 +104,7 @@ void PayableList::process_contact(
 {
     if (owner_contact_id_ == id) { return; }
 
-    const auto contact = contact_manager_.Contact(id);
+    const auto contact = api_.Contacts().Contact(id);
 
     if (false == bool(contact)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Error: Contact " << id->str()
@@ -152,7 +140,7 @@ void PayableList::process_contact(const network::zeromq::Message& message)
 
     OT_ASSERT(false == contactID->empty())
 
-    const auto name = contact_manager_.ContactName(contactID);
+    const auto name = api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
@@ -167,14 +155,14 @@ void PayableList::process_nym(const network::zeromq::Message& message)
 
     OT_ASSERT(false == nymID->empty())
 
-    const auto contactID = contact_manager_.ContactID(nymID);
-    const auto name = contact_manager_.ContactName(contactID);
+    const auto contactID = api_.Contacts().ContactID(nymID);
+    const auto name = api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
 void PayableList::startup()
 {
-    const auto contacts = contact_manager_.ContactList();
+    const auto contacts = api_.Contacts().ContactList();
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
            << " contacts." << std::endl;
 

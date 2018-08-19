@@ -7,6 +7,7 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -23,19 +24,16 @@ namespace opentxs::ui::implementation
 {
 ActivityThreadItem::ActivityThreadItem(
     const ActivityThreadInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const Identifier& nymID,
     const ActivityThreadRowID& rowID,
     const ActivityThreadSortKey& sortKey,
     const CustomData& custom,
-    const api::client::Activity& activity,
     const bool loading,
     const bool pending)
-    : ActivityThreadItemRow(parent, zmq, publisher, contact, rowID, true)
+    : ActivityThreadItemRow(parent, api, publisher, rowID, true)
     , nym_id_(nymID)
-    , activity_(activity)
     , time_(std::get<0>(sortKey))
     , item_id_(std::get<0>(row_id_))
     , box_(std::get<1>(row_id_))
@@ -48,7 +46,7 @@ ActivityThreadItem::ActivityThreadItem(
 
 bool ActivityThreadItem::MarkRead() const
 {
-    return activity_.MarkRead(
+    return api_.Activity().MarkRead(
         nym_id_, Identifier::Factory(parent_.ThreadID()), item_id_);
 }
 

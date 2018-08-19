@@ -109,7 +109,6 @@ public:
 protected:
     using ReverseType = std::map<RowID, SortKey>;
 
-    const api::client::Contacts& contact_manager_;
     const OTIdentifier nym_id_;
     mutable Outer items_;
     mutable OuterIterator outer_;
@@ -412,13 +411,11 @@ protected:
     }
 
     List(
-        const Identifier& widgetID,
-        const Identifier& nymID,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact)
-        : Widget(zmq, publisher, widgetID)
-        , contact_manager_(contact)
+        const Identifier& nymID,
+        const Identifier& widgetID)
+        : Widget(api, publisher, widgetID)
         , nym_id_(Identifier::Factory(nymID))
         , items_()
         , outer_(items_.begin())
@@ -435,11 +432,10 @@ protected:
         OT_ASSERT(blank_p_);
     }
     List(
-        const Identifier& nymID,
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact)
-        : List(Identifier::Random(), nymID, zmq, publisher, contact)
+        const Identifier& nymID)
+        : List(api, publisher, nymID, Identifier::Random())
     {
     }
 

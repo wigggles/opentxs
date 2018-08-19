@@ -42,16 +42,14 @@ namespace opentxs
 {
 ui::implementation::ProfileSectionRowInternal* Factory::ProfileSubsectionWidget(
     const ui::implementation::ProfileSectionInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ui::implementation::ProfileSectionRowID& rowID,
     const ui::implementation::ProfileSectionSortKey& key,
-    const ui::implementation::CustomData& custom,
-    const api::Wallet& wallet)
+    const ui::implementation::CustomData& custom)
 {
     return new ui::implementation::ProfileSubsection(
-        parent, zmq, publisher, contact, rowID, key, custom, wallet);
+        parent, api, publisher, rowID, key, custom);
 }
 }  // namespace opentxs
 
@@ -59,21 +57,13 @@ namespace opentxs::ui::implementation
 {
 ProfileSubsection::ProfileSubsection(
     const ProfileSectionInternalInterface& parent,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
     const ProfileSectionRowID& rowID,
     const ProfileSectionSortKey& key,
-    const CustomData& custom,
-    const api::Wallet& wallet)
-    : ProfileSubsectionList(
-          parent.WidgetID(),
-          parent.NymID(),
-          zmq,
-          publisher,
-          contact)
+    const CustomData& custom)
+    : ProfileSubsectionList(api, publisher, parent.NymID(), parent.WidgetID())
     , ProfileSubsectionRow(parent, rowID, true)
-    , wallet_(wallet)
 {
     init();
     startup_.reset(new std::thread(&ProfileSubsection::startup, this, custom));
@@ -99,15 +89,7 @@ void ProfileSubsection::construct_row(
     names_.emplace(id, index);
     items_[index].emplace(
         id,
-        Factory::ProfileItemWidget(
-            *this,
-            zmq_,
-            publisher_,
-            contact_manager_,
-            id,
-            index,
-            custom,
-            wallet_));
+        Factory::ProfileItemWidget(*this, api_, publisher_, id, index, custom));
 }
 
 bool ProfileSubsection::Delete(const std::string& claimID) const

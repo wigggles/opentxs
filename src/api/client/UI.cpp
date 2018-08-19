@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/UI.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -39,53 +40,17 @@
 namespace opentxs
 {
 api::client::UI* Factory::UI(
-    const api::client::Sync& sync,
-    const api::Wallet& wallet,
-    const api::client::Workflow& workflow,
-    const api::network::ZMQ& connection,
-    const api::storage::Storage& storage,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
-    const api::Core& core,
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const Flag& running)
 {
-    return new api::client::implementation::UI(
-        sync,
-        wallet,
-        workflow,
-        connection,
-        storage,
-        activity,
-        contact,
-        core,
-        zmq,
-        running);
+    return new api::client::implementation::UI(api, running);
 }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
 {
-UI::UI(
-    const api::client::Sync& sync,
-    const api::Wallet& wallet,
-    const api::client::Workflow& workflow,
-    const api::network::ZMQ& connection,
-    const api::storage::Storage& storage,
-    const api::client::Activity& activity,
-    const api::client::Contacts& contact,
-    const api::Core& core,
-    const opentxs::network::zeromq::Context& zmq,
-    const Flag& running)
-    : sync_(sync)
-    , wallet_(wallet)
-    , workflow_(workflow)
-    , connection_(connection)
-    , storage_(storage)
-    , activity_(activity)
-    , contact_(contact)
-    , api_(core)
-    , zmq_(zmq)
+UI::UI(const api::client::Manager& api, const Flag& running)
+    : api_(api)
     , running_(running)
     , accounts_()
     , accounts_summaries_()
@@ -93,7 +58,7 @@ UI::UI(
     , contacts_()
     , contact_lists_()
     , messagable_lists_()
-    , widget_update_publisher_(zmq_.PublishSocket())
+    , widget_update_publisher_(api_.ZeroMQ().PublishSocket())
 {
     widget_update_publisher_->Start(
         opentxs::network::zeromq::Socket::WidgetUpdateEndpoint);
@@ -110,15 +75,7 @@ const ui::AccountActivity& UI::AccountActivity(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::AccountActivity(
-            zmq_,
-            widget_update_publisher_,
-            sync_,
-            workflow_,
-            contact_,
-            storage_,
-            api_,
-            nymID,
-            accountID));
+            api_, widget_update_publisher_, nymID, accountID));
     }
 
     OT_ASSERT(output)
@@ -136,14 +93,7 @@ const ui::AccountSummary& UI::AccountSummary(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::AccountSummary(
-            zmq_,
-            widget_update_publisher_,
-            connection_,
-            storage_,
-            contact_,
-            api_,
-            nymID,
-            currency));
+            api_, widget_update_publisher_, nymID, currency));
     }
 
     OT_ASSERT(output)
@@ -158,12 +108,7 @@ const ui::ActivitySummary& UI::ActivitySummary(const Identifier& nymID) const
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::ActivitySummary(
-            zmq_,
-            widget_update_publisher_,
-            activity_,
-            contact_,
-            running_,
-            nymID));
+            api_, widget_update_publisher_, running_, nymID));
     }
 
     OT_ASSERT(output)
@@ -180,13 +125,7 @@ const ui::ActivityThread& UI::ActivityThread(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::ActivityThread(
-            zmq_,
-            widget_update_publisher_,
-            sync_,
-            activity_,
-            contact_,
-            nymID,
-            threadID));
+            api_, widget_update_publisher_, nymID, threadID));
     }
 
     OT_ASSERT(output)
@@ -205,7 +144,7 @@ const ui::Contact& UI::Contact(const Identifier& contactID) const
                  .emplace(
                      std::move(id),
                      opentxs::Factory::ContactWidget(
-                         zmq_, widget_update_publisher_, contact_, contactID))
+                         api_, widget_update_publisher_, contactID))
                  .first;
     }
 
@@ -221,7 +160,7 @@ const ui::ContactList& UI::ContactList(const Identifier& nymID) const
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::ContactList(
-            zmq_, widget_update_publisher_, contact_, nymID));
+            api_, widget_update_publisher_, nymID));
     }
 
     OT_ASSERT(output)
@@ -236,7 +175,7 @@ const ui::MessagableList& UI::MessagableList(const Identifier& nymID) const
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::MessagableList(
-            zmq_, widget_update_publisher_, contact_, sync_, nymID));
+            api_, widget_update_publisher_, nymID));
     }
 
     OT_ASSERT(output)
@@ -255,7 +194,7 @@ const ui::PayableList& UI::PayableList(
 
     if (false == bool(output)) {
         output.reset(opentxs::Factory::PayableList(
-            zmq_, widget_update_publisher_, contact_, sync_, nymID, currency));
+            api_, widget_update_publisher_, nymID, currency));
     }
 
     OT_ASSERT(output)
@@ -274,11 +213,7 @@ const ui::Profile& UI::Profile(const Identifier& contactID) const
                  .emplace(
                      std::move(id),
                      opentxs::Factory::ProfileWidget(
-                         zmq_,
-                         widget_update_publisher_,
-                         contact_,
-                         wallet_,
-                         contactID))
+                         api_, widget_update_publisher_, contactID))
                  .first;
     }
 

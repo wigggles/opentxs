@@ -6,6 +6,7 @@
 #include "stdafx.hpp"
 
 #include "opentxs/api/client/Contacts.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Sync.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -39,14 +40,11 @@
 namespace opentxs
 {
 ui::implementation::MessagableExternalInterface* Factory::MessagableList(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
-    const api::client::Sync& sync,
     const Identifier& nymID)
 {
-    return new ui::implementation::MessagableList(
-        zmq, publisher, contact, sync, nymID);
+    return new ui::implementation::MessagableList(api, publisher, nymID);
 }
 }  // namespace opentxs
 
@@ -60,13 +58,10 @@ const Widget::ListenerDefinitions MessagableList::listeners_{
 };
 
 MessagableList::MessagableList(
-    const network::zeromq::Context& zmq,
+    const api::client::Manager& api,
     const network::zeromq::PublishSocket& publisher,
-    const api::client::Contacts& contact,
-    const api::client::Sync& sync,
     const Identifier& nymID)
-    : MessagableListList(nymID, zmq, publisher, contact)
-    , sync_(sync)
+    : MessagableListList(api, publisher, nymID)
     , owner_contact_id_(Identifier::Factory(last_id_))
 {
     init();
@@ -83,9 +78,7 @@ void MessagableList::construct_row(
 {
     names_.emplace(id, index);
     items_[index].emplace(
-        id,
-        Factory::ContactListItem(
-            *this, zmq_, publisher_, contact_manager_, id, index));
+        id, Factory::ContactListItem(*this, api_, publisher_, id, index));
 }
 
 const Identifier& MessagableList::ID() const { return owner_contact_id_; }
@@ -96,7 +89,7 @@ void MessagableList::process_contact(
 {
     if (owner_contact_id_ == id) { return; }
 
-    switch (sync_.CanMessage(nym_id_, id)) {
+    switch (api_.Sync().CanMessage(nym_id_, id)) {
         case Messagability::READY:
         case Messagability::MISSING_RECIPIENT:
         case Messagability::UNREGISTERED: {
@@ -126,7 +119,7 @@ void MessagableList::process_contact(const network::zeromq::Message& message)
 
     OT_ASSERT(false == contactID->empty())
 
-    const auto name = contact_manager_.ContactName(contactID);
+    const auto name = api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
@@ -141,14 +134,14 @@ void MessagableList::process_nym(const network::zeromq::Message& message)
 
     OT_ASSERT(false == nymID->empty())
 
-    const auto contactID = contact_manager_.ContactID(nymID);
-    const auto name = contact_manager_.ContactName(contactID);
+    const auto contactID = api_.Contacts().ContactID(nymID);
+    const auto name = api_.Contacts().ContactName(contactID);
     process_contact(contactID, name);
 }
 
 void MessagableList::startup()
 {
-    const auto contacts = contact_manager_.ContactList();
+    const auto contacts = api_.Contacts().ContactList();
     otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
            << " contacts." << std::endl;
 

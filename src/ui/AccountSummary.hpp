@@ -31,9 +31,6 @@ private:
 
     static const ListenerDefinitions listeners_;
 
-    const api::network::ZMQ& connection_;
-    const api::storage::Storage& storage_;
-    const api::Core& api_;
     const proto::ContactItemType currency_;
     std::set<OTIdentifier> issuers_;
     std::map<OTIdentifier, OTIdentifier> server_issuer_map_;
@@ -56,12 +53,8 @@ private:
     void startup();
 
     AccountSummary(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::network::ZMQ& connection,
-        const api::storage::Storage& storage,
-        const api::client::Contacts& contact,
-        const api::Core& core,
         const Identifier& nymID,
         const proto::ContactItemType currency);
     AccountSummary() = delete;

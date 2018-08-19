@@ -30,7 +30,6 @@ private:
 
     static const ListenerDefinitions listeners_;
 
-    const api::client::Sync& sync_;
     const OTIdentifier owner_contact_id_;
 
     void construct_row(
@@ -50,10 +49,8 @@ private:
     void startup();
 
     MessagableList(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
-        const api::client::Sync& sync,
         const Identifier& nymID);
     MessagableList() = delete;
     MessagableList(const MessagableList&) = delete;

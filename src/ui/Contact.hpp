@@ -56,9 +56,8 @@ private:
     void startup();
 
     Contact(
-        const network::zeromq::Context& zmq,
+        const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
-        const api::client::Contacts& contact,
         const Identifier& nymID);
     Contact() = delete;
     Contact(const Contact&) = delete;
