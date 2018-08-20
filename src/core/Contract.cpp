@@ -29,6 +29,7 @@
 
 #include <irrxml/irrXML.hpp>
 
+#include <array>
 #include <cstdint>
 #include <cstring>
 #include <fstream>
@@ -120,13 +121,12 @@ bool Contract::DearmorAndTrim(
     // were originally ascii-armored OR NOT. (And they are also now trimmed,
     // either way.)
 
-    static char buf[75] = "";
-    buf[0] = 0;  // probably unnecessary.
-    bool bGotLine = strOutput.sgets(buf, 70);
+    std::array<char, 75> buf{};
+    bool bGotLine = strOutput.sgets(buf.data(), 70);
 
     if (!bGotLine) return false;
 
-    strFirstLine.Set(buf);
+    strFirstLine.Set(buf.data());
     strOutput.reset();  // set the "file" pointer within this string back to
                         // index 0.
 

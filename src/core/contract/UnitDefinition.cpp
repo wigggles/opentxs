@@ -899,9 +899,8 @@ bool UnitDefinition::FormatAmountLocale(
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static String strSeparator(
-        str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    static String strDecimalPoint(
+    String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    String strDecimalPoint(
         str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     // NOTE: from web searching, I've determined that locale / moneypunct has
@@ -944,9 +943,8 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    static String strSeparator(
-        str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    static String strDecimalPoint(
+    String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    String strDecimalPoint(
         str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     str_output = UnitDefinition::formatLongAmount(
@@ -984,9 +982,8 @@ bool UnitDefinition::StringToAmountLocale(
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    static String strSeparator(
-        str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    static String strDecimalPoint(
+    String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    String strDecimalPoint(
         str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     bool bSuccess = UnitDefinition::ParseFormatted(
