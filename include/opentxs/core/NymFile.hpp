@@ -47,27 +47,6 @@ public:
     EXPORT virtual bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) = 0;
     EXPORT virtual bool RemoveOutpaymentsByTransNum(
         const std::int64_t lTransNum) = 0;
-    // ** ResyncWithServer **
-    //
-    // Not for normal use! (Since you should never get out of sync with the
-    // server in the first place.)
-    // However, in testing, or if some bug messes up some data, or whatever, and
-    // you absolutely need to
-    // re-sync with a server, and you trust that server not to lie to you, then
-    // this function will do the trick.
-    // NOTE: Before calling this, you need to do a getNymbox() to download the
-    // latest Nymbox, and you need to do
-    // a registerNym() to download the server's copy of your Nym. You then
-    // need to load that Nymbox from
-    // local storage, and you need to load the server's message Nym out of the
-    // registerNymResponse reply, so that
-    // you can pass both of those objects std::into this function, which must
-    // assume
-    // that those pieces were already done
-    // just prior to this call.
-    EXPORT virtual bool ResyncWithServer(
-        const Ledger& theNymbox,
-        const Nym& theMessageNym) = 0;
     EXPORT virtual bool SetInboxHash(
         const std::string& acct_id,
         const Identifier& theInput) = 0;  // client-side

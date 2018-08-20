@@ -36,6 +36,7 @@ public:
 #if OT_CASH
     void ScanMints() const override;
 #endif  // OT_CASH
+    opentxs::server::Server& Server() const override { return server_; }
 #if OT_CASH
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH

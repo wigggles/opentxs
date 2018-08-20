@@ -657,14 +657,10 @@ public:
         const Identifier& NYM_ID,
         const RequestNumber& lRequestNumber) const;
 
-    EXPORT bool ResyncNymWithServer(
-        NymFile& theNym,
-        const Ledger& theNymbox,
-        const Nym& theMessageNym) const;
-
     // These commands below send messages to the server:
 
-    EXPORT CommandResult registerNym(ServerContext& context) const;
+    EXPORT CommandResult
+    registerNym(ServerContext& context, const bool resync = false) const;
 
     EXPORT CommandResult unregisterNym(ServerContext& context) const;
 
@@ -1251,7 +1247,8 @@ private:
     NetworkReplyMessage send_message(
         const std::set<ServerContext::ManagedNumber>& pending,
         ServerContext& context,
-        const Message& message) const;
+        const Message& message,
+        const bool resync = false) const;
 
     std::set<std::unique_ptr<Cheque>> extract_cheques(
         const Identifier& nymID,

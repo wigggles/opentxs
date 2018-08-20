@@ -30,9 +30,20 @@ public:
     }
     bool processServerReply(
         const std::set<ServerContext::ManagedNumber>& managed,
+        const bool resync,
+        ServerContext& context,
+        std::shared_ptr<Message>& reply);
+    bool processServerReply(
+        const std::set<ServerContext::ManagedNumber>& managed,
         ServerContext& context,
         std::shared_ptr<Message>& reply,
-        Ledger* pNymbox = nullptr);
+        Ledger* pNymbox);
+    bool processServerReply(
+        const std::set<ServerContext::ManagedNumber>& managed,
+        const bool resync,
+        ServerContext& context,
+        std::shared_ptr<Message>& reply,
+        Ledger* pNymbox);
     std::int32_t ProcessUserCommand(
         const MessageType requestedCommand,
         ServerContext& context,
@@ -171,6 +182,9 @@ private:
     bool processServerReplyRegisterAccount(
         const Message& theReply,
         const Identifier& accountID,
+        ServerContext& context);
+    bool processServerReplyResyncContext(
+        const Message& theReply,
         ServerContext& context);
     void ProcessIncomingCronItemReply(
         std::shared_ptr<Item> pReplyItem,

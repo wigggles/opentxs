@@ -234,6 +234,9 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const std::string& password) const override;
+    Action ResyncContext(
+        const Identifier& localNymID,
+        const Identifier& serverID) const override;
 #if OT_CASH
     Action SendCash(
         const Identifier& localNymID,

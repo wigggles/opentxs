@@ -469,6 +469,40 @@ bool ServerContext::RemoveTentativeNumber(const TransactionNumber& number)
     return remove_tentative_number(lock, number);
 }
 
+bool ServerContext::Resync(const proto::Context& serialized)
+{
+    Lock lock(lock_);
+    std::set<TransactionNumber> serverNumbers{};
+
+    for (const auto& number : serialized.issuedtransactionnumber()) {
+        serverNumbers.insert(number);
+        auto exists = (1 == issued_transaction_numbers_.count(number));
+
+        if (false == exists) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Server believes number "
+                  << number << " is still issued. Restoring." << std::endl;
+            issued_transaction_numbers_.insert(number);
+            available_transaction_numbers_.insert(number);
+        }
+    }
+
+    for (const auto& number : issued_transaction_numbers_) {
+        auto exists = (1 == serverNumbers.count(number));
+
+        if (false == exists) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Server believes number "
+                  << number << " is no longer issued. Removing." << std::endl;
+            issued_transaction_numbers_.erase(number);
+            available_transaction_numbers_.erase(number);
+        }
+    }
+
+    std::set<TransactionNumber> notUsed{};
+    update_highest(lock, issued_transaction_numbers_, notUsed, notUsed);
+
+    return true;
+}
+
 std::uint64_t ServerContext::Revision() const { return revision_.load(); }
 
 void ServerContext::scan_number_set(

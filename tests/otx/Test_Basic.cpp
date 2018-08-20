@@ -4,6 +4,8 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/opentxs.hpp"
+#include "server/Server.hpp"
+#include "server/Transactor.hpp"
 
 #include <gtest/gtest.h>
 
@@ -43,6 +45,7 @@ public:
     static const OTIdentifier bob_nym_id_;
     static const std::shared_ptr<const ServerContract> server_contract_;
     static const std::shared_ptr<const UnitDefinition> asset_contract_1_;
+    static TransactionNumber cheque_transaction_number_;
 
     const opentxs::api::client::Manager& client_1_;
     const opentxs::api::client::Manager& client_2_;
@@ -56,6 +59,16 @@ public:
         , server_id_(server_.ID())
     {
         if (false == init_) { init(); }
+    }
+
+    void break_consensus()
+    {
+        TransactionNumber newNumber{0};
+        server_.Server().GetTransactor().issueNextTransactionNumber(newNumber);
+
+        auto context = server_.Wallet().mutable_ClientContext(
+            server_.NymID(), alice_nym_id_);
+        context.It().IssueNumber(newNumber);
     }
 
     void import_server_contract(
@@ -118,7 +131,8 @@ public:
 
     OTIdentifier find_issuer_account()
     {
-        const auto accounts = client_1_.Storage().AccountsByOwner(alice_nym_id_);
+        const auto accounts =
+            client_1_.Storage().AccountsByOwner(alice_nym_id_);
 
         OT_ASSERT(1 == accounts.size());
 
@@ -255,6 +269,7 @@ const std::shared_ptr<const ServerContract> Test_Basic::server_contract_{
     nullptr};
 const std::shared_ptr<const UnitDefinition> Test_Basic::asset_contract_1_{
     nullptr};
+TransactionNumber Test_Basic::cheque_transaction_number_{0};
 
 TEST_F(Test_Basic, getRequestNumber_not_registered)
 {
@@ -423,7 +438,8 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_1_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{
+        client_1_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -557,7 +573,8 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_1_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{
+        client_1_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -979,7 +996,8 @@ TEST_F(Test_Basic, getBoxReceipt_transaction_numbers_bob)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{
+        client_2_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -1158,7 +1176,8 @@ TEST_F(Test_Basic, getBoxReceipt_success_notice_Bob)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{
+        client_2_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -1309,6 +1328,10 @@ TEST_F(Test_Basic, send_cheque)
 
     ASSERT_TRUE(cheque);
 
+    cheque_transaction_number_ = cheque->GetTransactionNum();
+
+    EXPECT_NE(0, cheque_transaction_number_);
+
     std::unique_ptr<OTPayment> payment{
         client_1_.Factory().Payment(String(*cheque))};
 
@@ -1406,7 +1429,8 @@ TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)
 
     ASSERT_TRUE(clientContext);
 
-    std::unique_ptr<Ledger> nymbox{client_2_.OTAPI().LoadNymbox(serverID, nymID)};
+    std::unique_ptr<Ledger> nymbox{
+        client_2_.OTAPI().LoadNymbox(serverID, nymID)};
 
     ASSERT_TRUE(nymbox);
 
@@ -1883,6 +1907,38 @@ TEST_F(Test_Basic, getNymbox_after_processInbox)
     const auto [requestNumber, transactionNumber, reply] =
         client_1_.OTAPI().getNymbox(serverContext.It());
     const auto& [result, message] = reply;
+    verify_state_post(
+        client_1_,
+        *clientContext,
+        serverContext.It(),
+        sequence,
+        requestNumber,
+        transactionNumber,
+        result,
+        message,
+        SUCCESS,
+        NYMBOX_SAME,
+        NO_TRANSACTION,
+        0);
+}
+
+TEST_F(Test_Basic, resync)
+{
+    break_consensus();
+    const RequestNumber sequence{19};
+    auto serverContext =
+        client_1_.Wallet().mutable_ServerContext(alice_nym_id_, server_id_);
+    auto clientContext =
+        server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
+
+    ASSERT_TRUE(clientContext);
+
+    verify_state_pre(*clientContext, serverContext.It(), sequence);
+    const auto [requestNumber, transactionNumber, reply] =
+        client_1_.OTAPI().registerNym(serverContext.It(), true);
+    const auto& [result, message] = reply;
+    clientContext =
+        server_.Wallet().ClientContext(server_.NymID(), alice_nym_id_);
     verify_state_post(
         client_1_,
         *clientContext,

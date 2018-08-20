@@ -92,6 +92,13 @@ public:
         const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
+        const bool resync);
+    explicit OTAPI_Func(
+        OTAPI_Func_Type theType,
+        std::recursive_mutex& apilock,
+        const api::client::Manager& api,
+        const Identifier& nymID,
+        const Identifier& serverID,
         const std::string& password);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
@@ -367,6 +374,7 @@ private:
     bool isPrimary_{false};
     bool selling_{false};
     bool cash_{false};
+    bool resync_{false};
     time64_t lifetime_{OT_TIME_ZERO};
     std::int32_t nRequestNum_{-1};
     std::int32_t nTransNumsNeeded_{0};

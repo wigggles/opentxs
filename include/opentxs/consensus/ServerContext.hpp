@@ -106,6 +106,7 @@ public:
     ManagedNumber NextTransactionNumber(const MessageType reason);
     NetworkReplyMessage PingNotary();
     bool RemoveTentativeNumber(const TransactionNumber& number);
+    bool Resync(const proto::Context& serialized);
     void SetAdminAttempted();
     void SetAdminPassword(const std::string& password);
     void SetAdminSuccess();
