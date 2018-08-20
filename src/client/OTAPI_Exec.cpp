@@ -2031,7 +2031,9 @@ std::string OTAPI_Exec::GetNym_NymboxHash(
     auto context = api_.Wallet().ServerContext(
         Identifier::Factory(NYM_ID), Identifier::Factory(NOTARY_ID));
 
-    return context->LocalNymboxHash()->str();
+    if (context) { return context->LocalNymboxHash()->str(); }
+
+    return "";
 }
 
 // Returns RecentHash (based on NotaryID)
@@ -2050,7 +2052,9 @@ std::string OTAPI_Exec::GetNym_RecentHash(
     auto context = api_.Wallet().ServerContext(
         Identifier::Factory(NYM_ID), Identifier::Factory(NOTARY_ID));
 
-    return context->RemoteNymboxHash()->str();
+    if (context) { return context->RemoteNymboxHash()->str(); }
+
+    return "";
 }
 
 std::string OTAPI_Exec::GetNym_InboxHash(
@@ -3229,7 +3233,9 @@ std::int32_t OTAPI_Exec::GetNym_TransactionNumCount(
 
     auto context = api_.Wallet().ServerContext(theNymID, theNotaryID);
 
-    return context->AvailableNumbers();
+    if (context) { return context->AvailableNumbers(); }
+
+    return -1;
 }
 
 // based on Index (above 4 functions) this returns the Server's ID

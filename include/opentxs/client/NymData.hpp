@@ -155,7 +155,7 @@ class NymData
 {
 public:
     NymData(const NymData&);
-    NymData(NymData&&) = default;
+    NymData(NymData&&);
 
     const proto::CredentialIndex asPublicNym() const;
     std::string BestEmail() const;
@@ -213,6 +213,7 @@ public:
         const proto::ContactItemType type,
         const bool primary,
         const bool active);
+    void Release();
     bool SetCommonName(const std::string& name);
     bool SetContactData(const proto::ContactData& data);
     bool SetScope(
@@ -239,6 +240,8 @@ private:
 
     const opentxs::Nym& nym() const;
     opentxs::Nym& nym();
+
+    void release();
 
     NymData(
         const api::Factory& factory,

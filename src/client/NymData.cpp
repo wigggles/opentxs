@@ -23,17 +23,6 @@
 
 namespace opentxs
 {
-// This constructor is only used by Swig.  Swig doesn't support move
-// constructors, so this copy constructor implements move semantics.
-NymData::NymData(const NymData& rhs)
-    : factory_{rhs.factory_}
-    , object_lock_(std::move(const_cast<NymData&>(rhs).object_lock_))
-    , locked_save_callback_(
-          std::move(const_cast<NymData&>(rhs).locked_save_callback_))
-    , nym_(std::move(const_cast<NymData&>(rhs).nym_))
-{
-}
-
 NymData::NymData(
     const api::Factory& factory,
     std::mutex& objectMutex,
@@ -46,6 +35,21 @@ NymData::NymData(
 {
     OT_ASSERT(object_lock_);
     OT_ASSERT(locked_save_callback_);
+}
+
+NymData::NymData(NymData&& rhs)
+    : factory_{rhs.factory_}
+    , object_lock_(std::move(rhs.object_lock_))
+    , locked_save_callback_(std::move(rhs.locked_save_callback_))
+    , nym_(std::move(rhs.nym_))
+{
+}
+
+// This constructor is only used by Swig.  Swig doesn't support move
+// constructors, so this copy constructor implements move semantics.
+NymData::NymData(const NymData& rhs)
+    : NymData(std::move(const_cast<NymData&>(rhs)))
+{
 }
 
 std::string NymData::AddChildKeyCredential(
@@ -230,6 +234,25 @@ std::string NymData::PrintContactData() const
     return ContactData::PrintContactData(data().Serialize(true));
 }
 
+void NymData::Release() { release(); }
+
+void NymData::release()
+{
+    if (locked_save_callback_) {
+        auto callback = *locked_save_callback_;
+        callback(this, *object_lock_);
+    }
+
+    locked_save_callback_.reset();
+
+    if (object_lock_) {
+        object_lock_->unlock();
+        object_lock_.reset();
+    }
+
+    nym_.reset();
+}
+
 bool NymData::SetCommonName(const std::string& name)
 {
     return nym().SetCommonName(name);
@@ -274,11 +297,5 @@ std::unique_ptr<proto::VerificationSet> NymData::VerificationSet() const
     return nym().VerificationSet();
 }
 
-NymData::~NymData()
-{
-    if (locked_save_callback_) {
-        auto callback = *locked_save_callback_;
-        callback(this, *object_lock_);
-    }
-}
+NymData::~NymData() { release(); }
 }  // namespace opentxs
