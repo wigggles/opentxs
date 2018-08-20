@@ -2839,15 +2839,7 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
     const auto& msgIn = reply.Original();
     otLog3 << OT_METHOD << __FUNCTION__
            << ": Re-registering nym: " << msgIn.m_strNymID << std::endl;
-
-    String strNymContents;
     const auto& nym = reply.Context().RemoteNym();
-    auto nymfile = reply.Context().Nymfile("");
-
-    OT_ASSERT(nymfile)
-
-    nymfile->SerializeNymFile(strNymContents);
-    reply.SetPayload(strNymContents);
     const auto& serverNym = *context.Nym();
     const auto& serverID = context.Server();
     const auto& targetNymID = nym.ID();
@@ -2867,6 +2859,7 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
         return false;
     }
 
+    reply.SetPayload(proto::ProtoAsData(context.Serialized()));
     reply.SetSuccess(true);
 
     return true;

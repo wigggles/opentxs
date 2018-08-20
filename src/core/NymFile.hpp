@@ -52,8 +52,6 @@ public:
     }
     bool RemoveOutpaymentsByIndex(const std::int32_t nIndex) override;
     bool RemoveOutpaymentsByTransNum(const std::int64_t lTransNum) override;
-    bool ResyncWithServer(const Ledger& theNymbox, const Nym& theMessageNym)
-        override;
     bool SaveSignedNymFile(const Nym& SIGNER_NYM);
     bool SetInboxHash(
         const std::string& acct_id,

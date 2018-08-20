@@ -248,6 +248,10 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const std::string& password) const = 0;
+    /** WARNING: Do not use this unless absolutely necessary */
+    EXPORT virtual Action ResyncContext(
+        const Identifier& localNymID,
+        const Identifier& serverID) const = 0;
 #if OT_CASH
     EXPORT virtual Action SendCash(
         const Identifier& localNymID,

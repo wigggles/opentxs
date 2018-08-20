@@ -7074,6 +7074,41 @@ bool OTClient::processServerReplyRegisterAccount(
     return false;
 }
 
+bool OTClient::processServerReplyResyncContext(
+    const Message& theReply,
+    ServerContext& context)
+{
+    auto serialized = proto::DataToProto<proto::Context>(
+        Data::Factory(theReply.m_ascPayload));
+    auto verified = proto::Validate(serialized, SILENT);
+
+    if (false == verified) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid context." << std::endl;
+
+        return false;
+    }
+
+    return context.Resync(serialized);
+}
+
+bool OTClient::processServerReply(
+    const std::set<ServerContext::ManagedNumber>& managed,
+    const bool resync,
+    ServerContext& context,
+    std::shared_ptr<Message>& reply)
+{
+    return processServerReply(managed, resync, context, reply, nullptr);
+}
+
+bool OTClient::processServerReply(
+    const std::set<ServerContext::ManagedNumber>& managed,
+    ServerContext& context,
+    std::shared_ptr<Message>& reply,
+    Ledger* pNymbox)
+{
+    return processServerReply(managed, false, context, reply, pNymbox);
+}
+
 /// We have just received a message from the server. Find out what it is and do
 /// the appropriate processing. Perhaps we just tried to create an account --
 /// this could be our new account! Let's make sure we receive it and save it
@@ -7085,6 +7120,7 @@ bool OTClient::processServerReplyRegisterAccount(
 /// verified and processed.
 bool OTClient::processServerReply(
     const std::set<ServerContext::ManagedNumber>& managed,
+    const bool resync,
     ServerContext& context,
     std::shared_ptr<Message>& reply,
     Ledger* pNymbox)
@@ -7238,6 +7274,9 @@ bool OTClient::processServerReply(
     }
     if (theReply.m_strCommand.Compare("unregisterNymResponse")) {
         return processServerReplyUnregisterNym(theReply, context);
+    }
+    if (resync && theReply.m_strCommand.Compare("registerNymResponse")) {
+        return processServerReplyResyncContext(theReply, context);
     }
     if (theReply.m_strCommand.Compare("unregisterAccountResponse")) {
         return processServerReplyUnregisterAccount(theReply, context);

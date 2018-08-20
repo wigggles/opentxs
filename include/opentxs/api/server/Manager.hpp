@@ -49,6 +49,7 @@ public:
 #if OT_CASH
     EXPORT virtual void ScanMints() const = 0;
 #endif  // OT_CASH
+    EXPORT virtual opentxs::server::Server& Server() const = 0;
 #if OT_CASH
     EXPORT virtual void UpdateMint(const Identifier& unitID) const = 0;
 #endif  // OT_CASH

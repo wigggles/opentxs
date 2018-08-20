@@ -853,7 +853,8 @@ ServerAction::Action ServerAction::RegisterNym(
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
-        serverID));
+        serverID,
+        false));
 }
 
 ServerAction::Action ServerAction::RequestAdmin(
@@ -868,6 +869,19 @@ ServerAction::Action ServerAction::RequestAdmin(
         localNymID,
         serverID,
         password));
+}
+
+ServerAction::Action ServerAction::ResyncContext(
+    const Identifier& localNymID,
+    const Identifier& serverID) const
+{
+    return Action(new OTAPI_Func(
+        REGISTER_NYM,
+        lock_callback_({localNymID.str(), serverID.str()}),
+        api_,
+        localNymID,
+        serverID,
+        true));
 }
 
 #if OT_CASH

@@ -7382,51 +7382,6 @@ bool OT_API::ClearRecord(
     return false;
 }
 
-// This function assumes you have already downloaded the latest copy of your
-// Nymbox,
-// and that you have already retrieved theMessageNym from the
-// registerNymResponse
-// message, with both objects being loaded and passed as arguments here,
-// ready to go.
-//
-bool OT_API::ResyncNymWithServer(
-    NymFile& theNym,
-    const Ledger& theNymbox,
-    const Nym& theMessageNym) const
-{
-    return false;
-
-    // rLock lock(lock_);
-
-    if (ledgerType::nymbox != theNymbox.GetType()) {
-        otErr << "OT_API::ResyncNymWithServer: Error: Expected a Nymbox, "
-                 "but you passed in a "
-              << theNymbox.GetTypeString() << ".\n";
-        return false;
-    }
-    if (!theNym.CompareID(theNymbox.GetNymID())) {
-        const String id1(theNym.ID()), id2(theNymbox.GetNymID());
-        otErr << "OT_API::ResyncNymWithServer: Error: NymID of Nym (" << id1
-              << ") "
-                 "doesn't match NymID on (supposedly) his own Nymbox "
-                 "("
-              << id2 << ").\n";
-        return false;
-    }
-    //    if (!theNym.CompareID(theMessageNym))
-    //    {
-    //        const OTString id1(theNym.GetConstID()),
-    // id2(theMessageNym.GetConstID());
-    //        otErr << "OT_API::ResyncNymWithServer: Error: NymID of Nym
-    // (" << id1 << ") doesn't match NymID on (supposedly) his server-side
-    // doppelganger
-    // (" << id2 << ").\n";
-    //        return false;
-    //    }
-
-    return theNym.ResyncWithServer(theNymbox, theMessageNym);
-}
-
 // INCOMING SERVER REPLIES
 
 // OUTOING MESSSAGES
@@ -12323,7 +12278,8 @@ bool OT_API::Ledger_FinalizeResponse(
 //
 // Update: DONE.
 
-CommandResult OT_API::registerNym(ServerContext& context) const
+CommandResult OT_API::registerNym(ServerContext& context, const bool resync)
+    const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -12352,7 +12308,7 @@ CommandResult OT_API::registerNym(ServerContext& context) const
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
-    result = send_message({}, context, *message);
+    result = send_message({}, context, *message, resync);
 
     if (SendResult::VALID_REPLY == status) {
         OT_ASSERT(reply);
@@ -12400,7 +12356,8 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
 NetworkReplyMessage OT_API::send_message(
     const std::set<ServerContext::ManagedNumber>& pending,
     ServerContext& context,
-    const Message& message) const
+    const Message& message,
+    const bool resync) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -12409,7 +12366,7 @@ NetworkReplyMessage OT_API::send_message(
     auto result = context.Connection().Send(message);
 
     if (SendResult::VALID_REPLY == result.first) {
-        m_pClient->processServerReply(pending, context, result.second);
+        m_pClient->processServerReply(pending, resync, context, result.second);
     }
 
     return result;

@@ -183,6 +183,7 @@ OTAPI_Func::OTAPI_Func(
     , isPrimary_(false)
     , selling_(false)
     , cash_(false)
+    , resync_(false)
     , lifetime_(OT_TIME_ZERO)
     , nRequestNum_(-1)
     , nTransNumsNeeded_(0)
@@ -222,17 +223,28 @@ OTAPI_Func::OTAPI_Func(
     : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     if (theType == DELETE_NYM) {
-        nTransNumsNeeded_ = 0;           // Is this true?
-    } else if (theType == REGISTER_NYM)  // FYI.
-    {
         nTransNumsNeeded_ = 0;
-    } else if (theType == GET_MARKET_LIST)  // FYI
-    {
+    } else if (theType == GET_MARKET_LIST) {
         nTransNumsNeeded_ = 0;
-    } else if (theType == GET_NYM_MARKET_OFFERS)  // FYI
-    {
+    } else if (theType == GET_NYM_MARKET_OFFERS) {
         nTransNumsNeeded_ = 0;
     } else if (theType != GET_TRANSACTION_NUMBERS) {
+        OT_FAIL
+    }
+}
+
+OTAPI_Func::OTAPI_Func(
+    OTAPI_Func_Type theType,
+    std::recursive_mutex& apilock,
+    const api::client::Manager& api,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const bool resync)
+    : OTAPI_Func(apilock, api, nymID, serverID, theType)
+{
+    if (theType == REGISTER_NYM) {
+        resync_ = resync;
+    } else {
         OT_FAIL
     }
 }
@@ -1152,7 +1164,7 @@ void OTAPI_Func::run()
             last_attempt_ = api_.OTAPI().checkNym(context_, targetID_);
         } break;
         case REGISTER_NYM: {
-            last_attempt_ = api_.OTAPI().registerNym(context_);
+            last_attempt_ = api_.OTAPI().registerNym(context_, resync_);
         } break;
         case DELETE_NYM: {
             last_attempt_ = api_.OTAPI().unregisterNym(context_);
