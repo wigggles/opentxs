@@ -34,6 +34,8 @@
 #include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
+#include <array>
+
 #include "Factory.hpp"
 
 //#define OT_METHOD "opentxs::api::implementation::Factory::"
@@ -222,7 +224,7 @@ std::unique_ptr<OTCron> Factory::Cron(const api::Core& server) const
 
 std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
 {
-    static char buf[45] = "";
+    std::array<char, 45> buf{};
 
     if (!strCronItem.Exists()) {
         otErr << __FUNCTION__
@@ -241,12 +243,11 @@ std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
     }
 
     strContract.reset();  // for sgets
-    buf[0] = 0;           // probably unnecessary.
-    bool bGotLine = strContract.sgets(buf, 40);
+    bool bGotLine = strContract.sgets(buf.data(), 40);
 
     if (!bGotLine) return nullptr;
 
-    String strFirstLine(buf);
+    String strFirstLine(buf.data());
     // set the "file" pointer within this string back to index 0.
     strContract.reset();
 
@@ -836,7 +837,7 @@ std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
 
 std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
 {
-    static char buf[45] = "";
+    std::array<char, 45> buf{};
 
     if (!strInput.Exists()) {
         otErr << __FUNCTION__ << ": Failure: Input string is empty.\n";
@@ -860,14 +861,13 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
     // either way.)
     //
     strContract.reset();  // for sgets
-    buf[0] = 0;           // probably unnecessary.
-    bool bGotLine = strContract.sgets(buf, 40);
+    bool bGotLine = strContract.sgets(buf.data(), 40);
 
     if (!bGotLine) return nullptr;
 
     std::unique_ptr<OTScriptable> pItem;
 
-    String strFirstLine(buf);
+    String strFirstLine(buf.data());
     strContract.reset();  // set the "file" pointer within this string back to
                           // index 0.
 
