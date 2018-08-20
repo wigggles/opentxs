@@ -131,15 +131,24 @@ public:
         const OTPasswordData* pPWData = nullptr) const;
 #endif
 
-    OpenSSLdp(const api::Crypto& crypto)
+    OpenSSLdp(
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+        const api::Crypto& crypto
+#endif
+        )
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
         : crypto_(crypto)
+#endif
     {
     }
 
 private:
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
     const api::Crypto& crypto_;
 
     OpenSSLdp() = delete;
+#endif
+
     OpenSSLdp(OpenSSLdp&) = delete;
     OpenSSLdp(const OpenSSLdp&&) = delete;
     OpenSSLdp& operator=(OpenSSLdp&) = delete;
@@ -153,7 +162,11 @@ OpenSSL::OpenSSL(const api::Crypto& crypto)
     ,
 #endif
     crypto_(crypto)
-    , dp_(new OpenSSLdp(crypto_))
+    , dp_(new OpenSSLdp(
+#if OT_CRYPTO_SUPPORTED_KEY_RSA
+          crypto_
+#endif
+          ))
     , lock_()
 {
 }
