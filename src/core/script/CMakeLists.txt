@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs-script)
+
 set(cxx-sources
   OTStash.cpp
   OTStashItem.cpp
@@ -24,15 +26,6 @@ set(cxx-headers
   ${cxx-install-headers}
 )
 
-set(dependency_include_dir
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/
-)
-
-include_directories(SYSTEM
-  ${dependency_include_dir}
-  ${dependency_include_dir}/ChaiScript/include/
-)
-
 if (WIN32)
   # suppress "decorated name length exceeded, name was truncated" warnings
   add_definitions(/wd4503)
@@ -41,7 +34,6 @@ if (WIN32)
   add_definitions(/bigobj)
 endif()
 
-set(MODULE_NAME opentxs-script)
 add_library(${MODULE_NAME}
   OBJECT
   ${cxx-sources}
@@ -51,5 +43,6 @@ add_library(${MODULE_NAME}
 install(FILES ${cxx-install-headers}
         DESTINATION include/opentxs/core/script
         COMPONENT dev)
-
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
+target_include_directories(${MODULE_NAME} PRIVATE "../../../deps/ChaiScript/include")
+target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")

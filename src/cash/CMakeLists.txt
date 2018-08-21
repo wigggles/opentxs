@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs-cash)
+
 set(cxx-sources
   Mint.cpp
   MintLucre.cpp
@@ -18,20 +20,6 @@ set(cxx-headers
   ${cxx-install-headers}
 )
 
-set(dependency_include_dir
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../deps/
-)
-
-include_directories(SYSTEM
-  ${dependency_include_dir}
-  ${dependency_include_dir}/lucre/include/
-)
-
-include_directories(SYSTEM
-  ${OPENSSL_INCLUDE_DIR}
-)
-
-set(MODULE_NAME opentxs-cash)
 if(WIN32)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
@@ -58,3 +46,6 @@ install(FILES ${cxx-install-headers}
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+target_include_directories(${MODULE_NAME} PUBLIC ${OT_SSL_HEADERS})
+target_include_directories(${MODULE_NAME} PUBLIC "../../deps")
+target_include_directories(${MODULE_NAME} PUBLIC "../../deps/lucre/include")

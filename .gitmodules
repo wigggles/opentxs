@@ -25,3 +25,6 @@
 [submodule "deps/opentxs-proto"]
 	path = deps/opentxs-proto
 	url = https://github.com/Open-Transactions/opentxs-proto.git
+[submodule "deps/libressl"]
+	path = deps/libressl
+	url = https://github.com/libressl-portable/portable

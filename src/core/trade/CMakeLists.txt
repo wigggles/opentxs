@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs-trade)
+
 set(cxx-sources
   OTOffer.cpp
   OTMarket.cpp
@@ -15,15 +17,6 @@ set(cxx-headers
   ${cxx-install-headers}
 )
 
-set(dependency_include_dir
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/
-)
-
-include_directories(SYSTEM
-  ${dependency_include_dir}
-)
-
-set(MODULE_NAME opentxs-trade)
 add_library(${MODULE_NAME}
   OBJECT
   ${cxx-sources}
@@ -35,3 +28,4 @@ install(FILES ${cxx-install-headers}
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
+target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")
