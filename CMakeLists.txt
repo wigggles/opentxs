@@ -5,6 +5,7 @@
 
 cmake_minimum_required(VERSION 3.5)
 project(opentxs)
+include(GNUInstallDirs)
 
 #-----------------------------------------------------------------------------
 option(OT_ANDROID       "Set Android-specific options" OFF)
@@ -776,24 +777,25 @@ if (NOT ANDROID)
 # Produce a cmake-package
 
 include(CMakePackageConfigHelpers)
-set(CMAKE_CONFIG_DEST "share/cmake/Modules")
+set(CMAKE_CONFIG_DEST "${CMAKE_INSTALL_LIBDIR}/opentxs")
 set(OPENTXS_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 
-export(TARGETS opentxs FILE "${CMAKE_BINARY_DIR}/opentxsTargets.cmake")
+if(BUILD_SHARED_LIBS)
+  set(OPENTXS_LIBRARIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_SHARED_LIBRARY_PREFIX}opentxs${CMAKE_SHARED_LIBRARY_SUFFIX}")
+else()
+  set(OPENTXS_LIBRARIES "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}opentxs${CMAKE_STATIC_LIBRARY_PREFIX}")
+endif()
 
 configure_package_config_file(
        "cmake/opentxsConfig.cmake.in"
        "${CMAKE_BINARY_DIR}/opentxsConfig.cmake"
        INSTALL_DESTINATION ${CMAKE_CONFIG_DEST}
-       PATH_VARS OPENTXS_INCLUDE_DIRS)
+       PATH_VARS OPENTXS_INCLUDE_DIRS OPENTXS_LIBRARIES)
 
 write_basic_package_version_file(
   "${CMAKE_CURRENT_BINARY_DIR}/opentxsConfigVersion.cmake"
   VERSION ${VERSION_STRING}
   COMPATIBILITY AnyNewerVersion)
-
-install(EXPORT opentxsTargets
-        DESTINATION ${CMAKE_CONFIG_DEST} FILE "opentxsTargets.cmake")
 
 install(FILES
         "${CMAKE_CURRENT_BINARY_DIR}/opentxsConfig.cmake"
@@ -801,16 +803,16 @@ install(FILES
         DESTINATION ${CMAKE_CONFIG_DEST}
         COMPONENT dev)
 
+install(EXPORT opentxs-targets DESTINATION ${CMAKE_CONFIG_DEST})
+
 #-----------------------------------------------------------------------------
 # Produce a pkg-config file
 
-if(NOT WIN32)
-	configure_file("cmake/opentxs.pc.in" "opentxs.pc" @ONLY)
-	include(GNUInstallDirs)
-	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opentxs.pc"
-		DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
-		COMPONENT main)
-endif()
+string(REGEX REPLACE "^${CMAKE_INSTALL_PREFIX}(.*)" "\\1" LIB_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}")
+configure_file("cmake/opentxs.pc.in" "opentxs.pc" @ONLY)
+  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/opentxs.pc"
+          DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+          COMPONENT main)
 
 #-----------------------------------------------------------------------------
 # Install
