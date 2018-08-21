@@ -68,6 +68,7 @@ private:
         const Message& message,
         const PeerObject& peerObject,
         const TransactionNumber number);
+    bool harvest_unused(ServerContext& context);
     bool init_new_account(const Identifier& accountID, ServerContext& context)
         const;
     void ProcessIncomingTransaction(
