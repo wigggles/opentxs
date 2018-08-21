@@ -329,6 +329,13 @@ bool Context::issue_number(const Lock& lock, const TransactionNumber& number)
     return output;
 }
 
+std::set<TransactionNumber> Context::IssuedNumbers() const
+{
+    Lock lock(lock_);
+
+    return issued_transaction_numbers_;
+}
+
 std::string Context::LegacyDataFolder() const { return api_.DataFolder(); }
 
 OTIdentifier Context::LocalNymboxHash() const

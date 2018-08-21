@@ -36,6 +36,7 @@ public:
     const api::Core& Api() const { return api_; }
     std::size_t AvailableNumbers() const;
     bool HaveLocalNymboxHash() const;
+    std::set<TransactionNumber> IssuedNumbers() const;
     bool HaveRemoteNymboxHash() const;
     std::string Name() const override;
     bool NymboxHashMatch() const;

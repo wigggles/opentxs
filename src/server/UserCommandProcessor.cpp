@@ -56,7 +56,7 @@
 #include <string>
 
 #define OT_METHOD "opentxs::UserCommandProcessor::"
-#define MAX_UNUSED_NUMBERS 50
+#define MAX_UNUSED_NUMBERS 100
 #define ISSUE_NUMBER_BATCH 100
 #define NYMBOX_DEPTH 0
 #define INBOX_DEPTH 1

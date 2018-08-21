@@ -1832,12 +1832,13 @@ TEST_F(Test_Basic, processInbox)
 
     ASSERT_FALSE(accountID->empty());
 
-    auto [response, inbox] =
+    auto [response, inbox, number] =
         client_1_.OTAPI().CreateProcessInbox(accountID, serverContext.It());
 
     ASSERT_TRUE(response);
     ASSERT_TRUE(inbox);
     ASSERT_EQ(1, inbox->GetTransactionCount());
+    EXPECT_NE(0, number);
 
     auto transaction = inbox->GetTransactionByIndex(0);
 

@@ -11710,16 +11710,19 @@ OT_API::ProcessInbox OT_API::Ledger_CreateResponse(
 
     OT_ASSERT(nym);
 
-    auto context = api_.Wallet().ServerContext(theNymID, theNotaryID);
+    {
+        auto context = api_.Wallet().ServerContext(theNymID, theNotaryID);
 
-    if (false == bool(context)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << theNymID.str()
-              << " is not registered on " << theNotaryID.str() << std::endl;
+        if (false == bool(context)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Nym " << theNymID.str()
+                  << " is not registered on " << theNotaryID.str() << std::endl;
 
-        OT_FAIL;
+            OT_FAIL;
+        }
     }
 
-    auto response = CreateProcessInbox(theAccountID, *context);
+    auto context = api_.Wallet().mutable_ServerContext(theNymID, theNotaryID);
+    auto response = CreateProcessInbox(theAccountID, context.It());
 
     // response is of type "ProcessInbox":
     //
@@ -11732,25 +11735,11 @@ OT_API::ProcessInbox OT_API::Ledger_CreateResponse(
     // ledger, which is the client's reply to the nymbox contents,
     // signing to officially "receive" those contents so the server
     // can erase them out of the box.
-    //
     auto& processInbox = std::get<0>(response);
-    // ------------------------------------------
-    // The inbox we're responding to in our client request.
-    //
-    // TODO: Almost certainly we're supposed to be deleting
-    // the "inbox" variable here. It comes from a function that
-    // explicitly warns "caller needs to delete".
-    // Yet there are places that call CreateProcessInbox, which
-    // do not perform any such delete...
-    //
     auto& inbox = std::get<1>(response);
-    // delete inbox; inbox = nullptr;
-    // TODO THIS SHOULD BE UNCOMMENTED, OR IT'S A MEMORY LEAK.
-    // UPDATE: Actually I switched this to a unique pointer to fix
-    // all that, so should no longer be necessary. I'll test, then
-    // remove this comment.
-    // ------------------------------------------
+
     if (processInbox && inbox) { return response; }
+
     return {};
 }
 
@@ -12621,7 +12610,7 @@ std::string OT_API::BoxContents(
 
 OT_API::ProcessInbox OT_API::CreateProcessInbox(
     const Identifier& accountID,
-    const ServerContext& context) const
+    ServerContext& context) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -12630,7 +12619,7 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     OT_API::ProcessInbox output{};
-    auto& [processInbox, inbox] = output;
+    auto& [processInbox, inbox, number] = output;
     inbox.reset(LoadInbox(serverID, nymID, accountID).release());
 
     if (false == bool(inbox)) {
@@ -12652,6 +12641,18 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
               << account << std::endl;
         return {};
     }
+
+    auto transaction =
+        get_or_create_process_inbox(accountID, context, *processInbox);
+
+    if (nullptr == processInbox) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to create processInbox transaction." << std::endl;
+
+        return {};
+    }
+
+    number = transaction->GetTransactionNum();
 
     return output;
 }

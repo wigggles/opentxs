@@ -222,12 +222,41 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
     const Identifier& accountID,
     ServerContext& context) const
 {
+    class Cleanup
+    {
+    public:
+        void SetSuccess() { recover_ = false; }
+
+        Cleanup(const TransactionNumber number, ServerContext& context)
+            : context_(context)
+            , number_(number)
+        {
+        }
+        Cleanup() = delete;
+        ~Cleanup()
+        {
+            if (recover_ && (0 != number_)) {
+                otErr << OT_METHOD << "Cleanup::" << __FUNCTION__
+                      << ": Recovering unused number " << number_ << std::endl;
+                const bool recovered = context_.RecoverAvailableNumber(number_);
+
+                if (false == recovered) { otErr << "Failed" << std::endl; }
+            }
+        }
+
+    private:
+        ServerContext& context_;
+        const TransactionNumber number_{0};
+        bool recover_{true};
+    };
+
     std::pair<bool, std::size_t> output{false, 0};
     auto& [success, remaining] = output;
     const std::string account = accountID.str();
     auto processInbox = client_.OTAPI().CreateProcessInbox(accountID, context);
     auto& response = std::get<0>(processInbox);
     auto& inbox = std::get<1>(processInbox);
+    auto& recoverNumber = std::get<2>(processInbox);
 
     if (false == bool(response)) {
         if (nullptr == inbox) {
@@ -244,6 +273,7 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
         return output;
     }
 
+    Cleanup cleanup(recoverNumber, context);
     const std::size_t items =
         (inbox->GetTransactionCount() >= 0) ? inbox->GetTransactionCount() : 0;
     const std::size_t count = (items > max) ? max : items;
@@ -314,6 +344,8 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
         context.Nym()->ID(), context.Server(), accountID, response);
     action->Run();
     success = (SendResult::VALID_REPLY == action->LastSendResult());
+
+    if (success) { cleanup.SetSuccess(); }
 
     return output;
 }

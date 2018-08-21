@@ -42,7 +42,10 @@ class Manager;
 class OT_API : Lockable
 {
 public:
-    typedef std::pair<std::unique_ptr<Ledger>, std::unique_ptr<Ledger>>
+    typedef std::tuple<
+        std::unique_ptr<Ledger>,
+        std::unique_ptr<Ledger>,
+        TransactionNumber>
         ProcessInbox;
 
     EXPORT bool GetWalletFilename(String& strPath) const;
@@ -601,7 +604,7 @@ public:
 
     EXPORT ProcessInbox CreateProcessInbox(
         const Identifier& accountID,
-        const ServerContext& context) const;
+        ServerContext& context) const;
 
     EXPORT bool IncludeResponse(
         const Identifier& accountID,
