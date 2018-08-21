@@ -11,15 +11,6 @@ set(dependency_include_dir
   ${CMAKE_CURRENT_SOURCE_DIR}/../deps/
 )
 
-include_directories(SYSTEM
-  ${dependency_include_dir}
-  ${dependency_include_dir}/ChaiScript/include
-)
-
-if(LIBBITCOIN_EXPORT)
-  include_directories(SYSTEM ${LIBBITCOIN_INCLUDE_DIRS})
-endif()
-
 if(KEYRING_GNOME)
   set(keyring libgnome-keyring.so)
 endif()
@@ -46,7 +37,6 @@ endif()
 
 if(CASH_LUCRE_EXPORT)
   set(lucre $<TARGET_OBJECTS:lucre>)
-  include_directories(SYSTEM ${dependency_include_dir}/lucre/include)
 else()
   set(lucre "")
 endif()
@@ -129,6 +119,27 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-contact protobuf)
   add_dependencies(opentxs-ui protobuf)
   add_dependencies(opentxs-util protobuf)
+endif()
+
+if(OT_BUNDLED_SSL)
+  set_source_files_properties(
+    ${OT_SSL_LIBRARIES}
+    PROPERTIES
+    EXTERNAL_OBJECT true
+    GENERATED true
+  )
+
+  if(OT_CASH_EXPORT)
+    add_dependencies(opentxs-cash libressl)
+  endif()
+
+  if(CASH_LUCRE_EXPORT)
+    add_dependencies(lucre libressl)
+  endif()
+
+  add_dependencies(opentxs-core-crypto libressl)
+  add_dependencies(opentxs-crypto-key libressl)
+  add_dependencies(opentxs-crypto-library libressl)
 endif()
 
 if(OT_BUNDLED_SODIUM)
@@ -216,11 +227,11 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-util>
   ${bundled-opentxs-proto}
   ${bundled-zmq-path}
-  ${bundled-opentxs-proto-library}
   ${bundled-protobuf-path}
   ${bundled-sodium-path}
   ${bundled-secp256k1-path}
   ${bundled-sqlite}
+  ${OT_SSL_LIBRARIES}
 )
 
 set(cxx-install-headers
@@ -255,7 +266,7 @@ if(OT_SHARED)
   target_link_libraries(${MODULE_NAME}
     PRIVATE
     Threads::Threads
-    ${OPENSSL_LIBRARIES}
+    ${OT_SSL_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${OPENTXS_SYSTEM_LIBRARIES}
     ${keyring}

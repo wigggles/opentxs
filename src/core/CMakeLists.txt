@@ -130,11 +130,13 @@ if(OT_GENERATE_PROTO)
   add_dependencies(${MODULE_NAME} otprotob)
 endif()
 
-target_include_directories( ${MODULE_NAME}
+target_include_directories(${MODULE_NAME}
   PRIVATE
     ${OT_SODIUM_HEADERS}
     ${ZLIB_INCLUDE_DIRS}
     ${OPENSSL_INCLUDE_DIR}
     ${ProtobufIncludePath}
 )
+
+target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../deps/")
 #// clang-format on

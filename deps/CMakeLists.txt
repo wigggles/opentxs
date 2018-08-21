@@ -17,8 +17,6 @@ if(CASH_LUCRE_EXPORT)
     ${CMAKE_CURRENT_SOURCE_DIR}/lucre/src/bankimp.cpp
   )
 
-  include_directories(${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/ ${OPENSSL_INCLUDE_DIR})
-
   if(WIN32)
     # suppress sscanf/sprintf being unsafe warnings
     add_definitions("/wd4996")
@@ -28,10 +26,13 @@ if(CASH_LUCRE_EXPORT)
     ${lucre-sources}
   )
 
-set_property(TARGET lucre PROPERTY POSITION_INDEPENDENT_CODE 1)
+  set_property(TARGET lucre PROPERTY POSITION_INDEPENDENT_CODE 1)
+  target_include_directories(lucre
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/
+    ${OT_SSL_HEADERS}
+  )
 endif(CASH_LUCRE_EXPORT)
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 if("${OT_HOST_OVERRIDE}" STREQUAL "")
   set(OT_HOST "")
@@ -49,6 +50,41 @@ if(OT_ANDROID)
   set(OT_ANDROID_LOG "LDFLAGS=-llog")
 else()
   set(OT_ANDROID_LOG "")
+endif()
+
+if (OT_BUNDLED_SSL)
+    set(OT_SSL_LIBRARIES
+      "${CMAKE_CURRENT_BINARY_DIR}/libressl/install/lib/libcrypto.a"
+      "${CMAKE_CURRENT_BINARY_DIR}/libressl/install/lib/libssl.a"
+      CACHE INTERNAL "" FORCE)
+    include(ExternalProject)
+    ExternalProject_Add(
+        libressl
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/libressl
+        TMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/libressl/tmp
+        STAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/libressl/stamp
+        EXCLUDE_FROM_ALL 1
+        DOWNLOAD_COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/libressl/src/
+        DOWNLOAD_NO_PROGRESS 1
+        UPDATE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/libressl/src/autogen.sh
+        SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/libressl/src
+        CONFIGURE_COMMAND ${CMAKE_CURRENT_BINARY_DIR}/libressl/src/configure --prefix ${CMAKE_CURRENT_BINARY_DIR}/libressl/install ${OT_HOST} ${OT_SYSROOT} --enable-shared=no --enable-static=yes --with-pic
+        BUILD_COMMAND make "${OT_MAKEOPTS_OVERRIDE}"
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS "${OT_SSL_LIBRARIES}"
+        INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/libressl/install
+        INSTALL_COMMAND make install
+    )
+
+    ExternalProject_Add_Step(
+        libressl
+        checkout
+        COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/libressl checkout-index --all --force --prefix=${CMAKE_CURRENT_BINARY_DIR}/libressl/src/
+        DEPENDERS update
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/libressl
+    )
+else()
+    set(OT_SSL_LIBRARIES "${OPENSSL_LIBRARIES}" CACHE INTERNAL "" FORCE)
 endif()
 
 if (TREZORCRYPTO_EXPORT)
@@ -158,14 +194,14 @@ if (TREZORCRYPTO_EXPORT)
         trezor-crypto/sha2.h
         trezor-crypto/sha3.h
     )
-    include_directories(trezor-crypto)
-    include_directories(trezor-crypto/aes)
-    include_directories(trezor-crypto/chacha20poly1305)
-    include_directories(trezor-crypto/ed25519-donna)
     add_library(TrezorCrypto OBJECT ${trezor-sources} ${trezor-headers})
     set_property(TARGET TrezorCrypto PROPERTY POSITION_INDEPENDENT_CODE 1)
     set_target_properties(TrezorCrypto PROPERTIES COMPILE_FLAGS "-std=c99")
     target_compile_definitions(TrezorCrypto PRIVATE "-DRAND_PLATFORM_INDEPENDENT")
+    target_include_directories(TrezorCrypto PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/trezor-crypto")
+    target_include_directories(TrezorCrypto PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/trezor-crypto/aes")
+    target_include_directories(TrezorCrypto PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/trezor-crypto/chacha20poly1305")
+    target_include_directories(TrezorCrypto PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/trezor-crypto/ed25519-donna")
 endif()
 
 if (OT_BUNDLED_PROTOBUF)

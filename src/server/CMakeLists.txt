@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs-server)
+
 set(cxx-sources
   ConfigLoader.cpp
   MainFile.cpp
@@ -30,7 +32,6 @@ set(cxx-headers
   UserCommandProcessor.hpp
 )
 
-set(MODULE_NAME opentxs-server)
 if(WIN32)
   configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/../../cmake/windll.rc.in
@@ -53,3 +54,4 @@ endif()
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+target_include_directories(${MODULE_NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/../../deps/")

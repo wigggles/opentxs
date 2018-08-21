@@ -126,6 +126,7 @@ option(OT_HOST_OVERRIDE "Manually specify --host value for external projects" ""
 option(OT_SYSROOT_OVERRIDE "Manually specify --sysroot value for external projects" "")
 OPTION(OT_MAKEOPTS_OVERRIDE "Manually specify number of threads for external projects" "-j4")
 
+option(OT_BUNDLED_SSL "Use bundled version of libressl" OFF)
 option(OT_GENERATE_PROTO "Regenerate protobuf classes" ON)
 option(OT_BUNDLED_PROTOBUF "Use bundled version of protobuf" OFF)
 option(OT_BUNDLED_SODIUM "Use bundled version of libsodium" OFF)
@@ -222,6 +223,7 @@ message(STATUS "Script engines-------------------------------")
 message(STATUS "Chai:                   ${OT_SCRIPT_USING_CHAI}")
 
 message(STATUS "Dependencies---------------------------------")
+message(STATUS "Bundled libressl:       ${OT_BUNDLED_SSL}")
 message(STATUS "Bundled protobuf:       ${OT_BUNDLED_PROTOBUF}")
 message(STATUS "Regenerate otprotob:    ${OT_GENERATE_PROTO}")
 message(STATUS "Bundled sodium:         ${OT_BUNDLED_SODIUM}")
@@ -331,11 +333,11 @@ else()
 endif()
 
 if(OT_BUNDLED_OPENTXS_PROTO)
-   set(OT_OPENTXS_PROTO_HEADERS
-     "${CMAKE_CURRENT_SOURCE_DIR}/deps/opentxs-proto/include"
-     "${CMAKE_CURRENT_SOURCE_DIR}/deps/opentxs-proto/generated"
-   )
-   include_directories("${OT_OPENTXS_PROTO_HEADERS}")
+  set(OT_OPENTXS_PROTO_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/opentxs-proto/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/deps/opentxs-proto/generated"
+  )
+  include_directories("${OT_OPENTXS_PROTO_HEADERS}")
 else()
   find_package(opentxs-proto REQUIRED)
   include_directories("${OPENTXS_PROTO_INCLUDE_DIRS}")
@@ -344,11 +346,16 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-if(APPLE)
-  message(STATUS "On Apple, you may have to use: brew install openssl ; brew link --force openssl")
-  find_package(OpenSSL 1.0.1 REQUIRED)
+if(OT_BUNDLED_SSL)
+  set(OT_SSL_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/deps/libressl/install/include")
+  add_definitions(-DOT_BUNDLED_LIBRESSL)
 else()
+  if(APPLE)
+    message(STATUS "On Apple, you may have to use: brew install openssl ; brew link --force openssl")
+  endif()
+
   find_package(OpenSSL 1.0.1 REQUIRED)
+  set(OT_SSL_HEADERS "${OPENSSL_INCLUDE_DIR}")
 endif()
 
 if(OT_BUNDLED_PROTOBUF)
