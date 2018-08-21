@@ -298,13 +298,10 @@ if(OT_SHARED)
       target_link_libraries(${MODULE_NAME} PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_IOSTREAMS_LIBRARIES})
   endif()
 
-  if(NOT WIN32)
-    include(GNUInstallDirs)
-    install(TARGETS ${MODULE_NAME}
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            EXPORT opentxsTargets
-            COMPONENT main)
-  endif()
+  install(TARGETS ${MODULE_NAME}
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          EXPORT ${MODULE_NAME}-targets
+          COMPONENT main)
 endif()
 
 if(OT_STATIC)
@@ -366,13 +363,10 @@ if(OT_STATIC)
       target_link_libraries(${MODULE_NAME}_static PRIVATE ${Boost_SYSTEM_LIBRARIES} ${Boost_FILESYSTEM_LIBRARIES} ${Boost_IOSTREAMS_LIBRARIES})
   endif()
 
-  if(NOT WIN32)
-    include(GNUInstallDirs)
-    install(TARGETS ${MODULE_NAME}_static
-            DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            EXPORT opentxsTargets
-            COMPONENT main)
-  endif()
+  install(TARGETS ${MODULE_NAME}_static
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}
+          EXPORT ${MODULE_NAME}-targets
+          COMPONENT main)
 endif()
 
 if(WIN32)
