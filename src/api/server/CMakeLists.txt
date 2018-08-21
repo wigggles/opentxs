@@ -55,5 +55,5 @@ install(FILES ${cxx-install-headers}
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
-
+target_include_directories(${MODULE_NAME} PUBLIC "../../../deps")
 # // clang-format on

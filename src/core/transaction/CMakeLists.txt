@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs-core-transaction)
+
 set(cxx-sources
   Helpers.cpp
 )
@@ -14,8 +16,6 @@ file(GLOB cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
 )
-
-set(MODULE_NAME opentxs-core-transaction)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -49,3 +49,4 @@ install(FILES ${cxx-install-headers}
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")

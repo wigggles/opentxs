@@ -3,6 +3,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set(MODULE_NAME opentxs-network)
+
 add_subdirectory(zeromq)
 
 set(cxx-sources
@@ -20,13 +22,6 @@ set(cxx-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/OpenDHT.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/ServerConnection.hpp"
 )
-
-include_directories(SYSTEM
-  ${OPENDHT_INCLUDE_DIR}
-  ${GNUTLS_INCLUDE_DIR}
-)
-
-set(MODULE_NAME opentxs-network)
 
 if(WIN32)
   # suppress warnings about exported internal symbols (global log stream objects)
@@ -60,3 +55,8 @@ install(FILES ${cxx-install-headers}
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 set_lib_property(${MODULE_NAME})
+
+if(DHT_EXPORT)
+  target_include_directories(${MODULE_NAME} PRIVATE ${OPENDHT_INCLUDE_DIR})
+  target_include_directories(${MODULE_NAME} PRIVATE ${GNUTLS_INCLUDE_DIR})
+endif()
