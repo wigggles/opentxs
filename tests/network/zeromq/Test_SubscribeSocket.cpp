@@ -24,46 +24,13 @@ OTZMQContext Test_SubscribeSocket::context_{
 
 }  // namespace
 
-TEST(SubscribeSocket, ListenCallback_Factory)
-{
-    auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](network::zeromq::Message& input) -> void {
-
-        });
-
-    ASSERT_NE(nullptr, &listenCallback.get());
-}
-
-TEST_F(Test_SubscribeSocket, ListenCallback_Process)
-{
-    auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](network::zeromq::Message& input) -> void {
-            const std::string& inputString = *input.Body().begin();
-            EXPECT_EQ(testMessage_, inputString);
-        });
-
-    ASSERT_NE(nullptr, &listenCallback.get());
-
-    auto testMessage = network::zeromq::Message::Factory(testMessage_);
-
-    ASSERT_NE(nullptr, &testMessage.get());
-
-    listenCallback->Process(testMessage);
-}
-
 TEST_F(Test_SubscribeSocket, SubscribeSocket_Factory)
 {
     ASSERT_NE(nullptr, &Test_SubscribeSocket::context_.get());
 
-    auto listenCallback = network::zeromq::ListenCallback::Factory(
-        [this](network::zeromq::Message& input) -> OTZMQMessage {
-            return network::zeromq::Message::Factory();
-        });
-
-    ASSERT_NE(nullptr, &listenCallback.get());
-
     auto subscribeSocket = network::zeromq::SubscribeSocket::Factory(
-        Test_SubscribeSocket::context_, listenCallback);
+        Test_SubscribeSocket::context_,
+        network::zeromq::ListenCallback::Factory());
 
     ASSERT_NE(nullptr, &subscribeSocket.get());
     ASSERT_EQ(SocketType::Subscribe, subscribeSocket->Type());
