@@ -9,12 +9,14 @@
 
 #include "opentxs/network/zeromq/PairSocket.hpp"
 
-#include "Receiver.hpp"
+#include "Bidirectional.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
 {
-class PairSocket : virtual public zeromq::PairSocket, public Socket, Receiver
+class PairSocket : virtual public zeromq::PairSocket,
+                   public Socket,
+                   Bidirectional
 {
 public:
     const std::string& Endpoint() const override;

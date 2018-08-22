@@ -60,7 +60,7 @@ PairSocket::PairSocket(
     const bool listener,
     const bool startThread)
     : ot_super(context, SocketType::Pair)
-    , Receiver(lock_, socket_, startThread)
+    , Bidirectional(context, lock_, socket_, startThread)
     , callback_(callback)
     , endpoint_(endpoint)
     , bind_(listener)
@@ -71,7 +71,7 @@ PairSocket::PairSocket(
     Lock lock(lock_);
 
     if (bind_) {
-        init = bind(lock, endpoint_);
+        init = Socket::bind(lock, endpoint_);
         otInfo << OT_METHOD << __FUNCTION__ << ": Bound to " << endpoint_
                << std::endl;
     } else {
@@ -144,25 +144,7 @@ bool PairSocket::Send(const opentxs::Data& data) const
 
 bool PairSocket::Send(zeromq::Message& data) const
 {
-    Lock lock(lock_);
-    bool sent{true};
-    const auto parts = data.size();
-    std::size_t counter{0};
-
-    for (auto& frame : data) {
-        int flags{0};
-
-        if (++counter < parts) { flags = ZMQ_SNDMORE; }
-
-        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
-    }
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno()) << std::endl;
-    }
-
-    return (false != sent);
+    return queue_message(data);
 }
 
 bool PairSocket::Start(const std::string&) const { return false; }
