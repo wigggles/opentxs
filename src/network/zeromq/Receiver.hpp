@@ -23,7 +23,6 @@ protected:
 
     virtual ~Receiver();
 
-private:
     std::mutex& receiver_lock_;
     // Not owned by this class
     void* receiver_socket_{nullptr};
@@ -33,8 +32,9 @@ private:
     virtual bool have_callback() const { return false; }
 
     virtual void process_incoming(const Lock& lock, Message& message) = 0;
-    void thread();
+    virtual void thread();
 
+private:
     Receiver() = delete;
     Receiver(const Receiver&) = delete;
     Receiver(Receiver&&) = delete;

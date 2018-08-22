@@ -84,8 +84,11 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
 
     auto replyMessage = network::zeromq::Message::Factory();
 
+    bool replyProcessed{false};
+
     auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](network::zeromq::Message& input) -> void {
+        [this, &replyMessage, &replyProcessed](
+            network::zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
 
             const std::string& inputString = *input.Body().begin();
@@ -97,6 +100,8 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
             for (const std::string& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
+
+            replyProcessed = true;
         });
 
     ASSERT_NE(nullptr, &routerCallback.get());
@@ -114,11 +119,16 @@ void Test_DealerRouter::routerSocketThread(const std::string& endpoint)
     routerSocket->Start(endpoint);
 
     auto end = std::time(nullptr) + 15;
-    while (0 == replyMessage->size() && std::time(nullptr) < end) {
+    while (!replyProcessed && std::time(nullptr) < end) {
         Log::Sleep(std::chrono::milliseconds(100));
     }
+    
+    ASSERT_TRUE(replyProcessed);
 
     routerSocket->Send(replyMessage);
+    
+    // Give the router socket time to send the message.
+    Log::Sleep(std::chrono::milliseconds(500));
 }
 
 }  // namespace
@@ -331,6 +341,8 @@ TEST_F(Test_DealerRouter, Dealer_1_Router_2)
     auto end = std::time(nullptr) + 15;
     while (callbackFinishedCount_ < callbackCount_ && std::time(nullptr) < end)
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    ASSERT_EQ(callbackCount_, callbackFinishedCount_);
 
     routerSocketThread1.join();
     routerSocketThread2.join();

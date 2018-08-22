@@ -10,7 +10,7 @@
 #include "opentxs/network/zeromq/DealerSocket.hpp"
 
 #include "CurveClient.hpp"
-#include "Receiver.hpp"
+#include "Bidirectional.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
@@ -18,7 +18,7 @@ namespace opentxs::network::zeromq::implementation
 class DealerSocket : virtual public zeromq::DealerSocket,
                      public Socket,
                      CurveClient,
-                     Receiver
+                     Bidirectional
 {
 public:
     bool Send(opentxs::Data& message) const override;

@@ -11,7 +11,7 @@
 
 #include "CurveClient.hpp"
 #include "CurveServer.hpp"
-#include "Receiver.hpp"
+#include "Bidirectional.hpp"
 #include "Socket.hpp"
 
 namespace opentxs::network::zeromq::implementation
@@ -20,7 +20,7 @@ class RouterSocket : virtual public zeromq::RouterSocket,
                      public Socket,
                      CurveClient,
                      CurveServer,
-                     Receiver
+                     Bidirectional
 {
 public:
     bool Send(opentxs::Data& message) const override;

@@ -39,7 +39,7 @@ DealerSocket::DealerSocket(
     const zeromq::ListenCallback& callback)
     : ot_super(context, SocketType::Dealer)
     , CurveClient(lock_, socket_)
-    , Receiver(lock_, socket_, true)
+    , Bidirectional(context, lock_, socket_, true)
     , callback_(callback)
     , client_(client)
 {
@@ -78,27 +78,7 @@ bool DealerSocket::Send(const std::string& input) const
 
 bool DealerSocket::Send(zeromq::Message& message) const
 {
-    OT_ASSERT(nullptr != socket_);
-
-    Lock lock(lock_);
-    bool sent{true};
-    const auto parts = message.size();
-    std::size_t counter{0};
-
-    for (auto& frame : message) {
-        int flags{0};
-
-        if (++counter < parts) { flags = ZMQ_SNDMORE; }
-
-        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
-    }
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno()) << std::endl;
-    }
-
-    return (false != sent);
+    return queue_message(message);
 }
 
 bool DealerSocket::SetSocksProxy(const std::string& proxy) const
@@ -115,7 +95,7 @@ bool DealerSocket::Start(const std::string& endpoint) const
         return start_client(lock, endpoint);
     } else {
 
-        return bind(lock, endpoint);
+        return Socket::bind(lock, endpoint);
     }
 }
 

@@ -6,6 +6,7 @@
 set(MODULE_NAME opentxs-network-zeromq)
 
 set(cxx-sources
+  Bidirectional.cpp
   Context.cpp
   CurveClient.cpp
   CurveServer.cpp
@@ -39,6 +40,7 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Bidirectional.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Context.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveClient.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/CurveServer.hpp
