@@ -11,6 +11,7 @@
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Workflow.hpp"
+#include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Settings.hpp"
@@ -145,6 +146,104 @@ bool OTClient::add_item_to_workflow(
     }
 
     return true;
+}
+
+bool OTClient::harvest_unused(ServerContext& context)
+{
+    bool output{true};
+    const auto& nymID = context.Nym()->ID();
+    auto available = context.IssuedNumbers();
+    const auto workflows = api_.Storage().PaymentWorkflowList(nymID.str());
+
+    // Loop through workflows to determine which issued numbers should not be
+    // harvested
+    for (const auto& [id, alias] : workflows) {
+        const auto workflowID = Identifier::Factory(id);
+        const auto workflow = workflow_.LoadWorkflow(nymID, workflowID);
+
+        if (false == bool(workflow)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to load workflow "
+                  << workflowID->str() << std::endl;
+
+            continue;
+        }
+
+        switch (workflow->type()) {
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+                break;
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+                continue;
+            case proto::PAYMENTWORKFLOWTYPE_ERROR:
+            default: {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Warning: unhandled workflow typw" << std::endl;
+                output &= false;
+                continue;
+            }
+        }
+
+        switch (workflow->state()) {
+            case proto::PAYMENTWORKFLOWSTATE_UNSENT:
+            case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
+                break;
+            case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
+            case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
+            case proto::PAYMENTWORKFLOWSTATE_COMPLETED:
+            case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
+                continue;
+            case proto::PAYMENTWORKFLOWSTATE_ERROR:
+            default: {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Warning: unhandled workflow state" << std::endl;
+                output &= false;
+                continue;
+            }
+        }
+
+        // At this point, this workflow contains a transaction whose number(s)
+        // must not be added to the available list.
+
+        switch (workflow->type()) {
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE: {
+                auto [state, cheque] =
+                    api::client::Workflow::InstantiateCheque(api_, *workflow);
+
+                if (false == bool(cheque)) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Failed to load cheque" << std::endl;
+
+                    continue;
+                }
+
+                const auto number = cheque->GetTransactionNum();
+                available.erase(number);
+            } break;
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+            case proto::PAYMENTWORKFLOWTYPE_ERROR:
+            default: {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Warning: unhandled workflow type" << std::endl;
+                output &= false;
+                continue;
+            }
+        }
+    }
+
+    // Any numbers which remain in available are not allocated and should
+    // be returned to the available list.
+    for (const auto& number : available) {
+        if (false == context.VerifyAvailableNumber(number)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Restoring number "
+                  << number << std::endl;
+            context.RecoverAvailableNumber(number);
+        }
+    }
+
+    return output;
 }
 
 bool OTClient::init_new_account(
@@ -7088,7 +7187,11 @@ bool OTClient::processServerReplyResyncContext(
         return false;
     }
 
-    return context.Resync(serialized);
+    auto output = context.Resync(serialized);
+
+    output &= harvest_unused(context);
+
+    return output;
 }
 
 bool OTClient::processServerReply(

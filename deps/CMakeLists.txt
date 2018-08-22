@@ -32,6 +32,7 @@ if(CASH_LUCRE_EXPORT)
     ${CMAKE_CURRENT_SOURCE_DIR}/lucre/include/lucre/
     ${OT_SSL_HEADERS}
   )
+  target_compile_options(lucre PRIVATE -Wno-unused-variable)
 endif(CASH_LUCRE_EXPORT)
 
 if("${OT_HOST_OVERRIDE}" STREQUAL "")
