@@ -43,6 +43,7 @@ add_library(${MODULE_NAME}
 install(FILES ${cxx-install-headers}
         DESTINATION include/opentxs/core/script
         COMPONENT dev)
+target_compile_options(${MODULE_NAME} PRIVATE -Wno-switch-default) # ChaiScript
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)
 target_include_directories(${MODULE_NAME} PRIVATE "../../../deps/ChaiScript/include")
 target_include_directories(${MODULE_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../../../deps/")
