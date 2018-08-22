@@ -13,7 +13,9 @@ set(cxx-sources
   Test_Frame.cpp
   Test_FrameIterator.cpp
   Test_FrameSection.cpp
+  Test_ListenCallback.cpp
   Test_Message.cpp
+  Test_PairSocket.cpp
   Test_PublishSocket.cpp
   Test_PublishSubscribe.cpp
   Test_PushPull.cpp
