@@ -56,7 +56,8 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
-#include "opentxs/Proto.hpp"
+#include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/otx/Reply.hpp"
 #include "opentxs/Types.hpp"
 #include "opentxs/OT.hpp"
 
@@ -85,382 +86,6 @@ OTClient::OTClient(
     , m_MessageOutbuffer(api_)
 {
     // WARNING: do not access api_.Wallet() during construction
-}
-
-bool OTClient::add_item_to_workflow(
-    const Nym& nym,
-    const Message& transportItem,
-    const std::string& item) const
-{
-    auto message = api_.Factory().Message();
-
-    OT_ASSERT(false != bool(message));
-
-    const auto loaded = message->LoadContractFromString(item.c_str());
-
-    if (false == loaded) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to instantiate message"
-              << std::endl;
-
-        return false;
-    }
-
-    OTEnvelope envelope(message->m_ascPayload);
-    String plaintext;
-    const auto decrypted = envelope.Open(nym, plaintext);
-
-    if (false == decrypted) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to decrypt message"
-              << std::endl;
-
-        return false;
-    }
-
-    auto payment = api_.Factory().Payment(plaintext);
-
-    OT_ASSERT(false != bool(payment));
-
-    if (false == payment->IsCheque()) { return false; }
-
-    if (payment->IsCancelledCheque()) { return false; }
-
-    auto cheque = api_.Factory().Cheque();
-
-    OT_ASSERT(false != bool(cheque));
-
-    cheque->LoadContractFromString(payment->Payment());
-    // We already made sure a contact exists for the sender of the message, but
-    // it's possible the sender of the cheque is a different nym
-    contacts_.NymToContact(cheque->GetSenderNymID());
-    const auto workflow =
-        workflow_.ReceiveCheque(nym.ID(), *cheque, transportItem);
-
-    if (workflow->empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create workflow."
-              << std::endl;
-
-        return false;
-    } else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Started workflow "
-              << workflow->str() << std::endl;
-    }
-
-    return true;
-}
-
-bool OTClient::harvest_unused(ServerContext& context)
-{
-    bool output{true};
-    const auto& nymID = context.Nym()->ID();
-    auto available = context.IssuedNumbers();
-    const auto workflows = api_.Storage().PaymentWorkflowList(nymID.str());
-
-    // Loop through workflows to determine which issued numbers should not be
-    // harvested
-    for (const auto& [id, alias] : workflows) {
-        const auto workflowID = Identifier::Factory(id);
-        const auto workflow = workflow_.LoadWorkflow(nymID, workflowID);
-
-        if (false == bool(workflow)) {
-            otErr << OT_METHOD << __FUNCTION__ << ": Failed to load workflow "
-                  << workflowID->str() << std::endl;
-
-            continue;
-        }
-
-        switch (workflow->type()) {
-            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
-            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
-                break;
-            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
-            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
-                continue;
-            case proto::PAYMENTWORKFLOWTYPE_ERROR:
-            default: {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Warning: unhandled workflow typw" << std::endl;
-                output &= false;
-                continue;
-            }
-        }
-
-        switch (workflow->state()) {
-            case proto::PAYMENTWORKFLOWSTATE_UNSENT:
-            case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
-                break;
-            case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
-            case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
-            case proto::PAYMENTWORKFLOWSTATE_COMPLETED:
-            case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
-                continue;
-            case proto::PAYMENTWORKFLOWSTATE_ERROR:
-            default: {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Warning: unhandled workflow state" << std::endl;
-                output &= false;
-                continue;
-            }
-        }
-
-        // At this point, this workflow contains a transaction whose number(s)
-        // must not be added to the available list.
-
-        switch (workflow->type()) {
-            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
-            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE: {
-                auto [state, cheque] =
-                    api::client::Workflow::InstantiateCheque(api_, *workflow);
-
-                if (false == bool(cheque)) {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed to load cheque" << std::endl;
-
-                    continue;
-                }
-
-                const auto number = cheque->GetTransactionNum();
-                available.erase(number);
-            } break;
-            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
-            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
-            case proto::PAYMENTWORKFLOWTYPE_ERROR:
-            default: {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Warning: unhandled workflow type" << std::endl;
-                output &= false;
-                continue;
-            }
-        }
-    }
-
-    // Any numbers which remain in available are not allocated and should
-    // be returned to the available list.
-    for (const auto& number : available) {
-        if (false == context.VerifyAvailableNumber(number)) {
-            otErr << OT_METHOD << __FUNCTION__ << ": Restoring number "
-                  << number << std::endl;
-            context.RecoverAvailableNumber(number);
-        }
-    }
-
-    return output;
-}
-
-bool OTClient::init_new_account(
-    const Identifier& accountID,
-    ServerContext& context) const
-{
-    auto account = api_.Wallet().mutable_Account(accountID);
-
-    OT_ASSERT(account);
-
-    if (false == account.get().InitBoxes(*context.Nym())) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Error initializing boxes for account " << accountID.str()
-              << std::endl;
-
-        return false;
-    }
-
-    auto inboxHash = Identifier::Factory();
-    auto outboxHash = Identifier::Factory();
-    auto haveHash = account.get().GetInboxHash(inboxHash);
-
-    if (false == haveHash) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get inbox hash"
-              << std::endl;
-
-        return false;
-    }
-
-    haveHash = account.get().GetOutboxHash(outboxHash);
-
-    if (false == haveHash) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get outbox hash"
-              << std::endl;
-
-        return false;
-    }
-
-    account.Release();
-    auto nymfile = context.mutable_Nymfile("");
-    auto hashSet = nymfile.It().SetInboxHash(accountID.str(), inboxHash);
-
-    if (false == hashSet) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed to set inbox hash on nymfile" << std::endl;
-
-        return false;
-    }
-
-    hashSet = nymfile.It().SetOutboxHash(accountID.str(), outboxHash);
-
-    if (false == hashSet) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed to set outbox hash on nymfile" << std::endl;
-
-        return false;
-    }
-
-    return true;
-}
-
-void OTClient::QueueOutgoingMessage(const Message& theMessage)
-{
-    String serialized{};
-    const bool saved = theMessage.SaveContractRaw(serialized);
-
-    OT_ASSERT(saved)
-
-    // WHAT DOES THIS MEAN?
-
-    // It means that later, if a message with a certain request number
-    // fails to reply, or show its face in the replies box, then I will
-    // have the option to look it up in the Outbuffer, based on that
-    // same request number, and send a re-try, or claw back any transaction
-    // numbers that might be on that message.
-
-    // Should probably add an API call for specifically doing this, agnostic
-    // to whatever kind of transaction it actually is. Something like,
-    // OT_API_Message_HarvestClosingNumbers, and
-    // OT_API_Message_HarvestAllNumbers
-
-    // So I can save the request number when sending a message, check for it
-    // later in the Nymbox, and then worst case, look it up in the Outbuffer and
-    // get my fucking transaction numbers back again!
-    auto pMsg = api_.Factory().Message();
-
-    OT_ASSERT(false != bool(pMsg));
-
-    if (pMsg->LoadContractFromString(serialized)) {
-        std::shared_ptr<Message> msg{pMsg.release()};
-        m_MessageOutbuffer.AddSentMessage(msg);
-    } else {
-        OT_FAIL
-    }
-}
-
-/// The notary normally puts an instrumentNotice into a user's Nymbox, which is
-/// then moved on the client side into the Payments Inbox.
-/// But that is being deprecated. The new messages contain peer objects, which
-/// may contain a Message, or a Payment, or a Peer Request or Peer Reply, etc.
-///
-/// We normally get an instrumentNotice from the notary, signed by the notary,
-/// which contains the user's signed sendNymInstrument message. But now, the
-/// user's sendNymInstrument message is inside the peer object instead, and
-/// that's not known by the notary, since the peer object isn't decrypted until
-/// the recipient gets it, on the client side. So the notary puts it into the
-/// user's Nymbox as though it were a sent peer object aka sent message, not as
-/// an instrumentNotice as would normally be expected.
-///
-/// This means the recipient now needs to CREATE an instrumentNotice, attach the
-/// sendNymInstrument to it (as would normally be expected) and put that into
-/// the Payments Inbox. The only difference compared to the old way is that the
-/// instrumentNotice is now created (and thus signed) on the client side, not in
-/// the notary.
-///
-bool OTClient::createInstrumentNoticeFromPeerObject(
-    const ServerContext& context,
-    const Message& message,
-    const PeerObject& peerObject,
-    const TransactionNumber number)
-{
-    OT_ASSERT(proto::PEEROBJECT_PAYMENT == peerObject.Type());
-
-    if (false == peerObject.Validate()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid peer object"
-              << std::endl;
-
-        return false;
-    }
-
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    const String strNotaryID(context.Server());
-    const String strNymID(nymID);
-    const auto& payment = *peerObject.Payment();
-
-    if (payment.empty()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Payment as received was apparently empty. Maybe the sender "
-                 "sent it that way?"
-              << std::endl;
-
-        return false;
-    }
-
-    // Extract the OTPayment so that we know whether to use the new Workflow
-    // code or the old payment inbox code
-    if (add_item_to_workflow(*context.Nym(), message, payment)) { return true; }
-
-    const bool bExists = OTDB::Exists(
-        api_.DataFolder(),
-        OTFolders::PaymentInbox().Get(),
-        strNotaryID.Get(),
-        strNymID.Get(),
-        "");
-    auto thePmntInbox = api_.Factory().Ledger(
-        nymID,
-        nymID,
-        context.Server());  // payment
-                            // inbox
-
-    OT_ASSERT(false != bool(thePmntInbox));
-
-    bool bSuccessLoading = (bExists && thePmntInbox->LoadPaymentInbox());
-
-    if (bExists && bSuccessLoading) {
-        bSuccessLoading =
-            (thePmntInbox->VerifyContractID() &&
-             thePmntInbox->VerifySignature(nym));
-    } else if (!bExists) {
-        bSuccessLoading = thePmntInbox->GenerateLedger(
-            nymID,
-            context.Server(),
-            ledgerType::paymentInbox,
-            true);  // bGenerateFile=true
-    }
-
-    // By this point, the payment inbox DEFINITELY exists -- or not.
-    // (generation might have failed, or verification.)
-    // -------------------------------------------------
-    if (!bSuccessLoading) {
-        otOut << __FUNCTION__
-              << ": WARNING: Unable to load, verify, or generate paymentInbox, "
-                 "with Notary ID / Nym ID: "
-              << strNotaryID << " / " << strNymID << "\n";
-        return false;
-    }
-    // -------------------------------------------------
-    // I create the client-side-created instrumentNotice using the same
-    // transaction number that was already on the box receipt where it came
-    // from. Meaning the server already placed an "transactionType::message"
-    // in my Nymbox with Txn # X, so I will create the corresponding
-    // instrumentNotice for my Payments Inbox using Txn # X as well.
-    // After all, if the notary had created it (as normally happens) then
-    // that's the Txn# that would have been on it anyway.
-    //
-    auto pTransaction = api_.Factory().Transaction(
-        *thePmntInbox,
-        transactionType::instrumentNotice,
-        originType::not_applicable,
-        number);
-
-    OT_ASSERT(false != bool(pTransaction));
-
-    pTransaction->SetReferenceToNum(number);
-    pTransaction->SetReferenceString(String(payment));
-    pTransaction->SignContract(nym);
-    pTransaction->SaveContract();
-    load_str_trans_add_to_ledger(
-        nymID,
-        String(*pTransaction),
-        "paymentInbox",
-        number,
-        nym,
-        *thePmntInbox);
-
-    return true;
 }
 
 /// This is standard behavior for the Nymbox (NOT the inbox.)
@@ -1128,6 +753,347 @@ bool OTClient::AcceptEntireNymbox(
     return false;
 }
 
+bool OTClient::add_item_to_workflow(
+    const Nym& nym,
+    const Message& transportItem,
+    const std::string& item) const
+{
+    auto message = api_.Factory().Message();
+
+    OT_ASSERT(false != bool(message));
+
+    const auto loaded = message->LoadContractFromString(item.c_str());
+
+    if (false == loaded) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to instantiate message"
+              << std::endl;
+
+        return false;
+    }
+
+    OTEnvelope envelope(message->m_ascPayload);
+    String plaintext;
+    const auto decrypted = envelope.Open(nym, plaintext);
+
+    if (false == decrypted) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to decrypt message"
+              << std::endl;
+
+        return false;
+    }
+
+    auto payment = api_.Factory().Payment(plaintext);
+
+    OT_ASSERT(false != bool(payment));
+
+    if (false == payment->IsCheque()) { return false; }
+
+    if (payment->IsCancelledCheque()) { return false; }
+
+    auto cheque = api_.Factory().Cheque();
+
+    OT_ASSERT(false != bool(cheque));
+
+    cheque->LoadContractFromString(payment->Payment());
+    // We already made sure a contact exists for the sender of the message, but
+    // it's possible the sender of the cheque is a different nym
+    contacts_.NymToContact(cheque->GetSenderNymID());
+    const auto workflow =
+        workflow_.ReceiveCheque(nym.ID(), *cheque, transportItem);
+
+    if (workflow->empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to create workflow."
+              << std::endl;
+
+        return false;
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Started workflow "
+              << workflow->str() << std::endl;
+    }
+
+    return true;
+}
+
+/// The notary normally puts an instrumentNotice into a user's Nymbox, which is
+/// then moved on the client side into the Payments Inbox.
+/// But that is being deprecated. The new messages contain peer objects, which
+/// may contain a Message, or a Payment, or a Peer Request or Peer Reply, etc.
+///
+/// We normally get an instrumentNotice from the notary, signed by the notary,
+/// which contains the user's signed sendNymInstrument message. But now, the
+/// user's sendNymInstrument message is inside the peer object instead, and
+/// that's not known by the notary, since the peer object isn't decrypted until
+/// the recipient gets it, on the client side. So the notary puts it into the
+/// user's Nymbox as though it were a sent peer object aka sent message, not as
+/// an instrumentNotice as would normally be expected.
+///
+/// This means the recipient now needs to CREATE an instrumentNotice, attach the
+/// sendNymInstrument to it (as would normally be expected) and put that into
+/// the Payments Inbox. The only difference compared to the old way is that the
+/// instrumentNotice is now created (and thus signed) on the client side, not in
+/// the notary.
+///
+bool OTClient::createInstrumentNoticeFromPeerObject(
+    const ServerContext& context,
+    const Message& message,
+    const PeerObject& peerObject,
+    const TransactionNumber number)
+{
+    OT_ASSERT(proto::PEEROBJECT_PAYMENT == peerObject.Type());
+
+    if (false == peerObject.Validate()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid peer object"
+              << std::endl;
+
+        return false;
+    }
+
+    const auto& nym = *context.Nym();
+    const auto& nymID = nym.ID();
+    const String strNotaryID(context.Server());
+    const String strNymID(nymID);
+    const auto& payment = *peerObject.Payment();
+
+    if (payment.empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Payment as received was apparently empty. Maybe the sender "
+                 "sent it that way?"
+              << std::endl;
+
+        return false;
+    }
+
+    // Extract the OTPayment so that we know whether to use the new Workflow
+    // code or the old payment inbox code
+    if (add_item_to_workflow(*context.Nym(), message, payment)) { return true; }
+
+    const bool bExists = OTDB::Exists(
+        api_.DataFolder(),
+        OTFolders::PaymentInbox().Get(),
+        strNotaryID.Get(),
+        strNymID.Get(),
+        "");
+    auto thePmntInbox = api_.Factory().Ledger(
+        nymID,
+        nymID,
+        context.Server());  // payment
+                            // inbox
+
+    OT_ASSERT(false != bool(thePmntInbox));
+
+    bool bSuccessLoading = (bExists && thePmntInbox->LoadPaymentInbox());
+
+    if (bExists && bSuccessLoading) {
+        bSuccessLoading =
+            (thePmntInbox->VerifyContractID() &&
+             thePmntInbox->VerifySignature(nym));
+    } else if (!bExists) {
+        bSuccessLoading = thePmntInbox->GenerateLedger(
+            nymID,
+            context.Server(),
+            ledgerType::paymentInbox,
+            true);  // bGenerateFile=true
+    }
+
+    // By this point, the payment inbox DEFINITELY exists -- or not.
+    // (generation might have failed, or verification.)
+    // -------------------------------------------------
+    if (!bSuccessLoading) {
+        otOut << __FUNCTION__
+              << ": WARNING: Unable to load, verify, or generate paymentInbox, "
+                 "with Notary ID / Nym ID: "
+              << strNotaryID << " / " << strNymID << "\n";
+        return false;
+    }
+    // -------------------------------------------------
+    // I create the client-side-created instrumentNotice using the same
+    // transaction number that was already on the box receipt where it came
+    // from. Meaning the server already placed an "transactionType::message"
+    // in my Nymbox with Txn # X, so I will create the corresponding
+    // instrumentNotice for my Payments Inbox using Txn # X as well.
+    // After all, if the notary had created it (as normally happens) then
+    // that's the Txn# that would have been on it anyway.
+    //
+    auto pTransaction = api_.Factory().Transaction(
+        *thePmntInbox,
+        transactionType::instrumentNotice,
+        originType::not_applicable,
+        number);
+
+    OT_ASSERT(false != bool(pTransaction));
+
+    pTransaction->SetReferenceToNum(number);
+    pTransaction->SetReferenceString(String(payment));
+    pTransaction->SignContract(nym);
+    pTransaction->SaveContract();
+    load_str_trans_add_to_ledger(
+        nymID,
+        String(*pTransaction),
+        "paymentInbox",
+        number,
+        nym,
+        *thePmntInbox);
+
+    return true;
+}
+
+bool OTClient::harvest_unused(ServerContext& context)
+{
+    bool output{true};
+    const auto& nymID = context.Nym()->ID();
+    auto available = context.IssuedNumbers();
+    const auto workflows = api_.Storage().PaymentWorkflowList(nymID.str());
+
+    // Loop through workflows to determine which issued numbers should not be
+    // harvested
+    for (const auto& [id, alias] : workflows) {
+        const auto workflowID = Identifier::Factory(id);
+        const auto workflow = workflow_.LoadWorkflow(nymID, workflowID);
+
+        if (false == bool(workflow)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to load workflow "
+                  << workflowID->str() << std::endl;
+
+            continue;
+        }
+
+        switch (workflow->type()) {
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+                break;
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+                continue;
+            case proto::PAYMENTWORKFLOWTYPE_ERROR:
+            default: {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Warning: unhandled workflow typw" << std::endl;
+                output &= false;
+                continue;
+            }
+        }
+
+        switch (workflow->state()) {
+            case proto::PAYMENTWORKFLOWSTATE_UNSENT:
+            case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
+                break;
+            case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
+            case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
+            case proto::PAYMENTWORKFLOWSTATE_COMPLETED:
+            case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
+                continue;
+            case proto::PAYMENTWORKFLOWSTATE_ERROR:
+            default: {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Warning: unhandled workflow state" << std::endl;
+                output &= false;
+                continue;
+            }
+        }
+
+        // At this point, this workflow contains a transaction whose number(s)
+        // must not be added to the available list.
+
+        switch (workflow->type()) {
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE: {
+                auto [state, cheque] =
+                    api::client::Workflow::InstantiateCheque(api_, *workflow);
+
+                if (false == bool(cheque)) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Failed to load cheque" << std::endl;
+
+                    continue;
+                }
+
+                const auto number = cheque->GetTransactionNum();
+                available.erase(number);
+            } break;
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+            case proto::PAYMENTWORKFLOWTYPE_ERROR:
+            default: {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Warning: unhandled workflow type" << std::endl;
+                output &= false;
+                continue;
+            }
+        }
+    }
+
+    // Any numbers which remain in available are not allocated and should
+    // be returned to the available list.
+    for (const auto& number : available) {
+        if (false == context.VerifyAvailableNumber(number)) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Restoring number "
+                  << number << std::endl;
+            context.RecoverAvailableNumber(number);
+        }
+    }
+
+    return output;
+}
+
+bool OTClient::init_new_account(
+    const Identifier& accountID,
+    ServerContext& context) const
+{
+    auto account = api_.Wallet().mutable_Account(accountID);
+
+    OT_ASSERT(account);
+
+    if (false == account.get().InitBoxes(*context.Nym())) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error initializing boxes for account " << accountID.str()
+              << std::endl;
+
+        return false;
+    }
+
+    auto inboxHash = Identifier::Factory();
+    auto outboxHash = Identifier::Factory();
+    auto haveHash = account.get().GetInboxHash(inboxHash);
+
+    if (false == haveHash) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get inbox hash"
+              << std::endl;
+
+        return false;
+    }
+
+    haveHash = account.get().GetOutboxHash(outboxHash);
+
+    if (false == haveHash) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to get outbox hash"
+              << std::endl;
+
+        return false;
+    }
+
+    account.Release();
+    auto nymfile = context.mutable_Nymfile("");
+    auto hashSet = nymfile.It().SetInboxHash(accountID.str(), inboxHash);
+
+    if (false == hashSet) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to set inbox hash on nymfile" << std::endl;
+
+        return false;
+    }
+
+    hashSet = nymfile.It().SetOutboxHash(accountID.str(), outboxHash);
+
+    if (false == hashSet) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to set outbox hash on nymfile" << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
 void OTClient::load_str_trans_add_to_ledger(
     const Identifier& the_nym_id,        // the_nym's ID, used only for logging.
     const String& str_trans_to_add,      // (In string form so we're forced to
@@ -1199,6 +1165,220 @@ void OTClient::load_str_trans_add_to_ledger(
         otErr << OT_METHOD << __FUNCTION__ << ": " << str_box_type
               << " Failed trying to SaveBoxReceipt. Contents:\n\n"
               << str_trans_to_add << "\n\n";
+}
+
+void OTClient::ProcessDepositChequeResponse(
+    const ServerContext& context,
+    std::shared_ptr<Item> pReplyItem) const
+{
+    OT_ASSERT(false != bool(pReplyItem));
+    OT_ASSERT(itemType::atDepositCheque == pReplyItem->GetType());
+    OT_ASSERT(Item::acknowledgement == pReplyItem->GetStatus());
+
+    const auto& nym = *context.Nym();
+    const auto& nymID = nym.ID();
+    const auto& serverID = context.Server();
+
+    // Inside OT, when processing a successful server reply to a
+    // depositCheque request, and if that cheque is found inside
+    // the Payments Inbox, then move it to the record box.
+    //
+    auto pLedger =
+        api_.Factory().Ledger(nymID, nymID, serverID, ledgerType::paymentInbox);
+
+    if (false == bool(pLedger) || !pLedger->LoadPaymentInbox() ||
+        !pLedger->VerifyAccount(nym)) {
+        // Not necessarily a problem.
+        otWarn << __FUNCTION__
+               << ": Unable to load or verify "
+                  "payments inbox: User "
+               << String(nymID) << " / Acct " << String(nymID) << "\n";
+        return;
+    }
+    // ----------------------------------------------------------
+    // If an incoming payment exists that matches the instrument inside
+    // the server's deposit response, then remove it from the payments inbox
+    // and save. Save a copy to the records box.
+    //
+    // Response item contains a copy of the original item, as reference string.
+    //
+    String strOriginalDepositItem;
+    Item* pOriginalItem{nullptr};
+    pReplyItem->GetReferenceString(strOriginalDepositItem);
+
+    auto pTransType = api_.Factory().Transaction(strOriginalDepositItem);
+
+    if (false != bool(pTransType)) {
+        pOriginalItem = dynamic_cast<Item*>(pTransType.get());
+    }
+    if (nullptr == pOriginalItem) {
+        return;  // Todo log something?
+    }
+    auto theCheque = api_.Factory().Cheque();
+
+    OT_ASSERT(false != bool(theCheque));
+
+    String strCheque;
+    pOriginalItem->GetAttachment(strCheque);
+    if (!theCheque->LoadContractFromString(strCheque)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": ERROR loading cheque from string:\n"
+              << strCheque << "\n";
+        return;
+    }  // else: Okay, we've got the cheque!
+    // ----------------------------------------------------------
+    // Let's loop through the payment inbox and see
+    // if there's a matching cheque.
+    //
+    const std::int64_t lChequeTransNum = theCheque->GetTransactionNum();
+
+    // Going backwards since we are deleting something.
+    // (Probably only one thing, but still...)
+    //
+    std::set<std::int64_t> receipt_ids = pLedger->GetTransactionNums();
+
+    for (auto& receipt_id : receipt_ids) {
+        std::int64_t lPaymentTransNum{0};
+        auto pPayment = GetInstrumentByReceiptID(nym, receipt_id, *pLedger);
+
+        if (false == bool(pPayment) || !pPayment->SetTempValues() ||
+            !pPayment->GetTransactionNum(lPaymentTransNum) ||
+            (lPaymentTransNum != lChequeTransNum)) {
+            continue;
+        }
+        // ---------------------------------------------------
+        // It's the same cheque. Remove it from the payments inbox, and save.
+        //
+        auto pTransaction = pLedger->GetTransaction(receipt_id);
+        String strPmntInboxTransaction;
+        std::int64_t lRemoveTransaction{0};
+
+        if (false != bool(pTransaction)) {
+            pTransaction->SaveContractRaw(strPmntInboxTransaction);
+            lRemoveTransaction = pTransaction->GetTransactionNum();
+
+            if (false == pLedger->DeleteBoxReceipt(lRemoveTransaction)) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed trying to delete the box receipt for a "
+                         "cheque being removed from a payments inbox: "
+                      << lRemoveTransaction << "\n";
+            }
+            if (pLedger->RemoveTransaction(lRemoveTransaction)) {
+                pLedger->ReleaseSignatures();
+                pLedger->SignContract(nym);
+                pLedger->SaveContract();
+
+                if (!pLedger->SavePaymentInbox()) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Failure while trying to save payment inbox.\n";
+                } else {
+                    otOut << __FUNCTION__
+                          << ": Removed cheque from payments inbox. (Deposited "
+                             "successfully.)\nSaved payments inbox.\n";
+                }
+            }
+        }  // if (nullptr != pTransaction)
+
+        // We're still in the loop backwards through the paymentInbox,
+        // checking each for a payment instrument. Specifically, theCheque's
+        // cheque. That's because this is processChequeResponse. If there was
+        // a cheque in my payments inbox, and I just successfully deposited
+        // the cheque, then I want to remove it from my payments inbox. We
+        // already just did that -- so now we want to drop a copy of it into
+        // the record box.
+        //
+        // Save a copy to the record box.
+        //
+        if (!strPmntInboxTransaction.Exists()) { continue; }
+        // ---------------------------------------------------
+        const String strNymID(nymID);
+        const String strNotaryID(serverID);
+        const bool bExists = OTDB::Exists(
+            api_.DataFolder(),
+            OTFolders::RecordBox().Get(),
+            strNotaryID.Get(),
+            strNymID.Get(),
+            "");
+        auto theRecordBox = api_.Factory().Ledger(
+            nymID,
+            nymID,
+            serverID);  // record box
+
+        OT_ASSERT(false != bool(theRecordBox));
+
+        bool bSuccessLoading = (bExists && theRecordBox->LoadRecordBox());
+        if (bExists && bSuccessLoading)
+            bSuccessLoading =
+                (theRecordBox->VerifyContractID() &&
+                 theRecordBox->VerifySignature(nym));
+        else if (!bExists)
+            bSuccessLoading = theRecordBox->GenerateLedger(
+                nymID,
+                serverID,
+                ledgerType::recordBox,
+                true);  // bGenerateFile=true
+        // By this point, the nymbox DEFINITELY exists -- or not.
+        // (generation might have failed, or verification.)
+        //
+        if (!bSuccessLoading) {
+            String strNymID(nymID), strAcctID(nymID);
+            otOut << __FUNCTION__
+                  << ": WARNING: Unable to load, verify, or generate recordBox,"
+                     " with Nym/Acct ID: "
+                  << strNymID << " / " << strAcctID << "\n";
+            continue;
+        }
+        // --- ELSE --- Success loading the recordBox and verifying its
+        // contractID and signature, (OR success generating the ledger.)
+        // ---------------------------------------------------
+        // Currently in getBoxReceiptResponse, we are taking an incoming
+        // cheque from the nymbox and adding it to the payments inbox. From
+        // there the user might choose to deposit it. When he does that, he'll
+        // receive a server reply, which is what we're processing here in this
+        // function. So now that we've got that reply, we want to move the
+        // cheque notice from the payments inbox, and into the record box at
+        // this point HERE, when we've just above removed it from the payments
+        // inbox (on successful deposit.)
+        //
+        load_str_trans_add_to_ledger(
+            nymID,
+            strPmntInboxTransaction,
+            "recordBox",
+            lRemoveTransaction,
+            nym,
+            *theRecordBox);
+    }  // for (receipt_ids)
+}
+
+void OTClient::ProcessDepositResponse(
+    const Message& theReply,
+    const ServerContext& context,
+    OTTransaction& replyTransaction) const
+{
+    // loop through the ALL items that make up this transaction and check to see
+    // if a response to deposit.
+    for (auto& it : replyTransaction.GetItemList()) {
+        auto pReplyItem = it;
+        OT_ASSERT(false != bool(pReplyItem));
+
+        // if pointer not null, and it's a deposit, and it's an acknowledgement
+        // (not a rejection or error)
+
+        if ((itemType::atDeposit == pReplyItem->GetType()) ||
+            (itemType::atDepositCheque == pReplyItem->GetType())) {
+            if (Item::acknowledgement == pReplyItem->GetStatus()) {
+                otOut
+                    << "TRANSACTION SUCCESS -- Server acknowledges deposit.\n";
+                // ------------------------------------------------
+                if (itemType::atDepositCheque == pReplyItem->GetType()) {
+                    ProcessDepositChequeResponse(context, pReplyItem);
+                }
+            } else {
+                otOut << __FUNCTION__
+                      << ": TRANSACTION FAILURE -- Server rejects deposit.\n";
+            }
+        }
+    }
 }
 
 void OTClient::ProcessIncomingCronItemReply(
@@ -2166,6 +2346,61 @@ void OTClient::ProcessIncomingTransactions(
     }
 }
 
+bool OTClient::ProcessNotification(
+    const otx::Reply& notification,
+    ServerContext& context)
+{
+    const auto& payload = notification.Payload();
+
+    if (payload.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing payload" << std::endl;
+
+        return false;
+    }
+
+    std::shared_ptr<OTTransactionType> base{
+        api_.Factory().Transaction(String::Factory(payload))};
+
+    if (false == bool(base)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid payload" << std::endl;
+
+        return false;
+    }
+
+    auto receipt = std::dynamic_pointer_cast<OTTransaction>(base);
+
+    if (false == bool(base)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong transaction type"
+              << std::endl;
+
+        return false;
+    }
+
+    if (receipt->GetNymID() != context.Nym()->ID()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong nym id on box receipt"
+              << std::endl;
+
+        return false;
+    }
+
+    if (false == receipt->VerifyAccount(context.RemoteNym())) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify box receipt"
+              << std::endl;
+
+        return false;
+    }
+
+    otErr << OT_METHOD << __FUNCTION__
+          << ": Validated a push notification of type: "
+          << receipt->GetTypeString() << std::endl;
+
+    return processServerReplyGetBoxReceipt(
+        *receipt,
+        context,
+        payload.c_str(),
+        0);  // 0 means nymbox
+}
+
 void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction) const
 {
     // loop through the ALL items that make up this transaction and check to see
@@ -2190,410 +2425,205 @@ void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction) const
     }
 }
 
-void OTClient::ProcessDepositChequeResponse(
-    const ServerContext& context,
-    std::shared_ptr<Item> pReplyItem) const
-{
-    OT_ASSERT(false != bool(pReplyItem));
-    OT_ASSERT(itemType::atDepositCheque == pReplyItem->GetType());
-    OT_ASSERT(Item::acknowledgement == pReplyItem->GetStatus());
-
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    const auto& serverID = context.Server();
-
-    // Inside OT, when processing a successful server reply to a
-    // depositCheque request, and if that cheque is found inside
-    // the Payments Inbox, then move it to the record box.
-    //
-    auto pLedger =
-        api_.Factory().Ledger(nymID, nymID, serverID, ledgerType::paymentInbox);
-
-    if (false == bool(pLedger) || !pLedger->LoadPaymentInbox() ||
-        !pLedger->VerifyAccount(nym)) {
-        // Not necessarily a problem.
-        otWarn << __FUNCTION__
-               << ": Unable to load or verify "
-                  "payments inbox: User "
-               << String(nymID) << " / Acct " << String(nymID) << "\n";
-        return;
-    }
-    // ----------------------------------------------------------
-    // If an incoming payment exists that matches the instrument inside
-    // the server's deposit response, then remove it from the payments inbox
-    // and save. Save a copy to the records box.
-    //
-    // Response item contains a copy of the original item, as reference string.
-    //
-    String strOriginalDepositItem;
-    Item* pOriginalItem{nullptr};
-    pReplyItem->GetReferenceString(strOriginalDepositItem);
-
-    auto pTransType = api_.Factory().Transaction(strOriginalDepositItem);
-
-    if (false != bool(pTransType)) {
-        pOriginalItem = dynamic_cast<Item*>(pTransType.get());
-    }
-    if (nullptr == pOriginalItem) {
-        return;  // Todo log something?
-    }
-    auto theCheque = api_.Factory().Cheque();
-
-    OT_ASSERT(false != bool(theCheque));
-
-    String strCheque;
-    pOriginalItem->GetAttachment(strCheque);
-    if (!theCheque->LoadContractFromString(strCheque)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": ERROR loading cheque from string:\n"
-              << strCheque << "\n";
-        return;
-    }  // else: Okay, we've got the cheque!
-    // ----------------------------------------------------------
-    // Let's loop through the payment inbox and see
-    // if there's a matching cheque.
-    //
-    const std::int64_t lChequeTransNum = theCheque->GetTransactionNum();
-
-    // Going backwards since we are deleting something.
-    // (Probably only one thing, but still...)
-    //
-    std::set<std::int64_t> receipt_ids = pLedger->GetTransactionNums();
-
-    for (auto& receipt_id : receipt_ids) {
-        std::int64_t lPaymentTransNum{0};
-        auto pPayment = GetInstrumentByReceiptID(nym, receipt_id, *pLedger);
-
-        if (false == bool(pPayment) || !pPayment->SetTempValues() ||
-            !pPayment->GetTransactionNum(lPaymentTransNum) ||
-            (lPaymentTransNum != lChequeTransNum)) {
-            continue;
-        }
-        // ---------------------------------------------------
-        // It's the same cheque. Remove it from the payments inbox, and save.
-        //
-        auto pTransaction = pLedger->GetTransaction(receipt_id);
-        String strPmntInboxTransaction;
-        std::int64_t lRemoveTransaction{0};
-
-        if (false != bool(pTransaction)) {
-            pTransaction->SaveContractRaw(strPmntInboxTransaction);
-            lRemoveTransaction = pTransaction->GetTransactionNum();
-
-            if (false == pLedger->DeleteBoxReceipt(lRemoveTransaction)) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Failed trying to delete the box receipt for a "
-                         "cheque being removed from a payments inbox: "
-                      << lRemoveTransaction << "\n";
-            }
-            if (pLedger->RemoveTransaction(lRemoveTransaction)) {
-                pLedger->ReleaseSignatures();
-                pLedger->SignContract(nym);
-                pLedger->SaveContract();
-
-                if (!pLedger->SavePaymentInbox()) {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Failure while trying to save payment inbox.\n";
-                } else {
-                    otOut << __FUNCTION__
-                          << ": Removed cheque from payments inbox. (Deposited "
-                             "successfully.)\nSaved payments inbox.\n";
-                }
-            }
-        }  // if (nullptr != pTransaction)
-
-        // We're still in the loop backwards through the paymentInbox,
-        // checking each for a payment instrument. Specifically, theCheque's
-        // cheque. That's because this is processChequeResponse. If there was
-        // a cheque in my payments inbox, and I just successfully deposited
-        // the cheque, then I want to remove it from my payments inbox. We
-        // already just did that -- so now we want to drop a copy of it into
-        // the record box.
-        //
-        // Save a copy to the record box.
-        //
-        if (!strPmntInboxTransaction.Exists()) { continue; }
-        // ---------------------------------------------------
-        const String strNymID(nymID);
-        const String strNotaryID(serverID);
-        const bool bExists = OTDB::Exists(
-            api_.DataFolder(),
-            OTFolders::RecordBox().Get(),
-            strNotaryID.Get(),
-            strNymID.Get(),
-            "");
-        auto theRecordBox = api_.Factory().Ledger(
-            nymID,
-            nymID,
-            serverID);  // record box
-
-        OT_ASSERT(false != bool(theRecordBox));
-
-        bool bSuccessLoading = (bExists && theRecordBox->LoadRecordBox());
-        if (bExists && bSuccessLoading)
-            bSuccessLoading =
-                (theRecordBox->VerifyContractID() &&
-                 theRecordBox->VerifySignature(nym));
-        else if (!bExists)
-            bSuccessLoading = theRecordBox->GenerateLedger(
-                nymID,
-                serverID,
-                ledgerType::recordBox,
-                true);  // bGenerateFile=true
-        // By this point, the nymbox DEFINITELY exists -- or not.
-        // (generation might have failed, or verification.)
-        //
-        if (!bSuccessLoading) {
-            String strNymID(nymID), strAcctID(nymID);
-            otOut << __FUNCTION__
-                  << ": WARNING: Unable to load, verify, or generate recordBox,"
-                     " with Nym/Acct ID: "
-                  << strNymID << " / " << strAcctID << "\n";
-            continue;
-        }
-        // --- ELSE --- Success loading the recordBox and verifying its
-        // contractID and signature, (OR success generating the ledger.)
-        // ---------------------------------------------------
-        // Currently in getBoxReceiptResponse, we are taking an incoming
-        // cheque from the nymbox and adding it to the payments inbox. From
-        // there the user might choose to deposit it. When he does that, he'll
-        // receive a server reply, which is what we're processing here in this
-        // function. So now that we've got that reply, we want to move the
-        // cheque notice from the payments inbox, and into the record box at
-        // this point HERE, when we've just above removed it from the payments
-        // inbox (on successful deposit.)
-        //
-        load_str_trans_add_to_ledger(
-            nymID,
-            strPmntInboxTransaction,
-            "recordBox",
-            lRemoveTransaction,
-            nym,
-            *theRecordBox);
-    }  // for (receipt_ids)
-}
-
-void OTClient::ProcessDepositResponse(
-    const Message& theReply,
-    const ServerContext& context,
-    OTTransaction& replyTransaction) const
-{
-    // loop through the ALL items that make up this transaction and check to see
-    // if a response to deposit.
-    for (auto& it : replyTransaction.GetItemList()) {
-        auto pReplyItem = it;
-        OT_ASSERT(false != bool(pReplyItem));
-
-        // if pointer not null, and it's a deposit, and it's an acknowledgement
-        // (not a rejection or error)
-
-        if ((itemType::atDeposit == pReplyItem->GetType()) ||
-            (itemType::atDepositCheque == pReplyItem->GetType())) {
-            if (Item::acknowledgement == pReplyItem->GetStatus()) {
-                otOut
-                    << "TRANSACTION SUCCESS -- Server acknowledges deposit.\n";
-                // ------------------------------------------------
-                if (itemType::atDepositCheque == pReplyItem->GetType()) {
-                    ProcessDepositChequeResponse(context, pReplyItem);
-                }
-            } else {
-                otOut << __FUNCTION__
-                      << ": TRANSACTION FAILURE -- Server rejects deposit.\n";
-            }
-        }
-    }
-}
-
-#if OT_CASH
-/// It's definitely a withdrawal, we just need to iterate through the items in
-/// the transaction and
-/// grab any cash tokens that are inside, to save inside a purse.  Also want to
-/// display any vouchers.
-void OTClient::ProcessWithdrawalResponse(
-    const Message& theReply,
+/// We have just received a message from the server. Find out what it is and do
+/// the appropriate processing. Perhaps we just tried to create an account --
+/// this could be our new account! Let's make sure we receive it and save it
+/// to disk somewhere.
+///
+/// PS... The Client TAKES OWNERSHIP of this message
+///
+/// returns true/false on whether or not the reply was actually
+/// verified and processed.
+bool OTClient::processServerReply(
+    const std::set<ServerContext::ManagedNumber>& managed,
+    const bool resync,
     ServerContext& context,
-    OTTransaction& theTransaction) const
+    std::shared_ptr<Message>& reply,
+    Ledger* pNymbox)
 {
-    const Identifier& NYM_ID = context.Nym()->ID();
-    const String strNotaryID = String(context.Server());
+    if (!reply) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid reply" << std::endl;
 
-    // loop through the ALL items that make up this transaction and check to see
-    // if a response to withdrawal.
-
-    // if pointer not null, and it's a withdrawal, and it's an acknowledgement
-    // (not a rejection or error)
-    for (auto& it : theTransaction.GetItemList()) {
-        auto pItem = it;
-        OT_ASSERT(false != bool(pItem));
-        // VOUCHER WITHDRAWAL
-        //
-        // If we got a reply to a voucher withdrawal, we'll just display the
-        // voucher
-        // on the screen (if the server sent us one...)
-        //
-        if ((itemType::atWithdrawVoucher == pItem->GetType()) &&
-            (Item::acknowledgement == pItem->GetStatus())) {
-            String strVoucher;
-            auto theVoucher = api_.Factory().Cheque();
-
-            OT_ASSERT(false != bool(theVoucher));
-
-            pItem->GetAttachment(strVoucher);
-
-            if (theVoucher->LoadContractFromString(strVoucher)) {
-                otInfo << "\nReceived voucher from server:\n\n"
-                       << strVoucher << "\n\n";
-            }
-        }
-        // CASH WITHDRAWAL
-        //
-        // If the item is a response to a cash withdrawal, we want to save the
-        // coins into a purse
-        // somewhere on the computer. That's cash! Gotta keep it safe.
-        //
-        else if (
-            (itemType::atWithdrawal == pItem->GetType()) &&
-            (Item::acknowledgement == pItem->GetStatus())) {
-            String strPurse;
-            pItem->GetAttachment(strPurse);
-
-            auto thePurse = api_.Factory().Purse(context.Server());
-
-            OT_ASSERT(false != bool(thePurse));
-
-            if (thePurse->LoadContractFromString(strPurse)) {
-                // When we made the withdrawal request, we saved that purse
-                // pointer in the
-                // wallet so that we could get to the private coin unblinding
-                // data when we
-                // needed it (now).
-                Purse* pRequestPurse = m_pWallet.GetPendingWithdrawal();
-
-                String strInstrumentDefinitionID(
-                    thePurse->GetInstrumentDefinitionID());
-                auto pMint =
-                    api_.Factory().Mint(strNotaryID, strInstrumentDefinitionID);
-
-                OT_ASSERT(false != bool(pMint));
-
-                // Unlike the purse which we read out of a message,
-                // now we try to open a purse as a file on the client side,
-                // keyed by Instrument Definition Id.  (The client should
-                // already have one
-                // purse file for each instrument definition, if he already has
-                // cash.)
-                //
-                // We don't want to just overwrite that file. So instead, we
-                // try to load that purse first, then add the token, then save
-                // it
-                // again.
-                auto theWalletPurse = api_.Factory().Purse(*thePurse);
-
-                OT_ASSERT(false != bool(theWalletPurse));
-
-                // TODO verify the wallet purse when loaded. My signature should
-                // be the last thing on it.
-
-                // TODO: I don't check this for failure. If the file doesn't
-                // exist,
-                // we are still going to save the purse there regardless.
-                // HOWEVER need to make sure the wallet software has good backup
-                // strategy.  In the event that tokens are overwritten here, it
-                // shouldn't be a problem since they would be in the archive
-                // somewhere.
-
-                theWalletPurse->LoadPurse(
-                    strNotaryID.Get(),
-                    String(NYM_ID).Get(),
-                    strInstrumentDefinitionID.Get());
-
-                bool bSuccess = false;
-
-                if ((nullptr != pRequestPurse) && pMint->LoadMint() &&
-                    pMint->VerifyMint(context.RemoteNym())) {
-                    std::unique_ptr<Token> pToken{
-                        thePurse->Pop(*context.Nym())};
-
-                    while (pToken) {
-                        std::unique_ptr<Token> pOriginalToken{
-                            pRequestPurse->Pop(*context.Nym())};
-
-                        if (false == bool(pOriginalToken)) {
-                            otErr << "ERROR, processing withdrawal response, "
-                                     "but couldn't find original token:"
-                                  << strPurse << "\n";
-                        } else if (Token::signedToken == pToken->GetState()) {
-                            otWarn << "Retrieved signed token from purse, and "
-                                      "have corresponding withdrawal request "
-                                      "in wallet. Unblinding...\n\n";
-
-                            if (pToken->ProcessToken(
-                                    *context.Nym(), *pMint, *pOriginalToken)) {
-                                // Now that it's processed, let's save it again.
-                                pToken->ReleaseSignatures();
-                                pToken->SignContract(*context.Nym());
-                                pToken->SaveContract();
-
-                                bSuccess = true;
-
-                                // add it to the existing client-side purse for
-                                // storing tokens of that instrument definition
-                                theWalletPurse->Push(*context.Nym(), *pToken);
-                            } else {
-                                bSuccess = false;
-                            }
-                        }
-
-                        pToken.reset(thePurse->Pop(*context.Nym()));
-                    }
-                }
-
-                if (bSuccess) {
-                    // Sign it, save it.
-                    theWalletPurse->ReleaseSignatures();  // Might as well,
-                                                          // they're no good
-                                                          // anyway once the
-                                                          // data has changed.
-                    theWalletPurse->SignContract(*context.Nym());
-                    theWalletPurse->SaveContract();
-                    theWalletPurse->SavePurse(
-                        strNotaryID.Get(),
-                        String(NYM_ID).Get(),
-                        strInstrumentDefinitionID.Get());
-
-                    otOut << "SUCCESSFULLY UNBLINDED token, and added the cash "
-                             "to the local purse, and saved.\n";
-                }
-            }
-        }
+        return false;
     }
-}
+
+    Message& theReply = *reply;
+    const String serverID(context.Server());
+    const auto& serverNym = context.RemoteNym();
+    const auto accountID = Identifier::Factory(theReply.m_strAcctID);
+
+    // Just like the server verifies all messages before processing them,
+    // so does the client need to verify the signatures against each message
+    // and verify the various contract IDs and signatures.
+    if (!theReply.VerifySignature(serverNym)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Error: Server reply signature failed to verify."
+              << std::endl;
+
+        return false;
+    }
+
+    // TODO it's not possible to use the message outbuffer to detect duplicate
+    // or unsolicited server replies. The processing function for each
+    // individual message type must be capable properly detecting this
+    // situation.
+    const RequestNumber lReplyRequestNum = theReply.m_strRequestNum.ToLong();
+    // Doesn't delete
+    auto pSentMsg = GetMessageOutbuffer().GetSentMessage(
+        theReply.m_strRequestNum.ToLong(),
+        serverID,
+        String(context.Nym()->ID()));
+
+    if (false != bool(pSentMsg)) {
+        // deletes
+        GetMessageOutbuffer().RemoveSentMessage(
+            lReplyRequestNum, serverID, String(context.Nym()->ID()));
+    }
+
+    // Similarly we keep a client side list of all the request numbers that we
+    // KNOW we have a server reply for. (Each ID is maintained until we see a
+    // mirror of it appear in the server's copy of that same list, and then we
+    // go ahead and remove it. This is basically an optimization trick that
+    // enables us to avoid downloading many box receipts -- the replyNotices,
+    // specifically.)
+    context.AddAcknowledgedNumber(lReplyRequestNum);
+    // Okay, we received a reply, so we added its request number to our list of
+    // "replies we have definitely received." But what about when the server
+    // sees that, and mirrors our list? It will send its own list, containing
+    // that mirror. Any number that appears there, can be removed from the local
+    // list (confirmation is total by that point.) Clearly the server KNOWS I
+    // saw his reply, since he copied my ack into his ack mirror list. Therefore
+    // I have no more reason to continue telling him that I got the reply -- he
+    // already knows it!  So I can remove the number from my ack list, which
+    // will cause the server to do the same to match, once he gets my next
+    // message.
+    //
+    // So next step: Loop through the ack list on the server reply, and any
+    // numbers there can be REMOVED from the local list...
+    std::set<RequestNumber> numlist_ack_reply;
+
+    if (theReply.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
+        context.RemoveAcknowledgedNumber(numlist_ack_reply);
+    }
+
+    // Done:  Do a Get Sent Message based on request number. If we find the
+    // sent message, then process the reply and Remove the sent message.
+    // But if we do NOT find the sent message, then we must have processed it
+    // already -- in which case discard it and return.
+
+    // Once that process is done, everything below that line, in this function,
+    // will be able to assume there is a verified Nym available, and a Server
+    // Contract, and an asset contract where applicable, and an account where
+    // applicable.
+    //
+    // Until that code is written, I do not have those things available to me.
+    //
+    // Furthermore also need to verify the payloads... If "Command Responding
+    // To" was not actually signed by me, and I wasn't expecting the new account
+    // request, then I do NOT want to sign it.
+    //
+    // Also if the new account is not signed by the server, I don't want to sign
+    // it either. Need to check for all these things. Right now just proof of
+    // concept.
+
+    // Also, assuming all the verification shit is done here, I will have the
+    // Nym Wait a second, I think I have the Nym already cause there's a pointer
+    // on the server connection that was passed in here...
+
+    if (theReply.m_bSuccess) {
+        for (const auto& number : managed) { number.SetSuccess(true); }
+    } else {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Message status: failed for "
+               << theReply.m_strCommand << std::endl;
+
+        return false;
+    }
+
+    if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
+        return processServerReplyTriggerClause(theReply, context);
+    }
+    if (theReply.m_strCommand.Compare("checkNymResponse")) {
+        return processServerReplyCheckNym(theReply, context);
+    }
+    if (theReply.m_strCommand.Compare("notarizeTransactionResponse")) {
+        return processServerReplyNotarizeTransaction(
+            theReply, accountID, context);
+    }
+    if (theReply.m_strCommand.Compare("getTransactionNumbersResponse")) {
+        return processServerReplyGetTransactionNumbers(theReply, context);
+    }
+    if (theReply.m_strCommand.Compare("getNymboxResponse")) {
+        return processServerReplyGetNymBox(theReply, pNymbox, context);
+    }
+    if (theReply.m_strCommand.Compare("getBoxReceiptResponse")) {
+        return processServerReplyGetBoxReceipt(theReply, pNymbox, context);
+    }
+    if ((theReply.m_strCommand.Compare("processInboxResponse") ||
+         theReply.m_strCommand.Compare("processNymboxResponse"))) {
+
+        return processServerReplyProcessBox(
+            theReply, accountID, pNymbox, context);
+    }
+    if (theReply.m_strCommand.Compare("getAccountDataResponse")) {
+        return processServerReplyGetAccountData(
+            theReply, accountID, pNymbox, context);
+    }
+    if (theReply.m_strCommand.Compare("getInstrumentDefinitionResponse")) {
+        return processServerReplyGetInstrumentDefinition(theReply, context);
+    }
+    if (theReply.m_strCommand.Compare("getMintResponse")) {
+#if OT_CASH
+        return processServerReplyGetMint(theReply);
 #endif  // OT_CASH
-
-void OTClient::setRecentHash(
-    const Message& theReply,
-    bool setNymboxHash,
-    ServerContext& context)
-{
-    if (theReply.m_strNymboxHash.Exists()) {
-        const auto RECENT_HASH = Identifier::Factory(theReply.m_strNymboxHash);
-        context.SetRemoteNymboxHash(RECENT_HASH);
-
-        if (setNymboxHash) {
-            const auto NYMBOX_HASH =
-                Identifier::Factory(theReply.m_strNymboxHash);
-            context.SetLocalNymboxHash(NYMBOX_HASH);
-        }
     }
+    if (theReply.m_strCommand.Compare("getMarketListResponse")) {
+        return processServerReplyGetMarketList(theReply);
+    }
+    if (theReply.m_strCommand.Compare("getMarketOffersResponse")) {
+        return processServerReplyGetMarketOffers(theReply);
+    }
+    if (theReply.m_strCommand.Compare("getMarketRecentTradesResponse")) {
+        return processServerReplyGetMarketRecentTrades(theReply);
+    }
+    if (theReply.m_strCommand.Compare("getNymMarketOffersResponse")) {
+        return processServerReplyGetNymMarketOffers(theReply);
+    }
+    if (theReply.m_strCommand.Compare("unregisterNymResponse")) {
+        return processServerReplyUnregisterNym(theReply, context);
+    }
+    if (resync && theReply.m_strCommand.Compare("registerNymResponse")) {
+        return processServerReplyResyncContext(theReply, context);
+    }
+    if (theReply.m_strCommand.Compare("unregisterAccountResponse")) {
+        return processServerReplyUnregisterAccount(theReply, context);
+    }
+    if (theReply.m_strCommand.Compare("registerInstrumentDefinitionResponse")) {
+        return processServerReplyRegisterInstrumentDefinition(
+            theReply, accountID, context);
+    }
+    if (theReply.m_strCommand.Compare("registerAccountResponse")) {
+        return processServerReplyRegisterAccount(theReply, accountID, context);
+    }
+
+    return false;
 }
 
-bool OTClient::processServerReplyTriggerClause(
-    const Message& theReply,
-    ServerContext& context)
+bool OTClient::processServerReply(
+    const std::set<ServerContext::ManagedNumber>& managed,
+    const bool resync,
+    ServerContext& context,
+    std::shared_ptr<Message>& reply)
 {
-    setRecentHash(theReply, false, context);
+    return processServerReply(managed, resync, context, reply, nullptr);
+}
 
-    return true;
+bool OTClient::processServerReply(
+    const std::set<ServerContext::ManagedNumber>& managed,
+    ServerContext& context,
+    std::shared_ptr<Message>& reply,
+    Ledger* pNymbox)
+{
+    return processServerReply(managed, false, context, reply, pNymbox);
 }
 
 bool OTClient::processServerReplyCheckNym(
@@ -2618,124 +2648,208 @@ bool OTClient::processServerReplyCheckNym(
     return false;
 }
 
-bool OTClient::processServerReplyNotarizeTransaction(
+bool OTClient::processServerReplyGetAccountData(
     const Message& theReply,
     const Identifier& accountID,
-    ServerContext& context)
-{
-    otInfo << "Received server response to notarize Transactions message.\n";
-    setRecentHash(theReply, false, context);
-    ProcessIncomingTransactions(theReply, accountID, context);
-
-    // TODO (gui):
-    // This block assumes that the above "notarizeTransactionResponse", being
-    // successful, probably changed the account balance. A nice GUI would
-    // probably interpret the reply and edit the local files to update them to
-    // match (since it was successful). In fact, the above call to
-    // ProcessIncomingTransactions does some of that sort of stuff already, at
-    // least for issued numbers on the nym.
-    //
-    // (For now we just re-download the files.)
-
-    return true;
-}
-
-bool OTClient::processServerReplyGetTransactionNumbers(
-    const Message& theReply,
-    ServerContext& context)
-{
-    otInfo << "Received server response to Get Transaction Num message.\n";
-    setRecentHash(theReply, false, context);
-
-    return true;
-}
-
-bool OTClient::processServerReplyGetNymBox(
-    const Message& theReply,
     Ledger* pNymbox,
     ServerContext& context)
 {
     const auto& NYM_ID = context.Nym()->ID();
+    const auto& serverNym = context.RemoteNym();
 
-    String strReply(theReply);
+    otInfo << "Received server response to getAccountData message.\n";
 
-    otInfo << "Received getNymboxResponse server response ("
-           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
+    String strAccount, strInbox, strOutbox;
+    if (!theReply.m_ascPayload.GetString(strAccount) ||
+        !theReply.m_ascPayload2.GetString(strInbox) ||
+        !theReply.m_ascPayload3.GetString(strOutbox)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to decode armored reponse\n";
+    }
 
-    // base64-Decode the server reply's payload into strInbox
-    String strNymbox(theReply.m_ascPayload);
+    if (strAccount.Exists()) {
+        const auto updated =
+            api_.Wallet().UpdateAccount(accountID, context, strAccount);
 
-    // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
-    // Except... getNymboxResponse isn't dropped as a replyNotice into the
-    // Nymbox,
-    // so we'll never end up here except in cases where it needs to be
-    // loaded. I can even ASSERT here, that the pointer is actually nullptr!
-    //
-    OT_ASSERT_MSG(
-        nullptr == pNymbox,
-        "Nymbox pointer is expected to be "
-        "nullptr here, since getNymboxResponse "
-        "isn't dropped as a server "
-        "replyNotice into the nymbox.");
+        if (updated) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Saved updated account file." << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+                  << std::endl;
 
-    // Load the ledger object from that string.
-    auto theNymbox = api_.Factory().Ledger(NYM_ID, NYM_ID, context.Server());
+            OT_FAIL
+        }
+    }
 
-    OT_ASSERT(false != bool(theNymbox));
+    const String strAcctID(accountID);
+    const std::string str_acct_id(strAcctID.Get());
 
-    setRecentHash(theReply, true, context);
+    if (strInbox.Exists()) {
+        const String strNotaryID(context.Server());
 
-    // I receive the nymbox, verify the server's signature, then RE-SIGN IT
-    // WITH MY OWN
-    // SIGNATURE, then SAVE it to local storage.  So any FUTURE checks of
-    // this nymbox
-    // would require MY signature, not the server's, to verify. But in this
-    // one spot,
-    // just before saving, I need to verify the server's first.
-    // UPDATE: Keeping the server's signature, and just adding my own.
-    //
-    if (theNymbox->LoadNymboxFromString(
-            strNymbox))  // && theNymbox.VerifyAccount(serverNym)) No point
-                         // doing this, since the client hasn't even had a
-                         // chance to download the box receipts yet.
-                         // (VerifyAccount will fail before then...)
-    {
+        // Load the ledger object from strInbox
+        auto theInbox =
+            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
 
+        OT_ASSERT(false != bool(theInbox));
+
+        // I receive the inbox, verify the server's signature, then
+        // RE-SIGN IT WITH MY OWN
+        // SIGNATURE, then SAVE it to local storage.  So any FUTURE
+        // checks of this inbox
+        // would require MY signature, not the server's, to verify.
+        // But in this one spot,
+        // just before saving, I need to verify the server's first.
+        // UPDATE: Keeping the server's signature, and just adding
+        // my own.
+        if (theInbox->LoadInboxFromString(strInbox) &&
+            theInbox->VerifySignature(serverNym))  // No VerifyAccount.
+        // Can't, because client hasn't had a chance yet to download the box
+        // receipts that go
+        // with this inbox -- and VerifyAccount() tries to load those, which
+        // would fail here...
+        {
+            auto THE_HASH = Identifier::Factory();
+
+            if (theReply.m_strInboxHash.Exists()) {
+                auto nymfile = context.mutable_Nymfile("");
+                THE_HASH->SetString(theReply.m_strInboxHash);
+                const bool bHash =
+                    nymfile.It().SetInboxHash(str_acct_id, THE_HASH);
+
+                if (false == bHash) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Failed setting inbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
+                }
+            }
+
+            // If I have Transaction #35 signed out, and I use it to
+            // start a market offer (or any other cron item)
+            // then it's always possible that a finalReceipt will
+            // pop into my Inbox while I'm asleep, closing
+            // that transaction #. The server officially believes 35
+            // is closed. Unfortunately, I still have it signed
+            // out, on my side anyway, because I didn't know the
+            // finalReceipt came in.
+            //
+            // THEREFORE, WHEN A FINAL RECEIPT COMES IN, I NEED TO
+            // REMOVE ITS "in reference to" NUMBER FROM MY
+            // ISSUED LIST. Here is clearly the best place for that:
+            //
+            for (auto& it : theInbox->GetTransactionMap()) {
+                auto pTempTrans = it.second;
+                OT_ASSERT(false != bool(pTempTrans));
+
+                // TODO security: Keep a client-side list of issued
+                // #s for finalReceipts. That way,
+                // I'll be smart enough here not to actually remove
+                // just any number, unless it's actually
+                // on my list of final receipts.  (The server does a
+                // similar thing already.)
+                //
+                if (transactionType::finalReceipt == pTempTrans->GetType()) {
+                    otInfo << "*** Removing opening issued number ("
+                           << pTempTrans->GetReferenceToNum()
+                           << "), since finalReceipt found when "
+                              "retrieving asset account inbox. "
+                              "***\n";
+
+                    if (context.ConsumeIssued(
+                            pTempTrans->GetReferenceToNum())) {
+                        otWarn << "**** Due to finding a finalReceipt, "
+                               << "REMOVING OPENING NUMBER FROM NYM:  "
+                               << pTempTrans->GetReferenceToNum() << " \n";
+                    } else {
+                        otWarn << "**** Noticed a finalReceipt, but Opening "
+                                  "Number "
+                               << pTempTrans->GetReferenceToNum()
+                               << " had ALREADY been removed from nym. \n";
+                    }
+
+                    // The client side keeps a list of active (recurring)
+                    // transactions. That is, smart contracts and payment plans.
+                    // I don't think it keeps market offers in that list, since
+                    // we already have a list of active market offers
+                    // separately. And market offers produce final receipts, so
+                    // basically this piece of code will be executed for all
+                    // final receipts. It's not really necessary that it be
+                    // called for market offers, but whatever. It is for the
+                    // others.
+                    OTCronItem::EraseActiveCronReceipt(
+                        api_.DataFolder(),
+                        pTempTrans->GetReferenceToNum(),
+                        context.Nym()->ID(),
+                        pTempTrans->GetPurportedNotaryID());
+
+                }  // We also do this in AcceptEntireNymbox
+            }
+
+            // Now I'm keeping the server signature, and just adding
+            // my own.
+            theInbox->ReleaseSignatures();  // This is back. Why? Because we
+                                            // have receipts functional now.
+            theInbox->SignContract(*context.Nym());
+            theInbox->SaveContract();
+            theInbox->SaveInbox(Identifier::Factory());
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Error loading (from string) or verifying "
+                     "inbox:\n\n"
+                  << strInbox << "\n";
+        }
+    }
+    if (strOutbox.Exists()) {
+        // Load the ledger object from strOutbox.
+        auto theOutbox =
+            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
+
+        OT_ASSERT(false != bool(theOutbox));
+
+        // I receive the outbox, verify the server's signature, then RE-SIGN IT
+        // WITH MY OWN SIGNATURE, then SAVE it to local storage.  So any FUTURE
+        // checks of this outbox would require MY signature, not the server's,
+        // to verify. But in this one spot, just before saving, I need to verify
+        // the server's first. UPDATE: keeping the server's signature, and just
+        // adding my own.
         //
-        // UPDATE: We will have to rely on the Developer using the OT API to
-        // call
-        // OT_API_FlushSentMessages IMMEDIATELY after calling getNymbox and
-        // receiving
-        // a successful reply. Why? Because that's the only way to give him
-        // the chance
-        // to see if certain replies are there or not (before they get
-        // removed.) That way
-        // he can do his own harvesting, do a re-try, etc and then finally
-        // when he is done
-        // with that, do the flush.
-        //
+        if (theOutbox->LoadOutboxFromString(strOutbox) &&
+            theOutbox->VerifySignature(serverNym))  // No point calling
+                                                    // VerifyAccount
+        // since the client hasn't even had a
+        // chance to download the box receipts yet...
+        {
+            auto THE_HASH = Identifier::Factory();
 
-        theNymbox->ReleaseSignatures();  // Now I'm keeping the server
-                                         // signature, and just adding my own.
-        theNymbox->SignContract(*context.Nym());  // UPDATE: Releasing the
-                                                  // signature again, since
-                                                  // Receipts are now fully
-                                                  // functional.
-        theNymbox->SaveContract();  // Thus we can prove the Nymbox using the
-                                    // last signed transaction receipt. This
-                                    // means
-        theNymbox->SaveNymbox(Identifier::Factory());  // the receipt is our
-                                                       // proof, and the nymbox
-                                                       // becomes just an
-                                                       // intermediary file that
-                                                       // is
-        // downloaded occasionally (like checking for new email) but no
-        // trust is risked since
-        // the downloaded file is always verified against the receipt!
-    } else {
-        otErr << "OTClient::ProcessServerReply: Error loading or verifying "
-                 "nymbox during getNymboxResponse:\n\n"
-              << strNymbox << "\n";
+            if (theReply.m_strOutboxHash.Exists()) {
+                auto nymfile = context.mutable_Nymfile("");
+                THE_HASH->SetString(theReply.m_strOutboxHash);
+                const bool bHash =
+                    nymfile.It().SetOutboxHash(str_acct_id, THE_HASH);
+
+                if (false == bHash) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Failed setting outbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
+                }
+            }
+
+            theOutbox->ReleaseSignatures();  // UPDATE: keeping the server's
+                                             // signature, and just adding my
+                                             // own.
+            theOutbox->SignContract(*context.Nym());  // ANOTHER UPDATE:
+                                                      // Removing
+            // signature again, since we have
+            // receipts functional now.
+            theOutbox->SaveContract();
+            theOutbox->SaveOutbox(Identifier::Factory());
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Error loading (from string) or verifying "
+                     "outbox:\n\n"
+                  << strOutbox << "\n";
+        }
     }
 
     return true;
@@ -2750,7 +2864,6 @@ bool OTClient::processServerReplyGetBoxReceipt(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverNym = context.RemoteNym();
-    const auto& strNotaryID = String(context.Server());
 
     otInfo << "Received server response to getBoxReceipt request ("
            << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
@@ -2844,264 +2957,15 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     << strPurportedNymID
                     << "), versus the one listed in the reply message ("
                     << theReply.m_strNymID << ").\n";
-            } else  // FINALLY we have the Ledger AND the Box Receipt both
-                    // loaded at the same time.
-            {  // UPDATE: Not loading the ledger at this point. Not necessary.
-                // Faster without it.
-
-                // UPDATE: We will ASSUME the abbreviated receipt is in the
-                // NYMBOX, which is WHY we are now downloading the FULL BOX
-                // RECEIPT. We will SAVE it for the Nymbox, which finishes
-                // the Nymbox (already in box as abbreviated, and already
-                // saved in full in box receipts folder). Next we will also
-                // add it to the PAYMENT INBOX and RECORD BOX, if it's the
-                // right sort of receipt. We will also save THEIR versions
-                // of the FULL BOX RECEIPT, just as we did for the Nymbox
-                // here.
-
-                const auto rcpt_type = pBoxReceipt->GetType();
-                //---------------------------------------------------
-                if (transactionType::message == rcpt_type) {
-                    String strOTMessage;
-                    pBoxReceipt->GetReferenceString(strOTMessage);
-                    auto pMessage = api_.Factory().Message();
-
-                    OT_ASSERT(false != bool(pMessage));
-
-                    //
-                    // The original message that was sent to me by the sender
-                    // (with an encrypted envelope in the payload, and with the
-                    // sender's ID and recipient IDs as m_strNymID and
-                    // m_strNymID2) is stored within strOTMessage. Let's load it
-                    // up into an OTMessage instance,  and save it into whatever
-                    // box is its true destination. (The Nymbox is simply going
-                    // to "accept" it -- to get it removed. It was for temporary
-                    // transit purposes only in there).
-                    //
-                    if (pMessage->LoadContractFromString(strOTMessage)) {
-                        const auto recipientNymId =
-                            Identifier::Factory(pMessage->m_strNymID2);
-                        const auto senderNymID =
-                            Identifier::Factory(pMessage->m_strNymID);
-
-                        if (senderNymID->empty()) {
-                            otErr << OT_METHOD << __FUNCTION__
-                                  << ": Missing sender nym ID" << std::endl;
-                        } else {
-                            contacts_.NymToContact(senderNymID);
-                        }
-
-                        if (recipientNymId == nymID) {
-                            const auto peerObject = PeerObject::Factory(
-                                contacts_,
-                                api_.Wallet(),
-                                context.Nym(),
-                                pMessage->m_ascPayload);
-                            proto::PeerObjectType type =
-                                proto::PEEROBJECT_ERROR;
-
-                            if (peerObject) { type = peerObject->Type(); }
-
-                            switch (type) {
-                                case (proto::PEEROBJECT_MESSAGE): {
-                                    activity_.Mail(
-                                        recipientNymId,
-                                        *pMessage,
-                                        StorageBox::MAILINBOX);
-                                } break;
-                                case (proto::PEEROBJECT_PAYMENT): {
-                                    const bool bCreated =
-                                        createInstrumentNoticeFromPeerObject(
-                                            context,
-                                            *pMessage,
-                                            *peerObject,
-                                            pBoxReceipt->GetTransactionNum());
-
-                                    if (!bCreated) {
-                                        otErr << OT_METHOD << __FUNCTION__
-                                              << ": Failed unexpectedly in "
-                                                 "createInstrumentNoticeFromPee"
-                                                 "rObject."
-                                              << std::endl;
-                                    }
-                                } break;
-                                case (proto::PEEROBJECT_REQUEST): {
-                                    api_.Wallet().PeerRequestReceive(
-                                        recipientNymId, *peerObject);
-                                } break;
-                                case (proto::PEEROBJECT_RESPONSE): {
-                                    api_.Wallet().PeerReplyReceive(
-                                        recipientNymId, *peerObject);
-                                } break;
-                                default: {
-                                    otErr << OT_METHOD << __FUNCTION__
-                                          << ": Unable to decode peer object: "
-                                          << "unknown peer object type."
-                                          << std::endl;
-                                }
-                            }
-                        } else {
-                            otErr << OT_METHOD << __FUNCTION__
-                                  << ": Missing recipient nym." << std::endl;
-                        }
-                    } else {
-                        otErr << OT_METHOD << __FUNCTION__
-                              << ": Unable to decode peer object: "
-                              << "failed to deserialize message." << std::endl;
-                    }
-                }  // if (transactionType::message == rcpt_type)
-                //---------------------------------------------------
-                else if (
-                    (transactionType::instrumentNotice == rcpt_type) ||
-                    (transactionType::instrumentRejection == rcpt_type)) {
-                    // Just make sure not to add it if it's already there...
-                    if (!strNotaryID.Exists()) {
-                        otErr << OT_METHOD << __FUNCTION__
-                              << ": strNotaryID doesn't exist!\n";
-                        OT_FAIL;
-                    }
-                    if (!String(context.Nym()->ID()).Exists()) {
-                        otErr << OT_METHOD << __FUNCTION__
-                              << ": strNymID doesn't exist!\n";
-                        OT_FAIL;
-                    }
-                    const bool bExists = OTDB::Exists(
-                        api_.DataFolder(),
-                        OTFolders::PaymentInbox().Get(),
-                        strNotaryID.Get(),
-                        String(context.Nym()->ID()).Get(),
-                        "");
-                    auto thePmntInbox = api_.Factory().Ledger(
-                        nymID,
-                        nymID,
-                        context.Server());  // payment inbox
-
-                    OT_ASSERT(false != bool(thePmntInbox));
-
-                    bool bSuccessLoading =
-                        (bExists && thePmntInbox->LoadPaymentInbox());
-                    if (bExists && bSuccessLoading)
-                        bSuccessLoading =
-                            (thePmntInbox->VerifyContractID() &&
-                             thePmntInbox->VerifySignature(*context.Nym()));
-                    // No need here to load all the box receipts using
-                    // VerifyAccount.
-                    //                      bSuccessLoading =
-                    //                      (thePmntInbox->VerifyAccount(*pNym));
-                    else if (!bExists)
-                        bSuccessLoading = thePmntInbox->GenerateLedger(
-                            nymID,
-                            context.Server(),
-                            ledgerType::paymentInbox,
-                            true);  // bGenerateFile=true
-                    // By this point, the nymbox DEFINITELY exists -- or not.
-                    // (generation might have failed, or verification.)
-
-                    if (!bSuccessLoading) {
-                        String strNymID(nymID), strAcctID(nymID);
-                        otOut << __FUNCTION__
-                              << ": getBoxReceiptResponse: WARNING: Unable to "
-                                 "load, verify, or generate paymentInbox, "
-                                 "with IDs: "
-                              << strNymID << " / " << strAcctID << "\n";
-                    } else  // --- ELSE --- Success loading the payment inbox
-                            // and recordBox and verifying their contractID
-                            // and signature, (OR success generating the
-                            // ledger.)
-                    {
-                        // The transaction (which we are putting into the
-                        // payment inbox) will not be removed from the nymbox
-                        // until we receive the server's success reply to this
-                        // "process Nymbox" message. That's why you see me
-                        // adding it here to the payment inbox, while not
-                        // removing it from the Nymbox (because that will
-                        // happen once the reply is received.) NOTE: Need to
-                        // make sure the associated box receipt doesn't get
-                        // MARKED FOR DELETION when being removed at that time.
-                        //
-                        // void load_str_trans_add_to_ledger(const Identifier&
-                        //  the_nym_id, const OTString& str_trans,
-                        //                                   const OTString
-                        //                                   str_box_type, const
-                        //                                   std::int64_t&
-                        //                                   lTransNum,
-                        //                                   OTPseudonym&
-                        //                                   the_nym, OTLedger&
-                        //                                   ledger);
-
-                        // Basically we are taking this receipt from the
-                        // Nymbox, and also adding copies of it
-                        // to the paymentInbox and the recordBox.
-                        //
-                        // QUESTION: what if I ERASE it out of my recordBox.
-                        // Won't it pop back up again?
-                        // ANSWER: YES, but not if I do this instead at
-                        // getBoxReceiptResponse which will only happen once.
-                        // UPDATE: which I now AM (see our location here...)
-                        // HOWEVER: Most likely not, because this notice
-                        // will no longer BE in my Nymbox...
-                        //
-                        // QUESTION: What if I ERASE it out of my
-                        // paymentInbox? Won't this pop back there again?
-                        //
-                        // ANSWER: I can't erase it out of there. I can
-                        // either accept it or reject it. Either way,
-                        // it is removed from my paymentInbox at that time
-                        // by OT. Like above, if a copy were still
-                        // in the Nymbox, I would get a duplicate here when
-                        // processing Nymbox again. But MOST TIMES,
-                        // there will be no duplicate, because it will
-                        // already be cleaned out of my Nymbox anyway.
-                        //
-                        //
-                        const auto lTransNum = pBoxReceipt->GetTransactionNum();
-
-                        // If pBoxReceipt->GetType() is instrument notice,
-                        // add to the payments inbox.
-                        // (It will be moved to record box after the
-                        // incoming payment is deposited or discarded.)
-                        //
-                        load_str_trans_add_to_ledger(
-                            nymID,
-                            strTransTypeObject,
-                            "paymentInbox",
-                            lTransNum,
-                            *context.Nym(),
-                            *thePmntInbox);
-                    }  // --- ELSE --- Success loading the payment inbox and
-                       // verifying its contractID and signature, OR success
-                       // generating the ledger.
-
-                }  // if pBoxReceipt is instrumentNotice or
-                   // instrumentRejection...
-
-                //              pBoxReceipt->ReleaseSignatures();
-
-                // I don't release the server's signature, so later on I can
-                // verify either signature -- the server's or pNym's. Both
-                // should be on the receipt. UPDATE: We're not changing the
-                // content of the Box Receipt AT ALL because we don't want
-                // to change its message digest, which will be compared to
-                // the hash stored in the abbreviated version of the same
-                // receipt.
-                //
-                //              pBoxReceipt->SignContract(*context.Nym());
-                //              pBoxReceipt->SaveContract();
-
-                //              if (!pBoxReceipt->SaveBoxReceipt(*pLedger)) //
-                //              <==============
-                if (!pBoxReceipt->SaveBoxReceipt(
-                        theReply.m_lDepth))  // <===================
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": getBoxReceiptResponse(): Failed trying to "
-                             "SaveBoxReceipt. Contents:\n\n"
-                          << strTransTypeObject << "\n\n";
-                // theReply.m_lDepth in this context stores boxType.
-                // Value can be: 0/nymbox,1/inbox,2/outbox
-
-            }  // We can save the box receipt.
-        }      // Success loading the boxReceipt from the server reply
-    }          // No error condition.
+            } else {
+                return processServerReplyGetBoxReceipt(
+                    *pBoxReceipt,
+                    context,
+                    strTransTypeObject,
+                    theReply.m_lDepth);
+            }
+        }  // Success loading the boxReceipt from the server reply
+    }      // No error condition.
     else {
         otErr
             << __FUNCTION__
@@ -3109,6 +2973,995 @@ bool OTClient::processServerReplyGetBoxReceipt(
                "box, or verifying it. NymID: "
             << theReply.m_strNymID << "  AcctID: " << theReply.m_strAcctID
             << " \n";
+    }
+
+    return true;
+}
+
+bool OTClient::processServerReplyGetBoxReceipt(
+    OTTransaction& receipt,
+    ServerContext& context,
+    const String& serialized,
+    const std::int64_t boxType)
+{
+    const auto& nym = *context.Nym();
+    const auto& nymID = nym.ID();
+    const auto& strNotaryID = String(context.Server());
+    const auto rcpt_type = receipt.GetType();
+
+    if (transactionType::message == rcpt_type) {
+        String strOTMessage;
+        receipt.GetReferenceString(strOTMessage);
+        auto pMessage = api_.Factory().Message();
+
+        OT_ASSERT(false != bool(pMessage));
+
+        //
+        // The original message that was sent to me by the sender
+        // (with an encrypted envelope in the payload, and with the
+        // sender's ID and recipient IDs as m_strNymID and
+        // m_strNymID2) is stored within strOTMessage. Let's load it
+        // up into an OTMessage instance,  and save it into whatever
+        // box is its true destination. (The Nymbox is simply going
+        // to "accept" it -- to get it removed. It was for temporary
+        // transit purposes only in there).
+        //
+        if (pMessage->LoadContractFromString(strOTMessage)) {
+            const auto recipientNymId =
+                Identifier::Factory(pMessage->m_strNymID2);
+            const auto senderNymID = Identifier::Factory(pMessage->m_strNymID);
+
+            if (senderNymID->empty()) {
+                otErr << OT_METHOD << __FUNCTION__ << ": Missing sender nym ID"
+                      << std::endl;
+            } else {
+                contacts_.NymToContact(senderNymID);
+            }
+
+            if (recipientNymId == nymID) {
+                const auto peerObject = PeerObject::Factory(
+                    contacts_,
+                    api_.Wallet(),
+                    context.Nym(),
+                    pMessage->m_ascPayload);
+                proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
+
+                if (peerObject) { type = peerObject->Type(); }
+
+                switch (type) {
+                    case (proto::PEEROBJECT_MESSAGE): {
+                        activity_.Mail(
+                            recipientNymId, *pMessage, StorageBox::MAILINBOX);
+                    } break;
+                    case (proto::PEEROBJECT_PAYMENT): {
+                        const bool bCreated =
+                            createInstrumentNoticeFromPeerObject(
+                                context,
+                                *pMessage,
+                                *peerObject,
+                                receipt.GetTransactionNum());
+
+                        if (!bCreated) {
+                            otErr << OT_METHOD << __FUNCTION__
+                                  << ": Failed unexpectedly in "
+                                     "createInstrumentNoticeFromPee"
+                                     "rObject."
+                                  << std::endl;
+                        }
+                    } break;
+                    case (proto::PEEROBJECT_REQUEST): {
+                        api_.Wallet().PeerRequestReceive(
+                            recipientNymId, *peerObject);
+                    } break;
+                    case (proto::PEEROBJECT_RESPONSE): {
+                        api_.Wallet().PeerReplyReceive(
+                            recipientNymId, *peerObject);
+                    } break;
+                    default: {
+                        otErr << OT_METHOD << __FUNCTION__
+                              << ": Unable to decode peer object: "
+                              << "unknown peer object type." << std::endl;
+                    }
+                }
+            } else {
+                otErr << OT_METHOD << __FUNCTION__ << ": Missing recipient nym."
+                      << std::endl;
+            }
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unable to decode peer object: "
+                  << "failed to deserialize message." << std::endl;
+        }
+    }  // if (transactionType::message == rcpt_type)
+    //---------------------------------------------------
+    else if (
+        (transactionType::instrumentNotice == rcpt_type) ||
+        (transactionType::instrumentRejection == rcpt_type)) {
+        // Just make sure not to add it if it's already there...
+        if (!strNotaryID.Exists()) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": strNotaryID doesn't exist!\n";
+            OT_FAIL;
+        }
+        if (!String(context.Nym()->ID()).Exists()) {
+            otErr << OT_METHOD << __FUNCTION__ << ": strNymID doesn't exist!\n";
+            OT_FAIL;
+        }
+        const bool bExists = OTDB::Exists(
+            api_.DataFolder(),
+            OTFolders::PaymentInbox().Get(),
+            strNotaryID.Get(),
+            String(context.Nym()->ID()).Get(),
+            "");
+        auto thePmntInbox = api_.Factory().Ledger(
+            nymID,
+            nymID,
+            context.Server());  // payment inbox
+
+        OT_ASSERT(false != bool(thePmntInbox));
+
+        bool bSuccessLoading = (bExists && thePmntInbox->LoadPaymentInbox());
+        if (bExists && bSuccessLoading)
+            bSuccessLoading =
+                (thePmntInbox->VerifyContractID() &&
+                 thePmntInbox->VerifySignature(*context.Nym()));
+        // No need here to load all the box receipts using
+        // VerifyAccount.
+        //                      bSuccessLoading =
+        //                      (thePmntInbox->VerifyAccount(*pNym));
+        else if (!bExists)
+            bSuccessLoading = thePmntInbox->GenerateLedger(
+                nymID,
+                context.Server(),
+                ledgerType::paymentInbox,
+                true);  // bGenerateFile=true
+        // By this point, the nymbox DEFINITELY exists -- or not.
+        // (generation might have failed, or verification.)
+
+        if (!bSuccessLoading) {
+            String strNymID(nymID), strAcctID(nymID);
+            otOut << __FUNCTION__
+                  << ": getBoxReceiptResponse: WARNING: Unable to "
+                     "load, verify, or generate paymentInbox, "
+                     "with IDs: "
+                  << strNymID << " / " << strAcctID << "\n";
+        } else  // --- ELSE --- Success loading the payment inbox
+                // and recordBox and verifying their contractID
+                // and signature, (OR success generating the
+                // ledger.)
+        {
+            const auto lTransNum = receipt.GetTransactionNum();
+
+            // If receipt.GetType() is instrument notice,
+            // add to the payments inbox.
+            // (It will be moved to record box after the
+            // incoming payment is deposited or discarded.)
+            //
+            load_str_trans_add_to_ledger(
+                nymID,
+                serialized,
+                "paymentInbox",
+                lTransNum,
+                *context.Nym(),
+                *thePmntInbox);
+        }  // --- ELSE --- Success loading the payment inbox and verifying its
+           // contractID and signature, OR success generating the ledger.
+    }      // if pBoxReceipt is instrumentNotice or instrumentRejection...
+
+    if (!receipt.SaveBoxReceipt(boxType)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": getBoxReceiptResponse(): Failed trying to "
+                 "SaveBoxReceipt. Contents:\n\n"
+              << serialized << "\n\n";
+    }
+
+    return true;
+}
+
+bool OTClient::processServerReplyGetInstrumentDefinition(
+    const Message& theReply,
+    ServerContext& context)
+{
+    // base64-Decode the server reply's payload into raw
+    const auto raw = Data::Factory(theReply.m_ascPayload);
+    const std::string purportedID = theReply.m_strInstrumentDefinitionID.Get();
+
+    auto serialized = proto::DataToProto<proto::UnitDefinition>(raw.get());
+
+    auto contract = api_.Wallet().UnitDefinition(serialized);
+
+    if (contract) {
+
+        return (purportedID != serialized.id());
+    } else {
+        // Maybe it's actually a server contract?
+        auto serialized = proto::DataToProto<proto::ServerContract>(raw.get());
+
+        auto contract = api_.Wallet().Server(serialized);
+
+        if (contract) { return (purportedID != serialized.id()); }
+    }
+
+    return false;
+}
+
+bool OTClient::processServerReplyGetMarketList(const Message& theReply)
+{
+    String strMarketDatafile;
+    strMarketDatafile.Format("%s", "market_data.bin");
+
+    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
+    OT_ASSERT(nullptr != pStorage);
+
+    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
+    // Since it was a success, but the list was empty, then we need to erase
+    // the data file. (So when the file is loaded from storage, it will
+    // correctly
+    // display an empty list on the screen, instead of a list of outdated
+    // items.)
+    //
+    if (theReply.m_lDepth == 0) {
+        bool bSuccessErase = pStorage->EraseValueByKey(
+            api_.DataFolder(),
+            OTFolders::Market().Get(),     // "markets"
+            theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
+            strMarketDatafile.Get(),
+            "");  // "markets/<notaryID>/market_data.bin"
+        if (!bSuccessErase)
+            otErr << "Error erasing market list from market folder: "
+                  << strMarketDatafile << " \n";
+
+        return true;
+    }
+
+    auto thePayload = Data::Factory();
+
+    if ((theReply.m_ascPayload.GetLength() <= 2) ||
+        (false == theReply.m_ascPayload.GetData(thePayload))) {
+        otErr << "ProcessServerReply: unable to decode ascii-armored "
+                 "payload in getMarketListResponse reply.\n";
+        return true;
+    }
+
+    // Unpack the market list...
+
+    OTDB::OTPacker* pPacker =
+        pStorage->GetPacker();  // No need to check for failure, since this
+                                // already ASSERTS. No need to cleanup
+                                // either.
+
+    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
+    OT_ASSERT(false != bool(pBuffer));
+
+    pBuffer->SetData(
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
+
+    std::unique_ptr<OTDB::MarketList> pMarketList(
+        dynamic_cast<OTDB::MarketList*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST)));
+
+    bool bUnpacked = pPacker->Unpack(*pBuffer, *pMarketList);
+
+    if (!bUnpacked) {
+        otErr << "Process Server Reply: Failed unpacking data for "
+                 "getMarketListResponse.\n";
+        return true;
+    }
+
+    bool bSuccessStore = pStorage->StoreObject(
+        *pMarketList,
+        api_.DataFolder(),
+        OTFolders::Market().Get(),     // "markets"
+        theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
+        strMarketDatafile.Get(),
+        "");  // "markets/<notaryID>/market_data.bin"
+    if (!bSuccessStore)
+        otErr << "Error storing market list to market folder: "
+              << strMarketDatafile << " \n";
+
+    return true;
+}
+
+bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
+{
+
+    const String& strMarketID = theReply.m_strNymID2;  // market ID stored here.
+
+    String strOfferDatafile;
+    strOfferDatafile.Format("%s.bin", strMarketID.Get());
+
+    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
+    OT_ASSERT(nullptr != pStorage);
+
+    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
+    // Since it was a success, but the list was empty, then we need to erase
+    // the data file. (So when the file is loaded from storage, it will
+    // correctly
+    // display an empty list on the screen, instead of a list of outdated
+    // items.)
+    //
+    if (theReply.m_lDepth == 0) {
+        bool bSuccessErase = pStorage->EraseValueByKey(
+            api_.DataFolder(),
+            OTFolders::Market().Get(),     // "markets"
+            theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
+            "offers",                      // "markets/<notaryID>/offers"
+                                           // todo stop hardcoding.
+            strOfferDatafile
+                .Get());  // "markets/<notaryID>/offers/<marketID>.bin"
+        if (!bSuccessErase)
+            otErr << "Error erasing offers list from market folder: "
+                  << strOfferDatafile << " \n";
+
+        return true;
+    }
+
+    auto thePayload = Data::Factory();
+
+    if ((theReply.m_ascPayload.GetLength() <= 2) ||
+        (false == theReply.m_ascPayload.GetData(thePayload))) {
+        otErr << "ProcessServerReply: unable to decode ascii-armored "
+                 "payload in getMarketOffersResponse reply.\n";
+        return true;
+    }
+
+    // Unpack the market list...
+
+    OTDB::OTPacker* pPacker =
+        pStorage->GetPacker();  // No need to check for failure, since this
+                                // already ASSERTS. No need to cleanup
+                                // either.
+
+    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
+    OT_ASSERT(false != bool(pBuffer));
+
+    pBuffer->SetData(
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
+
+    std::unique_ptr<OTDB::OfferListMarket> pOfferList(
+        dynamic_cast<OTDB::OfferListMarket*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET)));
+
+    bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
+
+    if (!bUnpacked) {
+        otErr << "Failed unpacking data for process server reply, "
+                 "getMarketOffersResponse.\n";
+        return true;
+    }
+
+    bool bSuccessStore = pStorage->StoreObject(
+        *pOfferList,
+        api_.DataFolder(),
+        OTFolders::Market().Get(),     // "markets"
+        theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
+        "offers",                      // "markets/<notaryID>/offers"
+                                       // todo stop hardcoding.
+        strOfferDatafile.Get());  // "markets/<notaryID>/offers/<marketID>.bin"
+    if (!bSuccessStore)
+        otErr << "Error storing " << strOfferDatafile << " to market folder.\n";
+
+    return true;
+}
+
+bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
+{
+    const String& strMarketID = theReply.m_strNymID2;  // market ID stored here.
+
+    String strTradeDatafile;
+    strTradeDatafile.Format("%s.bin", strMarketID.Get());
+
+    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
+    OT_ASSERT(nullptr != pStorage);
+
+    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
+    // Since it was a success, but the list was empty, then we need to erase
+    // the data file. (So when the file is loaded from storage, it will
+    // correctly
+    // display an empty list on the screen, instead of a list of outdated
+    // items.)
+    //
+    if (theReply.m_lDepth == 0) {
+        bool bSuccessErase = pStorage->EraseValueByKey(
+            api_.DataFolder(),
+            OTFolders::Market().Get(),     // "markets"
+            theReply.m_strNotaryID.Get(),  // "markets/<notaryID>recent", //
+                                           // "markets/<notaryID>/recent"
+                                           // // todo stop
+                                           // hardcoding.
+            strTradeDatafile.Get(),
+            "");  // "markets/<notaryID>/recent/<marketID>.bin"
+        if (!bSuccessErase)
+            otErr << "Error erasing recent trades list from market folder: "
+                  << strTradeDatafile << " \n";
+
+        return true;
+    }
+
+    auto thePayload = Data::Factory();
+
+    if ((theReply.m_ascPayload.GetLength() <= 2) ||
+        (false == theReply.m_ascPayload.GetData(thePayload))) {
+        otErr << "ProcessServerReply: unable to decode ascii-armored "
+                 "payload in getMarketRecentTradesResponse reply.\n";
+        return true;
+    }
+
+    // Unpack the market list...
+
+    OTDB::OTPacker* pPacker =
+        pStorage->GetPacker();  // No need to check for failure, since this
+                                // already ASSERTS. No need to cleanup
+                                // either.
+
+    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
+    OT_ASSERT(nullptr != pBuffer);
+
+    pBuffer->SetData(
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
+
+    std::unique_ptr<OTDB::TradeListMarket> pTradeList(
+        dynamic_cast<OTDB::TradeListMarket*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_LIST_MARKET)));
+
+    bool bUnpacked = pPacker->Unpack(*pBuffer, *pTradeList);
+
+    if (!bUnpacked) {
+        otErr << "Failed unpacking data for process server reply, "
+                 "getMarketRecentTradesResponse.\n";
+        return true;
+    }
+
+    bool bSuccessStore = pStorage->StoreObject(
+        *pTradeList,
+        api_.DataFolder(),
+        OTFolders::Market().Get(),     // "markets"
+        theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
+        "recent",                      // "markets/<notaryID>/recent"
+                                       // todo stop hardcoding.
+        strTradeDatafile.Get());  // "markets/<notaryID>/recent/<marketID>.bin"
+    if (!bSuccessStore)
+        otErr << "Error storing " << strTradeDatafile << " to market folder.\n";
+
+    return true;
+}
+
+#if OT_CASH
+bool OTClient::processServerReplyGetMint(const Message& theReply)
+{
+    // base64-Decode the server reply's payload into strMint
+    String strMint(theReply.m_ascPayload);
+    // Load the mint object from that string...
+    auto pMint = api_.Factory().Mint(
+        theReply.m_strNotaryID, theReply.m_strInstrumentDefinitionID);
+
+    OT_ASSERT(false != bool(pMint));
+
+    // TODO check the server signature on the mint here...
+    if (pMint->LoadContractFromString(strMint)) {
+        otOut << "Saving mint file to disk...\n";
+        pMint->SaveMint();
+    }
+    return true;
+}
+#endif  // OT_CASH
+
+bool OTClient::processServerReplyGetNymBox(
+    const Message& theReply,
+    Ledger* pNymbox,
+    ServerContext& context)
+{
+    const auto& NYM_ID = context.Nym()->ID();
+
+    String strReply(theReply);
+
+    otInfo << "Received getNymboxResponse server response ("
+           << (theReply.m_bSuccess ? "success" : "failure") << ")\n";
+
+    // base64-Decode the server reply's payload into strInbox
+    String strNymbox(theReply.m_ascPayload);
+
+    // IF pNymbox NOT nullptr, THEN USE IT INSTEAD OF LOADING MY OWN.
+    // Except... getNymboxResponse isn't dropped as a replyNotice into the
+    // Nymbox,
+    // so we'll never end up here except in cases where it needs to be
+    // loaded. I can even ASSERT here, that the pointer is actually nullptr!
+    //
+    OT_ASSERT_MSG(
+        nullptr == pNymbox,
+        "Nymbox pointer is expected to be "
+        "nullptr here, since getNymboxResponse "
+        "isn't dropped as a server "
+        "replyNotice into the nymbox.");
+
+    // Load the ledger object from that string.
+    auto theNymbox = api_.Factory().Ledger(NYM_ID, NYM_ID, context.Server());
+
+    OT_ASSERT(false != bool(theNymbox));
+
+    setRecentHash(theReply, true, context);
+
+    // I receive the nymbox, verify the server's signature, then RE-SIGN IT
+    // WITH MY OWN
+    // SIGNATURE, then SAVE it to local storage.  So any FUTURE checks of
+    // this nymbox
+    // would require MY signature, not the server's, to verify. But in this
+    // one spot,
+    // just before saving, I need to verify the server's first.
+    // UPDATE: Keeping the server's signature, and just adding my own.
+    //
+    if (theNymbox->LoadNymboxFromString(
+            strNymbox))  // && theNymbox.VerifyAccount(serverNym)) No point
+                         // doing this, since the client hasn't even had a
+                         // chance to download the box receipts yet.
+                         // (VerifyAccount will fail before then...)
+    {
+
+        //
+        // UPDATE: We will have to rely on the Developer using the OT API to
+        // call
+        // OT_API_FlushSentMessages IMMEDIATELY after calling getNymbox and
+        // receiving
+        // a successful reply. Why? Because that's the only way to give him
+        // the chance
+        // to see if certain replies are there or not (before they get
+        // removed.) That way
+        // he can do his own harvesting, do a re-try, etc and then finally
+        // when he is done
+        // with that, do the flush.
+        //
+
+        theNymbox->ReleaseSignatures();  // Now I'm keeping the server
+                                         // signature, and just adding my own.
+        theNymbox->SignContract(*context.Nym());  // UPDATE: Releasing the
+                                                  // signature again, since
+                                                  // Receipts are now fully
+                                                  // functional.
+        theNymbox->SaveContract();  // Thus we can prove the Nymbox using the
+                                    // last signed transaction receipt. This
+                                    // means
+        theNymbox->SaveNymbox(Identifier::Factory());  // the receipt is our
+                                                       // proof, and the nymbox
+                                                       // becomes just an
+                                                       // intermediary file that
+                                                       // is
+        // downloaded occasionally (like checking for new email) but no
+        // trust is risked since
+        // the downloaded file is always verified against the receipt!
+    } else {
+        otErr << "OTClient::ProcessServerReply: Error loading or verifying "
+                 "nymbox during getNymboxResponse:\n\n"
+              << strNymbox << "\n";
+    }
+
+    return true;
+}
+
+bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
+{
+    String strOfferDatafile;
+    strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
+
+    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
+    OT_ASSERT(nullptr != pStorage);
+
+    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
+    // Since it was a success, but the list was empty, then we need to erase
+    // the data file. (So when the file is loaded from storage, it will
+    // correctly display an empty list on the screen, instead of a list of
+    // outdated items.)
+    //
+    if (theReply.m_lDepth == 0) {
+        bool bSuccessErase = pStorage->EraseValueByKey(
+            api_.DataFolder(),
+            OTFolders::Nym().Get(),        // "nyms"
+            theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
+            "offers",                      // "nyms/<notaryID>/offers"
+                                           // todo stop hardcoding.
+            strOfferDatafile.Get());  // "nyms/<notaryID>/offers/<NymID>.bin"
+        if (!bSuccessErase)
+            otErr << "Error erasing offers list from nyms folder: "
+                  << strOfferDatafile << " \n";
+
+        return true;
+    }
+
+    auto thePayload = Data::Factory();
+
+    if ((theReply.m_ascPayload.GetLength() <= 2) ||
+        (false == theReply.m_ascPayload.GetData(thePayload))) {
+        otErr << "ProcessServerReply: unable to decode ascii-armored "
+                 "payload in getNymMarketOffersResponse reply.\n";
+        return true;
+    }
+
+    // Unpack the nym's offer list...
+
+    OTDB::OTPacker* pPacker =
+        pStorage->GetPacker();  // No need to check for failure, since this
+                                // already ASSERTS. No need to cleanup
+                                // either.
+
+    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
+    OT_ASSERT(nullptr != pBuffer);
+
+    pBuffer->SetData(
+        static_cast<const std::uint8_t*>(thePayload->data()),
+        thePayload->size());
+
+    std::unique_ptr<OTDB::OfferListNym> pOfferList(
+        dynamic_cast<OTDB::OfferListNym*>(
+            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM)));
+
+    bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
+
+    if (!bUnpacked) {
+        otErr << "Failed unpacking data for process server reply, "
+                 "getNymMarketOffersResponse.\n";
+        return true;
+    }
+
+    bool bSuccessStore = pStorage->StoreObject(
+        *pOfferList,
+        api_.DataFolder(),
+        OTFolders::Nym().Get(),        // "nyms"
+        theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
+        "offers",                      // "nyms/<notaryID>/offers",
+        strOfferDatafile.Get());       // "nyms/<notaryID>/offers/<NymID>.bin"
+    if (!bSuccessStore)
+        otErr << "Error storing " << strOfferDatafile << " to nyms folder.\n";
+
+    return true;
+}
+
+bool OTClient::processServerReplyGetTransactionNumbers(
+    const Message& theReply,
+    ServerContext& context)
+{
+    otInfo << "Received server response to Get Transaction Num message.\n";
+    setRecentHash(theReply, false, context);
+
+    return true;
+}
+
+bool OTClient::processServerReplyNotarizeTransaction(
+    const Message& theReply,
+    const Identifier& accountID,
+    ServerContext& context)
+{
+    otInfo << "Received server response to notarize Transactions message.\n";
+    setRecentHash(theReply, false, context);
+    ProcessIncomingTransactions(theReply, accountID, context);
+
+    // TODO (gui):
+    // This block assumes that the above "notarizeTransactionResponse", being
+    // successful, probably changed the account balance. A nice GUI would
+    // probably interpret the reply and edit the local files to update them to
+    // match (since it was successful). In fact, the above call to
+    // ProcessIncomingTransactions does some of that sort of stuff already, at
+    // least for issued numbers on the nym.
+    //
+    // (For now we just re-download the files.)
+
+    return true;
+}
+
+bool OTClient::processServerReplyProcessBox(
+    const Message& theReply,
+    const Identifier& accountID,
+    Ledger* pNymbox,
+    ServerContext& context)
+{
+    // IN EITHER of these cases (processInboxResponse, processNymboxResponse),
+    // the number of transaction numbers on my Nym has probably changed. But the
+    // server acknowledgment here confirms it, so I should remove any issued
+    // numbers, save the nym, etc.
+    auto ACCOUNT_ID = Identifier::Factory(accountID);
+    const auto& NYM_ID = context.Nym()->ID();
+    const auto& serverNym = context.RemoteNym();
+    String strNotaryID(context.Server()), strReply(theReply);
+    otInfo << "Received server response: " << theReply.m_strCommand
+           << std::endl;
+    setRecentHash(theReply, false, context);
+
+    // If the server acknowledges either of the above commands, then my
+    // transaction numbers have changed. I need to read the numbers from my last
+    // transaction agreement (which should be saved in this server reply) and
+    // make sure to update my nym accordingly.
+    String strOriginalMessage;
+
+    if (theReply.m_ascInReferenceTo.Exists()) {
+        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+    }
+
+    auto theOriginalMessage = api_.Factory().Message();
+
+    OT_ASSERT(false != bool(theOriginalMessage));
+
+    if (strOriginalMessage.Exists() &&
+        theOriginalMessage->LoadContractFromString(strOriginalMessage) &&
+        theOriginalMessage->VerifySignature(*context.Nym())) {
+        String strLedger, strReplyLedger;
+
+        // todo: we are already in the function which is called
+        // for processNymboxResponse and processInboxResponse. Maybe call this
+        // func with a flag so we do not have to compare again?
+        if (theReply.m_strCommand.Compare("processNymboxResponse"))
+            ACCOUNT_ID = NYM_ID;  // For Nymbox, NymID *is* AcctID.
+
+        auto theLedger =
+            api_.Factory().Ledger(NYM_ID, ACCOUNT_ID, context.Server());
+
+        OT_ASSERT(false != bool(theLedger));
+
+        auto theReplyLedger =
+            api_.Factory().Ledger(NYM_ID, ACCOUNT_ID, context.Server());
+
+        OT_ASSERT(false != bool(theReplyLedger));
+
+        theOriginalMessage->m_ascPayload.GetString(strLedger);
+        theReply.m_ascPayload.GetString(strReplyLedger);
+
+        if (!strLedger.Exists()) {
+            String strLogData(*theOriginalMessage);
+            otErr << "Strange: Received server acknowledgment ("
+                  << theReply.m_strCommand
+                  << "), but found no request ledger within your original "
+                     "message:\n\n"
+                  << strLogData << "\n\n";
+        } else if (!strReplyLedger.Exists()) {
+            String strReply(theReply);
+            otOut << "Strange... received server acknowledgment ("
+                  << theReply.m_strCommand
+                  << "), but found no reply ledger within:\n\n"
+                  << strReply << "\n\n";
+        } else if (!theLedger->LoadLedgerFromString(strLedger)) {
+            otErr << "Strange: Received server acknowledgment ("
+                  << theReply.m_strCommand
+                  << "), but unable to load original request ledger from "
+                     "string:\n\n"
+                  << strLedger << "\n\n";
+        } else if (!theLedger->VerifySignature(*context.Nym())) {
+            otErr << "Strange: Received server acknowledgment ("
+                  << theReply.m_strCommand
+                  << "), but unable to verify your signature on the "
+                     "original request ledger:\n\n"
+                  << strLedger << "\n\n";
+        } else if (!theReplyLedger->LoadLedgerFromString(strReplyLedger)) {
+            otErr << "Strange: Received server acknowledgment ("
+                  << theReply.m_strCommand
+                  << "), but unable to load the reply ledger from string:\n\n"
+                  << strReplyLedger << "\n\n";
+        } else if (!theReplyLedger->VerifySignature(serverNym)) {
+            otErr << "Strange: Received server acknowledgment ("
+                  << theReply.m_strCommand
+                  << "), but unable to verify server's signature on the "
+                     "reply ledger within:\n\n"
+                  << strReplyLedger << "\n\n";
+        } else {
+            // atAcceptItemReceipt: Whether success or fail, remove the number
+            // used from list of responsibility.
+            //                      ALSO, if success, remove the number from the
+            //                      original cheque or the original transfer
+            //                      request.
+            //
+            // Other options are not handled here, but they ARE handled
+            // elsewhere (above). They are:
+            //
+            // atDeposit:         Whether success or fail, remove the number
+            // from my list of responsibility.
+            // atWithdrawal:      Whether success or fail, remove the number
+            // from my list of responsibility.
+            // atAcceptPending:   Whether success or fail, remove the number
+            // from my list of responsibility.
+            // atTransfer:        If success, KEEP the number on my issued list.
+            // (Remove when transfer receipt is accepted.)
+            //                    If failure, REMOVE the number from my issued
+            //                    list. (Use a new one next time.)
+            // atMarketOffer:     If success, KEEP the number on my issued list.
+            // (Removed when final receipt is created.)
+            //                    If failure, REMOVE the number from my issued
+            //                    list. (Use a new one next time.)
+            // atCancelCronItem:  Whether success or fail, remove the number
+            // from my list of responsibility.
+            // atExchangeBasket:  Whether success or fail, remove the number
+            // from my list of responsibility.
+
+            std::shared_ptr<OTTransaction> pTransaction;
+            std::shared_ptr<OTTransaction> pReplyTransaction;
+
+            // todo: we are already in the function which is called for
+            // processNymboxResponse and processInboxResponse. Maybe call this
+            // func. with a flag so we do not have to compare again?
+            if (theReply.m_strCommand.Compare(
+                    "processInboxResponse"))  // We're processing the SERVER's
+                                              // REPLY to our processInbox
+                                              // request.
+            {
+                pTransaction =
+                    theLedger->GetTransaction(transactionType::processInbox);
+                pReplyTransaction = theReplyLedger->GetTransaction(
+                    transactionType::atProcessInbox);
+
+                if (false != bool(pTransaction)) {
+                    const bool bSuccess = processServerReplyProcessInbox(
+                        theReply,
+                        accountID,
+                        pNymbox,
+                        context,
+                        pTransaction.get(),
+                        pReplyTransaction.get());
+
+                    // NOTE: there's only one place in the above function that
+                    // actually returns false, and it has a comment questioning
+                    // whether it should. Otherwise it'd just be a void function
+                    if (!bSuccess) { return false; }
+                }
+            } else {
+                // We're processing the SERVER's REPLY to our processNymbox
+                // request.
+                pTransaction =
+                    theLedger->GetTransaction(transactionType::processNymbox);
+                pReplyTransaction = theReplyLedger->GetTransaction(
+                    transactionType::atProcessNymbox);
+
+                // If I have already processed this reply,
+
+                // We did NOT have to burn a transaction number to process
+                // the Nymbox, so we don't have to remove it from the list
+                // of responsibility, like we do above. The reason is
+                // because the Nymbox cannot be used for financial
+                // transactions, since it is associated with a user acct
+                // (instead of asset account.) THIS IS ACTUALLY the WHOLE
+                // POINT of the Nymbox: If it required a transaction number
+                // to process the Nymbox, and you use the Nymbox to get
+                // transaction numbers, then how can you ever get a new
+                // number if you run out?  You need a number to get a number?
+                // //
+                // That makes no logical sense.  Therefore, the Nymbox
+                // provides a way to get new transaction numbers WITHOUT
+                // HAVING TO BURN ONE TO DO IT.  You still have to do a
+                // transaction statement to do it (sign off on the ones that
+                // you actually do have), but you can still process the
+                // Nymbox even if you have zero transaction numbers, whereas
+                // with the inbox for an asset account, you cannot process
+                // it until you burn a transaction number to do so. And if
+                // you don't have any transaction numbers to do that with,
+                // that's fine: you just get a new one via your nymbox.
+                // This is the original reason that I added nymboxes in the
+                // first place.
+                // //
+                // SIMILARLY, when a transaction number is REMOVED from our
+                // list via the Nymbox, it's only a NOTIFICATION. The Nymbox
+                // cannot actually REMOVE your transaction numbers, but it
+                // CAN be used to drop a notice informing you that one was
+                // removed. (Usually by a recurring transaction, such as a
+                // market offer, where you had already provided the closing
+                // number in advance, and you expected that it could be
+                // closed at anytime.)
+                //
+                //
+                if ((false != bool(pTransaction)) &&
+                    (false != bool(pReplyTransaction))) {
+
+                    const bool bSuccess = processServerReplyProcessNymbox(
+                        theReply,
+                        pNymbox,
+                        context,
+                        pTransaction.get(),
+                        pReplyTransaction.get());
+
+                    // NOTE: there's only one place in the above function that
+                    // actually returns false, and it has a comment questioning
+                    // whether it should. Otherwise it'd just be a void function
+                    //
+                    if (!bSuccess) { return false; }
+
+                }  // pTransaction and pReplyTransaction are both NOT nullptr.
+            }
+
+            // The below happens BOTH for Inbox AND Nymbox.
+            if ((false != bool(pTransaction)) &&
+                (false != bool(pReplyTransaction))) {
+                //
+                // SAVE THE RECEIPT....
+
+                String strNotaryID(context.Server());
+                String strReceiptID("NOT_SET_YET");
+
+                auto pReplyItem =
+                    pReplyTransaction->GetItem(itemType::atBalanceStatement);
+
+                if (false == bool(pReplyItem)) {
+                    pReplyItem = pReplyTransaction->GetItem(
+                        itemType::atTransactionStatement);
+
+                    if (false != bool(pReplyItem)) {
+                        // In this case, the receipt ID is the Nym ID
+                        context.Nym()->GetIdentifier(strReceiptID);
+                    }
+                } else {
+                    strReceiptID = theReply.m_strAcctID;  // If a balance
+                                                          // statement, then the
+                                                          // receipt ID is the
+                                                          // Account ID.
+                }
+
+                String strTransaction;
+                pReplyTransaction->SaveContractRaw(
+                    strTransaction);  // <=========== Save that receipt!
+                String strReceiptFilename;
+
+                if (pReplyTransaction->GetSuccess()) {
+                    strReceiptFilename.Format("%s.success", strReceiptID.Get());
+                } else {
+                    strReceiptFilename.Format("%s.fail", strReceiptID.Get());
+                }
+
+                String strFinal;
+                Armored ascTemp(strTransaction);
+
+                if (false == ascTemp.WriteArmoredString(
+                                 strFinal, "TRANSACTION"))  // todo hardcoding.
+                {
+                    otErr << "OTClient::ProcessServerReply: Error saving "
+                             "transaction receipt "
+                             "(failed writing armored string):\n"
+                          << OTFolders::Receipt() << Log::PathSeparator()
+                          << strNotaryID << Log::PathSeparator()
+                          << strReceiptFilename << "\n Contents:\n"
+                          << strTransaction << "\n";
+                } else  // success writing armored string
+                {
+                    if (nullptr != pReplyItem) {
+                        OTDB::StorePlainString(
+                            strFinal.Get(),
+                            api_.DataFolder(),
+                            OTFolders::Receipt().Get(),
+                            strNotaryID.Get(),
+                            strReceiptFilename.Get(),
+                            "");
+                    } else  // This should never happen...
+                    {
+                        strReceiptFilename.Format(
+                            "%s.error", strReceiptID.Get());
+
+                        otErr << "OTClient::ProcessServerReply: Error "
+                                 "saving transaction receipt:  "
+                              << strNotaryID << Log::PathSeparator()
+                              << strReceiptFilename << "\n";
+
+                        OTDB::StorePlainString(
+                            strFinal.Get(),
+                            api_.DataFolder(),
+                            OTFolders::Receipt().Get(),
+                            strNotaryID.Get(),
+                            strReceiptFilename.Get(),
+                            "");
+                    }
+                }  // success writing armored string
+            } else {
+                const String strTheLedger(*theLedger),
+                    strTheReplyLedger(*theReplyLedger);
+                otWarn << "Strange... found ledger in " << theReply.m_strCommand
+                       << ", but didn't find the right transaction type "
+                          "within.\n(pTransaction == "
+                       << ((false != bool(pTransaction)) ? "NOT nullptr"
+                                                         : "nullptr")
+                       << ") && (pReplyTransaction == "
+                       << ((false != bool(pReplyTransaction)) ? "NOT nullptr"
+                                                              : "nullptr")
+                       << ")\ntheLedger: \n\n"
+                       << strTheLedger << "\n\ntheReplyLedger:\n\n"
+                       << strTheReplyLedger << "\n\n";
+            }
+        }
+    } else {
+        otOut << "Strange... received server acknowledgment but 'in "
+                 "reference to' message was blank.\n";
     }
 
     return true;
@@ -6148,927 +7001,90 @@ bool OTClient::processServerReplyProcessNymbox(
     return true;
 }
 
-bool OTClient::processServerReplyProcessBox(
+bool OTClient::processServerReplyRegisterAccount(
     const Message& theReply,
     const Identifier& accountID,
-    Ledger* pNymbox,
     ServerContext& context)
 {
-    // IN EITHER of these cases (processInboxResponse, processNymboxResponse),
-    // the number of transaction numbers on my Nym has probably changed. But the
-    // server acknowledgment here confirms it, so I should remove any issued
-    // numbers, save the nym, etc.
-    auto ACCOUNT_ID = Identifier::Factory(accountID);
-    const auto& NYM_ID = context.Nym()->ID();
-    const auto& serverNym = context.RemoteNym();
-    String strNotaryID(context.Server()), strReply(theReply);
-    otInfo << "Received server response: " << theReply.m_strCommand
-           << std::endl;
     setRecentHash(theReply, false, context);
 
-    // If the server acknowledges either of the above commands, then my
-    // transaction numbers have changed. I need to read the numbers from my last
-    // transaction agreement (which should be saved in this server reply) and
-    // make sure to update my nym accordingly.
-    String strOriginalMessage;
-
-    if (theReply.m_ascInReferenceTo.Exists()) {
-        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
-    }
-
-    auto theOriginalMessage = api_.Factory().Message();
-
-    OT_ASSERT(false != bool(theOriginalMessage));
-
-    if (strOriginalMessage.Exists() &&
-        theOriginalMessage->LoadContractFromString(strOriginalMessage) &&
-        theOriginalMessage->VerifySignature(*context.Nym())) {
-        String strLedger, strReplyLedger;
-
-        // todo: we are already in the function which is called
-        // for processNymboxResponse and processInboxResponse. Maybe call this
-        // func with a flag so we do not have to compare again?
-        if (theReply.m_strCommand.Compare("processNymboxResponse"))
-            ACCOUNT_ID = NYM_ID;  // For Nymbox, NymID *is* AcctID.
-
-        auto theLedger =
-            api_.Factory().Ledger(NYM_ID, ACCOUNT_ID, context.Server());
-
-        OT_ASSERT(false != bool(theLedger));
-
-        auto theReplyLedger =
-            api_.Factory().Ledger(NYM_ID, ACCOUNT_ID, context.Server());
-
-        OT_ASSERT(false != bool(theReplyLedger));
-
-        theOriginalMessage->m_ascPayload.GetString(strLedger);
-        theReply.m_ascPayload.GetString(strReplyLedger);
-
-        if (!strLedger.Exists()) {
-            String strLogData(*theOriginalMessage);
-            otErr << "Strange: Received server acknowledgment ("
-                  << theReply.m_strCommand
-                  << "), but found no request ledger within your original "
-                     "message:\n\n"
-                  << strLogData << "\n\n";
-        } else if (!strReplyLedger.Exists()) {
-            String strReply(theReply);
-            otOut << "Strange... received server acknowledgment ("
-                  << theReply.m_strCommand
-                  << "), but found no reply ledger within:\n\n"
-                  << strReply << "\n\n";
-        } else if (!theLedger->LoadLedgerFromString(strLedger)) {
-            otErr << "Strange: Received server acknowledgment ("
-                  << theReply.m_strCommand
-                  << "), but unable to load original request ledger from "
-                     "string:\n\n"
-                  << strLedger << "\n\n";
-        } else if (!theLedger->VerifySignature(*context.Nym())) {
-            otErr << "Strange: Received server acknowledgment ("
-                  << theReply.m_strCommand
-                  << "), but unable to verify your signature on the "
-                     "original request ledger:\n\n"
-                  << strLedger << "\n\n";
-        } else if (!theReplyLedger->LoadLedgerFromString(strReplyLedger)) {
-            otErr << "Strange: Received server acknowledgment ("
-                  << theReply.m_strCommand
-                  << "), but unable to load the reply ledger from string:\n\n"
-                  << strReplyLedger << "\n\n";
-        } else if (!theReplyLedger->VerifySignature(serverNym)) {
-            otErr << "Strange: Received server acknowledgment ("
-                  << theReply.m_strCommand
-                  << "), but unable to verify server's signature on the "
-                     "reply ledger within:\n\n"
-                  << strReplyLedger << "\n\n";
-        } else {
-            // atAcceptItemReceipt: Whether success or fail, remove the number
-            // used from list of responsibility.
-            //                      ALSO, if success, remove the number from the
-            //                      original cheque or the original transfer
-            //                      request.
-            //
-            // Other options are not handled here, but they ARE handled
-            // elsewhere (above). They are:
-            //
-            // atDeposit:         Whether success or fail, remove the number
-            // from my list of responsibility.
-            // atWithdrawal:      Whether success or fail, remove the number
-            // from my list of responsibility.
-            // atAcceptPending:   Whether success or fail, remove the number
-            // from my list of responsibility.
-            // atTransfer:        If success, KEEP the number on my issued list.
-            // (Remove when transfer receipt is accepted.)
-            //                    If failure, REMOVE the number from my issued
-            //                    list. (Use a new one next time.)
-            // atMarketOffer:     If success, KEEP the number on my issued list.
-            // (Removed when final receipt is created.)
-            //                    If failure, REMOVE the number from my issued
-            //                    list. (Use a new one next time.)
-            // atCancelCronItem:  Whether success or fail, remove the number
-            // from my list of responsibility.
-            // atExchangeBasket:  Whether success or fail, remove the number
-            // from my list of responsibility.
-
-            std::shared_ptr<OTTransaction> pTransaction;
-            std::shared_ptr<OTTransaction> pReplyTransaction;
-
-            // todo: we are already in the function which is called for
-            // processNymboxResponse and processInboxResponse. Maybe call this
-            // func. with a flag so we do not have to compare again?
-            if (theReply.m_strCommand.Compare(
-                    "processInboxResponse"))  // We're processing the SERVER's
-                                              // REPLY to our processInbox
-                                              // request.
-            {
-                pTransaction =
-                    theLedger->GetTransaction(transactionType::processInbox);
-                pReplyTransaction = theReplyLedger->GetTransaction(
-                    transactionType::atProcessInbox);
-
-                if (false != bool(pTransaction)) {
-                    const bool bSuccess = processServerReplyProcessInbox(
-                        theReply,
-                        accountID,
-                        pNymbox,
-                        context,
-                        pTransaction.get(),
-                        pReplyTransaction.get());
-
-                    // NOTE: there's only one place in the above function that
-                    // actually returns false, and it has a comment questioning
-                    // whether it should. Otherwise it'd just be a void function
-                    if (!bSuccess) { return false; }
-                }
-            } else {
-                // We're processing the SERVER's REPLY to our processNymbox
-                // request.
-                pTransaction =
-                    theLedger->GetTransaction(transactionType::processNymbox);
-                pReplyTransaction = theReplyLedger->GetTransaction(
-                    transactionType::atProcessNymbox);
-
-                // If I have already processed this reply,
-
-                // We did NOT have to burn a transaction number to process
-                // the Nymbox, so we don't have to remove it from the list
-                // of responsibility, like we do above. The reason is
-                // because the Nymbox cannot be used for financial
-                // transactions, since it is associated with a user acct
-                // (instead of asset account.) THIS IS ACTUALLY the WHOLE
-                // POINT of the Nymbox: If it required a transaction number
-                // to process the Nymbox, and you use the Nymbox to get
-                // transaction numbers, then how can you ever get a new
-                // number if you run out?  You need a number to get a number?
-                // //
-                // That makes no logical sense.  Therefore, the Nymbox
-                // provides a way to get new transaction numbers WITHOUT
-                // HAVING TO BURN ONE TO DO IT.  You still have to do a
-                // transaction statement to do it (sign off on the ones that
-                // you actually do have), but you can still process the
-                // Nymbox even if you have zero transaction numbers, whereas
-                // with the inbox for an asset account, you cannot process
-                // it until you burn a transaction number to do so. And if
-                // you don't have any transaction numbers to do that with,
-                // that's fine: you just get a new one via your nymbox.
-                // This is the original reason that I added nymboxes in the
-                // first place.
-                // //
-                // SIMILARLY, when a transaction number is REMOVED from our
-                // list via the Nymbox, it's only a NOTIFICATION. The Nymbox
-                // cannot actually REMOVE your transaction numbers, but it
-                // CAN be used to drop a notice informing you that one was
-                // removed. (Usually by a recurring transaction, such as a
-                // market offer, where you had already provided the closing
-                // number in advance, and you expected that it could be
-                // closed at anytime.)
-                //
-                //
-                if ((false != bool(pTransaction)) &&
-                    (false != bool(pReplyTransaction))) {
-
-                    const bool bSuccess = processServerReplyProcessNymbox(
-                        theReply,
-                        pNymbox,
-                        context,
-                        pTransaction.get(),
-                        pReplyTransaction.get());
-
-                    // NOTE: there's only one place in the above function that
-                    // actually returns false, and it has a comment questioning
-                    // whether it should. Otherwise it'd just be a void function
-                    //
-                    if (!bSuccess) { return false; }
-
-                }  // pTransaction and pReplyTransaction are both NOT nullptr.
-            }
-
-            // The below happens BOTH for Inbox AND Nymbox.
-            if ((false != bool(pTransaction)) &&
-                (false != bool(pReplyTransaction))) {
-                //
-                // SAVE THE RECEIPT....
-
-                String strNotaryID(context.Server());
-                String strReceiptID("NOT_SET_YET");
-
-                auto pReplyItem =
-                    pReplyTransaction->GetItem(itemType::atBalanceStatement);
-
-                if (false == bool(pReplyItem)) {
-                    pReplyItem = pReplyTransaction->GetItem(
-                        itemType::atTransactionStatement);
-
-                    if (false != bool(pReplyItem)) {
-                        // In this case, the receipt ID is the Nym ID
-                        context.Nym()->GetIdentifier(strReceiptID);
-                    }
-                } else {
-                    strReceiptID = theReply.m_strAcctID;  // If a balance
-                                                          // statement, then the
-                                                          // receipt ID is the
-                                                          // Account ID.
-                }
-
-                String strTransaction;
-                pReplyTransaction->SaveContractRaw(
-                    strTransaction);  // <=========== Save that receipt!
-                String strReceiptFilename;
-
-                if (pReplyTransaction->GetSuccess()) {
-                    strReceiptFilename.Format("%s.success", strReceiptID.Get());
-                } else {
-                    strReceiptFilename.Format("%s.fail", strReceiptID.Get());
-                }
-
-                String strFinal;
-                Armored ascTemp(strTransaction);
-
-                if (false == ascTemp.WriteArmoredString(
-                                 strFinal, "TRANSACTION"))  // todo hardcoding.
-                {
-                    otErr << "OTClient::ProcessServerReply: Error saving "
-                             "transaction receipt "
-                             "(failed writing armored string):\n"
-                          << OTFolders::Receipt() << Log::PathSeparator()
-                          << strNotaryID << Log::PathSeparator()
-                          << strReceiptFilename << "\n Contents:\n"
-                          << strTransaction << "\n";
-                } else  // success writing armored string
-                {
-                    if (nullptr != pReplyItem) {
-                        OTDB::StorePlainString(
-                            strFinal.Get(),
-                            api_.DataFolder(),
-                            OTFolders::Receipt().Get(),
-                            strNotaryID.Get(),
-                            strReceiptFilename.Get(),
-                            "");
-                    } else  // This should never happen...
-                    {
-                        strReceiptFilename.Format(
-                            "%s.error", strReceiptID.Get());
-
-                        otErr << "OTClient::ProcessServerReply: Error "
-                                 "saving transaction receipt:  "
-                              << strNotaryID << Log::PathSeparator()
-                              << strReceiptFilename << "\n";
-
-                        OTDB::StorePlainString(
-                            strFinal.Get(),
-                            api_.DataFolder(),
-                            OTFolders::Receipt().Get(),
-                            strNotaryID.Get(),
-                            strReceiptFilename.Get(),
-                            "");
-                    }
-                }  // success writing armored string
-            } else {
-                const String strTheLedger(*theLedger),
-                    strTheReplyLedger(*theReplyLedger);
-                otWarn << "Strange... found ledger in " << theReply.m_strCommand
-                       << ", but didn't find the right transaction type "
-                          "within.\n(pTransaction == "
-                       << ((false != bool(pTransaction)) ? "NOT nullptr"
-                                                         : "nullptr")
-                       << ") && (pReplyTransaction == "
-                       << ((false != bool(pReplyTransaction)) ? "NOT nullptr"
-                                                              : "nullptr")
-                       << ")\ntheLedger: \n\n"
-                       << strTheLedger << "\n\ntheReplyLedger:\n\n"
-                       << strTheReplyLedger << "\n\n";
-            }
-        }
-    } else {
-        otOut << "Strange... received server acknowledgment but 'in "
-                 "reference to' message was blank.\n";
-    }
-
-    return true;
-}
-
-bool OTClient::processServerReplyGetAccountData(
-    const Message& theReply,
-    const Identifier& accountID,
-    Ledger* pNymbox,
-    ServerContext& context)
-{
-    const auto& NYM_ID = context.Nym()->ID();
-    const auto& serverNym = context.RemoteNym();
-
-    otInfo << "Received server response to getAccountData message.\n";
-
-    String strAccount, strInbox, strOutbox;
-    if (!theReply.m_ascPayload.GetString(strAccount) ||
-        !theReply.m_ascPayload2.GetString(strInbox) ||
-        !theReply.m_ascPayload3.GetString(strOutbox)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed to decode armored reponse\n";
-    }
-
-    if (strAccount.Exists()) {
+    if (theReply.m_ascPayload.GetLength()) {
+        // this decodes the ascii-armor payload where the new account file
+        // is stored, and returns a normal string in strAcctContents.
+        String strAcctContents(theReply.m_ascPayload);
         const auto updated =
-            api_.Wallet().UpdateAccount(accountID, context, strAccount);
+            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Saved updated account file." << std::endl;
+
+            return init_new_account(accountID, context);
         } else {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
                   << std::endl;
-
-            OT_FAIL
         }
-    }
-
-    const String strAcctID(accountID);
-    const std::string str_acct_id(strAcctID.Get());
-
-    if (strInbox.Exists()) {
-        const String strNotaryID(context.Server());
-
-        // Load the ledger object from strInbox
-        auto theInbox =
-            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
-
-        OT_ASSERT(false != bool(theInbox));
-
-        // I receive the inbox, verify the server's signature, then
-        // RE-SIGN IT WITH MY OWN
-        // SIGNATURE, then SAVE it to local storage.  So any FUTURE
-        // checks of this inbox
-        // would require MY signature, not the server's, to verify.
-        // But in this one spot,
-        // just before saving, I need to verify the server's first.
-        // UPDATE: Keeping the server's signature, and just adding
-        // my own.
-        if (theInbox->LoadInboxFromString(strInbox) &&
-            theInbox->VerifySignature(serverNym))  // No VerifyAccount.
-        // Can't, because client hasn't had a chance yet to download the box
-        // receipts that go
-        // with this inbox -- and VerifyAccount() tries to load those, which
-        // would fail here...
-        {
-            auto THE_HASH = Identifier::Factory();
-
-            if (theReply.m_strInboxHash.Exists()) {
-                auto nymfile = context.mutable_Nymfile("");
-                THE_HASH->SetString(theReply.m_strInboxHash);
-                const bool bHash =
-                    nymfile.It().SetInboxHash(str_acct_id, THE_HASH);
-
-                if (false == bHash) {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting inbox hash for account: "
-                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
-                }
-            }
-
-            // If I have Transaction #35 signed out, and I use it to
-            // start a market offer (or any other cron item)
-            // then it's always possible that a finalReceipt will
-            // pop into my Inbox while I'm asleep, closing
-            // that transaction #. The server officially believes 35
-            // is closed. Unfortunately, I still have it signed
-            // out, on my side anyway, because I didn't know the
-            // finalReceipt came in.
-            //
-            // THEREFORE, WHEN A FINAL RECEIPT COMES IN, I NEED TO
-            // REMOVE ITS "in reference to" NUMBER FROM MY
-            // ISSUED LIST. Here is clearly the best place for that:
-            //
-            for (auto& it : theInbox->GetTransactionMap()) {
-                auto pTempTrans = it.second;
-                OT_ASSERT(false != bool(pTempTrans));
-
-                // TODO security: Keep a client-side list of issued
-                // #s for finalReceipts. That way,
-                // I'll be smart enough here not to actually remove
-                // just any number, unless it's actually
-                // on my list of final receipts.  (The server does a
-                // similar thing already.)
-                //
-                if (transactionType::finalReceipt == pTempTrans->GetType()) {
-                    otInfo << "*** Removing opening issued number ("
-                           << pTempTrans->GetReferenceToNum()
-                           << "), since finalReceipt found when "
-                              "retrieving asset account inbox. "
-                              "***\n";
-
-                    if (context.ConsumeIssued(
-                            pTempTrans->GetReferenceToNum())) {
-                        otWarn << "**** Due to finding a finalReceipt, "
-                               << "REMOVING OPENING NUMBER FROM NYM:  "
-                               << pTempTrans->GetReferenceToNum() << " \n";
-                    } else {
-                        otWarn << "**** Noticed a finalReceipt, but Opening "
-                                  "Number "
-                               << pTempTrans->GetReferenceToNum()
-                               << " had ALREADY been removed from nym. \n";
-                    }
-
-                    // The client side keeps a list of active (recurring)
-                    // transactions. That is, smart contracts and payment plans.
-                    // I don't think it keeps market offers in that list, since
-                    // we already have a list of active market offers
-                    // separately. And market offers produce final receipts, so
-                    // basically this piece of code will be executed for all
-                    // final receipts. It's not really necessary that it be
-                    // called for market offers, but whatever. It is for the
-                    // others.
-                    OTCronItem::EraseActiveCronReceipt(
-                        api_.DataFolder(),
-                        pTempTrans->GetReferenceToNum(),
-                        context.Nym()->ID(),
-                        pTempTrans->GetPurportedNotaryID());
-
-                }  // We also do this in AcceptEntireNymbox
-            }
-
-            // Now I'm keeping the server signature, and just adding
-            // my own.
-            theInbox->ReleaseSignatures();  // This is back. Why? Because we
-                                            // have receipts functional now.
-            theInbox->SignContract(*context.Nym());
-            theInbox->SaveContract();
-            theInbox->SaveInbox(Identifier::Factory());
-        } else {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Error loading (from string) or verifying "
-                     "inbox:\n\n"
-                  << strInbox << "\n";
-        }
-    }
-    if (strOutbox.Exists()) {
-        // Load the ledger object from strOutbox.
-        auto theOutbox =
-            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
-
-        OT_ASSERT(false != bool(theOutbox));
-
-        // I receive the outbox, verify the server's signature, then RE-SIGN IT
-        // WITH MY OWN SIGNATURE, then SAVE it to local storage.  So any FUTURE
-        // checks of this outbox would require MY signature, not the server's,
-        // to verify. But in this one spot, just before saving, I need to verify
-        // the server's first. UPDATE: keeping the server's signature, and just
-        // adding my own.
-        //
-        if (theOutbox->LoadOutboxFromString(strOutbox) &&
-            theOutbox->VerifySignature(serverNym))  // No point calling
-                                                    // VerifyAccount
-        // since the client hasn't even had a
-        // chance to download the box receipts yet...
-        {
-            auto THE_HASH = Identifier::Factory();
-
-            if (theReply.m_strOutboxHash.Exists()) {
-                auto nymfile = context.mutable_Nymfile("");
-                THE_HASH->SetString(theReply.m_strOutboxHash);
-                const bool bHash =
-                    nymfile.It().SetOutboxHash(str_acct_id, THE_HASH);
-
-                if (false == bHash) {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting outbox hash for account: "
-                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
-                }
-            }
-
-            theOutbox->ReleaseSignatures();  // UPDATE: keeping the server's
-                                             // signature, and just adding my
-                                             // own.
-            theOutbox->SignContract(*context.Nym());  // ANOTHER UPDATE:
-                                                      // Removing
-            // signature again, since we have
-            // receipts functional now.
-            theOutbox->SaveContract();
-            theOutbox->SaveOutbox(Identifier::Factory());
-        } else {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Error loading (from string) or verifying "
-                     "outbox:\n\n"
-                  << strOutbox << "\n";
-        }
-    }
-
-    return true;
-}
-
-bool OTClient::processServerReplyGetInstrumentDefinition(
-    const Message& theReply,
-    ServerContext& context)
-{
-    // base64-Decode the server reply's payload into raw
-    const auto raw = Data::Factory(theReply.m_ascPayload);
-    const std::string purportedID = theReply.m_strInstrumentDefinitionID.Get();
-
-    auto serialized = proto::DataToProto<proto::UnitDefinition>(raw.get());
-
-    auto contract = api_.Wallet().UnitDefinition(serialized);
-
-    if (contract) {
-
-        return (purportedID != serialized.id());
-    } else {
-        // Maybe it's actually a server contract?
-        auto serialized = proto::DataToProto<proto::ServerContract>(raw.get());
-
-        auto contract = api_.Wallet().Server(serialized);
-
-        if (contract) { return (purportedID != serialized.id()); }
     }
 
     return false;
 }
 
-#if OT_CASH
-bool OTClient::processServerReplyGetMint(const Message& theReply)
+bool OTClient::processServerReplyRegisterInstrumentDefinition(
+    const Message& theReply,
+    const Identifier& accountID,
+    ServerContext& context)
 {
-    // base64-Decode the server reply's payload into strMint
-    String strMint(theReply.m_ascPayload);
-    // Load the mint object from that string...
-    auto pMint = api_.Factory().Mint(
-        theReply.m_strNotaryID, theReply.m_strInstrumentDefinitionID);
+    setRecentHash(theReply, false, context);
 
-    OT_ASSERT(false != bool(pMint));
+    if (theReply.m_ascPayload.GetLength()) {
+        // this decodes the ascii-armor payload where the new account file
+        // is stored, and returns a normal string in strAcctContents.
+        String strAcctContents(theReply.m_ascPayload);
+        const auto updated =
+            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
 
-    // TODO check the server signature on the mint here...
-    if (pMint->LoadContractFromString(strMint)) {
-        otOut << "Saving mint file to disk...\n";
-        pMint->SaveMint();
-    }
-    return true;
-}
-#endif  // OT_CASH
+        if (updated) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Saved new issuer account."
+                  << std::endl;
 
-bool OTClient::processServerReplyGetMarketList(const Message& theReply)
-{
-    String strMarketDatafile;
-    strMarketDatafile.Format("%s", "market_data.bin");
+            return init_new_account(accountID, context);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+                  << std::endl;
 
-    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-    OT_ASSERT(nullptr != pStorage);
-
-    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
-    // Since it was a success, but the list was empty, then we need to erase
-    // the data file. (So when the file is loaded from storage, it will
-    // correctly
-    // display an empty list on the screen, instead of a list of outdated
-    // items.)
-    //
-    if (theReply.m_lDepth == 0) {
-        bool bSuccessErase = pStorage->EraseValueByKey(
-            api_.DataFolder(),
-            OTFolders::Market().Get(),     // "markets"
-            theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
-            strMarketDatafile.Get(),
-            "");  // "markets/<notaryID>/market_data.bin"
-        if (!bSuccessErase)
-            otErr << "Error erasing market list from market folder: "
-                  << strMarketDatafile << " \n";
-
-        return true;
+            return false;
+        }
     }
 
-    auto thePayload = Data::Factory();
-
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
-        otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in getMarketListResponse reply.\n";
-        return true;
-    }
-
-    // Unpack the market list...
-
-    OTDB::OTPacker* pPacker =
-        pStorage->GetPacker();  // No need to check for failure, since this
-                                // already ASSERTS. No need to cleanup
-                                // either.
-
-    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
-    OT_ASSERT(false != bool(pBuffer));
-
-    pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->data()),
-        thePayload->size());
-
-    std::unique_ptr<OTDB::MarketList> pMarketList(
-        dynamic_cast<OTDB::MarketList*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_MARKET_LIST)));
-
-    bool bUnpacked = pPacker->Unpack(*pBuffer, *pMarketList);
-
-    if (!bUnpacked) {
-        otErr << "Process Server Reply: Failed unpacking data for "
-                 "getMarketListResponse.\n";
-        return true;
-    }
-
-    bool bSuccessStore = pStorage->StoreObject(
-        *pMarketList,
-        api_.DataFolder(),
-        OTFolders::Market().Get(),     // "markets"
-        theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
-        strMarketDatafile.Get(),
-        "");  // "markets/<notaryID>/market_data.bin"
-    if (!bSuccessStore)
-        otErr << "Error storing market list to market folder: "
-              << strMarketDatafile << " \n";
-
-    return true;
+    return false;
 }
 
-bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
-{
-
-    const String& strMarketID = theReply.m_strNymID2;  // market ID stored here.
-
-    String strOfferDatafile;
-    strOfferDatafile.Format("%s.bin", strMarketID.Get());
-
-    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-    OT_ASSERT(nullptr != pStorage);
-
-    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
-    // Since it was a success, but the list was empty, then we need to erase
-    // the data file. (So when the file is loaded from storage, it will
-    // correctly
-    // display an empty list on the screen, instead of a list of outdated
-    // items.)
-    //
-    if (theReply.m_lDepth == 0) {
-        bool bSuccessErase = pStorage->EraseValueByKey(
-            api_.DataFolder(),
-            OTFolders::Market().Get(),     // "markets"
-            theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
-            "offers",                      // "markets/<notaryID>/offers"
-                                           // todo stop hardcoding.
-            strOfferDatafile
-                .Get());  // "markets/<notaryID>/offers/<marketID>.bin"
-        if (!bSuccessErase)
-            otErr << "Error erasing offers list from market folder: "
-                  << strOfferDatafile << " \n";
-
-        return true;
-    }
-
-    auto thePayload = Data::Factory();
-
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
-        otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in getMarketOffersResponse reply.\n";
-        return true;
-    }
-
-    // Unpack the market list...
-
-    OTDB::OTPacker* pPacker =
-        pStorage->GetPacker();  // No need to check for failure, since this
-                                // already ASSERTS. No need to cleanup
-                                // either.
-
-    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
-    OT_ASSERT(false != bool(pBuffer));
-
-    pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->data()),
-        thePayload->size());
-
-    std::unique_ptr<OTDB::OfferListMarket> pOfferList(
-        dynamic_cast<OTDB::OfferListMarket*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_MARKET)));
-
-    bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
-
-    if (!bUnpacked) {
-        otErr << "Failed unpacking data for process server reply, "
-                 "getMarketOffersResponse.\n";
-        return true;
-    }
-
-    bool bSuccessStore = pStorage->StoreObject(
-        *pOfferList,
-        api_.DataFolder(),
-        OTFolders::Market().Get(),     // "markets"
-        theReply.m_strNotaryID.Get(),  // "markets/<notaryID>",
-        "offers",                      // "markets/<notaryID>/offers"
-                                       // todo stop hardcoding.
-        strOfferDatafile.Get());  // "markets/<notaryID>/offers/<marketID>.bin"
-    if (!bSuccessStore)
-        otErr << "Error storing " << strOfferDatafile << " to market folder.\n";
-
-    return true;
-}
-
-bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
-{
-    const String& strMarketID = theReply.m_strNymID2;  // market ID stored here.
-
-    String strTradeDatafile;
-    strTradeDatafile.Format("%s.bin", strMarketID.Get());
-
-    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-    OT_ASSERT(nullptr != pStorage);
-
-    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
-    // Since it was a success, but the list was empty, then we need to erase
-    // the data file. (So when the file is loaded from storage, it will
-    // correctly
-    // display an empty list on the screen, instead of a list of outdated
-    // items.)
-    //
-    if (theReply.m_lDepth == 0) {
-        bool bSuccessErase = pStorage->EraseValueByKey(
-            api_.DataFolder(),
-            OTFolders::Market().Get(),     // "markets"
-            theReply.m_strNotaryID.Get(),  // "markets/<notaryID>recent", //
-                                           // "markets/<notaryID>/recent"
-                                           // // todo stop
-                                           // hardcoding.
-            strTradeDatafile.Get(),
-            "");  // "markets/<notaryID>/recent/<marketID>.bin"
-        if (!bSuccessErase)
-            otErr << "Error erasing recent trades list from market folder: "
-                  << strTradeDatafile << " \n";
-
-        return true;
-    }
-
-    auto thePayload = Data::Factory();
-
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
-        otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in getMarketRecentTradesResponse reply.\n";
-        return true;
-    }
-
-    // Unpack the market list...
-
-    OTDB::OTPacker* pPacker =
-        pStorage->GetPacker();  // No need to check for failure, since this
-                                // already ASSERTS. No need to cleanup
-                                // either.
-
-    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
-    OT_ASSERT(nullptr != pBuffer);
-
-    pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->data()),
-        thePayload->size());
-
-    std::unique_ptr<OTDB::TradeListMarket> pTradeList(
-        dynamic_cast<OTDB::TradeListMarket*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_TRADE_LIST_MARKET)));
-
-    bool bUnpacked = pPacker->Unpack(*pBuffer, *pTradeList);
-
-    if (!bUnpacked) {
-        otErr << "Failed unpacking data for process server reply, "
-                 "getMarketRecentTradesResponse.\n";
-        return true;
-    }
-
-    bool bSuccessStore = pStorage->StoreObject(
-        *pTradeList,
-        api_.DataFolder(),
-        OTFolders::Market().Get(),     // "markets"
-        theReply.m_strNotaryID.Get(),  // "markets/<notaryID>"
-        "recent",                      // "markets/<notaryID>/recent"
-                                       // todo stop hardcoding.
-        strTradeDatafile.Get());  // "markets/<notaryID>/recent/<marketID>.bin"
-    if (!bSuccessStore)
-        otErr << "Error storing " << strTradeDatafile << " to market folder.\n";
-
-    return true;
-}
-
-bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
-{
-    String strOfferDatafile;
-    strOfferDatafile.Format("%s.bin", theReply.m_strNymID.Get());
-
-    OTDB::Storage* pStorage = OTDB::GetDefaultStorage();
-    OT_ASSERT(nullptr != pStorage);
-
-    // The reply is a SUCCESS, and the COUNT is 0 (empty list was returned.)
-    // Since it was a success, but the list was empty, then we need to erase
-    // the data file. (So when the file is loaded from storage, it will
-    // correctly display an empty list on the screen, instead of a list of
-    // outdated items.)
-    //
-    if (theReply.m_lDepth == 0) {
-        bool bSuccessErase = pStorage->EraseValueByKey(
-            api_.DataFolder(),
-            OTFolders::Nym().Get(),        // "nyms"
-            theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
-            "offers",                      // "nyms/<notaryID>/offers"
-                                           // todo stop hardcoding.
-            strOfferDatafile.Get());  // "nyms/<notaryID>/offers/<NymID>.bin"
-        if (!bSuccessErase)
-            otErr << "Error erasing offers list from nyms folder: "
-                  << strOfferDatafile << " \n";
-
-        return true;
-    }
-
-    auto thePayload = Data::Factory();
-
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
-        otErr << "ProcessServerReply: unable to decode ascii-armored "
-                 "payload in getNymMarketOffersResponse reply.\n";
-        return true;
-    }
-
-    // Unpack the nym's offer list...
-
-    OTDB::OTPacker* pPacker =
-        pStorage->GetPacker();  // No need to check for failure, since this
-                                // already ASSERTS. No need to cleanup
-                                // either.
-
-    std::unique_ptr<OTDB::PackedBuffer> pBuffer(pPacker->CreateBuffer());
-    OT_ASSERT(nullptr != pBuffer);
-
-    pBuffer->SetData(
-        static_cast<const std::uint8_t*>(thePayload->data()),
-        thePayload->size());
-
-    std::unique_ptr<OTDB::OfferListNym> pOfferList(
-        dynamic_cast<OTDB::OfferListNym*>(
-            OTDB::CreateObject(OTDB::STORED_OBJ_OFFER_LIST_NYM)));
-
-    bool bUnpacked = pPacker->Unpack(*pBuffer, *pOfferList);
-
-    if (!bUnpacked) {
-        otErr << "Failed unpacking data for process server reply, "
-                 "getNymMarketOffersResponse.\n";
-        return true;
-    }
-
-    bool bSuccessStore = pStorage->StoreObject(
-        *pOfferList,
-        api_.DataFolder(),
-        OTFolders::Nym().Get(),        // "nyms"
-        theReply.m_strNotaryID.Get(),  // "nyms/<notaryID>",
-        "offers",                      // "nyms/<notaryID>/offers",
-        strOfferDatafile.Get());       // "nyms/<notaryID>/offers/<NymID>.bin"
-    if (!bSuccessStore)
-        otErr << "Error storing " << strOfferDatafile << " to nyms folder.\n";
-
-    return true;
-}
-
-bool OTClient::processServerReplyUnregisterNym(
+bool OTClient::processServerReplyResyncContext(
     const Message& theReply,
     ServerContext& context)
 {
-    String strOriginalMessage;
-    const String strNotaryID(context.Server());
-    auto theOriginalMessage = api_.Factory().Message();
+    auto serialized = proto::DataToProto<proto::Context>(
+        Data::Factory(theReply.m_ascPayload));
+    auto verified = proto::Validate(serialized, SILENT);
 
-    OT_ASSERT(false != bool(theOriginalMessage));
+    if (false == verified) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid context." << std::endl;
 
-    if (theReply.m_ascInReferenceTo.Exists()) {
-        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+        return false;
     }
 
-    if (strOriginalMessage.Exists() &&
-        theOriginalMessage->LoadContractFromString(strOriginalMessage) &&
-        theOriginalMessage->VerifySignature(*context.Nym()) &&
-        theOriginalMessage->m_strNymID.Compare(theReply.m_strNymID) &&
-        theOriginalMessage->m_strCommand.Compare("unregisterNym")) {
-        context.Reset();
-        otOut << "Successfully DELETED Nym from Server: removed request "
-                 "number, plus all issued and transaction numbers for Nym "
-              << theReply.m_strNymID << " for Server " << strNotaryID << ".\n";
-    } else {
-        otErr << "The server just for some reason tried to trick me into "
-                 "erasing my issued and transaction numbers for Nym "
-              << theReply.m_strNymID << ", Server " << strNotaryID << ".\n";
-    }
+    auto output = context.Resync(serialized);
+
+    output &= harvest_unused(context);
+
+    return output;
+}
+
+bool OTClient::processServerReplyTriggerClause(
+    const Message& theReply,
+    ServerContext& context)
+{
+    setRecentHash(theReply, false, context);
 
     return true;
 }
@@ -7115,284 +7131,36 @@ bool OTClient::processServerReplyUnregisterAccount(
     return true;
 }
 
-bool OTClient::processServerReplyRegisterInstrumentDefinition(
-    const Message& theReply,
-    const Identifier& accountID,
-    ServerContext& context)
-{
-    setRecentHash(theReply, false, context);
-
-    if (theReply.m_ascPayload.GetLength()) {
-        // this decodes the ascii-armor payload where the new account file
-        // is stored, and returns a normal string in strAcctContents.
-        String strAcctContents(theReply.m_ascPayload);
-        const auto updated =
-            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
-
-        if (updated) {
-            otErr << OT_METHOD << __FUNCTION__ << ": Saved new issuer account."
-                  << std::endl;
-
-            return init_new_account(accountID, context);
-        } else {
-            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
-                  << std::endl;
-
-            return false;
-        }
-    }
-
-    return false;
-}
-
-bool OTClient::processServerReplyRegisterAccount(
-    const Message& theReply,
-    const Identifier& accountID,
-    ServerContext& context)
-{
-    setRecentHash(theReply, false, context);
-
-    if (theReply.m_ascPayload.GetLength()) {
-        // this decodes the ascii-armor payload where the new account file
-        // is stored, and returns a normal string in strAcctContents.
-        String strAcctContents(theReply.m_ascPayload);
-        const auto updated =
-            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
-
-        if (updated) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Saved updated account file." << std::endl;
-
-            return init_new_account(accountID, context);
-        } else {
-            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
-                  << std::endl;
-        }
-    }
-
-    return false;
-}
-
-bool OTClient::processServerReplyResyncContext(
+bool OTClient::processServerReplyUnregisterNym(
     const Message& theReply,
     ServerContext& context)
 {
-    auto serialized = proto::DataToProto<proto::Context>(
-        Data::Factory(theReply.m_ascPayload));
-    auto verified = proto::Validate(serialized, SILENT);
+    String strOriginalMessage;
+    const String strNotaryID(context.Server());
+    auto theOriginalMessage = api_.Factory().Message();
 
-    if (false == verified) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid context." << std::endl;
+    OT_ASSERT(false != bool(theOriginalMessage));
 
-        return false;
+    if (theReply.m_ascInReferenceTo.Exists()) {
+        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
     }
 
-    auto output = context.Resync(serialized);
-
-    output &= harvest_unused(context);
-
-    return output;
-}
-
-bool OTClient::processServerReply(
-    const std::set<ServerContext::ManagedNumber>& managed,
-    const bool resync,
-    ServerContext& context,
-    std::shared_ptr<Message>& reply)
-{
-    return processServerReply(managed, resync, context, reply, nullptr);
-}
-
-bool OTClient::processServerReply(
-    const std::set<ServerContext::ManagedNumber>& managed,
-    ServerContext& context,
-    std::shared_ptr<Message>& reply,
-    Ledger* pNymbox)
-{
-    return processServerReply(managed, false, context, reply, pNymbox);
-}
-
-/// We have just received a message from the server. Find out what it is and do
-/// the appropriate processing. Perhaps we just tried to create an account --
-/// this could be our new account! Let's make sure we receive it and save it
-/// to disk somewhere.
-///
-/// PS... The Client TAKES OWNERSHIP of this message
-///
-/// returns true/false on whether or not the reply was actually
-/// verified and processed.
-bool OTClient::processServerReply(
-    const std::set<ServerContext::ManagedNumber>& managed,
-    const bool resync,
-    ServerContext& context,
-    std::shared_ptr<Message>& reply,
-    Ledger* pNymbox)
-{
-    if (!reply) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid reply" << std::endl;
-
-        return false;
-    }
-
-    Message& theReply = *reply;
-    const String serverID(context.Server());
-    const auto& serverNym = context.RemoteNym();
-    const auto accountID = Identifier::Factory(theReply.m_strAcctID);
-
-    // Just like the server verifies all messages before processing them,
-    // so does the client need to verify the signatures against each message
-    // and verify the various contract IDs and signatures.
-    if (!theReply.VerifySignature(serverNym)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Error: Server reply signature failed to verify."
-              << std::endl;
-
-        return false;
-    }
-
-    // TODO it's not possible to use the message outbuffer to detect duplicate
-    // or unsolicited server replies. The processing function for each
-    // individual message type must be capable properly detecting this
-    // situation.
-    const RequestNumber lReplyRequestNum = theReply.m_strRequestNum.ToLong();
-    // Doesn't delete
-    auto pSentMsg = GetMessageOutbuffer().GetSentMessage(
-        theReply.m_strRequestNum.ToLong(),
-        serverID,
-        String(context.Nym()->ID()));
-
-    if (false != bool(pSentMsg)) {
-        // deletes
-        GetMessageOutbuffer().RemoveSentMessage(
-            lReplyRequestNum, serverID, String(context.Nym()->ID()));
-    }
-
-    // Similarly we keep a client side list of all the request numbers that we
-    // KNOW we have a server reply for. (Each ID is maintained until we see a
-    // mirror of it appear in the server's copy of that same list, and then we
-    // go ahead and remove it. This is basically an optimization trick that
-    // enables us to avoid downloading many box receipts -- the replyNotices,
-    // specifically.)
-    context.AddAcknowledgedNumber(lReplyRequestNum);
-    // Okay, we received a reply, so we added its request number to our list of
-    // "replies we have definitely received." But what about when the server
-    // sees that, and mirrors our list? It will send its own list, containing
-    // that mirror. Any number that appears there, can be removed from the local
-    // list (confirmation is total by that point.) Clearly the server KNOWS I
-    // saw his reply, since he copied my ack into his ack mirror list. Therefore
-    // I have no more reason to continue telling him that I got the reply -- he
-    // already knows it!  So I can remove the number from my ack list, which
-    // will cause the server to do the same to match, once he gets my next
-    // message.
-    //
-    // So next step: Loop through the ack list on the server reply, and any
-    // numbers there can be REMOVED from the local list...
-    std::set<RequestNumber> numlist_ack_reply;
-
-    if (theReply.m_AcknowledgedReplies.Output(numlist_ack_reply)) {
-        context.RemoveAcknowledgedNumber(numlist_ack_reply);
-    }
-
-    // Done:  Do a Get Sent Message based on request number. If we find the
-    // sent message, then process the reply and Remove the sent message.
-    // But if we do NOT find the sent message, then we must have processed it
-    // already -- in which case discard it and return.
-
-    // Once that process is done, everything below that line, in this function,
-    // will be able to assume there is a verified Nym available, and a Server
-    // Contract, and an asset contract where applicable, and an account where
-    // applicable.
-    //
-    // Until that code is written, I do not have those things available to me.
-    //
-    // Furthermore also need to verify the payloads... If "Command Responding
-    // To" was not actually signed by me, and I wasn't expecting the new account
-    // request, then I do NOT want to sign it.
-    //
-    // Also if the new account is not signed by the server, I don't want to sign
-    // it either. Need to check for all these things. Right now just proof of
-    // concept.
-
-    // Also, assuming all the verification shit is done here, I will have the
-    // Nym Wait a second, I think I have the Nym already cause there's a pointer
-    // on the server connection that was passed in here...
-
-    if (theReply.m_bSuccess) {
-        for (const auto& number : managed) { number.SetSuccess(true); }
+    if (strOriginalMessage.Exists() &&
+        theOriginalMessage->LoadContractFromString(strOriginalMessage) &&
+        theOriginalMessage->VerifySignature(*context.Nym()) &&
+        theOriginalMessage->m_strNymID.Compare(theReply.m_strNymID) &&
+        theOriginalMessage->m_strCommand.Compare("unregisterNym")) {
+        context.Reset();
+        otOut << "Successfully DELETED Nym from Server: removed request "
+                 "number, plus all issued and transaction numbers for Nym "
+              << theReply.m_strNymID << " for Server " << strNotaryID << ".\n";
     } else {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Message status: failed for "
-               << theReply.m_strCommand << std::endl;
-
-        return false;
+        otErr << "The server just for some reason tried to trick me into "
+                 "erasing my issued and transaction numbers for Nym "
+              << theReply.m_strNymID << ", Server " << strNotaryID << ".\n";
     }
 
-    if (theReply.m_strCommand.Compare("triggerClauseResponse")) {
-        return processServerReplyTriggerClause(theReply, context);
-    }
-    if (theReply.m_strCommand.Compare("checkNymResponse")) {
-        return processServerReplyCheckNym(theReply, context);
-    }
-    if (theReply.m_strCommand.Compare("notarizeTransactionResponse")) {
-        return processServerReplyNotarizeTransaction(
-            theReply, accountID, context);
-    }
-    if (theReply.m_strCommand.Compare("getTransactionNumbersResponse")) {
-        return processServerReplyGetTransactionNumbers(theReply, context);
-    }
-    if (theReply.m_strCommand.Compare("getNymboxResponse")) {
-        return processServerReplyGetNymBox(theReply, pNymbox, context);
-    }
-    if (theReply.m_strCommand.Compare("getBoxReceiptResponse")) {
-        return processServerReplyGetBoxReceipt(theReply, pNymbox, context);
-    }
-    if ((theReply.m_strCommand.Compare("processInboxResponse") ||
-         theReply.m_strCommand.Compare("processNymboxResponse"))) {
-
-        return processServerReplyProcessBox(
-            theReply, accountID, pNymbox, context);
-    }
-    if (theReply.m_strCommand.Compare("getAccountDataResponse")) {
-        return processServerReplyGetAccountData(
-            theReply, accountID, pNymbox, context);
-    }
-    if (theReply.m_strCommand.Compare("getInstrumentDefinitionResponse")) {
-        return processServerReplyGetInstrumentDefinition(theReply, context);
-    }
-    if (theReply.m_strCommand.Compare("getMintResponse")) {
-#if OT_CASH
-        return processServerReplyGetMint(theReply);
-#endif  // OT_CASH
-    }
-    if (theReply.m_strCommand.Compare("getMarketListResponse")) {
-        return processServerReplyGetMarketList(theReply);
-    }
-    if (theReply.m_strCommand.Compare("getMarketOffersResponse")) {
-        return processServerReplyGetMarketOffers(theReply);
-    }
-    if (theReply.m_strCommand.Compare("getMarketRecentTradesResponse")) {
-        return processServerReplyGetMarketRecentTrades(theReply);
-    }
-    if (theReply.m_strCommand.Compare("getNymMarketOffersResponse")) {
-        return processServerReplyGetNymMarketOffers(theReply);
-    }
-    if (theReply.m_strCommand.Compare("unregisterNymResponse")) {
-        return processServerReplyUnregisterNym(theReply, context);
-    }
-    if (resync && theReply.m_strCommand.Compare("registerNymResponse")) {
-        return processServerReplyResyncContext(theReply, context);
-    }
-    if (theReply.m_strCommand.Compare("unregisterAccountResponse")) {
-        return processServerReplyUnregisterAccount(theReply, context);
-    }
-    if (theReply.m_strCommand.Compare("registerInstrumentDefinitionResponse")) {
-        return processServerReplyRegisterInstrumentDefinition(
-            theReply, accountID, context);
-    }
-    if (theReply.m_strCommand.Compare("registerAccountResponse")) {
-        return processServerReplyRegisterAccount(theReply, accountID, context);
-    }
-
-    return false;
+    return true;
 }
 
 /// This function sets up "theMessage" so that it is ready to be sent out to the
@@ -7548,5 +7316,223 @@ std::int32_t OTClient::ProcessUserCommand(
     }
 
     return static_cast<std::int32_t>(lReturnValue);
+}
+
+#if OT_CASH
+/// It's definitely a withdrawal, we just need to iterate through the items in
+/// the transaction and
+/// grab any cash tokens that are inside, to save inside a purse.  Also want to
+/// display any vouchers.
+void OTClient::ProcessWithdrawalResponse(
+    const Message& theReply,
+    ServerContext& context,
+    OTTransaction& theTransaction) const
+{
+    const Identifier& NYM_ID = context.Nym()->ID();
+    const String strNotaryID = String(context.Server());
+
+    // loop through the ALL items that make up this transaction and check to see
+    // if a response to withdrawal.
+
+    // if pointer not null, and it's a withdrawal, and it's an acknowledgement
+    // (not a rejection or error)
+    for (auto& it : theTransaction.GetItemList()) {
+        auto pItem = it;
+        OT_ASSERT(false != bool(pItem));
+        // VOUCHER WITHDRAWAL
+        //
+        // If we got a reply to a voucher withdrawal, we'll just display the
+        // voucher
+        // on the screen (if the server sent us one...)
+        //
+        if ((itemType::atWithdrawVoucher == pItem->GetType()) &&
+            (Item::acknowledgement == pItem->GetStatus())) {
+            String strVoucher;
+            auto theVoucher = api_.Factory().Cheque();
+
+            OT_ASSERT(false != bool(theVoucher));
+
+            pItem->GetAttachment(strVoucher);
+
+            if (theVoucher->LoadContractFromString(strVoucher)) {
+                otInfo << "\nReceived voucher from server:\n\n"
+                       << strVoucher << "\n\n";
+            }
+        }
+        // CASH WITHDRAWAL
+        //
+        // If the item is a response to a cash withdrawal, we want to save the
+        // coins into a purse
+        // somewhere on the computer. That's cash! Gotta keep it safe.
+        //
+        else if (
+            (itemType::atWithdrawal == pItem->GetType()) &&
+            (Item::acknowledgement == pItem->GetStatus())) {
+            String strPurse;
+            pItem->GetAttachment(strPurse);
+
+            auto thePurse = api_.Factory().Purse(context.Server());
+
+            OT_ASSERT(false != bool(thePurse));
+
+            if (thePurse->LoadContractFromString(strPurse)) {
+                // When we made the withdrawal request, we saved that purse
+                // pointer in the
+                // wallet so that we could get to the private coin unblinding
+                // data when we
+                // needed it (now).
+                Purse* pRequestPurse = m_pWallet.GetPendingWithdrawal();
+
+                String strInstrumentDefinitionID(
+                    thePurse->GetInstrumentDefinitionID());
+                auto pMint =
+                    api_.Factory().Mint(strNotaryID, strInstrumentDefinitionID);
+
+                OT_ASSERT(false != bool(pMint));
+
+                // Unlike the purse which we read out of a message,
+                // now we try to open a purse as a file on the client side,
+                // keyed by Instrument Definition Id.  (The client should
+                // already have one
+                // purse file for each instrument definition, if he already has
+                // cash.)
+                //
+                // We don't want to just overwrite that file. So instead, we
+                // try to load that purse first, then add the token, then save
+                // it
+                // again.
+                auto theWalletPurse = api_.Factory().Purse(*thePurse);
+
+                OT_ASSERT(false != bool(theWalletPurse));
+
+                // TODO verify the wallet purse when loaded. My signature should
+                // be the last thing on it.
+
+                // TODO: I don't check this for failure. If the file doesn't
+                // exist,
+                // we are still going to save the purse there regardless.
+                // HOWEVER need to make sure the wallet software has good backup
+                // strategy.  In the event that tokens are overwritten here, it
+                // shouldn't be a problem since they would be in the archive
+                // somewhere.
+
+                theWalletPurse->LoadPurse(
+                    strNotaryID.Get(),
+                    String(NYM_ID).Get(),
+                    strInstrumentDefinitionID.Get());
+
+                bool bSuccess = false;
+
+                if ((nullptr != pRequestPurse) && pMint->LoadMint() &&
+                    pMint->VerifyMint(context.RemoteNym())) {
+                    std::unique_ptr<Token> pToken{
+                        thePurse->Pop(*context.Nym())};
+
+                    while (pToken) {
+                        std::unique_ptr<Token> pOriginalToken{
+                            pRequestPurse->Pop(*context.Nym())};
+
+                        if (false == bool(pOriginalToken)) {
+                            otErr << "ERROR, processing withdrawal response, "
+                                     "but couldn't find original token:"
+                                  << strPurse << "\n";
+                        } else if (Token::signedToken == pToken->GetState()) {
+                            otWarn << "Retrieved signed token from purse, and "
+                                      "have corresponding withdrawal request "
+                                      "in wallet. Unblinding...\n\n";
+
+                            if (pToken->ProcessToken(
+                                    *context.Nym(), *pMint, *pOriginalToken)) {
+                                // Now that it's processed, let's save it again.
+                                pToken->ReleaseSignatures();
+                                pToken->SignContract(*context.Nym());
+                                pToken->SaveContract();
+
+                                bSuccess = true;
+
+                                // add it to the existing client-side purse for
+                                // storing tokens of that instrument definition
+                                theWalletPurse->Push(*context.Nym(), *pToken);
+                            } else {
+                                bSuccess = false;
+                            }
+                        }
+
+                        pToken.reset(thePurse->Pop(*context.Nym()));
+                    }
+                }
+
+                if (bSuccess) {
+                    // Sign it, save it.
+                    theWalletPurse->ReleaseSignatures();  // Might as well,
+                                                          // they're no good
+                                                          // anyway once the
+                                                          // data has changed.
+                    theWalletPurse->SignContract(*context.Nym());
+                    theWalletPurse->SaveContract();
+                    theWalletPurse->SavePurse(
+                        strNotaryID.Get(),
+                        String(NYM_ID).Get(),
+                        strInstrumentDefinitionID.Get());
+
+                    otOut << "SUCCESSFULLY UNBLINDED token, and added the cash "
+                             "to the local purse, and saved.\n";
+                }
+            }
+        }
+    }
+}
+#endif  // OT_CASH
+
+void OTClient::setRecentHash(
+    const Message& theReply,
+    bool setNymboxHash,
+    ServerContext& context)
+{
+    if (theReply.m_strNymboxHash.Exists()) {
+        const auto RECENT_HASH = Identifier::Factory(theReply.m_strNymboxHash);
+        context.SetRemoteNymboxHash(RECENT_HASH);
+
+        if (setNymboxHash) {
+            const auto NYMBOX_HASH =
+                Identifier::Factory(theReply.m_strNymboxHash);
+            context.SetLocalNymboxHash(NYMBOX_HASH);
+        }
+    }
+}
+
+void OTClient::QueueOutgoingMessage(const Message& theMessage)
+{
+    String serialized{};
+    const bool saved = theMessage.SaveContractRaw(serialized);
+
+    OT_ASSERT(saved)
+
+    // WHAT DOES THIS MEAN?
+
+    // It means that later, if a message with a certain request number
+    // fails to reply, or show its face in the replies box, then I will
+    // have the option to look it up in the Outbuffer, based on that
+    // same request number, and send a re-try, or claw back any transaction
+    // numbers that might be on that message.
+
+    // Should probably add an API call for specifically doing this, agnostic
+    // to whatever kind of transaction it actually is. Something like,
+    // OT_API_Message_HarvestClosingNumbers, and
+    // OT_API_Message_HarvestAllNumbers
+
+    // So I can save the request number when sending a message, check for it
+    // later in the Nymbox, and then worst case, look it up in the Outbuffer and
+    // get my fucking transaction numbers back again!
+    auto pMsg = api_.Factory().Message();
+
+    OT_ASSERT(false != bool(pMsg));
+
+    if (pMsg->LoadContractFromString(serialized)) {
+        std::shared_ptr<Message> msg{pMsg.release()};
+        m_MessageOutbuffer.AddSentMessage(msg);
+    } else {
+        OT_FAIL
+    }
 }
 }  // namespace opentxs

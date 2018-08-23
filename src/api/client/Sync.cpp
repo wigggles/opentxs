@@ -23,6 +23,7 @@
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
+#include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTWallet.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -50,7 +51,9 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/SubscribeSocket.hpp"
+#include "opentxs/otx/Reply.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -123,9 +126,11 @@ namespace opentxs
 api::client::Sync* Factory::Sync(
     const Flag& running,
     const api::client::Manager& client,
+    OTClient& otclient,
     const ContextLockCallback& lockCallback)
 {
-    return new api::client::implementation::Sync(running, client, lockCallback);
+    return new api::client::implementation::Sync(
+        running, client, otclient, lockCallback);
 }
 }  // namespace opentxs
 
@@ -183,10 +188,12 @@ MCL/PCUJ6FIMhej+ROPk41604x1jeswkkRmXRNjzLlVdiJ/pQMxG4tJ0UQwpxHxrr0IaBA==
 Sync::Sync(
     const Flag& running,
     const api::client::Manager& client,
+    OTClient& otclient,
     const ContextLockCallback& lockCallback)
     : lock_callback_(lockCallback)
     , running_(running)
     , client_(client)
+    , ot_client_(otclient)
     , introduction_server_lock_()
     , nym_fetch_lock_()
     , task_status_lock_()
@@ -206,12 +213,25 @@ Sync::Sync(
               }))
     , account_subscriber_(
           client_.ZeroMQ().SubscribeSocket(account_subscriber_callback_.get()))
+    , notification_listener_callback_(
+          opentxs::network::zeromq::ListenCallback::Factory(
+              [this](const opentxs::network::zeromq::Message& message) -> void {
+                  this->process_notification(message);
+              }))
+    , notification_listener_(client_.ZeroMQ().PullSocket(
+          notification_listener_callback_.get(),
+          false))
 {
     // WARNING: do not access client_.Wallet() during construction
     const auto endpoint = client_.Endpoints().AccountUpdate();
     otWarn << OT_METHOD << __FUNCTION__ << ": Connecting to " << endpoint
            << std::endl;
-    const auto listening = account_subscriber_->Start(endpoint);
+    auto listening = account_subscriber_->Start(endpoint);
+
+    OT_ASSERT(listening)
+
+    listening = notification_listener_->Start(
+        client_.Endpoints().InternalProcessPushNotification());
 
     OT_ASSERT(listening)
 }
@@ -1481,6 +1501,39 @@ void Sync::process_account(
            << std::endl;
 }
 
+void Sync::process_notification(
+    const opentxs::network::zeromq::Message& message) const
+{
+    OT_ASSERT(0 < message.Body().size())
+
+    const auto& frame = message.Body().at(0);
+    const auto notification = otx::Reply::Factory(
+        client_,
+        proto::RawToProto<proto::ServerReply>(frame.data(), frame.size()));
+    const auto& nymID = notification->Recipient();
+    const auto& serverID = notification->Server();
+
+    if (false == valid_context(nymID, serverID)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": No context available to handle notification" << std::endl;
+
+        return;
+    }
+
+    auto context = client_.Wallet().mutable_ServerContext(nymID, serverID);
+
+    switch (notification->Type()) {
+        case proto::SERVERREPLY_PUSH: {
+            ot_client_.ProcessNotification(notification, context.It());
+        } break;
+        default: {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Unsupported server reply type: "
+                  << std::to_string(notification->Type()) << std::endl;
+        }
+    }
+}
+
 bool Sync::publish_server_contract(
     const Identifier& taskID,
     const Identifier& nymID,
@@ -2647,6 +2700,43 @@ Depositability Sync::valid_account(
 
         return Depositability::WRONG_ACCOUNT;
     }
+}
+
+bool Sync::valid_context(const Identifier& nymID, const Identifier& serverID)
+    const
+{
+    const auto nyms = client_.Wallet().LocalNyms();
+
+    if (0 == nyms.count(nymID)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
+              << " does not belong to this wallet." << std::endl;
+
+        return false;
+    }
+
+    if (serverID.empty()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid server" << std::endl;
+
+        return false;
+    }
+
+    const auto context = client_.Wallet().ServerContext(nymID, serverID);
+
+    if (false == bool(context)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Context does not exist"
+              << std::endl;
+
+        return false;
+    }
+
+    if (0 == context->Request()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Nym is not registered at this server" << std::endl;
+
+        return false;
+    }
+
+    return true;
 }
 
 Depositability Sync::valid_recipient(

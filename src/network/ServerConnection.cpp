@@ -5,10 +5,11 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/api/Core.hpp"
-#include "opentxs/api/Factory.hpp"
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
+#include "opentxs/api/Factory.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -25,8 +26,11 @@
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 #include "opentxs/network/ServerConnection.hpp"
+#include "opentxs/otx/Reply.hpp"
+#include "opentxs/otx/Request.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <atomic>
@@ -73,21 +77,29 @@ ServerConnection::ServerConnection(
     , server_id_(contract->ID()->str())
     , address_type_(zmq.DefaultAddressType())
     , remote_contract_(contract)
-    , thread_(nullptr)
+    , thread_()
     , callback_(zeromq::ListenCallback::Factory(
           [=](const zeromq::Message& in) -> void {
               this->process_incoming(in);
           }))
     , socket_(zmq.Context().DealerSocket(callback_, true))
+    , notification_socket_(zmq.Context().PushSocket(true))
     , last_activity_(std::time(nullptr))
     , socket_ready_(Flag::Factory(false))
     , status_(Flag::Factory(false))
     , use_proxy_(Flag::Factory(false))
+    , incoming_lock_()
+    , incoming_()
+    , registation_lock_()
+    , registered_for_push_()
 {
-    thread_.reset(new std::thread(&ServerConnection::activity_timer, this));
-
     OT_ASSERT(remote_contract_)
-    OT_ASSERT(thread_)
+
+    thread_ = std::thread(&ServerConnection::activity_timer, this);
+    const auto started = notification_socket_->Start(
+        api_.Endpoints().InternalProcessPushNotification());
+
+    OT_ASSERT(started);
 }
 
 void ServerConnection::activity_timer()
@@ -117,6 +129,18 @@ bool ServerConnection::ChangeAddressType(const proto::AddressType type)
     reset_socket(lock);
 
     return true;
+}
+
+std::pair<bool, proto::ServerReply> ServerConnection::check_for_protobuf(
+    const zeromq::Frame& frame)
+{
+    const auto candidate = Data::Factory(frame.data(), frame.size());
+    std::pair<bool, proto::ServerReply> output{false, {}};
+    auto& [valid, serialized] = output;
+    serialized = proto::DataToProto<proto::ServerReply>(candidate);
+    valid = proto::Validate(serialized, SILENT);
+
+    return output;
 }
 
 bool ServerConnection::ClearProxy()
@@ -199,6 +223,20 @@ std::chrono::time_point<std::chrono::system_clock> ServerConnection::
     return std::chrono::system_clock::now() + zmq_.SendTimeout();
 }
 
+void ServerConnection::process_incoming(const proto::ServerReply& in)
+{
+    auto message = otx::Reply::Factory(api_, in);
+
+    if (false == message->Validate()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
+              << std::endl;
+
+        return;
+    }
+
+    notification_socket_->Push(proto::ProtoAsData(message->Contract()));
+}
+
 void ServerConnection::process_incoming(const zeromq::Message& in)
 {
     if (status_->On()) { publish(); }
@@ -207,7 +245,7 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 
     OT_ASSERT(false != bool(message));
 
-    if (1 != in.Body().size()) {
+    if (1 > in.Body().size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
               << std::endl;
 
@@ -217,6 +255,16 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
     auto& frame = *in.Body().begin();
 
     if (0 == frame.size()) { return; }
+
+    if (1 < in.Body().size()) {
+        const auto [isProto, reply] = check_for_protobuf(frame);
+
+        if (isProto) {
+            process_incoming(reply);
+
+            return;
+        }
+    }
 
     Armored armored{};
     armored.Set(std::string(frame).c_str());
@@ -254,6 +302,32 @@ void ServerConnection::publish() const
     updates_.Publish(message);
 }
 
+void ServerConnection::register_for_push(const ServerContext& context)
+{
+    if (2 > context.Request()) {
+        otInfo << OT_METHOD << __FUNCTION__ << ": Nym is not yet registered"
+               << std::endl;
+
+        return;
+    }
+
+    Lock registrationLock(registation_lock_);
+    const auto& nymID = context.Nym()->ID();
+    auto& isRegistered = registered_for_push_[nymID];
+
+    if (isRegistered) { return; }
+
+    auto request = otx::Request::Factory(
+        context.Nym(), context.Server(), proto::SERVERREQUEST_ACTIVATE);
+    request->SetIncludeNym(true);
+    auto message = network::zeromq::Message::Factory();
+    message->AddFrame();
+    message->AddFrame(proto::ProtoAsData(request->Contract()));
+    message->AddFrame();
+    Lock socketLock(lock_);
+    isRegistered = get_socket(socketLock).Send(message);
+}
+
 void ServerConnection::reset_socket(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
@@ -266,8 +340,11 @@ void ServerConnection::reset_timer()
     last_activity_.store(std::time(nullptr));
 }
 
-NetworkReplyMessage ServerConnection::Send(const Message& message)
+NetworkReplyMessage ServerConnection::Send(
+    const ServerContext& context,
+    const Message& message)
 {
+    register_for_push(context);
     NetworkReplyMessage output{SendResult::ERROR, nullptr};
     auto& status = output.first;
     auto& reply = output.second;
@@ -379,6 +456,6 @@ bool ServerConnection::Status() const { return status_.get(); }
 
 ServerConnection::~ServerConnection()
 {
-    if (thread_) { thread_->join(); }
+    if (thread_.joinable()) { thread_.join(); }
 }
 }  // namespace opentxs::network::implementation

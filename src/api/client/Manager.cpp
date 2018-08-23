@@ -101,6 +101,7 @@ Manager::Manager(
     , sync_(opentxs::Factory::Sync(
           running_,
           *this,
+          *ot_api_->m_pClient,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
     , pair_(opentxs::Factory::Pair(running_, *this))
     , ui_(opentxs::Factory::UI(*this, running_))

@@ -29,6 +29,8 @@ public:
     EXPORT virtual std::string DhtRequestNym() const = 0;
     EXPORT virtual std::string DhtRequestServer() const = 0;
     EXPORT virtual std::string DhtRequestUnit() const = 0;
+    EXPORT virtual std::string InternalProcessPushNotification() const = 0;
+    EXPORT virtual std::string InternalPushNotification() const = 0;
     EXPORT virtual std::string IssuerUpdate() const = 0;
     EXPORT virtual std::string NymDownload() const = 0;
     EXPORT virtual std::string PairEvent() const = 0;

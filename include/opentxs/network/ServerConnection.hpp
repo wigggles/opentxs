@@ -29,7 +29,9 @@ public:
     EXPORT virtual bool ChangeAddressType(const proto::AddressType type) = 0;
     EXPORT virtual bool ClearProxy() = 0;
     EXPORT virtual bool EnableProxy() = 0;
-    EXPORT virtual NetworkReplyMessage Send(const Message& message) = 0;
+    EXPORT virtual NetworkReplyMessage Send(
+        const ServerContext& context,
+        const Message& message) = 0;
     EXPORT virtual bool Status() const = 0;
 
     virtual ~ServerConnection() = default;

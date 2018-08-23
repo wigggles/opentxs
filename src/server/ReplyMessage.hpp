@@ -15,29 +15,13 @@
 #include <memory>
 #include <set>
 
-namespace opentxs
+namespace opentxs::server
 {
-class Armored;
-class ClientContext;
-class Message;
-
-namespace api
-{
-namespace client
-{
-class Wallet;
-}  // namespace client
-}  // namespace api
-
-namespace server
-{
-
-class Server;
-
 class ReplyMessage
 {
 public:
     ReplyMessage(
+        const UserCommandProcessor& parent,
         const opentxs::api::Wallet& wallet,
         const Identifier& notaryID,
         const Nym& signer,
@@ -77,6 +61,7 @@ public:
     ~ReplyMessage();
 
 private:
+    const UserCommandProcessor& parent_;
     const opentxs::api::Wallet& wallet_;
     const Nym& signer_;
     const Message& original_;
@@ -100,5 +85,4 @@ private:
     ReplyMessage& operator=(const ReplyMessage&) = delete;
     ReplyMessage& operator=(ReplyMessage&&) = delete;
 };
-}  // namespace server
-}  // namespace opentxs
+}  // namespace opentxs::server

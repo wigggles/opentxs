@@ -10,6 +10,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/network/zeromq/Socket.hpp"
+#include "opentxs/Proto.hpp"
 
 #include <atomic>
 #include <memory>
@@ -45,16 +46,30 @@ private:
     OTZMQReplySocket backend_socket_;
     OTZMQListenCallback internal_callback_;
     OTZMQDealerSocket internal_socket_;
+    OTZMQListenCallback notification_callback_;
+    OTZMQPullSocket notification_socket_;
     std::unique_ptr<std::thread> thread_{nullptr};
     const std::string internal_endpoint_;
     mutable std::mutex counter_lock_;
     mutable int drop_incoming_{0};
     mutable int drop_outgoing_{0};
+    // nym id, connection identifier
+    std::map<OTIdentifier, OTData> active_connections_;
+    mutable std::shared_mutex connection_map_lock_;
 
+    proto::ServerRequest extract_proto(
+        const network::zeromq::Frame& incoming) const;
+
+    void associate_connection(const Identifier& nymID, const Data& connection);
+    OTZMQMessage process_backend(const network::zeromq::Message& incoming);
+    bool process_command(
+        const proto::ServerRequest& request,
+        Identifier& nymID);
     void process_frontend(const network::zeromq::Message& incoming);
     void process_internal(const network::zeromq::Message& incoming);
-    bool processMessage(const std::string& messageString, std::string& reply);
-    OTZMQMessage process_backend(const network::zeromq::Message& incoming);
+    bool process_message(const std::string& messageString, std::string& reply);
+    void process_notification(const network::zeromq::Message& incoming);
+    OTData query_connection(const Identifier& nymID);
     void run();
 
     MessageProcessor() = delete;

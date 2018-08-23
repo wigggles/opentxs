@@ -67,7 +67,7 @@ String ProtoAsArmored(const T& serialized, const String& header)
 }
 
 template <class T>
-T RawToProto(const char* input, const size_t size)
+T RawToProto(const void* input, const std::size_t size)
 {
     T serialized;
     serialized.ParseFromArray(input, size);

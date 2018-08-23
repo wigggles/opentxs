@@ -2386,11 +2386,11 @@ std::unique_ptr<Ledger> UserCommandProcessor::create_nymbox(
 // function used for doing that.
 void UserCommandProcessor::drop_reply_notice_to_nymbox(
     const api::Wallet& wallet,
-    const String& strMessage,
+    const Message& message,
     const std::int64_t& lRequestNum,
     const bool bReplyTransSuccess,
     ClientContext& context,
-    Server& server)
+    Server& server) const
 {
     const auto& nymID = context.RemoteNym().ID();
     const auto& serverID = context.Server();
@@ -2447,7 +2447,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     pReplyNoticeItem->SetStatus(Item::acknowledgement);
     // Purpose of this notice is to carry a copy of server's reply message (to
     // certain requests, including all transactions.)
-    pReplyNoticeItem->SetAttachment(strMessage);
+    pReplyNoticeItem->SetAttachment(String(message));
     pReplyNoticeItem->SignContract(serverNym);
     pReplyNoticeItem->SaveContract();
     // the Transaction's destructor will cleanup the item. It "owns" it now. So
@@ -2663,6 +2663,7 @@ bool UserCommandProcessor::ProcessUserCommand(
     const std::string command(msgIn.m_strCommand.Get());
     const auto type = Message::Type(command);
     ReplyMessage reply(
+        *this,
         server_.API().Wallet(),
         server_.GetServerID(),
         server_.GetServerNym(),

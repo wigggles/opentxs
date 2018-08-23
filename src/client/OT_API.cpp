@@ -485,6 +485,8 @@ OT_API::OT_API(
         Cleanup();
         OT_FAIL;
     }
+
+    OT_ASSERT(m_pClient);
 }
 
 // Call this once per INSTANCE of OT_API.
@@ -546,8 +548,6 @@ bool OT_API::Init()
         m_pWallet = new OTWallet(api_);
         m_pClient.reset(
             new OTClient(*m_pWallet, api_, activity_, contacts_, workflow_));
-
-        OT_ASSERT(m_pClient);
 
         return true;
     } else {
@@ -12350,9 +12350,8 @@ NetworkReplyMessage OT_API::send_message(
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
-
     m_pClient->QueueOutgoingMessage(message);
-    auto result = context.Connection().Send(message);
+    auto result = context.Connection().Send(context, message);
 
     if (SendResult::VALID_REPLY == result.first) {
         m_pClient->processServerReply(pending, resync, context, result.second);

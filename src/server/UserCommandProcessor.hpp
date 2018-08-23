@@ -26,14 +26,15 @@ public:
         const Identifier& notaryID,
         const Identifier& realNotaryID);
     static bool check_server_lock(const Identifier& nymID);
-    static void drop_reply_notice_to_nymbox(
+    static bool isAdmin(const Identifier& nymID);
+
+    void drop_reply_notice_to_nymbox(
         const api::Wallet& wallet,
-        const String& messageString,
+        const Message& message,
         const std::int64_t& requestNum,
         const bool replyTransSuccess,
         ClientContext& context,
-        Server& server);
-    static bool isAdmin(const Identifier& nymID);
+        Server& server) const;
 
     bool ProcessUserCommand(const Message& msgIn, Message& msgOut);
 
