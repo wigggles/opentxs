@@ -11,6 +11,7 @@ set(cxx-sources
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otx/Reply.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/otx/Request.hpp"
 )
 
