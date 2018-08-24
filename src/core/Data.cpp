@@ -97,15 +97,16 @@ Data& Data::operator+=(const opentxs::Data& rhs)
 
 std::string Data::asHex() const
 {
-    const std::size_t size = 2 * data_.size();
-    std::vector<char> output{};
-    output.resize(size, 0x0);
+    std::stringstream out{};
 
-    for (std::size_t i = 0; i < data_.size(); i++) {
-        std::sprintf(&output[2 * i], "%02X", data_.at(i));
+    // TODO: std::to_integer<int>(byte)
+
+    for (const auto byte : data_) {
+        out << std::hex << std::setfill('0') << std::setw(2)
+            << static_cast<const int&>(byte);
     }
 
-    return std::string(output.data(), output.size());
+    return out.str();
 }
 
 void Data::Assign(const opentxs::Data& rhs)

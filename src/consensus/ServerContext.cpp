@@ -435,7 +435,7 @@ NetworkReplyMessage ServerContext::PingNotary()
         return {};
     }
 
-    return connection_.Send(*request);
+    return connection_.Send(*this, *request);
 }
 
 bool ServerContext::remove_acknowledged_number(
@@ -823,7 +823,7 @@ RequestNumber ServerContext::UpdateRequestNumber(bool& sendStatus)
         return {};
     }
 
-    const auto response = connection_.Send(*request);
+    const auto response = connection_.Send(*this, *request);
     const auto& status = response.first;
     const auto& reply = response.second;
 

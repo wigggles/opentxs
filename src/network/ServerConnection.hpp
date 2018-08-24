@@ -16,7 +16,9 @@ public:
     bool ChangeAddressType(const proto::AddressType type) override;
     bool ClearProxy() override;
     bool EnableProxy() override;
-    NetworkReplyMessage Send(const Message& message) override;
+    NetworkReplyMessage Send(
+        const ServerContext& context,
+        const Message& message) override;
     bool Status() const override;
 
     ~ServerConnection();
@@ -30,15 +32,21 @@ private:
     const std::string server_id_{};
     proto::AddressType address_type_{proto::ADDRESSTYPE_ERROR};
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
-    std::unique_ptr<std::thread> thread_{nullptr};
+    std::thread thread_;
     OTZMQListenCallback callback_;
     OTZMQDealerSocket socket_;
+    OTZMQPushSocket notification_socket_;
     std::atomic<std::time_t> last_activity_{0};
     OTFlag socket_ready_;
     OTFlag status_;
     OTFlag use_proxy_;
     std::mutex incoming_lock_;
     std::map<RequestNumber, std::unique_ptr<Message>> incoming_;
+    mutable std::mutex registation_lock_;
+    std::map<OTIdentifier, bool> registered_for_push_;
+
+    static std::pair<bool, proto::ServerReply> check_for_protobuf(
+        const zeromq::Frame& frame);
 
     ServerConnection* clone() const override { return nullptr; }
     std::string endpoint() const;
@@ -56,6 +64,8 @@ private:
     void activity_timer();
     zeromq::DealerSocket& get_socket(const Lock& lock);
     void process_incoming(const zeromq::Message& in);
+    void process_incoming(const proto::ServerReply& in);
+    void register_for_push(const ServerContext& context);
     void reset_socket(const Lock& lock);
     void reset_timer();
 

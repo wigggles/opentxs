@@ -1412,9 +1412,14 @@ TEST_F(Test_Basic, getNymbox_receive_cheque)
     const TransactionNumber number{transactionMap.begin()->first};
     const auto& transaction = *transactionMap.begin()->second;
 
-    EXPECT_TRUE(transaction.IsAbbreviated());
     EXPECT_EQ(transactionType::message, transaction.GetType());
-    EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
+
+    // If the push notification was received, then the box receipt already
+    // exists. But since we can't guarantee timing it's possible the
+    // notification did not arrive.
+    if (transaction.IsAbbreviated()) {
+        EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
+    }
 }
 
 TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)

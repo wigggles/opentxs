@@ -11,6 +11,7 @@
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTTransaction.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 
 #include "Transactor.hpp"
 #include "Notary.hpp"
@@ -96,6 +97,7 @@ private:
     ConstNym m_nymServer;
     std::unique_ptr<OTCron> m_Cron;  // This is where re-occurring and expiring
                                      // tasks go.
+    OTZMQPushSocket notification_socket_;
 
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.

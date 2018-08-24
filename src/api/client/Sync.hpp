@@ -192,6 +192,7 @@ private:
     ContextLockCallback lock_callback_;
     const Flag& running_;
     const api::client::Manager& client_;
+    OTClient& ot_client_;
     mutable std::mutex introduction_server_lock_{};
     mutable std::mutex nym_fetch_lock_{};
     mutable std::mutex task_status_lock_{};
@@ -207,6 +208,8 @@ private:
     mutable std::map<OTIdentifier, OTIdentifier> task_message_id_;
     OTZMQListenCallback account_subscriber_callback_;
     OTZMQSubscribeSocket account_subscriber_;
+    OTZMQListenCallback notification_listener_callback_;
+    OTZMQPullSocket notification_listener_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,
@@ -308,6 +311,8 @@ private:
 #endif  // OT_CASH
     void process_account(
         const opentxs::network::zeromq::Message& message) const;
+    void process_notification(
+        const opentxs::network::zeromq::Message& message) const;
     bool publish_server_contract(
         const Identifier& taskID,
         const Identifier& nymID,
@@ -361,6 +366,8 @@ private:
         const Identifier& unitID,
         const Identifier& accountIDHint,
         OTIdentifier& depositAccount) const;
+    bool valid_context(const Identifier& nymID, const Identifier& serverID)
+        const;
     Depositability valid_recipient(
         const OTPayment& payment,
         const Identifier& specifiedNymID,
@@ -369,6 +376,7 @@ private:
     Sync(
         const Flag& running,
         const api::client::Manager& client,
+        OTClient& otclient,
         const ContextLockCallback& lockCallback);
     Sync() = delete;
     Sync(const Sync&) = delete;

@@ -9,7 +9,9 @@
 
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -24,9 +26,12 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/ListenCallback.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/ReplySocket.hpp"
 #include "opentxs/network/zeromq/RouterSocket.hpp"
+#include "opentxs/otx/Reply.hpp"
+#include "opentxs/otx/Request.hpp"
 
 #include "Server.hpp"
 #include "UserCommandProcessor.hpp"
@@ -43,7 +48,6 @@ template class opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
 
 namespace opentxs::server
 {
-
 MessageProcessor::MessageProcessor(
     Server& server,
     const network::zeromq::Context& context,
@@ -66,6 +70,11 @@ MessageProcessor::MessageProcessor(
               this->process_internal(incoming);
           }))
     , internal_socket_(context.DealerSocket(internal_callback_, true))
+    , notification_callback_(network::zeromq::ListenCallback::Factory(
+          [=](const network::zeromq::Message& incoming) -> void {
+              this->process_notification(incoming);
+          }))
+    , notification_socket_(context.PullSocket(notification_callback_, false))
     , thread_(nullptr)
     , internal_endpoint_(
           std::string("inproc://opentxs/notary/") + Identifier::Random()->str())
@@ -75,8 +84,27 @@ MessageProcessor::MessageProcessor(
 {
     auto bound = backend_socket_->Start(internal_endpoint_);
     bound &= internal_socket_->Start(internal_endpoint_);
+    bound &= notification_socket_->Start(
+        server_.API().Endpoints().InternalPushNotification());
 
     OT_ASSERT(bound);
+}
+
+void MessageProcessor::associate_connection(
+    const Identifier& nymID,
+    const Data& connection)
+{
+    if (nymID.empty()) { return; }
+    if (connection.empty()) { return; }
+
+    eLock lock(connection_map_lock_);
+    const auto result = active_connections_.emplace(nymID, connection);
+
+    if (std::get<1>(result)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
+              << " is available via connection " << connection.asHex()
+              << std::endl;
+    }
 }
 
 void MessageProcessor::cleanup()
@@ -97,6 +125,13 @@ void MessageProcessor::DropOutgoing(const int count) const
 {
     Lock lock(counter_lock_);
     drop_outgoing_ = count;
+}
+
+proto::ServerRequest MessageProcessor::extract_proto(
+    const network::zeromq::Frame& incoming) const
+{
+    return proto::RawToProto<proto::ServerRequest>(
+        incoming.data(), incoming.size());
 }
 
 void MessageProcessor::init(
@@ -158,7 +193,7 @@ OTZMQMessage MessageProcessor::process_backend(
         messageString = *incoming.Body().begin();
     }
 
-    bool error = processMessage(messageString, reply);
+    bool error = process_message(messageString, reply);
 
     if (error) { reply = ""; }
 
@@ -166,6 +201,35 @@ OTZMQMessage MessageProcessor::process_backend(
     output->AddFrame(reply);
 
     return output;
+}
+
+bool MessageProcessor::process_command(
+    const proto::ServerRequest& serialized,
+    Identifier& nymID)
+{
+    const auto allegedNymID = Identifier::Factory(serialized.nym());
+    const auto nym = server_.API().Wallet().Nym(allegedNymID);
+
+    if (false == bool(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym is not yet registered"
+              << std::endl;
+
+        return true;
+    }
+
+    auto request = otx::Request::Factory(server_.API(), serialized);
+
+    if (request->Validate()) {
+        nymID.Assign(request->Initiator());
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid request" << std::endl;
+
+        return false;
+    }
+
+    // TODO look at the request type and do some stuff
+
+    return true;
 }
 
 void MessageProcessor::process_frontend(
@@ -176,6 +240,31 @@ void MessageProcessor::process_frontend(
     if (0 < drop_incoming_) {
         --drop_incoming_;
     } else {
+        proto::ServerRequest command{};
+        bool isProto{false};
+
+        if (1 < incoming.Body().size()) {
+            command = extract_proto(incoming.Body().at(0));
+            isProto = proto::Validate(command, SILENT);
+        }
+
+        if (isProto) {
+            auto nymID = Identifier::Factory();
+            const auto valid = process_command(command, nymID);
+
+            if (valid) {
+                const auto headerFrames = incoming.Header().size();
+
+                if (0 < headerFrames) {
+                    const auto& frame = incoming.Header().at(0);
+                    const auto id = Data::Factory(frame.data(), frame.size());
+                    associate_connection(nymID, id);
+                }
+
+                return;
+            }
+        }
+
         OTZMQMessage request{incoming};
         internal_socket_->Send(request);
     }
@@ -194,7 +283,7 @@ void MessageProcessor::process_internal(
     }
 }
 
-bool MessageProcessor::processMessage(
+bool MessageProcessor::process_message(
     const std::string& messageString,
     std::string& reply)
 {
@@ -259,6 +348,59 @@ bool MessageProcessor::processMessage(
     reply.assign(armoredReply.Get(), armoredReply.GetLength());
 
     return false;
+}
+
+void MessageProcessor::process_notification(
+    const network::zeromq::Message& incoming)
+{
+    if (2 != incoming.Body().size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid message." << std::endl;
+
+        return;
+    }
+
+    const auto nymID = Identifier::Factory(incoming.Body().at(0));
+    const auto connection = query_connection(nymID);
+
+    if (connection->empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": No notification channel available for " << nymID->str()
+              << std::endl;
+
+        return;
+    }
+
+    const auto nym = server_.API().Wallet().Nym(server_.GetServerNym().ID());
+
+    OT_ASSERT(nym);
+
+    const auto& payload = incoming.Body().at(1);
+    auto message = otx::Reply::Factory(
+        nym, nymID, server_.GetServerID(), proto::SERVERREPLY_PUSH, true);
+
+    OT_ASSERT(message->Validate());
+
+    message->SetPayload(payload);
+    const auto reply = proto::ProtoAsData(message->Contract());
+    auto pushNotification = network::zeromq::Message::Factory();
+    pushNotification->AddFrame(connection);
+    pushNotification->AddFrame();
+    pushNotification->AddFrame(reply);
+    pushNotification->AddFrame();
+    frontend_socket_->Send(pushNotification);
+    otErr << OT_METHOD << __FUNCTION__ << ": Push notification for "
+          << nymID->str() << " delivered via " << connection->asHex()
+          << std::endl;
+}
+
+OTData MessageProcessor::query_connection(const Identifier& nymID)
+{
+    sLock lock(connection_map_lock_);
+    auto it = active_connections_.find(nymID);
+
+    if (active_connections_.end() == it) { return Data::Factory(); }
+
+    return it->second;
 }
 
 void MessageProcessor::Start()

@@ -24,6 +24,7 @@ namespace opentxs::server
 {
 
 ReplyMessage::ReplyMessage(
+    const UserCommandProcessor& parent,
     const opentxs::api::Wallet& wallet,
     const Identifier& notaryID,
     const Nym& signer,
@@ -31,7 +32,8 @@ ReplyMessage::ReplyMessage(
     Server& server,
     const MessageType& type,
     Message& output)
-    : wallet_(wallet)
+    : parent_(parent)
+    , wallet_(wallet)
     , signer_(signer)
     , original_(input)
     , notary_id_(Identifier::Factory(notaryID))
@@ -303,9 +305,9 @@ void ReplyMessage::SetTargetNym(const String& nymID)
 ReplyMessage::~ReplyMessage()
 {
     if (drop_ && context_) {
-        UserCommandProcessor::drop_reply_notice_to_nymbox(
+        parent_.drop_reply_notice_to_nymbox(
             wallet_,
-            String(message_),
+            message_,
             original_.m_strRequestNum.ToLong(),
             drop_status_,
             context_->It(),

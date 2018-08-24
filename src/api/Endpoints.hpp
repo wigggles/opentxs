@@ -13,6 +13,11 @@ public:
     std::string AccountUpdate() const override;
     std::string ConnectionStatus() const override;
     std::string ContactUpdate() const override;
+    std::string DhtRequestNym() const override;
+    std::string DhtRequestServer() const override;
+    std::string DhtRequestUnit() const override;
+    std::string InternalProcessPushNotification() const override;
+    std::string InternalPushNotification() const override;
     std::string IssuerUpdate() const override;
     std::string NymDownload() const override;
     std::string PairEvent() const override;
@@ -21,9 +26,6 @@ public:
     std::string ThreadUpdate(const std::string& thread) const override;
     std::string WidgetUpdate() const override;
     std::string WorkflowAccountUpdate() const override;
-    std::string DhtRequestNym() const override;
-    std::string DhtRequestServer() const override;
-    std::string DhtRequestUnit() const override;
 
     ~Endpoints() = default;
 

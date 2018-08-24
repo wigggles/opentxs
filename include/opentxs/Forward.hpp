@@ -145,6 +145,12 @@ class OTPacker;
 class TradeListMarket;
 }  // namespace OTDB
 
+namespace otx
+{
+class Request;
+class Reply;
+}  // namespace otx
+
 namespace server
 {
 class MessageProcessor;
@@ -312,6 +318,8 @@ using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQRouterSocket = Pimpl<network::zeromq::RouterSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
+using OTXReply = Pimpl<otx::Reply>;
+using OTXRequest = Pimpl<otx::Request>;
 
 using ExclusiveAccount = Exclusive<Account>;
 

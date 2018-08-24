@@ -12,6 +12,7 @@
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
@@ -37,6 +38,8 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include "ConfigLoader.hpp"
 #include "Transactor.hpp"
@@ -93,7 +96,12 @@ Server::Server(const opentxs::api::server::Manager& manager)
     , m_strServerNymID()
     , m_nymServer(nullptr)
     , m_Cron(manager.Factory().Cron(manager))
+    , notification_socket_(manager_.ZeroMQ().PushSocket(true))
 {
+    const auto bound = notification_socket_->Start(
+        manager_.Endpoints().InternalPushNotification());
+
+    OT_ASSERT(bound);
 }
 
 void Server::ActivateCron()
@@ -929,6 +937,10 @@ bool Server::DropMessageToNymbox(
             // is removed from a box.
             //
             transaction->SaveBoxReceipt(*theLedger);
+            auto push = network::zeromq::Message::Factory();
+            push->AddFrame(RECIPIENT_NYM_ID.str());
+            push->AddFrame(std::string(String(*transaction).Get()));
+            notification_socket_->Push(push);
 
             return true;
         } else  // should never happen

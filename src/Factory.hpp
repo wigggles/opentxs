@@ -330,6 +330,7 @@ public:
     static api::client::Sync* Sync(
         const Flag& running,
         const api::client::Manager& api,
+        OTClient& otclient,
         const ContextLockCallback& lockCallback);
     static crypto::Trezor* Trezor(const api::Crypto& crypto);
     static api::client::UI* UI(

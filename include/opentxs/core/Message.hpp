@@ -92,7 +92,7 @@ private:
     static MessageType reply_command(const MessageType& type);
 
     EXPORT Message(const api::Core& core);
-    
+
     bool updateContentsByType(Tag& parent);
 
     std::int32_t processXmlNodeAckReplies(

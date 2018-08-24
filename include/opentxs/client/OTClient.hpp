@@ -28,6 +28,9 @@ public:
     {
         return m_MessageOutbuffer;
     }
+    bool ProcessNotification(
+        const otx::Reply& notification,
+        ServerContext& context);
     bool processServerReply(
         const std::set<ServerContext::ManagedNumber>& managed,
         const bool resync,
@@ -137,6 +140,11 @@ private:
         const Message& theReply,
         Ledger* pNymbox,
         ServerContext& context);
+    bool processServerReplyGetBoxReceipt(
+        OTTransaction& receipt,
+        ServerContext& context,
+        const String& serialized,
+        const std::int64_t boxType);
     bool processServerReplyProcessBox(
         const Message& theReply,
         const Identifier& accountID,
