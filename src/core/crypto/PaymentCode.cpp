@@ -276,7 +276,7 @@ bool PaymentCode::AddPrivateKeys(
         return false;
     }
 
-    if (0 > index_) {
+    if (0 <= index_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Index already set"
               << std::endl;
 
@@ -471,25 +471,57 @@ bool PaymentCode::Sign(
     proto::Signature& sig,
     const OTPasswordData* pPWData) const
 {
+    const auto signingKey = signing_key();
+
+    if (false == bool(signingKey.get())) { return false; }
+
+    serializedCredential serialized =
+        credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
+    auto& signature = *serialized->add_signature();
+    signature.set_role(proto::SIGROLE_NYMIDSOURCE);
+    const bool goodSig =
+        signingKey->SignProto(*serialized, signature, String(ID()), pPWData);
+    sig.CopyFrom(signature);
+
+    return goodSig;
+}
+
+bool PaymentCode::Sign(
+    const Data& data,
+    Data& output,
+    const OTPasswordData* pPWData) const
+{
+    const auto signingKey = signing_key();
+
+    if (false == bool(signingKey.get())) { return false; }
+
+    auto success = signingKey->engine().Sign(
+        data, signingKey.get(), proto::HASHTYPE_SHA256, output, pPWData);
+
+    return success;
+}
+
+OTAsymmetricKey PaymentCode::signing_key() const
+{
     if (nullptr == pubkey_) {
         otErr << OT_METHOD << __FUNCTION__ << ": Payment code not instantiated."
               << std::endl;
 
-        return false;
+        return crypto::key::Asymmetric::Factory();
     }
 
     if (0 > index_) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Private key is unavailable (unknown index)." << std::endl;
 
-        return false;
+        return crypto::key::Asymmetric::Factory();
     }
 
     if (seed_.empty()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Private key is unavailable (unknown seed)." << std::endl;
 
-        return false;
+        return crypto::key::Asymmetric::Factory();
     }
 
     std::string fingerprint = seed_;
@@ -500,7 +532,7 @@ bool PaymentCode::Sign(
         otErr << OT_METHOD << __FUNCTION__
               << ": Specified seed could not be loaded." << std::endl;
 
-        return false;
+        return crypto::key::Asymmetric::Factory();
     }
 
     if (!privatekey) {
@@ -508,7 +540,7 @@ bool PaymentCode::Sign(
               << ": Failed to derive private key for payment code."
               << std::endl;
 
-        return false;
+        return crypto::key::Asymmetric::Factory();
     }
 
     auto existingKeyData = Data::Factory();
@@ -518,7 +550,7 @@ bool PaymentCode::Sign(
         dynamic_cast<const crypto::EcdsaProvider&>(crypto_.SECP256K1())
             .PrivateToPublic(*privatekey, compareKey);
 
-    if (!haveKey) { return false; }
+    if (!haveKey) { return crypto::key::Asymmetric::Factory(); }
 
     compareKey.clear_path();
     pubkey_->GetKey(existingKeyData);
@@ -529,19 +561,12 @@ bool PaymentCode::Sign(
               << ": Private key is not valid for this payment code."
               << std::endl;
 
-        return false;
+        return crypto::key::Asymmetric::Factory();
     }
 
     const auto signingKey = crypto::key::Asymmetric::Factory(*privatekey);
-    serializedCredential serialized =
-        credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
-    auto& signature = *serialized->add_signature();
-    signature.set_role(proto::SIGROLE_NYMIDSOURCE);
-    const bool goodSig =
-        signingKey->SignProto(*serialized, signature, String(ID()), pPWData);
-    sig.CopyFrom(signature);
 
-    return goodSig;
+    return signingKey;
 }
 
 bool PaymentCode::Verify(

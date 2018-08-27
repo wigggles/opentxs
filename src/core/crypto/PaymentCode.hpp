@@ -29,6 +29,10 @@ public:
         const Credential& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const override;
+    bool Sign(
+        const Data& data,
+        Data& output,
+        const OTPasswordData* pPWData = nullptr) const override;
 
     bool AddPrivateKeys(const std::string& seed, const std::uint32_t index)
         override;
@@ -61,6 +65,7 @@ private:
     PaymentCode* clone() const override;
     const OTData Pubkey() const;
     void ConstructKey(const Data& pubkey);
+    OTAsymmetricKey signing_key() const;
 
     PaymentCode(
         const api::Crypto& crypto,
