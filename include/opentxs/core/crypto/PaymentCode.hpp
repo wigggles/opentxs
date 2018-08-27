@@ -55,6 +55,10 @@ public:
         const Credential& credential,
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr) const = 0;
+    EXPORT virtual bool Sign(
+        const Data& data,
+        Data& output,
+        const OTPasswordData* pPWData = nullptr) const = 0;
 
     EXPORT virtual bool AddPrivateKeys(
         const std::string& seed,
