@@ -15,7 +15,9 @@
 #include <memory>
 #include <string>
 
-namespace opentxs::crypto
+namespace opentxs
+{
+namespace crypto
 {
 std::string Print(const proto::HDPath& node);
 
@@ -36,5 +38,6 @@ public:
         const EcdsaCurve& curve,
         const OTPassword& seed) const = 0;
 };
-}  // namespace opentxs::crypto
+}  // namespace crypto
+}  // namespace opentxs
 #endif
