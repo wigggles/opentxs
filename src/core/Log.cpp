@@ -99,8 +99,8 @@ namespace opentxs
 
 Log* Log::pLogger{nullptr};
 
-const String Log::m_strVersion = OPENTXS_VERSION_STRING;
-const String Log::m_strPathSeparator = "/";
+const OTString Log::m_strVersion = String::Factory(OPENTXS_VERSION_STRING);
+const OTString Log::m_strPathSeparator = String::Factory("/");
 
 OTLOG_IMPORT OTLogStream otErr(-1);  // logs using otErr << )
 OTLOG_IMPORT OTLogStream otInfo(2);  // logs using OTLog::vOutput(2)
@@ -145,6 +145,10 @@ int OTLogStream::overflow(int c)
 
 Log::Log(const api::Settings& config)
     : config_(config)
+    , m_strThreadContext(String::Factory())
+    , m_strLogFileName(String::Factory())
+    , m_strLogFilePath(String::Factory())
+
 {
     bool notUsed{false};
     config_.Check_bool(
@@ -168,18 +172,18 @@ bool Log::Init(
 
     if (!pLogger->m_bInitialized) {
         pLogger->logDeque = std::deque<String*>();
-        pLogger->m_strThreadContext.Set(strThreadContext);
+        pLogger->m_strThreadContext->Set(strThreadContext);
 
         pLogger->m_nLogLevel = nLogLevel;
 
         if (!strThreadContext->Exists() ||
             strThreadContext->Compare(""))  // global
         {
-            pLogger->m_strLogFileName.Set(GLOBAL_LOGFILE);
+            pLogger->m_strLogFileName->Set(GLOBAL_LOGFILE);
         } else  // not global
         {
 
-            pLogger->m_strLogFileName.Format(
+            pLogger->m_strLogFileName->Format(
                 "%s%s%s", LOGFILE_PRE, strThreadContext->Get(), LOGFILE_EXT);
 
             std::unique_ptr<api::Settings> config{
@@ -324,7 +328,7 @@ bool Log::LogToFile(const String& strOutput)
         if (false == pLogger->write_log_file_) { return true; }
 
         // Append to logfile
-        if ((strOutput.Exists()) && (Log::pLogger->m_strLogFilePath.Exists())) {
+        if ((strOutput.Exists()) && (Log::pLogger->m_strLogFilePath->Exists())) {
             std::ofstream logfile;
             logfile.open(Log::LogFilePath(), std::ios::app);
 
@@ -339,7 +343,7 @@ bool Log::LogToFile(const String& strOutput)
     return bSuccess;
 }
 
-String Log::GetMemlogAtIndex(std::int32_t nIndex)
+OTString Log::GetMemlogAtIndex(std::int32_t nIndex)
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
@@ -350,7 +354,7 @@ String Log::GetMemlogAtIndex(std::int32_t nIndex)
 
     if ((nIndex < 0) || (uIndex >= Log::pLogger->logDeque.size())) {
         otErr << __FUNCTION__ << ": index out of bounds: " << nIndex << "\n";
-        return "";
+        return String::Factory();
     }
 
     if (nullptr != Log::pLogger->logDeque.at(uIndex))
@@ -358,12 +362,12 @@ String Log::GetMemlogAtIndex(std::int32_t nIndex)
     else
         OT_FAIL;
 
-    const String strLogEntry = *Log::pLogger->logDeque.at(uIndex);
+    OTString strLogEntry = *Log::pLogger->logDeque.at(uIndex);
 
-    if (strLogEntry.Exists())
+    if (strLogEntry->Exists())
         return strLogEntry;
     else
-        return "";
+        return String::Factory();
 }
 
 // We keep 1024 logs in memory, to make them available via the API.
@@ -378,14 +382,14 @@ std::int32_t Log::GetMemlogSize()
     return static_cast<std::int32_t>(Log::pLogger->logDeque.size());
 }
 
-String Log::PeekMemlogFront()
+OTString Log::PeekMemlogFront()
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
     if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
-    if (Log::pLogger->logDeque.size() <= 0) return nullptr;
+    if (Log::pLogger->logDeque.size() <= 0) return String::Factory();
 
     if (nullptr != Log::pLogger->logDeque.front())
         ;  // check for null
@@ -397,29 +401,29 @@ String Log::PeekMemlogFront()
     if (strLogEntry.Exists())
         return strLogEntry;
     else
-        return "";
+        return String::Factory();
 }
 
-String Log::PeekMemlogBack()
+OTString Log::PeekMemlogBack()
 {
     // lets check if we are Initialized in this context
     CheckLogger(Log::pLogger);
 
     if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
 
-    if (Log::pLogger->logDeque.size() <= 0) return nullptr;
+    if (Log::pLogger->logDeque.size() <= 0) return String::Factory();
 
     if (nullptr != Log::pLogger->logDeque.back())
         ;  // check for null
     else
         OT_FAIL;
 
-    const String strLogEntry = *Log::pLogger->logDeque.back();
+    OTString strLogEntry = *Log::pLogger->logDeque.back();
 
-    if (strLogEntry.Exists())
+    if (strLogEntry->Exists())
         return strLogEntry;
     else
-        return "";
+        return String::Factory();
 }
 
 // static

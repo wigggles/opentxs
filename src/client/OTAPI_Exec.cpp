@@ -312,17 +312,17 @@ std::int32_t OTAPI_Exec::GetMemlogSize() const { return Log::GetMemlogSize(); }
 
 std::string OTAPI_Exec::GetMemlogAtIndex(const std::int32_t& nIndex) const
 {
-    return Log::GetMemlogAtIndex(nIndex).Get();
+    return Log::GetMemlogAtIndex(nIndex)->Get();
 }
 
 std::string OTAPI_Exec::PeekMemlogFront() const
 {
-    return Log::PeekMemlogFront().Get();
+    return Log::PeekMemlogFront()->Get();
 }
 
 std::string OTAPI_Exec::PeekMemlogBack() const
 {
-    return Log::PeekMemlogBack().Get();
+    return Log::PeekMemlogBack()->Get();
 }
 
 bool OTAPI_Exec::PopMemlogFront() const { return Log::PopMemlogFront(); }
