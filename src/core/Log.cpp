@@ -156,31 +156,31 @@ Log::Log(const api::Settings& config)
 // static
 bool Log::Init(
     const api::Settings& config,
-    const String& strThreadContext,
-    const std::int32_t& nLogLevel)
+    const OTString strThreadContext, //=String::Factory()
+    const std::int32_t& nLogLevel) //=0
 {
     if (nullptr == pLogger) {
         pLogger = new Log(config);
         pLogger->m_bInitialized = false;
     }
 
-    if (strThreadContext.Compare(GLOBAL_LOGNAME)) return false;
+    if (strThreadContext->Compare(GLOBAL_LOGNAME)) return false;
 
     if (!pLogger->m_bInitialized) {
         pLogger->logDeque = std::deque<String*>();
-        pLogger->m_strThreadContext = strThreadContext;
+        pLogger->m_strThreadContext.Set(strThreadContext);
 
         pLogger->m_nLogLevel = nLogLevel;
 
-        if (!strThreadContext.Exists() ||
-            strThreadContext.Compare(""))  // global
+        if (!strThreadContext->Exists() ||
+            strThreadContext->Compare(""))  // global
         {
-            pLogger->m_strLogFileName = GLOBAL_LOGFILE;
+            pLogger->m_strLogFileName.Set(GLOBAL_LOGFILE);
         } else  // not global
         {
 
             pLogger->m_strLogFileName.Format(
-                "%s%s%s", LOGFILE_PRE, strThreadContext.Get(), LOGFILE_EXT);
+                "%s%s%s", LOGFILE_PRE, strThreadContext->Get(), LOGFILE_EXT);
 
             std::unique_ptr<api::Settings> config{
                 Factory::Settings(OTPaths::GlobalConfigFile())};
@@ -190,7 +190,7 @@ bool Log::Init(
 
             bool bIsNew(false);
             if (!config->CheckSet_str(
-                    "logfile",
+                    String::Factory("logfile"),
                     strThreadContext,
                     pLogger->m_strLogFileName,
                     pLogger->m_strLogFileName,

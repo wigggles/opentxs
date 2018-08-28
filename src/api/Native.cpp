@@ -457,7 +457,7 @@ void Native::Init_Log()
 {
     OT_ASSERT(legacy_)
 
-    const auto init = Log::Init(Config(legacy_->LogConfigFilePath()), "");
+    const auto init = Log::Init(Config(legacy_->LogConfigFilePath()));
 
     if (false == init) { abort(); }
 }

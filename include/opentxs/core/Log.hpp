@@ -113,7 +113,7 @@ public:
      * log-filename. */
     EXPORT static bool Init(
         const api::Settings& config,
-        const String& strThreadContext = "",
+        const OTString strThreadContext = String::Factory(),
         const std::int32_t& nLogLevel = 0);
 
     EXPORT static bool IsInitialized();
