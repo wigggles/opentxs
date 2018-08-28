@@ -12360,12 +12360,12 @@ NetworkReplyMessage OT_API::send_message(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     m_pClient->QueueOutgoingMessage(message);
-    request_sent_->Publish(message.m_strType.Get());
+    request_sent_->Publish(message.m_strCommand.Get());
     auto result = context.Connection().Send(context, message);
 
     if (SendResult::VALID_REPLY == result.first) {
         m_pClient->processServerReply(pending, resync, context, result.second);
-        reply_received_->Publish(result.second->m_strType.Get());
+        reply_received_->Publish(message.m_strCommand.Get());
     }
 
     return result;
