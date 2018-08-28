@@ -5,8 +5,6 @@
 
 #pragma once
 
-#pragma once
-
 #ifdef __APPLE__
 #include "TargetConditionals.h"
 #endif

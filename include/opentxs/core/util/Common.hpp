@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include <cinttypes>
+#include <ctime>
 #include <memory>
 
 #ifdef _WIN32
@@ -71,7 +72,7 @@ public:
 };
 std::stringstream& operator<<(const std::stringstream& str, const time64_t& t);
 
-EXPORT time64_t OTTimeGetCurrentTime();  // { return time(nullptr); }
+EXPORT time64_t OTTimeGetCurrentTime();  // { return std::time(nullptr); }
 EXPORT time64_t OTTimeGetTimeFromSeconds(std::int64_t seconds);  // { return
                                                                  // seconds;
                                                                  // }
@@ -92,7 +93,7 @@ OTTimeAddTimeInterval(time64_t lhs, std::int64_t rhs);  // { return
 #else
 typedef std::int64_t time64_t;
 
-inline time64_t OTTimeGetCurrentTime() { return time(nullptr); }
+inline time64_t OTTimeGetCurrentTime() { return std::time(nullptr); }
 inline time64_t OTTimeGetTimeFromSeconds(std::int64_t seconds)
 {
     return seconds;
