@@ -26,6 +26,8 @@
 #define NYM_UPDATE_ENDPOINT "nymupdate"
 #define PAIR_EVENT_ENDPOINT "pairevent"
 #define PENDING_BAILMENT_ENDPOINT "peerrequest/pendingbailment"
+#define SERVER_REPLY_RECEIVED_ENDPOINT "reply/received"
+#define SERVER_REQUEST_SENT_ENDPOINT "request/sent"
 #define SERVER_UPDATE_ENDPOINT "serverupdate"
 #define THREAD_UPDATE_ENDPOINT "threadupdate/"
 #define WIDGET_UPDATE_ENDPOINT "ui/widgetupdate"
@@ -128,6 +130,17 @@ std::string Endpoints::PairEvent() const
 std::string Endpoints::PendingBailment() const
 {
     return build_inproc_path(PENDING_BAILMENT_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+std::string Endpoints::ServerReplyReceived() const
+{
+    return build_inproc_path(
+        SERVER_REPLY_RECEIVED_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+std::string Endpoints::ServerRequestSent() const
+{
+    return build_inproc_path(SERVER_REQUEST_SENT_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
 std::string Endpoints::ServerUpdate() const
