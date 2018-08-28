@@ -82,16 +82,16 @@ class Log
 {
 private:
     static Log* pLogger;
-    static const String m_strVersion;
-    static const String m_strPathSeparator;
+    static const OTString m_strVersion;
+    static const OTString m_strPathSeparator;
 
     const api::Settings& config_;
     std::int32_t m_nLogLevel{0};
     bool m_bInitialized{false};
     bool write_log_file_{false};
-    String m_strThreadContext{""};
-    String m_strLogFileName{""};
-    String m_strLogFilePath{""};
+    OTString m_strThreadContext;
+    OTString m_strLogFileName;
+    OTString m_strLogFilePath;
     dequeOfStrings logDeque{};
     std::recursive_mutex lock_;
 
@@ -148,9 +148,9 @@ public:
 
     /** We keep 1024 logs in memory, to make them available via the API. */
     EXPORT static std::int32_t GetMemlogSize();
-    EXPORT static String GetMemlogAtIndex(std::int32_t nIndex);
-    EXPORT static String PeekMemlogFront();
-    EXPORT static String PeekMemlogBack();
+    EXPORT static OTString GetMemlogAtIndex(std::int32_t nIndex);
+    EXPORT static OTString PeekMemlogFront();
+    EXPORT static OTString PeekMemlogBack();
     EXPORT static bool PopMemlogFront();
     EXPORT static bool PopMemlogBack();
     EXPORT static bool PushMemlogFront(const String& strLog);
