@@ -47,7 +47,7 @@ else()
   set(OT_SYSROOT "--with-sysroot=${OT_SYSROOT_OVERRIDE}")
 endif()
 
-if(OT_ANDROID)
+if(ANDROID)
   set(OT_ANDROID_LOG "LDFLAGS=-llog")
 else()
   set(OT_ANDROID_LOG "")

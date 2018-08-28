@@ -8,8 +8,6 @@ project(opentxs)
 include(GNUInstallDirs)
 
 #-----------------------------------------------------------------------------
-option(OT_ANDROID       "Set Android-specific options" OFF)
-
 if(NOT ANDROID)
 set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM LAST)
 find_package(Git)
@@ -303,7 +301,7 @@ else()
 endif()
 
 if(ANDROID)
-  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS} -Wno-useless-cast -Wno-missing-field-initializers")
+  set(PEDANTIC_CXX_FLAGS "${PEDANTIC_CXX_FLAGS} -Wno-missing-field-initializers")
   add_definitions(-D__STDC_LIMIT_MACROS)
 endif()
 
