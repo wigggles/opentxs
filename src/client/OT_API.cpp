@@ -14,6 +14,7 @@
 #include "opentxs/api/network/ZMQ.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Native.hpp"
@@ -78,6 +79,7 @@
 #include "opentxs/crypto/Bip32.hpp"
 #endif
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Proto.hpp"
@@ -477,6 +479,8 @@ OT_API::OT_API(
     , m_pWallet(nullptr)
     , m_pClient(nullptr)
     , lock_callback_(lockCallback)
+    , request_sent_(api.ZeroMQ().PublishSocket())
+    , reply_received_(api.ZeroMQ().PublishSocket())
 {
     // WARNING: do not access api_.Wallet() during construction
     pid_.reset(new Pid);
@@ -487,6 +491,11 @@ OT_API::OT_API(
     }
 
     OT_ASSERT(m_pClient);
+
+    auto bound = request_sent_->Start(api.Endpoints().ServerRequestSent());
+    bound &= reply_received_->Start(api.Endpoints().ServerReplyReceived());
+
+    OT_ASSERT(bound);
 }
 
 // Call this once per INSTANCE of OT_API.
@@ -12351,10 +12360,12 @@ NetworkReplyMessage OT_API::send_message(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     m_pClient->QueueOutgoingMessage(message);
+    request_sent_->Publish(message.m_strType.Get());
     auto result = context.Connection().Send(context, message);
 
     if (SendResult::VALID_REPLY == result.first) {
         m_pClient->processServerReply(pending, resync, context, result.second);
+        reply_received_->Publish(result.second->m_strType.Get());
     }
 
     return result;

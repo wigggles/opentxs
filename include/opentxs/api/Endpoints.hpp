@@ -35,6 +35,8 @@ public:
     EXPORT virtual std::string NymDownload() const = 0;
     EXPORT virtual std::string PairEvent() const = 0;
     EXPORT virtual std::string PendingBailment() const = 0;
+    EXPORT virtual std::string ServerReplyReceived() const = 0;
+    EXPORT virtual std::string ServerRequestSent() const = 0;
     EXPORT virtual std::string ServerUpdate() const = 0;
     EXPORT virtual std::string ThreadUpdate(
         const std::string& thread) const = 0;

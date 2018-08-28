@@ -17,6 +17,7 @@
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/Types.hpp"
 
 #include <cstdint>
@@ -1212,6 +1213,8 @@ private:
     OTWallet* m_pWallet{nullptr};
     std::unique_ptr<OTClient> m_pClient;
     ContextLockCallback lock_callback_;
+    OTZMQPublishSocket request_sent_;
+    OTZMQPublishSocket reply_received_;
 
     bool add_accept_item(
         const itemType type,
