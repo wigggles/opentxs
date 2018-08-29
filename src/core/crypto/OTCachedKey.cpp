@@ -53,6 +53,7 @@ OTCachedKey::OTCachedKey(
     , thread_(nullptr)
     , master_password_(nullptr)
     , key_(crypto::key::LegacySymmetric::Factory(crypto_))
+    , secret_id_(String::Factory())
 {
 }
 

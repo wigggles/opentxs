@@ -132,16 +132,16 @@ OTString Asymmetric::KeyTypeToString(const proto::AsymmetricKeyType keyType)
 
     switch (keyType) {
         case proto::AKEYTYPE_LEGACY:
-            keytypeString = "legacy";
+            keytypeString = String::Factory("legacy");
             break;
         case proto::AKEYTYPE_SECP256K1:
-            keytypeString = "secp256k1";
+            keytypeString = String::Factory("secp256k1");
             break;
         case proto::AKEYTYPE_ED25519:
-            keytypeString = "ed25519";
+            keytypeString = String::Factory("ed25519");
             break;
         default:
-            keytypeString = "error";
+            keytypeString = String::Factory("error");
     }
     return keytypeString;
 }

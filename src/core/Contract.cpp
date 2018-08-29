@@ -48,11 +48,15 @@ namespace opentxs
 OTString trim(const String& str)
 {
     std::string s(str.Get(), str.GetLength());
-    return String(String::trim(s));
+    return String::Factory(String::trim(s));
 }
 
 Contract::Contract(const api::Core& core)
-    : Contract(core, "", "", "", "")
+    : Contract(core,
+               String::Factory(),
+               String::Factory(),
+               String::Factory(),
+               String::Factory())
 {
 }
 
@@ -70,10 +74,10 @@ Contract::Contract(
     , m_xmlUnsigned()
     , m_strRawFile(String::Factory())
     , m_strSigHashType(proto::HASHTYPE_ERROR)
-    , m_strContractType("CONTRACT")
+    , m_strContractType(String::Factory("CONTRACT"))
     , m_mapNyms()
     , m_listSignatures()
-    , m_strVersion("2.0")
+    , m_strVersion(String::Factory("2.0"))
     , m_strEntityShortName(String::Factory())
     , m_strEntityLongName(String::Factory())
     , m_strEntityEmail(String::Factory())
@@ -82,12 +86,16 @@ Contract::Contract(
 }
 
 Contract::Contract(const api::Core& core, const String& strID)
-    : Contract(core, "", "", "", strID)
+    : Contract(core,
+               String::Factory(),
+               String::Factory(),
+               String::Factory(),
+               strID)
 {
 }
 
 Contract::Contract(const api::Core& core, const Identifier& theID)
-    : Contract(core, String(theID))
+    : Contract(core, String::Factory(theID))
 {
 }
 
@@ -174,7 +182,7 @@ Contract::~Contract() { Release_Contract(); }
 
 bool Contract::SaveToContractFolder()
 {
-    String strFoldername(OTFolders::Contract().Get()), strFilename;
+    OTString strFoldername(String::Factory(OTFolders::Contract().Get())), strFilename = String::Factory();
 
     GetIdentifier(strFilename);
 
@@ -185,12 +193,12 @@ bool Contract::SaveToContractFolder()
     otInfo << "Contract::SaveToContractFolder: Saving asset contract to "
               "disk...\n";
 
-    return SaveContract(strFoldername.Get(), strFilename.Get());
+    return SaveContract(strFoldername->Get(), strFilename->Get());
 }
 
 void Contract::GetFilename(String& strFilename) const
 {
-    strFilename = m_strFilename;
+    String::Factory(strFilename.Get()) = m_strFilename;
 }
 
 void Contract::GetIdentifier(Identifier& theIdentifier) const
@@ -227,7 +235,7 @@ bool Contract::VerifyContract() const
 
     if (!VerifySignature(*pNym)) {
         const auto theNymID = Identifier::Factory(*pNym);
-        const String strNymID(theNymID);
+        const auto strNymID = String::Factory(theNymID);
         otOut << __FUNCTION__
               << ": Failed verifying the contract's signature "
                  "against the public key that was retrieved "
@@ -250,7 +258,7 @@ void Contract::CalculateContractID(Identifier& newID) const
     std::string str_Trim(m_strRawFile->Get());
     std::string str_Trim2 = String::trim(str_Trim);
 
-    String strTemp(str_Trim2.c_str());
+    auto strTemp = String::Factory(str_Trim2.c_str());
 
     if (!newID.CalculateDigest(strTemp))
         otErr << __FUNCTION__ << ": Error calculating Contract digest.\n";
@@ -277,7 +285,7 @@ bool Contract::VerifyContractID() const
     // That's why you see the ! outside the parenthesis.
     //
     if (!(m_ID == newID)) {
-        String str1(m_ID), str2(newID);
+        auto str1 = String::Factory(m_ID), str2 = String::Factory(newID);
 
         otOut << "\nHashes do NOT match in Contract::VerifyContractID.\n "
                  "Expected: "
@@ -287,7 +295,7 @@ bool Contract::VerifyContractID() const
                  "\n";
         return false;
     } else {
-        String str1;
+        auto str1 = String::Factory();
         newID->GetString(str1);
         otWarn << "\nContract ID *SUCCESSFUL* match to "
                << " hash of contract file: " << str1 << "\n\n";
@@ -538,11 +546,11 @@ bool Contract::VerifySigAuthent(
     const Nym& theNym,
     const OTPasswordData* pPWData) const
 {
-    String strNymID;
+    auto strNymID = String::Factory();
     theNym.GetIdentifier(strNymID);
     char cNymID = '0';
     std::uint32_t uIndex = 3;
-    const bool bNymID = strNymID.At(uIndex, cNymID);
+    const bool bNymID = strNymID->At(uIndex, cNymID);
 
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
@@ -568,10 +576,10 @@ bool Contract::VerifySigAuthent(
 bool Contract::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
     const
 {
-    String strNymID(theNym.ID());
+    auto strNymID = String::Factory(theNym.ID());
     char cNymID = '0';
     std::uint32_t uIndex = 3;
-    const bool bNymID = strNymID.At(uIndex, cNymID);
+    const bool bNymID = strNymID->At(uIndex, cNymID);
 
     for (auto& it : m_listSignatures) {
         OTSignature* pSig = it;
@@ -658,7 +666,7 @@ bool Contract::VerifySigAuthent(
                 return true;
         }
     } else {
-        String strNymID;
+        auto strNymID = String::Factory();
         theNym.GetIdentifier(strNymID);
         otWarn << __FUNCTION__
                << ": Tried to grab a list of keys from this Nym (" << strNymID
@@ -708,7 +716,7 @@ bool Contract::VerifySignature(
                 return true;
         }
     } else {
-        String strNymID;
+        auto strNymID = String::Factory();
         theNym.GetIdentifier(strNymID);
         otWarn << __FUNCTION__
                << ": Tried to grab a list of keys from this Nym (" << strNymID
@@ -803,7 +811,7 @@ bool Contract::SaveContents(String& strContents) const
 // Save the contract member variables into the m_strRawFile variable
 bool Contract::SaveContract()
 {
-    String strTemp;
+    auto strTemp = String::Factory();
     bool bSuccess = RewriteContract(strTemp);
 
     if (bSuccess) {
@@ -880,11 +888,11 @@ bool Contract::SignFlatText(
     // Therefore if char_at_index[lLength-1] != '\n'
     // Concatenate one!
 
-    String strInput;
+    auto strInput = String::Factory();
     if ('\n' == cNewline)  // It already has a newline
         strInput = strFlatText;
     else
-        strInput.Format("%s\n", strFlatText.Get());
+        strInput->Format("%s\n", strFlatText.Get());
 
     OTSignature theSignature;
     OTPasswordData thePWData("Signing flat text (need private key)");
@@ -932,21 +940,21 @@ bool Contract::AddBookendsAroundContent(
     const proto::HashType hashType,
     const listOfSignatures& listSignatures)
 {
-    String strTemp;
-    String strHashType = crypto::HashingProvider::HashTypeToString(hashType);
+    auto strTemp = String::Factory();
+    auto strHashType = crypto::HashingProvider::HashTypeToString(hashType);
 
-    strTemp.Concatenate(
+    strTemp->Concatenate(
         "-----BEGIN SIGNED %s-----\nHash: %s\n\n",
         strContractType.Get(),
         strHashType.Get());
 
-    strTemp.Concatenate("%s", strContents.Get());
+    strTemp->Concatenate("%s", strContents.Get());
 
     for (const auto& it : listSignatures) {
         OTSignature* pSig = it;
         OT_ASSERT(nullptr != pSig);
 
-        strTemp.Concatenate(
+        strTemp->Concatenate(
             "-----BEGIN %s SIGNATURE-----\n"
             "Version: Open Transactions %s\n"
             "Comment: "
@@ -955,21 +963,21 @@ bool Contract::AddBookendsAroundContent(
             Log::Version());
 
         if (pSig->getMetaData().HasMetadata())
-            strTemp.Concatenate(
+            strTemp->Concatenate(
                 "Meta:    %c%c%c%c\n",
                 pSig->getMetaData().GetKeyType(),
                 pSig->getMetaData().FirstCharNymID(),
                 pSig->getMetaData().FirstCharMasterCredID(),
                 pSig->getMetaData().FirstCharChildCredID());
 
-        strTemp.Concatenate(
+        strTemp->Concatenate(
             "%s",
             pSig->Get());  // <=== *** THE SIGNATURE ITSELF ***
-        strTemp.Concatenate(
+        strTemp->Concatenate(
             "\n-----END %s SIGNATURE-----\n\n", strContractType.Get());
     }
 
-    std::string str_Trim(strTemp.Get());
+    std::string str_Trim(strTemp->Get());
     std::string str_Trim2 = String::trim(str_Trim);
     strOutput.Set(str_Trim2.c_str());
 
@@ -983,7 +991,7 @@ bool Contract::AddBookendsAroundContent(
 //
 bool Contract::RewriteContract(String& strOutput) const
 {
-    String strContents;
+    auto strContents = String::Factory();
     SaveContents(strContents);
 
     return Contract::AddBookendsAroundContent(
@@ -1024,7 +1032,7 @@ bool Contract::WriteContract(
         return false;
     }
 
-    String strFinal;
+    auto strFinal = String::Factory();
     Armored ascTemp(m_strRawFile);
 
     if (false ==
@@ -1037,7 +1045,7 @@ bool Contract::WriteContract(
     }
 
     const bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(), api_.DataFolder(), folder, filename, "", "");
+        strFinal->Get(), api_.DataFolder(), folder, filename, "", "");
 
     if (!bSaved) {
         otErr << OT_METHOD << __FUNCTION__ << "Error saving file: " << folder
@@ -1080,19 +1088,19 @@ bool Contract::LoadContractRawFile()
         return false;
     }
 
-    String strFileContents(OTDB::QueryPlainString(
+    auto strFileContents = String::Factory(OTDB::QueryPlainString(
         api_.DataFolder(), szFoldername, szFilename, "", ""));  // <===
                                                                 // LOADING
                                                                 // FROM DATA
                                                                 // STORE.
 
-    if (!strFileContents.Exists()) {
+    if (!strFileContents->Exists()) {
         otErr << __FUNCTION__ << ": Error reading file: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
         return false;
     }
 
-    if (false == strFileContents.DecodeIfArmored())  // bEscapedIsAllowed=true
+    if (false == strFileContents->DecodeIfArmored())  // bEscapedIsAllowed=true
                                                      // by default.
     {
         otErr << __FUNCTION__
@@ -1140,9 +1148,9 @@ bool Contract::LoadContractFromString(const String& theStr)
         return false;
     }
 
-    String strContract(theStr);
+    auto strContract = String::Factory(theStr.Get());
 
-    if (false == strContract.DecodeIfArmored())  // bEscapedIsAllowed=true by
+    if (false == strContract->DecodeIfArmored())  // bEscapedIsAllowed=true by
                                                  // default.
     {
         otErr << __FUNCTION__
@@ -1387,8 +1395,8 @@ bool Contract::ParseRawFile()
                                   "contract header...\n";
 
                         std::string strTemp = line.substr(6);
-                        String strHashType = strTemp.c_str();
-                        strHashType.ConvertToUpperCase();
+                        auto strHashType = String::Factory(strTemp.c_str());
+                        strHashType->ConvertToUpperCase();
 
                         m_strSigHashType =
                             crypto::HashingProvider::StringToHashType(
@@ -1463,20 +1471,20 @@ bool Contract::LoadContractXML()
 
     // parse the file until end reached
     while (xml->read()) {
-        String strNodeType;
+        auto strNodeType = String::Factory();
 
         switch (xml->getNodeType()) {
             case EXN_NONE:
-                strNodeType.Set("EXN_NONE");
+                strNodeType->Set("EXN_NONE");
                 goto switch_log;
             case EXN_COMMENT:
-                strNodeType.Set("EXN_COMMENT");
+                strNodeType->Set("EXN_COMMENT");
                 goto switch_log;
             case EXN_ELEMENT_END:
-                strNodeType.Set("EXN_ELEMENT_END");
+                strNodeType->Set("EXN_ELEMENT_END");
                 goto switch_log;
             case EXN_CDATA:
-                strNodeType.Set("EXN_CDATA");
+                strNodeType->Set("EXN_CDATA");
                 goto switch_log;
 
             switch_log:
@@ -1727,19 +1735,19 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
     if (EXN_TEXT == xml->getNodeType())  // SHOULD always be true, in fact this
                                          // could be an assert().
     {
-        String strNodeData = xml->getNodeData();
+        auto strNodeData = String::Factory(xml->getNodeData());
 
         // Sometimes the XML reads up the data with a prepended newline.
         // This screws up my own objects which expect a consistent in/out
         // So I'm checking here for that prepended newline, and removing it.
         //
         char cNewline;
-        if (strNodeData.Exists() && strNodeData.GetLength() > 2 &&
-            strNodeData.At(0, cNewline)) {
+        if (strNodeData->Exists() && strNodeData->GetLength() > 2 &&
+            strNodeData->At(0, cNewline)) {
             if ('\n' == cNewline) {
-                ascOutput.Set(strNodeData.Get() + 1);
+                ascOutput.Set(strNodeData->Get() + 1);
             } else {
-                ascOutput.Set(strNodeData.Get());
+                ascOutput.Set(strNodeData->Get());
             }
 
             // SkipAfterLoadingField() only skips ahead if it's not ALREADY
@@ -1830,9 +1838,9 @@ bool Contract::LoadEncodedTextFieldByName(
 
         for (auto& it : mapExtraVars) {
             std::string first = it.first;
-            String strTemp = xml->getAttributeValue(first.c_str());
+            auto strTemp = String::Factory(xml->getAttributeValue(first.c_str()));
 
-            if (strTemp.Exists()) { mapExtraVars[first] = strTemp.Get(); }
+            if (strTemp->Exists()) { mapExtraVars[first] = strTemp->Get(); }
         }
     }
     // Any attribute names passed in, now have their corresponding
@@ -1940,7 +1948,7 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
         }
 
         SaveContract();
-        String strTemp;
+        auto strTemp = String::Factory();
         SaveContractRaw(strTemp);
 
         if (LoadContractFromString(strTemp))  // The ultimate test is, once
@@ -1992,16 +2000,16 @@ void Contract::CreateInnerContents(Tag& parent)
             if ("signer" == str_name) {
                 OT_ASSERT(pNym->HasCapability(NymCapability::SIGN_MESSAGE));
 
-                String strNymID;
+                auto strNymID = String::Factory();
                 pNym->GetIdentifier(strNymID);
 
                 auto publicNym = pNym->asPublicNym();
 
                 TagPtr pTag(new Tag(str_name));  // "signer"
-                pTag->add_attribute("nymID", strNymID.Get());
+                pTag->add_attribute("nymID", strNymID->Get());
                 pTag->add_attribute(
                     "publicNym",
-                    proto::ProtoAsArmored(publicNym, "PUBLIC NYM").Get());
+                    proto::ProtoAsArmored(publicNym, String::Factory("PUBLIC NYM")).Get());
 
                 parent.add_tag(pTag);
             }  // "signer"
@@ -2024,10 +2032,10 @@ void Contract::CreateContents()
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 {
-    const String strNodeName(xml->getNodeName());
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
-    if (strNodeName.Compare("entity")) {
-        m_strEntityShortName = xml->getAttributeValue("shortname");
+    if (strNodeName->Compare("entity")) {
+        m_strEntityShortName = String::Factory(xml->getAttributeValue("shortname"));
         if (!m_strName->Exists())  // only set it if it's not already set, since
             // the wallet may have already had a user label
             // set.
@@ -2035,22 +2043,22 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
                                                // again in
         // OTUnitDefinition::ProcessXMLNode
 
-        m_strEntityLongName = xml->getAttributeValue("longname");
-        m_strEntityEmail = xml->getAttributeValue("email");
+        m_strEntityLongName = String::Factory(xml->getAttributeValue("longname"));
+        m_strEntityEmail = String::Factory(xml->getAttributeValue("email"));
 
         otWarn << "Loaded Entity, shortname: " << m_strEntityShortName
                << "\nLongname: " << m_strEntityLongName
                << ", email: " << m_strEntityEmail << "\n----------\n";
 
         return 1;
-    } else if (strNodeName.Compare("condition")) {
+    } else if (strNodeName->Compare("condition")) {
         // todo security: potentially start ascii-encoding these.
         // (Are they still "human readable" if you can easily decode them?)
         //
-        String strConditionName;
-        String strConditionValue;
+        auto strConditionName = String::Factory();
+        auto strConditionValue = String::Factory();
 
-        strConditionName = xml->getAttributeValue("name");
+        strConditionName = String::Factory(xml->getAttributeValue("name"));
 
         if (!SkipToTextField(xml)) {
             otOut << "Contract::ProcessXMLNode: Failure: Unable to find "
@@ -2060,7 +2068,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         }
 
         if (EXN_TEXT == xml->getNodeType()) {
-            strConditionValue = xml->getNodeData();
+            strConditionValue = String::Factory(xml->getNodeData());
         } else {
             otErr << "Error in Contract::ProcessXMLNode: Condition without "
                      "value: "
@@ -2071,7 +2079,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         // Add the conditions to a list in memory on this object.
         //
         m_mapConditions.insert(std::pair<std::string, std::string>(
-            strConditionName.Get(), strConditionValue.Get()));
+            strConditionName->Get(), strConditionValue->Get()));
 
         otWarn << "---- Loaded condition \"" << strConditionName << "\"\n";
         //        otWarn << "Loading condition \"%s\": %s----------(END
@@ -2079,10 +2087,10 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         //                strConditionValue.Get());
 
         return 1;
-    } else if (strNodeName.Compare("signer")) {
-        const String strSignerNymID = xml->getAttributeValue("nymID");
+    } else if (strNodeName->Compare("signer")) {
+        const auto strSignerNymID = String::Factory(xml->getAttributeValue("nymID"));
 
-        if (!strSignerNymID.Exists()) {
+        if (!strSignerNymID->Exists()) {
             otErr << "Error in " << __FUNCTION__
                   << ": "
                      "Expected nymID attribute on signer element.\n";
@@ -2099,7 +2107,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             return (-1);
         }
         // Add pNym to the contract's internal list of nyms.
-        m_mapNyms[strNodeName.Get() /*"signer"*/] = pNym;
+        m_mapNyms[strNodeName->Get() /*"signer"*/] = pNym;
 
         return 1;  // <==== Success!
     }
