@@ -72,7 +72,7 @@ bool Instrument::VerifyCurrentDate()
         return false;
 }
 
-void Instrument::InitInstrument() { m_strContractType.Set("INSTRUMENT"); }
+void Instrument::InitInstrument() { m_strContractType->Set("INSTRUMENT"); }
 
 void Instrument::Release_Instrument()
 {

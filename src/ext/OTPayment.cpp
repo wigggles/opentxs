@@ -1661,7 +1661,7 @@ void OTPayment::InitPayment()
     m_bAreTempValuesSet = false;
     m_bHasRecipient = false;
     m_bHasRemitter = false;
-    m_strContractType.Set("PAYMENT");
+    m_strContractType->Set("PAYMENT");
 }
 
 // CALLER is responsible to delete.
@@ -2051,7 +2051,7 @@ void OTPayment::UpdateContents()
 
     Tag tag("payment");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("type", GetTypeString());
 
     if (m_strPayment.Exists()) {

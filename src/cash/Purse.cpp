@@ -518,7 +518,7 @@ bool Purse::Merge(
 
 void Purse::InitPurse()
 {
-    m_strContractType.Set("PURSE");
+    m_strContractType->Set("PURSE");
 
     m_lTotalValue = 0;
 
@@ -552,8 +552,8 @@ bool Purse::LoadPurse(
 {
     OT_ASSERT(!IsPasswordProtected());
 
-    if (!m_strFoldername.Exists())
-        m_strFoldername.Set(OTFolders::Purse().Get());
+    if (!m_strFoldername->Exists())
+        m_strFoldername->Set(OTFolders::Purse().Get());
 
     String strNotaryID(m_NotaryID), strNymID(m_NymID),
         strInstrumentDefinitionID(m_InstrumentDefinitionID);
@@ -563,8 +563,8 @@ bool Purse::LoadPurse(
     if (nullptr != szInstrumentDefinitionID)
         strInstrumentDefinitionID = szInstrumentDefinitionID;
 
-    if (!m_strFilename.Exists()) {
-        m_strFilename.Format(
+    if (!m_strFilename->Exists()) {
+        m_strFilename->Format(
             "%s%s%s%s%s",
             strNotaryID.Get(),
             Log::PathSeparator(),
@@ -622,8 +622,8 @@ bool Purse::SavePurse(
 {
     OT_ASSERT(!IsPasswordProtected());
 
-    if (!m_strFoldername.Exists())
-        m_strFoldername.Set(OTFolders::Purse().Get());
+    if (!m_strFoldername->Exists())
+        m_strFoldername->Set(OTFolders::Purse().Get());
 
     String strNotaryID(m_NotaryID), strNymID(m_NymID),
         strInstrumentDefinitionID(m_InstrumentDefinitionID);
@@ -633,8 +633,8 @@ bool Purse::SavePurse(
     if (nullptr != szInstrumentDefinitionID)
         strInstrumentDefinitionID = szInstrumentDefinitionID;
 
-    if (!m_strFilename.Exists()) {
-        m_strFilename.Format(
+    if (!m_strFilename->Exists()) {
+        m_strFilename->Format(
             "%s%s%s%s%s",
             strNotaryID.Get(),
             Log::PathSeparator(),
@@ -664,7 +664,7 @@ bool Purse::SavePurse(
     Armored ascTemp(strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "Purse::SavePurse: Error saving Pursefile (failed writing "
                  "armored string):\n"
               << szFolder1name << Log::PathSeparator() << szFolder2name
@@ -701,7 +701,7 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
 
     Tag tag("purse");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("totalValue", formatLong(m_lTotalValue));
     tag.add_attribute("validFrom", formatTimestamp(m_tLatestValidFrom));
     tag.add_attribute("validTo", formatTimestamp(m_tEarliestValidTo));

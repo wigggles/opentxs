@@ -38,7 +38,7 @@ namespace opentxs
 {
 typedef std::list<OTSignature*> listOfSignatures;
 
-String trim(const String& str);
+OTString trim(const String& str);
 
 class Contract
 {
@@ -305,13 +305,13 @@ protected:
     const api::Core& api_;
 
     /** Contract name as shown in the wallet. */
-    String m_strName;
+    OTString m_strName;
 
     /** Foldername for this contract (nyms, contracts, accounts, etc) */
-    String m_strFoldername;
+    OTString m_strFoldername;
 
     /** Filename for this contract (usually an ID.) */
-    String m_strFilename;
+    OTString m_strFilename;
 
     /** Hash of the contract, including signatures. (the "raw file") */
     OTIdentifier m_ID;
@@ -320,13 +320,13 @@ protected:
     OTStringXML m_xmlUnsigned;
 
     /** The complete raw file including signatures. */
-    String m_strRawFile;
+    OTString m_strRawFile;
 
     /** The Hash algorithm used for the signature */
     proto::HashType m_strSigHashType{proto::HASHTYPE_ERROR};
 
     /** CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM */
-    String m_strContractType{"CONTRACT"};
+    OTString m_strContractType{String::Factory("CONTRACT")};
 
     /** The default behavior for a contract, though occasionally overridden, is
      * to contain its own public keys internally, located on standard XML tags.
@@ -347,14 +347,14 @@ protected:
 
     /** The version of this Contract file, in case the format changes in the
     future. */
-    String m_strVersion{"2.0"};
+    OTString m_strVersion{String::Factory("2.0")};
 
     // TODO: perhaps move these to a common ancestor for ServerContract and
     // OTUnitDefinition. Maybe call it OTHardContract (since it should never
     // change.)
-    String m_strEntityShortName;
-    String m_strEntityLongName;
-    String m_strEntityEmail;
+    OTString m_strEntityShortName;
+    OTString m_strEntityLongName;
+    OTString m_strEntityEmail;
 
     /** The legal conditions, usually human-readable, on a contract. */
     String::Map m_mapConditions;

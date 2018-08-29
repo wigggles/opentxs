@@ -505,15 +505,15 @@ bool Ledger::LoadGeneric(ledgerType theType, const String* pString)
 
     const String strNotaryID(GetRealNotaryID());
 
-    if (!m_strFilename.Exists())
-        m_strFilename.Format(
+    if (!m_strFilename->Exists())
+        m_strFilename->Format(
             "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
 
     String strFilename;
     strFilename = strID.Get();
 
     const char* szFolder1name =
-        m_strFoldername.Get();  // "nymbox" (or "inbox" or "outbox")
+        m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
     const char* szFolder2name = strNotaryID.Get();  // "nymbox/NOTARY_ID"
     const char* szFilename = strFilename.Get();     // "nymbox/NOTARY_ID/NYM_ID"
     // (or "inbox/NOTARY_ID/ACCT_ID"
@@ -628,23 +628,23 @@ bool Ledger::SaveGeneric(ledgerType theType)
     GetIdentifier(strID);
     const String strNotaryID(GetRealNotaryID());
 
-    if (!m_strFilename.Exists())
-        m_strFilename.Format(
+    if (!m_strFilename->Exists())
+        m_strFilename->Format(
             "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
 
     String strFilename;
     strFilename = strID.Get();
 
     const char* szFolder1name =
-        m_strFoldername.Get();  // "nymbox" (or "inbox" or "outbox")
+        m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
     const char* szFolder2name = strNotaryID.Get();  // "nymbox/NOTARY_ID"
     const char* szFilename = strFilename.Get();     // "nymbox/NOTARY_ID/NYM_ID"
     // (or "inbox/NOTARY_ID/ACCT_ID"
     // or
     // "outbox/NOTARY_ID/ACCT_ID")
 
-    OT_ASSERT(m_strFoldername.GetLength() > 2);
-    OT_ASSERT(m_strFilename.GetLength() > 2);
+    OT_ASSERT(m_strFoldername->GetLength() > 2);
+    OT_ASSERT(m_strFilename->GetLength() > 2);
 
     String strRawFile;
 
@@ -660,7 +660,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
     Armored ascTemp(strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "OTLedger::SaveGeneric: Error saving " << pszType
               << " (failed writing armored string):\n"
               << szFolder1name << Log::PathSeparator() << szFolder2name
@@ -859,33 +859,33 @@ bool Ledger::generate_ledger(
     switch (theType) {
         case ledgerType::nymbox:  // stored by NymID ONLY.
             m_strFoldername = OTFolders::Nymbox().Get();
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
             break;
         case ledgerType::inbox:  // stored by AcctID ONLY.
             m_strFoldername = OTFolders::Inbox().Get();
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
             break;
         case ledgerType::outbox:  // stored by AcctID ONLY.
             m_strFoldername = OTFolders::Outbox().Get();
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
             break;
         case ledgerType::paymentInbox:  // stored by NymID ONLY.
             m_strFoldername = OTFolders::PaymentInbox().Get();
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
             break;
         case ledgerType::recordBox:  // stored by Acct ID *and* Nym ID
                                      // (depending on the box.)
             m_strFoldername = OTFolders::RecordBox().Get();
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
             break;
         case ledgerType::expiredBox:  // stored by Nym ID only.
             m_strFoldername = OTFolders::ExpiredBox().Get();
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
             break;
         case ledgerType::message:
@@ -920,7 +920,7 @@ bool Ledger::generate_ledger(
         strFilename = strID.Get();
 
         const char* szFolder1name =
-            m_strFoldername.Get();  // "nymbox" (or "inbox" or "outbox")
+            m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
         const char* szFolder2name = strNotaryID.Get();  // "nymbox/NOTARY_ID"
         const char* szFilename =
             strFilename.Get();  // "nymbox/NOTARY_ID/NYM_ID"  (or
@@ -1699,7 +1699,7 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
 
     Tag tag("accountLedger");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("type", strType.Get());
     tag.add_attribute("numPartialRecords", formatInt(nPartialRecordCount));
     tag.add_attribute("accountID", strLedgerAcctID.Get());

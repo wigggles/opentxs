@@ -2903,11 +2903,11 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     String strFinal;
     Armored ascTemp;
 
-    if (m_strRawFile.Exists()) {
+    if (m_strRawFile->Exists()) {
         ascTemp.SetString(m_strRawFile);
 
         if (false ==
-            ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+            ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
             otErr << __FUNCTION__
                   << ": Error deleting (writing over) box receipt (failed "
                      "writing armored string):\n"
@@ -2926,7 +2926,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     //
     String strOutput;
 
-    if (m_strRawFile.Exists())
+    if (m_strRawFile->Exists())
         strOutput.Format(
             "%s\n\n%s\n",
             strFinal.Get(),
@@ -3004,7 +3004,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     Armored ascTemp(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << __FUNCTION__
               << ": Error saving box receipt (failed writing armored string):\n"
               << strFolder1name << Log::PathSeparator() << strFolder2name

@@ -11,7 +11,7 @@
 
 namespace opentxs::crypto
 {
-String LegacySymmetricProvider::ModeToString(const Mode Mode)
+OTString LegacySymmetricProvider::ModeToString(const Mode Mode)
 {
     String modeString;
 

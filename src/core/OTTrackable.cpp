@@ -57,7 +57,7 @@ OTTrackable::OTTrackable(
 void OTTrackable::InitTrackable()
 {
     // Should never happen in practice. A child class will override it.
-    m_strContractType.Set("TRACKABLE");
+    m_strContractType->Set("TRACKABLE");
     m_lTransactionNum = 0;
 }
 

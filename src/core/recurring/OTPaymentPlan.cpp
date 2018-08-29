@@ -204,7 +204,7 @@ void OTPaymentPlan::UpdateContents()
     // OTAgreement
     Tag tag("agreement");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("notaryID", NOTARY_ID.Get());
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
     tag.add_attribute("senderAcctID", SENDER_ACCT_ID.Get());

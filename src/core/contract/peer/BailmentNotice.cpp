@@ -57,9 +57,9 @@ proto::PeerRequest BailmentNotice::IDVersion(const Lock& lock) const
 
     auto& pendingbailment = *contract.mutable_pendingbailment();
     pendingbailment.set_version(version_);
-    pendingbailment.set_unitid(String(unit_).Get());
-    pendingbailment.set_serverid(String(server_).Get());
-    pendingbailment.set_requestid(String(requestID_).Get());
+    pendingbailment.set_unitid(String::Factory(unit_)->Get());
+    pendingbailment.set_serverid(String::Factory(server_)->Get());
+    pendingbailment.set_requestid(String::Factory(requestID_)->Get());
     pendingbailment.set_txid(txid_);
     pendingbailment.set_amount(amount_);
 

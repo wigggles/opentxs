@@ -234,7 +234,7 @@ Message::Message(const api::Core& core)
     , m_bBool(false)
     , m_lTime(0)
 {
-    Contract::m_strContractType.Set("MESSAGE");
+    Contract::m_strContractType->Set("MESSAGE");
 }
 
 Message::ReverseTypeMap Message::make_reverse_map()
@@ -421,7 +421,7 @@ void Message::UpdateContents()
 
     Tag tag("notaryMessage");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("dateSigned", formatTimestamp(m_lTime));
 
     if (!updateContentsByType(tag)) {

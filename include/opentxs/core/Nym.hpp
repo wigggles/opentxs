@@ -230,8 +230,8 @@ private:
     std::string alias_;
     std::atomic<std::uint64_t> revision_{0};
     proto::CredentialIndexMode mode_{proto::CREDINDEX_ERROR};
-    String m_strVersion;
-    String m_strDescription;
+    OTString m_strVersion;
+    OTString m_strDescription;
     const OTIdentifier m_nymID;
     std::shared_ptr<NymIDSource> source_{nullptr};
     mutable std::unique_ptr<class ContactData> contact_data_;

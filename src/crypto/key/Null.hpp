@@ -55,7 +55,7 @@ public:
         proto::Signature&,
         const OTPasswordData* = nullptr,
         const OTPassword* = nullptr,
-        const String& = String(""),
+        const String& = String::Factory(""),
         const proto::SignatureRole = proto::SIGROLE_ERROR) const override
     {
         return false;

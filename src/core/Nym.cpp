@@ -461,10 +461,10 @@ void Nym::DisplayStatistics(String& strOutput) const
 {
     sLock lock(shared_lock_);
     strOutput.Concatenate("Source for ID:\n%s\n", Source().asString().Get());
-    strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
+    strOutput.Concatenate("Description: %s\n\n", m_strDescription->Get());
     strOutput.Concatenate("%s", "\n");
     strOutput.Concatenate("==>      Name: %s\n", Alias().c_str());
-    strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
+    strOutput.Concatenate("      Version: %s\n", m_strVersion->Get());
     String theStringID(ID());
     strOutput.Concatenate("Nym ID: %s\n", theStringID.Get());
 }
@@ -590,7 +590,7 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
 {
     Tag tag("nymData");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
 
     String strNymID(m_nymID);
 
@@ -1305,7 +1305,7 @@ void Nym::SerializeNymIDSource(Tag& parent) const
 
         TagPtr pTag(new Tag("nymIDSource", source_->asString().Get()));
 
-        if (m_strDescription.Exists()) {
+        if (m_strDescription->Exists()) {
             Armored ascDescription;
             ascDescription.SetString(
                 m_strDescription,

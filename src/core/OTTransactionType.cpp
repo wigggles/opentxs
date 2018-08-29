@@ -144,13 +144,13 @@ void OTTransactionType::GetNumList(NumList& theOutput)
 // Allows you to string-search the raw contract.
 bool OTTransactionType::Contains(const String& strContains)
 {
-    return m_strRawFile.Contains(strContains);
+    return m_strRawFile->Contains(strContains);
 }
 
 // Allows you to string-search the raw contract.
 bool OTTransactionType::Contains(const char* szContains)
 {
-    return m_strRawFile.Contains(szContains);
+    return m_strRawFile->Contains(szContains);
 }
 
 // We'll see if any new bugs pop up after adding this...

@@ -55,8 +55,8 @@ Mint::Mint(
     , m_EXPIRATION(OT_TIME_ZERO)
     , m_CashAccountID(Identifier::Factory())
 {
-    m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format(
+    m_strFoldername->Set(OTFolders::Mint().Get());
+    m_strFilename->Format(
         "%s%s%s",
         strNotaryID.Get(),
         Log::PathSeparator(),
@@ -83,8 +83,8 @@ Mint::Mint(
     , m_EXPIRATION(OT_TIME_ZERO)
     , m_CashAccountID(Identifier::Factory())
 {
-    m_strFoldername.Set(OTFolders::Mint().Get());
-    m_strFilename.Format(
+    m_strFoldername->Set(OTFolders::Mint().Get());
+    m_strFilename->Format(
         "%s%s%s",
         strNotaryID.Get(),
         Log::PathSeparator(),
@@ -168,7 +168,7 @@ void Mint::Release()
 
 void Mint::InitMint()
 {
-    m_strContractType.Set("MINT");
+    m_strContractType->Set("MINT");
 
     m_nDenominationCount = 0;
 
@@ -195,44 +195,44 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
                                            // here. client never
                                            // should. Enforcement?
 {
-    if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
+    if (!m_strFoldername->Exists()) m_strFoldername->Set(OTFolders::Mint().Get());
 
-    const String strNotaryID(m_NotaryID),
-        strInstrumentDefinitionID(m_InstrumentDefinitionID);
+    const auto strNotaryID = String::Factory(m_NotaryID),
+        strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
 
-    if (!m_strFilename.Exists()) {
+    if (!m_strFilename->Exists()) {
         if (nullptr != szAppend)
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s%s",
-                strNotaryID.Get(),
+                strNotaryID->Get(),
                 Log::PathSeparator(),  // server appends ".1"
                                        // or ".PUBLIC" here.
-                strInstrumentDefinitionID.Get(),
+                strInstrumentDefinitionID->Get(),
                 szAppend);
         else
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s",
-                strNotaryID.Get(),
+                strNotaryID->Get(),
                 Log::PathSeparator(),
-                strInstrumentDefinitionID.Get());  // client uses only
+                strInstrumentDefinitionID->Get());  // client uses only
                                                    // instrument definition
                                                    // id, no append.
     }
 
-    String strFilename;
+    auto strFilename = String::Factory();
     if (nullptr != szAppend)
-        strFilename.Format(
+        strFilename->Format(
             "%s%s",
-            strInstrumentDefinitionID.Get(),
+            strInstrumentDefinitionID->Get(),
             szAppend);  // server side
     else
-        strFilename = strInstrumentDefinitionID.Get();  // client side
+        strFilename = strInstrumentDefinitionID->Get();  // client side
 
     const char* szFolder1name = OTFolders::Mint().Get();  // "mints"
-    const char* szFolder2name = strNotaryID.Get();        // "mints/NOTARY_ID"
+    const char* szFolder2name = strNotaryID->Get();        // "mints/NOTARY_ID"
     const char* szFilename =
         strFilename
-            .Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
+            ->Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
 
     if (!OTDB::Exists(
             api_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
@@ -260,7 +260,7 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
     // NOTE: No need to worry about the OT ARMORED file format, since
     // LoadContractFromString already handles that internally.
 
-    String strRawFile(strFileContents.c_str());
+    auto strRawFile = String::Factory(strFileContents.c_str());
 
     bool bSuccess = LoadContractFromString(
         strRawFile);  // Note: This handles OT ARMORED file format.
@@ -270,38 +270,38 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
 
 bool Mint::SaveMint(const char* szAppend)
 {
-    if (!m_strFoldername.Exists()) m_strFoldername.Set(OTFolders::Mint().Get());
+    if (!m_strFoldername->Exists()) m_strFoldername->Set(OTFolders::Mint().Get());
 
-    const String strNotaryID(m_NotaryID),
-        strInstrumentDefinitionID(m_InstrumentDefinitionID);
+    const auto strNotaryID = String::Factory(m_NotaryID),
+        strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
 
-    if (!m_strFilename.Exists()) {
+    if (!m_strFilename->Exists()) {
         if (nullptr != szAppend)
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s%s",
-                strNotaryID.Get(),
+                strNotaryID->Get(),
                 Log::PathSeparator(),  // server side
-                strInstrumentDefinitionID.Get(),
+                strInstrumentDefinitionID->Get(),
                 szAppend);
         else
-            m_strFilename.Format(
+            m_strFilename->Format(
                 "%s%s%s",
-                strNotaryID.Get(),
+                strNotaryID->Get(),
                 Log::PathSeparator(),
-                strInstrumentDefinitionID.Get());  // client side
+                strInstrumentDefinitionID->Get());  // client side
     }
 
-    String strFilename;
+    auto strFilename = String::Factory();
     if (nullptr != szAppend)
-        strFilename.Format("%s%s", strInstrumentDefinitionID.Get(), szAppend);
+        strFilename->Format("%s%s", strInstrumentDefinitionID->Get(), szAppend);
     else
-        strFilename = strInstrumentDefinitionID.Get();
+        strFilename = strInstrumentDefinitionID->Get();
 
     const char* szFolder1name = OTFolders::Mint().Get();
-    const char* szFolder2name = strNotaryID.Get();
-    const char* szFilename = strFilename.Get();
+    const char* szFolder2name = strNotaryID->Get();
+    const char* szFilename = strFilename->Get();
 
-    String strRawFile;
+    auto strRawFile = String::Factory();
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "Mint::SaveMint: Error saving Mintfile (to string):\n"
@@ -310,11 +310,11 @@ bool Mint::SaveMint(const char* szAppend)
         return false;
     }
 
-    String strFinal;
+    auto strFinal = String::Factory();
     Armored ascTemp(strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "Mint::SaveMint: Error saving mint (failed writing armored "
                  "string):\n"
               << szFolder1name << Log::PathSeparator() << szFolder2name
@@ -323,7 +323,7 @@ bool Mint::SaveMint(const char* szAppend)
     }
 
     bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(),
+        strFinal->Get(),
         api_.DataFolder(),
         szFolder1name,
         szFolder2name,
@@ -378,7 +378,7 @@ bool Mint::VerifyContractID() const
     // I use the == operator here because there is no != operator at this time.
     // That's why you see the ! outside the parenthesis.
     if (!(m_ID == m_InstrumentDefinitionID)) {
-        String str1(m_ID), str2(m_InstrumentDefinitionID);
+        auto str1 = String::Factory(m_ID), str2 = String::Factory(m_InstrumentDefinitionID);
 
         otErr << "\nMint ID does NOT match Instrument Definition ID in "
                  "Mint::VerifyContractID.\n"
@@ -387,7 +387,7 @@ bool Mint::VerifyContractID() const
         //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
         return false;
     } else {
-        String str1(m_ID);
+        auto str1 = String::Factory(m_ID);
         otInfo << "\nMint ID *SUCCESSFUL* match to Asset Contract ID:\n"
                << str1 << "\n\n";
         return true;
@@ -476,20 +476,20 @@ std::int64_t Mint::GetDenomination(std::int32_t nIndex)
 // first.
 void Mint::UpdateContents()
 {
-    String NOTARY_ID(m_NotaryID), NOTARY_NYM_ID(m_ServerNymID),
-        INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
-        CASH_ACCOUNT_ID(m_CashAccountID);
+    auto NOTARY_ID = String::Factory(m_NotaryID), NOTARY_NYM_ID = String::Factory(m_ServerNymID),
+        INSTRUMENT_DEFINITION_ID = String::Factory(m_InstrumentDefinitionID),
+        CASH_ACCOUNT_ID = String::Factory(m_CashAccountID);
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
     Tag tag("mint");
 
-    tag.add_attribute("version", m_strVersion.Get());
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
-    tag.add_attribute("serverNymID", NOTARY_NYM_ID.Get());
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
-    tag.add_attribute("cashAcctID", CASH_ACCOUNT_ID.Get());
+    tag.add_attribute("version", m_strVersion->Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
+    tag.add_attribute("serverNymID", NOTARY_NYM_ID->Get());
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute("cashAcctID", CASH_ACCOUNT_ID->Get());
     tag.add_attribute("series", formatInt(m_nSeries));
     tag.add_attribute("expiration", formatTimestamp(m_EXPIRATION));
     tag.add_attribute("validFrom", formatTimestamp(m_VALID_FROM));
@@ -538,7 +538,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     std::int32_t nReturnVal = 0;
 
-    const String strNodeName(xml->getNodeName());
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -551,7 +551,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // if (nReturnVal = ot_super::ProcessXMLNode(xml))
     //    return nReturnVal;
 
-    if (strNodeName.Compare("mint")) {
+    if (strNodeName->Compare("mint")) {
         String strNotaryID, strServerNymID, strInstrumentDefinitionID,
             strCashAcctID;
 
@@ -594,7 +594,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << "\n";
 
         nReturnVal = 1;
-    } else if (strNodeName.Compare("mintPrivateInfo")) {
+    } else if (strNodeName->Compare("mintPrivateInfo")) {
         std::int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 
@@ -616,7 +616,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         return 1;
-    } else if (strNodeName.Compare("mintPublicInfo")) {
+    } else if (strNodeName->Compare("mintPublicInfo")) {
         std::int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
 

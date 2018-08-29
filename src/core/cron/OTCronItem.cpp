@@ -485,7 +485,7 @@ bool OTCronItem::SaveActiveCronReceipt(
     Armored ascTemp(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
               << szFoldername << Log::PathSeparator() << strNotaryID
@@ -545,7 +545,7 @@ bool OTCronItem::SaveCronReceipt()
     Armored ascTemp(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
               << szFoldername << Log::PathSeparator() << szFilename << "\n";
@@ -1486,7 +1486,7 @@ bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
 
 void OTCronItem::InitCronItem()
 {
-    m_strContractType.Set("CRONITEM");  // in practice should never appear.
+    m_strContractType->Set("CRONITEM");  // in practice should never appear.
                                         // Child classes will overwrite.
 }
 

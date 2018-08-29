@@ -31,7 +31,7 @@
 namespace opentxs
 {
 
-typedef std::deque<String*> dequeOfStrings;
+typedef std::deque<OTString> dequeOfStrings;
 
 class OTLogStream;
 
@@ -92,7 +92,7 @@ private:
     OTString m_strThreadContext;
     OTString m_strLogFileName;
     OTString m_strLogFilePath;
-    dequeOfStrings logDeque{};
+    dequeOfStrings logDeque;
     std::recursive_mutex lock_;
 
     /** For things that represent internal inconsistency in the code. Normally
