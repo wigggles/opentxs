@@ -41,4 +41,4 @@ OpenSSL_BIO::operator BIO*() const { return (&m_refBIO); }
 void OpenSSL_BIO::release() { bCleanup = false; }
 
 void OpenSSL_BIO::setFreeOnly() { bFreeOnly = true; }
-}  // namespace opentxs
+}  // namespace opentxs::crypto::implementation
