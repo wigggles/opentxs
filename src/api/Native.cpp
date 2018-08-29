@@ -51,6 +51,7 @@
 #include "api/client/InternalClient.hpp"
 #include "api/storage/StorageInternal.hpp"
 #include "internal/api/Internal.hpp"
+#include "internal/rpc/Internal.hpp"
 #include "network/OpenDHT.hpp"
 #include "storage/StorageConfig.hpp"
 #include "Scheduler.hpp"
@@ -345,6 +346,7 @@ Native::Native(
     , null_callback_{nullptr}
     , default_external_password_callback_{nullptr}
     , external_password_callback_{externalPasswordCallback}
+    , rpc_(opentxs::Factory::RPC(*this))
 {
     // NOTE: OT_ASSERT is not available until Init() has been called
     assert(legacy_);
@@ -369,6 +371,8 @@ Native::Native(
             passphrase_.setPassword(passphrase.c_str(), passphrase.size());
         }
     }
+
+    assert(rpc_);
 }
 
 int Native::client_instance(const int count)
@@ -462,6 +466,13 @@ void Native::Init_Log()
     const auto init = Log::Init(Config(legacy_->LogConfigFilePath()));
 
     if (false == init) { abort(); }
+}
+
+proto::RPCResponse Native::RPC(const proto::RPCCommand& command) const
+{
+    OT_ASSERT(rpc_);
+
+    return rpc_->Process(command);
 }
 
 int Native::server_instance(const int count)
