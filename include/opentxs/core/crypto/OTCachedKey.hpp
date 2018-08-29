@@ -217,7 +217,7 @@ private:
     mutable std::unique_ptr<OTPassword> master_password_;
     /** Encrypted form of the master key. Serialized by OTWallet or Server. */
     mutable OTLegacySymmetricKey key_;
-    mutable String secret_id_{""};
+    mutable OTString secret_id_{""};
 
     void release_thread() const;
     /** The cleartext version (m_pMasterPassword) is deleted and set nullptr
