@@ -110,6 +110,29 @@ OTLOG_IMPORT OTLogStream otLog3(3);  // logs using OTLog::vOutput(3)
 OTLOG_IMPORT OTLogStream otLog4(4);  // logs using OTLog::vOutput(4)
 OTLOG_IMPORT OTLogStream otLog5(5);  // logs using OTLog::vOutput(5)
 
+
+
+// static
+bool Log::PushMemlogFront(const String& strLog)
+{
+    // lets check if we are Initialized in this context
+    CheckLogger(Log::pLogger);
+
+    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
+
+    OT_ASSERT(strLog.Exists());
+
+    Log::pLogger->logDeque.push_front(String::Factory(strLog.Get()));
+
+    if (Log::pLogger->logDeque.size() > LOG_DEQUE_SIZE) {
+        Log::PopMemlogBack();  // We start removing from the back when it
+                               // reaches this size.
+    }
+
+    return true;
+}
+
+
 OTLogStream::OTLogStream(int _logLevel)
     : std::ostream(this)
     , logLevel(_logLevel)
@@ -171,7 +194,7 @@ bool Log::Init(
     if (strThreadContext->Compare(GLOBAL_LOGNAME)) return false;
 
     if (!pLogger->m_bInitialized) {
-        pLogger->logDeque = std::deque<String*>();
+        pLogger->logDeque = std::deque<OTString>();
         pLogger->m_strThreadContext->Set(strThreadContext);
 
         pLogger->m_nLogLevel = nLogLevel;
@@ -358,12 +381,7 @@ OTString Log::GetMemlogAtIndex(std::int32_t nIndex)
         return String::Factory();
     }
 
-    if (nullptr != Log::pLogger->logDeque.at(uIndex))
-        ;  // check for null
-    else
-        OT_FAIL;
-
-    OTString strLogEntry = *Log::pLogger->logDeque.at(uIndex);
+    OTString strLogEntry = Log::pLogger->logDeque.at(uIndex);
 
     if (strLogEntry->Exists())
         return strLogEntry;
@@ -392,12 +410,7 @@ OTString Log::PeekMemlogFront()
 
     if (Log::pLogger->logDeque.size() <= 0) return String::Factory();
 
-    if (nullptr != Log::pLogger->logDeque.front())
-        ;  // check for null
-    else
-        OT_FAIL;
-
-    const OTString strLogEntry = *Log::pLogger->logDeque.front();
+    const OTString strLogEntry = Log::pLogger->logDeque.front();
 
     if (strLogEntry->Exists())
         return strLogEntry;
@@ -414,12 +427,7 @@ OTString Log::PeekMemlogBack()
 
     if (Log::pLogger->logDeque.size() <= 0) return String::Factory();
 
-    if (nullptr != Log::pLogger->logDeque.back())
-        ;  // check for null
-    else
-        OT_FAIL;
-
-    OTString strLogEntry = *Log::pLogger->logDeque.back();
+    OTString strLogEntry = Log::pLogger->logDeque.back();
 
     if (strLogEntry->Exists())
         return strLogEntry;
@@ -437,10 +445,6 @@ bool Log::PopMemlogFront()
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    String* strLogFront = Log::pLogger->logDeque.front();
-    if (nullptr != strLogFront) delete strLogFront;
-    strLogFront = nullptr;
-
     Log::pLogger->logDeque.pop_front();
 
     return true;
@@ -456,31 +460,7 @@ bool Log::PopMemlogBack()
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    String* strLogBack = Log::pLogger->logDeque.back();
-    if (nullptr != strLogBack) delete strLogBack;
-    strLogBack = nullptr;
-
     Log::pLogger->logDeque.pop_back();
-
-    return true;
-}
-
-// static
-bool Log::PushMemlogFront(const String& strLog)
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    OT_ASSERT(strLog.Exists());
-
-    Log::pLogger->logDeque.push_front(new String(strLog));
-
-    if (Log::pLogger->logDeque.size() > LOG_DEQUE_SIZE) {
-        Log::PopMemlogBack();  // We start removing from the back when it
-                               // reaches this size.
-    }
 
     return true;
 }

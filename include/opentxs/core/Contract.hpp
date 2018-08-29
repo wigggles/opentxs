@@ -141,7 +141,7 @@ public:
         const String& strContractType,  // "LEDGER" or "PURSE" etc.
         const Nym& theSigner,
         String& strOutput);
-    EXPORT inline void GetName(String& strName) const { strName = String::Factory(m_strName->Get()); }
+    EXPORT inline void GetName(String& strName) const { strName = m_strName; }
     EXPORT inline void SetName(const String& strName) { m_strName = strName; }
     EXPORT inline const String& GetContractType() const
     {

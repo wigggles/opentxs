@@ -62,19 +62,19 @@ public:
         const String& strKey,
         const String& strValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const = 0;
+        const String& strComment = String::Factory()) const = 0;
     EXPORT virtual bool Set_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const = 0;
+        const String& strComment = String::Factory()) const = 0;
     EXPORT virtual bool Set_bool(
         const String& strSection,
         const String& strKey,
         const bool& bValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const = 0;
+        const String& strComment = String::Factory()) const = 0;
 
     // Check for a Section, if the section dosn't exist, it will be made and
     // out_bIsNewSection will be true.)
