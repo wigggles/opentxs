@@ -5031,7 +5031,7 @@ void OTSmartContract::UpdateContents()
     // OTSmartContract
     Tag tag("smartContract");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("notaryID", m_bCalculatingID ? "" : NOTARY_ID.Get());
     tag.add_attribute(
         "activatorNymID", m_bCalculatingID ? "" : ACTIVATOR_NYM_ID.Get());

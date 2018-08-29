@@ -148,7 +148,7 @@ std::int32_t Token::GetMinimumPrototokenCount()
 
 void Token::InitToken()
 {
-    m_strContractType.Set("CASH TOKEN");  // todo internationalization.
+    m_strContractType->Set("CASH TOKEN");  // todo internationalization.
 }
 
 void Token::Release_Token()
@@ -293,7 +293,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     Armored ascTemp(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "Token::RecordTokenAsSpent: Error recording token as "
                  "spent (failed writing armored string):\n"
               << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
@@ -439,7 +439,7 @@ bool Token::GetSpendableString(
 
 void Token::UpdateContents()
 {
-    if (m_State == Token::spendableToken) m_strContractType.Set("CASH TOKEN");
+    if (m_State == Token::spendableToken) m_strContractType->Set("CASH TOKEN");
 
     String INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
         NOTARY_ID(m_NotaryID);
@@ -471,7 +471,7 @@ void Token::UpdateContents()
 
     Tag tag("token");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("state", strState.Get());
     tag.add_attribute("denomination", formatLong(GetDenomination()));
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
@@ -584,7 +584,7 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_State = Token::errorToken;
 
         if (m_State == Token::spendableToken)
-            m_strContractType.Set("CASH TOKEN");
+            m_strContractType->Set("CASH TOKEN");
 
         String strInstrumentDefinitionID(
             xml->getAttributeValue("instrumentDefinitionID")),

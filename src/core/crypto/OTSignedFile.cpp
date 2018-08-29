@@ -30,7 +30,7 @@ namespace opentxs
 OTSignedFile::OTSignedFile(const api::Core& core)
     : Contract(core)
 {
-    m_strContractType.Set("FILE");
+    m_strContractType->Set("FILE");
 }
 
 OTSignedFile::OTSignedFile(
@@ -39,7 +39,7 @@ OTSignedFile::OTSignedFile(
     const String& FILE_NAME)
     : Contract(core)
 {
-    m_strContractType.Set("FILE");
+    m_strContractType->Set("FILE");
 
     SetFilename(LOCAL_SUBDIR, FILE_NAME);
 }
@@ -50,7 +50,7 @@ OTSignedFile::OTSignedFile(
     const String& FILE_NAME)
     : Contract(core)
 {
-    m_strContractType.Set("FILE");
+    m_strContractType->Set("FILE");
 
     String strLocalSubdir(LOCAL_SUBDIR);
 
@@ -63,7 +63,7 @@ OTSignedFile::OTSignedFile(
     const char* FILE_NAME)
     : Contract(core)
 {
-    m_strContractType.Set("FILE");
+    m_strContractType->Set("FILE");
 
     String strLocalSubdir(LOCAL_SUBDIR), strFile_Name(FILE_NAME);
 
@@ -91,7 +91,7 @@ void OTSignedFile::UpdateContents()
 
     Tag tag("signedFile");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("localDir", m_strLocalDir.Get());
     tag.add_attribute("filename", m_strSignedFilename.Get());
 
@@ -204,8 +204,8 @@ bool OTSignedFile::LoadFile()
 
     if (OTDB::Exists(
             api_.DataFolder(),
-            m_strFoldername.Get(),
-            m_strFilename.Get(),
+            m_strFoldername->Get(),
+            m_strFilename->Get(),
             "",
             ""))
         return LoadContract();
@@ -263,7 +263,7 @@ void OTSignedFile::Release()
 
     Contract::Release();
 
-    m_strContractType.Set("FILE");
+    m_strContractType->Set("FILE");
 }
 
 OTSignedFile::~OTSignedFile() { Release_SignedFile(); }

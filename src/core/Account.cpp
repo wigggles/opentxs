@@ -537,8 +537,8 @@ Account* Account::LoadExistingAccount(
 
     if (!OTDB::Exists(
             core.DataFolder(),
-            account->m_strFoldername.Get(),
-            account->m_strFilename.Get(),
+            account->m_strFoldername->Get(),
+            account->m_strFilename->Get(),
             "",
             "")) {
         otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
@@ -623,7 +623,7 @@ bool Account::GenerateNewAccount(
     // Might as well set them both. (Safe here to do so, for once.)
     SetPurportedAccountID(newID);
     // So it's not blank. The user can always change it.
-    m_strName.Set(strID);
+    m_strName->Set(strID);
 
     // Next we create the full path filename for the account using the ID.
     m_strFoldername = OTFolders::Account().Get();
@@ -633,8 +633,8 @@ bool Account::GenerateNewAccount(
     // exist.
     if (OTDB::Exists(
             api_.DataFolder(),
-            m_strFoldername.Get(),
-            m_strFilename.Get(),
+            m_strFoldername->Get(),
+            m_strFilename->Get(),
             "",
             "")) {
         otErr << __FUNCTION__ << ": Account already exists: " << m_strFilename
@@ -722,7 +722,7 @@ bool Account::DisplayStatistics(String& contents) const
         " instrumentDefinitionID: %s\n"
         "\n",
         acctType.Get(),
-        m_strName.Get(),
+        m_strName->Get(),
         balanceAmount_.Get(),
         balanceDate_.Get(),
         strAccountID.Get(),
@@ -746,13 +746,13 @@ bool Account::SaveContractWallet(Tag& parent) const
     // Name is in the clear in memory,
     // and base64 in storage.
     Armored ascName;
-    if (m_strName.Exists()) {
+    if (m_strName->Exists()) {
         ascName.SetString(m_strName, false);  // linebreaks == false
     }
 
     TagPtr pTag(new Tag("account"));
 
-    pTag->add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    pTag->add_attribute("name", m_strName->Exists() ? ascName.Get() : "");
     pTag->add_attribute("accountID", strAccountID.Get());
     pTag->add_attribute("nymID", strNymID.Get());
     pTag->add_attribute("notaryID", strNotaryID.Get());
@@ -798,7 +798,7 @@ void Account::UpdateContents()
 
     Tag tag("account");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("type", acctType.Get());
     tag.add_attribute("accountID", ACCOUNT_ID.Get());
     tag.add_attribute("nymID", NYM_ID.Get());

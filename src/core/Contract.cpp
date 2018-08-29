@@ -45,7 +45,7 @@ using namespace io;
 
 namespace opentxs
 {
-String trim(const String& str)
+OTString trim(const String& str)
 {
     std::string s(str.Get(), str.GetLength());
     return String(String::trim(s));
@@ -68,15 +68,15 @@ Contract::Contract(
     , m_strFilename(filename)
     , m_ID(Identifier::Factory(strID))
     , m_xmlUnsigned()
-    , m_strRawFile()
+    , m_strRawFile(String::Factory())
     , m_strSigHashType(proto::HASHTYPE_ERROR)
     , m_strContractType("CONTRACT")
     , m_mapNyms()
     , m_listSignatures()
     , m_strVersion("2.0")
-    , m_strEntityShortName()
-    , m_strEntityLongName()
-    , m_strEntityEmail()
+    , m_strEntityShortName(String::Factory())
+    , m_strEntityLongName(String::Factory())
+    , m_strEntityEmail(String::Factory())
     , m_mapConditions()
 {
 }
@@ -153,7 +153,7 @@ void Contract::Release_Contract()
 {
     m_strSigHashType = proto::HASHTYPE_ERROR;
     m_xmlUnsigned.Release();
-    m_strRawFile.Release();
+    m_strRawFile->Release();
 
     ReleaseSignatures();
 
@@ -247,7 +247,7 @@ bool Contract::VerifyContract() const
 void Contract::CalculateContractID(Identifier& newID) const
 {
     // may be redundant...
-    std::string str_Trim(m_strRawFile.Get());
+    std::string str_Trim(m_strRawFile->Get());
     std::string str_Trim2 = String::trim(str_Trim);
 
     String strTemp(str_Trim2.c_str());
@@ -807,7 +807,7 @@ bool Contract::SaveContract()
     bool bSuccess = RewriteContract(strTemp);
 
     if (bSuccess) {
-        m_strRawFile.Set(strTemp);
+        m_strRawFile->Set(strTemp);
 
         // RewriteContract() already does this.
         //
@@ -919,7 +919,7 @@ bool Contract::SignFlatText(
 // Saves the raw (pre-existing) contract text to any string you want to pass in.
 bool Contract::SaveContractRaw(String& strOutput) const
 {
-    strOutput.Concatenate("%s", m_strRawFile.Get());
+    strOutput.Concatenate("%s", m_strRawFile->Get());
 
     return true;
 }
@@ -1003,8 +1003,8 @@ bool Contract::SaveContract(const char* szFoldername, const char* szFilename)
         nullptr != szFoldername,
         "Null foldername sent to Contract::SaveContract\n");
 
-    m_strFoldername.Set(szFoldername);
-    m_strFilename.Set(szFilename);
+    m_strFoldername->Set(szFoldername);
+    m_strFilename->Set(szFilename);
 
     return WriteContract(szFoldername, szFilename);
 }
@@ -1016,7 +1016,7 @@ bool Contract::WriteContract(
     OT_ASSERT(folder.size() > 2);
     OT_ASSERT(filename.size() > 2);
 
-    if (!m_strRawFile.Exists()) {
+    if (!m_strRawFile->Exists()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error saving file (contract contents are empty): " << folder
               << Log::PathSeparator() << filename << std::endl;
@@ -1028,7 +1028,7 @@ bool Contract::WriteContract(
     Armored ascTemp(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType.Get())) {
+        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
               << folder << Log::PathSeparator() << filename << std::endl;
@@ -1069,10 +1069,10 @@ bool Contract::LoadContract()
 // but instead is chosen at random when the account is created.
 bool Contract::LoadContractRawFile()
 {
-    const char* szFoldername = m_strFoldername.Get();
-    const char* szFilename = m_strFilename.Get();
+    const char* szFoldername = m_strFoldername->Get();
+    const char* szFilename = m_strFilename->Get();
 
-    if (!m_strFoldername.Exists() || !m_strFilename.Exists()) return false;
+    if (!m_strFoldername->Exists() || !m_strFilename->Exists()) return false;
 
     if (!OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "")) {
         otErr << __FUNCTION__ << ": File does not exist: " << szFoldername
@@ -1106,17 +1106,17 @@ bool Contract::LoadContractRawFile()
     // were originally ascii-armored OR NOT. (And they are also now trimmed,
     // either way.)
     //
-    m_strRawFile.Set(strFileContents);
+    m_strRawFile->Set(strFileContents);
 
-    return m_strRawFile.Exists();
+    return m_strRawFile->Exists();
 }
 
 bool Contract::LoadContract(const char* szFoldername, const char* szFilename)
 {
     Release();
 
-    m_strFoldername.Set(szFoldername);
-    m_strFilename.Set(szFilename);
+    m_strFoldername->Set(szFoldername);
+    m_strFilename->Set(szFilename);
 
     // opens m_strFilename and reads into m_strRawFile
     if (LoadContractRawFile())
@@ -1153,7 +1153,7 @@ bool Contract::LoadContractFromString(const String& theStr)
         return false;
     }
 
-    m_strRawFile.Set(strContract);
+    m_strRawFile->Set(strContract);
 
     // This populates m_xmlUnsigned with the contents of m_strRawFile (minus
     // bookends, signatures, etc. JUST the XML.)
@@ -1190,7 +1190,7 @@ bool Contract::ParseRawFile()
     bool bContentMode = false;             // "currently in content mode"
     bool bHaveEnteredContentMode = false;  // "have yet to enter content mode"
 
-    if (!m_strRawFile.GetLength()) {
+    if (!m_strRawFile->GetLength()) {
         otErr << "Empty m_strRawFile in Contract::ParseRawFile. Filename: "
               << m_strFoldername << Log::PathSeparator() << m_strFilename
               << ".\n";
@@ -1199,12 +1199,12 @@ bool Contract::ParseRawFile()
 
     // This is redundant (I thought) but the problem hasn't cleared up yet.. so
     // trying to really nail it now.
-    std::string str_Trim(m_strRawFile.Get());
+    std::string str_Trim(m_strRawFile->Get());
     std::string str_Trim2 = String::trim(str_Trim);
-    m_strRawFile.Set(str_Trim2.c_str());
+    m_strRawFile->Set(str_Trim2.c_str());
 
     bool bIsEOF = false;
-    m_strRawFile.reset();
+    m_strRawFile->reset();
 
     do {
         // Just a fresh start at the top of the loop block... probably
@@ -1214,7 +1214,7 @@ bool Contract::ParseRawFile()
 
         // the call returns true if there's more to read, and false if there
         // isn't.
-        bIsEOF = !(m_strRawFile.sgets(buffer1, 2048));
+        bIsEOF = !(m_strRawFile->sgets(buffer1, 2048));
 
         line = buffer1;
         const char* pBuf = line.c_str();
@@ -1307,7 +1307,7 @@ bool Contract::ParseRawFile()
                     if (line.length() < 2) {
                         otLog3 << "Skipping short line...\n";
 
-                        if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
+                        if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in signature for contract "
                                   << m_strFilename
                                   << ": Unexpected EOF after short line.\n";
@@ -1318,7 +1318,7 @@ bool Contract::ParseRawFile()
                     } else if (line.compare(0, 8, "Version:") == 0) {
                         otLog3 << "Skipping version section...\n";
 
-                        if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
+                        if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in signature for contract "
                                   << m_strFilename
                                   << ": Unexpected EOF after \"Version:\"\n";
@@ -1329,7 +1329,7 @@ bool Contract::ParseRawFile()
                     } else if (line.compare(0, 8, "Comment:") == 0) {
                         otLog3 << "Skipping comment section...\n";
 
-                        if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
+                        if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in signature for contract "
                                   << m_strFilename
                                   << ": Unexpected EOF after \"Comment:\"\n";
@@ -1371,7 +1371,7 @@ bool Contract::ParseRawFile()
                             return false;
                         }
 
-                        if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
+                        if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in signature for contract "
                                   << m_strFilename
                                   << ": Unexpected EOF after \"Meta:\"\n";
@@ -1394,7 +1394,7 @@ bool Contract::ParseRawFile()
                             crypto::HashingProvider::StringToHashType(
                                 strHashType);
 
-                        if (bIsEOF || !m_strRawFile.sgets(buffer1, 2048)) {
+                        if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in contract " << m_strFilename
                                   << ": Unexpected EOF after \"Hash:\"\n";
                             return false;
@@ -2028,7 +2028,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 
     if (strNodeName.Compare("entity")) {
         m_strEntityShortName = xml->getAttributeValue("shortname");
-        if (!m_strName.Exists())  // only set it if it's not already set, since
+        if (!m_strName->Exists())  // only set it if it's not already set, since
             // the wallet may have already had a user label
             // set.
             m_strName = m_strEntityShortName;  // m_strName may later be changed

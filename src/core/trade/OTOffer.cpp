@@ -175,7 +175,7 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             m_bSelling = false;
 
-        m_strContractType.Set((m_bSelling ? "ASK" : "BID"));
+        m_strContractType->Set((m_bSelling ? "ASK" : "BID"));
 
         const String strNotaryID(xml->getAttributeValue("notaryID")),
             strInstrumentDefinitionID(
@@ -330,7 +330,7 @@ void OTOffer::UpdateContents()
 
     Tag tag("marketOffer");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
 
     tag.add_attribute("isSelling", formatBool(!IsBid()));
     tag.add_attribute("notaryID", NOTARY_ID.Get());
@@ -373,7 +373,7 @@ bool OTOffer::MakeOffer(
     SetTransactionNum(lTransactionNum);
     SetTotalAssetsOnOffer(lTotalAssetsOffer);  // 500 bushels for sale.
 
-    m_strContractType.Set((m_bSelling ? "ASK" : "BID"));
+    m_strContractType->Set((m_bSelling ? "ASK" : "BID"));
 
     // Make sure minimum increment isn't bigger than total Assets.
     // (If you pass them into this function as the same value, it's functionally
@@ -453,7 +453,7 @@ void OTOffer::Release()
 
 void OTOffer::InitOffer()
 {
-    m_strContractType.Set("OFFER");  // in practice should never appear. BID/ASK
+    m_strContractType->Set("OFFER");  // in practice should never appear. BID/ASK
                                      // will overwrite.
 
     // This pointer will get wiped anytime Release() is called... which means

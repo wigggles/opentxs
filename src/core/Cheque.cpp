@@ -77,7 +77,7 @@ void Cheque::UpdateContents()
 
     Tag tag("cheque");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("amount", formatLong(m_lAmount));
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
@@ -275,14 +275,14 @@ bool Cheque::IssueCheque(
 
     m_bHasRemitter = false;  // OTCheque::SetAsVoucher() will set this to true.
 
-    if (m_lAmount < 0) m_strContractType.Set("INVOICE");
+    if (m_lAmount < 0) m_strContractType->Set("INVOICE");
 
     return true;
 }
 
 void Cheque::InitCheque()
 {
-    m_strContractType.Set("CHEQUE");
+    m_strContractType->Set("CHEQUE");
 
     m_lAmount = 0;
     m_bHasRecipient = false;

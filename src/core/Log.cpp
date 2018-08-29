@@ -437,9 +437,9 @@ bool Log::PopMemlogFront()
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    OTString strLogFront = *Log::pLogger->logDeque.front();
-    if (!strLogFront->Get()) strLogFront->empty();
-    strLogFront = String::Factory();
+    String* strLogFront = Log::pLogger->logDeque.front();
+    if (nullptr != strLogFront) delete strLogFront;
+    strLogFront = nullptr;
 
     Log::pLogger->logDeque.pop_front();
 
@@ -456,9 +456,9 @@ bool Log::PopMemlogBack()
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    OTString strLogBack = *Log::pLogger->logDeque.back();
-    if (!strLogBack->Get()) strLogBack->empty();
-    strLogBack = String::Factory();
+    String* strLogBack = Log::pLogger->logDeque.back();
+    if (nullptr != strLogBack) delete strLogBack;
+    strLogBack = nullptr;
 
     Log::pLogger->logDeque.pop_back();
 

@@ -250,7 +250,7 @@ void OTTrade::UpdateContents()
 
     Tag tag("trade");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("hasActivated", formatBool(hasTradeActivated_));
     tag.add_attribute("notaryID", NOTARY_ID.Get());
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());

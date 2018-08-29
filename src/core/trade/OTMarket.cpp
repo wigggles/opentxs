@@ -61,8 +61,8 @@ OTMarket::OTMarket(const api::Core& core, const char* szFilename)
     OT_ASSERT(nullptr != szFilename);
 
     InitMarket();
-    m_strFilename.Set(szFilename);
-    m_strFoldername.Set(OTFolders::Market().Get());
+    m_strFilename->Set(szFilename);
+    m_strFoldername->Set(OTFolders::Market().Get());
 }
 
 OTMarket::OTMarket(const api::Core& core)
@@ -201,7 +201,7 @@ void OTMarket::UpdateContents()
 
     Tag tag("market");
 
-    tag.add_attribute("version", m_strVersion.Get());
+    tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("notaryID", NOTARY_ID.Get());
     tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
     tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID.Get());
