@@ -105,10 +105,7 @@ bool CurveClient::set_remote_key(const Data& key) const
     OT_ASSERT(nullptr != client_curve_socket_);
 
     const auto set = zmq_setsockopt(
-        client_curve_socket_,
-        ZMQ_CURVE_SERVERKEY,
-        key.data(),
-        key.size());
+        client_curve_socket_, ZMQ_CURVE_SERVERKEY, key.data(), key.size());
 
     if (0 != set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to set server key."

@@ -37,7 +37,7 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
-        const String& credID = String(""),
+        const String& credID = String::Factory(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const override;
     bool Verify(const Data& plaintext, const proto::Signature& sig)
         const override;

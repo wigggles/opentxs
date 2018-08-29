@@ -39,7 +39,7 @@ public:
         const proto::KeyRole role);
     EXPORT static OTAsymmetricKey Factory(
         const proto::AsymmetricKey& serializedKey);
-    EXPORT static String KeyTypeToString(
+    EXPORT static OTString KeyTypeToString(
         const proto::AsymmetricKeyType keyType);
     EXPORT static proto::AsymmetricKeyType StringToKeyType(
         const String& keyType);
@@ -71,13 +71,13 @@ public:
         proto::Signature& sig,
         const OTPasswordData* pPWData = nullptr,
         const OTPassword* exportPassword = nullptr,
-        const String& credID = String(""),
+        const String& credID = String::Factory(""),
         const proto::SignatureRole role = proto::SIGROLE_ERROR) const = 0;
     template <class C>
     EXPORT bool SignProto(
         C& serialized,
         proto::Signature& signature,
-        const String& credID = String(""),
+        const String& credID = String::Factory(""),
         const OTPasswordData* pPWData = nullptr) const
     {
         if (IsPublic()) {

@@ -125,10 +125,10 @@ OTAsymmetricKey Asymmetric::Factory(
     return OTAsymmetricKey(new implementation::Null);
 }
 
-String Asymmetric::KeyTypeToString(const proto::AsymmetricKeyType keyType)
+OTString Asymmetric::KeyTypeToString(const proto::AsymmetricKeyType keyType)
 
 {
-    String keytypeString;
+    auto keytypeString = String::Factory();
 
     switch (keyType) {
         case proto::AKEYTYPE_LEGACY:
@@ -220,7 +220,7 @@ bool Asymmetric::CalculateID(Identifier& theOutput) const  // Only works
         return false;
     }
 
-    String strPublicKey;
+    auto strPublicKey = String::Factory();
     bool bGotPublicKey = GetPublicKey(strPublicKey);
 
     if (!bGotPublicKey) {

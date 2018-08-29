@@ -1038,12 +1038,12 @@ public:
             "type",
             crypto::key::Asymmetric::KeyTypeToString(
                 static_cast<proto::AsymmetricKeyType>(m.keytypeAuthent_))
-                .Get());
+                ->Get());
         pEncryptKeyTag->add_attribute(
             "type",
             crypto::key::Asymmetric::KeyTypeToString(
                 static_cast<proto::AsymmetricKeyType>(m.keytypeEncrypt_))
-                .Get());
+                ->Get());
 
         pTag->add_tag(pAuthentKeyTag);
         pTag->add_tag(pEncryptKeyTag);

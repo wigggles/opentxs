@@ -89,8 +89,8 @@ struct sigcontext {
 #define LOGFILE_EXT ".log"
 #define GLOBAL_LOGNAME "init"
 #define GLOBAL_LOGFILE "init.log"
-#define CONFIG_LOG_SECTION "logging"
-#define CONFIG_LOG_TO_FILE_KEY "log_to_file"
+#define CONFIG_LOG_SECTION String::Factory("logging")
+#define CONFIG_LOG_TO_FILE_KEY String::Factory("log_to_file")
 
 //  OTLog Static Variables and Constants.
 
@@ -160,8 +160,8 @@ Log::Log(const api::Settings& config)
 // static
 bool Log::Init(
     const api::Settings& config,
-    const OTString strThreadContext, //=String::Factory()
-    const std::int32_t& nLogLevel) //=0
+    const OTString strThreadContext,  //=String::Factory()
+    const std::int32_t& nLogLevel)    //=0
 {
     if (nullptr == pLogger) {
         pLogger = new Log(config);
@@ -328,7 +328,8 @@ bool Log::LogToFile(const String& strOutput)
         if (false == pLogger->write_log_file_) { return true; }
 
         // Append to logfile
-        if ((strOutput.Exists()) && (Log::pLogger->m_strLogFilePath->Exists())) {
+        if ((strOutput.Exists()) &&
+            (Log::pLogger->m_strLogFilePath->Exists())) {
             std::ofstream logfile;
             logfile.open(Log::LogFilePath(), std::ios::app);
 
@@ -396,9 +397,9 @@ OTString Log::PeekMemlogFront()
     else
         OT_FAIL;
 
-    const String strLogEntry = *Log::pLogger->logDeque.front();
+    const OTString strLogEntry = *Log::pLogger->logDeque.front();
 
-    if (strLogEntry.Exists())
+    if (strLogEntry->Exists())
         return strLogEntry;
     else
         return String::Factory();
@@ -436,9 +437,9 @@ bool Log::PopMemlogFront()
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    String* strLogFront = Log::pLogger->logDeque.front();
-    if (nullptr != strLogFront) delete strLogFront;
-    strLogFront = nullptr;
+    OTString strLogFront = *Log::pLogger->logDeque.front();
+    if (!strLogFront->Get()) strLogFront->empty();
+    strLogFront = String::Factory();
 
     Log::pLogger->logDeque.pop_front();
 
@@ -455,9 +456,9 @@ bool Log::PopMemlogBack()
 
     if (Log::pLogger->logDeque.size() <= 0) return false;
 
-    String* strLogBack = Log::pLogger->logDeque.back();
-    if (nullptr != strLogBack) delete strLogBack;
-    strLogBack = nullptr;
+    OTString strLogBack = *Log::pLogger->logDeque.back();
+    if (!strLogBack->Get()) strLogBack->empty();
+    strLogBack = String::Factory();
 
     Log::pLogger->logDeque.pop_back();
 
@@ -509,8 +510,8 @@ size_t Log::logAssert(
 #ifndef ANDROID  // if NOT android
         std::cerr << szMessage << "\n";
 
-        LogToFile(szMessage);
-        LogToFile("\n");
+        LogToFile(String::Factory(szMessage));
+        LogToFile(String::Factory("\n"));
 
 #else  // if Android
         __android_log_write(
@@ -525,12 +526,12 @@ size_t Log::logAssert(
 
         // Pass it to LogToFile, as this always logs.
         //
-        String strTemp;
-        strTemp.Format(
+        auto strTemp = String::Factory();
+        strTemp->Format(
             "\nOT_ASSERT in %s at line %" PRI_SIZE "\n",
             szFilename,
             nLinenumber);
-        LogToFile(strTemp.Get());
+        LogToFile(String::Factory(strTemp->Get()));
 
 #else  // if Android
         String strAndroidAssertMsg;
@@ -566,11 +567,11 @@ void Log::Output(std::int32_t nVerbosity, const char* szOutput)
         return;
 
     // We store the last 1024 logs so programmers can access them via the API.
-    if (bHaveLogger) Log::PushMemlogFront(szOutput);
+    if (bHaveLogger) Log::PushMemlogFront(String::Factory(szOutput));
 
 #ifndef ANDROID  // if NOT android
 
-    LogToFile(szOutput);
+    LogToFile(String::Factory(szOutput));
 
 #else  // if IS Android
     /*
@@ -688,11 +689,11 @@ void Log::Error(const char* szError)
     if ((nullptr == szError)) return;
 
     // We store the last 1024 logs so programmers can access them via the API.
-    if (bHaveLogger) Log::PushMemlogFront(szError);
+    if (bHaveLogger) Log::PushMemlogFront(String::Factory(szError));
 
 #ifndef ANDROID  // if NOT android
 
-    LogToFile(szError);
+    LogToFile(String::Factory(szError));
 
 #else  // if Android
     __android_log_write(ANDROID_LOG_ERROR, "OT Error", szError);
