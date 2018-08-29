@@ -141,7 +141,7 @@ public:
         const String& strContractType,  // "LEDGER" or "PURSE" etc.
         const Nym& theSigner,
         String& strOutput);
-    EXPORT inline void GetName(String& strName) const { strName = m_strName; }
+    EXPORT inline void GetName(String& strName) const { strName = String::Factory(m_strName->Get()); }
     EXPORT inline void SetName(const String& strName) { m_strName = strName; }
     EXPORT inline const String& GetContractType() const
     {
@@ -326,7 +326,7 @@ protected:
     proto::HashType m_strSigHashType{proto::HASHTYPE_ERROR};
 
     /** CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM */
-    OTString m_strContractType{"CONTRACT"};
+    OTString m_strContractType{String::Factory("CONTRACT")};
 
     /** The default behavior for a contract, though occasionally overridden, is
      * to contain its own public keys internally, located on standard XML tags.
@@ -347,7 +347,7 @@ protected:
 
     /** The version of this Contract file, in case the format changes in the
     future. */
-    OTString m_strVersion{"2.0"};
+    OTString m_strVersion{String::Factory("2.0")};
 
     // TODO: perhaps move these to a common ancestor for ServerContract and
     // OTUnitDefinition. Maybe call it OTHardContract (since it should never

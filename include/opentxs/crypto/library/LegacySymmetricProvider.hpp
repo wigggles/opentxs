@@ -37,7 +37,7 @@ public:
 
     EXPORT static std::uint32_t IVSize(const Mode Mode);
     EXPORT static std::uint32_t KeySize(const Mode Mode);
-    EXPORT static String ModeToString(const Mode Mode);
+    EXPORT static OTString ModeToString(const Mode Mode);
     EXPORT static Mode StringToMode(const String& Mode);
     EXPORT static std::uint32_t TagSize(const Mode Mode);
 
