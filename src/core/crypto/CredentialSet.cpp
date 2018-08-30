@@ -99,11 +99,11 @@ CredentialSet::CredentialSet(
 {
     if (proto::CREDSETMODE_INDEX == serializedCredentialSet.mode()) {
         Load_Master(
-            String(serializedCredentialSet.nymid()),
-            String(serializedCredentialSet.masterid()));
+            String::Factory(serializedCredentialSet.nymid()),
+            String::Factory(serializedCredentialSet.masterid()));
 
         for (auto& it : serializedCredentialSet.activechildids()) {
-            LoadChildKeyCredential(String(it));
+            LoadChildKeyCredential(String::Factory(it));
         }
     } else {
         auto master = Credential::Factory(
@@ -289,7 +289,7 @@ std::string CredentialSet::AddChildKeyCredential(
         return output;
     }
 
-    output = String(childCred->ID()).Get();
+    output = String::Factory(childCred->ID())->Get();
     auto& it = m_mapCredentials[output];
     it.swap(childCred);
 
@@ -1024,9 +1024,9 @@ void CredentialSet::RevokeContactCredentials(
     for (auto& it : m_mapCredentials) {
         if (nullptr != it.second) {
             if (proto::CREDROLE_CONTACT == it.second->Role()) {
-                const String credID(it.second->ID());
-                contactCredentialIDs.push_back(credID.Get());
-                credentialsToDelete.push_back(credID.Get());
+                const auto credID = String::Factory(it.second->ID());
+                contactCredentialIDs.push_back(credID->Get());
+                credentialsToDelete.push_back(credID->Get());
             }
         }
     }
@@ -1042,9 +1042,9 @@ void CredentialSet::RevokeVerificationCredentials(
     for (auto& it : m_mapCredentials) {
         if (nullptr != it.second) {
             if (proto::CREDROLE_VERIFY == it.second->Role()) {
-                const String credID(it.second->ID());
-                verificationCredentialIDs.push_back(credID.Get());
-                credentialsToDelete.push_back(credID.Get());
+                const auto credID = String::Factory(it.second->ID());
+                verificationCredentialIDs.push_back(credID->Get());
+                credentialsToDelete.push_back(credID->Get());
             }
         }
     }
@@ -1067,7 +1067,7 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 
     if (!newChildCredential) { return false; }
 
-    auto& it = m_mapCredentials[String(newChildCredential->ID()).Get()];
+    auto& it = m_mapCredentials[String::Factory(newChildCredential->ID())->Get()];
     it.swap(newChildCredential);
 
     auto version =
@@ -1093,7 +1093,7 @@ bool CredentialSet::AddVerificationCredential(
 
     if (!newChildCredential) { return false; }
 
-    auto& it = m_mapCredentials[String(newChildCredential->ID()).Get()];
+    auto& it = m_mapCredentials[String::Factory(newChildCredential->ID())->Get()];
     it.swap(newChildCredential);
 
     return true;
@@ -1121,7 +1121,7 @@ bool CredentialSet::Verify(
         return false;
     }
 
-    const Credential* credential = GetChildCredential(String(signerID));
+    const Credential* credential = GetChildCredential(String::Factory(signerID));
 
     if (nullptr == credential) {
         otLog3 << "This credential set does not contain the credential which "
