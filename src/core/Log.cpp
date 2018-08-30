@@ -110,8 +110,6 @@ OTLOG_IMPORT OTLogStream otLog3(3);  // logs using OTLog::vOutput(3)
 OTLOG_IMPORT OTLogStream otLog4(4);  // logs using OTLog::vOutput(4)
 OTLOG_IMPORT OTLogStream otLog5(5);  // logs using OTLog::vOutput(5)
 
-
-
 // static
 bool Log::PushMemlogFront(const String& strLog)
 {
@@ -131,7 +129,6 @@ bool Log::PushMemlogFront(const String& strLog)
 
     return true;
 }
-
 
 OTLogStream::OTLogStream(int _logLevel)
     : std::ostream(this)

@@ -1487,7 +1487,7 @@ bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
 void OTCronItem::InitCronItem()
 {
     m_strContractType->Set("CRONITEM");  // in practice should never appear.
-                                        // Child classes will overwrite.
+                                         // Child classes will overwrite.
 }
 
 void OTCronItem::ClearClosingNumbers() { m_dequeClosingNumbers.clear(); }

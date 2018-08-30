@@ -195,10 +195,12 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
                                            // here. client never
                                            // should. Enforcement?
 {
-    if (!m_strFoldername->Exists()) m_strFoldername->Set(OTFolders::Mint().Get());
+    if (!m_strFoldername->Exists())
+        m_strFoldername->Set(OTFolders::Mint().Get());
 
     const auto strNotaryID = String::Factory(m_NotaryID),
-        strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
+               strInstrumentDefinitionID =
+                   String::Factory(m_InstrumentDefinitionID);
 
     if (!m_strFilename->Exists()) {
         if (nullptr != szAppend)
@@ -215,8 +217,8 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
                 strNotaryID->Get(),
                 Log::PathSeparator(),
                 strInstrumentDefinitionID->Get());  // client uses only
-                                                   // instrument definition
-                                                   // id, no append.
+                                                    // instrument definition
+                                                    // id, no append.
     }
 
     auto strFilename = String::Factory();
@@ -229,7 +231,7 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
         strFilename = strInstrumentDefinitionID->Get();  // client side
 
     const char* szFolder1name = OTFolders::Mint().Get();  // "mints"
-    const char* szFolder2name = strNotaryID->Get();        // "mints/NOTARY_ID"
+    const char* szFolder2name = strNotaryID->Get();       // "mints/NOTARY_ID"
     const char* szFilename =
         strFilename
             ->Get();  // "mints/NOTARY_ID/INSTRUMENT_DEFINITION_ID<szAppend>"
@@ -270,10 +272,12 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
 
 bool Mint::SaveMint(const char* szAppend)
 {
-    if (!m_strFoldername->Exists()) m_strFoldername->Set(OTFolders::Mint().Get());
+    if (!m_strFoldername->Exists())
+        m_strFoldername->Set(OTFolders::Mint().Get());
 
     const auto strNotaryID = String::Factory(m_NotaryID),
-        strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
+               strInstrumentDefinitionID =
+                   String::Factory(m_InstrumentDefinitionID);
 
     if (!m_strFilename->Exists()) {
         if (nullptr != szAppend)
@@ -378,7 +382,8 @@ bool Mint::VerifyContractID() const
     // I use the == operator here because there is no != operator at this time.
     // That's why you see the ! outside the parenthesis.
     if (!(m_ID == m_InstrumentDefinitionID)) {
-        auto str1 = String::Factory(m_ID), str2 = String::Factory(m_InstrumentDefinitionID);
+        auto str1 = String::Factory(m_ID),
+             str2 = String::Factory(m_InstrumentDefinitionID);
 
         otErr << "\nMint ID does NOT match Instrument Definition ID in "
                  "Mint::VerifyContractID.\n"
@@ -476,9 +481,10 @@ std::int64_t Mint::GetDenomination(std::int32_t nIndex)
 // first.
 void Mint::UpdateContents()
 {
-    auto NOTARY_ID = String::Factory(m_NotaryID), NOTARY_NYM_ID = String::Factory(m_ServerNymID),
-        INSTRUMENT_DEFINITION_ID = String::Factory(m_InstrumentDefinitionID),
-        CASH_ACCOUNT_ID = String::Factory(m_CashAccountID);
+    auto NOTARY_ID = String::Factory(m_NotaryID),
+         NOTARY_NYM_ID = String::Factory(m_ServerNymID),
+         INSTRUMENT_DEFINITION_ID = String::Factory(m_InstrumentDefinitionID),
+         CASH_ACCOUNT_ID = String::Factory(m_CashAccountID);
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -488,7 +494,8 @@ void Mint::UpdateContents()
     tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("notaryID", NOTARY_ID->Get());
     tag.add_attribute("serverNymID", NOTARY_NYM_ID->Get());
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
     tag.add_attribute("cashAcctID", CASH_ACCOUNT_ID->Get());
     tag.add_attribute("series", formatInt(m_nSeries));
     tag.add_attribute("expiration", formatTimestamp(m_EXPIRATION));

@@ -209,8 +209,8 @@ bool OTCron::GetMarketList(Armored& ascOutput, std::int32_t& nMarketCount)
         const auto MARKET_ID = Identifier::Factory(*pMarket);
         const auto str_MARKET_ID = String::Factory(MARKET_ID);
         const auto str_NotaryID = String::Factory(pMarket->GetNotaryID());
-        const auto str_INSTRUMENT_DEFINITION_ID = String::Factory(
-            pMarket->GetInstrumentDefinitionID());
+        const auto str_INSTRUMENT_DEFINITION_ID =
+            String::Factory(pMarket->GetInstrumentDefinitionID());
         const auto str_CURRENCY_ID = String::Factory(pMarket->GetCurrencyID());
 
         pMarketData->notary_id = str_NotaryID->Get();
@@ -361,7 +361,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (!strcmp("cron", xml->getNodeName())) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const auto strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        const auto strNotaryID =
+            String::Factory(xml->getAttributeValue("notaryID"));
 
         m_NOTARY_ID->SetString(strNotaryID);
 
@@ -381,10 +382,11 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         nReturnVal = 1;
     } else if (!strcmp("cronItem", xml->getNodeName())) {
-        const auto str_date_added = String::Factory(xml->getAttributeValue("dateAdded"));
+        const auto str_date_added =
+            String::Factory(xml->getAttributeValue("dateAdded"));
         const std::int64_t lDateAdded =
             (!str_date_added->Exists() ? 0
-                                      : parseTimestamp(str_date_added->Get()));
+                                       : parseTimestamp(str_date_added->Get()));
         const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
 
         auto strData = String::Factory();
@@ -444,10 +446,12 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         nReturnVal = 1;
     } else if (!strcmp("market", xml->getNodeName())) {
-        const auto strMarketID = String::Factory(xml->getAttributeValue("marketID"));
-        const auto strInstrumentDefinitionID = String::Factory(
-            xml->getAttributeValue("instrumentDefinitionID"));
-        const auto strCurrencyID = String::Factory(xml->getAttributeValue("currencyID"));
+        const auto strMarketID =
+            String::Factory(xml->getAttributeValue("marketID"));
+        const auto strInstrumentDefinitionID =
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        const auto strCurrencyID =
+            String::Factory(xml->getAttributeValue("currencyID"));
 
         const std::int64_t lScale =
             String::StringToLong(xml->getAttributeValue("marketScale"));
@@ -509,8 +513,8 @@ void OTCron::UpdateContents()
         auto MARKET_ID = Identifier::Factory(*pMarket);
         auto str_MARKET_ID = String::Factory(MARKET_ID);
 
-        auto str_INSTRUMENT_DEFINITION_ID = String::Factory(
-            pMarket->GetInstrumentDefinitionID());
+        auto str_INSTRUMENT_DEFINITION_ID =
+            String::Factory(pMarket->GetInstrumentDefinitionID());
         auto str_CURRENCY_ID = String::Factory(pMarket->GetCurrencyID());
 
         TagPtr tagMarket(new Tag("market"));
@@ -529,8 +533,8 @@ void OTCron::UpdateContents()
         OT_ASSERT(false != bool(pItem));
 
         time64_t tDateAdded = it.first;
-        auto strItem = String::Factory(*pItem);    // Extract the cron item contract into string
-                                   // form.
+        auto strItem = String::Factory(*pItem);  // Extract the cron item
+                                                 // contract into string form.
         Armored ascItem(strItem);  // Base64-encode that for storage.
 
         TagPtr tagCronItem(new Tag("cronItem", ascItem.Get()));
