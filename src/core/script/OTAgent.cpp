@@ -546,8 +546,8 @@ bool OTAgent::DropFinalReceiptToInbox(
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lClosingNumber,
     const String& strOrigCronItem,
-    String* pstrNote,
-    String* pstrAttachment)
+    OTString pstrNote,
+    OTString pstrAttachment)
 {
     // TODO: When entites and ROLES are added, this function may change a bit to
     // accommodate them.
@@ -598,8 +598,8 @@ bool OTAgent::DropFinalReceiptToNymbox(
     OTSmartContract& theSmartContract,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
-    String* pstrNote,
-    String* pstrAttachment)
+    OTString pstrNote,
+    OTString pstrAttachment)
 {
     auto theAgentNymID = Identifier::Factory();
     bool bNymID = GetNymID(theAgentNymID);
@@ -632,8 +632,8 @@ bool OTAgent::DropServerNoticeToNymbox(
     const std::int64_t& lNewTransactionNumber,
     const std::int64_t& lInReferenceTo,
     const String& strReference,
-    String* pstrNote,
-    String* pstrAttachment,
+    OTString pstrNote,
+    OTString pstrAttachment,
     Nym* pActualNym)
 {
     auto theAgentNymID = Identifier::Factory();

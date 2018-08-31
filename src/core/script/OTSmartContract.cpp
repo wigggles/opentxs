@@ -1561,7 +1561,7 @@ bool OTSmartContract::SendANoticeToAllParties()
         SignContract(*pServerNym);
         SaveContract();
 
-        const String strReference(*this);
+        const auto strReference = String::Factory(*this);
         bDroppedNotice = SendNoticeToAllParties(
             true,  // bSuccessMsg=true
             *pServerNym,
@@ -1569,7 +1569,7 @@ bool OTSmartContract::SendANoticeToAllParties()
             lNewTransactionNumber,
             // GetTransactionNum(), // each party has its own opening number.
             strReference);  // pstrNote and pstrAttachment aren't used in this
-                            // case.
+                           // case.
 
         otOut << __FUNCTION__
               << ": Dropping notifications into all parties' nymboxes: "
@@ -1661,7 +1661,7 @@ bool OTSmartContract::SendNoticeToParty(std::string party_name)
         SignContract(*pServerNym);
         SaveContract();
 
-        const String strReference(*this);
+        const auto strReference = String::Factory(*this);
 
         bDroppedNotice = pParty->SendNoticeToParty(
             api_,
@@ -3208,13 +3208,13 @@ void OTSmartContract::onFinalReceipt(
 
     OT_ASSERT(nullptr != pServerNym);
 
-    const String strNotaryID(GetNotaryID());
+    const auto strNotaryID = String::Factory(GetNotaryID());
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
-    String strUpdatedCronItem(*this);
-    String* pstrAttachment = &strUpdatedCronItem;
-    const String strOrigCronItem(theOrigCronItem);
+    auto strUpdatedCronItem = String::Factory(*this);
+    OTString pstrAttachment = strUpdatedCronItem;
+    const auto strOrigCronItem = String::Factory(theOrigCronItem);
 
     // IF server is originator and/or remover then swap it in for it/them so I
     // don't load it twice. (already handled before this function is called.)
@@ -3346,7 +3346,7 @@ void OTSmartContract::onFinalReceipt(
         if ((!pParty->DropFinalReceiptToNymboxes(
                 lNewTransactionNumber,  // new, owned by the server. For notices
                 strOrigCronItem,
-                nullptr,
+                String::Factory(),
                 pstrAttachment))) {
             otErr << "OTSmartContract::" << __FUNCTION__
                   << ": Failure dropping final receipt into nymbox for even a "
@@ -3365,7 +3365,7 @@ void OTSmartContract::onFinalReceipt(
                 strNotaryID,
                 lNewTransactionNumber,
                 strOrigCronItem,
-                nullptr,
+                String::Factory(),
                 pstrAttachment)) {
             otErr << "OTSmartContract::onFinalReceipt: Failure dropping final "
                      "receipt into all inboxes. (Missed at least one.)\n";
@@ -3485,7 +3485,7 @@ bool OTSmartContract::ProcessCron()
 // virtual
 void OTSmartContract::SetDisplayLabel(const std::string* pstrLabel)
 {
-    m_strLabel.Format(
+    m_strLabel->Format(
         "smartcontract trans# %" PRId64 ", clause: %s",
         GetTransactionNum(),
         (nullptr != pstrLabel) ? pstrLabel->c_str() : "");
@@ -3595,7 +3595,7 @@ void OTSmartContract::ExecuteClauses(
 
             SetDisplayLabel(&str_clause_name);
 
-            pScript->SetDisplayFilename(m_strLabel.Get());
+            pScript->SetDisplayFilename(m_strLabel->Get());
 
             if (!pScript->ExecuteScript())  // If I passed theReturnVal
                                             // in here, then it'd be
@@ -3665,14 +3665,16 @@ void OTSmartContract::ExecuteClauses(
             SignContract(*pServerNym);
             SaveContract();
 
-            const String strReference(*this);
+            const auto strReference = String::Factory(*this);
             bool bDroppedNotice = SendNoticeToAllParties(
                 true,  // bSuccessMsg=true
                 *pServerNym,
                 GetNotaryID(),
                 lNewTransactionNumber,
-                strReference);  // pstrNote and pstrAttachment aren't used in
-                                // this case.
+                strReference,  // pstrNote and pstrAttachment aren't used in
+                               // this case.
+                String::Factory(),
+                String::Factory());
 
             otOut << __FUNCTION__
                   << ": FYI, 'Important' variables were changed during the "

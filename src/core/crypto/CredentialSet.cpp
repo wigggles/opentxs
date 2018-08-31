@@ -1067,7 +1067,8 @@ bool CredentialSet::AddContactCredential(const proto::ContactData& contactData)
 
     if (!newChildCredential) { return false; }
 
-    auto& it = m_mapCredentials[String::Factory(newChildCredential->ID())->Get()];
+    auto& it =
+        m_mapCredentials[String::Factory(newChildCredential->ID())->Get()];
     it.swap(newChildCredential);
 
     auto version =
@@ -1093,7 +1094,8 @@ bool CredentialSet::AddVerificationCredential(
 
     if (!newChildCredential) { return false; }
 
-    auto& it = m_mapCredentials[String::Factory(newChildCredential->ID())->Get()];
+    auto& it =
+        m_mapCredentials[String::Factory(newChildCredential->ID())->Get()];
     it.swap(newChildCredential);
 
     return true;
@@ -1121,7 +1123,8 @@ bool CredentialSet::Verify(
         return false;
     }
 
-    const Credential* credential = GetChildCredential(String::Factory(signerID));
+    const Credential* credential =
+        GetChildCredential(String::Factory(signerID));
 
     if (nullptr == credential) {
         otLog3 << "This credential set does not contain the credential which "

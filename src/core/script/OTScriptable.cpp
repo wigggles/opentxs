@@ -70,6 +70,7 @@ OTScriptable::OTScriptable(const api::Core& core)
     ,  // This is not serialized.
     m_bSpecifyInstrumentDefinitionID(false)
     , m_bSpecifyParties(false)  // These are.
+    , m_strLabel(String::Factory())
 {
 }
 
@@ -550,7 +551,7 @@ bool OTScriptable::ExecuteCallback(
 
         SetDisplayLabel(&str_clause_name);
 
-        pScript->SetDisplayFilename(m_strLabel.Get());
+        pScript->SetDisplayFilename(m_strLabel->Get());
 
         if (!pScript->ExecuteScript(&varReturnVal)) {
             otErr << "OTScriptable::ExecuteCallback: Error while running "
@@ -628,8 +629,8 @@ bool OTScriptable::SendNoticeToAllParties(
     // const std::int64_t& lInReferenceTo,
     // // Each party has its own opening trans #.
     const String& strReference,
-    String* pstrNote,
-    String* pstrAttachment,
+    OTString pstrNote,
+    OTString pstrAttachment,
     Nym* pActualNym) const
 {
     bool bSuccess =

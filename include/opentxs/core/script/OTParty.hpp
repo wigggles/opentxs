@@ -72,16 +72,16 @@ public:
     bool DropFinalReceiptToNymboxes(
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr);
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory());
     // Iterates through the accounts.
     //
     bool DropFinalReceiptToInboxes(
         const String& strNotaryID,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr);
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory());
     bool SendNoticeToParty(
         const api::Core& api,
         bool bSuccessMsg,
@@ -91,8 +91,8 @@ public:
         // const std::int64_t& lInReferenceTo,
         // We use GetOpenTransNo() now.
         const String& strReference,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory(),
         Nym* pActualNym = nullptr);
     // This pointer isn't owned -- just stored for convenience.
     //

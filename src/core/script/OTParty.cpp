@@ -857,8 +857,8 @@ bool OTParty::DropFinalReceiptToInboxes(
     const String& strNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
-    String* pstrNote,
-    String* pstrAttachment)
+    OTString pstrNote,
+    OTString pstrAttachment)
 {
     bool bSuccess = true;  // Success is defined as "all inboxes were notified"
     const char* szFunc = "OTParty::DropFinalReceiptToInboxes";
@@ -906,8 +906,8 @@ bool OTParty::DropFinalReceiptToInboxes(
 bool OTParty::DropFinalReceiptToNymboxes(
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
-    String* pstrNote,
-    String* pstrAttachment)
+    OTString pstrNote,
+    OTString pstrAttachment)
 {
     bool bSuccess =
         false;  // Success is defined as "at least one agent was notified"
@@ -956,8 +956,8 @@ bool OTParty::SendNoticeToParty(
     const Identifier& theNotaryID,
     const std::int64_t& lNewTransactionNumber,
     const String& strReference,
-    String* pstrNote,
-    String* pstrAttachment,
+    OTString pstrNote,
+    OTString pstrAttachment,
     Nym* pActualNym)
 {
     bool bSuccess =

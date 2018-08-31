@@ -45,8 +45,8 @@ OTAgreement::OTAgreement(const api::Core& core)
     : ot_super(core)
     , m_RECIPIENT_ACCT_ID(Identifier::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_strConsideration()
-    , m_strMerchantSignedCopy()
+    , m_strConsideration(String::Factory())
+    , m_strMerchantSignedCopy(String::Factory())
     , m_dequeRecipientClosingNumbers()
 {
     InitAgreement();
@@ -59,8 +59,8 @@ OTAgreement::OTAgreement(
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_RECIPIENT_ACCT_ID(Identifier::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_strConsideration()
-    , m_strMerchantSignedCopy()
+    , m_strConsideration(String::Factory())
+    , m_strMerchantSignedCopy(String::Factory())
     , m_dequeRecipientClosingNumbers()
 {
     InitAgreement();
@@ -82,8 +82,8 @@ OTAgreement::OTAgreement(
           SENDER_NYM_ID)
     , m_RECIPIENT_ACCT_ID(Identifier::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
-    , m_strConsideration()
-    , m_strMerchantSignedCopy()
+    , m_strConsideration(String::Factory())
+    , m_strMerchantSignedCopy(String::Factory())
     , m_dequeRecipientClosingNumbers()
 {
     InitAgreement();
@@ -104,8 +104,8 @@ bool OTAgreement::SendNoticeToAllParties(
     const TransactionNumber& lNewTransactionNumber,
     // Each party has its own opening trans #.
     const String& strReference,
-    String* pstrNote,
-    String* pstrAttachment,
+    OTString pstrNote,
+    OTString pstrAttachment,
     Nym* pActualNym) const
 {
     // Success is defined as ALL parties receiving a notice
@@ -161,8 +161,8 @@ bool OTAgreement::DropServerNoticeToNymbox(
     const TransactionNumber& lInReferenceTo,
     const String& strReference,
     originType theOriginType,
-    String* pstrNote,
-    String* pstrAttachment,
+    OTString pstrNote,
+    OTString pstrAttachment,
     const Identifier& actualNymID)
 {
     auto theLedger{core.Factory().Ledger(NYM_ID, NYM_ID, NOTARY_ID)};
@@ -232,16 +232,14 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // The notice ITEM's NOTE probably contains the UPDATED SCRIPTABLE
         // (usually a CRON ITEM. But maybe soon: Entity.)
-        if (nullptr != pstrNote) {
-            pItem1->SetNote(*pstrNote);  // in markets, this is updated trade.
+        if (!pstrNote->Exists()) {
+            pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
         }
 
         // Nothing is special stored here so far for transactionType::notice,
         // but the option is always there.
         //
-        if (nullptr != pstrAttachment) {
-            pItem1->SetAttachment(*pstrAttachment);
-        }
+        if (!pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
 
         // sign the item
         //
@@ -373,9 +371,9 @@ void OTAgreement::onFinalReceipt(
 
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
-    String strUpdatedCronItem(*this);
-    String* pstrAttachment = &strUpdatedCronItem;
-    const String strOrigCronItem(theOrigCronItem);
+    auto strUpdatedCronItem = String::Factory(*this);
+    OTString pstrAttachment = strUpdatedCronItem;
+    const auto strOrigCronItem = String::Factory(theOrigCronItem);
     const auto NYM_ID = Identifier::Factory(GetRecipientNymID());
 
     // First, we are closing the transaction number ITSELF, of this cron item,
@@ -419,7 +417,7 @@ void OTAgreement::onFinalReceipt(
                 lNewTransactionNumber,
                 strOrigCronItem,
                 GetOriginType(),
-                nullptr,
+                String::Factory(),
                 pstrAttachment)) {
             otErr << szFunc
                   << ": Failure dropping sender final receipt into nymbox.\n";
@@ -440,9 +438,10 @@ void OTAgreement::onFinalReceipt(
                                        // on the receipt.
                 strOrigCronItem,
                 GetOriginType(),
-                nullptr,
-                pstrAttachment))  // pActualAcct=nullptr by default. (This call
-                                  // will load it up and update its inbox hash.)
+                String::Factory(),
+                pstrAttachment))  // pActualAcct=nullptr by default. (This
+                                     // call will load it up and update its
+                                     // inbox hash.)
         {
             otErr << szFunc
                   << ": Failure dropping receipt into sender's inbox.\n";
@@ -484,7 +483,7 @@ void OTAgreement::onFinalReceipt(
             lNewTransactionNumber,
             strOrigCronItem,
             GetOriginType(),
-            nullptr,
+            String::Factory(),
             pstrAttachment);
 
         if (!dropped) {
@@ -511,7 +510,7 @@ void OTAgreement::onFinalReceipt(
                                           // put on the receipt.
                 strOrigCronItem,
                 GetOriginType(),
-                nullptr,
+                String::Factory(),
                 pstrAttachment)) {
             otErr << szFunc
                   << ": Failure dropping receipt into recipient's inbox.\n";
@@ -772,7 +771,7 @@ bool OTAgreement::CompareAgreement(const OTAgreement& rhs) const
 {
     // Compare OTAgreement specific info here.
 
-    if ((m_strConsideration.Compare(rhs.m_strConsideration)) &&
+    if ((m_strConsideration->Compare(rhs.m_strConsideration)) &&
         (GetRecipientAcctID() == rhs.GetRecipientAcctID()) &&
         (GetRecipientNymID() == rhs.GetRecipientNymID()) &&
         //        (   m_dequeClosingNumbers == rhs.m_dequeClosingNumbers ) && //
@@ -929,7 +928,7 @@ bool OTAgreement::SetProposal(
     // (They just both go onto this same list.)
 
     // Set the Consideration memo...
-    m_strConsideration.Set(strConsideration);
+    m_strConsideration->Set(strConsideration);
 
     otLog4 << "Successfully performed SetProposal.\n";
 
@@ -1094,8 +1093,8 @@ void OTAgreement::Release_Agreement()
     m_RECIPIENT_ACCT_ID->Release();
     m_RECIPIENT_NYM_ID->Release();
 
-    m_strConsideration.Release();
-    m_strMerchantSignedCopy.Release();
+    m_strConsideration->Release();
+    m_strMerchantSignedCopy->Release();
 
     m_dequeRecipientClosingNumbers.clear();
 }

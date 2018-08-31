@@ -224,17 +224,15 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (strNodeName->Compare("requestExchange")) {
-        auto strTransferMultiple = String::Factory(),
-             strRequestAccountID = String::Factory(),
-             strDirection = String::Factory(), strTemp = String::Factory();
 
-        strTransferMultiple =
-            String::Factory(xml->getAttributeValue("transferMultiple"));
-        strRequestAccountID =
-            String::Factory(xml->getAttributeValue("transferAccountID"));
-        strDirection = String::Factory(xml->getAttributeValue("direction"));
-        strTemp =
-            String::Factory(xml->getAttributeValue("closingTransactionNo"));
+        auto strTransferMultiple =
+                 String::Factory(xml->getAttributeValue("transferMultiple")),
+             strRequestAccountID =
+                 String::Factory(xml->getAttributeValue("transferAccountID")),
+             strDirection =
+                 String::Factory(xml->getAttributeValue("direction")),
+             strTemp = String::Factory(
+                 xml->getAttributeValue("closingTransactionNo"));
 
         if (strTransferMultiple->Exists())
             m_nTransferMultiple = atoi(strTransferMultiple->Get());
@@ -257,9 +255,8 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             nullptr != pItem,
             "Error allocating memory in Basket::ProcessXMLNode\n");
 
-        auto strTemp = String::Factory();
-
-        strTemp = String::Factory(xml->getAttributeValue("minimumTransfer"));
+        auto strTemp =
+            String::Factory(xml->getAttributeValue("minimumTransfer"));
         if (strTemp->Exists())
             pItem->lMinimumTransferAmount = strTemp->ToLong();
 

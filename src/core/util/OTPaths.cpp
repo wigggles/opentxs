@@ -89,12 +89,12 @@ namespace opentxs
 
 api::Settings* OTPaths::s_settings{Factory::Settings()};
 
-String OTPaths::s_strAppBinaryFolder("");
-String OTPaths::s_strHomeFolder("");
-String OTPaths::s_strAppDataFolder("");
-String OTPaths::s_strGlobalConfigFile("");
-String OTPaths::s_strPrefixFolder("");
-String OTPaths::s_strScriptsFolder("");
+OTString OTPaths::s_strAppBinaryFolder("");
+OTString OTPaths::s_strHomeFolder("");
+OTString OTPaths::s_strAppDataFolder("");
+OTString OTPaths::s_strGlobalConfigFile("");
+OTString OTPaths::s_strPrefixFolder("");
+OTString OTPaths::s_strScriptsFolder("");
 
 OTPaths::~OTPaths() {}
 
@@ -114,7 +114,7 @@ void OTPaths::SetHomeFolder(String strLocation)
 {
     OTPaths::s_strHomeFolder = strLocation;
 
-    s_strAppDataFolder.Release();  // So it will be regenerated.
+    s_strAppDataFolder->Release();  // So it will be regenerated.
 
 #ifdef ANDROID
     OTPaths::s_settings->SetConfigFilePath(GlobalConfigFile());
@@ -123,14 +123,14 @@ void OTPaths::SetHomeFolder(String strLocation)
 
 const String& OTPaths::AppDataFolder()
 {
-    if (s_strAppDataFolder.Exists())
+    if (s_strAppDataFolder->Exists())
         return s_strAppDataFolder;  // already got it, just return it.
 
-    String strHomeDataFolder(OTPaths::HomeFolder()),
+    OTString strHomeDataFolder(OTPaths::HomeFolder()),
         strAppDataFolder("");  // eg. /home/user/  (the folder that the OT
                                // appdata folder will be in.)
 
-    if (!strHomeDataFolder.Exists() && !GetHomeFromSystem(strHomeDataFolder)) {
+    if (!strHomeDataFolder->Exists() && !GetHomeFromSystem(strHomeDataFolder)) {
         OT_FAIL;
     }
 
@@ -155,10 +155,10 @@ const String& OTPaths::AppDataFolder()
 
 const String& OTPaths::GlobalConfigFile()
 {
-    if (s_strGlobalConfigFile.Exists())
+    if (s_strGlobalConfigFile->Exists())
         return s_strGlobalConfigFile;  // got it, lets return it.
 
-    String strGlobalConfigFile("");
+    auto strGlobalConfigFile = String::Factory();
 
     if (!AppendFile(
             strGlobalConfigFile, AppDataFolder(), OT_INIT_CONFIG_FILENAME))
@@ -171,7 +171,7 @@ const String& OTPaths::GlobalConfigFile()
 
 const String& OTPaths::PrefixFolder()
 {
-    if (s_strPrefixFolder.Exists())
+    if (s_strPrefixFolder->Exists())
         return s_strPrefixFolder;  // got it, lets return it.
 
     // lets load from the statndard config, or create the entry.
@@ -184,7 +184,7 @@ const String& OTPaths::PrefixFolder()
 
 const String& OTPaths::ScriptsFolder()
 {
-    if (s_strScriptsFolder.Exists())
+    if (s_strScriptsFolder->Exists())
         return s_strScriptsFolder;  // got it, lets return it.
 
     // load it from config (if we already have it set in the config).
@@ -233,9 +233,9 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
 
     {
         // get default path
-        String strDefaultPrefixPath(OT_PREFIX_PATH);
+        auto strDefaultPrefixPath = String::Factory(OT_PREFIX_PATH);
         {
-            if (!strDefaultPrefixPath.Exists()) {
+            if (!strDefaultPrefixPath->Exists()) {
                 otErr << __FUNCTION__ << ": Error: OT_PREFIX_PATH is not set!";
                 OT_FAIL;
             }
@@ -255,15 +255,15 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
             }
         }
 
-        String strLocalPrefixPath = "";
+        auto strLocalPrefixPath = String::Factory();
         bool bPrefixPathOverride = false;
 
         {
             // now check the configuration to see what values we have:
-            String strConfigPath = "";
+            auto strConfigPath = String::Factory();
 
             bool bIsNew = false;
-            String strPrefixPathOverride("prefix_path_override");
+            auto strPrefixPathOverride = String::Factory("prefix_path_override");
 
             if (!config.CheckSet_str(
                     "paths",
@@ -286,7 +286,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
             // if the config dosn't have a prefix path set. Lets set the
             // default.
             // if a prefix path was passed in, we will override with that later.
-            if (!strConfigPath.Exists() || (3 > strConfigPath.GetLength())) {
+            if (!strConfigPath->Exists() || (3 > strConfigPath->GetLength())) {
                 otErr << __FUNCTION__ << ": Error: Bad "
                       << "prefix_path"
                       << " in config, will reset!";
@@ -317,7 +317,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                 bool bUpdate = false;
 
                 // default
-                if (!strLocalPrefixPath.Compare(strDefaultPrefixPath)) {
+                if (!strLocalPrefixPath->Compare(strDefaultPrefixPath)) {
                     strLocalPrefixPath = strDefaultPrefixPath;
                     bUpdate = true;
                 }
@@ -333,7 +333,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
 
                     if (!FixPath(strTmp, strTmp, true)) { OT_FAIL; }
 
-                    if (!strLocalPrefixPath.Compare(strTmp)) {
+                    if (!strLocalPrefixPath->Compare(strTmp)) {
                         strLocalPrefixPath = strTmp;
                         bUpdate = true;
                     }
@@ -354,7 +354,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
         }
 
         {
-            if (!strLocalPrefixPath.Exists()) { OT_FAIL; }
+            if (!strLocalPrefixPath->Exists()) { OT_FAIL; }
 
             if (!ToReal(strLocalPrefixPath, strLocalPrefixPath)) { OT_FAIL; }
             if (!FixPath(strLocalPrefixPath, strLocalPrefixPath, true)) {
@@ -390,12 +390,12 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
         if (!config.Load()) { OT_FAIL; }
     }
 
-    String strRelativeKey = "";
-    strRelativeKey.Format("%s%s", "scripts", OT_CONFIG_ISRELATIVE);
+    auto strRelativeKey = String::Factory();
+    strRelativeKey->Format("%s%s", "scripts", OT_CONFIG_ISRELATIVE);
 
     // local vairables.
     bool bConfigIsRelative = false;
-    String strConfigFolder = "";
+    auto strConfigFolder = String::Factory();
 
     // lets first check what we have in the configuration:
     {
@@ -436,7 +436,7 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
             }
         }
 
-        if (!strConfigFolder.Compare(strScriptsFolder)) {
+        if (!strConfigFolder->Compare(strScriptsFolder)) {
 
             strConfigFolder = strScriptsFolder;  // update folder
             bool bNewOrUpdated = false;
@@ -451,10 +451,10 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
     if (bConfigIsRelative) {
         if (!FixPath(strConfigFolder, strConfigFolder, true)) { OT_FAIL; }
 
-        String strPrefixScriptPath = "";
+        auto strPrefixScriptPath = String::Factory();
         AppendFolder(strPrefixScriptPath, PrefixFolder(), strConfigFolder);
 
-        String strAppBinaryScriptPath = "";
+        auto strAppBinaryScriptPath = String::Factory();
 
         // if the AppBinaryFolder is set, we will attempt to use this script
         // path instead.
@@ -474,11 +474,11 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
             }
         }
 
-        s_strScriptsFolder = strAppBinaryScriptPath.Exists()
+        s_strScriptsFolder = strAppBinaryScriptPath->Exists()
                                  ? strAppBinaryScriptPath
                                  : strPrefixScriptPath;
 
-        if (!s_strScriptsFolder.Exists()) OT_FAIL;
+        if (!s_strScriptsFolder->Exists()) OT_FAIL;
 
     } else {
         if (!ToReal(strConfigFolder, strConfigFolder)) { OT_FAIL; }
@@ -529,9 +529,9 @@ bool OTPaths::Get(
     }
 
     bool bBoolExists(false), bIsRelative(false);
-    String strRelativeKey(""), strOutFolder("");
+    auto strRelativeKey = String::Factory(), strOutFolder = String::Factory();
 
-    strRelativeKey.Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
+    strRelativeKey->Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
 
     if (config.Check_bool(
             strSection, strRelativeKey, bIsRelative, bBoolExists)) {
@@ -598,9 +598,9 @@ bool OTPaths::Set(
     }
 
     bool bBoolIsNew(false);
-    String strRelativeKey("");
+    auto strRelativeKey = String::Factory();
 
-    strRelativeKey.Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
+    strRelativeKey->Format("%s%s", strKey.Get(), OT_CONFIG_ISRELATIVE);
 
     if (config.Set_bool(
             strSection, strRelativeKey, bIsRelative, bBoolIsNew, strComment)) {
@@ -1025,17 +1025,17 @@ bool OTPaths::AppendFolder(
         OT_FAIL;
     }
 
-    String l_strBasePath_fix(""), l_strFolderName_fix("");
+    auto l_strBasePath_fix = String::Factory(), l_strFolderName_fix = String::Factory();
 
     if (!FixPath(strBasePath, l_strBasePath_fix, true)) return false;
     if (!FixPath(strFolderName, l_strFolderName_fix, true)) return false;
 
-    std::string l_strBasePath(l_strBasePath_fix.Get()),
-        l_strFolderName(l_strFolderName_fix.Get());
+    std::string l_strBasePath(l_strBasePath_fix->Get()),
+        l_strFolderName(l_strFolderName_fix->Get());
 
     l_strBasePath.append(l_strFolderName);
 
-    const String l_strPath(l_strBasePath);
+    const auto l_strPath = String::Factory(l_strBasePath);
 
     out_strPath = l_strPath;
     return true;
@@ -1060,17 +1060,17 @@ bool OTPaths::AppendFile(
         OT_FAIL;
     }
 
-    String l_strBasePath_fix(""), l_strFileName_fix("");
+    auto l_strBasePath_fix = String::Factory(), l_strFileName_fix = String::Factory();
 
     if (!FixPath(strBasePath, l_strBasePath_fix, true)) return false;
     if (!FixPath(strFileName, l_strFileName_fix, false)) return false;
 
-    std::string l_strBasePath(l_strBasePath_fix.Get()),
-        l_strFileName(l_strFileName_fix.Get());
+    std::string l_strBasePath(l_strBasePath_fix->Get()),
+        l_strFileName(l_strFileName_fix->Get());
 
     l_strBasePath.append(l_strFileName);
 
-    const String l_strPath(l_strBasePath);
+    const auto l_strPath = String::Factory(l_strBasePath);
 
     out_strPath = l_strPath;
     return true;
@@ -1097,7 +1097,7 @@ bool OTPaths::RelativeToCanonical(
         OT_FAIL;
     }
 
-    String l_strBasePath_fix("");
+    auto l_strBasePath_fix = String::Factory();
     if (!FixPath(strBasePath, l_strBasePath_fix, true)) return false;
 
     if (strRelativePath.Compare(".")) {
@@ -1105,12 +1105,12 @@ bool OTPaths::RelativeToCanonical(
         return true;
     }  // if ".", return base path.
 
-    std::string l_strBasePath(l_strBasePath_fix.Get()),
+    std::string l_strBasePath(l_strBasePath_fix->Get()),
         l_strRelativePath(strRelativePath.Get());
 
     l_strBasePath.append(l_strRelativePath);
 
-    String l_strPath(l_strBasePath), l_strCanonicalPath("");
+    auto l_strPath = String::Factory(l_strBasePath), l_strCanonicalPath = String::Factory();
 
     if (!ToReal(l_strPath, l_strCanonicalPath)) return false;
 
@@ -1126,7 +1126,7 @@ bool OTPaths::BuildFolderPath(
 {
     out_bFolderCreated = false;
 
-    String l_strFolderPath_fix(""), l_strFolderPath_real("");
+    auto l_strFolderPath_fix = String::Factory(), l_strFolderPath_real = String::Factory();
 
     if (!ToReal(strFolderPath, l_strFolderPath_real))
         return false;  // path to real
@@ -1134,7 +1134,7 @@ bool OTPaths::BuildFolderPath(
     if (!FixPath(l_strFolderPath_real, l_strFolderPath_fix, true))
         return false;  // real to fixed real
 
-    std::string l_strFolderPath(l_strFolderPath_fix.Get());  // fixed real path.
+    std::string l_strFolderPath(l_strFolderPath_fix->Get());  // fixed real path.
 
     std::vector<std::string> vFolders;
 
@@ -1156,7 +1156,7 @@ bool OTPaths::BuildFolderPath(
 
         if (0 == i) continue;  // / or x:/ should be skiped.
 
-        String strPathPart(l_strPathPart);
+        auto strPathPart = String::Factory(l_strPathPart);
 
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
             return false;
@@ -1176,7 +1176,7 @@ bool OTPaths::BuildFilePath(
 {
     out_bFolderCreated = false;
 
-    String l_strFilePath_fix(""), l_strFilePath_real("");
+    auto l_strFilePath_fix = String::Factory(), l_strFilePath_real = String::Factory();
 
     if (!ToReal(strFolderPath, l_strFilePath_real))
         return false;  // path to real
@@ -1184,7 +1184,7 @@ bool OTPaths::BuildFilePath(
     if (!FixPath(l_strFilePath_real, l_strFilePath_fix, false))
         return false;  // real to fixed real
 
-    std::string l_strFilePath(l_strFilePath_fix.Get());  // fixed real path.
+    std::string l_strFilePath(l_strFilePath_fix->Get());  // fixed real path.
 
     std::vector<std::string> vFolders;
 
@@ -1210,7 +1210,7 @@ bool OTPaths::BuildFilePath(
 
         if (0 == i) continue;  // / or x:/ should be skiped.
 
-        String strPathPart(l_strPathPart);
+        auto strPathPart = String::Factory(l_strPathPart);
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
             return false;
         if (bLog && l_bBuiltFolder)

@@ -144,7 +144,7 @@ public:
 
         if (nullptr != keyToUse) {
             return keyToUse->SignProto<C>(
-                serialized, signature, String(id_), pPWData);
+                serialized, signature, String::Factory(id_), pPWData);
         }
 
         return false;

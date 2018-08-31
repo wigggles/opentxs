@@ -105,8 +105,8 @@ public:
         OTSmartContract& theSmartContract,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr);
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory());
     void Serialize(
         Tag& parent,
         bool bCalculatingID = false,

@@ -130,8 +130,9 @@ bool OTOffer::isPowerOfTen(const std::int64_t& x)
  */
 void OTOffer::GetIdentifier(Identifier& theIdentifier) const
 {
-    auto strTemp = String::Factory(), strAsset = String::Factory(GetInstrumentDefinitionID()),
-        strCurrency = String::Factory(GetCurrencyID());
+    auto strTemp = String::Factory(),
+         strAsset = String::Factory(GetInstrumentDefinitionID()),
+         strCurrency = String::Factory(GetCurrencyID());
 
     std::int64_t lScale = GetScale();
 
@@ -177,10 +178,12 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_strContractType->Set((m_bSelling ? "ASK" : "BID"));
 
-        const auto strNotaryID = String::Factory(xml->getAttributeValue("notaryID")),
-            strInstrumentDefinitionID = String::Factory(
-                xml->getAttributeValue("instrumentDefinitionID")),
-            strCurrencyTypeID = String::Factory(xml->getAttributeValue("currencyTypeID"));
+        const auto strNotaryID =
+                       String::Factory(xml->getAttributeValue("notaryID")),
+                   strInstrumentDefinitionID = String::Factory(
+                       xml->getAttributeValue("instrumentDefinitionID")),
+                   strCurrencyTypeID = String::Factory(
+                       xml->getAttributeValue("currencyTypeID"));
 
         const auto NOTARY_ID = Identifier::Factory(strNotaryID),
                    INSTRUMENT_DEFINITION_ID =
@@ -191,11 +194,13 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
         SetCurrencyID(CURRENCY_TYPE_ID);
 
-        const auto strScale = String::Factory(xml->getAttributeValue("marketScale"));
-        const std::int64_t lScale =
-            strScale->Exists() ? strScale->ToLong() : 0;  // if it doesn't exist,
-                                                        // the 0 here causes the
-                                                        // below error to fire.
+        const auto strScale =
+            String::Factory(xml->getAttributeValue("marketScale"));
+        const std::int64_t lScale = strScale->Exists()
+                                        ? strScale->ToLong()
+                                        : 0;  // if it doesn't exist,
+                                              // the 0 here causes the
+                                              // below error to fire.
 
         if (!isPowerOfTen(lScale)) {
             otOut << "OTOffer::ProcessXMLNode: Failure: marketScale *must* be "
@@ -205,11 +210,12 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         } else
             SetScale(lScale);
 
-        const auto strPriceLimit = String::Factory(xml->getAttributeValue("priceLimit"));
+        const auto strPriceLimit =
+            String::Factory(xml->getAttributeValue("priceLimit"));
         const std::int64_t lPriceLimit =
             strPriceLimit->Exists() ? strPriceLimit->ToLong()
-                                   : 0;  // if it doesn't exist, the 0 here
-                                         // causes the below error to fire.
+                                    : 0;  // if it doesn't exist, the 0 here
+                                          // causes the below error to fire.
 
         // NOTE: Market Orders (new) have a 0 price, so this error condition was
         // changed.
@@ -223,11 +229,13 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         } else
             SetPriceLimit(lPriceLimit);
 
-        const auto strTotal = String::Factory(xml->getAttributeValue("totalAssetsOnOffer"));
-        const std::int64_t lTotal =
-            strTotal->Exists() ? strTotal->ToLong() : 0;  // if it doesn't exist,
-                                                        // the 0 here causes the
-                                                        // below error to fire.
+        const auto strTotal =
+            String::Factory(xml->getAttributeValue("totalAssetsOnOffer"));
+        const std::int64_t lTotal = strTotal->Exists()
+                                        ? strTotal->ToLong()
+                                        : 0;  // if it doesn't exist,
+                                              // the 0 here causes the
+                                              // below error to fire.
         if (lTotal < 1) {
             otOut << "OTOffer::ProcessXMLNode: Failure: totalAssetsOnOffer "
                      "*must* be larger than 0. Instead I got: "
@@ -236,11 +244,12 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         } else
             SetTotalAssetsOnOffer(lTotal);
 
-        const auto strFinished = String::Factory(xml->getAttributeValue("finishedSoFar"));
+        const auto strFinished =
+            String::Factory(xml->getAttributeValue("finishedSoFar"));
         const std::int64_t lFinished =
             strFinished->Exists() ? strFinished->ToLong()
-                                 : 0;  // if it doesn't exist, the 0 here
-                                       // causes the below error to fire.
+                                  : 0;  // if it doesn't exist, the 0 here
+                                        // causes the below error to fire.
         if (lFinished < 0) {
             otOut << "OTOffer::ProcessXMLNode: Failure: finishedSoFar *must* "
                      "be 0 or larger. Instead I got: "
@@ -249,7 +258,8 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         } else
             SetFinishedSoFar(lFinished);
 
-        const auto strMinInc = String::Factory(xml->getAttributeValue("minimumIncrement"));
+        const auto strMinInc =
+            String::Factory(xml->getAttributeValue("minimumIncrement"));
         // if it doesn't exist, the 0 here causes the below error to fire.
         const std::int64_t lMinInc =
             strMinInc->Exists() ? strMinInc->ToLong() : 0;
@@ -267,17 +277,21 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         } else
             SetMinimumIncrement(lMinInc);
 
-        const auto strTransNum = String::Factory(xml->getAttributeValue("transactionNum"));
+        const auto strTransNum =
+            String::Factory(xml->getAttributeValue("transactionNum"));
         const std::int64_t lTransNum =
             strTransNum->Exists() ? strTransNum->ToLong() : 0;
 
         SetTransactionNum(lTransNum);
 
-        const auto str_valid_from = String::Factory(xml->getAttributeValue("validFrom"));
-        const auto str_valid_to = String::Factory(xml->getAttributeValue("validTo"));
+        const auto str_valid_from =
+            String::Factory(xml->getAttributeValue("validFrom"));
+        const auto str_valid_to =
+            String::Factory(xml->getAttributeValue("validTo"));
 
-        std::int64_t tValidFrom =
-            str_valid_from->Exists() ? parseTimestamp(str_valid_from->Get()) : 0;
+        std::int64_t tValidFrom = str_valid_from->Exists()
+                                      ? parseTimestamp(str_valid_from->Get())
+                                      : 0;
         std::int64_t tValidTo =
             str_valid_to->Exists() ? parseTimestamp(str_valid_to->Get()) : 0;
 
@@ -322,8 +336,9 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 void OTOffer::UpdateContents()
 {
     const auto NOTARY_ID = String::Factory(GetNotaryID()),
-        INSTRUMENT_DEFINITION_ID = String::Factory(GetInstrumentDefinitionID()),
-        CURRENCY_TYPE_ID = String::Factory(GetCurrencyID());
+               INSTRUMENT_DEFINITION_ID =
+                   String::Factory(GetInstrumentDefinitionID()),
+               CURRENCY_TYPE_ID = String::Factory(GetCurrencyID());
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -334,7 +349,8 @@ void OTOffer::UpdateContents()
 
     tag.add_attribute("isSelling", formatBool(!IsBid()));
     tag.add_attribute("notaryID", NOTARY_ID->Get());
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
     tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID->Get());
     tag.add_attribute("priceLimit", formatLong(GetPriceLimit()));
     tag.add_attribute(
