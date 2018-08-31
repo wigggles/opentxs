@@ -80,7 +80,7 @@ public:
     inline bool GetOfferString(String& offer)
     {
         offer.Set(marketOffer_);
-        if (marketOffer_.Exists()) { return true; }
+        if (marketOffer_->Exists()) { return true; }
         return false;
     }
 
@@ -201,7 +201,7 @@ private:
                                          // processed through this order? We
                                          // keep track.
 
-    String marketOffer_;  // The market offer associated with this trade.
+    OTString marketOffer_;  // The market offer associated with this trade.
 
     EXPORT OTTrade(const api::Core& core);
     EXPORT OTTrade(

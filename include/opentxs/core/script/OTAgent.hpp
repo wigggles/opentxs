@@ -288,8 +288,8 @@ public:
         OTSmartContract& theSmartContract,
         const std::int64_t& lNewTransactionNumber,
         const String& strOrigCronItem,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr);
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory());
 
     bool DropFinalReceiptToInbox(
         const String& strNotaryID,
@@ -298,8 +298,8 @@ public:
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lClosingNumber,
         const String& strOrigCronItem,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr);
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory());
 
     bool DropServerNoticeToNymbox(
         const api::Core& api,
@@ -309,8 +309,8 @@ public:
         const std::int64_t& lNewTransactionNumber,
         const std::int64_t& lInReferenceTo,
         const String& strReference,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory(),
         Nym* pActualNym = nullptr);
 };
 }  // namespace opentxs

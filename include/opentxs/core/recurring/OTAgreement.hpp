@@ -56,10 +56,10 @@ private:
     OTIdentifier m_RECIPIENT_NYM_ID;
 
 protected:
-    String m_strConsideration;  // Presumably an agreement is in return for
+    OTString m_strConsideration;  // Presumably an agreement is in return for
                                 // some consideration. Memo here.
 
-    String m_strMerchantSignedCopy;  // The merchant sends it over, then the
+    OTString m_strMerchantSignedCopy;  // The merchant sends it over, then the
                                      // payer confirms it, which adds
     // his own transaction numbers and signs it. This, unfortunately,
     // invalidates the merchant's version, so we store
@@ -379,8 +379,8 @@ public:
         // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory(),
         Nym* pActualNym = nullptr) const;
 
     // Nym receives an OTItem::acknowledgment or OTItem::rejection.
@@ -394,8 +394,8 @@ public:
         const TransactionNumber& lInReferenceTo,
         const String& strReference,
         originType theOriginType,
-        String* pstrNote,
-        String* pstrAttachment,
+        OTString pstrNote,
+        OTString pstrAttachment,
         const Identifier& actualNymID);
 
     virtual ~OTAgreement();

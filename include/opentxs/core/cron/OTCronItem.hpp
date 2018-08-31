@@ -32,8 +32,8 @@ public:
         const std::int64_t& lClosingNumber,
         const String& strOrigCronItem,
         const originType theOriginType,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr);
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory());
 
     // Notify the Nym that the OPENING number is now closed, so he can remove it
     // from his issued list.
@@ -42,8 +42,8 @@ public:
         const TransactionNumber& lNewTransactionNumber,
         const String& strOrigCronItem,
         const originType theOriginType,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr);
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory());
     virtual bool CanRemoveItemFromCron(const ClientContext& context);
     virtual void HarvestOpeningNumber(ServerContext& context);
     virtual void HarvestClosingNumbers(ServerContext& context);

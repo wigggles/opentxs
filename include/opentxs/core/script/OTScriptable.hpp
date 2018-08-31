@@ -177,8 +177,8 @@ public:
         // const std::int64_t& lInReferenceTo, //
         // each party has its own opening trans #.
         const String& strReference,
-        String* pstrNote = nullptr,
-        String* pstrAttachment = nullptr,
+        OTString pstrNote = String::Factory(),
+        OTString pstrAttachment = String::Factory(),
         Nym* pActualNym = nullptr) const;
     // This is an OT Native call party_may_execute_clause
     // It returns true/false whether party is allowed to execute clause.
@@ -333,7 +333,7 @@ protected:
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
-    String m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
+    OTString m_strLabel;  // OTSmartContract can put its trans# here. (Allowing
                         // us to use it in the OTScriptable methods where any
                         // smart contract would normally want to log its
                         // transaction #, not just the clause name.)

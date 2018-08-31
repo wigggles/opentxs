@@ -91,28 +91,28 @@ public:
         const String& strDefault,
         std::string& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
+        const String& strComment = String::Factory()) const = 0;
     EXPORT virtual bool CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         String& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
+        const String& strComment = String::Factory()) const = 0;
     EXPORT virtual bool CheckSet_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lDefault,
         std::int64_t& out_lResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
+        const String& strComment = String::Factory()) const = 0;
     EXPORT virtual bool CheckSet_bool(
         const String& strSection,
         const String& strKey,
         const bool& bDefault,
         bool& out_bResult,
         bool& out_bIsNew,
-        const String& strComment = "") const = 0;
+        const String& strComment = String::Factory()) const = 0;
 
     // Set Option helper function for setting bool's
     EXPORT virtual bool SetOption_bool(

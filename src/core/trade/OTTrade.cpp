@@ -48,7 +48,7 @@ OTTrade::OTTrade(const api::Core& core)
     , stopSign_(0)
     , stopActivated_(false)
     , tradesAlreadyDone_(0)
-    , marketOffer_()
+    , marketOffer_(String::Factory())
 {
     InitTrade();
 }
@@ -70,7 +70,7 @@ OTTrade::OTTrade(
     , stopSign_(0)
     , stopActivated_(false)
     , tradesAlreadyDone_(0)
-    , marketOffer_()
+    , marketOffer_(String::Factory())
 {
     InitTrade();
 }
@@ -119,7 +119,7 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (0 != (returnVal = ot_super::ProcessXMLNode(xml))) return returnVal;
 
     if (!strcmp("trade", xml->getNodeName())) {
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
         tradesAlreadyDone_ = atoi(xml->getAttributeValue("completedNoTrades"));
 
         SetTransactionNum(
@@ -137,20 +137,25 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(validFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(validTo));
 
-        String activated(xml->getAttributeValue("hasActivated"));
+        auto activated =
+            String::Factory(xml->getAttributeValue("hasActivated"));
 
-        if (activated.Compare("true"))
+        if (activated->Compare("true"))
             hasTradeActivated_ = true;
         else
             hasTradeActivated_ = false;
 
-        const String notaryID(xml->getAttributeValue("notaryID")),
-            nymID(xml->getAttributeValue("nymID")),
-            instrumentDefinitionID(
-                xml->getAttributeValue("instrumentDefinitionID")),
-            assetAcctID(xml->getAttributeValue("assetAcctID")),
-            currencyTypeID(xml->getAttributeValue("currencyTypeID")),
-            currencyAcctID(xml->getAttributeValue("currencyAcctID"));
+        const auto notaryID =
+                       String::Factory(xml->getAttributeValue("notaryID")),
+                   nymID = String::Factory(xml->getAttributeValue("nymID")),
+                   instrumentDefinitionID = String::Factory(
+                       xml->getAttributeValue("instrumentDefinitionID")),
+                   assetAcctID =
+                       String::Factory(xml->getAttributeValue("assetAcctID")),
+                   currencyTypeID = String::Factory(
+                       xml->getAttributeValue("currencyTypeID")),
+                   currencyAcctID = String::Factory(
+                       xml->getAttributeValue("currencyAcctID"));
 
         const auto NOTARY_ID = Identifier::Factory(notaryID),
                    NYM_ID = Identifier::Factory(nymID),
@@ -187,18 +192,18 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
 
     if (!strcmp("stopOrder", xml->getNodeName())) {
-        String sign(xml->getAttributeValue("sign"));
+        auto sign = String::Factory(xml->getAttributeValue("sign"));
 
-        if (sign.Compare("0")) {
+        if (sign->Compare("0")) {
             stopSign_ = 0;  // Zero means it isn't a stop order. So why is the
                             // tag in the file?
             otErr << "Strange: Stop order tag found in trade, but sign "
                      "character set to 0.\n"
                      "(Zero means: NOT a stop order.)\n";
             return (-1);
-        } else if (sign.Compare("<"))
+        } else if (sign->Compare("<"))
             stopSign_ = '<';
-        else if (sign.Compare(">"))
+        else if (sign->Compare(">"))
             stopSign_ = '>';
         else {
             stopSign_ = 0;
@@ -211,9 +216,10 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         stopPrice_ = String::StringToLong(xml->getAttributeValue("price"));
 
-        String activated(xml->getAttributeValue("hasActivated"));
+        auto activated =
+            String::Factory(xml->getAttributeValue("hasActivated"));
 
-        if (activated.Compare("true"))
+        if (activated->Compare("true"))
             stopActivated_ = true;
         else
             stopActivated_ = false;
@@ -243,21 +249,25 @@ void OTTrade::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    const String NOTARY_ID(GetNotaryID()), NYM_ID(GetSenderNymID()),
-        INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
-        ASSET_ACCT_ID(GetSenderAcctID()), CURRENCY_TYPE_ID(GetCurrencyID()),
-        CURRENCY_ACCT_ID(GetCurrencyAcctID());
+    const auto NOTARY_ID = String::Factory(GetNotaryID()),
+               NYM_ID = String::Factory(GetSenderNymID()),
+               INSTRUMENT_DEFINITION_ID =
+                   String::Factory(GetInstrumentDefinitionID()),
+               ASSET_ACCT_ID = String::Factory(GetSenderAcctID()),
+               CURRENCY_TYPE_ID = String::Factory(GetCurrencyID()),
+               CURRENCY_ACCT_ID = String::Factory(GetCurrencyAcctID());
 
     Tag tag("trade");
 
     tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("hasActivated", formatBool(hasTradeActivated_));
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
-    tag.add_attribute("assetAcctID", ASSET_ACCT_ID.Get());
-    tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID.Get());
-    tag.add_attribute("currencyAcctID", CURRENCY_ACCT_ID.Get());
-    tag.add_attribute("nymID", NYM_ID.Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute("assetAcctID", ASSET_ACCT_ID->Get());
+    tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID->Get());
+    tag.add_attribute("currencyAcctID", CURRENCY_ACCT_ID->Get());
+    tag.add_attribute("nymID", NYM_ID->Get());
     tag.add_attribute("completedNoTrades", formatInt(tradesAlreadyDone_));
     tag.add_attribute("transactionNum", formatLong(m_lTransactionNum));
     tag.add_attribute("creationDate", formatTimestamp(GetCreationDate()));
@@ -286,7 +296,7 @@ void OTTrade::UpdateContents()
         tag.add_tag(tagStopOrder);
     }
 
-    if (marketOffer_.Exists()) {
+    if (marketOffer_->Exists()) {
         Armored ascOffer(marketOffer_);
         tag.add_tag("offer", ascOffer.Get());
     }
@@ -386,7 +396,7 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
 
     // else (BELOW) offer_ IS nullptr, and thus it didn't exist yet...
 
-    if (!marketOffer_.Exists()) {
+    if (!marketOffer_->Exists()) {
         otErr << "OTTrade::GetOffer called with empty marketOffer_.\n";
         return nullptr;
     }
@@ -632,7 +642,7 @@ void OTTrade::onRemovalFromCron()
     std::int64_t transactionNum = 0;
 
     if (offer_ == nullptr) {
-        if (!marketOffer_.Exists()) {
+        if (!marketOffer_->Exists()) {
             otErr
                 << "OTTrade::onRemovalFromCron called with nullptr offer_ and "
                    "empty marketOffer_.\n";
@@ -737,7 +747,7 @@ bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
         return false;
     }
 
-    const String notaryID(GetNotaryID());
+    const auto notaryID = String::Factory(GetNotaryID());
 
     if (!context.VerifyIssuedNumber(GetAssetAcctClosingNum())) {
         otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
@@ -817,7 +827,7 @@ void OTTrade::onFinalReceipt(
         (origCronItem.GetCountClosingNumbers() > 1)
             ? origCronItem.GetClosingTransactionNoAt(1)
             : 0;
-    const String notaryID(GetNotaryID());
+    const auto notaryID = String::Factory(GetNotaryID());
 
     // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
     // And the **UPDATED OFFER** is stored on the ATTACHMENT on the **ITEM.**
@@ -857,17 +867,17 @@ void OTTrade::onFinalReceipt(
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
     //
-    String updatedCronItem(*this);
-    String* attachment = &updatedCronItem;  // the Updated TRADE.
-    String updatedOffer;
-    String* note = nullptr;  // the updated Offer (if available.)
+    auto updatedCronItem = String::Factory(*this);
+    OTString attachment = updatedCronItem;  // the Updated TRADE.
+    auto updatedOffer = String::Factory();
+    OTString note = String::Factory();  // the updated Offer (if available.)
 
     if (offer_) {
         offer_->SaveContractRaw(updatedOffer);
-        note = &updatedOffer;
+        note = updatedOffer;
     }
 
-    const String strOrigCronItem(origCronItem);
+    const auto strOrigCronItem = String::Factory(origCronItem);
 
     // The OPENING transaction number must still be signed-out. It is this act
     // of placing the final receipt, which then finally closes the opening
@@ -1126,8 +1136,8 @@ bool OTTrade::IssueTrade(OTOffer& offer, char stopSign, std::int64_t stopPrice)
     SetTransactionNum(offer.GetTransactionNum());
 
     // Save a copy of the offer, in XML form, here on this Trade.
-    String strOffer(offer);
-    marketOffer_.Set(strOffer);
+    auto strOffer = String::Factory(offer);
+    marketOffer_->Set(strOffer);
 
     return true;
 }
@@ -1139,7 +1149,7 @@ void OTTrade::Release_Trade()
     currencyTypeID_->Release();
     currencyAcctID_->Release();
 
-    marketOffer_.Release();
+    marketOffer_->Release();
 }
 
 // the framework will call this at the right time.
@@ -1158,7 +1168,7 @@ void OTTrade::Release()
 void OTTrade::InitTrade()
 {
     // initialization here. Sometimes also called during cleanup to zero values.
-    m_strContractType = "TRADE";
+    m_strContractType = String::Factory("TRADE");
 
     SetProcessInterval(TradeProcessIntervalSeconds);  // Trades default to
                                                       // processing every 10

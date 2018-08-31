@@ -52,11 +52,12 @@ OTString trim(const String& str)
 }
 
 Contract::Contract(const api::Core& core)
-    : Contract(core,
-               String::Factory(),
-               String::Factory(),
-               String::Factory(),
-               String::Factory())
+    : Contract(
+          core,
+          String::Factory(),
+          String::Factory(),
+          String::Factory(),
+          String::Factory())
 {
 }
 
@@ -86,11 +87,12 @@ Contract::Contract(
 }
 
 Contract::Contract(const api::Core& core, const String& strID)
-    : Contract(core,
-               String::Factory(),
-               String::Factory(),
-               String::Factory(),
-               strID)
+    : Contract(
+          core,
+          String::Factory(),
+          String::Factory(),
+          String::Factory(),
+          strID)
 {
 }
 
@@ -182,7 +184,8 @@ Contract::~Contract() { Release_Contract(); }
 
 bool Contract::SaveToContractFolder()
 {
-    OTString strFoldername(String::Factory(OTFolders::Contract().Get())), strFilename = String::Factory();
+    OTString strFoldername(String::Factory(OTFolders::Contract().Get())),
+        strFilename = String::Factory();
 
     GetIdentifier(strFilename);
 
@@ -1101,7 +1104,7 @@ bool Contract::LoadContractRawFile()
     }
 
     if (false == strFileContents->DecodeIfArmored())  // bEscapedIsAllowed=true
-                                                     // by default.
+                                                      // by default.
     {
         otErr << __FUNCTION__
               << ": Input string apparently was encoded and "
@@ -1151,7 +1154,7 @@ bool Contract::LoadContractFromString(const String& theStr)
     auto strContract = String::Factory(theStr.Get());
 
     if (false == strContract->DecodeIfArmored())  // bEscapedIsAllowed=true by
-                                                 // default.
+                                                  // default.
     {
         otErr << __FUNCTION__
               << ": ERROR: Input string apparently was encoded "
@@ -1838,7 +1841,8 @@ bool Contract::LoadEncodedTextFieldByName(
 
         for (auto& it : mapExtraVars) {
             std::string first = it.first;
-            auto strTemp = String::Factory(xml->getAttributeValue(first.c_str()));
+            auto strTemp =
+                String::Factory(xml->getAttributeValue(first.c_str()));
 
             if (strTemp->Exists()) { mapExtraVars[first] = strTemp->Get(); }
         }
@@ -2009,7 +2013,9 @@ void Contract::CreateInnerContents(Tag& parent)
                 pTag->add_attribute("nymID", strNymID->Get());
                 pTag->add_attribute(
                     "publicNym",
-                    proto::ProtoAsArmored(publicNym, String::Factory("PUBLIC NYM")).Get());
+                    proto::ProtoAsArmored(
+                        publicNym, String::Factory("PUBLIC NYM"))
+                        .Get());
 
                 parent.add_tag(pTag);
             }  // "signer"
@@ -2035,7 +2041,8 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
     const auto strNodeName = String::Factory(xml->getNodeName());
 
     if (strNodeName->Compare("entity")) {
-        m_strEntityShortName = String::Factory(xml->getAttributeValue("shortname"));
+        m_strEntityShortName =
+            String::Factory(xml->getAttributeValue("shortname"));
         if (!m_strName->Exists())  // only set it if it's not already set, since
             // the wallet may have already had a user label
             // set.
@@ -2043,7 +2050,8 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
                                                // again in
         // OTUnitDefinition::ProcessXMLNode
 
-        m_strEntityLongName = String::Factory(xml->getAttributeValue("longname"));
+        m_strEntityLongName =
+            String::Factory(xml->getAttributeValue("longname"));
         m_strEntityEmail = String::Factory(xml->getAttributeValue("email"));
 
         otWarn << "Loaded Entity, shortname: " << m_strEntityShortName
@@ -2088,7 +2096,8 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
 
         return 1;
     } else if (strNodeName->Compare("signer")) {
-        const auto strSignerNymID = String::Factory(xml->getAttributeValue("nymID"));
+        const auto strSignerNymID =
+            String::Factory(xml->getAttributeValue("nymID"));
 
         if (!strSignerNymID->Exists()) {
             otErr << "Error in " << __FUNCTION__

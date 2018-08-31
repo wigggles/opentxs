@@ -298,13 +298,13 @@ void OTPaymentPlan::UpdateContents()
     }
 
     // OTAgreement
-    if (m_strConsideration.Exists()) {
+    if (m_strConsideration->Exists()) {
         Armored ascTemp(m_strConsideration);
         tag.add_tag("consideration", ascTemp.Get());
     }
 
     // OTAgreement
-    if (m_strMerchantSignedCopy.Exists()) {
+    if (m_strMerchantSignedCopy->Exists()) {
         Armored ascTemp(m_strMerchantSignedCopy);
         tag.add_tag("merchantSignedCopy", ascTemp.Get());
     }
@@ -362,7 +362,7 @@ bool OTPaymentPlan::VerifyMerchantSignature(const Nym& RECIPIENT_NYM) const
 {
     // Load up the merchant's copy.
     OTPaymentPlan theMerchantCopy{api_};
-    if (!m_strMerchantSignedCopy.Exists() ||
+    if (!m_strMerchantSignedCopy->Exists() ||
         !theMerchantCopy.LoadContractFromString(m_strMerchantSignedCopy)) {
         otErr << "OTPaymentPlan::" << __FUNCTION__
               << ": Expected Merchant's signed copy to be inside the "

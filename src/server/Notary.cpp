@@ -4038,7 +4038,7 @@ void Notary::NotarizePaymentPlan(
             // Transaction.
             pResponseBalanceItem->SetReferenceToNum(pItem->GetTransactionNum());
             // Also load up the Payment Plan from inside the transaction item.
-            String strPaymentPlan;
+            auto strPaymentPlan = String::Factory();
             pItem->GetAttachment(strPaymentPlan);
             auto pPlan = manager_.Factory().PaymentPlan();
 
@@ -4049,7 +4049,7 @@ void Notary::NotarizePaymentPlan(
                 Log::vError(
                     "%s: ERROR loading payment plan from string:\n%s\n",
                     __FUNCTION__,
-                    strPaymentPlan.Get());
+                    strPaymentPlan->Get());
             } else if (pPlan->GetNotaryID() != NOTARY_ID) {
                 Log::vOutput(
                     0,
@@ -4499,7 +4499,8 @@ void Notary::NotarizePaymentPlan(
                                                      // opening number. Handled
                                                      // internally.
                                                      strPaymentPlan,
-                                                     &strPaymentPlan)) {
+                                                     strPaymentPlan,
+                                                     String::Factory())) {
                                         Log::vOutput(
                                             0,
                                             "%s: Failed notifying parties "
@@ -4549,7 +4550,8 @@ void Notary::NotarizePaymentPlan(
                                                      // opening number. Handled
                                                      // internally.
                                                      strPaymentPlan,
-                                                     &strPaymentPlan)) {
+                                                     strPaymentPlan,
+                                                     String::Factory())) {
                                         // NOTE: A party may deliberately try to
                                         // activate a payment plan without
                                         // signing it. (As a way of rejecting
@@ -4712,7 +4714,7 @@ void Notary::NotarizeSmartContract(
                                               // Transaction.
 
             // Also load up the smart contract from inside the transaction item.
-            String strContract;
+            auto strContract = String::Factory();
             pItem->GetAttachment(strContract);
             auto pContract{manager_.Factory().SmartContract(NOTARY_ID)};
             OT_ASSERT(false != bool(pContract));
@@ -4723,7 +4725,7 @@ void Notary::NotarizeSmartContract(
                     "%s: ERROR loading smart contract from "
                     "string:\n\n%s\n\n",
                     __FUNCTION__,
-                    strContract.Get());
+                    strContract->Get());
             } else if (pContract->GetNotaryID() != NOTARY_ID) {
                 const String strWrongID(pContract->GetNotaryID());
                 Log::vOutput(
@@ -5250,7 +5252,8 @@ void Notary::NotarizeSmartContract(
                                      // opening number. Handled
                                      // internally.
                                      strContract,
-                                     &strContract)) {
+                                     strContract,
+                                     String::Factory())) {
                         // NOTE: A party may deliberately try to
                         // activate a smart contract without signing it.
                         // (As a way of rejecting it.) This will cause
@@ -5294,7 +5297,8 @@ void Notary::NotarizeSmartContract(
                                      // opening number. Handled
                                      // internally.
                                      strContract,
-                                     &strContract)) {
+                                     strContract,
+                                     String::Factory())) {
                         Log::vOutput(
                             0,
                             "%s: Failed notifying parties while trying "

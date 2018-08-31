@@ -260,8 +260,8 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
     OTSmartContract& theSmartContract,
     const std::int64_t& lNewTransactionNumber,
     const String& strOrigCronItem,
-    String* pstrNote,
-    String* pstrAttachment)
+    OTString pstrNote,
+    OTString pstrAttachment)
 {
     const char* szFunc = "OTPartyAccount::DropFinalReceiptToInbox";
 

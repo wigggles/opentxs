@@ -97,7 +97,7 @@ void Basket::HarvestClosingNumbers(
     const Identifier& theNotaryID,
     bool bSave)
 {
-    const String strNotaryID(theNotaryID);
+    const auto strNotaryID = String::Factory(theNotaryID);
 
     // The SUB-CURRENCIES first...
     const std::uint32_t nCount = static_cast<uint32_t>(Count());
@@ -209,33 +209,38 @@ std::int32_t Basket::Count() const
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    const String strNodeName(xml->getNodeName());
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
-    if (strNodeName.Compare("currencyBasket")) {
-        String strSubCount, strMinTrans;
-        strSubCount = xml->getAttributeValue("contractCount");
-        strMinTrans = xml->getAttributeValue("minimumTransfer");
+    if (strNodeName->Compare("currencyBasket")) {
+        auto strSubCount = String::Factory(), strMinTrans = String::Factory();
+        strSubCount = String::Factory(xml->getAttributeValue("contractCount"));
+        strMinTrans =
+            String::Factory(xml->getAttributeValue("minimumTransfer"));
 
-        m_nSubCount = atoi(strSubCount.Get());
-        m_lMinimumTransfer = strMinTrans.ToLong();
+        m_nSubCount = atoi(strSubCount->Get());
+        m_lMinimumTransfer = strMinTrans->ToLong();
 
         otWarn << "Loading currency basket...\n";
 
         return 1;
-    } else if (strNodeName.Compare("requestExchange")) {
-        String strTransferMultiple, strRequestAccountID, strDirection, strTemp;
+    } else if (strNodeName->Compare("requestExchange")) {
 
-        strTransferMultiple = xml->getAttributeValue("transferMultiple");
-        strRequestAccountID = xml->getAttributeValue("transferAccountID");
-        strDirection = xml->getAttributeValue("direction");
-        strTemp = xml->getAttributeValue("closingTransactionNo");
+        auto strTransferMultiple =
+                 String::Factory(xml->getAttributeValue("transferMultiple")),
+             strRequestAccountID =
+                 String::Factory(xml->getAttributeValue("transferAccountID")),
+             strDirection =
+                 String::Factory(xml->getAttributeValue("direction")),
+             strTemp = String::Factory(
+                 xml->getAttributeValue("closingTransactionNo"));
 
-        if (strTransferMultiple.Exists())
-            m_nTransferMultiple = atoi(strTransferMultiple.Get());
-        if (strRequestAccountID.Exists())
+        if (strTransferMultiple->Exists())
+            m_nTransferMultiple = atoi(strTransferMultiple->Get());
+        if (strRequestAccountID->Exists())
             m_RequestAccountID->SetString(strRequestAccountID);
-        if (strDirection.Exists()) m_bExchangingIn = strDirection.Compare("in");
-        if (strTemp.Exists()) SetClosingNum(strTemp.ToLong());
+        if (strDirection->Exists())
+            m_bExchangingIn = strDirection->Compare("in");
+        if (strTemp->Exists()) SetClosingNum(strTemp->ToLong());
 
         otInfo << "Basket Transfer multiple is " << m_nTransferMultiple
                << ". Direction is " << strDirection << ". Closing number is "
@@ -243,23 +248,26 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << strRequestAccountID << "\n";
 
         return 1;
-    } else if (strNodeName.Compare("basketItem")) {
+    } else if (strNodeName->Compare("basketItem")) {
         BasketItem* pItem = new BasketItem;
 
         OT_ASSERT_MSG(
             nullptr != pItem,
             "Error allocating memory in Basket::ProcessXMLNode\n");
 
-        String strTemp;
+        auto strTemp =
+            String::Factory(xml->getAttributeValue("minimumTransfer"));
+        if (strTemp->Exists())
+            pItem->lMinimumTransferAmount = strTemp->ToLong();
 
-        strTemp = xml->getAttributeValue("minimumTransfer");
-        if (strTemp.Exists()) pItem->lMinimumTransferAmount = strTemp.ToLong();
+        strTemp =
+            String::Factory(xml->getAttributeValue("closingTransactionNo"));
+        if (strTemp->Exists()) pItem->lClosingTransactionNo = strTemp->ToLong();
 
-        strTemp = xml->getAttributeValue("closingTransactionNo");
-        if (strTemp.Exists()) pItem->lClosingTransactionNo = strTemp.ToLong();
-
-        String strSubAccountID(xml->getAttributeValue("accountID")),
-            strContractID(xml->getAttributeValue("instrumentDefinitionID"));
+        auto strSubAccountID =
+                 String::Factory(xml->getAttributeValue("accountID")),
+             strContractID = String::Factory(
+                 xml->getAttributeValue("instrumentDefinitionID"));
         pItem->SUB_ACCOUNT_ID->SetString(strSubAccountID);
         pItem->SUB_CONTRACT_ID->SetString(strContractID);
 
@@ -296,13 +304,13 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID)
     // EXCHANGING instead.)
     //
     if (IsExchanging()) {
-        String strRequestAcctID(m_RequestAccountID);
+        auto strRequestAcctID = String::Factory(m_RequestAccountID);
 
         TagPtr tagRequest(new Tag("requestExchange"));
 
         tagRequest->add_attribute(
             "transferMultiple", formatInt(m_nTransferMultiple));
-        tagRequest->add_attribute("transferAccountID", strRequestAcctID.Get());
+        tagRequest->add_attribute("transferAccountID", strRequestAcctID->Get());
         tagRequest->add_attribute(
             "closingTransactionNo", formatLong(m_lClosingTransactionNo));
         tagRequest->add_attribute("direction", m_bExchangingIn ? "in" : "out");
@@ -317,16 +325,16 @@ void Basket::GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID)
             nullptr != pItem,
             "Error allocating memory in Basket::UpdateContents\n");
 
-        String strAcctID(pItem->SUB_ACCOUNT_ID),
-            strContractID(pItem->SUB_CONTRACT_ID);
+        auto strAcctID = String::Factory(pItem->SUB_ACCOUNT_ID),
+             strContractID = String::Factory(pItem->SUB_CONTRACT_ID);
 
         TagPtr tagItem(new Tag("basketItem"));
 
         tagItem->add_attribute(
             "minimumTransfer", formatLong(pItem->lMinimumTransferAmount));
         tagItem->add_attribute(
-            "accountID", bHideAccountID ? "" : strAcctID.Get());
-        tagItem->add_attribute("instrumentDefinitionID", strContractID.Get());
+            "accountID", bHideAccountID ? "" : strAcctID->Get());
+        tagItem->add_attribute("instrumentDefinitionID", strContractID->Get());
 
         if (IsExchanging()) {
             tagItem->add_attribute(

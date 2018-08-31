@@ -925,10 +925,10 @@ void OTCronItem::onFinalReceipt(
     // The finalReceipt Item's ATTACHMENT contains the UPDATED Cron Item.
     // (With the SERVER's signature on it!)
     //
-    String strUpdatedCronItem(*this);
-    String* pstrAttachment = &strUpdatedCronItem;
+    auto strUpdatedCronItem = String::Factory(*this);
+    OTString pstrAttachment = strUpdatedCronItem;
 
-    const String strOrigCronItem(theOrigCronItem);
+    const auto strOrigCronItem = String::Factory(theOrigCronItem);
 
     // First, we are closing the transaction number ITSELF, of this cron item,
     // as an active issued number on the originating nym. (Changing it to
@@ -968,7 +968,7 @@ void OTCronItem::onFinalReceipt(
                 lNewTransactionNumber,
                 strOrigCronItem,
                 GetOriginType(),
-                nullptr,  // note
+                String::Factory(),  // note
                 pstrAttachment)) {
             otErr << __FUNCTION__
                   << ": Failure dropping finalReceipt to Nymbox.\n";
@@ -991,10 +991,10 @@ void OTCronItem::onFinalReceipt(
                                  // put on the receipt.
                 strOrigCronItem,
                 GetOriginType(),
-                nullptr,          // note
+                String::Factory(),   // note
                 pstrAttachment))  // pActualAcct = nullptr by default.
-                                  // (This call will load it up in order
-                                  // to update the inbox hash.)
+                                     // (This call will load it up in order
+                                     // to update the inbox hash.)
             otErr << __FUNCTION__ << ": Failure dropping receipt into inbox.\n";
 
         // In this case, I'm passing nullptr for pstrNote, since there is no
@@ -1033,8 +1033,8 @@ bool OTCronItem::DropFinalReceiptToInbox(
     const std::int64_t& lClosingNumber,
     const String& strOrigCronItem,
     const originType theOriginType,
-    String* pstrNote,
-    String* pstrAttachment)
+    OTString pstrNote,
+    OTString pstrAttachment)
 {
     OT_ASSERT(nullptr != serverNym_);
 
@@ -1126,17 +1126,15 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
-        if (nullptr != pstrNote) {
-            pItem1->SetNote(*pstrNote);  // in markets, this is updated trade.
+        if (!pstrNote->Exists()) {
+            pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
         }
 
         // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the ** item.**
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (nullptr != pstrAttachment) {
-            pItem1->SetAttachment(*pstrAttachment);
-        }
+        if (!pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
 
         // sign the item
 
@@ -1212,8 +1210,8 @@ bool OTCronItem::DropFinalReceiptToNymbox(
     const TransactionNumber& lNewTransactionNumber,
     const String& strOrigCronItem,
     const originType theOriginType,
-    String* pstrNote,
-    String* pstrAttachment)
+    OTString pstrNote,
+    OTString pstrAttachment)
 {
     OT_ASSERT(nullptr != serverNym_);
 
@@ -1309,17 +1307,15 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
-        if (nullptr != pstrNote) {
-            pItem1->SetNote(*pstrNote);  // in markets, this is updated trade.
+        if (!pstrNote->Exists()) {
+            pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
         }
 
         // Also set the ** UPDATED OFFER ** as the ATTACHMENT on the ** item.**
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (nullptr != pstrAttachment) {
-            pItem1->SetAttachment(*pstrAttachment);
-        }
+        if (!pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
 
         // sign the item
 
@@ -1487,7 +1483,7 @@ bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
 void OTCronItem::InitCronItem()
 {
     m_strContractType->Set("CRONITEM");  // in practice should never appear.
-                                        // Child classes will overwrite.
+                                         // Child classes will overwrite.
 }
 
 void OTCronItem::ClearClosingNumbers() { m_dequeClosingNumbers.clear(); }

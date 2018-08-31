@@ -32,12 +32,12 @@ private:
 
     static api::Settings* s_settings;
 
-    static String s_strAppBinaryFolder;
-    static String s_strHomeFolder;
-    static String s_strAppDataFolder;
-    static String s_strGlobalConfigFile;
-    static String s_strPrefixFolder;
-    static String s_strScriptsFolder;
+    static OTString s_strAppBinaryFolder;
+    static OTString s_strHomeFolder;
+    static OTString s_strAppDataFolder;
+    static OTString s_strGlobalConfigFile;
+    static OTString s_strPrefixFolder;
+    static OTString s_strScriptsFolder;
 
 public:
     EXPORT ~OTPaths();
