@@ -153,8 +153,8 @@ private:
     /** You better have called Initialize() or Release() before you dare call
      * this. */
     void LowLevelSetStr(const String& buffer);
-
-//protected:
+//
+protected:
 public:
     EXPORT explicit String(const Armored& value);
     EXPORT explicit String(const OTSignature& value);

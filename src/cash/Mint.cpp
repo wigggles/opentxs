@@ -228,7 +228,8 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
             strInstrumentDefinitionID->Get(),
             szAppend);  // server side
     else
-        strFilename = strInstrumentDefinitionID->Get();  // client side
+        strFilename =
+            String::Factory(strInstrumentDefinitionID->Get());  // client side
 
     const char* szFolder1name = OTFolders::Mint().Get();  // "mints"
     const char* szFolder2name = strNotaryID->Get();       // "mints/NOTARY_ID"
@@ -299,7 +300,7 @@ bool Mint::SaveMint(const char* szAppend)
     if (nullptr != szAppend)
         strFilename->Format("%s%s", strInstrumentDefinitionID->Get(), szAppend);
     else
-        strFilename = strInstrumentDefinitionID->Get();
+        strFilename = String::Factory(strInstrumentDefinitionID->Get());
 
     const char* szFolder1name = OTFolders::Mint().Get();
     const char* szFolder2name = strNotaryID->Get();
@@ -559,15 +560,17 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (strNodeName->Compare("mint")) {
-        String strNotaryID, strServerNymID, strInstrumentDefinitionID,
-            strCashAcctID;
+        auto strNotaryID = String::Factory(),
+             strServerNymID = String::Factory(),
+             strInstrumentDefinitionID = String::Factory(),
+             strCashAcctID = String::Factory();
 
-        m_strVersion = xml->getAttributeValue("version");
-        strNotaryID = xml->getAttributeValue("notaryID");
-        strServerNymID = xml->getAttributeValue("serverNymID");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
+        strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        strServerNymID = String::Factory(xml->getAttributeValue("serverNymID"));
         strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        strCashAcctID = xml->getAttributeValue("cashAcctID");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        strCashAcctID = String::Factory(xml->getAttributeValue("cashAcctID"));
 
         m_nSeries = atoi(xml->getAttributeValue("series"));
         m_EXPIRATION = parseTimestamp(xml->getAttributeValue("expiration"));

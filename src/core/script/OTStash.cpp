@@ -88,14 +88,15 @@ std::int32_t OTStash::ReadFromXMLNode(
 
             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                 (!strcmp("stashItem", xml->getNodeName()))) {
-                String strInstrumentDefinitionID = xml->getAttributeValue(
-                    "instrumentDefinitionID");  // Instrument Definition ID of
-                                                // this account.
-                String strAmount = xml->getAttributeValue(
-                    "balance");  // Account ID for this account.
+                auto strInstrumentDefinitionID =
+                    String::Factory(xml->getAttributeValue(
+                        "instrumentDefinitionID"));  // Instrument Definition ID
+                                                     // of this account.
+                auto strAmount = String::Factory(xml->getAttributeValue(
+                    "balance"));  // Account ID for this account.
 
-                if (!strInstrumentDefinitionID.Exists() ||
-                    !strAmount.Exists()) {
+                if (!strInstrumentDefinitionID->Exists() ||
+                    !strAmount->Exists()) {
                     otErr << "OTStash::ReadFromXMLNode: Error loading "
                              "stashItem: Either the instrumentDefinitionID ("
                           << strInstrumentDefinitionID << "), or the balance ("
@@ -104,8 +105,8 @@ std::int32_t OTStash::ReadFromXMLNode(
                 }
 
                 if (!CreditStash(
-                        strInstrumentDefinitionID.Get(),
-                        strAmount.ToLong()))  // <===============
+                        strInstrumentDefinitionID->Get(),
+                        strAmount->ToLong()))  // <===============
                 {
                     otErr << "OTStash::ReadFromXMLNode: Failed crediting "
                              "stashItem for stash "
@@ -156,10 +157,10 @@ OTStash::OTStash(
     OTStashItem* pItem = new OTStashItem(theInstrumentDefinitionID, lAmount);
     OT_ASSERT(nullptr != pItem);
 
-    String strInstrumentDefinitionID(theInstrumentDefinitionID);
+    auto strInstrumentDefinitionID = String::Factory(theInstrumentDefinitionID);
 
     m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
-        strInstrumentDefinitionID.Get(), pItem));
+        strInstrumentDefinitionID->Get(), pItem));
 }
 
 OTStash::~OTStash()
@@ -183,13 +184,13 @@ OTStashItem* OTStash::GetStash(const std::string& str_instrument_definition_id)
     if (m_mapStashItems.end() == it)  // It's not already there for this
                                       // instrument definition.
     {
-        const String strInstrumentDefinitionID(
-            str_instrument_definition_id.c_str());
+        const auto strInstrumentDefinitionID =
+            String::Factory(str_instrument_definition_id.c_str());
         OTStashItem* pStashItem = new OTStashItem(strInstrumentDefinitionID);
         OT_ASSERT(nullptr != pStashItem);
 
         m_mapStashItems.insert(std::pair<std::string, OTStashItem*>(
-            strInstrumentDefinitionID.Get(), pStashItem));
+            strInstrumentDefinitionID->Get(), pStashItem));
         return pStashItem;
     }
 

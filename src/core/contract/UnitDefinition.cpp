@@ -291,7 +291,7 @@ bool UnitDefinition::DisplayStatistics(String& strContents) const
         " InstrumentDefinitionID: %s\n"
         "\n",
         type.c_str(),
-        String(id_).Get());
+        id_->str().c_str());
     return true;
 }
 
@@ -304,15 +304,15 @@ bool UnitDefinition::VisitAccountRecords(
 {
     Lock lock(lock_);
 
-    const String strInstrumentDefinitionID(id(lock));
-    String strAcctRecordFile;
-    strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
+    const auto strInstrumentDefinitionID = String::Factory(id(lock));
+    auto strAcctRecordFile = String::Factory();
+    strAcctRecordFile->Format("%s.a", strInstrumentDefinitionID->Get());
 
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::QueryObject(
         OTDB::STORED_OBJ_STRING_MAP,
         dataFolder,
         OTFolders::Contract().Get(),
-        strAcctRecordFile.Get(),
+        strAcctRecordFile->Get(),
         "",
         ""));
 
@@ -341,7 +341,7 @@ bool UnitDefinition::VisitAccountRecords(
                             // case
                             // someone copied the wrong file here...)
 
-            if (!strInstrumentDefinitionID.Compare(
+            if (!strInstrumentDefinitionID->Compare(
                     str_instrument_definition_id.c_str())) {
                 otErr << "OTUnitDefinition::VisitAccountRecords: Error: wrong "
                          "instrument definition ID ("
@@ -401,11 +401,11 @@ bool UnitDefinition::AddAccountRecord(
     }
 
     const auto theAcctID = Identifier::Factory(theAccount);
-    const String strAcctID(theAcctID);
+    const auto strAcctID = String::Factory(theAcctID);
 
-    const String strInstrumentDefinitionID(id(lock));
-    String strAcctRecordFile;
-    strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
+    const auto strInstrumentDefinitionID = String::Factory(id(lock));
+    auto strAcctRecordFile = String::Factory();
+    strAcctRecordFile->Format("%s.a", strInstrumentDefinitionID->Get());
 
     OTDB::Storable* pStorable = nullptr;
     std::unique_ptr<OTDB::Storable> theAngel;
@@ -414,7 +414,7 @@ bool UnitDefinition::AddAccountRecord(
     if (OTDB::Exists(
             dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get(),
+            strAcctRecordFile->Get(),
             "",
             ""))  // the file already exists; let's
                   // try to load it up.
@@ -422,7 +422,7 @@ bool UnitDefinition::AddAccountRecord(
             OTDB::STORED_OBJ_STRING_MAP,
             dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get(),
+            strAcctRecordFile->Get(),
             "",
             "");
     else  // the account records file (for this instrument definition) doesn't
@@ -445,7 +445,7 @@ bool UnitDefinition::AddAccountRecord(
     }
 
     auto& theMap = pMap->the_map;
-    auto map_it = theMap.find(strAcctID.Get());
+    auto map_it = theMap.find(strAcctID->Get());
 
     if (theMap.end() != map_it)  // we found it.
     {                            // We were ADDING IT, but it was ALREADY THERE.
@@ -463,7 +463,7 @@ bool UnitDefinition::AddAccountRecord(
         // --------------------------------          // every account should map
         // to the SAME instrument definition id.)
 
-        if (false == strInstrumentDefinitionID.Compare(str2.c_str()))  // should
+        if (false == strInstrumentDefinitionID->Compare(str2.c_str()))  // should
                                                                        // never
         // happen.
         {
@@ -488,7 +488,7 @@ bool UnitDefinition::AddAccountRecord(
 
     // ...so add it.
     //
-    theMap[strAcctID.Get()] = strInstrumentDefinitionID.Get();
+    theMap[strAcctID->Get()] = strInstrumentDefinitionID->Get();
 
     // Then save it back to local storage:
     //
@@ -496,7 +496,7 @@ bool UnitDefinition::AddAccountRecord(
             *pMap,
             dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get(),
+            strAcctRecordFile->Get(),
             "",
             "")) {
         otErr << szFunc
@@ -525,11 +525,11 @@ bool UnitDefinition::EraseAccountRecord(
     Lock lock(lock_);
     const char* szFunc = "OTUnitDefinition::EraseAccountRecord";
 
-    const String strAcctID(theAcctID);
+    const auto strAcctID = String::Factory(theAcctID);
 
-    const String strInstrumentDefinitionID(id(lock));
-    String strAcctRecordFile;
-    strAcctRecordFile.Format("%s.a", strInstrumentDefinitionID.Get());
+    const auto strInstrumentDefinitionID = String::Factory(id(lock));
+    auto strAcctRecordFile = String::Factory();
+    strAcctRecordFile->Format("%s.a", strInstrumentDefinitionID->Get());
 
     OTDB::Storable* pStorable = nullptr;
     std::unique_ptr<OTDB::Storable> theAngel;
@@ -538,7 +538,7 @@ bool UnitDefinition::EraseAccountRecord(
     if (OTDB::Exists(
             dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get(),
+            strAcctRecordFile->Get(),
             "",
             ""))  // the file already exists; let's
                   // try to load it up.
@@ -546,7 +546,7 @@ bool UnitDefinition::EraseAccountRecord(
             OTDB::STORED_OBJ_STRING_MAP,
             dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get(),
+            strAcctRecordFile->Get(),
             "",
             "");
     else  // the account records file (for this instrument definition) doesn't
@@ -571,7 +571,7 @@ bool UnitDefinition::EraseAccountRecord(
     // Before we can erase it, let's see if it's even there....
     //
     auto& theMap = pMap->the_map;
-    auto map_it = theMap.find(strAcctID.Get());
+    auto map_it = theMap.find(strAcctID->Get());
 
     // we found it!
     if (theMap.end() != map_it)  //  Acct ID was already there...
@@ -590,7 +590,7 @@ bool UnitDefinition::EraseAccountRecord(
             *pMap,
             dataFolder,
             OTFolders::Contract().Get(),
-            strAcctRecordFile.Get(),
+            strAcctRecordFile->Get(),
             "",
             "")) {
         otErr << szFunc
@@ -743,10 +743,10 @@ proto::UnitDefinition UnitDefinition::IDVersion(const Lock& lock) const
     contract.clear_signature();  // reinforcing that this field must be blank.
     contract.clear_publicnym();  // reinforcing that this field must be blank.
 
-    if (nullptr != nym_) {
-        String nymID;
+    if (nym_) {
+        auto nymID = String::Factory();
         nym_->GetIdentifier(nymID);
-        contract.set_nymid(nymID.Get());
+        contract.set_nymid(nymID->Get());
     }
 
     contract.set_shortname(short_name_);
@@ -761,7 +761,7 @@ proto::UnitDefinition UnitDefinition::IDVersion(const Lock& lock) const
 proto::UnitDefinition UnitDefinition::SigVersion(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
-    contract.set_id(String(id(lock)).Get());
+    contract.set_id(id(lock)->str().c_str());
 
     return contract;
 }
@@ -899,8 +899,8 @@ bool UnitDefinition::FormatAmountLocale(
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    String strDecimalPoint(
+    auto strSeparator = String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint = String::Factory(
         str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     // NOTE: from web searching, I've determined that locale / moneypunct has
@@ -918,8 +918,8 @@ bool UnitDefinition::FormatAmountLocale(
         DecimalPower(),
         (proto::UNITTYPE_CURRENCY == Type()) ? primary_unit_symbol_.c_str()
                                              : nullptr,
-        strSeparator.Get(),
-        strDecimalPoint.Get());
+        strSeparator->Get(),
+        strDecimalPoint->Get());
     return true;  // Note: might want to return false if str_output is empty.
 }
 
@@ -943,8 +943,8 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    String strDecimalPoint(
+    auto strSeparator = String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint = String::Factory(
         str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     str_output = UnitDefinition::formatLongAmount(
@@ -952,8 +952,8 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
         std::pow(10, DecimalPower()),
         DecimalPower(),
         nullptr,
-        strSeparator.Get(),
-        strDecimalPoint.Get());
+        strSeparator->Get(),
+        strDecimalPoint->Get());
     return true;  // Note: might want to return false if str_output is empty.
 }
 
@@ -982,8 +982,8 @@ bool UnitDefinition::StringToAmountLocale(
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    String strSeparator(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    String strDecimalPoint(
+    auto strSeparator = String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint = String::Factory(
         str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     bool bSuccess = UnitDefinition::ParseFormatted(
@@ -991,8 +991,8 @@ bool UnitDefinition::StringToAmountLocale(
         str_input,
         std::pow(10, DecimalPower()),
         DecimalPower(),
-        strSeparator.Get(),
-        strDecimalPoint.Get());
+        strSeparator->Get(),
+        strDecimalPoint->Get());
 
     return bSuccess;
 }

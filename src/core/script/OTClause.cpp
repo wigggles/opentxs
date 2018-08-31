@@ -31,16 +31,20 @@ namespace opentxs
 {
 
 OTClause::OTClause()
-    : m_pBylaw(nullptr)
+    : m_strName(String::Factory())
+    , m_strCode(String::Factory())
+    , m_pBylaw(nullptr)
 {
 }
 
 OTClause::OTClause(const char* szName, const char* szCode)
-    : m_pBylaw(nullptr)
+    : m_strName(String::Factory())
+    , m_strCode(String::Factory())
+    , m_pBylaw(nullptr)
 {
-    if (nullptr != szName) m_strName.Set(szName);
+    if (nullptr != szName) m_strName->Set(szName);
 
-    if (nullptr != szCode) m_strCode = szCode;
+    if (nullptr != szCode) String::Factory(m_strCode->Get()) = String::Factory(szCode);
 
     // Todo security:  validation on the above fields.
 }
@@ -55,12 +59,12 @@ OTClause::~OTClause()
 
 void OTClause::SetCode(const std::string& str_code)
 {
-    m_strCode.Set(str_code.c_str());
+    m_strCode->Set(str_code.c_str());
 }
 
 const char* OTClause::GetCode() const
 {
-    if (m_strCode.Exists()) return m_strCode.Get();
+    if (m_strCode->Exists()) return m_strCode->Get();
 
     return "print(\"(Empty script.)\")";  // todo hardcoding
 }
@@ -69,14 +73,14 @@ void OTClause::Serialize(Tag& parent) const
 {
     Armored ascCode;
 
-    if (m_strCode.GetLength() > 2)
+    if (m_strCode->GetLength() > 2)
         ascCode.SetString(m_strCode);
     else
         otErr << "Empty script code in OTClause::Serialize()\n";
 
     TagPtr pTag(new Tag("clause", ascCode.Get()));
 
-    pTag->add_attribute("name", m_strName.Get());
+    pTag->add_attribute("name", m_strName->Get());
 
     parent.add_tag(pTag);
 }
@@ -90,7 +94,7 @@ bool OTClause::Compare(const OTClause& rhs) const
         return false;
     }
 
-    if (!(m_strCode.Compare(rhs.GetCode()))) {
+    if (!(m_strCode->Compare(rhs.GetCode()))) {
         otOut << "OTClause::Compare: Source code for interpreted script fails "
                  "to match, on clause: "
               << GetName() << " \n";

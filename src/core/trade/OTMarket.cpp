@@ -122,16 +122,18 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (!strcmp("market", xml->getNodeName())) {
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
         SetScale(String::StringToLong(xml->getAttributeValue("marketScale")));
         m_lLastSalePrice =
             String::StringToLong(xml->getAttributeValue("lastSalePrice"));
         m_strLastSaleDate = xml->getAttributeValue("lastSaleDate");
 
-        const String strNotaryID(xml->getAttributeValue("notaryID")),
-            strInstrumentDefinitionID(
-                xml->getAttributeValue("instrumentDefinitionID")),
-            strCurrencyTypeID(xml->getAttributeValue("currencyTypeID"));
+        const auto strNotaryID =
+                       String::Factory(xml->getAttributeValue("notaryID")),
+                   strInstrumentDefinitionID = String::Factory(
+                       xml->getAttributeValue("instrumentDefinitionID")),
+                   strCurrencyTypeID = String::Factory(
+                       xml->getAttributeValue("currencyTypeID"));
 
         m_NOTARY_ID->SetString(strNotaryID);
         m_INSTRUMENT_DEFINITION_ID->SetString(strInstrumentDefinitionID);
@@ -149,15 +151,16 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         nReturnVal = 1;
     } else if (!strcmp("offer", xml->getNodeName())) {
-        const String strDateAdded(xml->getAttributeValue("dateAdded"));
+        const auto strDateAdded =
+            String::Factory(xml->getAttributeValue("dateAdded"));
         const std::int64_t lDateAdded =
-            strDateAdded.Exists() ? parseTimestamp(strDateAdded.Get()) : 0;
+            strDateAdded->Exists() ? parseTimestamp(strDateAdded->Get()) : 0;
         const time64_t tDateAdded = OTTimeGetTimeFromSeconds(lDateAdded);
 
-        String strData;
+        auto strData = String::Factory();
 
         if (!Contract::LoadEncodedTextField(xml, strData) ||
-            !strData.Exists()) {
+            !strData->Exists()) {
             otErr << "Error in OTMarket::" << __FUNCTION__
                   << ": offer field without value.\n";
             return (-1);  // error condition
@@ -195,16 +198,18 @@ void OTMarket::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    const String NOTARY_ID(m_NOTARY_ID),
-        INSTRUMENT_DEFINITION_ID(m_INSTRUMENT_DEFINITION_ID),
-        CURRENCY_TYPE_ID(m_CURRENCY_TYPE_ID);
+    const auto NOTARY_ID = String::Factory(m_NOTARY_ID),
+               INSTRUMENT_DEFINITION_ID =
+                   String::Factory(m_INSTRUMENT_DEFINITION_ID),
+               CURRENCY_TYPE_ID = String::Factory(m_CURRENCY_TYPE_ID);
 
     Tag tag("market");
 
     tag.add_attribute("version", m_strVersion->Get());
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
-    tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID.Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute("currencyTypeID", CURRENCY_TYPE_ID->Get());
     tag.add_attribute("marketScale", formatLong(m_lScale));
     tag.add_attribute("lastSaleDate", m_strLastSaleDate);
     tag.add_attribute("lastSalePrice", formatLong(m_lLastSalePrice));
@@ -214,8 +219,8 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        String strOffer(*pOffer);    // Extract the offer contract into string
-                                     // form.
+        auto strOffer = String::Factory(*pOffer);  // Extract the offer contract
+                                                   // into string form.
         Armored ascOffer(strOffer);  // Base64-encode that for storage.
 
         TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
@@ -229,8 +234,8 @@ void OTMarket::UpdateContents()
         OTOffer* pOffer = it.second;
         OT_ASSERT(nullptr != pOffer);
 
-        String strOffer(*pOffer);    // Extract the offer contract into string
-                                     // form.
+        auto strOffer = String::Factory(*pOffer);  // Extract the offer contract
+                                                   // into string form.
         Armored ascOffer(strOffer);  // Base64-encode that for storage.
 
         TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
@@ -304,16 +309,17 @@ bool OTMarket::GetNym_OfferList(
         const time64_t tDateAddedToMarket = pOffer->GetDateAddedToMarket();
 
         const Identifier& theNotaryID = pOffer->GetNotaryID();
-        const String strNotaryID(theNotaryID);
+        const auto strNotaryID = String::Factory(theNotaryID);
         const Identifier& theInstrumentDefinitionID =
             pOffer->GetInstrumentDefinitionID();
-        const String strInstrumentDefinitionID(theInstrumentDefinitionID);
+        const auto strInstrumentDefinitionID =
+            String::Factory(theInstrumentDefinitionID);
         const Identifier& theAssetAcctID = pTrade->GetSenderAcctID();
-        const String strAssetAcctID(theAssetAcctID);
+        const auto strAssetAcctID = String::Factory(theAssetAcctID);
         const Identifier& theCurrencyID = pOffer->GetCurrencyID();
-        const String strCurrencyID(theCurrencyID);
+        const auto strCurrencyID = String::Factory(theCurrencyID);
         const Identifier& theCurrencyAcctID = pTrade->GetCurrencyAcctID();
-        const String strCurrencyAcctID(theCurrencyAcctID);
+        const auto strCurrencyAcctID = String::Factory(theCurrencyAcctID);
 
         const bool bSelling = pOffer->IsAsk();
 
@@ -343,11 +349,11 @@ bool OTMarket::GetNym_OfferList(
 
         pOfferData->date = to_string<time64_t>(tDateAddedToMarket);
 
-        pOfferData->notary_id = strNotaryID.Get();
-        pOfferData->instrument_definition_id = strInstrumentDefinitionID.Get();
-        pOfferData->asset_acct_id = strAssetAcctID.Get();
-        pOfferData->currency_type_id = strCurrencyID.Get();
-        pOfferData->currency_acct_id = strCurrencyAcctID.Get();
+        pOfferData->notary_id = strNotaryID->Get();
+        pOfferData->instrument_definition_id = strInstrumentDefinitionID->Get();
+        pOfferData->asset_acct_id = strAssetAcctID->Get();
+        pOfferData->currency_type_id = strCurrencyID->Get();
+        pOfferData->currency_acct_id = strCurrencyAcctID->Get();
 
         pOfferData->selling = bSelling;
 
@@ -792,10 +798,10 @@ bool OTMarket::LoadMarket()
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
     auto MARKET_ID = Identifier::Factory(*this);
-    String str_MARKET_ID(MARKET_ID);
+    auto str_MARKET_ID = String::Factory(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
-    const char* szFilename = str_MARKET_ID.Get();
+    const char* szFilename = str_MARKET_ID->Get();
 
     bool bSuccess =
         OTDB::Exists(api_.DataFolder(), szFoldername, szFilename, "", "");
@@ -809,8 +815,8 @@ bool OTMarket::LoadMarket()
     if (bSuccess) {
         if (nullptr != m_pTradeList) delete m_pTradeList;
 
-        String str_TRADES_FILE;
-        str_TRADES_FILE.Format("%s.bin", str_MARKET_ID.Get());
+        auto str_TRADES_FILE = String::Factory();
+        str_TRADES_FILE->Format("%s.bin", str_MARKET_ID->Get());
 
         const char* szSubFolder = "recent";  // todo stop hardcoding.
 
@@ -819,7 +825,7 @@ bool OTMarket::LoadMarket()
             api_.DataFolder(),
             szFoldername,  // markets
             szSubFolder,   // markets/recent
-            str_TRADES_FILE.Get(),
+            str_TRADES_FILE->Get(),
             ""));  // markets/recent/<market_ID>.bin
     }
 
@@ -832,10 +838,10 @@ bool OTMarket::SaveMarket()
     OT_ASSERT(nullptr != GetCron()->GetServerNym());
 
     auto MARKET_ID = Identifier::Factory(*this);
-    String str_MARKET_ID(MARKET_ID);
+    auto str_MARKET_ID = String::Factory(MARKET_ID);
 
     const char* szFoldername = OTFolders::Market().Get();
-    const char* szFilename = str_MARKET_ID.Get();
+    const char* szFilename = str_MARKET_ID->Get();
 
     // Remember, if the market has changed, the new contents will not be written
     // anywhere
@@ -857,8 +863,8 @@ bool OTMarket::SaveMarket()
 
     if (nullptr != m_pTradeList) {
 
-        String str_TRADES_FILE;
-        str_TRADES_FILE.Format("%s.bin", str_MARKET_ID.Get());
+        auto str_TRADES_FILE = String::Factory();
+        str_TRADES_FILE->Format("%s.bin", str_MARKET_ID->Get());
 
         const char* szSubFolder = "recent";  // todo stop hardcoding.
 
@@ -868,7 +874,7 @@ bool OTMarket::SaveMarket()
                 api_.DataFolder(),
                 szFoldername,  // markets
                 szSubFolder,   // markets/recent
-                str_TRADES_FILE.Get(),
+                str_TRADES_FILE->Get(),
                 ""))  // markets/recent/<Market_ID>.bin
             otErr << "Error saving recent trades for Market:\n"
                   << szFoldername << Log::PathSeparator() << szSubFolder
@@ -883,17 +889,18 @@ bool OTMarket::SaveMarket()
 //
 void OTMarket::GetIdentifier(Identifier& theIdentifier) const
 {
-    String strTemp, strAsset(GetInstrumentDefinitionID()),
-        strCurrency(GetCurrencyID());
+    auto strTemp = String::Factory(),
+         strAsset = String::Factory(GetInstrumentDefinitionID()),
+         strCurrency = String::Factory(GetCurrencyID());
 
     std::int64_t lScale = GetScale();
 
     // In this way we generate a unique ID that will always be consistent
     // for the same instrument definition id, currency ID, and market scale.
-    strTemp.Format(
+    strTemp->Format(
         "ASSET TYPE:\n%s\nCURRENCY TYPE:\n%s\nMARKET SCALE:\n%" PRId64 "\n",
-        strAsset.Get(),
-        strCurrency.Get(),
+        strAsset->Get(),
+        strCurrency->Get(),
         lScale);
 
     theIdentifier.CalculateDigest(strTemp);
@@ -1122,7 +1129,7 @@ void OTMarket::ProcessTrade(
     {
         pFirstNym = api_.Wallet().Nym(FIRST_NYM_ID);
         if (nullptr == pFirstNym) {
-            String strNymID(FIRST_NYM_ID);
+            auto strNymID = String::Factory(FIRST_NYM_ID);
             otErr << "OTMarket::" << __FUNCTION__
                   << ": Failure verifying trade, offer, or nym, or loading "
                      "signed Nymfile: "
@@ -1145,7 +1152,7 @@ void OTMarket::ProcessTrade(
     {
         pOtherNym = api_.Wallet().Nym(OTHER_NYM_ID);
         if (nullptr == pOtherNym) {
-            String strNymID(OTHER_NYM_ID);
+            auto strNymID = String::Factory(OTHER_NYM_ID);
             otErr << "Failure loading or verifying Other Nym public key in "
                      "OTMarket::"
                   << __FUNCTION__ << ": " << strNymID << "\n";
@@ -1961,8 +1968,8 @@ void OTMarket::ProcessTrade(
             // already verified when they were first added to the
             // market--and they have been signed by the server nym ever
             // since.)
-            String strOrigTrade(*pOrigTrade),
-                strOrigOtherTrade(*pOrigOtherTrade);
+            auto strOrigTrade = String::Factory(*pOrigTrade),
+                 strOrigOtherTrade = String::Factory(*pOrigOtherTrade);
 
             // The reference on the transaction contains OTCronItem, in
             // this case. The original trade for each party, versus the
@@ -1981,8 +1988,10 @@ void OTMarket::ProcessTrade(
 
             // Lucky I just signed and saved these trades / offers
             // above, or they would still have the old data in them.
-            String strTrade(theTrade), strOtherTrade(*pOtherTrade),
-                strOffer(theOffer), strOtherOffer(theOtherOffer);
+            auto strTrade = String::Factory(theTrade),
+                 strOtherTrade = String::Factory(*pOtherTrade),
+                 strOffer = String::Factory(theOffer),
+                 strOtherOffer = String::Factory(theOtherOffer);
 
             // The marketReceipt ITEM's NOTE contains the UPDATED TRADE.
             //
@@ -2574,39 +2583,41 @@ bool OTMarket::ProcessTrade(
 
 // Make sure the offer is for the right instrument definition, the right
 // currency, etc.
-bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
+bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
 {
     bool bValidOffer = true;
-    String strReason("");
+    auto strReason = String::Factory();
 
     if (GetNotaryID() != theOffer.GetNotaryID()) {
         bValidOffer = false;
-        const String strID(GetNotaryID()), strOtherID(theOffer.GetNotaryID());
-        strReason.Format(
+        const auto strID = String::Factory(GetNotaryID()),
+                   strOtherID = String::Factory(theOffer.GetNotaryID());
+        strReason->Format(
             "Wrong Notary ID on offer. Expected %s, but found %s",
-            strID.Get(),
-            strOtherID.Get());
+            strID->Get(),
+            strOtherID->Get());
     } else if (
         GetInstrumentDefinitionID() != theOffer.GetInstrumentDefinitionID()) {
         bValidOffer = false;
-        const String strID(GetInstrumentDefinitionID()),
-            strOtherID(theOffer.GetInstrumentDefinitionID());
-        strReason.Format(
+        const auto strID = String::Factory(GetInstrumentDefinitionID()),
+                   strOtherID =
+                       String::Factory(theOffer.GetInstrumentDefinitionID());
+        strReason->Format(
             "Wrong Instrument Definition Id on offer. Expected "
             "%s, but found %s",
-            strID.Get(),
-            strOtherID.Get());
+            strID->Get(),
+            strOtherID->Get());
     } else if (GetCurrencyID() != theOffer.GetCurrencyID()) {
         bValidOffer = false;
-        const String strID(GetCurrencyID()),
-            strOtherID(theOffer.GetCurrencyID());
-        strReason.Format(
+        const auto strID = String::Factory(GetCurrencyID()),
+                   strOtherID = String::Factory(theOffer.GetCurrencyID());
+        strReason->Format(
             "Wrong Currency ID on offer. Expected %s, but found %s",
-            strID.Get(),
-            strOtherID.Get());
+            strID->Get(),
+            strOtherID->Get());
     } else if (GetScale() != theOffer.GetScale()) {
         bValidOffer = false;
-        strReason.Format(
+        strReason->Format(
             "Wrong Market Scale on offer. Expected %" PRId64
             ", but found %" PRId64,
             GetScale(),
@@ -2617,26 +2628,26 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
     // same MARKET.
     else if (theOffer.GetMinimumIncrement() <= 0) {
         bValidOffer = false;
-        strReason.Format(
+        strReason->Format(
             "Minimum Increment on offer is <= 0: %" PRId64,
             theOffer.GetMinimumIncrement());
     } else if (theOffer.GetMinimumIncrement() < GetScale()) {
         bValidOffer = false;
-        strReason.Format(
+        strReason->Format(
             "Minimum Increment on offer (%" PRId64
             ") is less than market scale (%" PRId64 ").",
             theOffer.GetMinimumIncrement(),
             GetScale());
     } else if ((theOffer.GetMinimumIncrement() % GetScale()) != 0) {
         bValidOffer = false;
-        strReason.Format(
+        strReason->Format(
             "Minimum Increment on offer (%" PRId64
             ") Mod market scale (%" PRId64 ") is not equal to zero.",
             theOffer.GetMinimumIncrement(),
             GetScale());
     } else if (theOffer.GetMinimumIncrement() > theOffer.GetAmountAvailable()) {
         bValidOffer = false;
-        strReason.Format(
+        strReason->Format(
             "Minimum Increment on offer (%" PRId64
             ") is more than the amount of "
             "assets available for trade on that same offer (%" PRId64 ").",
@@ -2649,14 +2660,12 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer, String* pReason)
     else {
         otOut << __FUNCTION__
               << ": Offer is invalid for this market: " << strReason << "\n";
-
-        if (nullptr != pReason) *pReason = strReason;
     }
 
     return bValidOffer;
 }
 
-void OTMarket::InitMarket() { m_strContractType = "MARKET"; }
+void OTMarket::InitMarket() { m_strContractType = String::Factory("MARKET"); }
 
 void OTMarket::Release_Market()
 {

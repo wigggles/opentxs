@@ -1569,7 +1569,7 @@ bool OTSmartContract::SendANoticeToAllParties()
             lNewTransactionNumber,
             // GetTransactionNum(), // each party has its own opening number.
             strReference);  // pstrNote and pstrAttachment aren't used in this
-                           // case.
+                            // case.
 
         otOut << __FUNCTION__
               << ": Dropping notifications into all parties' nymboxes: "

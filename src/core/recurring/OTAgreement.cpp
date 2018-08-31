@@ -239,7 +239,9 @@ bool OTAgreement::DropServerNoticeToNymbox(
         // Nothing is special stored here so far for transactionType::notice,
         // but the option is always there.
         //
-        if (!pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
+        if (!pstrAttachment->Exists()) {
+            pItem1->SetAttachment(pstrAttachment);
+        }
 
         // sign the item
         //
@@ -392,7 +394,7 @@ void OTAgreement::onFinalReceipt(
             ? theOrigCronItem.GetClosingTransactionNoAt(0)
             : 0;  // index 0 is closing number for sender, since
                   // GetTransactionNum() is his opening #.
-    const String strNotaryID(GetNotaryID());
+    const auto strNotaryID = String::Factory(GetNotaryID());
     auto oContext = api_.Wallet().mutable_ClientContext(
         pServerNym->ID(), theOriginator->ID());
 
@@ -440,8 +442,8 @@ void OTAgreement::onFinalReceipt(
                 GetOriginType(),
                 String::Factory(),
                 pstrAttachment))  // pActualAcct=nullptr by default. (This
-                                     // call will load it up and update its
-                                     // inbox hash.)
+                                  // call will load it up and update its
+                                  // inbox hash.)
         {
             otErr << szFunc
                   << ": Failure dropping receipt into sender's inbox.\n";
@@ -704,7 +706,7 @@ bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
     // receipt...
     if (true == ot_super::CanRemoveItemFromCron(context)) { return true; }
 
-    const String strNotaryID(GetNotaryID());
+    const auto strNotaryID = String::Factory(GetNotaryID());
 
     // Usually the Nym is the originator. (Meaning GetTransactionNum() on this
     // agreement is still verifiable as an issued number on theNum, and belongs
@@ -715,9 +717,11 @@ bool OTAgreement::CanRemoveItemFromCron(const ClientContext& context)
     // (see below.)
     if (!context.RemoteNym().CompareID(GetRecipientNymID())) {
         otOut << "OTAgreement::" << __FUNCTION__ << "\n Context Remote Nym ID: "
-              << String(context.RemoteNym().ID()) << "\n"
-              << "\n Sender Nym ID: " << String(GetSenderNymID()) << "\n"
-              << "\n Recipient Nym ID: " << String(GetRecipientNymID()) << "\n"
+              << String::Factory(context.RemoteNym().ID()) << "\n"
+              << "\n Sender Nym ID: " << String::Factory(GetSenderNymID())
+              << "\n"
+              << "\n Recipient Nym ID: " << String::Factory(GetRecipientNymID())
+              << "\n"
               << " Weird: Nym tried to remove agreement (payment plan), even "
                  "though he apparently wasn't the sender OR recipient.\n";
 
@@ -882,7 +886,7 @@ bool OTAgreement::SetProposal(
 
     // Since we'll be needing 2 transaction numbers to do this, let's grab
     // 'em...
-    String strNotaryID(GetNotaryID());
+    auto strNotaryID = String::Factory(GetNotaryID());
     const auto openingNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
     const auto closingNumber =
@@ -1010,7 +1014,7 @@ bool OTAgreement::Confirm(
     // re-signing it,
     // (to add my own transaction numbers...)
     //
-    String strTemp;
+    auto strTemp = String::Factory();
     SaveContractRaw(strTemp);
     SetMerchantSignedCopy(strTemp);
     // --------------------------------------------------
@@ -1037,7 +1041,7 @@ bool OTAgreement::Confirm(
     // The payer has to submit TWO transaction numbers in order to activate this
     // agreement...
     //
-    String strNotaryID(GetNotaryID());
+    auto strNotaryIDstrTemp = String::Factory(GetNotaryID());
     const auto openingNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
     const auto closingNumber =
@@ -1084,7 +1088,10 @@ bool OTAgreement::Confirm(
     return true;
 }
 
-void OTAgreement::InitAgreement() { m_strContractType = "AGREEMENT"; }
+void OTAgreement::InitAgreement()
+{
+    m_strContractType = String::Factory("AGREEMENT");
+}
 
 void OTAgreement::Release_Agreement()
 {
@@ -1133,7 +1140,7 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (0 != (nReturnVal = ot_super::ProcessXMLNode(xml))) return nReturnVal;
 
     if (!strcmp("agreement", xml->getNodeName())) {
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
         SetTransactionNum(
             String::StringToLong(xml->getAttributeValue("transactionNum")));
 
@@ -1150,20 +1157,27 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
 
-        const String strNotaryID(xml->getAttributeValue("notaryID")),
-            strInstrumentDefinitionID(
-                xml->getAttributeValue("instrumentDefinitionID")),
-            strSenderAcctID(xml->getAttributeValue("senderAcctID")),
-            strSenderNymID(xml->getAttributeValue("senderNymID")),
-            strRecipientAcctID(xml->getAttributeValue("recipientAcctID")),
-            strRecipientNymID(xml->getAttributeValue("recipientNymID")),
-            strCanceled(xml->getAttributeValue("canceled")),
-            strCancelerNymID(xml->getAttributeValue("cancelerNymID"));
+        const auto strNotaryID =
+                       String::Factory(xml->getAttributeValue("notaryID")),
+                   strInstrumentDefinitionID = String::Factory(
+                       xml->getAttributeValue("instrumentDefinitionID")),
+                   strSenderAcctID =
+                       String::Factory(xml->getAttributeValue("senderAcctID")),
+                   strSenderNymID =
+                       String::Factory(xml->getAttributeValue("senderNymID")),
+                   strRecipientAcctID = String::Factory(
+                       xml->getAttributeValue("recipientAcctID")),
+                   strRecipientNymID = String::Factory(
+                       xml->getAttributeValue("recipientNymID")),
+                   strCanceled =
+                       String::Factory(xml->getAttributeValue("canceled")),
+                   strCancelerNymID =
+                       String::Factory(xml->getAttributeValue("cancelerNymID"));
 
-        if (strCanceled.Exists() && strCanceled.Compare("true")) {
+        if (strCanceled->Exists() && strCanceled->Compare("true")) {
             m_bCanceled = true;
 
-            if (strCancelerNymID.Exists())
+            if (strCancelerNymID->Exists())
                 m_pCancelerNymID->SetString(strCancelerNymID);
             // else log
         } else {
@@ -1227,10 +1241,11 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //  used
     // for CLOSING a transaction. (finalReceipt.)
     else if (!strcmp("closingRecipientNumber", xml->getNodeName())) {
-        String strClosingNumber = xml->getAttributeValue("value");
+        auto strClosingNumber =
+            String::Factory(xml->getAttributeValue("value"));
 
-        if (strClosingNumber.Exists()) {
-            const TransactionNumber lClosingNumber = strClosingNumber.ToLong();
+        if (strClosingNumber->Exists()) {
+            const TransactionNumber lClosingNumber = strClosingNumber->ToLong();
 
             AddRecipientClosingTransactionNo(lClosingNumber);
         } else {

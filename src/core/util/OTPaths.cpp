@@ -263,7 +263,8 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
             auto strConfigPath = String::Factory();
 
             bool bIsNew = false;
-            auto strPrefixPathOverride = String::Factory("prefix_path_override");
+            auto strPrefixPathOverride =
+                String::Factory("prefix_path_override");
 
             if (!config.CheckSet_str(
                     "paths",
@@ -1025,7 +1026,8 @@ bool OTPaths::AppendFolder(
         OT_FAIL;
     }
 
-    auto l_strBasePath_fix = String::Factory(), l_strFolderName_fix = String::Factory();
+    auto l_strBasePath_fix = String::Factory(),
+         l_strFolderName_fix = String::Factory();
 
     if (!FixPath(strBasePath, l_strBasePath_fix, true)) return false;
     if (!FixPath(strFolderName, l_strFolderName_fix, true)) return false;
@@ -1060,7 +1062,8 @@ bool OTPaths::AppendFile(
         OT_FAIL;
     }
 
-    auto l_strBasePath_fix = String::Factory(), l_strFileName_fix = String::Factory();
+    auto l_strBasePath_fix = String::Factory(),
+         l_strFileName_fix = String::Factory();
 
     if (!FixPath(strBasePath, l_strBasePath_fix, true)) return false;
     if (!FixPath(strFileName, l_strFileName_fix, false)) return false;
@@ -1110,7 +1113,8 @@ bool OTPaths::RelativeToCanonical(
 
     l_strBasePath.append(l_strRelativePath);
 
-    auto l_strPath = String::Factory(l_strBasePath), l_strCanonicalPath = String::Factory();
+    auto l_strPath = String::Factory(l_strBasePath),
+         l_strCanonicalPath = String::Factory();
 
     if (!ToReal(l_strPath, l_strCanonicalPath)) return false;
 
@@ -1126,7 +1130,8 @@ bool OTPaths::BuildFolderPath(
 {
     out_bFolderCreated = false;
 
-    auto l_strFolderPath_fix = String::Factory(), l_strFolderPath_real = String::Factory();
+    auto l_strFolderPath_fix = String::Factory(),
+         l_strFolderPath_real = String::Factory();
 
     if (!ToReal(strFolderPath, l_strFolderPath_real))
         return false;  // path to real
@@ -1134,7 +1139,8 @@ bool OTPaths::BuildFolderPath(
     if (!FixPath(l_strFolderPath_real, l_strFolderPath_fix, true))
         return false;  // real to fixed real
 
-    std::string l_strFolderPath(l_strFolderPath_fix->Get());  // fixed real path.
+    std::string l_strFolderPath(l_strFolderPath_fix->Get());  // fixed real
+                                                              // path.
 
     std::vector<std::string> vFolders;
 
@@ -1176,7 +1182,8 @@ bool OTPaths::BuildFilePath(
 {
     out_bFolderCreated = false;
 
-    auto l_strFilePath_fix = String::Factory(), l_strFilePath_real = String::Factory();
+    auto l_strFilePath_fix = String::Factory(),
+         l_strFilePath_real = String::Factory();
 
     if (!ToReal(strFolderPath, l_strFilePath_real))
         return false;  // path to real

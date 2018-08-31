@@ -51,7 +51,7 @@ typedef std::map<std::int64_t, OTOffer*> mapOfOffersTrnsNum;
 class OTMarket : public Contract
 {
 public:
-    bool ValidateOfferForMarket(OTOffer& theOffer, String* pReason = nullptr);
+    bool ValidateOfferForMarket(OTOffer& theOffer);
 
     OTOffer* GetOffer(const std::int64_t& lTransactionNum);
     bool AddOffer(

@@ -20,8 +20,8 @@ class Tag;
 
 class OTClause
 {
-    String m_strName;   // Name of this Clause.
-    String m_strCode;   // script code.
+    OTString m_strName;   // Name of this Clause.
+    OTString m_strCode;   // script code.
     OTBylaw* m_pBylaw;  // the Bylaw that this clause belongs to.
 
 public:
