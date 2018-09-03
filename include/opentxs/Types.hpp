@@ -20,7 +20,6 @@
 
 namespace opentxs
 {
-
 class Message;
 class Nym;
 class String;
@@ -680,5 +679,21 @@ enum class RemoteBoxType : std::int8_t {
     Inbox = 1,
     Outbox = 2,
 };
+
+namespace network
+{
+namespace zeromq
+{
+namespace zap
+{
+enum class Mechanism {
+    Unknown = 0,
+    Null = 1,
+    Plain = 2,
+    Curve = 3,
+};
+}  // namespace zap
+}  // namespace zeromq
+}  // namespace network
 }  // namespace opentxs
 #endif

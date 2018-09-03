@@ -5,6 +5,8 @@
 
 set(MODULE_NAME opentxs-network-zeromq)
 
+add_subdirectory(zap)
+
 set(cxx-sources
   Bidirectional.cpp
   Context.cpp
