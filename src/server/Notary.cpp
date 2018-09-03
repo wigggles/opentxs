@@ -2829,6 +2829,10 @@ void Notary::NotarizeDeposit(
         depositItem = input.GetItem(itemType::deposit);
         permission &= NYM_IS_ALLOWED(
             nymID.str(), ServerSettings::__transact_deposit_cash);
+#if OT_CASH
+#endif
+#if OT_CASH
+#endif
     }
 
     responseItem.reset(

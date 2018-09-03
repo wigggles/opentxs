@@ -206,7 +206,6 @@ void Manager::generate_mint(
     mint->SaveMint(PUBLIC_SERIES);
 }
 #endif  // OT_CASH
-
 const std::string Manager::get_arg(const std::string& argName) const
 {
     auto argIt = args_.find(argName);

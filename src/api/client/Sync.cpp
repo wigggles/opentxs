@@ -32,6 +32,7 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
+#include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
@@ -1250,6 +1251,49 @@ const Identifier& Sync::IntroductionServer() const
     return *introduction_server_id_;
 }
 
+bool Sync::issue_unit_definition(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const Identifier& unitID) const
+{
+    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == unitID.empty())
+
+    auto unitdefinition = client_.Wallet().UnitDefinition(unitID);
+    if (false == bool(unitdefinition)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Unit definition not found"
+              << std::endl;
+
+        return false;
+    }
+
+    auto action = client_.ServerAction().IssueUnitDefinition(
+        nymID, serverID, unitdefinition->PublicContract());
+    action->Run();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+            client_.Pair().Update();
+
+            return finish_task(taskID, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to issue unit definition for " << unitID.str()
+                  << " on server " << serverID.str() << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while issuing unit definition"
+              << " on server " << serverID.str() << std::endl;
+    }
+
+    return finish_task(taskID, false);
+}
+
 void Sync::load_introduction_server(const Lock& lock) const
 {
     OT_ASSERT(verify_lock(lock, introduction_server_lock_))
@@ -1959,6 +2003,21 @@ OTIdentifier Sync::ScheduleDownloadNymbox(
     return schedule_download_nymbox(localNymID, serverID);
 }
 
+OTIdentifier Sync::ScheduleIssueUnitDefinition(
+    const Identifier& localNymID,
+    const Identifier& serverID,
+    const Identifier& unitID) const
+{
+    CHECK_ARGS(localNymID, serverID, unitID)
+
+    start_introduction_server(localNymID);
+    auto& queue = get_operations({localNymID, serverID});
+    const auto taskID(Identifier::Random());
+
+    return start_task(
+        taskID, queue.issue_unit_definition_.Push(taskID, unitID));
+}
+
 OTIdentifier Sync::ScheduleProcessInbox(
     const Identifier& localNymID,
     const Identifier& serverID,
@@ -2006,6 +2065,36 @@ OTIdentifier Sync::ScheduleRegisterNym(
     const auto taskID(Identifier::Random());
 
     return start_task(taskID, queue.register_nym_.Push(taskID, true));
+}
+
+OTIdentifier Sync::ScheduleSendCheque(
+    const Identifier& senderNymID,
+    const Identifier& sourceAccountID,
+    const Identifier& contactID,
+    const Amount value,
+    const std::string& memo,
+    const Time validFrom,
+    const Time validTo) const
+{
+    CHECK_SERVER(senderNymID, contactID)
+
+    start_introduction_server(senderNymID);
+    auto serverID = Identifier::Factory();
+    auto recipientNymID = Identifier::Factory();
+    const auto canMessage =
+        can_message(senderNymID, contactID, recipientNymID, serverID);
+
+    if (Messagability::READY != canMessage) { return Identifier::Factory(); }
+
+    OT_ASSERT(false == serverID->empty())
+    OT_ASSERT(false == recipientNymID->empty())
+
+    auto& queue = get_operations({senderNymID, serverID});
+    const auto taskID(Identifier::Random());
+    SendChequeTask task{
+        sourceAccountID, recipientNymID, value, memo, validFrom, validTo};
+
+    return start_task(taskID, queue.send_cheque_.Push(taskID, task));
 }
 
 bool Sync::send_transfer(
@@ -2122,6 +2211,7 @@ OTIdentifier Sync::SendCheque(
     }
 
     std::shared_ptr<OTPayment> ppayment{payment.release()};
+
     return PayContact(localNymID, recipientContactID, ppayment);
 }
 
@@ -2357,6 +2447,12 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     OTPassword serverPassword;
     MessageTask message{Identifier::Factory(), ""};
     PaymentTask payment{Identifier::Factory(), {}};
+    SendChequeTask sendCheque{Identifier::Factory(),
+                              Identifier::Factory(),
+                              0,
+                              "",
+                              Clock::now(),
+                              Clock::now()};
 #if OT_CASH
     PayCashTask cash_payment{Identifier::Factory(), {}, {}};
 #endif  // OT_CASH
@@ -2533,6 +2629,53 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             message_nym(taskID, nymID, serverID, recipientID, text);
         }
 
+        // Download the nymbox, if this operation has been scheduled
+        if (queue.download_nymbox_.Pop(taskID, downloadNymbox)) {
+            otWarn << OT_METHOD << __FUNCTION__ << ": Downloading nymbox for "
+                   << nymID->str() << " on " << serverID->str() << std::endl;
+            registerNym |= !download_nymbox(taskID, nymID, serverID);
+        }
+
+        SHUTDOWN()
+
+        // This is a list of cheques which need to be written and delivered to
+        // a nym on this server
+        while (queue.send_cheque_.Pop(taskID, sendCheque)) {
+            SHUTDOWN()
+
+            auto& [accountID, recipientID, amount, memo, start, end] =
+                sendCheque;
+
+            if (accountID->empty()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": How did an empty account ID get in here?"
+                      << std::endl;
+
+                continue;
+            }
+
+            if (recipientID->empty()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": How did an empty recipient nymID get in here?"
+                      << std::endl;
+
+                continue;
+            }
+
+            write_and_send_cheque(
+                taskID,
+                nymID,
+                serverID,
+                accountID,
+                recipientID,
+                amount,
+                memo,
+                start,
+                end);
+        }
+
+        SHUTDOWN()
+
         // This is a list of payments which need to be delivered to a nym
         // on this server
         while (queue.send_payment_.Pop(taskID, payment)) {
@@ -2550,6 +2693,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
             pay_nym(taskID, nymID, serverID, recipientID, pPayment);
         }
+
+        SHUTDOWN()
 
 #if OT_CASH
         // This is a list of cash payments which need to be delivered to a nym
@@ -2576,13 +2721,6 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                 pSenderPurse);
         }
 #endif
-
-        // Download the nymbox, if this operation has been scheduled
-        if (queue.download_nymbox_.Pop(taskID, downloadNymbox)) {
-            otWarn << OT_METHOD << __FUNCTION__ << ": Downloading nymbox for "
-                   << nymID->str() << " on " << serverID->str() << std::endl;
-            registerNym |= !download_nymbox(taskID, nymID, serverID);
-        }
 
         SHUTDOWN()
 
@@ -2624,6 +2762,48 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             }
 
             registerNym |= !register_account(taskID, nymID, serverID, unitID);
+        }
+
+        SHUTDOWN()
+
+        // Issue unit definitions which have been scheduled
+        while (queue.issue_unit_definition_.Pop(taskID, unitID)) {
+            SHUTDOWN()
+
+            if (unitID->empty()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": How did an empty unit ID get in here?" << std::endl;
+
+                continue;
+            } else {
+                otWarn << OT_METHOD << __FUNCTION__
+                       << ": Issuing unit definition for " << unitID->str()
+                       << " on " << serverID->str() << std::endl;
+            }
+
+            registerNym |=
+                !issue_unit_definition(taskID, nymID, serverID, unitID);
+        }
+
+        SHUTDOWN()
+
+        // Issue unit definitions which have been scheduled
+        while (queue.issue_unit_definition_.Pop(taskID, unitID)) {
+            SHUTDOWN()
+
+            if (unitID->empty()) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": How did an empty unit ID get in here?" << std::endl;
+
+                continue;
+            } else {
+                otWarn << OT_METHOD << __FUNCTION__
+                       << ": Issuing unit definition for " << unitID->str()
+                       << " on " << serverID->str() << std::endl;
+            }
+
+            registerNym |=
+                !issue_unit_definition(taskID, nymID, serverID, unitID);
         }
 
         SHUTDOWN()
@@ -2899,6 +3079,125 @@ Depositability Sync::valid_recipient(
     if (recipient == specified) { return Depositability::READY; }
 
     return Depositability::WRONG_RECIPIENT;
+}
+
+bool Sync::write_and_send_cheque(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const Identifier& accountID,
+    const Identifier& targetNymID,
+    const Amount value,
+    const std::string& memo,
+    const Time validFrom,
+    const Time validTo) const
+{
+    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == accountID.empty())
+    OT_ASSERT(false == targetNymID.empty())
+
+    if (0 >= value) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid amount").Flush();
+
+        return finish_task(taskID, false);
+    }
+
+    auto downloaded = client_.ServerAction().DownloadNymbox(nymID, serverID);
+
+    if (false == downloaded) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to get nymbox (before transaction numbers)")
+            .Flush();
+
+        return finish_task(taskID, false);
+    }
+
+    auto gotnumbers =
+        client_.ServerAction().GetTransactionNumbers(nymID, serverID, 1);
+
+    if (false == gotnumbers) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to get transaction numbers")
+            .Flush();
+
+        return finish_task(taskID, false);
+    }
+
+    downloaded = client_.ServerAction().DownloadNymbox(nymID, serverID);
+
+    if (false == downloaded) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to get nymbox (after transaction numbers)")
+            .Flush();
+
+        return finish_task(taskID, false);
+    }
+
+    std::unique_ptr<Cheque> cheque(client_.OTAPI().WriteCheque(
+        serverID,
+        value,
+        Clock::to_time_t(validFrom),
+        Clock::to_time_t(validTo),
+        accountID,
+        nymID,
+        memo.c_str(),
+        targetNymID));
+
+    if (false == bool(cheque)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to write cheque").Flush();
+
+        return finish_task(taskID, false);
+    }
+
+    auto payment{client_.Factory().Payment(String(*cheque))};
+
+    if (false == bool(payment)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate payment")
+            .Flush();
+
+        return finish_task(taskID, false);
+    }
+
+    if (false == payment->SetTempValues()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payment").Flush();
+
+        return finish_task(taskID, false);
+    }
+
+    std::shared_ptr<const OTPayment> ppayment{payment.release()};
+    auto action = client_.ServerAction().SendPayment(
+        nymID, serverID, targetNymID, ppayment);
+    action->Run();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+            const auto messageID = action->MessageID();
+
+            if (false == messageID->empty()) {
+                otInfo << OT_METHOD << __FUNCTION__
+                       << ": Sent (payment) "
+                          "message "
+                       << messageID->str() << std::endl;
+            }
+
+            return finish_task(taskID, true);
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Server  " << serverID.str()
+                  << " does not accept (payment) message "
+                     "for "
+                  << targetNymID.str() << std::endl;
+        }
+    } else {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Communication error while messaging (a payment) to nym "
+              << targetNymID.str() << " on server " << serverID.str()
+              << std::endl;
+    }
+
+    return finish_task(taskID, false);
 }
 
 Sync::~Sync()

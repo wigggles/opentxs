@@ -537,7 +537,6 @@ std::unique_ptr<opentxs::Mint> Factory::Mint(
     return pMint;
 }
 #endif
-
 std::unique_ptr<OTOffer> Factory::Offer() const
 {
     std::unique_ptr<OTOffer> offer;

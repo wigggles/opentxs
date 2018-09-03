@@ -39,7 +39,9 @@
 #include <opentxs/api/Legacy.hpp>
 #include <opentxs/api/Native.hpp>
 #include <opentxs/api/Wallet.hpp>
+#if OT_CASH
 #include <opentxs/cash/Purse.hpp>
+#endif
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OTWallet.hpp>
 #include <opentxs/client/OT_API.hpp>

@@ -167,50 +167,30 @@ OTAPI_Func::OTAPI_Func(
     , cheque_(nullptr)
     , ledger_(nullptr)
     , payment_(nullptr)
-    , agentName_("")
-    , clause_("")
-    , key_("")
-    , login_("")
-    , message_("")
-    , parameter_("")
-    , password_("")
-    , primary_("")
-    , secondary_("")
-    , stopSign_("")
-    , txid_("")
-    , url_("")
-    , value_("")
-    , ack_(false)
-    , direction_(false)
-    , isPrimary_(false)
-    , selling_(false)
-    , cash_(false)
-    , resync_(false)
-    , lifetime_(OT_TIME_ZERO)
-    , nRequestNum_(-1)
-    , nTransNumsNeeded_(0)
-    , api_(api)
-    , context_editor_(api_.Wallet().mutable_ServerContext(nymID, serverID))
-    , context_(context_editor_.It())
-    , last_attempt_()
-    , is_transaction_(type_type_.at(type))
-    , peer_reply_(nullptr)
-    , peer_request_(nullptr)
-    , sectionName_(proto::CONTACTSECTION_ERROR)
-    , itemType_(proto::CITEMTYPE_ERROR)
-    , activationPrice_(0)
-    , adjustment_(0)
-    , amount_(0)
-    , depth_(0)
-    , increment_(0)
-    , quantity_(0)
-    , price_(0)
-    , scale_(0)
+    clause_(""), key_(""), login_(""), message_(""), parameter_(""),
+    password_(""), primary_(""), secondary_(""), stopSign_(""), txid_(""),
+    url_(""), value_(""), ack_(false), direction_(false), isPrimary_(false),
+    selling_(false)
+#if OT_CASH
+        ,
+    cash_(false)
+#endif
+        ,
+    resync_(false), lifetime_(OT_TIME_ZERO), nRequestNum_(-1),
+    nTransNumsNeeded_(0), api_(api),
+    context_editor_(api_.Wallet().mutable_ServerContext(nymID, serverID)),
+    context_(context_editor_.It()), last_attempt_(),
+    is_transaction_(type_type_.at(type)), peer_reply_(nullptr),
+    peer_request_(nullptr), sectionName_(proto::CONTACTSECTION_ERROR),
+    itemType_(proto::CITEMTYPE_ERROR), activationPrice_(0), adjustment_(0),
+    amount_(0), depth_(0), increment_(0), quantity_(0), price_(0),
+#if OT_CASH
+    transactionNumber_(0)  // This is not what gets returned by
+#endif
     , remoteBoxType_(RemoteBoxType::Error)
-    , transactionNumber_(0)  // This is not what gets returned by
-                             // GetTransactionNumber.
-    , infoType_(proto::CONNECTIONINFO_ERROR)
-    , secretType_(proto::SECRETTYPE_ERROR)
+                           // GetTransactionNumber.
+    ,
+    infoType_(proto::CONNECTIONINFO_ERROR),
     , unitDefinition_()
 {
     OT_ASSERT(verify_lock(api_lock_, apiLock));
@@ -446,7 +426,6 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 #endif
-
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
@@ -909,7 +888,6 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 #endif
-
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
@@ -1239,7 +1217,6 @@ void OTAPI_Func::run()
 #if OT_CASH
             }
 #endif
-
             if (request_ && payment->IsCheque()) {
                 bool workflowUpdated{false};
                 auto cheque{api_.Factory().Cheque()};
