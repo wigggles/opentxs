@@ -115,9 +115,7 @@ FrameIterator Message::begin() const { return FrameIterator(this); }
 
 const FrameSection Message::Body() const
 {
-    auto position = 0;
-
-    if (true == hasDivider()) { position = findDivider() + 1; }
+    auto position = body_position();
 
     return FrameSection(this, position, messages_.size() - position);
 }
@@ -130,6 +128,15 @@ const Frame& Message::Body_at(const std::size_t index) const
 FrameIterator Message::Body_begin() const { return Body().begin(); }
 
 FrameIterator Message::Body_end() const { return Body().end(); }
+
+std::size_t Message::body_position() const
+{
+    std::size_t position{0};
+
+    if (true == hasDivider()) { position = findDivider() + 1; }
+
+    return position;
+}
 
 FrameIterator Message::end() const
 {

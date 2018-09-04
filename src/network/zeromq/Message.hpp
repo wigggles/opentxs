@@ -38,6 +38,20 @@ public:
 protected:
     std::vector<OTZMQFrame> messages_{};
 
+    std::size_t body_position() const;
+
+    template <typename I>
+    bool set_field(const std::size_t position, const I& input)
+    {
+        const auto effectivePosition = body_position() + position;
+
+        if (effectivePosition >= messages_.size()) { return false; }
+
+        messages_[effectivePosition] = Frame::Factory(input);
+
+        return true;
+    }
+
     Message();
     Message(const Message& rhs);
 

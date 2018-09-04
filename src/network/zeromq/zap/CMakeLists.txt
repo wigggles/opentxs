@@ -6,15 +6,19 @@
 set(MODULE_NAME opentxs-network-zeromq-zap)
 
 set(cxx-sources
+  Reply.cpp
   Request.cpp
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/Reply.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/Request.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/ZAP.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Reply.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Request.hpp
 )
 
