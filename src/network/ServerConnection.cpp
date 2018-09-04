@@ -406,7 +406,7 @@ void ServerConnection::set_curve(const Lock& lock, zeromq::DealerSocket& socket)
 {
     OT_ASSERT(verify_lock(lock));
 
-    const auto set = socket.SetPublicKey(*remote_contract_);
+    const auto set = socket.SetServerPubkey(*remote_contract_);
 
     OT_ASSERT(set);
 }

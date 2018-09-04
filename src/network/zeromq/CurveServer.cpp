@@ -24,6 +24,21 @@ CurveServer::CurveServer(std::mutex& lock, void* socket)
 {
 }
 
+bool CurveServer::SetDomain(const std::string& domain) const
+{
+    auto set = zmq_setsockopt(
+        server_curve_socket_, ZMQ_ZAP_DOMAIN, domain.data(), domain.size());
+
+    if (0 != set) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Failed to set domain."
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
 bool CurveServer::SetPrivateKey(const OTPassword& key) const
 {
     return set_private_key(key);

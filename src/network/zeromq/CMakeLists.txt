@@ -27,7 +27,6 @@ set(cxx-sources
   PullSocket.cpp
   PushSocket.cpp
   Proxy.cpp
-  Receiver.cpp
   ReplyCallback.cpp
   ReplySocket.cpp
   RequestSocket.cpp

@@ -27,12 +27,12 @@ CurveClient::CurveClient(std::mutex& lock, void* socket)
 {
 }
 
-bool CurveClient::SetPublicKey(const ServerContract& contract) const
+bool CurveClient::SetServerPubkey(const ServerContract& contract) const
 {
     return set_public_key(contract);
 }
 
-bool CurveClient::SetPublicKey(const Data& key) const
+bool CurveClient::SetServerPubkey(const Data& key) const
 {
     return set_public_key(key);
 }

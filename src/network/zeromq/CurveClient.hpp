@@ -18,8 +18,8 @@ namespace opentxs::network::zeromq::implementation
 class CurveClient : virtual public zeromq::CurveClient
 {
 public:
-    bool SetPublicKey(const ServerContract& contract) const override;
-    bool SetPublicKey(const Data& key) const override;
+    bool SetServerPubkey(const ServerContract& contract) const override;
+    bool SetServerPubkey(const Data& key) const override;
 
 protected:
     bool set_public_key(const ServerContract& contract) const;

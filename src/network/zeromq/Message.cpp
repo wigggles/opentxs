@@ -211,8 +211,4 @@ void Message::PrependEmptyFrame()
 }
 
 std::size_t Message::size() const { return messages_.size(); }
-
-// Message::~Message()
-//{
-//}
 }  // namespace opentxs::network::zeromq::implementation

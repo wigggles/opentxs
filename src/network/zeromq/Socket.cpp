@@ -9,6 +9,9 @@
 
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
 
@@ -96,6 +99,79 @@ bool Socket::Close() const
     Lock lock(lock_);
 
     return (0 == zmq_close(socket_));
+}
+
+bool Socket::receive_message(
+    const Lock& lock,
+    void* socket,
+    zeromq::Message& message)
+{
+    bool receiving{true};
+
+    while (receiving) {
+        auto& frame = message.AddFrame();
+        const bool received = (-1 != zmq_msg_recv(frame, socket, 0));
+
+        if (false == received) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Receive error: " << zmq_strerror(zmq_errno())
+                  << std::endl;
+
+            return false;
+        }
+
+        int option{0};
+        std::size_t optionBytes{sizeof(option)};
+
+        const bool haveOption =
+            (-1 != zmq_getsockopt(socket, ZMQ_RCVMORE, &option, &optionBytes));
+
+        if (false == haveOption) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Failed to check socket options error:\n"
+                  << zmq_strerror(zmq_errno()) << std::endl;
+
+            return false;
+        }
+
+        OT_ASSERT(optionBytes == sizeof(option))
+
+        if (1 != option) { receiving = false; }
+    }
+
+    return true;
+}
+
+bool Socket::send_message(const Lock& lock, void* socket, Message& message)
+{
+    bool sent{true};
+    const auto parts = message.size();
+    std::size_t counter{0};
+
+    for (auto& frame : message) {
+        int flags{0};
+
+        if (++counter < parts) { flags = ZMQ_SNDMORE; }
+
+        sent |= (-1 != zmq_msg_send(frame, socket, flags));
+    }
+
+    if (false == sent) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
+              << zmq_strerror(zmq_errno()) << std::endl;
+    }
+
+    return sent;
+}
+
+bool Socket::send_message(const Lock& lock, Message& message) const
+{
+    return send_message(lock, socket_, message);
+}
+
+bool Socket::receive_message(const Lock& lock, Message& message) const
+{
+    return receive_message(lock, socket_, message);
 }
 
 bool Socket::set_socks_proxy(const std::string& proxy) const

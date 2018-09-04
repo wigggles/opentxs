@@ -18,12 +18,12 @@ namespace opentxs::network::zeromq::implementation
 class ReplySocket : virtual public zeromq::ReplySocket,
                     public Socket,
                     CurveServer,
-                    Receiver
+                    Receiver<zeromq::Message>
 {
 public:
     bool Start(const std::string& endpoint) const override;
 
-    ~ReplySocket();
+    virtual ~ReplySocket() = default;
 
 private:
     friend opentxs::network::zeromq::ReplySocket;

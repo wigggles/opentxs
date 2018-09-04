@@ -18,7 +18,7 @@ namespace opentxs::network::zeromq::implementation
 class SubscribeSocket : virtual public zeromq::SubscribeSocket,
                         public Socket,
                         CurveClient,
-                        Receiver
+                        Receiver<zeromq::Message>
 {
 public:
     bool SetSocksProxy(const std::string& proxy) const override;

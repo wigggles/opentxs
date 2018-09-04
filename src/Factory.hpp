@@ -342,6 +342,7 @@ public:
         const api::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contact);
+    static api::network::ZAP* ZAP(const network::zeromq::Context& context);
     static api::network::ZMQ* ZMQ(const api::Core& api, const Flag& running);
 };
 }  // namespace opentxs

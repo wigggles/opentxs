@@ -41,6 +41,8 @@
 #include <ostream>
 #include <string>
 
+#define OTX_ZAP_DOMAIN "opentxs-otx"
+
 #define OT_METHOD "opentxs::MessageProcessor::"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
@@ -141,7 +143,11 @@ void MessageProcessor::init(
 {
     if (port == 0) { OT_FAIL; }
 
-    const auto set = frontend_socket_->SetPrivateKey(privkey);
+    auto set = frontend_socket_->SetPrivateKey(privkey);
+
+    OT_ASSERT(set);
+
+    set = frontend_socket_->SetDomain(OTX_ZAP_DOMAIN);
 
     OT_ASSERT(set);
 

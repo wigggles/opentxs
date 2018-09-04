@@ -54,6 +54,8 @@ public:
         const ArgList& args,
         const int instance,
         const bool inproc = false) const = 0;
+    /** Access ZAP configuration API */
+    EXPORT virtual const api::network::ZAP& ZAP() const = 0;
 
     EXPORT virtual ~Native() = default;
 

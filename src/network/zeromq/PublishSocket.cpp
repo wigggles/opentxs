@@ -13,11 +13,9 @@
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
-#include <zmq.h>
-
 template class opentxs::Pimpl<opentxs::network::zeromq::PublishSocket>;
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::PublishSocket::"
+//#define OT_METHOD "opentxs::network::zeromq::implementation::PublishSocket::"
 
 namespace opentxs::network::zeromq
 {
@@ -48,24 +46,8 @@ bool PublishSocket::Publish(const opentxs::Data& data) const
 bool PublishSocket::Publish(zeromq::Message& data) const
 {
     Lock lock(lock_);
-    bool sent{true};
-    const auto parts = data.size();
-    std::size_t counter{0};
 
-    for (auto& frame : data) {
-        int flags{0};
-
-        if (++counter < parts) { flags = ZMQ_SNDMORE; }
-
-        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
-    }
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno()) << std::endl;
-    }
-
-    return (false != sent);
+    return send_message(lock, data);
 }
 
 PublishSocket* PublishSocket::clone() const

@@ -21,6 +21,15 @@ namespace opentxs::network::zeromq::implementation
 class Socket : virtual public zeromq::Socket, public Lockable
 {
 public:
+    static bool send_message(
+        const Lock& lock,
+        void* socket,
+        zeromq::Message& message);
+    static bool receive_message(
+        const Lock& lock,
+        void* socket,
+        zeromq::Message& message);
+
     SocketType Type() const override;
 
     operator void*() const override;
@@ -44,6 +53,8 @@ protected:
     bool apply_timeouts(const Lock& lock) const;
     bool bind(const Lock& lock, const std::string& endpoint) const;
     bool connect(const Lock& lock, const std::string& endpoint) const;
+    bool receive_message(const Lock& lock, Message& message) const;
+    bool send_message(const Lock& lock, Message& message) const;
     bool set_socks_proxy(const std::string& proxy) const;
     bool start_client(const Lock& lock, const std::string& endpoint) const;
 

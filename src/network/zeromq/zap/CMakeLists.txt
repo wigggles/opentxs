@@ -6,11 +6,15 @@
 set(MODULE_NAME opentxs-network-zeromq-zap)
 
 set(cxx-sources
+  Callback.cpp
+  Handler.cpp
   Reply.cpp
   Request.cpp
 )
 
 set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/Callback.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/Handler.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/Reply.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/Request.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../../include/opentxs/network/zeromq/zap/ZAP.hpp"
@@ -18,6 +22,8 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  ${CMAKE_CURRENT_SOURCE_DIR}/Callback.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Handler.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Reply.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Request.hpp
 )

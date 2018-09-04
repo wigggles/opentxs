@@ -45,6 +45,7 @@ class Util;
 namespace network
 {
 class Dht;
+class ZAP;
 class ZMQ;
 }  // namespace network
 
@@ -111,6 +112,7 @@ namespace zeromq
 {
 namespace zap
 {
+class Callback;
 class Handler;
 class Reply;
 class Request;
@@ -327,6 +329,7 @@ using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQRouterSocket = Pimpl<network::zeromq::RouterSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
+using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
 using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
 using OTZMQZAPReply = Pimpl<network::zeromq::zap::Reply>;
 using OTZMQZAPRequest = Pimpl<network::zeromq::zap::Request>;

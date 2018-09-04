@@ -5,6 +5,7 @@
 
 set(cxx-sources
   Dht.cpp
+  ZAP.cpp
   ZMQ.cpp
 )
 
@@ -15,6 +16,7 @@ file(GLOB cxx-install-headers
 set(cxx-headers
   ${cxx-install-headers}
   ${CMAKE_CURRENT_SOURCE_DIR}/Dht.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/ZAP.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/ZMQ.hpp
 )
 
