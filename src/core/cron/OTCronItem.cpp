@@ -991,10 +991,10 @@ void OTCronItem::onFinalReceipt(
                                  // put on the receipt.
                 strOrigCronItem,
                 GetOriginType(),
-                String::Factory(),   // note
-                pstrAttachment))  // pActualAcct = nullptr by default.
-                                     // (This call will load it up in order
-                                     // to update the inbox hash.)
+                String::Factory(),  // note
+                pstrAttachment))    // pActualAcct = nullptr by default.
+                                    // (This call will load it up in order
+                                    // to update the inbox hash.)
             otErr << __FUNCTION__ << ": Failure dropping receipt into inbox.\n";
 
         // In this case, I'm passing nullptr for pstrNote, since there is no
@@ -1134,7 +1134,9 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (!pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
+        if (!pstrAttachment->Exists()) {
+            pItem1->SetAttachment(pstrAttachment);
+        }
 
         // sign the item
 
@@ -1315,7 +1317,9 @@ bool OTCronItem::DropFinalReceiptToNymbox(
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (!pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
+        if (!pstrAttachment->Exists()) {
+            pItem1->SetAttachment(pstrAttachment);
+        }
 
         // sign the item
 

@@ -19,7 +19,7 @@ class Identifier;
 
 class OTStashItem
 {
-    String m_strInstrumentDefinitionID;
+    OTString m_strInstrumentDefinitionID;
     std::int64_t m_lAmount;
 
 public:

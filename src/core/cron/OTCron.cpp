@@ -359,7 +359,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (!strcmp("cron", xml->getNodeName())) {
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
 
         const auto strNotaryID =
             String::Factory(xml->getAttributeValue("notaryID"));
@@ -1058,7 +1058,7 @@ std::shared_ptr<OTMarket> OTCron::GetMarket(const Identifier& MARKET_ID)
     return nullptr;
 }
 
-void OTCron::InitCron() { m_strContractType = "CRON"; }
+void OTCron::InitCron() { m_strContractType = String::Factory("CRON"); }
 
 void OTCron::Release() { Contract::Release(); }
 

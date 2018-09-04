@@ -25,7 +25,9 @@ namespace opentxs
  */
 
 OTStashItem::OTStashItem()
-    : m_lAmount(0)
+    : m_strInstrumentDefinitionID(String::Factory())
+    , m_lAmount(0)
+
 {
 }
 
@@ -40,7 +42,7 @@ OTStashItem::OTStashItem(
 OTStashItem::OTStashItem(
     const Identifier& theInstrumentDefinitionID,
     std::int64_t lAmount)
-    : m_strInstrumentDefinitionID(theInstrumentDefinitionID)
+    : m_strInstrumentDefinitionID(String::Factory(theInstrumentDefinitionID))
     , m_lAmount(lAmount)
 {
 }
