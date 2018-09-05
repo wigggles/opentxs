@@ -33,6 +33,7 @@ public:
         const ArgList& args,
         const int instance,
         const bool inproc) const override;
+    const api::network::ZAP& ZAP() const override;
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
@@ -57,6 +58,7 @@ private:
         client_;
     mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
     OTZMQContext zmq_context_;
+    std::unique_ptr<api::network::ZAP> zap_;
     mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
     mutable ShutdownCallback* shutdown_callback_{nullptr};

@@ -13,6 +13,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/server/Manager.hpp"
+#include "opentxs/api/network/ZAP.hpp"
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
@@ -337,6 +338,7 @@ Native::Native(
     , client_()
     , server_()
     , zmq_context_(opentxs::network::zeromq::Context::Factory())
+    , zap_(opentxs::Factory::ZAP(zmq_context_))
     , signal_handler_(nullptr)
     , server_args_(args)
     , shutdown_callback_{nullptr}
@@ -345,8 +347,8 @@ Native::Native(
     , external_password_callback_{externalPasswordCallback}
 {
     // NOTE: OT_ASSERT is not available until Init() has been called
-
     assert(legacy_);
+    assert(zap_);
 
     if (nullptr == external_password_callback_) {
         setup_default_external_password_callback();
@@ -610,5 +612,12 @@ const api::server::Manager& Native::StartServer(
     OT_ASSERT(output)
 
     return *output;
+}
+
+const api::network::ZAP& Native::ZAP() const
+{
+    OT_ASSERT(zap_);
+
+    return *zap_;
 }
 }  // namespace opentxs::api::implementation

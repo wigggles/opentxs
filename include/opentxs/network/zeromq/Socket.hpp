@@ -48,7 +48,7 @@ namespace zeromq
 class Socket
 {
 public:
-    using MultipartSendResult = std::pair<SendResult, OTZMQMessage>;
+    using SendResult = std::pair<opentxs::SendResult, OTZMQMessage>;
 
     EXPORT virtual operator void*() const = 0;
 

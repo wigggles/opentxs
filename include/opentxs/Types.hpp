@@ -20,7 +20,6 @@
 
 namespace opentxs
 {
-
 class Message;
 class Nym;
 class String;

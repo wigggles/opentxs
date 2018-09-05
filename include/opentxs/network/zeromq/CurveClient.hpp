@@ -12,7 +12,7 @@
 
 #ifdef SWIG
 // clang-format off
-%ignore opentxs::network::zeromq::CurveClient::SetPublicKey;
+%ignore opentxs::network::zeromq::CurveClient::SetServerPubkey;
 %interface(opentxs::network::zeromq::CurveClient);
 // clang-format on
 #endif  // SWIG
@@ -26,8 +26,9 @@ namespace zeromq
 class CurveClient : virtual public Socket
 {
 public:
-    EXPORT virtual bool SetPublicKey(const ServerContract& contract) const = 0;
-    EXPORT virtual bool SetPublicKey(const Data& key) const = 0;
+    EXPORT virtual bool SetServerPubkey(
+        const ServerContract& contract) const = 0;
+    EXPORT virtual bool SetServerPubkey(const Data& key) const = 0;
 
     EXPORT virtual ~CurveClient() = default;
 

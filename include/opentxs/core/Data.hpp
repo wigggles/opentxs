@@ -61,6 +61,7 @@ public:
         std::size_t size);
     EXPORT static OTData Factory(const Armored& source);
     EXPORT static OTData Factory(const std::vector<unsigned char>& source);
+    EXPORT static OTData Factory(const network::zeromq::Frame& message);
 #endif
 
     EXPORT virtual bool operator==(const Data& rhs) const = 0;

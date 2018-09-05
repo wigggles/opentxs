@@ -5,6 +5,7 @@
 
 #include "stdafx.hpp"
 
+#include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -51,6 +52,11 @@ OTData Data::Factory(const Armored& source)
 OTData Data::Factory(const std::vector<unsigned char>& source)
 {
     return OTData(new implementation::Data(source));
+}
+
+OTData Data::Factory(const network::zeromq::Frame& message)
+{
+    return OTData(new implementation::Data(message.data(), message.size()));
 }
 
 namespace implementation

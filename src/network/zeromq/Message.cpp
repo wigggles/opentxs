@@ -3,17 +3,18 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#include "Message.hpp"
-
 #include "stdafx.hpp"
 
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
+#include "opentxs/network/zeromq/FrameSection.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
 
+#include "Message.hpp"
+
 template class opentxs::Pimpl<opentxs::network::zeromq::Message>;
-template class opentxs::Pimpl<opentxs::network::zeromq::Frame>;
 
 namespace opentxs::network::zeromq
 {
@@ -61,8 +62,15 @@ OTZMQMessage Message::ReplyFactory(const Message& request)
 namespace opentxs::network::zeromq::implementation
 {
 Message::Message()
-    : messages_{}
+    : messages_()
 {
+}
+
+Message::Message(const Message& rhs)
+    : zeromq::Message()
+    , messages_()
+{
+    for (auto& message : rhs.messages_) { messages_.emplace_back(message); }
 }
 
 Frame& Message::AddFrame()
@@ -107,9 +115,7 @@ FrameIterator Message::begin() const { return FrameIterator(this); }
 
 const FrameSection Message::Body() const
 {
-    auto position = 0;
-
-    if (true == hasDivider()) { position = findDivider() + 1; }
+    auto position = body_position();
 
     return FrameSection(this, position, messages_.size() - position);
 }
@@ -123,17 +129,13 @@ FrameIterator Message::Body_begin() const { return Body().begin(); }
 
 FrameIterator Message::Body_end() const { return Body().end(); }
 
-Message* Message::clone() const
+std::size_t Message::body_position() const
 {
-    Message* multipartMessage = new Message();
+    std::size_t position{0};
 
-    OT_ASSERT(nullptr != multipartMessage);
+    if (true == hasDivider()) { position = findDivider() + 1; }
 
-    for (auto& message : messages_) {
-        multipartMessage->messages_.emplace_back(message);
-    }
-
-    return multipartMessage;
+    return position;
 }
 
 FrameIterator Message::end() const
@@ -209,8 +211,4 @@ void Message::PrependEmptyFrame()
 }
 
 std::size_t Message::size() const { return messages_.size(); }
-
-// Message::~Message()
-//{
-//}
 }  // namespace opentxs::network::zeromq::implementation

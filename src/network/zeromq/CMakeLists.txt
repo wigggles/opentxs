@@ -5,6 +5,8 @@
 
 set(MODULE_NAME opentxs-network-zeromq)
 
+add_subdirectory(zap)
+
 set(cxx-sources
   Bidirectional.cpp
   Context.cpp
@@ -25,7 +27,6 @@ set(cxx-sources
   PullSocket.cpp
   PushSocket.cpp
   Proxy.cpp
-  Receiver.cpp
   ReplyCallback.cpp
   ReplySocket.cpp
   RequestSocket.cpp

@@ -5,19 +5,17 @@
 
 #include "stdafx.hpp"
 
-#include "ReplySocket.hpp"
-
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/ReplyCallback.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 
-#include <zmq.h>
+#include "ReplySocket.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::ReplySocket::"
+//#define OT_METHOD "opentxs::network::zeromq::implementation::ReplySocket::"
 
 namespace opentxs::network::zeromq
 {
@@ -52,33 +50,11 @@ ReplySocket* ReplySocket::clone() const
 
 bool ReplySocket::have_callback() const { return true; }
 
-void ReplySocket::process_incoming(const Lock&, Message& message)
+void ReplySocket::process_incoming(const Lock& lock, Message& message)
 {
     auto output = callback_.Process(message);
     Message& reply = output;
-    bool sent{true};
-    const auto parts = reply.size();
-    std::size_t counter{0};
-
-    for (auto& frame : reply) {
-        int flags{0};
-
-        if (++counter < parts) { flags = ZMQ_SNDMORE; }
-
-        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
-    }
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno())
-              << "\nRequest: "
-              // TODO: Determine which part of the Message to display.
-              // << std::string(message)
-              << "(Message)"
-              // << "\nReply: " << std::string(reply) << std::endl;
-              << "\nReply: "
-              << "(Message)" << std::endl;
-    }
+    send_message(lock, reply);
 }
 
 bool ReplySocket::Start(const std::string& endpoint) const
@@ -93,6 +69,4 @@ bool ReplySocket::Start(const std::string& endpoint) const
         return bind(lock, endpoint);
     }
 }
-
-ReplySocket::~ReplySocket() {}
 }  // namespace opentxs::network::zeromq::implementation

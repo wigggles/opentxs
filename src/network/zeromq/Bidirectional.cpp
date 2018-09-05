@@ -5,7 +5,6 @@
 
 #include "stdafx.hpp"
 
-#include "Bidirectional.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
@@ -14,7 +13,11 @@
 #include "opentxs/network/zeromq/Message.hpp"
 
 #include <zmq.h>
+
 #include "Message.hpp"
+#include "Socket.hpp"
+
+#include "Bidirectional.hpp"
 
 #define CALLBACK_WAIT_MILLISECONDS 50
 #define POLL_MILLISECONDS 1000
@@ -114,45 +117,15 @@ bool Bidirectional::connect(
 bool Bidirectional::process_pull_socket()
 {
     Lock lock(receiver_lock_, std::try_to_lock);
+
     if (!lock.owns_lock()) { return false; }
 
     auto msg = Message::Factory();
+    const auto received = Socket::receive_message(lock, pull_socket_, msg);
 
-    bool receiving{true};
+    if (false == received) { return false; }
 
-    while (receiving) {
-        auto& frame = msg->AddFrame();
-        const bool received = (-1 != zmq_msg_recv(frame, pull_socket_, 0));
-
-        if (false == received) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Receive error: " << zmq_strerror(zmq_errno())
-                  << std::endl;
-
-            return false;
-        }
-
-        int option{0};
-        std::size_t optionBytes{sizeof(option)};
-
-        const bool haveOption =
-            (-1 !=
-             zmq_getsockopt(pull_socket_, ZMQ_RCVMORE, &option, &optionBytes));
-
-        if (false == haveOption) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Failed to check socket options error:\n"
-                  << zmq_strerror(zmq_errno()) << std::endl;
-
-            return false;
-        }
-
-        OT_ASSERT(optionBytes == sizeof(option))
-
-        if (1 != option) { receiving = false; }
-    }
-
-    auto sent = send(msg);
+    const auto sent = send(lock, msg);
 
     return sent;
 }
@@ -160,46 +133,16 @@ bool Bidirectional::process_pull_socket()
 bool Bidirectional::process_receiver_socket()
 {
     Lock lock(receiver_lock_, std::try_to_lock);
+
     if (!lock.owns_lock()) { return false; }
 
     auto reply = Message::Factory();
+    const auto received =
+        Socket::receive_message(lock, receiver_socket_, reply);
 
-    bool receiving{true};
-
-    while (receiving) {
-        auto& frame = reply->AddFrame();
-        const bool received = (-1 != zmq_msg_recv(frame, receiver_socket_, 0));
-
-        if (false == received) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Receive error: " << zmq_strerror(zmq_errno())
-                  << std::endl;
-
-            return false;
-        }
-
-        int option{0};
-        std::size_t optionBytes{sizeof(option)};
-
-        const bool haveOption =
-            (-1 != zmq_getsockopt(
-                       receiver_socket_, ZMQ_RCVMORE, &option, &optionBytes));
-
-        if (false == haveOption) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Failed to check socket options error:\n"
-                  << zmq_strerror(zmq_errno()) << std::endl;
-
-            return false;
-        }
-
-        OT_ASSERT(optionBytes == sizeof(option))
-
-        if (1 != option) { receiving = false; }
-    }
+    if (false == received) { return false; }
 
     process_incoming(lock, reply);
-
     lock.unlock();
 
     return true;
@@ -209,46 +152,14 @@ bool Bidirectional::queue_message(zeromq::Message& message) const
 {
     OT_ASSERT(nullptr != push_socket_);
 
-    bool sent{true};
-    const auto parts = message.size();
-    std::size_t counter{0};
+    Lock lock(send_lock_);
 
-    for (auto& frame : message) {
-        int flags{0};
-
-        if (++counter < parts) { flags = ZMQ_SNDMORE; }
-
-        sent |= (-1 != zmq_msg_send(frame, push_socket_, flags));
-    }
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno()) << std::endl;
-    }
-
-    return (false != sent);
+    return Socket::send_message(lock, push_socket_, message);
 }
 
-bool Bidirectional::send(zeromq::Message& message)
+bool Bidirectional::send(const Lock& lock, zeromq::Message& message)
 {
-    bool sent{true};
-    const auto parts = message.size();
-    std::size_t counter{0};
-
-    for (auto& frame : message) {
-        int flags{0};
-
-        if (++counter < parts) { flags = ZMQ_SNDMORE; }
-
-        sent |= (-1 != zmq_msg_send(frame, receiver_socket_, flags));
-    }
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno()) << std::endl;
-    }
-
-    return (false != sent);
+    return Socket::send_message(lock, receiver_socket_, message);
 }
 
 void Bidirectional::thread()

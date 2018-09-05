@@ -7,9 +7,6 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/network/zeromq/Message.hpp"
-#include "opentxs/network/zeromq/FrameSection.hpp"
-
 namespace opentxs::network::zeromq::implementation
 {
 class Message : virtual public zeromq::Message
@@ -36,19 +33,35 @@ public:
     void EnsureDelimiter() override;
     void PrependEmptyFrame() override;
 
-    ~Message() = default;
+    virtual ~Message() = default;
+
+protected:
+    std::vector<OTZMQFrame> messages_{};
+
+    std::size_t body_position() const;
+
+    template <typename I>
+    bool set_field(const std::size_t position, const I& input)
+    {
+        const auto effectivePosition = body_position() + position;
+
+        if (effectivePosition >= messages_.size()) { return false; }
+
+        messages_[effectivePosition] = Frame::Factory(input);
+
+        return true;
+    }
+
+    Message();
+    Message(const Message& rhs);
 
 private:
     friend network::zeromq::Message;
 
-    std::vector<OTZMQFrame> messages_{};
-
-    Message* clone() const override;
+    Message* clone() const override { return new Message(*this); }
     bool hasDivider() const;
     std::size_t findDivider() const;
 
-    Message();
-    Message(const Message&) = delete;
     Message(Message&&) = default;
     Message& operator=(const Message&) = delete;
     Message& operator=(Message&&) = default;

@@ -27,6 +27,7 @@
 #include <opentxs/api/client/Workflow.hpp>
 #include <opentxs/api/crypto/Config.hpp>
 #include <opentxs/api/crypto/Crypto.hpp>
+#include <opentxs/api/network/ZAP.hpp>
 #include <opentxs/api/network/ZMQ.hpp>
 #include <opentxs/api/server/Manager.hpp>
 #include <opentxs/api/storage/Storage.hpp>
@@ -115,6 +116,11 @@
 #include <opentxs/ext/Helpers.hpp>
 #include <opentxs/ext/OTPayment.hpp>
 #include <opentxs/iterator/Bidirectional.hpp>
+#include <opentxs/network/zeromq/zap/Callback.hpp>
+#include <opentxs/network/zeromq/zap/Handler.hpp>
+#include <opentxs/network/zeromq/zap/Reply.hpp>
+#include <opentxs/network/zeromq/zap/Request.hpp>
+#include <opentxs/network/zeromq/zap/ZAP.hpp>
 #include <opentxs/network/zeromq/Context.hpp>
 #include <opentxs/network/zeromq/DealerSocket.hpp>
 #include <opentxs/network/zeromq/FrameIterator.hpp>

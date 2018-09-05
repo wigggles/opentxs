@@ -108,6 +108,7 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-cron protobuf)
   add_dependencies(opentxs-ext protobuf)
   add_dependencies(opentxs-iterator protobuf)
+  add_dependencies(opentxs-network-zeromq-zap protobuf)
   add_dependencies(opentxs-network-zeromq protobuf)
   add_dependencies(opentxs-network protobuf)
   add_dependencies(opentxs-otx protobuf)
@@ -184,6 +185,7 @@ if(OT_BUNDLED_LIBZMQ)
     add_dependencies(libzmq sodium)
   endif()
 
+  add_dependencies(opentxs-network-zeromq-zap libzmq)
   add_dependencies(opentxs-network-zeromq libzmq)
 endif()
 
@@ -215,6 +217,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-cron>
   $<TARGET_OBJECTS:opentxs-ext>
   $<TARGET_OBJECTS:opentxs-iterator>
+  $<TARGET_OBJECTS:opentxs-network-zeromq-zap>
   $<TARGET_OBJECTS:opentxs-network-zeromq>
   $<TARGET_OBJECTS:opentxs-network>
   $<TARGET_OBJECTS:opentxs-otx>

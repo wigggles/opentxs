@@ -45,6 +45,7 @@ class Util;
 namespace network
 {
 class Dht;
+class ZAP;
 class ZMQ;
 }  // namespace network
 
@@ -109,6 +110,14 @@ namespace network
 {
 namespace zeromq
 {
+namespace zap
+{
+class Callback;
+class Handler;
+class Reply;
+class Request;
+}  // namespace zap
+
 class Context;
 class CurveClient;
 class CurveServer;
@@ -302,6 +311,8 @@ using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTString = Pimpl<String>;
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
+using OTXReply = Pimpl<otx::Reply>;
+using OTXRequest = Pimpl<otx::Request>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
 using OTZMQDealerSocket = Pimpl<network::zeromq::DealerSocket>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
@@ -318,8 +329,10 @@ using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQRouterSocket = Pimpl<network::zeromq::RouterSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
-using OTXReply = Pimpl<otx::Reply>;
-using OTXRequest = Pimpl<otx::Request>;
+using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
+using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
+using OTZMQZAPReply = Pimpl<network::zeromq::zap::Reply>;
+using OTZMQZAPRequest = Pimpl<network::zeromq::zap::Request>;
 
 using ExclusiveAccount = Exclusive<Account>;
 

@@ -5,19 +5,17 @@
 
 #include "stdafx.hpp"
 
-#include "PushSocket.hpp"
-
 #include "opentxs/core/Log.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/FrameIterator.hpp"
 #include "opentxs/network/zeromq/Frame.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
 
-#include <zmq.h>
+#include "PushSocket.hpp"
 
 template class opentxs::Pimpl<opentxs::network::zeromq::PushSocket>;
 
-#define OT_METHOD "opentxs::network::zeromq::implementation::PushSocket::"
+//#define OT_METHOD "opentxs::network::zeromq::implementation::PushSocket::"
 
 namespace opentxs::network::zeromq
 {
@@ -51,24 +49,8 @@ bool PushSocket::Push(const opentxs::Data& data) const
 bool PushSocket::Push(zeromq::Message& data) const
 {
     Lock lock(lock_);
-    bool sent{true};
-    const auto parts = data.size();
-    std::size_t counter{0};
 
-    for (auto& frame : data) {
-        int flags{0};
-
-        if (++counter < parts) { flags = ZMQ_SNDMORE; }
-
-        sent |= (-1 != zmq_msg_send(frame, socket_, flags));
-    }
-
-    if (false == sent) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Send error:\n"
-              << zmq_strerror(zmq_errno()) << std::endl;
-    }
-
-    return (false != sent);
+    return send_message(lock, data);
 }
 
 PushSocket* PushSocket::clone() const

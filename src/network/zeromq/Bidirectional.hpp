@@ -18,7 +18,7 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class Bidirectional : public Receiver
+class Bidirectional : public Receiver<zeromq::Message>
 {
 protected:
     void* push_socket_{nullptr};
@@ -39,6 +39,7 @@ private:
     mutable int linger_{0};
     mutable int send_timeout_{-1};
     mutable int receive_timeout_{-1};
+    mutable std::mutex send_lock_;
 
     bool apply_timeouts(void* socket, std::mutex& socket_mutex) const;
     bool bind(void* socket, std::mutex& socket_mutex, std::string& endpoint)
@@ -47,7 +48,7 @@ private:
         const;
     bool process_pull_socket();
     bool process_receiver_socket();
-    bool send(zeromq::Message& message);
+    bool send(const Lock& lock, zeromq::Message& message);
     void thread() override;
 
     Bidirectional() = delete;

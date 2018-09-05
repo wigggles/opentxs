@@ -16,6 +16,7 @@ namespace opentxs::network::zeromq::implementation
 class CurveServer : virtual public zeromq::CurveServer
 {
 public:
+    bool SetDomain(const std::string& domain) const override;
     bool SetPrivateKey(const OTPassword& key) const override;
 
 protected:
