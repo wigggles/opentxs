@@ -42,9 +42,12 @@ OTClause::OTClause(const char* szName, const char* szCode)
     , m_strCode(String::Factory())
     , m_pBylaw(nullptr)
 {
-    if (nullptr != szName) m_strName->Set(szName);
-
-    if (nullptr != szCode) String::Factory(m_strCode->Get()) = String::Factory(szCode);
+    if (nullptr != szName) {
+        m_strName->Set(szName);
+    }
+    if (nullptr != szCode) {
+        m_strCode->Set(szCode);
+    }
 
     // Todo security:  validation on the above fields.
 }

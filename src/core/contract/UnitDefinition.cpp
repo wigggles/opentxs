@@ -463,8 +463,9 @@ bool UnitDefinition::AddAccountRecord(
         // --------------------------------          // every account should map
         // to the SAME instrument definition id.)
 
-        if (false == strInstrumentDefinitionID->Compare(str2.c_str()))  // should
-                                                                       // never
+        if (false ==
+            strInstrumentDefinitionID->Compare(str2.c_str()))  // should
+                                                               // never
         // happen.
         {
             otErr << szFunc
@@ -899,9 +900,10 @@ bool UnitDefinition::FormatAmountLocale(
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    auto strSeparator = String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    auto strDecimalPoint = String::Factory(
-        str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
+    auto strSeparator =
+        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint =
+        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     // NOTE: from web searching, I've determined that locale / moneypunct has
     // internationalization problems. Therefore it looks like if you want to
@@ -943,9 +945,10 @@ bool UnitDefinition::FormatAmountWithoutSymbolLocale(
     // As a result, for internationalization purposes,
     // these values have to be set here before compilation.
     //
-    auto strSeparator = String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    auto strDecimalPoint = String::Factory(
-        str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
+    auto strSeparator =
+        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint =
+        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     str_output = UnitDefinition::formatLongAmount(
         amount,
@@ -982,9 +985,10 @@ bool UnitDefinition::StringToAmountLocale(
     // The best improvement I can think on that is to check locale and then use
     // it to choose from our own list of hardcoded values. Todo.
 
-    auto strSeparator = String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
-    auto strDecimalPoint = String::Factory(
-        str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
+    auto strSeparator =
+        String::Factory(str_thousand.empty() ? OT_THOUSANDS_SEP : str_thousand);
+    auto strDecimalPoint =
+        String::Factory(str_decimal.empty() ? OT_DECIMAL_POINT : str_decimal);
 
     bool bSuccess = UnitDefinition::ParseFormatted(
         amount,

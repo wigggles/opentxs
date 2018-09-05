@@ -267,7 +267,7 @@ public:
     // Low-level.
     EXPORT void ExecuteClauses(
         mapOfClauses& theClauses,
-        String* pParam = nullptr);
+        OTString pParam = String::Factory());
 
     // Low level.
     // This function (StashFunds) is called by StashAcctFunds() and
@@ -365,16 +365,16 @@ private:
     // the information is
     // stored in m_mapStashes, not in the accounts themselves, which are only
     // reserves for those stashes.
-    String m_strLastSenderUser;     // These four strings are here so that each
+    OTString m_strLastSenderUser;     // These four strings are here so that each
                                     // sender or recipient (of a transfer of
                                     // funds)
-    String m_strLastSenderAcct;     // is clearly saved in each inbox receipt.
+    OTString m_strLastSenderAcct;     // is clearly saved in each inbox receipt.
                                     // That way, if the receipt has a monetary
                                     // value, then
-    String m_strLastRecipientUser;  // we know who was sending and who was
+    OTString m_strLastRecipientUser;  // we know who was sending and who was
                                     // receiving. Also, if a STASH was the last
                                     // action, then
-    String m_strLastRecipientAcct;  // the sender (or recipient) will be blank,
+    OTString m_strLastRecipientAcct;  // the sender (or recipient) will be blank,
                                     // signifying that the source or
                                     // destination was a stash.
 
