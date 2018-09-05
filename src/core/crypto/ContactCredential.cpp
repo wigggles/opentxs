@@ -37,7 +37,7 @@ std::string ContactCredential::ClaimID(
     preimage.set_end(item.end());
     preimage.set_value(item.value());
 
-    return String(ClaimID(preimage)).Get();
+    return String::Factory(ClaimID(preimage))->Get();
 }
 
 // static
@@ -58,7 +58,7 @@ std::string ContactCredential::ClaimID(
     preimage.set_end(end);
     preimage.set_value(value);
 
-    return String(ClaimID(preimage)).Get();
+    return String::Factory(ClaimID(preimage))->Get();
 }
 
 // static
