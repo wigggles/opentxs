@@ -200,10 +200,10 @@ proto::ServerContract ServerContract::IDVersion(const Lock& lock) const
     contract.clear_signature();  // reinforcing that this field must be blank.
     contract.clear_publicnym();  // reinforcing that this field must be blank.
 
-    if (nullptr != nym_) {
-        String nymID;
+    if (nym_) {
+        auto nymID = String::Factory();
         nym_->GetIdentifier(nymID);
-        contract.set_nymid(nymID.Get());
+        contract.set_nymid(nymID->Get());
     }
 
     contract.set_name(name_);
@@ -238,7 +238,7 @@ void ServerContract::SetAlias(const std::string& alias)
 proto::ServerContract ServerContract::SigVersion(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
-    contract.set_id(String(id(lock)).Get());
+    contract.set_id(String::Factory(id(lock))->Get());
 
     return contract;
 }
@@ -259,14 +259,14 @@ proto::ServerContract ServerContract::PublicContract() const
 
 bool ServerContract::Statistics(String& strContents) const
 {
-    const String strID(id_);
+    const auto strID = String::Factory(id_);
 
     strContents.Concatenate(
         " Notary Provider: %s\n"
         " NotaryID: %s\n"
         "\n",
         nym_->Alias().c_str(),
-        strID.Get());
+        strID->Get());
 
     return true;
 }

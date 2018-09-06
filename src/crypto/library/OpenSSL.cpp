@@ -350,15 +350,15 @@ OTPassword* OpenSSL::DeriveNewKey(
             static_cast<const std::uint8_t*>(tmpHashCheck->data())));
 
     if (bHaveCheckHash) {
-        String strDataCheck, strTestCheck;
-        strDataCheck.Set(
+        auto strDataCheck = String::Factory(), strTestCheck = String::Factory();
+        strDataCheck->Set(
             static_cast<const char*>(dataCheckHash.data()),
             dataCheckHash.size());
-        strTestCheck.Set(
+        strTestCheck->Set(
             static_cast<const char*>(tmpHashCheck->data()),
             tmpHashCheck->size());
 
-        if (!strDataCheck.Compare(strTestCheck)) {
+        if (!strDataCheck->Compare(strTestCheck)) {
             otWarn << __FUNCTION__ << ": Incorrect password provided.\n"
                    << "Provided check hash: " << strDataCheck << "\n"
                    << "Calculated check hash: " << strTestCheck << std::endl;
@@ -3007,10 +3007,10 @@ bool OpenSSL::EncryptSessionKey(
         //            return false;
         //        }
 
-        const String strNymID(str_nym_id.c_str());
+        const auto strNymID = String::Factory(str_nym_id.c_str());
 
         // +1 for null terminator.
-        std::uint32_t nymid_len = strNymID.GetLength() + 1;
+        std::uint32_t nymid_len = strNymID->GetLength() + 1;
         // Calculate "network-order" version of length (+1 for null terminator)
         std::uint32_t nymid_len_n = htonl(nymid_len);
 
@@ -3022,14 +3022,14 @@ bool OpenSSL::EncryptSessionKey(
 
         // (+1 for null terminator is included here already, from above.)
         dataOutput.Concatenate(
-            reinterpret_cast<const void*>(strNymID.Get()), nymid_len);
+            reinterpret_cast<const void*>(strNymID->Get()), nymid_len);
 
         otLog5 << __FUNCTION__ << ": INDEX: " << static_cast<std::int64_t>(ii)
                << "  NymID length:  "
                << static_cast<std::int64_t>(ntohl(nymid_len_n))
                << "   Nym ID: " << strNymID
                << "   Strlen (should be a byte shorter): "
-               << static_cast<std::int64_t>(strNymID.GetLength()) << "\n";
+               << static_cast<std::int64_t>(strNymID->GetLength()) << "\n";
 
         //      Write eklen_n and ek for EACH encrypted symmetric key,
         //
@@ -3172,7 +3172,7 @@ bool OpenSSL::DecryptSessionKey(
     // key (there might be symmetric keys for several Nyms, not just this
     // one, and we need to find the right one in order to perform this Open.)
     //
-    String strNymID;
+    auto strNymID = String::Factory();
     theRecipient.GetIdentifier(strNymID);
 
     key::Asymmetric& theTempPrivateKey =
@@ -3426,13 +3426,14 @@ bool OpenSSL::DecryptSessionKey(
         nymid[nymid_len - 1] = '\0';  // for null terminator. If string is 10
         // bytes std::int64_t, it's from 0-9, and the
         // null terminator is at index 9.
-        const String loopStrNymID(reinterpret_cast<char*>(nymid));
+        const auto loopStrNymID =
+            String::Factory(reinterpret_cast<char*>(nymid));
         free(nymid);
         nymid = nullptr;
 
         otLog5 << __FUNCTION__ << ": (LOOP) Current NymID: " << loopStrNymID
                << "    Strlen:  "
-               << static_cast<std::int64_t>(loopStrNymID.GetLength()) << "\n";
+               << static_cast<std::int64_t>(loopStrNymID->GetLength()) << "\n";
 
         // loopStrNymID ... if this matches strNymID then it's the one we're
         // looking for.
@@ -3510,7 +3511,7 @@ bool OpenSSL::DecryptSessionKey(
             // one we're looking for.
 
             const bool bNymIDMatches =
-                strNymID.Compare(loopStrNymID);  // FOUND IT! <==========
+                strNymID->Compare(loopStrNymID);  // FOUND IT! <==========
 
             if ((ii == (array_size - 1)) ||  // If we're on the LAST INDEX in
                                              // the array (often the only
@@ -3528,7 +3529,7 @@ bool OpenSSL::DecryptSessionKey(
                 // simply because loopStrNymID is EMPTY, then we
                 // can't rule that key out, in that case.
                 //
-                if (!(loopStrNymID.Exists() &&
+                if (!(loopStrNymID->Exists() &&
                       !bNymIDMatches))  // Skip if ID was definitely found and
                                         // definitely doesn't match.
                 {

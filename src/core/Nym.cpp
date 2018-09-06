@@ -1115,9 +1115,9 @@ bool Nym::ReEncryptPrivateCredentials(
                               : "Enter passphrase for exported Nym."));
         // Circumvents the cached key.
         pExportPassphrase = crypto::key::LegacySymmetric::GetPassphraseFromUser(
-            &strDisplay, !bImporting);  // bAskTwice is true when exporting
-                                        // (since the export passphrase is being
-                                        // created at that time.)
+            strDisplay, !bImporting);  // bAskTwice is true when exporting
+                                       // (since the export passphrase is being
+                                       // created at that time.)
         thePasswordAngel.reset(pExportPassphrase);
 
         if (nullptr == pExportPassphrase) {

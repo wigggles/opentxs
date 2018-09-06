@@ -116,8 +116,9 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetInitialPaymentAmount(
             String::StringToLong(xml->getAttributeValue("amount")));
 
-        String strCompleted(xml->getAttributeValue("completed"));
-        m_bInitialPaymentDone = strCompleted.Compare("true");
+        auto strCompleted =
+            String::Factory(xml->getAttributeValue("completed"));
+        m_bInitialPaymentDone = strCompleted->Compare("true");
 
         otWarn << "\n\nInitial Payment. Amount: " << m_lInitialPaymentAmount
                << ".   Date: " << GetInitialPaymentDate()
@@ -141,19 +142,22 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetNoPaymentsDone(atoi(xml->getAttributeValue("completedNoPayments")));
         SetNoFailedPayments(atoi(xml->getAttributeValue("failedNoPayments")));
 
-        const String str_between =
-            xml->getAttributeValue("timeBetweenPayments");
-        const String str_start = xml->getAttributeValue("planStartDate");
-        const String str_length = xml->getAttributeValue("planLength");
-        const String str_last = xml->getAttributeValue("dateOfLastPayment");
-        const String str_last_attempt =
-            xml->getAttributeValue("dateOfLastFailedPayment");
+        const auto str_between =
+            String::Factory(xml->getAttributeValue("timeBetweenPayments"));
+        const auto str_start =
+            String::Factory(xml->getAttributeValue("planStartDate"));
+        const auto str_length =
+            String::Factory(xml->getAttributeValue("planLength"));
+        const auto str_last =
+            String::Factory(xml->getAttributeValue("dateOfLastPayment"));
+        const auto str_last_attempt =
+            String::Factory(xml->getAttributeValue("dateOfLastFailedPayment"));
 
-        std::int64_t tBetween = str_between.ToLong();
-        std::int64_t tStart = parseTimestamp(str_start.Get());
-        std::int64_t tLength = str_length.ToLong();
-        std::int64_t tLast = parseTimestamp(str_last.Get());
-        std::int64_t tLastAttempt = parseTimestamp(str_last_attempt.Get());
+        std::int64_t tBetween = str_between->ToLong();
+        std::int64_t tStart = parseTimestamp(str_start->Get());
+        std::int64_t tLength = str_length->ToLong();
+        std::int64_t tLast = parseTimestamp(str_last->Get());
+        std::int64_t tLastAttempt = parseTimestamp(str_last_attempt->Get());
 
         SetTimeBetweenPayments(OTTimeGetTimeFromSeconds(tBetween));
         SetPaymentPlanStartDate(OTTimeGetTimeFromSeconds(tStart));
@@ -189,15 +193,17 @@ void OTPaymentPlan::UpdateContents()
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
-    const String NOTARY_ID(GetNotaryID()),
-        INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
-        SENDER_ACCT_ID(GetSenderAcctID()), SENDER_NYM_ID(GetSenderNymID()),
-        RECIPIENT_ACCT_ID(GetRecipientAcctID()),
-        RECIPIENT_NYM_ID(GetRecipientNymID());
+    const auto NOTARY_ID = String::Factory(GetNotaryID()),
+               INSTRUMENT_DEFINITION_ID =
+                   String::Factory(GetInstrumentDefinitionID()),
+               SENDER_ACCT_ID = String::Factory(GetSenderAcctID()),
+               SENDER_NYM_ID = String::Factory(GetSenderNymID()),
+               RECIPIENT_ACCT_ID = String::Factory(GetRecipientAcctID()),
+               RECIPIENT_NYM_ID = String::Factory(GetRecipientNymID());
 
     OT_ASSERT(!m_pCancelerNymID->empty());
 
-    String strCanceler;
+    auto strCanceler = String::Factory();
 
     if (m_bCanceled) m_pCancelerNymID->GetString((strCanceler));
 
@@ -205,14 +211,15 @@ void OTPaymentPlan::UpdateContents()
     Tag tag("agreement");
 
     tag.add_attribute("version", m_strVersion->Get());
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
-    tag.add_attribute("senderAcctID", SENDER_ACCT_ID.Get());
-    tag.add_attribute("senderNymID", SENDER_NYM_ID.Get());
-    tag.add_attribute("recipientAcctID", RECIPIENT_ACCT_ID.Get());
-    tag.add_attribute("recipientNymID", RECIPIENT_NYM_ID.Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute("senderAcctID", SENDER_ACCT_ID->Get());
+    tag.add_attribute("senderNymID", SENDER_NYM_ID->Get());
+    tag.add_attribute("recipientAcctID", RECIPIENT_ACCT_ID->Get());
+    tag.add_attribute("recipientNymID", RECIPIENT_NYM_ID->Get());
     tag.add_attribute("canceled", formatBool(m_bCanceled));
-    tag.add_attribute("cancelerNymID", m_bCanceled ? strCanceler.Get() : "");
+    tag.add_attribute("cancelerNymID", m_bCanceled ? strCanceler->Get() : "");
     tag.add_attribute("transactionNum", formatLong(m_lTransactionNum));
     tag.add_attribute("creationDate", formatTimestamp(GetCreationDate()));
     tag.add_attribute("validFrom", formatTimestamp(GetValidFrom()));
@@ -583,8 +590,10 @@ bool OTPaymentPlan::ProcessPayment(
     const Identifier& RECIPIENT_ACCT_ID = GetRecipientAcctID();
     const Identifier& RECIPIENT_NYM_ID = GetRecipientNymID();
 
-    String strSenderNymID(SENDER_NYM_ID), strRecipientNymID(RECIPIENT_NYM_ID),
-        strSourceAcctID(SOURCE_ACCT_ID), strRecipientAcctID(RECIPIENT_ACCT_ID);
+    auto strSenderNymID = String::Factory(SENDER_NYM_ID),
+         strRecipientNymID = String::Factory(RECIPIENT_NYM_ID),
+         strSourceAcctID = String::Factory(SOURCE_ACCT_ID),
+         strRecipientAcctID = String::Factory(RECIPIENT_ACCT_ID);
 
     // Make sure they're not the same Account IDs ...
     // Otherwise we would have to take care not to load them twice, like with
@@ -621,8 +630,9 @@ bool OTPaymentPlan::ProcessPayment(
 
     // strOrigPlan is a String copy (a PGP-signed XML file, in string form) of
     // the original Payment Plan request...
-    String strOrigPlan(*pOrigCronItem);  // <====== Farther down in the code, I
-                                         // attach this string to the receipts.
+    auto strOrigPlan =
+        String::Factory(*pOrigCronItem);  // <====== Farther down in the code, I
+                                          // attach this string to the receipts.
 
     // -------------- Make sure have both nyms loaded and checked out.
     // --------------------------------------------------
@@ -1096,7 +1106,7 @@ bool OTPaymentPlan::ProcessPayment(
             // Field. Now let's add the UPDATED plan as an ATTACHMENT on the
             // Transaction ITEM:
             //
-            String strUpdatedPlan(*this);
+            auto strUpdatedPlan = String::Factory(*this);
 
             // Set the updated plan as the attachment on the transaction item.
             // (With the SERVER's signature on it!)
@@ -1541,7 +1551,7 @@ bool OTPaymentPlan::ProcessCron()
 
 void OTPaymentPlan::InitPaymentPlan()
 {
-    m_strContractType = "PAYMENT PLAN";
+    m_strContractType = String::Factory("PAYMENT PLAN");
 
     SetProcessInterval(OTTimeGetSecondsFromTime(
         PLAN_PROCESS_INTERVAL));  // Payment plans currently process every hour.

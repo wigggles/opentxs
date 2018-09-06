@@ -149,26 +149,26 @@ bool Encode::IsBase62(const std::string& str) const
                                  "JKLMNOPQRSTUVWXYZ") == std::string::npos;
 }
 
-String Encode::Nonce(const std::uint32_t size) const
+OTString Encode::Nonce(const std::uint32_t size) const
 {
     auto unusedOutput = Data::Factory();
 
     return Nonce(size, unusedOutput);
 }
 
-String Encode::Nonce(const std::uint32_t size, Data& rawOutput) const
+OTString Encode::Nonce(const std::uint32_t size, Data& rawOutput) const
 {
     rawOutput.zeroMemory();
     rawOutput.SetSize(size);
     OTPassword source;
     source.randomizeMemory(size);
-    String nonce(IdentifierEncode(source));
+    auto nonce = String::Factory(IdentifierEncode(source));
     rawOutput.Assign(source.getMemory(), source.getMemorySize());
 
     return nonce;
 }
 
-std::string Encode::RandomFilename() const { return Nonce(16).Get(); }
+std::string Encode::RandomFilename() const { return Nonce(16)->Get(); }
 
 std::string Encode::SanatizeBase58(const std::string& input) const
 {

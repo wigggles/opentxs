@@ -56,11 +56,11 @@ std::string ProtoAsString(const T& serialized)
 }
 
 template <class T>
-String ProtoAsArmored(const T& serialized, const String& header)
+OTString ProtoAsArmored(const T& serialized, const String& header)
 {
     auto data = ProtoAsData<T>(serialized);
     Armored armored(data);
-    String output;
+    auto output = String::Factory();
     armored.WriteArmoredString(output, header.Get());
 
     return output;
@@ -91,7 +91,7 @@ template <class T>
 T StringToProto(const String& input)
 {
     Armored armored;
-    String unconstInput(input);
+    OTString unconstInput = String::Factory(input.Get());
 
     if (!armored.LoadFromString(unconstInput)) {
         std::cerr << __FUNCTION__ << "Failed to decode armored protobuf."

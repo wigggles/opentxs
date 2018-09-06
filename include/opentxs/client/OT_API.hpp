@@ -189,7 +189,7 @@ public:
                                       // that key, to SIGNER_ID, as part of the
                                       // merging process.
         const String& THE_PURSE,
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
     //
     // ENCODE, DECODE, SIGN, VERIFY, ENCRYPT, DECRYPT
 
@@ -353,7 +353,7 @@ public:
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const Identifier& NYM_ID,
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
     EXPORT bool SavePurse(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -384,8 +384,8 @@ public:
         // just ignored in that case.) Otherwise MUST contain the
         // NymID for the Purse owner.
         bool bForEncrypting = true,  // true==encrypting,false==decrypting.
-        const String* pstrDisplay1 = nullptr,
-        const String* pstrDisplay2 = nullptr) const;
+        const String& pstrDisplay1 = String::Factory(),
+        const String& pstrDisplay2 = String::Factory()) const;
     EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerForMerge(
         const String& strPurse,
         Purse& thePurse,          // output
@@ -402,7 +402,7 @@ public:
         bool bCanBePublic = false,  // true==private nym isn't mandatory.
                                     // false==private nym IS mandatory.
                                     // (Only relevant if there's an owner.)
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
     EXPORT Token* Purse_Peek(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
@@ -412,7 +412,7 @@ public:
                                       // (It's
         // just ignored in that case.) Otherwise MUST contain the
         // NymID for the Purse owner (necessary to decrypt the token.)
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
 
     EXPORT Purse* Purse_Pop(
         const Identifier& NOTARY_ID,
@@ -425,13 +425,13 @@ public:
         // ignored in that case.) Otherwise MUST
         // contain the NymID for the Purse owner
         // (necessary to decrypt the token.)
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
 
     EXPORT Purse* Purse_Empty(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID,
         const String& THE_PURSE,
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
 
     EXPORT Purse* Purse_Push(
         const Identifier& NOTARY_ID,
@@ -444,7 +444,7 @@ public:
         // just ignored in that case.) Otherwise MUST contain the
         // NymID for the Purse owner (recipient. necessary to encrypt
         // the token to him.)
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
 
     EXPORT Token* Token_ChangeOwner(
         const Identifier& NOTARY_ID,
@@ -453,7 +453,7 @@ public:
         const Identifier& SIGNER_NYM_ID,
         const String& OLD_OWNER,  // Pass a NymID here, or a purse.
         const String& NEW_OWNER,  // Pass a NymID here, or a purse.
-        const String* pstrDisplay = nullptr) const;
+        const String& pstrDisplay = String::Factory()) const;
     EXPORT Mint* LoadMint(
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const;
@@ -831,7 +831,7 @@ public:
         ServerContext& context,
         const TransactionNumber& lTransactionNum,
         const String& strClauseName,
-        const String* pStrParam = nullptr) const;
+        const String& pStrParam = String::Factory()) const;
 
     EXPORT bool Create_SmartContract(
         const Identifier& SIGNER_NYM_ID,  // Use any Nym you wish here. (The
@@ -1204,11 +1204,11 @@ private:
     const api::client::Workflow& workflow_;
     const api::network::ZMQ& zmq_;
     bool m_bDefaultStore{false};
-    String m_strDataPath;
-    mutable String m_strWalletFilename;
-    String m_strWalletFilePath;
-    String m_strConfigFilename;
-    String m_strConfigFilePath;
+    OTString m_strDataPath;
+    mutable OTString m_strWalletFilename;
+    OTString m_strWalletFilePath;
+    OTString m_strConfigFilename;
+    OTString m_strConfigFilePath;
     std::unique_ptr<Pid> pid_;
     OTWallet* m_pWallet{nullptr};
     std::unique_ptr<OTClient> m_pClient;

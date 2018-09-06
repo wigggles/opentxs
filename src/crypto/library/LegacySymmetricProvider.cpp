@@ -13,26 +13,26 @@ namespace opentxs::crypto
 {
 OTString LegacySymmetricProvider::ModeToString(const Mode Mode)
 {
-    String modeString;
+    auto modeString = String::Factory();
 
     switch (Mode) {
         case LegacySymmetricProvider::AES_128_CBC:
-            modeString = "aes-128-cbc";
+            modeString = String::Factory("aes-128-cbc");
             break;
         case LegacySymmetricProvider::AES_256_CBC:
-            modeString = "aes-256-cbc";
+            modeString = String::Factory("aes-256-cbc");
             break;
         case LegacySymmetricProvider::AES_256_ECB:
-            modeString = "aes-256-ecb";
+            modeString = String::Factory("aes-256-ecb");
             break;
         case LegacySymmetricProvider::AES_128_GCM:
-            modeString = "aes-128-gcm";
+            modeString = String::Factory("aes-128-gcm");
             break;
         case LegacySymmetricProvider::AES_256_GCM:
-            modeString = "aes-256-gcm";
+            modeString = String::Factory("aes-256-gcm");
             break;
         default:
-            modeString = "error";
+            modeString = String::Factory("error");
     }
     return modeString;
 }

@@ -180,12 +180,12 @@ OTIdentifier Context::GetID(const Lock& lock) const
 
 bool Context::HaveLocalNymboxHash() const
 {
-    return String(local_nymbox_hash_).Exists();
+    return String::Factory(local_nymbox_hash_)->Exists();
 }
 
 bool Context::HaveRemoteNymboxHash() const
 {
-    return String(remote_nymbox_hash_).Exists();
+    return String::Factory(remote_nymbox_hash_)->Exists();
 }
 
 proto::Context Context::IDVersion(const Lock& lock) const
@@ -197,24 +197,32 @@ proto::Context Context::IDVersion(const Lock& lock) const
 
     switch (Type()) {
         case proto::CONSENSUSTYPE_SERVER: {
-            if (nym_) { output.set_localnym(String(nym_->ID()).Get()); }
-
-            if (remote_nym_) {
-                output.set_remotenym(String(remote_nym_->ID()).Get());
+            if (nym_) {
+                output.set_localnym(String::Factory(nym_->ID())->Get());
             }
 
-            output.set_localnymboxhash(String(local_nymbox_hash_).Get());
-            output.set_remotenymboxhash(String(remote_nymbox_hash_).Get());
+            if (remote_nym_) {
+                output.set_remotenym(String::Factory(remote_nym_->ID())->Get());
+            }
+
+            output.set_localnymboxhash(
+                String::Factory(local_nymbox_hash_)->Get());
+            output.set_remotenymboxhash(
+                String::Factory(remote_nymbox_hash_)->Get());
         } break;
         case proto::CONSENSUSTYPE_CLIENT: {
-            if (nym_) { output.set_remotenym(String(nym_->ID()).Get()); }
-
-            if (remote_nym_) {
-                output.set_localnym(String(remote_nym_->ID()).Get());
+            if (nym_) {
+                output.set_remotenym(String::Factory(nym_->ID())->Get());
             }
 
-            output.set_remotenymboxhash(String(local_nymbox_hash_).Get());
-            output.set_localnymboxhash(String(remote_nymbox_hash_).Get());
+            if (remote_nym_) {
+                output.set_localnym(String::Factory(remote_nym_->ID())->Get());
+            }
+
+            output.set_remotenymboxhash(
+                String::Factory(local_nymbox_hash_)->Get());
+            output.set_localnymboxhash(
+                String::Factory(remote_nymbox_hash_)->Get());
         } break;
         default: {
             OT_FAIL;
@@ -356,7 +364,7 @@ std::string Context::Name() const
 {
     Lock lock(lock_);
 
-    return String(id(lock)).Get();
+    return String::Factory(id(lock))->Get();
 }
 
 bool Context::NymboxHashMatch() const
@@ -447,12 +455,14 @@ proto::Context Context::serialize(
     output.set_version(version_);
     output.set_type(type);
 
-    if (nym_) { output.set_localnym(String(nym_->ID()).Get()); }
+    if (nym_) { output.set_localnym(String::Factory(nym_->ID())->Get()); }
 
-    if (remote_nym_) { output.set_remotenym(String(remote_nym_->ID()).Get()); }
+    if (remote_nym_) {
+        output.set_remotenym(String::Factory(remote_nym_->ID())->Get());
+    }
 
-    output.set_localnymboxhash(String(local_nymbox_hash_).Get());
-    output.set_remotenymboxhash(String(remote_nymbox_hash_).Get());
+    output.set_localnymboxhash(String::Factory(local_nymbox_hash_)->Get());
+    output.set_remotenymboxhash(String::Factory(remote_nymbox_hash_)->Get());
     output.set_requestnumber(request_number_.load());
 
     for (const auto& it : acknowledged_request_numbers_) {

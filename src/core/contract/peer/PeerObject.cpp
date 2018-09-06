@@ -209,7 +209,7 @@ std::unique_ptr<PeerObject> PeerObject::Factory(
 
     if (!input.SetCiphertext(encrypted)) { return output; }
 
-    String contents;
+    auto contents = String::Factory();
 
     if (!input.Open(*recipientNym, contents)) { return output; }
 
@@ -235,7 +235,7 @@ proto::PeerObject PeerObject::Serialize() const
 
             if (message_) {
                 if (nym_) { *output.mutable_nym() = nym_->asPublicNym(); }
-                output.set_otmessage(String(*message_).Get());
+                output.set_otmessage(String::Factory(*message_)->Get());
             }
             break;
         }
@@ -248,7 +248,7 @@ proto::PeerObject PeerObject::Serialize() const
 
             if (payment_) {
                 if (nym_) { *output.mutable_nym() = nym_->asPublicNym(); }
-                output.set_otpayment(String(*payment_).Get());
+                output.set_otpayment(String::Factory(*payment_)->Get());
             }
             break;
         }

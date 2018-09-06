@@ -39,7 +39,7 @@ public:
     bool GetPrivateKey(
         String& strOutput,
         const key::Asymmetric* pPubkey,
-        const String* pstrReason = nullptr,
+        const String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr) const override;
     bool GetPublicKey(String& strKey) const override;
     bool IsEmpty() const override;
@@ -50,7 +50,7 @@ public:
      * of unless and until RSA key support is removed entirely. */
     bool SaveCertToString(
         String& strOutput,
-        const String* pstrReason = nullptr,
+        const String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr) const override;
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     proto::HashType SigHashType() const override
@@ -62,12 +62,12 @@ public:
     void Release() override;
     bool SetPrivateKey(
         const String& strCert,
-        const String* pstrReason = nullptr,
+        const String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr) override;
     bool SetPublicKey(const String& strKey) override;
     bool SetPublicKeyFromPrivateKey(
         const String& strCert,
-        const String* pstrReason = nullptr,
+        const String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr) override;
 
     ~RSA();

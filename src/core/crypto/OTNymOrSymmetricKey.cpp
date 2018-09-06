@@ -114,7 +114,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const Nym& theNym,
-    const String* pstrDisplay)  // construct with nym
+    const String& pstrDisplay)  // construct with nym
     : m_pNym(const_cast<Nym*>(&theNym))
     , m_pKey(nullptr)
     , m_pPassword(nullptr)
@@ -125,7 +125,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const crypto::key::LegacySymmetric& theKey,
-    const String* pstrDisplay)  // construct with key
+    const String& pstrDisplay)  // construct with key
     : m_pNym(nullptr)
     , m_pKey(const_cast<crypto::key::LegacySymmetric*>(&theKey))
     , m_pPassword(nullptr)
@@ -137,7 +137,7 @@ OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
 OTNym_or_SymmetricKey::OTNym_or_SymmetricKey(
     const crypto::key::LegacySymmetric& theKey,
     const OTPassword& thePassword,  // construct with key and password.
-    const String* pstrDisplay)
+    const String& pstrDisplay)
     : m_pNym(nullptr)
     , m_pKey(const_cast<crypto::key::LegacySymmetric*>(&theKey))
     , m_pPassword(const_cast<OTPassword*>(&thePassword))
@@ -239,7 +239,7 @@ void OTNym_or_SymmetricKey::GetIdentifier(String& strIdentifier) const
 bool OTNym_or_SymmetricKey::Open_or_Decrypt(
     const OTEnvelope& inputEnvelope,
     String& strOutput,
-    const String* pstrDisplay)
+    const String& pstrDisplay)
 {
     const char* szFunc = "OTNym_or_SymmetricKey::Open_or_Decrypt";
 
@@ -261,16 +261,16 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(
             pPassword = GetPassword();
         else  // NO PASSWORD already? let's collect it from the user...
         {
-            const String strDisplay(
-                (nullptr == pstrDisplay) ? szFunc : pstrDisplay->Get());
+            const auto strDisplay = String::Factory(
+                (!pstrDisplay.Exists()) ? szFunc : pstrDisplay.Get());
             // NOTE: m_pstrDisplay overrides this below.
 
             // returns a text OTPassword, or nullptr.
             //
             pPassword = crypto::key::LegacySymmetric::GetPassphraseFromUser(
-                (nullptr == m_pstrDisplay)
-                    ? &strDisplay
-                    : m_pstrDisplay);  // bool bAskTwice=false
+                (!m_pstrDisplay->Exists())
+                    ? strDisplay->Get()
+                    : m_pstrDisplay->Get());  // bool bAskTwice=false
 
             if (nullptr == pPassword)  // Unable to retrieve passphrase from
                                        // user.
@@ -312,7 +312,7 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(
 bool OTNym_or_SymmetricKey::Seal_or_Encrypt(
     OTEnvelope& outputEnvelope,
     const String& strInput,
-    const String* pstrDisplay)
+    const String& pstrDisplay)
 {
     const char* szFunc = "OTNym_or_SymmetricKey::Seal_or_Encrypt";
 
@@ -330,15 +330,15 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(
             pPassword = GetPassword();
         else  // no password? let's collect it from the user...
         {
-            const String strDisplay(
-                (nullptr == pstrDisplay) ? szFunc : pstrDisplay->Get());
+            const auto strDisplay = String::Factory(
+                (!pstrDisplay.Exists()) ? szFunc : pstrDisplay.Get());
             // NOTE: m_pstrDisplay overrides this below.
 
             // returns a text OTPassword, or nullptr.
             //
             pPassword = crypto::key::LegacySymmetric::GetPassphraseFromUser(
-                (nullptr == m_pstrDisplay)
-                    ? &strDisplay
+                (!m_pstrDisplay->Exists())
+                    ? strDisplay
                     : m_pstrDisplay);  // bool bAskTwice=false
 
             if (nullptr == pPassword)  // Unable to retrieve passphrase from

@@ -18,8 +18,8 @@ public:
     std::string IdentifierEncode(const Data& input) const override;
     std::string IdentifierDecode(const std::string& input) const override;
     bool IsBase62(const std::string& str) const override;
-    String Nonce(const std::uint32_t size) const override;
-    String Nonce(const std::uint32_t size, Data& rawOutput) const override;
+    OTString Nonce(const std::uint32_t size) const override;
+    OTString Nonce(const std::uint32_t size, Data& rawOutput) const override;
     std::string RandomFilename() const override;
     std::string SanatizeBase58(const std::string& input) const override;
     std::string SanatizeBase64(const std::string& input) const override;

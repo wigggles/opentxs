@@ -38,20 +38,20 @@ private:
             if (3 > strKeyName.size() || 3 > strDefaultName.size())
                 return false;
 
-            String strResult("");
+            auto strResult = String::Factory();
             bool bIsNew(false);
 
             config.CheckSet_str(
-                "folders",
-                String(strKeyName),
-                String(strDefaultName),
+                String::Factory("folders"),
+                String::Factory(strKeyName),
+                String::Factory(strDefaultName),
                 strResult,
                 bIsNew);
 
             if (!bIsNew)
-                ret_strName = strResult;
+                ret_strName.Set(strResult->Get());
             else
-                ret_strName = strDefaultName.c_str();
+                ret_strName.Set(strDefaultName.c_str());
 
             return true;
         }

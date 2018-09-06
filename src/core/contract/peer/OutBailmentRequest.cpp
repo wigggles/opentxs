@@ -52,8 +52,8 @@ proto::PeerRequest OutBailmentRequest::IDVersion(const Lock& lock) const
     auto contract = ot_super::IDVersion(lock);
     auto& outbailment = *contract.mutable_outbailment();
     outbailment.set_version(version_);
-    outbailment.set_unitid(String(unit_).Get());
-    outbailment.set_serverid(String(server_).Get());
+    outbailment.set_unitid(String::Factory(unit_)->Get());
+    outbailment.set_serverid(String::Factory(server_)->Get());
     outbailment.set_amount(amount_);
     outbailment.set_instructions(conditions_);
 

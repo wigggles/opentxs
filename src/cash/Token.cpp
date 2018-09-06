@@ -404,12 +404,11 @@ bool Token::ReassignOwnership(
         // Therefore the old or new "owner" might actually be a symmetric key.
         // Decrypt/Open the Envelope into theString
         //
-        bSuccess =
-            oldOwner.Open_or_Decrypt(theEnvelope, theString, &strDisplay);
+        bSuccess = oldOwner.Open_or_Decrypt(theEnvelope, theString, strDisplay);
         if (bSuccess) {
             OTEnvelope theNewEnvelope;
-            bSuccess = newOwner.Seal_or_Encrypt(
-                theNewEnvelope, theString, &strDisplay);
+            bSuccess =
+                newOwner.Seal_or_Encrypt(theNewEnvelope, theString, strDisplay);
             if (bSuccess)
                 bSuccess = theNewEnvelope.GetCiphertext(m_ascSpendable);
         }
@@ -429,7 +428,7 @@ bool Token::GetSpendableString(
         // Decrypt the Envelope into strContents
         const String strDisplay(szFunc);
 
-        if (theOwner.Open_or_Decrypt(theEnvelope, theString, &strDisplay))
+        if (theOwner.Open_or_Decrypt(theEnvelope, theString, strDisplay))
             return true;
     } else
         otErr << szFunc << ": m_ascSpendable is empty... (failure.)\n";

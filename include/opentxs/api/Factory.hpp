@@ -162,12 +162,12 @@ public:
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID in advance.
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        String strInput) const = 0;
+        const String& strInput) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        String strInput,
+        const String& strInput,
         const Identifier& NOTARY_ID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        String strInput,
+        const String& strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
 #endif  // OT_CASH
@@ -195,12 +195,12 @@ public:
      * LucreTokens, and other types of tokens, dynamically, without having to
      * know beforehand which OTToken subclass we're dealing with. */
     EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        String strInput) const = 0;
+        const String& strInput) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        String strInput,
+        const String& strInput,
         const opentxs::Purse& thePurse) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        String strInput,
+        const String& strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
     EXPORT virtual std::unique_ptr<opentxs::Token> Token(
