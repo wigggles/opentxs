@@ -133,6 +133,13 @@ public:
         const std::string& memo,
         const Time validFrom,
         const Time validTo) const override;
+    OTIdentifier SendExternalTransfer(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& sourceAccountID,
+        const Identifier& targetAccountID,
+        const Amount value,
+        const std::string& memo) const override;
     OTIdentifier SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,

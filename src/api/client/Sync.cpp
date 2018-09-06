@@ -2079,7 +2079,7 @@ OTIdentifier Sync::SendCheque(
     return PayContact(localNymID, recipientContactID, ppayment);
 }
 
-OTIdentifier Sync::SendTransfer(
+OTIdentifier Sync::SendExternalTransfer(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& sourceAccountID,
@@ -2099,6 +2099,40 @@ OTIdentifier Sync::SendTransfer(
         return Identifier::Factory();
     }
 
+    if (sourceAccount.get().GetNymID() != localNymID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong owner on source account"
+              << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    if (sourceAccount.get().GetRealNotaryID() != serverID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong notary on source account"
+              << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    auto& queue = get_operations({localNymID, serverID});
+    const auto taskID(Identifier::Random());
+
+    return start_task(
+        taskID,
+        queue.send_transfer_.Push(
+            taskID, {sourceAccountID, targetAccountID, value, memo}));
+}
+
+OTIdentifier Sync::SendTransfer(
+    const Identifier& localNymID,
+    const Identifier& serverID,
+    const Identifier& sourceAccountID,
+    const Identifier& targetAccountID,
+    const std::int64_t value,
+    const std::string& memo) const
+{
+    CHECK_ARGS(localNymID, serverID, targetAccountID)
+    CHECK_NYM(sourceAccountID)
+
     auto targetAccount = client_.Wallet().Account(targetAccountID);
 
     if (false == bool(targetAccount)) {
@@ -2108,17 +2142,39 @@ OTIdentifier Sync::SendTransfer(
         return Identifier::Factory();
     }
 
-    if (sourceAccount.get().GetNymID() != targetAccount.get().GetNymID()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
-              << " owner ids don't match" << std::endl;
+    if (targetAccount.get().GetNymID() != localNymID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong owner on target account"
+              << std::endl;
 
         return Identifier::Factory();
     }
 
-    if (sourceAccount.get().GetRealNotaryID() !=
-        targetAccount.get().GetRealNotaryID()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Source and target account"
-              << " notary ids don't match" << std::endl;
+    if (targetAccount.get().GetRealNotaryID() != serverID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong notary on target account"
+              << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    auto sourceAccount = client_.Wallet().Account(sourceAccountID);
+
+    if (false == bool(sourceAccount)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid source account"
+              << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    if (sourceAccount.get().GetNymID() != localNymID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong owner on source account"
+              << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    if (sourceAccount.get().GetRealNotaryID() != serverID) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong notary on source account"
+              << std::endl;
 
         return Identifier::Factory();
     }
