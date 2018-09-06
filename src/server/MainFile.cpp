@@ -306,10 +306,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
     {
         OTStringXML xmlFileContents(strFileContents);
 
-        if (false ==
-            xmlFileContents.DecodeIfArmored())  // bEscapedIsAllowed=true
-                                                // by default.
-        {
+        if (false == xmlFileContents.DecodeIfArmored()) {
             Log::vError(
                 "%s: Notary server file apparently was encoded and "
                 "then failed decoding. Filename: %s \n"
@@ -319,22 +316,19 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                 strFileContents.Get());
             return false;
         }
+
         irr::io::IrrXMLReader* xml =
             irr::io::createIrrXMLReader(xmlFileContents);
         std::unique_ptr<irr::io::IrrXMLReader> theXMLGuardian(xml);
+
         while (xml && xml->read()) {
             // strings for storing the data that we want to read out of the file
-
             String AssetName;
             String InstrumentDefinitionID;
-
             const String strNodeName(xml->getNodeName());
 
             switch (xml->getNodeType()) {
                 case irr::io::EXN_TEXT:
-                    // in this xml file, the only text which occurs is the
-                    // messageText
-                    // messageText = xml->getNodeData();
                     break;
                 case irr::io::EXN_ELEMENT: {
                     if (strNodeName.Compare("notaryServer")) {
@@ -365,22 +359,10 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             server_.GetServerID().str().c_str(),
                             server_.ServerNymID().c_str());
 
-                    }
-                    // todo in the future just remove masterkey. I'm leaving it
-                    // for
-                    // now so people's
-                    // data files can get converted over. After a while just
-                    // remove
-                    // it.
-                    //
-                    else if (
-                        strNodeName.Compare("masterKey") ||
-                        strNodeName.Compare("cachedKey")) {
+                    } else if (strNodeName.Compare("cachedKey")) {
                         Armored ascCachedKey;
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
-                            // We successfully loaded the masterKey from file,
-                            // so let's SET it as the master key globally...
                             auto& cachedKey =
                                 server_.API().Crypto().LoadDefaultKey(
                                     ascCachedKey);
@@ -392,8 +374,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                     cachedKey,
                                     tempPassword,
                                     "We do not have a check hash yet for this "
-                                    "password, "
-                                    "please enter your password",
+                                    "password, please enter your password",
                                     true);
                             }
                         }
@@ -402,31 +383,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             0,
                             "\nLoading cachedKey:\n%s\n",
                             ascCachedKey.Get());
-                        //
-                        // It's only here, AFTER the master key has been loaded,
-                        // that we can
-                        // go ahead and load the server user, the server
-                        // contract,
-                        // cron, etc.
-                        // (It wasn't that way in version 1, before we had
-                        // master
-                        // keys.)
-                        //
-                        // This is, for example, 2.0
-                        if (version_ != "1.0") {
-                            if (!LoadServerUserAndContract()) {
-                                Log::vError(
-                                    "%s: Failed calling "
-                                    "LoadServerUserAndContract.\n",
-                                    __FUNCTION__);
-                                bFailure = true;
-                            }
-                        }
-                    } else if (strNodeName.Compare("accountList"))  // the
-                                                                    // voucher
-                                                                    // reserve
-                    // account IDs.
-                    {
+                    }
+                    // the voucher reserve account IDs.
+                    else if (strNodeName.Compare("accountList")) {
                         const String strAcctType =
                             xml->getAttributeValue("type");
                         const String strAcctCount =
@@ -467,9 +426,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                                 "Basket ID: %s\n Basket Acct ID: %s\n",
                                 strBasketID.Get(),
                                 strBasketAcctID.Get());
-                    }
-
-                    else {
+                    } else {
                         // unknown element type
                         Log::vError(
                             "%s: Unknown element type: %s\n",
@@ -477,16 +434,43 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                             xml->getNodeName());
                     }
                 } break;
-                default:
-                    break;
+                default: {
+                }
             }
         }
     }
-    if (!bReadOnly) {
-        {
-            if (bNeedToSaveAgain) SaveMainFile();
+
+    if (server_.ServerNymID().empty()) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Failed to determine server nym id." << std::endl;
+        bFailure = true;
+    }
+
+    if (false == bFailure) {
+        const auto loaded =
+            server_.LoadServerNym(Identifier::Factory(server_.ServerNymID()));
+
+        if (false == loaded) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to load server nym."
+                  << std::endl;
+            bFailure = true;
         }
     }
+
+    if (false == bFailure) {
+        const auto loaded = LoadServerUserAndContract();
+
+        if (false == loaded) {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to load nym."
+                  << std::endl;
+            bFailure = true;
+        }
+    }
+
+    if (false == bReadOnly) {
+        if (bNeedToSaveAgain) { SaveMainFile(); }
+    }
+
     return !bFailure;
 }
 

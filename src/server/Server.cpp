@@ -624,9 +624,17 @@ void Server::Init(bool readOnly)
 bool Server::LoadServerNym(const Identifier& nymID)
 {
     auto nym = manager_.Wallet().Nym(nymID);
-    if (nullptr == nym) { return false; }
+
+    if (false == bool(nym)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Server nym does not exist."
+              << std::endl;
+
+        return false;
+    }
 
     m_nymServer = nym;
+
+    OT_ASSERT(m_nymServer);
 
     return true;
 }
