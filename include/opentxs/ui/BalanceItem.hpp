@@ -12,6 +12,7 @@
 
 #include <cstdint>
 #include <chrono>
+#include <list>
 #include <string>
 
 #include "ListRow.hpp"
@@ -26,6 +27,7 @@
 }
 %ignore opentxs::ui::BalanceItem::Timestamp;
 %ignore opentxs::ui::BalanceItem::Update;
+%template(ListOfContactIDs) std::vector<std::string>;
 %template(OTUIBalanceItem) opentxs::SharedPimpl<opentxs::ui::BalanceItem>;
 %rename(UIBalanceItem) opentxs::ui::BalanceItem;
 // clang-format on
@@ -39,8 +41,10 @@ class BalanceItem : virtual public ListRow
 {
 public:
     EXPORT virtual opentxs::Amount Amount() const = 0;
+    EXPORT virtual std::vector<std::string> Contacts() const = 0;
     EXPORT virtual std::string DisplayAmount() const = 0;
     EXPORT virtual std::string Memo() const = 0;
+    EXPORT virtual TransactionNumber Number() const = 0;
     EXPORT virtual std::string Text() const = 0;
     EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
     EXPORT virtual StorageBox Type() const = 0;
