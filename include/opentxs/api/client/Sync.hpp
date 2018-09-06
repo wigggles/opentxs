@@ -137,6 +137,13 @@ public:
         const Time validFrom = Clock::now(),
         const Time validTo =
             (Clock::now() + std::chrono::hours(OT_CHEQUE_HOURS))) const = 0;
+    EXPORT virtual OTIdentifier SendExternalTransfer(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& sourceAccountID,
+        const Identifier& targetAccountID,
+        const Amount value,
+        const std::string& memo) const = 0;
     EXPORT virtual OTIdentifier SendTransfer(
         const Identifier& localNymID,
         const Identifier& serverID,
