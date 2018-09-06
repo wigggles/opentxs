@@ -21,6 +21,7 @@ public:
     static const proto::PaymentWorkflow& recover_workflow(
         const CustomData& custom);
 
+    std::vector<std::string> Contacts() const override { return contacts_; }
     std::string Text() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
     StorageBox Type() const override { return type_; }
@@ -52,6 +53,10 @@ protected:
 
 private:
     const OTIdentifier account_id_;
+    const std::vector<std::string> contacts_;
+
+    static std::vector<std::string> extract_contacts(
+        const proto::PaymentWorkflow& workflow);
 
     BalanceItem(const BalanceItem&) = delete;
     BalanceItem(BalanceItem&&) = delete;
@@ -65,6 +70,7 @@ public:
     opentxs::Amount Amount() const override { return effective_amount(); }
     std::string DisplayAmount() const override;
     std::string Memo() const override;
+    TransactionNumber Number() const override;
 
     void reindex(
         const implementation::AccountActivitySortKey& key,

@@ -28,6 +28,7 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#include <vector>
 
 #include "BalanceItem.hpp"
 
@@ -91,6 +92,7 @@ BalanceItem::BalanceItem(
     , time_(sortKey)
     , startup_(nullptr)
     , account_id_(Identifier::Factory(accountID))
+    , contacts_(extract_contacts(recover_workflow(custom)))
 {
 }
 
@@ -117,6 +119,16 @@ ChequeBalanceItem::ChequeBalanceItem(
     startup_.reset(new std::thread(&ChequeBalanceItem::startup, this, custom));
 
     OT_ASSERT(startup_)
+}
+
+std::vector<std::string> BalanceItem::extract_contacts(
+    const proto::PaymentWorkflow& workflow)
+{
+    std::vector<std::string> output{};
+
+    for (const auto& party : workflow.party()) { output.emplace_back(party); }
+
+    return output;
 }
 
 StorageBox BalanceItem::extract_type(const proto::PaymentWorkflow& workflow)
@@ -283,6 +295,15 @@ std::string ChequeBalanceItem::Memo() const
     sLock lock(shared_lock_);
 
     if (cheque_) { return cheque_->GetMemo().Get(); }
+
+    return {};
+}
+
+TransactionNumber ChequeBalanceItem::Number() const
+{
+    sLock lock(shared_lock_);
+
+    if (cheque_) { return cheque_->GetTransactionNum(); }
 
     return {};
 }
