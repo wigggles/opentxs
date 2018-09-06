@@ -970,9 +970,14 @@ bool OTClient::harvest_unused(ServerContext& context)
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
             case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
                 break;
+
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+            case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
             case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
             case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
                 continue;
+
             case proto::PAYMENTWORKFLOWTYPE_ERROR:
             default: {
                 otErr << OT_METHOD << __FUNCTION__
@@ -982,6 +987,8 @@ bool OTClient::harvest_unused(ServerContext& context)
             }
         }
 
+
+        // TODO: INITIATED
         switch (workflow->state()) {
             case proto::PAYMENTWORKFLOWSTATE_UNSENT:
             case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
@@ -991,6 +998,11 @@ bool OTClient::harvest_unused(ServerContext& context)
             case proto::PAYMENTWORKFLOWSTATE_COMPLETED:
             case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
                 continue;
+
+            case proto::PAYMENTWORKFLOWSTATE_INITIATED: {
+                OT_FAIL;  // TODO
+            } break;
+
             case proto::PAYMENTWORKFLOWSTATE_ERROR:
             default: {
                 otErr << OT_METHOD << __FUNCTION__
@@ -1019,9 +1031,13 @@ bool OTClient::harvest_unused(ServerContext& context)
                 const auto number = cheque->GetTransactionNum();
                 available.erase(number);
             } break;
+
+            case proto::PAYMENTWORKFLOWTYPE_ERROR:
+            case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+            case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+            case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
             case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
             case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
-            case proto::PAYMENTWORKFLOWTYPE_ERROR:
             default: {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Warning: unhandled workflow type" << std::endl;

@@ -35,10 +35,10 @@
 
 #define OUTGOING_CHEQUE_EVENT_VERSION 1
 #define OUTGOING_CHEQUE_SOURCE_VERSION 1
-#define OUTGOING_CHEQUE_WORKFLOW_VERSION 1
+#define OUTGOING_CHEQUE_WORKFLOW_VERSION 2
 #define INCOMING_CHEQUE_EVENT_VERSION 1
 #define INCOMING_CHEQUE_SOURCE_VERSION 1
-#define INCOMING_CHEQUE_WORKFLOW_VERSION 1
+#define INCOMING_CHEQUE_WORKFLOW_VERSION 2
 #define RPC_ACCOUNT_EVENT_VERSION 1
 #define RPC_PUSH_VERSION 1
 
@@ -70,6 +70,9 @@ bool Workflow::ContainsCheque(const proto::PaymentWorkflow& workflow)
             return true;
         } break;
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
         default: {
         }
     }
@@ -129,6 +132,95 @@ Workflow::Cheque Workflow::InstantiateCheque(
             state = workflow.state();
         } break;
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
+        default: {
+            otErr << OT_METHOD << __FUNCTION__ << ": Incorrect workflow type"
+                  << std::endl;
+        }
+    }
+
+    return output;
+}
+
+bool Workflow::ContainsTransfer(const proto::PaymentWorkflow& workflow)
+{
+    switch (workflow.type()) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+
+            return true;
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+        default: {
+        }
+    }
+
+    return false;
+}
+
+std::string Workflow::ExtractTransfer(const proto::PaymentWorkflow& workflow)
+{
+    if (false == ContainsTransfer(workflow)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Wrong workflow type"
+              << std::endl;
+
+        return {};
+    }
+
+    if (1 != workflow.source().size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid workflow" << std::endl;
+
+        return {};
+    }
+
+    return workflow.source(0).item();
+}
+
+Workflow::Transfer Workflow::InstantiateTransfer(
+    const api::Core& core,
+    const proto::PaymentWorkflow& workflow)
+{
+    Transfer output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
+    auto& [state, transfer] = output;
+
+    switch (workflow.type()) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+            transfer.reset(core.Factory().Transfer().release());
+
+            OT_ASSERT(transfer)
+
+            const auto serialized = ExtractTransfer(workflow);
+
+            if (serialized.empty()) { return output; }
+
+            const auto loaded =
+                transfer->LoadContractFromString(serialized.c_str());
+
+            if (false == loaded) {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed to instantiate transfer" << std::endl;
+                transfer.reset();
+
+                return output;
+            }
+
+            state = workflow.state();
+        } break;
+
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Incorrect workflow type"
                   << std::endl;
@@ -171,6 +263,356 @@ bool Workflow::cheque_deposit_success(const Message* message)
     // TODO this might not be sufficient
 
     return message->m_bSuccess;
+}
+
+// Creates outgoing and internal transfer workflows.
+OTIdentifier Workflow::CreateTransfer(
+    const opentxs::OTItem& transfer,
+    const Message& request,
+    const Message* reply) const
+{
+    if (false == isTransfer(transfer)) { return Identifier::Factory(); }
+
+    const auto senderNymID = transfer.GetSenderNymID().str();
+    const auto recipientNymID = transfer.GetRecipientNymID().str();
+    const bool is_internal = (0 == senderNymID.compare(recipientNymID));
+
+    eLock lock(shared_lock_);
+    const auto [workflowID, workflow] = is_internal
+      ? create_transfer(
+        lock,
+        senderNymID,
+        transfer,
+        proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
+        proto::PAYMENTWORKFLOWSTATE_INITIATED,
+        INTERNAL_TRANSFER_WORKFLOW_VERSION,
+        INTERNAL_TRANSFER_SOURCE_VERSION,
+        INTERNAL_TRANSFER_EVENT_VERSION,
+        recipientNymID,
+        transfer.GetSenderAcctID().str())
+    : create_transfer(
+        lock,
+        senderNymID,
+        transfer,
+        proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER,
+        proto::PAYMENTWORKFLOWSTATE_INITIATED,
+        OUTGOING_TRANSFER_WORKFLOW_VERSION,
+        OUTGOING_TRANSFER_SOURCE_VERSION,
+        OUTGOING_TRANSFER_EVENT_VERSION,
+        recipientNymID,
+        transfer.GetSenderAcctID().str());
+
+    const bool haveWorkflow = (false == workflowID->empty());
+
+    if (haveWorkflow) {
+        update_activity(
+            transfer.GetSenderNymID(),
+            transfer.GetRecipientNymID(),
+            Identifier::Factory(transfer),
+            workflowID,
+            is_internal
+            ? StorageBox::INTERNALTRANSFER
+            : StorageBox::OUTGOINGTRANSFER,
+            std::chrono::system_clock::from_time_t(workflow.event(0).time()));
+    }
+
+    return workflowID;
+}
+
+// NOTE: Since this is an INCOMING transfer, then we need to CREATE its
+// corresponding transfer workflow, since it does not already exist.
+//
+// (Whereas if this had been an INTERNAL transfer, then it would ALREADY
+// have been created, and thus we'd need to GET the existing workflow, and
+// then add the new event to it).
+//
+OTIdentifier Workflow::ConveyIncomingTransfer(
+    const Identifier& nymID,
+    const opentxs::OTItem& transfer) const
+{
+    if (false == isTransfer(transfer)) { return Identifier::Factory(); }
+
+    const auto senderNymID = transfer.GetSenderNymID().str();
+    const auto recipientNymID = transfer.GetRecipientNymID().str();
+    const bool is_internal = (0 == senderNymID.compare(recipientNymID));
+
+    if (is_internal) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Transfer is internal, not "
+        "incoming. This function was erroneously called." << std::endl;
+
+        return Identifier::Factory();
+    }
+
+    if (false == validate_recipient(nymID, transfer)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
+              << " can not accept this transfer." << std::endl;
+
+        return Identifier::Factory();
+    }
+    const auto & party = senderNymID;
+
+    eLock lock(shared_lock_);
+
+    const auto [workflowID, workflow] = create_transfer(
+        lock,
+        nymID.str(),
+        transfer,
+        proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER,
+        proto::PAYMENTWORKFLOWSTATE_CONVEYED,
+        INCOMING_TRANSFER_WORKFLOW_VERSION,
+        INCOMING_TRANSFER_SOURCE_VERSION,
+        INCOMING_TRANSFER_EVENT_VERSION,
+        party,
+        "");
+
+    if (false == workflowID->empty()) {
+        update_activity(
+            nymID,
+            transfer.GetSenderNymID(),
+            Identifier::Factory(transfer),
+            workflowID,
+            StorageBox::INCOMINGTRANSFER,
+            extract_conveyed_time(workflow));
+    }
+
+    return workflowID;
+}
+
+// NOTE: Since this is an INTERNAL transfer, then it was already CREATED,
+// and thus we need to GET the existing workflow, and then add the new
+// event to it.
+// Whereas if this is an INCOMING transfer, then we need to CREATE its
+// corresponding transfer workflow since it does not already exist.
+bool Workflow::ConveyInternalTransfer(
+    const opentxs::OTItem& transfer,
+    const Message& request,
+    const Message* reply) const
+{
+    if (false == isTransfer(transfer)) { return false; }
+
+    const auto senderNymID = transfer.GetSenderNymID().str();
+    const auto recipientNymID = transfer.GetRecipientNymID().str();
+    const bool is_internal = (0 == senderNymID.compare(recipientNymID));
+
+    if (false == is_internal) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Transfer is incoming, not "
+        "internal. This function was erroneously called." << std::endl;
+
+        return false;
+    }
+    const auto & nymID = senderNymID;
+
+    eLock lock(shared_lock_);
+    auto workflow = get_workflow(
+        {proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER}, nymID, transfer);
+
+    if (false == bool(workflow)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Workflow for this transfer does not exist." << std::endl;
+
+        return false;
+    }
+
+    if (false == can_convey_transfer(*workflow)) { return false; }
+
+    return add_transfer_event(
+        nymID,
+        request.m_strNymID2->Get(),
+        *workflow,
+        proto::PAYMENTWORKFLOWSTATE_CONVEYED,
+        proto::PAYMENTEVENTTYPE_CONVEY,
+        INTERNAL_TRANSFER_EVENT_VERSION,
+        request,
+        reply);
+}
+
+// Works for Incoming and Internal transfer workflows.
+bool Workflow::AcceptTransfer(
+    const Identifier& receiver,
+    const Identifier& accountID,
+    const opentxs::OTItem& transfer,
+    const Message& request,
+    const Message* reply) const
+{
+    if (false == isTransfer(transfer)) { return false; }
+
+    const auto senderNymID = transfer.GetSenderNymID().str();
+    const auto recipientNymID = transfer.GetRecipientNymID().str();
+    const bool is_internal = (0 == senderNymID.compare(recipientNymID));
+
+    const auto nymID = receiver.str();
+
+    eLock lock(shared_lock_);
+    auto workflow = get_workflow(
+        { is_internal
+            ? proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER
+            : proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER
+        }, nymID, transfer);
+
+    if (false == bool(workflow)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Workflow for this transfer does not exist." << std::endl;
+
+        return false;
+    }
+
+    if (false == can_accept_transfer(*workflow)) { return false; }
+
+    return add_transfer_event(
+        nymID,
+        transfer.GetSenderNymID().str(),
+        *workflow,
+        is_internal
+        ? proto::PAYMENTWORKFLOWSTATE_ACCEPTED
+        : proto::PAYMENTWORKFLOWSTATE_COMPLETED,
+        proto::PAYMENTEVENTTYPE_ACCEPT,
+        is_internal
+        ? INTERNAL_TRANSFER_EVENT_VERSION
+        : INCOMING_TRANSFER_EVENT_VERSION,
+        request,
+        reply,
+        accountID.str());
+}
+
+// Works for outgoing and internal transfer workflows.
+bool Workflow::CompleteTransfer(
+    const opentxs::OTItem& transfer,
+    const Message& request,
+    const Message* reply) const
+{
+    if (false == isTransfer(transfer)) { return false; }
+
+    const auto senderNymID = transfer.GetSenderNymID().str();
+    const auto recipientNymID = transfer.GetRecipientNymID().str();
+    const bool is_internal = (0 == senderNymID.compare(recipientNymID));
+
+    const auto & nymID = senderNymID;
+
+    eLock lock(shared_lock_);
+    auto workflow = get_workflow(
+        { is_internal
+            ? proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER
+            : proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER
+        }, nymID, transfer);
+
+    if (false == bool(workflow)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Workflow for this transfer does not exist." << std::endl;
+
+        return false;
+    }
+
+    if (false == can_complete_transfer(*workflow)) { return false; }
+
+    return add_transfer_event(
+        nymID,
+        "",
+        *workflow,
+        proto::PAYMENTWORKFLOWSTATE_COMPLETED,
+        proto::PAYMENTEVENTTYPE_COMPLETE,
+        is_internal
+        ? INTERNAL_TRANSFER_EVENT_VERSION
+        : OUTGOING_TRANSFER_EVENT_VERSION,
+        request,
+        reply);
+}
+
+Transfer Workflow::LoadTransfer(
+    const Identifier& nymID,
+    const Identifier& transferID) const
+{
+    auto workflow = get_workflow_by_source(
+        {proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER,
+         proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER,
+         proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER},
+        nymID.str(),
+        transferID.str());
+
+    if (false == bool(workflow)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Workflow for this transfer does not exist." << std::endl;
+
+        return {};
+    }
+
+    return InstantiateTransfer(api_, *workflow);
+}
+
+Transfer Workflow::LoadTransferByWorkflow(
+    const Identifier& nymID,
+    const Identifier& workflowID) const
+{
+    auto workflow = get_workflow_by_id(
+        {proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER,
+         proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER,
+         proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER},
+        nymID.str(),
+        workflowID.str());
+
+    if (false == bool(workflow)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Workflow for this transfer does not exist." << std::endl;
+
+        return {};
+    }
+
+    return InstantiateTransfer(api_, *workflow);
+}
+
+bool Workflow::add_transfer_event(
+    const std::string& nymID,
+    const std::string& eventNym,
+    proto::PaymentWorkflow& workflow,
+    const proto::PaymentWorkflowState newState,
+    const proto::PaymentEventType newEventType,
+    const std::uint32_t version,
+    const Message& request,
+    const Message* reply,
+    const std::string& account) const
+{
+    const bool haveReply = (nullptr != reply);
+    const bool success = (haveReply) ? reply->m_bSuccess : false;
+
+    if (success) {
+        workflow.set_state(newState);
+
+        if ((false == account.empty()) && (0 == workflow.account_size())) {
+            workflow.add_account(account);
+        }
+    }
+
+    auto& event = *(workflow.add_event());
+    event.set_version(version);
+    event.set_type(newEventType);
+    event.add_item(String::Factory(request)->Get());
+    event.set_method(proto::TRANSPORTMETHOD_OT);
+    event.set_transport(request.m_strNotaryID->Get());
+
+    switch (newEventType) {
+        case proto::PAYMENTEVENTTYPE_CANCEL:
+        case proto::PAYMENTEVENTTYPE_COMPLETE: {
+        } break;
+        case proto::PAYMENTEVENTTYPE_CONVEY:
+        case proto::PAYMENTEVENTTYPE_ACCEPT: {
+            event.set_nym(request.m_strNymID2->Get());
+        } break;
+        case proto::PAYMENTEVENTTYPE_ERROR:
+        case proto::PAYMENTEVENTTYPE_CREATE:
+        default: {
+            OT_FAIL
+        }
+    }
+
+    event.set_success(success);
+
+    if (haveReply) {
+        event.add_item(String(*reply).Get());
+        event.set_time(reply->m_lTime);
+    } else {
+        event.set_time(request.m_lTime);
+    }
+
+    return save_workflow(nymID, account, workflow);
 }
 
 bool Workflow::add_cheque_event(
@@ -284,6 +726,28 @@ bool Workflow::can_accept_cheque(const proto::PaymentWorkflow& workflow)
     return true;
 }
 
+bool Workflow::can_accept_transfer(const proto::PaymentWorkflow& workflow)
+{
+    bool correctState{false};
+
+    switch (workflow.state()) {
+        case proto::PAYMENTWORKFLOWSTATE_CONVEYED: {
+            correctState = true;
+        } break;
+        default: {
+        }
+    }
+
+    if (false == correctState) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect workflow state."
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
 bool Workflow::can_cancel_cheque(const proto::PaymentWorkflow& workflow)
 {
     bool correctState{false};
@@ -309,6 +773,19 @@ bool Workflow::can_cancel_cheque(const proto::PaymentWorkflow& workflow)
 
 bool Workflow::can_convey_cheque(const proto::PaymentWorkflow& workflow)
 {
+    if (proto::PAYMENTWORKFLOWSTATE_UNSENT != workflow.state()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect workflow state."
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Workflow::can_convey_transfer(const proto::PaymentWorkflow& workflow)
+{
+    // NOTE: is a transfer "unsent" before CreateTransfer has been called?
     if (proto::PAYMENTWORKFLOWSTATE_UNSENT != workflow.state()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect workflow state."
               << std::endl;
@@ -380,6 +857,18 @@ bool Workflow::can_expire_cheque(
 }
 
 bool Workflow::can_finish_cheque(const proto::PaymentWorkflow& workflow)
+{
+    if (proto::PAYMENTWORKFLOWSTATE_ACCEPTED != workflow.state()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Incorrect workflow state."
+              << std::endl;
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Workflow::can_complete_transfer(const proto::PaymentWorkflow& workflow)
 {
     if (proto::PAYMENTWORKFLOWSTATE_ACCEPTED != workflow.state()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Incorrect workflow state."
@@ -496,6 +985,87 @@ bool Workflow::ClearCheque(
         cheque->GetMemo().Get());
 
     return output;
+}
+
+std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_transfer(
+        const eLock& lock,
+        const std::string& nymID,
+        const opentxs::OTItem& transfer,
+        const proto::PaymentWorkflowType workflowType,
+        const proto::PaymentWorkflowState workflowState,
+        const std::uint32_t workflowVersion,
+        const std::uint32_t sourceVersion,
+        const std::uint32_t eventVersion,
+        const std::string& party,
+        const std::string& account,
+        const Message* message) const
+{
+    OT_ASSERT(verify_lock(lock))
+
+    std::pair<OTIdentifier, proto::PaymentWorkflow> output{
+        Identifier::Factory(), {}};
+    auto& [workflowID, workflow] = output;
+    const auto transferID = Identifier::Factory(transfer);
+    const std::string serialized = String::Factory(transfer)->Get();
+    const auto existing = get_workflow({workflowType}, nymID, transfer);
+
+    if (existing) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Workflow for this transfer already exists." << std::endl;
+        workflowID = Identifier::Factory(existing->id());
+
+        return output;
+    }
+
+    workflowID = Identifier::Random();
+    workflow.set_version(workflowVersion);
+    workflow.set_id(workflowID->str());
+    workflow.set_type(workflowType);
+    workflow.set_state(workflowState);
+    auto& source = *(workflow.add_source());
+    source.set_version(sourceVersion);
+    source.set_id(transferID->str());
+    source.set_revision(1);
+    source.set_item(serialized);
+    // Note: is the below correct? Shouldn't it be notaryID, not unit type?
+    workflow.set_notary(transfer.GetInstrumentDefinitionID().str());
+
+    // add party if it was passed in and is not already present
+    if ((false == party.empty()) && (0 == workflow.party_size())) {
+        workflow.add_party(party);
+    }
+
+    auto& event = *workflow.add_event();
+    event.set_version(eventVersion);
+
+    event.set_time(now());
+
+    if (proto::PAYMENTWORKFLOWSTATE_INITIATED == workflowState) {
+        event.set_type(proto::PAYMENTEVENTTYPE_CREATE);
+        event.set_method(proto::TRANSPORTMETHOD_OT);
+        OT_ASSERT(nullptr != message);
+        event.set_transport(String(message->m_strNotaryID).Get());
+    } else if (proto::PAYMENTWORKFLOWSTATE_CONVEYED == workflowState) {
+        event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
+        event.set_method(proto::TRANSPORTMETHOD_OT);
+        OT_ASSERT(nullptr != message);
+        event.set_transport(String(message->m_strNotaryID).Get());
+    } else {
+        OT_FAIL
+    }
+
+
+    if (false == party.empty()) { event.set_nym(party); }
+
+    event.set_success(true);
+    workflow.add_unit(transfer.GetInstrumentDefinitionID().str());
+
+    // add account if it was passed in and is not already present
+    if ((false == account.empty()) && (0 == workflow.account_size())) {
+        workflow.add_account(account);
+    }
+
+    return save_workflow(std::move(output), nymID, account, workflow);
 }
 
 std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
@@ -1067,6 +1637,16 @@ bool Workflow::validate_recipient(
     if (nymID.empty()) { return true; }
 
     return (nymID == cheque.GetRecipientNymID());
+}
+
+
+bool Workflow::validate_recipient(
+    const Identifier& nymID,
+    const opentxs::OTItem& transfer)
+{
+    if (nymID.empty()) { return true; }
+
+    return (nymID == transfer.GetRecipientNymID());
 }
 
 void Workflow::update_activity(

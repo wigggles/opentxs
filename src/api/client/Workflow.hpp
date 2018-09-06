@@ -7,6 +7,13 @@
 
 #include "Internal.hpp"
 
+/*
+ Create
+ Convey
+ Accept
+ Complete
+ */
+
 namespace opentxs::api::client::implementation
 {
 class Workflow : virtual public opentxs::api::client::Workflow, Lockable
@@ -35,16 +42,9 @@ public:
     OTIdentifier ImportCheque(
         const Identifier& nymID,
         const opentxs::Cheque& cheque) const override;
-    std::set<OTIdentifier> List(
-        const Identifier& nymID,
-        const proto::PaymentWorkflowType type,
-        const proto::PaymentWorkflowState state) const override;
     Cheque LoadCheque(const Identifier& nymID, const Identifier& chequeID)
         const override;
     Cheque LoadChequeByWorkflow(
-        const Identifier& nymID,
-        const Identifier& workflowID) const override;
-    std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
         const Identifier& nymID,
         const Identifier& workflowID) const override;
     bool SendCheque(
@@ -55,10 +55,46 @@ public:
         const Identifier& nymID,
         const opentxs::Cheque& cheque,
         const Message& message) const override;
+    OTIdentifier WriteCheque(const opentxs::Cheque& cheque) const override;
+
+    OTIdentifier CreateTransfer(
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const;
+    OTIdentifier ConveyIncomingTransfer(
+        const Identifier& nymID,
+        const opentxs::OTItem& transfer) const;
+    bool ConveyInternalTransfer(
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const;
+    bool AcceptTransfer(
+        const Identifier& receiver,
+        const Identifier& accountID,
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const;
+    bool CompleteTransfer(
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const;
+    Transfer LoadTransfer(
+        const Identifier& nymID,
+        const Identifier& transferID) const;
+    Transfer LoadTransferByWorkflow(
+        const Identifier& nymID,
+        const Identifier& workflowID) const;
+
+    std::set<OTIdentifier> List(
+        const Identifier& nymID,
+        const proto::PaymentWorkflowType type,
+        const proto::PaymentWorkflowState state) const override;
+    std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
+        const Identifier& nymID,
+        const Identifier& workflowID) const override;
     std::vector<OTIdentifier> WorkflowsByAccount(
         const Identifier& nymID,
         const Identifier& accountID) const override;
-    OTIdentifier WriteCheque(const opentxs::Cheque& cheque) const override;
 
     ~Workflow() = default;
 
@@ -71,6 +107,10 @@ private:
     const OTZMQPublishSocket account_publisher_;
     const OTZMQPushSocket rpc_publisher_;
 
+    static std::chrono::time_point<std::chrono::system_clock>
+        extract_conveyed_time(const proto::PaymentWorkflow& workflow);
+    static std::int64_t now();
+
     static bool can_accept_cheque(const proto::PaymentWorkflow& workflow);
     static bool can_cancel_cheque(const proto::PaymentWorkflow& workflow);
     static bool can_convey_cheque(const proto::PaymentWorkflow& workflow);
@@ -82,11 +122,42 @@ private:
     static bool cheque_deposit_success(const Message* message);
     static std::chrono::time_point<std::chrono::system_clock>
     extract_conveyed_time(const proto::PaymentWorkflow& workflow);
+
     static bool isCheque(const opentxs::Cheque& cheque);
-    static std::int64_t now();
     static bool validate_recipient(
         const Identifier& nymID,
         const opentxs::Cheque& cheque);
+
+    static bool can_convey_transfer(const proto::PaymentWorkflow& workflow);
+    static bool can_accept_transfer(const proto::PaymentWorkflow& workflow);
+    static bool can_complete_transfer(const proto::PaymentWorkflow& workflow);
+    static bool isTransfer(const opentxs::OTItem& transfer);
+    static bool validate_recipient(
+        const Identifier& nymID,
+        const opentxs::OTItem& transfer);
+
+    bool add_transfer_event(
+        const std::string& nymID,
+        const std::string& eventNym,
+        proto::PaymentWorkflow& workflow,
+        const proto::PaymentWorkflowState newState,
+        const proto::PaymentEventType newEventType,
+        const std::uint32_t version,
+        const Message& request,
+        const Message* reply,
+        const std::string& account = "") const;
+    std::pair<OTIdentifier, proto::PaymentWorkflow> create_transfer(
+        const eLock& lock,
+        const std::string& nymID,
+        const opentxs::OTItem& transfer,
+        const proto::PaymentWorkflowType workflowType,
+        const proto::PaymentWorkflowState workflowState,
+        const std::uint32_t workflowVersion,
+        const std::uint32_t sourceVersion,
+        const std::uint32_t eventVersion,
+        const std::string& party,
+        const std::string& account,
+        const Message* message = nullptr) const;
 
     bool add_cheque_event(
         const std::string& nymID,
@@ -121,6 +192,7 @@ private:
         const std::string& party,
         const std::string& account,
         const Message* message = nullptr) const;
+
     std::shared_ptr<proto::PaymentWorkflow> get_workflow(
         const std::set<proto::PaymentWorkflowType>& types,
         const std::string& nymID,

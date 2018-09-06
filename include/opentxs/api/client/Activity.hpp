@@ -28,6 +28,9 @@ public:
     using ChequeData = std::pair<
         std::unique_ptr<const class Cheque>,
         std::shared_ptr<const UnitDefinition>>;
+    using TransferData = std::pair<
+        std::unique_ptr<const class OTItem>,
+        std::shared_ptr<const UnitDefinition>>;
 
     EXPORT virtual bool AddBlockchainTransaction(
         const Identifier& nymID,
@@ -129,6 +132,11 @@ public:
         const std::string& id,
         const std::string& workflow) const = 0;
 
+    EXPORT virtual TransferData Transfer(
+        const Identifier& nym,
+        const std::string& id,
+        const std::string& workflow) const = 0;
+    
     /**   Summarize a payment workflow event in human-friendly test form
      *
      *    \param[in] nym the identifier of the nym who owns the thread

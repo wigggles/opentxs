@@ -63,6 +63,19 @@ ui::implementation::AccountActivityRowInternal* Factory::BalanceItem(
                 nymID,
                 accountID);
         }
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+            return new ui::implementation::TransferBalanceItem(
+                parent,
+                api,
+                publisher,
+                rowID,
+                sortKey,
+                custom,
+                nymID,
+                accountID);
+        }
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
         default: {
             otErr << "Factory::" << __FUNCTION__ << ": Unhandled workflow type"
@@ -142,9 +155,22 @@ StorageBox BalanceItem::extract_type(const proto::PaymentWorkflow& workflow)
 
             return StorageBox::INCOMINGCHEQUE;
         }
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER: {
+
+            return StorageBox::OUTGOINGTRANSFER;
+        }
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER: {
+
+            return StorageBox::INCOMINGTRANSFER;
+        }
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+
+            return StorageBox::INTERNALTRANSFER;
+        }
+
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
-        case proto::PAYMENTWORKFLOWTYPE_ERROR:
         default: {
 
             return StorageBox::UNKNOWN;

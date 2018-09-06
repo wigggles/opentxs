@@ -42,16 +42,47 @@ namespace client
  *    2. (optional) ExpireCheque
  *    3. DepositCheque
  *       a. May be repeated as necessary until successful
+ *
+ *  Sequence for sending a transfer:
+ *    1. CreateTransfer
+ *       a. CreateTransfer may be repeated as necessary until successful
+ *    2. AcceptTransfer
+ *       a. Called after receiving a transfer receipt
+ *    3. CompleteTransfer
+ *       a. Called after a process inbox attempt
+ *       b. May be repeated as necessary until successful
+ *
+ *  Sequence for receiving a transfer:
+ *    1. ConveyTransfer
+ *    3. AcceptTransfer
+ *       a. May be repeated as necessary until successful
+ *
+ *  Sequence for an internal transfer:
+ *    1. CreateTransfer
+ *       a. CreateTransfer may be repeated as necessary until successful
+ *    2. ConveyTransfer
+ *    3. AcceptTransfer
+ *       a. Called after receiving a transfer receipt
+ *    4. CompleteTransfer
+ *       a. Called after a process inbox attempt
+ *       b. May be repeated as necessary until successful
  */
 class Workflow
 {
 public:
     using Cheque = std::
         pair<proto::PaymentWorkflowState, std::unique_ptr<opentxs::Cheque>>;
+    using Transfer = std::
+        pair<proto::PaymentWorkflowState, std::unique_ptr<opentxs::OTItem>>;
 
     static bool ContainsCheque(const proto::PaymentWorkflow& workflow);
+    static bool ContainsTransfer(const proto::PaymentWorkflow& workflow);
     static std::string ExtractCheque(const proto::PaymentWorkflow& workflow);
+    static std::string ExtractTransfer(const proto::PaymentWorkflow& workflow);
     static Cheque InstantiateCheque(
+        const api::Core& core,
+        const proto::PaymentWorkflow& workflow);
+    static Transfer InstantiateTransfer(
         const api::Core& core,
         const proto::PaymentWorkflow& workflow);
 
@@ -86,18 +117,10 @@ public:
     EXPORT virtual OTIdentifier ImportCheque(
         const Identifier& nymID,
         const opentxs::Cheque& cheque) const = 0;
-    EXPORT virtual std::set<OTIdentifier> List(
-        const Identifier& nymID,
-        const proto::PaymentWorkflowType type,
-        const proto::PaymentWorkflowState state) const = 0;
     EXPORT virtual Cheque LoadCheque(
         const Identifier& nymID,
         const Identifier& chequeID) const = 0;
     EXPORT virtual Cheque LoadChequeByWorkflow(
-        const Identifier& nymID,
-        const Identifier& workflowID) const = 0;
-    /** Load a serialized workflow, if it exists*/
-    EXPORT virtual std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
         const Identifier& nymID,
         const Identifier& workflowID) const = 0;
     /** Create a new incoming cheque workflow from an OT message */
@@ -110,13 +133,56 @@ public:
         const opentxs::Cheque& cheque,
         const Message& request,
         const Message* reply) const = 0;
+    /** Create a new outgoing cheque workflow */
+    EXPORT virtual OTIdentifier WriteCheque(
+        const opentxs::Cheque& cheque) const = 0;
+
+    /** Record a new outgoing or internal "sent transfer" (or attempt) workflow
+     */
+    EXPORT virtual OTIdentifier CreateTransfer(
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const = 0;
+    /** Create a new incoming transfer workflow. */
+    EXPORT virtual OTIdentifier ConveyIncomingTransfer(
+        const Identifier& nymID,
+        const opentxs::OTItem& transfer) const = 0;
+    /** Create a new internal transfer workflow. */
+    EXPORT virtual bool ConveyInternalTransfer(
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const = 0;
+    /** Record a transfer accept, or accept attempt */
+    EXPORT virtual bool AcceptTransfer(
+        const Identifier& receiver,
+        const Identifier& accountID,
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const = 0;
+    /** Record a process inbox for sender that accepts a transfer receipt */
+    EXPORT virtual bool CompleteTransfer(
+        const opentxs::OTItem& transfer,
+        const Message& request,
+        const Message* reply) const = 0;
+    EXPORT virtual Transfer LoadTransfer(
+        const Identifier& nymID,
+        const Identifier& transferID) const = 0;
+    EXPORT virtual Transfer LoadTransferByWorkflow(
+        const Identifier& nymID,
+        const Identifier& workflowID) const = 0;
+
+    EXPORT virtual std::set<OTIdentifier> List(
+        const Identifier& nymID,
+        const proto::PaymentWorkflowType type,
+        const proto::PaymentWorkflowState state) const = 0;
+    /** Load a serialized workflow, if it exists*/
+    EXPORT virtual std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
+        const Identifier& nymID,
+        const Identifier& workflowID) const = 0;
     /** Get a list of workflow IDs relevant to a specified account */
     EXPORT virtual std::vector<OTIdentifier> WorkflowsByAccount(
         const Identifier& nymID,
         const Identifier& accountID) const = 0;
-    /** Create a new outgoing cheque workflow */
-    EXPORT virtual OTIdentifier WriteCheque(
-        const opentxs::Cheque& cheque) const = 0;
 
     EXPORT virtual ~Workflow() = default;
 

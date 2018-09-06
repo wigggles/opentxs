@@ -201,6 +201,7 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
                             proto::PAYMENTEVENTTYPE_ACCEPT, workflow));
                 } break;
                 case proto::PAYMENTWORKFLOWSTATE_ERROR:
+                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
                 default: {
                     otErr << OT_METHOD << __FUNCTION__
                           << ": Invalid workflow state" << std::endl;
@@ -223,6 +224,7 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
                 case proto::PAYMENTWORKFLOWSTATE_UNSENT:
                 case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
                 case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
+                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
                 default: {
                     otErr << OT_METHOD << __FUNCTION__
                           << ": Invalid workflow state ("
@@ -233,9 +235,29 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
                 }
             }
         } break;
+
+
+
+
+
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER: {
+            OT_FAIL;  // TODO
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER: {
+            OT_FAIL;  // TODO
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+            OT_FAIL;  // TODO
+        } break;
+
+
+
+
+
+
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
-        case proto::PAYMENTWORKFLOWTYPE_ERROR:
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Unsupported workflow type"
                   << std::endl;
