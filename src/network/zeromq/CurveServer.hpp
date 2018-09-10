@@ -18,9 +18,10 @@ class CurveServer : virtual public zeromq::CurveServer
 public:
     bool SetDomain(const std::string& domain) const override;
     bool SetPrivateKey(const OTPassword& key) const override;
+    bool SetPrivateKey(const std::string& z85) const override;
 
 protected:
-    bool set_private_key(const OTPassword& key) const;
+    bool set_private_key(const void* key, const std::size_t keySize) const;
 
     CurveServer(std::mutex& lock, void* socket);
     ~CurveServer();

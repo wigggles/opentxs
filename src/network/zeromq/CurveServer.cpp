@@ -41,21 +41,37 @@ bool CurveServer::SetDomain(const std::string& domain) const
 
 bool CurveServer::SetPrivateKey(const OTPassword& key) const
 {
-    return set_private_key(key);
-}
-
-bool CurveServer::set_private_key(const OTPassword& key) const
-{
-    OT_ASSERT(nullptr != server_curve_socket_);
-
-    Lock lock(server_curve_lock_);
-
     if (CURVE_KEY_BYTES != key.getMemorySize()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid private key."
               << std::endl;
 
         return false;
     }
+
+    return set_private_key(key.getMemory(), key.getMemorySize());
+}
+
+bool CurveServer::SetPrivateKey(const std::string& z85) const
+{
+    if (CURVE_KEY_Z85_BYTES > z85.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid private key size ("
+              << z85.size() << ")" << std::endl;
+
+        return false;
+    }
+
+    std::array<std::uint8_t, CURVE_KEY_BYTES> key{};
+    ::zmq_z85_decode(key.data(), z85.data());
+
+    return set_private_key(key.data(), key.size());
+}
+
+bool CurveServer::set_private_key(const void* key, const std::size_t keySize)
+    const
+{
+    OT_ASSERT(nullptr != server_curve_socket_);
+
+    Lock lock(server_curve_lock_);
 
     const int server{1};
     auto set = zmq_setsockopt(
@@ -68,11 +84,8 @@ bool CurveServer::set_private_key(const OTPassword& key) const
         return false;
     }
 
-    set = zmq_setsockopt(
-        server_curve_socket_,
-        ZMQ_CURVE_SECRETKEY,
-        key.getMemory(),
-        key.getMemorySize());
+    set =
+        zmq_setsockopt(server_curve_socket_, ZMQ_CURVE_SECRETKEY, key, keySize);
 
     if (0 != set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to set private key."

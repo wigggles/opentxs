@@ -10,9 +10,12 @@
 
 #include "opentxs/network/zeromq/Socket.hpp"
 
+#include <tuple>
+
 #ifdef SWIG
 // clang-format off
 %ignore opentxs::network::zeromq::CurveClient::SetServerPubkey;
+%template(CurveKeypair) std::pair<std::string, std::string>;
 %interface(opentxs::network::zeromq::CurveClient);
 // clang-format on
 #endif  // SWIG
@@ -26,6 +29,12 @@ namespace zeromq
 class CurveClient : virtual public Socket
 {
 public:
+    EXPORT static std::pair<std::string, std::string> RandomKeypair();
+
+    EXPORT virtual bool SetKeysZ85(
+        const std::string& serverPublic,
+        const std::string& clientPrivate,
+        const std::string& clientPublic) const = 0;
     EXPORT virtual bool SetServerPubkey(
         const ServerContract& contract) const = 0;
     EXPORT virtual bool SetServerPubkey(const Data& key) const = 0;
