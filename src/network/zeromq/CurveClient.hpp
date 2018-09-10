@@ -18,6 +18,10 @@ namespace opentxs::network::zeromq::implementation
 class CurveClient : virtual public zeromq::CurveClient
 {
 public:
+    bool SetKeysZ85(
+        const std::string& serverPublic,
+        const std::string& clientPrivate,
+        const std::string& clientPublic) const override;
     bool SetServerPubkey(const ServerContract& contract) const override;
     bool SetServerPubkey(const Data& key) const override;
 
@@ -34,7 +38,15 @@ private:
     void* client_curve_socket_{nullptr};
 
     bool set_local_keys() const;
-    bool set_remote_key(const Data& key) const;
+    bool set_local_keys(
+        const std::string& privateKey,
+        const std::string& publicKey) const;
+    bool set_local_keys(
+        const void* privateKey,
+        const std::size_t privateKeySize,
+        const void* publicKey,
+        const std::size_t publicKeySize) const;
+    bool set_remote_key(const void* key, const std::size_t size) const;
 
     CurveClient() = delete;
     CurveClient(const CurveClient&) = delete;

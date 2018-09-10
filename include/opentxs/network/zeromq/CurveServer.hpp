@@ -28,6 +28,7 @@ class CurveServer : virtual public Socket
 public:
     EXPORT virtual bool SetDomain(const std::string& domain) const = 0;
     EXPORT virtual bool SetPrivateKey(const OTPassword& key) const = 0;
+    EXPORT virtual bool SetPrivateKey(const std::string& z85) const = 0;
 
     EXPORT virtual ~CurveServer() = default;
 
