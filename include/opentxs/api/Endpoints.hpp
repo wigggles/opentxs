@@ -38,6 +38,7 @@ public:
     EXPORT virtual std::string ServerReplyReceived() const = 0;
     EXPORT virtual std::string ServerRequestSent() const = 0;
     EXPORT virtual std::string ServerUpdate() const = 0;
+    EXPORT virtual std::string TaskComplete() const = 0;
     EXPORT virtual std::string ThreadUpdate(
         const std::string& thread) const = 0;
     EXPORT virtual std::string WidgetUpdate() const = 0;

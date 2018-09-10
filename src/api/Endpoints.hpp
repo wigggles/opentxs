@@ -25,6 +25,7 @@ public:
     std::string ServerReplyReceived() const override;
     std::string ServerRequestSent() const override;
     std::string ServerUpdate() const override;
+    std::string TaskComplete() const override;
     std::string ThreadUpdate(const std::string& thread) const override;
     std::string WidgetUpdate() const override;
     std::string WorkflowAccountUpdate() const override;

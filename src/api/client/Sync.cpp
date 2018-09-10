@@ -221,6 +221,7 @@ Sync::Sync(
     , notification_listener_(client_.ZeroMQ().PullSocket(
           notification_listener_callback_.get(),
           false))
+    , task_finished_(client_.ZeroMQ().PublishSocket())
 {
     // WARNING: do not access client_.Wallet() during construction
     const auto endpoint = client_.Endpoints().AccountUpdate();
@@ -234,6 +235,11 @@ Sync::Sync(
         client_.Endpoints().InternalProcessPushNotification());
 
     OT_ASSERT(listening)
+
+    const auto publishing =
+        task_finished_->Start(client_.Endpoints().TaskComplete());
+
+    OT_ASSERT(publishing)
 }
 
 std::pair<bool, std::size_t> Sync::accept_incoming(
@@ -2704,6 +2710,32 @@ void Sync::update_task(const Identifier& taskID, const ThreadStatus status)
     if (0 == task_status_.count(taskID)) { return; }
 
     task_status_[taskID] = status;
+    bool value{false};
+    bool publish{false};
+
+    switch (status) {
+        case ThreadStatus::FINISHED_SUCCESS: {
+            value = true;
+            publish = true;
+        } break;
+        case ThreadStatus::FINISHED_FAILED: {
+            value = false;
+            publish = true;
+        } break;
+        case ThreadStatus::ERROR:
+        case ThreadStatus::RUNNING:
+        case ThreadStatus::SHUTDOWN:
+        default: {
+        }
+    }
+
+    if (publish) {
+        auto message = opentxs::network::zeromq::Message::Factory();
+        message->AddFrame();
+        message->AddFrame(taskID.str());
+        message->AddFrame(Data::Factory(&value, sizeof(value)));
+        task_finished_->Publish(message);
+    }
 }
 
 Depositability Sync::valid_account(

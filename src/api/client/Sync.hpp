@@ -217,6 +217,7 @@ private:
     OTZMQSubscribeSocket account_subscriber_;
     OTZMQListenCallback notification_listener_callback_;
     OTZMQPullSocket notification_listener_;
+    OTZMQPublishSocket task_finished_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,

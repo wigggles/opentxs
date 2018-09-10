@@ -29,6 +29,7 @@
 #define SERVER_REPLY_RECEIVED_ENDPOINT "reply/received"
 #define SERVER_REQUEST_SENT_ENDPOINT "request/sent"
 #define SERVER_UPDATE_ENDPOINT "serverupdate"
+#define TASK_COMPLETE_ENDPOINT "taskcomplete/"
 #define THREAD_UPDATE_ENDPOINT "threadupdate/"
 #define WIDGET_UPDATE_ENDPOINT "ui/widgetupdate"
 #define WORKFLOW_ACCOUNT_UPDATE_ENDPOINT "ui/workflowupdate/account"
@@ -146,6 +147,11 @@ std::string Endpoints::ServerRequestSent() const
 std::string Endpoints::ServerUpdate() const
 {
     return build_inproc_path(SERVER_UPDATE_ENDPOINT, ENDPOINT_VERSION_1);
+}
+
+std::string Endpoints::TaskComplete() const
+{
+    return build_inproc_path(TASK_COMPLETE_ENDPOINT, ENDPOINT_VERSION_1);
 }
 
 std::string Endpoints::ThreadUpdate(const std::string& thread) const
