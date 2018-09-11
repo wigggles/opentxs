@@ -9,6 +9,7 @@
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/crypto/library/EncodingProvider.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/Types.hpp"
 
 #include "base64/base64.h"
@@ -177,5 +178,31 @@ std::string Encode::SanatizeBase58(const std::string& input) const
 std::string Encode::SanatizeBase64(const std::string& input) const
 {
     return std::regex_replace(input, std::regex("[^0-9A-Za-z+/=]"), "");
+}
+
+std::string Encode::Z85Encode(const Data& input) const
+{
+    return opentxs::network::zeromq::Context::RawToZ85(
+        input.data(), input.size());
+}
+
+std::string Encode::Z85Encode(const std::string& input) const
+{
+    return opentxs::network::zeromq::Context::RawToZ85(
+        input.data(), input.size());
+}
+
+OTData Encode::Z85Decode(const Data& input) const
+{
+    return opentxs::network::zeromq::Context::Z85ToRaw(
+        input.data(), input.size());
+}
+
+std::string Encode::Z85Decode(const std::string& input) const
+{
+    const auto output =
+        opentxs::network::zeromq::Context::Z85ToRaw(input.data(), input.size());
+
+    return {static_cast<const char*>(output->data()), output->size()};
 }
 }  // namespace opentxs::api::crypto::implementation

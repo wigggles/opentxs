@@ -37,6 +37,10 @@ public:
 
     EXPORT static std::string EncodePrivateZ85(
         const opentxs::crypto::key::Ed25519& key);
+    EXPORT static std::string RawToZ85(
+        const void* input,
+        const std::size_t size);
+    EXPORT static OTData Z85ToRaw(const void* input, const std::size_t size);
 
     EXPORT virtual operator void*() const = 0;
 
