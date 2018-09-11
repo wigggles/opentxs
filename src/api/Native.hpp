@@ -22,10 +22,13 @@ class Native final : api::internal::Native, Lockable
 {
 public:
     const api::client::Manager& Client(const int instance) const override;
+    std::size_t Clients() const override { return client_.size(); }
     const api::Settings& Config(const std::string& path) const override;
     const api::Crypto& Crypto() const override;
     void HandleSignals(ShutdownCallback* shutdown) const override;
+    proto::RPCResponse RPC(const proto::RPCCommand& command) const override;
     const api::server::Manager& Server(const int instance) const override;
+    std::size_t Servers() const override { return server_.size(); }
     const api::client::Manager& StartClient(
         const ArgList& args,
         const int instance) const override;
@@ -34,6 +37,10 @@ public:
         const int instance,
         const bool inproc) const override;
     const api::network::ZAP& ZAP() const override;
+    const opentxs::network::zeromq::Context& ZMQ() const override
+    {
+        return zmq_context_.get();
+    }
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
@@ -65,6 +72,7 @@ private:
     std::unique_ptr<OTCallback> null_callback_{nullptr};
     std::unique_ptr<OTCaller> default_external_password_callback_{nullptr};
     OTCaller* external_password_callback_{nullptr};
+    std::unique_ptr<rpc::internal::RPC> rpc_;
 
     static int client_instance(const int count);
     static int server_instance(const int count);

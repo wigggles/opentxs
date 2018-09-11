@@ -89,6 +89,14 @@ class Proxy;
 }  // namespace zeromq
 }  // namespace network
 
+namespace rpc
+{
+namespace internal
+{
+struct RPC;
+}  // namespace internal
+}  // namespace rpc
+
 namespace server
 {
 class ReplyMessage;

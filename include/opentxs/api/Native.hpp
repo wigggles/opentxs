@@ -10,6 +10,7 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
 #include <chrono>
@@ -27,14 +28,18 @@ public:
 
     EXPORT virtual const api::client::Manager& Client(
         const int instance) const = 0;
+    EXPORT virtual std::size_t Clients() const = 0;
     EXPORT virtual const api::Settings& Config(
         const std::string& path) const = 0;
     EXPORT virtual const api::Crypto& Crypto() const = 0;
     EXPORT virtual void HandleSignals(
         ShutdownCallback* callback = nullptr) const = 0;
+    EXPORT virtual proto::RPCResponse RPC(
+        const proto::RPCCommand& command) const = 0;
     /** Throws std::out_of_range if the specified server does not exist. */
     EXPORT virtual const api::server::Manager& Server(
         const int instance) const = 0;
+    EXPORT virtual std::size_t Servers() const = 0;
     /** Start up a new client
      *
      *  If the specified instance exists, it will be returned.
@@ -56,6 +61,7 @@ public:
         const bool inproc = false) const = 0;
     /** Access ZAP configuration API */
     EXPORT virtual const api::network::ZAP& ZAP() const = 0;
+    EXPORT virtual const opentxs::network::zeromq::Context& ZMQ() const = 0;
 
     EXPORT virtual ~Native() = default;
 

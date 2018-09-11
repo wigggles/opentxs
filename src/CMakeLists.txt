@@ -24,6 +24,7 @@ add_subdirectory(ext)
 add_subdirectory(network)
 add_subdirectory(client)
 add_subdirectory(api)
+add_subdirectory(rpc)
 add_subdirectory(server)
 add_subdirectory(contact)
 add_subdirectory(ui)
@@ -113,6 +114,7 @@ if(OT_BUNDLED_PROTOBUF)
   add_dependencies(opentxs-network protobuf)
   add_dependencies(opentxs-otx protobuf)
   add_dependencies(opentxs-recurring protobuf)
+  add_dependencies(opentxs-rpc protobuf)
   add_dependencies(opentxs-script protobuf)
   add_dependencies(opentxs-server protobuf)
   add_dependencies(opentxs-storage protobuf)
@@ -222,6 +224,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-network>
   $<TARGET_OBJECTS:opentxs-otx>
   $<TARGET_OBJECTS:opentxs-recurring>
+  $<TARGET_OBJECTS:opentxs-rpc>
   $<TARGET_OBJECTS:opentxs-script>
   $<TARGET_OBJECTS:opentxs-server>
   $<TARGET_OBJECTS:opentxs-storage>
