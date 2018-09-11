@@ -31,6 +31,10 @@ public:
     virtual std::string RandomFilename() const = 0;
     virtual std::string SanatizeBase58(const std::string& input) const = 0;
     virtual std::string SanatizeBase64(const std::string& input) const = 0;
+    virtual std::string Z85Encode(const Data& input) const = 0;
+    virtual std::string Z85Encode(const std::string& input) const = 0;
+    virtual OTData Z85Decode(const Data& input) const = 0;
+    virtual std::string Z85Decode(const std::string& input) const = 0;
 
     virtual ~Encode() = default;
 

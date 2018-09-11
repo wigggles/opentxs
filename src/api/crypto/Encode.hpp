@@ -23,6 +23,10 @@ public:
     std::string RandomFilename() const override;
     std::string SanatizeBase58(const std::string& input) const override;
     std::string SanatizeBase64(const std::string& input) const override;
+    std::string Z85Encode(const Data& input) const override;
+    std::string Z85Encode(const std::string& input) const override;
+    OTData Z85Decode(const Data& input) const override;
+    std::string Z85Decode(const std::string& input) const override;
 
     ~Encode() = default;
 

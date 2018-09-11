@@ -25,6 +25,8 @@
 
 #include <zmq.h>
 
+#include <vector>
+
 template class opentxs::Pimpl<opentxs::network::zeromq::Context>;
 
 #define INPROC_PREFIX "inproc://opentxs/"
@@ -39,29 +41,51 @@ OTZMQContext Context::Factory()
 
 std::string Context::EncodePrivateZ85(const opentxs::crypto::key::Ed25519& key)
 {
-    opentxs::OTData data = opentxs::Data::Factory();
-    auto retrieved = key.GetKey(data);
+    auto data = opentxs::Data::Factory();
+    const auto retrieved = key.GetKey(data);
 
     OT_ASSERT(retrieved);
 
-    size_t buffer_size = data->size() + data->size() / 4 + 1;
-    char* buffer = new char[buffer_size];
-
-    OT_ASSERT(nullptr != buffer);
-
-    char* p = nullptr;
-    p = zmq_z85_encode(
-        buffer, static_cast<const uint8_t*>(data->data()), data->size());
-
-    OT_ASSERT(nullptr != p);
-
-    std::string encoded{p};
-
-    delete[] buffer;
-
-    return encoded;
+    return RawToZ85(data->data(), data->size());
 }
 
+std::string Context::RawToZ85(const void* input, const std::size_t size)
+{
+    if (0 != size % 4) {
+        otErr << __FUNCTION__ << ": Invalid input size" << std::endl;
+
+        return {};
+    }
+
+    const std::size_t outputSize = size + size / 4 + 1;
+    std::vector<char> output{};
+    output.resize(outputSize);
+    auto encoded = ::zmq_z85_encode(
+        output.data(), static_cast<const unsigned char*>(input), size);
+
+    OT_ASSERT(nullptr != encoded);
+
+    return {output.data(), output.size()};
+}
+
+OTData Context::Z85ToRaw(const void* input, const std::size_t size)
+{
+    if (0 != size % 5) {
+        otErr << __FUNCTION__ << ": Invalid input size" << std::endl;
+
+        return Data::Factory();
+    }
+
+    const std::size_t outputSize = size * 4 / 5;
+    std::vector<std::uint8_t> output{};
+    output.resize(outputSize);
+    auto decoded =
+        ::zmq_z85_decode(output.data(), static_cast<const char*>(input));
+
+    OT_ASSERT(nullptr != decoded);
+
+    return Data::Factory(output.data(), output.size());
+}
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
