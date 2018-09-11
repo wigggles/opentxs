@@ -34,6 +34,10 @@ public:
         const int instance,
         const bool inproc) const override;
     const api::network::ZAP& ZAP() const override;
+    const opentxs::network::zeromq::Context& ZMQ() const override
+    {
+        return zmq_context_.get();
+    }
 
     INTERNAL_PASSWORD_CALLBACK* GetInternalPasswordCallback() const override;
     OTCaller& GetPasswordCaller() const override;
