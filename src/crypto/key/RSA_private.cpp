@@ -46,6 +46,8 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#define OT_METHOD "opentxs::crypto::key::implementation::RSA::"
+
 namespace opentxs::crypto::key::implementation
 {
 void RSA::d::SetX509(X509* x509)
@@ -185,15 +187,14 @@ EVP_PKEY* RSA::d::CopyPublicKey(
         otErr << __FUNCTION__
               << ": Error: Failed writing EVP_PKEY to memory buffer.\n";
     } else {
-        otLog5 << __FUNCTION__
-               << ": Success writing EVP_PKEY to memory buffer.\n";
-
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": Success writing EVP_PKEY to memory buffer.")
+            .Flush();
         char* pChar = nullptr;
 
         // After the below call, pChar will point to the memory buffer where the
-        // public key
-        // supposedly is, and lSize will contain the size of that memory.
-        //
+        // public key supposedly is, and lSize will contain the size of that
+        // memory.
         const std::int64_t lSize = BIO_get_mem_data(bmem, &pChar);
         const std::uint32_t nSize = static_cast<uint32_t>(lSize);
 
@@ -339,9 +340,9 @@ EVP_PKEY* RSA::d::CopyPrivateKey(
         otErr << __FUNCTION__
               << ": Failed writing EVP_PKEY to memory buffer.\n";
     } else {
-        otLog5 << __FUNCTION__
-               << ": Success writing EVP_PKEY to memory buffer.\n";
-
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": Success writing EVP_PKEY to memory buffer.")
+            .Flush();
         char* pChar = nullptr;
 
         // After the below call, pChar will point to the memory buffer where the
@@ -445,8 +446,9 @@ bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
         otErr << szFunc
               << ": Error: Failed writing EVP_PKEY to memory buffer.\n";
     } else {
-        otLog5 << szFunc << ": Success writing EVP_PKEY to memory buffer.\n";
-
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": Success writing EVP_PKEY to memory buffer.")
+            .Flush();
         auto theData = Data::Factory();
         char* pChar = nullptr;
 
@@ -475,8 +477,9 @@ bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
             // This base64 encodes the public key data
             //
             ascKey.SetData(theData);
-
-            otLog5 << szFunc << ": Success copying public key into memory.\n";
+            LogInsane(OT_METHOD)(__FUNCTION__)(
+                ": Success copying public key into memory.")
+                .Flush();
             bReturnVal = true;
         } else {
             otErr << szFunc << ": Failed copying public key into memory.\n";
@@ -540,10 +543,11 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
 
         if (nullptr != pReturnKey) {
             m_pKey = pReturnKey;
-            otLog4
-                << szFunc
-                << ": Success reading public key from ASCII-armored data:\n\n"
-                << backlink->m_p_ascKey->Get() << "\n\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Success reading public key from ASCII-armored data:\n")(
+                backlink->m_p_ascKey->Get())
+                .Flush();
+
             return m_pKey;
         }
     }
@@ -630,11 +634,10 @@ EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
             backlink->m_timer.start();  // Note: this isn't the ultimate timer
                                         // solution. See notes in
                                         // ReleaseKeyLowLevel.
-            otLog4
-                << __FUNCTION__
-                << ": Success reading private key from ASCII-armored data.\n\n";
-            //          otLog4 << __FUNCTION__ << ": Success reading private key
-            // from ASCII-armored data:\n\n" << m_p_ascKey->Get() << "\n\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Success reading private key from ASCII-armored data.")
+                .Flush();
+
             return m_pKey;
         }
     }
@@ -710,8 +713,9 @@ bool RSA::d::ArmorPrivateKey(
         theTimer.start();  // Note: this isn't the ultimate timer solution. See
                            // notes in ReleaseKeyLowLevel.
 
-        otLog5 << __FUNCTION__
-               << ": Success writing EVP_PKEY to memory buffer.\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": Success writing EVP_PKEY to memory buffer.")
+            .Flush();
 
         auto theData = Data::Factory();
         char* pChar = nullptr;
@@ -741,9 +745,9 @@ bool RSA::d::ArmorPrivateKey(
             // is already encrypted to its passphase as well.
             //
             ascKey.SetData(theData);
-
-            otLog5 << __FUNCTION__
-                   << ": Success copying private key into memory.\n";
+            LogInsane(OT_METHOD)(__FUNCTION__)(
+                ": Success copying private key into memory.")
+                .Flush();
             bReturnVal = true;
         } else {
             otErr << __FUNCTION__

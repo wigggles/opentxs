@@ -102,7 +102,7 @@ bool OTClient::AcceptEntireNymbox(
     if (theNymbox.GetTransactionCount() < 1) {
         // If there aren't any notices in the nymbox, no point wasting a # to
         // process an empty box.
-        otLog4 << OT_METHOD << __FUNCTION__ << ": Nymbox is empty.\n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Nymbox is empty.").Flush();
 
         return false;
     } else if (!theNymbox.VerifyAccount(nym)) {

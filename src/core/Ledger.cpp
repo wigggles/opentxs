@@ -889,7 +889,8 @@ bool Ledger::generate_ledger(
                 "%s%s%s", strNotaryID.Get(), Log::PathSeparator(), strID.Get());
             break;
         case ledgerType::message:
-            otLog4 << "Generating message ledger...\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)("Generating message ledger...")
+                .Flush();
             SetRealAccountID(theAcctID);
             SetPurportedAccountID(theAcctID);  // It's safe to set these the
                                                // same here, since we're
@@ -2081,9 +2082,6 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         m_mapTransactions[transaction->GetTransactionNum()] =
                             transaction;
                         transaction->SetParent(*this);
-                        //                      otLog5 << "Loaded abbreviated
-                        // transaction and adding to m_mapTransactions in
-                        // OTLedger\n");
                     } else {
                         otErr << szFunc
                               << ": ERROR: verifying contract ID on "
@@ -2103,22 +2101,20 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             }  // while
         }      // if (number of partial records > 0)
 
-        otLog4 << szFunc << ": Loading account ledger of type \"" << strType
-               << "\", version: " << m_strVersion << "\n";
-        //                "accountID: %s\n nymID: %s\n notaryID:
-        // %s\n----------\n",  szFunc,
-        //                strLedgerAcctID.Get(), strNymID.Get(),
-        // strLedgerAcctNotaryID.Get()
+        LogTrace(OT_METHOD)(__FUNCTION__)(
+            ": Loading account ledger of type \"")(strType)("\", version: ")(
+            m_strVersion)
+            .Flush();
 
-        // Since we just loaded this stuff, let's verify it.
-        // We may have to remove this verification here and do it outside this
-        // call.
-        // But for now...
+        // Since we just loaded this stuff, let's verify it. We may have to
+        // remove this verification here and do it outside this call. But for
+        // now...
 
-        if (VerifyContractID())
+        if (VerifyContractID()) {
             return 1;
-        else
+        } else {
             return (-1);
+        }
     }
 
     // Todo: When loading abbreviated list of records, set the m_bAbbreviated to
@@ -2246,8 +2242,6 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 m_mapTransactions[transaction->GetTransactionNum()] =
                     transaction;
                 transaction->SetParent(*this);
-                //                otLog5 << "Loaded full transaction and adding
-                // to m_mapTransactions in OTLedger\n");
 
                 switch (GetType()) {
                     case ledgerType::message:

@@ -440,10 +440,11 @@ bool OTTransaction::VerifyAccount(const Nym& theNym)
         return false;
     }
 
-    otLog4 << "\nWe now know that...\n"
-              "1) The expected Account ID matches the ID that was found on the "
-              "object.\n"
-              "2) The SIGNATURE VERIFIED on the object.\n\n";
+    LogTrace(OT_METHOD)(__FUNCTION__)(
+        ": We now know that...\n1) The expected Account ID matches the ID that "
+        "was found on the object.\n2) The SIGNATURE VERIFIED on the object.")
+        .Flush();
+
     return true;
 }
 
@@ -2126,9 +2127,9 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         // Therefore the code has to specifically allow for this case, for
         // outbox items...
         if ((false == bool(pTransaction)) && (pOutbox.get() == pLedger)) {
-            otLog4 << "OTTransaction::" << __FUNCTION__
-                   << ": Outbox pending found as inbox transferReceipt. "
-                      "(Normal.)\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Outbox pending found as inbox transferReceipt. (Normal.)")
+                .Flush();
 
             // We didn't find the transaction that was expected to be in the
             // outbox. (A pending.) Therefore maybe it is now a transfer receipt
@@ -2399,10 +2400,11 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
                                                     // here.
                 break;
             default: {
-                otLog4 << "OTTransaction::" << __FUNCTION__ << ": Ignoring "
-                       << pTransaction->GetTypeString()
-                       << " item in inbox while verifying it against balance "
-                          "receipt.\n";
+                LogTrace(OT_METHOD)(__FUNCTION__)(": Ignoring ")(
+                    pTransaction->GetTypeString())(
+                    " item in inbox while verifying it against balance "
+                    "receipt.")
+                    .Flush();
             }
                 continue;
         }
@@ -3998,10 +4000,10 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         SetTransactionNum(strTransNum.ToLong());
         SetReferenceToNum(strInRefTo.ToLong());
-
-        otLog4 << "Loaded transaction " << GetTransactionNum()
-               << ", in reference to: " << GetReferenceToNum()
-               << " type: " << strType << "\n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Loaded transaction ")(
+            GetTransactionNum())(", in reference to: ")(GetReferenceToNum())(
+            " type: ")(strType)
+            .Flush();
 
         return 1;
     } else if (!strcmp("closingTransactionNumber", xml->getNodeName())) {
@@ -4065,8 +4067,6 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 return (-1);
             } else {
                 m_listItems.push_back(std::shared_ptr<Item>(pItem.release()));
-                //                otLog5 << "Loaded transaction Item and adding
-                // to m_listItems in OTTransaction\n");
             }
         }
 

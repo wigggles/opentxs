@@ -18,6 +18,7 @@ set(cxx-sources
   HDSeed.cpp
   Identity.cpp
   Legacy.cpp
+  Log.cpp
   Native.cpp
   Scheduler.cpp
   Settings.cpp
@@ -38,6 +39,7 @@ set(cxx-headers
   ${CMAKE_CURRENT_SOURCE_DIR}/HDSeed.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Identity.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/Log.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Native.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Scheduler.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/Settings.hpp

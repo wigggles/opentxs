@@ -167,14 +167,6 @@ public:
         const std::string& strKey,
         const bool bValue) const;
 
-    /** Output to the screen (stderr.)
-    (This is so stdout can be left clean for the ACTUAL output.)
-    Log level is 0 (least verbose) to 5 (most verbose.)
-    */
-    EXPORT void Output(
-        const std::int32_t& nLogLevel,
-        const std::string& strOutput) const;
-
     /** TIME (in seconds)
 
     This will return the current time in seconds, as a string.
@@ -398,18 +390,6 @@ public:
     EXPORT std::string VerifyAndRetrieveXMLContents(
         const std::string& THE_CONTRACT,
         const std::string& SIGNER_ID) const;
-
-    /** The below functions are for retrieving log data programatically.
-     */
-    EXPORT std::int32_t GetMemlogSize() const;
-
-    EXPORT std::string GetMemlogAtIndex(const std::int32_t& nIndex) const;
-
-    EXPORT std::string PeekMemlogFront() const;
-    EXPORT std::string PeekMemlogBack() const;
-
-    EXPORT bool PopMemlogFront() const;
-    EXPORT bool PopMemlogBack() const;
 
     /** CREATE NYM -- Create new User
     //

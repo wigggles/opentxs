@@ -118,10 +118,11 @@ bool Contract::DearmorAndTrim(
     if (false == strOutput.DecodeIfArmored(false))  // bEscapedIsAllowed=true by
                                                     // default.
     {
-        otLog5 << __FUNCTION__
-               << ": Input string apparently was encoded and "
-                  "then failed decoding. Contents: \n"
-               << strInput << "\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": Input string apparently was encoded and then failed decoding. "
+            "Contents: \n")(strInput)
+            .Flush();
+
         return false;
     }
 
@@ -761,8 +762,10 @@ bool Contract::VerifySignature(
                      theSignature,
                      hashType,
                      (nullptr != pPWData) ? pPWData : &thePWData)) {
-        otLog4 << __FUNCTION__
-               << ": engine.VerifyContractSignature returned false.\n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(
+            ": engine.VerifyContractSignature returned false.")
+            .Flush();
+
         return false;
     }
 
@@ -1665,7 +1668,9 @@ bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
                 continue;
             }  // SKIP
             else if (xml->getNodeType() == EXN_ELEMENT_END) {
-                otLog5 << "*** " << szFunc << ": EXN_ELEMENT_END  (success)\n";
+                LogInsane(OT_METHOD)(__FUNCTION__)(
+                    ": EXN_ELEMENT_END  (success)")
+                    .Flush();
                 break;
             }  // Success...
             else if (xml->getNodeType() == EXN_CDATA) {
@@ -1722,17 +1727,19 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
     // let's skip ahead...
     //
     if (EXN_TEXT != xml->getNodeType()) {
-        otLog4 << szFunc << ": Skipping non-text field... \n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Skipping non-text field...")
+            .Flush();
 
         // move to the next node which SHOULD be the expected text field.
-        //
         if (!SkipToTextField(xml)) {
             otOut << szFunc
                   << ": Failure: Unable to find expected text field.\n";
             return false;
         }
-        otLog4 << szFunc
-               << ": Finished skipping non-text field. (Successfully.)\n";
+
+        LogTrace(OT_METHOD)(__FUNCTION__)(
+            ": Finished skipping non-text field. (Successfully.)")
+            .Flush();
     }
 
     if (EXN_TEXT == xml->getNodeType())  // SHOULD always be true, in fact this

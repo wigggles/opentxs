@@ -72,6 +72,8 @@ extern "C" {
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#define OT_METHOD "opentxs::OpenSSL::"
+
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 extern "C" {
 EVP_CIPHER_CTX* EVP_CIPHER_CTX_new() { return new EVP_CIPHER_CTX; }
@@ -829,7 +831,7 @@ void OpenSSL::Init()
 
 void OpenSSL::Cleanup()
 {
-    otLog4 << __FUNCTION__ << ": Cleaning up OpenSSL...\n";
+    LogTrace(OT_METHOD)(__FUNCTION__)(": Cleaning up OpenSSL...").Flush();
 
 #if defined(OPENSSL_THREADS)
     // thread support enabled
@@ -1910,14 +1912,16 @@ bool OpenSSL::OpenSSLdp::VerifyContractDefaultHash(
         -2);  // salt length recovered from signature
 
     if (!status) {
-        otLog5 << szFunc << ": RSA_verify_PKCS1_PSS failed with error: "
-               << ERR_error_string(ERR_get_error(), nullptr) << "\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": RSA_verify_PKCS1_PSS failed with error: ")(
+            std::string(ERR_error_string(ERR_get_error(), nullptr)))
+            .Flush();
         RSA_free(pRsaKey);
         pRsaKey = nullptr;
         return false;
     }
 
-    otLog5 << "  *Signature verified*\n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": Signature verified").Flush();
 
     /*
 
@@ -2970,9 +2974,9 @@ bool OpenSSL::EncryptSessionKey(
         reinterpret_cast<void*>(&array_size_n),
         static_cast<std::uint32_t>(sizeof(array_size_n)));
 
-    otLog5 << __FUNCTION__ << ": Envelope type:  "
-           << static_cast<std::int32_t>(ntohs(env_type_n)) << "    Array size: "
-           << static_cast<std::int64_t>(ntohl(array_size_n)) << "\n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": Envelope type:  ")(env_type_n)(
+        "    Array size: ")(array_size_n)
+        .Flush();
 
     OT_ASSERT(nullptr != ek);
     OT_ASSERT(nullptr != eklen);
@@ -3024,24 +3028,10 @@ bool OpenSSL::EncryptSessionKey(
         dataOutput.Concatenate(
             reinterpret_cast<const void*>(strNymID->Get()), nymid_len);
 
-        otLog5 << __FUNCTION__ << ": INDEX: " << static_cast<std::int64_t>(ii)
-               << "  NymID length:  "
-               << static_cast<std::int64_t>(ntohl(nymid_len_n))
-               << "   Nym ID: " << strNymID
-               << "   Strlen (should be a byte shorter): "
-               << static_cast<std::int64_t>(strNymID->GetLength()) << "\n";
-
-        //      Write eklen_n and ek for EACH encrypted symmetric key,
-        //
-        //        EVP_PKEY      ** array_pubkey = nullptr;  // These will be
-        // pointers we use, but do NOT need to clean-up.
-        //        std::uint8_t ** ek           = nullptr;  // These we DO need
-        //        to
-        // cleanup...
-        //        std::int32_t           *  eklen        = nullptr;  // This
-        //        will
-        // just
-        // be an array of integers.
+        LogInsane(OT_METHOD)(__FUNCTION__)(": INDEX: ")(ii)(
+            "  NymID length:  ")(nymid_len_n)("   Nym ID: ")(strNymID)(
+            "   Strlen (should be a byte shorter): ")(strNymID->GetLength())
+            .Flush();
 
         OT_ASSERT(nullptr != ek[ii]);  // assert key pointer not null.
         OT_ASSERT(eklen[ii] > 0);      // assert key length larger than 0.
@@ -3057,11 +3047,10 @@ bool OpenSSL::EncryptSessionKey(
             reinterpret_cast<void*>(ek[ii]),
             static_cast<std::uint32_t>(eklen[ii]));
 
-        otLog5 << __FUNCTION__
-               << ": EK length:  " << static_cast<std::int64_t>(ntohl(eklen_n))
-               << "     First byte: " << static_cast<std::int32_t>((ek[ii])[0])
-               << "      Last byte: "
-               << static_cast<std::int32_t>((ek[ii])[eklen[ii] - 1]) << "\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(": EK length:  ")(eklen_n)(
+            "     First byte: ")((ek[ii])[0])("      Last byte: ")(
+            (ek[ii])[eklen[ii] - 1])
+            .Flush();
     }
 
     // Write IV size before then writing IV itself.
@@ -3074,22 +3063,16 @@ bool OpenSSL::EncryptSessionKey(
     //  OT_ASSERT(ivlen > 0);
     // Calculate "network-order" version of iv length.
     std::uint32_t ivlen_n = htonl(ivlen);
-
     dataOutput.Concatenate(
         reinterpret_cast<void*>(&ivlen_n),
         static_cast<std::uint32_t>(sizeof(ivlen_n)));
-
     dataOutput.Concatenate(reinterpret_cast<void*>(iv), ivlen);
-
-    otLog5 << __FUNCTION__
-           << ": iv_size: " << static_cast<std::int64_t>(ntohl(ivlen_n))
-           << "   IV first byte: " << static_cast<std::int32_t>(iv[0])
-           << "    IV last byte: " << static_cast<std::int32_t>(iv[ivlen - 1])
-           << "   \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": iv_size: ")(ivlen_n)(
+        "   IV first byte: ")(iv[0])("    IV last byte: ")(iv[ivlen - 1])
+        .Flush();
 
     // Now we process the input and write the encrypted data to the
     // output.
-    //
     while (0 < (len = plaintext.OTfread(
                     reinterpret_cast<std::uint8_t*>(buffer),
                     static_cast<std::uint32_t>(sizeof(buffer))))) {
@@ -3189,9 +3172,11 @@ bool OpenSSL::DecryptSessionKey(
         otErr << szFunc
               << ": Null private key on recipient. (Returning false.)\n";
         return false;
-    } else
-        otLog5 << __FUNCTION__
-               << ": Private key is available for NymID: " << strNymID << " \n";
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": Private key is available for NymID: ")(strNymID)
+            .Flush();
+    }
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
     EVP_CIPHER_CTX ctx;
@@ -3333,20 +3318,15 @@ bool OpenSSL::DecryptSessionKey(
               << ": Error reading Array Size for encrypted symmetric keys.\n";
         return false;
     }
+
     nRunningTotal += nReadArraySize;
+
     OT_ASSERT(
         nReadArraySize == static_cast<std::uint32_t>(sizeof(array_size_n)));
 
     // convert that array size from network to HOST endian.
-    //
     const std::uint32_t array_size = ntohl(array_size_n);
-
-    otLog5 << __FUNCTION__
-           << ": Array size: " << static_cast<std::int64_t>(array_size) << "\n";
-
-    //  nRunningTotal += array_size;    // NOPE! Just because there are 10 array
-    // elements doesn't mean I want to add "10" here to the running total!! Not
-    // logical.
+    LogInsane(OT_METHOD)(__FUNCTION__)(": Array size: ")(array_size).Flush();
 
     // We are going to loop through all the keys and load each up (then delete.)
     // Each one is proceeded by its length.
@@ -3382,25 +3362,22 @@ bool OpenSSL::DecryptSessionKey(
                      "symmetric key.\n";
             return false;
         }
+
         nRunningTotal += nReadNymIDSize;
+
         OT_ASSERT(
             nReadNymIDSize == static_cast<std::uint32_t>(sizeof(nymid_len_n)));
 
         // convert that array size from network to HOST endian.
-        //
         std::uint32_t nymid_len = ntohl(nymid_len_n);
-
-        otLog5 << __FUNCTION__
-               << ": NymID length: " << static_cast<std::int64_t>(nymid_len)
-               << "\n";
-
-        //      nRunningTotal += nymid_len; // Nope!
-
+        LogInsane(OT_METHOD)(__FUNCTION__)(": NymID length: ")(nymid_len)
+            .Flush();
         std::uint8_t* nymid =
             static_cast<std::uint8_t*>(malloc(sizeof(uint8_t) * nymid_len));
-        OT_ASSERT(nullptr != nymid);
-        nymid[0] = '\0';  // null terminator.
 
+        OT_ASSERT(nullptr != nymid);
+
+        nymid[0] = '\0';  // null terminator.
         std::uint32_t nReadNymID = 0;
 
         if (0 == (nReadNymID = dataInput.OTfread(
@@ -3430,10 +3407,9 @@ bool OpenSSL::DecryptSessionKey(
             String::Factory(reinterpret_cast<char*>(nymid));
         free(nymid);
         nymid = nullptr;
-
-        otLog5 << __FUNCTION__ << ": (LOOP) Current NymID: " << loopStrNymID
-               << "    Strlen:  "
-               << static_cast<std::int64_t>(loopStrNymID->GetLength()) << "\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(": (LOOP) Current NymID: ")(
+            loopStrNymID)("    Strlen:  ")(loopStrNymID->GetLength())
+            .Flush();
 
         // loopStrNymID ... if this matches strNymID then it's the one we're
         // looking for.
@@ -3460,41 +3436,35 @@ bool OpenSSL::DecryptSessionKey(
             otErr << szFunc << ": Error reading encrypted key size.\n";
             return false;
         }
+
         nRunningTotal += nReadLength;
+
         OT_ASSERT(nReadLength == static_cast<std::uint32_t>(sizeof(eklen_n)));
 
         // convert that key size from network to host endian.
-        //
         eklen = ntohl(eklen_n);
-        //      eklen  = EVP_PKEY_size(private_key);  // We read this size from
-        // file now...
 
-        otLog5 << __FUNCTION__
-               << ": EK length:  " << static_cast<std::int64_t>(eklen)
-               << "   \n";
-
-        //      nRunningTotal += eklen;  // Nope!
-
+        LogInsane(OT_METHOD)(__FUNCTION__)(": EK length:  ")(eklen).Flush();
         ek = static_cast<std::uint8_t*>(malloc(
             static_cast<std::int32_t>(eklen) *
             sizeof(std::uint8_t)));  // I assume this is for the AES key
+
         OT_ASSERT(nullptr != ek);
+
         memset(static_cast<void*>(ek), 0, static_cast<std::int32_t>(eklen));
 
         // Next we read the encrypted key itself...
-        //
         if (0 == (nReadKey = dataInput.OTfread(ek, eklen))) {
             otErr << szFunc << ": Error reading encrypted key.\n";
             free(ek);
             ek = nullptr;
             return false;
         }
-        nRunningTotal += nReadKey;
 
-        otLog5 << __FUNCTION__
-               << ":    EK First byte: " << static_cast<std::int32_t>(ek[0])
-               << "     EK Last byte: "
-               << static_cast<std::int32_t>(ek[eklen - 1]) << "\n";
+        nRunningTotal += nReadKey;
+        LogInsane(OT_METHOD)(__FUNCTION__)(":    EK First byte: ")(ek[0])(
+            "     EK Last byte: ")(ek[eklen - 1])
+            .Flush();
 
         OT_ASSERT(nReadKey == eklen);
 
@@ -3592,9 +3562,8 @@ bool OpenSSL::DecryptSessionKey(
               << ") is larger than max_iv_length (" << l2 << ").\n";
         return false;
     } else
-        otLog5 << __FUNCTION__
-               << ": IV size: " << static_cast<std::int64_t>(iv_size_host_order)
-               << "\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(": IV size: ")(iv_size_host_order)
+            .Flush();
 
     // Then read the IV (initialization vector) itself.
     //
@@ -3606,12 +3575,12 @@ bool OpenSSL::DecryptSessionKey(
     }
 
     nRunningTotal += nReadIV;
+
     OT_ASSERT(nReadIV == static_cast<std::uint32_t>(iv_size_host_order));
 
-    otLog5 << __FUNCTION__
-           << ":    IV First byte: " << static_cast<std::int32_t>(iv[0])
-           << "     IV Last byte: "
-           << static_cast<std::int32_t>(iv[iv_size_host_order - 1]) << "\n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(":    IV First byte: ")(iv[0])(
+        "     IV Last byte: ")(iv[iv_size_host_order - 1])
+        .Flush();
 
     // We read the encrypted key size, then we read the encrypted key itself,
     // with nReadKey containing

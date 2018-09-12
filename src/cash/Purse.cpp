@@ -42,6 +42,8 @@
 template class std::shared_ptr<const opentxs::Purse>;
 #endif  // OT_CASH
 
+#define OT_METHOD "opentxs::Purse::"
+
 namespace opentxs
 {
 typedef std::map<std::string, Token*> mapOfTokenPointers;
@@ -873,20 +875,21 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 m_NymID->Release();
                 return (-1);
             }
-        } else  // NymID SUPPOSED to be blank here. (Thus the Release.) Maybe
+        } else {  // NymID SUPPOSED to be blank here. (Thus the Release.) Maybe
             // later,
             // we might consider trying to read it, in order to validate this.
             //
             m_NymID->Release();  // For now, just assume it's not there to be
                                  // read, and Release my own value to match it.
+        }
 
-        otLog4 << szFunc << ": Loaded purse... ("
-               << (m_bPasswordProtected ? "Password-protected"
-                                        : "NOT password-protected")
-               << ")\n NotaryID: " << strNotaryID
-               << "\n NymID: " << (m_bIsNymIDIncluded ? strNymID->Get() : "")
-               << "\n Instrument Definition Id: " << strInstrumentDefinitionID
-               << "\n----------\n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Loaded purse... (")(
+            (m_bPasswordProtected
+                 ? "Password-protected"
+                 : "NOT password-protected"))(")\n NotaryID: ")(strNotaryID)(
+            "\n NymID: ")((m_bIsNymIDIncluded ? strNymID->Get() : ""))(
+            "\n Instrument Definition Id: ")(strInstrumentDefinitionID)
+            .Flush();
 
         return 1;
     }

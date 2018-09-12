@@ -216,28 +216,22 @@ void Notary::NotarizeTransfer(
 
         // Only accept transfers with positive amounts.
         if (0 > pItem->GetAmount()) {
-            Log::Output(
-                0,
-                "Notary::NotarizeTransfer: Failure: Attempt to "
-                "transfer negative balance.\n");
+            otOut << "Notary::NotarizeTransfer: Failure: Attempt to "
+                     "transfer negative balance.\n";
         }
 
         // I'm using the operator== because it exists.
         // If the ID on the "from" account that was passed in,
         // does not match the "Acct From" ID on this transaction item
         else if (!(IDFromAccount == pItem->GetPurportedAccountID())) {
-            Log::Output(
-                0,
-                "Notary::NotarizeTransfer: Error: 'From' "
-                "account ID on the transaction does not match "
-                "'from' account ID on the transaction item.\n");
+            otOut << "Notary::NotarizeTransfer: Error: 'From' "
+                     "account ID on the transaction does not match "
+                     "'from' account ID on the transaction item.\n";
         }
         // ok so the IDs match. Does the destination account exist?
         else if (false == bool(destinationAccount)) {
-            Log::Output(
-                0,
-                "Notary::NotarizeTransfer: ERROR verifying "
-                "existence of the 'to' account.\n");
+            otOut << "Notary::NotarizeTransfer: ERROR verifying "
+                     "existence of the 'to' account.\n";
         }
         // Is the destination a legitimate other user's acct, or is it just an
         // internal server account?
@@ -246,11 +240,9 @@ void Notary::NotarizeTransfer(
         // and may not be recipients to user transfers...)
         //
         else if (destinationAccount.get().IsInternalServerAcct()) {
-            Log::Output(
-                0,
-                "Notary::NotarizeTransfer: Failure: Destination "
-                "account is used internally by the server, and is "
-                "not a valid recipient for this transaction.\n");
+            otOut << "Notary::NotarizeTransfer: Failure: Destination "
+                     "account is used internally by the server, and is "
+                     "not a valid recipient for this transaction.\n";
         }
         // Are both of the accounts of the same Asset Type?
         else if (!(theFromAccount.get().GetInstrumentDefinitionID() ==
@@ -318,15 +310,15 @@ void Notary::NotarizeTransfer(
                 bSuccessLoadingInbox =
                     theToInbox->VerifyAccount(server_.GetServerNym());
             else
-                Log::Error(
-                    "Notary::NotarizeTransfer: Error loading 'to' inbox.\n");
+                otErr
+                    << "Notary::NotarizeTransfer: Error loading 'to' inbox.\n";
 
             if (true == bSuccessLoadingOutbox)
                 bSuccessLoadingOutbox =
                     theFromOutbox->VerifyAccount(server_.GetServerNym());
             else
-                Log::Error("Notary::NotarizeTransfer: Error loading 'from' "
-                           "outbox.\n");
+                otErr << "Notary::NotarizeTransfer: Error loading 'from' "
+                         "outbox.\n";
 
             std::unique_ptr<Ledger> pInbox(
                 theFromAccount.get().LoadInbox(server_.GetServerNym()));
@@ -334,13 +326,13 @@ void Notary::NotarizeTransfer(
                 theFromAccount.get().LoadOutbox(server_.GetServerNym()));
 
             if (nullptr == pInbox) {
-                Log::Error("Error loading or verifying inbox.\n");
+                otErr << "Error loading or verifying inbox.\n";
             } else if (nullptr == pOutbox) {
-                Log::Error("Error loading or verifying outbox.\n");
+                otErr << "Error loading or verifying outbox.\n";
             } else if (
                 !bSuccessLoadingInbox || false == bSuccessLoadingOutbox) {
-                Log::Error(
-                    "ERROR generating ledger in Notary::NotarizeTransfer.\n");
+                otErr
+                    << "ERROR generating ledger in Notary::NotarizeTransfer.\n";
             } else {
                 // Generate new transaction number for these new transactions
                 // todo check this generation for failure (can it fail?)
@@ -779,14 +771,12 @@ void Notary::NotarizeWithdrawal(
               pItem->GetPurportedAccountID())) {  // TODO see if this is already
                                                   // verified by the caller
                                                   // function and if so, remove.
-            Log::Output(
-                0,
-                "Error: Account ID does not match account ID on "
-                "the withdrawal item.\n");
+            otOut << "Error: Account ID does not match account ID on "
+                     "the withdrawal item.\n";
         } else if (nullptr == pInbox) {
-            Log::Error("Error loading or verifying inbox.\n");
+            otErr << "Error loading or verifying inbox.\n";
         } else if (nullptr == pOutbox) {
-            Log::Error("Error loading or verifying outbox.\n");
+            otErr << "Error loading or verifying outbox.\n";
         }
         // The server will already have a special account for issuing vouchers.
         // Actually, a list of them --
@@ -817,38 +807,31 @@ void Notary::NotarizeWithdrawal(
                 theVoucherRequest->LoadContractFromString(strVoucherRequest);
 
             if (!bLoadContractFromString) {
-                Log::vError(
-                    "Notary::%s: ERROR loading voucher request "
-                    "from string:\n%s\n",
-                    __FUNCTION__,
-                    strVoucherRequest.Get());
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": ERROR loading voucher request "
+                         "from string:\n"
+                      << strVoucherRequest.Get() << "\n";
             } else if (!context.VerifyIssuedNumber(
                            theVoucherRequest->GetTransactionNum())) {
-                Log::vError(
-                    "Notary::%s: Failed verifying transaction number on the "
-                    "voucher (%" PRId64 ") in withdrawal request %" PRId64
-                    " for Nym: %s\n",
-                    __FUNCTION__,
-                    theVoucherRequest->GetTransactionNum(),
-                    tranIn.GetTransactionNum(),
-                    strNymID.Get());
+                otErr
+                    << OT_METHOD << __FUNCTION__
+                    << ": Failed verifying transaction number on the voucher ("
+                    << theVoucherRequest->GetTransactionNum()
+                    << ") in withdrawal request " << tranIn.GetTransactionNum()
+                    << " for Nym: " << strNymID.Get() << "\n";
             } else if (
                 INSTRUMENT_DEFINITION_ID !=
                 theVoucherRequest->GetInstrumentDefinitionID()) {
                 const String strFoundInstrumentDefinitionID(
                     theVoucherRequest->GetInstrumentDefinitionID());
-                Log::vError(
-                    "Notary::%s: Failed verifying instrument "
-                    "definition ID (%s) on the "
-                    "withdraw voucher request (found: %s) "
-                    "for transaction %" PRId64 ", voucher %" PRId64
-                    ". User: %s\n",
-                    __FUNCTION__,
-                    strInstrumentDefinitionID.Get(),
-                    strFoundInstrumentDefinitionID.Get(),
-                    tranIn.GetTransactionNum(),
-                    theVoucherRequest->GetTransactionNum(),
-                    strNymID.Get());
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Failed verifying instrument definition ID ("
+                      << strInstrumentDefinitionID.Get()
+                      << ") on the withdraw voucher request (found: "
+                      << strFoundInstrumentDefinitionID.Get()
+                      << ") for transaction " << tranIn.GetTransactionNum()
+                      << ", voucher " << theVoucherRequest->GetTransactionNum()
+                      << ". User: " << strNymID.Get() << "\n";
             } else if (!(pBalanceItem->VerifyBalanceStatement(
                            theVoucherRequest->GetAmount() *
                                (-1),  // My account's balance will go down by
@@ -941,14 +924,14 @@ void Notary::NotarizeWithdrawal(
                     theAccount.get().Debit(theVoucherRequest->GetAmount())) {
                     if (false == voucherReserveAccount.get().Credit(
                                      theVoucherRequest->GetAmount())) {
-                        Log::Error("Notary::NotarizeWithdrawal: Failed "
-                                   "crediting voucher reserve account.\n");
+                        otErr << "Notary::NotarizeWithdrawal: Failed "
+                                 "crediting voucher reserve account.\n";
 
                         if (false == theAccount.get().Credit(
                                          theVoucherRequest->GetAmount())) {
-                            Log::Error("Notary::NotarizeWithdrawal "
-                                       "(voucher): Failed crediting user "
-                                       "account.\n");
+                            otErr << "Notary::NotarizeWithdrawal "
+                                     "(voucher): Failed crediting user "
+                                     "account.\n";
                         }
 
                         theAccount.Abort();
@@ -983,11 +966,10 @@ void Notary::NotarizeWithdrawal(
             }  // voucher request loaded successfully from string
         }      // GetTransactor().getVoucherAccount()
         else {
-            Log::vError(
-                "GetTransactor().getVoucherAccount() failed in "
-                "NotarizeWithdrawal. "
-                "Asset Type:\n%s\n",
-                strInstrumentDefinitionID.Get());
+            otErr << "GetTransactor().getVoucherAccount() failed in "
+                     "NotarizeWithdrawal. "
+                     "Asset Type:\n"
+                  << strInstrumentDefinitionID.Get() << "\n";
         }
     }
 #if OT_CASH
@@ -1036,21 +1018,19 @@ void Notary::NotarizeWithdrawal(
         ExclusiveAccount pMintCashReserveAcct{};
 
         if (0 > pItem->GetAmount()) {
-            Log::Output(0, "Attempt to withdraw a negative amount.\n");
+            otOut << "Attempt to withdraw a negative amount.\n";
         }
         // If the ID on the "from" account that was passed in,
         // does not match the "Acct From" ID on this transaction item
         //
         else if (ACCOUNT_ID != pItem->GetPurportedAccountID()) {
-            Log::Output(
-                0,
-                "Error: 'From' account ID on the transaction does "
-                "not match 'from' account ID on the withdrawal "
-                "item.\n");
+            otOut << "Error: 'From' account ID on the transaction does "
+                     "not match 'from' account ID on the withdrawal "
+                     "item.\n";
         } else if (nullptr == pInbox) {
-            Log::Error("Error loading or verifying inbox.\n");
+            otErr << "Error loading or verifying inbox.\n";
         } else if (nullptr == pOutbox) {
-            Log::Error("Error loading or verifying outbox.\n");
+            otErr << "Error loading or verifying outbox.\n";
         } else {
             // The COIN REQUEST (including the prototokens) comes from the
             // client side.
@@ -1106,10 +1086,9 @@ void Notary::NotarizeWithdrawal(
                 thePurse->LoadContractFromString(strPurse);
 
             if (!bLoadContractFromString) {
-                Log::vError(
-                    "ERROR loading purse from string in "
-                    "Notary::NotarizeWithdrawal:\n%s\n",
-                    strPurse.Get());
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": ERROR loading purse from string:\n"
+                      << strPurse.Get() << "\n";
             } else if (!(pBalanceItem->VerifyBalanceStatement(
                            thePurse->GetTotalValue() * (-1),  // This amount
                                                               // will be
@@ -1144,11 +1123,11 @@ void Notary::NotarizeWithdrawal(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (false == bool(pMint)) {
-                        Log::vError(
-                            "Notary::NotarizeWithdrawal: Unable to "
-                            "find Mint (series %d): %s\n",
-                            pToken->GetSeries(),
-                            strInstrumentDefinitionID.Get());
+                        otErr << OT_METHOD << __FUNCTION__
+                              << ": Unable to find Mint (series "
+                              << pToken->GetSeries()
+                              << "): " << strInstrumentDefinitionID.Get()
+                              << "\n";
                         bSuccess = false;
                         break;  // Once there's a failure, we ditch the loop.
                     } else if (
@@ -1272,8 +1251,8 @@ void Notary::NotarizeWithdrawal(
                                 // of being lost.
                                 if (!pMintCashReserveAcct.get().Credit(
                                         pToken->GetDenomination())) {
-                                    Log::Error("Error crediting mint cash "
-                                               "reserve account...\n");
+                                    otErr << "Error crediting mint cash "
+                                             "reserve account...\n";
 
                                     // Reverse the account debit (even though
                                     // we're not going to save it anyway.)
@@ -2405,15 +2384,15 @@ void Notary::NotarizeDeposit(
                                 // Verified
                                 // in OTAccount::Load
         {
-            Log::Error("Notary::NotarizeDeposit: Error loading or "
-                       "verifying inbox for depositor account.\n");
+            otErr << "Notary::NotarizeDeposit: Error loading or "
+                     "verifying inbox for depositor account.\n";
         } else if (
             nullptr ==
             pOutbox)  // || !pOutbox->VerifyAccount(server_.m_nymServer))
                       // Verified in OTAccount::Load
         {
-            Log::Error("Notary::NotarizeDeposit: Error loading or "
-                       "verifying outbox for depositor account.\n");
+            otErr << "Notary::NotarizeDeposit: Error loading or "
+                     "verifying outbox for depositor account.\n";
         }
         // NOTE: Below this point, pInbox and pOutbox are both available, AND
         // will be properly
@@ -2427,11 +2406,9 @@ void Notary::NotarizeDeposit(
             // itself was
             // verified, before this function was even called. I think this is
             // just an oversight.)
-            Log::Output(
-                0,
-                "Notary::NotarizeDeposit: Error: account ID "
-                "does not match account ID on the deposit "
-                "item.\n");
+            otOut << "Notary::NotarizeDeposit: Error: account ID "
+                     "does not match account ID on the deposit "
+                     "item.\n";
         } else {
             // Get the cheque from the Item and load it up into a Cheque object.
             String strCheque;
@@ -3007,7 +2984,7 @@ void Notary::NotarizeDeposit(
                             " Remitter Nym ID: %s\n",
                             strRemitterNymID.Get());
                     else
-                        Log::Output(0, "\n");
+                        otOut << "\n";
                 }
                 // If there is a recipient user ID on the check, it must match
                 // the user depositing the cheque.
@@ -3053,7 +3030,7 @@ void Notary::NotarizeDeposit(
                             " Remitter Nym ID: %s\n",
                             strRemitterNymID.Get());
                     else
-                        Log::Output(0, "\n");
+                        otOut << "\n";
                 }
                 // If the cheque is a voucher (drawn on an internal server
                 // account) then there is no need to
@@ -3615,12 +3592,12 @@ void Notary::NotarizeDeposit(
                 theAccount.get().LoadOutbox(server_.GetServerNym()));
 
             if (nullptr == pInbox) {
-                Log::Error("Notary::NotarizeDeposit: Error loading or "
-                           "verifying inbox.\n");
+                otErr << "Notary::NotarizeDeposit: Error loading or "
+                         "verifying inbox.\n";
                 OT_FAIL;
             } else if (nullptr == pOutbox) {
-                Log::Error("Notary::NotarizeDeposit: Error loading or "
-                           "verifying outbox.\n");
+                otErr << "Notary::NotarizeDeposit: Error loading or "
+                         "verifying outbox.\n";
                 OT_FAIL;
             }
             String strPurse;
@@ -3673,8 +3650,8 @@ void Notary::NotarizeDeposit(
                         INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
 
                     if (false == bool(pMint)) {
-                        Log::Error("Notary::NotarizeDeposit: Unable to get "
-                                   "or load Mint.\n");
+                        otErr << "Notary::NotarizeDeposit: Unable to get "
+                                 "or load Mint.\n";
                         break;
                     } else if (
                         (pMintCashReserveAcct =
@@ -3766,11 +3743,9 @@ void Notary::NotarizeDeposit(
                                 "was already spent. \n");
                             break;
                         } else {
-                            Log::Output(
-                                3,
-                                "Notary::NotarizeDeposit: "
-                                "SUCCESS verifying token...    "
-                                "\n");
+                            otLog3 << "Notary::NotarizeDeposit: "
+                                      "SUCCESS verifying token...    "
+                                      "\n";
 
                             // need to be able to "roll back" if anything inside
                             // this block fails.
@@ -3783,10 +3758,10 @@ void Notary::NotarizeDeposit(
                             //
                             if (false == pMintCashReserveAcct.get().Debit(
                                              pToken->GetDenomination())) {
-                                Log::Error("Notary::NotarizeDeposit: Error "
-                                           "debiting the mint cash reserve "
-                                           "account. "
-                                           "SHOULD NEVER HAPPEN...\n");
+                                otErr << "Notary::NotarizeDeposit: Error "
+                                         "debiting the mint cash reserve "
+                                         "account. "
+                                         "SHOULD NEVER HAPPEN...\n";
                                 bSuccess = false;
                                 break;
                             }
@@ -3794,16 +3769,16 @@ void Notary::NotarizeDeposit(
                             else if (
                                 false == theAccount.get().Credit(
                                              pToken->GetDenomination())) {
-                                Log::Error("Notary::NotarizeDeposit: Error "
-                                           "crediting the user's asset "
-                                           "account...\n");
+                                otErr << "Notary::NotarizeDeposit: Error "
+                                         "crediting the user's asset "
+                                         "account...\n";
 
                                 if (false == pMintCashReserveAcct.get().Credit(
                                                  pToken->GetDenomination()))
-                                    Log::Error("Notary::NotarizeDeposit: "
-                                               "Failure crediting-back "
-                                               "mint's cash reserve account "
-                                               "while depositing cash.\n");
+                                    otErr << "Notary::NotarizeDeposit: "
+                                             "Failure crediting-back "
+                                             "mint's cash reserve account "
+                                             "while depositing cash.\n";
                                 bSuccess = false;
                                 break;
                             }
@@ -3813,23 +3788,23 @@ void Notary::NotarizeDeposit(
                             else if (
                                 false ==
                                 pToken->RecordTokenAsSpent(strSpendableToken)) {
-                                Log::Error("Notary::NotarizeDeposit: "
-                                           "Failed recording token as "
-                                           "spent...\n");
+                                otErr << "Notary::NotarizeDeposit: "
+                                         "Failed recording token as "
+                                         "spent...\n";
 
                                 if (false == pMintCashReserveAcct.get().Credit(
                                                  pToken->GetDenomination()))
-                                    Log::Error("Notary::NotarizeDeposit: "
-                                               "Failure crediting-back "
-                                               "mint's cash reserve account "
-                                               "while depositing cash.\n");
+                                    otErr << "Notary::NotarizeDeposit: "
+                                             "Failure crediting-back "
+                                             "mint's cash reserve account "
+                                             "while depositing cash.\n";
 
                                 if (false == theAccount.get().Debit(
                                                  pToken->GetDenomination()))
-                                    Log::Error("Notary::NotarizeDeposit: "
-                                               "Failure debiting-back user's "
-                                               "asset account while "
-                                               "depositing cash.\n");
+                                    otErr << "Notary::NotarizeDeposit: "
+                                             "Failure debiting-back user's "
+                                             "asset account while "
+                                             "depositing cash.\n";
 
                                 bSuccess = false;
                                 break;
@@ -3847,8 +3822,8 @@ void Notary::NotarizeDeposit(
                             }
                         }
                     } else {
-                        Log::Error("Notary::NotarizeDeposit: Unable to get "
-                                   "cash reserve account for Mint.\n");
+                        otErr << "Notary::NotarizeDeposit: Unable to get "
+                                 "cash reserve account for Mint.\n";
                         bSuccess = false;
                         break;
                     }
@@ -3867,11 +3842,9 @@ void Notary::NotarizeDeposit(
                     pMintCashReserveAcct.Release();
                     pResponseItem->SetStatus(Item::acknowledgement);
                     bOutSuccess = true;  // The cash deposit was successful.
-                    Log::Output(
-                        1,
-                        "Notary::NotarizeDeposit: .....SUCCESS "
-                        "-- crediting account from cash "
-                        "deposit.\n");
+                    otWarn << "Notary::NotarizeDeposit: .....SUCCESS "
+                              "-- crediting account from cash "
+                              "deposit.\n";
 
                     // TODO:  Right here, again, I need to save the receipt from
                     // the new balance agreement, since we have
@@ -4230,10 +4203,8 @@ void Notary::NotarizePaymentPlan(
                     else if (
                         bCancelling &&
                         !pPlan->VerifySignature(*rContext.It().Nym())) {
-                        Log::Output(
-                            0,
-                            "ERROR verifying Recipient's "
-                            "signature on Payment Plan.\n");
+                        otOut << "ERROR verifying Recipient's "
+                                 "signature on Payment Plan.\n";
                     } else {
                         // Verify that BOTH of the Recipient's transaction
                         // numbers (opening and
@@ -5506,11 +5477,9 @@ void Notary::NotarizeCancelCronItem(
             // If the ID on the "from" account that was passed in,
             // does not match the "Acct From" ID on this transaction item
             if (!(ASSET_ACCT_ID == pItem->GetPurportedAccountID())) {
-                Log::Output(
-                    0,
-                    "Error: Asset account ID on the transaction "
-                    "does not match asset account "
-                    "ID on the transaction item.\n");
+                otOut << "Error: Asset account ID on the transaction "
+                         "does not match asset account "
+                         "ID on the transaction item.\n";
             } else  // LET'S SEE IF WE CAN REMOVE IT THEN...
             {
                 auto pCronItem =
@@ -5557,11 +5526,9 @@ void Notary::NotarizeCancelCronItem(
                     // Any transaction numbers that need to be cleared,
                     // happens inside RemoveCronItem().
                 } else {
-                    Log::Output(
-                        0,
-                        "Unable to remove Cron Item from Cron "
-                        "object "
-                        "Notary::NotarizeCancelCronItem\n");
+                    otOut << "Unable to remove Cron Item from Cron "
+                             "object "
+                             "Notary::NotarizeCancelCronItem\n";
                 }
             }
         }  // transaction statement verified.
@@ -5650,19 +5617,15 @@ void Notary::NotarizeExchangeBasket(
             "disallowed in server.cfg)\n",
             strNymID.Get());
     } else if (nullptr == pItem) {
-        Log::Output(
-            0,
-            "Notary::NotarizeExchangeBasket: No exchangeBasket "
-            "item found on this transaction.\n");
+        otOut << "Notary::NotarizeExchangeBasket: No exchangeBasket "
+                 "item found on this transaction.\n";
     } else if (nullptr == pBalanceItem) {
-        Log::Output(
-            0,
-            "Notary::NotarizeExchangeBasket: No Balance "
-            "Agreement item found on this transaction.\n");
+        otOut << "Notary::NotarizeExchangeBasket: No Balance "
+                 "Agreement item found on this transaction.\n";
     } else if ((nullptr == pInbox)) {
-        Log::Error("Error loading or verifying inbox.\n");
+        otErr << "Error loading or verifying inbox.\n";
     } else if ((nullptr == pOutbox)) {
-        Log::Error("Error loading or verifying outbox.\n");
+        otErr << "Error loading or verifying outbox.\n";
     } else {
         pItem->SaveContractRaw(strInReferenceTo);
         pBalanceItem->SaveContractRaw(strBalanceItem);
@@ -5730,42 +5693,42 @@ void Notary::NotarizeExchangeBasket(
                     BASKET_CONTRACT_ID, BASKET_ACCOUNT_ID);
 
             if (!bLookup) {
-                Log::Error("Notary::NotarizeExchangeBasket: Asset type is "
-                           "not a basket currency.\n");
+                otErr << "Notary::NotarizeExchangeBasket: Asset type is "
+                         "not a basket currency.\n";
             } else if (
                 !strBasket.Exists() ||
                 !theRequestBasket->LoadContractFromString(strBasket) ||
                 !theRequestBasket->VerifySignature(context.RemoteNym())) {
-                Log::Error("Notary::NotarizeExchangeBasket: Expected "
-                           "verifiable basket object to be attached to "
-                           "exchangeBasket item.\n");
+                otErr << "Notary::NotarizeExchangeBasket: Expected "
+                         "verifiable basket object to be attached to "
+                         "exchangeBasket item.\n";
             } else if (
                 theRequestBasket->GetRequestAccountID() !=
                 theAccount.get().GetPurportedAccountID()) {
-                Log::Error("Notary::NotarizeExchangeBasket: User's main "
-                           "account ID according to request basket doesn't "
-                           "match theAccount.get().\n");
+                otErr << "Notary::NotarizeExchangeBasket: User's main "
+                         "account ID according to request basket doesn't "
+                         "match theAccount.get().\n";
             } else if (!context.VerifyIssuedNumber(
                            theRequestBasket->GetClosingNum())) {
-                Log::Error("Notary::NotarizeExchangeBasket: Closing number "
-                           "used for User's main account receipt was not "
-                           "available for use...\n");
+                otErr << "Notary::NotarizeExchangeBasket: Closing number "
+                         "used for User's main account receipt was not "
+                         "available for use...\n";
             } else {  // Load the basket account and make sure it exists.
                 basketAccount =
                     manager_.Wallet().mutable_Account(BASKET_ACCOUNT_ID);
 
                 if (false == bool(basketAccount)) {
-                    Log::Error("ERROR loading the basket account in "
-                               "Notary::NotarizeExchangeBasket\n");
+                    otErr << "ERROR loading the basket account in "
+                             "Notary::NotarizeExchangeBasket\n";
                 }
                 // Does it verify?
                 // I call VerifySignature here since VerifyContractID was
                 // already called in LoadExistingAccount().
                 else if (!basketAccount.get().VerifySignature(
                              server_.GetServerNym())) {
-                    Log::Error("ERROR verifying signature on the basket "
-                               "account in "
-                               "Notary::NotarizeExchangeBasket\n");
+                    otErr << "ERROR verifying signature on the basket "
+                             "account in "
+                             "Notary::NotarizeExchangeBasket\n";
                 } else {
                     // Now we get a pointer to its asset contract...
                     auto pContract =
@@ -5834,11 +5797,11 @@ void Notary::NotarizeExchangeBasket(
                                 if (basket->Currencies().find(
                                         requestContractID.Get()) ==
                                     basket->Currencies().end()) {
-                                    Log::Error("Error: expected instrument "
-                                               "definition "
-                                               "IDs to match in "
-                                               "Notary::"
-                                               "NotarizeExchangeBasket\n");
+                                    otErr << "Error: expected instrument "
+                                             "definition "
+                                             "IDs to match in "
+                                             "Notary::"
+                                             "NotarizeExchangeBasket\n";
                                     bSuccess = false;
                                     break;
                                 }
@@ -5854,20 +5817,20 @@ void Notary::NotarizeExchangeBasket(
                                         .second;
 
                                 if (serverAccountID == requestAccountID) {
-                                    Log::Error("Error: VERY strange to have "
-                                               "these account ID's match. "
-                                               "Notary::"
-                                               "NotarizeExchangeBasket.\n");
+                                    otErr << "Error: VERY strange to have "
+                                             "these account ID's match. "
+                                             "Notary::"
+                                             "NotarizeExchangeBasket.\n";
                                     bSuccess = false;
                                     break;
                                 } else if (!context.VerifyIssuedNumber(
                                                pRequestItem
                                                    ->lClosingTransactionNo)) {
-                                    Log::Error("Error: Basket sub-currency "
-                                               "closing "
-                                               "number didn't verify . "
-                                               "Notary::"
-                                               "NotarizeExchangeBasket.\n");
+                                    otErr << "Error: Basket sub-currency "
+                                             "closing "
+                                             "number didn't verify . "
+                                             "Notary::"
+                                             "NotarizeExchangeBasket.\n";
                                     bSuccess = false;
                                     break;
                                 } else  // if equal
@@ -5881,11 +5844,11 @@ void Notary::NotarizeExchangeBasket(
                                             pRequestItem->SUB_ACCOUNT_ID);
 
                                     if (false == bool(tempUserAccount)) {
-                                        Log::Error("ERROR loading a user's "
-                                                   "asset account in "
-                                                   "Notary::"
-                                                   "NotarizeExchangeBasket"
-                                                   "\n");
+                                        otErr << "ERROR loading a user's "
+                                                 "asset account in "
+                                                 "Notary::"
+                                                 "NotarizeExchangeBasket"
+                                                 "\n";
                                         bSuccess = false;
                                         tempUserAccount.Abort();
                                         break;
@@ -5897,11 +5860,11 @@ void Notary::NotarizeExchangeBasket(
                                                 serverAccountID));
 
                                     if (false == bool(tempServerAccount)) {
-                                        Log::Error("ERROR loading a basket "
-                                                   "sub-account in "
-                                                   "Notary::"
-                                                   "NotarizeExchangeBasket"
-                                                   "\n");
+                                        otErr << "ERROR loading a basket "
+                                                 "sub-account in "
+                                                 "Notary::"
+                                                 "NotarizeExchangeBasket"
+                                                 "\n";
                                         bSuccess = false;
                                         tempUserAccount.Abort();
                                         tempServerAccount.Abort();
@@ -5915,11 +5878,11 @@ void Notary::NotarizeExchangeBasket(
                                             server_.GetServerNym());
 
                                     if (false == bool(pSubInbox)) {
-                                        Log::Error("Error loading or "
-                                                   "verifying sub-inbox in "
-                                                   "Notary::"
-                                                   "NotarizeExchangeBasket."
-                                                   "\n");
+                                        otErr << "Error loading or "
+                                                 "verifying sub-inbox in "
+                                                 "Notary::"
+                                                 "NotarizeExchangeBasket."
+                                                 "\n";
                                         bSuccess = false;
                                         tempUserAccount.Abort();
                                         tempServerAccount.Abort();
@@ -5952,11 +5915,11 @@ void Notary::NotarizeExchangeBasket(
                                             .GetInstrumentDefinitionID() !=
                                         Identifier::Factory(
                                             requestContractID)) {
-                                        Log::Error("ERROR verifying instrument "
-                                                   "definition on a "
-                                                   "user's account in "
-                                                   "Notary::"
-                                                   "NotarizeExchangeBasket\n");
+                                        otErr << "ERROR verifying instrument "
+                                                 "definition on a "
+                                                 "user's account in "
+                                                 "Notary::"
+                                                 "NotarizeExchangeBasket\n";
                                         bSuccess = false;
                                         break;
                                     } else {
@@ -5980,13 +5943,13 @@ void Notary::NotarizeExchangeBasket(
                                                     bSuccess = true;
                                                 else {  // the server credit
                                                     // failed.
-                                                    Log::Error(
-                                                        " Notary::"
-                                                        "NotarizeExchangeBa"
-                                                        "sket"
-                                                        ": Failure "
-                                                        "crediting "
-                                                        "server acct.\n");
+                                                    otErr
+                                                        << " Notary::"
+                                                           "NotarizeExchangeBa"
+                                                           "sket"
+                                                           ": Failure "
+                                                           "crediting "
+                                                           "server acct.\n";
 
                                                     // Since we debited the
                                                     // user's acct already,
@@ -5994,26 +5957,25 @@ void Notary::NotarizeExchangeBasket(
                                                     if (false ==
                                                         userAccount.get().Credit(
                                                             lTransferAmount))
-                                                        Log::Error(
-                                                            " Notary::"
-                                                            "NotarizeExchan"
-                                                            "geBa"
-                                                            "sket: Failure "
-                                                            "crediting "
-                                                            "back "
-                                                            "user "
-                                                            "account.\n");
+                                                        otErr
+                                                            << " Notary::"
+                                                               "NotarizeExchan"
+                                                               "geBa"
+                                                               "sket: Failure "
+                                                               "crediting "
+                                                               "back "
+                                                               "user "
+                                                               "account.\n";
                                                     bSuccess = false;
                                                     break;
                                                 }
                                             } else {
-                                                Log::Output(
-                                                    0,
-                                                    "Notary::"
-                                                    "NotarizeExchangeBasket"
-                                                    ":"
-                                                    " Unable to Debit user "
-                                                    "account.\n");
+                                                otOut
+                                                    << "Notary::"
+                                                       "NotarizeExchangeBasket"
+                                                       ":"
+                                                       " Unable to Debit user "
+                                                       "account.\n";
                                                 bSuccess = false;
                                                 break;
                                             }
@@ -6027,13 +5989,13 @@ void Notary::NotarizeExchangeBasket(
                                                     bSuccess = true;
                                                 else {  // the user credit
                                                     // failed.
-                                                    Log::Error(
-                                                        " Notary::"
-                                                        "NotarizeExchangeBa"
-                                                        "sket"
-                                                        ": Failure "
-                                                        "crediting "
-                                                        "user acct.\n");
+                                                    otErr
+                                                        << " Notary::"
+                                                           "NotarizeExchangeBa"
+                                                           "sket"
+                                                           ": Failure "
+                                                           "crediting "
+                                                           "user acct.\n";
 
                                                     // Since we debited the
                                                     // server's acct
@@ -6043,26 +6005,25 @@ void Notary::NotarizeExchangeBasket(
                                                         serverAccount.get()
                                                             .Credit(
                                                                 lTransferAmount))
-                                                        Log::Error(
-                                                            " Notary::"
-                                                            "NotarizeExchan"
-                                                            "geBa"
-                                                            "sket: Failure "
-                                                            "crediting "
-                                                            "back "
-                                                            "server "
-                                                            "account.\n");
+                                                        otErr
+                                                            << " Notary::"
+                                                               "NotarizeExchan"
+                                                               "geBa"
+                                                               "sket: Failure "
+                                                               "crediting "
+                                                               "back "
+                                                               "server "
+                                                               "account.\n";
                                                     bSuccess = false;
                                                     break;
                                                 }
                                             } else {
-                                                Log::Output(
-                                                    0,
-                                                    " Notary::"
-                                                    "NotarizeExchangeBasket"
-                                                    ":"
-                                                    " Unable to Debit "
-                                                    "server account.\n");
+                                                otOut
+                                                    << " Notary::"
+                                                       "NotarizeExchangeBasket"
+                                                       ":"
+                                                       " Unable to Debit "
+                                                       "server account.\n";
                                                 bSuccess = false;
                                                 break;
                                             }
@@ -6218,33 +6179,32 @@ void Notary::NotarizeExchangeBasket(
                                                 lTransferAmount))
                                             bSuccess = true;
                                         else {
-                                            Log::Error("Notary::"
-                                                       "NotarizeExchangeBaske"
-                                                       "t: Failed crediting "
-                                                       "user basket "
-                                                       "account.\n");
+                                            otErr << "Notary::"
+                                                     "NotarizeExchangeBaske"
+                                                     "t: Failed crediting "
+                                                     "user basket "
+                                                     "account.\n";
 
                                             if (false ==
                                                 basketAccount.get().Credit(
                                                     lTransferAmount))
-                                                Log::Error(
-                                                    "Notary::"
-                                                    "NotarizeExchangeBasket"
-                                                    ": "
-                                                    "Failed crediting back "
-                                                    "basket issuer "
-                                                    "account.\n");
+                                                otErr
+                                                    << "Notary::"
+                                                       "NotarizeExchangeBasket"
+                                                       ": "
+                                                       "Failed crediting back "
+                                                       "basket issuer "
+                                                       "account.\n";
 
                                             bSuccess = false;
                                         }
                                     } else {
                                         bSuccess = false;
-                                        Log::Output(
-                                            0,
-                                            "Unable to Debit basket issuer "
-                                            "account, in "
-                                            "Notary::"
-                                            "NotarizeExchangeBasket\n");
+                                        otOut
+                                            << "Unable to Debit basket issuer "
+                                               "account, in "
+                                               "Notary::"
+                                               "NotarizeExchangeBasket\n";
                                     }
                                 } else  // user is peforming exchange OUT
                                 {
@@ -6254,34 +6214,31 @@ void Notary::NotarizeExchangeBasket(
                                                 lTransferAmount))
                                             bSuccess = true;
                                         else {
-                                            Log::Error("Notary::"
-                                                       "NotarizeExchangeBaske"
-                                                       "t: Failed crediting "
-                                                       "basket issuer "
-                                                       "account.\n");
+                                            otErr << "Notary::"
+                                                     "NotarizeExchangeBaske"
+                                                     "t: Failed crediting "
+                                                     "basket issuer "
+                                                     "account.\n";
 
                                             if (false ==
                                                 theAccount.get().Credit(
                                                     lTransferAmount))
-                                                Log::Error(
-                                                    "Notary::"
-                                                    "NotarizeExchangeBasket"
-                                                    ": "
-                                                    "Failed crediting back "
-                                                    "user basket "
-                                                    "account.\n");
+                                                otErr
+                                                    << "Notary::"
+                                                       "NotarizeExchangeBasket"
+                                                       ": "
+                                                       "Failed crediting back "
+                                                       "user basket "
+                                                       "account.\n";
 
                                             bSuccess = false;
                                         }
                                     } else {
                                         bSuccess = false;
-                                        Log::Output(
-                                            0,
-                                            "Unable to Debit user "
-                                            "basket account in "
-                                            "Notary::"
-                                            "NotarizeExchangeBaske"
-                                            "t\n");
+                                        otOut << "Unable to Debit user "
+                                                 "basket account in "
+                                                 "Notary::"
+                                                 "NotarizeExchangeBasket\n";
                                     }
                                 }
 
@@ -6393,10 +6350,10 @@ void Notary::NotarizeExchangeBasket(
                                     inboxTransaction->SaveBoxReceipt(*pInbox);
                                 }
                             } else {
-                                Log::Error("Error loading or verifying "
-                                           "user's main basket account in "
-                                           "Notary::"
-                                           "NotarizeExchangeBasket\n");
+                                otErr << "Error loading or verifying "
+                                         "user's main basket account in "
+                                         "Notary::"
+                                         "NotarizeExchangeBasket\n";
                                 bSuccess = false;
                             }
 
@@ -6489,11 +6446,10 @@ void Notary::NotarizeExchangeBasket(
                             }
                         }  // Let's do it!
                     } else {
-                        Log::Error(
-                            "Error finding asset contract for basket, or "
-                            "loading the basket from it, or verifying\n"
-                            "the signature on that basket, or the request "
-                            "basket didn't match actual basket.\n");
+                        otErr << "Error finding asset contract for basket, or "
+                                 "loading the basket from it, or verifying\n"
+                                 "the signature on that basket, or the request "
+                                 "basket didn't match actual basket.\n";
                     }
                 }  // pBasket exists and signature verifies
             }      // theRequestBasket loaded properly.
@@ -6668,29 +6624,21 @@ void Notary::NotarizeMarketOffer(
             // If the ID on the "from" account that was passed in,
             // does not match the "Acct From" ID on this transaction item
             else if (!(ASSET_ACCT_ID == pItem->GetPurportedAccountID())) {
-                Log::Output(
-                    0,
-                    "Error: Asset account ID on the transaction "
-                    "does not match asset account ID on the "
-                    "transaction item.\n");
+                otOut << "Error: Asset account ID on the transaction "
+                         "does not match asset account ID on the "
+                         "transaction item.\n";
             }
             // ok so the IDs match. Does the currency account exist?
             else if (false == bool(currencyAccount)) {
-                Log::Output(
-                    0,
-                    "ERROR verifying existence of the currency "
-                    "account in Notary::NotarizeMarketOffer\n");
+                otOut << "ERROR verifying existence of the currency "
+                         "account in Notary::NotarizeMarketOffer\n";
             } else if (!currencyAccount.get().VerifyContractID()) {
-                Log::Output(
-                    0,
-                    "ERROR verifying Contract ID on the currency "
-                    "account in Notary::NotarizeMarketOffer\n");
+                otOut << "ERROR verifying Contract ID on the currency "
+                         "account in Notary::NotarizeMarketOffer\n";
             } else if (!currencyAccount.get().VerifyOwner(
                            context.RemoteNym())) {
-                Log::Output(
-                    0,
-                    "ERROR verifying ownership of the currency "
-                    "account in Notary::NotarizeMarketOffer\n");
+                otOut << "ERROR verifying ownership of the currency "
+                         "account in Notary::NotarizeMarketOffer\n";
             }
             // Are both of the accounts of the same Asset Type?
             else if (
@@ -6713,21 +6661,15 @@ void Notary::NotarizeMarketOffer(
             // already called in LoadExistingAccount().
             else if (!currencyAccount.get().VerifySignature(
                          server_.GetServerNym())) {
-                Log::Output(
-                    0,
-                    "ERROR verifying signature on the Currency "
-                    "account in Notary::NotarizeMarketOffer\n");
+                otOut << "ERROR verifying signature on the Currency "
+                         "account in Notary::NotarizeMarketOffer\n";
             } else if (!pTrade->VerifySignature(context.RemoteNym())) {
-                Log::Output(
-                    0,
-                    "ERROR verifying signature on the Trade in "
-                    "Notary::NotarizeMarketOffer\n");
+                otOut << "ERROR verifying signature on the Trade in "
+                         "Notary::NotarizeMarketOffer\n";
             } else if (
                 pTrade->GetTransactionNum() != pItem->GetTransactionNum()) {
-                Log::Output(
-                    0,
-                    "ERROR bad transaction number on trade in "
-                    "Notary::NotarizeMarketOffer\n");
+                otOut << "ERROR bad transaction number on trade in "
+                         "Notary::NotarizeMarketOffer\n";
             }
             // The transaction number opens the market offer, but there must
             // also be a closing number for closing it.
@@ -6737,10 +6679,8 @@ void Notary::NotarizeMarketOffer(
                 !context.VerifyIssuedNumber(pTrade->GetAssetAcctClosingNum()) ||
                 !context.VerifyIssuedNumber(
                     pTrade->GetCurrencyAcctClosingNum())) {
-                Log::Output(
-                    0,
-                    "ERROR needed 2 valid closing transaction "
-                    "numbers in Notary::NotarizeMarketOffer\n");
+                otOut << "ERROR needed 2 valid closing transaction "
+                         "numbers in Notary::NotarizeMarketOffer\n";
             } else if (pTrade->GetNotaryID() != NOTARY_ID) {
                 const String strID1(pTrade->GetNotaryID()), strID2(NOTARY_ID);
                 Log::vOutput(
@@ -6820,13 +6760,11 @@ void Notary::NotarizeMarketOffer(
             // ...And then we use that same Nym to verify the signature on
             // the offer.
             else if (!theOffer->VerifySignature(context.RemoteNym())) {
-                Log::Error("ERROR verifying offer signature in "
-                           "Notary::NotarizeMarketOffer.\n");
+                otErr << "ERROR verifying offer signature in "
+                         "Notary::NotarizeMarketOffer.\n";
             } else if (!pTrade->VerifyOffer(*theOffer)) {
-                Log::Output(
-                    0,
-                    "FAILED verifying offer for Trade in "
-                    "Notary::NotarizeMarketOffer\n");
+                otOut << "FAILED verifying offer for Trade in "
+                         "Notary::NotarizeMarketOffer\n";
             } else if (
                 theOffer->GetScale() < ServerSettings::GetMinMarketScale()) {
                 Log::vOutput(
@@ -6846,13 +6784,11 @@ void Notary::NotarizeMarketOffer(
                 // for other cron items such as payment plans and smart
                 // contracts. But it's a good enough approximation for now.
                 //
-                Log::Output(
-                    0,
-                    "Notary::NotarizeMarketOffer: FAILED adding "
-                    "offer to market: "
-                    "NYM HAS TOO MANY ACTIVE OFFERS ALREADY. See "
-                    "'max_items_per_nym' setting in the config "
-                    "file.\n");
+                otOut << "Notary::NotarizeMarketOffer: FAILED adding "
+                         "offer to market: "
+                         "NYM HAS TOO MANY ACTIVE OFFERS ALREADY. See "
+                         "'max_items_per_nym' setting in the config "
+                         "file.\n";
             }
             // At this point I feel pretty confident that the Trade is a
             // valid request from the user. The top half of this function is
@@ -6892,8 +6828,7 @@ void Notary::NotarizeMarketOffer(
                     bOutSuccess = true;  // The offer was successfully
                                          // placed on the market.
 
-                    Log::Output(
-                        2, "Successfully added Trade to Cron object.\n");
+                    otInfo << "Successfully added Trade to Cron object.\n";
 
                     // Server side, the Nym stores a list of all open cron
                     // item numbers. (So we know if there is still stuff
@@ -6921,10 +6856,8 @@ void Notary::NotarizeMarketOffer(
                     // RemoveIssuedNum will be called for the Closing number
                     // when the finalReceipt is accepted.
                 } else {
-                    Log::Output(
-                        0,
-                        "Unable to add trade to Cron object "
-                        "Notary::NotarizeMarketOffer\n");
+                    otOut << "Unable to add trade to Cron object "
+                             "Notary::NotarizeMarketOffer\n";
                 }
             }
         }  // transaction statement verified.
@@ -7044,8 +6977,8 @@ void Notary::NotarizeTransaction(
         // this means here is that the user no longer has the number on his
         // AVAILABLE list. Removal from issued list happens separately.)
         if (!context.ConsumeAvailable(lTransactionNumber)) {
-            Log::Error("Error removing transaction number (as available) "
-                       "from user nym in Notary::NotarizeTransaction\n");
+            otErr << "Error removing transaction number (as available) "
+                     "from user nym in Notary::NotarizeTransaction\n";
         } else {
             itemType theReplyItemType = itemType::error_state;
 
@@ -7056,7 +6989,7 @@ void Notary::NotarizeTransaction(
                 // DEF. A copy will also remain in her outbox until canceled
                 // or accepted.
                 case transactionType::transfer:
-                    Log::Output(0, "NotarizeTransaction type: Transfer\n");
+                    otOut << "NotarizeTransaction type: Transfer\n";
                     NotarizeTransfer(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = itemType::atTransfer;
@@ -7068,7 +7001,7 @@ void Notary::NotarizeTransaction(
                 // reject some of his inbox items and/or accept some into
                 // his account DEF.
                 case transactionType::processInbox:
-                    Log::Output(0, "NotarizeTransaction type: Process Inbox\n");
+                    otOut << "NotarizeTransaction type: Process Inbox\n";
                     NotarizeProcessInbox(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     //                    theReplyItemType =
@@ -7093,16 +7026,12 @@ void Notary::NotarizeTransaction(
 
                     if (false != bool(pItemCash)) {
                         theReplyItemType = itemType::atWithdrawal;
-                        Log::Output(
-                            0,
-                            "NotarizeTransaction type: Withdrawal "
-                            "(cash)\n");
+                        otOut << "NotarizeTransaction type: Withdrawal "
+                                 "(cash)\n";
                     } else if (false != bool(pItemVoucher)) {
                         theReplyItemType = itemType::atWithdrawVoucher;
-                        Log::Output(
-                            0,
-                            "NotarizeTransaction type: Withdrawal "
-                            "(voucher)\n");
+                        otOut << "NotarizeTransaction type: Withdrawal "
+                                 "(voucher)\n";
                     }
                     NotarizeWithdrawal(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
@@ -7114,7 +7043,7 @@ void Notary::NotarizeTransaction(
                 // request a signed cheque made out to Bob's user ID (or
                 // blank), --OR-- a purse full of tokens.
                 case transactionType::deposit:
-                    Log::Output(0, "NotarizeTransaction type: Deposit\n");
+                    otOut << "NotarizeTransaction type: Deposit\n";
                     NotarizeDeposit(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = itemType::atDeposit;
@@ -7126,7 +7055,7 @@ void Notary::NotarizeTransaction(
                 // rate of $X per share, where X and $ are both
                 // configurable.
                 case transactionType::payDividend:
-                    Log::Output(0, "NotarizeTransaction type: Pay Dividend\n");
+                    otOut << "NotarizeTransaction type: Pay Dividend\n";
                     NotarizePayDividend(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = itemType::atPayDividend;
@@ -7138,7 +7067,7 @@ void Notary::NotarizeTransaction(
                 // signed trade listing the relevant information, instrument
                 // definitions and account IDs.
                 case transactionType::marketOffer:
-                    Log::Output(0, "NotarizeTransaction type: Market Offer\n");
+                    otOut << "NotarizeTransaction type: Market Offer\n";
                     NotarizeMarketOffer(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = itemType::atMarketOffer;
@@ -7149,7 +7078,7 @@ void Notary::NotarizeTransaction(
                 // make regular payments to Alice. (BOTH Alice AND Bob must
                 // have signed the same contract.)
                 case transactionType::paymentPlan:
-                    Log::Output(0, "NotarizeTransaction type: Payment Plan\n");
+                    otOut << "NotarizeTransaction type: Payment Plan\n";
                     NotarizePaymentPlan(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = itemType::atPaymentPlan;
@@ -7163,8 +7092,7 @@ void Notary::NotarizeTransaction(
                 // of whom have signed it, and have provided transaction #s
                 // for it.
                 case transactionType::smartContract: {
-                    Log::Output(
-                        0, "NotarizeTransaction type: Smart Contract\n");
+                    otOut << "NotarizeTransaction type: Smart Contract\n";
 
                     // For all transaction numbers used on cron items, we
                     // keep track of them in the GetSetOpenCronItems. This
@@ -7182,8 +7110,7 @@ void Notary::NotarizeTransaction(
                 // REGULARLY PROCESSING CONTRACT that he had previously
                 // created.
                 case transactionType::cancelCronItem: {
-                    Log::Output(
-                        0, "NotarizeTransaction type: cancelCronItem\n");
+                    otOut << "NotarizeTransaction type: cancelCronItem\n";
                     NotarizeCancelCronItem(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = itemType::atCancelCronItem;
@@ -7197,8 +7124,7 @@ void Notary::NotarizeTransaction(
                 // basket account and his various sub-accounts for each
                 // member currency in the basket.)
                 case transactionType::exchangeBasket:
-                    Log::Output(
-                        0, "NotarizeTransaction type: Exchange Basket\n");
+                    otOut << "NotarizeTransaction type: Exchange Basket\n";
                     NotarizeExchangeBasket(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     theReplyItemType = itemType::atExchangeBasket;
@@ -7444,11 +7370,11 @@ void Notary::NotarizeProcessNymbox(
                     // signing numbers that differ from the actual ones in
                     // the Nymbox.)
                     if (!listNumbersNymbox.Verify(listNumbersUserItem)) {
-                        Log::Error("Notary::NotarizeProcessNymbox: Failed "
-                                   "verifying: The numbers on the actual blank "
-                                   "transaction in the nymbox do not match the "
-                                   "list "
-                                   "of numbers sent over by the user.\n");
+                        otErr << "Notary::NotarizeProcessNymbox: Failed "
+                                 "verifying: The numbers on the actual blank "
+                                 "transaction in the nymbox do not match the "
+                                 "list "
+                                 "of numbers sent over by the user.\n";
                     } else {
                         // INSTEAD of merely adding the TRANSACTION NUMBER
                         // of the blank to the Nym, we actually add an
@@ -7570,7 +7496,7 @@ void Notary::NotarizeProcessNymbox(
                             theReplyItemType = itemType::atAcceptNotice;
                         } break;
                         default: {
-                            Log::Error("Should never happen.\n");
+                            otErr << "Should never happen.\n";
                             theReplyItemType = itemType::error_state;
                         }
                             continue;
@@ -7754,11 +7680,11 @@ void Notary::NotarizeProcessNymbox(
 
                             if (!bGotNextTransNum) {
                                 lSuccessNoticeTransNum = 0;
-                                Log::Error("Error getting next transaction "
-                                           "number in "
-                                           "Notary::NotarizeProcessNymbox "
-                                           "for transactionType::blank (for "
-                                           "the successNotice)\n");
+                                otErr << "Error getting next transaction "
+                                         "number in "
+                                         "Notary::NotarizeProcessNymbox "
+                                         "for transactionType::blank (for "
+                                         "the successNotice)\n";
                             } else {
                                 // Drop SUCCESS NOTICE in the Nymbox
                                 //
@@ -8446,8 +8372,8 @@ void Notary::NotarizeProcessInbox(
                 }
             } break;
             default:
-                Log::Error("Wrong item type in "
-                           "Notary::NotarizeProcessInbox. (2nd notice.)\n");
+                otErr << "Wrong item type in "
+                         "Notary::NotarizeProcessInbox. (2nd notice.)\n";
                 bSuccessFindingAllTransactions = false;
                 break;
         }
@@ -8614,7 +8540,7 @@ void Notary::NotarizeProcessInbox(
                 theReplyItemType = itemType::atDisputeBasketReceipt;
                 break;
             default:
-                Log::Error("Should never happen.\n");
+                otErr << "Should never happen.\n";
                 theReplyItemType =
                     itemType::error_state;  // should never happen
                                             // based on above 'if'
@@ -8662,9 +8588,9 @@ void Notary::NotarizeProcessInbox(
         std::shared_ptr<OTTransaction> pServerTransaction = nullptr;
 
         if (!theInbox->LoadInbox()) {
-            Log::Error("Error loading inbox during processInbox\n");
+            otErr << "Error loading inbox during processInbox\n";
         } else if (false == theInbox->VerifyAccount(server_.GetServerNym())) {
-            Log::Error("Error verifying inbox during processInbox\n");
+            otErr << "Error verifying inbox during processInbox\n";
         }
         //
         // Warning! In the case of a
@@ -8971,10 +8897,10 @@ void Notary::NotarizeProcessInbox(
                     // match the Acct ID of the client trying to
                     // accept the transaction...
                     if (!(ACCOUNT_ID == IDToAccount)) {
-                        Log::Error("Error: Destination account ID on "
-                                   "the transaction does not match "
-                                   "account ID of client transaction "
-                                   "item.\n");
+                        otErr << "Error: Destination account ID on "
+                                 "the transaction does not match "
+                                 "account ID of client transaction "
+                                 "item.\n";
                     }
 
                     // The 'from' outbox is loaded to remove the
@@ -9005,10 +8931,10 @@ void Notary::NotarizeProcessInbox(
                         bSuccessLoadingInbox =
                             theFromInbox->VerifyAccount(server_.GetServerNym());
                     else
-                        Log::Error("ERROR missing 'from' "
-                                   "inbox in "
-                                   "Notary::"
-                                   "NotarizeProcessInbox.\n");
+                        otErr << "ERROR missing 'from' "
+                                 "inbox in "
+                                 "Notary::"
+                                 "NotarizeProcessInbox.\n";
                     // THE FROM OUTBOX -- We are removing an
                     // item, so this outbox SHOULD already
                     // exist.
@@ -9019,16 +8945,16 @@ void Notary::NotarizeProcessInbox(
                     else  // If it does not already exist, that
                         // is an error condition. For now, log
                         // and fail.
-                        Log::Error("ERROR missing 'from' "
-                                   "outbox in "
-                                   "Notary::"
-                                   "NotarizeProcessInbox.\n");
+                        otErr << "ERROR missing 'from' "
+                                 "outbox in "
+                                 "Notary::"
+                                 "NotarizeProcessInbox.\n";
                     if (!bSuccessLoadingInbox ||
                         false == bSuccessLoadingOutbox) {
-                        Log::Error("ERROR loading 'from' "
-                                   "inbox or outbox in "
-                                   "Notary::"
-                                   "NotarizeProcessInbox.\n");
+                        otErr << "ERROR loading 'from' "
+                                 "inbox or outbox in "
+                                 "Notary::"
+                                 "NotarizeProcessInbox.\n";
                     } else {
                         // Generate a new transaction number for
                         // the sender's inbox (to notice him of
@@ -9226,16 +9152,16 @@ void Notary::NotarizeProcessInbox(
                             inboxTransaction->SaveBoxReceipt(*theFromInbox);
                         } else {
                             theAccount.Abort();
-                            Log::Error("Unable to credit account in "
-                                       "Notary::"
-                                       "NotarizeProcessInbox.\n");
+                            otErr << "Unable to credit account in "
+                                     "Notary::"
+                                     "NotarizeProcessInbox.\n";
                         }
                     }  // outbox was successfully loaded
                 }      // its type is OTItem::transfer
             }          // loaded original item from string
             else {
-                Log::Error("Error loading original item from "
-                           "inbox transaction.\n");
+                otErr << "Error loading original item from "
+                         "inbox transaction.\n";
             }
         } else {
             Log::vError(

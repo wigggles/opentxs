@@ -49,7 +49,7 @@
 #include <string>
 #include <utility>
 
-//#define OT_METHOD "opentxs::OTWallet::"
+#define OT_METHOD "opentxs::OTWallet::"
 
 namespace opentxs
 {
@@ -516,9 +516,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     }
                 } break;
                 default:
-                    otLog5 << __FUNCTION__
-                           << ": Unknown XML type: " << xml->getNodeName()
-                           << "\n";
+                    LogInsane(OT_METHOD)(__FUNCTION__)(": Unknown XML type: ")(
+                        xml->getNodeName())
+                        .Flush();
                     break;
             }
         }  // while xml->read()

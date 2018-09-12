@@ -31,12 +31,9 @@ namespace server
         const char* pActionNameStr = msgIn.m_strCommand.Get();                 \
                                                                                \
         if (false == NYM_IS_ALLOWED(pNymAllowedIDStr, BOOL_VAR_NAME)) {        \
-            Log::vOutput(                                                      \
-                0,                                                             \
-                "Nym %s attempted an action (%s), but based on "               \
-                "server configuration, he's not allowed.\n",                   \
-                pNymAllowedIDStr,                                              \
-                pActionNameStr);                                               \
+            otOut << "Nym " << pNymAllowedIDStr << " attempted an action ("    \
+                  << pActionNameStr << "), but based on server configuration," \
+                  << " he's not allowed.\n";                                   \
             return false;                                                      \
         }                                                                      \
     }

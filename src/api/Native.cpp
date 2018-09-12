@@ -34,6 +34,7 @@
 #include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Symmetric.hpp"
@@ -71,7 +72,7 @@
 #define _PASSWORD_LEN 128
 #endif
 
-//#define OT_METHOD "opentxs::api::implementation::Native::"
+#define OT_METHOD "opentxs::api::implementation::Native::"
 
 namespace
 {
@@ -203,15 +204,16 @@ extern "C" std::int32_t souped_up_pass_cb(
             static_cast<std::int32_t>(str_userdata.size()));
 
         if (1 == rwflag) {
-            opentxs::otLog4
-                << __FUNCTION__
-                << ": Using OT Password Callback (asks twice) for \""
-                << str_userdata << "\"...\n";
+            opentxs::LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Using OT Password Callback (asks twice) for \"")(
+                str_userdata)("\"...")
+                .Flush();
             caller.callTwo();
         } else {
-            opentxs::otLog4 << __FUNCTION__
-                            << ": Using OT Password Callback (asks once) for \""
-                            << str_userdata << "\"...\n";
+            opentxs::LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Using OT Password Callback (asks once) for \"")(
+                str_userdata)("\"...")
+                .Flush();
             caller.callOne();
         }
         /*
@@ -334,13 +336,14 @@ Native::Native(
     , task_list_lock_()
     , signal_handler_lock_()
     , config_()
+    , zmq_context_(opentxs::network::zeromq::Context::Factory())
+    , signal_handler_(nullptr)
+    , log_(opentxs::Factory::Log(zmq_context_))
     , crypto_(nullptr)
     , legacy_(opentxs::Factory::Legacy())
     , client_()
     , server_()
-    , zmq_context_(opentxs::network::zeromq::Context::Factory())
     , zap_(opentxs::Factory::ZAP(zmq_context_))
-    , signal_handler_(nullptr)
     , server_args_(args)
     , shutdown_callback_{nullptr}
     , null_callback_{nullptr}
@@ -350,6 +353,7 @@ Native::Native(
 {
     // NOTE: OT_ASSERT is not available until Init() has been called
     assert(legacy_);
+    assert(log_);
     assert(zap_);
 
     if (nullptr == external_password_callback_) {
@@ -630,5 +634,11 @@ const api::network::ZAP& Native::ZAP() const
     OT_ASSERT(zap_);
 
     return *zap_;
+}
+
+Native::~Native()
+{
+    LogSource::Shutdown();
+    log_.reset();
 }
 }  // namespace opentxs::api::implementation

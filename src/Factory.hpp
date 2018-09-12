@@ -169,6 +169,7 @@ public:
         const ui::implementation::CustomData& custom,
         const proto::ContactItemType currency);
     static api::Legacy* Legacy();
+    static api::internal::Log* Log(const network::zeromq::Context& zmq);
     static ui::implementation::ActivityThreadRowInternal* MailItem(
         const ui::implementation::ActivityThreadInternalInterface& parent,
         const api::client::Manager& api,

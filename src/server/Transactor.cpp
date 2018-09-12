@@ -58,7 +58,7 @@ bool Transactor::issueNextTransactionNumber(
 
     // Next, we save it to file.
     if (!server_.GetMainFile().SaveMainFile()) {
-        Log::Error("Error saving main server file.\n");
+        otErr << "Error saving main server file.\n";
         transactionNumber_--;
         return false;
     }
@@ -84,7 +84,7 @@ bool Transactor::issueNextTransactionNumberToNym(
     // is also recorded in his Nym file.)  That way the server always knows
     // which numbers are valid for each Nym.
     if (!context.IssueNumber(transactionNumber_)) {
-        Log::Error("Error adding transaction number to Nym file.\n");
+        otErr << "Error adding transaction number to Nym file.\n";
         transactionNumber_--;
         // Save it back how it was, since we're not issuing this number after
         // all.
@@ -110,7 +110,8 @@ bool Transactor::addBasketAccountID(
     auto theBasketAcctID = Identifier::Factory();
 
     if (lookupBasketAccountID(BASKET_ID, theBasketAcctID)) {
-        Log::Output(0, "User attempted to add Basket that already exists.\n");
+        otOut << "User attempted to add Basket that already exists.\n";
+
         return false;
     }
 
@@ -228,17 +229,14 @@ ExclusiveAccount Transactor::getVoucherAccount(
         String strAcctID;
         pAccount.get().GetIdentifier(strAcctID);
         const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
-
-        Log::vOutput(
-            0,
-            "Server::GetVoucherAccount: Successfully created "
-            "voucher account ID: %s Instrument Definition ID: %s\n",
-            strAcctID.Get(),
-            strInstrumentDefinitionID.Get());
+        otOut << "Server::GetVoucherAccount: Successfully created "
+              << "voucher account ID: " << strAcctID
+              << " Instrument Definition ID: " << strInstrumentDefinitionID
+              << "\n";
 
         if (!server_.GetMainFile().SaveMainFile()) {
-            Log::Error("Server::GetVoucherAccount: Error saving main "
-                       "server file containing new account ID!!\n");
+            otErr << "Server::GetVoucherAccount: Error saving main "
+                     "server file containing new account ID!!\n";
         }
     }
 

@@ -68,7 +68,7 @@
 
 #define NYMFILE_VERSION "1.1"
 
-//#define OT_METHOD "opentxs::NymFile::"
+#define OT_METHOD "opentxs::NymFile::"
 
 namespace opentxs
 {
@@ -316,8 +316,9 @@ bool NymFile::deserialize_nymfile(
                 break;
             }
             default: {
-                otLog5 << "Unknown XML type in " << __FUNCTION__ << ": "
-                       << xml->getNodeName() << "\n";
+                LogInsane(OT_METHOD)(__FUNCTION__)(": Unknown XML type in ")(
+                    xml->getNodeName())
+                    .Flush();
                 break;
             }
         }  // switch

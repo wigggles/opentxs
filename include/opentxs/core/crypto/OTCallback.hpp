@@ -19,8 +19,8 @@ namespace opentxs
 class OTCallback
 {
 public:
-    OTCallback() {}
-    EXPORT virtual ~OTCallback();
+    OTCallback() = default;
+    EXPORT virtual ~OTCallback() = default;
 
     // Asks for password once. (For authentication when using nym.)
     EXPORT virtual void runOne(const char* szDisplay, OTPassword& theOutput)
@@ -31,7 +31,5 @@ public:
     EXPORT virtual void runTwo(const char* szDisplay, OTPassword& theOutput)
         const = 0;
 };
-
 }  // namespace opentxs
-
 #endif

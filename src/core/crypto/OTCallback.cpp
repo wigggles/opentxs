@@ -13,12 +13,4 @@
 
 namespace opentxs
 {
-
-OTCallback::~OTCallback()
-{
-    otErr << "OTCallback::~OTCallback:  (This should only happen ONCE ONLY -- "
-             "as the application is closing.)\n";
-    //    std::cout << "OTCallback::~OTCallback()" << std:: endl;
-}
-
 }  // namespace opentxs

@@ -30,6 +30,7 @@ set(cxx-sources
   Item.cpp
   Ledger.cpp
   Log.cpp
+  LogSource.cpp
   Message.cpp
   NumList.cpp
   Nym.cpp
@@ -59,6 +60,7 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Ledger.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Lockable.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Log.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/LogSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Message.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NumList.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/Nym.hpp"
