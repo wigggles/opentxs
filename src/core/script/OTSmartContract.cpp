@@ -1500,7 +1500,7 @@ std::string OTSmartContract::GetStashBalance(
     OT_ASSERT(nullptr != pCron);
 
     ConstNym pServerNym = pCron->GetServerNym();
-    OT_ASSERT(!pServerNym);
+    OT_ASSERT(pServerNym);
 
     // Below this point, these are all good:
     //
@@ -5030,7 +5030,7 @@ void OTSmartContract::UpdateContents()
                ACTIVATOR_NYM_ID = String::Factory(GetSenderNymID()),
                ACTIVATOR_ACCT_ID = String::Factory(GetSenderAcctID());
 
-    OT_ASSERT(m_pCancelerNymID->empty());
+    OT_ASSERT(!m_pCancelerNymID->empty());
 
     auto strCanceler = String::Factory();
 

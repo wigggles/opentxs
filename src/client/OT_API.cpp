@@ -9128,7 +9128,7 @@ CommandResult OT_API::withdrawVoucher(
     if (false == bool(item)) { return output; }
 
     item->SetAmount(amount);
-    item->SetNote(String::Factory());
+    item->SetNote(String::Factory(" "));
     theRequestVoucher->SignContract(nym);
     theRequestVoucher->SaveContract();
     auto strVoucher = String::Factory(*theRequestVoucher);
