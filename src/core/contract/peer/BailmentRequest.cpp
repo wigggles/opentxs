@@ -47,8 +47,8 @@ proto::PeerRequest BailmentRequest::IDVersion(const Lock& lock) const
     auto contract = ot_super::IDVersion(lock);
     auto& bailment = *contract.mutable_bailment();
     bailment.set_version(version_);
-    bailment.set_unitid(String(unit_).Get());
-    bailment.set_serverid(String(server_).Get());
+    bailment.set_unitid(String::Factory(unit_)->Get());
+    bailment.set_serverid(String::Factory(server_)->Get());
 
     return contract;
 }

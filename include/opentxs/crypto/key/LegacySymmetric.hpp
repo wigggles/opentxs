@@ -34,40 +34,40 @@ public:
     EXPORT static bool CreateNewKey(
         const api::Crypto& crypto,
         String& strOutput,
-        const String* pstrDisplay = nullptr,
+        const String& pstrDisplay,
         const OTPassword* pAlreadyHavePW = nullptr);
     EXPORT static bool Decrypt(
         const api::Crypto& crypto,
         const String& strKey,
         String& strCiphertext,
         String& strOutput,
-        const String* pstrDisplay = nullptr,
+        const String& pstrDisplay,
         const OTPassword* pAlreadyHavePW = nullptr);
     EXPORT static bool Decrypt(
         const LegacySymmetric& theKey,
         const String& strCiphertext,
         String& strOutput,
-        const String* pstrDisplay = nullptr,
+        const String& pstrDisplay,
         const OTPassword* pAlreadyHavePW = nullptr);
     EXPORT static bool Encrypt(
         const api::Crypto& crypto,
         const String& strKey,
         const String& strPlaintext,
         String& strOutput,
-        const String* pstrDisplay = nullptr,
+        const String& pstrDisplay,
         bool bBookends = true,
         const OTPassword* pAlreadyHavePW = nullptr);
     EXPORT static bool Encrypt(
         const LegacySymmetric& theKey,
         const String& strPlaintext,
         String& strOutput,
-        const String* pstrDisplay = nullptr,
+        const String& pstrDisplay,
         bool bBookends = true,
         const OTPassword* pAlreadyHavePW = nullptr);
     // The highest-level possible interface (used by the API)
     // Caller must delete.
     EXPORT static OTPassword* GetPassphraseFromUser(
-        const String* pstrDisplay = nullptr,
+        const String& pstrDisplay,
         bool bAskTwice = false);  // returns a text OTPassword, or nullptr.
 
     // Must have a hash-check already!

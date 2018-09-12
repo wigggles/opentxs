@@ -81,13 +81,14 @@ bool OTCachedKey::ChangeUserPassphrase()
         return false;
     }
 
-    const String strReason1("Enter old wallet master passphrase");
+    const auto strReason1 =
+        String::Factory("Enter old wallet master passphrase");
 
     // Returns a text OTPassword, or nullptr.
     std::shared_ptr<OTPassword> pOldUserPassphrase(
         crypto::key::LegacySymmetric::GetPassphraseFromUser(
-            &strReason1));  // bool bAskTwice
-                            // = false
+            strReason1));  // bool bAskTwice
+                           // = false
 
     if (!pOldUserPassphrase) {
         otErr << __FUNCTION__
@@ -96,12 +97,13 @@ bool OTCachedKey::ChangeUserPassphrase()
         return false;
     }
 
-    const String strReason2("Create new wallet master passphrase");
+    const auto strReason2 =
+        String::Factory("Create new wallet master passphrase");
 
     // Returns a text OTPassword, or nullptr.
     std::shared_ptr<OTPassword> pNewUserPassphrase(
         crypto::key::LegacySymmetric::GetPassphraseFromUser(
-            &strReason2, true));  // bool bAskTwice = false by default.
+            strReason2, true));  // bool bAskTwice = false by default.
 
     if (!pNewUserPassphrase) {
         otErr << __FUNCTION__
@@ -126,14 +128,14 @@ std::shared_ptr<OTCachedKey> OTCachedKey::CreateMasterPassword(
 
     OT_ASSERT(pMaster);
 
-    const String strDisplay(
+    const auto strDisplay = String::Factory(
         (nullptr == szDisplay)
             ? "Creating a passphrase..."
             : szDisplay);  // todo internationalization / hardcoding.
     const bool bGotPassphrase = pMaster->GetMasterPassword(
         *pMaster,
         theOutput,
-        strDisplay.Get(),
+        strDisplay->Get(),
         true);  // bool bVerifyTwice=false by default.
                 // Really we didn't have to pass true
                 // here, since it asks twice anyway,
@@ -167,7 +169,7 @@ bool OTCachedKey::GetIdentifier(String& strIdentifier) const
 
     if (!GetIdentifier(id)) { return false; }
 
-    strIdentifier = String(id);
+    strIdentifier = String::Factory(id);
 
     return true;
 }
@@ -588,7 +590,7 @@ bool OTCachedKey::GetMasterPassword(
                 //
                 if (IsUsingSystemKeyring() && (nullptr != pDerivedKey)) {
 
-                    secret_id_ = String(Identifier::Factory(key_));
+                    secret_id_ = String::Factory(Identifier::Factory(key_));
                     OTKeyring::StoreSecret(
                         secret_id_,
                         *pDerivedKey,  // (Input) Derived Key BEING STORED.

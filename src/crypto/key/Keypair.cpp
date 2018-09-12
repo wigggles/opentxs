@@ -253,13 +253,13 @@ bool Keypair::ReEncrypt(const OTPassword& theExportPassword, bool bImporting)
     // re-encrypted to the
     // export format. So we'd want to pass the export passphrase when saving.
     //
-    const String strReasonAbove(
+    const auto strReasonAbove = String::Factory(
         bImporting ? "Enter the new export passphrase. (Above "
                      "ReEncryptPrivateKey in OTKeypair::ReEncrypt)"
                    : "Enter your wallet's master passphrase. (Above "
                      "ReEncryptPrivateKey in OTKeypair::ReEncrypt)");
 
-    const String strReasonBelow(
+    const auto strReasonBelow = String::Factory(
         bImporting ? "Enter your wallet's master passphrase. (Below "
                      "ReEncryptPrivateKey in OTKeypair::ReEncrypt)"
                    : "Enter the new export passphrase. (Below "

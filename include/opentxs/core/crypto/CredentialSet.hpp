@@ -95,7 +95,7 @@ public:
         m_pImportPassword = pImportPassword;
     }
 
-    EXPORT String MasterAsString() const;
+    EXPORT OTString MasterAsString() const;
 
     EXPORT bool Load_Master(
         const String& strNymID,

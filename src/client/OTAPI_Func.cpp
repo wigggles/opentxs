@@ -707,7 +707,7 @@ OTAPI_Func::OTAPI_Func(
         contract_.reset(contract.release());  // the smart contract itself.;
 
         std::int32_t nNumsNeeded = api_.Exec().SmartContract_CountNumsNeeded(
-            String(*contract_).Get(), agentName_);
+            String::Factory(*contract_)->Get(), agentName_);
 
         if (nNumsNeeded > 0) { nTransNumsNeeded_ = nNumsNeeded; }
     } else {
@@ -1177,12 +1177,12 @@ void OTAPI_Func::run()
             if (cash_) {
                 OT_ASSERT(purse_)
 
-                payment_ = api_.Factory().Payment(String(*purse_));
+                payment_ = api_.Factory().Payment(String::Factory(*purse_));
             }
 
             OT_ASSERT(payment_)
 
-            String serialized;
+            auto serialized = String::Factory();
             payment_->GetPaymentContents(serialized);
             auto payment{api_.Factory().Payment(serialized)};
 
@@ -1197,7 +1197,8 @@ void OTAPI_Func::run()
             if (cash_) {
                 OT_ASSERT(senderPurse_)
 
-                const String& senderPurseString = String(*senderPurse_);
+                const String& senderPurseString =
+                    String::Factory(*senderPurse_);
                 auto theSenderPayment{
                     api_.Factory().Payment(senderPurseString)};
 
@@ -1275,20 +1276,20 @@ void OTAPI_Func::run()
             OT_ASSERT(contract_)
 
             last_attempt_ = api_.OTAPI().activateSmartContract(
-                context_, String(*contract_).Get());
+                context_, String::Factory(*contract_)->Get());
         } break;
         case TRIGGER_CLAUSE: {
             last_attempt_ = api_.OTAPI().triggerClause(
                 context_,
                 transactionNumber_,
                 clause_.c_str(),
-                triggerParameter.Exists() ? &triggerParameter : nullptr);
+                triggerParameter.Exists() ? triggerParameter : nullptr);
         } break;
         case EXCHANGE_BASKET: {
             last_attempt_ = api_.OTAPI().exchangeBasket(
                 context_,
                 instrumentDefinitionID_,
-                String(basketID_).Get(),
+                String::Factory(basketID_)->Get(),
                 direction_);
         } break;
         case GET_CONTRACT: {
@@ -1331,14 +1332,14 @@ void OTAPI_Func::run()
             OT_ASSERT(ledger_)
 
             last_attempt_ = api_.OTAPI().processInbox(
-                context_, accountID_, String(*ledger_).Get());
+                context_, accountID_, String::Factory(*ledger_)->Get());
         } break;
         case DEPOSIT_CASH: {
 #if OT_CASH
             OT_ASSERT(purse_)
 
             last_attempt_ = api_.OTAPI().notarizeDeposit(
-                context_, accountID_, String(*purse_).Get());
+                context_, accountID_, String::Factory(*purse_)->Get());
 #endif  // OT_CASH
         } break;
         case DEPOSIT_CHEQUE: {
@@ -1351,7 +1352,7 @@ void OTAPI_Func::run()
             OT_ASSERT(paymentPlan_)
 
             last_attempt_ = api_.OTAPI().depositPaymentPlan(
-                context_, String(*paymentPlan_).Get());
+                context_, String::Factory(*paymentPlan_)->Get());
         } break;
         case WITHDRAW_CASH: {
 #if OT_CASH
@@ -1704,7 +1705,7 @@ std::string OTAPI_Func::send_request()
 
     const auto& reply = std::get<1>(std::get<2>(last_attempt_));
 
-    if (reply) { return String(*reply).Get(); }
+    if (reply) { return String::Factory(*reply)->Get(); }
 
     return {};
 }
@@ -1735,7 +1736,7 @@ std::string OTAPI_Func::send_once(
 
         OT_ASSERT(reply);
 
-        strReply = String(*reply).Get();
+        strReply = String::Factory(*reply)->Get();
     }
 
     // Below this point, we definitely have a request number.

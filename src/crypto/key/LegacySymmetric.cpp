@@ -69,18 +69,18 @@ OTLegacySymmetricKey LegacySymmetric::Factory(
 bool LegacySymmetric::CreateNewKey(
     const api::Crypto& crypto,
     String& strOutput,
-    const String* pstrDisplay,
+    const String& pstrDisplay,
     const OTPassword* pAlreadyHavePW)
 {
     std::unique_ptr<OTPassword> pPassUserInput;
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Creating new symmetric key.";
-        const String strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+        const auto strDisplay = String::Factory(
+            (!pstrDisplay.Exists()) ? szDisplay : pstrDisplay.Get());
 
         pPassUserInput.reset(GetPassphraseFromUser(
-            &strDisplay, true));  // bAskTwice=false by default.
+            strDisplay, true));  // bAskTwice=false by default.
     } else
         pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
@@ -112,7 +112,7 @@ bool LegacySymmetric::Decrypt(
     const String& strKey,
     String& strCiphertext,
     String& strOutput,
-    const String* pstrDisplay,
+    const String& pstrDisplay,
     const OTPassword* pAlreadyHavePW)
 {
 
@@ -142,7 +142,7 @@ bool LegacySymmetric::Decrypt(
     const LegacySymmetric& theKey,
     const String& strCiphertext,
     String& strOutput,
-    const String* pstrDisplay,
+    const String& pstrDisplay,
     const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
@@ -168,11 +168,12 @@ bool LegacySymmetric::Decrypt(
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Decrypting a password-protected ciphertext.";
-        const String strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+        const auto strDisplay = String::Factory(
+            (!pstrDisplay.Exists()) ? szDisplay : pstrDisplay.Get());
 
         pPassUserInput.reset(
-            GetPassphraseFromUser(&strDisplay));  // bAskTwice=false by default.
+            GetPassphraseFromUser(strDisplay));  // bAskTwice=false
+                                                 // by default.
     }
 
     bool bSuccess = false;
@@ -204,7 +205,7 @@ bool LegacySymmetric::Encrypt(
     const String& strKey,
     const String& strPlaintext,
     String& strOutput,
-    const String* pstrDisplay,
+    const String& pstrDisplay,
     bool bBookends,
     const OTPassword* pAlreadyHavePW)
 {
@@ -240,7 +241,7 @@ bool LegacySymmetric::Encrypt(
     const LegacySymmetric& theKey,
     const String& strPlaintext,
     String& strOutput,
-    const String* pstrDisplay,
+    const String& pstrDisplay,
     bool bBookends,
     const OTPassword* pAlreadyHavePW)
 {
@@ -263,11 +264,12 @@ bool LegacySymmetric::Encrypt(
 
     if (nullptr == pAlreadyHavePW) {
         const char* szDisplay = "Password-protecting a plaintext.";
-        const String strDisplay(
-            (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+        const auto strDisplay = String::Factory(
+            (!pstrDisplay.Exists()) ? szDisplay : pstrDisplay.Get());
 
         pPassUserInput.reset(
-            GetPassphraseFromUser(&strDisplay));  // bAskTwice=false by default.
+            GetPassphraseFromUser(strDisplay));  // bAskTwice=false
+                                                 // by default.
     } else
         pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
@@ -309,7 +311,7 @@ bool LegacySymmetric::Encrypt(
 //
 // NOTE: this version circumvents the master key.
 OTPassword* LegacySymmetric::GetPassphraseFromUser(
-    const String* pstrDisplay,
+    const String& pstrDisplay,
     bool bAskTwice)  // returns a
                      // text
                      // OTPassword,
@@ -325,7 +327,7 @@ OTPassword* LegacySymmetric::GetPassphraseFromUser(
 
     const char* szDisplay = "LegacySymmetric::GetPassphraseFromUser";
     OTPasswordData thePWData(
-        (nullptr == pstrDisplay) ? szDisplay : pstrDisplay->Get());
+        (!pstrDisplay.Exists()) ? szDisplay : pstrDisplay.Get());
     // -------------------------------------------------------------------
     //
     // OLD SYSTEM! (NO MASTER KEY INVOLVEMENT.)

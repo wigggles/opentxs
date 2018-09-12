@@ -3587,7 +3587,7 @@ void OTSmartContract::ExecuteClauses(
             } else  // The param_string variable isn't already there. (So we add
                     // it as blank, if a value wasn't passed in.)
             {
-                if (pParam->empty()) { // if a param was passed in...
+                if (!pParam->empty()) {  // if a param was passed in...
                     str_Value = pParam->Get();
                 }
                 // else (it's already "")
@@ -5262,20 +5262,17 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // blank, that
         // means the source/destination was a STASH instead of an account. FYI.
         //
-        m_strLastSenderUser =
-            String::Factory(xml->getAttributeValue(
-                "lastSenderNymID"));  // Last Nym ID of a party who SENT money.
-        m_strLastSenderAcct =
-            String::Factory(xml->getAttributeValue(
-                "lastSenderAcctID"));  // Last Acct ID of a party who SENT
-                                       // money.
+        m_strLastSenderUser = String::Factory(xml->getAttributeValue(
+            "lastSenderNymID"));  // Last Nym ID of a party who SENT money.
+        m_strLastSenderAcct = String::Factory(xml->getAttributeValue(
+            "lastSenderAcctID"));  // Last Acct ID of a party who SENT
+                                   // money.
         m_strLastRecipientUser = String::Factory(
             xml->getAttributeValue("lastRecipientNymID"));  // Last Nym ID of a
                                                             // party who
                                                             // RECEIVED money.
-        m_strLastRecipientAcct =
-            String::Factory(xml->getAttributeValue(
-                "lastRecipientAcctID"));  // Last Acct ID of a
+        m_strLastRecipientAcct = String::Factory(xml->getAttributeValue(
+            "lastRecipientAcctID"));  // Last Acct ID of a
         // party who RECEIVED
         // money.
 

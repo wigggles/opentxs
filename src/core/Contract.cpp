@@ -2015,7 +2015,7 @@ void Contract::CreateInnerContents(Tag& parent)
                     "publicNym",
                     proto::ProtoAsArmored(
                         publicNym, String::Factory("PUBLIC NYM"))
-                        .Get());
+                        ->Get());
 
                 parent.add_tag(pTag);
             }  // "signer"

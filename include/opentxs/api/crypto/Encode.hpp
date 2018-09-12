@@ -26,8 +26,8 @@ public:
     virtual std::string IdentifierEncode(const Data& input) const = 0;
     virtual std::string IdentifierDecode(const std::string& input) const = 0;
     virtual bool IsBase62(const std::string& str) const = 0;
-    virtual String Nonce(const std::uint32_t size) const = 0;
-    virtual String Nonce(const std::uint32_t size, Data& rawOutput) const = 0;
+    virtual OTString Nonce(const std::uint32_t size) const = 0;
+    virtual OTString Nonce(const std::uint32_t size, Data& rawOutput) const = 0;
     virtual std::string RandomFilename() const = 0;
     virtual std::string SanatizeBase58(const std::string& input) const = 0;
     virtual std::string SanatizeBase64(const std::string& input) const = 0;

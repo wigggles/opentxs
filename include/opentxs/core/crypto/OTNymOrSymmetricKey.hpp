@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/core/String.hpp"
+
 namespace opentxs
 {
 // There are certain cases where we want the option to pass a Nym OR a
@@ -17,7 +19,7 @@ namespace opentxs
 class OTNym_or_SymmetricKey
 {
 private:
-    Nym* m_pNym;
+    Nym* m_pNym{nullptr};
 
     crypto::key::LegacySymmetric* m_pKey{nullptr};
     OTPassword* m_pPassword{nullptr};  // optional. Goes with m_pKey.
@@ -30,7 +32,7 @@ private:
     // order to make sure we cleanup on destruction.
     bool m_bCleanupPassword{false};
 
-    const String* m_pstrDisplay{nullptr};
+    OTString m_pstrDisplay = String::Factory();
 
     OTNym_or_SymmetricKey();
 
@@ -61,11 +63,11 @@ public:
     EXPORT bool Seal_or_Encrypt(
         OTEnvelope& outputEnvelope,
         const String& strInput,
-        const String* pstrDisplay = nullptr);
+        const String& pstrDisplay = String::Factory());
     EXPORT bool Open_or_Decrypt(
         const OTEnvelope& inputEnvelope,
         String& strOutput,
-        const String* pstrDisplay = nullptr);
+        const String& pstrDisplay = String::Factory());
 
     EXPORT ~OTNym_or_SymmetricKey();
 
@@ -73,14 +75,14 @@ public:
 
     EXPORT OTNym_or_SymmetricKey(
         const Nym& theNym,
-        const String* pstrDisplay = nullptr);
+        const String& pstrDisplay = String::Factory());
     EXPORT OTNym_or_SymmetricKey(
         const crypto::key::LegacySymmetric& theKey,
-        const String* pstrDisplay = nullptr);
+        const String& pstrDisplay = String::Factory());
     EXPORT OTNym_or_SymmetricKey(
         const crypto::key::LegacySymmetric& theKey,
         const OTPassword& thePassword,
-        const String* pstrDisplay = nullptr);
+        const String& pstrDisplay = String::Factory());
 
     EXPORT void swap(OTNym_or_SymmetricKey& other);
 

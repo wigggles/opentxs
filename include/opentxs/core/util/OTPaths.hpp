@@ -79,14 +79,14 @@ public:
     EXPORT static bool LoadSetPrefixFolder     // eg. /usr/local/  (cannot be
                                                // relative);
         (api::Settings& config = *s_settings,  // optional
-         const String& strPrefixFolder = ""    // optional
+         const String& strPrefixFolder = String::Factory()    // optional
          // const bool& bIsRelative = false
         );
 
     EXPORT static bool LoadSetScriptsFolder    // ie. PrefixFolder() + [if (NOT
                                                // Android) "lib/opentxs/" ]
         (api::Settings& config = *s_settings,  // optional
-         const String& strScriptsFolder = "",  // optional
+         const String& strScriptsFolder = String::Factory(),  // optional
          const bool& bIsRelative = true        // optional
         );
 
@@ -105,7 +105,7 @@ public:
         const String& strValue,
         const bool& bIsRelative,
         bool& out_bIsNewOrUpdated,
-        const String& strComment = "");
+        const String& strComment = String::Factory());
 
     EXPORT static bool FixPath(
         const String& strPath,

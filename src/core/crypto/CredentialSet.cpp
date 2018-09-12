@@ -342,12 +342,12 @@ const std::string CredentialSet::GetMasterCredID() const
     return "";
 }
 
-String CredentialSet::MasterAsString() const
+OTString CredentialSet::MasterAsString() const
 {
     if (m_MasterCredential) {
-        return String(m_MasterCredential->asString());
+        return String::Factory(m_MasterCredential->asString());
     } else {
-        return "";
+        return String::Factory();
     }
 }
 

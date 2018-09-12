@@ -146,12 +146,12 @@ public:
         const Identifier& NYM_ID) const override;  // NymID optional
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID in advance.
-    std::unique_ptr<opentxs::Purse> Purse(String strInput) const override;
+    std::unique_ptr<opentxs::Purse> Purse(const String& strInput) const override;
     std::unique_ptr<opentxs::Purse> Purse(
-        String strInput,
+        const String& strInput,
         const Identifier& NOTARY_ID) const override;
     std::unique_ptr<opentxs::Purse> Purse(
-        String strInput,
+        const String& strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
 #endif  // OT_CASH
@@ -175,12 +175,12 @@ public:
         const Identifier& NOTARY_ID) const override;
 
 #if OT_CASH
-    std::unique_ptr<opentxs::Token> Token(String strInput) const override;
+    std::unique_ptr<opentxs::Token> Token(const String& strInput) const override;
     std::unique_ptr<opentxs::Token> Token(
-        String strInput,
+        const String& strInput,
         const opentxs::Purse& thePurse) const override;
     std::unique_ptr<opentxs::Token> Token(
-        String strInput,
+        const String& strInput,
         const Identifier& NOTARY_ID,
         const Identifier& INSTRUMENT_DEFINITION_ID) const override;
     std::unique_ptr<opentxs::Token> Token(

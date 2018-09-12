@@ -80,7 +80,7 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
 
     OT_ASSERT(output)
 
-    String serializedItem{};
+    auto serializedItem = String::Factory();
     receipt.GetReferenceString(serializedItem);
     std::unique_ptr<opentxs::Item> item{Item(
         serializedItem,
@@ -89,7 +89,7 @@ std::unique_ptr<opentxs::Cheque> Factory::Cheque(
 
     OT_ASSERT(false != bool(item));
 
-    String serializedCheque{};
+    auto serializedCheque = String::Factory();
     item->GetAttachment(serializedCheque);
     const auto loaded = output->LoadContractFromString(serializedCheque);
 
@@ -124,7 +124,8 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
 {
 
     using namespace opentxs;
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -132,7 +133,7 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
 
         std::unique_ptr<opentxs::Contract> pContract;
 
-        if (strFirstLine.Contains(
+        if (strFirstLine->Contains(
                 "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                           // chars long.
         {
@@ -140,54 +141,55 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
             OT_ASSERT(false != bool(pContract));
         }
 
-        if (strFirstLine.Contains(
+        if (strFirstLine->Contains(
                 "-----BEGIN SIGNED PAYMENT PLAN-----"))  // this string is 35
                                                          // chars long.
         {
             pContract.reset(new OTPaymentPlan(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains(
+        } else if (strFirstLine->Contains(
                        "-----BEGIN SIGNED TRADE-----"))  // this string is 28
                                                          // chars long.
         {
             pContract.reset(new OTTrade(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED OFFER-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED OFFER-----")) {
             pContract.reset(new OTOffer(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED INVOICE-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED INVOICE-----")) {
             pContract.reset(new opentxs::Cheque(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED VOUCHER-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED VOUCHER-----")) {
             pContract.reset(new opentxs::Cheque(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED CHEQUE-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED CHEQUE-----")) {
             pContract.reset(new opentxs::Cheque(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED MESSAGE-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED MESSAGE-----")) {
             pContract.reset(new opentxs::Message(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED MINT-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED MINT-----")) {
 #if OT_CASH
             auto mint = Mint();
             pContract.reset(mint.release());
             OT_ASSERT(false != bool(pContract));
 #endif  // OT_CASH
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED FILE-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED FILE-----")) {
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----")) {
+        } else if (strFirstLine->Contains("-----BEGIN SIGNED CASH-----")) {
 #if OT_CASH
             auto token = TokenLowLevel(strFirstLine);
             pContract.reset(token.release());
             OT_ASSERT(false != bool(pContract));
 #endif  // OT_CASH
-        } else if (strFirstLine.Contains("-----BEGIN SIGNED CASH TOKEN-----")) {
+        } else if (strFirstLine->Contains(
+                       "-----BEGIN SIGNED CASH TOKEN-----")) {
 #if OT_CASH
             auto token = TokenLowLevel(strFirstLine);
             pContract.reset(token.release());
             OT_ASSERT(false != bool(pContract));
 #endif  // OT_CASH
-        } else if (strFirstLine.Contains(
+        } else if (strFirstLine->Contains(
                        "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
 #if OT_CASH
             auto token = TokenLowLevel(strFirstLine);
@@ -232,9 +234,9 @@ std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
         return nullptr;
     }
 
-    String strContract(strCronItem);
+    auto strContract = String::Factory(strCronItem.Get());
 
-    if (!strContract.DecodeIfArmored(false)) {
+    if (!strContract->DecodeIfArmored(false)) {
         otErr << __FUNCTION__
               << ": Input string apparently was encoded and "
                  "then failed decoding. Contents: \n"
@@ -242,35 +244,36 @@ std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
         return nullptr;
     }
 
-    strContract.reset();  // for sgets
-    bool bGotLine = strContract.sgets(buf.data(), 40);
+    strContract->reset();  // for sgets
+    bool bGotLine = strContract->sgets(buf.data(), 40);
 
     if (!bGotLine) return nullptr;
 
-    String strFirstLine(buf.data());
+    auto strFirstLine = String::Factory(buf.data());
     // set the "file" pointer within this string back to index 0.
-    strContract.reset();
+    strContract->reset();
 
     // Now I feel pretty safe -- the string I'm examining is within
     // the first 45 characters of the beginning of the contract, and
     // it will NOT contain the escape "- " sequence. From there, if
     // it contains the proper sequence, I will instantiate that type.
-    if (!strFirstLine.Exists() || strFirstLine.Contains("- -")) return nullptr;
+    if (!strFirstLine->Exists() || strFirstLine->Contains("- -"))
+        return nullptr;
 
     // By this point we know already that it's not escaped.
     // BUT it might still be ARMORED!
 
     std::unique_ptr<OTCronItem> pItem;
     // this string is 35 chars long.
-    if (strFirstLine.Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
+    if (strFirstLine->Contains("-----BEGIN SIGNED PAYMENT PLAN-----")) {
         pItem.reset(new OTPaymentPlan(api_));
     }
     // this string is 28 chars long.
-    else if (strFirstLine.Contains("-----BEGIN SIGNED TRADE-----")) {
+    else if (strFirstLine->Contains("-----BEGIN SIGNED TRADE-----")) {
         pItem.reset(new OTTrade(api_));
     }
     // this string is 36 chars long.
-    else if (strFirstLine.Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
+    else if (strFirstLine->Contains("-----BEGIN SIGNED SMARTCONTRACT-----")) {
         pItem.reset(new OTSmartContract(api_));
     } else {
         return nullptr;
@@ -683,9 +686,10 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
     return purse;
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(String strInput) const
+std::unique_ptr<opentxs::Purse> Factory::Purse(const String& strInput) const
 {
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -703,10 +707,11 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(String strInput) const
 }
 
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    String strInput,
+    const String& strInput,
     const Identifier& NOTARY_ID) const
 {
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -719,8 +724,9 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
         // Does the contract successfully load from the string passed in?
         if (pPurse->LoadContractFromString(strContract)) {
             if (NOTARY_ID != pPurse->GetNotaryID()) {
-                const String strNotaryID(NOTARY_ID),
-                    strPurseNotaryID(pPurse->GetNotaryID());
+                const auto strNotaryID = String::Factory(NOTARY_ID),
+                           strPurseNotaryID =
+                               String::Factory(pPurse->GetNotaryID());
                 otErr << "Purse::PurseFactory"
                       << ": Failure: NotaryID on purse (" << strPurseNotaryID
                       << ") doesn't match expected server ID (" << strNotaryID
@@ -734,11 +740,12 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
 }
 
 std::unique_ptr<opentxs::Purse> Factory::Purse(
-    String strInput,
+    const String& strInput,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -753,8 +760,9 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
         if (pPurse->LoadContractFromString(strContract)) {
             const char* szFunc = "Purse::PurseFactory";
             if (NOTARY_ID != pPurse->GetNotaryID()) {
-                const String strNotaryID(NOTARY_ID),
-                    strPurseNotaryID(pPurse->GetNotaryID());
+                const auto strNotaryID = String::Factory(NOTARY_ID),
+                           strPurseNotaryID =
+                               String::Factory(pPurse->GetNotaryID());
                 otErr << szFunc << ": Failure: NotaryID on purse ("
                       << strPurseNotaryID
                       << ") doesn't match expected "
@@ -763,10 +771,10 @@ std::unique_ptr<opentxs::Purse> Factory::Purse(
             } else if (
                 INSTRUMENT_DEFINITION_ID !=
                 pPurse->GetInstrumentDefinitionID()) {
-                const String strInstrumentDefinitionID(
-                    INSTRUMENT_DEFINITION_ID),
-                    strPurseInstrumentDefinitionID(
-                        pPurse->GetInstrumentDefinitionID());
+                const auto strInstrumentDefinitionID =
+                               String::Factory(INSTRUMENT_DEFINITION_ID),
+                           strPurseInstrumentDefinitionID = String::Factory(
+                               pPurse->GetInstrumentDefinitionID());
                 otErr << szFunc
                       << ": Failure: InstrumentDefinitionID on purse ("
                       << strPurseInstrumentDefinitionID
@@ -844,10 +852,10 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
         return nullptr;
     }
 
-    String strContract(strInput);
+    auto strContract = String::Factory(strInput.Get());
 
-    if (!strContract.DecodeIfArmored(false))  // bEscapedIsAllowed=true
-                                              // by default.
+    if (!strContract->DecodeIfArmored(false))  // bEscapedIsAllowed=true
+                                               // by default.
     {
         otErr << __FUNCTION__
               << ": Input string apparently was encoded and "
@@ -860,27 +868,28 @@ std::unique_ptr<OTScriptable> Factory::Scriptable(const String& strInput) const
     // were originally ascii-armored OR NOT. (And they are also now trimmed,
     // either way.)
     //
-    strContract.reset();  // for sgets
-    bool bGotLine = strContract.sgets(buf.data(), 40);
+    strContract->reset();  // for sgets
+    bool bGotLine = strContract->sgets(buf.data(), 40);
 
     if (!bGotLine) return nullptr;
 
     std::unique_ptr<OTScriptable> pItem;
 
-    String strFirstLine(buf.data());
-    strContract.reset();  // set the "file" pointer within this string back to
-                          // index 0.
+    auto strFirstLine = String::Factory(buf.data());
+    strContract->reset();  // set the "file" pointer within this string back to
+                           // index 0.
 
     // Now I feel pretty safe -- the string I'm examining is within
     // the first 45 characters of the beginning of the contract, and
     // it will NOT contain the escape "- " sequence. From there, if
     // it contains the proper sequence, I will instantiate that type.
-    if (!strFirstLine.Exists() || strFirstLine.Contains("- -")) return nullptr;
+    if (!strFirstLine->Exists() || strFirstLine->Contains("- -"))
+        return nullptr;
 
     // There are actually two factories that load smart contracts. See
     // OTCronItem.
     //
-    else if (strFirstLine.Contains(
+    else if (strFirstLine->Contains(
                  "-----BEGIN SIGNED SMARTCONTRACT-----"))  // this string is 36
                                                            // chars long.
     {
@@ -955,11 +964,12 @@ std::unique_ptr<OTSmartContract> Factory::SmartContract(
 // static -- class factory.
 //
 std::unique_ptr<opentxs::Token> Factory::Token(
-    String strInput,
+    const String& strInput,
     const Identifier& NOTARY_ID,
     const Identifier& INSTRUMENT_DEFINITION_ID) const
 {
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -977,9 +987,10 @@ std::unique_ptr<opentxs::Token> Factory::Token(
     return nullptr;
 }
 
-std::unique_ptr<opentxs::Token> Factory::Token(String strInput) const
+std::unique_ptr<opentxs::Token> Factory::Token(const String& strInput) const
 {
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -997,10 +1008,11 @@ std::unique_ptr<opentxs::Token> Factory::Token(String strInput) const
 }
 
 std::unique_ptr<opentxs::Token> Factory::Token(
-    String strInput,
+    const String& strInput,
     const opentxs::Purse& thePurse) const
 {
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
@@ -1225,20 +1237,21 @@ std::unique_ptr<OTTrade> Factory::Trade(
 std::unique_ptr<OTTransactionType> Factory::Transaction(
     const String& strInput) const
 {
-    String strContract, strFirstLine;  // output for the below function.
+    auto strContract = String::Factory(),
+         strFirstLine = String::Factory();  // output for the below function.
     const bool bProcessed =
         Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
 
     if (bProcessed) {
         std::unique_ptr<OTTransactionType> pContract;
 
-        if (strFirstLine.Contains(
+        if (strFirstLine->Contains(
                 "-----BEGIN SIGNED TRANSACTION-----"))  // this string is 34
                                                         // chars long.
         {
             pContract.reset(new OTTransaction(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains(
+        } else if (strFirstLine->Contains(
                        "-----BEGIN SIGNED TRANSACTION ITEM-----"))  // this
                                                                     // string is
                                                                     // 39 chars
@@ -1246,13 +1259,13 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
         {
             pContract.reset(new opentxs::Item(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains(
+        } else if (strFirstLine->Contains(
                        "-----BEGIN SIGNED LEDGER-----"))  // this string is 29
                                                           // chars long.
         {
             pContract.reset(new opentxs::Ledger(api_));
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine.Contains(
+        } else if (strFirstLine->Contains(
                        "-----BEGIN SIGNED ACCOUNT-----"))  // this string is 30
                                                            // chars long.
         {

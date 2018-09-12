@@ -179,9 +179,10 @@ bool Purse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
 
     const auto& cachedKey = GetInternalMaster();
 
-    const String strReason((nullptr == szDisplay) ? szFunc : szDisplay);
+    const auto strReason =
+        String::Factory((nullptr == szDisplay) ? szFunc : szDisplay);
     const bool bGotMasterPassword = cachedKey.GetMasterPassword(
-        cachedKey, theOutput, strReason.Get());  // bVerifyTwice=false
+        cachedKey, theOutput, strReason->Get());  // bVerifyTwice=false
 
     return bGotMasterPassword;
 }
@@ -274,7 +275,7 @@ bool Purse::GenerateInternalKey()
     // create the symmetric key.
     //
     OTPassword thePassphrase;
-    const String strDisplay(
+    const auto strDisplay = String::Factory(
         "Enter the new passphrase for this new password-protected "
         "purse.");  // todo internationalization / hardcoding.
 
@@ -283,8 +284,8 @@ bool Purse::GenerateInternalKey()
     m_pCachedKey = OTCachedKey::CreateMasterPassword(
         api_.Crypto(),
         thePassphrase,
-        strDisplay.Get());  // std::int32_t
-                            // nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT)
+        strDisplay->Get());  // std::int32_t
+                             // nTimeoutSeconds=OT_MASTER_KEY_TIMEOUT)
 
     if ((!m_pCachedKey) || !m_pCachedKey->IsGenerated())  // This one is
                                                           // unnecessary because
@@ -555,8 +556,9 @@ bool Purse::LoadPurse(
     if (!m_strFoldername->Exists())
         m_strFoldername->Set(OTFolders::Purse().Get());
 
-    String strNotaryID(m_NotaryID), strNymID(m_NymID),
-        strInstrumentDefinitionID(m_InstrumentDefinitionID);
+    auto strNotaryID = String::Factory(m_NotaryID),
+         strNymID = String::Factory(m_NymID),
+         strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
 
     if (nullptr != szNotaryID) strNotaryID = szNotaryID;
     if (nullptr != szNymID) strNymID = szNymID;
@@ -566,19 +568,19 @@ bool Purse::LoadPurse(
     if (!m_strFilename->Exists()) {
         m_strFilename->Format(
             "%s%s%s%s%s",
-            strNotaryID.Get(),
+            strNotaryID->Get(),
             Log::PathSeparator(),
-            strNymID.Get(),
+            strNymID->Get(),
             Log::PathSeparator(),
-            strInstrumentDefinitionID.Get());
+            strInstrumentDefinitionID->Get());
     }
 
     const char* szFolder1name = OTFolders::Purse().Get();  // purse
-    const char* szFolder2name = strNotaryID.Get();         // purse/NOTARY_ID
-    const char* szFolder3name = strNymID.Get();  // purse/NOTARY_ID/NYM_ID
+    const char* szFolder2name = strNotaryID->Get();        // purse/NOTARY_ID
+    const char* szFolder3name = strNymID->Get();  // purse/NOTARY_ID/NYM_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
+            ->Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
     if (false == OTDB::Exists(
                      api_.DataFolder(),
@@ -610,7 +612,7 @@ bool Purse::LoadPurse(
     // LoadContractFromString
     // already handles it internally.
 
-    String strRawFile(strFileContents.c_str());
+    auto strRawFile = String::Factory(strFileContents.c_str());
 
     return LoadContractFromString(strRawFile);
 }
@@ -625,8 +627,9 @@ bool Purse::SavePurse(
     if (!m_strFoldername->Exists())
         m_strFoldername->Set(OTFolders::Purse().Get());
 
-    String strNotaryID(m_NotaryID), strNymID(m_NymID),
-        strInstrumentDefinitionID(m_InstrumentDefinitionID);
+    auto strNotaryID = String::Factory(m_NotaryID),
+         strNymID = String::Factory(m_NymID),
+         strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
 
     if (nullptr != szNotaryID) strNotaryID = szNotaryID;
     if (nullptr != szNymID) strNymID = szNymID;
@@ -636,21 +639,21 @@ bool Purse::SavePurse(
     if (!m_strFilename->Exists()) {
         m_strFilename->Format(
             "%s%s%s%s%s",
-            strNotaryID.Get(),
+            strNotaryID->Get(),
             Log::PathSeparator(),
-            strNymID.Get(),
+            strNymID->Get(),
             Log::PathSeparator(),
-            strInstrumentDefinitionID.Get());
+            strInstrumentDefinitionID->Get());
     }
 
     const char* szFolder1name = OTFolders::Purse().Get();  // purse
-    const char* szFolder2name = strNotaryID.Get();         // purse/NOTARY_ID
-    const char* szFolder3name = strNymID.Get();  // purse/NOTARY_ID/NYM_ID
+    const char* szFolder2name = strNotaryID->Get();        // purse/NOTARY_ID
+    const char* szFolder3name = strNymID->Get();  // purse/NOTARY_ID/NYM_ID
     const char* szFilename =
         strInstrumentDefinitionID
-            .Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
+            ->Get();  // purse/NOTARY_ID/NYM_ID/INSTRUMENT_DEFINITION_ID
 
-    String strRawFile;
+    auto strRawFile = String::Factory();
 
     if (!SaveContractRaw(strRawFile)) {
         otErr << "Purse::SavePurse: Error saving Pursefile (to string):\n"
@@ -660,7 +663,7 @@ bool Purse::SavePurse(
         return false;
     }
 
-    String strFinal;
+    auto strFinal = String::Factory();
     Armored ascTemp(strRawFile);
 
     if (false ==
@@ -674,7 +677,7 @@ bool Purse::SavePurse(
     }
 
     bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(),
+        strFinal->Get(),
         api_.DataFolder(),
         szFolder1name,
         szFolder2name,
@@ -693,8 +696,10 @@ bool Purse::SavePurse(
 void Purse::UpdateContents()  // Before transmission or serialization, this is
                               // where the Purse saves its contents
 {
-    const String NOTARY_ID(m_NotaryID), NYM_ID(m_NymID),
-        INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID);
+    const auto NOTARY_ID = String::Factory(m_NotaryID),
+               NYM_ID = String::Factory(m_NymID),
+               INSTRUMENT_DEFINITION_ID =
+                   String::Factory(m_InstrumentDefinitionID);
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -711,10 +716,11 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
         "nymID",
         (m_bIsNymIDIncluded && !m_NymID->empty())  // (Provided that the ID
                                                    // even exists, of course.)
-            ? NYM_ID.Get()
+            ? NYM_ID->Get()
             : "");  // Then print the ID (otherwise print an empty string.)
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
 
     // Save the Internal Symmetric Key here (if there IS one.)
     // (Some Purses own their own internal Symmetric Key, in order to "password
@@ -785,45 +791,49 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     const char* szFunc = "Purse::ProcessXMLNode";
 
-    const String strNodeName(xml->getNodeName());
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
-    if (strNodeName.Compare("purse")) {
+    if (strNodeName->Compare("purse")) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const String strTotalValue = xml->getAttributeValue("totalValue");
+        const auto strTotalValue =
+            String::Factory(xml->getAttributeValue("totalValue"));
 
-        if (strTotalValue.Exists() && (strTotalValue.ToLong() > 0))
-            m_lTotalValue = strTotalValue.ToLong();
+        if (strTotalValue->Exists() && (strTotalValue->ToLong() > 0))
+            m_lTotalValue = strTotalValue->ToLong();
         else
             m_lTotalValue = 0;
 
-        const String str_valid_from = xml->getAttributeValue("validFrom");
-        const String str_valid_to = xml->getAttributeValue("validTo");
+        const auto str_valid_from =
+            String::Factory(xml->getAttributeValue("validFrom"));
+        const auto str_valid_to =
+            String::Factory(xml->getAttributeValue("validTo"));
 
-        if (str_valid_from.Exists()) {
-            std::int64_t lValidFrom = parseTimestamp(str_valid_from.Get());
+        if (str_valid_from->Exists()) {
+            std::int64_t lValidFrom = parseTimestamp(str_valid_from->Get());
 
             m_tLatestValidFrom = OTTimeGetTimeFromSeconds(lValidFrom);
         }
-        if (str_valid_to.Exists()) {
-            std::int64_t lValidTo = parseTimestamp(str_valid_to.Get());
+        if (str_valid_to->Exists()) {
+            std::int64_t lValidTo = parseTimestamp(str_valid_to->Get());
 
             m_tEarliestValidTo = OTTimeGetTimeFromSeconds(lValidTo);
         }
 
-        const String strPasswdProtected =
-            xml->getAttributeValue("isPasswordProtected");
-        m_bPasswordProtected = strPasswdProtected.Compare("true");
+        const auto strPasswdProtected =
+            String::Factory(xml->getAttributeValue("isPasswordProtected"));
+        m_bPasswordProtected = strPasswdProtected->Compare("true");
 
-        const String strNymIDIncluded =
-            xml->getAttributeValue("isNymIDIncluded");
-        m_bIsNymIDIncluded = strNymIDIncluded.Compare("true");
+        const auto strNymIDIncluded =
+            String::Factory(xml->getAttributeValue("isNymIDIncluded"));
+        m_bIsNymIDIncluded = strNymIDIncluded->Compare("true");
 
         // TODO security: Might want to verify the server ID here, if it's
         // already set.
         // Just to make sure it's the one we were expecting.
-        const String strNotaryID = xml->getAttributeValue("notaryID");
-        if (strNotaryID.Exists())
+        const auto strNotaryID =
+            String::Factory(xml->getAttributeValue("notaryID"));
+        if (strNotaryID->Exists())
             m_NotaryID->SetString(strNotaryID);
         else {
             m_NotaryID->Release();
@@ -836,9 +846,9 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // here, if it's
         // already set.
         // Just to make sure it's the one we were expecting.
-        const String strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        if (strInstrumentDefinitionID.Exists())
+        const auto strInstrumentDefinitionID =
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        if (strInstrumentDefinitionID->Exists())
             m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
         else {
             m_InstrumentDefinitionID->Release();
@@ -848,13 +858,13 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        const String strNymID =
-            xml->getAttributeValue("nymID");  // (May not exist.)
+        const auto strNymID = String::Factory(
+            xml->getAttributeValue("nymID"));  // (May not exist.)
         if (m_bIsNymIDIncluded)  // Nym ID **is** included.  (It's optional.
                                  // Even
                                  // if you use one, you don't have to list it.)
         {
-            if (strNymID.Exists())
+            if (strNymID->Exists())
                 m_NymID->SetString(strNymID);
             else {
                 otErr << szFunc
@@ -874,7 +884,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << (m_bPasswordProtected ? "Password-protected"
                                         : "NOT password-protected")
                << ")\n NotaryID: " << strNotaryID
-               << "\n NymID: " << (m_bIsNymIDIncluded ? strNymID.Get() : "")
+               << "\n NymID: " << (m_bIsNymIDIncluded ? strNymID->Get() : "")
                << "\n Instrument Definition Id: " << strInstrumentDefinitionID
                << "\n----------\n";
 
@@ -892,7 +902,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // Therefore internalKey and cachedKey will both be attached to the purse
     // (or neither will be.)
     //
-    else if (strNodeName.Compare("internalKey")) {
+    else if (strNodeName->Compare("internalKey")) {
         if (!m_bPasswordProtected)  // If we're NOT using the internal key, then
                                     // why am I in the middle of loading one
                                     // here?
@@ -971,7 +981,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_pSymmetricKey = pSymmetricKey;
 
         return 1;
-    } else if (strNodeName.Compare("cachedKey")) {
+    } else if (strNodeName->Compare("cachedKey")) {
         if (!m_bPasswordProtected)  // If we're NOT using the internal and
                                     // master
                                     // keys, then why am I in the middle of
@@ -1063,7 +1073,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // method, which handles that for you.
 
         return 1;
-    } else if (strNodeName.Compare("token")) {
+    } else if (strNodeName->Compare("token")) {
         Armored* pArmor = new Armored;
         OT_ASSERT(nullptr != pArmor);
 
@@ -1141,13 +1151,14 @@ Token* Purse::Peek(OTNym_or_SymmetricKey theOwner) const
 
     // Open the envelope into a string.
     //
-    String strToken;
-    const String strDisplay(__FUNCTION__);  // this is the passphrase string
-                                            // that will display if theOwner
-                                            // doesn't have one already.
+    auto strToken = String::Factory();
+    const auto strDisplay =
+        String::Factory(__FUNCTION__);  // this is the passphrase string
+                                        // that will display if theOwner
+                                        // doesn't have one already.
 
     const bool bSuccess =
-        theOwner.Open_or_Decrypt(theEnvelope, strToken, &strDisplay);
+        theOwner.Open_or_Decrypt(theEnvelope, strToken, strDisplay);
 
     if (bSuccess) {
         // Create a new token with the same server and instrument definition ids
@@ -1240,14 +1251,15 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
 
         // Open the envelope into a string.
         //
-        String strToken;
-        const String strDisplay(__FUNCTION__);  // this is the passphrase
-                                                // string that will display if
-                                                // theOwner doesn't have one
-                                                // already.
+        auto strToken = String::Factory();
+        const auto strDisplay =
+            String::Factory(__FUNCTION__);  // this is the passphrase
+                                            // string that will display if
+                                            // theOwner doesn't have one
+                                            // already.
 
         const bool bSuccess =
-            theOwner.Open_or_Decrypt(theEnvelope, strToken, &strDisplay);
+            theOwner.Open_or_Decrypt(theEnvelope, strToken, strDisplay);
 
         if (bSuccess) {
             // Create a new token with the same server and instrument definition
@@ -1286,15 +1298,16 @@ void Purse::RecalculateExpirationDates(OTNym_or_SymmetricKey& theOwner)
 bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
 {
     if (theToken.GetInstrumentDefinitionID() == m_InstrumentDefinitionID) {
-        const String strDisplay(__FUNCTION__);  // this is the passphrase
-                                                // string that will display if
-                                                // theOwner doesn't have one
-                                                // already.
+        const auto strDisplay =
+            String::Factory(__FUNCTION__);  // this is the passphrase
+                                            // string that will display if
+                                            // theOwner doesn't have one
+                                            // already.
 
-        String strToken(theToken);
+        auto strToken = String::Factory(theToken);
         OTEnvelope theEnvelope;
         const bool bSuccess =
-            theOwner.Seal_or_Encrypt(theEnvelope, strToken, &strDisplay);
+            theOwner.Seal_or_Encrypt(theEnvelope, strToken, strDisplay);
 
         if (bSuccess) {
             Armored* pArmor = new Armored(theEnvelope);
@@ -1325,8 +1338,9 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
 
             return true;
         } else {
-            String strPurseAssetType(m_InstrumentDefinitionID),
-                strTokenAssetType(theToken.GetInstrumentDefinitionID());
+            auto strPurseAssetType = String::Factory(m_InstrumentDefinitionID),
+                 strTokenAssetType =
+                     String::Factory(theToken.GetInstrumentDefinitionID());
             otErr << __FUNCTION__
                   << ": Failed while calling: "
                      "theOwner.Seal_or_Encrypt(theEnvelope, "
@@ -1337,8 +1351,9 @@ bool Purse::Push(OTNym_or_SymmetricKey theOwner, const Token& theToken)
                   << strTokenAssetType << "\n";
         }
     } else {
-        String strPurseAssetType(m_InstrumentDefinitionID),
-            strTokenAssetType(theToken.GetInstrumentDefinitionID());
+        auto strPurseAssetType = String::Factory(m_InstrumentDefinitionID),
+             strTokenAssetType =
+                 String::Factory(theToken.GetInstrumentDefinitionID());
         otErr << __FUNCTION__
               << ": ERROR: Tried to push token with wrong "
                  "instrument definition.\nPurse Asset Type:\n"

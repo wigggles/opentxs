@@ -126,10 +126,10 @@ bool MintLucre::AddDenomination(
     if (privatebankLen && publicbankLen) {
         // With this, we have the Lucre public and private bank info converted
         // to OTStrings
-        String strPublicBank;
-        strPublicBank.Set(publicBankBuffer, publicbankLen);
-        String strPrivateBank;
-        strPrivateBank.Set(privateBankBuffer, privatebankLen);
+        auto strPublicBank = String::Factory();
+        strPublicBank->Set(publicBankBuffer, publicbankLen);
+        auto strPrivateBank = String::Factory();
+        strPrivateBank->Set(privateBankBuffer, privatebankLen);
 
         Armored* pPublic = new Armored;
         Armored* pPrivate = new Armored;
@@ -191,12 +191,12 @@ bool MintLucre::SignToken(
     // So I need to extract that first before I can use it.
     OTEnvelope theEnvelope(thePrivate);
 
-    String strContents;  // output from opening the envelope.
+    auto strContents = String::Factory();  // output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (!theEnvelope.Open(theNotary, strContents)) return false;
 
     // copy strContents to a BIO
-    BIO_puts(bioBank, strContents.Get());
+    BIO_puts(bioBank, strContents->Get());
 
     // Instantiate the Bank with its private key
     Bank bank(bioBank);
@@ -207,10 +207,10 @@ bool MintLucre::SignToken(
 
     if (bFoundToken) {
         // base64-Decode the prototoken
-        String strPrototoken(ascPrototoken);
+        auto strPrototoken = String::Factory(ascPrototoken);
 
         // copy strPrototoken to a BIO
-        BIO_puts(bioRequest, strPrototoken.Get());
+        BIO_puts(bioRequest, strPrototoken->Get());
 
         // Load up the coin request from the bio (the prototoken)
         PublicCoinRequest req(bioRequest);
@@ -256,7 +256,7 @@ bool MintLucre::SignToken(
 
                 // Base64-encode the signature contents into
                 // theToken.m_Signature.
-                String strSignature(sig_buf);
+                auto strSignature = String::Factory(sig_buf);
 
                 // Here we pass the signature back to the caller.
                 // He will probably set it onto the token.
@@ -301,11 +301,12 @@ bool MintLucre::VerifyToken(
     GetPrivate(theArmor, lDenomination);
     OTEnvelope theEnvelope(theArmor);
 
-    String strContents;  // will contain output from opening the envelope.
+    auto strContents =
+        String::Factory();  // will contain output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (theEnvelope.Open(theNotary, strContents)) {
         // copy strContents to a BIO
-        BIO_puts(bioBank, strContents.Get());
+        BIO_puts(bioBank, strContents->Get());
 
         // ---- Now the bank and coin bios are both ready to go...
 

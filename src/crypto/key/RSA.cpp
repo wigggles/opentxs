@@ -220,7 +220,7 @@ void RSA::ReleaseKeyLowLevel_Hook()
 //
 bool RSA::SetPrivateKey(
     const String& strCert,              // Contains certificate and private key.
-    const String* pstrReason,           // This reason is what displays on the
+    const String& pstrReason,           // This reason is what displays on the
                                         // passphrase dialog.
     const OTPassword* pImportPassword)  // Used when importing an exported
                                         // Nym into a wallet.
@@ -237,7 +237,7 @@ bool RSA::SetPrivateKey(
 
     // Read private key
     //
-    String strWithBookends;
+    auto strWithBookends = String::Factory();
     otLog3 << __FUNCTION__
            << ": FYI, Reading private key from x509 stored in "
               "bookended string...\n";
@@ -251,7 +251,7 @@ bool RSA::SetPrivateKey(
     // BIO_new_mem_buf(static_cast<void*>(const_cast<char*>(strWithBookends.Get())),
     // strWithBookends.GetLength() /*+1*/);
     crypto::implementation::OpenSSL_BIO bio = BIO_new_mem_buf(
-        static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
+        static_cast<void*>(const_cast<char*>(strWithBookends->Get())), -1);
     OT_ASSERT_MSG(
         nullptr != bio,
         "RSA::"
@@ -272,12 +272,12 @@ bool RSA::SetPrivateKey(
          because they handle all formats transparently.
          */
         OTPasswordData thePWData(
-            (nullptr == pstrReason)
+            (!pstrReason.Exists())
                 ? (nullptr == pImportPassword
                        ? "Enter the master passphrase. "
                          "(SetPrivateKey)"
                        : "Enter the passphrase for this exported nym.")
-                : pstrReason->Get());
+                : pstrReason.Get());
 
         EVP_PKEY* pkey = nullptr;
 
@@ -328,7 +328,7 @@ bool RSA::SetPrivateKey(
 
 bool RSA::SetPublicKeyFromPrivateKey(
     const String& strCert,
-    const String* pstrReason,
+    const String& pstrReason,
     const OTPassword* pImportPassword)
 {
     Release();
@@ -342,7 +342,7 @@ bool RSA::SetPublicKeyFromPrivateKey(
     otLog3 << __FUNCTION__
            << ": Reading public key from x509 stored in bookended string...\n";
 
-    String strWithBookends;
+    auto strWithBookends = String::Factory();
 
     strWithBookends = strCert;
 
@@ -350,7 +350,7 @@ bool RSA::SetPublicKeyFromPrivateKey(
     // needed in string form, not binary form as OpenSSL treats it.
     //
     crypto::implementation::OpenSSL_BIO keyBio = BIO_new_mem_buf(
-        static_cast<void*>(const_cast<char*>(strWithBookends.Get())), -1);
+        static_cast<void*>(const_cast<char*>(strWithBookends->Get())), -1);
     //    crypto::implementation::OpenSSL_BIO keyBio =
     // BIO_new_mem_buf(static_cast<void*>(const_cast<char*>(strWithBookends.Get())),
     // strWithBookends.GetLength() /*+1*/);
@@ -364,10 +364,10 @@ bool RSA::SetPublicKeyFromPrivateKey(
                                      "(SetPublicKeyFromPrivateKey)"
                                    :
                                    // pImportPassword exists:
-            (nullptr == pstrReason
+            (!pstrReason.Exists()
                  ? "Enter the passphrase for your exported Nym. "
                    "(SetPublicKeyFromPrivateKey)"
-                 : pstrReason->Get()));
+                 : pstrReason.Get()));
 
     X509* x509 = nullptr;
 
@@ -626,7 +626,7 @@ bool RSA::ReEncryptPrivateKey(
 // virtual
 bool RSA::SaveCertToString(
     String& strOutput,
-    const String* pstrReason,
+    const String& pstrReason,
     const OTPassword* pImportPassword) const
 {
     X509* x509 = dp->GetX509();
@@ -645,7 +645,7 @@ bool RSA::SaveCertToString(
     bool bSuccess = false;
 
     std::uint8_t buffer_x509[8192] = "";  // todo hardcoded
-    String strx509;
+    auto strx509 = String::Factory();
     std::int32_t len = 0;
 
     // todo hardcoded 4080 (see array above.)
@@ -657,13 +657,13 @@ bool RSA::SaveCertToString(
                                                                 // read.
     {
         buffer_x509[len] = '\0';
-        strx509.Set(reinterpret_cast<const char*>(buffer_x509));
+        strx509->Set(reinterpret_cast<const char*>(buffer_x509));
 
         EVP_PKEY* pPublicKey = X509_get_pubkey(x509);
         if (nullptr != pPublicKey) {
             OTPasswordData thePWData(
-                nullptr == pstrReason ? "RSA::SaveCertToString"
-                                      : pstrReason->Get());
+                !pstrReason.Exists() ? "RSA::SaveCertToString"
+                                    : pstrReason.Get());
 
             dp->SetKeyAsCopyOf(*pPublicKey, false, &thePWData, pImportPassword);
             EVP_PKEY_free(pPublicKey);
@@ -682,7 +682,7 @@ bool RSA::SaveCertToString(
 bool RSA::GetPrivateKey(
     String& strOutput,
     const key::Asymmetric* pPubkey,
-    const String* pstrReason,
+    const String& pstrReason,
     const OTPassword* pImportPassword) const
 {
     const EVP_CIPHER* pCipher =
@@ -707,10 +707,10 @@ bool RSA::GetPrivateKey(
     bio_out_pri.setFreeOnly();  // only BIO_free(), not BIO_free_all();
 
     OTPasswordData thePWData(
-        (nullptr != pstrReason) ? pstrReason->Get()
-                                : "RSA::"
-                                  "GetPrivateKey is calling "
-                                  "PEM_write_bio_PrivateKey...");
+        (pstrReason.Exists()) ? pstrReason.Get()
+                               : "RSA::"
+                                 "GetPrivateKey is calling "
+                                 "PEM_write_bio_PrivateKey...");
     const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
 
     if (nullptr == pImportPassword) {
@@ -739,7 +739,7 @@ bool RSA::GetPrivateKey(
 
     std::int32_t len = 0;
     std::uint8_t buffer_pri[4096] = "";  // todo hardcoded
-    String privateKey, publicKey;
+    auto privateKey = String::Factory(), publicKey = String::Factory();
 
     // todo hardcoded 4080 (see array above.)
     if (0 < (len = BIO_read(bio_out_pri, buffer_pri, 4080)))  // returns number
@@ -748,7 +748,7 @@ bool RSA::GetPrivateKey(
                                                               // read.
     {
         buffer_pri[len] = '\0';
-        privateKey.Set(reinterpret_cast<const char*>(buffer_pri));
+        privateKey->Set(reinterpret_cast<const char*>(buffer_pri));
         privateSuccess = true;
     } else {
         otErr << __FUNCTION__ << ": Error : key length is not 1 or more!";
@@ -759,7 +759,7 @@ bool RSA::GetPrivateKey(
 
     if (publicSuccess) {
         strOutput.Format(
-            const_cast<char*>("%s%s"), privateKey.Get(), publicKey.Get());
+            const_cast<char*>("%s%s"), privateKey->Get(), publicKey->Get());
     }
     return privateSuccess && publicSuccess;
 }

@@ -333,17 +333,17 @@ OTIdentifier Credential::GetID(const Lock& lock) const
 
 String Credential::CredentialTypeToString(proto::CredentialType credentialType)
 {
-    String credentialString;
+    auto credentialString = String::Factory();
 
     switch (credentialType) {
         case proto::CREDTYPE_LEGACY:
-            credentialString = "Legacy";
+            credentialString = String::Factory("Legacy");
             break;
         case proto::CREDTYPE_HD:
-            credentialString = "HD";
+            credentialString = String::Factory("HD");
             break;
         default:
-            credentialString = "Error";
+            credentialString = String::Factory("Error");
     }
     return credentialString;
 }
@@ -418,7 +418,7 @@ SerializedSignature Credential::SelfSignature(CredentialModeFlag version) const
         targetRole = proto::SIGROLE_PUBCREDENTIAL;
     }
 
-    const std::string self = String(id_).Get();
+    const std::string self = String::Factory(id_)->Get();
 
     for (auto& it : signatures_) {
         if ((it->role() == targetRole) && (it->credentialid() == self)) {
@@ -434,7 +434,7 @@ SerializedSignature Credential::SourceSignature() const
 {
     SerializedSignature signature;
 
-    const std::string source = String(NymID()).Get();
+    const std::string source = String::Factory(NymID())->Get();
 
     for (auto& it : signatures_) {
         if ((it->role() == proto::SIGROLE_NYMIDSOURCE) &&
@@ -485,13 +485,13 @@ std::string Credential::asString(const bool asPrivate) const
 {
     serializedCredential credenial;
     auto dataCredential = Data::Factory();
-    String stringCredential;
+    auto stringCredential = String::Factory();
     credenial = Serialized(asPrivate, WITH_SIGNATURES);
     dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
     Armored armoredCredential(dataCredential);
     armoredCredential.WriteArmoredString(stringCredential, "Credential");
 
-    return stringCredential.Get();
+    return stringCredential->Get();
 }
 
 // static
@@ -499,7 +499,7 @@ serializedCredential Credential::ExtractArmoredCredential(
     const String& stringCredential)
 {
     Armored armoredCredential;
-    String strTemp(stringCredential);
+    auto strTemp = String::Factory(stringCredential.Get());
     armoredCredential.LoadFromString(strTemp);
 
     return ExtractArmoredCredential(armoredCredential);

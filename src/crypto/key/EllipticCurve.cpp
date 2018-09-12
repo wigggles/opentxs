@@ -156,29 +156,29 @@ bool EllipticCurve::IsEmpty() const { return key_->empty(); }
 
 const std::string EllipticCurve::Path() const
 {
-    String path = "";
+    auto path = String::Factory();
 
     if (path_) {
         if (path_->has_root()) {
             auto root = Identifier::Factory();
             root->SetString(path_->root());
-            path.Concatenate(String(root));
+            path->Concatenate(String::Factory(root));
 
             for (auto& it : path_->child()) {
-                path.Concatenate(" / ");
+                path->Concatenate(" / ");
                 if (it < static_cast<std::uint32_t>(Bip32Child::HARDENED)) {
-                    path.Concatenate(String(std::to_string(it)));
+                    path->Concatenate(String::Factory(std::to_string(it)));
                 } else {
-                    path.Concatenate(String(std::to_string(
+                    path->Concatenate(String::Factory(std::to_string(
                         it -
                         static_cast<std::uint32_t>(Bip32Child::HARDENED))));
-                    path.Concatenate("'");
+                    path->Concatenate("'");
                 }
             }
         }
     }
 
-    return path.Get();
+    return path->Get();
 }
 
 bool EllipticCurve::Path(proto::HDPath& output) const

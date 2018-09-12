@@ -518,7 +518,7 @@ bool OTPaths::Get(
         OT_FAIL;
     }
 
-    out_strVar = "";
+    out_strVar.Set("");
     out_bIsRelative = false;
     out_bKeyExist = false;
 
@@ -551,7 +551,7 @@ bool OTPaths::Get(
                 out_bIsRelative = bIsRelative;
                 out_bKeyExist = true;
             } else {
-                out_strVar = "";
+                out_strVar.Set("");
                 out_bIsRelative = false;
                 out_bKeyExist = false;
             }

@@ -141,15 +141,21 @@ std::int32_t LoadAbbreviatedRecord(
     NumList* pNumList)
 {
 
-    const String strOriginNum = xml->getAttributeValue("numberOfOrigin");
-    const String strOriginType = xml->getAttributeValue("originType");
-    const String strTransNum = xml->getAttributeValue("transactionNum");
-    const String strInRefTo = xml->getAttributeValue("inReferenceTo");
-    const String strInRefDisplay = xml->getAttributeValue("inRefDisplay");
-    const String strDateSigned = xml->getAttributeValue("dateSigned");
+    const auto strOriginNum =
+        String::Factory(xml->getAttributeValue("numberOfOrigin"));
+    const auto strOriginType =
+        String::Factory(xml->getAttributeValue("originType"));
+    const auto strTransNum =
+        String::Factory(xml->getAttributeValue("transactionNum"));
+    const auto strInRefTo =
+        String::Factory(xml->getAttributeValue("inReferenceTo"));
+    const auto strInRefDisplay =
+        String::Factory(xml->getAttributeValue("inRefDisplay"));
+    const auto strDateSigned =
+        String::Factory(xml->getAttributeValue("dateSigned"));
 
-    if (!strTransNum.Exists() || !strInRefTo.Exists() ||
-        !strInRefDisplay.Exists() || !strDateSigned.Exists()) {
+    if (!strTransNum->Exists() || !strInRefTo->Exists() ||
+        !strInRefDisplay->Exists() || !strDateSigned->Exists()) {
         otOut << "LoadAbbreviatedRecord: Failure: missing "
                  "strTransNum ("
               << strTransNum << ") or strInRefTo (" << strInRefTo
@@ -158,24 +164,24 @@ std::int32_t LoadAbbreviatedRecord(
               << ") while loading abbreviated receipt. \n";
         return (-1);
     }
-    lTransactionNum = strTransNum.ToLong();
-    lInRefTo = strInRefTo.ToLong();
-    lInRefDisplay = strInRefDisplay.ToLong();
+    lTransactionNum = strTransNum->ToLong();
+    lInRefTo = strInRefTo->ToLong();
+    lInRefDisplay = strInRefDisplay->ToLong();
 
-    if (strOriginNum.Exists()) lNumberOfOrigin = strOriginNum.ToLong();
-    if (strOriginType.Exists())
+    if (strOriginNum->Exists()) lNumberOfOrigin = strOriginNum->ToLong();
+    if (strOriginType->Exists())
         theOriginType =
             OTTransactionType::GetOriginTypeFromString(strOriginType);
 
-    the_DATE_SIGNED = parseTimestamp(strDateSigned.Get());
+    the_DATE_SIGNED = parseTimestamp(strDateSigned->Get());
 
     // Transaction TYPE for the abbreviated record...
     theType = transactionType::error_state;  // default
-    const String strAbbrevType =
-        xml->getAttributeValue("type");  // the type of inbox receipt, or outbox
-                                         // receipt, or nymbox receipt.
-                                         // (Transaction type.)
-    if (strAbbrevType.Exists()) {
+    const auto strAbbrevType = String::Factory(
+        xml->getAttributeValue("type"));  // the type of inbox receipt, or
+                                          // outbox receipt, or nymbox receipt.
+                                          // (Transaction type.)
+    if (strAbbrevType->Exists()) {
         theType = OTTransaction::GetTypeFromString(strAbbrevType);
 
         if (transactionType::error_state == theType) {
@@ -200,7 +206,7 @@ std::int32_t LoadAbbreviatedRecord(
 
     // RECEIPT HASH
     //
-    strHash = xml->getAttributeValue("receiptHash");
+    strHash = String::Factory(xml->getAttributeValue("receiptHash"));
     if (!strHash.Exists()) {
         otOut << "LoadAbbreviatedRecord: Failure: Expected "
                  "receiptHash while loading "
@@ -213,18 +219,21 @@ std::int32_t LoadAbbreviatedRecord(
     lDisplayValue = 0;
     lClosingNum = 0;
 
-    const String strAbbrevAdjustment = xml->getAttributeValue("adjustment");
-    if (strAbbrevAdjustment.Exists())
-        lAdjustment = strAbbrevAdjustment.ToLong();
+    const auto strAbbrevAdjustment =
+        String::Factory(xml->getAttributeValue("adjustment"));
+    if (strAbbrevAdjustment->Exists())
+        lAdjustment = strAbbrevAdjustment->ToLong();
     // -------------------------------------
-    const String strAbbrevDisplayValue = xml->getAttributeValue("displayValue");
-    if (strAbbrevDisplayValue.Exists())
-        lDisplayValue = strAbbrevDisplayValue.ToLong();
+    const auto strAbbrevDisplayValue =
+        String::Factory(xml->getAttributeValue("displayValue"));
+    if (strAbbrevDisplayValue->Exists())
+        lDisplayValue = strAbbrevDisplayValue->ToLong();
 
     if (transactionType::replyNotice == theType) {
-        const String strRequestNum = xml->getAttributeValue("requestNumber");
+        const auto strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNumber"));
 
-        if (!strRequestNum.Exists()) {
+        if (!strRequestNum->Exists()) {
             otOut << "LoadAbbreviatedRecord: Failed loading "
                      "abbreviated receipt: "
                      "expected requestNumber on replyNotice trans num: "
@@ -232,11 +241,12 @@ std::int32_t LoadAbbreviatedRecord(
                   << ")\n";
             return (-1);
         }
-        lRequestNum = strRequestNum.ToLong();
+        lRequestNum = strRequestNum->ToLong();
 
-        const String strTransSuccess = xml->getAttributeValue("transSuccess");
+        const auto strTransSuccess =
+            String::Factory(xml->getAttributeValue("transSuccess"));
 
-        bReplyTransSuccess = strTransSuccess.Compare("true");
+        bReplyTransSuccess = strTransSuccess->Compare("true");
     }  // if replyNotice (expecting request Number)
 
     // If the transaction is a certain type, then it will also have a CLOSING
@@ -245,9 +255,10 @@ std::int32_t LoadAbbreviatedRecord(
     //
     if ((transactionType::finalReceipt == theType) ||
         (transactionType::basketReceipt == theType)) {
-        const String strAbbrevClosingNum = xml->getAttributeValue("closingNum");
+        const auto strAbbrevClosingNum =
+            String::Factory(xml->getAttributeValue("closingNum"));
 
-        if (!strAbbrevClosingNum.Exists()) {
+        if (!strAbbrevClosingNum->Exists()) {
             otOut << "LoadAbbreviatedRecord: Failed loading "
                      "abbreviated receipt: "
                      "expected closingNum on trans num: "
@@ -255,7 +266,7 @@ std::int32_t LoadAbbreviatedRecord(
                   << ")\n";
             return (-1);
         }
-        lClosingNum = strAbbrevClosingNum.ToLong();
+        lClosingNum = strAbbrevClosingNum->ToLong();
     }  // if finalReceipt or basketReceipt (expecting closing num)
 
     // These types carry their own internal list of numbers.
@@ -263,10 +274,11 @@ std::int32_t LoadAbbreviatedRecord(
     if ((nullptr != pNumList) &&
         ((transactionType::blank == theType) ||
          (transactionType::successNotice == theType))) {
-        const String strNumbers = xml->getAttributeValue("totalListOfNumbers");
+        const auto strNumbers =
+            String::Factory(xml->getAttributeValue("totalListOfNumbers"));
         pNumList->Release();
 
-        if (strNumbers.Exists()) pNumList->Add(strNumbers);
+        if (strNumbers->Exists()) pNumList->Add(strNumbers);
     }  // if blank or successNotice (expecting totalListOfNumbers.. no more
        // multiple blanks in the same ledger! They all go in a single
        // transaction.)
@@ -285,14 +297,16 @@ bool VerifyBoxReceiptExists(
 {
     const std::int64_t lLedgerType = static_cast<int64_t>(nBoxType);
 
-    const String strNotaryID(NOTARY_ID),
-        strUserOrAcctID(0 == lLedgerType ? NYM_ID : ACCOUNT_ID);  // (For Nymbox
-                                                                  // aka type 0,
-                                                                  // the NymID
-                                                                  // will be
-                                                                  // here.)
+    const auto strNotaryID = String::Factory(NOTARY_ID),
+               strUserOrAcctID = String::Factory(
+                   0 == lLedgerType ? NYM_ID : ACCOUNT_ID);  // (For Nymbox
+                                                             // aka type 0,
+                                                             // the NymID
+                                                             // will be
+                                                             // here.)
     // --------------------------------------------------------------------
-    String strFolder1name, strFolder2name, strFolder3name, strFilename;
+    auto strFolder1name = String::Factory(), strFolder2name = String::Factory(),
+         strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
             lLedgerType,  // nBoxType is lLedgerType
@@ -310,10 +324,10 @@ bool VerifyBoxReceiptExists(
     //
     const bool bExists = OTDB::Exists(
         dataFolder,
-        strFolder1name.Get(),
-        strFolder2name.Get(),
-        strFolder3name.Get(),
-        strFilename.Get());
+        strFolder1name->Get(),
+        strFolder2name->Get(),
+        strFolder3name->Get(),
+        strFilename->Get());
 
     otWarn << "OTTransaction::"
            << (bExists ? "(Already have this one)"
@@ -356,7 +370,8 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // Next, see if the appropriate file exists, and load it up from
     // local storage, into a string.
 
-    String strFolder1name, strFolder2name, strFolder3name, strFilename;
+    auto strFolder1name = String::Factory(), strFolder2name = String::Factory(),
+         strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
             lLedgerType,
@@ -372,10 +387,10 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     //
     if (!OTDB::Exists(
             theAbbrev.API().DataFolder(),
-            strFolder1name.Get(),
-            strFolder2name.Get(),
-            strFolder3name.Get(),
-            strFilename.Get())) {
+            strFolder1name->Get(),
+            strFolder2name->Get(),
+            strFolder3name->Get(),
+            strFilename->Get())) {
         otWarn << __FUNCTION__
                << ": Box receipt does not exist: " << strFolder1name
                << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
@@ -387,10 +402,10 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     //
     std::string strFileContents(OTDB::QueryPlainString(
         theAbbrev.API().DataFolder(),
-        strFolder1name.Get(),  // <=== LOADING FROM DATA STORE.
-        strFolder2name.Get(),
-        strFolder3name.Get(),
-        strFilename.Get()));
+        strFolder1name->Get(),  // <=== LOADING FROM DATA STORE.
+        strFolder2name->Get(),
+        strFolder3name->Get(),
+        strFilename->Get()));
     if (strFileContents.length() < 2) {
         otErr << __FUNCTION__ << ": Error reading file: " << strFolder1name
               << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
@@ -398,9 +413,9 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
         return nullptr;
     }
 
-    String strRawFile(strFileContents.c_str());
+    auto strRawFile = String::Factory(strFileContents.c_str());
 
-    if (!strRawFile.Exists()) {
+    if (!strRawFile->Exists()) {
         otErr << __FUNCTION__
               << ": Error reading file (resulting output "
                  "string is empty): "
@@ -540,10 +555,10 @@ bool SetupBoxReceiptFilename(
     String& strFolder3name,
     String& strFilename)
 {
-    String strUserOrAcctID;
+    auto strUserOrAcctID = String::Factory();
     theTransaction.GetIdentifier(strUserOrAcctID);
 
-    const String strNotaryID(theTransaction.GetRealNotaryID());
+    const auto strNotaryID = String::Factory(theTransaction.GetRealNotaryID());
 
     return SetupBoxReceiptFilename(
         lLedgerType,

@@ -329,12 +329,12 @@ proto::PeerReply PeerReply::IDVersion(const Lock& lock) const
     }
 
     contract.clear_id();  // reinforcing that this field must be blank.
-    contract.set_initiator(String(initiator_).Get());
-    contract.set_recipient(String(recipient_).Get());
+    contract.set_initiator(String::Factory(initiator_)->Get());
+    contract.set_recipient(String::Factory(recipient_)->Get());
     contract.set_type(type_);
-    contract.set_cookie(String(cookie_).Get());
+    contract.set_cookie(String::Factory(cookie_)->Get());
     contract.clear_signature();  // reinforcing that this field must be blank.
-    contract.set_server(String(server_).Get());
+    contract.set_server(String::Factory(server_)->Get());
 
     return contract;
 }
@@ -366,7 +366,7 @@ std::shared_ptr<proto::PeerRequest> PeerReply::LoadRequest(
     return output;
 }
 
-std::string PeerReply::Name() const { return String(id_).Get(); }
+std::string PeerReply::Name() const { return String::Factory(id_)->Get(); }
 
 OTData PeerReply::Serialize() const
 {
@@ -378,7 +378,7 @@ OTData PeerReply::Serialize() const
 proto::PeerReply PeerReply::SigVersion(const Lock& lock) const
 {
     auto contract = IDVersion(lock);
-    contract.set_id(String(id(lock)).Get());
+    contract.set_id(String::Factory(id(lock))->Get());
 
     return contract;
 }

@@ -27,33 +27,32 @@ proto::HashType HashingProvider::StringToHashType(const String& inputString)
         return proto::HASHTYPE_BLAKE2B512;
     return proto::HASHTYPE_ERROR;
 }
-
 String HashingProvider::HashTypeToString(const proto::HashType hashType)
 
 {
-    String hashTypeString;
+    auto hashTypeString = String::Factory();
 
     switch (hashType) {
         case proto::HASHTYPE_NONE:
-            hashTypeString = "NULL";
+            hashTypeString = String::Factory("NULL");
             break;
         case proto::HASHTYPE_SHA256:
-            hashTypeString = "SHA256";
+            hashTypeString = String::Factory("SHA256");
             break;
         case proto::HASHTYPE_SHA512:
-            hashTypeString = "SHA512";
+            hashTypeString = String::Factory("SHA512");
             break;
         case proto::HASHTYPE_BLAKE2B160:
-            hashTypeString = "BLAKE2B160";
+            hashTypeString = String::Factory("BLAKE2B160");
             break;
         case proto::HASHTYPE_BLAKE2B256:
-            hashTypeString = "BLAKE2B256";
+            hashTypeString = String::Factory("BLAKE2B256");
             break;
         case proto::HASHTYPE_BLAKE2B512:
-            hashTypeString = "BLAKE2B512";
+            hashTypeString = String::Factory("BLAKE2B512");
             break;
         default:
-            hashTypeString = "ERROR";
+            hashTypeString = String::Factory("ERROR");
     }
     return hashTypeString;
 }
