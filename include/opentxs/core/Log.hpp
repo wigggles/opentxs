@@ -9,6 +9,7 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/util/Assert.hpp"
+#include "opentxs/core/LogSource.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <chrono>
@@ -60,8 +61,14 @@ OTLOG_IMPORT extern OTLogStream otOut;   // logs using OTLog::vOutput(0)
 OTLOG_IMPORT extern OTLogStream otWarn;  // logs using OTLog::vOutput(1)
 OTLOG_IMPORT extern OTLogStream otInfo;  // logs using OTLog::vOutput(2)
 OTLOG_IMPORT extern OTLogStream otLog3;  // logs using OTLog::vOutput(3)
-OTLOG_IMPORT extern OTLogStream otLog4;  // logs using OTLog::vOutput(4)
-OTLOG_IMPORT extern OTLogStream otLog5;  // logs using OTLog::vOutput(5)
+
+extern LogSource LogOutput;
+extern LogSource LogNormal;
+extern LogSource LogDetail;
+extern LogSource LogVerbose;
+extern LogSource LogDebug;
+extern LogSource LogTrace;
+extern LogSource LogInsane;
 
 class OTLogStream : public std::ostream, std::streambuf
 {
@@ -89,10 +96,8 @@ private:
     std::int32_t m_nLogLevel{0};
     bool m_bInitialized{false};
     bool write_log_file_{false};
-    OTString m_strThreadContext;
     OTString m_strLogFileName;
     OTString m_strLogFilePath;
-    dequeOfStrings logDeque;
     std::recursive_mutex lock_;
 
     /** For things that represent internal inconsistency in the code. Normally
@@ -133,8 +138,6 @@ public:
 
     // Set in constructor:
 
-    EXPORT static const String& GetThreadContext();
-
     EXPORT static const char* LogFilePath();
     EXPORT static const String& GetLogFilePath();
 
@@ -146,49 +149,15 @@ public:
 
     EXPORT static bool LogToFile(const String& strOutput);
 
-    /** We keep 1024 logs in memory, to make them available via the API. */
-    EXPORT static std::int32_t GetMemlogSize();
-    EXPORT static OTString GetMemlogAtIndex(std::int32_t nIndex);
-    EXPORT static OTString PeekMemlogFront();
-    EXPORT static OTString PeekMemlogBack();
-    EXPORT static bool PopMemlogFront();
-    EXPORT static bool PopMemlogBack();
-    EXPORT static bool PushMemlogFront(const String& strLog);
     EXPORT static bool Sleep(const std::chrono::microseconds us);
 
-    /** Output() logs normal output, which carries a verbosity level. If
-     * nVerbosity of a message is 0, the message will ALWAYS log. (ALL output
-     * levels are higher or equal to 0.) If nVerbosity is 1, the message will
-     * run only if __CurrentLogLevel is 1 or higher. If nVerbosity if 2, the
-     * message will run only if __CurrentLogLevel is 2 or higher. Etc.
-     * THEREFORE: The higher the verbosity level for a message, the more verbose
-     * the software must be configured in order to display that message. Default
-     * verbosity level for the software is 0, and output that MUST appear on the
-     * screen should be set at level 0. For output that you don't want to see as
-     * often, set it up to 1. Set it up even higher for the really verbose stuff
-     * (e.g. only if you really want to see EVERYTHING.) */
-    EXPORT static void Output(
-        std::int32_t nVerbosity,
-        const char* szOutput);  // stdout
     EXPORT static void vOutput(
         std::int32_t nVerbosity,
         const char* szOutput,
         ...) ATTR_PRINTF(2, 3);
 
-    /** This logs an error condition, which usually means bad input from the
-     * user, or a file wouldn't open, or something like that. This contrasted
-     * with Assert() which should NEVER actually happen. The software expects
-     * bad user input from time to time. But it never expects a loaded mint to
-     * have a nullptr pointer. The bad input would log with Error(), whereas the
-     * nullptr pointer would log with Assert(); */
-    EXPORT static void Error(const char* szError);       // stderr
     EXPORT static void vError(const char* szError, ...)  // stderr
         ATTR_PRINTF(1, 2);
-
-    /** This method will print out errno and its associated string. Optionally
-     * you can pass the location you are calling it from, which will be
-     * prepended to the log. */
-    EXPORT static void Errno(const char* szLocation = nullptr);  // stderr
 
     // String Helpers
     EXPORT static bool StringFill(
@@ -196,8 +165,14 @@ public:
         const char* szString,
         std::int32_t iLength,
         const char* szAppend = nullptr);
+
+private:
+    friend OTLogStream;
+
+    static void Error(const char* szError);
+    static void Output(
+        std::int32_t nVerbosity,
+        const char* szOutput);  // stdout
 };
-
 }  // namespace opentxs
-
 #endif

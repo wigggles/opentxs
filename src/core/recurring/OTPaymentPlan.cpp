@@ -1321,12 +1321,6 @@ bool OTPaymentPlan::ProcessCron()
     // I'm going to slow down all trades so they are once every
     // GetProcessInterval()
     if (GetLastProcessDate() > OT_TIME_ZERO) {
-        //      OTLog::vOutput(0, "DEBUG: time: %d  Last process date: %d   Time
-        //      since last: %d    Interval: %d\n",
-        //                 OTTimeGetCurrentTime(), GetLastProcessDate(),
-        //                 (OTTimeGetCurrentTime() - GetLastProcessDate()),
-        //                 GetProcessInterval());
-
         // (Default ProcessInternal is 1 second, but Trades will use 10 seconds,
         // and Payment Plans will use an hour or day.)
         if (OTTimeGetTimeInterval(
@@ -1445,17 +1439,6 @@ bool OTPaymentPlan::ProcessCron()
             1;
         // The +1 is because it charges on the 1st day of the plan. So 14 days,
         // which is 7 times 2, equals *3* payments, not 2.
-
-        //      OTLog::vOutput(0, "Payments that should have happened by now:
-        //      %d\n"
-        //                     "Number payments done: %d      date of last
-        //                     payment: %d\n"
-        //                     "Date of last failed payment: %d   Time Between:
-        //                     %d",
-        //                     nNoPaymentsThatShouldHaveHappenedByNow,
-        //                     GetNoPaymentsDone(), GetDateOfLastPayment(),
-        //                     GetDateOfLastFailedPayment(),
-        //                     GetTimeBetweenPayments());
 
         // It's expired, remove it. (I check >0 because this one is an optional
         // field.)

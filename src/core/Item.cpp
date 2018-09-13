@@ -40,6 +40,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::Item::"
+
 namespace opentxs
 {
 // this one is private (I hope to keep it that way.)
@@ -426,9 +428,10 @@ bool Item::VerifyBalanceStatement(
                    << outboxNum << "\n";
             pTransaction = pLedger->GetTransaction(outboxNum);
         } else {
-            otLog4 << "Item::" << __FUNCTION__
-                   << ": Subitem is normal Transaction... retrieving by ID: "
-                   << pSubItem->GetTransactionNum() << "\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Subitem is normal Transaction... retrieving by ID: ")(
+                pSubItem->GetTransactionNum())
+                .Flush();
             pTransaction =
                 pLedger->GetTransaction(pSubItem->GetTransactionNum());
         }

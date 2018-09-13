@@ -304,11 +304,10 @@ void UserCommandProcessor::check_acknowledgements(ReplyMessage& reply) const
                     // automatically by the above Remove call.)
 
                     if (!bDeleted || !bRemoved)
-                        Log::Error(
-                            "UserCommandProcessor::ProcessUserCommand: "
-                            "Failed trying "
-                            "to delete a box receipt, or "
-                            "while removing its stub from the Nymbox.\n");
+                        otErr << "UserCommandProcessor::ProcessUserCommand: "
+                                 "Failed trying "
+                                 "to delete a box receipt, or "
+                                 "while removing its stub from the Nymbox.\n";
 
                     if (bRemoved) { bIsDirtyNymbox = true; }
                 }
@@ -377,8 +376,9 @@ bool UserCommandProcessor::check_message_notary(
         return false;
     }
 
-    otLog4 << OT_METHOD << __FUNCTION__
-           << ": Received valid Notary ID with command request." << std::endl;
+    LogTrace(OT_METHOD)(__FUNCTION__)(
+        ": Received valid Notary ID with command request.")
+        .Flush();
 
     return true;
 }

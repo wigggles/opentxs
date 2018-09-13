@@ -30,6 +30,8 @@
 // Also allows for x == 1.
 //
 
+#define OT_METHOD "opentxs::OTOffer::"
+
 namespace opentxs
 {
 OTOffer::OTOffer(const api::Core& core)
@@ -307,25 +309,17 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetValidFrom(OTTimeGetTimeFromSeconds(tValidFrom));
         SetValidTo(OTTimeGetTimeFromSeconds(tValidTo));
 
-        otLog4 << "\n\nOffer. Transaction Number: " << m_lTransactionNum
-               << "\n Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
-               << "\n"
-                  " InstrumentDefinitionID: "
-               << strInstrumentDefinitionID
-               << "\n  CurrencyTypeID: " << strCurrencyTypeID
-               << "\n NotaryID: " << strNotaryID
-               << "\n"
-                  " Price Limit: "
-               << GetPriceLimit()
-               << ",  Total Assets on Offer: " << GetTotalAssetsOnOffer()
-               << ",  " << (m_bSelling ? "sold" : "bought")
-               << " so far: " << GetFinishedSoFar()
-               << "\n "
-                  " Scale: "
-               << GetScale()
-               << ".   Minimum Increment: " << GetMinimumIncrement()
-               << ".  This offer is a" << (m_bSelling ? "n ASK" : " BID")
-               << ".\n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Offer Transaction Number: ")(
+            m_lTransactionNum)("\n Valid From: ")(tValidFrom)("\n Valid To: ")(
+            tValidTo)("\n InstrumentDefinitionID: ")(strInstrumentDefinitionID)(
+            "\n  CurrencyTypeID: ")(strCurrencyTypeID)("\n NotaryID: ")(
+            strNotaryID)("\n Price Limit: ")(GetPriceLimit())(
+            ",  Total Assets on Offer: ")(GetTotalAssetsOnOffer())(",  ")(
+            (m_bSelling ? "sold" : "bought"))(" so far: ")(GetFinishedSoFar())(
+            "\n  Scale: ")(GetScale())(".   Minimum Increment: ")(
+            GetMinimumIncrement())(".  This offer is a")(
+            (m_bSelling ? "n ASK" : " BID"))(".")
+            .Flush();
 
         nReturnVal = 1;
     }

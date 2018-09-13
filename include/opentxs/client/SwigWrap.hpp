@@ -157,14 +157,6 @@ public:
     */
     EXPORT static bool SwitchWallet();
 
-    /** Output to the screen (stderr.)
-    (This is so stdout can be left clean for the ACTUAL output.)
-    Log level is 0 (least verbose) to 5 (most verbose.)
-    */
-    EXPORT static void Output(
-        const std::int32_t& nLogLevel,
-        const std::string& strOutput);
-
     /** Creates a section in the config file IF it didn't already exist.
         Returns true if the section exists after the call is complete (whether
        created or not.)
@@ -417,18 +409,6 @@ public:
     EXPORT static std::string VerifyAndRetrieveXMLContents(
         const std::string& THE_CONTRACT,
         const std::string& SIGNER_ID);
-
-    /** The below functions are for retrieving log data programatically.
-     */
-    EXPORT static std::int32_t GetMemlogSize();
-
-    EXPORT static std::string GetMemlogAtIndex(const std::int32_t& nIndex);
-
-    EXPORT static std::string PeekMemlogFront();
-    EXPORT static std::string PeekMemlogBack();
-
-    EXPORT static bool PopMemlogFront();
-    EXPORT static bool PopMemlogBack();
 
     /** CREATE NYM -- Create new User
     //

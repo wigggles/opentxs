@@ -27,6 +27,8 @@
 #include <cinttypes>
 #include <cstdint>
 
+#define OT_METHOD "opentxs::PayDividendVisitor::"
+
 namespace opentxs
 {
 PayDividendVisitor::PayDividendVisitor(
@@ -66,11 +68,9 @@ bool PayDividendVisitor::Trigger(
         (theSharesAccount.GetBalance() * GetPayoutPerShare());
 
     if (lPayoutAmount <= 0) {
-        Log::Output(
-            0,
-            "PayDividendVisitor::Trigger: nothing to pay, "
-            "since this account owns no shares. (Returning "
-            "true.)");
+        otOut << "PayDividendVisitor::Trigger: nothing to pay, "
+                 "since this account owns no shares. (Returning "
+                 "true.)";
         return true;  // nothing to pay, since this account owns no shares.
                       // Success!
     }
@@ -189,15 +189,11 @@ bool PayDividendVisitor::Trigger(
             const String strPayoutUnitTypeId(
                 Identifier::Factory(payoutUnitTypeId_)),
                 strRecipientNymID(RECIPIENT_ID);
-            Log::vError(
-                "PayDividendVisitor::Trigger: ERROR failed "
-                "issuing voucher (to send to dividend payout "
-                "recipient.) "
-                "WAS TRYING TO PAY %" PRId64
-                " of instrument definition %s to Nym %s.\n",
-                lPayoutAmount,
-                strPayoutUnitTypeId.Get(),
-                strRecipientNymID.Get());
+            otErr << "PayDividendVisitor::Trigger: ERROR failed issuing "
+                  << "voucher (to send to dividend payout recipient.) WAS "
+                  << "TRYING TO PAY " << lPayoutAmount
+                  << " of instrument definition " << strPayoutUnitTypeId
+                  << " to Nym " << strRecipientNymID << ".\n";
         }
         // If we didn't send it, then we need to return the funds to where they
         // came from.
@@ -259,32 +255,26 @@ bool PayDividendVisitor::Trigger(
             } else {
                 const String strPayoutUnitTypeId(payoutUnitTypeId_),
                     strSenderNymID(theSenderNymID);
-                Log::vError(
-                    "PayDividendVisitor::Trigger: ERROR "
-                    "failed issuing voucher (to return back to "
-                    "the dividend payout initiator, after a failed "
-                    "payment attempt to the originally intended "
-                    "recipient.) WAS TRYING TO PAY %" PRId64
-                    " of instrument definition "
-                    "%s to Nym %s.\n",
-                    lPayoutAmount,
-                    strPayoutUnitTypeId.Get(),
-                    strSenderNymID.Get());
+                otErr << "PayDividendVisitor::Trigger: ERROR "
+                         "failed issuing voucher (to return back to "
+                         "the dividend payout initiator, after a failed "
+                         "payment attempt to the originally intended "
+                         "recipient.) WAS TRYING TO PAY "
+                      << lPayoutAmount << " of instrument definition "
+                      << strPayoutUnitTypeId << " to Nym " << strSenderNymID
+                      << ".\n";
             }
         }   // if !bSent
     } else  // !bGotNextTransNum
     {
         const String strPayoutUnitTypeId(payoutUnitTypeId_),
             strRecipientNymID(RECIPIENT_ID);
-        Log::vError(
-            "PayDividendVisitor::Trigger: ERROR!! Failed issuing next "
-            "transaction "
-            "number while trying to send a voucher (while paying dividends.) "
-            "WAS TRYING TO PAY %" PRId64
-            " of instrument definition %s to Nym %s.\n",
-            lPayoutAmount,
-            strPayoutUnitTypeId.Get(),
-            strRecipientNymID.Get());
+        otErr << OT_METHOD << __FUNCTION__
+              << ": ERROR!! Failed issuing next transaction number while "
+              << "trying to send a voucher (while paying dividends.) "
+              << "WAS TRYING TO PAY " << lPayoutAmount
+              << " of instrument definition " << strPayoutUnitTypeId.Get()
+              << " to Nym " << strRecipientNymID.Get() << ".\n";
     }
 
     return bReturnValue;

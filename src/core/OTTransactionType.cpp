@@ -24,6 +24,8 @@
 #include <cstdint>
 #include <ostream>
 
+#define OT_METHOD "opentxs::OTTransactionType::"
+
 namespace opentxs
 {
 // keeping constructor private in order to force people to use the other
@@ -244,10 +246,11 @@ bool OTTransactionType::VerifyAccount(const Nym& theNym)
         return false;
     }
 
-    otLog4 << "\nWe now know that...\n"
-              "1) The expected Account ID matches the ID that was found on the "
-              "object.\n"
-              "2) The SIGNATURE VERIFIED on the object.\n\n";
+    LogTrace(OT_METHOD)(__FUNCTION__)(
+        ": We now know that...\n1) The expected Account ID matches the ID that "
+        "was found on the object.\n2) The SIGNATURE VERIFIED on the object.")
+        .Flush();
+
     return true;
 }
 

@@ -54,6 +54,8 @@
 // algorithms. All I have to do is change the return type.
 //
 
+#define OT_METHOD "opentxs::OTCronItem::"
+
 namespace opentxs
 {
 OTCronItem::OTCronItem(const api::Core& core)
@@ -657,9 +659,10 @@ bool OTCronItem::CanRemoveItemFromCron(const ClientContext& context)
     // number (or a related closing number) signed out to him on his last
     // receipt...
     if (!context.Nym()->CompareID(GetSenderNymID())) {
-        otLog5 << "OTCronItem::CanRemoveItem: theNym is not the originator of "
-               << "this CronItem. (He could be a recipient though, so this is "
-               << " normal.)\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": theNym is not the originator of this CronItem. (He could be a "
+            "recipient though, so this is normal.)")
+            .Flush();
 
         return false;
     }

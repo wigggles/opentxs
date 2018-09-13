@@ -220,13 +220,6 @@ bool SwigWrap::SetConfig_bool(
     return client_->Exec().SetConfig_bool(strSection, strKey, bValue);
 }
 
-void SwigWrap::Output(
-    const std::int32_t& nLogLevel,
-    const std::string& strOutput)
-{
-    return client_->Exec().Output(nLogLevel, strOutput);
-}
-
 bool SwigWrap::SetWallet(const std::string& strWalletFilename)
 {
     return client_->Exec().SetWallet(strWalletFilename);
@@ -237,30 +230,6 @@ bool SwigWrap::WalletExists() { return client_->Exec().WalletExists(); }
 bool SwigWrap::LoadWallet() { return client_->Exec().LoadWallet(); }
 
 bool SwigWrap::SwitchWallet() { return client_->Exec().LoadWallet(); }
-
-std::int32_t SwigWrap::GetMemlogSize()
-{
-    return client_->Exec().GetMemlogSize();
-}
-
-std::string SwigWrap::GetMemlogAtIndex(const std::int32_t& nIndex)
-{
-    return client_->Exec().GetMemlogAtIndex(nIndex);
-}
-
-std::string SwigWrap::PeekMemlogFront()
-{
-    return client_->Exec().PeekMemlogFront();
-}
-
-std::string SwigWrap::PeekMemlogBack()
-{
-    return client_->Exec().PeekMemlogBack();
-}
-
-bool SwigWrap::PopMemlogFront() { return client_->Exec().PopMemlogFront(); }
-
-bool SwigWrap::PopMemlogBack() { return client_->Exec().PopMemlogBack(); }
 
 std::string SwigWrap::NumList_Add(
     const std::string& strNumList,

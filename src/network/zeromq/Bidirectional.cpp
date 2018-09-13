@@ -51,9 +51,7 @@ Bidirectional::Bidirectional(
     OT_ASSERT(false != connected);
 
     if (startThread) {
-        receiver_thread_.reset(new std::thread(&Bidirectional::thread, this));
-
-        OT_ASSERT(receiver_thread_)
+        receiver_thread_ = std::thread(&Bidirectional::thread, this);
     }
 }
 

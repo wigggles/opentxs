@@ -53,6 +53,8 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
+#define OT_METHOD "opentxs::crypto::key::implementation::RSA::"
+
 namespace opentxs
 {
 crypto::key::RSA* Factory::RSAKey(const proto::AsymmetricKey& input)
@@ -507,17 +509,12 @@ bool RSA::ReEncryptPrivateKey(
         }
 
         if (nullptr != pClearKey) {
-            //          otLog4 << "%s: Success reading private key from
-            // ASCII-armored data:\n\n%s\n\n",
-            //                         __FUNCTION__, m_p_ascKey->Get());
-            otLog4
-                << __FUNCTION__
-                << ": Success reading private key from ASCII-armored data.\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Success reading private key from ASCII-armored data.")
+                .Flush();
 
             // Okay, we have loaded up the private key, now let's save it back
-            // to m_p_ascKey
-            // using the new passphrase.
-            //
+            // to m_p_ascKey using the new passphrase.
             crypto::implementation::OpenSSL_BIO bmem = BIO_new(BIO_s_mem());
             OT_ASSERT(nullptr != bmem);
 
@@ -570,10 +567,9 @@ bool RSA::ReEncryptPrivateKey(
                 otErr << __FUNCTION__
                       << ": Failed writing EVP_PKEY to memory buffer.\n";
             else {
-
-                otLog5 << __FUNCTION__
-                       << ": Success writing EVP_PKEY to memory buffer.\n";
-
+                LogInsane(OT_METHOD)(__FUNCTION__)(
+                    ": Success writing EVP_PKEY to memory buffer.")
+                    .Flush();
                 auto theNewData = Data::Factory();
                 char* pChar = nullptr;
 

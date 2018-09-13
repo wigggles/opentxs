@@ -39,6 +39,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::Token::"
+
 namespace opentxs
 {
 // The current implementation for withdrawals (using Lucre) requires only a
@@ -591,16 +593,11 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
         m_NotaryID->SetString(strNotaryID);
-
-        otLog4 <<
-            //    "\n===> Loading XML for token into memory structures..."
-            "\n\nToken State: " << strState
-               << "\n Denomination: " << GetDenomination()
-               << "\n"
-                  " InstrumentDefinitionID: "
-               << strInstrumentDefinitionID << "\nNotaryID: " << strNotaryID
-               << "\n";
-
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Token State: ")(strState)(
+            "\n Denomination: ")(GetDenomination())(
+            "\n InstrumentDefinitionID: ")(strInstrumentDefinitionID)(
+            "\n NotaryID: ")(strNotaryID)
+            .Flush();
         nReturnVal = 1;
     } else if (strNodeName.Compare("tokenID")) {
         if (!Contract::LoadEncodedTextField(xml, m_ascSpendable)) {
@@ -668,9 +665,10 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         } else {
             m_mapPrivate[nPrivateTokenCount] = pArmoredPrototoken;
             nPrivateTokenCount++;
-
-            otLog4 << "Loaded prototoken and adding to m_mapPrivate at index: "
-                   << nPrivateTokenCount - 1 << "\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Loaded prototoken and adding to m_mapPrivate at index: ")(
+                nPrivateTokenCount - 1)
+                .Flush();
         }
 
         return 1;
@@ -678,19 +676,6 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     return nReturnVal;
 }
-
-/*
-
- enum tokenState {
-     blankToken,
-     protoToken,
-     signedToken,
-     spendableToken,
-     verifiedToken,
-     errorToken
- };
-
- */
 
 bool Token::GetPrototoken(Armored& ascPrototoken, std::int32_t nTokenIndex)
 {

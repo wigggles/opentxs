@@ -83,6 +83,7 @@
 #include <opentxs/core/Identifier.hpp>
 #include <opentxs/core/Ledger.hpp>
 #include <opentxs/core/Log.hpp>
+#include <opentxs/core/LogSource.hpp>
 #include <opentxs/core/Message.hpp>
 #include <opentxs/core/NumList.hpp>
 #include <opentxs/core/Nym.hpp>

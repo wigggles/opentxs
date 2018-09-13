@@ -17,6 +17,8 @@
 
 #include <irrxml/irrXML.hpp>
 
+#define OT_METHOD "opentxs::TransactionStatement::"
+
 namespace opentxs
 {
 TransactionStatement::TransactionStatement(
@@ -111,8 +113,9 @@ TransactionStatement::TransactionStatement(const String& serialized)
                 }
             } break;
             default: {
-                otLog5 << "Unknown XML type in " << __FUNCTION__ << ": "
-                       << nodeName << std::endl;
+                LogInsane(OT_METHOD)(__FUNCTION__)(": Unknown XML type in ")(
+                    nodeName)
+                    .Flush();
                 break;
             }
         }

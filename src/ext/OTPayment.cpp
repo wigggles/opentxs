@@ -1928,8 +1928,9 @@ std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             m_Type = OTPayment::ERROR_STATE;
 
-        otLog4 << "Loaded payment... Type: " << GetTypeString()
-               << "\n----------\n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Loaded payment... Type: ")(
+            GetTypeString())
+            .Flush();
 
         return (OTPayment::ERROR_STATE == m_Type) ? (-1) : 1;
     } else if (strNodeName.Compare("contents")) {

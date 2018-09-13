@@ -933,8 +933,8 @@ bool OTAgreement::SetProposal(
 
     // Set the Consideration memo...
     m_strConsideration->Set(strConsideration);
-
-    otLog4 << "Successfully performed SetProposal.\n";
+    LogTrace(OT_METHOD)(__FUNCTION__)(": Successfully performed SetProposal.")
+        .Flush();
 
     return true;
 }
@@ -1082,8 +1082,7 @@ bool OTAgreement::Confirm(
     time64_t CURRENT_TIME = OTTimeGetCurrentTime();
     // Set the Creation Date.
     SetCreationDate(CURRENT_TIME);
-
-    otLog4 << __FUNCTION__ << "(): Success!\n";
+    LogTrace(OT_METHOD)(__FUNCTION__)(": Success!").Flush();
 
     return true;
 }

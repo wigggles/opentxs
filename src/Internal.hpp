@@ -42,6 +42,7 @@ class ZMQ;
 
 namespace internal
 {
+struct Log;
 struct Native;
 }  // namespace internal
 

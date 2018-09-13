@@ -106,10 +106,8 @@ Server::Server(const opentxs::api::server::Manager& manager)
 
 void Server::ActivateCron()
 {
-    Log::vOutput(
-        1,
-        "Server::ActivateCron: %s \n",
-        m_Cron->ActivateCron() ? "(STARTED)" : "FAILED");
+    otOut << "Server::ActivateCron: "
+          << (m_Cron->ActivateCron() ? "(STARTED)" : "FAILED") << " \n";
 }
 
 const api::Core& Server::API() const { return manager_; }
@@ -212,7 +210,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     m_nymServer = manager_.Wallet().Nym(nymParameters);
 
     if (false == bool(m_nymServer)) {
-        Log::vError("Error: Failed to create server nym\n");
+        otErr << "Error: Failed to create server nym\n";
         OT_FAIL;
     }
 
@@ -495,7 +493,7 @@ void Server::Init(bool readOnly)
 
     if (!ConfigLoader::load(
             manager_.Crypto(), manager_.Config(), WalletFilename())) {
-        Log::vError("Unable to Load Config File!");
+        otErr << "Unable to Load Config File!";
         OT_FAIL;
     }
 
@@ -531,18 +529,17 @@ void Server::Init(bool readOnly)
             // There was a real PID in there.
             if (old_pid != 0) {
                 std::uint64_t lPID = old_pid;
-                Log::vError(
-                    "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
-                    "I found a PID (%" PRIu64
-                    ") in the data lock file, located "
-                    "at: %s\n\n"
-                    "If the OT process with PID %" PRIu64
-                    " is truly not running "
-                    "anymore, "
-                    "then just ERASE THAT FILE and then RESTART.\n",
-                    lPID,
-                    strPIDPath.Get(),
-                    lPID);
+                otErr << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
+                         "I found a PID ("
+                      << lPID
+                      << ") in the data lock file, located "
+                         "at: "
+                      << strPIDPath.Get()
+                      << "\n\n"
+                         "If the OT process with PID "
+                      << lPID
+                      << " is truly not running anymore, "
+                         "then just ERASE THAT FILE and then RESTART.\n";
                 exit(-1);
             }
             // Otherwise, though the file existed, the PID within was 0.
@@ -568,11 +565,9 @@ void Server::Init(bool readOnly)
             pid_outfile << the_pid;
             pid_outfile.close();
         } else {
-            Log::vError(
-                "Failed trying to open data locking file (to "
-                "store PID %" PRIu64 "): %s\n",
-                the_pid,
-                strPIDPath.Get());
+            otErr << "Failed trying to open data locking file (to "
+                     "store PID "
+                  << the_pid << "): " << strPIDPath.Get() << "\n";
         }
     }
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
@@ -586,10 +581,9 @@ void Server::Init(bool readOnly)
 
     if (false == mainFileExists) {
         if (readOnly) {
-            Log::vError(
-                "Error: Main file non-existent (%s). "
-                "Plus, unable to create, since read-only flag is set.\n",
-                WalletFilename().Get());
+            otErr << "Error: Main file non-existent (" << WalletFilename().Get()
+                  << "). "
+                     "Plus, unable to create, since read-only flag is set.\n";
             OT_FAIL;
         } else {
             CreateMainFile(mainFileExists);
@@ -598,7 +592,7 @@ void Server::Init(bool readOnly)
 
     if (mainFileExists) {
         if (false == mainFile_.LoadMainFile(readOnly)) {
-            Log::vError("Error in Loading Main File, re-creating.\n");
+            otErr << "Error in Loading Main File, re-creating.\n";
             OTDB::EraseValueByKey(
                 manager_.DataFolder(), ".", WalletFilename().Get(), "", "");
             CreateMainFile(mainFileExists);
@@ -660,7 +654,7 @@ bool Server::SendInstrumentToNym(
     const bool bGotPaymentContents = pPayment.GetPaymentContents(strPayment);
 
     if (!bGotPaymentContents) {
-        Log::vError("%s: Error GetPaymentContents Failed", __FUNCTION__);
+        otErr << __FUNCTION__ << ": Error GetPaymentContents Failed";
     }
 
     const bool bDropped = DropMessageToNymbox(
@@ -783,9 +777,8 @@ bool Server::DropMessageToNymbox(
         transactor_.issueNextTransactionNumber(lTransNum);
 
     if (!bGotNextTransNum) {
-        Log::vError(
-            "%s: Error: failed trying to get next transaction number.\n",
-            __FUNCTION__);
+        otErr << __FUNCTION__
+              << ": Error: failed trying to get next transaction number.\n";
         return false;
     }
     switch (theType) {
@@ -794,10 +787,10 @@ bool Server::DropMessageToNymbox(
         case transactionType::instrumentNotice:
             break;
         default:
-            Log::vError(
-                "%s: Unexpected transactionType passed here (expected message "
-                "or instrumentNotice.)\n",
-                __FUNCTION__);
+            otErr
+                << __FUNCTION__
+                << ": Unexpected transactionType passed here (expected message "
+                   "or instrumentNotice.)\n";
             return false;
     }
     // If pMsg was not already passed in here, then
@@ -857,10 +850,9 @@ bool Server::DropMessageToNymbox(
             theMsgAngel->SignContract(*m_nymServer);
             theMsgAngel->SaveContract();
         } else {
-            Log::vError(
-                "%s: Failed trying to seal envelope containing theMsgAngel "
-                "(or while grabbing the base64-encoded result.)\n",
-                __FUNCTION__);
+            otErr << __FUNCTION__
+                  << ": Failed trying to seal envelope containing theMsgAngel "
+                     "(or while grabbing the base64-encoded result.)\n";
             return false;
         }
 
@@ -954,18 +946,17 @@ bool Server::DropMessageToNymbox(
         } else  // should never happen
         {
             const String strRecipientNymID(RECIPIENT_NYM_ID);
-            Log::vError(
-                "%s: Failed while trying to generate transaction in order to "
-                "add a message to Nymbox: %s\n",
-                __FUNCTION__,
-                strRecipientNymID.Get());
+            otErr
+                << __FUNCTION__
+                << ": Failed while trying to generate transaction in order to "
+                   "add a message to Nymbox: "
+                << strRecipientNymID.Get() << "\n";
         }
     } else {
         const String strRecipientNymID(RECIPIENT_NYM_ID);
-        Log::vError(
-            "%s: Failed while trying to load or verify Nymbox: %s\n",
-            __FUNCTION__,
-            strRecipientNymID.Get());
+        otErr << __FUNCTION__
+              << ": Failed while trying to load or verify Nymbox: "
+              << strRecipientNymID.Get() << "\n";
     }
 
     return false;
@@ -1031,9 +1022,6 @@ Server::~Server()
     // another copy already running (otherwise we might wind up with two copies
     // trying to write
     // to the same data folder simultaneously, which could corrupt the data...)
-    //
-    //    OTLog::vError("m_strDataPath: %s\n", m_strDataPath.Get());
-    //    OTLog::vError("SERVER_PID_FILENAME: %s\n", SERVER_PID_FILENAME);
     String strDataPath = manager_.DataFolder().c_str();
 
     if (!m_bReadOnly) {
@@ -1046,10 +1034,9 @@ Server::~Server()
             pid_outfile << the_pid;
             pid_outfile.close();
         } else {
-            Log::vError(
-                "Failed trying to open data locking file (to wipe "
-                "PID back to 0): %s\n",
-                strPIDPath.Get());
+            otErr << "Failed trying to open data locking file (to wipe "
+                     "PID back to 0): "
+                  << strPIDPath.Get() << "\n";
         }
     }
 }

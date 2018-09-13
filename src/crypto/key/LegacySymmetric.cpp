@@ -907,12 +907,10 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
         return false;
     }
 
-    otLog5 << __FUNCTION__
-           << ": is_generated: " << static_cast<std::int32_t>(host_is_generated)
-           << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": is_generated: ")(host_is_generated)
+        .Flush();
 
     // Read network-order "key size in bits". (convert to host order)
-    //
     uint16_t n_key_size_bits = 0;
 
     if (0 == (nRead = theInput.OTfread(
@@ -926,13 +924,9 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     // convert from network to HOST endian.
 
     m_nKeySize = ntohs(n_key_size_bits);
-
-    otLog5 << __FUNCTION__
-           << ": key_size_bits: " << static_cast<std::int32_t>(m_nKeySize)
-           << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": key_size_bits: ")(m_nKeySize).Flush();
 
     // Read network-order "iteration count". (convert to host order)
-    //
     std::uint32_t n_iteration_count = 0;
 
     if (0 == (nRead = theInput.OTfread(
@@ -947,12 +941,10 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     // convert from network to HOST endian.
 
     m_uIterationCount = ntohl(n_iteration_count);
-
-    otLog5 << __FUNCTION__ << ": iteration_count: "
-           << static_cast<std::int64_t>(m_uIterationCount) << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": iteration_count: ")(m_uIterationCount)
+        .Flush();
 
     // Read network-order "salt size". (convert to host order)
-    //
     std::uint32_t n_salt_size = 0;
 
     if (0 == (nRead = theInput.OTfread(
@@ -966,13 +958,10 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     // convert from network to HOST endian.
 
     const std::uint32_t lSaltSize = ntohl(n_salt_size);
-
-    otLog5 << __FUNCTION__
-           << ": salt_size value: " << static_cast<std::int64_t>(lSaltSize)
-           << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": salt_size value: ")(lSaltSize)
+        .Flush();
 
     // Then read the Salt itself.
-    //
     salt_->SetSize(lSaltSize);
 
     if (0 == (nRead = theInput.OTfread(
@@ -982,8 +971,10 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
               << ": Error reading salt for symmetric key.\n";
         return false;
     }
-    otLog5 << __FUNCTION__ << ": salt length actually read: "
-           << static_cast<std::int64_t>(nRead) << " \n";
+
+    LogInsane(OT_METHOD)(__FUNCTION__)(": salt length actually read: ")(nRead)
+        .Flush();
+
     OT_ASSERT(nRead == static_cast<std::uint32_t>(lSaltSize));
 
     // Read network-order "IV size". (convert to host order)
@@ -1002,13 +993,9 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     // convert from network to HOST endian.
 
     const std::uint32_t lIVSize = ntohl(n_iv_size);
-
-    otLog5 << __FUNCTION__
-           << ": iv_size value: " << static_cast<std::int64_t>(lIVSize)
-           << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": iv_size value: ")(lIVSize).Flush();
 
     // Then read the IV itself.
-    //
     iv_->SetSize(lIVSize);
 
     if (0 == (nRead = theInput.OTfread(
@@ -1019,9 +1006,8 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
         return false;
     }
 
-    otLog5 << __FUNCTION__
-           << ": iv length actually read: " << static_cast<std::int64_t>(nRead)
-           << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": iv length actually read: ")(nRead)
+        .Flush();
 
     OT_ASSERT(nRead == static_cast<std::uint32_t>(lIVSize));
 
@@ -1041,10 +1027,8 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
     // convert from network to HOST endian.
 
     const std::uint32_t lEncKeySize = ntohl(n_enc_key_size);
-
-    otLog5 << __FUNCTION__
-           << ": enc_key_size value: " << static_cast<std::int64_t>(lEncKeySize)
-           << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": enc_key_size value: ")(lEncKeySize)
+        .Flush();
 
     // Then read the Encrypted Key itself.
     //
@@ -1059,8 +1043,9 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
         return false;
     }
 
-    otLog5 << __FUNCTION__ << ": encrypted key length actually read: "
-           << static_cast<std::int64_t>(nRead) << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(
+        ": encrypted key length actually read: ")(nRead)
+        .Flush();
 
     OT_ASSERT(nRead == static_cast<std::uint32_t>(lEncKeySize));
 
@@ -1087,8 +1072,9 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
 
     const std::uint32_t lHashCheckSize = ntohl(n_hash_check_size);
 
-    otLog5 << __FUNCTION__ << ": hash_check_size value: "
-           << static_cast<std::int64_t>(lHashCheckSize) << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": hash_check_size value: ")(
+        lHashCheckSize)
+        .Flush();
 
     // Then read the Hashcheck itself.
     //
@@ -1103,8 +1089,9 @@ bool LegacySymmetric::serialize_from(const Lock& lock, Data& theInput)
         return false;
     }
 
-    otLog5 << __FUNCTION__ << ": hash check data actually read: "
-           << static_cast<std::int64_t>(nRead) << " \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": hash check data actually read: ")(
+        nRead)
+        .Flush();
 
     OT_ASSERT(nRead == static_cast<std::uint32_t>(lHashCheckSize));
 
@@ -1183,18 +1170,11 @@ bool LegacySymmetric::serialize_to(const Lock& lock, Data& theOutput) const
     std::uint32_t n_enc_key_size = htonl(encrypted_key_->size());
     std::uint32_t n_hash_check_size = htonl(hash_check_->size());
 
-    otLog5 << __FUNCTION__ << ": is_generated: "
-           << static_cast<std::int32_t>(ntohs(n_is_generated))
-           << "   key_size_bits: "
-           << static_cast<std::int32_t>(ntohs(n_key_size_bits))
-           << "   iteration_count: "
-           << static_cast<std::int64_t>(ntohl(n_iteration_count))
-           << "   \n  "
-              "salt_size: "
-           << static_cast<std::int64_t>(ntohl(n_salt_size))
-           << "   iv_size: " << static_cast<int64_t>(ntohl(n_iv_size))
-           << "   enc_key_size: " << static_cast<int64_t>(ntohl(n_enc_key_size))
-           << "   \n";
+    LogInsane(OT_METHOD)(__FUNCTION__)(": is_generated: ")(n_is_generated)(
+        "   key_size_bits: ")(n_key_size_bits)("   iteration_count: ")(
+        n_iteration_count)("\n")("salt_size: ")(n_salt_size)("   iv_size: ")(
+        n_iv_size)("   enc_key_size: ")(n_enc_key_size)
+        .Flush();
 
     theOutput.Concatenate(
         reinterpret_cast<void*>(&n_is_generated),

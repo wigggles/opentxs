@@ -102,33 +102,19 @@ Log* Log::pLogger{nullptr};
 const OTString Log::m_strVersion = String::Factory(OPENTXS_VERSION_STRING);
 const OTString Log::m_strPathSeparator = String::Factory("/");
 
-OTLOG_IMPORT OTLogStream otErr(-1);  // logs using otErr << )
+OTLOG_IMPORT OTLogStream otErr(-1);  // logs using OTLog::vOutput(-1)
 OTLOG_IMPORT OTLogStream otInfo(2);  // logs using OTLog::vOutput(2)
 OTLOG_IMPORT OTLogStream otOut(0);   // logs using OTLog::vOutput(0)
 OTLOG_IMPORT OTLogStream otWarn(1);  // logs using OTLog::vOutput(1)
 OTLOG_IMPORT OTLogStream otLog3(3);  // logs using OTLog::vOutput(3)
-OTLOG_IMPORT OTLogStream otLog4(4);  // logs using OTLog::vOutput(4)
-OTLOG_IMPORT OTLogStream otLog5(5);  // logs using OTLog::vOutput(5)
 
-// static
-bool Log::PushMemlogFront(const String& strLog)
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    OT_ASSERT(strLog.Exists());
-
-    Log::pLogger->logDeque.push_front(String::Factory(strLog.Get()));
-
-    if (Log::pLogger->logDeque.size() > LOG_DEQUE_SIZE) {
-        Log::PopMemlogBack();  // We start removing from the back when it
-                               // reaches this size.
-    }
-
-    return true;
-}
+LogSource LogOutput{-1};
+LogSource LogNormal{0};
+LogSource LogDetail{1};
+LogSource LogVerbose{2};
+LogSource LogDebug{3};
+LogSource LogTrace{4};
+LogSource LogInsane{5};
 
 OTLogStream::OTLogStream(int _logLevel)
     : std::ostream(this)
@@ -165,7 +151,6 @@ int OTLogStream::overflow(int c)
 
 Log::Log(const api::Settings& config)
     : config_(config)
-    , m_strThreadContext(String::Factory())
     , m_strLogFileName(String::Factory())
     , m_strLogFilePath(String::Factory())
 
@@ -191,10 +176,8 @@ bool Log::Init(
     if (strThreadContext->Compare(GLOBAL_LOGNAME)) return false;
 
     if (!pLogger->m_bInitialized) {
-        pLogger->logDeque = std::deque<OTString>();
-        pLogger->m_strThreadContext->Set(strThreadContext);
-
         pLogger->m_nLogLevel = nLogLevel;
+        LogSource::SetVerbosity(nLogLevel);
 
         if (!strThreadContext->Exists() ||
             strThreadContext->Compare(""))  // global
@@ -288,20 +271,19 @@ const String& Log::GetVersion() { return m_strVersion; }
 const char* Log::PathSeparator() { return Log::GetPathSeparator().Get(); }
 const String& Log::GetPathSeparator() { return m_strPathSeparator; }
 
-// Set in constructor:
-
-const String& Log::GetThreadContext() { return pLogger->m_strThreadContext; }
-
 const char* Log::LogFilePath() { return Log::GetLogFilePath().Get(); }
 const String& Log::GetLogFilePath() { return pLogger->m_strLogFilePath; }
 
 // static
 std::int32_t Log::LogLevel()
 {
-    if (nullptr != pLogger)
+    if (nullptr != pLogger) {
+
         return pLogger->m_nLogLevel;
-    else
+    } else {
+
         return 0;
+    }
 }
 
 // static
@@ -311,6 +293,8 @@ bool Log::SetLogLevel(const std::int32_t& nLogLevel)
         OT_FAIL;
     } else {
         pLogger->m_nLogLevel = nLogLevel;
+        LogSource::SetVerbosity(nLogLevel);
+
         return true;
     }
 }
@@ -362,104 +346,6 @@ bool Log::LogToFile(const String& strOutput)
     }
 
     return bSuccess;
-}
-
-OTString Log::GetMemlogAtIndex(std::int32_t nIndex)
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    std::uint32_t uIndex = static_cast<uint32_t>(nIndex);
-
-    if ((nIndex < 0) || (uIndex >= Log::pLogger->logDeque.size())) {
-        otErr << __FUNCTION__ << ": index out of bounds: " << nIndex << "\n";
-        return String::Factory();
-    }
-
-    OTString strLogEntry = Log::pLogger->logDeque.at(uIndex);
-
-    if (strLogEntry->Exists())
-        return strLogEntry;
-    else
-        return String::Factory();
-}
-
-// We keep 1024 logs in memory, to make them available via the API.
-
-std::int32_t Log::GetMemlogSize()
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    return static_cast<std::int32_t>(Log::pLogger->logDeque.size());
-}
-
-OTString Log::PeekMemlogFront()
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    if (Log::pLogger->logDeque.size() <= 0) return String::Factory();
-
-    const OTString strLogEntry = Log::pLogger->logDeque.front();
-
-    if (strLogEntry->Exists())
-        return strLogEntry;
-    else
-        return String::Factory();
-}
-
-OTString Log::PeekMemlogBack()
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    if (Log::pLogger->logDeque.size() <= 0) return String::Factory();
-
-    OTString strLogEntry = Log::pLogger->logDeque.back();
-
-    if (strLogEntry->Exists())
-        return strLogEntry;
-    else
-        return String::Factory();
-}
-
-// static
-bool Log::PopMemlogFront()
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    if (Log::pLogger->logDeque.size() <= 0) return false;
-
-    Log::pLogger->logDeque.pop_front();
-
-    return true;
-}
-
-// static
-bool Log::PopMemlogBack()
-{
-    // lets check if we are Initialized in this context
-    CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    if (Log::pLogger->logDeque.size() <= 0) return false;
-
-    Log::pLogger->logDeque.pop_back();
-
-    return true;
 }
 
 // static
@@ -543,27 +429,10 @@ void Log::Output(std::int32_t nVerbosity, const char* szOutput)
         (LogLevel() == (-1)))
         return;
 
-    // We store the last 1024 logs so programmers can access them via the API.
-    if (bHaveLogger) Log::PushMemlogFront(String::Factory(szOutput));
-
 #ifndef ANDROID  // if NOT android
-
     LogToFile(String::Factory(szOutput));
-
 #else  // if IS Android
-    /*
-    typedef enum android_LogPriority {
-    ANDROID_LOG_UNKNOWN = 0,
-    ANDROID_LOG_DEFAULT,    // only for SetMinPriority()
-    ANDROID_LOG_VERBOSE,
-    ANDROID_LOG_DEBUG,
-    ANDROID_LOG_INFO,
-    ANDROID_LOG_WARN,
-    ANDROID_LOG_ERROR,
-    ANDROID_LOG_FATAL,
-    ANDROID_LOG_SILENT,     // only for SetMinPriority(); must be last
-    } android_LogPriority;
-    */
+
     switch (nVerbosity) {
         case 0:
         case 1:
@@ -665,9 +534,6 @@ void Log::Error(const char* szError)
 
     if ((nullptr == szError)) return;
 
-    // We store the last 1024 logs so programmers can access them via the API.
-    if (bHaveLogger) Log::PushMemlogFront(String::Factory(szError));
-
 #ifndef ANDROID  // if NOT android
 
     LogToFile(String::Factory(szError));
@@ -675,51 +541,6 @@ void Log::Error(const char* szError)
 #else  // if Android
     __android_log_write(ANDROID_LOG_ERROR, "OT Error", szError);
 #endif
-}
-
-// NOTE: if you have problems compiling on certain platforms, due to the use
-// of errno, then just use preprocessor directives to carve those portions out
-// of this function, replacing with a message about the unavailability of errno.
-//
-// static
-void Log::Errno(const char* szLocation)  // stderr
-{
-    bool bHaveLogger(false);
-    if (nullptr != pLogger)
-        if (pLogger->IsInitialized()) bHaveLogger = true;
-
-    // lets check if we are Initialized in this context
-    if (bHaveLogger) CheckLogger(Log::pLogger);
-
-    if (nullptr != pLogger) { rLock lock(Log::pLogger->lock_); }
-
-    const std::int32_t errnum = errno;
-    char buf[128];
-    buf[0] = '\0';
-
-    std::int32_t nstrerr = 0;
-    char* szErrString = nullptr;
-
-#if defined(_GNU_SOURCE) && defined(__linux__) && !defined(ANDROID)
-    szErrString = strerror_r(errnum, buf, 127);
-#elif defined(_POSIX_C_SOURCE)
-#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600)
-    // (strerror_r is threadsafe version of strerror)
-    nstrerr = strerror_r(errnum, buf, 127);
-#endif
-#endif
-
-    const char* szFunc = "OTLog::Errno";
-    const char* sz_location = (nullptr == szLocation) ? "" : szLocation;
-
-    if (nullptr == szErrString) szErrString = buf;
-
-    if (0 == nstrerr)
-        otErr << szFunc << " " << sz_location << ": errno " << errnum << ": "
-              << (szErrString[0] != '\0' ? szErrString : "") << ".\n";
-    else
-        otErr << szFunc << " " << sz_location << ": errno: " << errnum
-              << ". (Unable to retrieve error string for that number.)\n";
 }
 
 // String Helpers

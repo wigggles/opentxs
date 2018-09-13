@@ -42,6 +42,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::OTMarket::"
+
 namespace opentxs
 {
 OTMarket::OTMarket(const api::Core& core, const char* szFilename)
@@ -733,7 +735,9 @@ bool OTMarket::AddOffer(
         // If it's not already on the list, then add it...
         if (it == m_mapOffers.end()) {
             m_mapOffers[lTransactionNum] = &theOffer;
-            otLog4 << "Offer added as an offer to the market...\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                "Offer added as an offer to the market.")
+                .Flush();
         }
         // Otherwise, if it was already there, log an error.
         else {
@@ -760,14 +764,18 @@ bool OTMarket::AddOffer(
                                                      // first, so I am last in
                                                      // line at lower bound.
                 std::pair<std::int64_t, OTOffer*>(lPriceLimit, &theOffer));
-            otLog4 << "Offer added as a bid to the market.\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                "Offer added as a bid to the market.")
+                .Flush();
         } else {
             m_mapAsks.insert(
                 m_mapAsks.upper_bound(lPriceLimit),  // lowest price sells
                                                      // first, so I am last in
                                                      // line at upper bound.
                 std::pair<std::int64_t, OTOffer*>(lPriceLimit, &theOffer));
-            otLog4 << "Offer added as an ask to the market.\n";
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                "Offer added as an ask to the market.")
+                .Flush();
         }
 
         if (bSaveFile) {
@@ -1053,7 +1061,9 @@ void OTMarket::ProcessTrade(
         (theTrade.GetSenderAcctID() == pOtherTrade->GetCurrencyAcctID()) ||
         (theTrade.GetCurrencyAcctID() == pOtherTrade->GetSenderAcctID()) ||
         (theTrade.GetCurrencyAcctID() == pOtherTrade->GetCurrencyAcctID())) {
-        otLog5 << "Failed to process trades: they had account IDs in common.\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            "Failed to process trades: they had account IDs in common.")
+            .Flush();
 
         // No need to remove either of the trades since they might still be
         // valid when
@@ -2655,9 +2665,9 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
             theOffer.GetAmountAvailable());
     }
 
-    if (bValidOffer)
-        otLog4 << "Offer is valid for market.\n";
-    else {
+    if (bValidOffer) {
+        LogTrace(OT_METHOD)(__FUNCTION__)("Offer is valid for market.").Flush();
+    } else {
         otOut << __FUNCTION__
               << ": Offer is invalid for this market: " << strReason << "\n";
     }

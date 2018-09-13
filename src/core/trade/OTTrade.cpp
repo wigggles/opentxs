@@ -34,6 +34,8 @@
 #include <set>
 #include <string>
 
+#define OT_METHOD "opentxs::OTTrade::"
+
 namespace opentxs
 {
 enum { TradeProcessIntervalSeconds = 10 };
@@ -731,9 +733,11 @@ bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
     // you check first and make sure the Nym who requested it actually has said
     // trans# (and 2 related closing #s) signed out to him on his last receipt.
     if (!context.Nym()->CompareID(GetSenderNymID())) {
-        otLog5 << "OTTrade::CanRemoveItem: nym is not the originator of "
-                  "this CronItem. "
-                  "(He could be a recipient though, so this is normal.)\n";
+        LogInsane(OT_METHOD)(__FUNCTION__)(
+            ": nym is not the originator of this CronItem. (He could be a "
+            "recipient though, so this is normal.)")
+            .Flush();
+
         return false;
     }
     // By this point, that means nym is DEFINITELY the originator (sender)...

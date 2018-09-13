@@ -229,8 +229,9 @@ bool EllipticCurve::ReEncryptPrivateKey(
         }
 
         if (haveClearKey) {
-            otLog4 << __FUNCTION__ << ": Success decrypting private key."
-                   << std::endl;
+            LogTrace(OT_METHOD)(__FUNCTION__)(
+                ": Success decrypting private key.")
+                .Flush();
 
             // Okay, we have loaded up the private key, now let's save it
             // using the new passphrase.

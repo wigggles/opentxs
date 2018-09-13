@@ -64,7 +64,7 @@ bool ConfigLoader::load(
             strValue,
             bIsNewKey);
         walletFilename.Set(strValue);
-        Log::vOutput(0, "Using Wallet: %s\n", strValue.Get());
+        otOut << "Using Wallet: " << strValue << "\n";
     }
 
     // CRON
@@ -256,8 +256,7 @@ bool ConfigLoader::load(
                 "security", "password_folder", "", strValue, bIsNewKey2);
             if (strValue.Exists()) {
                 OTKeyring::FlatFile_SetPasswordFolder(strValue.Get());
-                Log::vOutput(
-                    0, " Using server password folder: %s\n", strValue.Get());
+                otOut << " Using server password folder: " << strValue << "\n";
             }
         }
 #endif
@@ -423,7 +422,7 @@ bool ConfigLoader::load(
 
     // Done Loading... Lets save any changes...
     if (!config.Save()) {
-        Log::vError("%s: Error! Unable to save updated Config!!!\n", szFunc);
+        otErr << szFunc << ": Error! Unable to save updated Config!!!\n";
         OT_FAIL;
     }
 

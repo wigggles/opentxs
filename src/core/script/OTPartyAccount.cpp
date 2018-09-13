@@ -33,6 +33,8 @@
 // This also makes sure that Nyms and Entities don't ever share IDs, so the
 // IDs become more and more interchangeable.
 
+#define OT_METHOD "opentxs::OTPartyAccount::"
+
 namespace opentxs
 {
 OTPartyAccount::OTPartyAccount(
@@ -130,12 +132,10 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
 
     const auto theMemberAcctID = Identifier::Factory(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {
-        String strRHS(theAcctID);
-        otLog4 << "OTPartyAccount::" << __FUNCTION__
-               << ": Account IDs don't match: " << m_strAcctID << " / "
-               << strRHS << " \n";
-        // I set output to 4 because it's normal to call IsAccountByID() even
-        // when they don't match.
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Account IDs don't match: ")(
+            m_strAcctID)(" / ")(theAcctID)
+            .Flush();
+
         return false;
     }
 
@@ -162,12 +162,10 @@ bool OTPartyAccount::IsAccount(const Account& theAccount)
 
     const auto theAcctID = Identifier::Factory(m_strAcctID);
     if (!(theAccount.GetRealAccountID() == theAcctID)) {
-        String strRHS(theAccount.GetRealAccountID());
-        otLog4 << "OTPartyAccount::" << __FUNCTION__
-               << ": Account IDs don't match: " << m_strAcctID << " / "
-               << strRHS
-               << " \n";  // I set output to 4 because it's normal to call
-                          // IsAccount() even when they don't match.
+        LogTrace(OT_METHOD)(__FUNCTION__)(": Account IDs don't match: ")(
+            m_strAcctID)(" / ")(theAccount.GetRealAccountID())
+            .Flush();
+
         return false;
     }
 

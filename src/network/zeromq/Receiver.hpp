@@ -37,24 +37,19 @@ protected:
     // Not owned by this class
     void* receiver_socket_{nullptr};
     OTFlag receiver_run_;
-    std::unique_ptr<std::thread> receiver_thread_{nullptr};
+    std::thread receiver_thread_{};
 
     virtual bool have_callback() const { return false; }
 
     virtual void process_incoming(const Lock& lock, T& message) = 0;
     virtual void thread()
     {
-        otInfo << RECEIVER_METHOD << __FUNCTION__ << ": Starting listener"
-               << std::endl;
-
         while (receiver_run_.get()) {
             if (have_callback()) { break; }
 
             Log::Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
         }
 
-        otInfo << RECEIVER_METHOD << __FUNCTION__ << ": Callback ready"
-               << std::endl;
         zmq_pollitem_t poll[1];
 
         while (receiver_run_.get()) {
@@ -62,17 +57,13 @@ protected:
             poll[0].events = ZMQ_POLLIN;
             const auto events = zmq_poll(poll, 1, RECEIVER_POLL_MILLISECONDS);
 
-            if (0 == events) {
-                otInfo << RECEIVER_METHOD << __FUNCTION__ << ": No messages."
-                       << std::endl;
-
-                continue;
-            }
+            if (0 == events) { continue; }
 
             if (-1 == events) {
                 const auto error = zmq_errno();
-                otErr << RECEIVER_METHOD << __FUNCTION__
-                      << ": Poll error: " << zmq_strerror(error) << std::endl;
+                std::cerr << RECEIVER_METHOD << __FUNCTION__
+                          << ": Poll error: " << zmq_strerror(error)
+                          << std::endl;
 
                 continue;
             }
@@ -90,33 +81,25 @@ protected:
             process_incoming(lock, reply);
             lock.unlock();
         }
-
-        otInfo << RECEIVER_METHOD << __FUNCTION__ << ": Shutting down"
-               << std::endl;
     }
 
     Receiver(std::mutex& lock, void* socket, const bool startThread)
         : receiver_lock_(lock)
         , receiver_socket_(socket)
         , receiver_run_(Flag::Factory(true))
-        , receiver_thread_(nullptr)
+        , receiver_thread_()
     {
         if (startThread) {
-            receiver_thread_.reset(new std::thread(&Receiver::thread, this));
-
-            OT_ASSERT(receiver_thread_)
+            receiver_thread_ = std::thread(&Receiver::thread, this);
         }
     }
 
     virtual ~Receiver()
     {
-        Lock lock(receiver_lock_);
         receiver_run_->Off();
+        Lock lock(receiver_lock_);
 
-        if (receiver_thread_ && receiver_thread_->joinable()) {
-            receiver_thread_->join();
-            receiver_thread_.reset();
-        }
+        if (receiver_thread_.joinable()) { receiver_thread_.join(); }
 
         receiver_socket_ = nullptr;
     }

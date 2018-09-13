@@ -59,14 +59,15 @@ private:
     mutable std::mutex task_list_lock_;
     mutable std::mutex signal_handler_lock_;
     mutable ConfigMap config_;
+    OTZMQContext zmq_context_;
+    mutable std::unique_ptr<Signals> signal_handler_;
+    std::unique_ptr<api::internal::Log> log_;
     std::unique_ptr<api::Crypto> crypto_;
     std::unique_ptr<api::Legacy> legacy_;
     mutable std::vector<std::unique_ptr<api::client::internal::Manager>>
         client_;
     mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
-    OTZMQContext zmq_context_;
     std::unique_ptr<api::network::ZAP> zap_;
-    mutable std::unique_ptr<Signals> signal_handler_;
     const ArgList server_args_;
     mutable ShutdownCallback* shutdown_callback_{nullptr};
     std::unique_ptr<OTCallback> null_callback_{nullptr};
@@ -97,6 +98,6 @@ private:
     void start_client(const Lock& lock, const ArgList& args) const;
     void start_server(const Lock& lock, const ArgList& args) const;
 
-    ~Native() = default;
+    ~Native();
 };
 }  // namespace opentxs::api::implementation

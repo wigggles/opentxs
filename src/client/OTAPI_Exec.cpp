@@ -150,9 +150,8 @@ bool OTAPI_Exec::CheckSetConfigSection(
         strSection.c_str(), strComment.c_str(), b_isNewSection);
     if (bSuccess && b_isNewSection) {
         if (!api_.Config().Save()) {
-            Log::vError(
-                "%s: Error: Unable to save updated config file.\n",
-                __FUNCTION__);
+            otErr << __FUNCTION__
+                  << ": Error: Unable to save updated config file.\n";
             OT_FAIL;
         }
     }
@@ -171,9 +170,8 @@ bool OTAPI_Exec::SetConfig_str(
 
     if (bSuccess && b_isNew) {
         if (!api_.Config().Save()) {
-            Log::vError(
-                "%s: Error: Unable to save updated config file.\n",
-                __FUNCTION__);
+            otErr << __FUNCTION__
+                  << ": Error: Unable to save updated config file.\n";
             OT_FAIL;
         }
     }
@@ -192,9 +190,8 @@ bool OTAPI_Exec::SetConfig_long(
 
     if (bSuccess && b_isNew) {
         if (!api_.Config().Save()) {
-            Log::vError(
-                "%s: Error: Unable to save updated config file.\n",
-                __FUNCTION__);
+            otErr << __FUNCTION__
+                  << ": Error: Unable to save updated config file.\n";
             OT_FAIL;
         }
     }
@@ -213,9 +210,8 @@ bool OTAPI_Exec::SetConfig_bool(
 
     if (bSuccess && b_isNew) {
         if (!api_.Config().Save()) {
-            Log::vError(
-                "%s: Error: Unable to save updated config file.\n",
-                __FUNCTION__);
+            otErr << __FUNCTION__
+                  << ": Error: Unable to save updated config file.\n";
             OT_FAIL;
         }
     }
@@ -266,20 +262,6 @@ bool OTAPI_Exec::GetConfig_bool(
     return false;
 }
 
-/** Output to the screen (stderr.)
-(This is so stdout can be left clean for the ACTUAL output.)
-Log level is 0 (least verbose) to 5 (most verbose.)
-*/
-void OTAPI_Exec::Output(
-    const std::int32_t& nLogLevel,
-    const std::string& strOutput) const
-{
-    const auto otstrOutput =
-        String::Factory(!strOutput.empty() ? strOutput : "\n");
-
-    Log::Output(nLogLevel, otstrOutput->Get());
-}
-
 bool OTAPI_Exec::SetWallet(const std::string& strWalletFilename) const
 {
     auto sWalletFilename = String::Factory(strWalletFilename);
@@ -308,50 +290,6 @@ bool OTAPI_Exec::WalletExists() const { return ot_api_.WalletExists(); }
 bool OTAPI_Exec::LoadWallet() const { return ot_api_.LoadWallet(); }
 
 bool OTAPI_Exec::SwitchWallet() const { return ot_api_.LoadWallet(); }
-
-std::int32_t OTAPI_Exec::GetMemlogSize() const { return Log::GetMemlogSize(); }
-
-std::string OTAPI_Exec::GetMemlogAtIndex(const std::int32_t& nIndex) const
-{
-    return Log::GetMemlogAtIndex(nIndex)->Get();
-}
-
-std::string OTAPI_Exec::PeekMemlogFront() const
-{
-    return Log::PeekMemlogFront()->Get();
-}
-
-std::string OTAPI_Exec::PeekMemlogBack() const
-{
-    return Log::PeekMemlogBack()->Get();
-}
-
-bool OTAPI_Exec::PopMemlogFront() const { return Log::PopMemlogFront(); }
-
-bool OTAPI_Exec::PopMemlogBack() const { return Log::PopMemlogBack(); }
-
-// OpenTransactions.h
-// bool      NumList_Add        (OTNumList& theList, const OTNumList&
-// theNewNumbers);
-// bool      NumList_Remove     (OTNumList& theList, const OTNumList&
-// theOldNumbers);
-// bool      NumList_VerifyQuery(OTNumList& theList, const OTNumList&
-// theQueryNumbers);
-// bool      NumList_VerifyAll  (OTNumList& theList, const OTNumList&
-// theQueryNumbers);
-// std::int32_t   NumList_Count      (OTNumList& theList);
-
-// OTAPI_funcdef.h
-// std::string      OTAPI_Exec::NumList_Add        (const std::string&
-// strNumList, const std::string& strNumbers);
-// std::string      OTAPI_Exec::NumList_Remove     (const std::string&
-// strNumList, const std::string& strNumbers);
-// std::int32_t          OTAPI_Exec::NumList_VerifyQuery(const std::string&
-// strNumList, const std::string& strNumbers); // returns bool
-// std::int32_t          OTAPI_Exec::NumList_VerifyAll  (const std::string&
-// strNumList, const std::string& strNumbers); // returns bool
-// std::int32_t          OTAPI_Exec::NumList_Count      (const std::string&
-// strNumList);
 
 // Returns new list if ALL strNumbers are successfully added to strNumList.
 // Otherwise returns "" and doesn't change anything.
@@ -6945,10 +6883,11 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
     // No need to cleanup this transaction, the ledger owns it already.
 
     if (false == bool(pTransaction)) {
-        otLog4 << OT_METHOD << __FUNCTION__
-               << ": No replyNotice transactions found in ledger with request "
-                  "number: "
-               << lRequestNumber << "\n";
+        LogTrace(OT_METHOD)(__FUNCTION__)(
+            ": No replyNotice transactions found "
+            "in ledger with request number: ")(lRequestNumber)
+            .Flush();
+
         return {};  // Maybe he was just looking; this isn't necessarily an
                     // error.
     }
