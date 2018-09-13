@@ -41,8 +41,6 @@
 #include <thread>
 #include <typeinfo>
 
-#define LOG_DEQUE_SIZE 1024
-
 extern "C" {
 
 #ifdef _WIN32
