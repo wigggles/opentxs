@@ -1130,7 +1130,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
 
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
-        if (!pstrNote->Exists()) {
+        if (pstrNote->Exists()) {
             pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
         }
 
@@ -1138,7 +1138,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (!pstrAttachment->Exists()) {
+        if (pstrAttachment->Exists()) {
             pItem1->SetAttachment(pstrAttachment);
         }
 
@@ -1313,7 +1313,7 @@ bool OTCronItem::DropFinalReceiptToNymbox(
 
         // The finalReceipt ITEM's NOTE contains the UPDATED CRON ITEM.
         //
-        if (!pstrNote->Exists()) {
+        if (pstrNote->Exists()) {
             pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
         }
 
@@ -1474,7 +1474,7 @@ bool OTCronItem::GetCancelerID(Identifier& theOutput) const
 //
 bool OTCronItem::CancelBeforeActivation(const Nym& theCancelerNym)
 {
-    OT_ASSERT(nullptr) m_pCancelerNymID->empty();
+    OT_ASSERT(!m_pCancelerNymID->empty());
 
     if (IsCanceled()) return false;
 

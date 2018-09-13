@@ -232,14 +232,14 @@ bool OTAgreement::DropServerNoticeToNymbox(
 
         // The notice ITEM's NOTE probably contains the UPDATED SCRIPTABLE
         // (usually a CRON ITEM. But maybe soon: Entity.)
-        if (!pstrNote->Exists()) {
+        if (pstrNote->Exists()) {
             pItem1->SetNote(pstrNote);  // in markets, this is updated trade.
         }
 
         // Nothing is special stored here so far for transactionType::notice,
         // but the option is always there.
         //
-        if (!pstrAttachment->Exists()) {
+        if (pstrAttachment->Exists()) {
             pItem1->SetAttachment(pstrAttachment);
         }
 

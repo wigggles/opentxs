@@ -60,10 +60,10 @@ OTWallet::OTWallet(const api::Core& api)
 #if OT_CASH
     , m_pWithdrawalPurse(nullptr)
 #endif
-    , m_strName()
-    , m_strVersion()
-    , m_strFilename()
-    , m_strDataFolder(api_.DataFolder())
+    , m_strName(String::Factory())
+    , m_strVersion(String::Factory())
+    , m_strFilename(String::Factory())
+    , m_strDataFolder(String::Factory(api_.DataFolder()))
 {
     // WARNING: do not access api_.Wallet() during construction
 }
@@ -213,14 +213,14 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
     // and base64 in storage.
     Armored ascName;
 
-    if (m_strName.Exists()) {
+    if (m_strName->Exists()) {
         ascName.SetString(m_strName, false);  // linebreaks == false
     }
 
     auto& cachedKey = api_.Crypto().DefaultKey();
-    tag.add_attribute("name", m_strName.Exists() ? ascName.Get() : "");
+    tag.add_attribute("name", m_strName->Exists() ? ascName.Get() : "");
     tag.add_attribute(
-        "version", cachedKey.IsGenerated() ? "2.0" : m_strVersion.Get());
+        "version", cachedKey.IsGenerated() ? "2.0" : m_strVersion->Get());
 
     if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
@@ -244,7 +244,7 @@ bool OTWallet::Encrypt_ByKeyID(
     const std::string&,
     const String&,
     String&,
-    const String*,
+    const String&,
     bool)
 {
     return false;
@@ -254,7 +254,7 @@ bool OTWallet::Decrypt_ByKeyID(
     const std::string&,
     const String&,
     String&,
-    const String*)
+    const String&)
 {
     return false;
 }
@@ -265,21 +265,21 @@ bool OTWallet::save_wallet(const Lock& lock, const char* szFilename)
 {
     OT_ASSERT(verify_lock(lock))
 
-    if (nullptr != szFilename) m_strFilename.Set(szFilename);
+    if (nullptr != szFilename) m_strFilename->Set(szFilename);
 
-    if (!m_strFilename.Exists()) {
+    if (!m_strFilename->Exists()) {
         otErr << __FUNCTION__ << ": Filename Dosn't Exist!\n";
         OT_FAIL;
     }
 
     bool bSuccess = false;
-    String strContract;
+    auto strContract = String::Factory();
 
     if (save_contract(lock, strContract)) {
 
         // Try to save the wallet to local storage.
         //
-        String strFinal;
+        auto strFinal = String::Factory();
         Armored ascTemp(strContract);
 
         if (false ==
@@ -295,10 +295,10 @@ bool OTWallet::save_wallet(const Lock& lock, const char* szFilename)
         // Wallet file is the only one in data_folder (".") and not a subfolder
         // of that.
         bSuccess = OTDB::StorePlainString(
-            strFinal.Get(),
+            strFinal->Get(),
             api_.DataFolder(),
             ".",
-            m_strFilename.Get(),
+            m_strFilename->Get(),
             "",
             "");  // <==== Store
                   // Plain String
@@ -330,7 +330,7 @@ HXTM/x449Al2z8zBHBTRF77jhHkYLj8MIgqrJ2Ep
 bool OTWallet::LoadWallet(const char* szFilename)
 {
     OT_ASSERT_MSG(
-        m_strFilename.Exists() || (nullptr != szFilename),
+        m_strFilename->Exists() || (nullptr != szFilename),
         "OTWallet::LoadWallet: nullptr filename.\n");
 
     Lock lock(lock_);
@@ -344,13 +344,13 @@ bool OTWallet::LoadWallet(const char* szFilename)
     // of those will be appended to the local path to form the complete file
     // path.)
     //
-    if (!m_strFilename.Exists())        // If it's not already set, then set it.
-        m_strFilename.Set(szFilename);  // (We know nullptr wasn't passed in, in
+    if (!m_strFilename->Exists())        // If it's not already set, then set it.
+        m_strFilename->Set(szFilename);  // (We know nullptr wasn't passed in, in
                                         // this case.)
 
     if (nullptr == szFilename)  // If nullptr was passed in, then set the
                                 // pointer to existing string.
-        szFilename = m_strFilename.Get();  // (We know existing string is there,
+        szFilename = m_strFilename->Get();  // (We know existing string is there,
                                            // in this case.)
 
     if (!OTDB::Exists(api_.DataFolder(), ".", szFilename, "", "")) {
@@ -369,14 +369,14 @@ bool OTWallet::LoadWallet(const char* szFilename)
         }
     }
 
-    String strFileContents(OTDB::QueryPlainString(
+    auto strFileContents = String::Factory(OTDB::QueryPlainString(
         api_.DataFolder(), ".", szFilename, "", ""));  // <===
                                                        // LOADING
                                                        // FROM
                                                        // DATA
                                                        // STORE.
 
-    if (!strFileContents.Exists()) {
+    if (!strFileContents->Exists()) {
         otErr << __FUNCTION__ << ": Error reading wallet file: " << szFilename
               << "\n";
         return false;
@@ -404,15 +404,15 @@ bool OTWallet::LoadWallet(const char* szFilename)
         // parse the file until end reached
         while (xml && xml->read()) {
             // strings for storing the data that we want to read out of the file
-            String NymName;
-            String NymID;
-            String AssetName;
-            String InstrumentDefinitionID;
-            String ServerName;
-            String NotaryID;
-            String AcctName;
-            String AcctID;
-            const String strNodeName(xml->getNodeName());
+            auto NymName = String::Factory();
+            auto NymID = String::Factory();
+            auto AssetName = String::Factory();
+            auto InstrumentDefinitionID = String::Factory();
+            auto ServerName = String::Factory();
+            auto NotaryID = String::Factory();
+            auto AcctName = String::Factory();
+            auto AcctID = String::Factory();
+            const auto strNodeName = String::Factory(xml->getNodeName());
 
             switch (xml->getNodeType()) {
                 case irr::io::EXN_NONE:
@@ -425,7 +425,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // messageText = xml->getNodeData();
                     break;
                 case irr::io::EXN_ELEMENT: {
-                    if (strNodeName.Compare("wallet")) {
+                    if (strNodeName->Compare("wallet")) {
                         Armored ascWalletName = xml->getAttributeValue("name");
 
                         if (ascWalletName.Exists())
@@ -441,7 +441,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         otWarn << "\nLoading wallet: " << m_strName
                                << ", version: " << m_strVersion << "\n";
-                    } else if (strNodeName.Compare("cachedKey")) {
+                    } else if (strNodeName->Compare("cachedKey")) {
                         Armored ascCachedKey;
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
@@ -464,7 +464,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
 
                         otWarn << "Loading cachedKey:\n"
                                << ascCachedKey << "\n";
-                    } else if (strNodeName.Compare("account")) {
+                    } else if (strNodeName->Compare("account")) {
                         Armored ascAcctName = xml->getAttributeValue("name");
 
                         if (ascAcctName.Exists())
@@ -501,7 +501,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     // From now on, the BIP39 class tracks the last used index
                     // individually for each seed rather than globally in the
                     // wallet (which assumed only one seed existed).
-                    else if (strNodeName.Compare("hd")) {
+                    else if (strNodeName->Compare("hd")) {
 #if OT_CRYPTO_SUPPORTED_KEY_HD
                         std::uint32_t index = String::StringToUint(
                             xml->getAttributeValue("index"));

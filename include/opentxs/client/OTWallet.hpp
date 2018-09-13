@@ -52,12 +52,12 @@ public:
         const std::string& key_id,
         const String& strCiphertext,
         String& strOutput,
-        const String* pstrDisplay = nullptr);
+        const String& pstrDisplay = String::Factory());
     EXPORT[[deprecated]] bool Encrypt_ByKeyID(
         const std::string& key_id,
         const String& strPlaintext,
         String& strOutput,
-        const String* pstrDisplay = nullptr,
+        const String& pstrDisplay = String::Factory(),
         bool bBookends = true);
 #if OT_CASH
     EXPORT Purse* GetPendingWithdrawal();
@@ -88,10 +88,10 @@ private:
     // here for unblinding
     Purse* m_pWithdrawalPurse{nullptr};
 #endif  // OT_CASH
-    String m_strName{};
-    String m_strVersion{};
-    String m_strFilename{};
-    String m_strDataFolder{};
+    OTString m_strName;
+    OTString m_strVersion;
+    OTString m_strFilename;
+    OTString m_strDataFolder;
 
     void release(const Lock& lock);
     bool save_contract(const Lock& lock, String& strContract);

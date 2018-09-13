@@ -255,7 +255,7 @@ bool Cheque::IssueCheque(
                                           // cheque.)
 {
     m_lAmount = lAmount;
-    m_strMemo = strMemo;
+    m_strMemo.Set(strMemo);
 
     SetValidFrom(VALID_FROM);
     SetValidTo(VALID_TO);
