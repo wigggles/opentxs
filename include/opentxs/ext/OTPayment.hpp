@@ -136,7 +136,7 @@ public:
         const Identifier& theNymID) const;
     EXPORT bool GetPaymentContents(String& strOutput) const
     {
-        strOutput = m_strPayment;
+        strOutput.Set(m_strPayment->Get());
         return true;
     }
     EXPORT bool GetRecipientAcctID(Identifier& theOutput) const;
@@ -204,7 +204,7 @@ public:
 
 protected:
     // Contains the cheque / payment plan / etc in string form.
-    String m_strPayment;
+    OTString m_strPayment;
     paymentType m_Type{ERROR_STATE};
     // Once the actual instrument is loaded up, we copy some temp values to
     // *this object. Until then, this bool (m_bAreTempValuesSet) is set to
@@ -223,7 +223,7 @@ protected:
     TransactionNumber m_lTransactionNum{0};
     TransactionNumber m_lTransNumDisplay{0};
     // Memo, Consideration, Subject, etc.
-    String m_strMemo;
+    OTString m_strMemo;
 
     // These are for convenience only, for caching once they happen to be
     // loaded. These values are NOT serialized other than via the payment

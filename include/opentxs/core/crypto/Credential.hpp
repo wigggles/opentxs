@@ -50,7 +50,7 @@ typedef std::shared_ptr<proto::Credential> serializedCredential;
 class Credential : public Signable
 {
 public:
-    static String CredentialTypeToString(proto::CredentialType credentialType);
+    static OTString CredentialTypeToString(proto::CredentialType credentialType);
     static serializedCredential ExtractArmoredCredential(
         const String& stringCredential);
     static serializedCredential ExtractArmoredCredential(

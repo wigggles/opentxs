@@ -331,7 +331,8 @@ OTIdentifier Credential::GetID(const Lock& lock) const
     return id;
 }
 
-String Credential::CredentialTypeToString(proto::CredentialType credentialType)
+OTString Credential::CredentialTypeToString(
+    proto::CredentialType credentialType)
 {
     auto credentialString = String::Factory();
 

@@ -27,7 +27,7 @@ proto::HashType HashingProvider::StringToHashType(const String& inputString)
         return proto::HASHTYPE_BLAKE2B512;
     return proto::HASHTYPE_ERROR;
 }
-String HashingProvider::HashTypeToString(const proto::HashType hashType)
+OTString HashingProvider::HashTypeToString(const proto::HashType hashType)
 
 {
     auto hashTypeString = String::Factory();

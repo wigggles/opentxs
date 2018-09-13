@@ -18,9 +18,10 @@ namespace crypto
 {
 class HashingProvider
 {
+
 public:
     static proto::HashType StringToHashType(const String& inputString);
-    static String HashTypeToString(const proto::HashType hashType);
+    static OTString HashTypeToString(const proto::HashType hashType);
     static std::size_t HashSize(const proto::HashType hashType);
 
     EXPORT virtual bool Digest(

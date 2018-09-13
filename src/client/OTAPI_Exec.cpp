@@ -6919,10 +6919,11 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
 
         if (false != bool(pFullTransaction)) {
             strOutput->Release();
-            strOutput->Set(String::Factory(*pFullTransaction));  // we have the
-                                                                 // FullTransaction,
-                                                                 // lets use
-                                                                 // that one.
+            strOutput->Set(
+                String::Factory(*pFullTransaction));  // we have the
+                                                      // FullTransaction,
+                                                      // lets use
+                                                      // that one.
         } else {  // nullptr == pFullTransaction
             otErr << OT_METHOD << __FUNCTION__
                   << ": good index but uncovered \"\" pointer "

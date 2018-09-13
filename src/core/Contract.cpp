@@ -952,7 +952,7 @@ bool Contract::AddBookendsAroundContent(
     strTemp->Concatenate(
         "-----BEGIN SIGNED %s-----\nHash: %s\n\n",
         strContractType.Get(),
-        strHashType.Get());
+        strHashType->Get());
 
     strTemp->Concatenate("%s", strContents.Get());
 

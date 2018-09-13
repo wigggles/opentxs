@@ -45,23 +45,23 @@ public:
     void UpdateContents() override;
 
 protected:
-    String m_strSignedFilePayload;  // This class exists to wrap another and
+    OTString m_strSignedFilePayload;  // This class exists to wrap another and
                                     // save it in signed form.
     // The "payload" (the wrapped contents) are stored in this member.
 
-    String m_strLocalDir;  // The local subdirectory where the file is, such as
+    OTString m_strLocalDir;  // The local subdirectory where the file is, such as
                            // "nyms" or "certs"
-    String m_strSignedFilename;  // The file stores its own name. Later, when
+    OTString m_strSignedFilename;  // The file stores its own name. Later, when
                                  // loading it back up, you can
     // see that the name matches internally, and that the signature matches,
     // therefore, no one has switched the file or meddled with its contents.
 
-    String m_strPurportedLocalDir;  // This is the subdirectory according to
+    OTString m_strPurportedLocalDir;  // This is the subdirectory according to
                                     // the file.
-    String m_strPurportedFilename;  // This is the filename according to the
+    OTString m_strPurportedFilename;  // This is the filename according to the
                                     // file.
 
-    String m_strSignerNymID;  // Optional. Here in case you ever
+    OTString m_strSignerNymID;  // Optional. Here in case you ever
                               // want to use it.
 
     // THOUGHT: What if someone switched the file for an older version of

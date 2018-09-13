@@ -103,7 +103,7 @@ public:
     }
     void SetMySignedCopy(const String& strMyCopy)
     {
-        m_strMySignedCopy = strMyCopy;
+        m_strMySignedCopy.Set(strMyCopy.Get());
     }
     const String& GetMySignedCopy() { return m_strMySignedCopy; }
     std::int64_t GetOpeningTransNo() const { return m_lOpeningTransNo; }

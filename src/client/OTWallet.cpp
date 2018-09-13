@@ -344,14 +344,14 @@ bool OTWallet::LoadWallet(const char* szFilename)
     // of those will be appended to the local path to form the complete file
     // path.)
     //
-    if (!m_strFilename->Exists())        // If it's not already set, then set it.
-        m_strFilename->Set(szFilename);  // (We know nullptr wasn't passed in, in
-                                        // this case.)
+    if (!m_strFilename->Exists())  // If it's not already set, then set it.
+        m_strFilename->Set(szFilename);  // (We know nullptr wasn't passed in,
+                                         // in this case.)
 
     if (nullptr == szFilename)  // If nullptr was passed in, then set the
                                 // pointer to existing string.
-        szFilename = m_strFilename->Get();  // (We know existing string is there,
-                                           // in this case.)
+        szFilename = m_strFilename->Get();  // (We know existing string is
+                                            // there, in this case.)
 
     if (!OTDB::Exists(api_.DataFolder(), ".", szFilename, "", "")) {
         otErr << __FUNCTION__ << ": Wallet file does not exist: " << szFilename

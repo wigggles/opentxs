@@ -4327,7 +4327,7 @@ Purse* OT_API::LoadPurse(
     rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
     const auto strReason = String::Factory(
         (!pstrDisplay.Exists()) ? "Loading purse from local storage."
-                               : pstrDisplay.Get());
+                                : pstrDisplay.Get());
     OTPasswordData thePWData(strReason);
     const auto strNotaryID = String::Factory(NOTARY_ID);
     const auto strNymID = String::Factory(NYM_ID);
@@ -4920,7 +4920,7 @@ Purse* OT_API::Purse_Empty(
 {
     const auto strReason = String::Factory(
         (!pstrDisplay.Exists()) ? "Making an empty copy of a cash purse."
-                               : pstrDisplay.Get());
+                                : pstrDisplay.Get());
     //  OTPasswordData thePWData(strReason);
     auto pPurse{
         api_.Factory().Purse(THE_PURSE, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
@@ -5064,7 +5064,7 @@ bool OT_API::Wallet_ImportPurse(
     Lock lock(lock_);
     auto reason = String::Factory(
         (!pstrDisplay.Exists()) ? "Enter passphrase for purse being imported."
-                               : pstrDisplay.Get());
+                                : pstrDisplay.Get());
     OTPasswordData cashPasswordReason(
         (!pstrDisplay.Exists()) ? OT_PW_DISPLAY : pstrDisplay.Get());
     OTPassword thePassword;  // Only used in the case of password-protected
@@ -9697,9 +9697,7 @@ CommandResult OT_API::triggerClause(
 
     // Optional string parameter. Available as "param_string" inside the
     // script.
-    if (pStrParam.Exists()) {
-        payload.SetString(pStrParam);
-    }
+    if (pStrParam.Exists()) { payload.SetString(pStrParam); }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::triggerClause, payload, Identifier::Factory(), requestNum);
