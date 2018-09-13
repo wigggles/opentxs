@@ -14,6 +14,8 @@
 
 #include <zmq.h>
 
+#include <array>
+
 #define OT_METHOD "opentxs::network::zeromq::implementation::CurveServer::"
 
 namespace opentxs::network::zeromq::implementation
@@ -60,7 +62,7 @@ bool CurveServer::SetPrivateKey(const std::string& z85) const
         return false;
     }
 
-    std::array<std::uint8_t, CURVE_KEY_BYTES> key{};
+    std::array<std::uint8_t, CURVE_KEY_BYTES> key;
     ::zmq_z85_decode(key.data(), z85.data());
 
     return set_private_key(key.data(), key.size());
