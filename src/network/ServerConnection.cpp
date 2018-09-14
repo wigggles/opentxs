@@ -138,7 +138,7 @@ std::pair<bool, proto::ServerReply> ServerConnection::check_for_protobuf(
     std::pair<bool, proto::ServerReply> output{false, {}};
     auto& [valid, serialized] = output;
     serialized = proto::DataToProto<proto::ServerReply>(candidate);
-    valid = proto::Validate(serialized, SILENT);
+    valid = proto::Validate(serialized, VERBOSE);
 
     return output;
 }
@@ -264,6 +264,12 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 
             return;
         }
+
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Message should be a protobuf but isn't.")
+            .Flush();
+
+        return;
     }
 
     Armored armored{};
@@ -287,8 +293,7 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
         reply.reset(message.release());
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Received server reply, "
-              << "but unable to instantiate it as a Message:\n"
-              << std::string(frame) << std::endl;
+              << "but unable to instantiate it as a Message." << std::endl;
         reply.reset();
     }
 }

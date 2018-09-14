@@ -66,9 +66,11 @@ void Log::print(
     const std::string& text,
     const std::string& thread)
 {
-    std::cerr << "(" << thread << ") ";
-    std::cerr << text << std::endl;
-    std::cerr.flush();
+    if (false == text.empty()) {
+        std::cerr << "(" << thread << ") ";
+        std::cerr << text << std::endl;
+        std::cerr.flush();
+    }
 }
 
 #ifdef ANDROID
