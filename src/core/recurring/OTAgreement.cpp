@@ -239,9 +239,7 @@ bool OTAgreement::DropServerNoticeToNymbox(
         // Nothing is special stored here so far for transactionType::notice,
         // but the option is always there.
         //
-        if (pstrAttachment->Exists()) {
-            pItem1->SetAttachment(pstrAttachment);
-        }
+        if (pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
 
         // sign the item
         //

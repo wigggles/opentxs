@@ -1141,9 +1141,7 @@ bool OTCronItem::DropFinalReceiptToInbox(
         // (With the SERVER's signature on it!) // in markets, this is updated
         // offer.
         //
-        if (pstrAttachment->Exists()) {
-            pItem1->SetAttachment(pstrAttachment);
-        }
+        if (pstrAttachment->Exists()) { pItem1->SetAttachment(pstrAttachment); }
 
         // sign the item
 

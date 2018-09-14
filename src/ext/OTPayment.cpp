@@ -77,7 +77,7 @@ char const* const __TypeStringsPayment[] = {
 
 OTPayment::OTPayment(const api::Core& core)
     : Contract(core)
-    , m_strPayment()
+    , m_strPayment(String::Factory())
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
     , m_bHasRecipient(false)
@@ -85,7 +85,7 @@ OTPayment::OTPayment(const api::Core& core)
     , m_lAmount(0)
     , m_lTransactionNum(0)
     , m_lTransNumDisplay(0)
-    , m_strMemo()
+    , m_strMemo(String::Factory())
     , m_InstrumentDefinitionID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory())
     , m_SenderNymID(Identifier::Factory())
@@ -102,7 +102,7 @@ OTPayment::OTPayment(const api::Core& core)
 
 OTPayment::OTPayment(const api::Core& core, const String& strPayment)
     : Contract(core)
-    , m_strPayment()
+    , m_strPayment(String::Factory())
     , m_Type(OTPayment::ERROR_STATE)
     , m_bAreTempValuesSet(false)
     , m_bHasRecipient(false)
@@ -110,7 +110,7 @@ OTPayment::OTPayment(const api::Core& core, const String& strPayment)
     , m_lAmount(0)
     , m_lTransactionNum(0)
     , m_lTransNumDisplay(0)
-    , m_strMemo()
+    , m_strMemo(String::Factory())
     , m_InstrumentDefinitionID(Identifier::Factory())
     , m_NotaryID(Identifier::Factory())
     , m_SenderNymID(Identifier::Factory())
@@ -289,9 +289,9 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
             m_lTransNumDisplay = m_lTransactionNum;
 
             if (theInput.GetMemo().Exists())
-                m_strMemo.Set(theInput.GetMemo());
+                m_strMemo->Set(theInput.GetMemo());
             else
-                m_strMemo.Release();
+                m_strMemo->Release();
 
             m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
             m_NotaryID = theInput.GetNotaryID();
@@ -353,7 +353,7 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
         m_lTransactionNum = 0;   // (A purse has no transaction number.)
         m_lTransNumDisplay = 0;  // (A purse has no transaction number.)
 
-        m_strMemo.Release();  // So far there's no purse memo (could add it,
+        m_strMemo->Release();  // So far there's no purse memo (could add it,
                               // though.)
 
         m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
@@ -390,7 +390,7 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
         m_bHasRecipient = true;
         m_bHasRemitter = false;
         // -------------------------------------------
-        String strCronItem;
+        auto strCronItem = String::Factory();
 
         auto pItem =
             (const_cast<OTTransaction&>(theInput)).GetItem(itemType::notice);
@@ -408,13 +408,13 @@ bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
         //            otErr << "THE ACTUAL TRANSACTION:\n\n" << strBlah << "\n";
         //        }
         // -------------------------------------------
-        if (!strCronItem.Exists())
+        if (!strCronItem->Exists())
             theInput.GetReferenceString(strCronItem);  // Didn't find the
                                                        // updated one? Okay
                                                        // let's grab the
                                                        // original then.
         // -------------------------------------------
-        if (!strCronItem.Exists()) {
+        if (!strCronItem->Exists()) {
             otErr << __FUNCTION__
                   << ": Failed geting reference string (containing cron item) "
                      "from instantiated OTPayment:\n"
@@ -481,9 +481,9 @@ void OTPayment::lowLevelSetTempValuesFromPaymentPlan(
     m_lTransNumDisplay = theInput.GetRecipientOpeningNum();
 
     if (theInput.GetConsideration().Exists())
-        m_strMemo.Set(theInput.GetConsideration());
+        m_strMemo->Set(theInput.GetConsideration());
     else
-        m_strMemo.Release();
+        m_strMemo->Release();
 
     m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
     m_NotaryID = theInput.GetNotaryID();
@@ -573,7 +573,7 @@ void OTPayment::lowLevelSetTempValuesFromSmartContract(
     // in the memo field.
     // Or something.
     //
-    m_strMemo.Release();  // not used here.
+    m_strMemo->Release();  // not used here.
 
     m_NotaryID = theInput.GetNotaryID();
     m_InstrumentDefinitionID->Release();  // not used here.
@@ -616,7 +616,7 @@ bool OTPayment::GetMemo(String& strOutput) const
         case OTPayment::INVOICE:
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::NOTICE:
-            if (m_strMemo.Exists()) {
+            if (m_strMemo->Exists()) {
                 strOutput = m_strMemo;
                 bSuccess = true;
             } else
@@ -724,7 +724,7 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
                   << m_strPayment << "\n";
             return false;
         }
-        String strCronItem;
+        auto strCronItem = String::Factory();
         // -------------------------------------------
         auto pItem = pNotice->GetItem(itemType::notice);
 
@@ -733,13 +733,13 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
             pItem->GetNote(strCronItem);  // contains the updated version of the
                                           // cron item, versus the original.
         // -------------------------------------------
-        if (!strCronItem.Exists())
+        if (!strCronItem->Exists())
             pNotice->GetReferenceString(strCronItem);  // Didn't find the
                                                        // updated one? Okay
                                                        // let's grab the
                                                        // original then.
         // -------------------------------------------
-        if (!strCronItem.Exists()) {
+        if (!strCronItem->Exists()) {
             otErr << __FUNCTION__
                   << ": Failed geting reference string (containing cron item) "
                      "from instantiated OTPayment:\n"
@@ -852,7 +852,7 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
                   << m_strPayment << "\n";
             return false;
         }
-        String strCronItem;
+        auto strCronItem = String::Factory();
         // -------------------------------------------
         auto pItem = pNotice->GetItem(itemType::notice);
 
@@ -861,13 +861,13 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
             pItem->GetNote(strCronItem);  // contains the updated version of the
                                           // cron item, versus the original.
         // -------------------------------------------
-        if (!strCronItem.Exists())
+        if (!strCronItem->Exists())
             pNotice->GetReferenceString(strCronItem);  // Didn't find the
                                                        // updated one? Okay
                                                        // let's grab the
                                                        // original then.
         // -------------------------------------------
-        if (!strCronItem.Exists()) {
+        if (!strCronItem->Exists()) {
             otErr << __FUNCTION__
                   << ": Failed geting reference string (containing cron item) "
                      "from instantiated OTPayment:\n"
@@ -973,7 +973,7 @@ bool OTPayment::GetClosingNum(
                   << m_strPayment << "\n";
             return false;
         }
-        String strCronItem;
+        auto strCronItem = String::Factory();
         // -------------------------------------------
         auto pItem = pNotice->GetItem(itemType::notice);
 
@@ -982,13 +982,13 @@ bool OTPayment::GetClosingNum(
             pItem->GetNote(strCronItem);  // contains the updated version of the
                                           // cron item, versus the original.
         // -------------------------------------------
-        if (!strCronItem.Exists())
+        if (!strCronItem->Exists())
             pNotice->GetReferenceString(strCronItem);  // Didn't find the
                                                        // updated one? Okay
                                                        // let's grab the
                                                        // original then.
         // -------------------------------------------
-        if (!strCronItem.Exists()) {
+        if (!strCronItem->Exists()) {
             otErr << __FUNCTION__
                   << ": Failed geting reference string (containing cron item) "
                      "from instantiated OTPayment:\n"
@@ -1090,7 +1090,7 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
                   << m_strPayment << "\n";
             return false;
         }
-        String strCronItem;
+        auto strCronItem = String::Factory();
         // -------------------------------------------
         auto pItem = pNotice->GetItem(itemType::notice);
 
@@ -1099,13 +1099,13 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
             pItem->GetNote(strCronItem);  // contains the updated version of the
                                           // cron item, versus the original.
         // -------------------------------------------
-        if (!strCronItem.Exists())
+        if (!strCronItem->Exists())
             pNotice->GetReferenceString(strCronItem);  // Didn't find the
                                                        // updated one? Okay
                                                        // let's grab the
                                                        // original then.
         // -------------------------------------------
-        if (!strCronItem.Exists()) {
+        if (!strCronItem->Exists()) {
             otErr << __FUNCTION__
                   << ": Failed geting reference string (containing cron item) "
                      "from instantiated OTPayment:\n"
@@ -1791,7 +1791,7 @@ OTTransaction* OTPayment::InstantiateNotice(const String& strNotice)
 
 OTTransaction* OTPayment::InstantiateNotice() const
 {
-    if (m_strPayment.Exists() && (OTPayment::NOTICE == GetType())) {
+    if (m_strPayment->Exists() && (OTPayment::NOTICE == GetType())) {
         auto pType = api_.Factory().Transaction(m_strPayment);
 
         if (false == bool(pType)) {
@@ -1916,14 +1916,14 @@ bool OTPayment::IsCancelledCheque()
 
 std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    const String strNodeName(xml->getNodeName());
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
-    if (strNodeName.Compare("payment")) {
+    if (strNodeName->Compare("payment")) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const String strPaymentType = xml->getAttributeValue("type");
+        const auto strPaymentType = String::Factory(xml->getAttributeValue("type"));
 
-        if (strPaymentType.Exists())
+        if (strPaymentType->Exists())
             m_Type = OTPayment::GetTypeFromString(strPaymentType);
         else
             m_Type = OTPayment::ERROR_STATE;
@@ -1933,11 +1933,11 @@ std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             .Flush();
 
         return (OTPayment::ERROR_STATE == m_Type) ? (-1) : 1;
-    } else if (strNodeName.Compare("contents")) {
-        String strContents;
+    } else if (strNodeName->Compare("contents")) {
+        auto strContents = String::Factory();
 
         if (!Contract::LoadEncodedTextField(xml, strContents) ||
-            !strContents.Exists() || !SetPayment(strContents)) {
+            !strContents->Exists() || !SetPayment(strContents)) {
             otErr << "OTPayment::ProcessXMLNode: ERROR: \"contents\" field "
                      "without a value, OR error setting that "
                      "value onto this object. Raw:\n\n"
@@ -1974,11 +1974,11 @@ void OTPayment::Release_Payment()
     m_lTransNumDisplay = 0;
     m_VALID_FROM = OT_TIME_ZERO;
     m_VALID_TO = OT_TIME_ZERO;
-    m_strPayment.Release();
+    m_strPayment->Release();
     m_bAreTempValuesSet = false;
     m_bHasRecipient = false;
     m_bHasRemitter = false;
-    m_strMemo.Release();
+    m_strMemo->Release();
     m_InstrumentDefinitionID->Release();
     m_NotaryID->Release();
     m_SenderNymID->Release();
@@ -1998,7 +1998,7 @@ bool OTPayment::SetPayment(const String& strPayment)
         return false;
     }
 
-    String strContract(strPayment);
+    auto strContract(strPayment);
 
     if (!strContract.DecodeIfArmored(false))  // bEscapedIsAllowed=true
                                               // by default.
@@ -2010,7 +2010,7 @@ bool OTPayment::SetPayment(const String& strPayment)
         return false;
     }
 
-    m_strPayment.Release();
+    m_strPayment->Release();
 
     // todo: should be "starts with" and perhaps with a trim first
     //
@@ -2040,7 +2040,7 @@ bool OTPayment::SetPayment(const String& strPayment)
 
     if (OTPayment::ERROR_STATE == m_Type) return false;
 
-    m_strPayment.Set(strContract);
+    m_strPayment->Set(strContract);
 
     return true;
 }
@@ -2055,7 +2055,7 @@ void OTPayment::UpdateContents()
     tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("type", GetTypeString());
 
-    if (m_strPayment.Exists()) {
+    if (m_strPayment->Exists()) {
         const Armored ascContents(m_strPayment);
 
         if (ascContents.Exists()) {

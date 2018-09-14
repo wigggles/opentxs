@@ -659,7 +659,7 @@ bool RSA::SaveCertToString(
         if (nullptr != pPublicKey) {
             OTPasswordData thePWData(
                 !pstrReason.Exists() ? "RSA::SaveCertToString"
-                                    : pstrReason.Get());
+                                     : pstrReason.Get());
 
             dp->SetKeyAsCopyOf(*pPublicKey, false, &thePWData, pImportPassword);
             EVP_PKEY_free(pPublicKey);
@@ -704,9 +704,9 @@ bool RSA::GetPrivateKey(
 
     OTPasswordData thePWData(
         (pstrReason.Exists()) ? pstrReason.Get()
-                               : "RSA::"
-                                 "GetPrivateKey is calling "
-                                 "PEM_write_bio_PrivateKey...");
+                              : "RSA::"
+                                "GetPrivateKey is calling "
+                                "PEM_write_bio_PrivateKey...");
     const auto& native = dynamic_cast<const api::internal::Native&>(OT::App());
 
     if (nullptr == pImportPassword) {
