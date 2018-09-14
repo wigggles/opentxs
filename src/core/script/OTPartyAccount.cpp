@@ -44,6 +44,11 @@ OTPartyAccount::OTPartyAccount(
     , data_folder_{dataFolder}
     , m_pForParty(nullptr)
     , m_lClosingTransNo(0)
+    , m_strName(String::Factory())
+    , m_strAcctID(String::Factory())
+    , m_strInstrumentDefinitionID(String::Factory())
+    , m_strAgentName(String::Factory())
+
 {
 }
 
@@ -62,8 +67,9 @@ OTPartyAccount::OTPartyAccount(
     // This gets set when this partyaccount is added to its party.
     , m_lClosingTransNo(lClosingTransNo)
     , m_strName(str_account_name.c_str())
-    , m_strAcctID(theAccount.GetRealAccountID())
-    , m_strInstrumentDefinitionID(theAccount.GetInstrumentDefinitionID())
+    , m_strAcctID(String::Factory(theAccount.GetRealAccountID()))
+    , m_strInstrumentDefinitionID(
+          String::Factory(theAccount.GetInstrumentDefinitionID()))
     , m_strAgentName(strAgentName)
 {
 }
@@ -90,7 +96,7 @@ OTPartyAccount::OTPartyAccount(
 
 SharedAccount OTPartyAccount::get_account() const
 {
-    if (!m_strAcctID.Exists()) { return {}; }
+    if (!m_strAcctID->Exists()) { return {}; }
 
     return wallet_.Account(Identifier::Factory(m_strAcctID));
 }
@@ -103,14 +109,14 @@ OTAgent* OTPartyAccount::GetAuthorizedAgent()
 {
     OT_ASSERT(nullptr != m_pForParty);
 
-    if (!m_strAgentName.Exists()) {
+    if (!m_strAgentName->Exists()) {
         otErr << "OTPartyAccount::" << __FUNCTION__
               << ": Error: Authorized agent "
                  "name (for this account) is blank!\n";
         return nullptr;
     }
 
-    const std::string str_agent_name = m_strAgentName.Get();
+    const std::string str_agent_name = m_strAgentName->Get();
 
     OTAgent* pAgent = m_pForParty->GetAgent(str_agent_name);
 
@@ -126,9 +132,9 @@ void OTPartyAccount::SetParty(OTParty& theOwnerParty)
 
 bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
 {
-    if (!m_strAcctID.Exists()) { return false; }
+    if (!m_strAcctID->Exists()) { return false; }
 
-    if (!m_strInstrumentDefinitionID.Exists()) { return false; }
+    if (!m_strInstrumentDefinitionID->Exists()) { return false; }
 
     const auto theMemberAcctID = Identifier::Factory(m_strAcctID);
     if (!(theAcctID == theMemberAcctID)) {
@@ -146,14 +152,14 @@ bool OTPartyAccount::IsAccountByID(const Identifier& theAcctID) const
 
 bool OTPartyAccount::IsAccount(const Account& theAccount)
 {
-    if (!m_strAcctID.Exists()) {
+    if (!m_strAcctID->Exists()) {
         otErr << "OTPartyAccount::" << __FUNCTION__
               << ": Error: Empty m_strAcctID.\n";
         return false;
     }
 
     bool bCheckAssetId = true;
-    if (!m_strInstrumentDefinitionID.Exists()) {
+    if (!m_strInstrumentDefinitionID->Exists()) {
         otErr << "OTPartyAccount::" << __FUNCTION__
               << ": FYI, Asset ID is blank in this smart contract, for this "
                  "account.\n";
@@ -174,7 +180,8 @@ bool OTPartyAccount::IsAccount(const Account& theAccount)
             Identifier::Factory(m_strInstrumentDefinitionID);
         if (!(theAccount.GetInstrumentDefinitionID() ==
               theInstrumentDefinitionID)) {
-            String strRHS(theAccount.GetInstrumentDefinitionID());
+            auto strRHS =
+                String::Factory(theAccount.GetInstrumentDefinitionID());
             otOut << "OTPartyAccount::" << __FUNCTION__
                   << ": Instrument Definition IDs don't "
                      "match ( "
@@ -266,10 +273,10 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
     if (nullptr == m_pForParty) {
         otErr << szFunc << ": nullptr m_pForParty.\n";
         return false;
-    } else if (!m_strAcctID.Exists()) {
+    } else if (!m_strAcctID->Exists()) {
         otErr << szFunc << ": Empty Acct ID.\n";
         return false;
-    } else if (!m_strAgentName.Exists()) {
+    } else if (!m_strAgentName->Exists()) {
         otErr << szFunc << ": No agent named for this account.\n";
         return false;
     }
@@ -277,7 +284,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
     // TODO: When entites and roles are added, this function may change a bit to
     // accommodate them.
 
-    const std::string str_agent_name(m_strAgentName.Get());
+    const std::string str_agent_name(m_strAgentName->Get());
 
     OTAgent* pAgent = m_pForParty->GetAgent(str_agent_name);
 
@@ -306,7 +313,7 @@ bool OTPartyAccount::DropFinalReceiptToInbox(
 // because it is appropriate in certain cases.
 SharedAccount OTPartyAccount::LoadAccount()
 {
-    if (!m_strAcctID.Exists()) {
+    if (!m_strAcctID->Exists()) {
         otOut << "OTPartyAccount::" << __FUNCTION__
               << ": Bad: Acct ID is blank for "
                  "account: "
@@ -342,15 +349,15 @@ void OTPartyAccount::Serialize(
 {
     TagPtr pTag(new Tag("assetAccount"));
 
-    pTag->add_attribute("name", m_strName.Get());
-    pTag->add_attribute("acctID", bCalculatingID ? "" : m_strAcctID.Get());
+    pTag->add_attribute("name", m_strName->Get());
+    pTag->add_attribute("acctID", bCalculatingID ? "" : m_strAcctID->Get());
     pTag->add_attribute(
         "instrumentDefinitionID",
         (bCalculatingID && !bSpecifyInstrumentDefinitionID)
             ? ""
-            : m_strInstrumentDefinitionID.Get());
+            : m_strInstrumentDefinitionID->Get());
     pTag->add_attribute(
-        "agentName", bCalculatingID ? "" : m_strAgentName.Get());
+        "agentName", bCalculatingID ? "" : m_strAgentName->Get());
     pTag->add_attribute(
         "closingTransNo", formatLong(bCalculatingID ? 0 : m_lClosingTransNo));
 
@@ -359,7 +366,7 @@ void OTPartyAccount::Serialize(
 
 void OTPartyAccount::RegisterForExecution(OTScript& theScript)
 {
-    const std::string str_acct_name = m_strName.Get();
+    const std::string str_acct_name = m_strName->Get();
     theScript.AddAccount(str_acct_name, *this);
 }
 

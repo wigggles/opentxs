@@ -109,8 +109,8 @@ private:
     AccountType acctType_{err_acct};
     // These are all the variables from the account file itself.
     OTIdentifier acctInstrumentDefinitionID_;
-    String balanceDate_;
-    String balanceAmount_;
+    OTString balanceDate_;
+    OTString balanceAmount_;
     // the Transaction Number of a smart contract running on cron, if this is a
     // stash account.
     TransactionNumber stashTransNum_{0};

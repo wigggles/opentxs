@@ -49,7 +49,7 @@ void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
 
     TagPtr pTag(new Tag("variable"));
 
-    pTag->add_attribute("name", m_strName.Get());
+    pTag->add_attribute("name", m_strName->Get());
     pTag->add_attribute("access", str_access);
 
     // Notice the use of bCalculatingID. Because
@@ -59,7 +59,7 @@ void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
         case OTVariable::Var_String: {
             str_type = "string";
             if ((false == bCalculatingID) && (m_str_Value.size() > 0)) {
-                String strVal(m_str_Value.c_str());
+                auto strVal = String::Factory(m_str_Value.c_str());
                 Armored ascVal(strVal);
                 pTag->add_attribute("value", "exists");
                 pTag->set_text(ascVal.Get());
@@ -89,7 +89,8 @@ void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
 
 // NO TYPE (YET)
 OTVariable::OTVariable()
-    : m_nValue(0)
+    : m_strName(String::Factory())
+    , m_nValue(0)
     , m_bValue(false)
     , m_nValueBackup(0)
     , m_bValueBackup(false)
@@ -284,7 +285,7 @@ void OTVariable::RegisterForExecution(OTScript& theScript)
 {
     SetAsClean();  // so we can check for dirtiness after execution.
 
-    const std::string str_var_name = m_strName.Get();
+    const std::string str_var_name = m_strName->Get();
 
     theScript.AddVariable(str_var_name, *this);
 

@@ -103,7 +103,7 @@ public:
     }
     void SetMySignedCopy(const String& strMyCopy)
     {
-        m_strMySignedCopy.Set(strMyCopy.Get());
+        m_strMySignedCopy->Set(strMyCopy.Get());
     }
     const String& GetMySignedCopy() { return m_strMySignedCopy; }
     std::int64_t GetOpeningTransNo() const { return m_lOpeningTransNo; }
@@ -294,7 +294,7 @@ private:
     // Each party (to a smart contract anyway) must provide an opening
     // transaction #.
     TransactionNumber m_lOpeningTransNo{0};
-    String m_strMySignedCopy;  // One party confirms it and sends it over. Then
+    OTString m_strMySignedCopy;  // One party confirms it and sends it over. Then
                                // another confirms it,
     // which adds his own transaction numbers and signs it. This, unfortunately,
     // invalidates the original version,

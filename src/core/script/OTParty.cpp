@@ -39,6 +39,7 @@ OTParty::OTParty(const api::Wallet& wallet, const std::string& dataFolder)
     , m_pstr_party_name(nullptr)
     , m_bPartyIsNym(false)
     , m_lOpeningTransNo(0)
+    , m_strMySignedCopy(String::Factory())
     , m_pOwnerAgreement(nullptr)
 {
 }
@@ -58,13 +59,17 @@ OTParty::OTParty(
     , m_str_owner_id(szOwnerID != nullptr ? szOwnerID : "")
     , m_str_authorizing_agent(szAuthAgent != nullptr ? szAuthAgent : "")
     , m_lOpeningTransNo(0)
+    , m_strMySignedCopy(String::Factory())
     , m_pOwnerAgreement(nullptr)
 {
     m_pstr_party_name = new std::string(szName != nullptr ? szName : "");
 
     if (bCreateAgent) {
-        const String strName(m_str_authorizing_agent.c_str()), strNymID(""),
-            strRoleID(""), strGroupName("");
+        const auto strName = String::Factory(m_str_authorizing_agent.c_str()),
+                   strNymID = String::Factory(""),
+                   strRoleID = String::Factory(""),
+                   strGroupName = String::Factory("");
+
         OTAgent* pAgent = new OTAgent(
             wallet_,
             true /*bNymRepresentsSelf*/,
@@ -99,6 +104,7 @@ OTParty::OTParty(
     , m_pstr_party_name(new std::string(str_PartyName))
     , m_bPartyIsNym(true)
     , m_lOpeningTransNo(0)
+    , m_strMySignedCopy(String::Factory())
     , m_pOwnerAgreement(nullptr)
 {
     //  m_pstr_party_name = new std::string(str_PartyName);
@@ -108,9 +114,9 @@ OTParty::OTParty(
     // for this Nym automatically (that's why it was passed in.)
     // This code won't compile until you do.  :-)
 
-    String strNymID;
+    auto strNymID = String::Factory();
     theNym.GetIdentifier(strNymID);
-    m_str_owner_id = strNymID.Get();
+    m_str_owner_id = strNymID->Get();
 
     OTAgent* pAgent = new OTAgent(
         wallet_, str_agent_name, theNym);  // (The third arg, bRepresentsSelf,
@@ -1438,7 +1444,7 @@ void OTParty::Serialize(
         "openingTransNo", formatLong(bCalculatingID ? 0 : m_lOpeningTransNo));
     pTag->add_attribute(
         "signedCopyProvided",
-        formatBool((!bCalculatingID && m_strMySignedCopy.Exists())));
+        formatBool((!bCalculatingID && m_strMySignedCopy->Exists())));
     // When an agent activates this contract, it's HIS opening trans#.
     pTag->add_attribute(
         "authorizingAgent", bCalculatingID ? "" : m_str_authorizing_agent);
@@ -1460,7 +1466,7 @@ void OTParty::Serialize(
         pAcct->Serialize(*pTag, bCalculatingID, bSpecifyInstrumentDefinitionID);
     }
 
-    if (!bCalculatingID && m_strMySignedCopy.Exists()) {
+    if (!bCalculatingID && m_strMySignedCopy->Exists()) {
         Armored ascTemp(m_strMySignedCopy);
         pTag->add_tag("mySignedCopy", ascTemp.Get());
     }

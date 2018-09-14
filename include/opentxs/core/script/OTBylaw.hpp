@@ -40,8 +40,8 @@ typedef std::multimap<std::string, std::string> mapOfHooks;
 //
 class OTBylaw
 {
-    String m_strName;      // Name of this Bylaw.
-    String m_strLanguage;  // Language that the scripts are written in, for
+    OTString m_strName;      // Name of this Bylaw.
+    OTString m_strLanguage;  // Language that the scripts are written in, for
                            // this bylaw.
 
     mapOfVariables m_mapVariables;  // constant, persistant, and important

@@ -266,8 +266,8 @@ void OTSignedFile::SetFilename(
 void OTSignedFile::Release_SignedFile()
 {
     m_strSignedFilePayload->Release();  // This is the file contents we were
-                                       // wrapping.
-                                       // We can release this now.
+                                        // wrapping.
+                                        // We can release this now.
 
     //  m_strLocalDir.Release();          // We KEEP these, *not* release,
     //  because LoadContract()

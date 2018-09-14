@@ -58,6 +58,10 @@ OTAgent::OTAgent(const api::Wallet& wallet)
     , m_bIsAnIndividual(false)
     , m_pNym(nullptr)
     , m_pForParty(nullptr)
+    , m_strName(String::Factory())
+    , m_strNymID(String::Factory())
+    , m_strRoleID(String::Factory())
+    , m_strGroupName(String::Factory())
 {
 }
 
@@ -93,6 +97,9 @@ OTAgent::OTAgent(
     , m_pNym(&theNym)
     , m_pForParty(nullptr)
     , m_strName(str_agent_name.c_str())
+    , m_strNymID(String::Factory())
+    , m_strRoleID(String::Factory())
+    , m_strGroupName(String::Factory())
 {
     // Grab m_strNymID
     auto theNymID = Identifier::Factory();
@@ -156,7 +163,7 @@ bool OTAgent::VerifySignature(const Contract& theContract) const
     //    }
     //    else
     if (nullptr == m_pNym) {
-        String strTemp(theContract);
+        auto strTemp = String::Factory(theContract);
         otErr << "OTAgent::VerifySignature: Attempted to verify signature on "
                  "contract, "
                  "but no Nym had ever been loaded for this agent:\n\n"
@@ -222,7 +229,7 @@ void OTAgent::SetParty(OTParty& theOwnerParty)  // This happens when the agent
         bool bGetOwnerNymID = false;
         const std::string str_owner_nym_id =
             theOwnerParty.GetNymID(&bGetOwnerNymID);
-        m_strNymID.Set(bGetOwnerNymID ? str_owner_nym_id.c_str() : "");
+        m_strNymID->Set(bGetOwnerNymID ? str_owner_nym_id.c_str() : "");
 
         // Todo here, instead of copying the Owner's Nym ID like above, just
         // make sure they match.
@@ -462,7 +469,7 @@ bool OTAgent::GetEntityID(Identifier& theOutput) const
         std::string str_entity_id = m_pForParty->GetEntityID(&bSuccessEntityID);
 
         if (bSuccessEntityID && (str_entity_id.size() > 0)) {
-            String strEntityID(str_entity_id.c_str());
+            auto strEntityID = String::Factory(str_entity_id.c_str());
             theOutput.SetString(strEntityID);
 
             return true;
@@ -478,7 +485,7 @@ bool OTAgent::IsAuthorizingAgentForParty()
 {
     if (nullptr == m_pForParty) return false;
 
-    if (m_strName.Compare(m_pForParty->GetAuthorizingAgentName().c_str()))
+    if (m_strName->Compare(m_pForParty->GetAuthorizingAgentName().c_str()))
         return true;
 
     return false;
@@ -495,7 +502,7 @@ std::int32_t OTAgent::GetCountAuthorizedAccts()
         return 0;  // Maybe should log here...
     }
 
-    return m_pForParty->GetAccountCount(m_strName.Get());
+    return m_pForParty->GetAccountCount(m_strName->Get());
 }
 
 // For when the agent is a voting group:
@@ -974,7 +981,7 @@ bool OTAgent::ReserveOpeningTransNum(ServerContext& context)
         // HarvestAllTransactionNumbers(strNotaryID);
         //
         m_pForParty->SetOpeningTransNo(number);
-        m_pForParty->SetAuthorizingAgentName(m_strName.Get());
+        m_pForParty->SetAuthorizingAgentName(m_strName->Get());
 
         return true;
     } else  // todo: when entities and roles are added... this function will
@@ -994,13 +1001,13 @@ void OTAgent::Serialize(Tag& parent) const
 {
     TagPtr pTag(new Tag("agent"));
 
-    pTag->add_attribute("name", m_strName.Get());
+    pTag->add_attribute("name", m_strName->Get());
     pTag->add_attribute(
         "doesAgentRepresentHimself", formatBool(m_bNymRepresentsSelf));
     pTag->add_attribute("isAgentAnIndividual", formatBool(m_bIsAnIndividual));
-    pTag->add_attribute("nymID", m_strNymID.Get());
-    pTag->add_attribute("roleID", m_strRoleID.Get());
-    pTag->add_attribute("groupName", m_strGroupName.Get());
+    pTag->add_attribute("nymID", m_strNymID->Get());
+    pTag->add_attribute("roleID", m_strRoleID->Get());
+    pTag->add_attribute("groupName", m_strGroupName->Get());
 
     parent.add_tag(pTag);
 }

@@ -54,13 +54,13 @@ void LogStackFrames(void* FaultAdress, char*);
 // These added for the signal handling:
 
 #ifdef __GNUC__
-    #if defined(__clang__)
-    // I know this might seem ugly, but it builds properly for Mac.
-    #elif defined(__GNUC__) || defined(__GNUG__)
-        #ifndef _GNU_SOURCE
-            #define _GNU_SOURCE
-        #endif
-    #endif
+#if defined(__clang__)
+// I know this might seem ugly, but it builds properly for Mac.
+#elif defined(__GNUC__) || defined(__GNUG__)
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
+#endif
+#endif
 #endif
 
 #if defined(__APPLE__)

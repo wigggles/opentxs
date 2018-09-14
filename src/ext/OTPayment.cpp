@@ -354,7 +354,7 @@ bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
         m_lTransNumDisplay = 0;  // (A purse has no transaction number.)
 
         m_strMemo->Release();  // So far there's no purse memo (could add it,
-                              // though.)
+                               // though.)
 
         m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
         m_NotaryID = theInput.GetNotaryID();
@@ -1921,7 +1921,8 @@ std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     if (strNodeName->Compare("payment")) {
         m_strVersion = xml->getAttributeValue("version");
 
-        const auto strPaymentType = String::Factory(xml->getAttributeValue("type"));
+        const auto strPaymentType =
+            String::Factory(xml->getAttributeValue("type"));
 
         if (strPaymentType->Exists())
             m_Type = OTPayment::GetTypeFromString(strPaymentType);
