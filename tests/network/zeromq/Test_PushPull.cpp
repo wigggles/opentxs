@@ -9,6 +9,8 @@
 
 using namespace opentxs;
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace
 {
 
@@ -24,7 +26,7 @@ public:
     const std::string endpoint_{"inproc://opentxs/test/push_pull_test"};
 };
 
-OTZMQContext Test_PushPull::context_{network::zeromq::Context::Factory()};
+OTZMQContext Test_PushPull::context_{zmq::Context::Factory()};
 
 }  // namespace
 
@@ -33,21 +35,21 @@ TEST_F(Test_PushPull, Push_Pull)
     ASSERT_NE(nullptr, &Test_PushPull::context_.get());
 
     bool callbackFinished{false};
-    
-    auto pullCallback = network::zeromq::ListenCallback::Factory(
-        [this, &callbackFinished](network::zeromq::Message& input) -> void {
+
+    auto pullCallback = zmq::ListenCallback::Factory(
+        [this, &callbackFinished](zmq::Message& input) -> void {
             EXPECT_EQ(1, input.size());
             const std::string& inputString = *input.Body().begin();
 
             EXPECT_EQ(testMessage_, inputString);
-            
+
             callbackFinished = true;
         });
 
     ASSERT_NE(nullptr, &pullCallback.get());
 
-    auto pullSocket = network::zeromq::PullSocket::Factory(
-        Test_PushPull::context_, false, pullCallback);
+    auto pullSocket = zmq::PullSocket::Factory(
+        Test_PushPull::context_, zmq::Socket::Direction::Bind, pullCallback);
 
     ASSERT_NE(nullptr, &pullSocket.get());
     ASSERT_EQ(SocketType::Pull, pullSocket->Type());
@@ -58,8 +60,8 @@ TEST_F(Test_PushPull, Push_Pull)
         std::chrono::milliseconds(-1));
     pullSocket->Start(endpoint_);
 
-    auto pushSocket = network::zeromq::PushSocket::Factory(
-        Test_PushPull::context_, true);
+    auto pushSocket = zmq::PushSocket::Factory(
+        Test_PushPull::context_, zmq::Socket::Direction::Connect);
 
     ASSERT_NE(nullptr, &pushSocket.get());
     ASSERT_EQ(SocketType::Push, pushSocket->Type());
@@ -78,6 +80,6 @@ TEST_F(Test_PushPull, Push_Pull)
     while (!callbackFinished && std::time(nullptr) < end) {
         Log::Sleep(std::chrono::milliseconds(100));
     }
-    
+
     ASSERT_TRUE(callbackFinished);
 }

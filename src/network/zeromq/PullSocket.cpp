@@ -23,18 +23,18 @@ namespace opentxs::network::zeromq
 {
 OTZMQPullSocket PullSocket::Factory(
     const class Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const ListenCallback& callback)
 {
     return OTZMQPullSocket(
-        new implementation::PullSocket(context, client, callback));
+        new implementation::PullSocket(context, direction, callback));
 }
 
 OTZMQPullSocket PullSocket::Factory(
     const class Context& context,
-    const bool client)
+    const Socket::Direction direction)
 {
-    return OTZMQPullSocket(new implementation::PullSocket(context, client));
+    return OTZMQPullSocket(new implementation::PullSocket(context, direction));
 }
 }  // namespace opentxs::network::zeromq
 
@@ -42,33 +42,34 @@ namespace opentxs::network::zeromq::implementation
 {
 PullSocket::PullSocket(
     const zeromq::Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const zeromq::ListenCallback& callback,
     const bool startThread)
-    : ot_super(context, SocketType::Pull)
+    : ot_super(context, SocketType::Pull, direction)
     , CurveServer(lock_, socket_)
     , Receiver(lock_, socket_, startThread)
-    , client_(client)
     , callback_(callback)
 {
 }
 
 PullSocket::PullSocket(
     const zeromq::Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const zeromq::ListenCallback& callback)
-    : PullSocket(context, client, callback, true)
+    : PullSocket(context, direction, callback, true)
 {
 }
 
-PullSocket::PullSocket(const zeromq::Context& context, const bool client)
-    : PullSocket(context, client, ListenCallback::Factory(), false)
+PullSocket::PullSocket(
+    const zeromq::Context& context,
+    const Socket::Direction direction)
+    : PullSocket(context, direction, ListenCallback::Factory(), false)
 {
 }
 
 PullSocket* PullSocket::clone() const
 {
-    return new PullSocket(context_, client_, callback_);
+    return new PullSocket(context_, direction_, callback_);
 }
 
 bool PullSocket::have_callback() const { return true; }
@@ -84,7 +85,7 @@ bool PullSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    if (client_) {
+    if (Socket::Direction::Connect == direction_) {
 
         return start_client(lock, endpoint);
     } else {

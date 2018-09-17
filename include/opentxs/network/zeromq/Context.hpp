@@ -8,6 +8,8 @@
 
 #include "opentxs/Forward.hpp"
 
+#include "opentxs/network/zeromq/Socket.hpp"
+
 #include <memory>
 #include <string>
 
@@ -55,7 +57,7 @@ public:
         const std::string& suffix) const = 0;
     EXPORT virtual Pimpl<network::zeromq::DealerSocket> DealerSocket(
         const ListenCallback& callback,
-        const bool client) const = 0;
+        const Socket::Direction direction) const = 0;
     EXPORT virtual Pimpl<network::zeromq::SubscribeSocket> PairEventListener(
         const PairEventCallback& callback,
         const int instance) const = 0;
@@ -73,20 +75,20 @@ public:
     EXPORT virtual Pimpl<network::zeromq::PublishSocket> PublishSocket()
         const = 0;
     EXPORT virtual Pimpl<network::zeromq::PullSocket> PullSocket(
-        const bool client) const = 0;
+        const Socket::Direction direction) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PullSocket> PullSocket(
         const ListenCallback& callback,
-        const bool client) const = 0;
+        const Socket::Direction direction) const = 0;
     EXPORT virtual Pimpl<network::zeromq::PushSocket> PushSocket(
-        const bool client) const = 0;
+        const Socket::Direction direction) const = 0;
     EXPORT virtual Pimpl<network::zeromq::ReplySocket> ReplySocket(
         const ReplyCallback& callback,
-        const bool client) const = 0;
+        const Socket::Direction direction) const = 0;
     EXPORT virtual Pimpl<network::zeromq::RequestSocket> RequestSocket()
         const = 0;
     EXPORT virtual Pimpl<network::zeromq::RouterSocket> RouterSocket(
         const ListenCallback& callback,
-        const bool client) const = 0;
+        const Socket::Direction direction) const = 0;
     EXPORT virtual Pimpl<network::zeromq::SubscribeSocket> SubscribeSocket(
         const ListenCallback& callback) const = 0;
 

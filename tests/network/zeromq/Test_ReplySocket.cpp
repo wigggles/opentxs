@@ -9,6 +9,8 @@
 
 using namespace opentxs;
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace
 {
 class Test_ReplySocket : public ::testing::Test
@@ -17,7 +19,7 @@ public:
     static OTZMQContext context_;
 };
 
-OTZMQContext Test_ReplySocket::context_{network::zeromq::Context::Factory()};
+OTZMQContext Test_ReplySocket::context_{zmq::Context::Factory()};
 
 }  // namespace
 
@@ -25,15 +27,17 @@ TEST(ReplySocket, ReplySocket_Factory)
 {
     ASSERT_NE(nullptr, &Test_ReplySocket::context_.get());
 
-    auto replyCallback = network::zeromq::ReplyCallback::Factory(
-        [this](const network::zeromq::Message& input) -> OTZMQMessage {
-            return network::zeromq::Message::Factory();
+    auto replyCallback = zmq::ReplyCallback::Factory(
+        [this](const zmq::Message& input) -> OTZMQMessage {
+            return zmq::Message::Factory();
         });
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket = network::zeromq::ReplySocket::Factory(
-        Test_ReplySocket::context_, false, replyCallback);
+    auto replySocket = zmq::ReplySocket::Factory(
+        Test_ReplySocket::context_,
+        zmq::Socket::Direction::Bind,
+        replyCallback);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());

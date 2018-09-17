@@ -38,7 +38,7 @@ OTZMQZAPHandler Handler::Factory(
 namespace opentxs::network::zeromq::zap::implementation
 {
 Handler::Handler(const zeromq::Context& context, const zap::Callback& callback)
-    : ot_super(context, SocketType::Router)
+    : ot_super(context, SocketType::Router, Socket::Direction::Bind)
     , CurveServer(lock_, socket_)
     , Receiver(lock_, socket_, true)
     , callback_(callback)

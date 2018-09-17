@@ -59,7 +59,10 @@ PairSocket::PairSocket(
     const std::string& endpoint,
     const bool listener,
     const bool startThread)
-    : ot_super(context, SocketType::Pair)
+    : ot_super(
+          context,
+          SocketType::Pair,
+          (listener) ? Socket::Direction::Bind : Socket::Direction::Connect)
     , Bidirectional(context, lock_, socket_, startThread)
     , callback_(callback)
     , endpoint_(endpoint)

@@ -33,11 +33,11 @@ class PullSocket : virtual public CurveServer
 public:
     EXPORT static OTZMQPullSocket Factory(
         const class Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const ListenCallback& callback);
     EXPORT static OTZMQPullSocket Factory(
         const class Context& context,
-        const bool client);
+        const Socket::Direction direction);
 
     EXPORT virtual ~PullSocket() = default;
 

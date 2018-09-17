@@ -45,6 +45,7 @@ public:
 
 protected:
     const zeromq::Context& context_;
+    const Socket::Direction direction_;
     void* socket_{nullptr};
     mutable int linger_{0};
     mutable int send_timeout_{-1};
@@ -58,7 +59,10 @@ protected:
     bool set_socks_proxy(const std::string& proxy) const;
     bool start_client(const Lock& lock, const std::string& endpoint) const;
 
-    explicit Socket(const zeromq::Context& context, const SocketType type);
+    explicit Socket(
+        const zeromq::Context& context,
+        const SocketType type,
+        const Socket::Direction direction);
 
 private:
     static const std::map<SocketType, int> types_;

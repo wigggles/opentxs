@@ -9,6 +9,8 @@
 
 using namespace opentxs;
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace
 {
 
@@ -31,14 +33,14 @@ public:
     void requestSocketThreadMultipart();
 };
 
-OTZMQContext Test_RequestRouter::context_{network::zeromq::Context::Factory()};
+OTZMQContext Test_RequestRouter::context_{zmq::Context::Factory()};
 
 void Test_RequestRouter::requestSocketThread(const std::string& msg)
 {
     ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
 
     auto requestSocket =
-        network::zeromq::RequestSocket::Factory(Test_RequestRouter::context_);
+        zmq::RequestSocket::Factory(Test_RequestRouter::context_);
 
     ASSERT_NE(nullptr, &requestSocket.get());
     ASSERT_EQ(SocketType::Request, requestSocket->Type());
@@ -65,7 +67,7 @@ void Test_RequestRouter::requestSocketThreadMultipart()
     ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
 
     auto requestSocket =
-        network::zeromq::RequestSocket::Factory(Test_RequestRouter::context_);
+        zmq::RequestSocket::Factory(Test_RequestRouter::context_);
 
     ASSERT_NE(nullptr, &requestSocket.get());
     ASSERT_EQ(SocketType::Request, requestSocket->Type());
@@ -76,7 +78,7 @@ void Test_RequestRouter::requestSocketThreadMultipart()
         std::chrono::milliseconds(30000));
     requestSocket->Start(endpoint_);
 
-    auto multipartMessage = network::zeromq::Message::Factory(testMessage_);
+    auto multipartMessage = zmq::Message::Factory(testMessage_);
     multipartMessage->AddFrame();
     multipartMessage->AddFrame(testMessage2_);
     multipartMessage->AddFrame(testMessage3_);
@@ -104,10 +106,10 @@ TEST_F(Test_RequestRouter, Request_Router)
 {
     ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
 
-    auto replyMessage = network::zeromq::Message::Factory();
+    auto replyMessage = zmq::Message::Factory();
 
-    auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](network::zeromq::Message& input) -> void {
+    auto routerCallback = zmq::ListenCallback::Factory(
+        [this, &replyMessage](zmq::Message& input) -> void {
             // RequestSocket prepends a delimiter and RouterSocket prepends an
             // identity frame.
             EXPECT_EQ(3, input.size());
@@ -118,7 +120,7 @@ TEST_F(Test_RequestRouter, Request_Router)
 
             EXPECT_EQ(testMessage_, inputString);
 
-            replyMessage = network::zeromq::Message::ReplyFactory(input);
+            replyMessage = zmq::Message::ReplyFactory(input);
             for (const std::string& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
@@ -128,8 +130,10 @@ TEST_F(Test_RequestRouter, Request_Router)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = network::zeromq::RouterSocket::Factory(
-        Test_RequestRouter::context_, false, routerCallback);
+    auto routerSocket = zmq::RouterSocket::Factory(
+        Test_RequestRouter::context_,
+        zmq::Socket::Direction::Bind,
+        routerCallback);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -164,12 +168,12 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
 
     std::map<std::string, OTZMQMessage> replyMessages{
         std::pair<std::string, OTZMQMessage>(
-            testMessage2_, network::zeromq::Message::Factory()),
+            testMessage2_, zmq::Message::Factory()),
         std::pair<std::string, OTZMQMessage>(
-            testMessage3_, network::zeromq::Message::Factory())};
+            testMessage3_, zmq::Message::Factory())};
 
-    auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessages](network::zeromq::Message& input) -> void {
+    auto routerCallback = zmq::ListenCallback::Factory(
+        [this, &replyMessages](zmq::Message& input) -> void {
             // RequestSocket prepends a delimiter and RouterSocket prepends an
             // identity frame.
             EXPECT_EQ(3, input.size());
@@ -182,7 +186,7 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
             EXPECT_TRUE(match);
 
             auto& replyMessage = replyMessages.at(inputString);
-            replyMessage = network::zeromq::Message::ReplyFactory(input);
+            replyMessage = zmq::Message::ReplyFactory(input);
             for (const std::string& frame : input.Body()) {
                 replyMessage->AddFrame(frame);
             }
@@ -192,8 +196,10 @@ TEST_F(Test_RequestRouter, Request_2_Router_1)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = network::zeromq::RouterSocket::Factory(
-        Test_RequestRouter::context_, false, routerCallback);
+    auto routerSocket = zmq::RouterSocket::Factory(
+        Test_RequestRouter::context_,
+        zmq::Socket::Direction::Bind,
+        routerCallback);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -244,10 +250,10 @@ TEST_F(Test_RequestRouter, Request_Router_Multipart)
 {
     ASSERT_NE(nullptr, &Test_RequestRouter::context_.get());
 
-    auto replyMessage = network::zeromq::Message::Factory();
+    auto replyMessage = zmq::Message::Factory();
 
-    auto routerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyMessage](network::zeromq::Message& input) -> void {
+    auto routerCallback = zmq::ListenCallback::Factory(
+        [this, &replyMessage](zmq::Message& input) -> void {
             // RequestSocket prepends a delimiter and RouterSocket prepends an
             // identity frame.
             EXPECT_EQ(6, input.size());
@@ -262,14 +268,16 @@ TEST_F(Test_RequestRouter, Request_Router_Multipart)
                 EXPECT_TRUE(match || frame.size() == 0);
             }
 
-            replyMessage = network::zeromq::Message::ReplyFactory(input);
+            replyMessage = zmq::Message::ReplyFactory(input);
             for (auto& frame : input.Body()) { replyMessage->AddFrame(frame); }
         });
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = network::zeromq::RouterSocket::Factory(
-        Test_RequestRouter::context_, false, routerCallback);
+    auto routerSocket = zmq::RouterSocket::Factory(
+        Test_RequestRouter::context_,
+        zmq::Socket::Direction::Bind,
+        routerCallback);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());

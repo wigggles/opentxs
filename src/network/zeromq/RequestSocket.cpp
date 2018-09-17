@@ -35,7 +35,7 @@ namespace opentxs::network::zeromq::implementation
 RequestSocket::RequestSocket(
     const zeromq::Context& context,
     const Flag& running)
-    : ot_super(context, SocketType::Request)
+    : ot_super(context, SocketType::Request, Socket::Direction::Connect)
     , CurveClient(lock_, socket_)
     , running_(running)
 {

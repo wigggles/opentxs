@@ -9,6 +9,8 @@
 
 using namespace opentxs;
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace
 {
 class Test_RouterSocket : public ::testing::Test
@@ -19,7 +21,7 @@ public:
     //    const std::string testMessage_{"zeromq test message"};
 };
 
-OTZMQContext Test_RouterSocket::context_{network::zeromq::Context::Factory()};
+OTZMQContext Test_RouterSocket::context_{zmq::Context::Factory()};
 
 }  // namespace
 
@@ -27,10 +29,10 @@ TEST(RouterSocket, RouterSocket_Factory)
 {
     ASSERT_NE(nullptr, &Test_RouterSocket::context_.get());
 
-    auto dealerSocket = network::zeromq::RouterSocket::Factory(
+    auto dealerSocket = zmq::RouterSocket::Factory(
         Test_RouterSocket::context_,
-        true,
-        network::zeromq::ListenCallback::Factory());
+        zmq::Socket::Direction::Connect,
+        zmq::ListenCallback::Factory());
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Router, dealerSocket->Type());

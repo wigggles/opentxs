@@ -45,38 +45,47 @@
 
 #define OT_METHOD "opentxs::MessageProcessor::"
 
-template class opentxs::Pimpl<opentxs::network::zeromq::ReplySocket>;
-template class opentxs::Pimpl<opentxs::network::zeromq::ReplyCallback>;
+namespace zmq = opentxs::network::zeromq;
+
+template class opentxs::Pimpl<zmq::ReplySocket>;
+template class opentxs::Pimpl<zmq::ReplyCallback>;
 
 namespace opentxs::server
 {
 MessageProcessor::MessageProcessor(
     Server& server,
-    const network::zeromq::Context& context,
+    const zmq::Context& context,
     const Flag& running)
     : server_(server)
     , running_(running)
     , context_(context)
-    , frontend_callback_(network::zeromq::ListenCallback::Factory(
-          [=](const network::zeromq::Message& incoming) -> void {
+    , frontend_callback_(zmq::ListenCallback::Factory(
+          [=](const zmq::Message& incoming) -> void {
               this->process_frontend(incoming);
           }))
-    , frontend_socket_(context.RouterSocket(frontend_callback_.get(), false))
-    , backend_callback_(network::zeromq::ReplyCallback::Factory(
-          [=](const network::zeromq::Message& incoming) -> OTZMQMessage {
+    , frontend_socket_(context.RouterSocket(
+          frontend_callback_,
+          zmq::Socket::Direction::Bind))
+    , backend_callback_(zmq::ReplyCallback::Factory(
+          [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_backend(incoming);
           }))
-    , backend_socket_(context.ReplySocket(backend_callback_.get(), false))
-    , internal_callback_(network::zeromq::ListenCallback::Factory(
-          [=](const network::zeromq::Message& incoming) -> void {
+    , backend_socket_(
+          context.ReplySocket(backend_callback_, zmq::Socket::Direction::Bind))
+    , internal_callback_(zmq::ListenCallback::Factory(
+          [=](const zmq::Message& incoming) -> void {
               this->process_internal(incoming);
           }))
-    , internal_socket_(context.DealerSocket(internal_callback_, true))
-    , notification_callback_(network::zeromq::ListenCallback::Factory(
-          [=](const network::zeromq::Message& incoming) -> void {
+    , internal_socket_(context.DealerSocket(
+          internal_callback_,
+          zmq::Socket::Direction::Connect))
+    , notification_callback_(zmq::ListenCallback::Factory(
+          [=](const zmq::Message& incoming) -> void {
               this->process_notification(incoming);
           }))
-    , notification_socket_(context.PullSocket(notification_callback_, false))
+    , notification_socket_(context.PullSocket(
+          notification_callback_,
+          zmq::Socket::Direction::Bind))
     , thread_(nullptr)
     , internal_endpoint_(
           std::string("inproc://opentxs/notary/") + Identifier::Random()->str())
@@ -130,7 +139,7 @@ void MessageProcessor::DropOutgoing(const int count) const
 }
 
 proto::ServerRequest MessageProcessor::extract_proto(
-    const network::zeromq::Frame& incoming) const
+    const zmq::Frame& incoming) const
 {
     return proto::RawToProto<proto::ServerRequest>(
         incoming.data(), incoming.size());
@@ -187,8 +196,7 @@ void MessageProcessor::run()
     }
 }
 
-OTZMQMessage MessageProcessor::process_backend(
-    const network::zeromq::Message& incoming)
+OTZMQMessage MessageProcessor::process_backend(const zmq::Message& incoming)
 {
     // ProcessCron and process_backend must not run simultaneously
     Lock lock(lock_);
@@ -203,7 +211,7 @@ OTZMQMessage MessageProcessor::process_backend(
 
     if (error) { reply = ""; }
 
-    auto output = network::zeromq::Message::ReplyFactory(incoming);
+    auto output = zmq::Message::ReplyFactory(incoming);
     output->AddFrame(reply);
 
     return output;
@@ -238,8 +246,7 @@ bool MessageProcessor::process_command(
     return true;
 }
 
-void MessageProcessor::process_frontend(
-    const network::zeromq::Message& incoming)
+void MessageProcessor::process_frontend(const zmq::Message& incoming)
 {
     Lock lock(counter_lock_);
 
@@ -276,8 +283,7 @@ void MessageProcessor::process_frontend(
     }
 }
 
-void MessageProcessor::process_internal(
-    const network::zeromq::Message& incoming)
+void MessageProcessor::process_internal(const zmq::Message& incoming)
 {
     Lock lock(counter_lock_);
 
@@ -356,8 +362,7 @@ bool MessageProcessor::process_message(
     return false;
 }
 
-void MessageProcessor::process_notification(
-    const network::zeromq::Message& incoming)
+void MessageProcessor::process_notification(const zmq::Message& incoming)
 {
     if (2 != incoming.Body().size()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid message." << std::endl;
@@ -388,7 +393,7 @@ void MessageProcessor::process_notification(
 
     message->SetPayload(payload);
     const auto reply = proto::ProtoAsData(message->Contract());
-    auto pushNotification = network::zeromq::Message::Factory();
+    auto pushNotification = zmq::Message::Factory();
     pushNotification->AddFrame(connection);
     pushNotification->AddFrame();
     pushNotification->AddFrame(reply);

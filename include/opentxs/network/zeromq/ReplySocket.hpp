@@ -33,7 +33,7 @@ class ReplySocket : virtual public CurveServer
 public:
     EXPORT static OTZMQReplySocket Factory(
         const class Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const ReplyCallback& callback);
 
     EXPORT virtual ~ReplySocket() = default;

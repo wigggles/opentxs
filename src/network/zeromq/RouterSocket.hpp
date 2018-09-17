@@ -36,14 +36,12 @@ protected:
 
     RouterSocket(
         const zeromq::Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const zeromq::ListenCallback& callback);
 
 private:
     friend opentxs::network::zeromq::RouterSocket;
     typedef Socket ot_super;
-
-    const bool client_{false};
 
     RouterSocket* clone() const override;
     bool have_callback() const override;

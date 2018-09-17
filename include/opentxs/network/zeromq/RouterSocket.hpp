@@ -34,7 +34,7 @@ class RouterSocket : virtual public CurveServer, virtual public CurveClient
 public:
     EXPORT static OTZMQRouterSocket Factory(
         const class Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const ListenCallback& callback);
 
     EXPORT virtual bool Send(opentxs::Data& message) const = 0;

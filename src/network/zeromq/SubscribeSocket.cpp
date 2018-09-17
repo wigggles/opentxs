@@ -36,7 +36,7 @@ namespace opentxs::network::zeromq::implementation
 SubscribeSocket::SubscribeSocket(
     const zeromq::Context& context,
     const zeromq::ListenCallback& callback)
-    : ot_super(context, SocketType::Subscribe)
+    : ot_super(context, SocketType::Subscribe, Socket::Direction::Connect)
     , CurveClient(lock_, socket_)
     , Receiver(lock_, socket_, true)
     , callback_(callback)

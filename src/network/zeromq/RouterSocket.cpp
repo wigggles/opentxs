@@ -23,11 +23,11 @@ namespace opentxs::network::zeromq
 {
 OTZMQRouterSocket RouterSocket::Factory(
     const class Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const ListenCallback& callback)
 {
     return OTZMQRouterSocket(
-        new implementation::RouterSocket(context, client, callback));
+        new implementation::RouterSocket(context, direction, callback));
 }
 }  // namespace opentxs::network::zeromq
 
@@ -35,20 +35,19 @@ namespace opentxs::network::zeromq::implementation
 {
 RouterSocket::RouterSocket(
     const zeromq::Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const zeromq::ListenCallback& callback)
-    : ot_super(context, SocketType::Router)
+    : ot_super(context, SocketType::Router, direction)
     , CurveClient(lock_, socket_)
     , CurveServer(lock_, socket_)
     , Bidirectional(context, lock_, socket_, true)
     , callback_(callback)
-    , client_(client)
 {
 }
 
 RouterSocket* RouterSocket::clone() const
 {
-    return new RouterSocket(context_, client_, callback_);
+    return new RouterSocket(context_, direction_, callback_);
 }
 
 bool RouterSocket::have_callback() const { return true; }
@@ -95,7 +94,7 @@ bool RouterSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    if (client_) {
+    if (Socket::Direction::Connect == direction_) {
 
         return start_client(lock, endpoint);
     } else {

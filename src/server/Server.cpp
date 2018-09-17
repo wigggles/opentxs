@@ -65,6 +65,8 @@
 
 #define OT_METHOD "opentxs::Server::"
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs::server
 {
 
@@ -96,7 +98,8 @@ Server::Server(const opentxs::api::server::Manager& manager)
     , m_strServerNymID()
     , m_nymServer(nullptr)
     , m_Cron(manager.Factory().Cron(manager))
-    , notification_socket_(manager_.ZeroMQ().PushSocket(true))
+    , notification_socket_(
+          manager_.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
 {
     const auto bound = notification_socket_->Start(
         manager_.Endpoints().InternalPushNotification());
@@ -937,7 +940,7 @@ bool Server::DropMessageToNymbox(
             // is removed from a box.
             //
             transaction->SaveBoxReceipt(*theLedger);
-            auto push = network::zeromq::Message::Factory();
+            auto push = zmq::Message::Factory();
             push->AddFrame(RECIPIENT_NYM_ID.str());
             push->AddFrame(std::string(String(*transaction).Get()));
             notification_socket_->Push(push);

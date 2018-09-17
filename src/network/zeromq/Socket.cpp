@@ -31,8 +31,12 @@ const std::map<SocketType, int> Socket::types_{
     {SocketType::Router, ZMQ_ROUTER},
 };
 
-Socket::Socket(const zeromq::Context& context, const SocketType type)
+Socket::Socket(
+    const zeromq::Context& context,
+    const SocketType type,
+    const Socket::Direction direction)
     : context_(context)
+    , direction_(direction)
     , socket_(zmq_socket(context, types_.at(type)))
     , type_(type)
 {

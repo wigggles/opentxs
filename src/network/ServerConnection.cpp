@@ -44,8 +44,10 @@
 
 #include "ServerConnection.hpp"
 
+namespace zmq = opentxs::network::zeromq;
+
 template class opentxs::Pimpl<opentxs::network::ServerConnection>;
-template class opentxs::Pimpl<opentxs::network::zeromq::RequestSocket>;
+template class opentxs::Pimpl<zmq::RequestSocket>;
 
 #define OT_METHOD "opentxs::ServerConnection::"
 
@@ -82,8 +84,11 @@ ServerConnection::ServerConnection(
           [=](const zeromq::Message& in) -> void {
               this->process_incoming(in);
           }))
-    , socket_(zmq.Context().DealerSocket(callback_, true))
-    , notification_socket_(zmq.Context().PushSocket(true))
+    , socket_(zmq.Context().DealerSocket(
+          callback_,
+          zmq::Socket::Direction::Connect))
+    , notification_socket_(
+          zmq.Context().PushSocket(zmq::Socket::Direction::Connect))
     , last_activity_(std::time(nullptr))
     , socket_ready_(Flag::Factory(false))
     , status_(Flag::Factory(false))
@@ -301,7 +306,7 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 void ServerConnection::publish() const
 {
     const bool state(status_.get());
-    auto message = opentxs::network::zeromq::Message::Factory();
+    auto message = zmq::Message::Factory();
     message->AddFrame(server_id_);
     message->AddFrame(Data::Factory(&state, sizeof(state)));
     updates_.Publish(message);
@@ -325,7 +330,7 @@ void ServerConnection::register_for_push(const ServerContext& context)
     auto request = otx::Request::Factory(
         context.Nym(), context.Server(), proto::SERVERREQUEST_ACTIVATE);
     request->SetIncludeNym(true);
-    auto message = network::zeromq::Message::Factory();
+    auto message = zmq::Message::Factory();
     message->AddFrame();
     message->AddFrame(proto::ProtoAsData(request->Contract()));
     message->AddFrame();
@@ -364,8 +369,7 @@ NetworkReplyMessage ServerConnection::Send(
     if (false == envelope.Exists()) { return output; }
 
     Lock socketLock(lock_);
-    auto request =
-        network::zeromq::Message::Factory(std::string(envelope.Get()));
+    auto request = zmq::Message::Factory(std::string(envelope.Get()));
     request->EnsureDelimiter();
     auto sent = get_socket(socketLock).Send(request);
 
@@ -448,7 +452,8 @@ void ServerConnection::set_timeouts(
 
 OTZMQDealerSocket ServerConnection::socket(const Lock& lock) const
 {
-    auto output = zmq_.Context().DealerSocket(callback_, true);
+    auto output =
+        zmq_.Context().DealerSocket(callback_, zmq::Socket::Direction::Connect);
     set_proxy(lock, output);
     set_timeouts(lock, output);
     set_curve(lock, output);
