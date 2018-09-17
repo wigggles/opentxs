@@ -28,11 +28,11 @@ private:
     friend opentxs::network::zeromq::PushSocket;
     typedef Socket ot_super;
 
-    const bool client_{false};
-
     PushSocket* clone() const override;
 
-    PushSocket(const zeromq::Context& context, const bool client);
+    PushSocket(
+        const zeromq::Context& context,
+        const Socket::Direction direction);
     PushSocket() = delete;
     PushSocket(const PushSocket&) = delete;
     PushSocket(PushSocket&&) = delete;

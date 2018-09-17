@@ -21,11 +21,11 @@ namespace opentxs::network::zeromq
 {
 OTZMQReplySocket ReplySocket::Factory(
     const class Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const ReplyCallback& callback)
 {
     return OTZMQReplySocket(
-        new implementation::ReplySocket(context, client, callback));
+        new implementation::ReplySocket(context, direction, callback));
 }
 }  // namespace opentxs::network::zeromq
 
@@ -33,19 +33,18 @@ namespace opentxs::network::zeromq::implementation
 {
 ReplySocket::ReplySocket(
     const zeromq::Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const ReplyCallback& callback)
-    : ot_super(context, SocketType::Reply)
+    : ot_super(context, SocketType::Reply, direction)
     , CurveServer(lock_, socket_)
     , Receiver(lock_, socket_, true)
     , callback_(callback)
-    , client_(client)
 {
 }
 
 ReplySocket* ReplySocket::clone() const
 {
-    return new ReplySocket(context_, client_, callback_);
+    return new ReplySocket(context_, direction_, callback_);
 }
 
 bool ReplySocket::have_callback() const { return true; }
@@ -61,7 +60,7 @@ bool ReplySocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    if (client_) {
+    if (Socket::Direction::Connect == direction_) {
 
         return start_client(lock, endpoint);
     } else {

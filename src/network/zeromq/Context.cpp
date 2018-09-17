@@ -126,9 +126,9 @@ Context* Context::clone() const { return new Context; }
 
 OTZMQDealerSocket Context::DealerSocket(
     const ListenCallback& callback,
-    const bool client) const
+    const Socket::Direction direction) const
 {
-    return DealerSocket::Factory(*this, client, callback);
+    return DealerSocket::Factory(*this, direction, callback);
 }
 
 OTZMQSubscribeSocket Context::PairEventListener(
@@ -171,28 +171,28 @@ OTZMQPublishSocket Context::PublishSocket() const
     return PublishSocket::Factory(*this);
 }
 
-OTZMQPullSocket Context::PullSocket(const bool client) const
+OTZMQPullSocket Context::PullSocket(const Socket::Direction direction) const
 {
-    return PullSocket::Factory(*this, client);
+    return PullSocket::Factory(*this, direction);
 }
 
 OTZMQPullSocket Context::PullSocket(
     const ListenCallback& callback,
-    const bool client) const
+    const Socket::Direction direction) const
 {
-    return PullSocket::Factory(*this, client, callback);
+    return PullSocket::Factory(*this, direction, callback);
 }
 
-OTZMQPushSocket Context::PushSocket(const bool client) const
+OTZMQPushSocket Context::PushSocket(const Socket::Direction direction) const
 {
-    return PushSocket::Factory(*this, client);
+    return PushSocket::Factory(*this, direction);
 }
 
 OTZMQReplySocket Context::ReplySocket(
     const ReplyCallback& callback,
-    const bool client) const
+    const Socket::Direction direction) const
 {
-    return ReplySocket::Factory(*this, client, callback);
+    return ReplySocket::Factory(*this, direction, callback);
 }
 
 OTZMQRequestSocket Context::RequestSocket() const
@@ -202,9 +202,9 @@ OTZMQRequestSocket Context::RequestSocket() const
 
 OTZMQRouterSocket Context::RouterSocket(
     const ListenCallback& callback,
-    const bool client) const
+    const Socket::Direction direction) const
 {
-    return RouterSocket::Factory(*this, client, callback);
+    return RouterSocket::Factory(*this, direction, callback);
 }
 
 OTZMQSubscribeSocket Context::SubscribeSocket(

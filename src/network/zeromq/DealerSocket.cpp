@@ -23,11 +23,11 @@ namespace opentxs::network::zeromq
 {
 OTZMQDealerSocket DealerSocket::Factory(
     const class Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const ListenCallback& callback)
 {
     return OTZMQDealerSocket(
-        new implementation::DealerSocket(context, client, callback));
+        new implementation::DealerSocket(context, direction, callback));
 }
 }  // namespace opentxs::network::zeromq
 
@@ -35,19 +35,18 @@ namespace opentxs::network::zeromq::implementation
 {
 DealerSocket::DealerSocket(
     const zeromq::Context& context,
-    const bool client,
+    const Socket::Direction direction,
     const zeromq::ListenCallback& callback)
-    : ot_super(context, SocketType::Dealer)
+    : ot_super(context, SocketType::Dealer, direction)
     , CurveClient(lock_, socket_)
     , Bidirectional(context, lock_, socket_, true)
     , callback_(callback)
-    , client_(client)
 {
 }
 
 DealerSocket* DealerSocket::clone() const
 {
-    return new DealerSocket(context_, client_, callback_);
+    return new DealerSocket(context_, direction_, callback_);
 }
 
 bool DealerSocket::have_callback() const { return true; }
@@ -90,7 +89,7 @@ bool DealerSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    if (client_) {
+    if (Socket::Direction::Connect == direction_) {
 
         return start_client(lock, endpoint);
     } else {

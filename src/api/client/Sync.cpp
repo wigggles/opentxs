@@ -121,6 +121,8 @@
 
 #define OT_METHOD "opentxs::api::client::implementation::Sync::"
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs
 {
 api::client::Sync* Factory::Sync(
@@ -206,21 +208,19 @@ Sync::Sync(
     , introduction_server_id_()
     , task_status_()
     , task_message_id_()
-    , account_subscriber_callback_(
-          opentxs::network::zeromq::ListenCallback::Factory(
-              [this](const opentxs::network::zeromq::Message& message) -> void {
-                  this->process_account(message);
-              }))
+    , account_subscriber_callback_(zmq::ListenCallback::Factory(
+          [this](const zmq::Message& message) -> void {
+              this->process_account(message);
+          }))
     , account_subscriber_(
           client_.ZeroMQ().SubscribeSocket(account_subscriber_callback_.get()))
-    , notification_listener_callback_(
-          opentxs::network::zeromq::ListenCallback::Factory(
-              [this](const opentxs::network::zeromq::Message& message) -> void {
-                  this->process_notification(message);
-              }))
+    , notification_listener_callback_(zmq::ListenCallback::Factory(
+          [this](const zmq::Message& message) -> void {
+              this->process_notification(message);
+          }))
     , notification_listener_(client_.ZeroMQ().PullSocket(
-          notification_listener_callback_.get(),
-          false))
+          notification_listener_callback_,
+          zmq::Socket::Direction::Bind))
     , task_finished_(client_.ZeroMQ().PublishSocket())
 {
     // WARNING: do not access client_.Wallet() during construction
@@ -1492,8 +1492,7 @@ OTIdentifier Sync::PayContactCash(
 }
 #endif  // OT_CASH
 
-void Sync::process_account(
-    const opentxs::network::zeromq::Message& message) const
+void Sync::process_account(const zmq::Message& message) const
 {
     OT_ASSERT(2 == message.Body().size())
 
@@ -1507,8 +1506,7 @@ void Sync::process_account(
            << std::endl;
 }
 
-void Sync::process_notification(
-    const opentxs::network::zeromq::Message& message) const
+void Sync::process_notification(const zmq::Message& message) const
 {
     OT_ASSERT(0 < message.Body().size())
 
@@ -2730,7 +2728,7 @@ void Sync::update_task(const Identifier& taskID, const ThreadStatus status)
     }
 
     if (publish) {
-        auto message = opentxs::network::zeromq::Message::Factory();
+        auto message = zmq::Message::Factory();
         message->AddFrame();
         message->AddFrame(taskID.str());
         message->AddFrame(Data::Factory(&value, sizeof(value)));

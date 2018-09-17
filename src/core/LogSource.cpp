@@ -17,6 +17,8 @@
 
 #define LOG_SINK "inproc://opentxs/logsink/1"
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs
 {
 std::atomic<int> LogSource::verbosity_{0};
@@ -70,7 +72,7 @@ void LogSource::Flush() const
     if (running_.load()) {
         std::string id{};
         auto& [socket, buffer] = get_buffer(id);
-        auto message = network::zeromq::Message::Factory();
+        auto message = zmq::Message::Factory();
         message->AddFrame();
         message->AddFrame(std::to_string(level_));
         message->AddFrame(buffer.str());
@@ -91,7 +93,9 @@ LogSource::Source& LogSource::get_buffer(std::string& out)
     if (buffer_.end() == it) {
         Lock lock(buffer_lock_);
         auto it = buffer_.emplace(
-            id, Source{OT::App().ZMQ().PushSocket(true), std::stringstream{}});
+            id,
+            Source{OT::App().ZMQ().PushSocket(zmq::Socket::Direction::Connect),
+                   std::stringstream{}});
         auto& source = std::get<0>(it)->second;
         auto& socket = std::get<0>(source).get();
         socket.Start(LOG_SINK);

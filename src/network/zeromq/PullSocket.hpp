@@ -29,7 +29,6 @@ private:
     friend opentxs::network::zeromq::PullSocket;
     typedef Socket ot_super;
 
-    const bool client_{false};
     const ListenCallback& callback_;
 
     PullSocket* clone() const override;
@@ -39,14 +38,16 @@ private:
 
     PullSocket(
         const zeromq::Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const zeromq::ListenCallback& callback,
         const bool startThread);
     PullSocket(
         const zeromq::Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const zeromq::ListenCallback& callback);
-    PullSocket(const zeromq::Context& context, const bool client);
+    PullSocket(
+        const zeromq::Context& context,
+        const Socket::Direction direction);
     PullSocket() = delete;
     PullSocket(const PullSocket&) = delete;
     PullSocket(PullSocket&&) = delete;

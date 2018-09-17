@@ -33,7 +33,7 @@ class PushSocket : virtual public CurveClient
 public:
     EXPORT static Pimpl<opentxs::network::zeromq::PushSocket> Factory(
         const opentxs::network::zeromq::Context& context,
-        const bool client);
+        const Socket::Direction direction);
 
     EXPORT virtual bool Push(const std::string& data) const = 0;
     EXPORT virtual bool Push(const opentxs::Data& data) const = 0;

@@ -23,9 +23,11 @@
 
 #define LOG_SINK "inproc://opentxs/logsink/1"
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs
 {
-api::internal::Log* Factory::Log(const network::zeromq::Context& zmq)
+api::internal::Log* Factory::Log(const zmq::Context& zmq)
 {
     return new api::implementation::Log(zmq);
 }
@@ -33,18 +35,18 @@ api::internal::Log* Factory::Log(const network::zeromq::Context& zmq)
 
 namespace opentxs::api::implementation
 {
-Log::Log(const opentxs::network::zeromq::Context& zmq)
+Log::Log(const zmq::Context& zmq)
     : zmq_(zmq)
-    , callback_(opentxs::network::zeromq::ListenCallback::Factory(
+    , callback_(zmq::ListenCallback::Factory(
           std::bind(&Log::callback, this, std::placeholders::_1)))
-    , socket_(zmq.PullSocket(callback_, false))
+    , socket_(zmq.PullSocket(callback_, zmq::Socket::Direction::Bind))
 {
     const auto started = socket_->Start(LOG_SINK);
 
     if (false == started) { abort(); }
 }
 
-void Log::callback(opentxs::network::zeromq::Message& message)
+void Log::callback(zmq::Message& message)
 {
     if (3 != message.Body().size()) { return; }
 

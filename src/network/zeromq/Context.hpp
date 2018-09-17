@@ -27,7 +27,7 @@ public:
         const std::string& suffix) const override;
     OTZMQDealerSocket DealerSocket(
         const ListenCallback& callback,
-        const bool client) const override;
+        const Socket::Direction direction) const override;
     OTZMQSubscribeSocket PairEventListener(
         const PairEventCallback& callback,
         const int instance) const override;
@@ -43,18 +43,20 @@ public:
         network::zeromq::Socket& frontend,
         network::zeromq::Socket& backend) const override;
     OTZMQPublishSocket PublishSocket() const override;
-    OTZMQPullSocket PullSocket(const bool client) const override;
+    OTZMQPullSocket PullSocket(
+        const Socket::Direction direction) const override;
     OTZMQPullSocket PullSocket(
         const ListenCallback& callback,
-        const bool client) const override;
-    OTZMQPushSocket PushSocket(const bool client) const override;
+        const Socket::Direction direction) const override;
+    OTZMQPushSocket PushSocket(
+        const Socket::Direction direction) const override;
     OTZMQReplySocket ReplySocket(
         const ReplyCallback& callback,
-        const bool client) const override;
+        const Socket::Direction direction) const override;
     OTZMQRequestSocket RequestSocket() const override;
     OTZMQRouterSocket RouterSocket(
         const ListenCallback& callback,
-        const bool client) const override;
+        const Socket::Direction direction) const override;
     OTZMQSubscribeSocket SubscribeSocket(
         const ListenCallback& callback) const override;
 

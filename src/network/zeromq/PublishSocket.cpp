@@ -28,7 +28,7 @@ OTZMQPublishSocket PublishSocket::Factory(const class Context& context)
 namespace opentxs::network::zeromq::implementation
 {
 PublishSocket::PublishSocket(const zeromq::Context& context)
-    : ot_super(context, SocketType::Publish)
+    : ot_super(context, SocketType::Publish, Socket::Direction::Bind)
     , CurveServer(lock_, socket_)
 {
 }

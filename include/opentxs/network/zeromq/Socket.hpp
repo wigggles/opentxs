@@ -49,6 +49,7 @@ class Socket
 {
 public:
     using SendResult = std::pair<opentxs::SendResult, OTZMQMessage>;
+    enum class Direction : bool { Bind = false, Connect = true };
 
     EXPORT virtual operator void*() const = 0;
 

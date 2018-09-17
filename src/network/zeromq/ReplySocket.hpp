@@ -31,8 +31,6 @@ private:
 
     const ReplyCallback& callback_;
 
-    const bool client_{false};
-
     ReplySocket* clone() const override;
     bool have_callback() const override;
 
@@ -40,7 +38,7 @@ private:
 
     ReplySocket(
         const zeromq::Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const ReplyCallback& callback);
     ReplySocket() = delete;
     ReplySocket(const ReplySocket&) = delete;

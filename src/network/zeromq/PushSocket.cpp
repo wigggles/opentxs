@@ -21,18 +21,19 @@ namespace opentxs::network::zeromq
 {
 OTZMQPushSocket PushSocket::Factory(
     const class Context& context,
-    const bool client)
+    const Socket::Direction direction)
 {
-    return OTZMQPushSocket(new implementation::PushSocket(context, client));
+    return OTZMQPushSocket(new implementation::PushSocket(context, direction));
 }
 }  // namespace opentxs::network::zeromq
 
 namespace opentxs::network::zeromq::implementation
 {
-PushSocket::PushSocket(const zeromq::Context& context, const bool client)
-    : ot_super(context, SocketType::Push)
+PushSocket::PushSocket(
+    const zeromq::Context& context,
+    const Socket::Direction direction)
+    : ot_super(context, SocketType::Push, direction)
     , CurveClient(lock_, socket_)
-    , client_(client)
 {
 }
 
@@ -55,14 +56,14 @@ bool PushSocket::Push(zeromq::Message& data) const
 
 PushSocket* PushSocket::clone() const
 {
-    return new PushSocket(context_, client_);
+    return new PushSocket(context_, direction_);
 }
 
 bool PushSocket::Start(const std::string& endpoint) const
 {
     Lock lock(lock_);
 
-    if (client_) {
+    if (Socket::Direction::Connect == direction_) {
 
         return start_client(lock, endpoint);
     } else {

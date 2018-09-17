@@ -33,7 +33,7 @@ class DealerSocket : virtual public CurveClient
 public:
     EXPORT static OTZMQDealerSocket Factory(
         const class Context& context,
-        const bool client,
+        const Socket::Direction direction,
         const ListenCallback& callback);
 
     EXPORT virtual bool Send(opentxs::Data& message) const = 0;

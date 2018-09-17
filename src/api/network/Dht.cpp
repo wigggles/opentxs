@@ -32,6 +32,8 @@
 
 #include "Dht.hpp"
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs
 {
 api::network::Dht* Factory::Dht(
@@ -115,29 +117,27 @@ Dht::Dht(DhtConfig& config, const api::Core& api)
 #if OT_DHT
     , node_(new opentxs::network::implementation::OpenDHT(*config_))
 #endif
-    , request_nym_callback_{opentxs::network::zeromq::ReplyCallback::Factory(
-          [=](const opentxs::network::zeromq::Message& incoming)
-              -> OTZMQMessage {
+    , request_nym_callback_{zmq::ReplyCallback::Factory(
+          [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_request(incoming, &Dht::GetPublicNym);
           })}
     , request_nym_socket_{api_.ZeroMQ().ReplySocket(
           request_nym_callback_,
-          false)}
-    , request_server_callback_{opentxs::network::zeromq::ReplyCallback::Factory(
-          [=](const opentxs::network::zeromq::Message& incoming)
-              -> OTZMQMessage {
+          zmq::Socket::Direction::Bind)}
+    , request_server_callback_{zmq::ReplyCallback::Factory(
+          [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_request(incoming, &Dht::GetServerContract);
           })}
     , request_server_socket_{api_.ZeroMQ().ReplySocket(
           request_server_callback_,
-          false)}
-    , request_unit_callback_{opentxs::network::zeromq::ReplyCallback::Factory(
-          [=](const opentxs::network::zeromq::Message& incoming)
-              -> OTZMQMessage {
+          zmq::Socket::Direction::Bind)}
+    , request_unit_callback_{zmq::ReplyCallback::Factory(
+          [=](const zmq::Message& incoming) -> OTZMQMessage {
               return this->process_request(incoming, &Dht::GetUnitDefinition);
           })}
-    , request_unit_socket_{
-          api_.ZeroMQ().ReplySocket(request_unit_callback_, false)}
+    , request_unit_socket_{api_.ZeroMQ().ReplySocket(
+          request_unit_callback_,
+          zmq::Socket::Direction::Bind)}
 {
     request_nym_socket_->Start(api_.Endpoints().DhtRequestNym());
     request_server_socket_->Start(api_.Endpoints().DhtRequestServer());
@@ -238,7 +238,7 @@ const opentxs::network::OpenDHT& Dht::OpenDHT() const { return *node_; }
 #endif
 
 OTZMQMessage Dht::process_request(
-    const opentxs::network::zeromq::Message& incoming,
+    const zmq::Message& incoming,
     void (Dht::*get)(const std::string&) const) const
 {
     OT_ASSERT(nullptr != get)
@@ -255,8 +255,7 @@ OTZMQMessage Dht::process_request(
         }
     }
 
-    return opentxs::network::zeromq::Message::Factory(
-        Data::Factory(&output, sizeof(output)));
+    return zmq::Message::Factory(Data::Factory(&output, sizeof(output)));
 }
 
 #if OT_DHT

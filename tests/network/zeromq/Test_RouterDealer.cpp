@@ -9,7 +9,8 @@
 
 using namespace opentxs;
 using namespace opentxs::network;
-using namespace opentxs::network::zeromq;
+
+namespace zmq = opentxs::network::zeromq;
 
 namespace
 {
@@ -76,9 +77,8 @@ void Test_RouterDealer::dealerSocketThread(
 
     bool replyProcessed{false};
 
-    auto dealerCallback = network::zeromq::ListenCallback::Factory(
-        [this, &replyProcessed, msg](
-            network::zeromq::Message& input) -> void {
+    auto dealerCallback = zmq::ListenCallback::Factory(
+        [this, &replyProcessed, msg](network::zeromq::Message& input) -> void {
             EXPECT_EQ(2, input.size());
 
             const std::string& inputString = *input.Body().begin();
@@ -90,8 +90,10 @@ void Test_RouterDealer::dealerSocketThread(
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = network::zeromq::DealerSocket::Factory(
-        Test_RouterDealer::context_, true, dealerCallback);
+    auto dealerSocket = zmq::DealerSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Connect,
+        dealerCallback);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -120,14 +122,13 @@ TEST_F(Test_RouterDealer, Router_Dealer)
     ASSERT_NE(nullptr, &Test_RouterDealer::context_.get());
 
     auto dealerCallback =
-        ListenCallback::Factory([this](zeromq::Message& input) -> void {
+        zmq::ListenCallback::Factory([this](zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
             const std::string& inputString = *input.Body().begin();
 
             EXPECT_EQ(testMessage_, inputString);
 
-            auto sent =
-                routerSocket_->get().Send(input);
+            auto sent = routerSocket_->get().Send(input);
 
             EXPECT_TRUE(sent);
 
@@ -136,8 +137,10 @@ TEST_F(Test_RouterDealer, Router_Dealer)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = DealerSocket::Factory(
-        Test_RouterDealer::context_, false, dealerCallback);
+    auto dealerSocket = zmq::DealerSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Bind,
+        dealerCallback);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -151,14 +154,13 @@ TEST_F(Test_RouterDealer, Router_Dealer)
     dealerSocket_ = &dealerSocket;
 
     auto routerCallback =
-        ListenCallback::Factory([this](zeromq::Message& input) -> void {
+        zmq::ListenCallback::Factory([this](zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
             const std::string& inputString = *input.Body().begin();
 
             EXPECT_EQ(testMessage_, inputString);
 
-            auto sent =
-                dealerSocket_->get().Send(input);
+            auto sent = dealerSocket_->get().Send(input);
 
             EXPECT_TRUE(sent);
 
@@ -167,8 +169,10 @@ TEST_F(Test_RouterDealer, Router_Dealer)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = RouterSocket::Factory(
-        Test_RouterDealer::context_, false, routerCallback);
+    auto routerSocket = zmq::RouterSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Bind,
+        routerCallback);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -181,7 +185,7 @@ TEST_F(Test_RouterDealer, Router_Dealer)
 
     routerSocket_ = &routerSocket;
 
-    auto replyCallback = ReplyCallback::Factory(
+    auto replyCallback = zmq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
             const std::string& inputString = *input.Body().begin();
 
@@ -196,8 +200,10 @@ TEST_F(Test_RouterDealer, Router_Dealer)
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket =
-        ReplySocket::Factory(Test_RouterDealer::context_, true, replyCallback);
+    auto replySocket = zmq::ReplySocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Connect,
+        replyCallback);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -233,7 +239,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
     ASSERT_NE(nullptr, &Test_RouterDealer::context_.get());
 
     auto dealerCallback =
-        ListenCallback::Factory([this](zeromq::Message& input) -> void {
+        zmq::ListenCallback::Factory([this](zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
             const std::string& inputString = *input.Body().begin();
             bool match = inputString == testMessage_ ||
@@ -242,8 +248,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
 
             EXPECT_TRUE(match);
 
-            auto sent =
-                routerSocket_->get().Send(input);
+            auto sent = routerSocket_->get().Send(input);
 
             EXPECT_TRUE(sent);
 
@@ -252,8 +257,10 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = DealerSocket::Factory(
-        Test_RouterDealer::context_, false, dealerCallback);
+    auto dealerSocket = zmq::DealerSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Bind,
+        dealerCallback);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -267,7 +274,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
     dealerSocket_ = &dealerSocket;
 
     auto routerCallback =
-        ListenCallback::Factory([this](zeromq::Message& input) -> void {
+        zmq::ListenCallback::Factory([this](zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
             const std::string& inputString = *input.Body().begin();
             bool match = inputString == testMessage_ ||
@@ -276,8 +283,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
 
             EXPECT_TRUE(match);
 
-            auto sent =
-                dealerSocket_->get().Send(input);
+            auto sent = dealerSocket_->get().Send(input);
 
             EXPECT_TRUE(sent);
 
@@ -286,8 +292,10 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = RouterSocket::Factory(
-        Test_RouterDealer::context_, false, routerCallback);
+    auto routerSocket = zmq::RouterSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Bind,
+        routerCallback);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -300,7 +308,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
 
     routerSocket_ = &routerSocket;
 
-    auto replyCallback = ReplyCallback::Factory(
+    auto replyCallback = zmq::ReplyCallback::Factory(
         [this](const network::zeromq::Message& input) -> OTZMQMessage {
             const std::string& inputString = *input.Body().begin();
             bool match = inputString == testMessage_ ||
@@ -318,8 +326,10 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Reply)
 
     ASSERT_NE(nullptr, &replyCallback.get());
 
-    auto replySocket =
-        ReplySocket::Factory(Test_RouterDealer::context_, true, replyCallback);
+    auto replySocket = zmq::ReplySocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Connect,
+        replyCallback);
 
     ASSERT_NE(nullptr, &replySocket.get());
     ASSERT_EQ(SocketType::Reply, replySocket->Type());
@@ -369,7 +379,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
     ASSERT_NE(nullptr, &Test_RouterDealer::context_.get());
 
     auto dealerCallback =
-        ListenCallback::Factory([this](zeromq::Message& input) -> void {
+        zmq::ListenCallback::Factory([this](zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
             const std::string& inputString = *input.Body().begin();
             bool match = inputString == testMessage_ ||
@@ -378,8 +388,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
 
             EXPECT_TRUE(match);
 
-            auto sent =
-                routerSocket_->get().Send(input);
+            auto sent = routerSocket_->get().Send(input);
 
             EXPECT_TRUE(sent);
 
@@ -388,8 +397,10 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
 
     ASSERT_NE(nullptr, &dealerCallback.get());
 
-    auto dealerSocket = DealerSocket::Factory(
-        Test_RouterDealer::context_, false, dealerCallback);
+    auto dealerSocket = zmq::DealerSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Bind,
+        dealerCallback);
 
     ASSERT_NE(nullptr, &dealerSocket.get());
     ASSERT_EQ(SocketType::Dealer, dealerSocket->Type());
@@ -403,7 +414,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
     dealerSocket_ = &dealerSocket;
 
     auto routerCallback =
-        ListenCallback::Factory([this](zeromq::Message& input) -> void {
+        zmq::ListenCallback::Factory([this](zeromq::Message& input) -> void {
             EXPECT_EQ(3, input.size());
             const std::string& inputString = *input.Body().begin();
             bool match = inputString == testMessage_ ||
@@ -412,8 +423,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
 
             EXPECT_TRUE(match);
 
-            auto sent =
-                dealerSocket_->get().Send(input);
+            auto sent = dealerSocket_->get().Send(input);
 
             EXPECT_TRUE(sent);
 
@@ -422,8 +432,10 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
 
     ASSERT_NE(nullptr, &routerCallback.get());
 
-    auto routerSocket = RouterSocket::Factory(
-        Test_RouterDealer::context_, false, routerCallback);
+    auto routerSocket = zmq::RouterSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Bind,
+        routerCallback);
 
     ASSERT_NE(nullptr, &routerSocket.get());
     ASSERT_EQ(SocketType::Router, routerSocket->Type());
@@ -438,7 +450,7 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
 
     std::vector<OTZMQMessage> replyMessages;
 
-    auto clientRouterCallback = ListenCallback::Factory(
+    auto clientRouterCallback = zmq::ListenCallback::Factory(
         [this, &replyMessages](const network::zeromq::Message& input) -> void {
             const std::string& inputString = *input.Body().begin();
             bool match = inputString == testMessage_ ||
@@ -464,8 +476,10 @@ TEST_F(Test_RouterDealer, Dealer_3_Router_Dealer_Router)
 
     ASSERT_NE(nullptr, &clientRouterCallback.get());
 
-    auto clientRouterSocket = RouterSocket::Factory(
-        Test_RouterDealer::context_, true, clientRouterCallback);
+    auto clientRouterSocket = zmq::RouterSocket::Factory(
+        Test_RouterDealer::context_,
+        zmq::Socket::Direction::Connect,
+        clientRouterCallback);
 
     ASSERT_NE(nullptr, &clientRouterSocket.get());
     ASSERT_EQ(SocketType::Router, clientRouterSocket->Type());
