@@ -76,8 +76,8 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         case proto::RPCCOMMAND_ADDSERVERSESSION: {
             return start_server(command);
         } break;
-        case proto::RPCCOMMAND_LISTCLIENTSSESSIONS:
-        case proto::RPCCOMMAND_LISTSERVERSSESSIONS:
+        case proto::RPCCOMMAND_LISTCLIENTSESSIONS:
+        case proto::RPCCOMMAND_LISTSERVERSESSIONS:
         case proto::RPCCOMMAND_IMPORTHDSEED:
         case proto::RPCCOMMAND_LISTHDSEEDS:
         case proto::RPCCOMMAND_GETHDSEED:
