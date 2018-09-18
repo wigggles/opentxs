@@ -55,11 +55,11 @@ private:
      that controls this agent.
      */
 
-    String m_strName;  // agent name (accessible within script language.)
+    OTString m_strName;  // agent name (accessible within script language.)
 
     // info about agent.
     //
-    String m_strNymID;  // If agent is a Nym, then this is the NymID of that
+    OTString m_strNymID;  // If agent is a Nym, then this is the NymID of that
                         // Nym (whether that Nym is owner or not.)
     // If agent is a group (IsAGroup()) then this will be blank. This is
     // different than the
@@ -67,9 +67,9 @@ private:
     // (Though this Nym
     // MAY ALSO be the owner, that fact is purely incidental here AND this NymID
     // could be blank.)
-    String m_strRoleID;     // If agent is Nym working in a role on behalf of an
+    OTString m_strRoleID;     // If agent is Nym working in a role on behalf of an
                             // entity, then this is its RoleID in Entity.
-    String m_strGroupName;  // If agent is a voting group in an Entity, this is
+    OTString m_strGroupName;  // If agent is a voting group in an Entity, this is
                             // group's Name (inside Entity.)
 
     OTAgent() = delete;

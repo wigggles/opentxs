@@ -32,8 +32,8 @@ void OTBylaw::Serialize(Tag& parent, bool bCalculatingID) const
 {
     TagPtr pTag(new Tag("bylaw"));
 
-    pTag->add_attribute("name", m_strName.Get());
-    pTag->add_attribute("language", m_strLanguage.Get());
+    pTag->add_attribute("name", m_strName->Get());
+    pTag->add_attribute("language", m_strLanguage->Get());
 
     const std::uint64_t numVariables = m_mapVariables.size();
     const std::uint64_t numClauses = m_mapClauses.size();
@@ -176,8 +176,8 @@ void OTBylaw::RegisterVariablesForExecution(OTScript& theScript)
 // Done:
 bool OTBylaw::Compare(OTBylaw& rhs)
 {
-    if ((m_strName.Compare(rhs.GetName())) &&
-        (m_strLanguage.Compare(rhs.GetLanguage()))) {
+    if ((m_strName->Compare(rhs.GetName())) &&
+        (m_strLanguage->Compare(rhs.GetLanguage()))) {
         if (GetVariableCount() != rhs.GetVariableCount()) {
             otOut << "OTBylaw::" << __FUNCTION__
                   << ": The variable count doesn't match for "
@@ -952,21 +952,25 @@ bool OTBylaw::AddClause(OTClause& theClause)
 
 const char* OTBylaw::GetLanguage() const
 {
-    return m_strLanguage.Exists() ? m_strLanguage.Get()
-                                  : "chai";  // todo add default script to
-                                             // config files. no hardcoding.
+    return m_strLanguage->Exists() ? m_strLanguage->Get()
+                                   : "chai";  // todo add default script to
+                                              // config files. no hardcoding.
 }
 
 OTBylaw::OTBylaw()
-    : m_pOwnerAgreement(nullptr)
+    : m_strName(String::Factory())
+    , m_strLanguage(String::Factory())
+    , m_pOwnerAgreement(nullptr)
 {
 }
 
 OTBylaw::OTBylaw(const char* szName, const char* szLanguage)
-    : m_pOwnerAgreement(nullptr)
+    : m_strName(String::Factory())
+    , m_strLanguage(String::Factory())
+    , m_pOwnerAgreement(nullptr)
 {
     if (nullptr != szName)
-        m_strName.Set(szName);
+        m_strName->Set(szName);
     else
         otErr << "nullptr szName passed in to OTBylaw::OTBylaw \n";
 
@@ -975,8 +979,8 @@ OTBylaw::OTBylaw(const char* szName, const char* szLanguage)
     else
         otErr << "nullptr szLanguage passed in to OTBylaw::OTBylaw \n";
 
-    const std::string str_bylaw_name = m_strName.Get();
-    const std::string str_language = m_strLanguage.Get();
+    const std::string str_bylaw_name = m_strName->Get();
+    const std::string str_language = m_strLanguage->Get();
 
     // Let the calling function validate these, if he doesn't want to risk an
     // ASSERT...

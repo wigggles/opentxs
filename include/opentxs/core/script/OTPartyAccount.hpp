@@ -145,9 +145,9 @@ private:
     // account name (inside the script language, "gold_acct_A" could be used to
     // reference this acct.)
     //
-    String m_strName;    // Name of the account (for use in scripts.)
-    String m_strAcctID;  // The Account ID itself.
-    String m_strInstrumentDefinitionID;  // The instrument definition ID for the
+    OTString m_strName;    // Name of the account (for use in scripts.)
+    OTString m_strAcctID;  // The Account ID itself.
+    OTString m_strInstrumentDefinitionID;  // The instrument definition ID for the
                                          // account.
                                          // Stored
     // because parties agree on this even before the
@@ -155,7 +155,7 @@ private:
     // even when the account ID is blank, and when
     // acct ID *is* added, its instrument definition must match
     // this.
-    String m_strAgentName;  // The name of the agent who has rights to this
+    OTString m_strAgentName;  // The name of the agent who has rights to this
                             // account.
     // Entity, role, and Nym information are not stored here.
     // Entity is already known on the party who owns this account (and I should
@@ -164,7 +164,7 @@ private:
     // of agents.
     // Nym is known on the party (for owner) and on the agent.
 
-    // "GetOwnerID()" for a partyaccount (if it were to store NymID, EntityID,
+    // "GetOwnerID()" for a partyaccount (if it were to store NymID, EntityIsD,
     // and a bool to choose
     // between them) should be logically the same as
     // m_pOwnerParty->GetPartyID().

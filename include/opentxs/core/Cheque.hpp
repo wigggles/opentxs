@@ -93,7 +93,7 @@ public:
 
 protected:
     Amount m_lAmount{0};
-    String m_strMemo;
+    OTString m_strMemo;
     // Optional. If present, must match depositor's user ID.
     OTIdentifier m_RECIPIENT_NYM_ID;
     bool m_bHasRecipient{false};

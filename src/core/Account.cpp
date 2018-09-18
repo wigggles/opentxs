@@ -67,8 +67,8 @@ Account::Account(
     : OTTransactionType(core)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
-    , balanceDate_()
-    , balanceAmount_()
+    , balanceDate_(String::Factory())
+    , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
@@ -84,8 +84,8 @@ Account::Account(const api::Core& core)
     : OTTransactionType(core)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
-    , balanceDate_()
-    , balanceAmount_()
+    , balanceDate_(String::Factory())
+    , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
@@ -103,8 +103,8 @@ Account::Account(
     : OTTransactionType(core, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
-    , balanceDate_()
-    , balanceAmount_()
+    , balanceDate_(String::Factory())
+    , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
@@ -122,8 +122,8 @@ Account::Account(
     : OTTransactionType(core, nymID, accountId, notaryID)
     , acctType_(err_acct)
     , acctInstrumentDefinitionID_(Identifier::Factory())
-    , balanceDate_()
-    , balanceAmount_()
+    , balanceDate_(String::Factory())
+    , balanceAmount_(String::Factory())
     , stashTransNum_(0)
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
@@ -200,7 +200,8 @@ std::unique_ptr<Ledger> Account::LoadInbox(const Nym& nym) const
 
     if (box->LoadInbox() && box->VerifyAccount(nym)) { return box; }
 
-    String strNymID(GetNymID()), strAcctID(GetRealAccountID());
+    auto strNymID = String::Factory(GetNymID()),
+         strAcctID = String::Factory(GetRealAccountID());
     otInfo << "Unable to load or verify inbox:\n"
            << strAcctID << "\n For user:\n"
            << strNymID << "\n";
@@ -217,7 +218,8 @@ std::unique_ptr<Ledger> Account::LoadOutbox(const Nym& nym) const
 
     if (box->LoadOutbox() && box->VerifyAccount(nym)) { return box; }
 
-    String strNymID(GetNymID()), strAcctID(GetRealAccountID());
+    auto strNymID = String::Factory(GetNymID()),
+         strAcctID = String::Factory(GetRealAccountID());
     otInfo << "Unable to load or verify outbox:\n"
            << strAcctID << "\n For user:\n"
            << strNymID << "\n";
@@ -391,23 +393,23 @@ bool Account::InitBoxes(const Nym& signer)
 // Overriding this so I can set the filename automatically inside based on ID.
 bool Account::LoadContract()
 {
-    String id;
+    auto id = String::Factory();
     GetIdentifier(id);
-    return Contract::LoadContract(OTFolders::Account().Get(), id.Get());
+    return Contract::LoadContract(OTFolders::Account().Get(), id->Get());
 }
 
 bool Account::SaveAccount()
 {
-    String id;
+    auto id = String::Factory();
     GetIdentifier(id);
-    return SaveContract(OTFolders::Account().Get(), id.Get());
+    return SaveContract(OTFolders::Account().Get(), id->Get());
 }
 
 // Debit a certain amount from the account (presumably the same amount is being
 // credited somewhere else)
 bool Account::Debit(const Amount amount)
 {
-    std::int64_t oldBalance = balanceAmount_.ToLong();
+    std::int64_t oldBalance = balanceAmount_->ToLong();
     // The MINUS here is the big difference between Debit and Credit
     std::int64_t newBalance = oldBalance - amount;
 
@@ -428,8 +430,8 @@ bool Account::Debit(const Amount amount)
     // and it means that we now allow <0 debits on normal accounts,
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
-        balanceAmount_.Format("%" PRId64, newBalance);
-        balanceDate_.Set(String(getTimestamp()));
+        balanceAmount_->Format("%" PRId64, newBalance);
+        balanceDate_->Set(String::Factory(getTimestamp()));
         return true;
     }
 }
@@ -438,7 +440,7 @@ bool Account::Debit(const Amount amount)
 // debited somewhere else)
 bool Account::Credit(const Amount amount)
 {
-    std::int64_t oldBalance = balanceAmount_.ToLong();
+    std::int64_t oldBalance = balanceAmount_->ToLong();
     // The PLUS here is the big difference between Debit and Credit.
     std::int64_t newBalance = oldBalance + amount;
 
@@ -468,8 +470,8 @@ bool Account::Credit(const Amount amount)
     // and it means that we now allow <0 credits on normal accounts,
     // AS LONG AS the result is a HIGHER BALANCE  :-)
     else {
-        balanceAmount_.Format("%" PRId64, newBalance);
-        balanceDate_.Set(String(getTimestamp()));
+        balanceAmount_->Format("%" PRId64, newBalance);
+        balanceDate_->Set(String::Factory(getTimestamp()));
         return true;
     }
 }
@@ -510,8 +512,8 @@ Account* Account::LoadExistingAccount(
     bool folderAlreadyExist = false;
     bool folderIsNew = false;
 
-    String strDataFolder = core.DataFolder().c_str();
-    String strAccountPath = "";
+    auto strDataFolder = String::Factory(core.DataFolder().c_str());
+    auto strAccountPath = String::Factory("");
 
     if (!OTPaths::AppendFolder(
             strAccountPath, strDataFolder, OTFolders::Account())) {
@@ -531,9 +533,9 @@ Account* Account::LoadExistingAccount(
 
     account->SetRealAccountID(accountId);
     account->SetRealNotaryID(notaryID);
-    String strAcctID(accountId);
+    auto strAcctID = String::Factory(accountId);
     account->m_strFoldername = OTFolders::Account().Get();
-    account->m_strFilename = strAcctID.Get();
+    account->m_strFilename = strAcctID->Get();
 
     if (!OTDB::Exists(
             core.DataFolder(),
@@ -616,7 +618,7 @@ bool Account::GenerateNewAccount(
     // Next we get that digest (which is a binary hash number)
     // and extract a human-readable standard string format of that hash,
     // into an OTString.
-    String strID(newID);
+    auto strID = String::Factory(newID);
 
     // Set the account number based on what we just generated.
     SetRealAccountID(newID);
@@ -627,7 +629,7 @@ bool Account::GenerateNewAccount(
 
     // Next we create the full path filename for the account using the ID.
     m_strFoldername = OTFolders::Account().Get();
-    m_strFilename = strID.Get();
+    m_strFilename = strID->Get();
 
     // Then we try to load it, in order to make sure that it doesn't already
     // exist.
@@ -652,19 +654,20 @@ bool Account::GenerateNewAccount(
     if (IsInternalServerAcct()) {
         server.GetIdentifier(m_AcctNymID);
     } else {
-        m_AcctNymID->SetString(String(userNymID));
+        m_AcctNymID->SetString(String::Factory(userNymID));
     }
 
-    acctInstrumentDefinitionID_->SetString(String(instrumentDefinitionID));
+    acctInstrumentDefinitionID_->SetString(
+        String::Factory(instrumentDefinitionID));
 
     otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
-           << String(instrumentDefinitionID) << "\n";
+           << String::Factory(instrumentDefinitionID) << "\n";
 
     SetRealNotaryID(notaryID);
     SetPurportedNotaryID(notaryID);
 
-    balanceDate_.Set(String(getTimestamp()));
-    balanceAmount_.Set("0");
+    balanceDate_->Set(String::Factory(getTimestamp()));
+    balanceAmount_->Set("0");
 
     if (IsStashAcct()) {
         OT_ASSERT_MSG(
@@ -699,18 +702,19 @@ bool Account::GenerateNewAccount(
 
 std::int64_t Account::GetBalance() const
 {
-    if (balanceAmount_.Exists()) { return balanceAmount_.ToLong(); }
+    if (balanceAmount_->Exists()) { return balanceAmount_->ToLong(); }
     return 0;
 }
 
 bool Account::DisplayStatistics(String& contents) const
 {
-    String strAccountID(GetPurportedAccountID());
-    String strNotaryID(GetPurportedNotaryID());
-    String strNymID(GetNymID());
-    String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
+    auto strAccountID = String::Factory(GetPurportedAccountID());
+    auto strNotaryID = String::Factory(GetPurportedNotaryID());
+    auto strNymID = String::Factory(GetNymID());
+    auto strInstrumentDefinitionID =
+        String::Factory(acctInstrumentDefinitionID_);
 
-    String acctType;
+    auto acctType = String::Factory();
     TranslateAccountTypeToString(acctType_, acctType);
 
     contents.Concatenate(
@@ -721,26 +725,27 @@ bool Account::DisplayStatistics(String& contents) const
         " notaryID: %s\n"
         " instrumentDefinitionID: %s\n"
         "\n",
-        acctType.Get(),
+        acctType->Get(),
         m_strName->Get(),
-        balanceAmount_.Get(),
-        balanceDate_.Get(),
-        strAccountID.Get(),
-        strNymID.Get(),
-        strNotaryID.Get(),
-        strInstrumentDefinitionID.Get());
+        balanceAmount_->Get(),
+        balanceDate_->Get(),
+        strAccountID->Get(),
+        strNymID->Get(),
+        strNotaryID->Get(),
+        strInstrumentDefinitionID->Get());
 
     return true;
 }
 
 bool Account::SaveContractWallet(Tag& parent) const
 {
-    String strAccountID(GetPurportedAccountID());
-    String strNotaryID(GetPurportedNotaryID());
-    String strNymID(GetNymID());
-    String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
+    auto strAccountID = String::Factory(GetPurportedAccountID());
+    auto strNotaryID = String::Factory(GetPurportedNotaryID());
+    auto strNymID = String::Factory(GetNymID());
+    auto strInstrumentDefinitionID =
+        String::Factory(acctInstrumentDefinitionID_);
 
-    String acctType;
+    auto acctType = String::Factory();
     TranslateAccountTypeToString(acctType_, acctType);
 
     // Name is in the clear in memory,
@@ -753,19 +758,19 @@ bool Account::SaveContractWallet(Tag& parent) const
     TagPtr pTag(new Tag("account"));
 
     pTag->add_attribute("name", m_strName->Exists() ? ascName.Get() : "");
-    pTag->add_attribute("accountID", strAccountID.Get());
-    pTag->add_attribute("nymID", strNymID.Get());
-    pTag->add_attribute("notaryID", strNotaryID.Get());
+    pTag->add_attribute("accountID", strAccountID->Get());
+    pTag->add_attribute("nymID", strNymID->Get());
+    pTag->add_attribute("notaryID", strNotaryID->Get());
 
     // These are here for informational purposes only,
     // and are not ever actually loaded back up. In the
     // previous version of this code, they were written
     // only as XML comments.
-    pTag->add_attribute("infoLastKnownBalance", balanceAmount_.Get());
-    pTag->add_attribute("infoDateOfLastBalance", balanceDate_.Get());
-    pTag->add_attribute("infoAccountType", acctType.Get());
+    pTag->add_attribute("infoLastKnownBalance", balanceAmount_->Get());
+    pTag->add_attribute("infoDateOfLastBalance", balanceDate_->Get());
+    pTag->add_attribute("infoAccountType", acctType->Get());
     pTag->add_attribute(
-        "infoInstrumentDefinitionID", strInstrumentDefinitionID.Get());
+        "infoInstrumentDefinitionID", strInstrumentDefinitionID->Get());
 
     parent.add_tag(pTag);
 
@@ -785,12 +790,12 @@ bool Account::SaveContractWallet(Tag& parent) const
 // signatures valid.
 void Account::UpdateContents()
 {
-    String strAssetTYPEID(acctInstrumentDefinitionID_);
-    String ACCOUNT_ID(GetPurportedAccountID());
-    String NOTARY_ID(GetPurportedNotaryID());
-    String NYM_ID(GetNymID());
+    auto strAssetTYPEID = String::Factory(acctInstrumentDefinitionID_);
+    auto ACCOUNT_ID = String::Factory(GetPurportedAccountID());
+    auto NOTARY_ID = String::Factory(GetPurportedNotaryID());
+    auto NYM_ID = String::Factory(GetNymID());
 
-    String acctType;
+    auto acctType = String::Factory();
     TranslateAccountTypeToString(acctType_, acctType);
 
     // I release this because I'm about to repopulate it.
@@ -799,11 +804,11 @@ void Account::UpdateContents()
     Tag tag("account");
 
     tag.add_attribute("version", m_strVersion->Get());
-    tag.add_attribute("type", acctType.Get());
-    tag.add_attribute("accountID", ACCOUNT_ID.Get());
-    tag.add_attribute("nymID", NYM_ID.Get());
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
-    tag.add_attribute("instrumentDefinitionID", strAssetTYPEID.Get());
+    tag.add_attribute("type", acctType->Get());
+    tag.add_attribute("accountID", ACCOUNT_ID->Get());
+    tag.add_attribute("nymID", NYM_ID->Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
+    tag.add_attribute("instrumentDefinitionID", strAssetTYPEID->Get());
 
     if (IsStashAcct()) {
         TagPtr tagStash(new Tag("stashinfo"));
@@ -811,22 +816,22 @@ void Account::UpdateContents()
         tag.add_tag(tagStash);
     }
     if (!inboxHash_->empty()) {
-        String strHash(inboxHash_);
+        auto strHash = String::Factory(inboxHash_);
         TagPtr tagBox(new Tag("inboxHash"));
-        tagBox->add_attribute("value", strHash.Get());
+        tagBox->add_attribute("value", strHash->Get());
         tag.add_tag(tagBox);
     }
     if (!outboxHash_->empty()) {
-        String strHash(outboxHash_);
+        auto strHash = String::Factory(outboxHash_);
         TagPtr tagBox(new Tag("outboxHash"));
-        tagBox->add_attribute("value", strHash.Get());
+        tagBox->add_attribute("value", strHash->Get());
         tag.add_tag(tagBox);
     }
 
     TagPtr tagBalance(new Tag("balance"));
 
-    tagBalance->add_attribute("date", balanceDate_.Get());
-    tagBalance->add_attribute("amount", balanceAmount_.Get());
+    tagBalance->add_attribute("date", balanceDate_->Get());
+    tagBalance->add_attribute("amount", balanceAmount_->Get());
 
     tag.add_tag(tagBalance);
 
@@ -847,7 +852,7 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 {
     std::int32_t retval = 0;
 
-    String strNodeName(xml->getNodeName());
+    auto strNodeName = String::Factory(xml->getNodeName());
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -860,13 +865,13 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
     // if (retval = OTTransactionType::ProcessXMLNode(xml))
     //    return retval;
 
-    if (strNodeName.Compare("account")) {
-        String acctType;
+    if (strNodeName->Compare("account")) {
+        auto acctType = String::Factory();
 
         m_strVersion = xml->getAttributeValue("version");
         acctType = xml->getAttributeValue("type");
 
-        if (!acctType.Exists()) {
+        if (!acctType->Exists()) {
             otErr << "OTAccount::ProcessXMLNode: Failed: Empty account "
                      "'type' attribute.\n";
             return -1;
@@ -880,19 +885,20 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
             return -1;
         }
 
-        String strAcctAssetType =
-            xml->getAttributeValue("instrumentDefinitionID");
+        auto strAcctAssetType =
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
 
-        if (strAcctAssetType.Exists()) {
+        if (strAcctAssetType->Exists()) {
             acctInstrumentDefinitionID_->SetString(strAcctAssetType);
         } else {
             otErr << "OTAccount::ProcessXMLNode: Failed: missing "
                      "instrumentDefinitionID.\n";
             return -1;
         }
-        String strAccountID(xml->getAttributeValue("accountID"));
-        String strNotaryID(xml->getAttributeValue("notaryID"));
-        String strAcctNymID(xml->getAttributeValue("nymID"));
+        auto strAccountID =
+            String::Factory(xml->getAttributeValue("accountID"));
+        auto strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        auto strAcctNymID = String::Factory(xml->getAttributeValue("nymID"));
 
         auto ACCOUNT_ID = Identifier::Factory(strAccountID);
         auto NOTARY_ID = Identifier::Factory(strNotaryID);
@@ -902,7 +908,8 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         SetPurportedNotaryID(NOTARY_ID);
         SetNymID(NYM_ID);
 
-        String strInstrumentDefinitionID(acctInstrumentDefinitionID_);
+        auto strInstrumentDefinitionID =
+            String::Factory(acctInstrumentDefinitionID_);
         otLog3 << "\n\nAccount Type: " << acctType
                << "\nAccountID: " << strAccountID << "\nNymID: " << strAcctNymID
                << "\n"
@@ -911,44 +918,44 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
                << "\n";
 
         retval = 1;
-    } else if (strNodeName.Compare("inboxHash")) {
+    } else if (strNodeName->Compare("inboxHash")) {
 
-        String strHash = xml->getAttributeValue("value");
-        if (strHash.Exists()) { inboxHash_->SetString(strHash); }
+        auto strHash = String::Factory(xml->getAttributeValue("value"));
+        if (strHash->Exists()) { inboxHash_->SetString(strHash); }
         otLog3 << "Account inboxHash: " << strHash << "\n";
 
         retval = 1;
-    } else if (strNodeName.Compare("outboxHash")) {
+    } else if (strNodeName->Compare("outboxHash")) {
 
-        String strHash = xml->getAttributeValue("value");
-        if (strHash.Exists()) { outboxHash_->SetString(strHash); }
+        auto strHash = String::Factory(xml->getAttributeValue("value"));
+        if (strHash->Exists()) { outboxHash_->SetString(strHash); }
         otLog3 << "Account outboxHash: " << strHash << "\n";
 
         retval = 1;
-    } else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
+    } else if (strNodeName->Compare("MARKED_FOR_DELETION")) {
         markForDeletion_ = true;
         otLog3 << "This asset account has been MARKED_FOR_DELETION (at some "
                   "point prior.)\n";
 
         retval = 1;
-    } else if (strNodeName.Compare("balance")) {
+    } else if (strNodeName->Compare("balance")) {
         balanceDate_ = xml->getAttributeValue("date");
         balanceAmount_ = xml->getAttributeValue("amount");
 
         // I convert to integer / std::int64_t and back to string.
         // (Just an easy way to keep the data clean.)
 
-        time64_t date = parseTimestamp((balanceDate_.Get()));
-        std::int64_t amount = balanceAmount_.ToLong();
+        time64_t date = parseTimestamp((balanceDate_->Get()));
+        std::int64_t amount = balanceAmount_->ToLong();
 
-        balanceDate_.Set(String(formatTimestamp(date)));
-        balanceAmount_.Format("%" PRId64, amount);
+        balanceDate_->Set(String(formatTimestamp(date)));
+        balanceAmount_->Format("%" PRId64, amount);
 
         otLog3 << "\nBALANCE  --  " << balanceAmount_ << "\nDATE     --  "
                << balanceDate_ << "\n";
 
         retval = 1;
-    } else if (strNodeName.Compare("stashinfo")) {
+    } else if (strNodeName->Compare("stashinfo")) {
         if (!IsStashAcct()) {
             otErr << "OTAccount::ProcessXMLNode: Error: Encountered stashinfo "
                      "tag while loading NON-STASH account. \n";
@@ -956,9 +963,10 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         }
 
         std::int64_t lTransNum = 0;
-        String strStashTransNum = xml->getAttributeValue("cronItemNum");
-        if (!strStashTransNum.Exists() ||
-            ((lTransNum = strStashTransNum.ToLong()) <= 0)) {
+        auto strStashTransNum =
+            String::Factory(xml->getAttributeValue("cronItemNum"));
+        if (!strStashTransNum->Exists() ||
+            ((lTransNum = strStashTransNum->ToLong()) <= 0)) {
             stashTransNum_ = 0;
             otErr << "OTAccount::ProcessXMLNode: Error: Bad transaction number "
                      "for supposed corresponding cron item: "
@@ -1050,8 +1058,8 @@ bool Account::IsAllowedToGoNegative() const
 
 void Account::Release_Account()
 {
-    balanceDate_.Release();
-    balanceAmount_.Release();
+    balanceDate_->Release();
+    balanceAmount_->Release();
     inboxHash_->Release();
     outboxHash_->Release();
 }

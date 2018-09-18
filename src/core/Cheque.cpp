@@ -35,7 +35,7 @@ namespace opentxs
 Cheque::Cheque(const api::Core& core)
     : ot_super(core)
     , m_lAmount(0)
-    , m_strMemo()
+    , m_strMemo(String::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_bHasRecipient(false)
     , m_REMITTER_NYM_ID(Identifier::Factory())
@@ -51,7 +51,7 @@ Cheque::Cheque(
     const Identifier& INSTRUMENT_DEFINITION_ID)
     : ot_super(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_lAmount(0)
-    , m_strMemo()
+    , m_strMemo(String::Factory())
     , m_RECIPIENT_NYM_ID(Identifier::Factory())
     , m_bHasRecipient(false)
     , m_REMITTER_NYM_ID(Identifier::Factory())
@@ -63,11 +63,11 @@ Cheque::Cheque(
 
 void Cheque::UpdateContents()
 {
-    String INSTRUMENT_DEFINITION_ID(GetInstrumentDefinitionID()),
-        NOTARY_ID(GetNotaryID()), SENDER_ACCT_ID(GetSenderAcctID()),
-        SENDER_NYM_ID(GetSenderNymID()), RECIPIENT_NYM_ID(GetRecipientNymID()),
-        REMITTER_NYM_ID(GetRemitterNymID()),
-        REMITTER_ACCT_ID(GetRemitterAcctID());
+    auto INSTRUMENT_DEFINITION_ID = String::Factory(GetInstrumentDefinitionID()),
+        NOTARY_ID = String::Factory(GetNotaryID()), SENDER_ACCT_ID = String::Factory(GetSenderAcctID()),
+        SENDER_NYM_ID = String::Factory(GetSenderNymID()), RECIPIENT_NYM_ID = String::Factory(GetRecipientNymID()),
+        REMITTER_NYM_ID = String::Factory(GetRemitterNymID()),
+        REMITTER_ACCT_ID = String::Factory(GetRemitterAcctID());
 
     std::string from = formatTimestamp(GetValidFrom());
     std::string to = formatTimestamp(GetValidTo());
@@ -79,24 +79,24 @@ void Cheque::UpdateContents()
 
     tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("amount", formatLong(m_lAmount));
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
+    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
-    tag.add_attribute("senderAcctID", SENDER_ACCT_ID.Get());
-    tag.add_attribute("senderNymID", SENDER_NYM_ID.Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
+    tag.add_attribute("senderAcctID", SENDER_ACCT_ID->Get());
+    tag.add_attribute("senderNymID", SENDER_NYM_ID->Get());
     tag.add_attribute("hasRecipient", formatBool(m_bHasRecipient));
     tag.add_attribute(
-        "recipientNymID", m_bHasRecipient ? RECIPIENT_NYM_ID.Get() : "");
+        "recipientNymID", m_bHasRecipient ? RECIPIENT_NYM_ID->Get() : "");
     tag.add_attribute("hasRemitter", formatBool(m_bHasRemitter));
     tag.add_attribute(
-        "remitterNymID", m_bHasRemitter ? REMITTER_NYM_ID.Get() : "");
+        "remitterNymID", m_bHasRemitter ? REMITTER_NYM_ID->Get() : "");
     tag.add_attribute(
-        "remitterAcctID", m_bHasRemitter ? REMITTER_ACCT_ID.Get() : "");
+        "remitterAcctID", m_bHasRemitter ? REMITTER_ACCT_ID->Get() : "");
 
     tag.add_attribute("validFrom", from);
     tag.add_attribute("validTo", to);
 
-    if (m_strMemo.Exists() && m_strMemo.GetLength() > 2) {
+    if (m_strMemo->Exists() && m_strMemo->GetLength() > 2) {
         Armored ascMemo(m_strMemo);
         tag.add_tag("memo", ascMemo.Get());
     }
@@ -124,11 +124,11 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (!strcmp("cheque", xml->getNodeName())) {
-        String strHasRecipient = xml->getAttributeValue("hasRecipient");
-        m_bHasRecipient = strHasRecipient.Compare("true");
+        auto strHasRecipient = String::Factory(xml->getAttributeValue("hasRecipient"));
+        m_bHasRecipient = strHasRecipient->Compare("true");
 
-        String strHasRemitter = xml->getAttributeValue("hasRemitter");
-        m_bHasRemitter = strHasRemitter.Compare("true");
+        auto strHasRemitter = String::Factory(xml->getAttributeValue("hasRemitter"));
+        m_bHasRemitter = strHasRemitter->Compare("true");
 
         m_strVersion = xml->getAttributeValue("version");
         m_lAmount = String::StringToLong(xml->getAttributeValue("amount"));
@@ -142,14 +142,14 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
         SetValidFrom(parseTimestamp(str_valid_from));
         SetValidTo(parseTimestamp(str_valid_to));
 
-        String strInstrumentDefinitionID(
+        auto strInstrumentDefinitionID = String::Factory(
             xml->getAttributeValue("instrumentDefinitionID")),
-            strNotaryID(xml->getAttributeValue("notaryID")),
-            strSenderAcctID(xml->getAttributeValue("senderAcctID")),
-            strSenderNymID(xml->getAttributeValue("senderNymID")),
-            strRecipientNymID(xml->getAttributeValue("recipientNymID")),
-            strRemitterNymID(xml->getAttributeValue("remitterNymID")),
-            strRemitterAcctID(xml->getAttributeValue("remitterAcctID"));
+            strNotaryID = String::Factory(xml->getAttributeValue("notaryID")),
+            strSenderAcctID = String::Factory(xml->getAttributeValue("senderAcctID")),
+            strSenderNymID = String::Factory(xml->getAttributeValue("senderNymID")),
+            strRecipientNymID = String::Factory(xml->getAttributeValue("recipientNymID")),
+            strRemitterNymID = String::Factory(xml->getAttributeValue("remitterNymID")),
+            strRemitterAcctID = String::Factory(xml->getAttributeValue("remitterAcctID"));
 
         auto INSTRUMENT_DEFINITION_ID =
                  Identifier::Factory(strInstrumentDefinitionID),
@@ -255,7 +255,7 @@ bool Cheque::IssueCheque(
                                           // cheque.)
 {
     m_lAmount = lAmount;
-    m_strMemo.Set(strMemo);
+    m_strMemo->Set(strMemo);
 
     SetValidFrom(VALID_FROM);
     SetValidTo(VALID_TO);
@@ -292,7 +292,7 @@ void Cheque::InitCheque()
 void Cheque::Release_Cheque()
 {
     // If there were any dynamically allocated objects, clean them up here.
-    m_strMemo.Release();
+    m_strMemo->Release();
 
     //    m_SENDER_ACCT_ID.Release();     // in parent class now.
     //    m_SENDER_NYM_ID.Release();     // in parent class now.
