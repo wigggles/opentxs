@@ -45,8 +45,8 @@ ReplyMessage::ReplyMessage(
     , sender_nym_(nullptr)
     , context_(nullptr)
 {
-    message_.m_strRequestNum.Set(original_.m_strRequestNum);
-    message_.m_strNotaryID.Set(original_.m_strNotaryID);
+    message_.m_strRequestNum->Set(original_.m_strRequestNum);
+    message_.m_strNotaryID->Set(original_.m_strNotaryID);
     message_.m_strNymID = original_.m_strNymID;
     message_.m_strCommand = Message::ReplyCommand(type).c_str();
     message_.m_bSuccess = false;
@@ -64,7 +64,7 @@ std::set<RequestNumber> ReplyMessage::Acknowledged() const
 
 void ReplyMessage::attach_request()
 {
-    const std::string command = original_.m_strCommand.Get();
+    const std::string command = original_.m_strCommand->Get();
     const auto type = Message::Type(command);
 
     switch (type) {
@@ -94,7 +94,7 @@ void ReplyMessage::attach_request()
         case MessageType::addClaim: {
             otInfo << OT_METHOD << __FUNCTION__ << ": Attaching original "
                    << command << " message." << std::endl;
-            message_.m_ascInReferenceTo.SetString(String(original_));
+            message_.m_ascInReferenceTo.SetString(String::Factory(original_));
         } break;
         case MessageType::pingNotary:
         case MessageType::usageCredits:
@@ -108,7 +108,7 @@ void ReplyMessage::attach_request()
 
 void ReplyMessage::clear_request()
 {
-    const std::string command = original_.m_strCommand.Get();
+    const std::string command = original_.m_strCommand->Get();
     const auto type = Message::Type(command);
 
     switch (type) {
@@ -235,7 +235,7 @@ void ReplyMessage::SetDepth(const std::int64_t depth)
 
 void ReplyMessage::SetInboxHash(const Identifier& hash)
 {
-    message_.m_strInboxHash = String(hash);
+    message_.m_strInboxHash = String::Factory(hash);
 }
 
 void ReplyMessage::SetInstrumentDefinitionID(const String& id)
@@ -250,7 +250,7 @@ void ReplyMessage::SetNymboxHash(const Identifier& hash)
 
 void ReplyMessage::SetOutboxHash(const Identifier& hash)
 {
-    message_.m_strOutboxHash = String(hash);
+    message_.m_strOutboxHash = String::Factory(hash);
 }
 
 bool ReplyMessage::SetPayload(const String& payload)
@@ -308,7 +308,7 @@ ReplyMessage::~ReplyMessage()
         parent_.drop_reply_notice_to_nymbox(
             wallet_,
             message_,
-            original_.m_strRequestNum.ToLong(),
+            original_.m_strRequestNum->ToLong(),
             drop_status_,
             context_->It(),
             server_);

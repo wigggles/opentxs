@@ -92,7 +92,7 @@ NymFile::NymFile(
     , signer_nym_{signerNym}
     , m_lUsageCredits(0)
     , m_bMarkForDeletion(false)
-    , m_strNymFile()
+    , m_strNymFile(String::Factory())
     , m_strVersion(NYMFILE_VERSION)
     , m_strDescription("")
     , m_mapInboxHash()
@@ -131,7 +131,7 @@ bool NymFile::DeserializeNymFile(
     const String& strNym,
     bool& converted,
     String::Map* pMapCredentials,
-    String* pstrReason,
+    String& pstrReason,
     const OTPassword* pImportPassword)
 {
     sLock lock(shared_lock_);
@@ -146,7 +146,7 @@ bool NymFile::deserialize_nymfile(
     const String& strNym,
     bool& converted,
     String::Map* pMapCredentials,
-    String* pstrReason,
+    String& pstrReason,
     const OTPassword* pImportPassword)
 {
     OT_ASSERT(verify_lock(lock));
@@ -175,22 +175,24 @@ bool NymFile::deserialize_nymfile(
             case irr::io::EXN_CDATA:
                 break;
             case irr::io::EXN_ELEMENT: {
-                const String strNodeName = xml->getNodeName();
+                const auto strNodeName = String::Factory(xml->getNodeName());
 
-                if (strNodeName.Compare("nymData")) {
+                if (strNodeName->Compare("nymData")) {
                     m_strVersion = xml->getAttributeValue("version");
-                    const String UserNymID = xml->getAttributeValue("nymID");
+                    const auto UserNymID =
+                        String::Factory(xml->getAttributeValue("nymID"));
 
                     // Server-side only...
-                    String strCredits = xml->getAttributeValue("usageCredits");
+                    auto strCredits =
+                        String::Factory(xml->getAttributeValue("usageCredits"));
 
-                    if (strCredits.GetLength() > 0)
-                        m_lUsageCredits = strCredits.ToLong();
+                    if (strCredits->GetLength() > 0)
+                        m_lUsageCredits = strCredits->ToLong();
                     else
                         m_lUsageCredits = 0;  // This is the default anyway, but
                                               // just being safe...
 
-                    if (UserNymID.GetLength())
+                    if (UserNymID->GetLength())
                         otLog3 << "\nLoading user, version: " << m_strVersion
                                << " NymID:\n"
                                << UserNymID << "\n";
@@ -206,13 +208,13 @@ bool NymFile::deserialize_nymfile(
                                << ": Not converting nymfile because version is "
                                << m_strVersion << std::endl;
                     }
-                } else if (strNodeName.Compare("nymIDSource")) {
+                } else if (strNodeName->Compare("nymIDSource")) {
                     // noop
-                } else if (strNodeName.Compare("inboxHashItem")) {
-                    const String strAccountID =
-                        xml->getAttributeValue("accountID");
-                    const String strHashValue =
-                        xml->getAttributeValue("hashValue");
+                } else if (strNodeName->Compare("inboxHashItem")) {
+                    const auto strAccountID =
+                        String::Factory(xml->getAttributeValue("accountID"));
+                    const auto strHashValue =
+                        String::Factory(xml->getAttributeValue("hashValue"));
 
                     otLog3 << "\nInboxHash is " << strHashValue
                            << " for Account ID: " << strAccountID << "\n";
@@ -222,16 +224,16 @@ bool NymFile::deserialize_nymfile(
                     // my
                     // internal map so that it is available for future lookups.
                     //
-                    if (strAccountID.Exists() && strHashValue.Exists()) {
+                    if (strAccountID->Exists() && strHashValue->Exists()) {
                         auto pID = Identifier::Factory(strHashValue);
                         OT_ASSERT(!pID->empty())
-                        m_mapInboxHash.emplace(strAccountID.Get(), pID);
+                        m_mapInboxHash.emplace(strAccountID->Get(), pID);
                     }
-                } else if (strNodeName.Compare("outboxHashItem")) {
-                    const String strAccountID =
-                        xml->getAttributeValue("accountID");
-                    const String strHashValue =
-                        xml->getAttributeValue("hashValue");
+                } else if (strNodeName->Compare("outboxHashItem")) {
+                    const auto strAccountID =
+                        String::Factory(xml->getAttributeValue("accountID"));
+                    const auto strHashValue =
+                        String::Factory(xml->getAttributeValue("hashValue"));
 
                     otLog3 << "\nOutboxHash is " << strHashValue
                            << " for Account ID: " << strAccountID << "\n";
@@ -241,34 +243,34 @@ bool NymFile::deserialize_nymfile(
                     // my
                     // internal map so that it is available for future lookups.
                     //
-                    if (strAccountID.Exists() && strHashValue.Exists()) {
+                    if (strAccountID->Exists() && strHashValue->Exists()) {
                         OTIdentifier pID = Identifier::Factory(strHashValue);
                         OT_ASSERT(!pID->empty())
-                        m_mapOutboxHash.emplace(strAccountID.Get(), pID);
+                        m_mapOutboxHash.emplace(strAccountID->Get(), pID);
                     }
-                } else if (strNodeName.Compare("MARKED_FOR_DELETION")) {
+                } else if (strNodeName->Compare("MARKED_FOR_DELETION")) {
                     m_bMarkForDeletion = true;
                     otLog3 << "This nym has been MARKED_FOR_DELETION (at some "
                               "point prior.)\n";
-                } else if (strNodeName.Compare("ownsAssetAcct")) {
-                    String strID = xml->getAttributeValue("ID");
+                } else if (strNodeName->Compare("ownsAssetAcct")) {
+                    auto strID = String::Factory(xml->getAttributeValue("ID"));
 
-                    if (strID.Exists()) {
-                        m_setAccounts.insert(strID.Get());
+                    if (strID->Exists()) {
+                        m_setAccounts.insert(strID->Get());
                         otLog3 << "This nym has an asset account with the ID: "
                                << strID << "\n";
                     } else
                         otLog3
                             << "This nym MISSING asset account ID when loading "
                                "nym record.\n";
-                } else if (strNodeName.Compare("outpaymentsMessage")) {
+                } else if (strNodeName->Compare("outpaymentsMessage")) {
                     Armored armorMail;
-                    String strMessage;
+                    auto strMessage = String::Factory();
 
                     xml->read();
 
                     if (irr::io::EXN_TEXT == xml->getNodeType()) {
-                        String strNodeData = xml->getNodeData();
+                        auto strNodeData = String::Factory(xml->getNodeData());
 
                         // Sometimes the XML reads up the data with a prepended
                         // newline.
@@ -278,20 +280,20 @@ bool NymFile::deserialize_nymfile(
                         // So I'm checking here for that prepended newline, and
                         // removing it.
                         char cNewline;
-                        if (strNodeData.Exists() &&
-                            strNodeData.GetLength() > 2 &&
-                            strNodeData.At(0, cNewline)) {
+                        if (strNodeData->Exists() &&
+                            strNodeData->GetLength() > 2 &&
+                            strNodeData->At(0, cNewline)) {
                             if ('\n' == cNewline)
-                                armorMail.Set(strNodeData.Get() + 1);
+                                armorMail.Set(strNodeData->Get() + 1);
                             else
-                                armorMail.Set(strNodeData.Get());
+                                armorMail.Set(strNodeData->Get());
 
                             if (armorMail.GetLength() > 2) {
                                 armorMail.GetString(
                                     strMessage,
                                     true);  // linebreaks == true.
 
-                                if (strMessage.GetLength() > 2) {
+                                if (strMessage->GetLength() > 2) {
                                     auto pMessage = api_.Factory().Message();
 
                                     OT_ASSERT(false != bool(pMessage));
@@ -333,19 +335,19 @@ void NymFile::DisplayStatistics(String& strOutput) const
 {
     sLock lock(shared_lock_);
     strOutput.Concatenate(
-        "Source for ID:\n%s\n", target_nym_->Source().asString().Get());
-    strOutput.Concatenate("Description: %s\n\n", m_strDescription.Get());
+        "Source for ID:\n%s\n", target_nym_->Source().asString()->Get());
+    strOutput.Concatenate("Description: %s\n\n", m_strDescription->Get());
     strOutput.Concatenate("%s", "\n");
     strOutput.Concatenate(
         "==>      Name: %s   %s\n",
         target_nym_->Alias().c_str(),
         m_bMarkForDeletion ? "(MARKED FOR DELETION)" : "");
-    strOutput.Concatenate("      Version: %s\n", m_strVersion.Get());
+    strOutput.Concatenate("      Version: %s\n", m_strVersion->Get());
     strOutput.Concatenate(
         "Outpayments count: %" PRI_SIZE "\n", m_dequeOutpayments.size());
 
-    String theStringID(target_nym_->ID());
-    strOutput.Concatenate("Nym ID: %s\n", theStringID.Get());
+    auto theStringID = String::Factory(target_nym_->ID());
+    strOutput.Concatenate("Nym ID: %s\n", theStringID->Get());
 }
 
 bool NymFile::GetHash(
@@ -426,7 +428,7 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
     for (std::int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
         auto pMsg = m_dequeOutpayments.at(nIndex);
         OT_ASSERT(false != bool(pMsg));
-        String strPayment;
+        auto strPayment = String::Factory();
         std::unique_ptr<OTPayment> payment;
         std::unique_ptr<OTPayment>& pPayment(
             nullptr == pReturnPayment ? payment : *pReturnPayment);
@@ -435,7 +437,7 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
         // outPayments box.
         //
         if (pMsg->m_ascPayload.Exists() &&
-            pMsg->m_ascPayload.GetString(strPayment) && strPayment.Exists()) {
+            pMsg->m_ascPayload.GetString(strPayment) && strPayment->Exists()) {
             pPayment.reset(api_.Factory().Payment(strPayment).release());
 
             // Let's see if it's the cheque we're looking for...
@@ -476,7 +478,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
     OT_ASSERT(verify_lock(lock));
 
     // Get the Nym's ID in string form
-    String nymID(target_nym_->ID());
+    auto nymID = String::Factory(target_nym_->ID());
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")
@@ -527,7 +529,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
         theNymFile->GetFilePayload(),
         converted,
         nullptr,
-        nullptr,
+        String::Factory(),
         nullptr);
 
     if (!loaded) { return false; }
@@ -544,7 +546,7 @@ bool NymFile::load_signed_nymfile(const T& lock)
 
 // Sometimes for testing I need to clear out all the transaction numbers from a
 // nym. So I added this method to make such a thing easy to do.
-void NymFile::RemoveAllNumbers(const String* pstrNotaryID)
+void NymFile::RemoveAllNumbers(const String& pstrNotaryID)
 {
     std::list<mapOfIdentifiers::iterator> listOfInboxHash;
     std::list<mapOfIdentifiers::iterator> listOfOutboxHash;
@@ -625,10 +627,10 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
 
     Tag tag("nymData");
 
-    String nymID(target_nym_->ID());
+    auto nymID = String::Factory(target_nym_->ID());
 
-    tag.add_attribute("version", m_strVersion.Get());
-    tag.add_attribute("nymID", nymID.Get());
+    tag.add_attribute("version", m_strVersion->Get());
+    tag.add_attribute("nymID", nymID->Get());
 
     if (m_lUsageCredits != 0)
         tag.add_attribute("usageCredits", formatLong(m_lUsageCredits));
@@ -651,11 +653,11 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
             auto pMessage = m_dequeOutpayments.at(i);
             OT_ASSERT(false != bool(pMessage));
 
-            String strOutpayments(*pMessage);
+            auto strOutpayments = String::Factory(*pMessage);
 
             Armored ascOutpayments;
 
-            if (strOutpayments.Exists())
+            if (strOutpayments->Exists())
                 ascOutpayments.SetString(strOutpayments);
 
             if (ascOutpayments.Exists()) {
@@ -682,10 +684,10 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
         const Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.empty()) {
-            const String strHash(theID);
+            const auto strHash = String::Factory(theID);
             TagPtr pTag(new Tag("inboxHashItem"));
             pTag->add_attribute("accountID", strAcctID);
-            pTag->add_attribute("hashValue", strHash.Get());
+            pTag->add_attribute("hashValue", strHash->Get());
             tag.add_tag(pTag);
         }
     }  // for
@@ -696,10 +698,10 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
         const Identifier& theID = it.second;
 
         if ((strAcctID.size() > 0) && !theID.empty()) {
-            const String strHash(theID);
+            const auto strHash = String::Factory(theID);
             TagPtr pTag(new Tag("outboxHashItem"));
             pTag->add_attribute("accountID", strAcctID);
-            pTag->add_attribute("hashValue", strHash.Get());
+            pTag->add_attribute("hashValue", strHash->Get());
             tag.add_tag(pTag);
         }
     }  // for
@@ -719,11 +721,11 @@ bool NymFile::SerializeNymFile(const char* szFoldername, const char* szFilename)
 
     sLock lock(shared_lock_);
 
-    String strNym;
+    auto strNym = String::Factory();
     serialize_nymfile(lock, strNym);
 
     bool bSaved = OTDB::StorePlainString(
-        strNym.Get(), api_.DataFolder(), szFoldername, szFilename, "", "");
+        strNym->Get(), api_.DataFolder(), szFoldername, szFilename, "", "");
     if (!bSaved)
         otErr << __FUNCTION__ << ": Error saving file: " << szFoldername
               << Log::PathSeparator() << szFilename << "\n";
@@ -744,7 +746,7 @@ bool NymFile::save_signed_nymfile(const T& lock)
     OT_ASSERT(verify_lock(lock));
 
     // Get the Nym's ID in string form
-    String strNymID(target_nym_->ID());
+    auto strNymID = String::Factory(target_nym_->ID());
 
     // Create an OTSignedFile object, giving it the filename (the ID) and the
     // local directory ("nyms")

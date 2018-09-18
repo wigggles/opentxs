@@ -57,7 +57,7 @@ public:
     EXPORT bool SignProto(
         C& serialized,
         proto::Signature& signature,
-        const String& credID = String(""),
+        const String& credID = String::Factory(),
         const OTPasswordData* pPWData = nullptr) const
     {
         if (false == HasPrivateKey()) {

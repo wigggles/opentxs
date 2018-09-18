@@ -123,7 +123,7 @@ private:
     mutable OTFlag loaded_;
     mutable std::recursive_mutex lock_;
 
-    mutable String m_strConfigurationFileExactPath;
+    mutable OTString m_strConfigurationFileExactPath;
 
     // Core (Load and Save)
     bool Load(const String& strConfigurationFileExactPath) const;

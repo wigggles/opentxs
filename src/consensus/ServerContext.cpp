@@ -270,7 +270,7 @@ std::unique_ptr<Message> ServerContext::initialize_server_command(
     OT_ASSERT(false != bool(output));
     OT_ASSERT(false != bool(nym_));
 
-    output->m_strCommand.Set(Message::Command(type).data());
+    output->m_strCommand->Set(Message::Command(type).data());
     output->m_strNymID = String(nym_->ID());
     output->m_strNotaryID = String(server_id_);
 
@@ -752,7 +752,7 @@ OTIdentifier ServerContext::update_remote_hash(
     auto output = Identifier::Factory();
     const auto& input = reply.m_strNymboxHash;
 
-    if (input.Exists()) {
+    if (input->Exists()) {
         output->SetString(input);
         remote_nymbox_hash_ = Identifier::Factory(output);
     }

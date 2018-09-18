@@ -289,16 +289,16 @@ std::string Activity::Mail(
     auto id = Identifier::Factory();
     mail.CalculateContractID(id);
     const std::string output = id->str();
-    const String data(mail);
+    const auto data = String::Factory(mail);
     std::string participantNymID;
-    const String localName(nym);
+    const String localName = String::Factory(nym);
 
     if (localName == mail.m_strNymID2) {
         // This is an incoming message. The contact id is the sender's id.
-        participantNymID = mail.m_strNymID.Get();
+        participantNymID = mail.m_strNymID->Get();
     } else {
         // This is an outgoing message. The contact id is the recipient's id.
-        participantNymID = mail.m_strNymID2.Get();
+        participantNymID = mail.m_strNymID2->Get();
     }
 
     const auto contact = nym_to_contact(participantNymID);
@@ -331,7 +331,7 @@ std::string Activity::Mail(
         output,
         mail.m_lTime,
         alias,
-        data.Get(),
+        data->Get(),
         box);
 
     if (saved) {
@@ -559,7 +559,7 @@ void Activity::preload(
 
     if (!message) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load message "
-              << String(id) << std::endl;
+              << String::Factory(id) << std::endl;
 
         return;
     }

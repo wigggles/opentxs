@@ -279,10 +279,10 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 
     Armored armored{};
     armored.Set(std::string(frame).c_str());
-    String serialized{};
+    auto serialized = String::Factory();
     armored.GetString(serialized);
     const auto loaded = message->LoadContractFromString(serialized);
-    const RequestNumber number = message->m_strRequestNum.ToLong();
+    const RequestNumber number = message->m_strRequestNum->ToLong();
 
     if (0 > number) {
         otErr << OT_METHOD << __FUNCTION__
@@ -362,7 +362,7 @@ NetworkReplyMessage ServerConnection::Send(
 
     OT_ASSERT(false != bool(reply));
 
-    String raw;
+    auto raw = String::Factory();
     message.SaveContractRaw(raw);
     Armored envelope(raw);
 
@@ -376,7 +376,7 @@ NetworkReplyMessage ServerConnection::Send(
     if (false == sent) { return output; }
 
     const auto limit = get_timeout();
-    const RequestNumber number = message.m_strRequestNum.ToLong();
+    const RequestNumber number = message.m_strRequestNum->ToLong();
 
     while (zmq_.Running() && (std::chrono::system_clock::now() < limit)) {
         Lock mapLock(incoming_lock_);

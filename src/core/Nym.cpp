@@ -460,7 +460,7 @@ bool Nym::DeleteClaim(const Identifier& id)
 void Nym::DisplayStatistics(String& strOutput) const
 {
     sLock lock(shared_lock_);
-    strOutput.Concatenate("Source for ID:\n%s\n", Source().asString().Get());
+    strOutput.Concatenate("Source for ID:\n%s\n", Source().asString()->Get());
     strOutput.Concatenate("Description: %s\n\n", m_strDescription->Get());
     strOutput.Concatenate("%s", "\n");
     strOutput.Concatenate("==>      Name: %s\n", Alias().c_str());
@@ -1303,7 +1303,7 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     // We encode these before storing.
     if (source_) {
 
-        TagPtr pTag(new Tag("nymIDSource", source_->asString().Get()));
+        TagPtr pTag(new Tag("nymIDSource", source_->asString()->Get()));
 
         if (m_strDescription->Exists()) {
             Armored ascDescription;

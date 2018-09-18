@@ -76,9 +76,9 @@ private:
     const std::shared_ptr<const Nym> signer_nym_{nullptr};
     std::int64_t m_lUsageCredits{-1};
     bool m_bMarkForDeletion{false};
-    String m_strNymFile;
-    String m_strVersion;
-    String m_strDescription;
+    OTString m_strNymFile;
+    OTString m_strVersion;
+    OTString m_strDescription;
 
     // Whenever client downloads Inbox, its hash is stored here. (When
     // downloading account, can compare ITS inbox hash to this one, to see if I
@@ -106,7 +106,7 @@ private:
         const String& strNym,
         bool& converted,
         String::Map* pMapCredentials = nullptr,
-        String* pstrReason = nullptr,
+        String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr);
     template <typename T>
     bool deserialize_nymfile(
@@ -114,12 +114,12 @@ private:
         const String& strNym,
         bool& converted,
         String::Map* pMapCredentials,
-        String* pstrReason,
-        const OTPassword* pImportPassword);
+        String& pstrReason = String::Factory(),
+        const OTPassword* pImportPassword = nullptr);
     bool LoadSignedNymFile() override;
     template <typename T>
     bool load_signed_nymfile(const T& lock);
-    void RemoveAllNumbers(const String* pstrNotaryID = nullptr);
+    void RemoveAllNumbers(const String& pstrNotaryID = String::Factory());
     bool SaveSignedNymFile() override;
     template <typename T>
     bool save_signed_nymfile(const T& lock);

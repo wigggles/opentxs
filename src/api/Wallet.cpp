@@ -197,7 +197,7 @@ opentxs::Account* Wallet::account_factory(
     const std::string& alias,
     const std::string& serialized) const
 {
-    String strContract, strFirstLine;
+    auto strContract = String::Factory(), strFirstLine = String::Factory();
     const bool bProcessed =
         Contract::DearmorAndTrim(serialized.c_str(), strContract, strFirstLine);
 
@@ -327,11 +327,11 @@ ExclusiveAccount Wallet::CreateAccount(
             OT_ASSERT(pAccount)
 
             const auto id = pAccount->GetRealAccountID().str();
-            String serialized{};
+            auto serialized = String::Factory();
             pAccount->SaveContractRaw(serialized);
             const auto saved = api_.Storage().Store(
                 id,
-                serialized.Get(),
+                serialized->Get(),
                 "",
                 ownerNymID,
                 signer.ID(),
@@ -534,7 +534,7 @@ bool Wallet::UpdateAccount(
         return false;
     }
 
-    String raw{};
+    auto raw = String::Factory();
     auto saved = pAccount->SaveContractRaw(raw);
 
     if (false == saved) {
@@ -546,7 +546,7 @@ bool Wallet::UpdateAccount(
 
     saved = api_.Storage().Store(
         accountID.str(),
-        raw.Get(),
+        raw->Get(),
         account_alias(accountID.str()),
         localNym.ID(),
         localNym.ID(),
@@ -761,14 +761,14 @@ bool Wallet::ImportAccount(std::unique_ptr<opentxs::Account>& imported) const
             return false;
         }
 
-        String serialized{};
-        String alias{};
+        auto serialized = String::Factory();
+        auto alias = String::Factory();
         pAccount->SaveContractRaw(serialized);
         pAccount->GetName(alias);
         const auto saved = api_.Storage().Store(
             accountID.str(),
-            serialized.Get(),
-            alias.Get(),
+            serialized->Get(),
+            alias->Get(),
             pAccount->GetNymID(),
             pAccount->GetNymID(),
             contract->Nym()->ID(),
@@ -1695,7 +1695,7 @@ void Wallet::save(
 
     OT_ASSERT(saved)
 
-    String serialized{};
+    auto serialized = String::Factory();
     saved = in->SaveContractRaw(serialized);
 
     OT_ASSERT(saved)
@@ -1704,12 +1704,12 @@ void Wallet::save(
 
     OT_ASSERT(false == contractID->empty())
 
-    String alias{};
+    auto alias = String::Factory();
     in->GetName(alias);
     saved = api_.Storage().Store(
         accountID->str(),
-        serialized.Get(),
-        alias.Get(),
+        serialized->Get(),
+        alias->Get(),
         api_.Storage().AccountOwner(accountID),
         api_.Storage().AccountSigner(accountID),
         api_.Storage().AccountIssuer(accountID),
