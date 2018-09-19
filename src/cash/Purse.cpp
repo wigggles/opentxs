@@ -562,10 +562,10 @@ bool Purse::LoadPurse(
          strNymID = String::Factory(m_NymID),
          strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
 
-    if (nullptr != szNotaryID) strNotaryID = szNotaryID;
-    if (nullptr != szNymID) strNymID = szNymID;
+    if (nullptr != szNotaryID) strNotaryID = String::Factory(szNotaryID);
+    if (nullptr != szNymID) strNymID = String::Factory(szNymID);
     if (nullptr != szInstrumentDefinitionID)
-        strInstrumentDefinitionID = szInstrumentDefinitionID;
+        strInstrumentDefinitionID = String::Factory(szInstrumentDefinitionID);
 
     if (!m_strFilename->Exists()) {
         m_strFilename->Format(
@@ -633,10 +633,10 @@ bool Purse::SavePurse(
          strNymID = String::Factory(m_NymID),
          strInstrumentDefinitionID = String::Factory(m_InstrumentDefinitionID);
 
-    if (nullptr != szNotaryID) strNotaryID = szNotaryID;
-    if (nullptr != szNymID) strNymID = szNymID;
+    if (nullptr != szNotaryID) strNotaryID = String::Factory(szNotaryID);
+    if (nullptr != szNymID) strNymID = String::Factory(szNymID);
     if (nullptr != szInstrumentDefinitionID)
-        strInstrumentDefinitionID = szInstrumentDefinitionID;
+        strInstrumentDefinitionID = String::Factory(szInstrumentDefinitionID);
 
     if (!m_strFilename->Exists()) {
         m_strFilename->Format(
@@ -796,7 +796,7 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const auto strNodeName = String::Factory(xml->getNodeName());
 
     if (strNodeName->Compare("purse")) {
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
 
         const auto strTotalValue =
             String::Factory(xml->getAttributeValue("totalValue"));
