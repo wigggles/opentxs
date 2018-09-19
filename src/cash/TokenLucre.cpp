@@ -91,12 +91,12 @@ bool Token_Lucre::GenerateTokenRequest(
     theMint.GetPublic(ascPublicMint, lDenomination);
     //    otErr << "DEBUG: OTToken  public asc: \n%s\n", ascPublicMint.Get());
 
-    String strPublicMint(ascPublicMint);
+    auto strPublicMint = String::Factory(ascPublicMint);
     //    otErr << "DEBUG: OTToken  public str: \n%s\n", strPublicMint.Get());
 
     // Get the bank's public key (now decoded in strPublicMint)
     // and put it into bioBank so we can use it with Lucre.
-    BIO_puts(bioBank, strPublicMint.Get());
+    BIO_puts(bioBank, strPublicMint->Get());
 
     // Instantiate a PublicBank (Lucre) object.
     // We will use it to generate all the prototokens in the loop below.
@@ -178,10 +178,10 @@ bool Token_Lucre::GenerateTokenRequest(
         if (privatecoinLen && publiccoinLen) {
             // With this, we have the Lucre public and private bank info
             // converted to OTStrings
-            String strPublicCoin;
-            strPublicCoin.Set(publicCoinBuffer, publiccoinLen);
-            String strPrivateCoin;
-            strPrivateCoin.Set(privateCoinBuffer, privatecoinLen);
+            auto strPublicCoin = String::Factory();
+            strPublicCoin->Set(publicCoinBuffer, publiccoinLen);
+            auto strPrivateCoin = String::Factory();
+            strPrivateCoin->Set(privateCoinBuffer, privatecoinLen);
 
             Armored* pArmoredPublic = new Armored(strPublicCoin);
             Armored* pArmoredPrivate = new Armored;
@@ -253,14 +253,14 @@ bool Token_Lucre::ProcessToken(
     //
     Armored ascPublicMint;
     theMint.GetPublic(ascPublicMint, GetDenomination());
-    String strPublicMint(ascPublicMint);
-    BIO_puts(bioBank, strPublicMint.Get());
+    auto strPublicMint = String::Factory(ascPublicMint);
+    BIO_puts(bioBank, strPublicMint->Get());
 
     // Get the existing signature into a bio.
     //    otErr << "DEBUGGING, m_Signature: -------------%s--------------\n",
     // m_Signature.Get());
-    String strSignature(m_Signature);
-    BIO_puts(bioSignature, strSignature.Get());
+    auto strSignature = String::Factory(m_Signature);
+    BIO_puts(bioSignature, strSignature->Get());
 
     // I need the Private coin request also. (Only the client has this private
     // coin request data.)
@@ -275,7 +275,7 @@ bool Token_Lucre::ProcessToken(
         //                thePrototoken.Get());
 
         // Decrypt the prototoken
-        String strPrototoken;
+        auto strPrototoken = String::Factory();
         OTEnvelope theEnvelope(thePrototoken);
         theEnvelope.Open(theNym, strPrototoken);  // todo check return value.
 
@@ -284,7 +284,7 @@ bool Token_Lucre::ProcessToken(
         //                strPrototoken.Get());
 
         // copy strPrototoken to a BIO
-        BIO_puts(bioPrivateRequest, strPrototoken.Get());
+        BIO_puts(bioPrivateRequest, strPrototoken->Get());
 
         // ------- Okay, the BIOs are all loaded.... let's process...
 
@@ -321,8 +321,8 @@ bool Token_Lucre::ProcessToken(
 
         if (coinLen) {
             // ...to OTString...
-            String strCoin;
-            strCoin.Set(CoinBuffer, coinLen);
+            auto strCoin = String::Factory();
+            strCoin->Set(CoinBuffer, coinLen);
 
             //            otErr << "Processing token...\n%s\n", strCoin.Get());
 
