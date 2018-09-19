@@ -206,7 +206,7 @@ std::int32_t LoadAbbreviatedRecord(
 
     // RECEIPT HASH
     //
-    strHash = String::Factory(xml->getAttributeValue("receiptHash"));
+    strHash.Set(xml->getAttributeValue("receiptHash"));
     if (!strHash.Exists()) {
         otOut << "LoadAbbreviatedRecord: Failure: Expected "
                  "receiptHash while loading "

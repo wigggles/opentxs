@@ -669,7 +669,7 @@ bool RSA::SaveCertToString(
         bSuccess = true;
     }
 
-    if (bSuccess) strOutput = strx509;
+    if (bSuccess) strOutput.Set(strx509);
 
     return bSuccess;
 }

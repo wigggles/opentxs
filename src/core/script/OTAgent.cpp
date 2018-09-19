@@ -96,7 +96,7 @@ OTAgent::OTAgent(
     , m_bIsAnIndividual(true)
     , m_pNym(&theNym)
     , m_pForParty(nullptr)
-    , m_strName(str_agent_name.c_str())
+    , m_strName(String::Factory(str_agent_name.c_str()))
     , m_strNymID(String::Factory())
     , m_strRoleID(String::Factory())
     , m_strGroupName(String::Factory())
