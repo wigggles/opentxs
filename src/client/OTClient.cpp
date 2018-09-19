@@ -2498,56 +2498,75 @@ bool OTClient::ProcessNotification(
     const otx::Reply& notification,
     ServerContext& context)
 {
-    const auto& payload = notification.Payload();
+    const auto push = notification.Push();
 
-    if (payload.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Missing payload" << std::endl;
-
-        return false;
-    }
-
-    std::shared_ptr<OTTransactionType> base{
-        api_.Factory().Transaction(String::Factory(payload))};
-
-    if (false == bool(base)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid payload" << std::endl;
-
-        return false;
-    }
-
-    auto receipt = std::dynamic_pointer_cast<OTTransaction>(base);
-
-    if (false == bool(base)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Wrong transaction type"
+    if (false == bool(push)) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Missing push payload"
               << std::endl;
 
         return false;
     }
 
-    if (receipt->GetNymID() != context.Nym()->ID()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Wrong nym id on box receipt"
-              << std::endl;
+    switch (push->type()) {
+        case proto::OTXPUSH_NYMBOX: {
+            const auto& payload = push->item();
 
-        return false;
+            if (payload.empty()) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Missing payload").Flush();
+
+                return false;
+            }
+
+            std::shared_ptr<OTTransactionType> base{
+                api_.Factory().Transaction(String::Factory(payload))};
+
+            if (false == bool(base)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payload").Flush();
+
+                return false;
+            }
+
+            auto receipt = std::dynamic_pointer_cast<OTTransaction>(base);
+
+            if (false == bool(base)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong transaction type")
+                    .Flush();
+
+                return false;
+            }
+
+            if (receipt->GetNymID() != context.Nym()->ID()) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Wrong nym id on box receipt")
+                    .Flush();
+
+                return false;
+            }
+
+            if (false == receipt->VerifyAccount(context.RemoteNym())) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Unable to verify box receipt")
+                    .Flush();
+
+                return false;
+            }
+
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Validated a push notification of type: ")(
+                receipt->GetTypeString())
+                .Flush();
+
+            return processServerReplyGetBoxReceipt(
+                context.Nym()->ID(),
+                *receipt,
+                context,
+                payload.c_str(),
+                0);  // 0 means nymbox
+        } break;
+        default: {
+            return false;
+        }
     }
-
-    if (false == receipt->VerifyAccount(context.RemoteNym())) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Unable to verify box receipt"
-              << std::endl;
-
-        return false;
-    }
-
-    otErr << OT_METHOD << __FUNCTION__
-          << ": Validated a push notification of type: "
-          << receipt->GetTypeString() << std::endl;
-
-    return processServerReplyGetBoxReceipt(
-        context.Nym()->ID(),
-        *receipt,
-        context,
-        payload.c_str(),
-        0);  // 0 means nymbox
 }
 
 void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction) const

@@ -41,6 +41,7 @@
 #include <ostream>
 #include <string>
 
+#define OTX_PUSH_VERSION 1
 #define OTX_ZAP_DOMAIN "opentxs-otx"
 
 #define OT_METHOD "opentxs::MessageProcessor::"
@@ -365,7 +366,7 @@ bool MessageProcessor::process_message(
 void MessageProcessor::process_notification(const zmq::Message& incoming)
 {
     if (2 != incoming.Body().size()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid message." << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid message.").Flush();
 
         return;
     }
@@ -374,9 +375,9 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
     const auto connection = query_connection(nymID);
 
     if (connection->empty()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": No notification channel available for " << nymID->str()
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": No notification channel available for ")(nymID)
+            .Flush();
 
         return;
     }
@@ -388,10 +389,14 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
     const auto& payload = incoming.Body().at(1);
     auto message = otx::Reply::Factory(
         nym, nymID, server_.GetServerID(), proto::SERVERREPLY_PUSH, true);
+    proto::OTXPush push;
+    push.set_version(OTX_PUSH_VERSION);
+    push.set_type(proto::OTXPUSH_NYMBOX);
+    push.set_item(payload);
+    message->SetPush(push);
 
     OT_ASSERT(message->Validate());
 
-    message->SetPayload(payload);
     const auto reply = proto::ProtoAsData(message->Contract());
     auto pushNotification = zmq::Message::Factory();
     pushNotification->AddFrame(connection);
@@ -399,9 +404,9 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
     pushNotification->AddFrame(reply);
     pushNotification->AddFrame();
     frontend_socket_->Send(pushNotification);
-    otErr << OT_METHOD << __FUNCTION__ << ": Push notification for "
-          << nymID->str() << " delivered via " << connection->asHex()
-          << std::endl;
+    LogOutput(OT_METHOD)(__FUNCTION__)(": Push notification for ")(nymID)(
+        " delivered via ")(connection->asHex())
+        .Flush();
 }
 
 OTData MessageProcessor::query_connection(const Identifier& nymID)
