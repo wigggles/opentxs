@@ -108,7 +108,7 @@ private:
         const Identifier& recipientNymID,
         transactionType transactionType,
         const Message* msg = nullptr,
-        const String* messageString = nullptr,
+        const String& messageString = String::Factory(),
         const char* command = nullptr);
     std::pair<std::string, std::string> parse_seed_backup(
         const std::string& input) const;

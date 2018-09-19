@@ -127,8 +127,9 @@ const String& OTPaths::AppDataFolder()
         return s_strAppDataFolder;  // already got it, just return it.
 
     auto strHomeDataFolder = String::Factory(OTPaths::HomeFolder().Get()),
-        strAppDataFolder = String::Factory("");  // eg. /home/user/  (the folder that the OT
-                               // appdata folder will be in.)
+         strAppDataFolder =
+             String::Factory("");  // eg. /home/user/  (the folder that the OT
+                                   // appdata folder will be in.)
 
     if (!strHomeDataFolder->Exists() && !GetHomeFromSystem(strHomeDataFolder)) {
         OT_FAIL;
@@ -142,7 +143,10 @@ const String& OTPaths::AppDataFolder()
 
     // ok, we have the HomeData Folder, lets append our OT folder to it.
 
-    if (!AppendFolder(strAppDataFolder, strHomeDataFolder, String::Factory(OT_APPDATA_DIR)))
+    if (!AppendFolder(
+            strAppDataFolder,
+            strHomeDataFolder,
+            String::Factory(OT_APPDATA_DIR)))
         OT_FAIL;
 
     bool bFolderCreated;
@@ -161,7 +165,9 @@ const String& OTPaths::GlobalConfigFile()
     auto strGlobalConfigFile = String::Factory();
 
     if (!AppendFile(
-            strGlobalConfigFile, AppDataFolder(), String::Factory(OT_INIT_CONFIG_FILENAME)))
+            strGlobalConfigFile,
+            AppDataFolder(),
+            String::Factory(OT_INIT_CONFIG_FILENAME)))
         OT_FAIL;
 
     s_strGlobalConfigFile = strGlobalConfigFile;
@@ -280,7 +286,8 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                     false,
                     bPrefixPathOverride,
                     bIsNew,
-                    String::Factory("; This will force the prefix not to change"))) {
+                    String::Factory(
+                        "; This will force the prefix not to change"))) {
                 return false;
             }
 
@@ -305,7 +312,10 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                     return false;
                 }
                 if (!config.Set_bool(
-                        String::Factory("paths"), strPrefixPathOverride, false, bNewOrUpdate)) {
+                        String::Factory("paths"),
+                        strPrefixPathOverride,
+                        false,
+                        bNewOrUpdate)) {
                     return false;
                 }
             }
@@ -403,7 +413,11 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
         bool bKeyIsNew = false;
 
         if (!config.CheckSet_bool(
-                String::Factory("paths"), strRelativeKey, true, bConfigIsRelative, bKeyIsNew)) {
+                String::Factory("paths"),
+                strRelativeKey,
+                true,
+                bConfigIsRelative,
+                bKeyIsNew)) {
             return false;
         }
         if (!config.CheckSet_str(
@@ -443,7 +457,10 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
             bool bNewOrUpdated = false;
 
             if (!config.Set_str(
-                    String::Factory("paths"), String::Factory("scripts"), strConfigFolder, bNewOrUpdated)) {
+                    String::Factory("paths"),
+                    String::Factory("scripts"),
+                    strConfigFolder,
+                    bNewOrUpdated)) {
                 return false;
             }
         }
@@ -471,7 +488,8 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
                 otOut << __FUNCTION__
                       << ": Warning: Cannot Find: " << strAppBinaryScriptPath
                       << ", using default!";
-                strAppBinaryScriptPath = String::Factory();  // don't have anything here.
+                strAppBinaryScriptPath =
+                    String::Factory();  // don't have anything here.
             }
         }
 

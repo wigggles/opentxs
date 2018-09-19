@@ -666,7 +666,7 @@ bool Server::SendInstrumentToNym(
         RECIPIENT_NYM_ID,
         transactionType::instrumentNotice,
         nullptr,
-        &strPayment,
+        strPayment,
         szCommand);
 
     return bDropped;
@@ -764,15 +764,15 @@ bool Server::DropMessageToNymbox(
     const Identifier& RECIPIENT_NYM_ID,
     transactionType theType,
     const Message* pMsg,
-    const String* pstrMessage,
+    const String& pstrMessage,
     const char* szCommand)  // If you pass something here, it will
 {                           // replace pMsg->m_strCommand below.
     OT_ASSERT_MSG(
-        !((nullptr == pMsg) && (nullptr == pstrMessage)),
+        !((nullptr == pMsg) && (pstrMessage.empty())),
         "pMsg and pstrMessage -- these can't BOTH be nullptr.\n");
     // ^^^ Must provde one or the other.
     OT_ASSERT_MSG(
-        !((nullptr != pMsg) && (nullptr != pstrMessage)),
+        !((nullptr != pMsg) && (!pstrMessage.empty())),
         "pMsg and pstrMessage -- these can't BOTH be not-nullptr.\n");
     // ^^^ Can't provide both.
     std::int64_t lTransNum{0};
@@ -839,9 +839,9 @@ bool Server::DropMessageToNymbox(
 
         theMsgAngel->m_ascPayload.Release();
 
-        if ((nullptr != pstrMessage) && pstrMessage->Exists() &&
-            theEnvelope.Seal(thePubkey, *pstrMessage) &&  // Seal pstrMessage
-                                                          // into theEnvelope,
+        if ((!pstrMessage.empty()) &&
+            theEnvelope.Seal(thePubkey, pstrMessage) &&  // Seal pstrMessage
+                                                         // into theEnvelope,
             // using nymRecipient's
             // public key.
             theEnvelope.GetCiphertext(theMsgAngel->m_ascPayload))  // Grab the
