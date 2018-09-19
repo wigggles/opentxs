@@ -77,20 +77,20 @@ std::string formatTimestamp(time64_t tt)
 
 std::string formatInt(std::int32_t tt)
 {
-    opentxs::String temp;
+    auto temp = opentxs::String::Factory();
 
-    temp.Format("%" PRId32 "", tt);
+    temp->Format("%" PRId32 "", tt);
 
-    return temp.Get();
+    return temp->Get();
 }
 
 std::string formatUint(std::uint32_t tt)
 {
-    opentxs::String temp;
+    auto temp = opentxs::String::Factory();
 
-    temp.Format("%" PRIu32 "", tt);
+    temp->Format("%" PRIu32 "", tt);
 
-    return temp.Get();
+    return temp->Get();
 }
 
 std::string formatChar(char tt)
@@ -104,20 +104,20 @@ std::string formatChar(char tt)
 
 std::string formatLong(std::int64_t tt)
 {
-    opentxs::String temp;
+    auto temp = opentxs::String::Factory();
 
-    temp.Format("%" PRId64 "", tt);
+    temp->Format("%" PRId64 "", tt);
 
-    return temp.Get();
+    return temp->Get();
 }
 
 std::string formatUlong(std::uint64_t tt)
 {
-    opentxs::String temp;
+    auto temp = opentxs::String::Factory();
 
-    temp.Format("%" PRIu64 "", tt);
+    temp->Format("%" PRIu64 "", tt);
 
-    return temp.Get();
+    return temp->Get();
 }
 
 std::string formatBool(bool tt) { return tt ? "true" : "false"; }

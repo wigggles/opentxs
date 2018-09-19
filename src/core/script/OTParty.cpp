@@ -140,7 +140,7 @@ OTParty::OTParty(
                                                   // name also.
 
         bool bAdded = AddAccount(
-            str_agent_name.c_str(),
+            String::Factory(str_agent_name.c_str()),
             pstr_account_name->c_str(),
             *pAccount,
             lClosingTransNo);
