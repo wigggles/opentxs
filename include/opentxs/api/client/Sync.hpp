@@ -37,6 +37,7 @@ public:
         const Identifier& accountID,
         const Identifier& serverID,
         const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS) const = 0;
+    EXPORT virtual bool AutoProcessInboxEnabled() const = 0;
     EXPORT virtual Depositability CanDeposit(
         const Identifier& recipientNymID,
         const OTPayment& payment) const = 0;
@@ -69,6 +70,8 @@ public:
         const Identifier& recipientNymID,
         const Identifier& accountID,
         const std::shared_ptr<const OTPayment>& payment) const = 0;
+    /** Used by unit tests */
+    EXPORT virtual void DisableAutoaccept() const = 0;
     EXPORT virtual OTIdentifier FindNym(const Identifier& nymID) const = 0;
     EXPORT virtual OTIdentifier FindNym(
         const Identifier& nymID,
@@ -117,6 +120,10 @@ public:
     EXPORT virtual OTIdentifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual OTIdentifier ScheduleProcessInbox(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& accountID) const = 0;
     EXPORT virtual OTIdentifier SchedulePublishServerContract(
         const Identifier& localNymID,
         const Identifier& serverID,

@@ -10,6 +10,7 @@
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
+#include "opentxs/api/client/Sync.hpp"
 #include "opentxs/api/client/Workflow.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Factory.hpp"
@@ -1166,6 +1167,150 @@ void OTClient::load_str_trans_add_to_ledger(
         otErr << OT_METHOD << __FUNCTION__ << ": " << str_box_type
               << " Failed trying to SaveBoxReceipt. Contents:\n\n"
               << str_trans_to_add << "\n\n";
+}
+
+void OTClient::process_incoming_instrument(
+    const String& serialized,
+    const ServerContext& context,
+    const OTTransaction& receipt)
+{
+    const auto& nymID = context.Nym()->ID();
+
+    OT_ASSERT(false == context.Server().empty());
+    OT_ASSERT(false == nymID.empty());
+
+    const bool bExists = OTDB::Exists(
+        api_.DataFolder(),
+        OTFolders::PaymentInbox().Get(),
+        context.Server().str(),
+        nymID.str(),
+        "");
+    auto thePmntInbox = api_.Factory().Ledger(
+        nymID,
+        nymID,
+        context.Server());  // payment inbox
+
+    OT_ASSERT(false != bool(thePmntInbox));
+
+    bool bSuccessLoading = (bExists && thePmntInbox->LoadPaymentInbox());
+    if (bExists && bSuccessLoading) {
+        bSuccessLoading =
+            (thePmntInbox->VerifyContractID() &&
+             thePmntInbox->VerifySignature(*context.Nym()));
+    } else if (!bExists) {
+        bSuccessLoading = thePmntInbox->GenerateLedger(
+            nymID,
+            context.Server(),
+            ledgerType::paymentInbox,
+            true);  // bGenerateFile=true
+    }
+
+    // By this point, the nymbox DEFINITELY exists -- or not. (generation might
+    // have failed, or verification.)
+    if (!bSuccessLoading) {
+        String strNymID(nymID), strAcctID(nymID);
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": getBoxReceiptResponse: WARNING: Unable to load, verify, or "
+            "generate paymentInbox, with IDs: ")(nymID)(" / ")(nymID)
+            .Flush();
+    } else  // --- ELSE --- Success loading the payment inbox and recordBox and
+            // verifying their contractID and signature, (OR success generating
+            // the ledger.)
+    {
+        const auto lTransNum = receipt.GetTransactionNum();
+
+        // If receipt.GetType() is instrument notice, add to the payments inbox.
+        // (It will be moved to record box after the incoming payment is
+        // deposited or discarded.)
+        load_str_trans_add_to_ledger(
+            nymID,
+            serialized,
+            "paymentInbox",
+            lTransNum,
+            *context.Nym(),
+            *thePmntInbox);
+    }
+}
+
+void OTClient::process_incoming_message(
+    const ServerContext& context,
+    const OTTransaction& receipt)
+{
+    const auto& nymID = context.Nym()->ID();
+    String strOTMessage;
+    receipt.GetReferenceString(strOTMessage);
+    auto pMessage = api_.Factory().Message();
+
+    OT_ASSERT(false != bool(pMessage));
+
+    // The original message that was sent to me by the sender (with an encrypted
+    // envelope in the payload, and with the sender's ID and recipient IDs as
+    // m_strNymID and m_strNymID2) is stored within strOTMessage. Let's load it
+    // up into an OTMessage instance,  and save it into whatever box is its true
+    // destination. (The Nymbox is simply going to "accept" it -- to get it
+    // removed. It was for temporary transit purposes only in there).
+    if (pMessage->LoadContractFromString(strOTMessage)) {
+        const auto recipientNymId = Identifier::Factory(pMessage->m_strNymID2);
+        const auto senderNymID = Identifier::Factory(pMessage->m_strNymID);
+
+        if (senderNymID->empty()) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Missing sender nym ID")
+                .Flush();
+        } else {
+            contacts_.NymToContact(senderNymID);
+        }
+
+        if (recipientNymId == nymID) {
+            const auto peerObject = PeerObject::Factory(
+                contacts_,
+                api_.Wallet(),
+                context.Nym(),
+                pMessage->m_ascPayload);
+            proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
+
+            if (peerObject) { type = peerObject->Type(); }
+
+            switch (type) {
+                case (proto::PEEROBJECT_MESSAGE): {
+                    activity_.Mail(
+                        recipientNymId, *pMessage, StorageBox::MAILINBOX);
+                } break;
+                case (proto::PEEROBJECT_PAYMENT): {
+                    const bool bCreated = createInstrumentNoticeFromPeerObject(
+                        context,
+                        *pMessage,
+                        *peerObject,
+                        receipt.GetTransactionNum());
+
+                    if (!bCreated) {
+                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                            ": Failed to create object")
+                            .Flush();
+                    }
+                } break;
+                case (proto::PEEROBJECT_REQUEST): {
+                    api_.Wallet().PeerRequestReceive(
+                        recipientNymId, *peerObject);
+                } break;
+                case (proto::PEEROBJECT_RESPONSE): {
+                    api_.Wallet().PeerReplyReceive(recipientNymId, *peerObject);
+                } break;
+                default: {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Unable to decode peer object: unknown peer object "
+                        "type.")
+                        .Flush();
+                }
+            }
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Missing recipient nym.")
+                .Flush();
+        }
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Unable to decode peer object: failed to deserialize message.")
+            .Flush();
+    }
 }
 
 void OTClient::ProcessDepositChequeResponse(
@@ -2398,6 +2543,7 @@ bool OTClient::ProcessNotification(
           << receipt->GetTypeString() << std::endl;
 
     return processServerReplyGetBoxReceipt(
+        context.Nym()->ID(),
         *receipt,
         context,
         payload.c_str(),
@@ -2559,7 +2705,8 @@ bool OTClient::processServerReply(
         return processServerReplyGetNymBox(theReply, pNymbox, context);
     }
     if (theReply.m_strCommand->Compare("getBoxReceiptResponse")) {
-        return processServerReplyGetBoxReceipt(theReply, pNymbox, context);
+        return processServerReplyGetBoxReceipt(
+            accountID, theReply, pNymbox, context);
     }
     if ((theReply.m_strCommand->Compare("processInboxResponse") ||
          theReply.m_strCommand->Compare("processNymboxResponse"))) {
@@ -2861,6 +3008,7 @@ bool OTClient::processServerReplyGetAccountData(
 }
 
 bool OTClient::processServerReplyGetBoxReceipt(
+    const Identifier& accountID,
     const Message& theReply,
     Ledger* pNymbox,
     ServerContext& context)
@@ -2965,6 +3113,7 @@ bool OTClient::processServerReplyGetBoxReceipt(
                     << theReply.m_strNymID << ").\n";
             } else {
                 return processServerReplyGetBoxReceipt(
+                    accountID,
                     *pBoxReceipt,
                     context,
                     strTransTypeObject,
@@ -2985,181 +3134,50 @@ bool OTClient::processServerReplyGetBoxReceipt(
 }
 
 bool OTClient::processServerReplyGetBoxReceipt(
+    const Identifier& accountID,
     OTTransaction& receipt,
     ServerContext& context,
     const String& serialized,
     const std::int64_t boxType)
 {
-    const auto& nym = *context.Nym();
-    const auto& nymID = nym.ID();
-    const auto& strNotaryID = String::Factory(context.Server());
-    const auto rcpt_type = receipt.GetType();
+    switch (receipt.GetType()) {
+        case transactionType::message: {
+            process_incoming_message(context, receipt);
+        } break;
+        case transactionType::instrumentNotice:
+        case transactionType::instrumentRejection: {
+            process_incoming_instrument(serialized, context, receipt);
+        } break;
+        case transactionType::pending:
+        case transactionType::chequeReceipt:
+        case transactionType::voucherReceipt: {
+            switch (boxType) {
+                case 0: {
+                    // TODO schedule a process nymbox for this context
+                } break;
+                case 1: {
+                    const auto& client =
+                        dynamic_cast<const api::client::Manager&>(api_);
+                    const auto& sync = client.Sync();
 
-    if (transactionType::message == rcpt_type) {
-        auto strOTMessage = String::Factory();
-        receipt.GetReferenceString(strOTMessage);
-        auto pMessage = api_.Factory().Message();
-
-        OT_ASSERT(false != bool(pMessage));
-
-        //
-        // The original message that was sent to me by the sender
-        // (with an encrypted envelope in the payload, and with the
-        // sender's ID and recipient IDs as m_strNymID and
-        // m_strNymID2) is stored within strOTMessage. Let's load it
-        // up into an OTMessage instance,  and save it into whatever
-        // box is its true destination. (The Nymbox is simply going
-        // to "accept" it -- to get it removed. It was for temporary
-        // transit purposes only in there).
-        //
-        if (pMessage->LoadContractFromString(strOTMessage)) {
-            const auto recipientNymId =
-                Identifier::Factory(pMessage->m_strNymID2);
-            const auto senderNymID = Identifier::Factory(pMessage->m_strNymID);
-
-            if (senderNymID->empty()) {
-                otErr << OT_METHOD << __FUNCTION__ << ": Missing sender nym ID"
-                      << std::endl;
-            } else {
-                contacts_.NymToContact(senderNymID);
-            }
-
-            if (recipientNymId == nymID) {
-                const auto peerObject = PeerObject::Factory(
-                    contacts_,
-                    api_.Wallet(),
-                    context.Nym(),
-                    pMessage->m_ascPayload);
-                proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
-
-                if (peerObject) { type = peerObject->Type(); }
-
-                switch (type) {
-                    case (proto::PEEROBJECT_MESSAGE): {
-                        activity_.Mail(
-                            recipientNymId, *pMessage, StorageBox::MAILINBOX);
-                    } break;
-                    case (proto::PEEROBJECT_PAYMENT): {
-                        const bool bCreated =
-                            createInstrumentNoticeFromPeerObject(
-                                context,
-                                *pMessage,
-                                *peerObject,
-                                receipt.GetTransactionNum());
-
-                        if (!bCreated) {
-                            otErr << OT_METHOD << __FUNCTION__
-                                  << ": Failed unexpectedly in "
-                                     "createInstrumentNoticeFromPee"
-                                     "rObject."
-                                  << std::endl;
-                        }
-                    } break;
-                    case (proto::PEEROBJECT_REQUEST): {
-                        api_.Wallet().PeerRequestReceive(
-                            recipientNymId, *peerObject);
-                    } break;
-                    case (proto::PEEROBJECT_RESPONSE): {
-                        api_.Wallet().PeerReplyReceive(
-                            recipientNymId, *peerObject);
-                    } break;
-                    default: {
-                        otErr << OT_METHOD << __FUNCTION__
-                              << ": Unable to decode peer object: "
-                              << "unknown peer object type." << std::endl;
+                    if (sync.AutoProcessInboxEnabled()) {
+                        sync.ScheduleProcessInbox(
+                            context.Nym()->ID(), context.Server(), accountID);
                     }
+                } break;
+                case 2:
+                default: {
                 }
-            } else {
-                otErr << OT_METHOD << __FUNCTION__ << ": Missing recipient nym."
-                      << std::endl;
             }
-        } else {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Unable to decode peer object: "
-                  << "failed to deserialize message." << std::endl;
+        } break;
+        default: {
         }
-    }  // if (transactionType::message == rcpt_type)
-    //---------------------------------------------------
-    else if (
-        (transactionType::instrumentNotice == rcpt_type) ||
-        (transactionType::instrumentRejection == rcpt_type)) {
-        // Just make sure not to add it if it's already there...
-        if (!strNotaryID->Exists()) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": strNotaryID doesn't exist!\n";
-            OT_FAIL;
-        }
-        if (!String(context.Nym()->ID()).Exists()) {
-            otErr << OT_METHOD << __FUNCTION__ << ": strNymID doesn't exist!\n";
-            OT_FAIL;
-        }
-        const bool bExists = OTDB::Exists(
-            api_.DataFolder(),
-            OTFolders::PaymentInbox().Get(),
-            strNotaryID->Get(),
-            String::Factory(context.Nym()->ID())->Get(),
-            "");
-        auto thePmntInbox = api_.Factory().Ledger(
-            nymID,
-            nymID,
-            context.Server());  // payment inbox
+    }
 
-        OT_ASSERT(false != bool(thePmntInbox));
-
-        bool bSuccessLoading = (bExists && thePmntInbox->LoadPaymentInbox());
-        if (bExists && bSuccessLoading)
-            bSuccessLoading =
-                (thePmntInbox->VerifyContractID() &&
-                 thePmntInbox->VerifySignature(*context.Nym()));
-        // No need here to load all the box receipts using
-        // VerifyAccount.
-        //                      bSuccessLoading =
-        //                      (thePmntInbox->VerifyAccount(*pNym));
-        else if (!bExists)
-            bSuccessLoading = thePmntInbox->GenerateLedger(
-                nymID,
-                context.Server(),
-                ledgerType::paymentInbox,
-                true);  // bGenerateFile=true
-        // By this point, the nymbox DEFINITELY exists -- or not.
-        // (generation might have failed, or verification.)
-
-        if (!bSuccessLoading) {
-            auto strNymID = String::Factory(nymID),
-                 strAcctID = String::Factory(nymID);
-            otOut << __FUNCTION__
-                  << ": getBoxReceiptResponse: WARNING: Unable to "
-                     "load, verify, or generate paymentInbox, "
-                     "with IDs: "
-                  << strNymID << " / " << strAcctID << "\n";
-        } else  // --- ELSE --- Success loading the payment inbox
-                // and recordBox and verifying their contractID
-                // and signature, (OR success generating the
-                // ledger.)
-        {
-            const auto lTransNum = receipt.GetTransactionNum();
-
-            // If receipt.GetType() is instrument notice,
-            // add to the payments inbox.
-            // (It will be moved to record box after the
-            // incoming payment is deposited or discarded.)
-            //
-            load_str_trans_add_to_ledger(
-                nymID,
-                serialized,
-                "paymentInbox",
-                lTransNum,
-                *context.Nym(),
-                *thePmntInbox);
-        }  // --- ELSE --- Success loading the payment inbox and verifying its
-           // contractID and signature, OR success generating the ledger.
-    }      // if pBoxReceipt is instrumentNotice or instrumentRejection...
-
-    if (!receipt.SaveBoxReceipt(boxType)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": getBoxReceiptResponse(): Failed trying to "
-                 "SaveBoxReceipt. Contents:\n\n"
-              << serialized << "\n\n";
+    if (false == receipt.SaveBoxReceipt(boxType)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save box receipt:")
+            .Flush();
+        LogOutput(serialized).Flush();
     }
 
     return true;

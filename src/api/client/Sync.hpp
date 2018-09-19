@@ -46,6 +46,10 @@ public:
         const Identifier& accountID,
         const Identifier& serverID,
         const std::size_t max = DEFAULT_PROCESS_INBOX_ITEMS) const override;
+    bool AutoProcessInboxEnabled() const override
+    {
+        return auto_process_inbox_.get();
+    };
     Depositability CanDeposit(
         const Identifier& recipientNymID,
         const OTPayment& payment) const override;
@@ -67,6 +71,7 @@ public:
         const Identifier& recipientNymID,
         const Identifier& accountID,
         const std::shared_ptr<const OTPayment>& payment) const override;
+    void DisableAutoaccept() const override;
     OTIdentifier FindNym(const Identifier& nymID) const override;
     OTIdentifier FindNym(
         const Identifier& nymID,
@@ -114,6 +119,10 @@ public:
     OTIdentifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    OTIdentifier ScheduleProcessInbox(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& accountID) const override;
     OTIdentifier SchedulePublishServerContract(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -194,6 +203,7 @@ private:
 #endif  // OT_CASH
         UniqueQueue<SendTransferTask> send_transfer_;
         UniqueQueue<OTIdentifier> publish_server_contract_;
+        UniqueQueue<OTIdentifier> process_inbox_;
     };
 
     ContextLockCallback lock_callback_;
@@ -218,6 +228,7 @@ private:
     OTZMQListenCallback notification_listener_callback_;
     OTZMQPullSocket notification_listener_;
     OTZMQPublishSocket task_finished_;
+    mutable OTFlag auto_process_inbox_;
 
     std::pair<bool, std::size_t> accept_incoming(
         const rLock& lock,
@@ -319,6 +330,11 @@ private:
 #endif  // OT_CASH
     void process_account(
         const opentxs::network::zeromq::Message& message) const;
+    bool process_inbox(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& accountID) const;
     void process_notification(
         const opentxs::network::zeromq::Message& message) const;
     bool publish_server_contract(

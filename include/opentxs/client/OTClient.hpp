@@ -85,6 +85,13 @@ private:
     bool harvest_unused(ServerContext& context);
     bool init_new_account(const Identifier& accountID, ServerContext& context)
         const;
+    void process_incoming_instrument(
+        const String& serialized,
+        const ServerContext& context,
+        const OTTransaction& receipt);
+    void process_incoming_message(
+        const ServerContext& context,
+        const OTTransaction& receipt);
     void ProcessIncomingTransaction(
         const Message& theReply,
         ServerContext& context,
@@ -115,10 +122,6 @@ private:
         const TransactionNumber& lTransNum,
         const Nym& the_nym,
         Ledger& ledger) const;
-    void setRecentHash(
-        const Message& theReply,
-        bool setNymboxHash,
-        ServerContext& context);
     bool processServerReplyTriggerClause(
         const Message& theReply,
         ServerContext& context);
@@ -137,10 +140,12 @@ private:
         Ledger* pNymbox,
         ServerContext& context);
     bool processServerReplyGetBoxReceipt(
+        const Identifier& accountID,
         const Message& theReply,
         Ledger* pNymbox,
         ServerContext& context);
     bool processServerReplyGetBoxReceipt(
+        const Identifier& accountID,
         OTTransaction& receipt,
         ServerContext& context,
         const String& serialized,
@@ -202,7 +207,10 @@ private:
         const TransactionNumber& lNymOpeningNumber,
         std::shared_ptr<OTTransaction> pTransaction,
         const String& strCronItem) const;
+    void setRecentHash(
+        const Message& theReply,
+        bool setNymboxHash,
+        ServerContext& context);
 };
 }  // namespace opentxs
-
 #endif
