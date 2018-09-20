@@ -285,7 +285,6 @@ bool PayDividendVisitor::Trigger(
 PayDividendVisitor::~PayDividendVisitor()
 {
 
-    if (m_pstrMemo->Exists()) delete m_pstrMemo->Get();
     m_pstrMemo = nullptr;
     m_lPayoutPerShare = 0;
     m_lAmountPaidOut = 0;

@@ -4871,7 +4871,7 @@ bool OTClient::processServerReplyProcessNymbox(
     OT_ASSERT(nullptr != pReplyTransaction);
 
     const auto& NYM_ID = context.Nym()->ID();
-    const String& strNotaryID = String::Factory(context.Server());
+    const auto strNotaryID = String::Factory(context.Server());
 
     // HARVEST TRANSACTION NUMBERS (Nymbox only)
     auto pStatementItem = pTransaction->GetItem(itemType::transactionStatement);
@@ -5766,13 +5766,13 @@ bool OTClient::processServerReplyProcessNymbox(
                                     const bool bExists1 = OTDB::Exists(
                                         api_.DataFolder(),
                                         OTFolders::PaymentInbox().Get(),
-                                        strNotaryID.Get(),
+                                        strNotaryID->Get(),
                                         String(context.Nym()->ID()).Get(),
                                         "");
                                     const bool bExists2 = OTDB::Exists(
                                         api_.DataFolder(),
                                         OTFolders::RecordBox().Get(),
-                                        strNotaryID.Get(),
+                                        strNotaryID->Get(),
                                         String(context.Nym()->ID()).Get(),
                                         "");
 
@@ -7310,7 +7310,7 @@ std::int32_t OTClient::ProcessUserCommand(
             auto NYMBOX_HASH = Identifier::Factory(context.LocalNymboxHash());
             NYMBOX_HASH->GetString(theMessage.m_strNymboxHash);
 
-            if (!String::Factory(NYMBOX_HASH)->Exists()) {
+            if (NYMBOX_HASH->IsEmpty()) {
                 otErr << "Failed getting NymboxHash from Nym for server: "
                       << String::Factory(context.Server()) << std::endl;
             }
