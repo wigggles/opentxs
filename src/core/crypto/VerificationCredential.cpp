@@ -42,7 +42,7 @@ std::string VerificationCredential::VerificationID(
     auto id = Identifier::Factory();
     id->CalculateDigest(proto::ProtoAsData<proto::Verification>(item));
 
-    return String(id).Get();
+    return String::Factory(id)->Get();
 }
 
 VerificationCredential::VerificationCredential(

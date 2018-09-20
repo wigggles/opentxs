@@ -106,7 +106,7 @@ OTVariable::OTVariable(
     const std::string& str_Name,
     const std::string& str_Value,
     const OTVariable_Access theAccess)
-    : m_strName(str_Name.c_str())
+    : m_strName(String::Factory(str_Name.c_str()))
     , m_str_Value(str_Value)
     , m_nValue(0)
     , m_bValue(false)
@@ -127,7 +127,7 @@ OTVariable::OTVariable(
     const std::string& str_Name,
     const std::int32_t nValue,
     const OTVariable_Access theAccess)
-    : m_strName(str_Name.c_str())
+    : m_strName(String::Factory(str_Name.c_str()))
     , m_nValue(nValue)
     , m_bValue(false)
     , m_nValueBackup(nValue)
@@ -144,7 +144,7 @@ OTVariable::OTVariable(
     const std::string& str_Name,
     const bool bValue,
     const OTVariable_Access theAccess)
-    : m_strName(str_Name.c_str())
+    : m_strName(String::Factory(str_Name.c_str()))
     , m_nValue(0)
     , m_bValue(bValue)
     , m_nValueBackup(0)

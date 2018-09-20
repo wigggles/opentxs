@@ -77,7 +77,8 @@ OTScriptable::OTScriptable(const api::Core& core)
 // virtual
 void OTScriptable::SetDisplayLabel(const std::string* pstrLabel)
 {
-    m_strLabel = (nullptr != pstrLabel) ? pstrLabel->c_str() : "";
+    m_strLabel =
+        String::Factory((nullptr != pstrLabel) ? pstrLabel->c_str() : "");
 }
 
 // VALIDATING IDENTIFIERS IN OTSCRIPTABLE.
@@ -267,9 +268,9 @@ std::string OTScriptable::GetTime()  // Returns a string, containing seconds as
     const time64_t CURRENT_TIME = OTTimeGetCurrentTime();
     const std::int64_t lTime = OTTimeGetSecondsFromTime(CURRENT_TIME);
 
-    String strTime;
-    strTime.Format("%" PRId64, lTime);
-    return strTime.Get();
+    auto strTime = String::Factory();
+    strTime->Format("%" PRId64, lTime);
+    return strTime->Get();
 }
 
 // The server calls this when it wants to know if a certain party is allowed to
@@ -1929,7 +1930,7 @@ bool OTScriptable::ConfirmParty(OTParty& theParty, ServerContext&)
                                             // IDs now, etc.
 
         // Sign it and save it,
-        String strNewSignedCopy;
+        auto strNewSignedCopy = String::Factory();
         ReleaseSignatures();
         bool bSuccess = theParty.SignContract(*this);
         if (bSuccess) {
@@ -2287,26 +2288,29 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    if (nReturnVal == 1 || nReturnVal == (-1))
     //        return nReturnVal;
 
-    const String strNodeName(xml->getNodeName());
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
     //    otErr << "OTScriptable::ProcessXMLNode:  strNodeName: %s \n",
     // strNodeName.Get());
 
-    if (strNodeName.Compare("scriptableContract")) {
+    if (strNodeName->Compare("scriptableContract")) {
         const char* szFunc = "OTScriptable::ProcessXMLNode";
-        const String strSpecify1 =
-            xml->getAttributeValue("specifyInstrumentDefinitionID");
-        const String strSpecify2 = xml->getAttributeValue("specifyParties");
+        const auto strSpecify1 = String::Factory(
+            xml->getAttributeValue("specifyInstrumentDefinitionID"));
+        const auto strSpecify2 =
+            String::Factory(xml->getAttributeValue("specifyParties"));
 
-        String strNumParties = xml->getAttributeValue("numParties");
-        String strNumBylaws = xml->getAttributeValue("numBylaws");
+        auto strNumParties =
+            String::Factory(xml->getAttributeValue("numParties"));
+        auto strNumBylaws =
+            String::Factory(xml->getAttributeValue("numBylaws"));
 
-        String strOpeningNumsOrderSigning =
-            xml->getAttributeValue("openingNumsInOrderOfSigning");
+        auto strOpeningNumsOrderSigning = String::Factory(
+            xml->getAttributeValue("openingNumsInOrderOfSigning"));
 
-        if (strOpeningNumsOrderSigning.Exists()) {
+        if (strOpeningNumsOrderSigning->Exists()) {
             const std::string str_opening_nums(
-                strOpeningNumsOrderSigning.Get());
+                strOpeningNumsOrderSigning->Get());
             openingNumsInOrderOfSigning_ = stringToVector(str_opening_nums);
         } else
             openingNumsInOrderOfSigning_.clear();
@@ -2319,14 +2323,14 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // id blank
         // until the confirmation phase.)
         //
-        if (strSpecify1.Compare("true"))
+        if (strSpecify1->Compare("true"))
             m_bSpecifyInstrumentDefinitionID = true;
-        if (strSpecify2.Compare("true")) m_bSpecifyParties = true;
+        if (strSpecify2->Compare("true")) m_bSpecifyParties = true;
 
         // Load up the Parties.
         //
         std::int32_t nPartyCount =
-            strNumParties.Exists() ? atoi(strNumParties.Get()) : 0;
+            strNumParties->Exists() ? atoi(strNumParties->Get()) : 0;
         if (nPartyCount > 0) {
             while (nPartyCount-- > 0) {
                 //                xml->read(); // <==================
@@ -2341,40 +2345,43 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // currently on: %s \n", szFunc, xml->getNodeName());
 
                 if ((!strcmp("party", xml->getNodeName()))) {
-                    String strName = xml->getAttributeValue(
-                        "name");  // Party name (in script code)
-                    String strOwnerType = xml->getAttributeValue(
-                        "ownerType");  // "nym" or "entity"
-                    String strOwnerID = xml->getAttributeValue(
-                        "ownerID");  // Nym or Entity ID. todo security probably
-                                     // make these separate variables.
+                    auto strName = String::Factory(xml->getAttributeValue(
+                        "name"));  // Party name (in script code)
+                    auto strOwnerType = String::Factory(xml->getAttributeValue(
+                        "ownerType"));  // "nym" or "entity"
+                    auto strOwnerID = String::Factory(xml->getAttributeValue(
+                        "ownerID"));  // Nym or Entity ID. todo security
+                                      // probably make these separate variables.
 
-                    String strOpeningTransNo = xml->getAttributeValue(
-                        "openingTransNo");  // the closing #s are on the asset
-                                            // accounts.
+                    auto strOpeningTransNo =
+                        String::Factory(xml->getAttributeValue(
+                            "openingTransNo"));  // the closing #s are on the
+                                                 // asset accounts.
 
-                    String strAuthAgent = xml->getAttributeValue(
-                        "authorizingAgent");  // When an agent activates this
-                                              // contract, it's HIS opening
-                                              // trans# that's used.
+                    auto strAuthAgent = String::Factory(xml->getAttributeValue(
+                        "authorizingAgent"));  // When an agent activates this
+                                               // contract, it's HIS opening
+                                               // trans# that's used.
 
-                    String strNumAgents = xml->getAttributeValue(
-                        "numAgents");  // number of agents on this party.
-                    String strNumAccounts = xml->getAttributeValue(
-                        "numAccounts");  // number of accounts for this party.
+                    auto strNumAgents = String::Factory(xml->getAttributeValue(
+                        "numAgents"));  // number of agents on this party.
+                    auto strNumAccounts =
+                        String::Factory(xml->getAttributeValue(
+                            "numAccounts"));  // number of accounts for this
+                                              // party.
 
-                    String strIsCopyProvided =
-                        xml->getAttributeValue("signedCopyProvided");
+                    auto strIsCopyProvided = String::Factory(
+                        xml->getAttributeValue("signedCopyProvided"));
 
                     bool bIsCopyProvided = false;  // default
 
-                    if (strIsCopyProvided.Compare("true"))
+                    if (strIsCopyProvided->Compare("true"))
                         bIsCopyProvided = true;
 
                     std::int64_t lOpeningTransNo = 0;
 
-                    if (strOpeningTransNo.Exists())
-                        lOpeningTransNo = strOpeningTransNo.ToLong();
+                    if (strOpeningTransNo->Exists())
+                        lOpeningTransNo = strOpeningTransNo->ToLong();
                     else
                         otErr << szFunc
                               << "s: Expected openingTransNo in party.\n";
@@ -2382,10 +2389,10 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     OTParty* pParty = new OTParty(
                         api_.Wallet(),
                         api_.DataFolder(),
-                        strName.Exists() ? strName.Get() : "PARTY_ERROR_NAME",
-                        strOwnerType.Compare("nym") ? true : false,
-                        strOwnerID.Get(),
-                        strAuthAgent.Get());
+                        strName->Exists() ? strName->Get() : "PARTY_ERROR_NAME",
+                        strOwnerType->Compare("nym") ? true : false,
+                        strOwnerID->Get(),
+                        strAuthAgent->Get());
                     OT_ASSERT(nullptr != pParty);
 
                     pParty->SetOpeningTransNo(
@@ -2396,7 +2403,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     // Load up the agents.
                     //
                     std::int32_t nAgentCount =
-                        strNumAgents.Exists() ? atoi(strNumAgents.Get()) : 0;
+                        strNumAgents->Exists() ? atoi(strNumAgents->Get()) : 0;
                     if (nAgentCount > 0) {
                         while (nAgentCount-- > 0) {
                             //                          xml->read(); //
@@ -2413,41 +2420,48 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("agent", xml->getNodeName()))) {
-                                String strAgentName = xml->getAttributeValue(
-                                    "name");  // Agent name (if needed in script
-                                              // code)
-                                String strAgentRepSelf = xml->getAttributeValue(
-                                    "doesAgentRepresentHimself");  // Agent
-                                                                   // might
+                                auto strAgentName =
+                                    String::Factory(xml->getAttributeValue(
+                                        "name"));  // Agent name (if needed in
+                                                   // script code)
+                                auto strAgentRepSelf =
+                                    String::Factory(xml->getAttributeValue(
+                                        "doesAgentRepresentHimself"));  // Agent
+                                                                        // might
                                 // also BE the
                                 // party, and
                                 // not just
                                 // party's
                                 // employee.
-                                String strAgentIndividual =
-                                    xml->getAttributeValue(
-                                        "isAgentAnIndividual");  // Is the agent
-                                                                 // a voting
-                                                                 // group, or an
-                                                                 // individual
-                                                                 // nym?
-                                                                 // (whether
-                                                                 // employee or
-                                                                 // not)
-                                String strNymID = xml->getAttributeValue(
-                                    "nymID");  // Nym ID if Nym in role for
-                                               // entity, or if representing
-                                               // himself.
-                                String strRoleID = xml->getAttributeValue(
-                                    "roleID");  // Role ID if Nym in Role.
-                                String strGroupName = xml->getAttributeValue(
-                                    "groupName");  // Group name if voting
-                                                   // group. (Relative to
-                                                   // entity.)
+                                auto strAgentIndividual =
+                                    String::Factory(xml->getAttributeValue(
+                                        "isAgentAnIndividual"));  // Is the
+                                                                  // agent a
+                                                                  // voting
+                                                                  // group, or
+                                                                  // an
+                                                                  // individual
+                                                                  // nym?
+                                                                  // (whether
+                                                                  // employee or
+                                                                  // not)
+                                auto strNymID =
+                                    String::Factory(xml->getAttributeValue(
+                                        "nymID"));  // Nym ID if Nym in role for
+                                                    // entity, or if
+                                                    // representing himself.
+                                auto strRoleID =
+                                    String::Factory(xml->getAttributeValue(
+                                        "roleID"));  // Role ID if Nym in Role.
+                                auto strGroupName =
+                                    String::Factory(xml->getAttributeValue(
+                                        "groupName"));  // Group name if voting
+                                                        // group. (Relative to
+                                                        // entity.)
 
-                                if (!strAgentName.Exists() ||
-                                    !strAgentRepSelf.Exists() ||
-                                    !strAgentIndividual.Exists()) {
+                                if (!strAgentName->Exists() ||
+                                    !strAgentRepSelf->Exists() ||
+                                    !strAgentIndividual->Exists()) {
                                     otErr << szFunc
                                           << ": Error loading agent: "
                                              "Either the name, or "
@@ -2459,7 +2473,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 }
 
                                 if (!OTScriptable::ValidateName(
-                                        strAgentName.Get())) {
+                                        strAgentName->Get())) {
                                     otErr << szFunc
                                           << ": Failed loading agent due to "
                                              "Invalid name: "
@@ -2471,12 +2485,12 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                 bool bRepsHimself = true;  // default
 
-                                if (strAgentRepSelf.Compare("false"))
+                                if (strAgentRepSelf->Compare("false"))
                                     bRepsHimself = false;
 
                                 bool bIsIndividual = true;  // default
 
-                                if (strAgentIndividual.Compare("false"))
+                                if (strAgentIndividual->Compare("false"))
                                     bIsIndividual = false;
 
                                 // See if the same-named agent already exists on
@@ -2485,7 +2499,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable with a given name.)
                                 //
                                 OTAgent* pExistingAgent =
-                                    GetAgent(strAgentName.Get());
+                                    GetAgent(strAgentName->Get());
 
                                 if (nullptr != pExistingAgent)  // Uh-oh, it's
                                 // already there!
@@ -2546,8 +2560,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // LOAD PARTY ACCOUNTS.
                     //
-                    std::int32_t nAcctCount = strNumAccounts.Exists()
-                                                  ? atoi(strNumAccounts.Get())
+                    std::int32_t nAcctCount = strNumAccounts->Exists()
+                                                  ? atoi(strNumAccounts->Get())
                                                   : 0;
                     if (nAcctCount > 0) {
                         while (nAcctCount-- > 0) {
@@ -2563,30 +2577,35 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("assetAccount", xml->getNodeName()))) {
-                                String strAcctName = xml->getAttributeValue(
-                                    "name");  // Acct name (if needed in script
-                                              // code)
-                                String strAcctID = xml->getAttributeValue(
-                                    "acctID");  // Asset Acct ID
-                                String strInstrumentDefinitionID =
-                                    xml->getAttributeValue(
-                                        "instrumentDefinitionID");  // Instrument
+                                auto strAcctName =
+                                    String::Factory(xml->getAttributeValue(
+                                        "name"));  // Acct name (if needed in
+                                                   // script code)
+                                auto strAcctID =
+                                    String::Factory(xml->getAttributeValue(
+                                        "acctID"));  // Asset Acct ID
+                                auto strInstrumentDefinitionID =
+                                    String::Factory(xml->getAttributeValue(
+                                        "instrumentDefinitionI"
+                                        "D"));  // Instrument
                                 // Definition
                                 // ID
-                                String strAgentName = xml->getAttributeValue(
-                                    "agentName");  // Name of agent who controls
-                                                   // this account.
-                                String strClosingTransNo =
-                                    xml->getAttributeValue(
-                                        "closingTransNo");  // the closing #s
-                                                            // are on the asset
-                                                            // accounts.
+                                auto strAgentName =
+                                    String::Factory(xml->getAttributeValue(
+                                        "agentName"));  // Name of agent who
+                                                        // controls this
+                                                        // account.
+                                auto strClosingTransNo =
+                                    String::Factory(xml->getAttributeValue(
+                                        "closingTransNo"));  // the closing #s
+                                                             // are on the asset
+                                                             // accounts.
 
                                 std::int64_t lClosingTransNo = 0;
 
-                                if (strClosingTransNo.Exists())
+                                if (strClosingTransNo->Exists())
                                     lClosingTransNo =
-                                        strClosingTransNo.ToLong();
+                                        strClosingTransNo->ToLong();
                                 else {
                                     otErr << szFunc
                                           << ": Expected "
@@ -2601,9 +2620,9 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // agent name, since those things may not be
                                 // decided yet.
                                 //
-                                if (!strAcctName.Exists() ||
+                                if (!strAcctName->Exists() ||
                                     (m_bSpecifyInstrumentDefinitionID &&
-                                     !strInstrumentDefinitionID.Exists())) {
+                                     !strInstrumentDefinitionID->Exists())) {
                                     otErr << szFunc
                                           << ": Expected missing "
                                              "AcctID or InstrumentDefinitionID "
@@ -2620,7 +2639,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable with a given name.)
                                 //
                                 OTPartyAccount* pAcct =
-                                    GetPartyAccount(strAcctName.Get());
+                                    GetPartyAccount(strAcctName->Get());
 
                                 if (nullptr != pAcct)  // Uh-oh, it's already
                                                        // there!
@@ -2674,7 +2693,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     if (bIsCopyProvided) {
                         const char* pElementExpected = "mySignedCopy";
-                        String strTextExpected;  // signed copy will go here.
+                        auto strTextExpected =
+                            String::Factory();  // signed copy will go here.
 
                         if (false ==
                             Contract::LoadEncodedTextFieldByName(
@@ -2711,7 +2731,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // Load up the Bylaws.
         //
         std::int32_t nBylawCount =
-            strNumBylaws.Exists() ? atoi(strNumBylaws.Get()) : 0;
+            strNumBylaws->Exists() ? atoi(strNumBylaws->Get()) : 0;
         if (nBylawCount > 0) {
             while (nBylawCount-- > 0) {
                 if (!SkipToElement(xml)) {
@@ -2722,30 +2742,35 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 }
 
                 if (!strcmp("bylaw", xml->getNodeName())) {
-                    String strName =
-                        xml->getAttributeValue("name");  // bylaw name
-                    String strLanguage = xml->getAttributeValue(
-                        "language");  // The script language used in this bylaw.
+                    auto strName = String::Factory(
+                        xml->getAttributeValue("name"));  // bylaw name
+                    auto strLanguage = String::Factory(xml->getAttributeValue(
+                        "language"));  // The script language used in this
+                                       // bylaw.
 
-                    String strNumVariable = xml->getAttributeValue(
-                        "numVariables");  // number of variables on this bylaw.
-                    String strNumClauses = xml->getAttributeValue(
-                        "numClauses");  // number of clauses on this bylaw.
-                    String strNumHooks = xml->getAttributeValue(
-                        "numHooks");  // hooks to server events.
-                    String strNumCallbacks = xml->getAttributeValue(
-                        "numCallbacks");  // Callbacks the server may initiate,
-                                          // when it needs answers.
+                    auto strNumVariable =
+                        String::Factory(xml->getAttributeValue(
+                            "numVariables"));  // number of variables on this
+                                               // bylaw.
+                    auto strNumClauses = String::Factory(xml->getAttributeValue(
+                        "numClauses"));  // number of clauses on this bylaw.
+                    auto strNumHooks = String::Factory(xml->getAttributeValue(
+                        "numHooks"));  // hooks to server events.
+                    auto strNumCallbacks =
+                        String::Factory(xml->getAttributeValue(
+                            "numCallbacks"));  // Callbacks the server may
+                                               // initiate, when it needs
+                                               // answers.
 
                     OTBylaw* pBylaw =
-                        new OTBylaw(strName.Get(), strLanguage.Get());
+                        new OTBylaw(strName->Get(), strLanguage->Get());
 
                     OT_ASSERT(nullptr != pBylaw);
 
                     // LOAD VARIABLES AND CONSTANTS.
                     //
-                    std::int32_t nCount = strNumVariable.Exists()
-                                              ? atoi(strNumVariable.Get())
+                    std::int32_t nCount = strNumVariable->Exists()
+                                              ? atoi(strNumVariable->Get())
                                               : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
@@ -2761,24 +2786,29 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("variable", xml->getNodeName()))) {
-                                String strVarName = xml->getAttributeValue(
-                                    "name");  // Variable name (if needed in
-                                              // script code)
-                                String strVarValue = xml->getAttributeValue(
-                                    "value");  // Value stored in variable (If
-                                               // this is "true" then a real
-                                               // value is expected in a text
-                                               // field below. Otherwise, it's
-                                               // assumed to be a BLANK STRING.)
-                                String strVarType = xml->getAttributeValue(
-                                    "type");  // string or std::int64_t
-                                String strVarAccess = xml->getAttributeValue(
-                                    "access");  // constant, persistent, or
-                                                // important.
+                                auto strVarName =
+                                    String::Factory(xml->getAttributeValue(
+                                        "name"));  // Variable name (if needed
+                                                   // in script code)
+                                auto strVarValue =
+                                    String::Factory(xml->getAttributeValue(
+                                        "value"));  // Value stored in variable
+                                                    // (If this is "true" then a
+                                                    // real value is expected in
+                                                    // a text field below.
+                                                    // Otherwise, it's assumed
+                                                    // to be a BLANK STRING.)
+                                auto strVarType =
+                                    String::Factory(xml->getAttributeValue(
+                                        "type"));  // string or std::int64_t
+                                auto strVarAccess =
+                                    String::Factory(xml->getAttributeValue(
+                                        "access"));  // constant, persistent, or
+                                                     // important.
 
-                                if (!strVarName.Exists() ||
-                                    !strVarType.Exists() ||
-                                    !strVarAccess.Exists()) {
+                                if (!strVarName->Exists() ||
+                                    !strVarType->Exists() ||
+                                    !strVarAccess->Exists()) {
                                     otErr << szFunc
                                           << ": Expected missing "
                                              "name, type, or access "
@@ -2794,7 +2824,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // OTScriptable with a given name.)
                                 //
                                 OTVariable* pVar =
-                                    GetVariable(strVarName.Get());
+                                    GetVariable(strVarName->Get());
 
                                 if (nullptr != pVar)  // Uh-oh, it's already
                                                       // there!
@@ -2821,11 +2851,11 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTVariable::OTVariable_Type theVarType =
                                     OTVariable::Var_Error_Type;
 
-                                if (strVarType.Compare("integer"))
+                                if (strVarType->Compare("integer"))
                                     theVarType = OTVariable::Var_Integer;
-                                else if (strVarType.Compare("string"))
+                                else if (strVarType->Compare("string"))
                                     theVarType = OTVariable::Var_String;
-                                else if (strVarType.Compare("bool"))
+                                else if (strVarType->Compare("bool"))
                                     theVarType = OTVariable::Var_Bool;
                                 else
                                     otErr << szFunc << ": Bad variable type: "
@@ -2834,11 +2864,11 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 OTVariable::OTVariable_Access theVarAccess =
                                     OTVariable::Var_Error_Access;
 
-                                if (strVarAccess.Compare("constant"))
+                                if (strVarAccess->Compare("constant"))
                                     theVarAccess = OTVariable::Var_Constant;
-                                else if (strVarAccess.Compare("persistent"))
+                                else if (strVarAccess->Compare("persistent"))
                                     theVarAccess = OTVariable::Var_Persistent;
-                                else if (strVarAccess.Compare("important"))
+                                else if (strVarAccess->Compare("important"))
                                     theVarAccess = OTVariable::Var_Important;
                                 else
                                     otErr << szFunc
@@ -2861,13 +2891,13 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                 bool bAddedVar = false;
                                 const std::string str_var_name =
-                                    strVarName.Get();
+                                    strVarName->Get();
 
                                 switch (theVarType) {
                                     case OTVariable::Var_Integer:
-                                        if (strVarValue.Exists()) {
+                                        if (strVarValue->Exists()) {
                                             const std::int32_t nVarValue =
-                                                atoi(strVarValue.Get());
+                                                atoi(strVarValue->Get());
                                             bAddedVar = pBylaw->AddVariable(
                                                 str_var_name,
                                                 nVarValue,
@@ -2885,9 +2915,9 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                         break;
 
                                     case OTVariable::Var_Bool:
-                                        if (strVarValue.Exists()) {
+                                        if (strVarValue->Exists()) {
                                             const bool bVarValue =
-                                                strVarValue.Compare("true")
+                                                strVarValue->Compare("true")
                                                     ? true
                                                     : false;
                                             bAddedVar = pBylaw->AddVariable(
@@ -2909,9 +2939,9 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     case OTVariable::Var_String: {
                                         // I realized I should probably allow
                                         // empty strings.  :-P
-                                        if (strVarValue.Exists() &&
-                                            strVarValue.Compare("exists")) {
-                                            strVarValue.Release();  // probably
+                                        if (strVarValue->Exists() &&
+                                            strVarValue->Compare("exists")) {
+                                            strVarValue->Release();  // probably
                                             // unnecessary.
                                             if (false ==
                                                 Contract::LoadEncodedTextField(
@@ -2927,15 +2957,15 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                             // (else success)
                                         } else
                                             strVarValue
-                                                .Release();  // Necessary. If
-                                                             // it's going to
-                                                             // be a blank
-                                                             // string, then
-                                                             // let's make
-                                                             // sure.
+                                                ->Release();  // Necessary. If
+                                                              // it's going to
+                                                              // be a blank
+                                                              // string, then
+                                                              // let's make
+                                                              // sure.
 
                                         const std::string str_var_value =
-                                            strVarValue.Get();
+                                            strVarValue->Get();
                                         bAddedVar = pBylaw->AddVariable(
                                             str_var_name,
                                             str_var_value,
@@ -2973,13 +3003,15 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // LOAD CLAUSES
                     //
-                    nCount =
-                        strNumClauses.Exists() ? atoi(strNumClauses.Get()) : 0;
+                    nCount = strNumClauses->Exists()
+                                 ? atoi(strNumClauses->Get())
+                                 : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
                             const char* pElementExpected = "clause";
-                            String strTextExpected;  // clause's script code
-                                                     // will go here.
+                            auto strTextExpected =
+                                String::Factory();  // clause's script code
+                                                    // will go here.
 
                             String::Map temp_MapAttributes;
                             //
@@ -3048,7 +3080,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                     } else if (
                                         false == pBylaw->AddClause(
                                                      str_name.c_str(),
-                                                     strTextExpected.Get())) {
+                                                     strTextExpected->Get())) {
                                         otErr << szFunc
                                               << ": Failed adding "
                                                  "clause to bylaw.\n";
@@ -3081,7 +3113,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // LOAD HOOKS.
                     //
-                    nCount = strNumHooks.Exists() ? atoi(strNumHooks.Get()) : 0;
+                    nCount =
+                        strNumHooks->Exists() ? atoi(strNumHooks->Get()) : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
                             //                          xml->read();
@@ -3096,17 +3129,20 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("hook", xml->getNodeName()))) {
-                                String strHookName = xml->getAttributeValue(
-                                    "name");  // Name of standard hook such as
-                                              // hook_activate or cron_process,
-                                              // etc
-                                String strClause = xml->getAttributeValue(
-                                    "clause");  // Name of clause on this Bylaw
-                                                // that should trigger when that
-                                                // callback occurs.
+                                auto strHookName =
+                                    String::Factory(xml->getAttributeValue(
+                                        "name"));  // Name of standard hook such
+                                                   // as hook_activate or
+                                                   // cron_process, etc
+                                auto strClause =
+                                    String::Factory(xml->getAttributeValue(
+                                        "clause"));  // Name of clause on this
+                                                     // Bylaw that should
+                                                     // trigger when that
+                                                     // callback occurs.
 
-                                if (!strHookName.Exists() ||
-                                    !strClause.Exists()) {
+                                if (!strHookName->Exists() ||
+                                    !strClause->Exists()) {
                                     otErr << szFunc
                                           << ": Expected missing "
                                              "name or clause while "
@@ -3118,7 +3154,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                                 if (false ==
                                     pBylaw->AddHook(
-                                        strHookName.Get(), strClause.Get())) {
+                                        strHookName->Get(), strClause->Get())) {
                                     otErr << szFunc
                                           << ": Failed adding hook to bylaw.\n";
                                     delete pBylaw;
@@ -3137,8 +3173,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                     // LOAD CALLBACKS.
                     //
-                    nCount = strNumCallbacks.Exists()
-                                 ? atoi(strNumCallbacks.Get())
+                    nCount = strNumCallbacks->Exists()
+                                 ? atoi(strNumCallbacks->Get())
                                  : 0;
                     if (nCount > 0) {
                         while (nCount-- > 0) {
@@ -3154,17 +3190,20 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
                             if ((xml->getNodeType() == irr::io::EXN_ELEMENT) &&
                                 (!strcmp("callback", xml->getNodeName()))) {
-                                String strCallbackName = xml->getAttributeValue(
-                                    "name");  // Name of standard callback
-                                              // such as OnActivate,
-                                              // OnDeactivate, etc
-                                String strClause = xml->getAttributeValue(
-                                    "clause");  // Name of clause on this Bylaw
-                                                // that should trigger when that
-                                                // hook occurs.
+                                auto strCallbackName =
+                                    String::Factory(xml->getAttributeValue(
+                                        "name"));  // Name of standard callback
+                                                   // such as OnActivate,
+                                                   // OnDeactivate, etc
+                                auto strClause =
+                                    String::Factory(xml->getAttributeValue(
+                                        "clause"));  // Name of clause on this
+                                                     // Bylaw that should
+                                                     // trigger when that hook
+                                                     // occurs.
 
-                                if (!strCallbackName.Exists() ||
-                                    !strClause.Exists()) {
+                                if (!strCallbackName->Exists() ||
+                                    !strClause->Exists()) {
                                     otErr << szFunc
                                           << ": Expected, yet nevertheless "
                                              "missing, name or clause while "
@@ -3182,7 +3221,7 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // given callback.)
                                 //
                                 OTClause* pClause =
-                                    GetCallback(strCallbackName.Get());
+                                    GetCallback(strCallbackName->Get());
 
                                 if (nullptr != pClause)  // Uh-oh, it's already
                                                          // there!
@@ -3204,8 +3243,8 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                 // bylaws.
 
                                 if (false == pBylaw->AddCallback(
-                                                 strCallbackName.Get(),
-                                                 strClause.Get())) {
+                                                 strCallbackName->Get(),
+                                                 strClause->Get())) {
                                     otErr << szFunc
                                           << ": Failed adding callback ("
                                           << strCallbackName << ") to bylaw ("

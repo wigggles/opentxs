@@ -7,6 +7,8 @@
 
 #include "opentxs/core/util/OTFolders.hpp"
 
+#include "opentxs/core/String.hpp"
+
 #include "opentxs/core/util/OTPaths.hpp"
 
 #include "Internal.hpp"
@@ -53,24 +55,24 @@
 namespace opentxs
 {
 
-String OTFolders::s_strAccount("");
-String OTFolders::s_strCert("");
-String OTFolders::s_strCommon("");
-String OTFolders::s_strContract("");
-String OTFolders::s_strCron("");
-String OTFolders::s_strInbox("");
-String OTFolders::s_strMarket("");
-String OTFolders::s_strMint("");
-String OTFolders::s_strNym("");
-String OTFolders::s_strNymbox("");
-String OTFolders::s_strOutbox("");
-String OTFolders::s_strPaymentInbox("");
-String OTFolders::s_strPurse("");
-String OTFolders::s_strReceipt("");
-String OTFolders::s_strRecordBox("");
-String OTFolders::s_strExpiredBox("");
-String OTFolders::s_strSpent("");
-String OTFolders::s_strUserAcct("");
+OTString OTFolders::s_strAccount(String::Factory());
+OTString OTFolders::s_strCert(String::Factory());
+OTString OTFolders::s_strCommon(String::Factory());
+OTString OTFolders::s_strContract(String::Factory());
+OTString OTFolders::s_strCron(String::Factory());
+OTString OTFolders::s_strInbox(String::Factory());
+OTString OTFolders::s_strMarket(String::Factory());
+OTString OTFolders::s_strMint(String::Factory());
+OTString OTFolders::s_strNym(String::Factory());
+OTString OTFolders::s_strNymbox(String::Factory());
+OTString OTFolders::s_strOutbox(String::Factory());
+OTString OTFolders::s_strPaymentInbox(String::Factory());
+OTString OTFolders::s_strPurse(String::Factory());
+OTString OTFolders::s_strReceipt(String::Factory());
+OTString OTFolders::s_strRecordBox(String::Factory());
+OTString OTFolders::s_strExpiredBox(String::Factory());
+OTString OTFolders::s_strSpent(String::Factory());
+OTString OTFolders::s_strUserAcct(String::Factory());
 
 bool OTFolders::GetSetAll()
 {

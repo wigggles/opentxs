@@ -2226,10 +2226,10 @@ bool OTSmartContract::StashFunds(
     // here...) And inside each one is a stash for each instrument definition.
     // So let's get the one for the instrument definition matching the party's
     // account.
-    const String strInstrumentDefinitionID(
-        account.get().GetInstrumentDefinitionID());
+    const auto strInstrumentDefinitionID =
+        String::Factory(account.get().GetInstrumentDefinitionID());
     const std::string str_instrument_definition_id =
-        strInstrumentDefinitionID.Get();
+        strInstrumentDefinitionID->Get();
 
     OTStashItem* pStashItem = theStash.GetStash(str_instrument_definition_id);
     OT_ASSERT(nullptr != pStashItem);  // should never happen. Creates if

@@ -617,7 +617,7 @@ bool OTPayment::GetMemo(String& strOutput) const
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::NOTICE:
             if (m_strMemo->Exists()) {
-                strOutput = m_strMemo;
+                strOutput.Set(m_strMemo);
                 bSuccess = true;
             } else
                 bSuccess = false;
@@ -1919,7 +1919,7 @@ std::int32_t OTPayment::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const auto strNodeName = String::Factory(xml->getNodeName());
 
     if (strNodeName->Compare("payment")) {
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
 
         const auto strPaymentType =
             String::Factory(xml->getAttributeValue("type"));
@@ -1999,10 +1999,10 @@ bool OTPayment::SetPayment(const String& strPayment)
         return false;
     }
 
-    auto strContract(strPayment);
+    auto strContract = String::Factory(strPayment.Get());
 
-    if (!strContract.DecodeIfArmored(false))  // bEscapedIsAllowed=true
-                                              // by default.
+    if (!strContract->DecodeIfArmored(false))  // bEscapedIsAllowed=true
+                                               // by default.
     {
         otErr << __FUNCTION__
               << ": Input string apparently was encoded and "
@@ -2015,21 +2015,21 @@ bool OTPayment::SetPayment(const String& strPayment)
 
     // todo: should be "starts with" and perhaps with a trim first
     //
-    if (strContract.Contains("-----BEGIN SIGNED CHEQUE-----"))
+    if (strContract->Contains("-----BEGIN SIGNED CHEQUE-----"))
         m_Type = OTPayment::CHEQUE;
-    else if (strContract.Contains("-----BEGIN SIGNED VOUCHER-----"))
+    else if (strContract->Contains("-----BEGIN SIGNED VOUCHER-----"))
         m_Type = OTPayment::VOUCHER;
-    else if (strContract.Contains("-----BEGIN SIGNED INVOICE-----"))
+    else if (strContract->Contains("-----BEGIN SIGNED INVOICE-----"))
         m_Type = OTPayment::INVOICE;
 
-    else if (strContract.Contains("-----BEGIN SIGNED PAYMENT PLAN-----"))
+    else if (strContract->Contains("-----BEGIN SIGNED PAYMENT PLAN-----"))
         m_Type = OTPayment::PAYMENT_PLAN;
-    else if (strContract.Contains("-----BEGIN SIGNED SMARTCONTRACT-----"))
+    else if (strContract->Contains("-----BEGIN SIGNED SMARTCONTRACT-----"))
         m_Type = OTPayment::SMART_CONTRACT;
 
-    else if (strContract.Contains("-----BEGIN SIGNED PURSE-----"))
+    else if (strContract->Contains("-----BEGIN SIGNED PURSE-----"))
         m_Type = OTPayment::PURSE;
-    else if (strContract.Contains("-----BEGIN SIGNED TRANSACTION-----"))
+    else if (strContract->Contains("-----BEGIN SIGNED TRANSACTION-----"))
         m_Type = OTPayment::NOTICE;
     else {
         m_Type = OTPayment::ERROR_STATE;

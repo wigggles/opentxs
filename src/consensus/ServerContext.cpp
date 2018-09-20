@@ -246,8 +246,8 @@ std::unique_ptr<TransactionStatement> ServerContext::generate_statement(
         available.insert(number);
     }
 
-    std::unique_ptr<TransactionStatement> output(
-        new TransactionStatement(String(server_id_).Get(), issued, available));
+    std::unique_ptr<TransactionStatement> output(new TransactionStatement(
+        String::Factory(server_id_)->Get(), issued, available));
 
     return output;
 }
@@ -271,8 +271,8 @@ std::unique_ptr<Message> ServerContext::initialize_server_command(
     OT_ASSERT(false != bool(nym_));
 
     output->m_strCommand->Set(Message::Command(type).data());
-    output->m_strNymID = String(nym_->ID());
-    output->m_strNotaryID = String(server_id_);
+    output->m_strNymID = String::Factory(nym_->ID());
+    output->m_strNotaryID = String::Factory(server_id_);
 
     return output;
 }
@@ -299,7 +299,8 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
         requestNumber = provided;
     }
 
-    message->m_strRequestNum = std::to_string(requestNumber).c_str();
+    message->m_strRequestNum =
+        String::Factory(std::to_string(requestNumber).c_str());
 
     if (withAcknowledgments) {
         message->SetAcknowledgments(acknowledged_request_numbers_);
@@ -328,7 +329,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     const auto& notUsed[[maybe_unused]] = requestNumber;
 
     message->m_ascPayload = payload;
-    message->m_strAcctID = String(accountID);
+    message->m_strAcctID = String::Factory(accountID);
 
     return output;
 }
@@ -346,7 +347,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
         lock, type, provided, withAcknowledgments, withNymboxHash);
     auto& [requestNumber, message] = output;
     [[maybe_unused]] const auto& notUsed = requestNumber;
-    message->m_strNymID2 = String(recipientNymID);
+    message->m_strNymID2 = String::Factory(recipientNymID);
 
     return output;
 }
@@ -416,13 +417,14 @@ NetworkReplyMessage ServerContext::PingNotary()
         return {};
     }
 
-    String serializedAuthKey{};
-    String serializedEncryptKey{};
+    auto serializedAuthKey = String::Factory();
+    auto serializedEncryptKey = String::Factory();
     const auto& authKey = nym_->GetPublicAuthKey();
     const auto& encrKey = nym_->GetPublicEncrKey();
     authKey.GetPublicKey(serializedAuthKey);
     encrKey.GetPublicKey(serializedEncryptKey);
-    request->m_strRequestNum = std::to_string(FIRST_REQUEST_NUMBER).c_str();
+    request->m_strRequestNum =
+        String::Factory(std::to_string(FIRST_REQUEST_NUMBER).c_str());
     request->m_strNymPublicKey = serializedAuthKey;
     request->m_strNymID2 = serializedEncryptKey;
     request->keytypeAuthent_ = authKey.keyType();
@@ -526,7 +528,7 @@ proto::Context ServerContext::serialize(const Lock& lock) const
     auto output = serialize(lock, Type());
     auto& server = *output.mutable_servercontext();
     server.set_version(output.version());
-    server.set_serverid(String(server_id_).Get());
+    server.set_serverid(String::Factory(server_id_)->Get());
     server.set_highesttransactionnumber(highest_transaction_number_.load());
 
     for (const auto& it : tentative_transaction_numbers_) {
@@ -814,7 +816,8 @@ RequestNumber ServerContext::UpdateRequestNumber(bool& sendStatus)
         return {};
     }
 
-    request->m_strRequestNum = std::to_string(FIRST_REQUEST_NUMBER).c_str();
+    request->m_strRequestNum =
+        String::Factory(std::to_string(FIRST_REQUEST_NUMBER).c_str());
 
     if (false == finalize_server_command(*request)) {
         otErr << OT_METHOD << __FUNCTION__
