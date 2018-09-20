@@ -21,10 +21,11 @@
 
 namespace opentxs
 {
-template <class C>
+template <typename C>
 class Exclusive
 {
 public:
+    using Callback = std::function<void(const C&)>;
     using Container = std::unique_ptr<C>;
     using Save = std::function<void(Container&, eLock&, bool)>;
 
@@ -40,7 +41,11 @@ public:
     C& get();
     bool Release();
 
-    Exclusive(Container* in, std::shared_mutex& lock, Save save) noexcept;
+    Exclusive(
+        Container* in,
+        std::shared_mutex& lock,
+        Save save,
+        const Callback callback = nullptr) noexcept;
     Exclusive() noexcept;
     Exclusive(const Exclusive&) = delete;
     Exclusive(Exclusive&&) noexcept;
@@ -54,6 +59,7 @@ private:
     std::unique_ptr<eLock> lock_{nullptr};
     Save save_{[](Container&, eLock&, bool) -> void {}};
     std::atomic<bool> success_{true};
+    Callback callback_{nullptr};
 };  // class Exclusive
 }  // namespace opentxs
 #endif

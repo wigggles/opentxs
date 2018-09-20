@@ -33,7 +33,8 @@ public:
     bool DeleteAccount(const Identifier& accountID) const override;
     SharedAccount IssuerAccount(const Identifier& unitID) const override;
     ExclusiveAccount mutable_Account(
-        const Identifier& accountID) const override;
+        const Identifier& accountID,
+        const AccountCallback callback) const override;
     bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,

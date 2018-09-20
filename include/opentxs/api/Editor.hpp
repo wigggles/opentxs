@@ -21,44 +21,49 @@ template <class C>
 class Editor
 {
 private:
-    typedef std::unique_lock<std::mutex> Lock;
-    typedef std::function<void(C*, Lock&)> LockedSave;
-    typedef std::function<void(C*)> UnlockedSave;
+    using OptionalCallback = std::function<void(const C&)>;
+    using Lock = std::unique_lock<std::mutex>;
+    using LockedSave = std::function<void(C*, Lock&)>;
+    using UnlockedSave = std::function<void(C*)>;
 
-    C* object_;
+    C* object_{nullptr};
     bool locked_{true};
-    std::unique_ptr<Lock> object_lock_;
-    std::unique_ptr<LockedSave> locked_save_callback_;
-    std::unique_ptr<UnlockedSave> unlocked_save_callback_;
+    std::unique_ptr<Lock> object_lock_{nullptr};
+    std::unique_ptr<LockedSave> locked_save_callback_{nullptr};
+    std::unique_ptr<UnlockedSave> unlocked_save_callback_{nullptr};
+    const OptionalCallback optional_callback_{nullptr};
 
     Editor() = delete;
     Editor(const Editor&) = delete;
     Editor& operator=(const Editor&) = delete;
 
 public:
-    Editor(std::mutex& objectMutex, C* object, LockedSave save)
+    Editor(
+        std::mutex& objectMutex,
+        C* object,
+        LockedSave save,
+        OptionalCallback callback = nullptr)
         : object_(object)
         , locked_(true)
+        , object_lock_(new Lock(objectMutex))
+        , locked_save_callback_(new LockedSave(save))
+        , unlocked_save_callback_(nullptr)
+        , optional_callback_(callback)
     {
         OT_ASSERT(nullptr != object);
-
-        object_lock_.reset(new Lock(objectMutex));
-
         OT_ASSERT(object_lock_);
-
-        locked_save_callback_.reset(new LockedSave(save));
-
         OT_ASSERT(locked_save_callback_);
     }
 
-    Editor(C* object, UnlockedSave save)
+    Editor(C* object, UnlockedSave save, OptionalCallback callback = nullptr)
         : object_(object)
         , locked_(false)
+        , object_lock_(nullptr)
+        , locked_save_callback_(nullptr)
+        , unlocked_save_callback_(new UnlockedSave(save))
+        , optional_callback_(callback)
     {
         OT_ASSERT(nullptr != object);
-
-        unlocked_save_callback_.reset(new UnlockedSave(save));
-
         OT_ASSERT(unlocked_save_callback_);
     }
 
@@ -68,6 +73,7 @@ public:
         , object_lock_(rhs.object_lock_.release())
         , locked_save_callback_(rhs.locked_save_callback_.release())
         , unlocked_save_callback_(rhs.unlocked_save_callback_.release())
+        , optional_callback_(std::move(rhs.optional_callback_))
     {
         rhs.object_ = nullptr;
     }
@@ -90,6 +96,8 @@ public:
             auto& callback = *unlocked_save_callback_;
             callback(object_);
         }
+
+        if (optional_callback_) { optional_callback_(*object_); }
     }
 
 };  // class Editor

@@ -41,7 +41,6 @@
 #include <ostream>
 #include <string>
 
-#define OTX_PUSH_VERSION 1
 #define OTX_ZAP_DOMAIN "opentxs-otx"
 
 #define OT_METHOD "opentxs::MessageProcessor::"
@@ -389,11 +388,7 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
     const auto& payload = incoming.Body().at(1);
     auto message = otx::Reply::Factory(
         nym, nymID, server_.GetServerID(), proto::SERVERREPLY_PUSH, true);
-    proto::OTXPush push;
-    push.set_version(OTX_PUSH_VERSION);
-    push.set_type(proto::OTXPUSH_NYMBOX);
-    push.set_item(payload);
-    message->SetPush(push);
+    message->SetPush(proto::TextToProto<proto::OTXPush>(payload));
 
     OT_ASSERT(message->Validate());
 

@@ -1313,6 +1313,304 @@ void OTClient::process_incoming_message(
     }
 }
 
+bool OTClient::process_account_data(
+    const Identifier& accountID,
+    const String& account,
+    const String& inboxHash,
+    const String& inbox,
+    const String& outboxHash,
+    const String& outbox,
+    ServerContext& context)
+{
+    const auto& NYM_ID = context.Nym()->ID();
+    const auto& serverNym = context.RemoteNym();
+
+    if (account.Exists()) {
+        const auto updated =
+            api_.Wallet().UpdateAccount(accountID, context, account);
+
+        if (updated) {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Saved updated account file." << std::endl;
+        } else {
+            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
+                  << std::endl;
+
+            OT_FAIL
+        }
+    }
+
+    const String strAcctID(accountID);
+    const std::string str_acct_id(strAcctID.Get());
+
+    if (inbox.Exists()) {
+        const String strNotaryID(context.Server());
+
+        // Load the ledger object from inbox
+        auto theInbox =
+            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
+
+        OT_ASSERT(false != bool(theInbox));
+
+        // I receive the inbox, verify the server's signature, then
+        // RE-SIGN IT WITH MY OWN
+        // SIGNATURE, then SAVE it to local storage.  So any FUTURE
+        // checks of this inbox
+        // would require MY signature, not the server's, to verify.
+        // But in this one spot,
+        // just before saving, I need to verify the server's first.
+        // UPDATE: Keeping the server's signature, and just adding
+        // my own.
+        if (theInbox->LoadInboxFromString(inbox) &&
+            theInbox->VerifySignature(serverNym))  // No VerifyAccount.
+        // Can't, because client hasn't had a chance yet to download the box
+        // receipts that go
+        // with this inbox -- and VerifyAccount() tries to load those, which
+        // would fail here...
+        {
+            auto THE_HASH = Identifier::Factory();
+
+            if (inboxHash.Exists()) {
+                auto nymfile = context.mutable_Nymfile("");
+                THE_HASH->SetString(inboxHash);
+                const bool bHash =
+                    nymfile.It().SetInboxHash(str_acct_id, THE_HASH);
+
+                if (false == bHash) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Failed setting inbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
+                }
+            }
+
+            // If I have Transaction #35 signed out, and I use it to
+            // start a market offer (or any other cron item)
+            // then it's always possible that a finalReceipt will
+            // pop into my Inbox while I'm asleep, closing
+            // that transaction #. The server officially believes 35
+            // is closed. Unfortunately, I still have it signed
+            // out, on my side anyway, because I didn't know the
+            // finalReceipt came in.
+            //
+            // THEREFORE, WHEN A FINAL RECEIPT COMES IN, I NEED TO
+            // REMOVE ITS "in reference to" NUMBER FROM MY
+            // ISSUED LIST. Here is clearly the best place for that:
+            //
+            for (auto& it : theInbox->GetTransactionMap()) {
+                auto pTempTrans = it.second;
+                OT_ASSERT(false != bool(pTempTrans));
+
+                // TODO security: Keep a client-side list of issued
+                // #s for finalReceipts. That way,
+                // I'll be smart enough here not to actually remove
+                // just any number, unless it's actually
+                // on my list of final receipts.  (The server does a
+                // similar thing already.)
+                //
+                if (transactionType::finalReceipt == pTempTrans->GetType()) {
+                    otInfo << "*** Removing opening issued number ("
+                           << pTempTrans->GetReferenceToNum()
+                           << "), since finalReceipt found when "
+                              "retrieving asset account inbox. "
+                              "***\n";
+
+                    if (context.ConsumeIssued(
+                            pTempTrans->GetReferenceToNum())) {
+                        otWarn << "**** Due to finding a finalReceipt, "
+                               << "REMOVING OPENING NUMBER FROM NYM:  "
+                               << pTempTrans->GetReferenceToNum() << " \n";
+                    } else {
+                        otWarn << "**** Noticed a finalReceipt, but Opening "
+                                  "Number "
+                               << pTempTrans->GetReferenceToNum()
+                               << " had ALREADY been removed from nym. \n";
+                    }
+
+                    // The client side keeps a list of active (recurring)
+                    // transactions. That is, smart contracts and payment plans.
+                    // I don't think it keeps market offers in that list, since
+                    // we already have a list of active market offers
+                    // separately. And market offers produce final receipts, so
+                    // basically this piece of code will be executed for all
+                    // final receipts. It's not really necessary that it be
+                    // called for market offers, but whatever. It is for the
+                    // others.
+                    OTCronItem::EraseActiveCronReceipt(
+                        api_.DataFolder(),
+                        pTempTrans->GetReferenceToNum(),
+                        context.Nym()->ID(),
+                        pTempTrans->GetPurportedNotaryID());
+
+                }  // We also do this in AcceptEntireNymbox
+            }
+
+            // Now I'm keeping the server signature, and just adding
+            // my own.
+            theInbox->ReleaseSignatures();  // This is back. Why? Because we
+                                            // have receipts functional now.
+            theInbox->SignContract(*context.Nym());
+            theInbox->SaveContract();
+            theInbox->SaveInbox(Identifier::Factory());
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Error loading (from string) or verifying "
+                     "inbox:\n\n"
+                  << inbox << "\n";
+        }
+    }
+    if (outbox.Exists()) {
+        // Load the ledger object from outbox.
+        auto theOutbox =
+            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
+
+        OT_ASSERT(false != bool(theOutbox));
+
+        // I receive the outbox, verify the server's signature, then RE-SIGN IT
+        // WITH MY OWN SIGNATURE, then SAVE it to local storage.  So any FUTURE
+        // checks of this outbox would require MY signature, not the server's,
+        // to verify. But in this one spot, just before saving, I need to verify
+        // the server's first. UPDATE: keeping the server's signature, and just
+        // adding my own.
+        //
+        if (theOutbox->LoadOutboxFromString(outbox) &&
+            theOutbox->VerifySignature(serverNym))  // No point calling
+                                                    // VerifyAccount
+        // since the client hasn't even had a
+        // chance to download the box receipts yet...
+        {
+            auto THE_HASH = Identifier::Factory();
+
+            if (outboxHash.Exists()) {
+                auto nymfile = context.mutable_Nymfile("");
+                THE_HASH->SetString(outboxHash);
+                const bool bHash =
+                    nymfile.It().SetOutboxHash(str_acct_id, THE_HASH);
+
+                if (false == bHash) {
+                    otErr << OT_METHOD << __FUNCTION__
+                          << ": Failed setting outbox hash for account: "
+                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
+                }
+            }
+
+            theOutbox->ReleaseSignatures();  // UPDATE: keeping the server's
+                                             // signature, and just adding my
+                                             // own.
+            theOutbox->SignContract(*context.Nym());  // ANOTHER UPDATE:
+                                                      // Removing
+            // signature again, since we have
+            // receipts functional now.
+            theOutbox->SaveContract();
+            theOutbox->SaveOutbox(Identifier::Factory());
+        } else {
+            otErr << OT_METHOD << __FUNCTION__
+                  << ": Error loading (from string) or verifying "
+                     "outbox:\n\n"
+                  << outbox << "\n";
+        }
+    }
+
+    return true;
+}
+
+bool OTClient::process_account_push(
+    const proto::OTXPush& push,
+    ServerContext& context)
+{
+    // const TransactionNumber number{push.itemid()};
+    const auto accountID = Identifier::Factory(push.accountid());
+    const auto inboxHash = String::Factory(push.inboxhash());
+    const auto outboxHash = String::Factory(push.outboxhash());
+    const auto account = String::Factory(push.account());
+    const auto inbox = String::Factory(push.inbox());
+    const auto outbox = String::Factory(push.outbox());
+
+    const auto processed = process_account_data(
+        accountID, account, inboxHash, inbox, outboxHash, outbox, context);
+
+    if (processed) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Success saving new account data.")
+            .Flush();
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failure saving new account data.")
+            .Flush();
+
+        return false;
+    }
+
+    return process_box_item(push, context);
+}
+
+bool OTClient::process_box_item(
+    const proto::OTXPush& push,
+    ServerContext& context)
+{
+    std::int64_t box{-1};
+
+    switch (push.type()) {
+        case proto::OTXPUSH_NYMBOX: {
+            box = 0;
+        } break;
+        case proto::OTXPUSH_INBOX: {
+            box = 1;
+        } break;
+        case proto::OTXPUSH_OUTBOX: {
+            box = 2;
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid box type").Flush();
+
+            return false;
+        }
+    }
+
+    const auto& payload = push.item();
+
+    if (payload.empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing payload").Flush();
+
+        return false;
+    }
+
+    std::shared_ptr<OTTransactionType> base{
+        api_.Factory().Transaction(String::Factory(payload))};
+
+    if (false == bool(base)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payload").Flush();
+
+        return false;
+    }
+
+    auto receipt = std::dynamic_pointer_cast<OTTransaction>(base);
+
+    if (false == bool(base)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong transaction type").Flush();
+
+        return false;
+    }
+
+    if (receipt->GetNymID() != context.Nym()->ID()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong nym id on box receipt")
+            .Flush();
+
+        return false;
+    }
+
+    if (false == receipt->VerifyAccount(context.RemoteNym())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to verify box receipt")
+            .Flush();
+
+        return false;
+    }
+
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Validated a push notification of type: ")(receipt->GetTypeString())
+        .Flush();
+
+    return processServerReplyGetBoxReceipt(
+        context.Nym()->ID(), *receipt, context, payload.c_str(), box);
+}
+
 void OTClient::ProcessDepositChequeResponse(
     const ServerContext& context,
     std::shared_ptr<Item> pReplyItem) const
@@ -2501,69 +2799,22 @@ bool OTClient::ProcessNotification(
     const auto push = notification.Push();
 
     if (false == bool(push)) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Missing push payload"
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing push payload").Flush();
 
         return false;
     }
 
     switch (push->type()) {
         case proto::OTXPUSH_NYMBOX: {
-            const auto& payload = push->item();
-
-            if (payload.empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Missing payload").Flush();
-
-                return false;
-            }
-
-            std::shared_ptr<OTTransactionType> base{
-                api_.Factory().Transaction(String::Factory(payload))};
-
-            if (false == bool(base)) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid payload").Flush();
-
-                return false;
-            }
-
-            auto receipt = std::dynamic_pointer_cast<OTTransaction>(base);
-
-            if (false == bool(base)) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong transaction type")
-                    .Flush();
-
-                return false;
-            }
-
-            if (receipt->GetNymID() != context.Nym()->ID()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Wrong nym id on box receipt")
-                    .Flush();
-
-                return false;
-            }
-
-            if (false == receipt->VerifyAccount(context.RemoteNym())) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Unable to verify box receipt")
-                    .Flush();
-
-                return false;
-            }
-
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Validated a push notification of type: ")(
-                receipt->GetTypeString())
-                .Flush();
-
-            return processServerReplyGetBoxReceipt(
-                context.Nym()->ID(),
-                *receipt,
-                context,
-                payload.c_str(),
-                0);  // 0 means nymbox
+            return process_box_item(*push, context);
+        } break;
+        case proto::OTXPUSH_INBOX: {
+            return process_account_push(*push, context);
         } break;
         default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported push type")
+                .Flush();
+
             return false;
         }
     }
@@ -2734,8 +2985,7 @@ bool OTClient::processServerReply(
             theReply, accountID, pNymbox, context);
     }
     if (theReply.m_strCommand->Compare("getAccountDataResponse")) {
-        return processServerReplyGetAccountData(
-            theReply, accountID, pNymbox, context);
+        return processServerReplyGetAccountData(theReply, accountID, context);
     }
     if (theReply.m_strCommand->Compare("getInstrumentDefinitionResponse")) {
         return processServerReplyGetInstrumentDefinition(theReply, context);
@@ -2821,209 +3071,29 @@ bool OTClient::processServerReplyCheckNym(
 bool OTClient::processServerReplyGetAccountData(
     const Message& theReply,
     const Identifier& accountID,
-    Ledger* pNymbox,
     ServerContext& context)
 {
-    const auto& NYM_ID = context.Nym()->ID();
-    const auto& serverNym = context.RemoteNym();
-
-    otInfo << "Received server response to getAccountData message.\n";
-
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Received server response to getAccountData message.")
+        .Flush();
     auto strAccount = String::Factory(), strInbox = String::Factory(),
          strOutbox = String::Factory();
+
     if (!theReply.m_ascPayload.GetString(strAccount) ||
         !theReply.m_ascPayload2.GetString(strInbox) ||
         !theReply.m_ascPayload3.GetString(strOutbox)) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed to decode armored reponse\n";
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode armored reponse")
+            .Flush();
     }
 
-    if (strAccount->Exists()) {
-        const auto updated =
-            api_.Wallet().UpdateAccount(accountID, context, strAccount);
-
-        if (updated) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Saved updated account file." << std::endl;
-        } else {
-            otErr << OT_METHOD << __FUNCTION__ << ": Failed to save account."
-                  << std::endl;
-
-            OT_FAIL
-        }
-    }
-
-    const auto strAcctID = String::Factory(accountID);
-    const std::string str_acct_id(strAcctID->Get());
-
-    if (strInbox->Exists()) {
-        const auto strNotaryID = String::Factory(context.Server());
-
-        // Load the ledger object from strInbox
-        auto theInbox =
-            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
-
-        OT_ASSERT(false != bool(theInbox));
-
-        // I receive the inbox, verify the server's signature, then
-        // RE-SIGN IT WITH MY OWN
-        // SIGNATURE, then SAVE it to local storage.  So any FUTURE
-        // checks of this inbox
-        // would require MY signature, not the server's, to verify.
-        // But in this one spot,
-        // just before saving, I need to verify the server's first.
-        // UPDATE: Keeping the server's signature, and just adding
-        // my own.
-        if (theInbox->LoadInboxFromString(strInbox) &&
-            theInbox->VerifySignature(serverNym))  // No VerifyAccount.
-        // Can't, because client hasn't had a chance yet to download the box
-        // receipts that go
-        // with this inbox -- and VerifyAccount() tries to load those, which
-        // would fail here...
-        {
-            auto THE_HASH = Identifier::Factory();
-
-            if (theReply.m_strInboxHash->Exists()) {
-                auto nymfile = context.mutable_Nymfile("");
-                THE_HASH->SetString(theReply.m_strInboxHash);
-                const bool bHash =
-                    nymfile.It().SetInboxHash(str_acct_id, THE_HASH);
-
-                if (false == bHash) {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting inbox hash for account: "
-                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
-                }
-            }
-
-            // If I have Transaction #35 signed out, and I use it to
-            // start a market offer (or any other cron item)
-            // then it's always possible that a finalReceipt will
-            // pop into my Inbox while I'm asleep, closing
-            // that transaction #. The server officially believes 35
-            // is closed. Unfortunately, I still have it signed
-            // out, on my side anyway, because I didn't know the
-            // finalReceipt came in.
-            //
-            // THEREFORE, WHEN A FINAL RECEIPT COMES IN, I NEED TO
-            // REMOVE ITS "in reference to" NUMBER FROM MY
-            // ISSUED LIST. Here is clearly the best place for that:
-            //
-            for (auto& it : theInbox->GetTransactionMap()) {
-                auto pTempTrans = it.second;
-                OT_ASSERT(false != bool(pTempTrans));
-
-                // TODO security: Keep a client-side list of issued
-                // #s for finalReceipts. That way,
-                // I'll be smart enough here not to actually remove
-                // just any number, unless it's actually
-                // on my list of final receipts.  (The server does a
-                // similar thing already.)
-                //
-                if (transactionType::finalReceipt == pTempTrans->GetType()) {
-                    otInfo << "*** Removing opening issued number ("
-                           << pTempTrans->GetReferenceToNum()
-                           << "), since finalReceipt found when "
-                              "retrieving asset account inbox. "
-                              "***\n";
-
-                    if (context.ConsumeIssued(
-                            pTempTrans->GetReferenceToNum())) {
-                        otWarn << "**** Due to finding a finalReceipt, "
-                               << "REMOVING OPENING NUMBER FROM NYM:  "
-                               << pTempTrans->GetReferenceToNum() << " \n";
-                    } else {
-                        otWarn << "**** Noticed a finalReceipt, but Opening "
-                                  "Number "
-                               << pTempTrans->GetReferenceToNum()
-                               << " had ALREADY been removed from nym. \n";
-                    }
-
-                    // The client side keeps a list of active (recurring)
-                    // transactions. That is, smart contracts and payment plans.
-                    // I don't think it keeps market offers in that list, since
-                    // we already have a list of active market offers
-                    // separately. And market offers produce final receipts, so
-                    // basically this piece of code will be executed for all
-                    // final receipts. It's not really necessary that it be
-                    // called for market offers, but whatever. It is for the
-                    // others.
-                    OTCronItem::EraseActiveCronReceipt(
-                        api_.DataFolder(),
-                        pTempTrans->GetReferenceToNum(),
-                        context.Nym()->ID(),
-                        pTempTrans->GetPurportedNotaryID());
-
-                }  // We also do this in AcceptEntireNymbox
-            }
-
-            // Now I'm keeping the server signature, and just adding
-            // my own.
-            theInbox->ReleaseSignatures();  // This is back. Why? Because we
-                                            // have receipts functional now.
-            theInbox->SignContract(*context.Nym());
-            theInbox->SaveContract();
-            theInbox->SaveInbox(Identifier::Factory());
-        } else {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Error loading (from string) or verifying "
-                     "inbox:\n\n"
-                  << strInbox << "\n";
-        }
-    }
-    if (strOutbox->Exists()) {
-        // Load the ledger object from strOutbox.
-        auto theOutbox =
-            api_.Factory().Ledger(NYM_ID, accountID, context.Server());
-
-        OT_ASSERT(false != bool(theOutbox));
-
-        // I receive the outbox, verify the server's signature, then RE-SIGN IT
-        // WITH MY OWN SIGNATURE, then SAVE it to local storage.  So any FUTURE
-        // checks of this outbox would require MY signature, not the server's,
-        // to verify. But in this one spot, just before saving, I need to verify
-        // the server's first. UPDATE: keeping the server's signature, and just
-        // adding my own.
-        //
-        if (theOutbox->LoadOutboxFromString(strOutbox) &&
-            theOutbox->VerifySignature(serverNym))  // No point calling
-                                                    // VerifyAccount
-        // since the client hasn't even had a
-        // chance to download the box receipts yet...
-        {
-            auto THE_HASH = Identifier::Factory();
-
-            if (theReply.m_strOutboxHash->Exists()) {
-                auto nymfile = context.mutable_Nymfile("");
-                THE_HASH->SetString(theReply.m_strOutboxHash);
-                const bool bHash =
-                    nymfile.It().SetOutboxHash(str_acct_id, THE_HASH);
-
-                if (false == bHash) {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Failed setting outbox hash for account: "
-                          << str_acct_id << " to (" << THE_HASH->str() << ")\n";
-                }
-            }
-
-            theOutbox->ReleaseSignatures();  // UPDATE: keeping the server's
-                                             // signature, and just adding my
-                                             // own.
-            theOutbox->SignContract(*context.Nym());  // ANOTHER UPDATE:
-                                                      // Removing
-            // signature again, since we have
-            // receipts functional now.
-            theOutbox->SaveContract();
-            theOutbox->SaveOutbox(Identifier::Factory());
-        } else {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Error loading (from string) or verifying "
-                     "outbox:\n\n"
-                  << strOutbox << "\n";
-        }
-    }
-
-    return true;
+    return process_account_data(
+        accountID,
+        strAccount,
+        theReply.m_strInboxHash,
+        strInbox,
+        theReply.m_strOutboxHash,
+        strOutbox,
+        context);
 }
 
 bool OTClient::processServerReplyGetBoxReceipt(
@@ -3174,7 +3244,8 @@ bool OTClient::processServerReplyGetBoxReceipt(
                 case 0: {
                     // TODO schedule a process nymbox for this context
                 } break;
-                case 1: {
+                case 1:
+                case 2: {
                     const auto& client =
                         dynamic_cast<const api::client::Manager&>(api_);
                     const auto& sync = client.Sync();
@@ -3184,7 +3255,6 @@ bool OTClient::processServerReplyGetBoxReceipt(
                             context.Nym()->ID(), context.Server(), accountID);
                     }
                 } break;
-                case 2:
                 default: {
                 }
             }

@@ -85,6 +85,13 @@ private:
     bool harvest_unused(ServerContext& context);
     bool init_new_account(const Identifier& accountID, ServerContext& context)
         const;
+    void load_str_trans_add_to_ledger(
+        const Identifier& the_nym_id,
+        const String& str_trans,
+        const String& str_box_type,
+        const TransactionNumber& lTransNum,
+        const Nym& the_nym,
+        Ledger& ledger) const;
     void process_incoming_instrument(
         const String& serialized,
         const ServerContext& context,
@@ -92,6 +99,18 @@ private:
     void process_incoming_message(
         const ServerContext& context,
         const OTTransaction& receipt);
+    bool process_account_data(
+        const Identifier& accountID,
+        const String& account,
+        const String& inboxHash,
+        const String& inbox,
+        const String& outboxHash,
+        const String& outbox,
+        ServerContext& context);
+    bool process_account_push(
+        const proto::OTXPush& push,
+        ServerContext& context);
+    bool process_box_item(const proto::OTXPush& push, ServerContext& context);
     void ProcessIncomingTransaction(
         const Message& theReply,
         ServerContext& context,
@@ -115,13 +134,6 @@ private:
         const ServerContext& context,
         std::shared_ptr<Item> pReplyItem) const;
     void ProcessPayDividendResponse(OTTransaction& theTransaction) const;
-    void load_str_trans_add_to_ledger(
-        const Identifier& the_nym_id,
-        const String& str_trans,
-        const String& str_box_type,
-        const TransactionNumber& lTransNum,
-        const Nym& the_nym,
-        Ledger& ledger) const;
     bool processServerReplyTriggerClause(
         const Message& theReply,
         ServerContext& context);
@@ -171,7 +183,6 @@ private:
     bool processServerReplyGetAccountData(
         const Message& theReply,
         const Identifier& accountID,
-        Ledger* pNymbox,
         ServerContext& context);
     bool processServerReplyGetInstrumentDefinition(
         const Message& theReply,
