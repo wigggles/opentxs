@@ -99,6 +99,9 @@ private:
                                      // tasks go.
     OTZMQPushSocket notification_socket_;
 
+    OTZMQMessage nymbox_push(const Identifier& nymID, const OTTransaction& item)
+        const;
+
     void CreateMainFile(bool& mainFileExists);
     // Note: SendInstrumentToNym and SendMessageToNym CALL THIS.
     // They are higher-level, this is lower-level.

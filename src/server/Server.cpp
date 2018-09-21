@@ -40,6 +40,7 @@
 #include "opentxs/ext/OTPayment.hpp"
 #include "opentxs/network/zeromq/Context.hpp"
 #include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 
 #include "ConfigLoader.hpp"
 #include "Transactor.hpp"
@@ -55,6 +56,7 @@
 #include <regex>
 #include <string>
 
+#define OTX_PUSH_VERSION 1
 #define SERVER_PID_FILENAME "ot.pid"
 #define SEED_BACKUP_FILE "seed_backup.json"
 #define SERVER_CONTRACT_FILE "NEW_SERVER_CONTRACT.otc"
@@ -940,10 +942,8 @@ bool Server::DropMessageToNymbox(
             // is removed from a box.
             //
             transaction->SaveBoxReceipt(*theLedger);
-            auto push = zmq::Message::Factory();
-            push->AddFrame(RECIPIENT_NYM_ID.str());
-            push->AddFrame(std::string(String::Factory(*transaction)->Get()));
-            notification_socket_->Push(push);
+            notification_socket_->Push(
+                nymbox_push(RECIPIENT_NYM_ID, *transaction));
 
             return true;
         } else  // should never happen
@@ -1007,6 +1007,21 @@ bool Server::GetConnectInfo(
     manager_.Config().Save();
 
     return (haveIP && havePort);
+}
+
+OTZMQMessage Server::nymbox_push(
+    const Identifier& nymID,
+    const OTTransaction& item) const
+{
+    auto output = zmq::Message::Factory();
+    output->AddFrame(nymID.str());
+    proto::OTXPush push;
+    push.set_version(OTX_PUSH_VERSION);
+    push.set_type(proto::OTXPUSH_NYMBOX);
+    push.set_item(String::Factory(item)->Get());
+    output->AddFrame(proto::ProtoAsString(push));
+
+    return output;
 }
 
 std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const

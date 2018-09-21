@@ -20,6 +20,7 @@ Exclusive<C>::Exclusive() noexcept
     , lock_{nullptr}
     , save_{[](Container&, eLock&, bool) -> void {}}
     , success_{true}
+    , callback_{nullptr}
 {
 }
 
@@ -27,11 +28,13 @@ template <class C>
 Exclusive<C>::Exclusive(
     Container* in,
     std::shared_mutex& lock,
-    Save save) noexcept
+    Save save,
+    const Callback callback) noexcept
     : p_{in}
     , lock_{new eLock(lock)}
     , save_{save}
     , success_{true}
+    , callback_{callback}
 {
     OT_ASSERT(lock_)
 }
@@ -42,10 +45,12 @@ Exclusive<C>::Exclusive(Exclusive&& rhs) noexcept
     , lock_{rhs.lock_.release()}
     , save_{rhs.save_}
     , success_{rhs.success_.load()}
+    , callback_{rhs.callback_}
 {
     rhs.p_ = nullptr;
-    rhs.save_ = [](Container&, eLock&, bool) -> void {};
-    rhs.success_.store(true);
+    rhs.save_ = Save{nullptr};
+    rhs.success_.store(false);
+    rhs.callback_ = Callback{nullptr};
 }
 
 template <class C>
@@ -55,9 +60,11 @@ Exclusive<C>& Exclusive<C>::operator=(Exclusive&& rhs) noexcept
     rhs.p_ = nullptr;
     lock_.reset(rhs.lock_.release());
     save_ = rhs.save_;
-    rhs.save_ = [](Container&, eLock&, bool) -> void {};
+    rhs.save_ = Save{nullptr};
     success_.store(rhs.success_.load());
-    rhs.success_.store(true);
+    rhs.success_.store(false);
+    callback_ = std::move(rhs.callback_);
+    rhs.callback_ = Callback{nullptr};
 
     return *this;
 }
@@ -111,12 +118,18 @@ bool Exclusive<C>::Release()
 {
     if (false == bool(*this)) { return false; }
 
-    OT_ASSERT(lock_)
+    OT_ASSERT(lock_);
+    OT_ASSERT(p_);
+    OT_ASSERT(*p_);
 
     save_(*p_, *lock_, success_);
+
+    if (callback_) { callback_(**p_); }
+
+    // NOTE: p_ points to an object owned by another class.
     p_ = nullptr;
-    save_ = [](Container&, eLock&, bool) -> void {};
-    success_.store(true);
+    save_ = Save{nullptr};
+    success_.store(false);
 
     return true;
 }

@@ -9,6 +9,7 @@
 
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/Core.hpp"
+#include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
 #include "opentxs/cash/Mint.hpp"
@@ -40,6 +41,9 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PushSocket.hpp"
 #include "opentxs/OT.hpp"
 
 #include "Macros.hpp"
@@ -58,7 +62,11 @@
 #include <utility>
 #include <vector>
 
+#define OTX_PUSH_VERSION 1
+
 #define OT_METHOD "opentxs::Notary::"
+
+namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs::server
 {
@@ -70,7 +78,536 @@ typedef std::deque<Token*> dequeOfTokenPtrs;
 Notary::Notary(Server& server, const opentxs::api::server::Manager& manager)
     : server_(server)
     , manager_(manager)
+    , notification_socket_(
+          manager_.ZeroMQ().PushSocket(zmq::Socket::Direction::Connect))
 {
+    const auto bound = notification_socket_->Start(
+        manager_.Endpoints().InternalPushNotification());
+
+    OT_ASSERT(bound);
+}
+
+Notary::Finalize::Finalize(const Nym& signer, Item& item, Item& balanceItem)
+    : signer_(signer)
+    , item_(item)
+    , balance_item_(balanceItem)
+{
+}
+
+Notary::Finalize::~Finalize()
+{
+    item_.SignContract(signer_);
+    item_.SaveContract();
+    balance_item_.SignContract(signer_);
+    balance_item_.SaveContract();
+}
+
+void Notary::cancel_cheque(
+    const OTTransaction& input,
+    const Cheque& cheque,
+    const Item& depositItem,
+    const String& serializedDepositItem,
+    const Item& balanceItem,
+    ClientContext& context,
+    Account& account,
+    Ledger& inbox,
+    const Ledger& outbox,
+    OTTransaction& output,
+    bool& success,
+    Item& responseItem,
+    Item& responseBalanceItem)
+{
+    const auto& nymID = context.RemoteNym().ID();
+    const String strSenderNymID(cheque.GetSenderNymID());
+    const String strRecipientNymID(cheque.GetRecipientNymID());
+
+    if (cheque.GetSenderNymID() != nymID) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect nym id (")(
+            cheque.GetSenderNymID())(")")
+            .Flush();
+
+        return;
+    }
+
+    if (cheque.GetAmount() != 0) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid amount (")(
+            cheque.GetAmount())(")")
+            .Flush();
+
+        return;
+    }
+
+    if (false == context.VerifyIssuedNumber(cheque.GetTransactionNum())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transaction number (")(
+            cheque.GetTransactionNum())(")")
+            .Flush();
+
+        return;
+    }
+
+    if (false == cheque.VerifySignature(context.RemoteNym())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid cheque signature")
+            .Flush();
+
+        return;
+    }
+
+    const auto validBalance = balanceItem.VerifyBalanceStatement(
+        cheque.GetAmount(),
+        context,
+        inbox,
+        outbox,
+        account,
+        input,
+        std::set<TransactionNumber>());
+
+    if (false == validBalance) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid balance statement")
+            .Flush();
+
+        return;
+    }
+
+    responseBalanceItem.SetStatus(Item::acknowledgement);
+
+    if (false == context.ConsumeAvailable(cheque.GetTransactionNum())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to consume transaction number")
+            .Flush();
+
+        return;
+    }
+
+    TransactionNumber receiptNumber{0};
+    server_.GetTransactor().issueNextTransactionNumber(receiptNumber);
+    std::shared_ptr<OTTransaction> inboxTransaction{
+        manager_.Factory()
+            .Transaction(
+                inbox,
+                transactionType::chequeReceipt,
+                originType::not_applicable,
+                receiptNumber)
+            .release()};
+
+    OT_ASSERT(inboxTransaction);
+
+    inboxTransaction->SetReferenceString(serializedDepositItem);
+    inboxTransaction->SetReferenceToNum(depositItem.GetTransactionNum());
+    inboxTransaction->SetAsCancelled();
+    inboxTransaction->SignContract(server_.GetServerNym());
+    inboxTransaction->SaveContract();
+    inbox.AddTransaction(inboxTransaction);
+    inbox.ReleaseSignatures();
+    inbox.SignContract(server_.GetServerNym());
+    inbox.SaveContract();
+    account.SaveInbox(inbox, Identifier::Factory());
+    inboxTransaction->SaveBoxReceipt(inbox);
+    responseItem.SetStatus(Item::acknowledgement);
+    success = true;
+    output.SetAsCancelled();
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Success cancelling cheque ")(
+        cheque.GetTransactionNum())
+        .Flush();
+}
+
+void Notary::deposit_cheque(
+    const OTTransaction& input,
+    const Item& depositItem,
+    const String& serializedDepositItem,
+    const Item& balanceItem,
+    const Cheque& cheque,
+    ClientContext& depositorContext,
+    ExclusiveAccount& depositorAccount,
+    Ledger& depositorInbox,
+    const Ledger& depositorOutbox,
+    bool& success,
+    Item& responseItem,
+    Item& responseBalanceItem)
+{
+    const auto& nymID = depositorContext.RemoteNym().ID();
+    const Identifier& sourceAccountID(cheque.GetSenderAcctID());
+    const Identifier& senderNymID(cheque.GetSenderNymID());
+    const Identifier& remitterAccountID(cheque.GetRemitterAcctID());
+    const Identifier& remitterNymID(cheque.GetRemitterNymID());
+    const bool isVoucher = cheque.HasRemitter();
+    const bool cancelVoucher =
+        (isVoucher && (nymID == cheque.GetRemitterNymID()));
+    std::shared_ptr<Ledger> senderInbox{nullptr};
+    std::shared_ptr<Ledger> senderOutbox{nullptr};
+    std::shared_ptr<OTTransaction> inboxItem{nullptr};
+    const api::Wallet::AccountCallback push{[&](const Account& account) {
+        this->send_push_notification(
+            account, senderInbox, senderOutbox, inboxItem);
+    }};
+    const api::Wallet::AccountCallback noPush{};
+    ExclusiveAccount voucherAccount{};
+
+    if (isVoucher) {
+        voucherAccount = manager_.Wallet().mutable_Account(
+            sourceAccountID, (isVoucher) ? noPush : push);
+
+        if (false == voucherAccount.get().VerifyOwner(server_.GetServerNym())) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Incorrect owner on voucher account")
+                .Flush();
+
+            return;
+        }
+    }
+
+    ExclusiveAccount senderAccount{};
+
+    if (cancelVoucher) {
+        deposit_cheque(
+            input,
+            depositItem,
+            serializedDepositItem,
+            balanceItem,
+            cheque,
+            true,
+            true,
+            remitterNymID,
+            depositorContext,
+            depositorAccount,
+            depositorInbox,
+            inboxItem,
+            voucherAccount.get(),
+            depositorContext,
+            depositorAccount,
+            depositorInbox,
+            depositorOutbox,
+            success,
+            responseItem,
+            responseBalanceItem);
+    } else {
+        {
+            senderInbox.reset(
+                manager_.Factory()
+                    .Ledger(
+                        (isVoucher ? remitterNymID : senderNymID),
+                        (isVoucher ? remitterAccountID : sourceAccountID),
+                        depositorContext.Server())
+                    .release());
+
+            OT_ASSERT(senderInbox);
+
+            const auto inboxLoaded = senderInbox->LoadInbox();
+
+            if (false == inboxLoaded) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to load sender inbox")
+                    .Flush();
+
+                return;
+            }
+
+            if (false == senderInbox->VerifyAccount(server_.GetServerNym())) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to verify sender inbox")
+                    .Flush();
+
+                return;
+            }
+        }
+
+        {
+            senderOutbox.reset(
+                manager_.Factory()
+                    .Ledger(
+                        (isVoucher ? remitterNymID : senderNymID),
+                        (isVoucher ? remitterAccountID : sourceAccountID),
+                        depositorContext.Server())
+                    .release());
+
+            OT_ASSERT(senderOutbox);
+
+            const auto outboxLoaded = senderOutbox->LoadOutbox();
+
+            if (false == outboxLoaded) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to load sender outbox")
+                    .Flush();
+
+                return;
+            }
+
+            if (false == senderOutbox->VerifyAccount(server_.GetServerNym())) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to verify sender outbox")
+                    .Flush();
+
+                return;
+            }
+        }
+
+        senderAccount = manager_.Wallet().mutable_Account(
+            ((isVoucher) ? remitterAccountID : sourceAccountID), push);
+        auto senderContext = manager_.Wallet().mutable_ClientContext(
+            server_.GetServerNym().ID(),
+            (isVoucher ? remitterNymID : senderNymID));
+
+        if (!senderAccount.get().VerifyOwner(senderContext.It().RemoteNym())) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Incorrect owner on sender account")
+                .Flush();
+
+            return;
+        }
+
+        deposit_cheque(
+            input,
+            depositItem,
+            serializedDepositItem,
+            balanceItem,
+            cheque,
+            isVoucher,
+            false,
+            ((isVoucher) ? remitterNymID : senderNymID),
+            senderContext.It(),
+            senderAccount,
+            *senderInbox,
+            inboxItem,
+            ((isVoucher) ? voucherAccount.get() : senderAccount.get()),
+            depositorContext,
+            depositorAccount,
+            depositorInbox,
+            depositorOutbox,
+            success,
+            responseItem,
+            responseBalanceItem);
+    }
+
+    if (success) {
+        depositorAccount.Release();
+
+        if (false == cancelVoucher) {
+            if (isVoucher) {
+                voucherAccount.Release();
+            } else {
+                senderAccount.Release();
+            }
+        }
+    } else {
+        depositorAccount.Abort();
+
+        if (false == cancelVoucher) {
+            if (isVoucher) {
+                voucherAccount.Abort();
+            } else {
+                senderAccount.Abort();
+            }
+        }
+    }
+}
+
+void Notary::deposit_cheque(
+    const OTTransaction& input,
+    const Item& depositItem,
+    const String& serializedDepositItem,
+    const Item& balanceItem,
+    const Cheque& cheque,
+    const bool isVoucher,
+    const bool cancelling,
+    const Identifier& senderNymID,
+    ClientContext& senderContext,
+    Account& senderAccount,
+    Ledger& senderInbox,
+    std::shared_ptr<OTTransaction>& inboxItem,
+    Account& sourceAccount,
+    const ClientContext& depositorContext,
+    Account& depositorAccount,
+    const Ledger& depositorInbox,
+    const Ledger& depositorOutbox,
+    bool& success,
+    Item& responseItem,
+    Item& responseBalanceItem)
+{
+    const bool sameUnit = (cheque.GetInstrumentDefinitionID() ==
+                           sourceAccount.GetInstrumentDefinitionID()) &&
+                          (cheque.GetInstrumentDefinitionID() ==
+                           depositorAccount.GetInstrumentDefinitionID());
+
+    if (false == sameUnit) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Deposit account unit definition "
+                                           "is incompatible with this cheque")
+            .Flush();
+
+        return;
+    }
+
+    const auto& nymID = depositorContext.RemoteNym().ID();
+    const auto& serverNymID = senderContext.Nym()->ID();
+
+    if (isVoucher && (senderNymID != serverNymID)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid sender nym on voucher: ")(
+            senderNymID)
+            .Flush();
+
+        return;
+    }
+
+    const auto chequeNumber = cheque.GetTransactionNum();
+    const auto validNumber = senderContext.VerifyIssuedNumber(chequeNumber);
+
+    if (false == validNumber) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid transaction number ")(
+            chequeNumber)
+            .Flush();
+
+        return;
+    }
+
+    if (false == cheque.VerifySignature(senderContext.RemoteNym())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid signature on cheque")
+            .Flush();
+
+        return;
+    }
+
+    bool validReceipient{false};
+
+    if (cancelling) {
+        validReceipient = true;
+    } else {
+        if (cheque.HasRecipient()) {
+            validReceipient = (nymID == cheque.GetRecipientNymID());
+        } else {
+            validReceipient = true;
+        }
+    }
+
+    if (false == validReceipient) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(
+            " is not allowed to deposit this cheque.")
+            .Flush();
+
+        return;
+    }
+
+    const auto amount = cheque.GetAmount();
+    const auto validBalance = balanceItem.VerifyBalanceStatement(
+        amount,
+        depositorContext,
+        depositorInbox,
+        depositorOutbox,
+        depositorAccount,
+        input,
+        std::set<TransactionNumber>());
+
+    if (false == validBalance) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Invalid balance agreement on deposit transaction.")
+            .Flush();
+
+        return;
+    }
+
+    responseBalanceItem.SetStatus(Item::acknowledgement);
+
+    if (false == sourceAccount.Debit(amount)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed debiting source account")
+            .Flush();
+
+        return;
+    }
+
+    if (false == depositorAccount.Credit(amount)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed crediting depositor account")
+            .Flush();
+
+        return;
+    }
+
+    const bool consumed = senderContext.ConsumeAvailable(chequeNumber);
+
+    if (false == consumed) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to mark transaction number ")(chequeNumber)(" as used.")
+            .Flush();
+
+        return;
+    }
+
+    // This happens if the voucher is the result of a dividend payment
+    if (isVoucher && (senderNymID == senderContext.Nym()->ID())) {
+        // Server nyms never process the inbox of internal server accounts,
+        // so this ensures the number is fully closed out.
+        senderContext.ConsumeIssued(chequeNumber);
+    }
+
+    TransactionNumber receiptNumber{0};
+    const auto issued =
+        server_.GetTransactor().issueNextTransactionNumber(receiptNumber);
+
+    if (false == issued) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to issue transaction number for cheque receipt.")
+            .Flush();
+
+        return;
+    }
+
+    inboxItem.reset(manager_.Factory()
+                        .Transaction(
+                            senderInbox,
+                            isVoucher ? transactionType::voucherReceipt
+                                      : transactionType::chequeReceipt,
+                            originType::not_applicable,
+                            receiptNumber)
+                        .release());
+
+    OT_ASSERT(inboxItem);
+
+    inboxItem->SetReferenceString(serializedDepositItem);
+    inboxItem->SetReferenceToNum(depositItem.GetTransactionNum());
+    inboxItem->SetNumberOfOrigin(chequeNumber);
+
+    if (cancelling) { inboxItem->SetAsCancelled(); }
+
+    inboxItem->SignContract(server_.GetServerNym());
+    inboxItem->SaveContract();
+    senderInbox.AddTransaction(inboxItem);
+    senderInbox.ReleaseSignatures();
+    senderInbox.SignContract(server_.GetServerNym());
+    senderInbox.SaveContract();
+    senderAccount.SaveInbox(senderInbox, Identifier::Factory());
+    inboxItem->SaveBoxReceipt(senderInbox);
+    responseItem.SetStatus(Item::acknowledgement);
+    success = true;
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Success processing cheque ")(
+        chequeNumber)
+        .Flush();
+}
+
+std::unique_ptr<Cheque> Notary::extract_cheque(
+    const Identifier& serverID,
+    const Identifier& unitID,
+    const Item& item) const
+{
+    auto serialized = String::Factory();
+    item.GetAttachment(serialized);
+    auto cheque = manager_.Factory().Cheque(serverID, unitID);
+
+    OT_ASSERT(cheque);
+
+    bool loadedCheque = cheque->LoadContractFromString(serialized);
+
+    if (false == loadedCheque) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load cheque").Flush();
+        cheque.reset();
+
+        return cheque;
+    }
+
+    if (serverID != cheque->GetNotaryID()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Cheque rejected due to incorrect notary ID (")(
+            cheque->GetNotaryID())(")")
+            .Flush();
+    }
+
+    return cheque;
 }
 
 void Notary::NotarizeTransfer(
@@ -211,8 +748,14 @@ void Notary::NotarizeTransfer(
 
         // Set the ID on the To Account based on what the transaction request
         // said. (So we can load it up.)
-        auto destinationAccount =
-            manager_.Wallet().mutable_Account(pItem->GetDestinationAcctID());
+        std::shared_ptr<Ledger> recipientInbox{nullptr};
+        std::shared_ptr<Ledger> recipientOutbox{nullptr};
+        std::shared_ptr<OTTransaction> inboxTransaction{nullptr};
+        auto destinationAccount = manager_.Wallet().mutable_Account(
+            pItem->GetDestinationAcctID(), [&](const Account& account) {
+                this->send_push_notification(
+                    account, recipientInbox, recipientOutbox, inboxTransaction);
+            });
 
         // Only accept transfers with positive amounts.
         if (0 > pItem->GetAmount()) {
@@ -277,10 +820,35 @@ void Notary::NotarizeTransfer(
             // Load the inbox/outbox in case they already exist
             auto theFromOutbox{
                 manager_.Factory().Ledger(NYM_ID, IDFromAccount, NOTARY_ID)};
-            auto theToInbox{manager_.Factory().Ledger(
-                pItem->GetDestinationAcctID(), NOTARY_ID)};
+            recipientInbox.reset(
+                manager_.Factory()
+                    .Ledger(pItem->GetDestinationAcctID(), NOTARY_ID)
+                    .release());
 
-            bool bSuccessLoadingInbox = theToInbox->LoadInbox();
+            // Needed for push notifications
+            {
+                recipientOutbox.reset(
+                    manager_.Factory()
+                        .Ledger(pItem->GetDestinationAcctID(), NOTARY_ID)
+                        .release());
+
+                OT_ASSERT(recipientOutbox);
+            }
+
+            OT_ASSERT(recipientInbox);
+
+            bool bSuccessLoadingInbox = recipientInbox->LoadInbox();
+
+            // Needed for push notifications
+            {
+                bSuccessLoadingInbox &= recipientOutbox->LoadOutbox();
+
+                if (bSuccessLoadingInbox) {
+                    bSuccessLoadingInbox &=
+                        recipientOutbox->VerifyAccount(server_.GetServerNym());
+                }
+            }
+
             bool bSuccessLoadingOutbox = theFromOutbox->LoadOutbox();
             // ...or generate them otherwise...
 
@@ -306,19 +874,21 @@ void Notary::NotarizeTransfer(
             //    Update: appears OTAccount::IsInternalServerAcct already
             // basically fits the bill.
 
-            if (true == bSuccessLoadingInbox)
+            if (true == bSuccessLoadingInbox) {
                 bSuccessLoadingInbox =
-                    theToInbox->VerifyAccount(server_.GetServerNym());
-            else
+                    recipientInbox->VerifyAccount(server_.GetServerNym());
+            } else {
                 otErr
                     << "Notary::NotarizeTransfer: Error loading 'to' inbox.\n";
+            }
 
-            if (true == bSuccessLoadingOutbox)
+            if (true == bSuccessLoadingOutbox) {
                 bSuccessLoadingOutbox =
                     theFromOutbox->VerifyAccount(server_.GetServerNym());
-            else
+            } else {
                 otErr << "Notary::NotarizeTransfer: Error loading 'from' "
                          "outbox.\n";
+            }
 
             std::unique_ptr<Ledger> pInbox(
                 theFromAccount.get().LoadInbox(server_.GetServerNym()));
@@ -363,13 +933,15 @@ void Notary::NotarizeTransfer(
 
                 OT_ASSERT(false != bool(pOutboxTransaction));
 
-                auto pInboxTransaction{manager_.Factory().Transaction(
-                    *theToInbox,
-                    transactionType::pending,
-                    originType::not_applicable,
-                    lNewTransactionNumber)};
+                inboxTransaction.reset(manager_.Factory()
+                                           .Transaction(
+                                               *recipientInbox,
+                                               transactionType::pending,
+                                               originType::not_applicable,
+                                               lNewTransactionNumber)
+                                           .release());
 
-                OT_ASSERT(false != bool(pInboxTransaction));
+                OT_ASSERT(inboxTransaction);
 
                 // UPDATE: I am now issuing one new transaction number above,
                 // instead of two. This is to make it easy
@@ -391,19 +963,18 @@ void Notary::NotarizeTransfer(
                 pOutboxTransaction->SetNumberOfOrigin(*pItem);
 
                 // todo put these two together in a method.
-                pInboxTransaction->SetReferenceString(strInReferenceTo);
-                pInboxTransaction->SetReferenceToNum(
-                    pItem->GetTransactionNum());
-                pInboxTransaction->SetNumberOfOrigin(*pItem);
+                inboxTransaction->SetReferenceString(strInReferenceTo);
+                inboxTransaction->SetReferenceToNum(pItem->GetTransactionNum());
+                inboxTransaction->SetNumberOfOrigin(*pItem);
 
                 // Now we have created 2 new transactions from the server to the
                 // users' boxes
                 // Let's sign them and add to their inbox / outbox.
                 pOutboxTransaction->SignContract(server_.GetServerNym());
-                pInboxTransaction->SignContract(server_.GetServerNym());
+                inboxTransaction->SignContract(server_.GetServerNym());
 
                 pOutboxTransaction->SaveContract();
-                pInboxTransaction->SaveContract();
+                inboxTransaction->SaveContract();
                 // Meanwhile a copy of the outbox transaction is also added to
                 // pOutbox. (It's just another copy of the outbox, but used
                 // purely for verifying the balance statement, while a different
@@ -492,30 +1063,28 @@ void Notary::NotarizeTransfer(
                         std::shared_ptr<OTTransaction> outboxTransaction{
                             pOutboxTransaction.release()};
                         theFromOutbox->AddTransaction(outboxTransaction);
-                        std::shared_ptr<OTTransaction> inboxTransaction{
-                            pInboxTransaction.release()};
-                        theToInbox->AddTransaction(inboxTransaction);
+                        recipientInbox->AddTransaction(inboxTransaction);
 
                         // Release any signatures that were there before (They
                         // won't
                         // verify anymore anyway, since the content has
                         // changed.)
                         theFromOutbox->ReleaseSignatures();
-                        theToInbox->ReleaseSignatures();
+                        recipientInbox->ReleaseSignatures();
 
                         // Sign them.
                         theFromOutbox->SignContract(server_.GetServerNym());
-                        theToInbox->SignContract(server_.GetServerNym());
+                        recipientInbox->SignContract(server_.GetServerNym());
 
                         // Save them internally
                         theFromOutbox->SaveContract();
-                        theToInbox->SaveContract();
+                        recipientInbox->SaveContract();
 
                         // Save their internals (signatures and all) to file.
                         theFromAccount.get().SaveOutbox(
                             *theFromOutbox, Identifier::Factory());
                         destinationAccount.get().SaveInbox(
-                            *theToInbox, Identifier::Factory());
+                            *recipientInbox, Identifier::Factory());
 
                         theFromAccount.Release();
                         destinationAccount.Release();
@@ -552,7 +1121,7 @@ void Notary::NotarizeTransfer(
                         // is removed from a box.
                         //
                         outboxTransaction->SaveBoxReceipt(*theFromOutbox);
-                        inboxTransaction->SaveBoxReceipt(*theToInbox);
+                        inboxTransaction->SaveBoxReceipt(*recipientInbox);
                     } else {
                         theFromAccount.Abort();
                         destinationAccount.Abort();
@@ -2214,1677 +2783,110 @@ void Notary::NotarizePayDividend(
 void Notary::NotarizeDeposit(
     ClientContext& context,
     ExclusiveAccount& theAccount,
-    OTTransaction& tranIn,
-    OTTransaction& tranOut,
-    bool& bOutSuccess)
+    OTTransaction& input,
+    OTTransaction& output,
+    bool& success)
 {
-    // The outgoing transaction is an "atDeposit", that is, "a reply to the
-    // deposit request"
-    tranOut.SetType(transactionType::atDeposit);
+    const auto& nymID = context.Nym()->ID();
+    output.SetType(transactionType::atDeposit);
+    std::shared_ptr<const Item> depositItem{nullptr};
+    std::shared_ptr<const Item> balanceItem{
+        input.GetItem(itemType::balanceStatement)};
+    std::shared_ptr<Item> responseItem{nullptr};
+    std::shared_ptr<Item> responseBalanceItem{nullptr};
+    itemType type{itemType::error_state};
+    bool permission =
+        NYM_IS_ALLOWED(nymID.str(), ServerSettings::__transact_deposit);
 
-    std::shared_ptr<Item> pItem = nullptr;
-    std::shared_ptr<Item> pItemCheque = nullptr;
-    std::shared_ptr<Item> pItemCash = nullptr;
-    std::shared_ptr<Item> pBalanceItem = nullptr;
-    std::shared_ptr<Item> pResponseItem = nullptr;
-    std::shared_ptr<Item> pResponseBalanceItem = nullptr;
-
-    // The incoming transaction may be sent to inboxes and outboxes, and it
-    // will probably be bundled in our reply to the user as well. Therefore,
-    // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
-
-    // Grab the actual server ID from this object, and use it as the server ID
-    // here.
-    const auto& NOTARY_ID = context.Server();
-    const auto& NYM_ID = context.RemoteNym().ID();
-    const auto& NOTARY_NYM_ID = context.Nym()->ID();
-    const auto ACCOUNT_ID = Identifier::Factory(theAccount.get()),
-               INSTRUMENT_DEFINITION_ID = Identifier::Factory(theAccount.get());
-
-    const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
-
-    std::shared_ptr<Mint> pMint{nullptr};
-    // the Mint's funds for cash withdrawals.
-    [[maybe_unused]] ExclusiveAccount pMintCashReserveAcct {};
-    // Here we find out if we're depositing cash, or a cheque
-    itemType theReplyItemType = itemType::error_state;
-
-    pItemCheque = tranIn.GetItem(itemType::depositCheque);
-
-    if (nullptr == pItemCheque) {
-        pItemCash = tranIn.GetItem(itemType::deposit);
-        pItem = pItemCash;
-        theReplyItemType = itemType::atDeposit;
-    } else {
-        pItem = pItemCheque;
-        theReplyItemType = itemType::atDepositCheque;
+    if (input.GetItem(itemType::depositCheque)) {
+        type = itemType::atDepositCheque;
+        depositItem = input.GetItem(itemType::depositCheque);
+        permission &= NYM_IS_ALLOWED(
+            nymID.str(), ServerSettings::__transact_deposit_cheque);
+    } else if (input.GetItem(itemType::deposit)) {
+        type = itemType::atDeposit;
+        depositItem = input.GetItem(itemType::deposit);
+        permission &= NYM_IS_ALLOWED(
+            nymID.str(), ServerSettings::__transact_deposit_cash);
     }
-    pResponseItem.reset(
+
+    responseItem.reset(
+        manager_.Factory().Item(output, type, Identifier::Factory()).release());
+    responseItem->SetStatus(Item::rejection);
+    output.AddItem(responseItem);
+    responseBalanceItem.reset(
         manager_.Factory()
-            .Item(tranOut, theReplyItemType, Identifier::Factory())
+            .Item(output, itemType::atBalanceStatement, Identifier::Factory())
             .release());
-    pResponseItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(pResponseItem);  // the Transaction's destructor will
-                                     // cleanup the item. It "owns" it now.
+    responseBalanceItem->SetStatus(Item::rejection);
+    output.AddItem(responseBalanceItem);
 
-    pResponseBalanceItem.reset(
-        manager_.Factory()
-            .Item(tranOut, itemType::atBalanceStatement, Identifier::Factory())
-            .release());
-    pResponseBalanceItem->SetStatus(Item::rejection);  // the default.
-    tranOut.AddItem(pResponseBalanceItem);  // the Transaction's destructor
-                                            // will cleanup the item. It "owns"
-                                            // it now.
-    if (nullptr == pItem) {
-        String strTemp(tranIn);
-        Log::vOutput(
-            0,
-            "Notary::NotarizeDeposit: Expected OTItem::deposit "
-            "or OTItem::depositCheque in trans# %" PRId64 ": \n\n%s\n\n",
-            tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+    OT_ASSERT(responseItem);
+    OT_ASSERT(responseBalanceItem);
+
+    Finalize signer(
+        server_.GetServerNym(), *responseItem, *responseBalanceItem);
+
+    if (false == permission) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Server configuration does not permit deposits.")
+            .Flush();
+
+        return;
     }
-    // Below this point, we know that pItem is good, and that either pItemCheque
-    // OR pItemCash is good,
-    // and that pItem points to the good one. Therefore next, let's verify
-    // permissions:
 
-    // This permission has to do with ALL deposits (cash or cheque)
-    else if (!NYM_IS_ALLOWED(
-                 strNymID.Get(), ServerSettings::__transact_deposit)) {
-        Log::vOutput(
-            0,
-            "Notary::NotarizeDeposit: User %s cannot do this "
-            "transaction (All deposits are disallowed in "
-            "server.cfg)\n",
-            strNymID.Get());
+    if (false == bool(depositItem)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Deposit transaction ")(
+            input.GetTransactionNum())(" does not contain a deposit item.")
+            .Flush();
+
+        return;
     }
-    // This permission has to do with vouchers.
-    else if (
-        (nullptr != pItemCheque) &&
-        (false ==
-         NYM_IS_ALLOWED(
-             strNymID.Get(), ServerSettings::__transact_deposit_cheque))) {
-        Log::vOutput(
-            0,
-            "Notary::NotarizeDeposit: User %s cannot do this "
-            "transaction (depositCheque is disallowed in "
-            "server.cfg)\n",
-            strNymID.Get());
+
+    if (false == bool(balanceItem)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Deposit transaction ")(
+            input.GetTransactionNum())(
+            " does not contain a balance agreement item.")
+            .Flush();
+
+        return;
     }
-    // This permission has to do with cash.
-    else if (
-        (nullptr != pItemCash) &&
-        (false ==
-         NYM_IS_ALLOWED(
-             strNymID.Get(), ServerSettings::__transact_deposit_cash))) {
-        Log::vOutput(
-            0,
-            "Notary::NotarizeDeposit: User %s cannot do this "
-            "transaction (deposit cash is disallowed in "
-            "server.cfg)\n",
-            strNymID.Get());
-    }
-    // Check for a balance agreement...
-    //
-    else if (
-        nullptr ==
-        (pBalanceItem = tranIn.GetItem(itemType::balanceStatement))) {
-        String strTemp(tranIn);
-        Log::vOutput(
-            0,
-            "Notary::NotarizeDeposit: Expected OTItem::balanceStatement, "
-            "but not found in trans # %" PRId64 ": \n\n%s\n\n",
-            tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
-    }
-    // DEPOSIT CHEQUE  (Deposit Cash is the bottom half of the function, deposit
-    // cheque is the top half.)
-    else if (pItem->GetType() == itemType::depositCheque) {
-        // The response item, as well as the sender's inbox, will soon contain a
-        // copy
-        // of the request item. So I save it into a string here so they can grab
-        // a copy of it
-        // into their "in reference to" fields.
-        pItem->SaveContractRaw(strInReferenceTo);
-        pBalanceItem->SaveContractRaw(strBalanceItem);
 
-        // Server response item being added to server response transaction
-        // (tranOut)
-        // They're getting SOME sort of response item.
+    OT_ASSERT(depositItem);
+    OT_ASSERT(balanceItem);
 
-        pResponseItem->SetReferenceString(strInReferenceTo);  // the response
-                                                              // item carries a
-                                                              // copy of what
-                                                              // it's responding
-                                                              // to.
-        pResponseItem->SetReferenceToNum(
-            pItem->GetTransactionNum());  // This response item is IN RESPONSE
-                                          // to
-                                          // pItem and its Owner Transaction.
+    switch (type) {
+        case itemType::atDepositCheque: {
+            process_cheque_deposit(
+                input,
+                *depositItem,
+                *balanceItem,
+                context,
+                theAccount,
+                output,
+                success,
+                *responseItem,
+                *responseBalanceItem);
+        } break;
+        case itemType::atDeposit: {
+            process_cash_deposit(
+                input,
+                *depositItem,
+                *balanceItem,
+                context,
+                theAccount,
+                output,
+                success,
+                *responseItem,
+                *responseBalanceItem);
+        } break;
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid deposit item type.")
+                .Flush();
 
-        pResponseBalanceItem->SetReferenceString(
-            strBalanceItem);  // the response item carries a copy of what it's
-                              // responding to.
-        pResponseBalanceItem->SetReferenceToNum(
-            pItem->GetTransactionNum());  // This response item is IN RESPONSE
-                                          // to
-                                          // pItem and its Owner Transaction.
-        std::unique_ptr<Ledger> pInbox(
-            theAccount.get().LoadInbox(server_.GetServerNym()));
-        std::unique_ptr<Ledger> pOutbox(
-            theAccount.get().LoadOutbox(server_.GetServerNym()));
-
-        if (nullptr == pInbox)  // ||
-                                // !pInbox->VerifyAccount(server_.m_nymServer))
-                                // Verified
-                                // in OTAccount::Load
-        {
-            otErr << "Notary::NotarizeDeposit: Error loading or "
-                     "verifying inbox for depositor account.\n";
-        } else if (
-            nullptr ==
-            pOutbox)  // || !pOutbox->VerifyAccount(server_.m_nymServer))
-                      // Verified in OTAccount::Load
-        {
-            otErr << "Notary::NotarizeDeposit: Error loading or "
-                     "verifying outbox for depositor account.\n";
+            return;
         }
-        // NOTE: Below this point, pInbox and pOutbox are both available, AND
-        // will be properly
-        // cleaned up automatically upon scope exit.
-        // If the ID on the "from" account that was passed in,
-        // does not match the "Acct From" ID on this transaction item
-        else if (ACCOUNT_ID != pItem->GetPurportedAccountID()) {
-            // TODO: Verify that this if block is unnecessary, and if so, remove
-            // it.
-            // (The item should already have been verified when the transaction
-            // itself was
-            // verified, before this function was even called. I think this is
-            // just an oversight.)
-            otOut << "Notary::NotarizeDeposit: Error: account ID "
-                     "does not match account ID on the deposit "
-                     "item.\n";
-        } else {
-            // Get the cheque from the Item and load it up into a Cheque object.
-            String strCheque;
-            pItem->GetAttachment(strCheque);
-            auto theCheque{
-                manager_.Factory().Cheque(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-            bool bLoadContractFromString =
-                theCheque->LoadContractFromString(strCheque);
-
-            if (!bLoadContractFromString) {
-                Log::vError(
-                    "%s: ERROR loading cheque from string:\n%s\n",
-                    __FUNCTION__,
-                    strCheque.Get());
-            }
-            // See if the cheque is drawn on the same server as the deposit
-            // account
-            // (the server running this code right now.)
-            //
-            else if (NOTARY_ID != theCheque->GetNotaryID()) {
-                const String strSenderNymID(theCheque->GetSenderNymID());
-                const String strRecipientNymID(theCheque->GetRecipientNymID());
-                Log::vOutput(
-                    0,
-                    "%s: Cheque rejected (%" PRId64 "): "
-                    "Incorrect Notary ID on cheque. Sender User "
-                    "ID: %s\nRecipient Nym ID is: %s\n",
-                    __FUNCTION__,
-                    theCheque->GetTransactionNum(),
-                    strSenderNymID.Get(),
-                    strRecipientNymID.Get());
-            }
-            // See if the cheque is already expired or otherwise not within it's
-            // valid date range.
-            else if (!theCheque->VerifyCurrentDate()) {
-                const String strSenderNymID(theCheque->GetSenderNymID());
-                const String strRecipientNymID(theCheque->GetRecipientNymID());
-                Log::vOutput(
-                    0,
-                    "%s: Cheque rejected (%" PRId64 "): "
-                    "Not within valid date range. Sender User "
-                    "ID: %s\nRecipient Nym ID: %s\n",
-                    __FUNCTION__,
-                    theCheque->GetTransactionNum(),
-                    strSenderNymID.Get(),
-                    strRecipientNymID.Get());
-            }
-            // You can't deposit a cheque into the same account that it's drawn
-            // on. (Otherwise, in loading
-            // both accounts, I would cause one of them to  be overwritten. I'm
-            // not willing to do the same
-            // pointer magic that I'm doing with Nyms... instead I just disallow
-            // this entirely.)
-            //
-            // UPDATE: New rule: If you deposit a cheque into the same account
-            // it's drawn on,
-            // the effect is the cancellation of the cheque. (If we are in this
-            // block, it means
-            // the original cheque writer is now trying to cancel the cheque
-            // before the recipient
-            // has a chance to deposit it.)
-            //
-            // CANCELLATION OF CHEQUES:
-            //
-            else if (ACCOUNT_ID == theCheque->GetSenderAcctID())  // Depositor
-                                                                  // ACCOUNT_ID
-                                                                  // is
-            // recipient's acct. (theNym.)
-            // But pSenderNym is normally
-            // someone else (the sender).
-            {
-                // UPDATE: This block is now for cancelling the cheque before
-                // the original
-                // recipient manages to deposit it.
-
-                const String strSenderNymID(theCheque->GetSenderNymID());
-                const String strRecipientNymID(theCheque->GetRecipientNymID());
-                if (theCheque->GetSenderNymID() != NYM_ID) {
-                    Log::vOutput(
-                        0,
-                        "%s: Failure verifying cheque: Strange: while the "
-                        "depositing account has the "
-                        "same ID as the cheque sender acct, somehow the user "
-                        "IDs do not match. (Should never happen.)\n"
-                        "Cheque Sender Nym ID: %s\n Depositor Nym ID: %s\n",
-                        __FUNCTION__,
-                        strSenderNymID.Get(),
-                        strNymID.Get());
-                } else if (theCheque->GetAmount() != 0) {
-                    Log::vOutput(
-                        0,
-                        "%s: Failure verifying cheque: While attempting to "
-                        "perform cancellation, "
-                        "the cheque has a non-zero amount.\n"
-                        "Sender Nym ID: %s\nRecipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        strSenderNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-                // Make sure the transaction number on the cheque is still
-                // available and valid for use by theNym.
-                //
-                else if (!context.VerifyIssuedNumber(
-                             theCheque->GetTransactionNum())) {
-                    Log::vOutput(
-                        0,
-                        "%s: Failure verifying cheque: Bad transaction "
-                        "number.\n"
-                        "Sender Nym ID: %s\nRecipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        strSenderNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-                // Let's see if the sender's signature matches the one on the
-                // cheque...
-                else if (!theCheque->VerifySignature(context.RemoteNym())) {
-                    Log::vOutput(
-                        0,
-                        "%s: Failure verifying cheque signature for "
-                        "sender ID: %s\nRecipient Nym ID: %s\n "
-                        "Cheque:\n\n%s\n\n",
-                        __FUNCTION__,
-                        strSenderNymID.Get(),
-                        strRecipientNymID.Get(),
-                        strCheque.Get());
-                } else if (!(pBalanceItem->VerifyBalanceStatement(
-                               theCheque->GetAmount(),  // This amount is always
-                                                        // zero in the case of
-                                                        // cheque cancellation.
-                               context,
-                               *pInbox,
-                               *pOutbox,
-                               theAccount.get(),
-                               tranIn,
-                               std::set<TransactionNumber>()))) {
-                    Log::vOutput(
-                        0,
-                        "%s: ERROR verifying balance statement "
-                        "while cancelling cheque %" PRId64 ". Acct "
-                        "ID:\n%s\n",
-                        __FUNCTION__,
-                        theCheque->GetTransactionNum(),
-                        strAccountID.Get());
-                } else {
-                    pResponseBalanceItem->SetStatus(Item::acknowledgement);
-                    // Clear the transaction number. Sender Nym was responsible
-                    // for it (and still is, until he signs to accept the cheque
-                    // reecipt). Still, however, he HAS used the cheque, so I'm
-                    // removing his ability to use that number twice. It will
-                    // remain on his issued list until he signs for the receipt.
-                    if (!context.ConsumeAvailable(
-                            theCheque->GetTransactionNum())) {
-                        Log::vError(
-                            "%s: Failed marking the transaction "
-                            "number as in use. (Should never "
-                            "happen.)\n",
-                            __FUNCTION__);
-                    } else {
-                        // Generate new transaction number (for putting the
-                        // check receipt in the sender's inbox.)
-                        // todo check this generation for failure (can it fail?)
-                        std::int64_t lNewTransactionNumber = 0;
-
-                        server_.GetTransactor().issueNextTransactionNumber(
-                            lNewTransactionNumber);
-
-                        auto pInboxTransaction{manager_.Factory().Transaction(
-                            *pInbox,
-                            transactionType::chequeReceipt,
-                            originType::not_applicable,
-                            lNewTransactionNumber)};
-
-                        OT_ASSERT(false != bool(pInboxTransaction));
-
-                        // The depositCheque request OTItem is saved as a "in
-                        // reference to" field,
-                        // on the inbox chequeReceipt transaction.
-                        // todo put these two together in a method.
-                        pInboxTransaction->SetReferenceString(strInReferenceTo);
-                        pInboxTransaction->SetReferenceToNum(
-                            pItem->GetTransactionNum());
-
-                        pInboxTransaction->SetAsCancelled();
-
-                        // Now we have created a new transaction from the server
-                        // to the sender's inbox
-                        // Let's sign and save it...
-                        pInboxTransaction->SignContract(server_.GetServerNym());
-                        pInboxTransaction->SaveContract();
-
-                        // Here the transaction we just created is actually
-                        // added to the source acct's inbox.
-                        std::shared_ptr<OTTransaction> inboxTransaction{
-                            pInboxTransaction.release()};
-                        pInbox->AddTransaction(inboxTransaction);
-
-                        // Release any signatures that were there before (They
-                        // won't
-                        // verify anymore anyway, since the content has
-                        // changed.)
-                        //
-                        pInbox->ReleaseSignatures();
-                        pInbox->SignContract(server_.GetServerNym());
-                        pInbox->SaveContract();
-
-                        theAccount.get().SaveInbox(
-                            *pInbox, Identifier::Factory());
-
-                        // Any inbox/nymbox/outbox ledger will only itself
-                        // contain
-                        // abbreviated versions of the receipts, including their
-                        // hashes.
-                        //
-                        // The rest is stored separately, in the box receipt,
-                        // which is created
-                        // whenever a receipt is added to a box, and deleted
-                        // after a receipt
-                        // is removed from a box.
-                        //
-                        pInboxTransaction->SaveBoxReceipt(*pInbox);
-                        // AT THIS POINT, the sender/depositor's inbox has had
-                        // the cheque transaction added to it,
-                        // as his receipt. (He must perform a balance agreement
-                        // in order to get it out of his inbox.)
-                        //
-                        // THERE IS NOTHING LEFT TO DO BUT SAVE THE FILES!!
-
-                        theAccount.Release();
-
-                        // Now we can set the response item as an
-                        // acknowledgement instead of the default (rejection)
-                        // otherwise, if we never entered this block, then it
-                        // would still be set to rejection, and the
-                        // new item would never have been added to the inbox,
-                        // and the inbox file would never have had
-                        // its signatures released, or been re-signed or
-                        // re-saved back to file.
-                        // BUT... if the message comes back with
-                        // acknowledgement--then all of these actions must have
-                        // happened, and here is the server's signature to prove
-                        // it.
-                        // Otherwise you get no items and no signature. Just a
-                        // rejection item in the response transaction.
-                        //
-                        pResponseItem->SetStatus(Item::acknowledgement);
-
-                        bOutSuccess =
-                            true;  // The cheque cancellation was successful.
-
-                        Log::vOutput(
-                            0,
-                            "%s: SUCCESS cancelling cheque %" PRId64
-                            ", which had "
-                            "been drawn from account: %s\n",
-                            __FUNCTION__,
-                            theCheque->GetTransactionNum(),
-                            strAccountID.Get());
-
-                        tranOut.SetAsCancelled();
-
-                        // TODO: Our code that actually saves the new balance
-                        // statement receipt should go here
-                        // (that is, only after ultimate success.) Otherwise we
-                        // still want to store the old receipt.
-                        // For now I'm verifying it, but not storing it.  This
-                        // means the security for it works, but
-                        // in a dispute, I can't prove it / cover my ass.  So
-                        // very soon a receipt WILL be saved here
-                        // that is, a copy of the user's signed
-                        // BalanceAgreement.
-                        // Note: if I'm saving the entire outgoing transaction
-                        // reply, or message reply, (versus just
-                        // the reply to a certain item) then I think I have the
-                        // balance agreement already? Double check.
-                    }
-                }  // "else"
-            }      // ABOVE: Cheque cancellation
-            else   // BELOW: Cheque deposit
-            {
-                const Identifier& SOURCE_ACCT_ID(
-                    theCheque->GetSenderAcctID());  // relevant for both
-                                                    // vouchers AND cheques.
-                const Identifier& SENDER_NYM_ID(theCheque->GetSenderNymID());
-
-                const Identifier& REMITTER_ACCT_ID(
-                    theCheque->GetRemitterAcctID());  // only relevant in case
-                                                      // of vouchers.
-                const Identifier& REMITTER_NYM_ID(
-                    theCheque->GetRemitterNymID());
-
-                // If the cheque has a remitter ...and the depositor IS the
-                // remitter...
-                // (Then the remitter is cancelling the voucher.)
-                //
-                const bool bHasRemitter = theCheque->HasRemitter();
-                const bool bRemitterCancelling =
-                    (bHasRemitter && (NYM_ID == theCheque->GetRemitterNymID()));
-
-                // The point of the logic here is to enable remitters to deposit
-                // vouchers. Basically allows
-                // them to "cancel" the voucher, and get their money back.
-                //
-                const auto RECIPIENT_NYM_ID = Identifier::Factory(
-                    bRemitterCancelling ? NYM_ID
-                                        : theCheque->GetRecipientNymID());
-
-                // (Note that we allow the remitter of a voucher to deposit that
-                // voucher.)
-
-                const String strSenderNymID(SENDER_NYM_ID),
-                    strSourceAcctID(SOURCE_ACCT_ID),
-                    strRecipientNymID(RECIPIENT_NYM_ID),
-                    strRemitterNymID(REMITTER_NYM_ID),
-                    strRemitterAcctID(REMITTER_ACCT_ID);
-                auto theSenderInbox{manager_.Factory().Ledger(
-                    SENDER_NYM_ID,
-                    SOURCE_ACCT_ID,
-                    NOTARY_ID)};  // chequeReceipt
-                                  // goes here.
-
-                OT_ASSERT(false != bool(theSenderInbox));
-
-                auto theRemitterInbox{manager_.Factory().Ledger(
-                    REMITTER_NYM_ID,
-                    REMITTER_ACCT_ID,
-                    NOTARY_ID)};  // voucherReceipt
-                                  // goes
-                                  // here.
-                OT_ASSERT(false != bool(theRemitterInbox));
-
-                Ledger* pSenderInbox = theSenderInbox.get();
-                Ledger* pRemitterInbox = theRemitterInbox.get();
-                Account* pRemitterAcct{nullptr};
-                Account* pSourceAcct{nullptr};
-                ExclusiveAccount sourceAccount{};
-                ExclusiveAccount remitterAccount{};
-                auto pRemitterNym = manager_.Wallet().Nym(REMITTER_NYM_ID);
-                auto pSenderNym = manager_.Wallet().Nym(SENDER_NYM_ID);
-
-                // Don't want to overwrite files or db records in cases where
-                // the sender is also the depositor.
-                // (Similar concern if the server is also the depositor, but
-                // that's already partly handled
-                // before we get to this point... theNym is already substituted
-                // for m_nymServer,
-                // if the IDs match, before any of the commands are processed.)
-                //
-                // The conundrum is in the multiplicity of combinations. The
-                // server COULD be the sender
-                // OR the depositor, or he could be BOTH, or the server might
-                // NOT be the sender OR depositor,
-                // yet they could still be the same person.  Normally all 3 are
-                // separate entities.  That's a
-                // lot of combinations. I want to make sure that I don't
-                // overwrite ANY files while juggling the
-                // respective nymfiles, transaction numbers, request numbers,
-                // etc.
-                //
-                // Solution:  When commands are first processed, and the Request
-                // Number is processed, theNym
-                // is ALREADY replaced with m_nymServer IF the IDs match and the
-                // signature verifies. It is then
-                // passed that way to all of the commands (including the one we
-                // are in now.)
-                //
-                // I THEN do the logic BELOW as additional to that. Make sure if
-                // you change anything that you
-                // think std::int64_t and hard about what you are doing!!
-                //
-                // Here's the logic:
-                // -- theNym is the depositor (for sure.)
-                // -- m_nymServer is the server nym (for sure.)
-                // -- By the time we get here, IF the ServerNymID and NymID
-                // match,
-                //      then theNym IS ALREADY m_nymServer, literally a
-                // reference to it.
-                //    (This is performed before we even get to this point, so
-                // that the
-                //      same problem doesn't occur with request numbers.)
-                // -- In cases where the "server is also the depositor", it's
-                // therefore
-                //      ALREADY handled, since theNym already points to
-                // m_nymServer.
-                // -- theSenderNym is used to load the sender nym in cases where
-                // we have
-                //      to load it from file or db ourselves. (Most normal
-                // cases.)
-                // -- In those normal cases, pSenderNym will point to
-                // theSenderNym and
-                //      we load it up from file or database.
-                // -- In cases where the sender is also the user (the
-                // depositor), then
-                //      pSenderNym will point to theNym instead of to
-                // theSenderNym, and we
-                //      no longer bother loading it, since the user is already
-                // loaded.
-                // -- In cases where the sender is also the server, then
-                // pSenderNym will
-                //      point to m_nymServer instead of to theSenderNym, and we
-                // no longer
-                //      bother loading it, since the server's nym is already
-                // loaded.
-
-                bool bDepositorIsServer = (NYM_ID == NOTARY_NYM_ID);
-                bool bDepositorIsSender = (NYM_ID == SENDER_NYM_ID);
-                bool bDepositorIsRemitter = (NYM_ID == REMITTER_NYM_ID);
-                bool bDepositAcctIsRemitter = (ACCOUNT_ID == REMITTER_ACCT_ID);
-                bool bSourceAcctIsRemitter =
-                    (SOURCE_ACCT_ID == REMITTER_ACCT_ID);
-                bool bSenderIsServer = (SENDER_NYM_ID == NOTARY_NYM_ID);
-                bool bRemitterIsServer = (REMITTER_NYM_ID == NOTARY_NYM_ID);
-                bool bSourceAcctAlreadyLoaded = false;
-                bool bRemitterAcctAlreadyLoaded = false;
-
-                // The depositor is already loaded, (for sure.)
-
-                // The server is already loaded, (for sure.)
-
-                // If the depositor IS the server, then it already points there
-                // (for sure.)
-                if (bDepositorIsServer) {
-                    // OTPseudonym & theNym = m_nymServer; // Already handled in
-                    // the code that calls IncrementRequestNum().
-
-                    // bSenderUserAlreadyLoaded = false; // Sender is either
-                    // determined to be already loaded (directly below) or
-                    // it is loaded as part of the cheque verification process
-                    // below that.
-                    // At this point I can't set it because I just don't know
-                    // yet.
-                }
-                // If the depositor IS the sender, pSenderNym points to
-                // depositor, and we're already loaded.
-                if (bDepositorIsSender) {
-                    pSenderNym =
-                        manager_.Wallet().Nym(context.RemoteNym().ID());
-                }
-                // If the server IS the sender, pSenderNym points to the server,
-                // and we're already loaded.
-                if (bSenderIsServer) {
-                    pSenderNym.reset(&server_.GetServerNym());
-                }
-                bool bSuccessLoadSenderInbox = false;
-                bool bSuccessLoadRemitterInbox = false;
-
-                if (bHasRemitter) {
-                    pSenderInbox = nullptr;
-
-                    // If the depositor IS the remitter, pRemitterNym points to
-                    // depositor, and we're already loaded.
-                    if (bDepositorIsRemitter) {
-                        pRemitterNym =
-                            manager_.Wallet().Nym(context.RemoteNym().ID());
-                    }
-                    // If the server IS the remitter, pRemitterNym points to the
-                    // server, and we're already loaded.
-                    if (bRemitterIsServer) {
-                        pRemitterNym.reset(&server_.GetServerNym());
-                    }
-                    // If the account IS the remitter's account, pRemitterNym
-                    // points to the server, and we're already loaded.
-                    if (bDepositAcctIsRemitter) {
-                        pRemitterAcct = &theAccount.get();
-                        pRemitterInbox = pInbox.get();
-
-                        bRemitterAcctAlreadyLoaded = true;
-                        bSuccessLoadRemitterInbox = true;
-
-                        // Just for completeness. In this case ALL THREE
-                        // accounts would be the same account,
-                        // which is probably disallowed later on anyway.
-                        //
-                        if (bSourceAcctIsRemitter) {
-                            pSourceAcct = pRemitterAcct;
-                            pSenderInbox = pRemitterInbox;
-
-                            bSourceAcctAlreadyLoaded = true;
-                            bSuccessLoadSenderInbox = true;
-                        }
-                    }
-                } else {
-                    // Definitely has no remitter. Therefore definitely NOT a
-                    // voucher. (If it's not a voucher, that means we should
-                    // DEFINITELY be able to load the sender's inbox.) Load
-                    // source account's inbox
-
-                    bSuccessLoadSenderInbox = pSenderInbox->LoadInbox();
-
-                    // ...If it loads, verify it. Otherwise, generate it...
-                    if (bSuccessLoadSenderInbox) {
-                        bSuccessLoadSenderInbox =
-                            pSenderInbox->VerifyAccount(server_.GetServerNym());
-                    } else {
-                        Log::vOutput(
-                            0,
-                            "Notary::%s: Failed loading inbox "
-                            "for %s source account.\n",
-                            __FUNCTION__,
-                            (bHasRemitter) ? "cheque" : "voucher");
-                    }
-                }
-
-                auto sContext = manager_.Wallet().mutable_ClientContext(
-                    server_.GetServerNym().ID(),
-                    (bHasRemitter ? pRemitterNym : pSenderNym)->ID());
-
-                // To deposit a cheque, need to verify:  (in no special order)
-                //
-                // -- DONE Load the source account and verify it exists.
-                // -- DONE Make sure the source acct is verified for the server
-                // signature.
-                // -- DONE Make sure the Asset Type of the cheque matches the
-                // Asset Type of BOTH source and recipient accts.
-                // -- DONE See if there is a Recipient Nym ID. If so, MAKE SURE
-                // it matches the user depositing the cheque!
-                // -- DONE See if the Sender User even exists.
-                // -- DONE See if the Sender Nym ID matches the hash of the
-                // actual public key in the sender's pubkey file.
-                // -- DONE Make sure the cheque has the right server ID.
-                // -- DONE Make sure the cheque has not yet EXPIRED.
-                // -- DONE Make sure the cheque signature is verified with the
-                // sender's pubkey.
-                // -- DONE Make sure the account ID on the transaction item
-                // matches the depositor account ID.
-                // -- DONE Verify the funds are in the source acct.
-                //
-                // -- DONE Plus deal with sender's inbox.
-
-                // If there's a remitter, then it's a voucher, and thus the
-                // sender MUST be the server.
-                // (If the sender on a voucher is NOT the server, then it's very
-                // suspicious.)
-                //
-                if (bHasRemitter && !bSenderIsServer) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Failure: Voucher has a "
-                        "'sender' who is not the server: %s\n",
-                        __FUNCTION__,
-                        strSenderNymID.Get());
-                }
-
-                if (!sContext.It().VerifyIssuedNumber(
-                        theCheque->GetTransactionNum())) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Failure verifying %s: Bad "
-                        "transaction number.\n"
-                        "Recipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "cheque" : "voucher",
-                        strRecipientNymID.Get());
-                }
-                // Let's see if the sender's signature matches the one on the
-                // cheque...
-                else if (
-                    false ==
-                    theCheque->VerifySignature(*pSenderNym))  // This is same
-                                                              // for cheques
-                // and vouchers.
-                {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: Failure verifying %s signature for "
-                        "sender ID: %s Recipient Nym ID: %s",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "cheque" : "voucher",
-                        strSenderNymID.Get(),
-                        strRecipientNymID.Get());
-                    if (bHasRemitter)
-                        Log::vOutput(
-                            0,
-                            " Remitter Nym ID: %s\n",
-                            strRemitterNymID.Get());
-                    else
-                        otOut << "\n";
-                }
-                // If there is a recipient user ID on the check, it must match
-                // the user depositing the cheque.
-                // (But if there is NO recipient user ID, then it's a blank
-                // cheque and ANYONE can deposit it.)
-                else if (
-                    theCheque->HasRecipient() &&
-                    !(NYM_ID == RECIPIENT_NYM_ID)) {
-                    Log::vOutput(
-                        0,
-                        "%s: Failure matching %s recipient to "
-                        "depositor. Depositor Nym ID: %s "
-                        "Recipient Nym ID: %s\n",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "cheque" : "voucher",
-                        strNymID.Get(),
-                        strRecipientNymID.Get());
-                }
-                // Try to load the source account (that cheque is drawn on) up
-                // into memory. We'll need to debit funds from it...  Also, set
-                // the cleanup object onto this pointer.
-                else if (
-                    !bSourceAcctAlreadyLoaded &&
-                    ((nullptr ==
-                      ((sourceAccount =
-                            manager_.Wallet().mutable_Account(SOURCE_ACCT_ID)),
-                       (pSourceAcct =
-                            sourceAccount ? &sourceAccount.get() : nullptr)))))
-
-                {
-                    Log::vOutput(
-                        0,
-                        "%s: %s deposit failure, "
-                        "trying to load source acct, ID: %s Recipient User "
-                        "ID: %s",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "Cheque" : "Voucher",
-                        strSourceAcctID.Get(),
-                        strRecipientNymID.Get());
-                    if (bHasRemitter)
-                        Log::vOutput(
-                            0,
-                            " Remitter Nym ID: %s\n",
-                            strRemitterNymID.Get());
-                    else
-                        otOut << "\n";
-                }
-                // If the cheque is a voucher (drawn on an internal server
-                // account) then there is no need to
-                // load any "sender inbox" (which will not exist anyway.)
-                // Whereas if the source account is NOT
-                // an internal server account (but rather, is a NORMAL account)
-                // then it had better have
-                // successfully loaded that inbox, or we have a problem.
-                //
-                else if (
-                    !bSuccessLoadSenderInbox &&
-                    !pSourceAcct->IsInternalServerAcct()) {
-                    Log::vError(
-                        "%s: ERROR verifying inbox ledger for source "
-                        "acct ID: %s\n",
-                        __FUNCTION__,
-                        strSourceAcctID.Get());
-                }
-                // Need to make sure the signer is the owner of the source
-                // account...
-                else if (!pSourceAcct->VerifyOwner(*pSenderNym)) {
-                    Log::vOutput(
-                        0,
-                        "Notary::%s: ERROR verifying signer's "
-                        "ownership of source account while "
-                        "depositing %s. Source Acct ID: %s\n",
-                        __FUNCTION__,
-                        (bHasRemitter) ? "cheque" : "voucher",
-                        strAccountID.Get());
-                } else {
-                    if (bSourceAcctIsRemitter) {
-                        pRemitterAcct = pSourceAcct;
-                        bRemitterAcctAlreadyLoaded = true;
-
-                        pRemitterInbox = pSenderInbox;
-
-                        if (nullptr != pRemitterInbox)  // This part is here for
-                                                        // completeness only. It
-                                                        // will never actually
-                                                        // happen,
-                            bSuccessLoadRemitterInbox =
-                                true;  // since a voucher source account is
-                                       // owned
-                                       // by server and has no inbox.
-                    }
-
-                    // Try to load the remitter account (that voucher was
-                    // originally financed from) up into memory.
-                    // We'll need to verify it so we can drop the receipt into
-                    // its inbox. Also, set the cleanup object onto this
-                    // pointer.
-                    //
-                    if (bHasRemitter && !bRemitterAcctAlreadyLoaded &&
-                        ((nullptr ==
-                          ((remitterAccount = manager_.Wallet().mutable_Account(
-                                REMITTER_ACCT_ID)),
-                           (pRemitterAcct = remitterAccount
-                                                ? &remitterAccount.get()
-                                                : nullptr))))) {
-                        Log::vOutput(
-                            0,
-                            "%s: Voucher deposit, failure "
-                            "trying to load remitter acct, ID: %s Recipient "
-                            "Nym ID: %s Remitter Nym ID: %s\n",
-                            __FUNCTION__,
-                            strRemitterAcctID.Get(),
-                            strRecipientNymID.Get(),
-                            strRemitterNymID.Get());
-                    }
-                    // Need to make sure the remitter is the owner of the
-                    // remitter account...
-                    else if (
-                        bHasRemitter &&
-                        !pRemitterAcct->VerifyOwner(*pRemitterNym)) {
-                        Log::vOutput(
-                            0,
-                            "Notary::%s: ERROR verifying remitter's "
-                            "ownership of remitter account while "
-                            "depositing voucher. Remitter Acct ID: %s\n",
-                            __FUNCTION__,
-                            strRemitterAcctID.Get());
-                    } else if (
-                        bHasRemitter &&            // If it's a voucher, and the
-                                                   // source account isn't the
-                                                   // remitter account...
-                        !bSourceAcctIsRemitter &&  // (if it was, there'd
-                                                   // definitely be no
-                        // remitter inbox, since
-                        // it'd be a server
-                        // acct.)
-                        !bSuccessLoadRemitterInbox &&  // ...and if we
-                                                       // haven't
-                                                       // successfully
-                                                       // loaded the
-                                                       // remitter's inbox
-                                                       // yet...
-                        (!pRemitterInbox->LoadInbox() ||
-                         !pRemitterInbox->VerifyAccount(
-                             server_.GetServerNym())))  // Then load and
-                                                        // verify it.
-                    {
-                        Log::vError(
-                            "%s: ERROR loading or verifying inbox "
-                            "ledger for remitter acct ID: %s\n",
-                            __FUNCTION__,
-                            strRemitterAcctID.Get());
-                    }
-                    // Are all of the accounts, AND the cheque, all of the same
-                    // Asset Type?
-                    else if (
-                        !(theCheque->GetInstrumentDefinitionID() ==
-                          pSourceAcct->GetInstrumentDefinitionID()) ||
-                        !(theCheque->GetInstrumentDefinitionID() ==
-                          theAccount.get().GetInstrumentDefinitionID()) ||
-                        (bHasRemitter &&
-                         !(theCheque->GetInstrumentDefinitionID() ==
-                           pRemitterAcct->GetInstrumentDefinitionID()))) {
-                        String strSourceInstrumentDefinitionID(
-                            pSourceAcct->GetInstrumentDefinitionID()),
-                            strRecipientInstrumentDefinitionID(
-                                theAccount.get().GetInstrumentDefinitionID());
-                        Log::vOutput(
-                            0,
-                            "Notary::%s: ERROR - user attempted to "
-                            "deposit cheque between accounts of different "
-                            "instrument definitions. Source Acct: %s\nType: "
-                            "%s\nRecipient Acct: %s\nType: %s\n",
-                            __FUNCTION__,
-                            strSourceAcctID.Get(),
-                            strSourceInstrumentDefinitionID.Get(),
-                            strAccountID.Get(),
-                            strRecipientInstrumentDefinitionID.Get());
-
-                        if (bHasRemitter) {
-                            String strRemitterInstrumentDefinitionID(
-                                pRemitterAcct->GetInstrumentDefinitionID());
-                            Log::vOutput(
-                                0,
-                                "Remitter Acct: %s\nType: %s\n",
-                                strRemitterAcctID.Get(),
-                                strRemitterInstrumentDefinitionID.Get());
-                        }
-                    }
-
-                    // The BALANCE AGREEMENT includes a signed and dated:
-                    /*
-                      user ID, server ID, account ID, transaction ID.
-
-                      BY THE TIME you are ever inside the procesing for ANY
-                      transaction. we know for
-                      a fact that NotarizeTransaction has ALREADY checked all
-                      the items on the transaction
-                      (the ones in its list) to make sure they ALL have the same
-                      owner, and signature,
-                      and transaction number, and account ID, and server ID.
-                      This happens when the items
-                      first load via VerifyContractID(), and then in
-                      NotarizeTransaction() with a call to
-                      VerifyItems(). Therefore I can consider the above
-                      variables COVERED for pItem as
-                      well as pBalanceItem.
-
-                      Balance Agreement also includes:
-                      -- A copy of all the transaction numbers that should still
-                      be issued to the Nym,
-                      AFTER one is removed from depositing this cheque. (The
-                      same number on tranIn and pItem.)
-                      NEED TO VERIFY BOTH LISTS ARE THE SAME AFTER REMOVING ONE
-                      ON MY SIDE.
-                      -- Account balance.
-                      (NEED TO VERIFY BALANCE WOULD BE THE SAME AFTER PROCESSING
-                      TRANSACTION.
-                      -- Inbox and Outbox reports on a single list of sub-items.
-                      (NEED TO VERIFY INBOX AND OUTBOX ITEMS MATCH BY
-                      RE-CREATING AND THEN COMPARING.)
-
-                      All these are now done in VerifyBalanceStatement().
-
-                    */
-                    else if (!(pBalanceItem->VerifyBalanceStatement(
-                                 theCheque->GetAmount(),
-                                 context,
-                                 *pInbox,
-                                 *pOutbox,
-                                 theAccount.get(),
-                                 tranIn,
-                                 std::set<TransactionNumber>()))) {
-                        Log::vOutput(
-                            0,
-                            "Notary::%s: ERROR verifying "
-                            "balance statement while depositing "
-                            "cheque. Acct ID:\n%s\n",
-                            __FUNCTION__,
-                            strAccountID.Get());
-                    }
-
-                    // Debit Source account, Credit Recipient Account, add to
-                    // Sender's inbox.
-                    //
-                    // Also clear the transaction number so this cheque can't be
-                    // deposited again.
-                    //
-                    else {
-                        pResponseBalanceItem->SetStatus(
-                            Item::acknowledgement);  // the transaction
-                                                     // agreement was
-                                                     // successful.
-
-                        // Deduct the amount from the source account, and add it
-                        // to the recipient account...
-                        if (false ==
-                            pSourceAcct->Debit(theCheque->GetAmount())) {
-                            Log::vError(
-                                "Notary::%s: Failed debiting "
-                                "source account.\n",
-                                __FUNCTION__);
-
-                            if (sourceAccount) { sourceAccount.Abort(); }
-
-                        } else if (
-                            false ==
-                            theAccount.get().Credit(theCheque->GetAmount())) {
-                            Log::vError(
-                                "Notary::%s: Failed crediting "
-                                "destination account.\n",
-                                __FUNCTION__);
-                            theAccount.Abort();
-
-                            if (sourceAccount) { sourceAccount.Abort(); }
-                        }
-                        // Clear the transaction number. Sender Nym was
-                        // responsible for it (and still is, until he signs to
-                        // accept the cheque reecipt). Alternately, remitter Nym
-                        // is responsible for it, until he signs to accept the
-                        // voucher receipt. At this point, the cheque is USED,
-                        // so I'm removing his ability to use that number twice.
-                        // It will remain on his issued list until he signs for
-                        // the receipt.
-                        else if (!sContext.It().ConsumeAvailable(
-                                     theCheque->GetTransactionNum())) {
-                            Log::vError(
-                                "%s: Strange: Failed removing "
-                                "transaction number from sender or "
-                                "remitter, even though "
-                                "it verified just earlier...\n",
-                                __FUNCTION__);
-                            theAccount.Abort();
-
-                            if (sourceAccount) { sourceAccount.Abort(); }
-                        } else {  // need to be able to "roll back" if anything
-                                  // inside this block fails.
-                            // update: actually does pretty good roll-back as it
-                            // is. The debits and credits
-                            // don't save unless everything is a success.
-
-                            Account* pAcctWhereReceiptGoes{nullptr};
-                            Ledger* pInboxWhereReceiptGoes{nullptr};
-
-                            if (bHasRemitter)  // voucher
-                            {
-                                pAcctWhereReceiptGoes = pRemitterAcct;
-                                pInboxWhereReceiptGoes = pRemitterInbox;
-                            } else  // normal cheque
-                            {
-                                pAcctWhereReceiptGoes = pSourceAcct;
-                                pInboxWhereReceiptGoes = pSenderInbox;
-                            }
-                            // Add the chequeReceipt to the inbox of the signer
-                            // on the cheque.
-                            // (Or add the voucherReceipt to the inbox of the
-                            // remitter of the voucher.)
-                            //
-                            // The original sender (or remitter, whichever is
-                            // applicable) can close out the
-                            // transaction number associated with the cheque by
-                            // signing-off on that chequeReceipt or
-                            // voucherReceipt.
-                            //
-                            if (pAcctWhereReceiptGoes
-                                    ->IsInternalServerAcct())  // Must be a
-                                                               // voucher
-                            // remitted by the
-                            // server.
-                            // (Unusual, but
-                            // possible...
-                            // Typically a
-                            // voucher is
-                            // remitted by a
-                            // normal user,
-                            // but this can
-                            // happen in the
-                            // case of
-                            // dividends.)
-                            {
-                                if (!bHasRemitter || !bRemitterIsServer)
-                                    Log::vError(
-                                        "%s: Error: Apparently this is a "
-                                        "voucher remitted directly by the "
-                                        "server (such as a dividend payment) "
-                                        "but one of these values is false: "
-                                        "bHasRemitter (%s), "
-                                        "bRemitterIsServer(%s)\n",
-                                        __FUNCTION__,
-                                        bHasRemitter ? "true" : "false",
-                                        bRemitterIsServer ? "true" : "false");
-                                else {
-                                    // If bHasRemitter is true, which it is,
-                                    // then we KNOW the server is the sender,
-                                    // since
-                                    // we explicitly verified that already
-                                    // above. But the receipt doesn't go to the
-                                    // sender's inbox,
-                                    // but rather, to the remitter's inbox.
-                                    // However, in this block, clearly
-                                    // IsInternalServerAcct is true,
-                                    // where the receipt is supposed to go,
-                                    // which means the server is also the
-                                    // remitter! And we verified
-                                    // that also in the above 'if' statement, so
-                                    // we explicitly know that
-                                    // bRemitterIsServer. And in that
-                                    // case, we can't just drop a receipt into
-                                    // his inbox, since the server has no inbox,
-                                    // and that means
-                                    // he will never be able to close out the
-                                    // transaction number by accepting the
-                                    // receipt, like a normal
-                                    // user would be able to do.
-                                    //
-                                    // Therefore, we explicitly remove the
-                                    // issued number here from the remitter
-                                    // (whom we know to actually
-                                    // be the server.) He has no inbox, and he
-                                    // won't get any receipt -- but the number
-                                    // will be closed out
-                                    // properly. Before this fix, the server was
-                                    // probably keeping every voucher number
-                                    // open for eternity.
-                                    //
-                                    if (!context.ConsumeIssued(
-                                            theCheque->GetTransactionNum())) {
-                                        Log::vError(
-                                            "%s: Strange: Failed removing "
-                                            "issued number from remitter (the "
-                                            "server nym, in this case), "
-                                            "even though the number verified "
-                                            "just earlier...\n",
-                                            __FUNCTION__);
-                                    }
-                                }
-                            } else  // For normal cheques, and for normal
-                                    // vouchers (where the remitter is a normal
-                                    // user.)
-                            {
-                                // Generate new transaction number (for putting
-                                // the check receipt in the sender's inbox.)
-                                // todo check this generation for failure (can
-                                // it fail?)
-                                std::int64_t lNewTransactionNumber = 0;
-
-                                server_.GetTransactor()
-                                    .issueNextTransactionNumber(
-                                        lNewTransactionNumber);
-
-                                auto pInboxTransaction{
-                                    manager_.Factory().Transaction(
-                                        *pInboxWhereReceiptGoes,
-                                        theCheque->HasRemitter()
-                                            ? transactionType::voucherReceipt
-                                            : transactionType::chequeReceipt,
-                                        originType::not_applicable,
-                                        lNewTransactionNumber)};
-
-                                OT_ASSERT(false != bool(pInboxTransaction));
-
-                                // The depositCheque request OTItem is saved as
-                                // a "in reference to" field,
-                                // on the inbox chequeReceipt or voucherReceipt
-                                // transaction.
-                                // todo put these two together in a method.
-                                pInboxTransaction->SetReferenceString(
-                                    strInReferenceTo);
-                                pInboxTransaction->SetReferenceToNum(
-                                    pItem->GetTransactionNum());
-                                pInboxTransaction->SetNumberOfOrigin(
-                                    theCheque->GetTransactionNum());
-
-                                if (bRemitterCancelling)
-                                    pInboxTransaction->SetAsCancelled();
-
-                                // Now we have created a new transaction from
-                                // the server to the sender's inbox (or
-                                // remitter's inbox.)
-                                // Let's sign and save it...
-                                pInboxTransaction->SignContract(
-                                    server_.GetServerNym());
-                                pInboxTransaction->SaveContract();
-
-                                // Here the transaction we just created is
-                                // actually added to the source acct's or
-                                // remitter's inbox.
-                                std::shared_ptr<OTTransaction> inboxTransaction{
-                                    pInboxTransaction.release()};
-                                pInboxWhereReceiptGoes->AddTransaction(
-                                    inboxTransaction);
-
-                                // Release any signatures that were there before
-                                // (They won't
-                                // verify anymore anyway, since the content has
-                                // changed.)
-                                //
-                                pInboxWhereReceiptGoes->ReleaseSignatures();
-                                pInboxWhereReceiptGoes->SignContract(
-                                    server_.GetServerNym());
-                                pInboxWhereReceiptGoes->SaveContract();
-                                pAcctWhereReceiptGoes->SaveInbox(
-                                    *pInboxWhereReceiptGoes,
-                                    Identifier::Factory());
-
-                                // Any inbox/nymbox/outbox ledger will only
-                                // itself contain
-                                // abbreviated versions of the receipts,
-                                // including their hashes.
-                                //
-                                // The rest is stored separately, in the box
-                                // receipt, which is created
-                                // whenever a receipt is added to a box, and
-                                // deleted after a receipt
-                                // is removed from a box.
-                                //
-                                inboxTransaction->SaveBoxReceipt(
-                                    *pInboxWhereReceiptGoes);
-                            }
-                            // AT THIS POINT, the source account is debited, the
-                            // recipient account is credited,
-                            // and the sender's (or remitter's) inbox has had
-                            // the chequeReceipt or voucherReceipt added to it.
-                            // (He must perform a balance agreement in order to
-                            // get it out of his inbox.)
-                            //
-                            // THERE IS NOTHING LEFT TO DO BUT SAVE THE FILES!!
-
-                            theAccount.Release();
-
-                            if (sourceAccount) { sourceAccount.Release(); }
-
-                            if (remitterAccount) { remitterAccount.Release(); }
-
-                            // Now we can set the response item as an
-                            // acknowledgement instead of the default
-                            // (rejection)
-                            // otherwise, if we never entered this block, then
-                            // it would still be set to rejection, and the
-                            // new item would never have been added to the
-                            // inbox, and the inbox file, along with the
-                            // account files, would never have had their
-                            // signatures released, or been re-signed or
-                            // re-saved back to file.  The debit failed, so all
-                            // of those other actions would fail also.
-                            // BUT... if the message comes back with
-                            // acknowledgement--then all of these actions must
-                            // have
-                            // happened, and here is the server's signature to
-                            // prove it.
-                            // Otherwise you get no items and no signature. Just
-                            // a rejection item in the response transaction.
-                            pResponseItem->SetStatus(Item::acknowledgement);
-                            bOutSuccess = true;
-
-                            if (bRemitterCancelling) {
-                                tranOut.SetAsCancelled();
-                                Log::vOutput(
-                                    1,
-                                    "Notary::%s: SUCCESS "
-                                    "crediting remitter account "
-                                    "from voucher "
-                                    "cancellation.\n",
-                                    __FUNCTION__);
-                            } else
-                                Log::vOutput(
-                                    1,
-                                    "Notary::%s: SUCCESS "
-                                    "crediting account from "
-                                    "cheque deposit.\n",
-                                    __FUNCTION__);
-
-                            // TODO: Our code that actually saves the new
-                            // balance statement receipt should go here
-                            // (that is, only after ultimate success.) Otherwise
-                            // we still want to store the old receipt.
-                            // For now I'm verifying it, but not storing it.
-                            // This means the security for it works, but
-                            // in a dispute, I can't prove it / cover my ass.
-                            // So very soon a receipt WILL be saved here
-                            // that is, a copy of the user's signed
-                            // BalanceAgreement.
-                            // Note: if I'm saving the entire outgoing
-                            // transaction reply, or message reply, (versus just
-                            // the reply to a certain item) then I think I have
-                            // the balance agreement already? Double check.
-                        }
-
-                    }  // "else"
-                }      // "else"
-            }          // successfully loaded cheque from string
-        }              // account ID DOES match item's account ID
-    }                  // deposit cheque
-#if OT_CASH
-    // BELOW -- DEPOSIT CASH
-    // For now, there should only be one of these deposit items inside the
-    // transaction.
-    // So we treat it that way... I either get it successfully or not.
-    //
-    // Deposit (the transaction) now supports deposit (the item) and
-    // depositCheque (the item)
-    else if (pItem->GetType() == itemType::deposit) {
-        // The response item, as well as the inbox and outbox items, will
-        // contain a copy
-        // of the request item. So I save it into a string here so they can all
-        // grab a copy of it
-        // into their "in reference to" fields.
-        pItem->SaveContractRaw(strInReferenceTo);
-        pBalanceItem->SaveContractRaw(strBalanceItem);
-
-        // Server response item being added to server response transaction
-        // (tranOut)
-        // They're getting SOME sort of response item.
-
-        pResponseItem->SetReferenceString(strInReferenceTo);  // the response
-                                                              // item carries a
-                                                              // copy of what
-                                                              // it's responding
-                                                              // to.
-        pResponseItem->SetReferenceToNum(
-            pItem->GetTransactionNum());  // This response item is IN RESPONSE
-                                          // to
-                                          // pItem and its Owner Transaction.
-
-        pResponseBalanceItem->SetReferenceString(
-            strBalanceItem);  // the response item carries a copy of what it's
-                              // responding to.
-        pResponseBalanceItem->SetReferenceToNum(
-            pItem->GetTransactionNum());  // This response item is IN RESPONSE
-                                          // to
-                                          // pItem and its Owner Transaction.
-
-        // If the ID on the "from" account that was passed in,
-        // does not match the "Acct From" ID on this transaction item
-        if (ACCOUNT_ID != pItem->GetPurportedAccountID()) {
-            Log::vOutput(
-                0,
-                "Notary::NotarizeDeposit: Error: 'From' "
-                "account ID on the transaction does not match "
-                "'from' account ID on the deposit item.\n");
-        } else {
-            std::unique_ptr<Ledger> pInbox(
-                theAccount.get().LoadInbox(server_.GetServerNym()));
-            std::unique_ptr<Ledger> pOutbox(
-                theAccount.get().LoadOutbox(server_.GetServerNym()));
-
-            if (nullptr == pInbox) {
-                otErr << "Notary::NotarizeDeposit: Error loading or "
-                         "verifying inbox.\n";
-                OT_FAIL;
-            } else if (nullptr == pOutbox) {
-                otErr << "Notary::NotarizeDeposit: Error loading or "
-                         "verifying outbox.\n";
-                OT_FAIL;
-            }
-            String strPurse;
-            pItem->GetAttachment(strPurse);
-
-            auto thePurse{
-                manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-            bool bLoadContractFromString =
-                thePurse->LoadContractFromString(strPurse);
-
-            if (!bLoadContractFromString) {
-                Log::vError(
-                    "Notary::NotarizeDeposit: ERROR loading purse "
-                    "from string:\n%s\n",
-                    strPurse.Get());
-            } else if (!(pBalanceItem->VerifyBalanceStatement(
-                           thePurse->GetTotalValue(),
-                           context,
-                           *pInbox,
-                           *pOutbox,
-                           theAccount.get(),
-                           tranIn,
-                           std::set<TransactionNumber>()))) {
-                Log::vOutput(
-                    0,
-                    "Notary::NotarizeDeposit: ERROR verifying "
-                    "balance statement while depositing cash. "
-                    "Acct ID:\n%s\n",
-                    strAccountID.Get());
-            }
-
-            // TODO: double-check all verification stuff all around on the purse
-            // and token, transaction, mint, etc.
-            else  // the purse loaded successfully from the string
-            {
-                pResponseBalanceItem->SetStatus(
-                    Item::acknowledgement);  // the transaction agreement was
-                                             // successful.
-
-                bool bSuccess = false;
-
-                // Pull the token(s) out of the purse that was received from the
-                // client.
-                while (true) {
-                    std::unique_ptr<Token> pToken(
-                        thePurse->Pop(server_.GetServerNym()));
-                    if (!pToken) { break; }
-
-                    pMint = manager_.GetPrivateMint(
-                        INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
-
-                    if (false == bool(pMint)) {
-                        otErr << "Notary::NotarizeDeposit: Unable to get "
-                                 "or load Mint.\n";
-                        break;
-                    } else if (
-                        (pMintCashReserveAcct =
-                             manager_.Wallet().mutable_Account(
-                                 pMint->AccountID())) &&
-                        pMintCashReserveAcct) {
-                        String strSpendableToken;
-                        bool bToken = pToken->GetSpendableString(
-                            server_.GetServerNym(), strSpendableToken);
-
-                        if (!bToken)  // if failure getting the spendable token
-                                      // data from the token object
-                        {
-                            bSuccess = false;
-                            Log::vOutput(
-                                0,
-                                "Notary::NotarizeDeposit: "
-                                "ERROR verifying token: Failure "
-                                "retrieving token data. \n");
-                            break;
-                        } else if (!(pToken->GetInstrumentDefinitionID() ==
-                                     INSTRUMENT_DEFINITION_ID))  // or if
-                                                                 // failure
-                                                                 // verifying
-                        // instrument definition
-                        {
-                            bSuccess = false;
-                            Log::vOutput(
-                                0,
-                                "Notary::NotarizeDeposit: "
-                                "ERROR verifying token: Wrong "
-                                "instrument definition. \n");
-                            break;
-                        } else if (!(pToken->GetNotaryID() ==
-                                     NOTARY_ID))  // or if failure verifying
-                                                  // server ID
-                        {
-                            bSuccess = false;
-                            Log::vOutput(
-                                0,
-                                "Notary::NotarizeDeposit: "
-                                "ERROR verifying token: Wrong "
-                                "server ID. \n");
-                            break;
-                        }
-                        // This call to VerifyToken verifies the token's Series
-                        // and From/To dates against the
-                        // mint's, and also verifies that the CURRENT date is
-                        // inside that valid date range.
-                        //
-                        // It also verifies the Lucre coin data itself against
-                        // the key for that series and
-                        // denomination. (The signed and unblinded Lucre coin is
-                        // finally verified in Lucre
-                        // using the appropriate Mint private key.)
-                        //
-                        else if (!(pMint->VerifyToken(
-                                     server_.GetServerNym(),
-                                     strSpendableToken,
-                                     pToken->GetDenomination()))) {
-                            bSuccess = false;
-                            Log::vOutput(
-                                0,
-                                "Notary::NotarizeDeposit: "
-                                "ERROR verifying token: Token "
-                                "verification failed. \n");
-                            break;
-                        }
-                        // Lookup the token in the SPENT TOKEN DATABASE, and
-                        // make sure
-                        // that it hasn't already been spent...
-                        else if (pToken->IsTokenAlreadySpent(
-                                     strSpendableToken)) {
-                            // TODO!!!! Need to store the spent token database
-                            // in multiple places, on multiple media!
-                            //          Furthermore need to CHECK those multiple
-                            // places inside IsTokenAlreadySpent.
-                            //          In fact, that should all be configurable
-                            // in the server config file!
-                            //          Related: make sure IsTokenAlreadySpent
-                            // differentiates between ACTUALLY not finding
-                            //          a token as spent (successfully), versus
-                            // some error state with the storage.
-                            bSuccess = false;
-                            Log::vOutput(
-                                0,
-                                "Notary::NotarizeDeposit: "
-                                "ERROR verifying token: Token "
-                                "was already spent. \n");
-                            break;
-                        } else {
-                            otLog3 << "Notary::NotarizeDeposit: "
-                                      "SUCCESS verifying token...    "
-                                      "\n";
-
-                            // need to be able to "roll back" if anything inside
-                            // this block fails.
-                            // so unless bSuccess is true, I don't save the
-                            // account below.
-                            //
-
-                            // two defense mechanisms here:  mint cash reserve
-                            // acct, and spent token database
-                            //
-                            if (false == pMintCashReserveAcct.get().Debit(
-                                             pToken->GetDenomination())) {
-                                otErr << "Notary::NotarizeDeposit: Error "
-                                         "debiting the mint cash reserve "
-                                         "account. "
-                                         "SHOULD NEVER HAPPEN...\n";
-                                bSuccess = false;
-                                break;
-                            }
-                            // CREDIT the amount to the account...
-                            else if (
-                                false == theAccount.get().Credit(
-                                             pToken->GetDenomination())) {
-                                otErr << "Notary::NotarizeDeposit: Error "
-                                         "crediting the user's asset "
-                                         "account...\n";
-
-                                if (false == pMintCashReserveAcct.get().Credit(
-                                                 pToken->GetDenomination()))
-                                    otErr << "Notary::NotarizeDeposit: "
-                                             "Failure crediting-back "
-                                             "mint's cash reserve account "
-                                             "while depositing cash.\n";
-                                bSuccess = false;
-                                break;
-                            }
-                            // Spent token database. This is where the call is
-                            // made to add
-                            // the token to the spent token database.
-                            else if (
-                                false ==
-                                pToken->RecordTokenAsSpent(strSpendableToken)) {
-                                otErr << "Notary::NotarizeDeposit: "
-                                         "Failed recording token as "
-                                         "spent...\n";
-
-                                if (false == pMintCashReserveAcct.get().Credit(
-                                                 pToken->GetDenomination()))
-                                    otErr << "Notary::NotarizeDeposit: "
-                                             "Failure crediting-back "
-                                             "mint's cash reserve account "
-                                             "while depositing cash.\n";
-
-                                if (false == theAccount.get().Debit(
-                                                 pToken->GetDenomination()))
-                                    otErr << "Notary::NotarizeDeposit: "
-                                             "Failure debiting-back user's "
-                                             "asset account while "
-                                             "depositing cash.\n";
-
-                                bSuccess = false;
-                                break;
-                            } else  // SUCCESS!!! (this iteration)
-                            {
-                                Log::vOutput(
-                                    2,
-                                    "Notary::NotarizeDeposit: "
-                                    "SUCCESS crediting account "
-                                    "with cash token...\n");
-                                bSuccess = true;
-
-                                // No break here -- we allow the loop to carry
-                                // on through.
-                            }
-                        }
-                    } else {
-                        otErr << "Notary::NotarizeDeposit: Unable to get "
-                                 "cash reserve account for Mint.\n";
-                        bSuccess = false;
-                        break;
-                    }
-                }  // while success popping token from purse
-
-                if (bSuccess) {
-                    theAccount.Release();
-                    // We also need to save the Mint's cash reserve.
-                    // (Any cash issued by the Mint is automatically backed by
-                    // this reserve
-                    // account. If cash is deposited, it comes back out of this
-                    // account. If the
-                    // cash expires, then after the expiry period, if it remains
-                    // in the account,
-                    // it is now the property of the transaction server.)
-                    pMintCashReserveAcct.Release();
-                    pResponseItem->SetStatus(Item::acknowledgement);
-                    bOutSuccess = true;  // The cash deposit was successful.
-                    otWarn << "Notary::NotarizeDeposit: .....SUCCESS "
-                              "-- crediting account from cash "
-                              "deposit.\n";
-
-                    // TODO:  Right here, again, I need to save the receipt from
-                    // the new balance agreement, since we have
-                    // "ultimate success".  Also need to save the Nym, since he
-                    // had a transaction number removed in
-                    // the above call to VerifyBalanceAgreement. If we failed
-                    // here, then we wouldn't WANT to save, since
-                    // that number should stay on him! Same reason we don't save
-                    // the accounts if anything goes wrong.
-                } else {
-                    theAccount.Abort();
-                    pMintCashReserveAcct.Abort();
-                }
-            }  // the purse loaded successfully from the string
-        }      // the account ID matches correctly to the acct ID on the item.
     }
-#endif  // OT_CASH
-    else {
-        String strTemp(tranIn);
-        Log::vOutput(
-            0,
-            "%s: Expected OTItem::deposit or "
-            "OTItem::depositCheque on trans# %" PRId64 ": \n\n%s\n\n",
-            __FUNCTION__,
-            tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR CREATING STRING FROM TRANSACTION.) ");
-    }
-
-    // sign the response item before sending it back (it's already been added to
-    // the transaction above)
-    // Now, whether it was rejection or acknowledgement, it is set properly and
-    // it is signed, and it
-    // is owned by the transaction, who will take it from here.
-    pResponseItem->SignContract(server_.GetServerNym());
-    pResponseItem->SaveContract();  // the signing was of no effect because I
-                                    // forgot to save.
-
-    pResponseBalanceItem->SignContract(server_.GetServerNym());
-    pResponseBalanceItem->SaveContract();
 }
 
 // DONE:  Need to make sure both parties have included TWO!!! transaction
@@ -9231,5 +8233,480 @@ send_message:
     // Save the receipt. (My outgoing transaction including the client's
     // signed request that triggered it.)
     processInboxResponse.SaveContract(szFoldername, strPath.Get());
+}
+
+void Notary::process_cash_deposit(
+    const OTTransaction& input,
+    const Item& depositItem,
+    const Item& balanceItem,
+    ClientContext& context,
+    ExclusiveAccount& depositorAccount,
+    OTTransaction& output,
+    bool& success,
+    Item& responseItem,
+    Item& responseBalanceItem)
+{
+#if OT_CASH
+    // The incoming transaction may be sent to inboxes and outboxes, and it
+    // will probably be bundled in our reply to the user as well. Therefore,
+    // let's grab it as a string.
+    String strInReferenceTo;
+    String strBalanceItem;
+    const auto& NOTARY_ID = context.Server();
+    const auto& NYM_ID = context.RemoteNym().ID();
+    const auto ACCOUNT_ID = Identifier::Factory(depositorAccount.get()),
+               INSTRUMENT_DEFINITION_ID =
+                   Identifier::Factory(depositorAccount.get());
+    const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
+    std::shared_ptr<Mint> pMint{nullptr};
+    ExclusiveAccount pMintCashReserveAcct{};
+
+    // BELOW -- DEPOSIT CASH
+    // For now, there should only be one of these deposit items inside the
+    // transaction.
+    // So we treat it that way... I either get it successfully or not.
+    //
+    // Deposit (the transaction) now supports deposit (the item) and
+    // depositCheque (the item)
+    // The response item, as well as the inbox and outbox items, will
+    // contain a copy
+    // of the request item. So I save it into a string here so they can all
+    // grab a copy of it
+    // into their "in reference to" fields.
+    depositItem.SaveContractRaw(strInReferenceTo);
+    balanceItem.SaveContractRaw(strBalanceItem);
+
+    // Server response item being added to server response transaction
+    // (output)
+    // They're getting SOME sort of response item.
+
+    responseItem.SetReferenceString(strInReferenceTo);  // the response
+                                                        // item carries a
+                                                        // copy of what
+                                                        // it's responding
+                                                        // to.
+    responseItem.SetReferenceToNum(
+        depositItem.GetTransactionNum());  // This response item is IN
+                                           // RESPONSE to pItem and its
+                                           // Owner Transaction.
+
+    responseBalanceItem.SetReferenceString(
+        strBalanceItem);  // the response item carries a copy of what it's
+                          // responding to.
+    responseBalanceItem.SetReferenceToNum(
+        depositItem.GetTransactionNum());  // This response item is IN
+                                           // RESPONSE to pItem and its
+                                           // Owner Transaction.
+
+    // If the ID on the "from" account that was passed in,
+    // does not match the "Acct From" ID on this transaction item
+    if (ACCOUNT_ID != depositItem.GetPurportedAccountID()) {
+        Log::vOutput(
+            0,
+            "Notary::NotarizeDeposit: Error: 'From' "
+            "account ID on the transaction does not match "
+            "'from' account ID on the deposit item.\n");
+    } else {
+        std::unique_ptr<Ledger> pInbox(
+            depositorAccount.get().LoadInbox(server_.GetServerNym()));
+        std::unique_ptr<Ledger> pOutbox(
+            depositorAccount.get().LoadOutbox(server_.GetServerNym()));
+
+        if (nullptr == pInbox) {
+            otErr << "Notary::NotarizeDeposit: Error loading or "
+                     "verifying inbox.\n";
+            OT_FAIL;
+        } else if (nullptr == pOutbox) {
+            otErr << "Notary::NotarizeDeposit: Error loading or "
+                     "verifying outbox.\n";
+            OT_FAIL;
+        }
+        String strPurse;
+        depositItem.GetAttachment(strPurse);
+
+        auto thePurse{
+            manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
+        bool bLoadContractFromString =
+            thePurse->LoadContractFromString(strPurse);
+
+        if (!bLoadContractFromString) {
+            Log::vError(
+                "Notary::NotarizeDeposit: ERROR loading purse "
+                "from string:\n%s\n",
+                strPurse.Get());
+        } else if (!(balanceItem.VerifyBalanceStatement(
+                       thePurse->GetTotalValue(),
+                       context,
+                       *pInbox,
+                       *pOutbox,
+                       depositorAccount.get(),
+                       input,
+                       std::set<TransactionNumber>()))) {
+            Log::vOutput(
+                0,
+                "Notary::NotarizeDeposit: ERROR verifying "
+                "balance statement while depositing cash. "
+                "Acct ID:\n%s\n",
+                strAccountID.Get());
+        }
+
+        // TODO: double-check all verification stuff all around on the purse
+        // and token, transaction, mint, etc.
+        else  // the purse loaded successfully from the string
+        {
+            responseBalanceItem.SetStatus(
+                Item::acknowledgement);  // the transaction agreement was
+                                         // successful.
+
+            bool bSuccess = false;
+
+            // Pull the token(s) out of the purse that was received from the
+            // client.
+            while (true) {
+                std::unique_ptr<Token> pToken(
+                    thePurse->Pop(server_.GetServerNym()));
+                if (!pToken) { break; }
+
+                pMint = manager_.GetPrivateMint(
+                    INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
+
+                if (false == bool(pMint)) {
+                    otErr << "Notary::NotarizeDeposit: Unable to get "
+                             "or load Mint.\n";
+                    break;
+                } else if (
+                    (pMintCashReserveAcct = manager_.Wallet().mutable_Account(
+                         pMint->AccountID())) &&
+                    pMintCashReserveAcct) {
+                    String strSpendableToken;
+                    bool bToken = pToken->GetSpendableString(
+                        server_.GetServerNym(), strSpendableToken);
+
+                    if (!bToken)  // if failure getting the spendable token
+                                  // data from the token object
+                    {
+                        bSuccess = false;
+                        Log::vOutput(
+                            0,
+                            "Notary::NotarizeDeposit: "
+                            "ERROR verifying token: Failure "
+                            "retrieving token data. \n");
+                        break;
+                    } else if (!(pToken->GetInstrumentDefinitionID() ==
+                                 INSTRUMENT_DEFINITION_ID))  // or if
+                                                             // failure
+                                                             // verifying
+                    // instrument definition
+                    {
+                        bSuccess = false;
+                        Log::vOutput(
+                            0,
+                            "Notary::NotarizeDeposit: "
+                            "ERROR verifying token: Wrong "
+                            "instrument definition. \n");
+                        break;
+                    } else if (!(pToken->GetNotaryID() ==
+                                 NOTARY_ID))  // or if failure verifying
+                                              // server ID
+                    {
+                        bSuccess = false;
+                        Log::vOutput(
+                            0,
+                            "Notary::NotarizeDeposit: "
+                            "ERROR verifying token: Wrong "
+                            "server ID. \n");
+                        break;
+                    }
+                    // This call to VerifyToken verifies the token's Series
+                    // and From/To dates against the
+                    // mint's, and also verifies that the CURRENT date is
+                    // inside that valid date range.
+                    //
+                    // It also verifies the Lucre coin data itself against
+                    // the key for that series and
+                    // denomination. (The signed and unblinded Lucre coin is
+                    // finally verified in Lucre
+                    // using the appropriate Mint private key.)
+                    //
+                    else if (!(pMint->VerifyToken(
+                                 server_.GetServerNym(),
+                                 strSpendableToken,
+                                 pToken->GetDenomination()))) {
+                        bSuccess = false;
+                        Log::vOutput(
+                            0,
+                            "Notary::NotarizeDeposit: "
+                            "ERROR verifying token: Token "
+                            "verification failed. \n");
+                        break;
+                    }
+                    // Lookup the token in the SPENT TOKEN DATABASE, and
+                    // make sure
+                    // that it hasn't already been spent...
+                    else if (pToken->IsTokenAlreadySpent(strSpendableToken)) {
+                        // TODO!!!! Need to store the spent token database
+                        // in multiple places, on multiple media!
+                        //          Furthermore need to CHECK those multiple
+                        // places inside IsTokenAlreadySpent.
+                        //          In fact, that should all be configurable
+                        // in the server config file!
+                        //          Related: make sure IsTokenAlreadySpent
+                        // differentiates between ACTUALLY not finding
+                        //          a token as spent (successfully), versus
+                        // some error state with the storage.
+                        bSuccess = false;
+                        Log::vOutput(
+                            0,
+                            "Notary::NotarizeDeposit: "
+                            "ERROR verifying token: Token "
+                            "was already spent. \n");
+                        break;
+                    } else {
+                        otLog3 << "Notary::NotarizeDeposit: "
+                                  "SUCCESS verifying token...    "
+                                  "\n";
+
+                        // need to be able to "roll back" if anything inside
+                        // this block fails.
+                        // so unless bSuccess is true, I don't save the
+                        // account below.
+                        //
+
+                        // two defense mechanisms here:  mint cash reserve
+                        // acct, and spent token database
+                        //
+                        if (false == pMintCashReserveAcct.get().Debit(
+                                         pToken->GetDenomination())) {
+                            otErr << "Notary::NotarizeDeposit: Error "
+                                     "debiting the mint cash reserve "
+                                     "account. "
+                                     "SHOULD NEVER HAPPEN...\n";
+                            bSuccess = false;
+                            break;
+                        }
+                        // CREDIT the amount to the account...
+                        else if (
+                            false == depositorAccount.get().Credit(
+                                         pToken->GetDenomination())) {
+                            otErr << "Notary::NotarizeDeposit: Error "
+                                     "crediting the user's asset "
+                                     "account...\n";
+
+                            if (false == pMintCashReserveAcct.get().Credit(
+                                             pToken->GetDenomination()))
+                                otErr << "Notary::NotarizeDeposit: "
+                                         "Failure crediting-back "
+                                         "mint's cash reserve account "
+                                         "while depositing cash.\n";
+                            bSuccess = false;
+                            break;
+                        }
+                        // Spent token database. This is where the call is
+                        // made to add
+                        // the token to the spent token database.
+                        else if (
+                            false ==
+                            pToken->RecordTokenAsSpent(strSpendableToken)) {
+                            otErr << "Notary::NotarizeDeposit: "
+                                     "Failed recording token as "
+                                     "spent...\n";
+
+                            if (false == pMintCashReserveAcct.get().Credit(
+                                             pToken->GetDenomination()))
+                                otErr << "Notary::NotarizeDeposit: "
+                                         "Failure crediting-back "
+                                         "mint's cash reserve account "
+                                         "while depositing cash.\n";
+
+                            if (false == depositorAccount.get().Debit(
+                                             pToken->GetDenomination()))
+                                otErr << "Notary::NotarizeDeposit: "
+                                         "Failure debiting-back user's "
+                                         "asset account while "
+                                         "depositing cash.\n";
+
+                            bSuccess = false;
+                            break;
+                        } else  // SUCCESS!!! (this iteration)
+                        {
+                            Log::vOutput(
+                                2,
+                                "Notary::NotarizeDeposit: "
+                                "SUCCESS crediting account "
+                                "with cash token...\n");
+                            bSuccess = true;
+
+                            // No break here -- we allow the loop to carry
+                            // on through.
+                        }
+                    }
+                } else {
+                    otErr << "Notary::NotarizeDeposit: Unable to get "
+                             "cash reserve account for Mint.\n";
+                    bSuccess = false;
+                    break;
+                }
+            }  // while success popping token from purse
+
+            if (bSuccess) {
+                depositorAccount.Release();
+                // We also need to save the Mint's cash reserve.
+                // (Any cash issued by the Mint is automatically backed by
+                // this reserve
+                // account. If cash is deposited, it comes back out of this
+                // account. If the
+                // cash expires, then after the expiry period, if it remains
+                // in the account,
+                // it is now the property of the transaction server.)
+                pMintCashReserveAcct.Release();
+                responseItem.SetStatus(Item::acknowledgement);
+                success = true;  // The cash deposit was successful.
+                otWarn << "Notary::NotarizeDeposit: .....SUCCESS "
+                          "-- crediting account from cash "
+                          "deposit.\n";
+
+                // TODO:  Right here, again, I need to save the receipt from
+                // the new balance agreement, since we have
+                // "ultimate success".  Also need to save the Nym, since he
+                // had a transaction number removed in
+                // the above call to VerifyBalanceAgreement. If we failed
+                // here, then we wouldn't WANT to save, since
+                // that number should stay on him! Same reason we don't save
+                // the accounts if anything goes wrong.
+            } else {
+                depositorAccount.Abort();
+                pMintCashReserveAcct.Abort();
+            }
+        }  // the purse loaded successfully from the string
+    }      // the account ID matches correctly to the acct ID on the item.
+#endif     // OT_CASH
+}
+
+void Notary::process_cheque_deposit(
+    const OTTransaction& input,
+    const Item& depositItem,
+    const Item& balanceItem,
+    ClientContext& context,
+    ExclusiveAccount& depositorAccount,
+    OTTransaction& output,
+    bool& success,
+    Item& responseItem,
+    Item& responseBalanceItem)
+{
+    const auto& serverID = context.Server();
+    const auto accountID = Identifier::Factory(depositorAccount.get()),
+               unitID = Identifier::Factory(depositorAccount.get());
+    String serializedItem;
+    String serializedBalanceItem;
+    depositItem.SaveContractRaw(serializedItem);
+    balanceItem.SaveContractRaw(serializedBalanceItem);
+    responseItem.SetReferenceString(serializedItem);
+    responseItem.SetReferenceToNum(depositItem.GetTransactionNum());
+    responseBalanceItem.SetReferenceString(serializedBalanceItem);
+    responseBalanceItem.SetReferenceToNum(depositItem.GetTransactionNum());
+
+    auto inbox(depositorAccount.get().LoadInbox(server_.GetServerNym()));
+    auto outbox(depositorAccount.get().LoadOutbox(server_.GetServerNym()));
+
+    if (false == bool(inbox)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load depositor inbox")
+            .Flush();
+
+        return;
+    }
+
+    if (false == bool(outbox)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load depositor output")
+            .Flush();
+
+        return;
+    }
+
+    if (accountID != depositItem.GetPurportedAccountID()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong account ID on deposit item")
+            .Flush();
+
+        return;
+    }
+
+    const auto cheque = extract_cheque(serverID, unitID, depositItem);
+
+    if (false == bool(cheque)) { return; }
+
+    OT_ASSERT(cheque);
+
+    if (accountID == cheque->GetSenderAcctID()) {
+        cancel_cheque(
+            input,
+            *cheque,
+            depositItem,
+            serializedItem,
+            balanceItem,
+            context,
+            depositorAccount.get(),
+            *inbox,
+            *outbox,
+            output,
+            success,
+            responseItem,
+            responseBalanceItem);
+        depositorAccount.Release();
+    } else {
+        deposit_cheque(
+            input,
+            depositItem,
+            serializedItem,
+            balanceItem,
+            *cheque,
+            context,
+            depositorAccount,
+            *inbox,
+            *outbox,
+            success,
+            responseItem,
+            responseBalanceItem);
+    }
+}
+
+void Notary::send_push_notification(
+    const Account& account,
+    const std::shared_ptr<const Ledger>& inbox,
+    const std::shared_ptr<const Ledger>& outbox,
+    const std::shared_ptr<const OTTransaction>& item) const
+{
+    OT_ASSERT(inbox);
+    OT_ASSERT(outbox);
+    OT_ASSERT(item);
+
+    auto inboxHash = Identifier::Factory();
+    auto outboxHash = Identifier::Factory();
+    auto serializedAccount = String::Factory();
+    auto serializedInbox = String::Factory();
+    auto serializedOutbox = String::Factory();
+    auto serializedItem = String::Factory();
+    account.SaveContractRaw(serializedAccount);
+    inbox->SaveContractRaw(serializedInbox);
+    inbox->CalculateInboxHash(inboxHash);
+    outbox->SaveContractRaw(serializedOutbox);
+    outbox->CalculateOutboxHash(outboxHash);
+    item->SaveContractRaw(serializedItem);
+    auto message = zmq::Message::Factory();
+    message->AddFrame(account.GetNymID().str());
+    proto::OTXPush push;
+    push.set_version(OTX_PUSH_VERSION);
+    push.set_type(proto::OTXPUSH_INBOX);
+    push.set_accountid(Identifier::Factory(account)->str());
+    push.set_itemid(item->GetTransactionNum());
+    push.set_account(serializedAccount->Get());
+    push.set_inbox(serializedInbox->Get());
+    push.set_inboxhash(inboxHash->str());
+    push.set_outbox(serializedOutbox->Get());
+    push.set_outboxhash(outboxHash->str());
+    push.set_item(serializedItem->Get());
+
+    OT_ASSERT(proto::Validate(push, VERBOSE));
+
+    message->AddFrame(proto::ProtoAsString(push));
+    notification_socket_->Push(message);
 }
 }  // namespace opentxs::server

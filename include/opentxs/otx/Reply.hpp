@@ -33,14 +33,14 @@ public:
 
     EXPORT virtual proto::ServerReply Contract() const = 0;
     EXPORT virtual RequestNumber Number() const = 0;
-    EXPORT virtual std::string Payload() const = 0;
+    EXPORT virtual std::shared_ptr<proto::OTXPush> Push() const = 0;
     EXPORT virtual const Identifier& Recipient() const = 0;
     EXPORT virtual const Identifier& Server() const = 0;
     EXPORT virtual bool Success() const = 0;
     EXPORT virtual proto::ServerReplyType Type() const = 0;
 
     EXPORT virtual bool SetNumber(const RequestNumber number) = 0;
-    EXPORT virtual bool SetPayload(const std::string& payload) = 0;
+    EXPORT virtual bool SetPush(const proto::OTXPush& push) = 0;
 
     EXPORT virtual ~Reply() = default;
 

@@ -222,6 +222,7 @@ Sync::Sync(
           notification_listener_callback_,
           zmq::Socket::Direction::Bind))
     , task_finished_(client_.ZeroMQ().PublishSocket())
+    , auto_process_inbox_(Flag::Factory(true))
 {
     // WARNING: do not access client_.Wallet() during construction
     const auto endpoint = client_.Endpoints().AccountUpdate();
@@ -915,6 +916,8 @@ OTIdentifier Sync::DepositPayment(
     return Identifier::Factory();
 }
 
+void Sync::DisableAutoaccept() const { auto_process_inbox_->Off(); }
+
 bool Sync::download_account(
     const Identifier& taskID,
     const Identifier& nymID,
@@ -1506,6 +1509,29 @@ void Sync::process_account(const zmq::Message& message) const
            << std::endl;
 }
 
+bool Sync::process_inbox(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const Identifier& accountID) const
+{
+    OT_ASSERT(false == nymID.empty())
+    OT_ASSERT(false == serverID.empty())
+    OT_ASSERT(false == accountID.empty())
+
+    const auto processed = AcceptIncoming(nymID, accountID, serverID);
+
+    if (processed) {
+        return finish_task(taskID, true);
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to process inbox ")(
+            accountID)
+            .Flush();
+    }
+
+    return finish_task(taskID, false);
+}
+
 void Sync::process_notification(const zmq::Message& message) const
 {
     OT_ASSERT(0 < message.Body().size())
@@ -1930,6 +1956,19 @@ OTIdentifier Sync::ScheduleDownloadNymbox(
     return schedule_download_nymbox(localNymID, serverID);
 }
 
+OTIdentifier Sync::ScheduleProcessInbox(
+    const Identifier& localNymID,
+    const Identifier& serverID,
+    const Identifier& accountID) const
+{
+    CHECK_ARGS(localNymID, serverID, accountID)
+
+    auto& queue = get_operations({localNymID, serverID});
+    const auto taskID(Identifier::Random());
+
+    return start_task(taskID, queue.process_inbox_.Push(taskID, accountID));
+}
+
 OTIdentifier Sync::SchedulePublishServerContract(
     const Identifier& localNymID,
     const Identifier& serverID,
@@ -2264,11 +2303,7 @@ void Sync::StartIntroductionServer(const Identifier& localNymID) const
 
 void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 {
-    const auto& [strNymID, strServerID] =
-        id;  // THESE ARE STRINGS. (See ContextID definition)
-
-    const auto nymID = Identifier::Factory(strNymID);
-    const auto serverID = Identifier::Factory(strServerID);
+    const auto& [nymID, serverID] = id;
 
     // Make sure the server contract is available
     while (running_) {
@@ -2665,6 +2700,24 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
             }
 
             publish_server_contract(taskID, nymID, serverID, contractID);
+        }
+
+        while (queue.process_inbox_.Pop(taskID, accountID)) {
+            SHUTDOWN()
+
+            if (accountID->empty()) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": How did an empty account ID get in here?")
+                    .Flush();
+
+                continue;
+            } else {
+                LogDetail(OT_METHOD)(__FUNCTION__)(": Processing inbox ")(
+                    accountID)
+                    .Flush();
+            }
+
+            process_inbox(taskID, nymID, serverID, accountID);
         }
 
         YIELD(MAIN_LOOP_MILLISECONDS);

@@ -274,18 +274,18 @@ bool Item::VerifyTransactionStatement(
 bool Item::VerifyBalanceStatement(
     std::int64_t lActualAdjustment,
     const ClientContext& context,
-    Ledger& THE_INBOX,
-    Ledger& THE_OUTBOX,
+    const Ledger& THE_INBOX,
+    const Ledger& THE_OUTBOX,
     const Account& THE_ACCOUNT,
-    OTTransaction& TARGET_TRANSACTION,
+    const OTTransaction& TARGET_TRANSACTION,
     const std::set<TransactionNumber>& excluded,
-    TransactionNumber outboxNum)  // Only used in the case of transfer, where
-                                  // the
-                                  // user doesn't know the outbox trans# in
-                                  // advance, so he sends a dummy number
-                                  // (currently '1') which we verify against
-                                  // the actual outbox trans# successfully, only
-                                  // in that special case.
+    TransactionNumber outboxNum) const  // Only used in the case of transfer,
+                                        // where the user doesn't know the
+                                        // outbox trans# in advance, so he sends
+                                        // a dummy number (currently '1') which
+                                        // we verify against the actual outbox
+                                        // trans# successfully, only in that
+                                        // special case.
 {
     std::set<TransactionNumber> removed(excluded);
 
@@ -327,7 +327,7 @@ bool Item::VerifyBalanceStatement(
         OT_ASSERT(false != bool(pSubItem));
 
         std::int64_t lReceiptAmountMultiplier = 1;  // needed for outbox items.
-        Ledger* pLedger = nullptr;
+        const Ledger* pLedger = nullptr;
 
         switch (pSubItem->GetType()) {
             case itemType::voucherReceipt:
@@ -699,6 +699,22 @@ void Item::AddItem(std::shared_ptr<Item> theItem)
 // While processing a transaction, you may wish to query it for items of a
 // certain type.
 std::shared_ptr<Item> Item::GetItem(std::int32_t nIndex)
+{
+    std::int32_t nTempIndex = (-1);
+
+    for (auto& it : m_listItems) {
+        const auto pItem = it;
+        OT_ASSERT(false != bool(pItem));
+
+        nTempIndex++;  // first iteration this becomes 0 here.
+
+        if (nTempIndex == nIndex) return pItem;
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<const Item> Item::GetItem(std::int32_t nIndex) const
 {
     std::int32_t nTempIndex = (-1);
 

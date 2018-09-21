@@ -75,10 +75,8 @@ public:
     EXPORT void CalculateNumberOfOrigin() override;
     // used for looping through the items in a few places.
     inline listOfItems& GetItemList() { return m_listItems; }
-    std::shared_ptr<Item> GetItem(std::int32_t nIndex);  // While processing an
-                                                         // item, you may wish
-    // to query it for sub-items of a certain
-    // type.
+    std::shared_ptr<const Item> GetItem(std::int32_t nIndex) const;
+    std::shared_ptr<Item> GetItem(std::int32_t nIndex);
     std::shared_ptr<Item> GetItemByTransactionNum(
         std::int64_t lTransactionNumber);  // While
     // processing
@@ -130,16 +128,17 @@ public:
     EXPORT bool VerifyBalanceStatement(
         std::int64_t lActualAdjustment,
         const ClientContext& context,
-        Ledger& THE_INBOX,
-        Ledger& THE_OUTBOX,
+        const Ledger& THE_INBOX,
+        const Ledger& THE_OUTBOX,
         const Account& THE_ACCOUNT,
-        OTTransaction& TARGET_TRANSACTION,
+        const OTTransaction& TARGET_TRANSACTION,
         const std::set<TransactionNumber>& excluded,
-        TransactionNumber outboxNum = 0);  // Used in special case of transfers
-                                           // (the user didn't know the outbox
-                                           // trans# when constructing the
-                                           // original request.) Unused when 0.
-                                           // server-side
+        TransactionNumber outboxNum = 0) const;  // Used in special case of
+                                                 // transfers (the user didn't
+                                                 // know the outbox trans# when
+                                                 // constructing the original
+                                                 // request.) Unused when 0.
+                                                 // server-side
     EXPORT bool VerifyTransactionStatement(
         const ClientContext& THE_NYM,
         const OTTransaction& TARGET_TRANSACTION,

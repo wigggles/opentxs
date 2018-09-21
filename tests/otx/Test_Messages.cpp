@@ -86,8 +86,7 @@ TEST_F(Test_Messages, activateRequest)
 
     ASSERT_TRUE(alice);
 
-    auto request = opentxs::otx::Request::Factory(
-        alice, server_id_, type);
+    auto request = opentxs::otx::Request::Factory(alice, server_id_, type);
 
     ASSERT_TRUE(request->Nym());
     EXPECT_EQ(alice_nym_id_.get(), request->Nym()->ID());
@@ -129,8 +128,7 @@ TEST_F(Test_Messages, activateRequest)
     serialized = request->Contract();
     EXPECT_TRUE(serialized.has_credentials());
 
-    const auto serverCopy = opentxs::otx::Request::Factory(
-        server_, serialized);
+    const auto serverCopy = opentxs::otx::Request::Factory(server_, serialized);
 
     ASSERT_TRUE(serverCopy->Nym());
     EXPECT_EQ(alice_nym_id_.get(), serverCopy->Nym()->ID());
@@ -160,7 +158,12 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(server_id_, reply->Server());
     EXPECT_EQ(type, reply->Type());
     EXPECT_EQ(0, reply->Number());
-    EXPECT_TRUE(reply->Payload().empty());
+    EXPECT_FALSE(reply->Push());
+    proto::OTXPush push;
+    push.set_version(1);
+    push.set_type(proto::OTXPUSH_NYMBOX);
+    push.set_item(payload);
+    reply->SetPush(push);
 
     replyID = reply->ID();
 
@@ -188,16 +191,15 @@ TEST_F(Test_Messages, pushReply)
 
     EXPECT_EQ(1, serialized.request());
 
-    reply->SetPayload(payload);
-
-    EXPECT_EQ(payload, reply->Payload());
+    ASSERT_TRUE(reply->Push());
+    EXPECT_EQ(payload, reply->Push()->item());
     EXPECT_TRUE(reply->Validate());
 
     serialized = reply->Contract();
-    EXPECT_EQ(payload, serialized.legacypayload());
 
-    const auto aliceCopy = opentxs::otx::Reply::Factory(
-        client_, serialized);
+    EXPECT_EQ(payload, serialized.push().item());
+
+    const auto aliceCopy = opentxs::otx::Reply::Factory(client_, serialized);
 
     ASSERT_TRUE(aliceCopy->Nym());
     EXPECT_EQ(server_.NymID(), aliceCopy->Nym()->ID());
@@ -206,7 +208,8 @@ TEST_F(Test_Messages, pushReply)
     EXPECT_EQ(type, aliceCopy->Type());
     EXPECT_EQ(1, aliceCopy->Number());
     EXPECT_EQ(replyID.get(), aliceCopy->ID());
-    EXPECT_EQ(payload, aliceCopy->Payload());
+    ASSERT_TRUE(aliceCopy->Push());
+    EXPECT_EQ(payload, aliceCopy->Push()->item());
     EXPECT_TRUE(aliceCopy->Validate());
 }
 }  // namespace

@@ -14,14 +14,14 @@ class Reply final : otx::Reply
 public:
     proto::ServerReply Contract() const override;
     RequestNumber Number() const override;
-    std::string Payload() const override;
+    std::shared_ptr<proto::OTXPush> Push() const override;
     const Identifier& Recipient() const override { return recipient_; }
     const Identifier& Server() const override { return server_; }
     bool Success() const override { return success_; }
     proto::ServerReplyType Type() const override { return type_; }
 
     bool SetNumber(const RequestNumber number) override;
-    bool SetPayload(const std::string& payload) override;
+    bool SetPush(const proto::OTXPush& push) override;
 
     ~Reply() = default;
 
@@ -33,7 +33,7 @@ private:
     const proto::ServerReplyType type_{proto::SERVERREPLY_ERROR};
     const bool success_{false};
     RequestNumber number_{0};
-    std::string payload_{""};
+    std::shared_ptr<proto::OTXPush> payload_{nullptr};
 
     static std::shared_ptr<const opentxs::Nym> extract_nym(
         const api::Core& api,

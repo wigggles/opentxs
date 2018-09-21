@@ -418,7 +418,9 @@ SharedAccount Wallet::IssuerAccount(const Identifier& unitID) const
     return {};
 }
 
-ExclusiveAccount Wallet::mutable_Account(const Identifier& accountID) const
+ExclusiveAccount Wallet::mutable_Account(
+    const Identifier& accountID,
+    const AccountCallback callback) const
 {
     Lock mapLock(account_map_lock_);
 
@@ -433,14 +435,14 @@ ExclusiveAccount Wallet::mutable_Account(const Identifier& accountID) const
         if (pAccount) {
             std::function<void(
                 std::unique_ptr<opentxs::Account>&, eLock&, bool)>
-                callback = [this, id](
-                               std::unique_ptr<opentxs::Account>& in,
-                               eLock& lock,
-                               bool success) -> void {
+                save = [this, id](
+                           std::unique_ptr<opentxs::Account>& in,
+                           eLock& lock,
+                           bool success) -> void {
                 this->save(id, in, lock, success);
             };
 
-            return ExclusiveAccount(&pAccount, rowMutex, callback);
+            return ExclusiveAccount(&pAccount, rowMutex, save, callback);
         }
     } catch (...) {
 

@@ -79,7 +79,7 @@ Reply::Reply(const api::Core& api, const proto::ServerReply serialized)
     , type_(serialized.type())
     , success_(serialized.success())
     , number_(serialized.request())
-    , payload_(serialized.legacypayload())
+    , payload_(std::make_shared<proto::OTXPush>(serialized.push()))
 {
     id_ = Identifier::Factory(serialized.id());
     signatures_.push_front(SerializedSignature(
@@ -153,7 +153,9 @@ proto::ServerReply Reply::id_version(const Lock& lock) const
     output.set_server(server_->str());
     output.set_request(number_);
     output.set_success(success_);
-    output.set_legacypayload(payload_);
+
+    if (payload_) { *output.mutable_push() = *payload_; }
+
     output.clear_signature();  // Must be blank
 
     return output;
@@ -166,7 +168,7 @@ RequestNumber Reply::Number() const
     return number_;
 }
 
-std::string Reply::Payload() const
+std::shared_ptr<proto::OTXPush> Reply::Push() const
 {
     Lock lock(lock_);
 
@@ -188,10 +190,10 @@ bool Reply::SetNumber(const RequestNumber number)
     return update_signature(lock);
 }
 
-bool Reply::SetPayload(const std::string& payload)
+bool Reply::SetPush(const proto::OTXPush& push)
 {
     Lock lock(lock_);
-    payload_ = payload;
+    payload_ = std::make_shared<proto::OTXPush>(push);
 
     return update_signature(lock);
 }

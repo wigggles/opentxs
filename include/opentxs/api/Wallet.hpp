@@ -45,6 +45,8 @@ namespace api
 class Wallet
 {
 public:
+    using AccountCallback = std::function<void(const Account&)>;
+
     EXPORT virtual SharedAccount Account(const Identifier& accountID) const = 0;
     EXPORT virtual OTIdentifier AccountPartialMatch(
         const std::string& hint) const = 0;
@@ -59,7 +61,8 @@ public:
     EXPORT virtual SharedAccount IssuerAccount(
         const Identifier& unitID) const = 0;
     EXPORT virtual ExclusiveAccount mutable_Account(
-        const Identifier& accountID) const = 0;
+        const Identifier& accountID,
+        const AccountCallback callback = nullptr) const = 0;
     EXPORT virtual bool UpdateAccount(
         const Identifier& accountID,
         const opentxs::ServerContext& context,

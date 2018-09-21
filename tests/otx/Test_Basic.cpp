@@ -85,6 +85,8 @@ public:
 
     void init()
     {
+        client_1_.Sync().DisableAutoaccept();
+        client_2_.Sync().DisableAutoaccept();
         const_cast<std::string&>(SeedA_) = client_1_.Exec().Wallet_ImportSeed(
             "spike nominee miss inquiry fee nothing belt list other "
             "daughter leave valley twelve gossip paper",
@@ -1726,9 +1728,7 @@ TEST_F(Test_Basic, getAccountData_after_cheque_deposited)
     const TransactionNumber number{transactionMap.begin()->first};
     const auto& transaction = *transactionMap.begin()->second;
 
-    EXPECT_TRUE(transaction.IsAbbreviated());
     EXPECT_EQ(transactionType::chequeReceipt, transaction.GetType());
-    EXPECT_FALSE(inbox->LoadBoxReceipt(number));
 }
 
 TEST_F(Test_Basic, getBoxReceipt_cheque_receipt)
