@@ -602,7 +602,7 @@ std::string OTAPI_Exec::GetNym_SourceForID(const std::string& NYM_ID) const
     auto nym_id = Identifier::Factory(NYM_ID);
     auto pNym = api_.Wallet().Nym(nym_id);
     if (false == bool(pNym)) return {};
-    const std::string str_return(pNym->Source().asString().Get());
+    const std::string str_return(pNym->Source().asString()->Get());
     return str_return;
 }
 
@@ -2131,7 +2131,7 @@ std::string OTAPI_Exec::GetNym_MailSenderIDByIndex(
 
     if (!message) { return {}; }
 
-    return message->m_strNymID.Get();
+    return message->m_strNymID->Get();
 }
 
 std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(
@@ -2145,7 +2145,7 @@ std::string OTAPI_Exec::GetNym_MailNotaryIDByIndex(
 
     if (!message) { return {}; }
 
-    return message->m_strNotaryID.Get();
+    return message->m_strNotaryID->Get();
 }
 
 bool OTAPI_Exec::Nym_RemoveMailByIndex(
@@ -2205,7 +2205,7 @@ std::string OTAPI_Exec::GetNym_OutmailRecipientIDByIndex(
 
     if (!message) { return {}; }
 
-    return message->m_strNymID2.Get();
+    return message->m_strNymID2->Get();
 }
 
 std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
@@ -2219,7 +2219,7 @@ std::string OTAPI_Exec::GetNym_OutmailNotaryIDByIndex(
 
     if (!message) { return {}; }
 
-    return message->m_strNotaryID.Get();
+    return message->m_strNotaryID->Get();
 }
 
 bool OTAPI_Exec::Nym_RemoveOutmailByIndex(
@@ -2350,7 +2350,7 @@ std::string OTAPI_Exec::GetNym_OutpaymentsRecipientIDByIndex(
         // RECIPIENT: pMessage->m_strNymID2
         // MESSAGE:   pMessage->m_ascPayload
 
-        std::string pBuf = pMessage->m_strNymID2.Get();
+        std::string pBuf = pMessage->m_strNymID2->Get();
         return pBuf;
     }
     return {};
@@ -2385,14 +2385,14 @@ std::string OTAPI_Exec::GetNym_OutpaymentsNotaryIDByIndex(
         // RECIPIENT: pMessage->m_strNymID2
         // MESSAGE:   pMessage->m_ascPayload
 
-        std::int32_t bNotaryIDLength = pMessage->m_strNotaryID.GetLength();
+        std::int32_t bNotaryIDLength = pMessage->m_strNotaryID->GetLength();
         if (1 >= bNotaryIDLength) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": m_strNotaryID Length is 1 or less!\n";
             return {};
         }
 
-        std::string pBuf = pMessage->m_strNotaryID.Get();
+        std::string pBuf = pMessage->m_strNotaryID->Get();
         return pBuf;
     }
     return {};
@@ -9275,9 +9275,9 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage->m_strCommand.Compare("notarizeTransactionResponse")) &&
-        (false == theMessage->m_strCommand.Compare("processNymboxResponse")) &&
-        (false == theMessage->m_strCommand.Compare("processInboxResponse"))) {
+         theMessage->m_strCommand->Compare("notarizeTransactionResponse")) &&
+        (false == theMessage->m_strCommand->Compare("processNymboxResponse")) &&
+        (false == theMessage->m_strCommand->Compare("processInboxResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage->m_strCommand << "\n";
         return OT_ERROR;
@@ -10401,7 +10401,7 @@ std::int64_t OTAPI_Exec::Message_GetUsageCredits(
         return -2;
     }
 
-    if (!theMessage->m_strCommand.Compare("usageCreditsResponse")) {
+    if (!theMessage->m_strCommand->Compare("usageCreditsResponse")) {
         otErr << OT_METHOD << __FUNCTION__
               << ": THE_MESSAGE is supposed to be of command "
                  "type \"usageCreditsResponse\", but instead it's a: "
@@ -11074,7 +11074,7 @@ std::string OTAPI_Exec::Message_GetCommand(const std::string& THE_MESSAGE) const
         !theMessage->LoadContractFromString(strMessage))
         return {};
 
-    auto strOutput = String::Factory(theMessage->m_strCommand.Get());
+    auto strOutput = String::Factory(theMessage->m_strCommand->Get());
     std::string pBuf = strOutput->Get();
     return pBuf;
 }
@@ -11103,9 +11103,9 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage->m_strCommand.Compare("notarizeTransaction")) &&
+    if ((false == theMessage->m_strCommand->Compare("notarizeTransaction")) &&
         (false ==
-         theMessage->m_strCommand.Compare("notarizeTransactionResponse"))) {
+         theMessage->m_strCommand->Compare("notarizeTransactionResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage->m_strCommand << "\n";
         return {};
@@ -11148,16 +11148,16 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     // contain a ledger. (Don't want to pass back whatever it DOES contain
     // in that case, now do I?)
     //
-    if ((false == theMessage->m_strCommand.Compare(
+    if ((false == theMessage->m_strCommand->Compare(
                       "registerInstrumentDefinitionResponse")) &&
-        (false == theMessage->m_strCommand.Compare("issueBasketResponse"))) {
+        (false == theMessage->m_strCommand->Compare("issueBasketResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage->m_strCommand << "\n";
         return {};
     }
 
     auto strOutput =
-        String::Factory(theMessage->m_strInstrumentDefinitionID.Get());
+        String::Factory(theMessage->m_strInstrumentDefinitionID->Get());
 
     if (!strOutput->Exists()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -11195,14 +11195,14 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     // contain an issuer account ID. (Don't want to pass back whatever it
     // DOES contain in that case, now do I?)
     //
-    if (!theMessage->m_strCommand.Compare(
+    if (!theMessage->m_strCommand->Compare(
             "registerInstrumentDefinitionResponse")) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage->m_strCommand << "\n";
         return {};
     }
 
-    auto strOutput = String::Factory(theMessage->m_strAcctID.Get());
+    auto strOutput = String::Factory(theMessage->m_strAcctID->Get());
 
     if (!strOutput->Exists()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -11242,13 +11242,13 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
     // contain a new account ID anyway, right? (Don't want to pass back
     // whatever it DOES contain in that case, now do I?)
     //
-    if (!theMessage->m_strCommand.Compare("registerAccountResponse")) {
+    if (!theMessage->m_strCommand->Compare("registerAccountResponse")) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage->m_strCommand << "\n";
         return {};
     }
 
-    auto strOutput = String::Factory(theMessage->m_strAcctID.Get());
+    auto strOutput = String::Factory(theMessage->m_strAcctID->Get());
 
     if (!strOutput->Exists()) {
         otOut << OT_METHOD << __FUNCTION__
@@ -11283,16 +11283,16 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
     }
 
     // So far these are the only messages that use m_strNymboxHash:
-    if ((false == theMessage->m_strCommand.Compare("processNymbox")) &&
-        (false == theMessage->m_strCommand.Compare("notarizeTransaction")) &&
-        (false == theMessage->m_strCommand.Compare("getTransactionNumbers")) &&
-        (false == theMessage->m_strCommand.Compare("processInbox")) &&
-        (false == theMessage->m_strCommand.Compare("triggerClause")) &&
-        (false == theMessage->m_strCommand.Compare("getNymboxResponse")) &&
+    if ((false == theMessage->m_strCommand->Compare("processNymbox")) &&
+        (false == theMessage->m_strCommand->Compare("notarizeTransaction")) &&
+        (false == theMessage->m_strCommand->Compare("getTransactionNumbers")) &&
+        (false == theMessage->m_strCommand->Compare("processInbox")) &&
+        (false == theMessage->m_strCommand->Compare("triggerClause")) &&
+        (false == theMessage->m_strCommand->Compare("getNymboxResponse")) &&
         (false ==
-         theMessage->m_strCommand.Compare("getRequestNumberResponse")) &&
+         theMessage->m_strCommand->Compare("getRequestNumberResponse")) &&
         (false ==
-         theMessage->m_strCommand.Compare("getTransactionNumbersResponse"))) {
+         theMessage->m_strCommand->Compare("getTransactionNumbersResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type : " << theMessage->m_strCommand
               << " \nFYI, with m_strNymboxHash : "
@@ -11300,13 +11300,13 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
         return {};
     }
 
-    if (!theMessage->m_strNymboxHash.Exists()) {
+    if (!theMessage->m_strNymboxHash->Exists()) {
         otOut << OT_METHOD << __FUNCTION__
               << ": No NymboxHash found on message: " << strMessage << "\n";
         return {};
     }
 
-    auto strOutput = String::Factory(theMessage->m_strNymboxHash.Get());
+    auto strOutput = String::Factory(theMessage->m_strNymboxHash->Get());
     std::string pBuf = strOutput->Get();
 
     return pBuf;
@@ -11340,7 +11340,7 @@ std::int32_t OTAPI_Exec::Message_GetSuccess(
     }
     if (true == theMessage->m_bSuccess) {
         otInfo << __FUNCTION__ << ": Server reply for RequestNum "
-               << StringToLong(theMessage->m_strRequestNum.Get())
+               << StringToLong(theMessage->m_strRequestNum->Get())
                << "(Message_GetSuccess was successful, but any transaction "
                   "inside could have failed OR succeeded. Use "
                   "Message_GetTransactionSuccess for that.)\n";  // Contents:
@@ -11352,7 +11352,7 @@ std::int32_t OTAPI_Exec::Message_GetSuccess(
         otWarn << OT_METHOD << __FUNCTION__
                << ": ** FYI, server reply was received, and it "
                   "said 'No.' (Status = failed). RequestNum: "
-               << StringToLong(theMessage->m_strRequestNum.Get())
+               << StringToLong(theMessage->m_strRequestNum->Get())
                << "\n";  // Contents:\n\n" << THE_MESSAGE << "\n\n"
     }
     return OT_FALSE;
@@ -11428,9 +11428,9 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage->m_strCommand.Compare("notarizeTransactionResponse")) &&
-        (false == theMessage->m_strCommand.Compare("processInboxResponse")) &&
-        (false == theMessage->m_strCommand.Compare("processNymboxResponse"))) {
+         theMessage->m_strCommand->Compare("notarizeTransactionResponse")) &&
+        (false == theMessage->m_strCommand->Compare("processInboxResponse")) &&
+        (false == theMessage->m_strCommand->Compare("processNymboxResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage->m_strCommand << "\n";
         return OT_ERROR;
@@ -11517,9 +11517,9 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     // in that case, now do I?)
     //
     if ((false ==
-         theMessage->m_strCommand.Compare("notarizeTransactionResponse")) &&
-        (false == theMessage->m_strCommand.Compare("processInboxResponse")) &&
-        (false == theMessage->m_strCommand.Compare("processNymboxResponse"))) {
+         theMessage->m_strCommand->Compare("notarizeTransactionResponse")) &&
+        (false == theMessage->m_strCommand->Compare("processInboxResponse")) &&
+        (false == theMessage->m_strCommand->Compare("processNymboxResponse"))) {
         otOut << OT_METHOD << __FUNCTION__
               << ": Wrong message type: " << theMessage->m_strCommand << "\n";
         return OT_ERROR;
@@ -11570,7 +11570,7 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
         return OT_TRUE;
     else {
         const std::int64_t lRequestNum =
-            StringToLong(theMessage->m_strRequestNum.Get());
+            StringToLong(theMessage->m_strRequestNum->Get());
         const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
         otWarn << OT_METHOD << __FUNCTION__

@@ -3725,7 +3725,7 @@ bool OT_API::Msg_HarvestTransactionNumbers(
     bool bTransactionWasSuccess,        // false until positively asserted.
     bool bTransactionWasFailure) const  // false until positively asserted.
 {
-    rLock lock(lock_callback_({NYM_ID.str(), theMsg.m_strNotaryID.Get()}));
+    rLock lock(lock_callback_({NYM_ID.str(), theMsg.m_strNotaryID->Get()}));
     auto context = api_.Wallet().mutable_ServerContext(
         NYM_ID, Identifier::Factory(theMsg.m_strNotaryID));
 
@@ -10844,7 +10844,7 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
     auto message{api_.Factory().Message()};
     const auto accepted =
         m_pClient->AcceptEntireNymbox(*nymbox, context, *message);
-    requestNum = atoi(message->m_strRequestNum.Get());
+    requestNum = atoi(message->m_strRequestNum->Get());
 
     if (false == accepted) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed trying to accept the "
@@ -11484,7 +11484,7 @@ CommandResult OT_API::sendNymMessage(
     sent->m_strNymID = String::Factory(nymID);
     sent->m_strNymID2 = String::Factory(recipientNymID);
     sent->m_strNotaryID = String::Factory(context.Server());
-    sent->m_strRequestNum.Format("%" PRId64, requestNum);
+    sent->m_strRequestNum->Format("%" PRId64, requestNum);
     auto copy = PeerObject::Create(api_.Wallet(), nullptr, THE_MESSAGE);
 
     OT_ASSERT(copy);
@@ -11636,8 +11636,8 @@ CommandResult OT_API::sendNymInstrument(
         // outpayments copy, and save that, before trying to send
         // the message.
         requestNum = context.Request();
-        pMessageLocalCopy->m_strRequestNum.Format("%" PRId64, requestNum);
-        theMessage->m_strRequestNum.Format("%" PRId64, requestNum);
+        pMessageLocalCopy->m_strRequestNum->Format("%" PRId64, requestNum);
+        theMessage->m_strRequestNum->Format("%" PRId64, requestNum);
         OTEnvelope theEnvelope;
         const bool encrypted =
             theEnvelope.Seal(recipientPubkey, strInstrumentForRecipient) &&
@@ -11708,7 +11708,7 @@ CommandResult OT_API::sendNymInstrument(
         requestNum = 0;
 
         if (storeOutpayment) {
-            pMessageLocalCopy->m_strRequestNum.Format("%" PRId64, requestNum);
+            pMessageLocalCopy->m_strRequestNum->Format("%" PRId64, requestNum);
             pMessageLocalCopy->SignContract(nym);
             pMessageLocalCopy->SaveContract();
             auto nymfile = context.mutable_Nymfile(__FUNCTION__);
@@ -12400,12 +12400,12 @@ NetworkReplyMessage OT_API::send_message(
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     m_pClient->QueueOutgoingMessage(message);
-    request_sent_->Publish(message.m_strCommand.Get());
+    request_sent_->Publish(message.m_strCommand->Get());
     auto result = context.Connection().Send(context, message);
 
     if (SendResult::VALID_REPLY == result.first) {
         m_pClient->processServerReply(pending, resync, context, result.second);
-        reply_received_->Publish(message.m_strCommand.Get());
+        reply_received_->Publish(message.m_strCommand->Get());
     }
 
     return result;

@@ -55,7 +55,7 @@ OTNym_or_SymmetricKey::~OTNym_or_SymmetricKey()
     if (m_bCleanupPassword && (nullptr != m_pPassword)) delete m_pPassword;
     m_pPassword = nullptr;  // optional
 
-    m_pstrDisplay = nullptr;
+    m_pstrDisplay = String::Factory();
 
     // Since this is merely a wrapper class, we don't even Release() these
     // things.

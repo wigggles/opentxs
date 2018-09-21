@@ -91,7 +91,7 @@ Server::Server(const opentxs::api::server::Manager& manager)
     , notary_(*this, manager_)
     , transactor_(*this)
     , userCommandProcessor_(*this, manager_)
-    , m_strWalletFilename()
+    , m_strWalletFilename(String::Factory())
     , m_bReadOnly(false)
     , m_bShutdownFlag(false)
     , m_notaryID(Identifier::Factory())
@@ -243,7 +243,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     manager_.Config().Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_BIND_KEY,
-        String(bindIP),
+        String::Factory(bindIP),
         notUsed);
 
     const std::uint32_t defaultCommandPort = DEFAULT_COMMAND_PORT;
@@ -292,7 +292,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     manager_.Config().Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_COMMAND_KEY,
-        String(std::to_string(listenCommand)),
+        String::Factory(std::to_string(listenCommand)),
         notUsed);
 
     const std::uint32_t defaultNotificationPort = DEFAULT_NOTIFY_PORT;
@@ -323,7 +323,7 @@ void Server::CreateMainFile(bool& mainFileExists)
     manager_.Config().Set_str(
         SERVER_CONFIG_LISTEN_SECTION,
         SERVER_CONFIG_NOTIFY_KEY,
-        String(std::to_string(listenNotification)),
+        String::Factory(std::to_string(listenNotification)),
         notUsed);
 
     const std::string defaultName = DEFAULT_NAME;
@@ -380,12 +380,12 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     std::shared_ptr<const ServerContract> pContract{};
     auto& wallet = manager_.Wallet();
-    const String existing =
+    const auto existing = String::Factory(
         OTDB::QueryPlainString(
             manager_.DataFolder(), SERVER_CONTRACT_FILE, "", "", "")
-            .data();
+            .data());
 
-    if (existing.empty()) {
+    if (existing->empty()) {
         pContract = wallet.Server(
             nymID->str(),
             name,
@@ -414,7 +414,7 @@ void Server::CreateMainFile(bool& mainFileExists)
                      "the sample data. (Failure.)\n";
             OT_FAIL;
         }
-        strNotaryID = String(pContract->ID()).Get();
+        strNotaryID = String::Factory(pContract->ID())->Get();
     } else {
         OT_FAIL;
     }
@@ -500,7 +500,7 @@ void Server::Init(bool readOnly)
         OT_FAIL;
     }
 
-    String dataPath = manager_.DataFolder().c_str();
+    auto dataPath = String::Factory(manager_.DataFolder().c_str());
 
     // PID -- Make sure we're not running two copies of OT on the same data
     // simultaneously here.
@@ -518,10 +518,10 @@ void Server::Init(bool readOnly)
         // OT again. (This is all for the purpose of preventing two copies
         // of OT running at the same time and corrupting the data folder.)
         //
-        String strPIDPath;
+        auto strPIDPath = String::Factory();
         OTPaths::AppendFile(strPIDPath, dataPath, SERVER_PID_FILENAME);
 
-        std::ifstream pid_infile(strPIDPath.Get());
+        std::ifstream pid_infile(strPIDPath->Get());
 
         // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
         if (pid_infile.is_open()) {
@@ -537,7 +537,7 @@ void Server::Init(bool readOnly)
                       << lPID
                       << ") in the data lock file, located "
                          "at: "
-                      << strPIDPath.Get()
+                      << strPIDPath->Get()
                       << "\n\n"
                          "If the OT process with PID "
                       << lPID
@@ -562,7 +562,7 @@ void Server::Init(bool readOnly)
 #endif
 
         // 4. OPEN THE FILE IN WRITE MODE, AND SAVE THE PID TO IT.
-        std::ofstream pid_outfile(strPIDPath.Get());
+        std::ofstream pid_outfile(strPIDPath->Get());
 
         if (pid_outfile.is_open()) {
             pid_outfile << the_pid;
@@ -570,7 +570,7 @@ void Server::Init(bool readOnly)
         } else {
             otErr << "Failed trying to open data locking file (to "
                      "store PID "
-                  << the_pid << "): " << strPIDPath.Get() << "\n";
+                  << the_pid << "): " << strPIDPath->Get() << "\n";
         }
     }
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
@@ -607,7 +607,7 @@ void Server::Init(bool readOnly)
     }
 
     auto password = manager_.Crypto().Encode().Nonce(16);
-    String notUsed;
+    auto notUsed = String::Factory();
     bool ignored;
     manager_.Config().CheckSet_str(
         "permissions", "admin_password", password, notUsed, ignored);
@@ -666,7 +666,7 @@ bool Server::SendInstrumentToNym(
         RECIPIENT_NYM_ID,
         transactionType::instrumentNotice,
         nullptr,
-        &strPayment,
+        strPayment,
         szCommand);
 
     return bDropped;
@@ -764,15 +764,15 @@ bool Server::DropMessageToNymbox(
     const Identifier& RECIPIENT_NYM_ID,
     transactionType theType,
     const Message* pMsg,
-    const String* pstrMessage,
+    const String& pstrMessage,
     const char* szCommand)  // If you pass something here, it will
 {                           // replace pMsg->m_strCommand below.
     OT_ASSERT_MSG(
-        !((nullptr == pMsg) && (nullptr == pstrMessage)),
+        !((nullptr == pMsg) && (pstrMessage.empty())),
         "pMsg and pstrMessage -- these can't BOTH be nullptr.\n");
     // ^^^ Must provde one or the other.
     OT_ASSERT_MSG(
-        !((nullptr != pMsg) && (nullptr != pstrMessage)),
+        !((nullptr != pMsg) && (!pstrMessage.empty())),
         "pMsg and pstrMessage -- these can't BOTH be not-nullptr.\n");
     // ^^^ Can't provide both.
     std::int64_t lTransNum{0};
@@ -819,7 +819,7 @@ bool Server::DropMessageToNymbox(
                     break;  // should never happen.
             }
         }
-        theMsgAngel->m_strNotaryID = String(m_notaryID);
+        theMsgAngel->m_strNotaryID = String::Factory(m_notaryID);
         theMsgAngel->m_bSuccess = true;
         SENDER_NYM_ID.GetString(theMsgAngel->m_strNymID);
         RECIPIENT_NYM_ID.GetString(
@@ -839,9 +839,9 @@ bool Server::DropMessageToNymbox(
 
         theMsgAngel->m_ascPayload.Release();
 
-        if ((nullptr != pstrMessage) && pstrMessage->Exists() &&
-            theEnvelope.Seal(thePubkey, *pstrMessage) &&  // Seal pstrMessage
-                                                          // into theEnvelope,
+        if ((!pstrMessage.empty()) &&
+            theEnvelope.Seal(thePubkey, pstrMessage) &&  // Seal pstrMessage
+                                                         // into theEnvelope,
             // using nymRecipient's
             // public key.
             theEnvelope.GetCiphertext(theMsgAngel->m_ascPayload))  // Grab the
@@ -875,7 +875,7 @@ bool Server::DropMessageToNymbox(
     //  }
     // Grab a string copy of message.
     //
-    const String strInMessage(*message);
+    const auto strInMessage = String::Factory(*message);
     auto theLedger{manager_.Factory().Ledger(
         RECIPIENT_NYM_ID, RECIPIENT_NYM_ID, NOTARY_ID)};  // The
                                                           // recipient's
@@ -942,24 +942,24 @@ bool Server::DropMessageToNymbox(
             transaction->SaveBoxReceipt(*theLedger);
             auto push = zmq::Message::Factory();
             push->AddFrame(RECIPIENT_NYM_ID.str());
-            push->AddFrame(std::string(String(*transaction).Get()));
+            push->AddFrame(std::string(String::Factory(*transaction)->Get()));
             notification_socket_->Push(push);
 
             return true;
         } else  // should never happen
         {
-            const String strRecipientNymID(RECIPIENT_NYM_ID);
+            const auto strRecipientNymID = String::Factory(RECIPIENT_NYM_ID);
             otErr
                 << __FUNCTION__
                 << ": Failed while trying to generate transaction in order to "
                    "add a message to Nymbox: "
-                << strRecipientNymID.Get() << "\n";
+                << strRecipientNymID->Get() << "\n";
         }
     } else {
-        const String strRecipientNymID(RECIPIENT_NYM_ID);
+        const auto strRecipientNymID = String::Factory(RECIPIENT_NYM_ID);
         otErr << __FUNCTION__
               << ": Failed while trying to load or verify Nymbox: "
-              << strRecipientNymID.Get() << "\n";
+              << strRecipientNymID->Get() << "\n";
     }
 
     return false;
@@ -988,7 +988,7 @@ bool Server::GetConnectInfo(
     const bool haveIP = manager_.Config().CheckSet_str(
         SERVER_CONFIG_LISTEN_SECTION,
         "bindip",
-        String(DEFAULT_BIND_IP),
+        String::Factory(DEFAULT_BIND_IP),
         strHostname,
         notUsed);
 
@@ -1025,12 +1025,12 @@ Server::~Server()
     // another copy already running (otherwise we might wind up with two copies
     // trying to write
     // to the same data folder simultaneously, which could corrupt the data...)
-    String strDataPath = manager_.DataFolder().c_str();
+    auto strDataPath = String::Factory(manager_.DataFolder().c_str());
 
     if (!m_bReadOnly) {
-        String strPIDPath;
+        auto strPIDPath = String::Factory();
         OTPaths::AppendFile(strPIDPath, strDataPath, SERVER_PID_FILENAME);
-        std::ofstream pid_outfile(strPIDPath.Get());
+        std::ofstream pid_outfile(strPIDPath->Get());
 
         if (pid_outfile.is_open()) {
             std::uint32_t the_pid = 0;
@@ -1039,7 +1039,7 @@ Server::~Server()
         } else {
             otErr << "Failed trying to open data locking file (to wipe "
                      "PID back to 0): "
-                  << strPIDPath.Get() << "\n";
+                  << strPIDPath->Get() << "\n";
         }
     }
 }

@@ -89,12 +89,12 @@ namespace opentxs
 
 api::Settings* OTPaths::s_settings{Factory::Settings()};
 
-OTString OTPaths::s_strAppBinaryFolder("");
-OTString OTPaths::s_strHomeFolder("");
-OTString OTPaths::s_strAppDataFolder("");
-OTString OTPaths::s_strGlobalConfigFile("");
-OTString OTPaths::s_strPrefixFolder("");
-OTString OTPaths::s_strScriptsFolder("");
+OTString OTPaths::s_strAppBinaryFolder(String::Factory());
+OTString OTPaths::s_strHomeFolder(String::Factory());
+OTString OTPaths::s_strAppDataFolder(String::Factory());
+OTString OTPaths::s_strGlobalConfigFile(String::Factory());
+OTString OTPaths::s_strPrefixFolder(String::Factory());
+OTString OTPaths::s_strScriptsFolder(String::Factory());
 
 OTPaths::~OTPaths() {}
 
@@ -126,9 +126,10 @@ const String& OTPaths::AppDataFolder()
     if (s_strAppDataFolder->Exists())
         return s_strAppDataFolder;  // already got it, just return it.
 
-    OTString strHomeDataFolder(OTPaths::HomeFolder()),
-        strAppDataFolder("");  // eg. /home/user/  (the folder that the OT
-                               // appdata folder will be in.)
+    auto strHomeDataFolder = String::Factory(OTPaths::HomeFolder().Get()),
+         strAppDataFolder =
+             String::Factory("");  // eg. /home/user/  (the folder that the OT
+                                   // appdata folder will be in.)
 
     if (!strHomeDataFolder->Exists() && !GetHomeFromSystem(strHomeDataFolder)) {
         OT_FAIL;
@@ -142,7 +143,10 @@ const String& OTPaths::AppDataFolder()
 
     // ok, we have the HomeData Folder, lets append our OT folder to it.
 
-    if (!AppendFolder(strAppDataFolder, strHomeDataFolder, OT_APPDATA_DIR))
+    if (!AppendFolder(
+            strAppDataFolder,
+            strHomeDataFolder,
+            String::Factory(OT_APPDATA_DIR)))
         OT_FAIL;
 
     bool bFolderCreated;
@@ -161,7 +165,9 @@ const String& OTPaths::GlobalConfigFile()
     auto strGlobalConfigFile = String::Factory();
 
     if (!AppendFile(
-            strGlobalConfigFile, AppDataFolder(), OT_INIT_CONFIG_FILENAME))
+            strGlobalConfigFile,
+            AppDataFolder(),
+            String::Factory(OT_INIT_CONFIG_FILENAME)))
         OT_FAIL;
 
     s_strGlobalConfigFile = strGlobalConfigFile;
@@ -241,7 +247,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
             }
 
 #ifdef _WIN32
-            String strTemp;
+            auto strTemp = String::Factory();
             if (OTPaths::Win_GetInstallFolderFromRegistry(strTemp)) {
                 strDefaultPrefixPath = strTemp;
             }
@@ -267,20 +273,21 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                 String::Factory("prefix_path_override");
 
             if (!config.CheckSet_str(
-                    "paths",
-                    "prefix_path",
+                    String::Factory("paths"),
+                    String::Factory("prefix_path"),
                     strDefaultPrefixPath,
                     strConfigPath,
                     bIsNew)) {
                 return false;
             }
             if (!config.CheckSet_bool(
-                    "paths",
+                    String::Factory("paths"),
                     strPrefixPathOverride,
                     false,
                     bPrefixPathOverride,
                     bIsNew,
-                    "; This will force the prefix not to change")) {
+                    String::Factory(
+                        "; This will force the prefix not to change"))) {
                 return false;
             }
 
@@ -298,14 +305,17 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                 // lets set the default path, and reset override
                 bool bNewOrUpdate = false;
                 if (!config.Set_str(
-                        "paths",
-                        "prefix_path",
+                        String::Factory("paths"),
+                        String::Factory("prefix_path"),
                         strDefaultPrefixPath,
                         bNewOrUpdate)) {
                     return false;
                 }
                 if (!config.Set_bool(
-                        "paths", strPrefixPathOverride, false, bNewOrUpdate)) {
+                        String::Factory("paths"),
+                        strPrefixPathOverride,
+                        false,
+                        bNewOrUpdate)) {
                     return false;
                 }
             }
@@ -328,7 +338,7 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                     (3 < strPrefixFolder.GetLength())) {
                     // a prefix folder was passed in... lets use it, and update
                     // the config if the override isn't set
-                    String strTmp = strPrefixFolder;
+                    auto strTmp = String::Factory(strPrefixFolder.Get());
 
                     if (!ToReal(strTmp, strTmp)) { OT_FAIL; }
 
@@ -344,8 +354,8 @@ bool OTPaths::LoadSetPrefixFolder   // eg. /usr/local/
                 if (bUpdate) {
                     bool bNewOrUpdate = false;
                     if (!config.Set_str(
-                            "paths",
-                            "prefix_path",
+                            String::Factory("paths"),
+                            String::Factory("prefix_path"),
                             strLocalPrefixPath,
                             bNewOrUpdate)) {
                         return false;
@@ -403,13 +413,17 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
         bool bKeyIsNew = false;
 
         if (!config.CheckSet_bool(
-                "paths", strRelativeKey, true, bConfigIsRelative, bKeyIsNew)) {
+                String::Factory("paths"),
+                strRelativeKey,
+                true,
+                bConfigIsRelative,
+                bKeyIsNew)) {
             return false;
         }
         if (!config.CheckSet_str(
-                "paths",
-                "scripts",
-                OT_SCRIPTS_DIR,
+                String::Factory("paths"),
+                String::Factory("scripts"),
+                String::Factory(OT_SCRIPTS_DIR),
                 strConfigFolder,
                 bKeyIsNew)) {
             return false;
@@ -429,7 +443,7 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
             bool bNewOrUpdated = false;
 
             if (!config.Set_bool(
-                    "paths",
+                    String::Factory("paths"),
                     strRelativeKey,
                     bConfigIsRelative,
                     bNewOrUpdated)) {
@@ -443,7 +457,10 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
             bool bNewOrUpdated = false;
 
             if (!config.Set_str(
-                    "paths", "scripts", strConfigFolder, bNewOrUpdated)) {
+                    String::Factory("paths"),
+                    String::Factory("scripts"),
+                    strConfigFolder,
+                    bNewOrUpdated)) {
                 return false;
             }
         }
@@ -471,7 +488,8 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
                 otOut << __FUNCTION__
                       << ": Warning: Cannot Find: " << strAppBinaryScriptPath
                       << ", using default!";
-                strAppBinaryScriptPath = "";  // don't have anything here.
+                strAppBinaryScriptPath =
+                    String::Factory();  // don't have anything here.
             }
         }
 
@@ -547,7 +565,7 @@ bool OTPaths::Get(
                     if (!FixPath(strOutFolder, strOutFolder, true)) { OT_FAIL; }
                 }
 
-                out_strVar = strOutFolder;
+                out_strVar.Set(strOutFolder);
                 out_bIsRelative = bIsRelative;
                 out_bKeyExist = true;
             } else {
@@ -966,8 +984,8 @@ bool OTPaths::GetHomeFromSystem(String& out_strHomeFolder)
 
 #elif defined(__APPLE__)
 
-    String home(getenv("HOME"));
-    String library = "";
+    auto home = String::Factory(getenv("HOME"));
+    auto library = String::Factory();
     AppendFolder(library, home, "Library");
     AppendFolder(out_strHomeFolder, library, "Application Support");
 
@@ -1039,7 +1057,7 @@ bool OTPaths::AppendFolder(
 
     const auto l_strPath = String::Factory(l_strBasePath);
 
-    out_strPath = l_strPath;
+    out_strPath.Set(l_strPath);
     return true;
 }
 
@@ -1075,7 +1093,7 @@ bool OTPaths::AppendFile(
 
     const auto l_strPath = String::Factory(l_strBasePath);
 
-    out_strPath = l_strPath;
+    out_strPath.Set(l_strPath);
     return true;
 }
 
@@ -1104,7 +1122,7 @@ bool OTPaths::RelativeToCanonical(
     if (!FixPath(strBasePath, l_strBasePath_fix, true)) return false;
 
     if (strRelativePath.Compare(".")) {
-        out_strCanonicalPath = strBasePath;
+        out_strCanonicalPath.Set(strBasePath);
         return true;
     }  // if ".", return base path.
 
@@ -1118,7 +1136,7 @@ bool OTPaths::RelativeToCanonical(
 
     if (!ToReal(l_strPath, l_strCanonicalPath)) return false;
 
-    out_strCanonicalPath = l_strCanonicalPath;
+    out_strCanonicalPath.Set(l_strCanonicalPath);
 
     return true;
 }

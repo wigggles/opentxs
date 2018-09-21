@@ -6016,7 +6016,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 // security implications of that and maybe improve it a bit.
                 // (But I do NOT want to get into the messaging business.)
 
-                if (theSentMsg->m_strNymID.Exists()) {
+                if (theSentMsg->m_strNymID->Exists()) {
                     theReturnID.SetString(theSentMsg->m_strNymID);
                     return true;
                 }
@@ -6266,7 +6266,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 // security implications of that and maybe improve it a bit.
                 // (But I do NOT want to get into the messaging business.)
 
-                if (theSentMsg->m_strNymID2.Exists()) {
+                if (theSentMsg->m_strNymID2->Exists()) {
                     theReturnID.SetString(theSentMsg->m_strNymID2);
                     return true;
                 }

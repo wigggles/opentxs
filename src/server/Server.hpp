@@ -82,7 +82,7 @@ private:
     Notary notary_;
     Transactor transactor_;
     UserCommandProcessor userCommandProcessor_;
-    String m_strWalletFilename;
+    OTString m_strWalletFilename;
     // Used at least for whether or not to write to the PID.
     bool m_bReadOnly{false};
     // If the server wants to be shut down, it can set
@@ -108,7 +108,7 @@ private:
         const Identifier& recipientNymID,
         transactionType transactionType,
         const Message* msg = nullptr,
-        const String* messageString = nullptr,
+        const String& messageString = String::Factory(),
         const char* command = nullptr);
     std::pair<std::string, std::string> parse_seed_backup(
         const std::string& input) const;

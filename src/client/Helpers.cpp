@@ -166,10 +166,10 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
     if ((transactionType::instrumentNotice ==
          pTransaction->GetType()) ||  // It's encrypted.
         (transactionType::payDividend == pTransaction->GetType())) {
-        String strMsg;
+        auto strMsg = String::Factory();
         pTransaction->GetReferenceString(strMsg);
 
-        if (!strMsg.Exists()) {
+        if (!strMsg->Exists()) {
             otOut << OT_METHOD << __FUNCTION__
                   << ": Failure: Expected OTTransaction::instrumentNotice to "
                      "contain an 'in reference to' string, but it was empty. "
@@ -204,7 +204,7 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
         // INSTRUMENT: pMsg->m_ascPayload (in an OTEnvelope)
         //
         OTEnvelope theEnvelope;
-        String strEnvelopeContents;
+        auto strEnvelopeContents = String::Factory();
 
         // Decrypt the Envelope.
         if (!theEnvelope.SetCiphertext(pMsg->m_ascPayload))
@@ -217,7 +217,7 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
                      "that was supposedly attached as a payload to this "
                      "payment message:\n"
                   << strMsg << "\n\n";
-        else if (!strEnvelopeContents.Exists())
+        else if (!strEnvelopeContents->Exists())
             otOut << OT_METHOD << __FUNCTION__
                   << ": Failed: after decryption, cleartext is empty. From:\n"
                   << strMsg << "\n\n";
@@ -239,7 +239,7 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
             }
         }
     } else if (transactionType::notice == pTransaction->GetType()) {
-        String strNotice(*pTransaction);
+        auto strNotice = String::Factory(*pTransaction);
         auto pPayment{pTransaction->API().Factory().Payment(strNotice)};
 
         if (false == bool(pPayment) || !pPayment->IsValid())

@@ -27,8 +27,8 @@ public:
     static serializedNymIDSource ExtractArmoredSource(
         const Armored& armoredSource);
 
-    String asString() const;
-    String Description() const;
+    OTString asString() const;
+    OTString Description() const;
     proto::SourceType Type() const;
     OTIdentifier NymID() const;
     serializedNymIDSource Serialize() const;

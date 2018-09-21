@@ -515,7 +515,7 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
     const char* szFolder1name =
         m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
     const char* szFolder2name = strNotaryID->Get();  // "nymbox/NOTARY_ID"
-    const char* szFilename = strFilename->Get();     // "nymbox/NOTARY_ID/NYM_ID"
+    const char* szFilename = strFilename->Get();  // "nymbox/NOTARY_ID/NYM_ID"
     // (or "inbox/NOTARY_ID/ACCT_ID"
     // or
     // "outbox/NOTARY_ID/ACCT_ID")
@@ -638,7 +638,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
     const char* szFolder1name =
         m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
     const char* szFolder2name = strNotaryID->Get();  // "nymbox/NOTARY_ID"
-    const char* szFilename = strFilename->Get();     // "nymbox/NOTARY_ID/NYM_ID"
+    const char* szFilename = strFilename->Get();  // "nymbox/NOTARY_ID/NYM_ID"
     // (or "inbox/NOTARY_ID/ACCT_ID"
     // or
     // "outbox/NOTARY_ID/ACCT_ID")
@@ -854,39 +854,58 @@ bool Ledger::generate_ledger(
 {
     // First we set the "Safe" ID and try to load the file, to make sure it
     // doesn't already exist.
-    auto strID = String::Factory(theAcctID), strNotaryID = String::Factory(theNotaryID);
+    auto strID = String::Factory(theAcctID),
+         strNotaryID = String::Factory(theNotaryID);
 
     switch (theType) {
         case ledgerType::nymbox:  // stored by NymID ONLY.
             m_strFoldername = OTFolders::Nymbox().Get();
             m_strFilename->Format(
-                "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
+                "%s%s%s",
+                strNotaryID->Get(),
+                Log::PathSeparator(),
+                strID->Get());
             break;
         case ledgerType::inbox:  // stored by AcctID ONLY.
             m_strFoldername = OTFolders::Inbox().Get();
             m_strFilename->Format(
-                "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
+                "%s%s%s",
+                strNotaryID->Get(),
+                Log::PathSeparator(),
+                strID->Get());
             break;
         case ledgerType::outbox:  // stored by AcctID ONLY.
             m_strFoldername = OTFolders::Outbox().Get();
             m_strFilename->Format(
-                "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
+                "%s%s%s",
+                strNotaryID->Get(),
+                Log::PathSeparator(),
+                strID->Get());
             break;
         case ledgerType::paymentInbox:  // stored by NymID ONLY.
             m_strFoldername = OTFolders::PaymentInbox().Get();
             m_strFilename->Format(
-                "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
+                "%s%s%s",
+                strNotaryID->Get(),
+                Log::PathSeparator(),
+                strID->Get());
             break;
         case ledgerType::recordBox:  // stored by Acct ID *and* Nym ID
                                      // (depending on the box.)
             m_strFoldername = OTFolders::RecordBox().Get();
             m_strFilename->Format(
-                "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
+                "%s%s%s",
+                strNotaryID->Get(),
+                Log::PathSeparator(),
+                strID->Get());
             break;
         case ledgerType::expiredBox:  // stored by Nym ID only.
             m_strFoldername = OTFolders::ExpiredBox().Get();
             m_strFilename->Format(
-                "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
+                "%s%s%s",
+                strNotaryID->Get(),
+                Log::PathSeparator(),
+                strID->Get());
             break;
         case ledgerType::message:
             LogTrace(OT_METHOD)(__FUNCTION__)("Generating message ledger...")
@@ -925,8 +944,8 @@ bool Ledger::generate_ledger(
         const char* szFolder2name = strNotaryID->Get();  // "nymbox/NOTARY_ID"
         const char* szFilename =
             strFilename->Get();  // "nymbox/NOTARY_ID/NYM_ID"  (or
-                                // "inbox/NOTARY_ID/ACCT_ID" or
-                                // "outbox/NOTARY_ID/ACCT_ID")
+                                 // "inbox/NOTARY_ID/ACCT_ID" or
+                                 // "outbox/NOTARY_ID/ACCT_ID")
 
         if (OTDB::Exists(
                 api_.DataFolder(),
@@ -1692,8 +1711,10 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
     // for a bad one and then sign it.
     // So if there's a bad one in there when I read it, THAT's the one that I
     // write as well!
-    auto strType = String::Factory(GetTypeString()), strLedgerAcctID = String::Factory(GetPurportedAccountID()),
-        strLedgerAcctNotaryID = String::Factory(GetPurportedNotaryID()), strNymID = String::Factory(GetNymID());
+    auto strType = String::Factory(GetTypeString()),
+         strLedgerAcctID = String::Factory(GetPurportedAccountID()),
+         strLedgerAcctNotaryID = String::Factory(GetPurportedNotaryID()),
+         strNymID = String::Factory(GetNymID());
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
@@ -1781,13 +1802,15 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     const auto strNodeName = String::Factory(xml->getNodeName());
 
     if (strNodeName->Compare("accountLedger")) {
-        auto strType = String::Factory(),                      // ledger type
-            strLedgerAcctID = String::Factory(),                 // purported
-            strLedgerAcctNotaryID = String::Factory(),           // purported
-            strNymID = String::Factory(), strNumPartialRecords = String::Factory();  // Ledger contains either full
-                                             // receipts, or abbreviated
-                                             // receipts with hashes and partial
-                                             // data.
+        auto strType = String::Factory(),               // ledger type
+            strLedgerAcctID = String::Factory(),        // purported
+            strLedgerAcctNotaryID = String::Factory(),  // purported
+            strNymID = String::Factory(),
+             strNumPartialRecords =
+                 String::Factory();  // Ledger contains either full
+                                     // receipts, or abbreviated
+                                     // receipts with hashes and partial
+                                     // data.
 
         strType = xml->getAttributeValue("type");
         m_strVersion = xml->getAttributeValue("version");
@@ -1797,27 +1820,27 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // request, etc.)
             m_Type = ledgerType::message;
         else if (strType->Compare("nymbox"))  // Used for receiving new
-                                             // transaction numbers, and for
-                                             // receiving notices.
+                                              // transaction numbers, and for
+                                              // receiving notices.
             m_Type = ledgerType::nymbox;
         else if (strType->Compare("inbox"))  // These are used for storing the
-                                            // receipts in your inbox. (That
-                                            // server must store until
-                                            // signed-off.)
+                                             // receipts in your inbox. (That
+                                             // server must store until
+                                             // signed-off.)
             m_Type = ledgerType::inbox;
         else if (strType->Compare("outbox"))  // Outgoing, pending transfers.
             m_Type = ledgerType::outbox;
         else if (strType->Compare("paymentInbox"))  // Receiving invoices, etc.
             m_Type = ledgerType::paymentInbox;
         else if (strType->Compare("recordBox"))  // Where receipts go to die
-                                                // (awaiting user deletion,
-                                                // completed from other boxes
-                                                // already.)
-            m_Type = ledgerType::recordBox;
-        else if (strType->Compare("expiredBox"))  // Where expired payments go to
-                                                 // die (awaiting user deletion,
+                                                 // (awaiting user deletion,
                                                  // completed from other boxes
                                                  // already.)
+            m_Type = ledgerType::recordBox;
+        else if (strType->Compare("expiredBox"))  // Where expired payments go
+                                                  // to die (awaiting user
+                                                  // deletion, completed from
+                                                  // other boxes already.)
             m_Type = ledgerType::expiredBox;
         else
             m_Type = ledgerType::error_state;  // Danger, Will Robinson.
@@ -1862,10 +1885,10 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         strNumPartialRecords = xml->getAttributeValue("numPartialRecords");
         std::int32_t nPartialRecordCount =
             (strNumPartialRecords->Exists() ? atoi(strNumPartialRecords->Get())
-                                           : 0);
+                                            : 0);
 
-        auto strExpected = String::Factory();  // The record type has a different name for each
-                             // box.
+        auto strExpected = String::Factory();  // The record type has a
+                                               // different name for each box.
         NumList theNumList;
         NumList* pNumList = nullptr;
         switch (m_Type) {
@@ -1941,7 +1964,8 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // We're loading here either a nymboxRecord, inboxRecord, or
                 // outboxRecord...
                 //
-                const auto strLoopNodeName = String::Factory(xml->getNodeName());
+                const auto strLoopNodeName =
+                    String::Factory(xml->getNodeName());
 
                 if (strLoopNodeName->Exists() &&
                     (xml->getNodeType() == irr::io::EXN_ELEMENT) &&
@@ -2227,7 +2251,8 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 if (false != bool(pExistingTrans))  // Uh-oh, it's already
                                                     // there!
                 {
-                    const auto strPurportedAcctID = String::Factory(GetPurportedAccountID());
+                    const auto strPurportedAcctID =
+                        String::Factory(GetPurportedAccountID());
                     otOut
                         << szFunc << ": Error loading full transaction "
                         << pTransaction->GetTransactionNum()

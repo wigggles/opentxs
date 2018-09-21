@@ -44,11 +44,11 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
     Lock lock(lock_);
     std::int64_t lRequestNum = 0;
 
-    if (theMessage->m_strRequestNum.Exists())
-        lRequestNum = theMessage->m_strRequestNum.ToLong();  // The map index
-                                                             // is the request
-                                                             // number on the
-                                                             // message itself.
+    if (theMessage->m_strRequestNum->Exists())
+        lRequestNum = theMessage->m_strRequestNum->ToLong();  // The map index
+                                                              // is the request
+                                                              // number on the
+                                                              // message itself.
 
     // It's technically possible to have TWO messages (from two different
     // servers) that happen to have the same request number. So we verify
@@ -70,8 +70,8 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
         // message,
         // Then skip this one. (Same with the NymID.)
         //
-        if (!theMessage->m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
-            !theMessage->m_strNymID.Compare(pMsg->m_strNymID)) {
+        if (!theMessage->m_strNotaryID->Compare(pMsg->m_strNotaryID) ||
+            !theMessage->m_strNymID->Compare(pMsg->m_strNymID)) {
             continue;
         } else {
             messagesMap_.erase(it);
@@ -92,25 +92,27 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
     // run.
     //
     bool bAlreadyExists = false, bIsNewFolder = false;
-    String strFolder, strFolder1, strFolder2;
-    strFolder1.Format(
+    auto strFolder = String::Factory(), strFolder1 = String::Factory(),
+         strFolder2 = String::Factory();
+    strFolder1->Format(
         "%s%s%s",
         OTFolders::Nym().Get(),
         Log::PathSeparator(),
-        theMessage->m_strNotaryID.Get());
-    strFolder2.Format(
+        theMessage->m_strNotaryID->Get());
+    strFolder2->Format(
         "%s%s%s",
-        strFolder1.Get(),
+        strFolder1->Get(),
         Log::PathSeparator(),
         "sent" /*todo hardcoding*/);
 
-    strFolder.Format(
+    strFolder->Format(
         "%s%s%s",
-        strFolder2.Get(),
+        strFolder2->Get(),
         Log::PathSeparator(),
-        theMessage->m_strNymID.Get());
+        theMessage->m_strNymID->Get());
 
-    String strFolderPath = "", strFolder1Path = "", strFolder2Path = "";
+    auto strFolderPath = String::Factory(), strFolder1Path = String::Factory(),
+         strFolder2Path = String::Factory();
 
     OTPaths::AppendFolder(strFolderPath, api_.DataFolder().c_str(), strFolder);
     OTPaths::AppendFolder(
@@ -122,10 +124,10 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
     OTPaths::ConfirmCreateFolder(strFolder1Path, bAlreadyExists, bIsNewFolder);
     OTPaths::ConfirmCreateFolder(strFolder2Path, bAlreadyExists, bIsNewFolder);
 
-    String strFile;
-    strFile.Format("%s.msg", theMessage->m_strRequestNum.Get());
+    auto strFile = String::Factory();
+    strFile->Format("%s.msg", theMessage->m_strRequestNum->Get());
 
-    theMessage->SaveContract(strFolder.Get(), strFile.Get());
+    theMessage->SaveContract(strFolder->Get(), strFile->Get());
 
     // We also keep a list of the request numbers, so let's load it up, add the
     // number
@@ -134,10 +136,10 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(
-            api_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
-        String strNumList(OTDB::QueryPlainString(
-            api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
-        if (strNumList.Exists()) theNumList.Add(strNumList);
+            api_.DataFolder(), strFolder->Get(), str_data_filename, "", "")) {
+        auto strNumList = String::Factory(OTDB::QueryPlainString(
+            api_.DataFolder(), strFolder->Get(), str_data_filename, "", ""));
+        if (strNumList->Exists()) theNumList.Add(strNumList);
         theNumList.Add(lRequestNum);  // Add the new request number to it.
     } else  // it doesn't exist on disk, so let's just create it from the list
             // we
@@ -156,8 +158,8 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
             // this message,
             // Then skip this one. (Same with the NymID.)
             //
-            if (!theMessage->m_strNotaryID.Compare(pMsg->m_strNotaryID) ||
-                !theMessage->m_strNymID.Compare(pMsg->m_strNymID)) {
+            if (!theMessage->m_strNotaryID->Compare(pMsg->m_strNotaryID) ||
+                !theMessage->m_strNymID->Compare(pMsg->m_strNymID)) {
                 ++it;
                 continue;
             } else {
@@ -173,13 +175,13 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
     // numnbers to it (including new one.)
     // Therefore nothing left to do here, but save it back again!
     //
-    String strOutput;
+    auto strOutput = String::Factory();
     theNumList.Output(strOutput);
 
     if (!OTDB::StorePlainString(
-            strOutput.Get(),
+            strOutput->Get(),
             api_.DataFolder(),
-            strFolder.Get(),
+            strFolder->Get(),
             str_data_filename,
             "",
             ""))  // todo hardcoding.
@@ -224,8 +226,8 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
 
     // Didn't find it? Okay let's load it from local storage, if it's there...
     //
-    String strFolder, strFile;
-    strFolder.Format(
+    auto strFolder = String::Factory(), strFile = String::Factory();
+    strFolder->Format(
         "%s%s%s%s%s%s%s",
         OTFolders::Nym().Get(),
         Log::PathSeparator(),
@@ -234,7 +236,7 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
         "sent",
         /*todo hardcoding*/ Log::PathSeparator(),
         strNymID.Get());
-    strFile.Format("%" PRId64 ".msg", lRequestNum);
+    strFile->Format("%" PRId64 ".msg", lRequestNum);
 
     // Check the existing list, if it exists.
     //
@@ -242,15 +244,15 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
     std::string str_data_filename("sent.dat");
     if (OTDB::Exists(
             api_.DataFolder(),
-            strFolder.Get(),
+            strFolder->Get(),
             str_data_filename,
             "",
             ""))  // todo hardcoding.
     {
-        String strNumList(OTDB::QueryPlainString(
-            api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
+        auto strNumList = String::Factory(OTDB::QueryPlainString(
+            api_.DataFolder(), strFolder->Get(), str_data_filename, "", ""));
 
-        if (strNumList.Exists()) theNumList.Add(strNumList);
+        if (strNumList->Exists()) theNumList.Add(strNumList);
 
         if (theNumList.Verify(lRequestNum)) {
             // Even if the outgoing message was stored, we still act like it
@@ -263,11 +265,11 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
 
             if (OTDB::Exists(
                     api_.DataFolder(),
-                    strFolder.Get(),
-                    strFile.Get(),
+                    strFolder->Get(),
+                    strFile->Get(),
                     "",
                     "") &&
-                message->LoadContract(strFolder.Get(), strFile.Get())) {
+                message->LoadContract(strFolder->Get(), strFile->Get())) {
                 // Since we had to load it from local storage, let's add it to
                 // the list in RAM.
                 //
@@ -395,10 +397,10 @@ void OTMessageOutbuffer::Clear(
         */
 
         if (pThisMsg->m_ascPayload.Exists() &&
-            (pThisMsg->m_strCommand.Compare("processNymbox") ||
-             pThisMsg->m_strCommand.Compare("processInbox") ||
-             pThisMsg->m_strCommand.Compare("notarizeTransaction") ||
-             pThisMsg->m_strCommand.Compare("triggerClause"))) {
+            (pThisMsg->m_strCommand->Compare("processNymbox") ||
+             pThisMsg->m_strCommand->Compare("processInbox") ||
+             pThisMsg->m_strCommand->Compare("notarizeTransaction") ||
+             pThisMsg->m_strCommand->Compare("triggerClause"))) {
 
             // If we are here in the first place (i.e. after getNymboxResponse
             // just removed all the messages in this sent buffer that already
@@ -448,8 +450,8 @@ void OTMessageOutbuffer::Clear(
                 bTransactionWasFailure);
         }  // if there's a transaction to be harvested inside this message.
 
-        String strFolder, strFile;
-        strFolder.Format(
+        auto strFolder = String::Factory(), strFile = String::Factory();
+        strFolder->Format(
             "%s%s%s%s%s%s%s",
             OTFolders::Nym().Get(),
             Log::PathSeparator(),
@@ -458,30 +460,34 @@ void OTMessageOutbuffer::Clear(
             "sent",
             Log::PathSeparator(),
             pstrNymID.Get());
-        strFile.Format("%" PRId64 ".msg", lRequestNum);
+        strFile->Format("%" PRId64 ".msg", lRequestNum);
         NumList theNumList;
         std::string str_data_filename("sent.dat");
 
         if (OTDB::Exists(
                 api_.DataFolder(),
-                strFolder.Get(),
+                strFolder->Get(),
                 str_data_filename,
                 "",
                 "")) {
-            String strNumList(OTDB::QueryPlainString(
-                api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
+            auto strNumList = String::Factory(OTDB::QueryPlainString(
+                api_.DataFolder(),
+                strFolder->Get(),
+                str_data_filename,
+                "",
+                ""));
 
-            if (strNumList.Exists()) { theNumList.Add(strNumList); }
+            if (strNumList->Exists()) { theNumList.Add(strNumList); }
 
             theNumList.Remove(lRequestNum);
         }
 
-        String strOutput;
+        auto strOutput = String::Factory();
         theNumList.Output(strOutput);
         const bool saved = OTDB::StorePlainString(
-            strOutput.Get(),
+            strOutput->Get(),
             api_.DataFolder(),
-            strFolder.Get(),
+            strFolder->Get(),
             str_data_filename,
             "",
             "");
@@ -498,10 +504,10 @@ void OTMessageOutbuffer::Clear(
         OT_ASSERT(false != bool(storedMessage));
 
         if (OTDB::Exists(
-                api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
-            storedMessage->LoadContract(strFolder.Get(), strFile.Get())) {
+                api_.DataFolder(), strFolder->Get(), strFile->Get(), "", "") &&
+            storedMessage->LoadContract(strFolder->Get(), strFile->Get())) {
             OTDB::EraseValueByKey(
-                api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
+                api_.DataFolder(), strFolder->Get(), strFile->Get(), "", "");
         }
 
         it = messagesMap_.erase(it);
@@ -516,8 +522,8 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     const String& strNymID)
 {
     Lock lock(lock_);
-    String strFolder, strFile;
-    strFolder.Format(
+    auto strFolder = String::Factory(), strFile = String::Factory();
+    strFolder->Format(
         "%s%s%s%s%s%s%s",
         OTFolders::Nym().Get(),
         Log::PathSeparator(),
@@ -526,7 +532,7 @@ bool OTMessageOutbuffer::RemoveSentMessage(
         "sent",
         /*todo hardcoding*/ Log::PathSeparator(),
         strNymID.Get());
-    strFile.Format("%" PRId64 ".msg", lRequestNum);
+    strFile->Format("%" PRId64 ".msg", lRequestNum);
 
     auto it = messagesMap_.begin();
 
@@ -575,10 +581,10 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     NumList theNumList;
     std::string str_data_filename("sent.dat");  // todo hardcoding.
     if (OTDB::Exists(
-            api_.DataFolder(), strFolder.Get(), str_data_filename, "", "")) {
-        String strNumList(OTDB::QueryPlainString(
-            api_.DataFolder(), strFolder.Get(), str_data_filename, "", ""));
-        if (strNumList.Exists()) theNumList.Add(strNumList);
+            api_.DataFolder(), strFolder->Get(), str_data_filename, "", "")) {
+        auto strNumList = String::Factory(OTDB::QueryPlainString(
+            api_.DataFolder(), strFolder->Get(), str_data_filename, "", ""));
+        if (strNumList->Exists()) theNumList.Add(strNumList);
         theNumList.Remove(lRequestNum);
     } else  // it doesn't exist on disk, so let's just create it from the list
             // we
@@ -618,12 +624,12 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     //
     // Therefore nothing left to do here, but save it back again!
     //
-    String strOutput;
+    auto strOutput = String::Factory();
     theNumList.Output(strOutput);
     if (!OTDB::StorePlainString(
-            strOutput.Get(),
+            strOutput->Get(),
             api_.DataFolder(),
-            strFolder.Get(),
+            strFolder->Get(),
             str_data_filename,
             "",
             "")) {
@@ -638,10 +644,10 @@ bool OTMessageOutbuffer::RemoveSentMessage(
     OT_ASSERT(false != bool(pMsg));
 
     if (OTDB::Exists(
-            api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "") &&
-        pMsg->LoadContract(strFolder.Get(), strFile.Get())) {
+            api_.DataFolder(), strFolder->Get(), strFile->Get(), "", "") &&
+        pMsg->LoadContract(strFolder->Get(), strFile->Get())) {
         OTDB::EraseValueByKey(
-            api_.DataFolder(), strFolder.Get(), strFile.Get(), "", "");
+            api_.DataFolder(), strFolder->Get(), strFile->Get(), "", "");
         return true;
     }
 
@@ -652,8 +658,9 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
     const OTTransaction& theTransaction)
 {
     const std::int64_t& lRequestNum = theTransaction.GetRequestNum();
-    const String strNotaryID(theTransaction.GetPurportedNotaryID());
-    const String strNymID(theTransaction.GetNymID());
+    const auto strNotaryID =
+        String::Factory(theTransaction.GetPurportedNotaryID());
+    const auto strNymID = String::Factory(theTransaction.GetNymID());
 
     return GetSentMessage(lRequestNum, strNotaryID, strNymID);
 }
@@ -663,8 +670,9 @@ std::shared_ptr<Message> OTMessageOutbuffer::GetSentMessage(
 bool OTMessageOutbuffer::RemoveSentMessage(const OTTransaction& theTransaction)
 {
     const std::int64_t& lRequestNum = theTransaction.GetRequestNum();
-    const String strNotaryID(theTransaction.GetPurportedNotaryID());
-    const String strNymID(theTransaction.GetNymID());
+    const auto strNotaryID =
+        String::Factory(theTransaction.GetPurportedNotaryID());
+    const auto strNymID = String::Factory(theTransaction.GetNymID());
 
     return RemoveSentMessage(lRequestNum, strNotaryID, strNymID);
 }

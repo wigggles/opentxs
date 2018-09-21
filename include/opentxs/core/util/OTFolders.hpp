@@ -65,24 +65,24 @@ private:
         return strFolder;
     }
 
-    static String s_strAccount;
-    static String s_strCert;
-    static String s_strCommon;
-    static String s_strContract;
-    static String s_strCron;
-    static String s_strInbox;
-    static String s_strMarket;
-    static String s_strMint;
-    static String s_strNym;
-    static String s_strNymbox;
-    static String s_strOutbox;
-    static String s_strPaymentInbox;
-    static String s_strPurse;
-    static String s_strReceipt;
-    static String s_strRecordBox;
-    static String s_strExpiredBox;
-    static String s_strSpent;
-    static String s_strUserAcct;
+    static OTString s_strAccount;
+    static OTString s_strCert;
+    static OTString s_strCommon;
+    static OTString s_strContract;
+    static OTString s_strCron;
+    static OTString s_strInbox;
+    static OTString s_strMarket;
+    static OTString s_strMint;
+    static OTString s_strNym;
+    static OTString s_strNymbox;
+    static OTString s_strOutbox;
+    static OTString s_strPaymentInbox;
+    static OTString s_strPurse;
+    static OTString s_strReceipt;
+    static OTString s_strRecordBox;
+    static OTString s_strExpiredBox;
+    static OTString s_strSpent;
+    static OTString s_strUserAcct;
 
 public:
     EXPORT static const String& Account();

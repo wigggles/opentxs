@@ -479,8 +479,8 @@ bool PaymentCode::Sign(
         credential.Serialized(AS_PUBLIC, WITHOUT_SIGNATURES);
     auto& signature = *serialized->add_signature();
     signature.set_role(proto::SIGROLE_NYMIDSOURCE);
-    const bool goodSig =
-        signingKey->SignProto(*serialized, signature, String(ID()), pPWData);
+    const bool goodSig = signingKey->SignProto(
+        *serialized, signature, String::Factory(ID()), pPWData);
     sig.CopyFrom(signature);
 
     return goodSig;

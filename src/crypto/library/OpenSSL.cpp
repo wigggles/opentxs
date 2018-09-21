@@ -2372,7 +2372,7 @@ bool OpenSSL::OpenSSLdp::SignContract(
     };
 #endif
 
-    String strHashType = HashingProvider::HashTypeToString(hashType);
+    OTString strHashType = HashingProvider::HashTypeToString(hashType);
 
     EVP_MD* md = nullptr;
 
@@ -2469,7 +2469,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
 
     const char* szFunc = "OpenSSL::VerifySignature";
 
-    String strHashType = HashingProvider::HashTypeToString(hashType);
+    OTString strHashType = HashingProvider::HashTypeToString(hashType);
 
     EVP_MD* md = nullptr;
 

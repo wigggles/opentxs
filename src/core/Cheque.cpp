@@ -63,11 +63,14 @@ Cheque::Cheque(
 
 void Cheque::UpdateContents()
 {
-    auto INSTRUMENT_DEFINITION_ID = String::Factory(GetInstrumentDefinitionID()),
-        NOTARY_ID = String::Factory(GetNotaryID()), SENDER_ACCT_ID = String::Factory(GetSenderAcctID()),
-        SENDER_NYM_ID = String::Factory(GetSenderNymID()), RECIPIENT_NYM_ID = String::Factory(GetRecipientNymID()),
-        REMITTER_NYM_ID = String::Factory(GetRemitterNymID()),
-        REMITTER_ACCT_ID = String::Factory(GetRemitterAcctID());
+    auto INSTRUMENT_DEFINITION_ID =
+             String::Factory(GetInstrumentDefinitionID()),
+         NOTARY_ID = String::Factory(GetNotaryID()),
+         SENDER_ACCT_ID = String::Factory(GetSenderAcctID()),
+         SENDER_NYM_ID = String::Factory(GetSenderNymID()),
+         RECIPIENT_NYM_ID = String::Factory(GetRecipientNymID()),
+         REMITTER_NYM_ID = String::Factory(GetRemitterNymID()),
+         REMITTER_ACCT_ID = String::Factory(GetRemitterAcctID());
 
     std::string from = formatTimestamp(GetValidFrom());
     std::string to = formatTimestamp(GetValidTo());
@@ -79,7 +82,8 @@ void Cheque::UpdateContents()
 
     tag.add_attribute("version", m_strVersion->Get());
     tag.add_attribute("amount", formatLong(m_lAmount));
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
     tag.add_attribute("notaryID", NOTARY_ID->Get());
     tag.add_attribute("senderAcctID", SENDER_ACCT_ID->Get());
@@ -124,10 +128,12 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (!strcmp("cheque", xml->getNodeName())) {
-        auto strHasRecipient = String::Factory(xml->getAttributeValue("hasRecipient"));
+        auto strHasRecipient =
+            String::Factory(xml->getAttributeValue("hasRecipient"));
         m_bHasRecipient = strHasRecipient->Compare("true");
 
-        auto strHasRemitter = String::Factory(xml->getAttributeValue("hasRemitter"));
+        auto strHasRemitter =
+            String::Factory(xml->getAttributeValue("hasRemitter"));
         m_bHasRemitter = strHasRemitter->Compare("true");
 
         m_strVersion = xml->getAttributeValue("version");
@@ -143,13 +149,18 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
         SetValidTo(parseTimestamp(str_valid_to));
 
         auto strInstrumentDefinitionID = String::Factory(
-            xml->getAttributeValue("instrumentDefinitionID")),
-            strNotaryID = String::Factory(xml->getAttributeValue("notaryID")),
-            strSenderAcctID = String::Factory(xml->getAttributeValue("senderAcctID")),
-            strSenderNymID = String::Factory(xml->getAttributeValue("senderNymID")),
-            strRecipientNymID = String::Factory(xml->getAttributeValue("recipientNymID")),
-            strRemitterNymID = String::Factory(xml->getAttributeValue("remitterNymID")),
-            strRemitterAcctID = String::Factory(xml->getAttributeValue("remitterAcctID"));
+                 xml->getAttributeValue("instrumentDefinitionID")),
+             strNotaryID = String::Factory(xml->getAttributeValue("notaryID")),
+             strSenderAcctID =
+                 String::Factory(xml->getAttributeValue("senderAcctID")),
+             strSenderNymID =
+                 String::Factory(xml->getAttributeValue("senderNymID")),
+             strRecipientNymID =
+                 String::Factory(xml->getAttributeValue("recipientNymID")),
+             strRemitterNymID =
+                 String::Factory(xml->getAttributeValue("remitterNymID")),
+             strRemitterAcctID =
+                 String::Factory(xml->getAttributeValue("remitterAcctID"));
 
         auto INSTRUMENT_DEFINITION_ID =
                  Identifier::Factory(strInstrumentDefinitionID),

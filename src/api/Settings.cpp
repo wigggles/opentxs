@@ -58,7 +58,7 @@ Settings::Settings(const String& strConfigFilePath)
     , loaded_(Flag::Factory(false))
     , m_strConfigurationFileExactPath(strConfigFilePath)
 {
-    if (!m_strConfigurationFileExactPath.Exists()) {
+    if (!m_strConfigurationFileExactPath->Exists()) {
         otErr << __FUNCTION__ << ": Error: "
               << "m_strConfigurationFileExactPath"
               << " is Empty!\n";
@@ -71,7 +71,7 @@ Settings::Settings(const String& strConfigFilePath)
 Settings::Settings()
     : pvt_(new SettingsPvt())
     , loaded_(Flag::Factory(false))
-    , m_strConfigurationFileExactPath()
+    , m_strConfigurationFileExactPath(String::Factory())
 {
 }
 
@@ -180,7 +180,7 @@ bool Settings::LogChange_str(
                                     ? strValue.Get()
                                     : "nullptr";
 
-    String strCategory, strOption;
+    auto strCategory = String::Factory(), strOption = String::Factory();
     if (!Log::StringFill(strCategory, strSection.Get(), 12)) return false;
     if (!Log::StringFill(strOption, strKey.Get(), 30, " to:")) return false;
 
@@ -192,14 +192,14 @@ bool Settings::LogChange_str(
 void Settings::SetConfigFilePath(const String& strConfigFilePath) const
 {
     rLock lock(lock_);
-    m_strConfigurationFileExactPath.Set(strConfigFilePath.Get());
+    m_strConfigurationFileExactPath->Set(strConfigFilePath.Get());
 }
 
 bool Settings::HasConfigFilePath() const
 {
     rLock lock(lock_);
 
-    return m_strConfigurationFileExactPath.Exists();
+    return m_strConfigurationFileExactPath->Exists();
 }
 
 bool Settings::Load() const
@@ -277,9 +277,9 @@ bool Settings::Check_str(
 
     const char* szVar =
         pvt_->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
-    String strVar(szVar);
+    auto strVar = String::Factory(szVar);
 
-    if (strVar.Exists() && !strVar.Compare("")) {
+    if (strVar->Exists() && !strVar->Compare("")) {
         out_bKeyExist = true;
         out_strResult = strVar;
     } else {
@@ -326,9 +326,9 @@ bool Settings::Check_long(
 
     const char* szVar =
         pvt_->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
-    String strVar(szVar);
+    auto strVar = String::Factory(szVar);
 
-    if (strVar.Exists() && !strVar.Compare("")) {
+    if (strVar->Exists() && !strVar->Compare("")) {
         out_bKeyExist = true;
         out_lResult =
             pvt_->iniSimple.GetLongValue(strSection.Get(), strKey.Get(), 0);
@@ -376,12 +376,12 @@ bool Settings::Check_bool(
 
     const char* szVar =
         pvt_->iniSimple.GetValue(strSection.Get(), strKey.Get(), nullptr);
-    String strVar(szVar);
+    auto strVar = String::Factory(szVar);
 
-    if (strVar.Exists() &&
-        (strVar.Compare("false") || strVar.Compare("true"))) {
+    if (strVar->Exists() &&
+        (strVar->Compare("false") || strVar->Compare("true"))) {
         out_bKeyExist = true;
-        if (strVar.Compare("true"))
+        if (strVar->Compare("true"))
             out_bResult = true;
         else
             out_bResult = false;
@@ -437,7 +437,7 @@ bool Settings::Set_str(
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
                                                          : nullptr;
 
-    String strOldValue, strNewValue;
+    auto strOldValue = String::Factory(), strNewValue = String::Factory();
     bool bOldKeyExist = false, bNewKeyExist = false;
 
     // Check if Old Key exists.
@@ -519,21 +519,21 @@ bool Settings::Set_long(
         OT_FAIL;
     }
 
-    String strValue;
-    strValue.Format("%" PRId64, lValue);
+    auto strValue = String::Factory();
+    strValue->Format("%" PRId64, lValue);
 
     const char* const szComment =
         (strComment.Exists() && !strComment.Compare("")) ? strComment.Get()
                                                          : nullptr;
 
-    String strOldValue, strNewValue;
+    auto strOldValue = String::Factory(), strNewValue = String::Factory();
     bool bOldKeyExist = false, bNewKeyExist = false;
 
     // Check if Old Key exists.
     if (!Check_str(strSection, strKey, strOldValue, bOldKeyExist)) return false;
 
     if (bOldKeyExist) {
-        if (strValue.Compare(strOldValue)) {
+        if (strValue->Compare(strOldValue)) {
             out_bNewOrUpdate = false;
             return true;
         }
@@ -551,7 +551,7 @@ bool Settings::Set_long(
     if (!Check_str(strSection, strKey, strNewValue, bNewKeyExist)) return false;
 
     if (bNewKeyExist) {
-        if (strValue.Compare(strNewValue)) {
+        if (strValue->Compare(strNewValue)) {
             // Success
             out_bNewOrUpdate = true;
             return true;
@@ -583,7 +583,7 @@ bool Settings::Set_bool(
               << " is Empty!\n";
         OT_FAIL;
     }
-    const String strValue(bValue ? "true" : "false");
+    const auto strValue = String::Factory(bValue ? "true" : "false");
 
     return Set_str(strSection, strKey, strValue, out_bNewOrUpdate, strComment);
 }
@@ -638,7 +638,7 @@ bool Settings::CheckSet_str(
     std::string temp = out_strResult.Get();
     bool success = CheckSet_str(
         strSection, strKey, strDefault, temp, out_bIsNew, strComment);
-    out_strResult = String(temp);
+    out_strResult = String::Factory(temp);
 
     return success;
 }
@@ -670,14 +670,14 @@ bool Settings::CheckSet_str(
         (strDefault.Exists() && !strDefault.Compare("")) ? strDefault.Get()
                                                          : nullptr;
 
-    String strTempResult;
+    auto strTempResult = String::Factory();
     bool bKeyExist = false;
     if (!Check_str(strSection, strKey, strTempResult, bKeyExist)) return false;
 
     if (bKeyExist) {
         // Already have a key, lets use it's value.
         out_bIsNew = false;
-        out_strResult = strTempResult.Get();
+        out_strResult = strTempResult->Get();
         return true;
     } else {
         bool bNewKeyCheck;

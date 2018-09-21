@@ -41,7 +41,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
     if (!xml) { return; }
 
     while (xml && xml->read()) {
-        const String nodeName = xml->getNodeName();
+        const auto nodeName = String::Factory(xml->getNodeName());
         switch (xml->getNodeType()) {
             case irr::io::EXN_NONE:
             case irr::io::EXN_TEXT:
@@ -50,12 +50,12 @@ TransactionStatement::TransactionStatement(const String& serialized)
             case irr::io::EXN_CDATA: {
             } break;
             case irr::io::EXN_ELEMENT: {
-                if (nodeName.Compare("nymData")) {
+                if (nodeName->Compare("nymData")) {
                     version_ = xml->getAttributeValue("version");
                     nym_id_ = xml->getAttributeValue("nymID");
-                } else if (nodeName.Compare("transactionNums")) {
+                } else if (nodeName->Compare("transactionNums")) {
                     notary_ = xml->getAttributeValue("notaryID");
-                    String list;
+                    auto list = String::Factory();
                     const bool loaded =
                         Contract::LoadEncodedTextField(raw, list);
 
@@ -68,7 +68,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
 
                     NumList numlist;
 
-                    if (!list.empty()) { numlist.Add(list); }
+                    if (!list->empty()) { numlist.Add(list); }
 
                     TransactionNumber number = 0;
 
@@ -80,9 +80,9 @@ TransactionStatement::TransactionStatement(const String& serialized)
                                << std::endl;
                         available_.insert(number);
                     }
-                } else if (nodeName.Compare("issuedNums")) {
+                } else if (nodeName->Compare("issuedNums")) {
                     notary_ = xml->getAttributeValue("notaryID");
-                    String list;
+                    auto list = String::Factory();
                     const bool loaded =
                         Contract::LoadEncodedTextField(raw, list);
 
@@ -95,7 +95,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
 
                     NumList numlist;
 
-                    if (!list.empty()) { numlist.Add(list); }
+                    if (!list->empty()) { numlist.Add(list); }
 
                     TransactionNumber number = 0;
 
@@ -124,7 +124,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
 
 TransactionStatement::operator String() const
 {
-    String output;
+    auto output = String::Factory();
 
     Tag serialized("nymData");
 
@@ -133,7 +133,7 @@ TransactionStatement::operator String() const
 
     if (0 < issued_.size()) {
         NumList issuedList(issued_);
-        String issued;
+        auto issued = String::Factory();
         issuedList.Output(issued);
         TagPtr issuedTag(new Tag("issuedNums", Armored(issued).Get()));
         issuedTag->add_attribute("notaryID", notary_);
@@ -142,7 +142,7 @@ TransactionStatement::operator String() const
 
     if (0 < available_.size()) {
         NumList availableList(available_);
-        String available;
+        auto available = String::Factory();
         availableList.Output(available);
         TagPtr availableTag(
             new Tag("transactionNums", Armored(available).Get()));

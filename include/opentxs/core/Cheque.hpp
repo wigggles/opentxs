@@ -37,7 +37,7 @@ public:
         m_REMITTER_NYM_ID = remitterNymID;
         m_REMITTER_ACCT_ID = remitterAcctID;
         m_bHasRemitter = true;
-        m_strContractType = "VOUCHER";
+        m_strContractType = String::Factory("VOUCHER");
     }
     inline const String& GetMemo() const { return m_strMemo; }
     inline const std::int64_t& GetAmount() const { return m_lAmount; }

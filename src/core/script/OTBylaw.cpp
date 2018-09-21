@@ -975,7 +975,8 @@ OTBylaw::OTBylaw(const char* szName, const char* szLanguage)
         otErr << "nullptr szName passed in to OTBylaw::OTBylaw \n";
 
     if (nullptr != szLanguage)
-        m_strLanguage = szLanguage;  // "chai", "angelscript" etc.
+        m_strLanguage =
+            String::Factory(szLanguage);  // "chai", "angelscript" etc.
     else
         otErr << "nullptr szLanguage passed in to OTBylaw::OTBylaw \n";
 

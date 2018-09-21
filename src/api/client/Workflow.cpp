@@ -177,9 +177,9 @@ bool Workflow::add_cheque_event(
     auto& event = *(workflow.add_event());
     event.set_version(version);
     event.set_type(newEventType);
-    event.add_item(String(request).Get());
+    event.add_item(String::Factory(request)->Get());
     event.set_method(proto::TRANSPORTMETHOD_OT);
-    event.set_transport(request.m_strNotaryID.Get());
+    event.set_transport(request.m_strNotaryID->Get());
 
     switch (newEventType) {
         case proto::PAYMENTEVENTTYPE_CANCEL:
@@ -187,7 +187,7 @@ bool Workflow::add_cheque_event(
         } break;
         case proto::PAYMENTEVENTTYPE_CONVEY:
         case proto::PAYMENTEVENTTYPE_ACCEPT: {
-            event.set_nym(request.m_strNymID2.Get());
+            event.set_nym(request.m_strNymID2->Get());
         } break;
         case proto::PAYMENTEVENTTYPE_ERROR:
         case proto::PAYMENTEVENTTYPE_CREATE:
@@ -219,7 +219,7 @@ bool Workflow::add_cheque_event(
     const Identifier& recipientNymID,
     const OTTransaction& receipt) const
 {
-    String message;
+    auto message = String::Factory();
     receipt.SaveContractRaw(message);
     workflow.set_state(newState);
     auto& event = *(workflow.add_event());
@@ -482,7 +482,7 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
         Identifier::Factory(), {}};
     auto& [workflowID, workflow] = output;
     const auto chequeID = Identifier::Factory(cheque);
-    const std::string serialized = String(cheque).Get();
+    const std::string serialized = String::Factory(cheque)->Get();
     const auto existing = get_workflow({workflowType}, nymID, cheque);
 
     if (existing) {
@@ -979,7 +979,7 @@ bool Workflow::SendCheque(
 
     return add_cheque_event(
         nymID,
-        request.m_strNymID2.Get(),
+        request.m_strNymID2->Get(),
         *workflow,
         proto::PAYMENTWORKFLOWSTATE_CONVEYED,
         proto::PAYMENTEVENTTYPE_CONVEY,

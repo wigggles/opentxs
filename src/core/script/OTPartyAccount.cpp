@@ -66,7 +66,7 @@ OTPartyAccount::OTPartyAccount(
     , m_pForParty(nullptr)
     // This gets set when this partyaccount is added to its party.
     , m_lClosingTransNo(lClosingTransNo)
-    , m_strName(str_account_name.c_str())
+    , m_strName(String::Factory(str_account_name.c_str()))
     , m_strAcctID(String::Factory(theAccount.GetRealAccountID()))
     , m_strInstrumentDefinitionID(
           String::Factory(theAccount.GetInstrumentDefinitionID()))

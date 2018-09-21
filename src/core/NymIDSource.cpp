@@ -277,12 +277,12 @@ bool NymIDSource::Sign(
     return goodsig;
 }
 
-String NymIDSource::asString() const
+OTString NymIDSource::asString() const
 {
     auto dataSource = asData();
     Armored armoredSource(dataSource);
 
-    return armoredSource.Get();
+    return armoredSource;
 }
 
 // static
@@ -299,22 +299,22 @@ serializedNymIDSource NymIDSource::ExtractArmoredSource(
     return protoSource;
 }
 
-String NymIDSource::Description() const
+OTString NymIDSource::Description() const
 {
-    String description;
+    auto description = String::Factory();
     auto keyID = Identifier::Factory();
 
     switch (type_) {
         case (proto::SOURCETYPE_PUBKEY):
             if (pubkey_.get()) {
                 pubkey_->CalculateID(keyID);
-                description = String(keyID);
+                description = String::Factory(keyID);
             }
 
             break;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
         case (proto::SOURCETYPE_BIP47):
-            description = String(payment_code_->asBase58());
+            description = String::Factory(payment_code_->asBase58());
 
             break;
 #endif

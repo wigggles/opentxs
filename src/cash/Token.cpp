@@ -217,24 +217,25 @@ void Token::ReleasePrototokens()
 //
 bool Token::IsTokenAlreadySpent(String& theCleartextToken)
 {
-    String strInstrumentDefinitionID(GetInstrumentDefinitionID());
+    auto strInstrumentDefinitionID =
+        String::Factory(GetInstrumentDefinitionID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
     auto theTokenHash = Identifier::Factory();
     theTokenHash->CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)
-    String strTokenHash(theTokenHash);
+    auto strTokenHash = String::Factory(theTokenHash);
 
-    String strAssetFolder;
-    strAssetFolder.Format(
-        "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
+    auto strAssetFolder = String::Factory();
+    strAssetFolder->Format(
+        "%s.%d", strInstrumentDefinitionID->Get(), GetSeries());
 
     bool bTokenIsPresent = OTDB::Exists(
         api_.DataFolder(),
         OTFolders::Spent().Get(),
-        strAssetFolder.Get(),
-        strTokenHash.Get(),
+        strAssetFolder->Get(),
+        strTokenHash->Get(),
         "");
 
     if (bTokenIsPresent) {
@@ -255,25 +256,26 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
 
 bool Token::RecordTokenAsSpent(String& theCleartextToken)
 {
-    String strInstrumentDefinitionID(GetInstrumentDefinitionID());
+    auto strInstrumentDefinitionID =
+        String::Factory(GetInstrumentDefinitionID());
 
     // Calculate the filename (a hash of the Lucre cleartext token ID)
     auto theTokenHash = Identifier::Factory();
     theTokenHash->CalculateDigest(theCleartextToken);
 
     // Grab the new hash into a string (for use as a filename)
-    String strTokenHash(theTokenHash);
+    auto strTokenHash = String::Factory(theTokenHash);
 
-    String strAssetFolder;
-    strAssetFolder.Format(
-        "%s.%d", strInstrumentDefinitionID.Get(), GetSeries());
+    auto strAssetFolder = String::Factory();
+    strAssetFolder->Format(
+        "%s.%d", strInstrumentDefinitionID->Get(), GetSeries());
 
     // See if the spent token file ALREADY EXISTS...
     bool bTokenIsPresent = OTDB::Exists(
         api_.DataFolder(),
         OTFolders::Spent().Get(),
-        strAssetFolder.Get(),
-        strTokenHash.Get(),
+        strAssetFolder->Get(),
+        strTokenHash->Get(),
         "");
 
     // If so, we're trying to record a token that was already recorded...
@@ -291,7 +293,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     // on a hash of the Lucre data.
     // The success of that operation is also now the success of this one.
 
-    String strFinal;
+    auto strFinal = String::Factory();
     Armored ascTemp(m_strRawFile);
 
     if (false ==
@@ -304,11 +306,11 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     }
 
     const bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(),
+        strFinal->Get(),
         api_.DataFolder(),
         OTFolders::Spent().Get(),
-        strAssetFolder.Get(),
-        strTokenHash.Get(),
+        strAssetFolder->Get(),
+        strTokenHash->Get(),
         "");
     if (!bSaved) {
         otErr << "Token::RecordTokenAsSpent: Error saving file: "
@@ -389,7 +391,7 @@ bool Token::ReassignOwnership(
     OTNym_or_SymmetricKey& newOwner)  // can be public, if a Nym.
 {
     const char* szFunc = "Token::ReassignOwnership";
-    const String strDisplay(szFunc);
+    const auto strDisplay = String::Factory(szFunc);
 
     bool bSuccess = true;
 
@@ -397,8 +399,9 @@ bool Token::ReassignOwnership(
                                         // have the same owner.
     {
         OTEnvelope theEnvelope(m_ascSpendable);
-        String theString;  // output from opening/decrypting (and eventually
-                           // input for sealing/encrypting) envelope.
+        auto theString = String::Factory();  // output from opening/decrypting
+                                             // (and eventually input for
+                                             // sealing/encrypting) envelope.
 
         // Remember, OTPurse can store its own internal symmetric key, for cases
         // where the purse is "password protected" instead of belonging to a
@@ -428,7 +431,7 @@ bool Token::GetSpendableString(
         OTEnvelope theEnvelope(m_ascSpendable);
 
         // Decrypt the Envelope into strContents
-        const String strDisplay(szFunc);
+        const auto strDisplay = String::Factory(szFunc);
 
         if (theOwner.Open_or_Decrypt(theEnvelope, theString, strDisplay))
             return true;
@@ -442,28 +445,28 @@ void Token::UpdateContents()
 {
     if (m_State == Token::spendableToken) m_strContractType->Set("CASH TOKEN");
 
-    String INSTRUMENT_DEFINITION_ID(m_InstrumentDefinitionID),
-        NOTARY_ID(m_NotaryID);
+    auto INSTRUMENT_DEFINITION_ID = String::Factory(m_InstrumentDefinitionID),
+         NOTARY_ID = String::Factory(m_NotaryID);
 
-    String strState;
+    auto strState = String::Factory();
     switch (m_State) {
         case Token::blankToken:
-            strState.Set("blankToken");
+            strState->Set("blankToken");
             break;
         case Token::protoToken:
-            strState.Set("protoToken");
+            strState->Set("protoToken");
             break;
         case Token::signedToken:
-            strState.Set("signedToken");
+            strState->Set("signedToken");
             break;
         case Token::spendableToken:
-            strState.Set("spendableToken");
+            strState->Set("spendableToken");
             break;
         case Token::verifiedToken:
-            strState.Set("verifiedToken");
+            strState->Set("verifiedToken");
             break;
         default:
-            strState.Set("errorToken");
+            strState->Set("errorToken");
             break;
     }
 
@@ -473,10 +476,11 @@ void Token::UpdateContents()
     Tag tag("token");
 
     tag.add_attribute("version", m_strVersion->Get());
-    tag.add_attribute("state", strState.Get());
+    tag.add_attribute("state", strState->Get());
     tag.add_attribute("denomination", formatLong(GetDenomination()));
-    tag.add_attribute("instrumentDefinitionID", INSTRUMENT_DEFINITION_ID.Get());
-    tag.add_attribute("notaryID", NOTARY_ID.Get());
+    tag.add_attribute(
+        "instrumentDefinitionID", INSTRUMENT_DEFINITION_ID->Get());
+    tag.add_attribute("notaryID", NOTARY_ID->Get());
     tag.add_attribute("series", formatInt(m_nSeries));
     tag.add_attribute("validFrom", formatTimestamp(m_VALID_FROM));
     tag.add_attribute("validTo", formatTimestamp(m_VALID_TO));
@@ -540,7 +544,7 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
     std::int32_t nReturnVal = 0;
 
-    const String strNodeName(xml->getNodeName());
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
     // Here we call the parent class first.
     // If the node is found there, or there is some error,
@@ -553,11 +557,11 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // if (nReturnVal = Contract::ProcessXMLNode(xml))
     //    return nReturnVal;
 
-    if (strNodeName.Compare("token")) {
-        String strState;
+    if (strNodeName->Compare("token")) {
+        auto strState = String::Factory();
 
-        m_strVersion = xml->getAttributeValue("version");
-        strState = xml->getAttributeValue("state");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
+        strState = String::Factory(xml->getAttributeValue("state"));
 
         m_nSeries = atoi(xml->getAttributeValue("series"));
 
@@ -571,15 +575,15 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetDenomination(
             String::StringToLong(xml->getAttributeValue("denomination")));
 
-        if (strState.Compare("blankToken"))
+        if (strState->Compare("blankToken"))
             m_State = Token::blankToken;
-        else if (strState.Compare("protoToken"))
+        else if (strState->Compare("protoToken"))
             m_State = Token::protoToken;
-        else if (strState.Compare("signedToken"))
+        else if (strState->Compare("signedToken"))
             m_State = Token::signedToken;
-        else if (strState.Compare("spendableToken"))
+        else if (strState->Compare("spendableToken"))
             m_State = Token::spendableToken;
-        else if (strState.Compare("verifiedToken"))
+        else if (strState->Compare("verifiedToken"))
             m_State = Token::verifiedToken;
         else
             m_State = Token::errorToken;
@@ -587,9 +591,9 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (m_State == Token::spendableToken)
             m_strContractType->Set("CASH TOKEN");
 
-        String strInstrumentDefinitionID(
-            xml->getAttributeValue("instrumentDefinitionID")),
-            strNotaryID(xml->getAttributeValue("notaryID"));
+        auto strInstrumentDefinitionID = String::Factory(
+                 xml->getAttributeValue("instrumentDefinitionID")),
+             strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         m_InstrumentDefinitionID->SetString(strInstrumentDefinitionID);
         m_NotaryID->SetString(strNotaryID);
@@ -599,7 +603,7 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             "\n NotaryID: ")(strNotaryID)
             .Flush();
         nReturnVal = 1;
-    } else if (strNodeName.Compare("tokenID")) {
+    } else if (strNodeName->Compare("tokenID")) {
         if (!Contract::LoadEncodedTextField(xml, m_ascSpendable)) {
             otErr << "Error in Token::ProcessXMLNode: token ID without "
                      "value.\n";
@@ -607,7 +611,7 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         return 1;
-    } else if (strNodeName.Compare("tokenSignature")) {
+    } else if (strNodeName->Compare("tokenSignature")) {
         if (!Contract::LoadEncodedTextField(xml, m_Signature)) {
             otErr << "Error in Token::ProcessXMLNode: token Signature "
                      "without value.\n";
@@ -615,10 +619,10 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         return 1;
-    } else if (strNodeName.Compare("protopurse")) {  // TODO for security, if
-                                                     // the count here doesn't
-                                                     // match what's loaded up,
-                                                     // that should be part of
+    } else if (strNodeName->Compare("protopurse")) {  // TODO for security, if
+                                                      // the count here doesn't
+                                                      // match what's loaded up,
+                                                      // that should be part of
         // what is verified in each token when it's verified..
         m_nTokenCount = atoi(xml->getAttributeValue("count"));
         m_nChosenIndex = atoi(xml->getAttributeValue("chosenIndex"));
@@ -626,7 +630,7 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         nPublicTokenCount = 0;
 
         return 1;
-    } else if (strNodeName.Compare("prototoken")) {
+    } else if (strNodeName->Compare("prototoken")) {
         Armored* pArmoredPrototoken = new Armored;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
@@ -645,11 +649,11 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         }
 
         return 1;
-    } else if (strNodeName.Compare("privateProtopurse")) {
+    } else if (strNodeName->Compare("privateProtopurse")) {
         nPrivateTokenCount = 0;
 
         return 1;
-    } else if (strNodeName.Compare("privatePrototoken")) {
+    } else if (strNodeName->Compare("privatePrototoken")) {
         Armored* pArmoredPrototoken = new Armored;
         OT_ASSERT(nullptr != pArmoredPrototoken);
 
@@ -794,7 +798,7 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
     // first before I can use it.
     OTEnvelope theEnvelope(m_ascSpendable);
 
-    String strContents;  // output from opening the envelope.
+    auto strContents = String::Factory();  // output from opening the envelope.
     // Decrypt the Envelope into strContents
     if (!theEnvelope.Open(theNotary, strContents))
         return false;  // todo log error, etc.

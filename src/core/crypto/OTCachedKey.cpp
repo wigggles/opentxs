@@ -169,7 +169,7 @@ bool OTCachedKey::GetIdentifier(String& strIdentifier) const
 
     if (!GetIdentifier(id)) { return false; }
 
-    strIdentifier = String::Factory(id);
+    strIdentifier.Set(String::Factory(id));
 
     return true;
 }

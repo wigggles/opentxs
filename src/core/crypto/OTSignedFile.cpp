@@ -151,11 +151,13 @@ std::int32_t OTSignedFile::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //    return nReturnVal;
 
     if (!strcmp("signedFile", xml->getNodeName())) {
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
 
-        m_strPurportedLocalDir = xml->getAttributeValue("localDir");
-        m_strPurportedFilename = xml->getAttributeValue("filename");
-        m_strSignerNymID = xml->getAttributeValue("signer");
+        m_strPurportedLocalDir =
+            String::Factory(xml->getAttributeValue("localDir"));
+        m_strPurportedFilename =
+            String::Factory(xml->getAttributeValue("filename"));
+        m_strSignerNymID = String::Factory(xml->getAttributeValue("signer"));
 
         nReturnVal = 1;
     } else if (!strcmp("filePayload", xml->getNodeName())) {

@@ -139,9 +139,9 @@ std::string Trezor::SeedToFingerprint(
             static_cast<void*>(node->public_key), sizeof(node->public_key));
         auto identifier = Identifier::Factory();
         identifier->CalculateDigest(pubkey);
-        String fingerprint(identifier);
+        auto fingerprint = String::Factory(identifier);
 
-        return fingerprint.Get();
+        return fingerprint->Get();
     }
 
     return "";

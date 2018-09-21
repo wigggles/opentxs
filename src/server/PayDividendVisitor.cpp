@@ -85,8 +85,8 @@ bool PayDividendVisitor::Trigger(
     const Identifier& RECIPIENT_ID = theSharesAccount.GetNymID();
     OT_ASSERT(!GetNymID()->empty());
     const Identifier& theSenderNymID = (GetNymID());
-    OT_ASSERT(nullptr != GetMemo());
-    const String& strMemo = *(GetMemo());
+    OT_ASSERT(!GetMemo()->empty());
+    const String& strMemo = (GetMemo());
     // Note: theSenderNymID is the originator of the Dividend Payout.
     // However, all the actual vouchers will be from "the server Nym" and
     // not from theSenderNymID. So then why is it even here? Because anytime
@@ -166,7 +166,7 @@ bool PayDividendVisitor::Trigger(
 
             // Send the voucher to the payments inbox of the recipient.
             //
-            const String strVoucher(*theVoucher);
+            const auto strVoucher = String::Factory(*theVoucher);
             auto thePayment{server_.API().Factory().Payment(strVoucher)};
 
             OT_ASSERT(false != bool(thePayment));
@@ -186,9 +186,9 @@ bool PayDividendVisitor::Trigger(
             // lTotalPayoutAmount, then we return to rest
             // to the sender.
         } else {
-            const String strPayoutUnitTypeId(
-                Identifier::Factory(payoutUnitTypeId_)),
-                strRecipientNymID(RECIPIENT_ID);
+            const auto strPayoutUnitTypeId = String::Factory(
+                           Identifier::Factory(payoutUnitTypeId_)),
+                       strRecipientNymID = String::Factory(RECIPIENT_ID);
             otErr << "PayDividendVisitor::Trigger: ERROR failed issuing "
                   << "voucher (to send to dividend payout recipient.) WAS "
                   << "TRYING TO PAY " << lPayoutAmount
@@ -233,7 +233,8 @@ bool PayDividendVisitor::Trigger(
                 // Return the voucher back to the payments inbox of the original
                 // sender.
                 //
-                const String strReturnVoucher(*theReturnVoucher);
+                const auto strReturnVoucher =
+                    String::Factory(*theReturnVoucher);
                 auto theReturnPayment{
                     server_.API().Factory().Payment(strReturnVoucher)};
 
@@ -253,8 +254,9 @@ bool PayDividendVisitor::Trigger(
                                         // is less than lTotalPayoutAmount, then
                                         // we return the rest to the sender.
             } else {
-                const String strPayoutUnitTypeId(payoutUnitTypeId_),
-                    strSenderNymID(theSenderNymID);
+                const auto strPayoutUnitTypeId =
+                               String::Factory(payoutUnitTypeId_),
+                           strSenderNymID = String::Factory(theSenderNymID);
                 otErr << "PayDividendVisitor::Trigger: ERROR "
                          "failed issuing voucher (to return back to "
                          "the dividend payout initiator, after a failed "
@@ -267,14 +269,14 @@ bool PayDividendVisitor::Trigger(
         }   // if !bSent
     } else  // !bGotNextTransNum
     {
-        const String strPayoutUnitTypeId(payoutUnitTypeId_),
-            strRecipientNymID(RECIPIENT_ID);
+        const auto strPayoutUnitTypeId = String::Factory(payoutUnitTypeId_),
+                   strRecipientNymID = String::Factory(RECIPIENT_ID);
         otErr << OT_METHOD << __FUNCTION__
               << ": ERROR!! Failed issuing next transaction number while "
               << "trying to send a voucher (while paying dividends.) "
               << "WAS TRYING TO PAY " << lPayoutAmount
-              << " of instrument definition " << strPayoutUnitTypeId.Get()
-              << " to Nym " << strRecipientNymID.Get() << ".\n";
+              << " of instrument definition " << strPayoutUnitTypeId->Get()
+              << " to Nym " << strRecipientNymID->Get() << ".\n";
     }
 
     return bReturnValue;
@@ -283,7 +285,6 @@ bool PayDividendVisitor::Trigger(
 PayDividendVisitor::~PayDividendVisitor()
 {
 
-    if (nullptr != m_pstrMemo) delete m_pstrMemo;
     m_pstrMemo = nullptr;
     m_lPayoutPerShare = 0;
     m_lAmountPaidOut = 0;

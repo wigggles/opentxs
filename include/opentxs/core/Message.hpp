@@ -139,27 +139,27 @@ public:
         std::string name,
         OTMessageStrategy* strategy);
 
-    String m_strCommand;   // perhaps @register is the string for "reply to
+    OTString m_strCommand;   // perhaps @register is the string for "reply to
                            // register" a-ha
-    String m_strNotaryID;  // This is sent with every message for security
+    OTString m_strNotaryID;  // This is sent with every message for security
                            // reasons.
-    String m_strNymID;     // The hash of the user's public key... or x509 cert.
-    String m_strNymboxHash;  // Sometimes in a server reply as FYI, sometimes
+    OTString m_strNymID;     // The hash of the user's public key... or x509 cert.
+    OTString m_strNymboxHash;  // Sometimes in a server reply as FYI, sometimes
                              // in user message for validation purposes.
-    String m_strInboxHash;   // Sometimes in a server reply as FYI, sometimes in
+    OTString m_strInboxHash;   // Sometimes in a server reply as FYI, sometimes in
                              // user message for validation purposes.
-    String m_strOutboxHash;  // Sometimes in a server reply as FYI, sometimes
+    OTString m_strOutboxHash;  // Sometimes in a server reply as FYI, sometimes
                              // in user message for validation purposes.
-    String m_strNymID2;      // If the user requests public key of another user.
+    OTString m_strNymID2;      // If the user requests public key of another user.
                              // ALSO used for MARKET ID sometimes.
-    String m_strNymPublicKey;  // The user's public key... or x509 cert.
-    String m_strInstrumentDefinitionID;  // The hash of the contract for
+    OTString m_strNymPublicKey;  // The user's public key... or x509 cert.
+    OTString m_strInstrumentDefinitionID;  // The hash of the contract for
                                          // whatever
                                          // digital
                                          // asset is referenced.
-    String m_strAcctID;                  // The unique ID of an asset account.
-    String m_strType;                    // .
-    String m_strRequestNum;  // Every user has a request number. This prevents
+    OTString m_strAcctID;                  // The unique ID of an asset account.
+    OTString m_strType;                    // .
+    OTString m_strRequestNum;  // Every user has a request number. This prevents
                              // messages from
                              // being intercepted and repeated by attackers.
 

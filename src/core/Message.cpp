@@ -227,6 +227,18 @@ const Message::ReverseTypeMap Message::message_types_ = make_reverse_map();
 Message::Message(const api::Core& core)
     : Contract(core)
     , m_bIsSigned(false)
+    , m_strCommand(String::Factory())
+    , m_strNotaryID(String::Factory())
+    , m_strNymID(String::Factory())
+    , m_strNymboxHash(String::Factory())
+    , m_strInboxHash(String::Factory())
+    , m_strOutboxHash(String::Factory())
+    , m_strNymID2(String::Factory())
+    , m_strNymPublicKey(String::Factory())
+    , m_strInstrumentDefinitionID(String::Factory())
+    , m_strAcctID(String::Factory())
+    , m_strType(String::Factory())
+    , m_strRequestNum(String::Factory())
     , m_lNewRequestNum(0)
     , m_lDepth(0)
     , m_lTransactionNum(0)
@@ -300,12 +312,12 @@ bool Message::HarvestTransactionNumbers(
     const auto MSG_NYM_ID = Identifier::Factory(m_strNymID),
                NOTARY_ID = Identifier::Factory(m_strNotaryID),
                ACCOUNT_ID = Identifier::Factory(
-                   m_strAcctID.Exists() ? m_strAcctID
-                                        : m_strNymID);  // This may be
+                   m_strAcctID->Exists() ? m_strAcctID
+                                         : m_strNymID);  // This may be
     // unnecessary, but just
     // in case.
 
-    const String strLedger(m_ascPayload);
+    const auto strLedger = String::Factory(m_ascPayload);
     auto theLedger = api_.Factory().Ledger(
         MSG_NYM_ID,
         ACCOUNT_ID,
@@ -313,7 +325,7 @@ bool Message::HarvestTransactionNumbers(
                      // load a messsage
                      // ledger from *this.
 
-    if (!strLedger.Exists() || !theLedger->LoadLedgerFromString(strLedger)) {
+    if (!strLedger->Exists() || !theLedger->LoadLedgerFromString(strLedger)) {
         otErr << __FUNCTION__
               << ": ERROR: Failed trying to load message ledger:\n\n"
               << strLedger << "\n\n";
@@ -425,12 +437,12 @@ void Message::UpdateContents()
     tag.add_attribute("dateSigned", formatTimestamp(m_lTime));
 
     if (!updateContentsByType(tag)) {
-        TagPtr pTag(new Tag(m_strCommand.Get()));
-        pTag->add_attribute("requestNum", m_strRequestNum.Get());
+        TagPtr pTag(new Tag(m_strCommand->Get()));
+        pTag->add_attribute("requestNum", m_strRequestNum->Get());
         pTag->add_attribute("success", formatBool(false));
-        pTag->add_attribute("acctID", m_strAcctID.Get());
-        pTag->add_attribute("nymID", m_strNymID.Get());
-        pTag->add_attribute("notaryID", m_strNotaryID.Get());
+        pTag->add_attribute("acctID", m_strAcctID->Get());
+        pTag->add_attribute("nymID", m_strNymID->Get());
+        pTag->add_attribute("notaryID", m_strNotaryID->Get());
         // The below was an XML comment in the previous version
         // of this code. It's unused.
         pTag->add_attribute("infoInvalid", "THIS IS AN INVALID MESSAGE");
@@ -452,8 +464,8 @@ void Message::UpdateContents()
     // Server removes any number he sees the client has also removed.
     //
     if (m_AcknowledgedReplies.Count() > 0) {
-        String strAck;
-        if (m_AcknowledgedReplies.Output(strAck) && strAck.Exists()) {
+        auto strAck = String::Factory();
+        if (m_AcknowledgedReplies.Output(strAck) && strAck->Exists()) {
             const Armored ascTemp(strAck);
             if (ascTemp.Exists()) { tag.add_tag("ackReplies", ascTemp.Get()); }
         }
@@ -468,7 +480,7 @@ void Message::UpdateContents()
 bool Message::updateContentsByType(Tag& parent)
 {
     OTMessageStrategy* strategy =
-        messageStrategyManager.findStrategy(m_strCommand.Get());
+        messageStrategyManager.findStrategy(m_strCommand->Get());
     if (!strategy) return false;
     strategy->writeXml(*this, parent);
     return true;
@@ -489,12 +501,12 @@ std::int32_t Message::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     // if (nReturnVal = Contract::ProcessXMLNode(xml))
     //      return nReturnVal;
 
-    const String strNodeName(xml->getNodeName());
-    if (strNodeName.Compare("ackReplies")) {
+    const auto strNodeName = String::Factory(xml->getNodeName());
+    if (strNodeName->Compare("ackReplies")) {
         return processXmlNodeAckReplies(*this, xml);
-    } else if (strNodeName.Compare("acknowledgedReplies")) {
+    } else if (strNodeName->Compare("acknowledgedReplies")) {
         return processXmlNodeAcknowledgedReplies(*this, xml);
-    } else if (strNodeName.Compare("notaryMessage")) {
+    } else if (strNodeName->Compare("notaryMessage")) {
         return processXmlNodeNotaryMessage(*this, xml);
     }
 
@@ -508,7 +520,7 @@ std::int32_t Message::processXmlNodeAckReplies(
     __attribute__((unused)) Message& m,
     irr::io::IrrXMLReader*& xml)
 {
-    String strDepth;
+    auto strDepth = String::Factory();
     if (!Contract::LoadEncodedTextField(xml, strDepth)) {
         otErr << "Error in OTMessage::ProcessXMLNode: ackReplies field "
                  "without value.\n";
@@ -517,7 +529,7 @@ std::int32_t Message::processXmlNodeAckReplies(
 
     m_AcknowledgedReplies.Release();
 
-    if (strDepth.Exists()) m_AcknowledgedReplies.Add(strDepth);
+    if (strDepth->Exists()) m_AcknowledgedReplies.Add(strDepth);
 
     return 1;
 }
@@ -540,9 +552,9 @@ std::int32_t Message::processXmlNodeNotaryMessage(
 {
     m_strVersion = xml->getAttributeValue("version");
 
-    String strDateSigned = xml->getAttributeValue("dateSigned");
+    auto strDateSigned = String::Factory(xml->getAttributeValue("dateSigned"));
 
-    if (strDateSigned.Exists()) m_lTime = parseTimestamp(strDateSigned.Get());
+    if (strDateSigned->Exists()) m_lTime = parseTimestamp(strDateSigned->Get());
 
     otInfo << "\n===> Loading XML for Message into memory structures...\n";
 
@@ -644,7 +656,8 @@ void OTMessageStrategy::processXmlSuccess(
     Message& m,
     irr::io::IrrXMLReader*& xml)
 {
-    m.m_bSuccess = String(xml->getAttributeValue("success")).Compare("true");
+    m.m_bSuccess =
+        String::Factory(xml->getAttributeValue("success"))->Compare("true");
 }
 
 void Message::registerStrategy(std::string name, OTMessageStrategy* strategy)
@@ -659,12 +672,12 @@ class StrategyGetMarketOffers : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("marketID", m.m_strNymID2.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("marketID", m.m_strNymID2->Get());
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
 
         parent.add_tag(pTag);
@@ -678,9 +691,9 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID2 = xml->getAttributeValue("marketID");
 
-        String strDepth = xml->getAttributeValue("depth");
+        auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
+        if (strDepth->GetLength() > 0) m.m_lDepth = strDepth->ToLong();
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -701,14 +714,14 @@ class StrategyGetMarketOffersResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
-        pTag->add_attribute("marketID", m.m_strNymID2.Get());
+        pTag->add_attribute("marketID", m.m_strNymID2->Get());
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
@@ -730,9 +743,9 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strNymID2 = xml->getAttributeValue("marketID");
 
-        String strDepth = xml->getAttributeValue("depth");
+        auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
+        if (strDepth->GetLength() > 0) m.m_lDepth = strDepth->ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))
@@ -786,12 +799,12 @@ class StrategyGetMarketRecentTrades : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("marketID", m.m_strNymID2.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("marketID", m.m_strNymID2->Get());
 
         parent.add_tag(pTag);
     }
@@ -823,14 +836,14 @@ class StrategyGetMarketRecentTradesResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
-        pTag->add_attribute("marketID", m.m_strNymID2.Get());
+        pTag->add_attribute("marketID", m.m_strNymID2->Get());
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
             (m.m_lDepth > 0)) {
@@ -852,9 +865,9 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strNymID2 = xml->getAttributeValue("marketID");
 
-        String strDepth = xml->getAttributeValue("depth");
+        auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
+        if (strDepth->GetLength() > 0) m.m_lDepth = strDepth->ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))
@@ -908,11 +921,11 @@ class StrategyGetNymMarketOffers : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -942,12 +955,12 @@ class StrategyGetNymMarketOffersResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
@@ -969,9 +982,9 @@ public:
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
-        String strDepth = xml->getAttributeValue("depth");
+        auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
+        if (strDepth->GetLength() > 0) m.m_lDepth = strDepth->ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))
@@ -1023,16 +1036,16 @@ class StrategyPingNotary : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         TagPtr pAuthentKeyTag(
-            new Tag("publicAuthentKey", m.m_strNymPublicKey.Get()));
+            new Tag("publicAuthentKey", m.m_strNymPublicKey->Get()));
         TagPtr pEncryptKeyTag(
-            new Tag("publicEncryptionKey", m.m_strNymID2.Get()));
+            new Tag("publicEncryptionKey", m.m_strNymID2->Get()));
 
         pAuthentKeyTag->add_attribute(
             "type",
@@ -1090,12 +1103,12 @@ public:
                 {
                     m.keytypeAuthent_ =
                         crypto::key::Asymmetric::StringToKeyType(
-                            String(str_type));
+                            String::Factory(str_type));
                 }
             }
             // -----------------------------------------------
         }
-        m.m_strNymPublicKey.Set(ascTextExpected);
+        m.m_strNymPublicKey->Set(ascTextExpected);
         // -------------------------------------------------
         pElementExpected = "publicEncryptionKey";
         ascTextExpected.Release();
@@ -1129,12 +1142,12 @@ public:
                 {
                     m.keytypeEncrypt_ =
                         crypto::key::Asymmetric::StringToKeyType(
-                            String(str_type));
+                            String::Factory(str_type));
                 }
             }
         }
         // -----------------------------------------------
-        m.m_strNymID2.Set(ascTextExpected);
+        m.m_strNymID2->Set(ascTextExpected);
         // -------------------------------------------------
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -1156,12 +1169,12 @@ class StrategyPingNotaryResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -1195,11 +1208,11 @@ class StrategyRegisterContract : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("contract", m.m_ascPayload.Get());
         pTag->add_attribute("type", std::to_string(m.enum_));
 
@@ -1239,12 +1252,12 @@ class StrategyRegisterContractResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascInReferenceTo.GetLength() > 2) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -1292,11 +1305,11 @@ class StrategyRegisterNym : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("publicnym", m.m_ascPayload.Get());
 
         parent.add_tag(pTag);
@@ -1327,12 +1340,12 @@ class StrategyRegisterNymResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2)) {
             pTag->add_tag("nymfile", m.m_ascPayload.Get());
@@ -1398,11 +1411,11 @@ class StrategyUnregisterNym : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -1431,12 +1444,12 @@ class StrategyUnregisterNymResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascInReferenceTo.GetLength() > 2) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -1484,12 +1497,12 @@ class StrategyCheckNym : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -1524,13 +1537,13 @@ public:
         const bool bCredentials = (m.m_ascPayload.Exists());
         OT_ASSERT(!m.m_bSuccess || bCredentials);
 
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_bSuccess && bCredentials) {
             pTag->add_tag("publicnym", m.m_ascPayload.Get());
@@ -1611,12 +1624,12 @@ class StrategyUsageCredits : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("adjustment", formatLong(m.m_lDepth));
 
         parent.add_tag(pTag);
@@ -1630,9 +1643,11 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        String strAdjustment = xml->getAttributeValue("adjustment");
+        auto strAdjustment =
+            String::Factory(xml->getAttributeValue("adjustment"));
 
-        if (strAdjustment.GetLength() > 0) m.m_lDepth = strAdjustment.ToLong();
+        if (strAdjustment->GetLength() > 0)
+            m.m_lDepth = strAdjustment->ToLong();
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -1654,13 +1669,13 @@ class StrategyUsageCreditsResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("totalCredits", formatLong(m.m_lDepth));
 
         parent.add_tag(pTag);
@@ -1676,10 +1691,11 @@ public:
         m.m_strNymID2 = xml->getAttributeValue("nymID2");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
-        String strTotalCredits = xml->getAttributeValue("totalCredits");
+        auto strTotalCredits =
+            String::Factory(xml->getAttributeValue("totalCredits"));
 
-        if (strTotalCredits.GetLength() > 0)
-            m.m_lDepth = strTotalCredits.ToLong();
+        if (strTotalCredits->GetLength() > 0)
+            m.m_lDepth = strTotalCredits->ToLong();
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
@@ -1708,12 +1724,12 @@ class StrategyOutpaymentsMessageOrOutmailMessage : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascPayload.GetLength() > 2) {
             pTag->add_tag("messagePayload", m.m_ascPayload.Get());
@@ -1765,12 +1781,12 @@ class StrategySendNymMessage : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascPayload.GetLength() > 2) {
             pTag->add_tag("messagePayload", m.m_ascPayload.Get());
@@ -1818,13 +1834,13 @@ class StrategySendNymMessageResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -1877,12 +1893,12 @@ class StrategySendNymInstrumentOrPayDividend : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("nymID2", m.m_strNymID2.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("nymID2", m.m_strNymID2->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascPayload.GetLength() > 2) {
             pTag->add_tag("messagePayload", m.m_ascPayload.Get());
@@ -1934,11 +1950,11 @@ class StrategyGetRequestNumber : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -1971,14 +1987,14 @@ class StrategyGetRequestResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("newRequestNum", formatLong(m.m_lNewRequestNum));
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
         parent.add_tag(pTag);
     }
@@ -1993,9 +2009,10 @@ public:
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
-        const String strNewRequestNum = xml->getAttributeValue("newRequestNum");
+        const auto strNewRequestNum =
+            String::Factory(xml->getAttributeValue("newRequestNum"));
         m.m_lNewRequestNum =
-            strNewRequestNum.Exists() ? strNewRequestNum.ToLong() : 0;
+            strNewRequestNum->Exists() ? strNewRequestNum->ToLong() : 0;
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
@@ -2019,13 +2036,13 @@ class StrategyRegisterInstrumentDefinition : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
         if (m.m_ascPayload.GetLength()) {
             pTag->add_tag("instrumentDefinition", m.m_ascPayload.Get());
@@ -2076,17 +2093,17 @@ class StrategyRegisterInstrumentDefinitionResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
         // the new issuer account ID
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -2159,7 +2176,7 @@ public:
             return (-1);  // error condition
         }
 
-        String acctContents(m.m_ascPayload);
+        auto acctContents = String::Factory(m.m_ascPayload);
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
                << "\nNymID:    " << m.m_strNymID
@@ -2186,11 +2203,11 @@ class StrategyQueryInstrumentDefinitions : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascPayload.GetLength()) {
             pTag->add_tag("stringMap", m.m_ascPayload.Get());
@@ -2238,12 +2255,12 @@ class StrategyQueryInstrumentDefinitionsResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -2328,11 +2345,11 @@ class StrategyIssueBasket : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascPayload.GetLength()) {
             pTag->add_tag("currencyBasket", m.m_ascPayload.Get());
@@ -2391,15 +2408,15 @@ class StrategyIssueBasketResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -2466,13 +2483,13 @@ class StrategyRegisterAccount : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
         parent.add_tag(pTag);
     }
@@ -2507,14 +2524,14 @@ class StrategyRegisterAccountResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascInReferenceTo.Exists()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -2606,14 +2623,14 @@ class StrategyGetBoxReceipt : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         // If retrieving box receipt for Nymbox, NymID
         // will appear in this variable.
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
         pTag->add_attribute(
             "boxType",  // outbox is 2.
             (m.m_lDepth == 0) ? "nymbox"
@@ -2631,17 +2648,19 @@ public:
         m.m_strAcctID = xml->getAttributeValue("accountID");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
 
-        String strTransactionNum = xml->getAttributeValue("transactionNum");
+        auto strTransactionNum =
+            String::Factory(xml->getAttributeValue("transactionNum"));
         m.m_lTransactionNum =
-            strTransactionNum.Exists() ? strTransactionNum.ToLong() : 0;
+            strTransactionNum->Exists() ? strTransactionNum->ToLong() : 0;
 
-        const String strBoxType = xml->getAttributeValue("boxType");
+        const auto strBoxType =
+            String::Factory(xml->getAttributeValue("boxType"));
 
-        if (strBoxType.Compare("nymbox"))
+        if (strBoxType->Compare("nymbox"))
             m.m_lDepth = 0;
-        else if (strBoxType.Compare("inbox"))
+        else if (strBoxType->Compare("inbox"))
             m.m_lDepth = 1;
-        else if (strBoxType.Compare("outbox"))
+        else if (strBoxType->Compare("outbox"))
             m.m_lDepth = 2;
         else {
             m.m_lDepth = 0;
@@ -2675,14 +2694,14 @@ class StrategyGetBoxReceiptResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
         pTag->add_attribute(
             "boxType",  // outbox is 2.
             (m.m_lDepth == 0) ? "nymbox"
@@ -2711,17 +2730,19 @@ public:
         m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
         m.m_strAcctID = xml->getAttributeValue("accountID");
 
-        String strTransactionNum = xml->getAttributeValue("transactionNum");
+        auto strTransactionNum =
+            String::Factory(xml->getAttributeValue("transactionNum"));
         m.m_lTransactionNum =
-            strTransactionNum.Exists() ? strTransactionNum.ToLong() : 0;
+            strTransactionNum->Exists() ? strTransactionNum->ToLong() : 0;
 
-        const String strBoxType = xml->getAttributeValue("boxType");
+        const auto strBoxType =
+            String::Factory(xml->getAttributeValue("boxType"));
 
-        if (strBoxType.Compare("nymbox"))
+        if (strBoxType->Compare("nymbox"))
             m.m_lDepth = 0;
-        else if (strBoxType.Compare("inbox"))
+        else if (strBoxType->Compare("inbox"))
             m.m_lDepth = 1;
-        else if (strBoxType.Compare("outbox"))
+        else if (strBoxType->Compare("outbox"))
             m.m_lDepth = 2;
         else {
             m.m_lDepth = 0;
@@ -2796,12 +2817,12 @@ class StrategyUnregisterAccount : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         parent.add_tag(pTag);
     }
@@ -2835,13 +2856,13 @@ class StrategyUnregisterAccountResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -2910,13 +2931,13 @@ class StrategyNotarizeTransaction : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascPayload.GetLength()) {
             pTag->add_tag("accountLedger", m.m_ascPayload.Get());
@@ -2969,14 +2990,14 @@ class StrategyNotarizeTransactionResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3065,12 +3086,12 @@ class StrategyGetTransactionNumbers : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
         parent.add_tag(pTag);
     }
@@ -3103,13 +3124,13 @@ class StrategyGetTransactionNumbersResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
         parent.add_tag(pTag);
     }
@@ -3144,11 +3165,11 @@ class StrategyGetNymbox : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -3176,13 +3197,13 @@ class StrategyGetNymboxResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3247,12 +3268,12 @@ class StrategyGetAccountData : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         parent.add_tag(pTag);
     }
@@ -3284,15 +3305,15 @@ class StrategyGetAccountDataResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
-        pTag->add_attribute("inboxHash", m.m_strInboxHash.Get());
-        pTag->add_attribute("outboxHash", m.m_strOutboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
+        pTag->add_attribute("inboxHash", m.m_strInboxHash->Get());
+        pTag->add_attribute("outboxHash", m.m_strOutboxHash->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3380,13 +3401,13 @@ class StrategyGetInstrumentDefinition : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
         parent.add_tag(pTag);
     }
@@ -3419,14 +3440,14 @@ class StrategyGetInstrumentDefinitionResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3494,13 +3515,13 @@ class StrategyGetMint : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
         parent.add_tag(pTag);
     }
@@ -3531,14 +3552,14 @@ class StrategyGetMintResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute(
-            "instrumentDefinitionID", m.m_strInstrumentDefinitionID.Get());
+            "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3606,13 +3627,13 @@ class StrategyProcessInbox : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascPayload.GetLength()) {
             pTag->add_tag("processLedger", m.m_ascPayload.Get());
@@ -3665,14 +3686,14 @@ class StrategyProcessInboxResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
-        pTag->add_attribute("accountID", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
+        pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3758,12 +3779,12 @@ class StrategyProcessNymbox : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
         if (m.m_ascPayload.GetLength()) {
             pTag->add_tag("processLedger", m.m_ascPayload.Get());
@@ -3814,13 +3835,13 @@ class StrategyProcessNymboxResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -3906,14 +3927,14 @@ class StrategyTriggerClause : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("nymboxHash", m.m_strNymboxHash.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute("smartContractID", formatLong(m.m_lTransactionNum));
-        pTag->add_attribute("clauseName", m.m_strNymID2.Get());
+        pTag->add_attribute("clauseName", m.m_strNymID2->Get());
         pTag->add_attribute("hasParam", formatBool(m.m_ascPayload.Exists()));
 
         if (m.m_ascPayload.Exists()) {
@@ -3931,13 +3952,15 @@ public:
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
         m.m_strNymID2 = xml->getAttributeValue("clauseName");
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        const String strHasParam = xml->getAttributeValue("hasParam");
+        const auto strHasParam =
+            String::Factory(xml->getAttributeValue("hasParam"));
 
-        String strTransactionNum = xml->getAttributeValue("smartContractID");
-        if (strTransactionNum.Exists())
-            m.m_lTransactionNum = strTransactionNum.ToLong();
+        auto strTransactionNum =
+            String::Factory(xml->getAttributeValue("smartContractID"));
+        if (strTransactionNum->Exists())
+            m.m_lTransactionNum = strTransactionNum->ToLong();
 
-        if (strHasParam.Compare("true")) {
+        if (strHasParam->Compare("true")) {
             const char* pElementExpected = "parameter";
             Armored ascTextExpected;
 
@@ -3974,12 +3997,12 @@ class StrategyTriggerClauseResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascInReferenceTo.GetLength()) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -4030,11 +4053,11 @@ class StrategyGetMarketList : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         parent.add_tag(pTag);
     }
@@ -4071,9 +4094,9 @@ public:
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
 
-        String strDepth = xml->getAttributeValue("depth");
+        auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
-        if (strDepth.GetLength() > 0) m.m_lDepth = strDepth.ToLong();
+        if (strDepth->GetLength() > 0) m.m_lDepth = strDepth->ToLong();
 
         const char* pElementExpected = nullptr;
         if (m.m_bSuccess && (m.m_lDepth > 0))
@@ -4117,12 +4140,12 @@ public:
 
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
 
         if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
@@ -4146,12 +4169,12 @@ class StrategyRequestAdmin : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("password", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("password", m.m_strAcctID->Get());
 
         parent.add_tag(pTag);
     }
@@ -4162,7 +4185,7 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID.Set(xml->getAttributeValue("password"));
+        m.m_strAcctID->Set(xml->getAttributeValue("password"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -4182,12 +4205,12 @@ class StrategyRequestAdminResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascInReferenceTo.GetLength() > 2) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
@@ -4235,14 +4258,14 @@ class StrategyAddClaim : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
-        pTag->add_attribute("section", m.m_strNymID2.Get());
-        pTag->add_attribute("type", m.m_strInstrumentDefinitionID.Get());
-        pTag->add_attribute("value", m.m_strAcctID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
+        pTag->add_attribute("section", m.m_strNymID2->Get());
+        pTag->add_attribute("type", m.m_strInstrumentDefinitionID->Get());
+        pTag->add_attribute("value", m.m_strAcctID->Get());
         pTag->add_attribute("primary", formatBool(m.m_bBool));
 
         parent.add_tag(pTag);
@@ -4254,11 +4277,11 @@ public:
         m.m_strRequestNum = xml->getAttributeValue("requestNum");
         m.m_strNymID = xml->getAttributeValue("nymID");
         m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymID2.Set(xml->getAttributeValue("section"));
-        m.m_strInstrumentDefinitionID.Set(xml->getAttributeValue("type"));
-        m.m_strAcctID.Set(xml->getAttributeValue("value"));
-        const String primary = xml->getAttributeValue("primary");
-        m.m_bBool = primary.Compare("true");
+        m.m_strNymID2->Set(xml->getAttributeValue("section"));
+        m.m_strInstrumentDefinitionID->Set(xml->getAttributeValue("type"));
+        m.m_strAcctID->Set(xml->getAttributeValue("value"));
+        const auto primary = String::Factory(xml->getAttributeValue("primary"));
+        m.m_bBool = primary->Compare("true");
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -4276,12 +4299,12 @@ class StrategyAddClaimResponse : public OTMessageStrategy
 public:
     virtual void writeXml(Message& m, Tag& parent)
     {
-        TagPtr pTag(new Tag(m.m_strCommand.Get()));
+        TagPtr pTag(new Tag(m.m_strCommand->Get()));
 
         pTag->add_attribute("success", formatBool(m.m_bSuccess));
-        pTag->add_attribute("requestNum", m.m_strRequestNum.Get());
-        pTag->add_attribute("nymID", m.m_strNymID.Get());
-        pTag->add_attribute("notaryID", m.m_strNotaryID.Get());
+        pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
+        pTag->add_attribute("nymID", m.m_strNymID->Get());
+        pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_ascInReferenceTo.GetLength() > 2) {
             pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
