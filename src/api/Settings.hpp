@@ -52,19 +52,19 @@ public:
         const String& strKey,
         const String& strValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const override;
+        const String& strComment = String::Factory()) const override;
     bool Set_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const override;
+        const String& strComment = String::Factory()) const override;
     bool Set_bool(
         const String& strSection,
         const String& strKey,
         const bool& bValue,
         bool& out_bNewOrUpdate,
-        const String& strComment = "") const override;
+        const String& strComment = String::Factory()) const override;
 
     // Check for a Section, if the section dosn't exist, it will be made and
     // out_bIsNewSection will be true.)
@@ -81,28 +81,28 @@ public:
         const String& strDefault,
         std::string& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "") const override;
+        const String& strComment = String::Factory()) const override;
     bool CheckSet_str(
         const String& strSection,
         const String& strKey,
         const String& strDefault,
         String& out_strResult,
         bool& out_bIsNew,
-        const String& strComment = "") const override;
+        const String& strComment = String::Factory()) const override;
     bool CheckSet_long(
         const String& strSection,
         const String& strKey,
         const std::int64_t& lDefault,
         std::int64_t& out_lResult,
         bool& out_bIsNew,
-        const String& strComment = "") const override;
+        const String& strComment = String::Factory()) const override;
     bool CheckSet_bool(
         const String& strSection,
         const String& strKey,
         const bool& bDefault,
         bool& out_bResult,
         bool& out_bIsNew,
-        const String& strComment = "") const override;
+        const String& strComment = String::Factory()) const override;
 
     // Set Option helper function for setting bool's
     bool SetOption_bool(

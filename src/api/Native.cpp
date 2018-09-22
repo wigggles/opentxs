@@ -181,8 +181,9 @@ extern "C" std::int32_t souped_up_pass_cb(
         // statically, on initialization. That way, OTPasswordData can use that
         // pointer to get a pointer to the relevant crypto::key::LegacySymmetric
         // being used as the MASTER key.
-        opentxs::otLog3 << __FUNCTION__
-                        << ": Using GetMasterPassword() call. \n";
+        opentxs::LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": Using GetMasterPassword() call. ")
+            .Flush();
         bGotPassword = cachedKey.GetMasterPassword(
             cachedKey,
             thePassword,
@@ -195,7 +196,9 @@ extern "C" std::int32_t souped_up_pass_cb(
         // situation anyway. (It's that smart.) Actually that's it. The master
         // already asks twice when it's generating.
     } else {
-        opentxs::otLog3 << __FUNCTION__ << ": Using OT Password Callback. \n";
+        opentxs::LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": Using OT Password Callback. ")
+            .Flush();
         auto& caller = native.GetPasswordCaller();
         // The dialog should display this string (so the user knows what he is
         // authorizing.)
@@ -400,7 +403,9 @@ const api::Settings& Native::Config(const std::string& path) const
     std::unique_lock<std::mutex> lock(config_lock_);
     auto& config = config_[path];
 
-    if (!config) { config.reset(opentxs::Factory::Settings(String(path))); }
+    if (!config) {
+        config.reset(opentxs::Factory::Settings(String::Factory(path)));
+    }
 
     OT_ASSERT(config);
 

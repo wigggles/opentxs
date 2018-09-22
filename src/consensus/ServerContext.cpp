@@ -658,7 +658,7 @@ std::unique_ptr<Item> ServerContext::Statement(
     // transaction, in which case the above Removes probably won't hurt
     // anything.  Todo.
 
-    output->SetAttachment(String(*statement));
+    output->SetAttachment(OTString(*statement));
     output->SignContract(*nym_);
     // OTTransactionType needs to weasel in a "date signed" variable.
     output->SaveContract();

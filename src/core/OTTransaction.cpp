@@ -2030,9 +2030,10 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
             default: {
                 String strItemType;
                 pSubItem->GetTypeString(strItemType);
-                otLog3 << "OTTransaction::VerifyBalanceReceipt: Ignoring "
-                       << strItemType << " item in balance statement while "
-                       << "verifying it against inbox." << std::endl;
+                LogDebug(OT_METHOD)(__FUNCTION__)(": Ignoring ")(strItemType)(
+                    " item in balance statement while verifying "
+                    "it against inbox.")
+                    .Flush();
             }
                 continue;
         }
@@ -2092,8 +2093,10 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
             (pResponseBalanceItem->GetNewOutboxTransNum() > 0)) {
             lTempTransactionNum = pResponseBalanceItem->GetNewOutboxTransNum();
             pTransaction = pLedger->GetTransaction(lTempTransactionNum);
-            otLog3 << "OTTransaction::VerifyBalanceReceipt: (This iteration, "
-                      "I'm handling an item listed as '1' in the outbox.)\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(
+                ": This iteration, "
+                " I'm handling an item listed as '1' in the outbox.)")
+                .Flush();
         } else {
             // THE ABOVE IS THE *UNUSUAL* CASE, WHEREAS THIS IS THE NORMAL CASE:
             //
@@ -5083,8 +5086,10 @@ void OTTransaction::ProduceInboxReportItem(Item& theBalanceItem)
 {
     itemType theItemType = itemType::error_state;
 
-    otLog3 << "Producing statement report item for inbox item type: "
-           << GetTypeString() << ".\n";  // temp remove.
+    LogDebug(OT_METHOD)(__FUNCTION__)(
+        ": Producing statement report item for inbox item type: ")(
+        GetTypeString())(".")
+        .Flush();  // temp remove.
 
     switch (m_Type) {  // These are the types that have an amount (somehow)
         case transactionType::pending:  // the amount is stored on the transfer
@@ -5123,10 +5128,9 @@ void OTTransaction::ProduceInboxReportItem(Item& theBalanceItem)
             break;
         default:  // All other types are irrelevant for inbox reports
         {
-            otLog3 << "OTTransaction::ProduceInboxReportItem: Ignoring "
-                   << GetTypeString()
-                   << " transaction "
-                      "in inbox while making balance statement.\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(": Ignoring ")(GetTypeString())(
+                " transaction in inbox while making balance statement. ")
+                .Flush();
         }
             return;
     }  // why not transfer receipt? Because the amount was already removed from

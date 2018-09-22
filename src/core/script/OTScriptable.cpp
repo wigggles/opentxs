@@ -49,6 +49,8 @@
 #include <string>
 #include <sstream>
 
+#define OT_METHOD "opentxs::OTScriptable"
+
 // CALLBACKS
 //
 // The server will call these callbacks, from time to time, and give you the
@@ -974,13 +976,13 @@ bool OTScriptable::VerifyPartyAuthorization(
     {
         OT_ASSERT(nullptr != pAuthorizingAgent);  // This HAS to be set now.
                                                   // I assume it henceforth.
-        otLog3 << __FUNCTION__
-               << ": I just had to load "
-                  "the authorizing agent's Nym for a party ("
-               << theParty.GetPartyName()
-               << "), "
-                  "so I guess it wasn't already available on the list of "
-                  "Nyms that were already loaded.\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": I just had to load the authorizing agent's Nym "
+            "for a party (")(theParty.GetPartyName())(
+            "), so "
+            "I guess it wasn't already available on the list of "
+            "Nyms that were already loaded.")
+            .Flush();
     } else {
         otErr << __FUNCTION__
               << ": Error: Strange, unable to load "
@@ -1215,11 +1217,13 @@ bool OTScriptable::VerifyNymAsAgent(const Nym& theNym, const Nym& theSignerNym)
         {
             OT_ASSERT(nullptr != pAuthorizingAgent);  // This HAS to be set now.
                                                       // I assume it henceforth.
-            otLog3 << "OTScriptable::VerifyNymAsAgent: I just had to load the "
-                      "authorizing agent's Nym for a party ("
-                   << pParty->GetPartyName()
-                   << "), so I guess it wasn't already available "
-                      "on the list of Nyms that were already loaded.\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(
+                ": I just had to load the "
+                "authorizing agent's Nym for a party (")(
+                pParty->GetPartyName())(
+                "), so I guess it wasn't already "
+                " available on the list of Nyms that were already loaded.")
+                .Flush();
         } else {
             otErr << "OTScriptable::VerifyNymAsAgent: Error: Strange, unable "
                      "to load authorizing "

@@ -405,9 +405,10 @@ bool UserCommandProcessor::check_ping_notary(const Message& msgIn) const
         return false;
     }
 
-    otLog3 << OT_METHOD << __FUNCTION__ << ": Signature verified! The message "
-           << "WAS signed by the Private Authentication Key inside the message."
-           << std::endl;
+    LogDebug(OT_METHOD)(__FUNCTION__)(
+        ": Signature verified! The message WAS signed by the Private "
+        "Authentication Key inside the message.")
+        .Flush();
 
     return true;
 }
@@ -427,9 +428,9 @@ bool UserCommandProcessor::check_request_number(
         return false;
     }
 
-    otLog3 << OT_METHOD << __FUNCTION__ << "Request number in this message "
-           << messageNumber << " does match the one in the context."
-           << std::endl;
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Request number in this message ")(
+        messageNumber)(" does match the one in the context.")
+        .Flush();
 
     return true;
 }
@@ -2036,7 +2037,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
         return false;
     }
 
-    otLog3 << OT_METHOD << __FUNCTION__ << ": Nym verified!" << std::endl;
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Nym verified!").Flush();
 
     if (false == msgIn.VerifySignature(*sender_nym)) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid signature."
@@ -2045,7 +2046,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
         return false;
     }
 
-    otLog3 << OT_METHOD << __FUNCTION__ << ": Signature verified!" << std::endl;
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Signature verified!").Flush();
 
     if (false == reply.LoadContext()) { return false; }
 
@@ -2839,8 +2840,8 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
     auto& context = reply.Context();
     context.IncrementRequest();
     const auto& msgIn = reply.Original();
-    otLog3 << OT_METHOD << __FUNCTION__
-           << ": Re-registering nym: " << msgIn.m_strNymID << std::endl;
+    LogDebug(OT_METHOD)(__FUNCTION__)("Re-registering nym: ")(msgIn.m_strNymID)
+        .Flush();
     const auto& nym = reply.Context().RemoteNym();
     const auto& serverNym = *context.Nym();
     const auto& serverID = context.Server();

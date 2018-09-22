@@ -65,13 +65,13 @@ std::string Legacy::get_path(const std::string& fragment, const int instance)
 {
     const auto name =
         (0 == instance) ? fragment : fragment + "-" + std::to_string(instance);
-    String output{""};
-    const auto success =
-        OTPaths::AppendFolder(output, OTPaths::AppDataFolder(), name.c_str());
+    auto output = String::Factory();
+    const auto success = OTPaths::AppendFolder(
+        output, OTPaths::AppDataFolder(), String::Factory(name.c_str()));
 
     OT_ASSERT(success)
 
-    return output.Get();
+    return output->Get();
 }
 
 std::string Legacy::LogConfigFilePath() const

@@ -80,8 +80,8 @@ proto::AddressType ZMQ::DefaultAddressType() const
     std::int64_t configuredType{
         static_cast<std::int64_t>(proto::ADDRESSTYPE_ERROR)};
     api_.Config().CheckSet_long(
-        "Connection",
-        "preferred_address_type",
+        String::Factory("Connection"),
+        String::Factory("preferred_address_type"),
         defaultType,
         configuredType,
         changed);
@@ -98,27 +98,46 @@ void ZMQ::init(const Lock& lock) const
     bool notUsed{false};
     std::int64_t linger{0};
     api_.Config().CheckSet_long(
-        "latency", "linger", CLIENT_SOCKET_LINGER_SECONDS, linger, notUsed);
+        String::Factory("latency"),
+        String::Factory("linger"),
+        CLIENT_SOCKET_LINGER_SECONDS,
+        linger,
+        notUsed);
     linger_.store(std::chrono::seconds(linger));
     std::int64_t send{0};
     api_.Config().CheckSet_long(
-        "latency", "send_timeout", CLIENT_SEND_TIMEOUT, send, notUsed);
+        String::Factory("latency"),
+        String::Factory("send_timeout"),
+        CLIENT_SEND_TIMEOUT,
+        send,
+        notUsed);
     send_timeout_.store(std::chrono::seconds(send));
     std::int64_t receive{0};
     api_.Config().CheckSet_long(
-        "latency", "recv_timeout", CLIENT_RECV_TIMEOUT, receive, notUsed);
+        String::Factory("latency"),
+        String::Factory("recv_timeout"),
+        CLIENT_RECV_TIMEOUT,
+        receive,
+        notUsed);
     receive_timeout_.store(std::chrono::seconds(receive));
-    String socks{};
+    auto socks = String::Factory();
     bool haveSocksConfig{false};
     const bool configChecked = api_.Config().Check_str(
-        "Connection", "socks_proxy", socks, haveSocksConfig);
+        String::Factory("Connection"),
+        String::Factory("socks_proxy"),
+        socks,
+        haveSocksConfig);
     std::int64_t keepAlive{0};
     api_.Config().CheckSet_long(
-        "Connection", "keep_alive", KEEP_ALIVE_SECONDS, keepAlive, notUsed);
+        String::Factory("Connection"),
+        String::Factory("keep_alive"),
+        KEEP_ALIVE_SECONDS,
+        keepAlive,
+        notUsed);
     keep_alive_.store(std::chrono::seconds(keepAlive));
 
-    if (configChecked && haveSocksConfig && socks.Exists()) {
-        socks_proxy_ = socks.Get();
+    if (configChecked && haveSocksConfig && socks->Exists()) {
+        socks_proxy_ = socks->Get();
     }
 
     api_.Config().Save();
@@ -182,7 +201,10 @@ bool ZMQ::SetSocksProxy(const std::string& proxy) const
 {
     bool notUsed{false};
     bool set = api_.Config().Set_str(
-        "Connection", "socks_proxy", String{proxy}, notUsed);
+        String::Factory("Connection"),
+        String::Factory("socks_proxy"),
+        String::Factory(proxy),
+        notUsed);
 
     if (false == set) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to set socks proxy."

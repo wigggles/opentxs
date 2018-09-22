@@ -1151,7 +1151,7 @@ std::string OTAPI_Func::Run(const std::size_t totalRetries)
 void OTAPI_Func::run()
 {
     Lock lock(lock_);
-    const String triggerParameter(parameter_);
+    const auto triggerParameter = String::Factory(parameter_);
     auto& [requestNum, transactionNum, result] = last_attempt_;
     auto& [status, reply] = result;
     requestNum = -1;
@@ -1282,8 +1282,9 @@ void OTAPI_Func::run()
             last_attempt_ = api_.OTAPI().triggerClause(
                 context_,
                 transactionNumber_,
-                clause_.c_str(),
-                triggerParameter.Exists() ? triggerParameter : nullptr);
+                String::Factory(clause_.c_str()),
+                triggerParameter->Exists() ? triggerParameter
+                                           : String::Factory());
         } break;
         case EXCHANGE_BASKET: {
             last_attempt_ = api_.OTAPI().exchangeBasket(
@@ -1362,19 +1363,27 @@ void OTAPI_Func::run()
         } break;
         case WITHDRAW_VOUCHER: {
             last_attempt_ = api_.OTAPI().withdrawVoucher(
-                context_, accountID_, recipientID_, message_.c_str(), amount_);
+                context_,
+                accountID_,
+                recipientID_,
+                String::Factory(message_.c_str()),
+                amount_);
         } break;
         case PAY_DIVIDEND: {
             last_attempt_ = api_.OTAPI().payDividend(
                 context_,
                 accountID_,
                 instrumentDefinitionID_,
-                message_.c_str(),
+                String::Factory(message_.c_str()),
                 amount_);
         } break;
         case SEND_TRANSFER: {
             last_attempt_ = api_.OTAPI().notarizeTransfer(
-                context_, accountID_, targetID_, amount_, message_.c_str());
+                context_,
+                accountID_,
+                targetID_,
+                amount_,
+                String::Factory(message_.c_str()));
         } break;
         case GET_MARKET_LIST: {
             last_attempt_ = api_.OTAPI().getMarketList(context_);

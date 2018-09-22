@@ -44,7 +44,7 @@ PayDividendVisitor::PayDividendVisitor(
     , nymId_(Identifier::Factory(theNymID))
     , payoutUnitTypeId_(Identifier::Factory(thePayoutUnitTypeId))
     , voucherAcctId_(Identifier::Factory(theVoucherAcctID))
-    , m_pstrMemo(new String(strMemo))
+    , m_pstrMemo(String::Factory(strMemo.Get()))
     , m_lPayoutPerShare(lPayoutPerShare)
     , m_lAmountPaidOut(0)
     , m_lAmountReturned(0)
@@ -285,7 +285,7 @@ bool PayDividendVisitor::Trigger(
 PayDividendVisitor::~PayDividendVisitor()
 {
 
-    m_pstrMemo = nullptr;
+    m_pstrMemo = String::Factory();
     m_lPayoutPerShare = 0;
     m_lAmountPaidOut = 0;
     m_lAmountReturned = 0;

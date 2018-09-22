@@ -240,9 +240,10 @@ bool RSA::SetPrivateKey(
     // Read private key
     //
     auto strWithBookends = String::Factory();
-    otLog3 << __FUNCTION__
-           << ": FYI, Reading private key from x509 stored in "
-              "bookended string...\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(
+        ": FYI, Reading private key from x509 stored in "
+        "bookended string...")
+        .Flush();
 
     strWithBookends = strCert;
 
@@ -321,8 +322,9 @@ bool RSA::SetPrivateKey(
                                    // here.
             EVP_PKEY_free(pkey);
             pkey = nullptr;
-            otLog3 << __FUNCTION__
-                   << ": Successfully loaded private key, FYI.\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(
+                ": Successfully loaded private key, FYI.")
+                .Flush();
             return true;
         }
     }
@@ -341,8 +343,9 @@ bool RSA::SetPublicKeyFromPrivateKey(
     bool bReturnValue = false;
 
     // Read public key
-    otLog3 << __FUNCTION__
-           << ": Reading public key from x509 stored in bookended string...\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(
+        ": Reading public key from x509 stored in bookended string...")
+        .Flush();
 
     auto strWithBookends = String::Factory();
 
@@ -410,9 +413,10 @@ bool RSA::SetPublicKeyFromPrivateKey(
 
             EVP_PKEY_free(pkey);
             pkey = nullptr;
-            otLog3 << __FUNCTION__
-                   << ": Successfully extracted a public key "
-                      "from an x509 certificate.\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(
+                ": Successfully extracted a public key "
+                "from an x509 certificate.")
+                .Flush();
             bReturnValue = true;
         }
     } else {

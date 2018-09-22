@@ -302,7 +302,7 @@ Contacts::ContactMap::iterator Contacts::load_contact(
 
     if (false == loaded) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load contact "
-              << String(id) << std::endl;
+              << String::Factory(id) << std::endl;
 
         return contact_map_.end();
     }
@@ -702,7 +702,7 @@ std::shared_ptr<const class Contact> Contacts::Update(
     const auto contactID = Identifier::Factory(contactIdentifier);
 
     if (contactIdentifier.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String(nymID)
+        otErr << OT_METHOD << __FUNCTION__ << ": Nym " << String::Factory(nymID)
               << " is not associated with a contact. Creating a new contact."
               << std::endl;
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47

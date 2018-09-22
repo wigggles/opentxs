@@ -192,10 +192,12 @@ bool NymFile::deserialize_nymfile(
                         m_lUsageCredits = 0;  // This is the default anyway, but
                                               // just being safe...
 
-                    if (UserNymID->GetLength())
-                        otLog3 << "\nLoading user, version: " << m_strVersion
-                               << " NymID:\n"
-                               << UserNymID << "\n";
+                    if (UserNymID->GetLength()) {
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Loading user, version: ")(m_strVersion)(
+                            " NymID: ")(UserNymID)
+                            .Flush();
+                    }
                     bSuccess = true;
                     convert = (String("1.0") == m_strVersion);
 
@@ -216,8 +218,9 @@ bool NymFile::deserialize_nymfile(
                     const auto strHashValue =
                         String::Factory(xml->getAttributeValue("hashValue"));
 
-                    otLog3 << "\nInboxHash is " << strHashValue
-                           << " for Account ID: " << strAccountID << "\n";
+                    LogDebug(OT_METHOD)(__FUNCTION__)(": InboxHash is ")(
+                        strHashValue)(" for Account ID: ")(strAccountID)
+                        .Flush();
 
                     // Make sure now that I've loaded this InboxHash, to add it
                     // to
@@ -235,8 +238,9 @@ bool NymFile::deserialize_nymfile(
                     const auto strHashValue =
                         String::Factory(xml->getAttributeValue("hashValue"));
 
-                    otLog3 << "\nOutboxHash is " << strHashValue
-                           << " for Account ID: " << strAccountID << "\n";
+                    LogDebug(OT_METHOD)(__FUNCTION__)(": OutboxHash is ")(
+                        strHashValue)(" for Account ID: ")(strAccountID)
+                        .Flush();
 
                     // Make sure now that I've loaded this OutboxHash, to add it
                     // to
@@ -250,19 +254,24 @@ bool NymFile::deserialize_nymfile(
                     }
                 } else if (strNodeName->Compare("MARKED_FOR_DELETION")) {
                     m_bMarkForDeletion = true;
-                    otLog3 << "This nym has been MARKED_FOR_DELETION (at some "
-                              "point prior.)\n";
+                    LogDebug(OT_METHOD)(__FUNCTION__)(
+                        "This nym has been MARKED_FOR_DELETION at some "
+                        "point prior.")
+                        .Flush();
                 } else if (strNodeName->Compare("ownsAssetAcct")) {
                     auto strID = String::Factory(xml->getAttributeValue("ID"));
 
                     if (strID->Exists()) {
                         m_setAccounts.insert(strID->Get());
-                        otLog3 << "This nym has an asset account with the ID: "
-                               << strID << "\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            "This nym has an asset account with the ID: ")(
+                            strID)
+                            .Flush();
                     } else
-                        otLog3
-                            << "This nym MISSING asset account ID when loading "
-                               "nym record.\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": This nym MISSING asset account ID when loading "
+                            "nym record.")
+                            .Flush();
                 } else if (strNodeName->Compare("outpaymentsMessage")) {
                     Armored armorMail;
                     auto strMessage = String::Factory();

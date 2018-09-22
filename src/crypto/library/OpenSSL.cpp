@@ -915,20 +915,25 @@ bool OpenSSL::ArgumentCheck(
     ECB = (LegacySymmetricProvider::AES_256_ECB == cipher);
 
     // Debug logging
-    otLog3 << "Using cipher: " << LegacySymmetricProvider::ModeToString(cipher)
-           << "\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Using cipher: ")(
+        LegacySymmetricProvider::ModeToString(cipher))
+        .Flush();
 
     if (ECB) { otLog3 << "...in ECB mode.\n"; }
 
     if (AEAD) { otLog3 << "...in AEAD mode.\n"; }
 
-    otLog3 << "...with a " << (8 * LegacySymmetricProvider::KeySize(cipher))
-           << "bit key.\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(":...with a ")(
+        8 * LegacySymmetricProvider::KeySize(cipher))("bit key.")
+        .Flush();
 
-    otLog3 << "Actual key bytes: " << key.getMemorySize() << "\n";
-    otLog3 << "Actual IV bytes: " << iv.size() << "\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Actual key bytes: ")(
+        key.getMemorySize())
+        .Flush();
+    LogDebug(OT_METHOD)(__FUNCTION__)("Actual IV bytes: ")(iv.size()).Flush();
     if ((!encrypt) & AEAD) {
-        otLog3 << "Actual tag bytes: " << tag.size() << "\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Actual tag bytes: ")(tag.size())
+            .Flush();
     }
 
     // Validate input parameters
@@ -2442,7 +2447,8 @@ bool OpenSSL::OpenSSLdp::SignContract(
         otErr << szFunc << ": Error signing xml contents.\n";
         return false;
     } else {
-        otLog3 << szFunc << ": Successfully signed xml contents.\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Successfully signed xml contents.")
+            .Flush();
 
         // We put the signature data into the signature object that
         // was passed in for that purpose.
@@ -2582,8 +2588,8 @@ bool OpenSSL::Verify(
     Lock lock(lock_);
     if (false ==
         dp_->VerifySignature(plaintext, pkey, signature, hashType, pPWData)) {
-        otLog3 << "OpenSSL::VerifySignature: "
-               << "VerifySignature returned false.\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(": VerifySignature returned false.")
+            .Flush();
         return false;
     }
 

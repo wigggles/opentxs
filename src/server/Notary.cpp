@@ -118,8 +118,8 @@ void Notary::cancel_cheque(
     Item& responseBalanceItem)
 {
     const auto& nymID = context.RemoteNym().ID();
-    const String strSenderNymID(cheque.GetSenderNymID());
-    const String strRecipientNymID(cheque.GetRecipientNymID());
+    const auto strSenderNymID = String::Factory(cheque.GetSenderNymID());
+    const auto strRecipientNymID = String::Factory(cheque.GetRecipientNymID());
 
     if (cheque.GetSenderNymID() != nymID) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect nym id (")(
@@ -629,8 +629,8 @@ void Notary::NotarizeTransfer(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -640,7 +640,8 @@ void Notary::NotarizeTransfer(
                INSTRUMENT_DEFINITION_ID = Identifier::Factory(
                    theFromAccount.get().GetInstrumentDefinitionID());
 
-    String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
+    auto strNymID = String::Factory(NYM_ID),
+         strAccountID = String::Factory(ACCOUNT_ID);
     pResponseBalanceItem.reset(
         manager_.Factory()
             .Item(tranOut, itemType::atBalanceStatement, Identifier::Factory())
@@ -664,48 +665,48 @@ void Notary::NotarizeTransfer(
                                      // cleanup the item. It "owns" it now.
 
     if (false ==
-        NYM_IS_ALLOWED(strNymID.Get(), ServerSettings::__transact_transfer)) {
+        NYM_IS_ALLOWED(strNymID->Get(), ServerSettings::__transact_transfer)) {
         Log::vOutput(
             0,
             "Notary::NotarizeTransfer: User %s cannot do this "
             "transaction (All acct-to-acct transfers are "
             "disallowed in server.cfg)\n",
-            strNymID.Get());
+            strNymID->Get());
     } else if (
         nullptr ==
         (pBalanceItem = tranIn.GetItem(itemType::balanceStatement))) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeTransfer: Expected "
             "OTItem::balanceStatement in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // For now, there should only be one of these transfer items inside the
     // transaction.
     // So we treat it that way... I either get it successfully or not.
     else if (nullptr == (pItem = tranIn.GetItem(itemType::transfer))) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeTransfer: Expected "
             "OTItem::transfer in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     } else if (ACCOUNT_ID == pItem->GetDestinationAcctID()) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeTransfer: Failed attempt by user %s in "
             "trans# %" PRId64
             ", to transfer money \"To the From Acct\": \n\n%s\n\n",
-            strNymID.Get(),
+            strNymID->Get(),
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     } else {
         // The response item, as well as the inbox and outbox items, will
         // contain a copy
@@ -790,17 +791,17 @@ void Notary::NotarizeTransfer(
         // Are both of the accounts of the same Asset Type?
         else if (!(theFromAccount.get().GetInstrumentDefinitionID() ==
                    destinationAccount.get().GetInstrumentDefinitionID())) {
-            String strFromInstrumentDefinitionID(
-                theFromAccount.get().GetInstrumentDefinitionID()),
-                strDestinationInstrumentDefinitionID(
-                    destinationAccount.get().GetInstrumentDefinitionID());
+            auto strFromInstrumentDefinitionID = String::Factory(
+                     theFromAccount.get().GetInstrumentDefinitionID()),
+                 strDestinationInstrumentDefinitionID = String::Factory(
+                     destinationAccount.get().GetInstrumentDefinitionID());
             Log::vOutput(
                 0,
                 "ERROR - user attempted to transfer between accounts of 2 "
                 "different "
                 "instrument definitions in Notary::NotarizeTransfer:\n%s\n%s\n",
-                strFromInstrumentDefinitionID.Get(),
-                strDestinationInstrumentDefinitionID.Get());
+                strFromInstrumentDefinitionID->Get(),
+                strDestinationInstrumentDefinitionID->Get());
         }
 
         // This entire function can be divided into the top and bottom halves.
@@ -1035,7 +1036,7 @@ void Notary::NotarizeTransfer(
                         0,
                         "ERROR verifying balance statement while "
                         "performing transfer. Acct ID:\n%s\n",
-                        strAccountID.Get());
+                        strAccountID->Get());
                 } else {
                     pResponseBalanceItem->SetStatus(
                         Item::acknowledgement);  // the balance agreement (just
@@ -1130,7 +1131,7 @@ void Notary::NotarizeTransfer(
                             "%s: Unable to debit account %s in "
                             "the amount of: %" PRId64 "\n",
                             __FUNCTION__,
-                            strAccountID.Get(),
+                            strAccountID->Get(),
                             pItem->GetAmount());
                     }
                 }
@@ -1184,8 +1185,8 @@ void Notary::NotarizeWithdrawal(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -1196,8 +1197,10 @@ void Notary::NotarizeWithdrawal(
                INSTRUMENT_DEFINITION_ID = Identifier::Factory(
                    theAccount.get().GetInstrumentDefinitionID());
 
-    const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID),
-        strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+    const auto strNymID = String::Factory(NYM_ID),
+               strAccountID = String::Factory(ACCOUNT_ID),
+               strInstrumentDefinitionID =
+                   String::Factory(INSTRUMENT_DEFINITION_ID);
 
     // Here we find out if we're withdrawing cash, or a voucher
     // (A voucher is a cashier's cheque aka banker's cheque).
@@ -1231,14 +1234,14 @@ void Notary::NotarizeWithdrawal(
                                             // will cleanup the item. It "owns"
                                             // it now.
     if (nullptr == pItem) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
             "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // Below this point, we know that pItem is good, and that either
     // pItemVoucher OR pItemCash is good,
@@ -1246,54 +1249,54 @@ void Notary::NotarizeWithdrawal(
     // permissions:
     // This permission has to do with ALL withdrawals (cash or voucher)
     else if (!NYM_IS_ALLOWED(
-                 strNymID.Get(), ServerSettings::__transact_withdrawal)) {
+                 strNymID->Get(), ServerSettings::__transact_withdrawal)) {
         Log::vOutput(
             0,
             "Notary::NotarizeWithdrawal: User %s cannot do "
             "this transaction (All withdrawals are disallowed in "
             "server.cfg)\n",
-            strNymID.Get());
+            strNymID->Get());
     }
     // This permission has to do with vouchers.
     else if (
         (nullptr != pItemVoucher) &&
         (false ==
          NYM_IS_ALLOWED(
-             strNymID.Get(), ServerSettings::__transact_withdraw_voucher))) {
+             strNymID->Get(), ServerSettings::__transact_withdraw_voucher))) {
         Log::vOutput(
             0,
             "Notary::NotarizeWithdrawal: User %s cannot do "
             "this transaction (withdrawVoucher is disallowed in "
             "server.cfg)\n",
-            strNymID.Get());
+            strNymID->Get());
     }
     // This permission has to do with cash.
     else if (
         (nullptr != pItemCash) &&
         (false ==
          NYM_IS_ALLOWED(
-             strNymID.Get(), ServerSettings::__transact_withdraw_cash))) {
+             strNymID->Get(), ServerSettings::__transact_withdraw_cash))) {
         Log::vOutput(
             0,
             "Notary::NotarizeWithdrawal: User %s cannot do "
             "this transaction (withdraw cash is disallowed in "
             "server.cfg)\n",
-            strNymID.Get());
+            strNymID->Get());
     }
     // Check for a balance agreement...
     //
     else if (
         nullptr ==
         (pBalanceItem = tranIn.GetItem(itemType::balanceStatement))) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeWithdrawal: Expected "
             "OTItem::balanceStatement, but not found in trans # "
             "%" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     } else if (pItem->GetType() == itemType::withdrawVoucher) {
         // The response item will contain a copy of the request item. So I save
         // it into a string
@@ -1360,7 +1363,8 @@ void Notary::NotarizeWithdrawal(
             (voucherReserveAccount = server_.GetTransactor().getVoucherAccount(
                  INSTRUMENT_DEFINITION_ID)) &&
             voucherReserveAccount) {
-            String strVoucherRequest, strItemNote;
+            auto strVoucherRequest = String::Factory(),
+                 strItemNote = String::Factory();
             pItem->GetNote(strItemNote);
             pItem->GetAttachment(strVoucherRequest);
 
@@ -1379,7 +1383,7 @@ void Notary::NotarizeWithdrawal(
                 otErr << OT_METHOD << __FUNCTION__
                       << ": ERROR loading voucher request "
                          "from string:\n"
-                      << strVoucherRequest.Get() << "\n";
+                      << strVoucherRequest->Get() << "\n";
             } else if (!context.VerifyIssuedNumber(
                            theVoucherRequest->GetTransactionNum())) {
                 otErr
@@ -1387,20 +1391,20 @@ void Notary::NotarizeWithdrawal(
                     << ": Failed verifying transaction number on the voucher ("
                     << theVoucherRequest->GetTransactionNum()
                     << ") in withdrawal request " << tranIn.GetTransactionNum()
-                    << " for Nym: " << strNymID.Get() << "\n";
+                    << " for Nym: " << strNymID->Get() << "\n";
             } else if (
                 INSTRUMENT_DEFINITION_ID !=
                 theVoucherRequest->GetInstrumentDefinitionID()) {
-                const String strFoundInstrumentDefinitionID(
+                const auto strFoundInstrumentDefinitionID = String::Factory(
                     theVoucherRequest->GetInstrumentDefinitionID());
                 otErr << OT_METHOD << __FUNCTION__
                       << ": Failed verifying instrument definition ID ("
-                      << strInstrumentDefinitionID.Get()
+                      << strInstrumentDefinitionID->Get()
                       << ") on the withdraw voucher request (found: "
-                      << strFoundInstrumentDefinitionID.Get()
+                      << strFoundInstrumentDefinitionID->Get()
                       << ") for transaction " << tranIn.GetTransactionNum()
                       << ", voucher " << theVoucherRequest->GetTransactionNum()
-                      << ". User: " << strNymID.Get() << "\n";
+                      << ". User: " << strNymID->Get() << "\n";
             } else if (!(pBalanceItem->VerifyBalanceStatement(
                            theVoucherRequest->GetAmount() *
                                (-1),  // My account's balance will go down by
@@ -1415,17 +1419,17 @@ void Notary::NotarizeWithdrawal(
                     0,
                     "ERROR verifying balance statement while "
                     "issuing voucher. Acct ID:\n%s\n",
-                    strAccountID.Get());
+                    strAccountID->Get());
             } else  // successfully loaded the voucher request from the
                     // string...
             {
                 pResponseBalanceItem->SetStatus(
                     Item::acknowledgement);  // the transaction agreement was
                                              // successful.
-                String strChequeMemo;
-                strChequeMemo.Format(
+                auto strChequeMemo = String::Factory();
+                strChequeMemo->Format(
                     "%s%s",
-                    strItemNote.Get(),
+                    strItemNote->Get(),
                     theVoucherRequest->GetMemo().Get());
 
                 // 10 minutes ==    600 Seconds
@@ -1506,7 +1510,7 @@ void Notary::NotarizeWithdrawal(
                         theAccount.Abort();
                         voucherReserveAccount.Abort();
                     } else {
-                        String strVoucher;
+                        auto strVoucher = String::Factory();
                         theVoucher->SetAsVoucher(
                             NYM_ID, ACCOUNT_ID);  // All this does is set the
                                                   // voucher's internal contract
@@ -1538,7 +1542,7 @@ void Notary::NotarizeWithdrawal(
             otErr << "GetTransactor().getVoucherAccount() failed in "
                      "NotarizeWithdrawal. "
                      "Asset Type:\n"
-                  << strInstrumentDefinitionID.Get() << "\n";
+                  << strInstrumentDefinitionID->Get() << "\n";
         }
     }
 #if OT_CASH
@@ -1634,7 +1638,7 @@ void Notary::NotarizeWithdrawal(
             // amount, because otherwise he'll
             // just get the wrong key and then get rejected by the bank.
 
-            String strPurse;
+            auto strPurse = String::Factory();
             pItem->GetAttachment(strPurse);
 
             // Todo do more security checking in here, like making sure the
@@ -1657,7 +1661,7 @@ void Notary::NotarizeWithdrawal(
             if (!bLoadContractFromString) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": ERROR loading purse from string:\n"
-                      << strPurse.Get() << "\n";
+                      << strPurse->Get() << "\n";
             } else if (!(pBalanceItem->VerifyBalanceStatement(
                            thePurse->GetTotalValue() * (-1),  // This amount
                                                               // will be
@@ -1673,7 +1677,7 @@ void Notary::NotarizeWithdrawal(
                     0,
                     "ERROR verifying balance statement while "
                     "withdrawing cash. Acct ID: %s\n",
-                    strAccountID.Get());
+                    strAccountID->Get());
             } else  // successfully loaded the purse from the string...
             {
                 pResponseBalanceItem->SetStatus(
@@ -1695,7 +1699,7 @@ void Notary::NotarizeWithdrawal(
                         otErr << OT_METHOD << __FUNCTION__
                               << ": Unable to find Mint (series "
                               << pToken->GetSeries()
-                              << "): " << strInstrumentDefinitionID.Get()
+                              << "): " << strInstrumentDefinitionID->Get()
                               << "\n";
                         bSuccess = false;
                         break;  // Once there's a failure, we ditch the loop.
@@ -1708,7 +1712,7 @@ void Notary::NotarizeWithdrawal(
                             "Notary::NotarizeWithdrawal: Unable to find cash "
                             "reserve account for Mint (series %d): %s\n",
                             pToken->GetSeries(),
-                            strInstrumentDefinitionID.Get());
+                            strInstrumentDefinitionID->Get());
                         bSuccess = false;
                         break;  // Once there's a failure, we ditch the loop.
                     }
@@ -1726,17 +1730,18 @@ void Notary::NotarizeWithdrawal(
                             "Notary::NotarizeWithdrawal: User attempting "
                             "withdrawal with an expired mint (series %d): %s\n",
                             pToken->GetSeries(),
-                            strInstrumentDefinitionID.Get());
+                            strInstrumentDefinitionID->Get());
                         bSuccess = false;
                         break;  // Once there's a failure, we ditch the loop.
                     } else {
-                        String theStringReturnVal;
+                        auto theStringReturnVal = String::Factory();
 
                         if (pToken->GetInstrumentDefinitionID() !=
                             INSTRUMENT_DEFINITION_ID) {
-                            const String str1(
-                                pToken->GetInstrumentDefinitionID()),
-                                str2(INSTRUMENT_DEFINITION_ID);
+                            const auto str1 = String::Factory(
+                                           pToken->GetInstrumentDefinitionID()),
+                                       str2 = String::Factory(
+                                           INSTRUMENT_DEFINITION_ID);
                             bSuccess = false;
                             Log::vError(
                                 "%s: ERROR while signing token: "
@@ -1744,8 +1749,8 @@ void Notary::NotarizeWithdrawal(
                                 "%s but found %s "
                                 "instead. (Failure.)\n",
                                 __FUNCTION__,
-                                str2.Get(),
-                                str1.Get());
+                                str2->Get(),
+                                str1->Get());
                             break;
                         }
                         // TokenIndex is for cash systems that send multiple
@@ -1842,7 +1847,7 @@ void Notary::NotarizeWithdrawal(
                                     "%s: Unable to debit account "
                                     "%s in the amount of: %" PRId64 "\n",
                                     __FUNCTION__,
-                                    strAccountID.Get(),
+                                    strAccountID->Get(),
                                     pToken->GetDenomination());
                                 break;  // Once there's a failure, we ditch the
                                         // loop.
@@ -1866,7 +1871,7 @@ void Notary::NotarizeWithdrawal(
                         pToken = nullptr;
                     }
 
-                    strPurse.Release();  // just in case it only concatenates.
+                    strPurse->Release();  // just in case it only concatenates.
 
                     theOutputPurse->SignContract(server_.GetServerNym());
                     theOutputPurse->SaveContract();  // todo this is probably
@@ -1934,14 +1939,14 @@ void Notary::NotarizeWithdrawal(
     }
 #endif  // OT_CASH
     else {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
             "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
 
     // sign the response item before sending it back (it's already been added to
@@ -2000,8 +2005,8 @@ void Notary::NotarizePayDividend(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
     const auto& NOTARY_ID = context.Server();
@@ -2009,9 +2014,10 @@ void Notary::NotarizePayDividend(
     const auto SOURCE_ACCT_ID = Identifier::Factory(theSourceAccount.get());
     const auto PAYOUT_INSTRUMENT_DEFINITION_ID =
         Identifier::Factory(theSourceAccount.get());
-    const String strNymID(NYM_ID);
-    const String strAccountID(SOURCE_ACCT_ID);
-    const String strInstrumentDefinitionID(PAYOUT_INSTRUMENT_DEFINITION_ID);
+    const auto strNymID = String::Factory(NYM_ID);
+    const auto strAccountID = String::Factory(SOURCE_ACCT_ID);
+    const auto strInstrumentDefinitionID =
+        String::Factory(PAYOUT_INSTRUMENT_DEFINITION_ID);
     // Make sure the appropriate item is attached.
     itemType theReplyItemType = itemType::error_state;
     pItemPayDividend = tranIn.GetItem(itemType::payDividend);
@@ -2040,15 +2046,15 @@ void Notary::NotarizePayDividend(
     tranOut.AddItem(pResponseBalanceItem);
 
     if (nullptr == pItem) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "%s: Expected OTItem::payDividend in trans# %" PRId64
             ": \n\n%s\n\n",
             szFunc,
             tranIn.GetTransactionNum(),
-            strTemp.Exists()
-                ? strTemp.Get()
+            strTemp->Exists()
+                ? strTemp->Get()
                 : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
     }
     // Below this point, we know that pItem is good, and that pItemPayDividend
@@ -2058,39 +2064,39 @@ void Notary::NotarizePayDividend(
     // This permission has to do with ALL withdrawals from an account (cash /
     // voucher / dividends)
     else if (!NYM_IS_ALLOWED(
-                 strNymID.Get(), ServerSettings::__transact_withdrawal)) {
+                 strNymID->Get(), ServerSettings::__transact_withdrawal)) {
         Log::vOutput(
             0,
             "%s: User %s cannot do this transaction (All withdrawals are "
             "disallowed in server.cfg, even for paying dividends with.)\n",
             szFunc,
-            strNymID.Get());
+            strNymID->Get());
     }
     // This permission has to do with paying dividends.
     else if (
         (nullptr != pItemPayDividend) &&
         (!NYM_IS_ALLOWED(
-            strNymID.Get(), ServerSettings::__transact_pay_dividend))) {
+            strNymID->Get(), ServerSettings::__transact_pay_dividend))) {
         Log::vOutput(
             0,
             "%s: User %s cannot do this transaction "
             "(payDividend is disallowed in server.cfg)\n",
             szFunc,
-            strNymID.Get());
+            strNymID->Get());
     }
     // Check for a balance agreement...
     else if (
         nullptr ==
         (pBalanceItem = tranIn.GetItem(itemType::balanceStatement))) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "%s: Expected OTItem::balanceStatement, but not "
             "found in trans # %" PRId64 ": \n\n%s\n\n",
             szFunc,
             tranIn.GetTransactionNum(),
-            strTemp.Exists()
-                ? strTemp.Get()
+            strTemp->Exists()
+                ? strTemp->Get()
                 : " (ERROR SERIALIZING TRANSACTION INTO A STRING) ");
     }
     // Superfluous by this point. Artifact of withdrawal code.
@@ -2117,10 +2123,10 @@ void Notary::NotarizePayDividend(
 
         OT_ASSERT(false != bool(theVoucherRequest));
 
-        String strVoucherRequest;
+        auto strVoucherRequest = String::Factory();
         // When paying a dividend, you create a voucher request (the same as in
         // withdrawVoucher). It's just for information
-        String strItemNote;
+        auto strItemNote = String::Factory();
         // passing, since payDividend needs a few bits of info, and this is a
         // convenient way of passing it.
         pItem->GetAttachment(strVoucherRequest);
@@ -2133,13 +2139,13 @@ void Notary::NotarizePayDividend(
                 "%s: ERROR loading dividend payout's voucher request "
                 "from string:\n%s\n",
                 szFunc,
-                strVoucherRequest.Get());
+                strVoucherRequest->Get());
         } else if (theVoucherRequest->GetAmount() <= 0) {
             Log::vError(
                 "%s: ERROR expected >0 'payout per share' as "
                 "'amount' on request voucher:\n%s\n",
                 szFunc,
-                strVoucherRequest.Get());
+                strVoucherRequest->Get());
         } else {
             // the request voucher (sent from client) contains the payout amount
             // per share. Whereas pItem contains lTotalCostOfDividend, which is
@@ -2149,7 +2155,8 @@ void Notary::NotarizePayDividend(
             const std::int64_t lAmountPerShare = theVoucherRequest->GetAmount();
             const Identifier& SHARES_ISSUER_ACCT_ID =
                 theVoucherRequest->GetSenderAcctID();
-            const String strSharesIssuerAcct(SHARES_ISSUER_ACCT_ID);
+            const auto strSharesIssuerAcct =
+                String::Factory(SHARES_ISSUER_ACCT_ID);
             // Get the asset contract for the shares type, stored in the voucher
             // request, inside pItem. (Make sure it's NOT the same instrument
             // definition as theSourceAccount.get().)
@@ -2167,48 +2174,53 @@ void Notary::NotarizePayDividend(
             auto purportedID = Identifier::Factory(context.RemoteNym());
 
             if (!pSharesContract) {
-                const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
+                const auto strSharesType =
+                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                 Log::vError(
                     "%s: ERROR unable to find shares contract based "
                     "on instrument definition ID: %s\n",
                     szFunc,
-                    strSharesType.Get());
+                    strSharesType->Get());
             } else if (pSharesContract->Type() != proto::UNITTYPE_SECURITY) {
-                const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
+                const auto strSharesType =
+                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                 Log::vError(
                     "%s: FAILURE: Asset contract is not "
                     "shares-based. Asset type ID: %s\n",
                     szFunc,
-                    strSharesType.Get());
+                    strSharesType->Get());
             } else if (!(String(purportedID) ==
                          String(pSharesContract->Nym()->ID()))) {
-                const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
+                const auto strSharesType =
+                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                 Log::vError(
                     "%s: ERROR only the issuer (%s) of contract "
                     " (%s) may pay dividends.\n",
                     szFunc,
-                    strNymID.Get(),
-                    strSharesType.Get());
+                    strNymID->Get(),
+                    strSharesType->Get());
             } else if (!pSharesContract->Validate()) {
-                const String strSharesType(SHARES_INSTRUMENT_DEFINITION_ID);
+                const auto strSharesType =
+                    String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                 Log::vError(
                     "%s: ERROR unable to verify signature for Nym "
                     "(%s) on shares contract "
                     "with instrument definition id: %s\n",
                     szFunc,
-                    strNymID.Get(),
-                    strSharesType.Get());
+                    strNymID->Get(),
+                    strSharesType->Get());
             } else if (false == bool(sharesIssuerAccount)) {
                 Log::vError(
                     "%s: ERROR unable to find issuer account for shares: %s\n",
                     szFunc,
-                    strSharesIssuerAcct.Get());
+                    strSharesIssuerAcct->Get());
             } else if (
                 PAYOUT_INSTRUMENT_DEFINITION_ID ==
                 SHARES_INSTRUMENT_DEFINITION_ID)  // these can't be the
                                                   // same
             {
-                const String strSharesType(PAYOUT_INSTRUMENT_DEFINITION_ID);
+                const auto strSharesType =
+                    String::Factory(PAYOUT_INSTRUMENT_DEFINITION_ID);
                 Log::vError(
                     "%s: ERROR dividend payout attempted, using "
                     "shares instrument definition as payout type also. "
@@ -2216,25 +2228,27 @@ void Notary::NotarizePayDividend(
                     "itself, using "
                     "ITSELF as the instrument definition for the payout): %s\n",
                     szFunc,
-                    strSharesType.Get());
+                    strSharesType->Get());
             } else if (!sharesIssuerAccount.get().VerifyAccount(
                            server_.GetServerNym())) {
-                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const auto strIssuerAcctID =
+                    String::Factory(SHARES_ISSUER_ACCT_ID);
                 Log::vError(
                     "%s: ERROR failed trying to verify issuer account: %s\n",
                     szFunc,
-                    strIssuerAcctID.Get());
+                    strIssuerAcctID->Get());
             } else if (!sharesIssuerAccount.get().VerifyOwner(
                            context.RemoteNym())) {
-                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const auto strIssuerAcctID =
+                    String::Factory(SHARES_ISSUER_ACCT_ID);
                 Log::vOutput(
                     0,
                     "%s: ERROR verifying signer's ownership of shares "
                     "issuer account (%s), "
                     "while trying to pay dividend from source account: %s\n",
                     szFunc,
-                    strIssuerAcctID.Get(),
-                    strAccountID.Get());
+                    strIssuerAcctID->Get(),
+                    strAccountID->Get());
             }
             // Make sure the share issuer's account balance (number of shares
             // issued * (-1)),
@@ -2246,7 +2260,8 @@ void Notary::NotarizePayDividend(
             else if (
                 (sharesIssuerAccount.get().GetBalance() * (-1) *
                  lAmountPerShare) != lTotalCostOfDividend) {
-                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const auto strIssuerAcctID =
+                    String::Factory(SHARES_ISSUER_ACCT_ID);
                 Log::vOutput(
                     0,
                     "%s: ERROR: total payout of dividend as "
@@ -2256,10 +2271,11 @@ void Notary::NotarizePayDividend(
                     (sharesIssuerAccount.get().GetBalance() * (-1) *
                      lAmountPerShare),
                     lTotalCostOfDividend,
-                    strAccountID.Get());
+                    strAccountID->Get());
             } else if (
                 theSourceAccount.get().GetBalance() < lTotalCostOfDividend) {
-                const String strIssuerAcctID(SHARES_ISSUER_ACCT_ID);
+                const auto strIssuerAcctID =
+                    String::Factory(SHARES_ISSUER_ACCT_ID);
                 Log::vOutput(
                     0,
                     "%s: FAILURE: not enough funds (%" PRId64 ") to "
@@ -2268,7 +2284,7 @@ void Notary::NotarizePayDividend(
                     szFunc,
                     theSourceAccount.get().GetBalance(),
                     lTotalCostOfDividend,
-                    strAccountID.Get());
+                    strAccountID->Get());
             } else {
                 // Remove all the funds at once (so the balance agreement
                 // matches up.)
@@ -2361,7 +2377,7 @@ void Notary::NotarizePayDividend(
                             "statement while trying to pay "
                             "dividend. Source Acct ID: %s\n",
                             szFunc,
-                            strAccountID.Get());
+                            strAccountID->Get());
                     } else  // successfully verified the balance agreement.
                     {
                         pResponseBalanceItem->SetStatus(
@@ -2385,7 +2401,8 @@ void Notary::NotarizePayDividend(
                                                        // better funds transfer
                                                        // code.
                         ) {
-                            const String strVoucherAcctID(VOUCHER_ACCOUNT_ID);
+                            const auto strVoucherAcctID =
+                                String::Factory(VOUCHER_ACCOUNT_ID);
 
                             if (false ==
                                 voucherReserveAccount.get().Credit(
@@ -2397,7 +2414,7 @@ void Notary::NotarizePayDividend(
                                     "%s\n",
                                     szFunc,
                                     lTotalCostOfDividend,
-                                    strVoucherAcctID.Get());
+                                    strVoucherAcctID->Get());
 
                                 // Since pVoucherReserveAcct->Credit failed, we
                                 // have to return
@@ -2673,8 +2690,8 @@ void Notary::NotarizePayDividend(
                                             // Send the voucher to the payments
                                             // inbox of the recipient.
                                             //
-                                            const String strVoucher(
-                                                *theVoucher);
+                                            const auto strVoucher =
+                                                String::Factory(*theVoucher);
                                             auto thePayment{
                                                 manager_.Factory().Payment(
                                                     strVoucher)};
@@ -2696,10 +2713,12 @@ void Notary::NotarizePayDividend(
                                         // from.
                                         //
                                         if (!bSent) {
-                                            const String
-                                                strPayoutInstrumentDefinitionID(
-                                                    PAYOUT_INSTRUMENT_DEFINITION_ID),
-                                                strSenderNymID(NYM_ID);
+                                            const auto
+                                                strPayoutInstrumentDefinitionID =
+                                                    String::Factory(
+                                                        PAYOUT_INSTRUMENT_DEFINITION_ID),
+                                                strSenderNymID =
+                                                    String::Factory(NYM_ID);
                                             Log::vError(
                                                 "%s: ERROR failed issuing "
                                                 "voucher (to return leftovers "
@@ -2713,15 +2732,17 @@ void Notary::NotarizePayDividend(
                                                 szFunc,
                                                 lLeftovers,
                                                 strPayoutInstrumentDefinitionID
-                                                    .Get(),
-                                                strSenderNymID.Get());
+                                                    ->Get(),
+                                                strSenderNymID->Get());
                                         }   // if !bSent
                                     } else  // !bGotNextTransNum
                                     {
-                                        const String
-                                            strPayoutInstrumentDefinitionID(
-                                                PAYOUT_INSTRUMENT_DEFINITION_ID),
-                                            strRecipientNymID(NYM_ID);
+                                        const auto
+                                            strPayoutInstrumentDefinitionID =
+                                                String::Factory(
+                                                    PAYOUT_INSTRUMENT_DEFINITION_ID),
+                                            strRecipientNymID =
+                                                String::Factory(NYM_ID);
                                         Log::vError(
                                             "%s: ERROR!! Failed issuing next "
                                             "transaction "
@@ -2734,8 +2755,8 @@ void Notary::NotarizePayDividend(
                                             szFunc,
                                             lLeftovers,
                                             strPayoutInstrumentDefinitionID
-                                                .Get(),
-                                            strRecipientNymID.Get());
+                                                ->Get(),
+                                            strRecipientNymID->Get());
                                     }
                                 }
                             }  // else
@@ -2751,20 +2772,20 @@ void Notary::NotarizePayDividend(
                         "failed. "
                         "Asset Type:\n%s\n",
                         szFunc,
-                        strInstrumentDefinitionID.Get());
+                        strInstrumentDefinitionID->Get());
                 }
             }
         }
     } else {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "%s: Expected OTItem::payDividend in trans# %" PRId64
             ": \n\n%s\n\n",
             szFunc,
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -2928,8 +2949,8 @@ void Notary::NotarizePaymentPlan(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -2938,7 +2959,7 @@ void Notary::NotarizePaymentPlan(
     const auto& DEPOSITOR_NYM_ID = NYM_ID;
     const auto DEPOSITOR_ACCT_ID =
         Identifier::Factory(theDepositorAccount.get());
-    const String strNymID(NYM_ID);
+    const auto strNymID = String::Factory(NYM_ID);
     pItem = tranIn.GetItem(itemType::paymentPlan);
     pBalanceItem = tranIn.GetItem(itemType::transactionStatement);
     pResponseItem.reset(
@@ -2960,13 +2981,13 @@ void Notary::NotarizePaymentPlan(
                                             // it now.
     if ((nullptr != pItem) &&
         (!NYM_IS_ALLOWED(
-            strNymID.Get(), ServerSettings::__transact_payment_plan))) {
+            strNymID->Get(), ServerSettings::__transact_payment_plan))) {
         Log::vOutput(
             0,
             "%s: User %s cannot do this transaction (All payment "
             "plans are disallowed in server.cfg)\n",
             __FUNCTION__,
-            strNymID.Get());
+            strNymID->Get());
     }
     // For now, there should only be one of these paymentPlan items inside the
     // transaction. So we treat it that way... I either get it successfully or
@@ -3033,17 +3054,18 @@ void Notary::NotarizePaymentPlan(
             } else if (
                 pPlan->GetInstrumentDefinitionID() !=
                 theDepositorAccount.get().GetInstrumentDefinitionID()) {
-                const String strInstrumentDefinitionID1(
-                    pPlan->GetInstrumentDefinitionID()),
-                    strInstrumentDefinitionID2(
+                const auto
+                    strInstrumentDefinitionID1 =
+                        String::Factory(pPlan->GetInstrumentDefinitionID()),
+                    strInstrumentDefinitionID2 = String::Factory(
                         theDepositorAccount.get().GetInstrumentDefinitionID());
                 Log::vOutput(
                     0,
                     "%s: ERROR wrong Instrument Definition ID (%s) on "
                     "payment plan. Expected: %s\n",
                     __FUNCTION__,
-                    strInstrumentDefinitionID1.Get(),
-                    strInstrumentDefinitionID2.Get());
+                    strInstrumentDefinitionID1->Get(),
+                    strInstrumentDefinitionID2->Get());
             } else {
                 // CANCELLING? OR ACTIVATING?
                 // If he is cancelling the payment plan (from his outpayments
@@ -3095,39 +3117,42 @@ void Notary::NotarizePaymentPlan(
                         lFoundOpeningNum,
                         pItem->GetTransactionNum());
                 } else if (FOUND_NYM_ID != DEPOSITOR_NYM_ID) {
-                    const String strIDExpected(FOUND_NYM_ID),
-                        strIDDepositor(DEPOSITOR_NYM_ID);
+                    const auto strIDExpected = String::Factory(FOUND_NYM_ID),
+                               strIDDepositor =
+                                   String::Factory(DEPOSITOR_NYM_ID);
                     Log::vOutput(
                         0,
                         "%s: ERROR wrong user ID while %s payment plan. "
                         "Depositor: %s  Found on plan: %s\n",
                         __FUNCTION__,
                         bCancelling ? "cancelling" : "activating",
-                        strIDDepositor.Get(),
-                        strIDExpected.Get());
+                        strIDDepositor->Get(),
+                        strIDExpected->Get());
                 } else if (
                     bCancelling && (DEPOSITOR_NYM_ID != theCancelerNymID)) {
-                    const String strIDExpected(DEPOSITOR_NYM_ID),
-                        strIDDepositor(theCancelerNymID);
+                    const auto strIDExpected =
+                                   String::Factory(DEPOSITOR_NYM_ID),
+                               strIDDepositor =
+                                   String::Factory(theCancelerNymID);
                     Log::vOutput(
                         0,
                         "%s: ERROR wrong canceler Nym ID while "
                         "canceling payment plan. Depositor: %s  "
                         "Canceler: %s\n",
                         __FUNCTION__,
-                        strIDExpected.Get(),
-                        strIDDepositor.Get());
+                        strIDExpected->Get(),
+                        strIDDepositor->Get());
                 } else if (FOUND_ACCT_ID != DEPOSITOR_ACCT_ID) {
-                    const String strAcctID1(FOUND_ACCT_ID),
-                        strAcctID2(DEPOSITOR_ACCT_ID);
+                    const auto strAcctID1 = String::Factory(FOUND_ACCT_ID),
+                               strAcctID2 = String::Factory(DEPOSITOR_ACCT_ID);
                     Log::vOutput(
                         0,
                         "%s: ERROR wrong Acct ID (%s) while %s "
                         "payment plan. Expected: %s\n",
                         __FUNCTION__,
-                        strAcctID1.Get(),
+                        strAcctID1->Get(),
                         bCancelling ? "cancelling" : "activating",
-                        strAcctID2.Get());
+                        strAcctID2->Get());
                 }
                 // If we're activating the plan (versus cancelling) then the
                 // transaction number opens
@@ -3291,12 +3316,14 @@ void Notary::NotarizePaymentPlan(
                                 pRecipientAcct->GetInstrumentDefinitionID() !=
                                 theDepositorAccount.get()
                                     .GetInstrumentDefinitionID()) {
-                                String strSourceInstrumentDefinitionID(
-                                    theDepositorAccount.get()
-                                        .GetInstrumentDefinitionID()),
-                                    strRecipInstrumentDefinitionID(
-                                        pRecipientAcct
-                                            ->GetInstrumentDefinitionID());
+                                auto strSourceInstrumentDefinitionID =
+                                         String::Factory(
+                                             theDepositorAccount.get()
+                                                 .GetInstrumentDefinitionID()),
+                                     strRecipInstrumentDefinitionID =
+                                         String::Factory(
+                                             pRecipientAcct
+                                                 ->GetInstrumentDefinitionID());
                                 Log::vOutput(
                                     0,
                                     "%s: ERROR - user attempted to %s a "
@@ -3304,8 +3331,8 @@ void Notary::NotarizePaymentPlan(
                                     "instrument definitions:\n%s\n%s\n",
                                     __FUNCTION__,
                                     bCancelling ? "cancel" : "activate",
-                                    strSourceInstrumentDefinitionID.Get(),
-                                    strRecipInstrumentDefinitionID.Get());
+                                    strSourceInstrumentDefinitionID->Get(),
+                                    strRecipInstrumentDefinitionID->Get());
                             }
                             // Does it verify? I call VerifySignature here since
                             // VerifyContractID
@@ -3326,18 +3353,21 @@ void Notary::NotarizePaymentPlan(
                             else if (
                                 pRecipientAcct->GetInstrumentDefinitionID() !=
                                 pPlan->GetInstrumentDefinitionID()) {
-                                const String strInstrumentDefinitionID1(
-                                    pPlan->GetInstrumentDefinitionID()),
-                                    strInstrumentDefinitionID2(
-                                        pRecipientAcct
-                                            ->GetInstrumentDefinitionID());
+                                const auto
+                                    strInstrumentDefinitionID1 =
+                                        String::Factory(
+                                            pPlan->GetInstrumentDefinitionID()),
+                                    strInstrumentDefinitionID2 =
+                                        String::Factory(
+                                            pRecipientAcct
+                                                ->GetInstrumentDefinitionID());
                                 Log::vOutput(
                                     0,
                                     "%s: ERROR wrong Asset Type ID (%s) on "
                                     "Recipient Acct. Expected per Plan: %s\n",
                                     __FUNCTION__,
-                                    strInstrumentDefinitionID2.Get(),
-                                    strInstrumentDefinitionID1.Get());
+                                    strInstrumentDefinitionID2->Get(),
+                                    strInstrumentDefinitionID1->Get());
                             }
                             // At this point I feel pretty confident that the
                             // Payment Plan is a
@@ -3592,8 +3622,8 @@ void Notary::NotarizeSmartContract(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
 
     // Grab the actual server ID from this object, and use it as the server ID
     // here.
@@ -3603,7 +3633,7 @@ void Notary::NotarizeSmartContract(
     const auto& ACTIVATOR_NYM_ID = NYM_ID;
     const auto ACTIVATOR_ACCT_ID =
         Identifier::Factory(theActivatingAccount.get());
-    const String strNymID(NYM_ID);
+    const auto strNymID = String::Factory(NYM_ID);
     pItem = tranIn.GetItem(itemType::smartContract);
     pBalanceItem = tranIn.GetItem(itemType::transactionStatement);
     pResponseItem.reset(
@@ -3626,13 +3656,13 @@ void Notary::NotarizeSmartContract(
     if ((nullptr != pItem) &&
         (false ==
          NYM_IS_ALLOWED(
-             strNymID.Get(), ServerSettings::__transact_smart_contract))) {
+             strNymID->Get(), ServerSettings::__transact_smart_contract))) {
         Log::vOutput(
             0,
             "%s: User %s cannot do this transaction (All smart "
             "contracts are disallowed in server.cfg)\n",
             __FUNCTION__,
-            strNymID.Get());
+            strNymID->Get());
     }
     // For now, there should only be one of these smartContract items inside the
     // transaction.
@@ -3700,13 +3730,14 @@ void Notary::NotarizeSmartContract(
                     __FUNCTION__,
                     strContract->Get());
             } else if (pContract->GetNotaryID() != NOTARY_ID) {
-                const String strWrongID(pContract->GetNotaryID());
+                const auto strWrongID =
+                    String::Factory(pContract->GetNotaryID());
                 Log::vOutput(
                     0,
                     "%s: ERROR bad server ID (%s) on smart "
                     "contract. Expected %s\n",
                     __FUNCTION__,
-                    strWrongID.Get(),
+                    strWrongID->Get(),
                     server_.GetServerID().str().c_str());
             } else {
                 // CANCELING, or ACTIVATING?
@@ -3772,29 +3803,30 @@ void Notary::NotarizeSmartContract(
                         lFoundOpeningNum,
                         lExpectedNum);
                 } else if (FOUND_NYM_ID != ACTIVATOR_NYM_ID) {
-                    const String strWrongID(ACTIVATOR_NYM_ID);
-                    const String strRightID(FOUND_NYM_ID);
+                    const auto strWrongID = String::Factory(ACTIVATOR_NYM_ID);
+                    const auto strRightID = String::Factory(FOUND_NYM_ID);
                     Log::vOutput(
                         0,
                         "%s: ERROR wrong user ID (%s) used while "
                         "%s smart contract. Expected from "
                         "contract: %s\n",
                         __FUNCTION__,
-                        strWrongID.Get(),
+                        strWrongID->Get(),
                         bCancelling ? "canceling" : "activating",
-                        strRightID.Get());
+                        strRightID->Get());
                 } else if (FOUND_ACCT_ID != ACTIVATOR_ACCT_ID) {
-                    const String strSenderAcctID(FOUND_ACCT_ID),
-                        strActivatorAcctID(ACTIVATOR_ACCT_ID);
+                    const auto strSenderAcctID = String::Factory(FOUND_ACCT_ID),
+                               strActivatorAcctID =
+                                   String::Factory(ACTIVATOR_ACCT_ID);
                     Log::vOutput(
                         0,
                         "%s: ERROR wrong asset Acct ID used (%s) "
                         "to %s smart contract. Expected from "
                         "contract: %s\n",
                         __FUNCTION__,
-                        strActivatorAcctID.Get(),
+                        strActivatorAcctID->Get(),
                         bCancelling ? "cancel" : "activate",
-                        strSenderAcctID.Get());
+                        strSenderAcctID->Get());
                 }
                 // The transaction number opens the smart contract, but
                 // there must also be a closing number for closing it.
@@ -4381,13 +4413,13 @@ void Notary::NotarizeCancelCronItem(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well.
     // Therefore, let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
 
     // Grab the actual server ID from this object, and use it as the server
     // ID here.
     const auto& NYM_ID = context.RemoteNym().ID();
-    const String strNymID(NYM_ID);
+    const auto strNymID = String::Factory(NYM_ID);
     pBalanceItem = tranIn.GetItem(itemType::transactionStatement);
     pResponseItem.reset(
         manager_.Factory()
@@ -4408,23 +4440,23 @@ void Notary::NotarizeCancelCronItem(
                                             // will cleanup the item. It
                                             // "owns" it now.
     if (!NYM_IS_ALLOWED(
-            strNymID.Get(), ServerSettings::__transact_cancel_cron_item)) {
+            strNymID->Get(), ServerSettings::__transact_cancel_cron_item)) {
         Log::vOutput(
             0,
             "%s: User %s cannot do this transaction "
             "(CancelCronItem messages are disallowed in server.cfg)\n",
             __FUNCTION__,
-            strNymID.Get());
+            strNymID->Get());
     } else if (nullptr == pBalanceItem) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "%s: Expected transaction statement in trans# %" PRId64
             ": \n\n%s\n\n",
             __FUNCTION__,
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // For now, there should only be one of these cancelCronItem items
     // inside the transaction. So we treat it that way... I either get it
@@ -4438,7 +4470,7 @@ void Notary::NotarizeCancelCronItem(
 
         // ASSET_ACCT_ID is the ID on the "from" Account that was passed in.
         //
-        const auto ASSET_ACCT_ID = Identifier::Factory(theAssetAccount);
+        const auto ASSET_ACCT_ID = Identifier::Factory(theAssetAccount.get());
 
         // Server response item being added to server response transaction
         // (tranOut)
@@ -4535,15 +4567,15 @@ void Notary::NotarizeCancelCronItem(
             }
         }  // transaction statement verified.
     } else {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Error, expected OTItem::cancelCronItem "
             "in Notary::NotarizeCancelCronItem for trans# %" PRId64
             ":\n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION FROM STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION FROM STRING) ");
     }
     // sign the response item before sending it back (it's already been
     // added to the transaction above) Now, whether it was rejection or
@@ -4579,13 +4611,13 @@ void Notary::NotarizeExchangeBasket(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto BASKET_CONTRACT_ID = Identifier::Factory(theAccount.get()),
                ACCOUNT_ID = Identifier::Factory(theAccount.get());
 
-    const String strNymID(NYM_ID);
+    const auto strNymID = String::Factory(NYM_ID);
 
     std::unique_ptr<Ledger> pInbox(
         theAccount.get().LoadInbox(server_.GetServerNym()));
@@ -4611,13 +4643,13 @@ void Notary::NotarizeExchangeBasket(
     bool bSuccess = false;
 
     if (!NYM_IS_ALLOWED(
-            strNymID.Get(), ServerSettings::__transact_exchange_basket)) {
+            strNymID->Get(), ServerSettings::__transact_exchange_basket)) {
         Log::vOutput(
             0,
             "Notary::NotarizeExchangeBasket: User %s cannot do "
             "this transaction (All basket exchanges are "
             "disallowed in server.cfg)\n",
-            strNymID.Get());
+            strNymID->Get());
     } else if (nullptr == pItem) {
         otOut << "Notary::NotarizeExchangeBasket: No exchangeBasket "
                  "item found on this transaction.\n";
@@ -4676,7 +4708,7 @@ void Notary::NotarizeExchangeBasket(
             std::list<Ledger*> listInboxes;
 
             // Here's the request from the user.
-            String strBasket;
+            auto strBasket = String::Factory();
             auto theRequestBasket{manager_.Factory().Basket()};
 
             OT_ASSERT(false != bool(theRequestBasket));
@@ -4698,7 +4730,7 @@ void Notary::NotarizeExchangeBasket(
                 otErr << "Notary::NotarizeExchangeBasket: Asset type is "
                          "not a basket currency.\n";
             } else if (
-                !strBasket.Exists() ||
+                !strBasket->Exists() ||
                 !theRequestBasket->LoadContractFromString(strBasket) ||
                 !theRequestBasket->VerifySignature(context.RemoteNym())) {
                 otErr << "Notary::NotarizeExchangeBasket: Expected "
@@ -4769,13 +4801,14 @@ void Notary::NotarizeExchangeBasket(
                             if (setOfAccounts.end() !=
                                 it_account)  // The account appears twice!!
                             {
-                                const String strSubID(item->SUB_ACCOUNT_ID);
+                                const auto strSubID =
+                                    String::Factory(item->SUB_ACCOUNT_ID);
                                 Log::vError(
                                     "%s: Failed: Sub-account ID "
                                     "found TWICE on same basket "
                                     "exchange request: %s\n",
                                     __FUNCTION__,
-                                    strSubID.Get());
+                                    strSubID->Get());
                                 bFoundSameAcctTwice = true;
                                 break;
                             }
@@ -4791,13 +4824,13 @@ void Notary::NotarizeExchangeBasket(
 
                                 BasketItem* pRequestItem =
                                     theRequestBasket->At(i);
-                                const String requestContractID(
+                                const auto requestContractID = String::Factory(
                                     pRequestItem->SUB_CONTRACT_ID);
-                                const String requestAccountID(
+                                const auto requestAccountID = String::Factory(
                                     pRequestItem->SUB_ACCOUNT_ID);
 
                                 if (basket->Currencies().find(
-                                        requestContractID.Get()) ==
+                                        requestContractID->Get()) ==
                                     basket->Currencies().end()) {
                                     otErr << "Error: expected instrument "
                                              "definition "
@@ -4808,17 +4841,18 @@ void Notary::NotarizeExchangeBasket(
                                     break;
                                 }
 
-                                const String serverAccountID(
+                                const auto serverAccountID = String::Factory(
                                     basket->Currencies()
-                                        .at(requestContractID.Get())
+                                        .at(requestContractID->Get())
                                         .first);
 
                                 const std::uint64_t weight =
                                     basket->Currencies()
-                                        .at(requestContractID.Get())
+                                        .at(requestContractID->Get())
                                         .second;
 
-                                if (serverAccountID == requestAccountID) {
+                                if (serverAccountID->Compare(
+                                        requestAccountID)) {
                                     otErr << "Error: VERY strange to have "
                                              "these account ID's match. "
                                              "Notary::"
@@ -5489,14 +5523,14 @@ void Notary::NotarizeMarketOffer(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will definitely be bundled in our reply to the user as well.
     // Therefore, let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
 
     // Grab the actual server ID from this object, and use it as the server
     // ID here.
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto& NOTARY_ID = context.Server();
-    const String strNymID(NYM_ID);
+    const auto strNymID = String::Factory(NYM_ID);
 
     pItem = tranIn.GetItem(itemType::marketOffer);
     pBalanceItem = tranIn.GetItem(itemType::transactionStatement);
@@ -5519,31 +5553,31 @@ void Notary::NotarizeMarketOffer(
                                             // will cleanup the item. It
                                             // "owns" it now.
     if (!NYM_IS_ALLOWED(
-            strNymID.Get(), ServerSettings::__transact_market_offer)) {
+            strNymID->Get(), ServerSettings::__transact_market_offer)) {
         Log::vOutput(
             0,
             "Notary::NotarizeMarketOffer: User %s cannot do this "
             "transaction "
             "(All market offers are disallowed in server.cfg)\n",
-            strNymID.Get());
+            strNymID->Get());
     } else if (nullptr == pBalanceItem) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeMarketOffer: Expected transaction "
             "statement in trans # %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     } else if (nullptr == pItem) {
-        String strTemp(tranIn);
+        auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::NotarizeMarketOffer: Expected "
             "OTItem::marketOffer in trans# %" PRId64 ":\n\n%s\n\n",
             tranIn.GetTransactionNum(),
-            strTemp.Exists() ? strTemp.Get()
-                             : " (ERROR LOADING TRANSACTION INTO STRING) ");
+            strTemp->Exists() ? strTemp->Get()
+                              : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
     // For now, there should only be one of these marketOffer items inside
     // the transaction. So we treat it that way... I either get it
@@ -5558,7 +5592,7 @@ void Notary::NotarizeMarketOffer(
         // ASSET_ACCT_ID is the ID on the "from" Account that was passed in.
         // The CURRENCY_ACCT_ID is the ID on the "To" Account. (When doing a
         // transfer, normally 2nd acct is the Payee.)
-        const auto ASSET_ACCT_ID = Identifier::Factory(theAssetAccount),
+        const auto ASSET_ACCT_ID = Identifier::Factory(theAssetAccount.get()),
                    CURRENCY_ACCT_ID =
                        Identifier::Factory(pItem->GetDestinationAcctID());
 
@@ -5598,12 +5632,12 @@ void Notary::NotarizeMarketOffer(
             ExclusiveAccount currencyAccount =
                 manager_.Wallet().mutable_Account(CURRENCY_ACCT_ID);
             // Also load up the Trade from inside the transaction item.
-            String strOffer;
+            auto strOffer = String::Factory();
             auto theOffer{manager_.Factory().Offer()};
 
             OT_ASSERT(false != bool(theOffer));
 
-            String strTrade;
+            auto strTrade = String::Factory();
             pItem->GetAttachment(strTrade);
             auto pTrade = manager_.Factory().Trade();
 
@@ -5619,7 +5653,7 @@ void Notary::NotarizeMarketOffer(
                 Log::vError(
                     "ERROR loading trade from string in "
                     "Notary::NotarizeMarketOffer:\n%s\n",
-                    strTrade.Get());
+                    strTrade->Get());
             }
             // I'm using the operator== because it exists. (Although now I
             // believe != exists also)
@@ -5646,17 +5680,17 @@ void Notary::NotarizeMarketOffer(
             else if (
                 theAssetAccount.get().GetInstrumentDefinitionID() ==
                 currencyAccount.get().GetInstrumentDefinitionID()) {
-                String strInstrumentDefinitionID(
-                    theAssetAccount.get().GetInstrumentDefinitionID()),
-                    strCurrencyTypeID(
-                        currencyAccount.get().GetInstrumentDefinitionID());
+                auto strInstrumentDefinitionID = String::Factory(
+                         theAssetAccount.get().GetInstrumentDefinitionID()),
+                     strCurrencyTypeID = String::Factory(
+                         currencyAccount.get().GetInstrumentDefinitionID());
                 Log::vOutput(
                     0,
                     "ERROR - user attempted to trade between identical "
                     "instrument definitions in "
                     "Notary::NotarizeMarketOffer:\n%s\n%s\n",
-                    strInstrumentDefinitionID.Get(),
-                    strCurrencyTypeID.Get());
+                    strInstrumentDefinitionID->Get(),
+                    strCurrencyTypeID->Get());
             }
             // Does it verify?
             // I call VerifySignature here since VerifyContractID was
@@ -5684,66 +5718,73 @@ void Notary::NotarizeMarketOffer(
                 otOut << "ERROR needed 2 valid closing transaction "
                          "numbers in Notary::NotarizeMarketOffer\n";
             } else if (pTrade->GetNotaryID() != NOTARY_ID) {
-                const String strID1(pTrade->GetNotaryID()), strID2(NOTARY_ID);
+                const auto strID1 = String::Factory(pTrade->GetNotaryID()),
+                           strID2 = String::Factory(NOTARY_ID);
                 Log::vOutput(
                     0,
                     "Notary::NotarizeMarketOffer: ERROR wrong "
                     "Notary ID (%s) on trade. Expected: %s\n",
-                    strID1.Get(),
-                    strID2.Get());
+                    strID1->Get(),
+                    strID2->Get());
             } else if (pTrade->GetSenderNymID() != NYM_ID) {
-                const String strID1(pTrade->GetSenderNymID()), strID2(NYM_ID);
+                const auto strID1 = String::Factory(pTrade->GetSenderNymID()),
+                           strID2 = String::Factory(NYM_ID);
                 Log::vOutput(
                     0,
                     "Notary::NotarizeMarketOffer: ERROR wrong "
                     "Nym ID (%s) on trade. Expected: %s\n",
-                    strID1.Get(),
-                    strID2.Get());
+                    strID1->Get(),
+                    strID2->Get());
             } else if (
                 pTrade->GetInstrumentDefinitionID() !=
                 theAssetAccount.get().GetInstrumentDefinitionID()) {
-                const String strInstrumentDefinitionID1(
-                    pTrade->GetInstrumentDefinitionID()),
-                    strInstrumentDefinitionID2(
+                const auto
+                    strInstrumentDefinitionID1 =
+                        String::Factory(pTrade->GetInstrumentDefinitionID()),
+                    strInstrumentDefinitionID2 = String::Factory(
                         theAssetAccount.get().GetInstrumentDefinitionID());
                 Log::vOutput(
                     0,
                     "Notary::NotarizeMarketOffer: ERROR wrong "
                     "Instrument Definition ID (%s) on trade. Expected: "
                     "%s\n",
-                    strInstrumentDefinitionID1.Get(),
-                    strInstrumentDefinitionID2.Get());
+                    strInstrumentDefinitionID1->Get(),
+                    strInstrumentDefinitionID2->Get());
             } else if (pTrade->GetSenderAcctID() != ASSET_ACCT_ID) {
-                const String strAcctID1(pTrade->GetSenderAcctID()),
-                    strAcctID2(ASSET_ACCT_ID);
+                const auto strAcctID1 =
+                               String::Factory(pTrade->GetSenderAcctID()),
+                           strAcctID2 = String::Factory(ASSET_ACCT_ID);
                 Log::vOutput(
                     0,
                     "Notary::NotarizeMarketOffer: ERROR wrong "
                     "asset Acct ID (%s) on trade. Expected: %s\n",
-                    strAcctID1.Get(),
-                    strAcctID2.Get());
+                    strAcctID1->Get(),
+                    strAcctID2->Get());
             } else if (
                 pTrade->GetCurrencyID() !=
                 currencyAccount.get().GetInstrumentDefinitionID()) {
-                const String strID1(pTrade->GetCurrencyID()),
-                    strID2(currencyAccount.get().GetInstrumentDefinitionID());
+                const auto strID1 = String::Factory(pTrade->GetCurrencyID()),
+                           strID2 = String::Factory(
+                               currencyAccount.get()
+                                   .GetInstrumentDefinitionID());
                 Log::vOutput(
                     0,
                     "Notary::NotarizeMarketOffer: ERROR wrong "
                     "Currency Type ID (%s) on trade. Expected: "
                     "%s\n",
-                    strID1.Get(),
-                    strID2.Get());
+                    strID1->Get(),
+                    strID2->Get());
             } else if (pTrade->GetCurrencyAcctID() != CURRENCY_ACCT_ID) {
-                const String strID1(pTrade->GetCurrencyAcctID()),
-                    strID2(CURRENCY_ACCT_ID);
+                const auto strID1 =
+                               String::Factory(pTrade->GetCurrencyAcctID()),
+                           strID2 = String::Factory(CURRENCY_ACCT_ID);
                 Log::vOutput(
                     0,
                     "Notary::NotarizeMarketOffer: ERROR wrong "
                     "Currency Acct ID (%s) on trade. Expected: "
                     "%s\n",
-                    strID1.Get(),
-                    strID2.Get());
+                    strID1->Get(),
+                    strID2->Get());
             }
             // If the Trade successfully verified, but I couldn't get the
             // offer out of it, then it actually DIDN'T successfully load
@@ -5752,12 +5793,12 @@ void Notary::NotarizeMarketOffer(
                 Log::vError(
                     "ERROR getting offer string from trade in "
                     "Notary::NotarizeMarketOffer:\n%s\n",
-                    strTrade.Get());
+                    strTrade->Get());
             } else if (!theOffer->LoadContractFromString(strOffer)) {
                 Log::vError(
                     "ERROR loading offer from string in "
                     "Notary::NotarizeMarketOffer:\n%s\n",
-                    strTrade.Get());
+                    strTrade->Get());
             }
             // ...And then we use that same Nym to verify the signature on
             // the offer.
@@ -5892,7 +5933,7 @@ void Notary::NotarizeTransaction(
 {
     const auto lTransactionNumber = tranIn.GetTransactionNum();
     const auto& NYM_ID = context.RemoteNym().ID();
-    const String strIDNym(NYM_ID);
+    const auto strIDNym = String::Factory(NYM_ID);
     auto theFromAccount =
         manager_.Wallet().mutable_Account(tranIn.GetPurportedAccountID());
 
@@ -5902,11 +5943,11 @@ void Notary::NotarizeTransaction(
         // this should never happen. How did the wrong ID get into the
         // account file, if the right ID is on the filename itself? and vice
         // versa.
-        const String strIDAcct(tranIn.GetPurportedAccountID());
+        const auto strIDAcct = String::Factory(tranIn.GetPurportedAccountID());
         Log::vError(
             "%s: Error verifying account ID: %s\n",
             __FUNCTION__,
-            strIDAcct.Get());
+            strIDAcct->Get());
     }
     // Make sure the nymID loaded up in the account as its actual owner
     // matches the nym who was passed in to this function requesting a
@@ -5914,30 +5955,30 @@ void Notary::NotarizeTransaction(
     // transactions on your account, no?
     else if (!theFromAccount.get().VerifyOwner(context.RemoteNym())) {
         const auto idAcct = Identifier::Factory(theFromAccount.get());
-        const String strIDAcct(idAcct);
+        const auto strIDAcct = String::Factory(idAcct);
         Log::vOutput(
             0,
             "%s: Error verifying account ownership... Nym: %s  Acct: %s\n",
             __FUNCTION__,
-            strIDNym.Get(),
-            strIDAcct.Get());
+            strIDNym->Get(),
+            strIDAcct->Get());
     }
     // Make sure I, the server, have signed this file.
     else if (!theFromAccount.get().VerifySignature(server_.GetServerNym())) {
         const auto idAcct = Identifier::Factory(theFromAccount.get());
-        const String strIDAcct(idAcct);
+        const auto strIDAcct = String::Factory(idAcct);
         Log::vError(
             "%s: Error verifying server signature on account: %s for Nym: "
             "%s\n",
             __FUNCTION__,
-            strIDAcct.Get(),
-            strIDNym.Get());
+            strIDAcct->Get(),
+            strIDNym->Get());
     }
     // No need to call VerifyAccount() here since the above calls go above
     // and beyond that method.
     else if (!context.VerifyIssuedNumber(lTransactionNumber)) {
         const auto idAcct = Identifier::Factory(theFromAccount.get());
-        const String strIDAcct(idAcct);
+        const auto strIDAcct = String::Factory(idAcct);
         // The user may not submit a transaction using a number he's already
         // used before.
         Log::vOutput(
@@ -5946,8 +5987,8 @@ void Notary::NotarizeTransaction(
             "Nym: %s Account: %s\n",
             __FUNCTION__,
             lTransactionNumber,
-            strIDNym.Get(),
-            strIDAcct.Get());
+            strIDNym->Get(),
+            strIDAcct->Get());
     }
 
     // The items' acct and server ID were already checked in
@@ -5959,15 +6000,15 @@ void Notary::NotarizeTransaction(
     //
     else if (!tranIn.VerifyItems(context.RemoteNym())) {
         const auto idAcct = Identifier::Factory(theFromAccount.get());
-        const String strIDAcct(idAcct);
+        const auto strIDAcct = String::Factory(idAcct);
         Log::vOutput(
             0,
             "%s: Error verifying transaction items. Trans: %" PRId64 " "
             "Nym: %s  Account: %s\n",
             __FUNCTION__,
             lTransactionNumber,
-            strIDNym.Get(),
-            strIDAcct.Get());
+            strIDNym->Get(),
+            strIDAcct->Get());
     }
 
     // any other security stuff?
@@ -6181,14 +6222,15 @@ void Notary::NotarizeTransaction(
 
                                 if (!context.ConsumeIssued(
                                         lTransactionNumber)) {
-                                    const String strNymID(NYM_ID);
+                                    const auto strNymID =
+                                        String::Factory(NYM_ID);
                                     Log::vError(
                                         "%s: Error removing issued "
                                         "number %" PRId64
                                         " from user nym: %s\n",
                                         __FUNCTION__,
                                         lTransactionNumber,
-                                        strNymID.Get());
+                                        strNymID->Get());
                                 }
                             }
                         }
@@ -6205,13 +6247,13 @@ void Notary::NotarizeTransaction(
                 case transactionType::cancelCronItem:
                 case transactionType::exchangeBasket: {
                     if (!context.ConsumeIssued(lTransactionNumber)) {
-                        const String strNymID(NYM_ID);
+                        const auto strNymID = String::Factory(NYM_ID);
                         Log::vError(
                             "%s: Error removing issued number %" PRId64 " from "
                             "user nym: %s\n",
                             __FUNCTION__,
                             lTransactionNumber,
-                            strNymID.Get());
+                            strNymID->Get());
                     }
                 } break;
                 default:
@@ -6276,7 +6318,7 @@ void Notary::NotarizeProcessNymbox(
 
     OT_ASSERT(false != bool(theNymbox));
 
-    String strNymID(NYM_ID);
+    auto strNymID = String::Factory(NYM_ID);
     bool bSuccessLoadingNymbox = theNymbox->LoadNymbox();
 
     if (true == bSuccessLoadingNymbox) {
@@ -6304,18 +6346,18 @@ void Notary::NotarizeProcessNymbox(
             "Notary::%s: Failed loading or verifying Nymbox for "
             "user:\n%s\n",
             __FUNCTION__,
-            strNymID.Get());
+            strNymID->Get());
     } else if (nullptr == pBalanceItem) {
-        const String strTransaction(tranIn);
+        const auto strTransaction = String::Factory(tranIn);
         Log::vOutput(
             0,
             "Notary::%s: No Transaction Agreement item found "
             "on this transaction %" PRId64 " (required):\n\n%s\n\n",
             __FUNCTION__,
             tranIn.GetTransactionNum(),
-            strTransaction.Get());
+            strTransaction->Get());
     } else {
-        String strBalanceItem;
+        auto strBalanceItem = String::Factory();
         pBalanceItem->SaveContractRaw(strBalanceItem);
         // the response item carries a copy of what it's responding to.
         pResponseBalanceItem->SetReferenceString(strBalanceItem);
@@ -6475,7 +6517,7 @@ void Notary::NotarizeProcessNymbox(
                      (itemType::acceptNotice ==
                       pItem->GetType())  // Accepted server notification.
                      )) {
-                    String strInReferenceTo;
+                    auto strInReferenceTo = String::Factory();
 
                     // The response item will contain a copy of the "accept"
                     // request.
@@ -6834,14 +6876,14 @@ void Notary::NotarizeProcessNymbox(
                     pResponseItem->SaveContract();
                 } else {
                     const std::int32_t nStatus = pItem->GetStatus();
-                    String strItemType;
+                    auto strItemType = String::Factory();
                     pItem->GetTypeString(strItemType);
 
                     Log::vError(
                         "Error, unexpected item type (%s) and/or "
                         "status (%d) in "
                         "Notary::NotarizeProcessNymbox\n",
-                        strItemType.Get(),
+                        strItemType->Get(),
                         nStatus);
                 }
             }
@@ -6861,7 +6903,7 @@ void Notary::NotarizeProcessNymbox(
         clientContext.It().SetLocalNymboxHash(NYMBOX_HASH);
     }
 
-    String strPath;
+    auto strPath = String::Factory();
 
     // On the server side, response will only have chance to succeed if
     // balance agreement succeeds first. Therefore, you will never see
@@ -6884,13 +6926,13 @@ void Notary::NotarizeProcessNymbox(
             context.AcceptIssuedNumbers(newNumbers);  // TODO: capture
                                                       // return
             bOutSuccess = true;  // the processNymbox was successful.
-            strPath.Format(const_cast<char*>("%s.success"), strNymID.Get());
+            strPath->Format(const_cast<char*>("%s.success"), strNymID->Get());
         } else {
-            strPath.Format(const_cast<char*>("%s.fail"), strNymID.Get());
+            strPath->Format(const_cast<char*>("%s.fail"), strNymID->Get());
         }
 
         const char* szFoldername = OTFolders::Receipt().Get();
-        tranOut.SaveContract(szFoldername, strPath.Get());
+        tranOut.SaveContract(szFoldername, strPath->Get());
     }
 }
 
@@ -6919,15 +6961,15 @@ void Notary::NotarizeProcessInbox(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
 
     // Grab the actual server ID from this object, and use it as the server
     // ID here.
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto& NOTARY_ID = context.Server();
     const auto ACCOUNT_ID = Identifier::Factory(theAccount.get());
-    const std::string strNymID(String(NYM_ID).Get());
+    const std::string strNymID(String::Factory(NYM_ID)->Get());
     std::set<TransactionNumber> closedNumbers, closedCron;
     std::unique_ptr<Ledger> pInbox(
         theAccount.get().LoadInbox(server_.GetServerNym()));
@@ -7040,7 +7082,7 @@ void Notary::NotarizeProcessInbox(
                     pInbox->GetTransaction(pItem->GetReferenceToNum());
             } break;
             default: {
-                String strItemType;
+                auto strItemType = String::Factory();
                 pItem->GetTypeString(strItemType);
                 itemType nItemType = pItem->GetType();
                 pServerTransaction = nullptr;
@@ -7049,19 +7091,19 @@ void Notary::NotarizeProcessInbox(
                 Log::vError(
                     "%s: Wrong item type: %s (%d).\n",
                     __FUNCTION__,
-                    strItemType.Exists() ? strItemType.Get() : "",
+                    strItemType->Exists() ? strItemType->Get() : "",
                     static_cast<int32_t>(nItemType));
             } break;
         }
 
         if (nullptr == pServerTransaction) {
-            const String strAccountID(ACCOUNT_ID);
+            const auto strAccountID = String::Factory(ACCOUNT_ID);
             Log::vError(
                 "%s: Unable to find or process inbox transaction "
                 "being accepted by user: %s for account: %s\n",
                 __FUNCTION__,
                 strNymID.c_str(),
-                strAccountID.Get());
+                strAccountID->Get());
             bSuccessFindingAllTransactions = false;
             break;
         } else if (
@@ -7233,7 +7275,7 @@ void Notary::NotarizeProcessInbox(
                 // recipient's acceptPending. THAT item is in reference to
                 // my original transfer (or contains a cheque with my
                 // original number.) (THAT's the # I need.)
-                String strOriginalItem;
+                auto strOriginalItem = String::Factory();
                 pServerTransaction->GetReferenceString(strOriginalItem);
 
                 auto pOriginalItem{manager_.Factory().Item(
@@ -7273,20 +7315,20 @@ void Notary::NotarizeProcessInbox(
                     if (itemType::depositCheque == pOriginalItem->GetType()) {
                         // Get the cheque from the Item and load it up into
                         // a Cheque object.
-                        String strCheque;
+                        auto strCheque = String::Factory();
                         pOriginalItem->GetAttachment(strCheque);
                         auto theCheque{manager_.Factory().Cheque()};
 
                         OT_ASSERT(false != bool(theCheque));
 
                         if (false ==
-                            ((strCheque.GetLength() > 2) &&
+                            ((strCheque->GetLength() > 2) &&
                              theCheque->LoadContractFromString(strCheque))) {
                             Log::vError(
                                 "%s: ERROR loading cheque from "
                                 "string:\n%s\n",
                                 __FUNCTION__,
-                                strCheque.Get());
+                                strCheque->Get());
                             bSuccessFindingAllTransactions = false;
                         }
                         // Since the client wrote the cheque, and he is now
@@ -7354,13 +7396,13 @@ void Notary::NotarizeProcessInbox(
                                 pOriginalItem->GetReferenceToNum());
                         }
                     } else {
-                        String strOriginalItemType;
+                        auto strOriginalItemType = String::Factory();
                         pOriginalItem->GetTypeString(strOriginalItemType);
                         Log::vError(
                             "%s: Original item has wrong type, "
                             "while accepting item receipt:\n%s\n",
                             __FUNCTION__,
-                            strOriginalItemType.Get());
+                            strOriginalItemType->Get());
                         bSuccessFindingAllTransactions = false;
                     }
                 } else {
@@ -7369,7 +7411,7 @@ void Notary::NotarizeProcessInbox(
                         "string while accepting item "
                         "receipt:\n%s\n",
                         __FUNCTION__,
-                        strOriginalItem.Get());
+                        strOriginalItem->Get());
                     bSuccessFindingAllTransactions = false;
                 }
             } break;
@@ -7437,7 +7479,7 @@ void Notary::NotarizeProcessInbox(
         context,
         *pInbox,
         *pOutbox,
-        theAccount,
+        theAccount.get(),
         processInbox,
         closedNumbers);
 
@@ -7490,14 +7532,14 @@ void Notary::NotarizeProcessInbox(
             );
 
         if (false == validType) {
-            String strItemType;
+            auto strItemType = String::Factory();
             pItem->GetTypeString(strItemType);
 
             Log::vError(
                 "Notary::%s: Error, unexpected "
                 "OTItem::itemType: %s\n",
                 __FUNCTION__,
-                strItemType.Get());
+                strItemType->Get());
 
             continue;
         }
@@ -7506,7 +7548,7 @@ void Notary::NotarizeProcessInbox(
         // request.
         // So I'm just setting aside a copy now for those
         // purposes later.
-        strInReferenceTo.Release();
+        strInReferenceTo->Release();
         pItem->SaveContractRaw(strInReferenceTo);
 
         itemType theReplyItemType;
@@ -7762,7 +7804,7 @@ void Notary::NotarizeProcessInbox(
             // the original item (from the sender) as the
             // "referenced to" object. So let's extract
             // it.
-            String strOriginalItem;
+            auto strOriginalItem = String::Factory();
             pServerTransaction->GetReferenceString(strOriginalItem);
 
             auto pOriginalItem{manager_.Factory().Item(
@@ -8194,7 +8236,7 @@ send_message:
     processInboxResponse.SignContract(server_.GetServerNym());
     processInboxResponse.SaveContract();
     // SAVE THE RECEIPT TO LOCAL STORAGE (for dispute resolution.)
-    String strPath;
+    auto strPath = String::Factory();
 
     // On the server side, response will only have chance to succeed if
     // balance agreement succeeds first. Therefore, you will never see
@@ -8208,7 +8250,7 @@ send_message:
     //
     // If NEITHER succeeded, then there is no point recording it to a file,
     // now is there?
-    const String strAcctID(ACCOUNT_ID);
+    const auto strAcctID = String::Factory(ACCOUNT_ID);
 
     if (processInboxResponse.GetSuccess()) {
         // Balance agreement was a success, AND process inbox was a success.
@@ -8224,15 +8266,15 @@ send_message:
         for (const auto& number : closedCron) { context.CloseCronItem(number); }
 
         bOutSuccess = true;  // the processInbox was successful.
-        strPath.Format(const_cast<char*>("%s.success"), strAcctID.Get());
+        strPath->Format(const_cast<char*>("%s.success"), strAcctID->Get());
     } else
-        strPath.Format(const_cast<char*>("%s.fail"), strAcctID.Get());
+        strPath->Format(const_cast<char*>("%s.fail"), strAcctID->Get());
 
     const char* szFoldername = OTFolders::Receipt().Get();
 
     // Save the receipt. (My outgoing transaction including the client's
     // signed request that triggered it.)
-    processInboxResponse.SaveContract(szFoldername, strPath.Get());
+    processInboxResponse.SaveContract(szFoldername, strPath->Get());
 }
 
 void Notary::process_cash_deposit(
@@ -8250,14 +8292,15 @@ void Notary::process_cash_deposit(
     // The incoming transaction may be sent to inboxes and outboxes, and it
     // will probably be bundled in our reply to the user as well. Therefore,
     // let's grab it as a string.
-    String strInReferenceTo;
-    String strBalanceItem;
+    auto strInReferenceTo = String::Factory();
+    auto strBalanceItem = String::Factory();
     const auto& NOTARY_ID = context.Server();
     const auto& NYM_ID = context.RemoteNym().ID();
     const auto ACCOUNT_ID = Identifier::Factory(depositorAccount.get()),
                INSTRUMENT_DEFINITION_ID =
                    Identifier::Factory(depositorAccount.get());
-    const String strNymID(NYM_ID), strAccountID(ACCOUNT_ID);
+    const auto strNymID = String::Factory(NYM_ID),
+               strAccountID = String::Factory(ACCOUNT_ID);
     std::shared_ptr<Mint> pMint{nullptr};
     ExclusiveAccount pMintCashReserveAcct{};
 
@@ -8321,7 +8364,7 @@ void Notary::process_cash_deposit(
                      "verifying outbox.\n";
             OT_FAIL;
         }
-        String strPurse;
+        auto strPurse = String::Factory();
         depositItem.GetAttachment(strPurse);
 
         auto thePurse{
@@ -8333,7 +8376,7 @@ void Notary::process_cash_deposit(
             Log::vError(
                 "Notary::NotarizeDeposit: ERROR loading purse "
                 "from string:\n%s\n",
-                strPurse.Get());
+                strPurse->Get());
         } else if (!(balanceItem.VerifyBalanceStatement(
                        thePurse->GetTotalValue(),
                        context,
@@ -8347,7 +8390,7 @@ void Notary::process_cash_deposit(
                 "Notary::NotarizeDeposit: ERROR verifying "
                 "balance statement while depositing cash. "
                 "Acct ID:\n%s\n",
-                strAccountID.Get());
+                strAccountID->Get());
         }
 
         // TODO: double-check all verification stuff all around on the purse
@@ -8378,7 +8421,7 @@ void Notary::process_cash_deposit(
                     (pMintCashReserveAcct = manager_.Wallet().mutable_Account(
                          pMint->AccountID())) &&
                     pMintCashReserveAcct) {
-                    String strSpendableToken;
+                    auto strSpendableToken = String::Factory();
                     bool bToken = pToken->GetSpendableString(
                         server_.GetServerNym(), strSpendableToken);
 
@@ -8596,8 +8639,8 @@ void Notary::process_cheque_deposit(
     const auto& serverID = context.Server();
     const auto accountID = Identifier::Factory(depositorAccount.get()),
                unitID = Identifier::Factory(depositorAccount.get());
-    String serializedItem;
-    String serializedBalanceItem;
+    auto serializedItem = String::Factory();
+    auto serializedBalanceItem = String::Factory();
     depositItem.SaveContractRaw(serializedItem);
     balanceItem.SaveContractRaw(serializedBalanceItem);
     responseItem.SetReferenceString(serializedItem);

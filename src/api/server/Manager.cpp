@@ -145,7 +145,11 @@ void Manager::generate_mint(
     const std::string nymID{NymID().str()};
     const std::string seriesID =
         std::string(SERIES_DIVIDER) + std::to_string(series);
-    mint.reset(factory_->Mint(nymID.c_str(), unitID.c_str()).release());
+    mint.reset(
+        factory_
+            ->Mint(
+                String::Factory(nymID.c_str()), String::Factory(unitID.c_str()))
+            .release());
 
     OT_ASSERT(mint)
 
@@ -360,9 +364,12 @@ std::shared_ptr<Mint> Manager::load_private_mint(
 {
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
-    std::shared_ptr<Mint> mint{
-        factory_->Mint(String(ID()), String(NymID()), unitID.c_str())
-            .release()};
+    std::shared_ptr<Mint> mint{factory_
+                                   ->Mint(
+                                       String::Factory(ID()),
+                                       String::Factory(NymID()),
+                                       String::Factory(unitID.c_str()))
+                                   .release()};
 
     OT_ASSERT(false != bool(mint));
 
@@ -377,7 +384,8 @@ std::shared_ptr<Mint> Manager::load_public_mint(
     OT_ASSERT(verify_lock(lock, mint_lock_));
 
     std::shared_ptr<Mint> mint{
-        factory_->Mint(String(ID()), unitID.c_str()).release()};
+        factory_->Mint(String::Factory(ID()), String::Factory(unitID.c_str()))
+            .release()};
 
     OT_ASSERT(false != bool(mint));
 
@@ -552,12 +560,12 @@ std::shared_ptr<Mint> Manager::verify_mint(
 bool Manager::verify_mint_directory(const std::string& serverID) const
 {
     bool created{false};
-    String serverDir{""};
-    String mintDir{""};
-    const auto haveMint =
-        OTPaths::AppendFolder(mintDir, data_folder_.c_str(), OTFolders::Mint());
-    const auto haveServer =
-        OTPaths::AppendFolder(serverDir, mintDir, serverID.c_str());
+    auto serverDir = String::Factory();
+    auto mintDir = String::Factory();
+    const auto haveMint = OTPaths::AppendFolder(
+        mintDir, String::Factory(data_folder_.c_str()), OTFolders::Mint());
+    const auto haveServer = OTPaths::AppendFolder(
+        serverDir, mintDir, String::Factory(serverID.c_str()));
 
     OT_ASSERT(haveMint)
     OT_ASSERT(haveServer)

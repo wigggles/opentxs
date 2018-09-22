@@ -89,8 +89,9 @@ bool LegacySymmetric::CreateNewKey(
     if (pPassUserInput)  // Success retrieving the passphrase from the
                          // user. (Now let's generate the key...)
     {
-        otLog3 << __FUNCTION__
-               << ": Calling LegacySymmetric theKey.GenerateKey()...\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": Calling LegacySymmetric theKey.GenerateKey()...")
+            .Flush();
         implementation::LegacySymmetric theKey(crypto, *pPassUserInput);
         const bool bGenerated = theKey.IsGenerated();
 

@@ -166,7 +166,7 @@ proto::ContactItem ContactItem::Serialize(const bool withID) const
     proto::ContactItem output{};
     output.set_version(version_);
 
-    if (withID) { output.set_id(String(id_).Get()); }
+    if (withID) { output.set_id(String::Factory(id_)->Get()); }
 
     output.set_type(type_);
     output.set_value(value_);

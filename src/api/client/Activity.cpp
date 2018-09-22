@@ -270,7 +270,7 @@ std::unique_ptr<Message> Activity::Mail(
 
     OT_ASSERT(output);
 
-    if (false == output->LoadContractFromString(String(raw.c_str()))) {
+    if (false == output->LoadContractFromString(String::Factory(raw.c_str()))) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to deserialized Message"
               << std::endl;
 

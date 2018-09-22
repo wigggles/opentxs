@@ -37,6 +37,8 @@
 #include <ostream>
 #include <string>
 
+#define OT_METHOD "opentxs::OTPaymentPlan"
+
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 
 namespace opentxs
@@ -1523,8 +1525,9 @@ bool OTPaymentPlan::ProcessCron()
     //
     if (IsFlaggedForRemoval() ||
         (HasInitialPayment() && IsInitialPaymentDone() && !HasPaymentPlan())) {
-        otLog3 << "OTPaymentPlan::ProcessCron: Removing payment plan from cron "
-                  "processing...\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": Removing payment plan from cron processing...")
+            .Flush();
         return false;  // if there's no plan, and initial payment is done,
                        // nothing left to do. Remove!
     }

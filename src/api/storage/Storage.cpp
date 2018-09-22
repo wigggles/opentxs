@@ -105,14 +105,15 @@ api::storage::StorageInternal* Factory::Storage(
            << " as primary storage plugin." << std::endl;
 
     if (archiveDirectoryCLI.empty()) {
-        archiveDirectory = storageConfig.fs_backup_directory_.c_str();
+        archiveDirectory =
+            String::Factory(storageConfig.fs_backup_directory_.c_str());
     } else {
         archiveDirectory = archiveDirectoryCLI;
     }
 
     if (encryptedDirectoryCLI.empty()) {
-        encryptedDirectory =
-            storageConfig.fs_encrypted_backup_directory_.c_str();
+        encryptedDirectory = String::Factory(
+            storageConfig.fs_encrypted_backup_directory_.c_str());
     } else {
         encryptedDirectory = encryptedDirectoryCLI;
     }
@@ -127,102 +128,103 @@ api::storage::StorageInternal* Factory::Storage(
         defaultGcInterval = storageConfig.gc_interval_;
     }
 
-    encryptedDirectoryCLI = encryptedDirectory;
+    encryptedDirectoryCLI.Set(encryptedDirectory);
 
     config.CheckSet_bool(
-        STORAGE_CONFIG_KEY,
-        "auto_publish_nyms",
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("auto_publish_nyms"),
         storageConfig.auto_publish_nyms_,
         storageConfig.auto_publish_nyms_,
         notUsed);
     config.CheckSet_bool(
-        STORAGE_CONFIG_KEY,
-        "auto_publish_servers_",
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("auto_publish_servers_"),
         storageConfig.auto_publish_servers_,
         storageConfig.auto_publish_servers_,
         notUsed);
     config.CheckSet_bool(
-        STORAGE_CONFIG_KEY,
-        "auto_publish_units_",
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("auto_publish_units_"),
         storageConfig.auto_publish_units_,
         storageConfig.auto_publish_units_,
         notUsed);
     config.CheckSet_long(
-        STORAGE_CONFIG_KEY,
-        "gc_interval",
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("gc_interval"),
         defaultGcInterval,
         configGcInterval,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "path",
-        String(storageConfig.path_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("path"),
+        String::Factory(storageConfig.path_),
         storageConfig.path_,
         notUsed);
 #if OT_STORAGE_FS
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "fs_primary",
-        String(storageConfig.fs_primary_bucket_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("fs_primary"),
+        String::Factory(storageConfig.fs_primary_bucket_),
         storageConfig.fs_primary_bucket_,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "fs_secondary",
-        String(storageConfig.fs_secondary_bucket_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("fs_secondary"),
+        String::Factory(storageConfig.fs_secondary_bucket_),
         storageConfig.fs_secondary_bucket_,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "fs_root_file",
-        String(storageConfig.fs_root_file_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("fs_root_file"),
+        String::Factory(storageConfig.fs_root_file_),
         storageConfig.fs_root_file_,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY,
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory(STORAGE_CONFIG_FS_BACKUP_DIRECTORY_KEY),
         archiveDirectory,
         storageConfig.fs_backup_directory_,
         notUsed);
-    archiveDirectory = String(storageConfig.fs_backup_directory_.c_str());
+    archiveDirectory =
+        String::Factory(storageConfig.fs_backup_directory_.c_str());
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        STORAGE_CONFIG_FS_ENCRYPTED_BACKUP_DIRECTORY_KEY,
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory(STORAGE_CONFIG_FS_ENCRYPTED_BACKUP_DIRECTORY_KEY),
         encryptedDirectory,
         storageConfig.fs_encrypted_backup_directory_,
         notUsed);
     encryptedDirectory =
-        String(storageConfig.fs_encrypted_backup_directory_.c_str());
+        String::Factory(storageConfig.fs_encrypted_backup_directory_.c_str());
 #endif
 #if OT_STORAGE_SQLITE
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "sqlite3_primary",
-        String(storageConfig.sqlite3_primary_bucket_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("sqlite3_primary"),
+        String::Factory(storageConfig.sqlite3_primary_bucket_),
         storageConfig.sqlite3_primary_bucket_,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "sqlite3_secondary",
-        String(storageConfig.sqlite3_secondary_bucket_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("sqlite3_secondary"),
+        String::Factory(storageConfig.sqlite3_secondary_bucket_),
         storageConfig.sqlite3_secondary_bucket_,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "sqlite3_control",
-        String(storageConfig.sqlite3_control_table_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("sqlite3_control"),
+        String::Factory(storageConfig.sqlite3_control_table_),
         storageConfig.sqlite3_control_table_,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "sqlite3_root_key",
-        String(storageConfig.sqlite3_root_key_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("sqlite3_root_key"),
+        String::Factory(storageConfig.sqlite3_root_key_),
         storageConfig.sqlite3_root_key_,
         notUsed);
     config.CheckSet_str(
-        STORAGE_CONFIG_KEY,
-        "sqlite3_db_file",
-        String(storageConfig.sqlite3_db_file_),
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory("sqlite3_db_file"),
+        String::Factory(storageConfig.sqlite3_db_file_),
         storageConfig.sqlite3_db_file_,
         notUsed);
 #endif
@@ -230,14 +232,17 @@ api::storage::StorageInternal* Factory::Storage(
     if (haveGCInterval) {
         storageConfig.gc_interval_ = defaultGcInterval;
         config.Set_long(
-            STORAGE_CONFIG_KEY, "gc_interval", defaultGcInterval, notUsed);
+            String::Factory(STORAGE_CONFIG_KEY),
+            String::Factory("gc_interval"),
+            defaultGcInterval,
+            notUsed);
     } else {
         storageConfig.gc_interval_ = configGcInterval;
     }
 
     config.Set_str(
-        STORAGE_CONFIG_KEY,
-        STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory(STORAGE_CONFIG_PRIMARY_PLUGIN_KEY),
         defaultPlugin,
         notUsed);
     config.Save();

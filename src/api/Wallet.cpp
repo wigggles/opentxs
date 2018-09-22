@@ -198,8 +198,8 @@ opentxs::Account* Wallet::account_factory(
     const std::string& serialized) const
 {
     auto strContract = String::Factory(), strFirstLine = String::Factory();
-    const bool bProcessed =
-        Contract::DearmorAndTrim(serialized.c_str(), strContract, strFirstLine);
+    const bool bProcessed = Contract::DearmorAndTrim(
+        String::Factory(serialized.c_str()), strContract, strFirstLine);
 
     if (false == bProcessed) {
         otErr << OT_METHOD << __FUNCTION__
@@ -251,7 +251,7 @@ opentxs::Account* Wallet::account_factory(
         return nullptr;
     }
 
-    account->SetName(alias.c_str());
+    account->SetName(String::Factory(alias.c_str()));
 
     return account;
 }
@@ -1157,7 +1157,7 @@ bool Wallet::NymNameByIndex(const std::size_t index, String& name) const
         std::size_t idx{0};
         for (auto& nymName : nymNames) {
             if (idx == index) {
-                name.Set(String(nymName));
+                name.Set(String::Factory(nymName));
 
                 return true;
             }
@@ -2023,7 +2023,8 @@ OTIdentifier Wallet::server_to_nym(OTIdentifier& input) const
             output = Identifier::Factory(contract->Contract().nymid());
         } else {
             otErr << OT_METHOD << __FUNCTION__
-                  << ": Non-existent server: " << String(input) << std::endl;
+                  << ": Non-existent server: " << String::Factory(input)
+                  << std::endl;
         }
     }
 
