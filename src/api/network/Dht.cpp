@@ -32,7 +32,9 @@
 
 #include "Dht.hpp"
 
+#if OT_DHT
 #define OT_METHOD "opentxs::Dht"
+#endif
 
 namespace zmq = opentxs::network::zeromq;
 
