@@ -18,7 +18,7 @@ include_directories(
 # PYTHON_DEBUG_LIBRARIES     - path to the debug library (deprecated)
 # PYTHONLIBS_VERSION_STRING  - version of the Python libs found (since CMake 2.8.8)
 
-set(Python_ADDITIONAL_VERSIONS 3.4 3.5 2.7)
+set(Python_ADDITIONAL_VERSIONS 3.4 3.5 3.6 2.7)
 
 # find_package(PythonInterp)
 
@@ -40,7 +40,13 @@ elseif(PYTHON3)
     set(PYTHON_LIBRARY_DEBUG /usr/local/Cellar/python3/3.5.1/Frameworks/Python.PYTHON_LIBRARY_RELEASE**: framework/Versions/3.5/lib/libpython3.5.dylib)
     set(PYTHON_DEBUG_LIBRARIES /usr/local/Cellar/python3/3.5.1/Frameworks/Python.PYTHON_LIBRARY_RELEASE**: framework/Versions/3.5/lib/libpython3.5.dylib)
   else(APPLE)
-    find_package(PythonLibs 3.2 REQUIRED)
+    set(PYTHON_EXECUTABLE /usr/bin/python3.6)
+    set(PYTHON_INCLUDE_DIR /usr/include/python3.6)
+    set(PYTHON_INCLUDE_DIRS /usr/include/python3.6)
+    set(PYTHON_INCLUDE_PATH /usr/include/python3.6)
+    set(PYTHON_LIBRARY /usr/lib/x86_64-linux-gnu/libpython3.6m.so)
+    set(PYTHON_LIBRARIES /usr/lib/x86_64-linux-gnu/libpython3.6m.so)
+    set(PYTHON_LIBRARY_DEBUG /usr/lib/x86_64-linux-gnu/libpython3.6m.so)
   endif(APPLE)
 elseif(PYTHON2)
   find_package(PythonLibs 2.7 REQUIRED)
