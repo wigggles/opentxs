@@ -243,8 +243,8 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     bool notUsed = false;
     manager_.Config().Set_str(
-        SERVER_CONFIG_LISTEN_SECTION,
-        SERVER_CONFIG_BIND_KEY,
+        String::Factory(SERVER_CONFIG_LISTEN_SECTION),
+        String::Factory(SERVER_CONFIG_BIND_KEY),
         String::Factory(bindIP),
         notUsed);
 
@@ -292,8 +292,8 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 
     manager_.Config().Set_str(
-        SERVER_CONFIG_LISTEN_SECTION,
-        SERVER_CONFIG_COMMAND_KEY,
+        String::Factory(SERVER_CONFIG_LISTEN_SECTION),
+        String::Factory(SERVER_CONFIG_COMMAND_KEY),
         String::Factory(std::to_string(listenCommand)),
         notUsed);
 
@@ -323,8 +323,8 @@ void Server::CreateMainFile(bool& mainFileExists)
     }
 
     manager_.Config().Set_str(
-        SERVER_CONFIG_LISTEN_SECTION,
-        SERVER_CONFIG_NOTIFY_KEY,
+        String::Factory(SERVER_CONFIG_LISTEN_SECTION),
+        String::Factory(SERVER_CONFIG_NOTIFY_KEY),
         String::Factory(std::to_string(listenNotification)),
         notUsed);
 
@@ -521,7 +521,8 @@ void Server::Init(bool readOnly)
         // of OT running at the same time and corrupting the data folder.)
         //
         auto strPIDPath = String::Factory();
-        OTPaths::AppendFile(strPIDPath, dataPath, SERVER_PID_FILENAME);
+        OTPaths::AppendFile(
+            strPIDPath, dataPath, String::Factory(SERVER_PID_FILENAME));
 
         std::ifstream pid_infile(strPIDPath->Get());
 
@@ -612,7 +613,11 @@ void Server::Init(bool readOnly)
     auto notUsed = String::Factory();
     bool ignored;
     manager_.Config().CheckSet_str(
-        "permissions", "admin_password", password, notUsed, ignored);
+        String::Factory("permissions"),
+        String::Factory("admin_password"),
+        password,
+        notUsed,
+        ignored);
     manager_.Config().Save();
 
     // With the Server's private key loaded, and the latest transaction number
@@ -655,7 +660,7 @@ bool Server::SendInstrumentToNym(
     // If a payment was passed in (for us to use it to construct pMsg, which is
     // nullptr in the case where payment isn't nullptr)
     // Then we grab it in string form, so we can pass it on...
-    String strPayment;
+    auto strPayment = String::Factory();
     const bool bGotPaymentContents = pPayment.GetPaymentContents(strPayment);
 
     if (!bGotPaymentContents) {
@@ -808,14 +813,16 @@ bool Server::DropMessageToNymbox(
         theMsgAngel.reset(manager_.Factory().Message().release());
 
         if (nullptr != szCommand)
-            theMsgAngel->m_strCommand = szCommand;
+            theMsgAngel->m_strCommand = String::Factory(szCommand);
         else {
             switch (theType) {
                 case transactionType::message:
-                    theMsgAngel->m_strCommand = "sendNymMessage";
+                    theMsgAngel->m_strCommand =
+                        String::Factory("sendNymMessage");
                     break;
                 case transactionType::instrumentNotice:
-                    theMsgAngel->m_strCommand = "sendNymInstrument";
+                    theMsgAngel->m_strCommand =
+                        String::Factory("sendNymInstrument");
                     break;
                 default:
                     break;  // should never happen.
@@ -986,15 +993,15 @@ bool Server::GetConnectInfo(
     std::int64_t port = 0;
 
     const bool haveIP = manager_.Config().CheckSet_str(
-        SERVER_CONFIG_LISTEN_SECTION,
-        "bindip",
+        String::Factory(SERVER_CONFIG_LISTEN_SECTION),
+        String::Factory("bindip"),
         String::Factory(DEFAULT_BIND_IP),
         strHostname,
         notUsed);
 
     const bool havePort = manager_.Config().CheckSet_long(
-        SERVER_CONFIG_LISTEN_SECTION,
-        SERVER_CONFIG_COMMAND_KEY,
+        String::Factory(SERVER_CONFIG_LISTEN_SECTION),
+        String::Factory(SERVER_CONFIG_COMMAND_KEY),
         DEFAULT_COMMAND_PORT,
         port,
         notUsed);
@@ -1044,7 +1051,8 @@ Server::~Server()
 
     if (!m_bReadOnly) {
         auto strPIDPath = String::Factory();
-        OTPaths::AppendFile(strPIDPath, strDataPath, SERVER_PID_FILENAME);
+        OTPaths::AppendFile(
+            strPIDPath, strDataPath, String::Factory(SERVER_PID_FILENAME));
         std::ofstream pid_outfile(strPIDPath->Get());
 
         if (pid_outfile.is_open()) {

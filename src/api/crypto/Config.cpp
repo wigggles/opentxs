@@ -114,7 +114,11 @@ bool Config::GetSetValue(
     bool bIsNew{false};
     std::int64_t nValue{0};
     config_.CheckSet_long(
-        "crypto", String(strKeyName), nDefaultValue, nValue, bIsNew);
+        String::Factory("crypto"),
+        String::Factory(strKeyName),
+        nDefaultValue,
+        nValue,
+        bIsNew);
     out_nValue = static_cast<std::int32_t>(nValue);
 
     return true;

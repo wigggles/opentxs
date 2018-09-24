@@ -128,9 +128,9 @@ extern "C" {
 #endif
 
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
-#define CLIENT_WALLET_FILENAME "wallet.xml"
+#define CLIENT_WALLET_FILENAME String::Factory("wallet.xml")
 #define CLIENT_USE_SYSTEM_KEYRING false
-#define CLIENT_PID_FILENAME "ot.pid"
+#define CLIENT_PID_FILENAME String::Factory("ot.pid")
 // -------------------------------------------------------
 #define OT_METHOD "opentxs::OT_API::"
 // -------------------------------------------------------
@@ -294,7 +294,7 @@ private:
 
 OT_API::Pid::Pid()
     : m_bIsPidOpen(false)
-    , m_strPidFilePath("")
+    , m_strPidFilePath(String::Factory(""))
 {
 }
 
@@ -472,11 +472,11 @@ OT_API::OT_API(
     , contacts_(contacts)
     , workflow_(workflow)
     , zmq_(zmq)
-    , m_strDataPath("")
-    , m_strWalletFilename("")
-    , m_strWalletFilePath("")
-    , m_strConfigFilename("")
-    , m_strConfigFilePath("")
+    , m_strDataPath(String::Factory())
+    , m_strWalletFilename(String::Factory())
+    , m_strWalletFilePath(String::Factory())
+    , m_strConfigFilename(String::Factory())
+    , m_strConfigFilePath(String::Factory())
     , m_pWallet(nullptr)
     , m_pClient(nullptr)
     , lock_callback_(lockCallback)
@@ -586,7 +586,7 @@ bool OT_API::Cleanup()
 bool OT_API::GetWalletFilename(String& strPath) const
 {
     if (m_strWalletFilename->Exists()) {
-        strPath = m_strWalletFilename;
+        strPath.Set(m_strWalletFilename);
         return true;
     } else {
         strPath.Set("");
@@ -615,7 +615,11 @@ bool OT_API::LoadConfigFile()
         bool bIsNewKey = false;
         std::int64_t lValue = 0;
         api_.Config().CheckSet_long(
-            "logging", "log_level", 0, lValue, bIsNewKey);
+            String::Factory("logging"),
+            String::Factory("log_level"),
+            0,
+            lValue,
+            bIsNewKey);
         Log::SetLogLevel(static_cast<std::int32_t>(lValue));
     }
 
@@ -628,8 +632,8 @@ bool OT_API::LoadConfigFile()
         bool bIsNewKey = false;
         auto strValue = String::Factory();
         api_.Config().CheckSet_str(
-            "wallet",
-            "api_.Wallet()filename",
+            String::Factory("wallet"),
+            String::Factory("api_.Wallet()filename"),
             CLIENT_WALLET_FILENAME,
             strValue,
             bIsNewKey);
@@ -649,7 +653,10 @@ bool OT_API::LoadConfigFile()
             "while receiving a reply, before it gives up.\n";
 
         bool b_SectionExist = false;
-        api_.Config().CheckSetSection("latency", szComment, b_SectionExist);
+        api_.Config().CheckSetSection(
+            String::Factory("latency"),
+            String::Factory(szComment),
+            b_SectionExist);
     }
 
     // SECURITY (beginnings of..)
@@ -669,12 +676,12 @@ bool OT_API::LoadConfigFile()
         bool bIsNewKey = false;
         std::int64_t lValue = 0;
         api_.Config().CheckSet_long(
-            "security",
-            "master_key_timeout",
+            String::Factory("security"),
+            String::Factory("master_key_timeout"),
             CLIENT_MASTER_KEY_TIMEOUT_DEFAULT,
             lValue,
             bIsNewKey,
-            szComment);
+            String::Factory(szComment));
         api_.Crypto().SetTimeout(std::chrono::seconds(lValue));
     }
 
@@ -682,8 +689,8 @@ bool OT_API::LoadConfigFile()
     {
         bool bValue = false, bIsNewKey = false;
         api_.Config().CheckSet_bool(
-            "security",
-            "use_system_keyring",
+            String::Factory("security"),
+            String::Factory("use_system_keyring"),
             CLIENT_USE_SYSTEM_KEYRING,
             bValue,
             bIsNewKey);
@@ -741,11 +748,11 @@ bool OT_API::SetWallet(const String& strFilename) const
     {
         bool bNewOrUpdated;
         api_.Config().Set_str(
-            "wallet",
-            "api_.Wallet()filename",
+            String::Factory("wallet"),
+            String::Factory("api_.Wallet()filename"),
             strWalletFilename,
             bNewOrUpdated,
-            "; Wallet updated\n");
+            String::Factory("; Wallet updated\n"));
 
         OT_API::SetWalletFilename(strWalletFilename);
     }
@@ -2736,8 +2743,8 @@ bool OT_API::SmartContract_ConfirmAccount(
     // according to the smart contract. We also know that the smart contract
     // has the same server ID as the account being confirmed.
     //
-    partyAcct->SetAcctID(ACCT_ID.Get());
-    partyAcct->SetAgentName(AGENT_NAME.Get());
+    partyAcct->SetAcctID(String::Factory(ACCT_ID.Get()));
+    partyAcct->SetAgentName(String::Factory(AGENT_NAME.Get()));
     contract->ReleaseSignatures();
     contract->SignContract(*nym);
     contract->SaveContract();
@@ -2877,7 +2884,7 @@ bool OT_API::SmartContract_ConfirmParty(
 
     const auto strNymID = String::Factory(NYM_ID);
 
-    pMessage->m_strCommand = "outpaymentsMessage";
+    pMessage->m_strCommand = String::Factory("outpaymentsMessage");
     pMessage->m_strNymID = strNymID;
     //  pMessage->m_strNotaryID        = strNotaryID;
     pMessage->m_ascPayload.SetString(strInstrument);
@@ -4193,7 +4200,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     const auto strNymID = String::Factory(RECIPIENT_NYM_ID),
                strNymID2 = String::Factory(SENDER_NYM_ID);
 
-    pMessage->m_strCommand = "outpaymentsMessage";
+    pMessage->m_strCommand = String::Factory("outpaymentsMessage");
     pMessage->m_strNymID = strNymID;
     pMessage->m_strNymID2 = strNymID2;
     pMessage->m_strNotaryID = strNotaryID;
@@ -4297,7 +4304,7 @@ bool OT_API::ConfirmPaymentPlan(
     const auto strNymID = String::Factory(SENDER_NYM_ID),
                strNymID2 = String::Factory(RECIPIENT_NYM_ID);
 
-    pMessage->m_strCommand = "outpaymentsMessage";
+    pMessage->m_strCommand = String::Factory("outpaymentsMessage");
     pMessage->m_strNymID = strNymID;
     pMessage->m_strNymID2 = strNymID2;
     pMessage->m_strNotaryID = strNotaryID;
@@ -4564,18 +4571,20 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
                 pOwner = new OTNym_or_SymmetricKey(
                     pSymmetricKey,
                     thePassword,
-                    pstrDisplay2.Get());  // Can't put
-                                          // &strReason
-                                          // here. (It
-                                          // goes out of
-                                          // scope.)
+                    String::Factory(pstrDisplay2.Get()));  // Can't put
+                                                           // &strReason
+                                                           // here. (It
+                                                           // goes out of
+                                                           // scope.)
                 OT_ASSERT(nullptr != pOwner);
             }
         } else if (bDoesOwnerIDExist)  // Purse is encrypted based on Nym.
         {
             pOwner = new OTNym_or_SymmetricKey(
-                *pOwnerNym, pstrDisplay1.Get());  // Can't put &strReason here.
-                                                  // (It goes out of scope.)
+                *pOwnerNym,
+                String::Factory(pstrDisplay1.Get()));  // Can't put &strReason
+                                                       // here. (It goes out of
+                                                       // scope.)
             OT_ASSERT(nullptr != pOwner);
         } else
             otErr << OT_METHOD << __FUNCTION__
@@ -4687,8 +4696,9 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
             //
             pOwner = new OTNym_or_SymmetricKey(
                 *pOwnerNym,
-                pstrDisplay.Get());  // Can't put &strReason here. (It goes
-                                     // out of scope.)
+                String::Factory(pstrDisplay.Get()));  // Can't put &strReason
+                                                      // here. (It goes out of
+                                                      // scope.)
             OT_ASSERT(nullptr != pOwner);
         }
         // Else if purse IS password protected, then use its internal key.
@@ -4711,8 +4721,8 @@ OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
                 pOwner = new OTNym_or_SymmetricKey(
                     pSymmetricKey,
                     thePassword,
-                    pstrDisplay.Get());  // Can't put
-                                         // &strReason
+                    String::Factory(pstrDisplay.Get()));  // Can't put
+                                                          // &strReason
                 // here. (It goes
                 // out of scope.)
                 OT_ASSERT(nullptr != pOwner);
@@ -5361,8 +5371,9 @@ Token* OT_API::Token_ChangeOwner(
         otErr << OT_METHOD << __FUNCTION__
               << ": Error re-assigning ownership of token.\n";
     } else {
-        otLog3 << __FUNCTION__
-               << ": Success re-assigning ownership of token.\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": Success re-assigning ownership of token.")
+            .Flush();
 
         token->ReleaseSignatures();
 
@@ -9068,7 +9079,7 @@ CommandResult OT_API::withdrawVoucher(
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
           << voucherNumber << " for voucher" << std::endl;
 
-    const auto strChequeMemo(CHEQUE_MEMO);
+    const auto strChequeMemo = String::Factory(CHEQUE_MEMO.Get());
     const auto strRecipientNymID = String::Factory(RECIPIENT_NYM_ID);
     // Expiration (ignored by server -- it sets its own for its vouchers.)
     const time64_t VALID_FROM =
@@ -10302,7 +10313,7 @@ CommandResult OT_API::issueMarketOffer(
     lMinimumIncrement *= lMarketScale;  // minimum increment is PER SCALE.
     auto strOfferType = String::Factory("market order");
 
-    if (lPriceLimit > 0) { strOfferType = "limit order"; }
+    if (lPriceLimit > 0) { strOfferType = String::Factory("limit order"); }
 
     if (0 != cStopSign) {
         if (lPriceLimit > 0) {
@@ -11400,7 +11411,8 @@ CommandResult OT_API::sendNymObject(
 
     if (false == bool(message)) { return output; }
 
-    auto plaintext(proto::ProtoAsArmored(object.Serialize(), "PEER OBJECT"));
+    auto plaintext(proto::ProtoAsArmored(
+        object.Serialize(), String::Factory("PEER OBJECT")));
     OTEnvelope theEnvelope;
     auto recipient = api_.Wallet().Nym(recipientNymID);
 
@@ -11480,7 +11492,7 @@ CommandResult OT_API::sendNymMessage(
 
     OT_ASSERT(false != bool(sent));
 
-    sent->m_strCommand = "outmailMessage";
+    sent->m_strCommand = String::Factory("outmailMessage");
     sent->m_strNymID = String::Factory(nymID);
     sent->m_strNymID2 = String::Factory(recipientNymID);
     sent->m_strNotaryID = String::Factory(context.Server());
@@ -11489,7 +11501,8 @@ CommandResult OT_API::sendNymMessage(
 
     OT_ASSERT(copy);
 
-    auto plaintext(proto::ProtoAsArmored(copy->Serialize(), "PEER OBJECT"));
+    auto plaintext(proto::ProtoAsArmored(
+        copy->Serialize(), String::Factory("PEER OBJECT")));
     OTEnvelope theEnvelope;
 
     if (!theEnvelope.Seal(nym, plaintext)) {
@@ -11586,7 +11599,7 @@ CommandResult OT_API::sendNymInstrument(
             ? false
             : senderCopy->GetPaymentContents(strInstrumentForSender);
 
-    const String& strInstrumentForLocalCopy{
+    const auto& strInstrumentForLocalCopy{
         (bGotSenderPmntContents ? strInstrumentForSender
                                 : strInstrumentForRecipient)};
 
@@ -11606,7 +11619,7 @@ CommandResult OT_API::sendNymInstrument(
 
     OT_ASSERT(false != bool(theMessage));
 
-    theMessage->m_strCommand = "sendNymInstrument";
+    theMessage->m_strCommand = String::Factory("sendNymInstrument");
     theMessage->m_strNymID = String::Factory(nymID);
     theMessage->m_strNymID2 = String::Factory(recipientNymID);
     theMessage->m_strNotaryID = String::Factory(context.Server());
@@ -11619,7 +11632,7 @@ CommandResult OT_API::sendNymInstrument(
 
     OT_ASSERT(false != bool(pMessageLocalCopy));
 
-    pMessageLocalCopy->m_strCommand = "outpaymentsMessage";
+    pMessageLocalCopy->m_strCommand = String::Factory("outpaymentsMessage");
     pMessageLocalCopy->m_strNymID = String::Factory(nymID);
     pMessageLocalCopy->m_strNymID2 = String::Factory(recipientNymID);
     pMessageLocalCopy->m_strNotaryID = String::Factory(context.Server());
@@ -12564,7 +12577,7 @@ CommandResult OT_API::requestAdmin(
 
     if (false == bool(message)) { return output; }
 
-    message->m_strAcctID = PASSWORD.c_str();
+    message->m_strAcctID = String::Factory(PASSWORD.c_str());
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
@@ -12595,9 +12608,9 @@ CommandResult OT_API::serverAddClaim(
 
     if (false == bool(message)) { return output; }
 
-    message->m_strNymID2 = section.c_str();
-    message->m_strInstrumentDefinitionID = type.c_str();
-    message->m_strAcctID = value.c_str();
+    message->m_strNymID2 = String::Factory(section.c_str());
+    message->m_strInstrumentDefinitionID = String::Factory(type.c_str());
+    message->m_strAcctID = String::Factory(value.c_str());
     message->m_bBool = primary;
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }

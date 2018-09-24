@@ -98,7 +98,7 @@ bool Wallet::load_legacy_account(
     otErr << OT_METHOD << __FUNCTION__ << ": Legacy account " << accountID.str()
           << " exists." << std::endl;
 
-    String serialized{};
+    auto serialized = String::Factory();
     auto saved = pAccount->SaveContractRaw(serialized);
 
     OT_ASSERT(saved)
@@ -121,7 +121,7 @@ bool Wallet::load_legacy_account(
 
     saved = api_.Storage().Store(
         accountID.str(),
-        serialized.Get(),
+        serialized->Get(),
         "",
         ownerID,
         server_.NymID(),

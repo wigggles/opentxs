@@ -498,7 +498,7 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
                      "never happen.)\n";
             return false;
     }
-    m_strFoldername = pszFolder;
+    m_strFoldername = String::Factory(pszFolder);
 
     auto strID = String::Factory();
     GetIdentifier(strID);
@@ -510,7 +510,7 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
             "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
 
     auto strFilename = String::Factory();
-    strFilename = strID->Get();
+    strFilename = String::Factory(strID->Get());
 
     const char* szFolder1name =
         m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
@@ -532,10 +532,11 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
                 szFolder2name,
                 szFilename,
                 "")) {
-            otLog3 << pszType << " does not exist in OTLedger::Load" << pszType
-                   << ": " << szFolder1name << Log::PathSeparator()
-                   << szFolder2name << Log::PathSeparator() << szFilename
-                   << "\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(
+                ": does not exist in OTLedger::Load")(pszType)(": ")(
+                szFolder1name)(Log::PathSeparator())(szFolder2name)(
+                Log::PathSeparator())(szFilename)
+                .Flush();
             return false;
         }
 
@@ -622,7 +623,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
             return false;
     }
 
-    m_strFoldername = pszFolder;  // <=======
+    m_strFoldername = String::Factory(pszFolder);  // <=======
 
     auto strID = String::Factory();
     GetIdentifier(strID);
@@ -633,7 +634,7 @@ bool Ledger::SaveGeneric(ledgerType theType)
             "%s%s%s", strNotaryID->Get(), Log::PathSeparator(), strID->Get());
 
     auto strFilename = String::Factory();
-    strFilename = strID->Get();
+    strFilename = String::Factory(strID->Get());
 
     const char* szFolder1name =
         m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
@@ -859,7 +860,7 @@ bool Ledger::generate_ledger(
 
     switch (theType) {
         case ledgerType::nymbox:  // stored by NymID ONLY.
-            m_strFoldername = OTFolders::Nymbox().Get();
+            m_strFoldername = String::Factory(OTFolders::Nymbox().Get());
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
@@ -867,7 +868,7 @@ bool Ledger::generate_ledger(
                 strID->Get());
             break;
         case ledgerType::inbox:  // stored by AcctID ONLY.
-            m_strFoldername = OTFolders::Inbox().Get();
+            m_strFoldername = String::Factory(OTFolders::Inbox().Get());
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
@@ -875,7 +876,7 @@ bool Ledger::generate_ledger(
                 strID->Get());
             break;
         case ledgerType::outbox:  // stored by AcctID ONLY.
-            m_strFoldername = OTFolders::Outbox().Get();
+            m_strFoldername = String::Factory(OTFolders::Outbox().Get());
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
@@ -883,7 +884,7 @@ bool Ledger::generate_ledger(
                 strID->Get());
             break;
         case ledgerType::paymentInbox:  // stored by NymID ONLY.
-            m_strFoldername = OTFolders::PaymentInbox().Get();
+            m_strFoldername = String::Factory(OTFolders::PaymentInbox().Get());
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
@@ -892,7 +893,7 @@ bool Ledger::generate_ledger(
             break;
         case ledgerType::recordBox:  // stored by Acct ID *and* Nym ID
                                      // (depending on the box.)
-            m_strFoldername = OTFolders::RecordBox().Get();
+            m_strFoldername = String::Factory(OTFolders::RecordBox().Get());
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
@@ -900,7 +901,7 @@ bool Ledger::generate_ledger(
                 strID->Get());
             break;
         case ledgerType::expiredBox:  // stored by Nym ID only.
-            m_strFoldername = OTFolders::ExpiredBox().Get();
+            m_strFoldername = String::Factory(OTFolders::ExpiredBox().Get());
             m_strFilename->Format(
                 "%s%s%s",
                 strNotaryID->Get(),
@@ -937,7 +938,7 @@ bool Ledger::generate_ledger(
     if (bCreateFile) {
 
         auto strFilename = String::Factory();
-        strFilename = strID->Get();
+        strFilename = String::Factory(strID->Get());
 
         const char* szFolder1name =
             m_strFoldername->Get();  // "nymbox" (or "inbox" or "outbox")
@@ -1034,8 +1035,8 @@ bool Ledger::CreateLedger(
 
 void Ledger::InitLedger()
 {
-    m_strContractType =
-        "LEDGER";  // CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM
+    m_strContractType = String::Factory(
+        "LEDGER");  // CONTRACT, MESSAGE, TRANSACTION, LEDGER, TRANSACTION ITEM
 
     // This is the default type for a ledger.
     // Inboxes and Outboxes are generated with the right type, with files.
@@ -1546,7 +1547,7 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
 
     if (!statement) { return nullptr; }
 
-    pBalanceItem->SetAttachment(String(*statement));
+    pBalanceItem->SetAttachment(OTString(*statement));
     std::int64_t lCurrentBalance = theAccount.GetBalance();
     // The new (predicted) balance for after the transaction is complete.
     // (item.GetAmount)
@@ -1812,8 +1813,8 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                      // receipts with hashes and partial
                                      // data.
 
-        strType = xml->getAttributeValue("type");
-        m_strVersion = xml->getAttributeValue("version");
+        strType = String::Factory(xml->getAttributeValue("type"));
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
 
         if (strType->Compare("message"))  // These are used for sending
             // transactions in messages. (Withdrawal
@@ -1845,9 +1846,10 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             m_Type = ledgerType::error_state;  // Danger, Will Robinson.
 
-        strLedgerAcctID = xml->getAttributeValue("accountID");
-        strLedgerAcctNotaryID = xml->getAttributeValue("notaryID");
-        strNymID = xml->getAttributeValue("nymID");
+        strLedgerAcctID = String::Factory(xml->getAttributeValue("accountID"));
+        strLedgerAcctNotaryID =
+            String::Factory(xml->getAttributeValue("notaryID"));
+        strNymID = String::Factory(xml->getAttributeValue("nymID"));
 
         if (!strLedgerAcctID->Exists() || !strLedgerAcctNotaryID->Exists() ||
             !strNymID->Exists()) {
@@ -1882,7 +1884,8 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         // Load up the partial records, based on the expected count...
         //
-        strNumPartialRecords = xml->getAttributeValue("numPartialRecords");
+        strNumPartialRecords =
+            String::Factory(xml->getAttributeValue("numPartialRecords"));
         std::int32_t nPartialRecordCount =
             (strNumPartialRecords->Exists() ? atoi(strNumPartialRecords->Get())
                                             : 0);

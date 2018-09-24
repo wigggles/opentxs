@@ -75,9 +75,10 @@ TransactionStatement::TransactionStatement(const String& serialized)
                     while (numlist.Peek(number)) {
                         numlist.Pop();
 
-                        otLog3 << "Transaction Number " << number
-                               << " ready-to-use for NotaryID: " << notary_
-                               << std::endl;
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Transaction Number ")(number)(
+                            " ready-to-use for NotaryID: ")(notary_)
+                            .Flush();
                         available_.insert(number);
                     }
                 } else if (nodeName->Compare("issuedNums")) {
@@ -102,9 +103,10 @@ TransactionStatement::TransactionStatement(const String& serialized)
                     while (numlist.Peek(number)) {
                         numlist.Pop();
 
-                        otLog3 << "Currently liable for issued trans# "
-                               << number << " at NotaryID: " << notary_
-                               << std::endl;
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Currently liable for issued trans# ")(number)(
+                            " at NotaryID: ")(notary_)
+                            .Flush();
                         issued_.insert(number);
                     }
                 } else {
@@ -122,7 +124,7 @@ TransactionStatement::TransactionStatement(const String& serialized)
     }
 }
 
-TransactionStatement::operator String() const
+TransactionStatement::operator OTString() const
 {
     auto output = String::Factory();
 
@@ -153,7 +155,7 @@ TransactionStatement::operator String() const
     std::string result;
     serialized.output(result);
 
-    return result.c_str();
+    return String::Factory(result.c_str());
 }
 
 const std::set<TransactionNumber>& TransactionStatement::Issued() const

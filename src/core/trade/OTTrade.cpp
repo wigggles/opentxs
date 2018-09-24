@@ -174,8 +174,9 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetCurrencyID(CURRENCY_TYPE_ID);
         SetCurrencyAcctID(CURRENCY_ACCT_ID);
 
-        otLog3 << "\n\nTrade. Transaction Number: " << m_lTransactionNum
-               << "   Completed # of Trades: " << tradesAlreadyDone_ << "\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Trade. Transaction Number: ")(
+            m_lTransactionNum)("Completed # of Trades: ")(tradesAlreadyDone_)
+            .Flush();
 
         otWarn << " Creation Date: " << creation
                << "   Valid From: " << validFrom << "\n Valid To: " << validTo
@@ -226,11 +227,11 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         else
             stopActivated_ = false;
 
-        otLog3 << "\n\nStop order -- "
-               << (stopActivated_ ? "Already activated" : "Will activate")
-               << " when price " << (stopActivated_ ? "was" : "reaches") << " "
-               << (('<' == stopSign_) ? "LESS THAN" : "GREATER THAN") << ": "
-               << stopPrice_ << ".\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)("Stop order --")(
+            stopActivated_ ? "Already activated" : "Will activate")(
+            " when price ")(stopActivated_ ? "was" : "reaches")(
+            ('<' == stopSign_) ? "LESS THAN" : "GREATER THAN")(stopPrice_)
+            .Flush();
 
         returnVal = 1;
     } else if (!strcmp("offer", xml->getNodeName())) {

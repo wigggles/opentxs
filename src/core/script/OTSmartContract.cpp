@@ -3425,7 +3425,7 @@ bool OTSmartContract::ProcessCron()
     // Currently it calls IsExpired().
     //
     if (!ot_super::ProcessCron()) {
-        otLog3 << "Cron job has expired.\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Cron job has expired.").Flush();
         return false;  // It's expired or flagged for removal--remove it from
                        // Cron.
     }
@@ -3486,8 +3486,9 @@ bool OTSmartContract::ProcessCron()
     }
 
     if (IsFlaggedForRemoval()) {
-        otLog3 << "OTSmartContract::ProcessCron: Removing smart contract from "
-                  "cron processing...\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": Removing smart contract from cron processing...")
+            .Flush();
         return false;  // false means "remove this cron item from cron"
     }
 
@@ -5874,7 +5875,7 @@ bool OTSmartContract::MoveFunds(
                 // I will probably do the same for cheques, since they can be
                 // negative as well (invoices).
 
-                otLog3 << "OTCronItem::MoveFunds: Move performed.\n";
+                LogDebug(OT_METHOD)(__FUNCTION__)(": Move performed.").Flush();
 
                 // (I do NOT save m_pCron here, since that already occurs after
                 // this function is called.)
@@ -5893,7 +5894,7 @@ bool OTSmartContract::MoveFunds(
                 pItemRecip->SetAmount(0);  // No money changed hands. Just being
                                            // explicit.
 
-                otLog3 << "OTCronItem::MoveFunds: Move failed.\n";
+                LogDebug(OT_METHOD)(__FUNCTION__)(": Move failed.").Flush();
             }
 
             // Everytime a payment processes, a receipt is put in the user's

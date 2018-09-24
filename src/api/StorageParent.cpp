@@ -37,15 +37,15 @@ StorageParent::StorageParent(
     , data_folder_(dataFolder)
     , storage_config_()
     , migrate_storage_{false}
-    , migrate_from_{""}
+    , migrate_from_{String::Factory()}
     , primary_storage_plugin_(get_primary_storage_plugin(
           config_,
           storage_config_,
           args_,
           migrate_storage_,
           migrate_from_))
-    , archive_directory_("")
-    , encrypted_directory_("")
+    , archive_directory_(String::Factory())
+    , encrypted_directory_(String::Factory())
     , storage_(opentxs::Factory::Storage(
           running,
           crypto_,
@@ -137,8 +137,8 @@ OTString StorageParent::get_primary_storage_plugin(
     auto configured = String::Factory();
     bool notUsed{false};
     config.Check_str(
-        STORAGE_CONFIG_KEY,
-        STORAGE_CONFIG_PRIMARY_PLUGIN_KEY,
+        String::Factory(STORAGE_CONFIG_KEY),
+        String::Factory(STORAGE_CONFIG_PRIMARY_PLUGIN_KEY),
         configured,
         notUsed);
     const auto haveConfigured = configured->Exists();
@@ -147,7 +147,7 @@ OTString StorageParent::get_primary_storage_plugin(
     if (haveCommandline) {
         if (haveConfigured && (false == same)) {
             migrate = true;
-            previous = configured;
+            previous.Set(configured);
             otErr << OT_METHOD << __FUNCTION__ << ": Migrating from "
                   << previous << "." << std::endl;
         }

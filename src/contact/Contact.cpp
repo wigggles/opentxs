@@ -83,7 +83,7 @@ Contact::Contact(const api::Wallet& wallet, const std::string& label)
     , revision_(1)
 {
     contact_data_.reset(new ContactData(
-        String(id_).Get(),
+        String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         ContactData::SectionMap{}));
@@ -96,7 +96,7 @@ Contact::operator proto::Contact() const
     Lock lock(lock_);
     proto::Contact output{};
     output.set_version(version_);
-    output.set_id(String(id_).Get());
+    output.set_id(String::Factory(id_)->Get());
     output.set_revision(revision_);
     output.set_label(label_);
 
@@ -105,10 +105,10 @@ Contact::operator proto::Contact() const
         data = contact_data_->Serialize();
     }
 
-    output.set_mergedto(String(parent_).Get());
+    output.set_mergedto(String::Factory(parent_)->Get());
 
     for (const auto& child : merged_children_) {
-        output.add_merged(String(child).Get());
+        output.add_merged(String::Factory(child)->Get());
     }
 
     return output;
@@ -239,12 +239,12 @@ void Contact::add_nym_claim(
 
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
-        String(id_).Get(),
+        String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_RELATIONSHIP,
         proto::CITEMTYPE_CONTACT,
-        String(nymID).Get(),
+        String::Factory(nymID)->Get(),
         attr,
         NULL_START,
         NULL_END));
@@ -275,7 +275,7 @@ bool Contact::AddBlockchainAddress(
 
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
-        String(id_).Get(),
+        String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_ADDRESS,
@@ -347,7 +347,7 @@ bool Contact::AddPaymentCode(
     const std::string value = code.asBase58();
     std::shared_ptr<ContactItem> claim{nullptr};
     claim.reset(new ContactItem(
-        String(id_).Get(),
+        String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_PROCEDURE,
@@ -570,7 +570,7 @@ void Contact::init_nyms()
 
         if (false == bool(nym)) {
             otErr << OT_METHOD << __FUNCTION__ << ": Failed to load nym "
-                  << String(nymID) << std::endl;
+                  << String::Factory(nymID) << std::endl;
         }
     }
 }
@@ -759,19 +759,19 @@ std::string Contact::Print() const
 {
     Lock lock(lock_);
     std::stringstream out{};
-    out << "Contact: " << String(id_).Get() << ", version " << version_
-        << "revision " << revision_ << "\n"
+    out << "Contact: " << String::Factory(id_)->Get() << ", version "
+        << version_ << "revision " << revision_ << "\n"
         << "Label: " << label_ << "\n";
 
     if (false == parent_->empty()) {
-        out << "Merged to: " << String(parent_).Get() << "\n";
+        out << "Merged to: " << String::Factory(parent_)->Get() << "\n";
     }
 
     if (false == merged_children_.empty()) {
         out << "Merged contacts:\n";
 
         for (const auto& id : merged_children_) {
-            out << " * " << String(id).Get() << "\n";
+            out << " * " << String::Factory(id)->Get() << "\n";
         }
     }
 
@@ -780,7 +780,7 @@ std::string Contact::Print() const
 
         for (const auto& it : nyms_) {
             const auto& id = it.first;
-            out << " * " << String(id).Get();
+            out << " * " << String::Factory(id)->Get();
 
             if (id == primary_nym_) { out << " (primary)"; }
 
@@ -883,7 +883,7 @@ void Contact::Update(const proto::CredentialIndex& serialized)
 
     update_label(lock, *nym);
     std::shared_ptr<ContactItem> claim(new ContactItem(
-        String(id_).Get(),
+        String::Factory(id_)->Get(),
         CONTACT_CONTACT_DATA_VERSION,
         CONTACT_CONTACT_DATA_VERSION,
         proto::CONTACTSECTION_EVENT,

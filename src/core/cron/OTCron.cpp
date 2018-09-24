@@ -35,6 +35,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::OTCron"
+
 namespace opentxs
 {
 // Note: these are only code defaults -- the values are actually loaded from
@@ -67,7 +69,7 @@ OTCron::OTCron(const api::Core& server)
                              // cleanup this pointer.
 {
     InitCron();
-    otLog3 << "OTCron::OTCron: Finished calling InitCron 0.\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Finished calling InitCron 0.").Flush();
 }
 
 // Make sure Server Nym is set on this cron object before loading or saving,
@@ -974,7 +976,9 @@ bool OTCron::AddMarket(
                                     // save here. that's why it's in this block.
 
             if (bSuccess)
-                otLog3 << "New Market has been added to Cron.\n";
+                LogDebug(OT_METHOD)(__FUNCTION__)(
+                    ": New Market has been added to Cron.")
+                    .Flush();
             else
                 otErr << "Error saving while adding new Market to Cron.\n";
         }

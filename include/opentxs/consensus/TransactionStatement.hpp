@@ -9,6 +9,9 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/core/String.hpp"
+
+#include "opentxs/Pimpl.hpp"
+#include "opentxs/SharedPimpl.hpp"
 #include "opentxs/Types.hpp"
 
 #include <set>
@@ -39,7 +42,7 @@ public:
     TransactionStatement(const String& serialized);
     TransactionStatement(TransactionStatement&& rhs) = default;
 
-    explicit operator String() const;
+    explicit operator OTString() const;
 
     const std::set<TransactionNumber>& Issued() const;
     const std::string& Notary() const;

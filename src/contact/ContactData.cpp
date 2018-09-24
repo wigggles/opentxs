@@ -304,7 +304,7 @@ ContactData ContactData::AddPreferredOTServer(
         version,
         section,
         type,
-        String(id).Get(),
+        String::Factory(id)->Get(),
         attrib,
         NULL_START,
         NULL_END);
