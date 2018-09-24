@@ -269,8 +269,8 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(
             //
             pPassword = crypto::key::LegacySymmetric::GetPassphraseFromUser(
                 (!m_pstrDisplay->Exists())
-                    ? strDisplay->Get()
-                    : m_pstrDisplay->Get());  // bool bAskTwice=false
+                    ? strDisplay
+                    : m_pstrDisplay);  // bool bAskTwice=false
 
             if (nullptr == pPassword)  // Unable to retrieve passphrase from
                                        // user.

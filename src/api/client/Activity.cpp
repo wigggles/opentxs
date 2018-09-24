@@ -291,9 +291,9 @@ std::string Activity::Mail(
     const std::string output = id->str();
     const auto data = String::Factory(mail);
     std::string participantNymID;
-    const String localName = String::Factory(nym);
+    const auto localName = String::Factory(nym);
 
-    if (localName == mail.m_strNymID2) {
+    if (localName->Compare(mail.m_strNymID2)) {
         // This is an incoming message. The contact id is the sender's id.
         participantNymID = mail.m_strNymID->Get();
     } else {
@@ -326,7 +326,7 @@ std::string Activity::Mail(
     }
 
     const bool saved = api_.Storage().Store(
-        localName.Get(),
+        localName->Get(),
         threadID,
         output,
         mail.m_lTime,
