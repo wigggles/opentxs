@@ -147,7 +147,7 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& serverID,
     const OTAPI_Func_Type type)
     : type_(type)
-    , api_lock_{apiLock}
+    , api_lock_(apiLock)
     , accountID_(Identifier::Factory())
     , basketID_(Identifier::Factory())
     , currencyAccountID_(Identifier::Factory())
@@ -157,14 +157,16 @@ OTAPI_Func::OTAPI_Func(
     , requestID_(Identifier::Factory())
     , targetID_(Identifier::Factory())
     , message_id_(Identifier::Factory())
-    , request_{nullptr}
-    , contract_{nullptr}
-    , paymentPlan_{nullptr}
-    , purse_{nullptr}
-    , senderPurse_{nullptr}
-    , cheque_{nullptr}
-    , ledger_{nullptr}
-    , payment_{nullptr}
+    , request_(nullptr)
+    , contract_(nullptr)
+    , paymentPlan_(nullptr)
+#if OT_CASH
+    , purse_(nullptr)
+    , senderPurse_(nullptr)
+#endif
+    , cheque_(nullptr)
+    , ledger_(nullptr)
+    , payment_(nullptr)
     , agentName_("")
     , clause_("")
     , key_("")
@@ -204,12 +206,12 @@ OTAPI_Func::OTAPI_Func(
     , quantity_(0)
     , price_(0)
     , scale_(0)
-    , remoteBoxType_{RemoteBoxType::Error}
+    , remoteBoxType_(RemoteBoxType::Error)
     , transactionNumber_(0)  // This is not what gets returned by
                              // GetTransactionNumber.
     , infoType_(proto::CONNECTIONINFO_ERROR)
     , secretType_(proto::SECRETTYPE_ERROR)
-    , unitDefinition_{}
+    , unitDefinition_()
 {
     OT_ASSERT(verify_lock(api_lock_, apiLock));
 }
@@ -415,6 +417,7 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
+#if OT_CASH
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
@@ -442,6 +445,7 @@ OTAPI_Func::OTAPI_Func(
         }
     }
 }
+#endif
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
@@ -876,6 +880,7 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 
+#if OT_CASH
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
@@ -903,6 +908,7 @@ OTAPI_Func::OTAPI_Func(
         OT_FAIL
     }
 }
+#endif
 
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
@@ -1174,11 +1180,13 @@ void OTAPI_Func::run()
                 context_, recipientID_, message_, message_id_);
         } break;
         case SEND_USER_INSTRUMENT: {
+#if OT_CASH
             if (cash_) {
                 OT_ASSERT(purse_)
 
                 payment_ = api_.Factory().Payment(String::Factory(*purse_));
             }
+#endif
 
             OT_ASSERT(payment_)
 
@@ -1194,6 +1202,7 @@ void OTAPI_Func::run()
                 return;
             }
 
+#if OT_CASH
             if (cash_) {
                 OT_ASSERT(senderPurse_)
 
@@ -1220,13 +1229,16 @@ void OTAPI_Func::run()
                     true,
                     theSenderPayment.get());
             } else {
+#endif
                 last_attempt_ = api_.OTAPI().sendNymInstrument(
                     context_,
                     request_,
                     recipientID_,
                     *payment,
                     !payment->IsCheque());
+#if OT_CASH
             }
+#endif
 
             if (request_ && payment->IsCheque()) {
                 bool workflowUpdated{false};

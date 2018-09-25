@@ -205,6 +205,7 @@ void Manager::generate_mint(
     mint->SaveContract();
     mint->SaveMint(PUBLIC_SERIES);
 }
+#endif  // OT_CASH
 
 const std::string Manager::get_arg(const std::string& argName) const
 {
@@ -259,6 +260,7 @@ const std::string Manager::GetOnion() const
     return get_arg(OPENTXS_ARG_ONION);
 }
 
+#if OT_CASH
 std::shared_ptr<Mint> Manager::GetPrivateMint(
     const Identifier& unitID,
     std::uint32_t index) const
