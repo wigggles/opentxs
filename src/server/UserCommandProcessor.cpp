@@ -154,7 +154,7 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
         OT_FAIL;
     }
 
-    reply_.SetPayload(String(ledger_));
+    reply_.SetPayload(String::Factory(ledger_));
     otWarn << OT_METHOD << __FUNCTION__ << ": "
            << reply_.Context().AvailableNumbers() << " numbers available."
            << std::endl;
@@ -498,12 +498,15 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
 
     Claim claim{"", section, type, value, 0, 0, attributes};
 
-    String overrideNym;
+    auto overrideNym = String::Factory();
     bool keyExists = false;
     server_.API().Config().Check_str(
-        "permissions", "override_nym_id", overrideNym, keyExists);
-    const bool haveAdmin = keyExists && overrideNym.Exists();
-    const bool isAdmin = haveAdmin && (overrideNym == requestingNym);
+        String::Factory("permissions"),
+        String::Factory("override_nym_id"),
+        overrideNym,
+        keyExists);
+    const bool haveAdmin = keyExists && overrideNym->Exists();
+    const bool isAdmin = haveAdmin && (overrideNym->Compare(requestingNym));
 
     if (isAdmin) {
         auto nym =
@@ -629,7 +632,7 @@ bool UserCommandProcessor::cmd_delete_asset_account(ReplyMessage& reply) const
     auto nymfile = server_.API().Wallet().mutable_Nymfile(
         reply.Context().RemoteNym().ID(), __FUNCTION__);
     auto& theAccountSet = nymfile.It().GetSetAssetAccounts();
-    theAccountSet.erase(String(accountID).Get());
+    theAccountSet.erase(String::Factory(accountID)->Get());
     account.Release();
     server_.API().Wallet().DeleteAccount(accountID);
     reply.DropToNymbox(false);
@@ -866,7 +869,7 @@ bool UserCommandProcessor::cmd_get_box_receipt(ReplyMessage& reply) const
     }
 
     reply.SetSuccess(true);
-    reply.SetPayload(String(*transaction));
+    reply.SetPayload(String::Factory(*transaction));
 
     return true;
 }
@@ -1000,7 +1003,7 @@ bool UserCommandProcessor::cmd_get_mint(ReplyMessage& reply) const
 
     if (mint) {
         reply.SetSuccess(true);
-        reply.SetPayload(String(*mint));
+        reply.SetPayload(String::Factory(*mint));
     }
 
     return true;
@@ -1056,7 +1059,7 @@ bool UserCommandProcessor::cmd_get_nymbox(ReplyMessage& reply) const
     }
 
     reply.SetSuccess(true);
-    reply.SetPayload(String(*nymbox));
+    reply.SetPayload(String::Factory(*nymbox));
 
     if (bSavedNymbox) {
         context.SetLocalNymboxHash(newNymboxHash);
@@ -1093,7 +1096,7 @@ bool UserCommandProcessor::cmd_get_request_number(ReplyMessage& reply) const
     const auto NOTARY_ID = Identifier::Factory(server_.GetServerID());
     auto EXISTING_NYMBOX_HASH = context.LocalNymboxHash();
 
-    if (String(EXISTING_NYMBOX_HASH).Exists()) {
+    if (String::Factory(EXISTING_NYMBOX_HASH)->Exists()) {
         reply.SetNymboxHash(EXISTING_NYMBOX_HASH);
     } else {
         const auto& nymID = context.RemoteNym().ID();
@@ -1326,7 +1329,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
     }
 
     const auto contractID = contract->ID();
-    reply.SetInstrumentDefinitionID(String(contractID));
+    reply.SetInstrumentDefinitionID(String::Factory(contractID));
 
     // I don't save this here. Instead, I wait for AddBasketAccountID and then I
     // call SaveMainFile after that. See below.
@@ -1359,7 +1362,7 @@ bool UserCommandProcessor::cmd_issue_basket(ReplyMessage& reply) const
 
     basketAccount.get().GetIdentifier(basketAccountID);
     reply.SetSuccess(true);
-    reply.SetAccount(String(basketAccountID));
+    reply.SetAccount(String::Factory(basketAccountID));
 
     // So the server can later use the BASKET_ID (which is universal) to lookup
     // the account ID on this server corresponding to that basket. (The account
@@ -1404,7 +1407,8 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
         return false;
     }
 
-    if (false == input->LoadLedgerFromString(String(msgIn.m_ascPayload))) {
+    if (false ==
+        input->LoadLedgerFromString(String::Factory(msgIn.m_ascPayload))) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load input ledger."
               << std::endl;
 
@@ -1514,7 +1518,8 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
         return false;
     }
 
-    if (false == input->LoadLedgerFromString(String(msgIn.m_ascPayload))) {
+    if (false ==
+        input->LoadLedgerFromString(String::Factory(msgIn.m_ascPayload))) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load input ledger."
               << std::endl;
 
@@ -1652,7 +1657,8 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
         return false;
     }
 
-    if (false == input->LoadLedgerFromString(String(msgIn.m_ascPayload))) {
+    if (false ==
+        input->LoadLedgerFromString(String::Factory(msgIn.m_ascPayload))) {
         otErr << OT_METHOD << __FUNCTION__ << ": Unable to load input ledger."
               << std::endl;
 
@@ -1763,7 +1769,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
 
     if (false == output.empty()) {
         reply.SetSuccess(true);
-        reply.SetPayload(String(output));
+        reply.SetPayload(String::Factory(output));
     }
 
     return true;
@@ -1991,10 +1997,10 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
         return false;
     }
 
-    reply.SetPayload(String(account.get()));
+    reply.SetPayload(String::Factory(account.get()));
     auto accountID = Identifier::Factory();
     account.get().GetIdentifier(accountID);
-    reply.SetAccount(String(accountID));
+    reply.SetAccount(String::Factory(accountID));
     server_.GetMainFile().SaveMainFile();
 
     if (false == account.get().InitBoxes(serverNym)) {
@@ -2104,9 +2110,17 @@ bool UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const
     std::string overrideNym, password;
     bool notUsed = false;
     server_.API().Config().CheckSet_str(
-        "permissions", "override_nym_id", "", overrideNym, notUsed);
+        String::Factory("permissions"),
+        String::Factory("override_nym_id"),
+        String::Factory(),
+        overrideNym,
+        notUsed);
     server_.API().Config().CheckSet_str(
-        "permissions", "admin_password", "", password, notUsed);
+        String::Factory("permissions"),
+        String::Factory("admin_password"),
+        String::Factory(),
+        password,
+        notUsed);
     const bool noAdminYet = overrideNym.empty();
     const bool passwordSet = !password.empty();
     const bool readyForAdmin = (noAdminYet && passwordSet);
@@ -2123,7 +2137,10 @@ bool UserCommandProcessor::cmd_request_admin(ReplyMessage& reply) const
 
     if (readyForAdmin) {
         reply.SetSuccess(server_.API().Config().Set_str(
-            "permissions", "override_nym_id", requestingNym, notUsed));
+            String::Factory("permissions"),
+            String::Factory("override_nym_id"),
+            requestingNym,
+            notUsed));
 
         if (reply.Success()) {
             otErr << __FUNCTION__ << ": override nym set." << std::endl;
@@ -2449,7 +2466,7 @@ void UserCommandProcessor::drop_reply_notice_to_nymbox(
     pReplyNoticeItem->SetStatus(Item::acknowledgement);
     // Purpose of this notice is to carry a copy of server's reply message (to
     // certain requests, including all transactions.)
-    pReplyNoticeItem->SetAttachment(String(message));
+    pReplyNoticeItem->SetAttachment(String::Factory(message));
     pReplyNoticeItem->SignContract(serverNym);
     pReplyNoticeItem->SaveContract();
     // the Transaction's destructor will cleanup the item. It "owns" it now. So
@@ -2524,7 +2541,7 @@ bool UserCommandProcessor::isAdmin(const Identifier& nymID)
 
     if (adminNym.empty()) { return false; }
 
-    return (0 == adminNym.compare(String(nymID).Get()));
+    return (0 == adminNym.compare(String::Factory(nymID)->Get()));
 }
 
 std::unique_ptr<Ledger> UserCommandProcessor::load_inbox(

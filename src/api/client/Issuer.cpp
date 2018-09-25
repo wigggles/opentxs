@@ -202,8 +202,8 @@ Issuer::operator std::string() const
 
         for (const auto& [requestID, it] : workflow) {
             const auto& [replyID, used] = it;
-            output << "    * Request: " << String(requestID)
-                   << ", Reply: " << String(replyID) << " ";
+            output << "    * Request: " << String::Factory(requestID)
+                   << ", Reply: " << String::Factory(replyID) << " ";
 
             if (used) {
                 output << "(used)";
@@ -257,8 +257,8 @@ bool Issuer::add_request(
     const auto& notUsed[[maybe_unused]] = it;
 
     if (found) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Request " << String(requestID)
-              << " already exists." << std::endl;
+        otErr << OT_METHOD << __FUNCTION__ << ": Request "
+              << String::Factory(requestID) << " already exists." << std::endl;
 
         return false;
     }
@@ -279,8 +279,8 @@ bool Issuer::AddReply(
     auto& [reply, used] = it->second;
 
     if (false == found) {
-        otWarn << OT_METHOD << __FUNCTION__ << ": Request " << String(requestID)
-               << " not found." << std::endl;
+        otWarn << OT_METHOD << __FUNCTION__ << ": Request "
+               << String::Factory(requestID) << " not found." << std::endl;
 
         return add_request(lock, type, requestID, replyID);
     }
@@ -306,7 +306,7 @@ bool Issuer::BailmentInitiated(const Identifier& unitID) const
 {
     otInfo << OT_METHOD << __FUNCTION__
            << ": Searching for initiated bailment requests for unit "
-           << String(unitID) << std::endl;
+           << String::Factory(unitID) << std::endl;
     Lock lock(lock_);
     std::size_t count{0};
     const auto requests = get_requests(
@@ -335,7 +335,7 @@ bool Issuer::BailmentInitiated(const Identifier& unitID) const
             ++count;
         } else {
             otInfo << OT_METHOD << __FUNCTION__ << ": Request "
-                   << String(requestID) << " is wrong type ("
+                   << String::Factory(requestID) << " is wrong type ("
                    << request->bailment().unitid() << std::endl;
         }
     }
@@ -413,7 +413,7 @@ std::vector<Issuer::ConnectionDetails> Issuer::ConnectionInfo(
 
         if (type != request->connectioninfo().type()) {
             otInfo << OT_METHOD << __FUNCTION__ << ": Request "
-                   << String(requestID) << " is wrong type ("
+                   << String::Factory(requestID) << " is wrong type ("
                    << request->connectioninfo().type() << std::endl;
 
             continue;
@@ -465,7 +465,7 @@ bool Issuer::ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
             ++count;
         } else {
             otInfo << OT_METHOD << __FUNCTION__ << ": Request "
-                   << String(requestID) << " is wrong type ("
+                   << String::Factory(requestID) << " is wrong type ("
                    << request->connectioninfo().type() << std::endl;
         }
     }
