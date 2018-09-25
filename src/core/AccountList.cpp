@@ -55,14 +55,14 @@ AccountList::AccountList(const api::Core& core, Account::AccountType acctType)
 
 void AccountList::Serialize(Tag& parent) const
 {
-    String acctType;
+    auto acctType = String::Factory();
     TranslateAccountTypeToString(acctType_, acctType);
 
     std::uint32_t sizeMapAcctIDs = mapAcctIDs_.size();
 
     TagPtr pTag(new Tag("accountList"));
 
-    pTag->add_attribute("type", acctType.Get());
+    pTag->add_attribute("type", acctType->Get());
     pTag->add_attribute("count", formatUint(sizeMapAcctIDs));
 
     for (auto& it : mapAcctIDs_) {
@@ -115,13 +115,14 @@ std::int32_t AccountList::ReadFromXMLNode(
 
             if ((xml->getNodeType() == EXN_ELEMENT) &&
                 (!strcmp("accountEntry", xml->getNodeName()))) {
-                String instrumentDefinitionID = xml->getAttributeValue(
-                    "instrumentDefinitionID");  // Instrument Definition ID of
-                                                // this account.
-                String accountID = xml->getAttributeValue(
-                    "accountID");  // Account ID for this account.
+                auto instrumentDefinitionID =
+                    String::Factory(xml->getAttributeValue(
+                        "instrumentDefinitionID"));  // Instrument Definition ID
+                                                     // of this account.
+                auto accountID = String::Factory(xml->getAttributeValue(
+                    "accountID"));  // Account ID for this account.
 
-                if (!instrumentDefinitionID.Exists() || !accountID.Exists()) {
+                if (!instrumentDefinitionID->Exists() || !accountID->Exists()) {
                     otErr << "Error loading accountEntry: Either the "
                              "instrumentDefinitionID ("
                           << instrumentDefinitionID << "), or the accountID ("
@@ -130,7 +131,7 @@ std::int32_t AccountList::ReadFromXMLNode(
                 }
 
                 mapAcctIDs_.insert(std::make_pair(
-                    instrumentDefinitionID.Get(), accountID.Get()));
+                    instrumentDefinitionID->Get(), accountID->Get()));
             } else {
                 otErr << "Expected accountEntry element in accountList.\n";
                 return -1;
@@ -176,7 +177,7 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
 
     // First, we'll see if there's already an account ID available for the
     // requested instrument definition ID.
-    String acctTypeString;
+    auto acctTypeString = String::Factory();
     TranslateAccountTypeToString(acctType_, acctTypeString);
     auto acctIDsIt = mapAcctIDs_.find(instrumentDefinitionID.str());
 
@@ -211,14 +212,14 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
               << acctTypeString << " account with instrument definition ID: "
               << instrumentDefinitionID.str() << std::endl;
     } else {
-        String acctIDString;
+        auto acctIDString = String::Factory();
         account.get().GetIdentifier(acctIDString);
 
         otOut << "Successfully created " << acctTypeString
               << " account ID: " << acctIDString
               << " Instrument Definition ID: " << instrumentDefinitionID.str()
               << std::endl;
-        mapAcctIDs_[instrumentDefinitionID.str()] = acctIDString.Get();
+        mapAcctIDs_[instrumentDefinitionID.str()] = acctIDString->Get();
 
         wasAcctCreated = true;
     }

@@ -115,8 +115,8 @@ Workflow::Cheque Workflow::InstantiateCheque(
 
             if (serialized.empty()) { return output; }
 
-            const auto loaded =
-                cheque->LoadContractFromString(serialized.c_str());
+            const auto loaded = cheque->LoadContractFromString(
+                String::Factory(serialized.c_str()));
 
             if (false == loaded) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -220,7 +220,7 @@ bool Workflow::add_cheque_event(
     event.set_success(success);
 
     if (haveReply) {
-        event.add_item(String(*reply).Get());
+        event.add_item(String::Factory(*reply)->Get());
         event.set_time(reply->m_lTime);
     } else {
         event.set_time(request.m_lTime);
@@ -247,7 +247,7 @@ bool Workflow::add_cheque_event(
     auto& event = *(workflow.add_event());
     event.set_version(version);
     event.set_type(newEventType);
-    event.add_item(String(message).Get());
+    event.add_item(message->Get());
     event.set_time(std::chrono::system_clock::to_time_t(time));
     event.set_method(proto::TRANSPORTMETHOD_OT);
     event.set_transport(receipt.GetRealNotaryID().str());
@@ -550,10 +550,10 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::create_cheque(
 
     if (nullptr != message) {
         event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
-        event.add_item(String(*message).Get());
+        event.set_transport(message->m_strNotaryID->Get());
         event.set_time(message->m_lTime);
         event.set_method(proto::TRANSPORTMETHOD_OT);
-        event.set_transport(String(message->m_strNotaryID).Get());
+        event.set_transport(message->m_strNotaryID->Get());
     } else {
         event.set_time(now());
 

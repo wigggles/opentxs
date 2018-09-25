@@ -247,7 +247,7 @@ std::int32_t Utility::getNymboxLowLevel(bool& bWasSent)
     switch (status) {
         case SendResult::VALID_REPLY: {
             bWasSent = true;
-            setLastReplyReceived(String(*reply).Get());
+            setLastReplyReceived(String::Factory(*reply)->Get());
 
             return nRequestNum;
         } break;
@@ -1368,7 +1368,7 @@ std::int32_t Utility::processNymbox(
 
     OT_ASSERT(reply)
 
-    const std::string strReplyProcess = String(*reply).Get();
+    const std::string strReplyProcess = String::Factory(*reply)->Get();
     std::int32_t nReplySuccess =
         VerifyMessageSuccess(strReplyProcess);  // sendProcessNymboxLowLevel;
     std::int32_t nTransSuccess = -1;
@@ -1428,7 +1428,7 @@ bool Utility::getBoxReceiptLowLevel(
     switch (status) {
         case SendResult::VALID_REPLY: {
             bWasSent = true;
-            setLastReplyReceived(String(*reply).Get());
+            setLastReplyReceived(String::Factory(*reply)->Get());
 
             return true;
         } break;
@@ -2288,7 +2288,7 @@ std::int32_t Utility::getInboxAccount(
         case SendResult::VALID_REPLY: {
             bWasSentAccount = true;
             bWasSentInbox = true;
-            setLastReplyReceived(String(*reply).Get());
+            setLastReplyReceived(String::Factory(*reply)->Get());
         } break;
         case SendResult::TIMEOUT: {
             otErr << OT_METHOD << __FUNCTION__
@@ -2306,8 +2306,8 @@ std::int32_t Utility::getInboxAccount(
         }
     }
 
-    const std::string notaryID = String(context_.Server()).Get();
-    const std::string nymID = String(context_.Nym()->ID()).Get();
+    const std::string notaryID = String::Factory(context_.Server())->Get();
+    const std::string nymID = String::Factory(context_.Nym()->ID())->Get();
 
     // DOWNLOAD THE BOX RECEIPTS.
     if (!insureHaveAllBoxReceipts(

@@ -549,9 +549,9 @@ proto::RPCResponse RPC::get_account_balance(
             auto& accountdata = *output.add_balance();
             accountdata.set_version(ACCOUNTDATA_VERSION);
             accountdata.set_id(id);
-            String name;
+            auto name = String::Factory();
             account.get().GetName(name);
-            accountdata.set_label(name.Get());
+            accountdata.set_label(name->Get());
             accountdata.set_unit(
                 account.get().GetInstrumentDefinitionID().str());
             accountdata.set_owner(

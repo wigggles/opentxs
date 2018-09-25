@@ -103,16 +103,17 @@ const String& OTPaths::AppBinaryFolder()
     return OTPaths::s_strAppBinaryFolder;
 }
 
-void OTPaths::SetAppBinaryFolder(String strLocation)
+void OTPaths::SetAppBinaryFolder(const String& strLocation)
 {
-    OTPaths::s_strAppBinaryFolder = strLocation;
+    //  OTPaths::s_strAppBinaryFolder = String::Factory(strLocation.Get());
+    OTPaths::s_strAppBinaryFolder->Set(strLocation);
 }
 
 const String& OTPaths::HomeFolder() { return OTPaths::s_strHomeFolder; }
 
-void OTPaths::SetHomeFolder(String strLocation)
+void OTPaths::SetHomeFolder(const String& strLocation)
 {
-    OTPaths::s_strHomeFolder = strLocation;
+    OTPaths::s_strHomeFolder->Set(strLocation);
 
     s_strAppDataFolder->Release();  // So it will be regenerated.
 

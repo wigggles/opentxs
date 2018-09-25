@@ -115,12 +115,13 @@ bool Transactor::addBasketAccountID(
         return false;
     }
 
-    String strBasketID(BASKET_ID), strBasketAcctID(BASKET_ACCOUNT_ID),
-        strBasketContractID(BASKET_CONTRACT_ID);
+    auto strBasketID = String::Factory(BASKET_ID),
+         strBasketAcctID = String::Factory(BASKET_ACCOUNT_ID),
+         strBasketContractID = String::Factory(BASKET_CONTRACT_ID);
 
-    idToBasketMap_[strBasketID.Get()] = strBasketAcctID.Get();
-    contractIdToBasketAccountId_[strBasketContractID.Get()] =
-        strBasketAcctID.Get();
+    idToBasketMap_[strBasketID->Get()] = strBasketAcctID->Get();
+    contractIdToBasketAccountId_[strBasketContractID->Get()] =
+        strBasketAcctID->Get();
 
     return true;
 }
@@ -136,8 +137,8 @@ bool Transactor::lookupBasketAccountIDByContractID(
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
     for (auto& it : contractIdToBasketAccountId_) {
-        String strBasketContractID = it.first.c_str();
-        String strBasketAcctID = it.second.c_str();
+        auto strBasketContractID = String::Factory(it.first.c_str());
+        auto strBasketAcctID = String::Factory(it.second.c_str());
 
         auto id_BASKET_CONTRACT = Identifier::Factory(strBasketContractID),
              id_BASKET_ACCT = Identifier::Factory(strBasketAcctID);
@@ -164,8 +165,8 @@ bool Transactor::lookupBasketContractIDByAccountID(
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
     for (auto& it : contractIdToBasketAccountId_) {
-        String strBasketContractID = it.first.c_str();
-        String strBasketAcctID = it.second.c_str();
+        auto strBasketContractID = String::Factory(it.first.c_str());
+        auto strBasketAcctID = String::Factory(it.second.c_str());
 
         auto id_BASKET_CONTRACT = Identifier::Factory(strBasketContractID),
              id_BASKET_ACCT = Identifier::Factory(strBasketAcctID);
@@ -192,8 +193,8 @@ bool Transactor::lookupBasketAccountID(
     // Server stores a map of BASKET_ID to BASKET_ACCOUNT_ID. Let's iterate
     // through that map...
     for (auto& it : idToBasketMap_) {
-        String strBasketID = it.first.c_str();
-        String strBasketAcctID = it.second.c_str();
+        auto strBasketID = String::Factory(it.first.c_str());
+        auto strBasketAcctID = String::Factory(it.second.c_str());
 
         auto id_BASKET = Identifier::Factory(strBasketID),
              id_BASKET_ACCT = Identifier::Factory(strBasketAcctID);
@@ -226,9 +227,10 @@ ExclusiveAccount Transactor::getVoucherAccount(
         NOTARY_ID,
         bWasAcctCreated);
     if (bWasAcctCreated) {
-        String strAcctID;
+        auto strAcctID = String::Factory();
         pAccount.get().GetIdentifier(strAcctID);
-        const String strInstrumentDefinitionID(INSTRUMENT_DEFINITION_ID);
+        const auto strInstrumentDefinitionID =
+            String::Factory(INSTRUMENT_DEFINITION_ID);
         otOut << "Server::GetVoucherAccount: Successfully created "
               << "voucher account ID: " << strAcctID
               << " Instrument Definition ID: " << strInstrumentDefinitionID

@@ -48,14 +48,15 @@ bool Armored::LoadFromString(
     std::string str_bookend)
 {
 
-    if (strInput.Contains(String(str_bookend)))  // YES there are bookends
-                                                 // around this.
+    if (strInput.Contains(String::Factory(str_bookend)))  // YES there are
+                                                          // bookends around
+                                                          // this.
     {
         const std::string str_escaped("- " + str_bookend);
 
-        const bool bEscaped = strInput.Contains(String(str_escaped));
+        const bool bEscaped = strInput.Contains(String::Factory(str_escaped));
 
-        String strLoadFrom(strInput);
+        auto strLoadFrom = String::Factory(strInput.Get());
 
         if (!ascArmor.LoadFromString(strLoadFrom, bEscaped))  // removes the
                                                               // bookends so we
@@ -288,8 +289,8 @@ bool Armored::LoadFrom_ifstream(std::ifstream& fin)
 
     std::string contents(buffer.str());
 
-    String theString;
-    theString.Set(contents.c_str());
+    auto theString = String::Factory();
+    theString->Set(contents.c_str());
 
     return LoadFromString(theString);
 }
@@ -451,10 +452,10 @@ bool Armored::SetData(const Data& theData, bool bLineBreaks)
 
 bool Armored::SaveTo_ofstream(std::ofstream& fout)
 {
-    String strOutput;
+    auto strOutput = String::Factory();
     std::string str_type("DATA");  // -----BEGIN OT ARMORED DATA-----
 
-    if (WriteArmoredString(strOutput, str_type) && strOutput.Exists()) {
+    if (WriteArmoredString(strOutput, str_type) && strOutput->Exists()) {
         // WRITE IT TO THE FILE
         //
         fout << strOutput;
@@ -525,8 +526,8 @@ bool Armored::WriteArmoredString(
 {
     const char* szEscape = "- ";
 
-    String strTemp;
-    strTemp.Format(
+    auto strTemp = String::Factory();
+    strTemp->Format(
         "%s%s %s-----\n"  // "%s-----BEGIN OT ARMORED %s-----\n"
         "Version: Open Transactions %s\n"
         "Comment: "
@@ -546,7 +547,7 @@ bool Armored::WriteArmoredString(
         OT_END_ARMORED,
         str_type.c_str());  // "%s%s %s-----\n"
 
-    strOutput.Concatenate("%s", strTemp.Get());
+    strOutput.Concatenate("%s", strTemp->Get());
 
     return true;
 }

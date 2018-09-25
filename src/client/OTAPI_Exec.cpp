@@ -4079,11 +4079,12 @@ std::string OTAPI_Exec::ProposePaymentPlan(
         // (Customer acct is unknown until confirmation by customer.)
         angelSenderAcctId.get(),
         Identifier::Factory(SENDER_NYM_ID),
-        PLAN_CONSIDERATION.empty() ? "(Consideration for the agreement between "
-                                     "the parties is meant to be recorded "
-                                     "here.)"
-                                   // Like a memo.
-                                   : String(PLAN_CONSIDERATION),
+        PLAN_CONSIDERATION.empty()
+            ? String::Factory("(Consideration for the agreement between "
+                              "the parties is meant to be recorded "
+                              "here.)")
+            // Like a memo.
+            : String::Factory(PLAN_CONSIDERATION),
         Identifier::Factory(RECIPIENT_ACCT_ID),
         Identifier::Factory(RECIPIENT_NYM_ID),
         static_cast<std::int64_t>(INITIAL_PAYMENT_AMOUNT),

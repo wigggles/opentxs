@@ -48,7 +48,7 @@ ReplyMessage::ReplyMessage(
     message_.m_strRequestNum->Set(original_.m_strRequestNum);
     message_.m_strNotaryID->Set(original_.m_strNotaryID);
     message_.m_strNymID = original_.m_strNymID;
-    message_.m_strCommand = Message::ReplyCommand(type).c_str();
+    message_.m_strCommand->Set(Message::ReplyCommand(type).c_str());
     message_.m_bSuccess = false;
     attach_request();
     init_ = init();

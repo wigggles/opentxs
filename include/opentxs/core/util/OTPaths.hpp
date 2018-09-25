@@ -46,7 +46,7 @@ public:
                                                     // since it's sandboxed.
                                                     // (Don't want to put
                                                     // scripts in data folder.)
-    EXPORT static void SetAppBinaryFolder(String strLocation);  // Note:
+    EXPORT static void SetAppBinaryFolder(const String& strLocation);  // Note:
                                                                 // Android
                                                                 // should set
                                                                 // this as the
@@ -57,7 +57,7 @@ public:
                                                // since it's sandboxed. Android
                                                // will provide its own data
                                                // folder here.
-    EXPORT static void SetHomeFolder(String strLocation);  // The AppDataFolder
+    EXPORT static void SetHomeFolder(const String& strLocation);  // The AppDataFolder
                                                            // (below) will be
                                                            // created from this
                                                            // folder, plus .ot

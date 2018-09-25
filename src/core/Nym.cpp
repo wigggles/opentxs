@@ -69,8 +69,8 @@ Nym::Nym(
     , alias_()
     , revision_(1)
     , mode_(mode)
-    , m_strVersion(NYMFILE_VERSION)
-    , m_strDescription("")
+    , m_strVersion(String::Factory(NYMFILE_VERSION))
+    , m_strDescription(String::Factory())
     , m_nymID(Identifier::Factory(nymID))
     , source_(nullptr)
     , contact_data_(nullptr)
@@ -335,10 +335,10 @@ std::shared_ptr<const proto::Credential> Nym::ChildCredentialContents(
     sLock lock(shared_lock_);
 
     std::shared_ptr<const proto::Credential> output;
-    auto credential = MasterCredential(String(masterID));
+    auto credential = MasterCredential(String::Factory(masterID));
 
     if (nullptr != credential) {
-        output = credential->GetChildCredential(String(childID))
+        output = credential->GetChildCredential(String::Factory(childID))
                      ->Serialized(AS_PUBLIC, WITH_SIGNATURES);
     }
 
@@ -465,8 +465,8 @@ void Nym::DisplayStatistics(String& strOutput) const
     strOutput.Concatenate("%s", "\n");
     strOutput.Concatenate("==>      Name: %s\n", Alias().c_str());
     strOutput.Concatenate("      Version: %s\n", m_strVersion->Get());
-    String theStringID(ID());
-    strOutput.Concatenate("Nym ID: %s\n", theStringID.Get());
+    auto theStringID = String::Factory(ID());
+    strOutput.Concatenate("Nym ID: %s\n", theStringID->Get());
 }
 
 std::string Nym::EmailAddresses(bool active) const
@@ -592,9 +592,9 @@ void Nym::GetPrivateCredentials(String& strCredList, String::Map* pmapCredFiles)
 
     tag.add_attribute("version", m_strVersion->Get());
 
-    String strNymID(m_nymID);
+    auto strNymID = String::Factory(m_nymID);
 
-    tag.add_attribute("nymID", strNymID.Get());
+    tag.add_attribute("nymID", strNymID->Get());
 
     SerializeNymIDSource(tag);
 
@@ -857,7 +857,9 @@ void Nym::init_claims(const eLock& lock) const
 {
     OT_ASSERT(verify_lock(lock));
 
-    const std::string nymID = String(m_nymID).Get();
+    const auto nymID{m_nymID->str()};
+    // const std::string nymID = String::Factory(m_nymID)->Get();
+
     contact_data_.reset(new class ContactData(
         nymID,
         NYM_CONTACT_DATA_VERSION,
@@ -968,10 +970,10 @@ bool Nym::load_credentials(
 {
     clear_credentials(lock);
 
-    String strNymID(m_nymID);
+    auto strNymID = String::Factory(m_nymID);
     std::shared_ptr<proto::CredentialIndex> index;
 
-    if (api_.Storage().Load(strNymID.Get(), index)) {
+    if (api_.Storage().Load(strNymID->Get(), index)) {
         return load_credential_index(lock, *index);
     } else {
         otErr << __FUNCTION__
@@ -1013,7 +1015,8 @@ std::shared_ptr<const proto::Credential> Nym::MasterCredentialContents(
     eLock lock(shared_lock_);
 
     std::shared_ptr<const proto::Credential> output;
-    auto credential = MasterCredential(String(id));
+    auto temp = String::Factory(id);
+    auto credential = MasterCredential(temp);
 
     if (nullptr != credential) {
         output = credential->GetMasterCredential().Serialized(
@@ -1108,7 +1111,7 @@ bool Nym::ReEncryptPrivateCredentials(
         // WALLET
         // portion of that process.
         //
-        String strDisplay(
+        auto strDisplay = String::Factory(
             nullptr != pPWData
                 ? pPWData->GetDisplayString()
                 : (bImporting ? "Enter passphrase for the Nym being imported."
@@ -1236,19 +1239,20 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
 {
     sLock lock(shared_lock_);
 
-    String nymID(m_nymID);
+    auto nymID = String::Factory(m_nymID);
 
     // Name is in the clear in memory,
     // and base64 in storage.
     Armored ascName;
     if (!alias_.empty()) {
-        ascName.SetString(String(alias_), false);  // linebreaks == false
+        auto temp = String::Factory(alias_);
+        ascName.SetString(temp, false);  // linebreaks == false
     }
 
     TagPtr pTag(new Tag("pseudonym"));
 
     pTag->add_attribute("name", !alias_.empty() ? ascName.Get() : "");
-    pTag->add_attribute("nymID", nymID.Get());
+    pTag->add_attribute("nymID", nymID->Get());
 
     parent.add_tag(pTag);
 
@@ -1263,8 +1267,8 @@ serializedCredentialIndex Nym::SerializeCredentialIndex(
     serializedCredentialIndex index;
 
     index.set_version(version_);
-    String nymID(m_nymID);
-    index.set_nymid(nymID.Get());
+    auto nymID = String::Factory(m_nymID);
+    index.set_nymid(nymID->Get());
 
     if (CREDENTIAL_INDEX_MODE_ONLY_IDS == mode) {
         index.set_mode(mode_);
