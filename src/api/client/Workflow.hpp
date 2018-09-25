@@ -69,6 +69,7 @@ private:
     const Activity& activity_;
     const Contacts& contact_;
     const OTZMQPublishSocket account_publisher_;
+    const OTZMQPushSocket rpc_publisher_;
 
     static bool can_accept_cheque(const proto::PaymentWorkflow& workflow);
     static bool can_cancel_cheque(const proto::PaymentWorkflow& workflow);
@@ -78,6 +79,7 @@ private:
         const opentxs::Cheque& cheque,
         const proto::PaymentWorkflow& workflow);
     static bool can_finish_cheque(const proto::PaymentWorkflow& workflow);
+    static bool cheque_deposit_success(const Message* message);
     static std::chrono::time_point<std::chrono::system_clock>
     extract_conveyed_time(const proto::PaymentWorkflow& workflow);
     static bool isCheque(const opentxs::Cheque& cheque);
@@ -104,7 +106,9 @@ private:
         const proto::PaymentEventType newEventType,
         const std::uint32_t version,
         const Identifier& recipientNymID,
-        const OTTransaction& receipt) const;
+        const OTTransaction& receipt,
+        const std::chrono::time_point<std::chrono::system_clock> time =
+            std::chrono::system_clock::from_time_t(now())) const;
     std::pair<OTIdentifier, proto::PaymentWorkflow> create_cheque(
         const eLock& lock,
         const std::string& nymID,
@@ -153,6 +157,16 @@ private:
         const Identifier& workflowID,
         const StorageBox type,
         std::chrono::time_point<std::chrono::system_clock> time) const;
+    void update_rpc(
+        const std::string& localNymID,
+        const std::string& remoteNymID,
+        const std::string& accountID,
+        const proto::AccountEventType type,
+        const TransactionNumber number,
+        const Amount amount,
+        const Amount pending,
+        const std::chrono::time_point<std::chrono::system_clock> time,
+        const std::string& memo) const;
 
     Workflow(
         const api::Core& api,

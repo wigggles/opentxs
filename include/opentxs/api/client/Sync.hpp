@@ -120,6 +120,10 @@ public:
     EXPORT virtual OTIdentifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual OTIdentifier ScheduleIssueUnitDefinition(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& unitID) const = 0;
     EXPORT virtual OTIdentifier ScheduleProcessInbox(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -135,6 +139,15 @@ public:
     EXPORT virtual OTIdentifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;
+    EXPORT virtual OTIdentifier ScheduleSendCheque(
+        const Identifier& localNymID,
+        const Identifier& sourceAccountID,
+        const Identifier& recipientContactID,
+        const Amount value,
+        const std::string& memo,
+        const Time validFrom = Clock::now(),
+        const Time validTo =
+            (Clock::now() + std::chrono::hours(OT_CHEQUE_HOURS))) const = 0;
     EXPORT virtual OTIdentifier SendCheque(
         const Identifier& localNymID,
         const Identifier& sourceAccountID,

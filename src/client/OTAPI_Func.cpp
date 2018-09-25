@@ -167,7 +167,6 @@ OTAPI_Func::OTAPI_Func(
     , cheque_(nullptr)
     , ledger_(nullptr)
     , payment_(nullptr)
-    , agentName_("")
     , clause_("")
     , key_("")
     , login_("")
@@ -184,7 +183,9 @@ OTAPI_Func::OTAPI_Func(
     , direction_(false)
     , isPrimary_(false)
     , selling_(false)
+#if OT_CASH
     , cash_(false)
+#endif
     , resync_(false)
     , lifetime_(OT_TIME_ZERO)
     , nRequestNum_(-1)
@@ -205,12 +206,11 @@ OTAPI_Func::OTAPI_Func(
     , increment_(0)
     , quantity_(0)
     , price_(0)
-    , scale_(0)
     , remoteBoxType_(RemoteBoxType::Error)
+#if OT_CASH
     , transactionNumber_(0)  // This is not what gets returned by
-                             // GetTransactionNumber.
+#endif
     , infoType_(proto::CONNECTIONINFO_ERROR)
-    , secretType_(proto::SECRETTYPE_ERROR)
     , unitDefinition_()
 {
     OT_ASSERT(verify_lock(api_lock_, apiLock));
@@ -446,7 +446,6 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 #endif
-
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
@@ -909,7 +908,6 @@ OTAPI_Func::OTAPI_Func(
     }
 }
 #endif
-
 OTAPI_Func::OTAPI_Func(
     OTAPI_Func_Type theType,
     std::recursive_mutex& apilock,
@@ -1239,7 +1237,6 @@ void OTAPI_Func::run()
 #if OT_CASH
             }
 #endif
-
             if (request_ && payment->IsCheque()) {
                 bool workflowUpdated{false};
                 auto cheque{api_.Factory().Cheque()};

@@ -379,7 +379,9 @@ private:
     bool direction_{false};
     bool isPrimary_{false};
     bool selling_{false};
+#if OT_CASH
     bool cash_{false};
+#endif
     bool resync_{false};
     time64_t lifetime_{OT_TIME_ZERO};
     std::int32_t nRequestNum_{-1};

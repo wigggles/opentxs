@@ -119,6 +119,10 @@ public:
     OTIdentifier ScheduleDownloadNymbox(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
+    OTIdentifier ScheduleIssueUnitDefinition(
+        const Identifier& localNymID,
+        const Identifier& serverID,
+        const Identifier& unitID) const override;
     OTIdentifier ScheduleProcessInbox(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -156,6 +160,14 @@ public:
         const Identifier& targetAccountID,
         const Amount value,
         const std::string& memo) const override;
+    OTIdentifier ScheduleSendCheque(
+        const Identifier& localNymID,
+        const Identifier& sourceAccountID,
+        const Identifier& recipientContactID,
+        const Amount value,
+        const std::string& memo,
+        const Time validFrom,
+        const Time validTo) const override;
     void StartIntroductionServer(const Identifier& localNymID) const override;
     ThreadStatus Status(const Identifier& taskID) const override;
 
@@ -187,6 +199,11 @@ private:
      */
     using SendTransferTask =
         std::tuple<OTIdentifier, OTIdentifier, uint64_t, std::string>;
+    /** SendChequeTask: sourceAccountID, targetNymID, value, memo, validFrom,
+     * validTo
+     */
+    using SendChequeTask =
+        std::tuple<OTIdentifier, OTIdentifier, Amount, std::string, Time, Time>;
 
     struct OperationQueue {
         UniqueQueue<OTIdentifier> check_nym_;
@@ -194,6 +211,7 @@ private:
         UniqueQueue<OTIdentifier> download_account_;
         UniqueQueue<OTIdentifier> download_contract_;
         UniqueQueue<bool> download_nymbox_;
+        UniqueQueue<OTIdentifier> issue_unit_definition_;
         UniqueQueue<OTIdentifier> register_account_;
         UniqueQueue<bool> register_nym_;
         UniqueQueue<MessageTask> send_message_;
@@ -204,6 +222,7 @@ private:
         UniqueQueue<SendTransferTask> send_transfer_;
         UniqueQueue<OTIdentifier> publish_server_contract_;
         UniqueQueue<OTIdentifier> process_inbox_;
+        UniqueQueue<SendChequeTask> send_cheque_;
     };
 
     ContextLockCallback lock_callback_;
@@ -306,6 +325,11 @@ private:
     UniqueQueue<OTIdentifier>& get_nym_fetch(const Identifier& serverID) const;
     OperationQueue& get_operations(const ContextID& id) const;
     OTIdentifier import_default_introduction_server(const Lock& lock) const;
+    bool issue_unit_definition(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& unitID) const;
     void load_introduction_server(const Lock& lock) const;
     bool message_nym(
         const Identifier& taskID,
@@ -396,6 +420,16 @@ private:
         const OTPayment& payment,
         const Identifier& specifiedNymID,
         const Identifier& recipient) const;
+    bool write_and_send_cheque(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const Identifier& accountID,
+        const Identifier& targetNymID,
+        const Amount value,
+        const std::string& memo,
+        const Time validFrom,
+        const Time validTo) const;
 
     Sync(
         const Flag& running,
