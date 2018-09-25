@@ -111,7 +111,7 @@ public:
         const auto& outValue = queue_.back().second;
         set_.erase(outValue);
         out = outValue;
-        key->SetString(String(outKey));
+        key->SetString(String::Factory(outKey));
         queue_.pop_back();
 
         OT_ASSERT(set_.size() == queue_.size())

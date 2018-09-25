@@ -717,8 +717,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
             {
                 // NOTE: This may always fail,
 
-                otLog3 << strLocation
-                       << ": FYI: Calling OT_API_GetSentMessage...\n";
+                LogDebug(OT_METHOD)(__FUNCTION__)(
+                    ": FYI: Calling OT_API_GetSentMessage...")
+                    .Flush();
 
                 std::string strSentMsg = SwigWrap::GetSentMessage(
                     std::int64_t(nRequestNumber), notaryID, nymID);
@@ -1100,8 +1101,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
 
                     // HARVEST the processNymbox message from outgoing messages.
 
-                    otLog3 << strLocation
-                           << ": FYI: Calling OT_API_GetSentMessage...\n";
+                    LogDebug(OT_METHOD)(__FUNCTION__)(
+                        ": FYI: Calling OT_API_GetSentMessage...")
+                        .Flush();
 
                     std::string strSentProcessNymboxMsg =
                         SwigWrap::GetSentMessage(

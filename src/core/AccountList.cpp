@@ -186,10 +186,11 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
         account = api_.Wallet().mutable_Account(Identifier::Factory(accountID));
 
         if (account) {
-            otLog3 << OT_METHOD << __FUNCTION__ << "Successfully loaded "
-                   << acctTypeString << " account ID: " << accountID
-                   << " Instrument Definition ID: "
-                   << instrumentDefinitionID.str() << std::endl;
+
+            LogDebug(OT_METHOD)(__FUNCTION__)(": Successfully loaded ")(
+                acctTypeString)(" account ID: ")(accountID)("Unit Type ID:: ")(
+                instrumentDefinitionID.str())
+                .Flush();
 
             return account;
         }

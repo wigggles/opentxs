@@ -32,6 +32,10 @@
 
 #include "Dht.hpp"
 
+#if OT_DHT
+#define OT_METHOD "opentxs::Dht"
+#endif
+
 namespace zmq = opentxs::network::zeromq;
 
 namespace opentxs
@@ -49,59 +53,63 @@ api::network::Dht* Factory::Dht(
     DhtConfig config;
     bool notUsed;
     api.Config().CheckSet_bool(
-        "OpenDHT", "enable_dht", defaultEnable, config.enable_dht_, notUsed);
+        String::Factory("OpenDHT"),
+        String::Factory("enable_dht"),
+        defaultEnable,
+        config.enable_dht_,
+        notUsed);
     api.Config().CheckSet_long(
-        "OpenDHT",
-        "nym_publish_interval",
+        String::Factory("OpenDHT"),
+        String::Factory("nym_publish_interval"),
         config.nym_publish_interval_,
         nymPublishInterval,
         notUsed);
     api.Config().CheckSet_long(
-        "OpenDHT",
-        "nym_refresh_interval",
+        String::Factory("OpenDHT"),
+        String::Factory("nym_refresh_interval"),
         config.nym_refresh_interval_,
         nymRefreshInterval,
         notUsed);
     api.Config().CheckSet_long(
-        "OpenDHT",
-        "server_publish_interval",
+        String::Factory("OpenDHT"),
+        String::Factory("server_publish_interval"),
         config.server_publish_interval_,
         serverPublishInterval,
         notUsed);
     api.Config().CheckSet_long(
-        "OpenDHT",
-        "server_refresh_interval",
+        String::Factory("OpenDHT"),
+        String::Factory("server_refresh_interval"),
         config.server_refresh_interval_,
         serverRefreshInterval,
         notUsed);
     api.Config().CheckSet_long(
-        "OpenDHT",
-        "unit_publish_interval",
+        String::Factory("OpenDHT"),
+        String::Factory("unit_publish_interval"),
         config.unit_publish_interval_,
         unitPublishInterval,
         notUsed);
     api.Config().CheckSet_long(
-        "OpenDHT",
-        "unit_refresh_interval",
+        String::Factory("OpenDHT"),
+        String::Factory("unit_refresh_interval"),
         config.unit_refresh_interval_,
         unitRefreshInterval,
         notUsed);
     api.Config().CheckSet_long(
-        "OpenDHT",
-        "listen_port",
+        String::Factory("OpenDHT"),
+        String::Factory("listen_port"),
         config.default_port_,
         config.listen_port_,
         notUsed);
     api.Config().CheckSet_str(
-        "OpenDHT",
-        "bootstrap_url",
-        String(config.bootstrap_url_),
+        String::Factory("OpenDHT"),
+        String::Factory("bootstrap_url"),
+        String::Factory(config.bootstrap_url_),
         config.bootstrap_url_,
         notUsed);
     api.Config().CheckSet_str(
-        "OpenDHT",
-        "bootstrap_port",
-        String(config.bootstrap_port_),
+        String::Factory("OpenDHT"),
+        String::Factory("bootstrap_port"),
+        String::Factory(config.bootstrap_port_),
         config.bootstrap_port_,
         notUsed);
 
@@ -295,7 +303,8 @@ bool Dht::ProcessPublicNym(
         if (!saved) { continue; }
 
         foundValid = true;
-        otLog3 << "Saved nym: " << key << std::endl;
+
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Saved nym: ")(key).Flush();
 
         if (notifyCB) { notifyCB(key); }
     }
@@ -341,7 +350,7 @@ bool Dht::ProcessServerContract(
 
         if (!saved) { continue; }
 
-        otLog3 << "Saved contract: " << key << std::endl;
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Saved contract: ")(key).Flush();
         foundValid = true;
 
         if (notifyCB) { notifyCB(key); }
@@ -390,7 +399,8 @@ bool Dht::ProcessUnitDefinition(
 
         if (!saved) { continue; }
 
-        otLog3 << "Saved unit definition: " << key << std::endl;
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Saved unit definition: ")(key)
+            .Flush();
         foundValid = true;
 
         if (notifyCB) { notifyCB(key); }

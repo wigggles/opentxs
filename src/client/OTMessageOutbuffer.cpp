@@ -114,11 +114,12 @@ void OTMessageOutbuffer::AddSentMessage(std::shared_ptr<Message> theMessage)
     auto strFolderPath = String::Factory(), strFolder1Path = String::Factory(),
          strFolder2Path = String::Factory();
 
-    OTPaths::AppendFolder(strFolderPath, api_.DataFolder().c_str(), strFolder);
     OTPaths::AppendFolder(
-        strFolder1Path, api_.DataFolder().c_str(), strFolder1);
+        strFolderPath, String::Factory(api_.DataFolder().c_str()), strFolder);
     OTPaths::AppendFolder(
-        strFolder2Path, api_.DataFolder().c_str(), strFolder2);
+        strFolder1Path, String::Factory(api_.DataFolder().c_str()), strFolder1);
+    OTPaths::AppendFolder(
+        strFolder2Path, String::Factory(api_.DataFolder().c_str()), strFolder2);
 
     OTPaths::ConfirmCreateFolder(strFolderPath, bAlreadyExists, bIsNewFolder);
     OTPaths::ConfirmCreateFolder(strFolder1Path, bAlreadyExists, bIsNewFolder);

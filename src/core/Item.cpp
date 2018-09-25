@@ -422,10 +422,11 @@ bool Item::VerifyBalanceStatement(
             (pSubItem->GetTransactionNum() == 1))  // TODO use a constant for
                                                    // this 1.
         {
-            otLog3 << "Item::" << __FUNCTION__
-                   << ": Subitem is new Outbox Transaction... retrieving by "
-                      "special ID: "
-                   << outboxNum << "\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(
+                " : Subitem is new Outbox Transaction... "
+                " retrieving by special ID: ")(outboxNum)
+                .Flush();
+
             pTransaction = pLedger->GetTransaction(outboxNum);
         } else {
             LogTrace(OT_METHOD)(__FUNCTION__)(
@@ -1416,10 +1417,11 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_lAmount = String::StringToLong(xml->getAttributeValue("amount"));
 
-        otLog3 << "Loaded transaction Item, transaction num "
-               << GetTransactionNum()
-               << ", In Reference To: " << GetReferenceToNum()
-               << ", type: " << strType << ", status: " << strStatus << "\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": Loaded transaction Item, transaction num ")(GetTransactionNum())(
+            ", In Reference To: ")(GetReferenceToNum())(", type: ")(strType)(
+            ", status: ")(strStatus)
+            .Flush();
         //                "fromAccountID:\n%s\n NymID:\n%s\n toAccountID:\n%s\n
         // notaryID:\n%s\n----------\n",
         //                strAcctFromID.Get(), strNymID.Get(),
@@ -1533,10 +1535,11 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             AddItem(pItem);  // <======= adding to list.
 
-            otLog3 << "Loaded transactionReport Item, transaction num "
-                   << pItem->GetTransactionNum()
-                   << ", In Reference To: " << pItem->GetReferenceToNum()
-                   << ", type: " << strType << "\n";
+            LogDebug(OT_METHOD)(__FUNCTION__)(
+                ": Loaded transactionReport Item, transaction num ")(
+                pItem->GetTransactionNum())(", In Reference To: ")(
+                pItem->GetReferenceToNum())(", type: ")(strType)
+                .Flush();
             //                         "fromAccountID:\n%s\n NymID:\n%s\n
             // toAccountID:\n%s\n notaryID:\n%s\n----------\n",
             //                         strAcctFromID.Get(), strNymID.Get(),

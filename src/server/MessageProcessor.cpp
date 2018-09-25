@@ -303,11 +303,11 @@ bool MessageProcessor::process_message(
 
     Armored armored;
     armored.MemSet(messageString.data(), messageString.size());
-    String serialized;
+    auto serialized = String::Factory();
     armored.GetString(serialized);
     auto request{server_.API().Factory().Message()};
 
-    if (false == serialized.Exists()) {
+    if (false == serialized->Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Empty serialized request."
               << std::endl;
 
@@ -332,16 +332,16 @@ bool MessageProcessor::process_message(
         otWarn << OT_METHOD << __FUNCTION__
                << ": Failed to process user command " << request->m_strCommand
                << std::endl;
-        otInfo << String(*request) << std::endl;
+        otInfo << String::Factory(*request) << std::endl;
     } else {
         otWarn << OT_METHOD << __FUNCTION__
                << ": Successfully processed user command "
                << request->m_strCommand << std::endl;
     }
 
-    String serializedReply(*replymsg);
+    auto serializedReply = String::Factory(*replymsg);
 
-    if (false == serializedReply.Exists()) {
+    if (false == serializedReply->Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to serialize reply."
               << std::endl;
 

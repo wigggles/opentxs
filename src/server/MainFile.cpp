@@ -76,8 +76,8 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
     // Save the basket account information
 
     for (auto& it : server_.GetTransactor().idToBasketMap_) {
-        String strBasketID = it.first.c_str();
-        String strBasketAcctID = it.second.c_str();
+        auto strBasketID = String::Factory(it.first.c_str());
+        auto strBasketAcctID = String::Factory(it.second.c_str());
 
         const auto BASKET_ACCOUNT_ID = Identifier::Factory(strBasketAcctID);
         auto BASKET_CONTRACT_ID = Identifier::Factory();
@@ -89,17 +89,17 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
         if (!bContractID) {
             otErr << __FUNCTION__
                   << ": Error: Missing Contract ID for basket ID "
-                  << strBasketID.Get() << "\n";
+                  << strBasketID->Get() << "\n";
             break;
         }
 
-        String strBasketContractID(BASKET_CONTRACT_ID);
+        auto strBasketContractID = String::Factory((BASKET_CONTRACT_ID));
 
         TagPtr pTag(new Tag("basketInfo"));
 
-        pTag->add_attribute("basketID", strBasketID.Get());
-        pTag->add_attribute("basketAcctID", strBasketAcctID.Get());
-        pTag->add_attribute("basketContractID", strBasketContractID.Get());
+        pTag->add_attribute("basketID", strBasketID->Get());
+        pTag->add_attribute("basketAcctID", strBasketAcctID->Get());
+        pTag->add_attribute("basketContractID", strBasketContractID->Get());
 
         tag.add_tag(pTag);
     }
@@ -122,7 +122,7 @@ bool MainFile::SaveMainFile()
 {
     // Get the loaded (or new) version of the Server's Main File.
     //
-    String strMainFile;
+    auto strMainFile = String::Factory();
 
     if (!SaveMainFileToString(strMainFile)) {
         otErr << __FUNCTION__
@@ -131,7 +131,7 @@ bool MainFile::SaveMainFile()
     }
     // Try to save the notary server's main datafile to local storage...
     //
-    String strFinal;
+    auto strFinal = String::Factory();
     Armored ascTemp(strMainFile);
 
     if (false == ascTemp.WriteArmoredString(strFinal, "NOTARY"))  // todo
@@ -145,7 +145,7 @@ bool MainFile::SaveMainFile()
     // being used).
     //
     const bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(),
+        strFinal->Get(),
         server_.API().DataFolder(),
         ".",
         server_.WalletFilename().Get(),
@@ -207,15 +207,15 @@ bool MainFile::CreateMainFile(
 
     std::int64_t lTransNum = 5;  // a starting point, for the new server.
 
-    String strNotaryFile;
-    strNotaryFile.Format(
+    auto strNotaryFile = String::Factory();
+    strNotaryFile->Format(
         szBlankFile,
         strNotaryID.c_str(),
         strNymID.c_str(),
         lTransNum,
         strCachedKey.c_str());
 
-    std::string str_Notary(strNotaryFile.Get());
+    std::string str_Notary(strNotaryFile->Get());
 
     if (!OTDB::StorePlainString(
             str_Notary,
@@ -275,7 +275,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
               << "\n";
         return false;
     }
-    String strFileContents(OTDB::QueryPlainString(
+    auto strFileContents = String::Factory(OTDB::QueryPlainString(
         server_.API().DataFolder(),
         ".",
         server_.WalletFilename().Get(),
@@ -283,7 +283,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         ""));  // <=== LOADING FROM
                // DATA STORE.
 
-    if (!strFileContents.Exists()) {
+    if (!strFileContents->Exists()) {
         otErr << __FUNCTION__ << ": Unable to read main file: "
               << server_.WalletFilename().Get() << "\n";
         return false;
@@ -301,7 +301,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                   << ": Notary server file apparently was encoded and "
                      "then failed decoding. Filename: "
                   << server_.WalletFilename().Get() << "\nContents: \n"
-                  << strFileContents.Get() << "\n";
+                  << strFileContents->Get() << "\n";
             return false;
         }
 
@@ -311,29 +311,30 @@ bool MainFile::LoadMainFile(bool bReadOnly)
 
         while (xml && xml->read()) {
             // strings for storing the data that we want to read out of the file
-            String AssetName;
-            String InstrumentDefinitionID;
-            const String strNodeName(xml->getNodeName());
+            auto AssetName = String::Factory();
+            auto InstrumentDefinitionID = String::Factory();
+            const auto strNodeName = String::Factory(xml->getNodeName());
 
             switch (xml->getNodeType()) {
                 case irr::io::EXN_TEXT:
                     break;
                 case irr::io::EXN_ELEMENT: {
-                    if (strNodeName.Compare("notaryServer")) {
+                    if (strNodeName->Compare("notaryServer")) {
                         version_ = xml->getAttributeValue("version");
-                        server_.SetNotaryID(Identifier::Factory(
-                            String(xml->getAttributeValue("notaryID"))));
+                        server_.SetNotaryID(Identifier::Factory(String::Factory(
+                            xml->getAttributeValue("notaryID"))));
                         server_.SetServerNymID(
                             xml->getAttributeValue("serverNymID"));
 
-                        String strTransactionNumber;  // The server issues
-                                                      // transaction numbers and
-                                                      // stores the counter here
-                                                      // for the latest one.
-                        strTransactionNumber =
-                            xml->getAttributeValue("transactionNum");
+                        auto strTransactionNumber =
+                            String::Factory();  // The server issues
+                                                // transaction numbers and
+                                                // stores the counter here
+                                                // for the latest one.
+                        strTransactionNumber = String::Factory(
+                            xml->getAttributeValue("transactionNum"));
                         server_.GetTransactor().transactionNumber(
-                            strTransactionNumber.ToLong());
+                            strTransactionNumber->ToLong());
                         otOut << "\nLoading Open Transactions server. "
                               << "File version: " << version_
                               << "\nLast Issued Transaction Number: "
@@ -341,7 +342,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                               << "\nNotary ID:     "
                               << server_.GetServerID().str()
                               << "\nServer Nym ID: " << server_.ServerNymID();
-                    } else if (strNodeName.Compare("cachedKey")) {
+                    } else if (strNodeName->Compare("cachedKey")) {
                         Armored ascCachedKey;
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
@@ -365,23 +366,24 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                               << ascCachedKey.Get() << "\n";
                     }
                     // the voucher reserve account IDs.
-                    else if (strNodeName.Compare("accountList")) {
-                        const String strAcctType =
-                            xml->getAttributeValue("type");
-                        const String strAcctCount =
-                            xml->getAttributeValue("count");
+                    else if (strNodeName->Compare("accountList")) {
+                        const auto strAcctType =
+                            String::Factory(xml->getAttributeValue("type"));
+                        const auto strAcctCount =
+                            String::Factory(xml->getAttributeValue("count"));
 
                         if ((-1) == server_.GetTransactor()
                                         .voucherAccounts_.ReadFromXMLNode(
                                             xml, strAcctType, strAcctCount))
                             otErr << __FUNCTION__
                                   << ": Error loading voucher accountList.\n";
-                    } else if (strNodeName.Compare("basketInfo")) {
-                        String strBasketID = xml->getAttributeValue("basketID");
-                        String strBasketAcctID =
-                            xml->getAttributeValue("basketAcctID");
-                        String strBasketContractID =
-                            xml->getAttributeValue("basketContractID");
+                    } else if (strNodeName->Compare("basketInfo")) {
+                        auto strBasketID =
+                            String::Factory(xml->getAttributeValue("basketID"));
+                        auto strBasketAcctID = String::Factory(
+                            xml->getAttributeValue("basketAcctID"));
+                        auto strBasketContractID = String::Factory(
+                            xml->getAttributeValue("basketContractID"));
                         const auto BASKET_ID = Identifier::Factory(strBasketID),
                                    BASKET_ACCT_ID =
                                        Identifier::Factory(strBasketAcctID),
@@ -400,8 +402,8 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         } else {
                             otErr << "Error adding basket currency info...\n "
                                      "Basket ID: "
-                                  << strBasketID.Get() << "\n Basket Acct ID: "
-                                  << strBasketAcctID.Get() << "\n";
+                                  << strBasketID->Get() << "\n Basket Acct ID: "
+                                  << strBasketAcctID->Get() << "\n";
                         }
                     } else {
                         // unknown element type

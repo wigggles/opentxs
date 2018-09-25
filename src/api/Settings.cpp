@@ -281,10 +281,10 @@ bool Settings::Check_str(
 
     if (strVar->Exists() && !strVar->Compare("")) {
         out_bKeyExist = true;
-        out_strResult = strVar;
+        out_strResult.Set(strVar);
     } else {
         out_bKeyExist = false;
-        out_strResult = "";
+        out_strResult.Set("");
     }
 
     return true;
@@ -638,7 +638,7 @@ bool Settings::CheckSet_str(
     std::string temp = out_strResult.Get();
     bool success = CheckSet_str(
         strSection, strKey, strDefault, temp, out_bIsNew, strComment);
-    out_strResult = String::Factory(temp);
+    out_strResult.Set(String::Factory(temp));
 
     return success;
 }

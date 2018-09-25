@@ -112,12 +112,12 @@ OTAPI_Exec::OTAPI_Exec(
 
 void OTAPI_Exec::SetAppBinaryFolder(const std::string& strFolder)
 {
-    OTPaths::SetAppBinaryFolder(strFolder.c_str());
+    OTPaths::SetAppBinaryFolder(String::Factory(strFolder.c_str()));
 }
 
 void OTAPI_Exec::SetHomeFolder(const std::string& strFolder)
 {
-    OTPaths::SetHomeFolder(strFolder.c_str());
+    OTPaths::SetHomeFolder(String::Factory(strFolder.c_str()));
 }
 
 std::int64_t OTAPI_Exec::StringToLong(const std::string& strNumber) const
@@ -147,7 +147,9 @@ bool OTAPI_Exec::CheckSetConfigSection(
     bool b_isNewSection = false;
 
     const bool bSuccess = api_.Config().CheckSetSection(
-        strSection.c_str(), strComment.c_str(), b_isNewSection);
+        String::Factory(strSection.c_str()),
+        String::Factory(strComment.c_str()),
+        b_isNewSection);
     if (bSuccess && b_isNewSection) {
         if (!api_.Config().Save()) {
             otErr << __FUNCTION__
@@ -166,7 +168,10 @@ bool OTAPI_Exec::SetConfig_str(
 {
     bool b_isNew = false;
     const bool bSuccess = api_.Config().Set_str(
-        strSection.c_str(), strKey.c_str(), strValue.c_str(), b_isNew);
+        String::Factory(strSection.c_str()),
+        String::Factory(strKey.c_str()),
+        String::Factory(strValue.c_str()),
+        b_isNew);
 
     if (bSuccess && b_isNew) {
         if (!api_.Config().Save()) {
@@ -186,7 +191,10 @@ bool OTAPI_Exec::SetConfig_long(
 {
     bool b_isNew = false;
     const bool bSuccess = api_.Config().Set_long(
-        strSection.c_str(), strKey.c_str(), lValue, b_isNew);
+        String::Factory(strSection.c_str()),
+        String::Factory(strKey.c_str()),
+        lValue,
+        b_isNew);
 
     if (bSuccess && b_isNew) {
         if (!api_.Config().Save()) {
@@ -206,7 +214,10 @@ bool OTAPI_Exec::SetConfig_bool(
 {
     bool b_isNew = false;
     const bool bSuccess = api_.Config().Set_bool(
-        strSection.c_str(), strKey.c_str(), bValue, b_isNew);
+        String::Factory(strSection.c_str()),
+        String::Factory(strKey.c_str()),
+        bValue,
+        b_isNew);
 
     if (bSuccess && b_isNew) {
         if (!api_.Config().Save()) {
@@ -226,7 +237,10 @@ std::string OTAPI_Exec::GetConfig_str(
     auto strOutput = String::Factory();
     bool bKeyExists = false;
     const bool bSuccess = api_.Config().Check_str(
-        strSection.c_str(), strKey.c_str(), strOutput, bKeyExists);
+        String::Factory(strSection.c_str()),
+        String::Factory(strKey.c_str()),
+        strOutput,
+        bKeyExists);
     std::string str_result = "";
 
     if (bSuccess && bKeyExists) str_result = strOutput->Get();
@@ -241,7 +255,10 @@ std::int64_t OTAPI_Exec::GetConfig_long(
     std::int64_t lOutput = 0;
     bool bKeyExists = false;
     const bool bSuccess = api_.Config().Check_long(
-        strSection.c_str(), strKey.c_str(), lOutput, bKeyExists);
+        String::Factory(strSection.c_str()),
+        String::Factory(strKey.c_str()),
+        lOutput,
+        bKeyExists);
 
     if (bSuccess && bKeyExists) return lOutput;
 
@@ -255,7 +272,10 @@ bool OTAPI_Exec::GetConfig_bool(
     bool bOutput = false;
     bool bKeyExists = false;
     const bool bSuccess = api_.Config().Check_bool(
-        strSection.c_str(), strKey.c_str(), bOutput, bKeyExists);
+        String::Factory(strSection.c_str()),
+        String::Factory(strKey.c_str()),
+        bOutput,
+        bKeyExists);
 
     if (bSuccess && bKeyExists) return bOutput;
 
@@ -1304,7 +1324,7 @@ std::string OTAPI_Exec::GetAssetType_Contract(
     if (!pContract) { return {}; }
 
     return proto::ProtoAsArmored<proto::UnitDefinition>(
-               pContract->PublicContract(), "UNIT DEFINITION")
+               pContract->PublicContract(), String::Factory("UNIT DEFINITION"))
         ->Get();
 }
 
@@ -1873,7 +1893,7 @@ std::string OTAPI_Exec::Wallet_GetInstrumentDefinitionIDFromPartial(
     if (pUnit)  // Found it (as partial ID.)
     {
         return proto::ProtoAsArmored<proto::UnitDefinition>(
-                   pUnit->PublicContract(), "UNIT DEFINITION")
+                   pUnit->PublicContract(), String::Factory("UNIT DEFINITION"))
             ->Get();
     }
 
@@ -3919,10 +3939,11 @@ std::string OTAPI_Exec::WriteCheque(
     const auto theSenderNymID = Identifier::Factory(SENDER_NYM_ID);
     auto theRecipientNymID = Identifier::Factory();
     bool bHasRecipient = !RECIPIENT_NYM_ID.empty();
-    if (bHasRecipient) theRecipientNymID->SetString(String(RECIPIENT_NYM_ID));
+    if (bHasRecipient)
+        theRecipientNymID->SetString(String::Factory(RECIPIENT_NYM_ID));
     auto strMemo = String::Factory();
 
-    if (!CHEQUE_MEMO.empty()) strMemo->Set(String(CHEQUE_MEMO));
+    if (!CHEQUE_MEMO.empty()) strMemo->Set(String::Factory(CHEQUE_MEMO));
 
     OTIdentifier idForRecipient(
         bHasRecipient ? Identifier::Factory(theRecipientNymID)
@@ -10644,10 +10665,10 @@ std::string OTAPI_Exec::GenerateBasketCreation(
         terms,
         weight);
 
-    std::string str_return =
-        (proto::ProtoAsArmored<proto::UnitDefinition>(
-             basketTemplate->PublicContract(), "BASKET CONTRACT"))
-            ->Get();
+    std::string str_return = (proto::ProtoAsArmored<proto::UnitDefinition>(
+                                  basketTemplate->PublicContract(),
+                                  String::Factory("BASKET CONTRACT")))
+                                 ->Get();
     return str_return;
 }
 
@@ -10682,7 +10703,8 @@ std::string OTAPI_Exec::AddBasketCreationItem(
 
     if (!bAdded) { return {}; }
 
-    return proto::ProtoAsArmored(contract, "BASKET CONTRACT")->Get();
+    return proto::ProtoAsArmored(contract, String::Factory("BASKET CONTRACT"))
+        ->Get();
 }
 
 // GENERATE BASKET EXCHANGE REQUEST

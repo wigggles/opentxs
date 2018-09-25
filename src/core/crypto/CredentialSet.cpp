@@ -1127,8 +1127,10 @@ bool CredentialSet::Verify(
         GetChildCredential(String::Factory(signerID));
 
     if (nullptr == credential) {
-        otLog3 << "This credential set does not contain the credential which "
-               << "produced the signature." << std::endl;
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            ": This credential set does not contain the credential which"
+            "produced the signature.")
+            .Flush();
 
         return false;
     }

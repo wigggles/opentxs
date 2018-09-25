@@ -660,8 +660,9 @@ bool Account::GenerateNewAccount(
     acctInstrumentDefinitionID_->SetString(
         String::Factory(instrumentDefinitionID));
 
-    otLog3 << __FUNCTION__ << ": Creating new account, type:\n"
-           << String::Factory(instrumentDefinitionID) << "\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(": Creating new account, type: ")(
+        instrumentDefinitionID)
+        .Flush();
 
     SetRealNotaryID(notaryID);
     SetPurportedNotaryID(notaryID);
@@ -910,32 +911,36 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 
         auto strInstrumentDefinitionID =
             String::Factory(acctInstrumentDefinitionID_);
-        otLog3 << "\n\nAccount Type: " << acctType
-               << "\nAccountID: " << strAccountID << "\nNymID: " << strAcctNymID
-               << "\n"
-                  "InstrumentDefinitionID: "
-               << strInstrumentDefinitionID << "\nNotaryID: " << strNotaryID
-               << "\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)("Account Type: ")(acctType).Flush();
+        LogDebug(OT_METHOD)(__FUNCTION__)("AccountID: ")(strAccountID).Flush();
+        LogDebug(OT_METHOD)(__FUNCTION__)("NymID: ")(strAcctNymID).Flush();
+        LogDebug(OT_METHOD)(__FUNCTION__)("Unit Type ID: ")(
+            strInstrumentDefinitionID)
+            .Flush();
+        LogDebug(OT_METHOD)(__FUNCTION__)("NotaryID: ")(strNotaryID).Flush();
 
         retval = 1;
     } else if (strNodeName->Compare("inboxHash")) {
 
         auto strHash = String::Factory(xml->getAttributeValue("value"));
         if (strHash->Exists()) { inboxHash_->SetString(strHash); }
-        otLog3 << "Account inboxHash: " << strHash << "\n";
-
+        LogDebug(OT_METHOD)(__FUNCTION__)("Account inboxHash: ")(strHash)
+            .Flush();
         retval = 1;
     } else if (strNodeName->Compare("outboxHash")) {
 
         auto strHash = String::Factory(xml->getAttributeValue("value"));
         if (strHash->Exists()) { outboxHash_->SetString(strHash); }
-        otLog3 << "Account outboxHash: " << strHash << "\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)("Account outboxHash: ")(strHash)
+            .Flush();
 
         retval = 1;
     } else if (strNodeName->Compare("MARKED_FOR_DELETION")) {
         markForDeletion_ = true;
-        otLog3 << "This asset account has been MARKED_FOR_DELETION (at some "
-                  "point prior.)\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(
+            "This asset account has been MARKED_FOR_DELETION at some point"
+            "prior. ")
+            .Flush();
 
         retval = 1;
     } else if (strNodeName->Compare("balance")) {
@@ -951,8 +956,9 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         balanceDate_->Set(String(formatTimestamp(date)));
         balanceAmount_->Format("%" PRId64, amount);
 
-        otLog3 << "\nBALANCE  --  " << balanceAmount_ << "\nDATE     --  "
-               << balanceDate_ << "\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)("BALANCE  -- ")(balanceAmount_)
+            .Flush();
+        LogDebug(OT_METHOD)(__FUNCTION__)("DATE     --")(balanceDate_).Flush();
 
         retval = 1;
     } else if (strNodeName->Compare("stashinfo")) {
@@ -976,8 +982,9 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
             stashTransNum_ = lTransNum;
         }
 
-        otLog3 << "\nSTASH INFO:   CronItemNum     --  " << stashTransNum_
-               << "\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)("STASH INFO:   CronItemNum     --")(
+            stashTransNum_)
+            .Flush();
 
         retval = 1;
     }

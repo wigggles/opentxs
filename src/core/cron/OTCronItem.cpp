@@ -719,7 +719,9 @@ bool OTCronItem::ProcessCron()
     OT_ASSERT(nullptr != m_pCron);
 
     if (IsFlaggedForRemoval()) {
-        otLog3 << "Cron: Flagged for removal: " << m_strContractType << ".\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Flagged for removal: ")(
+            m_strContractType)
+            .Flush();
         return false;
     }
 
@@ -728,7 +730,8 @@ bool OTCronItem::ProcessCron()
     // Cron even if it is NOT YET valid. But once it actually expires, this will
     // remove it.
     if (IsExpired()) {
-        otLog3 << "Cron: Expired " << m_strContractType << ".\n";
+        LogDebug(OT_METHOD)(__FUNCTION__)(": Expired ")(m_strContractType)
+            .Flush();
         return false;
     }
 

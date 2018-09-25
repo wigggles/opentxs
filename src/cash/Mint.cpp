@@ -34,6 +34,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::Mint"
+
 namespace opentxs
 {
 Mint::Mint(
@@ -365,10 +367,11 @@ bool Mint::VerifyMint(const Nym& theOperator)
         return false;
     }
 
-    otLog3 << "\nWe now know that...\n"
-              "1) The Asset Contract ID matches the Mint ID loaded from the "
-              "Mint file.\n"
-              "2) The SIGNATURE VERIFIED.\n\n";
+    LogDebug(OT_METHOD)(__FUNCTION__)(": We now know that...").Flush();
+    LogDebug(OT_METHOD)(__FUNCTION__)(": 1. The Asset Contract ID matches the "
+                                      "Mint ID loaded from the Mint file.")
+        .Flush();
+    LogDebug(OT_METHOD)(__FUNCTION__)(": 2. The SIGNATURE VERIFIED.").Flush();
     return true;
 }
 

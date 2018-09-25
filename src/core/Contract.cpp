@@ -1319,7 +1319,9 @@ bool Contract::ParseRawFile()
             if (bHaveEnteredContentMode) {
                 if (bSignatureMode) {
                     if (line.length() < 2) {
-                        otLog3 << "Skipping short line...\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Skipping short line...")
+                            .Flush();
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in signature for contract "
@@ -1330,7 +1332,9 @@ bool Contract::ParseRawFile()
 
                         continue;
                     } else if (line.compare(0, 8, "Version:") == 0) {
-                        otLog3 << "Skipping version section...\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Skipping version section...")
+                            .Flush();
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in signature for contract "
@@ -1341,7 +1345,9 @@ bool Contract::ParseRawFile()
 
                         continue;
                     } else if (line.compare(0, 8, "Comment:") == 0) {
-                        otLog3 << "Skipping comment section...\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Skipping comment section..")
+                            .Flush();
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
                             otOut << "Error in signature for contract "
@@ -1353,7 +1359,10 @@ bool Contract::ParseRawFile()
                         continue;
                     }
                     if (line.compare(0, 5, "Meta:") == 0) {
-                        otLog3 << "Collecting signature metadata...\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Collecting signature metadata...")
+                            .Flush();
+                        ;
 
                         if (line.length() != 13)  // "Meta:    knms" (It will
                                                   // always be exactly 13
@@ -1397,8 +1406,10 @@ bool Contract::ParseRawFile()
                 }
                 if (bContentMode) {
                     if (line.compare(0, 6, "Hash: ") == 0) {
-                        otLog3 << "Collecting message digest algorithm from "
-                                  "contract header...\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": Collecting message digest algorithm from "
+                            " contract header...")
+                            .Flush();
 
                         std::string strTemp = line.substr(6);
                         auto strHashType = String::Factory(strTemp.c_str());

@@ -259,8 +259,8 @@ std::int32_t Cash::withdraw_and_export_cash_low_level(
     }
     // By this point, exportedCash and retainedCopy should both be valid.
 
-    auto pRecipientCopy{api_.Factory().Purse(String(exportedCash))};
-    auto pSenderCopy{api_.Factory().Purse(String(retainedCopy))};
+    auto pRecipientCopy{api_.Factory().Purse(String::Factory(exportedCash))};
+    auto pSenderCopy{api_.Factory().Purse(String::Factory(retainedCopy))};
 
     OT_ASSERT(pRecipientCopy);
     OT_ASSERT(pSenderCopy);
@@ -327,8 +327,8 @@ std::int32_t Cash::send_cash(
     }
     // By this point, exportedCash and retainedCopy should both be valid.
 
-    auto recipientCopy{api_.Factory().Purse(String(exportedCash))};
-    auto senderCopy{api_.Factory().Purse(String(retainedCopy))};
+    auto recipientCopy{api_.Factory().Purse(String::Factory(exportedCash))};
+    auto senderCopy{api_.Factory().Purse(String::Factory(retainedCopy))};
 
     OT_ASSERT(recipientCopy);
     OT_ASSERT(senderCopy);
@@ -559,7 +559,7 @@ std::int32_t Cash::deposit_purse_low_level(
         return -1;
     }
 
-    auto purse{api_.Factory().Purse(String(newPurse))};
+    auto purse{api_.Factory().Purse(String::Factory(newPurse))};
 
     OT_ASSERT(purse);
 
