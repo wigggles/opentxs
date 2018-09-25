@@ -108,6 +108,45 @@ proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
     return output;
 }
 
+proto::RPCResponse RPC::add_contact(const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+    Lock lock(lock_);
+
+    proto::RPCResponseCode success{proto::RPCRESPONSE_SUCCESS};
+
+    if (!is_session_valid(command.session())) {
+        output.set_success(proto::RPCRESPONSE_BAD_SESSION);
+        return output;
+    }
+
+    if (0 == command.addcontact_size()) {
+        output.set_success(proto::RPCRESPONSE_INVALID);
+        return output;
+    }
+
+    const auto& client = *get_client(command.session());
+
+    for (const auto& addContact : command.addcontact()) {
+        const auto contact = client.Contacts().NewContact(
+            addContact.label(),
+            Identifier::Factory(addContact.nymid()),
+            client.Factory().PaymentCode(addContact.paymentcode()));
+
+        output.add_identifier(contact->ID().str());
+    }
+
+    if (0 == output.identifier_size()) {
+        success = proto::RPCRESPONSE_NONE;
+    } else if (output.identifier_size() < command.addcontact_size()) {
+        success = proto::RPCRESPONSE_PARTIAL;
+    }
+
+    output.set_success(success);
+
+    return output;
+}
+
 proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
 {
     auto output = init(command);
@@ -444,7 +483,6 @@ proto::RPCResponse RPC::get_account_activity(
                 last = true;
             } else {
                 balanceitem = accountactivity.Next();
-            }
             }
         }
     }
@@ -795,6 +833,37 @@ proto::RPCResponse RPC::list_accounts(const proto::RPCCommand& command) const
     return output;
 }
 
+proto::RPCResponse RPC::list_contacts(const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+    Lock lock(lock_);
+    proto::RPCResponseCode success{proto::RPCRESPONSE_SUCCESS};
+
+    if (!is_session_valid(command.session())) {
+        output.set_success(proto::RPCRESPONSE_BAD_SESSION);
+        return output;
+    }
+
+    if (is_server_session(command.session())) {
+        output.set_success(proto::RPCRESPONSE_BAD_SESSION);
+        return output;
+    }
+
+    const auto& client = *get_client(command.session());
+
+    auto contacts = client.Contacts().ContactList();
+
+    for (const auto& contact : contacts) {
+        output.add_identifier(std::get<0>(contact));
+    }
+
+    if (0 == output.identifier_size()) { success = proto::RPCRESPONSE_NONE; }
+
+    output.set_success(success);
+
+    return output;
+}
+
 proto::RPCResponse RPC::list_client_sessions(
     const proto::RPCCommand& command) const
 {
@@ -1080,8 +1149,12 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         case proto::RPCCOMMAND_GETSERVERCONTRACT: {
             return get_server_contracts(command);
         } break;
-        case proto::RPCCOMMAND_ADDCONTACT:
-        case proto::RPCCOMMAND_LISTCONTACTS:
+        case proto::RPCCOMMAND_ADDCONTACT: {
+            return add_contact(command);
+        } break;
+        case proto::RPCCOMMAND_LISTCONTACTS: {
+            return list_contacts(command);
+        } break;
         case proto::RPCCOMMAND_GETCONTACT:
         case proto::RPCCOMMAND_ADDCONTACTCLAIM:
         case proto::RPCCOMMAND_DELETECONTACTCLAIM:
@@ -1268,43 +1341,6 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
     return output;
 }
 
-            auto action = client->ServerAction().SendTransfer(
-                sender,
-                notary,
-                sourceaccountid,
-                targetaccount,
-                sendpayment.amount(),
-                sendpayment.memo());
-            action->Run();
-            if (SendResult::VALID_REPLY == action->LastSendResult()) {
-                auto reply = action->Reply();
-
-                if (false == bool(reply) || false == reply->m_bSuccess) {
-                    success = proto::RPCRESPONSE_ERROR;
-                }
-            } else {
-                success = proto::RPCRESPONSE_ERROR;
-            }
-            break;
-        }
-        case proto::RPCPAYMENTTYPE_VOUCHER:
-            // TODO
-        case proto::RPCPAYMENTTYPE_INVOICE:
-            // TODO
-        case proto::RPCPAYMENTTYPE_BLINDED:
-            // TODO
-        default: {
-            output.set_success(proto::RPCRESPONSE_INVALID);
-            return output;
-        }
-    }
-
-    output.set_success(success);
-
-    return output;
-}
-
-
 proto::RPCResponse RPC::start_client(const proto::RPCCommand& command) const
 {
     auto output = init(command);
@@ -1313,7 +1349,6 @@ proto::RPCResponse RPC::start_client(const proto::RPCCommand& command) const
     proto::RPCResponseCode success{proto::RPCRESPONSE_SUCCESS};
     std::uint32_t instance{0};
 
-    std::uint32_t instance{0};
     try {
         auto& manager = ot_.StartClient(get_args(command.arg()), session);
         instance = manager.Instance();
@@ -1335,7 +1370,6 @@ proto::RPCResponse RPC::start_server(const proto::RPCCommand& command) const
     proto::RPCResponseCode success{proto::RPCRESPONSE_SUCCESS};
     std::uint32_t instance{0};
 
-    std::uint32_t instance{0};
     try {
         auto& manager = ot_.StartServer(get_args(command.arg()), session);
         instance = manager.Instance();
@@ -1369,31 +1403,6 @@ proto::AccountEventType RPC::storagebox_to_accounteventtype(
             //            proto::ACCOUNTEVENT_OUTGOINGTRANSFER; break;
         default: {
         }
-    }
-
-    return accounteventtype;
-}
-
-proto::AccountEventType RPC::storagebox_to_accounteventtype(
-    StorageBox storagebox)
-{
-    proto::AccountEventType accounteventtype = proto::ACCOUNTEVENT_ERROR;
-
-    switch (storagebox) {
-        case StorageBox::INCOMINGCHEQUE:
-            accounteventtype = proto::ACCOUNTEVENT_INCOMINGCHEQUE;
-            break;
-        case StorageBox::OUTGOINGCHEQUE:
-            accounteventtype = proto::ACCOUNTEVENT_OUTGOINGCHEQUE;
-            break;
-            //        case StorageBox::INCOMINGTRANSFER:
-            //            accounteventtype =
-            //            proto::ACCOUNTEVENT_INCOMINGTRANSFER; break;
-            //        case StorageBox::OUTGOINGTRANSFER:
-            //            accounteventtype =
-            //            proto::ACCOUNTEVENT_OUTGOINGTRANSFER; break;
-        default:
-            break;
     }
 
     return accounteventtype;

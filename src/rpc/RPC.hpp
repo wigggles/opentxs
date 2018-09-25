@@ -32,6 +32,7 @@ private:
         StorageBox storagebox);
 
     proto::RPCResponse add_claim(const proto::RPCCommand& command) const;
+    proto::RPCResponse add_contact(const proto::RPCCommand& command) const;
     proto::RPCResponse create_account(const proto::RPCCommand& command) const;
     proto::RPCResponse create_issuer_account(
         const proto::RPCCommand& command) const;
@@ -60,6 +61,7 @@ private:
     bool is_server_session(std::int32_t instance) const;
     bool is_session_valid(std::int32_t instance) const;
     proto::RPCResponse list_accounts(const proto::RPCCommand& command) const;
+    proto::RPCResponse list_contacts(const proto::RPCCommand& command) const;
     proto::RPCResponse list_client_sessions(
         const proto::RPCCommand& command) const;
     proto::RPCResponse list_seeds(const proto::RPCCommand& command) const;

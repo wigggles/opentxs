@@ -11,6 +11,14 @@
 #define TEST_NYM_2 "testNym2"
 #define TEST_NYM_3 "testNym3"
 
+#define COMMAND_VERSION 1
+#define APIARG_VERSION 1
+#define CREATENYM_VERSION 1
+#define ADDCONTACT_VERSION 1
+#define CREATEINSTRUMENTDEFINITION_VERSION 1
+#define SENDPAYMENT_VERSION 1
+#define MOVEFUNDS_VERSION 1
+
 using namespace opentxs;
 
 namespace
@@ -61,7 +69,7 @@ protected:
         auto cookie = opentxs::Identifier::Random()->str();
 
         proto::RPCCommand command;
-        command.set_version(1);
+        command.set_version(COMMAND_VERSION);
         command.set_cookie(cookie);
         command.set_type(commandtype);
 
@@ -74,7 +82,7 @@ protected:
         command.set_session(-1);
         for (auto& arg : args) {
             auto apiarg = command.add_arg();
-            apiarg->set_version(1);
+            apiarg->set_version(APIARG_VERSION);
             apiarg->set_key(arg.first);
             apiarg->add_value(*arg.second.begin());
         }
@@ -470,6 +478,11 @@ TEST_F(Test_Rpc, Import_Server_Contract_Partial)
     ASSERT_EQ(command.type(), response.type());
 }
 
+TEST_F(Test_Rpc, List_Contacts_None)
+{
+    list(proto::RPCCOMMAND_LISTCONTACTS, 0);
+}
+
 // The nym created in this test is used in subsequent tests.
 TEST_F(Test_Rpc, Create_Nym)
 {
@@ -483,7 +496,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     ASSERT_NE(nullptr, createnym);
 
-    createnym->set_version(1);
+    createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
     createnym->set_name(TEST_NYM_1);
     createnym->set_index(-1);
@@ -507,7 +520,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     ASSERT_NE(nullptr, createnym);
 
-    createnym->set_version(1);
+    createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
     createnym->set_name(TEST_NYM_2);
     createnym->set_index(-1);
@@ -527,7 +540,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     ASSERT_NE(nullptr, createnym);
 
-    createnym->set_version(1);
+    createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
     createnym->set_name(TEST_NYM_3);
     createnym->set_index(-1);
@@ -539,6 +552,96 @@ TEST_F(Test_Rpc, Create_Nym)
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
 
     ASSERT_TRUE(0 != response.identifier_size());
+}
+
+TEST_F(Test_Rpc, List_Contacts)
+{
+    auto command = init(proto::RPCCOMMAND_LISTCONTACTS);
+    command.set_session(0);
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+
+    ASSERT_TRUE(3 == response.identifier_size());
+}
+
+TEST_F(Test_Rpc, Add_Contact)
+{
+    // Add a contact using a label.
+    auto command = init(proto::RPCCOMMAND_ADDCONTACT);
+    command.set_session(0);
+
+    auto& addcontact = *command.add_addcontact();
+    addcontact.set_version(ADDCONTACT_VERSION);
+    addcontact.set_label("TestContact1");
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+
+    ASSERT_EQ(1, response.identifier_size());
+
+    // Add a contact using a nym id.
+    auto& client = ot_.Client(0);
+    ASSERT_EQ(4, client.Contacts().ContactList().size());
+
+    auto& client2 = ot_.Client(2);
+
+    command = init(proto::RPCCOMMAND_ADDCONTACT);
+
+    command.set_session(2);
+
+    auto& addcontact2 = *command.add_addcontact();
+    addcontact2.set_version(ADDCONTACT_VERSION);
+    addcontact2.set_nymid(
+        client.Wallet().NymByIDPartialMatch(TEST_NYM_2)->ID().str());
+
+    response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+
+    ASSERT_EQ(1, response.identifier_size());
+
+    // Add a contact using a payment code.
+    command = init(proto::RPCCOMMAND_ADDCONTACT);
+
+    command.set_session(2);
+
+    auto& addcontact3 = *command.add_addcontact();
+    addcontact3.set_version(ADDCONTACT_VERSION);
+    addcontact3.set_paymentcode(
+        client.Wallet().NymByIDPartialMatch(TEST_NYM_3)->PaymentCode());
+
+    response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+
+    ASSERT_EQ(1, response.identifier_size());
 }
 
 TEST_F(Test_Rpc, List_Unit_Definitions_None)
@@ -562,7 +665,7 @@ TEST_F(Test_Rpc, Create_Unit_Definition)
 
     ASSERT_NE(nullptr, def);
 
-    def->set_version(1);
+    def->set_version(CREATEINSTRUMENTDEFINITION_VERSION);
     def->set_name("GoogleTestDollar");
     def->set_symbol("G");
     def->set_primaryunitname("gdollar");
@@ -710,6 +813,38 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
     }
 }
 
+TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
+{
+    auto command = init(proto::RPCCOMMAND_ISSUEUNITDEFINITION);
+    command.set_session(0);
+
+    auto& manager = ot_.Client(0);
+    auto nym = manager.Wallet().NymByIDPartialMatch(TEST_NYM_1);
+
+    ASSERT_TRUE(bool(nym));
+
+    command.set_owner(nym->ID().str());
+
+    auto& server = ot_.Server(0);
+    command.set_notary(server.ID().str());
+
+    const auto unitdefinitionlist = manager.Wallet().UnitDefinitionList();
+    ASSERT_TRUE(!unitdefinitionlist.empty());
+
+    auto& unitid = unitdefinitionlist.front().first;
+    command.set_unit(unitid);
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(proto::RPCRESPONSE_UNNECESSARY, response.success());
+    ASSERT_EQ(1, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+    ASSERT_EQ(0, response.identifier_size());
+}
+
 TEST_F(Test_Rpc, Create_Account)
 {
     auto command = init(proto::RPCCOMMAND_CREATEACCOUNT);
@@ -776,11 +911,6 @@ TEST_F(Test_Rpc, Create_Account)
         nym3_account1_id_ = response.identifier(0);
     }
 
-        ASSERT_TRUE(Identifier::Validate(accountID));
-
-        nym3_account1_id_ = response.identifier(0);
-    }
-
     command = init(proto::RPCCOMMAND_CREATEACCOUNT);
     command.set_session(0);
     nym = manager.Wallet().NymByIDPartialMatch(TEST_NYM_3);
@@ -811,102 +941,41 @@ TEST_F(Test_Rpc, Create_Account)
     }
 }
 
-TEST_F(Test_Rpc, Send_Payment_Cheque)
-{
-    auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
-    command.set_session(0);
-
-    auto& client = ot_.Client(0);
-    auto nym1 = client.Wallet().NymByIDPartialMatch(TEST_NYM_1);
-
-    ASSERT_TRUE(bool(nym1));
-
-    auto& sendpayment = *command.mutable_sendpayment();
-
-    sendpayment.set_version(1);
-    sendpayment.set_type(proto::RPCPAYMENTTYPE_CHEQUE);
-    auto nym2 = client.Wallet().NymByIDPartialMatch(TEST_NYM_2);
-
-    ASSERT_TRUE(bool(nym2));
-
-    auto& contacts = client.Contacts();
-    const auto contactid = contacts.ContactID(nym2->ID());
-
-    ASSERT_FALSE(contactid->empty());
-
-    sendpayment.set_contact(contactid->str());
-
-    ASSERT_FALSE(issuer_account_id_.empty());
-
-    sendpayment.set_sourceaccount(issuer_account_id_);
-    sendpayment.set_memo("Send_Payment_Cheque test");
-    sendpayment.set_amount(100);
-
-    auto response = ot_.RPC(command);
-
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
-    ASSERT_EQ(1, response.version());
-    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    ASSERT_EQ(command.type(), response.type());
-    ASSERT_FALSE(server_id_.empty());
-
-    accept_cheque_1(
-        client,
-        Identifier::Factory(server_id_),
-        nym2->ID(),
-        Identifier::Factory(nym2_account_id_));
-    process_receipt_1(
-        client,
-        Identifier::Factory(server_id_),
-        nym1->ID(),
-        Identifier::Factory(issuer_account_id_));
-
-    {
-        const auto account =
-            client.Wallet().Account(Identifier::Factory(issuer_account_id_));
-
-        ASSERT_TRUE(account);
-
-        ASSERT_EQ(-100, account.get().GetBalance());
-    }
-
-    {
-        const auto account =
-            client.Wallet().Account(Identifier::Factory(nym2_account_id_));
-
-        ASSERT_TRUE(account);
-
-        ASSERT_EQ(100, account.get().GetBalance());
-    }
-}
-
 TEST_F(Test_Rpc, Send_Payment_Transfer)
 {
     auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
     command.set_session(0);
 
-    auto& manager = ot_.Client(0);
-    auto nym2 = manager.Wallet().NymByIDPartialMatch(TEST_NYM_2);
+    auto& server = ot_.Server(0);
+    auto& client = ot_.Client(0);
+    auto nym1 = client.Wallet().NymByIDPartialMatch(TEST_NYM_1);
 
-    ASSERT_TRUE(bool(nym2));
+    ASSERT_TRUE(bool(nym1));
+
+    auto nymbox = client.ServerAction().DownloadNymbox(nym1->ID(), server.ID());
+
+    ASSERT_TRUE(nymbox);
+
+    const auto numbers =
+        client.ServerAction().GetTransactionNumbers(nym1->ID(), server.ID(), 1);
+
+    ASSERT_TRUE(numbers);
 
     auto sendpayment = command.mutable_sendpayment();
 
     ASSERT_NE(nullptr, sendpayment);
 
-    sendpayment->set_version(1);
+    sendpayment->set_version(SENDPAYMENT_VERSION);
     sendpayment->set_type(proto::RPCPAYMENTTYPE_TRANSFER);
 
-    auto nym3 = manager.Wallet().NymByIDPartialMatch(TEST_NYM_3);
+    auto nym3 = client.Wallet().NymByIDPartialMatch(TEST_NYM_3);
 
     ASSERT_TRUE(bool(nym3));
 
-    auto& contacts = manager.Contacts();
+    auto& contacts = client.Contacts();
     const auto contactid = contacts.ContactID(nym3->ID());
     sendpayment->set_contact(contactid->str());
-    sendpayment->set_sourceaccount(nym2_account_id_);
+    sendpayment->set_sourceaccount(issuer_account_id_);
     sendpayment->set_destinationaccount(nym3_account1_id_);
     sendpayment->set_memo("Send_Payment_Transfer test");
     sendpayment->set_amount(75);
@@ -921,19 +990,19 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     ASSERT_EQ(command.type(), response.type());
 
     accept_transfer_1(
-        manager,
+        client,
         Identifier::Factory(server_id_),
         nym3->ID(),
         Identifier::Factory(nym3_account1_id_));
     process_receipt_1(
-        manager,
+        client,
         Identifier::Factory(server_id_),
-        nym2->ID(),
-        Identifier::Factory(nym2_account_id_));
+        nym1->ID(),
+        Identifier::Factory(issuer_account_id_));
 
     {
         const auto account =
-            manager.Wallet().Account(Identifier::Factory(nym3_account1_id_));
+            client.Wallet().Account(Identifier::Factory(nym3_account1_id_));
 
         ASSERT_TRUE(account);
 
@@ -942,11 +1011,11 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
 
     {
         const auto account =
-            manager.Wallet().Account(Identifier::Factory(nym2_account_id_));
+            client.Wallet().Account(Identifier::Factory(issuer_account_id_));
 
         ASSERT_TRUE(account);
 
-        ASSERT_EQ(25, account.get().GetBalance());
+        ASSERT_EQ(-75, account.get().GetBalance());
     }
 }
 
@@ -967,7 +1036,7 @@ TEST_F(Test_Rpc, Move_Funds)
 
     ASSERT_NE(nullptr, movefunds);
 
-    movefunds->set_version(1);
+    movefunds->set_version(MOVEFUNDS_VERSION);
     movefunds->set_type(proto::RPCPAYMENTTYPE_TRANSFER);
     movefunds->set_sourceaccount(nym3_account1_id_);
     movefunds->set_destinationaccount(nym3_account2_id_);
@@ -1055,36 +1124,8 @@ TEST_F(Test_Rpc, Get_Account_Balance)
 
     ASSERT_EQ(account.get().GetBalance(), accountdata.balance());
     ASSERT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
+
+    ASSERT_EQ(25, accountdata.balance());
 }
 
-TEST_F(Test_Rpc, Get_Account_Activity)
-{
-    auto command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
-    command.set_session(0);
-    command.add_identifier(issuer_account_id_);
-    auto response = ot_.RPC(command);
-
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
-    
-    EXPECT_EQ(proto::RPCRESPONSE_NONE, response.success());
-    EXPECT_EQ(1, response.version());
-    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
-    EXPECT_EQ(command.type(), response.type());
-    EXPECT_EQ(0, response.accountevent_size());
-
-    // TODO properly count the number of updates on the appropriate ui widget
-    Log::Sleep(std::chrono::seconds(1));
-
-    command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
-    command.set_session(0);
-    command.add_identifier(issuer_account_id_);
-    response = ot_.RPC(command);
-
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-
-    ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    
-    EXPECT_EQ(2, response.accountevent_size());
-}
 }  // namespace

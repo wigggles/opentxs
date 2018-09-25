@@ -390,6 +390,45 @@ TEST_F(Test_Rpc_Queued, Create_Issuer_Account)
 
 TEST_F(Test_Rpc_Queued, Verify_Responses) { verify_nym_and_unitdef(); }
 
+TEST_F(Test_Rpc_Queued, Send_Payment_Cheque_No_Path)
+{
+    auto& client_a = ot_.Client(get_index(client_a_));
+    auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
+    command.set_session(client_a_);
+
+    const auto issueraccounts = client_a.Storage().AccountsByIssuer(
+        Identifier::Factory(sender_nym_id_));
+
+    ASSERT_TRUE(false == issueraccounts.empty());
+
+    auto issueraccountid = *issueraccounts.cbegin();
+    Lock lock(task_lock_);
+
+    const auto contact = client_a.Contacts().NewContact(
+        "label_only_contact",
+        Identifier::Factory(),
+        client_a.Factory().PaymentCode(""));
+
+    auto sendpayment = command.mutable_sendpayment();
+
+    ASSERT_NE(nullptr, sendpayment);
+
+    sendpayment->set_version(1);
+    sendpayment->set_type(proto::RPCPAYMENTTYPE_CHEQUE);
+    sendpayment->set_contact(contact->ID().str());
+    sendpayment->set_sourceaccount(issueraccountid->str());
+    sendpayment->set_memo("Send_Payment_Cheque test");
+    sendpayment->set_amount(100);
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_EQ(1, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    ASSERT_EQ(proto::RPCRESPONSE_NO_PATH_TO_RECIPIENT, response.success());
+}
+
 TEST_F(Test_Rpc_Queued, Send_Payment_Cheque)
 {
     auto& client_a = ot_.Client(get_index(client_a_));
@@ -399,6 +438,18 @@ TEST_F(Test_Rpc_Queued, Send_Payment_Cheque)
     auto nym5 = client_b.Wallet().Nym(Identifier::Factory(receiver_nym_id_));
 
     ASSERT_TRUE(bool(nym5));
+
+    //    auto& server = ot_.Server(get_index(server_));
+    //    auto action = client_b.ServerAction().RegisterAccount(
+    //        nym5->ID(), server.ID(),
+    //        Identifier::Factory(unit_definition_id_));
+    //    action->Run();
+    //    ASSERT_EQ(SendResult::VALID_REPLY, action->LastSendResult());
+    //
+    //    auto reply = action->Reply();
+    //
+    //    ASSERT_TRUE(bool(reply));
+    //    ASSERT_TRUE(reply->m_bSuccess);
 
     auto& contacts = client_a.Contacts();
     const auto contact = contacts.NewContact(
@@ -416,93 +467,137 @@ TEST_F(Test_Rpc_Queued, Send_Payment_Cheque)
     auto issueraccountid = *issueraccounts.cbegin();
     Lock lock(task_lock_);
 
+    auto sendpayment = command.mutable_sendpayment();
+
+    ASSERT_NE(nullptr, sendpayment);
+
+    sendpayment->set_version(1);
+    sendpayment->set_type(proto::RPCPAYMENTTYPE_CHEQUE);
+    sendpayment->set_contact(contact->ID().str());
+    sendpayment->set_sourceaccount(issueraccountid->str());
+    sendpayment->set_memo("Send_Payment_Cheque test");
+    sendpayment->set_amount(100);
+
+    proto::RPCResponse response;
+
     while (send_payment_cheque_task_.empty()) {
-        auto sendpayment = command.mutable_sendpayment();
+        response = ot_.RPC(command);
 
-        ASSERT_NE(nullptr, sendpayment);
-
-        sendpayment->set_version(1);
-        sendpayment->set_type(proto::RPCPAYMENTTYPE_CHEQUE);
-        sendpayment->set_contact(contact->ID().str());
-        sendpayment->set_sourceaccount(issueraccountid->str());
-        sendpayment->set_memo("Send_Payment_Cheque test");
-        sendpayment->set_amount(100);
-
-        auto response = ot_.RPC(command);
-
-        ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.success());
+        auto responseCode = response.success();
+        auto responseIsValid = responseCode == proto::RPCRESPONSE_RETRY ||
+                               responseCode == proto::RPCRESPONSE_QUEUED;
+        ASSERT_TRUE(responseIsValid);
         ASSERT_EQ(1, response.version());
         ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
         ASSERT_EQ(command.type(), response.type());
 
         send_payment_cheque_task_ = response.task();
-    }
-}
-
-TEST_F(Test_Rpc_Queued, Verify_Send_Cheque)
-{
-    auto end = std::time(nullptr) + 20;
-
-    while (std::time(nullptr) < end) {
-        if (send_payment_cheque_complete_) { break; }
-
-        Log::Sleep(std::chrono::milliseconds(100));
+        command.set_cookie(opentxs::Identifier::Random()->str());
     }
 
-    ASSERT_TRUE(send_payment_cheque_complete_);
-
-    //    auto& client = ot_.Client(get_index(client_instance_));
-    //    auto nym4 = client.Wallet().NymByIDPartialMatch(TEST_NYM_4);
-    //
-    //    ASSERT_TRUE(bool(nym4));
-    //
-    //    auto nym5 = client.Wallet().NymByIDPartialMatch(TEST_NYM_5);
-    //
-    //    ASSERT_TRUE(bool(nym5));
-    //
-    //    auto& server = ot_.Server(get_index(server_instance_));
-    //
-    //    const auto nym5_accounts =
-    //    client.Storage().AccountsByOwner(nym5->ID());
-    //
-    //    ASSERT_TRUE(!nym5_accounts.empty());
-    //    auto nym5_account_id = *nym5_accounts.cbegin();
-    //
-    //    const auto issueraccounts =
-    //    client.Storage().AccountsByIssuer(nym4->ID());
-    //
-    //    ASSERT_TRUE(!issueraccounts.empty());
-    //    auto issuer_account_id = *issueraccounts.cbegin();
-    //
-    //    accept_cheque_1(
-    //        client,
-    //        Identifier::Factory(server.ID()),
-    //        nym5->ID(),
-    //        Identifier::Factory(nym5_account_id));
-    //    process_receipt_1(
-    //        client,
-    //        Identifier::Factory(server.ID()),
-    //        nym4->ID(),
-    //        Identifier::Factory(issuer_account_id));
-    //
-    //    {
-    //        const auto account =
-    //            client.Wallet().Account(Identifier::Factory(issuer_account_id));
-    //
-    //        ASSERT_TRUE(account);
-    //
-    //        ASSERT_EQ(-100, account.get().GetBalance());
-    //    }
-    //
-    //    {
-    //        const auto account =
-    //            client.Wallet().Account(Identifier::Factory(nym5_account_id));
-    //
-    //        ASSERT_TRUE(account);
-    //
-    //        ASSERT_EQ(100, account.get().GetBalance());
-    //    }
+    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.success());
 }
+
+// TODO: tests for RPCPAYMENTTYPE_VOUCHER, RPCPAYMENTTYPE_INVOICE,
+// RPCPAYMENTTYPE_BLIND
+
+// TEST_F(Test_Rpc_Queued, Verify_Send_Cheque)
+//{
+//    auto end = std::time(nullptr) + 60;
+//
+//    while (std::time(nullptr) < end) {
+//        if (send_payment_cheque_complete_) { break; }
+//
+//        Log::Sleep(std::chrono::milliseconds(100));
+//    }
+//
+//    ASSERT_TRUE(send_payment_cheque_complete_);
+//
+//    auto& client_a = ot_.Client(get_index(client_a_));
+//    auto sender_nym_id = Identifier::Factory(sender_nym_id_);
+//
+//    auto& client_b = ot_.Client(get_index(client_b_));
+//    auto receiver_nym_id = Identifier::Factory(receiver_nym_id_);
+//
+//    auto& server = ot_.Server(get_index(server_));
+//
+//    const auto reciever_accounts =
+//        client_b.Storage().AccountsByOwner(receiver_nym_id);
+//
+//    ASSERT_TRUE(!reciever_accounts.empty());
+//    auto reciever_account_id = *reciever_accounts.cbegin();
+//
+//    const auto issueraccounts =
+//        client_a.Storage().AccountsByIssuer(sender_nym_id);
+//
+//    ASSERT_TRUE(!issueraccounts.empty());
+//    auto issuer_account_id = *issueraccounts.cbegin();
+//
+//    accept_cheque_1(
+//        client_b,
+//        Identifier::Factory(server.ID()),
+//        receiver_nym_id,
+//        Identifier::Factory(reciever_account_id));
+//    process_receipt_1(
+//        client_a,
+//        Identifier::Factory(server.ID()),
+//        sender_nym_id,
+//        Identifier::Factory(issuer_account_id));
+//
+//    {
+//        const auto account =
+//            client_a.Wallet().Account(Identifier::Factory(issuer_account_id));
+//
+//        ASSERT_TRUE(account);
+//
+//        ASSERT_EQ(-100, account.get().GetBalance());
+//    }
+//
+//    {
+//        const auto account =
+//            client_b.Wallet().Account(Identifier::Factory(reciever_account_id));
+//
+//        ASSERT_TRUE(account);
+//
+//        ASSERT_EQ(100, account.get().GetBalance());
+//    }
+//}
+
+//TEST_F(Test_Rpc_Queued, Get_Account_Activity)
+//{
+//    auto& client_a = ot_.Client(get_index(client_a_));
+//    const auto issueraccounts = client_a.Storage().AccountsByIssuer(
+//        Identifier::Factory(sender_nym_id_));
+//
+//    ASSERT_TRUE(!issueraccounts.empty());
+//    auto issuer_account_id = *issueraccounts.cbegin();
+//
+//    auto command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
+//    command.set_session(client_a_);
+//    command.add_identifier(issuer_account_id->str());
+//    auto response = ot_.RPC(command);
+//
+//    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+//    EXPECT_EQ(1, response.version());
+//
+//    EXPECT_EQ(proto::RPCRESPONSE_NONE, response.success());
+//    EXPECT_EQ(1, response.version());
+//    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+//    EXPECT_EQ(command.type(), response.type());
+//    EXPECT_EQ(0, response.accountevent_size());
+//
+//    // TODO properly count the number of updates on the appropriate ui widget
+//    Log::Sleep(std::chrono::seconds(1));
+//
+//    command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
+//    command.set_session(client_a_);
+//    command.add_identifier(issuer_account_id->str());
+//    response = ot_.RPC(command);
+//
+//    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+//
+//    EXPECT_EQ(1, response.accountevent_size());
+//}
 
 TEST_F(Test_Rpc_Queued, Create_Account)
 {
@@ -532,9 +627,6 @@ TEST_F(Test_Rpc_Queued, Create_Account)
 }
 
 TEST_F(Test_Rpc_Queued, Verify_Account) { verify_account(); }
-
-// TODO: tests for RPCPAYMENTTYPE_VOUCHER, RPCPAYMENTTYPE_INVOICE,
-// RPCPAYMENTTYPE_BLIND
 
 TEST_F(Test_Rpc_Queued, Cleanup)
 {
