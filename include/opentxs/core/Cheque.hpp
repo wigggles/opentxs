@@ -55,6 +55,10 @@ public:
         return m_REMITTER_ACCT_ID;
     }
     inline bool HasRemitter() const { return m_bHasRemitter; }
+    inline const Identifier& SourceAccountID() const
+    {
+        return ((m_bHasRemitter) ? m_REMITTER_ACCT_ID : m_SENDER_ACCT_ID);
+    }
 
     // A cheque HAS NO "Recipient Asset Acct ID", since the recipient's account
     // (where he deposits

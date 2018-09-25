@@ -23,6 +23,9 @@ private:
         ::opentxs::proto::APIArgument>;
 
     const api::Native& ot_;
+    const OTZMQListenCallback push_callback_;
+    const OTZMQPullSocket push_receiver_;
+    const OTZMQPublishSocket rpc_publisher_;
 
     static ArgList get_args(const Args& serialized);
     static std::size_t get_index(std::int32_t instance);

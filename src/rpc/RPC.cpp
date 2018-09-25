@@ -29,6 +29,12 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/ext/OTPayment.hpp"
+#include "opentxs/network/zeromq/Context.hpp"
+#include "opentxs/network/zeromq/Frame.hpp"
+#include "opentxs/network/zeromq/ListenCallback.hpp"
+#include "opentxs/network/zeromq/Message.hpp"
+#include "opentxs/network/zeromq/PublishSocket.hpp"
+#include "opentxs/network/zeromq/PullSocket.hpp"
 #include "opentxs/ui/AccountActivity.hpp"
 #include "opentxs/ui/BalanceItem.hpp"
 #include "opentxs/Proto.hpp"
@@ -43,6 +49,8 @@
 
 #define OT_METHOD "opentxs::rpc::implementation::RPC::"
 
+namespace zmq = opentxs::network::zeromq;
+
 namespace opentxs
 {
 rpc::internal::RPC* Factory::RPC(const api::Native& native)
@@ -56,7 +64,21 @@ namespace opentxs::rpc::implementation
 RPC::RPC(const api::Native& native)
     : Lockable()
     , ot_(native)
+    , push_callback_(zmq::ListenCallback::Factory([&](const zmq::Message& in) {
+        rpc_publisher_->Publish(OTZMQMessage{in});
+    }))
+    , push_receiver_(
+          ot_.ZMQ().PullSocket(push_callback_, zmq::Socket::Direction::Bind))
+    , rpc_publisher_(ot_.ZMQ().PublishSocket())
 {
+    auto bound = push_receiver_->Start(
+        ot_.ZMQ().BuildEndpoint("rpc/push/internal", -1, 1));
+
+    OT_ASSERT(bound)
+
+    bound = rpc_publisher_->Start(ot_.ZMQ().BuildEndpoint("rpc/push", -1, 1));
+
+    OT_ASSERT(bound)
 }
 
 proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
