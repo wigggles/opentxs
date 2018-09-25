@@ -809,7 +809,7 @@ bool Sync::deposit_cheque(
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Failed to deposit cheque:\n"
-                  << String(*cheque) << std::endl;
+                  << String::Factory(*cheque) << std::endl;
         }
     } else {
         otErr << OT_METHOD << __FUNCTION__
@@ -1188,11 +1188,14 @@ OTIdentifier Sync::get_introduction_server(const Lock& lock) const
     OT_ASSERT(verify_lock(lock, introduction_server_lock_))
 
     bool keyFound = false;
-    String serverID;
+    auto serverID = String::Factory();
     const bool config = client_.Config().Check_str(
-        MASTER_SECTION, INTRODUCTION_SERVER_KEY, serverID, keyFound);
+        String::Factory(MASTER_SECTION),
+        String::Factory(INTRODUCTION_SERVER_KEY),
+        serverID,
+        keyFound);
 
-    if (!config || !keyFound || !serverID.Exists()) {
+    if (!config || !keyFound || !serverID->Exists()) {
 
         return import_default_introduction_server(lock);
     }
@@ -1226,7 +1229,7 @@ OTIdentifier Sync::import_default_introduction_server(const Lock& lock) const
     OT_ASSERT(verify_lock(lock, introduction_server_lock_))
 
     const auto serialized = proto::StringToProto<proto::ServerContract>(
-        DEFAULT_INTRODUCTION_SERVER.c_str());
+        String::Factory(DEFAULT_INTRODUCTION_SERVER.c_str()));
     const auto instantiated = client_.Wallet().Server(serialized);
 
     OT_ASSERT(instantiated)
@@ -1615,7 +1618,7 @@ bool Sync::publish_server_registration(
 bool Sync::queue_cheque_deposit(const Identifier& nymID, const Cheque& cheque)
     const
 {
-    auto payment{client_.Factory().Payment(String(cheque))};
+    auto payment{client_.Factory().Payment(String::Factory(cheque))};
 
     OT_ASSERT(false != bool(payment));
 
@@ -2101,7 +2104,7 @@ OTIdentifier Sync::SendCheque(
         return Identifier::Factory();
     }
 
-    auto payment{client_.Factory().Payment(String(*cheque))};
+    auto payment{client_.Factory().Payment(String::Factory(*cheque))};
 
     OT_ASSERT(false != bool(payment));
 
@@ -2265,7 +2268,10 @@ OTIdentifier Sync::set_introduction_server(
 
     bool dontCare = false;
     const bool set = client_.Config().Set_str(
-        MASTER_SECTION, INTRODUCTION_SERVER_KEY, String(id), dontCare);
+        String::Factory(MASTER_SECTION),
+        String::Factory(INTRODUCTION_SERVER_KEY),
+        String::Factory(id),
+        dontCare);
 
     OT_ASSERT(set)
 

@@ -483,7 +483,7 @@ const Identifier& Account::GetInstrumentDefinitionID() const
 
 void Account::InitAccount()
 {
-    m_strContractType = "ACCOUNT";
+    m_strContractType = String::Factory("ACCOUNT");
     acctType_ = Account::user;
 }
 
@@ -534,8 +534,8 @@ Account* Account::LoadExistingAccount(
     account->SetRealAccountID(accountId);
     account->SetRealNotaryID(notaryID);
     auto strAcctID = String::Factory(accountId);
-    account->m_strFoldername = OTFolders::Account().Get();
-    account->m_strFilename = strAcctID->Get();
+    account->m_strFoldername = String::Factory(OTFolders::Account().Get());
+    account->m_strFilename = String::Factory(strAcctID->Get());
 
     if (!OTDB::Exists(
             core.DataFolder(),
@@ -628,8 +628,8 @@ bool Account::GenerateNewAccount(
     m_strName->Set(strID);
 
     // Next we create the full path filename for the account using the ID.
-    m_strFoldername = OTFolders::Account().Get();
-    m_strFilename = strID->Get();
+    m_strFoldername = String::Factory(OTFolders::Account().Get());
+    m_strFilename = String::Factory(strID->Get());
 
     // Then we try to load it, in order to make sure that it doesn't already
     // exist.
@@ -869,8 +869,8 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
     if (strNodeName->Compare("account")) {
         auto acctType = String::Factory();
 
-        m_strVersion = xml->getAttributeValue("version");
-        acctType = xml->getAttributeValue("type");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
+        acctType = String::Factory(xml->getAttributeValue("type"));
 
         if (!acctType->Exists()) {
             otErr << "OTAccount::ProcessXMLNode: Failed: Empty account "
@@ -944,8 +944,8 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
 
         retval = 1;
     } else if (strNodeName->Compare("balance")) {
-        balanceDate_ = xml->getAttributeValue("date");
-        balanceAmount_ = xml->getAttributeValue("amount");
+        balanceDate_ = String::Factory(xml->getAttributeValue("date"));
+        balanceAmount_ = String::Factory(xml->getAttributeValue("amount"));
 
         // I convert to integer / std::int64_t and back to string.
         // (Just an easy way to keep the data clean.)
@@ -953,7 +953,7 @@ std::int32_t Account::ProcessXMLNode(IrrXMLReader*& xml)
         time64_t date = parseTimestamp((balanceDate_->Get()));
         std::int64_t amount = balanceAmount_->ToLong();
 
-        balanceDate_->Set(String(formatTimestamp(date)));
+        balanceDate_->Set(String::Factory(formatTimestamp(date)));
         balanceAmount_->Format("%" PRId64, amount);
 
         LogDebug(OT_METHOD)(__FUNCTION__)("BALANCE  -- ")(balanceAmount_)

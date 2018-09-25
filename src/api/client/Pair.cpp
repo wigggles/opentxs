@@ -630,8 +630,9 @@ void Pair::state_machine(
     const Identifier& localNymID,
     const Identifier& issuerNymID) const
 {
-    otWarn << OT_METHOD << __FUNCTION__ << ": Local nym: " << String(localNymID)
-           << "\nIssuer Nym: " << String(issuerNymID) << std::endl;
+    otWarn << OT_METHOD << __FUNCTION__
+           << ": Local nym: " << String::Factory(localNymID)
+           << "\nIssuer Nym: " << String::Factory(issuerNymID) << std::endl;
     Lock lock(status_lock_);
     auto& [status, trusted] = pair_status_[{localNymID, issuerNymID}];
     lock.unlock();
@@ -845,7 +846,7 @@ void Pair::state_machine(
                         if (needBailment && nonePending) {
                             otErr << OT_METHOD << __FUNCTION__
                                   << ": Requesting bailment info for "
-                                  << String(unitID) << std::endl;
+                                  << String::Factory(unitID) << std::endl;
                             const auto& [sent, requestID] = initiate_bailment(
                                 localNymID, serverID, issuerNymID, unitID);
 
