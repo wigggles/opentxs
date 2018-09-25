@@ -108,10 +108,10 @@ void IssuerItem::process_account(const Identifier& accountID)
 
     if (false == bool(account)) { return; }
 
-    String name{""};
+    auto name = String::Factory();
     account.get().GetName(name);
     const IssuerItemRowID rowID{accountID, currency_};
-    const IssuerItemSortKey sortKey{name.Get()};
+    const IssuerItemSortKey sortKey{name->Get()};
     CustomData custom{};
     custom.emplace_back(new Amount(account.get().GetBalance()));
     add_item(rowID, sortKey, custom);
