@@ -437,7 +437,8 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         // xml->getAttributeValue("name");
                         //                      OTLog::OTPath        =
                         // xml->getAttributeValue("path");
-                        m_strVersion = xml->getAttributeValue("version");
+                        m_strVersion =
+                            String::Factory(xml->getAttributeValue("version"));
 
                         otWarn << "\nLoading wallet: " << m_strName
                                << ", version: " << m_strVersion << "\n";
@@ -472,8 +473,10 @@ bool OTWallet::LoadWallet(const char* szFilename)
                                 AcctName,
                                 false);  // linebreaks == false
 
-                        AcctID = xml->getAttributeValue("accountID");
-                        NotaryID = xml->getAttributeValue("notaryID");
+                        AcctID = String::Factory(
+                            xml->getAttributeValue("accountID"));
+                        NotaryID =
+                            String::Factory(xml->getAttributeValue("notaryID"));
                         otInfo << "\n------------------------------------------"
                                   "----"
                                   "----------------------------\n"

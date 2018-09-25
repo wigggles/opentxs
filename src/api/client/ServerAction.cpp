@@ -892,11 +892,11 @@ ServerAction::Action ServerAction::SendCash(
     std::shared_ptr<const Purse>& recipientCopy,
     std::shared_ptr<const Purse>& senderCopy) const
 {
-    String strRecip;
-    String strSend;
+    auto strRecip = String::Factory();
+    auto strSend = String::Factory();
 
-    if (recipientCopy) strRecip = String(*recipientCopy);
-    if (senderCopy) strSend = String(*senderCopy);
+    if (recipientCopy) strRecip = String::Factory(*recipientCopy);
+    if (senderCopy) strSend = String::Factory(*senderCopy);
 
     std::unique_ptr<const Purse> pRecip(api_.Factory().Purse(strRecip));
 
@@ -940,7 +940,7 @@ ServerAction::Action ServerAction::SendPayment(
     const Identifier& recipientNymID,
     std::shared_ptr<const OTPayment>& payment) const
 {
-    String strPayment;
+    auto strPayment = String::Factory();
 
     if (false == bool(payment) || !payment->GetPaymentContents(strPayment)) {
         otErr << "ServerAction::SendPayment: Empty payment argument - "
