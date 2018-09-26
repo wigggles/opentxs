@@ -490,7 +490,7 @@ bool Workflow::ClearCheque(
         cheque->SourceAccountID().str(),
         proto::ACCOUNTEVENT_OUTGOINGCHEQUE,
         cheque->GetTransactionNum(),
-        cheque->GetAmount(),
+        -1 * cheque->GetAmount(),
         0,
         time,
         cheque->GetMemo().Get());
@@ -858,8 +858,8 @@ OTIdentifier Workflow::ImportCheque(
             "",
             proto::ACCOUNTEVENT_INCOMINGCHEQUE,
             cheque.GetTransactionNum(),
-            cheque.GetAmount(),
             0,
+            cheque.GetAmount(),
             time,
             cheque.GetMemo().Get());
     }
@@ -979,8 +979,8 @@ OTIdentifier Workflow::ReceiveCheque(
             "",
             proto::ACCOUNTEVENT_INCOMINGCHEQUE,
             cheque.GetTransactionNum(),
-            cheque.GetAmount(),
             0,
+            cheque.GetAmount(),
             time,
             cheque.GetMemo().Get());
     }
@@ -1125,8 +1125,12 @@ void Workflow::update_rpc(
     event.set_pendingamount(pending);
     event.set_timestamp(std::chrono::system_clock::to_time_t(time));
     event.set_memo(memo);
+
+    OT_ASSERT(proto::Validate(push, VERBOSE));
+
     auto message = zmq::Message::Factory();
     message->AddFrame();
+    message->AddFrame(localNymID);
     message->AddFrame(proto::ProtoAsData(push));
     rpc_publisher_->Push(message);
 }
@@ -1189,7 +1193,7 @@ OTIdentifier Workflow::WriteCheque(const opentxs::Cheque& cheque) const
             proto::ACCOUNTEVENT_OUTGOINGCHEQUE,
             cheque.GetTransactionNum(),
             0,
-            cheque.GetAmount(),
+            -1 * cheque.GetAmount(),
             time,
             cheque.GetMemo().Get());
     }
