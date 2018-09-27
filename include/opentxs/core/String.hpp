@@ -155,7 +155,7 @@ private:
     void LowLevelSetStr(const String& buffer);
 
 protected:
-public:
+//public:
     EXPORT explicit String(const Armored& value);
     EXPORT explicit String(const OTSignature& value);
     EXPORT explicit String(const Contract& value);

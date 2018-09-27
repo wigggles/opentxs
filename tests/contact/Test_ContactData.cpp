@@ -1000,7 +1000,7 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String(serverIdentifier1).Get())));
+            opentxs::String::Factory(serverIdentifier1)->Get())));
     const auto& contactItem1 = data2.Claim(identifier1);
     ASSERT_NE(nullptr, contactItem1);
     ASSERT_TRUE(contactItem1->isPrimary());
@@ -1024,7 +1024,7 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String(serverIdentifier2).Get())));
+            opentxs::String::Factory(serverIdentifier2)->Get())));
     const auto& contactItem2 = data3.Claim(identifier2);
     ASSERT_NE(nullptr, contactItem2);
     ASSERT_FALSE(contactItem2->isPrimary());
@@ -1055,7 +1055,7 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String(serverIdentifier3).Get())));
+            opentxs::String::Factory(serverIdentifier3)->Get())));
     const auto& contactItem3 = data4.Claim(identifier3);
     ASSERT_NE(nullptr, contactItem3);
     ASSERT_TRUE(contactItem3->isPrimary());
@@ -1079,7 +1079,7 @@ TEST_F(Test_ContactData, AddPreferredOTServer)
             opentxs::proto::CITEMTYPE_OPENTXS,
             NULL_START,
             NULL_END,
-            opentxs::String(serverIdentifier4).Get())));
+            opentxs::String::Factory(serverIdentifier4)->Get())));
     const auto& contactItem4 = data5.Claim(identifier4);
     ASSERT_NE(nullptr, contactItem4);
     ASSERT_TRUE(contactItem4->isPrimary());
