@@ -22,6 +22,7 @@ public:
         const CustomData& custom);
 
     std::vector<std::string> Contacts() const override { return contacts_; }
+    std::string DisplayAmount() const override;
     std::string Text() const override;
     std::chrono::system_clock::time_point Timestamp() const override;
     StorageBox Type() const override { return type_; }
@@ -34,12 +35,16 @@ public:
 
 protected:
     const OTIdentifier nym_id_;
+    const std::string workflow_{""};
     const StorageBox type_{StorageBox::UNKNOWN};
     std::string text_{""};
     std::chrono::system_clock::time_point time_;
+    mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
     std::unique_ptr<std::thread> startup_{nullptr};
 
     static StorageBox extract_type(const proto::PaymentWorkflow& workflow);
+
+    std::string get_contact_name(const Identifier& nymID) const;
 
     BalanceItem(
         const AccountActivityInternalInterface& parent,
@@ -58,6 +63,9 @@ private:
     static std::vector<std::string> extract_contacts(
         const proto::PaymentWorkflow& workflow);
 
+    virtual opentxs::Amount effective_amount() const = 0;
+    virtual bool get_contract() const = 0;
+
     BalanceItem(const BalanceItem&) = delete;
     BalanceItem(BalanceItem&&) = delete;
     BalanceItem& operator=(const BalanceItem&) = delete;
@@ -68,7 +76,6 @@ class ChequeBalanceItem : public BalanceItem
 {
 public:
     opentxs::Amount Amount() const override { return effective_amount(); }
-    std::string DisplayAmount() const override;
     std::string Memo() const override;
     std::string Workflow() const override { return workflow_; }
 
@@ -76,18 +83,15 @@ public:
         const implementation::AccountActivitySortKey& key,
         const implementation::CustomData& custom) override;
 
-    ~ChequeBalanceItem() override = default;
+    ~ChequeBalanceItem() = default;
 
 private:
     friend opentxs::Factory;
 
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
-    mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
-    std::string workflow_{""};
 
-    opentxs::Amount effective_amount() const;
-    bool get_contract() const;
-    std::string get_contact_name(const Identifier& nymID) const;
+    opentxs::Amount effective_amount() const override;
+    bool get_contract() const override;
 
     void startup(const CustomData& custom);
 
@@ -106,5 +110,45 @@ private:
     ChequeBalanceItem(ChequeBalanceItem&&) = delete;
     ChequeBalanceItem& operator=(const ChequeBalanceItem&) = delete;
     ChequeBalanceItem& operator=(ChequeBalanceItem&&) = delete;
+};
+
+class TransferBalanceItem : public BalanceItem
+{
+public:
+    opentxs::Amount Amount() const override { return effective_amount(); }
+    std::string Memo() const override;
+    std::string Workflow() const override { return workflow_; }
+
+    void reindex(
+        const implementation::AccountActivitySortKey& key,
+        const implementation::CustomData& custom) override;
+
+    ~TransferBalanceItem() = default;
+
+private:
+    friend opentxs::Factory;
+
+    std::unique_ptr<const opentxs::Item> transfer_{nullptr};
+
+    opentxs::Amount effective_amount() const override;
+    bool get_contract() const override;
+
+    void startup(const CustomData& custom);
+
+    TransferBalanceItem(
+        const AccountActivityInternalInterface& parent,
+        const api::client::Manager& api,
+        const network::zeromq::PublishSocket& publisher,
+        const AccountActivityRowID& rowID,
+        const AccountActivitySortKey& sortKey,
+        const CustomData& custom,
+        const Identifier& nymID,
+        const Identifier& accountID);
+
+    TransferBalanceItem() = delete;
+    TransferBalanceItem(const TransferBalanceItem&) = delete;
+    TransferBalanceItem(TransferBalanceItem&&) = delete;
+    TransferBalanceItem& operator=(const TransferBalanceItem&) = delete;
+    TransferBalanceItem& operator=(TransferBalanceItem&&) = delete;
 };
 }  // namespace opentxs::ui::implementation

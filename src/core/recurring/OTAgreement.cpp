@@ -151,7 +151,7 @@ bool OTAgreement::SendNoticeToAllParties(
 
 // static
 // Used by payment plans and smart contracts. Nym receives an
-// OTItem::acknowledgment or OTItem::rejection.
+// Item::acknowledgment or Item::rejection.
 bool OTAgreement::DropServerNoticeToNymbox(
     const api::Core& core,
     bool bSuccessMsg,

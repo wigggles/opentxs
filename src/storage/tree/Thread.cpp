@@ -95,6 +95,17 @@ bool Thread::Add(
             saved = true;
             unread = false;
         } break;
+        case StorageBox::OUTGOINGTRANSFER: {
+            saved = true;
+            unread = false;
+        } break;
+        case StorageBox::INCOMINGTRANSFER: {
+            saved = true;
+        } break;
+        case StorageBox::INTERNALTRANSFER: {
+            saved = true;
+            unread = false;
+        } break;
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Warning: unknown box."
                   << std::endl;

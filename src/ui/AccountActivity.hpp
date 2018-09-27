@@ -37,6 +37,7 @@ using AccountActivityList = List<
 class AccountActivity final : public AccountActivityList
 {
 public:
+    const Identifier& AccountID() const override { return account_id_.get(); }
     Amount Balance() const override { return balance_.load(); }
     std::string DisplayBalance() const override;
 

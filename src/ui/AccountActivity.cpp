@@ -203,10 +203,9 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
                 case proto::PAYMENTWORKFLOWSTATE_ERROR:
                 case proto::PAYMENTWORKFLOWSTATE_INITIATED:
                 default: {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Invalid workflow state" << std::endl;
-
-                    OT_FAIL
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Invalid workflow state (")(workflow.state())(")")
+                        .Flush();
                 }
             }
         } break;
@@ -226,41 +225,120 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
                 case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
                 case proto::PAYMENTWORKFLOWSTATE_INITIATED:
                 default: {
-                    otErr << OT_METHOD << __FUNCTION__
-                          << ": Invalid workflow state ("
-                          << std::to_string(workflow.state()) << ")"
-                          << std::endl;
-
-                    OT_FAIL
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Invalid workflow state (")(workflow.state())(")")
+                        .Flush();
                 }
             }
         } break;
-
-
-
-
-
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER: {
-            OT_FAIL;  // TODO
+            switch (workflow.state()) {
+                case proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED:
+                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED: {
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_COMPLETE,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_COMPLETE, workflow));
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
+                case proto::PAYMENTWORKFLOWSTATE_ABORTED: {
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_ERROR:
+                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
+                case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
+                case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
+                case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
+                default: {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Invalid workflow state (")(workflow.state())(")")
+                        .Flush();
+                }
+            }
         } break;
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER: {
-            OT_FAIL;  // TODO
+            switch (workflow.state()) {
+                case proto::PAYMENTWORKFLOWSTATE_CONVEYED: {
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_CONVEY,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_CONVEY, workflow));
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_CONVEY,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_CONVEY, workflow));
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_COMPLETE,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_COMPLETE, workflow));
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_ERROR:
+                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
+                case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
+                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED:
+                case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
+                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
+                case proto::PAYMENTWORKFLOWSTATE_ABORTED:
+                case proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED:
+                default: {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Invalid workflow state (")(workflow.state())(")")
+                        .Flush();
+                }
+            }
         } break;
         case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
-            OT_FAIL;  // TODO
+            switch (workflow.state()) {
+                case proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED:
+                case proto::PAYMENTWORKFLOWSTATE_CONVEYED:
+                case proto::PAYMENTWORKFLOWSTATE_ACCEPTED: {
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_COMPLETED: {
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_ACKNOWLEDGE,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_ACKNOWLEDGE, workflow));
+                    output.emplace_back(
+                        proto::PAYMENTEVENTTYPE_COMPLETE,
+                        extract_event(
+                            proto::PAYMENTEVENTTYPE_COMPLETE, workflow));
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_INITIATED:
+                case proto::PAYMENTWORKFLOWSTATE_ABORTED: {
+                } break;
+                case proto::PAYMENTWORKFLOWSTATE_ERROR:
+                case proto::PAYMENTWORKFLOWSTATE_UNSENT:
+                case proto::PAYMENTWORKFLOWSTATE_CANCELLED:
+                case proto::PAYMENTWORKFLOWSTATE_EXPIRED:
+                default: {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Invalid workflow state (")(workflow.state())(")")
+                        .Flush();
+                }
+            }
         } break;
-
-
-
-
-
-
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
         default: {
-            otErr << OT_METHOD << __FUNCTION__ << ": Unsupported workflow type"
-                  << std::endl;
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported workflow type (")(
+                workflow.type())(")")
+                .Flush();
         }
     }
 

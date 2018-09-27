@@ -1223,6 +1223,7 @@ private:
         const String& note,
         const Nym& nym,
         const Amount amount,
+        const String& inRefTo,
         OTTransaction& processInbox) const;
     bool find_cron(
         const ServerContext& context,

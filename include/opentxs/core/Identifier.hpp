@@ -61,9 +61,10 @@ public:
         const String& rhs);
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(const Nym& nym);
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
-        const Contract& contract);
-    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const Cheque& cheque);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(const Item& item);
+    EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
+        const Contract& contract);
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(
         const crypto::key::LegacySymmetric& key);
     EXPORT static opentxs::Pimpl<opentxs::Identifier> Factory(

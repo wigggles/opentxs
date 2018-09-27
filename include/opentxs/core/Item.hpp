@@ -62,7 +62,7 @@ public:
         error_status  // error status versus error state
     };
 
-    // For "OTItem::acceptTransaction" -- the blank contains a list of blank
+    // For "Item::acceptTransaction" -- the blank contains a list of blank
     // numbers,
     // therefore the "accept" must contain the same list. Otherwise you haven't
     // signed off!!
@@ -214,7 +214,7 @@ private:  // Private prevents erroneous use by other classes.
     itemType GetItemTypeFromString(const String& strType);
 
     // There is the OTTransaction transfer, which is a transaction type, and
-    // there is also the OTItem transfer, which is an item type. They are
+    // there is also the Item transfer, which is an item type. They are
     // related. Every transaction has a list of items, and these perform the
     // transaction. A transaction trying to TRANSFER would have these items:
     // transfer, serverfee, balance, and possibly outboxhash.

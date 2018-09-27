@@ -113,7 +113,7 @@ OTTransaction::OTTransaction(const api::Core& core, const Ledger& theOwner)
 // ==> or maybe I might need to add a constructor where another transaction or a
 // ledger is passed in.
 //      Then it can grab whatever it needs from those. I'm doing something
-// similar in OTItem
+// similar in Item
 OTTransaction::OTTransaction(
     const api::Core& core,
     const Identifier& theNymID,
@@ -1550,7 +1550,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     // minus the total of the transactions from before that are no longer there,
     // but are also no longer on my issued list and thus don't matter.
     //
-    // Wow! OTItem::VerifyBalanceStatement will have useful code but it doesn't
+    // Wow! Item::VerifyBalanceStatement will have useful code but it doesn't
     // encapsulate all this new functionality, since this version must assume
     // differences are there, and STILL verify things by comparing details about
     // those differences, whereas that version only serves to make sure
@@ -1809,7 +1809,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         } else if (
             pTransactionItem->GetType() != itemType::transactionStatement) {
             otOut << "Wrong type on pTransactionItem (expected "
-                     "OTItem::transactionStatement)\n";
+                     "Item::transactionStatement)\n";
 
             return false;
         } else if (!pTransactionItem->VerifySignature(THE_NYM)) {
@@ -1883,7 +1883,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         return false;
     } else if (pBalanceItem->GetType() != itemType::balanceStatement) {
         otOut << "Wrong type on pBalanceItem (expected "
-                 "OTItem::balanceStatement)\n";
+                 "Item::balanceStatement)\n";
 
         return false;
     } else if (!pBalanceItem->VerifySignature(THE_NYM)) {
@@ -3272,17 +3272,17 @@ std::int32_t OTTransaction::GetItemCountInRefTo(std::int64_t lReference)
  transaction statement item, which must verify in order for the others to run.
 
  Here are the types of items:
-case OTItem::acceptFinalReceipt:
- theReplyItemType = OTItem::atAcceptFinalReceipt;
+case Item::acceptFinalReceipt:
+ theReplyItemType = Item::atAcceptFinalReceipt;
  break;
-case OTItem::acceptTransaction:
- theReplyItemType = OTItem::atAcceptTransaction;
+case Item::acceptTransaction:
+ theReplyItemType = Item::atAcceptTransaction;
  break;
-case OTItem::acceptMessage:
- theReplyItemType = OTItem::atAcceptMessage;
+case Item::acceptMessage:
+ theReplyItemType = Item::atAcceptMessage;
  break;
-case OTItem::acceptNotice:
- theReplyItemType = OTItem::atAcceptNotice;
+case Item::acceptNotice:
+ theReplyItemType = Item::atAcceptNotice;
  break;
 
  */
@@ -3556,8 +3556,8 @@ bool OTTransaction::GetSuccess(
         OT_ASSERT(nullptr != pItem);
 
         switch (pItem->GetType()) {
-            //      case OTItem::atServerfee:  // Fees currently aren't coded.
-            //      Todo. case OTItem::atIssuerfee:  // Same as above. Todo.
+            //      case Item::atServerfee:  // Fees currently aren't coded.
+            //      Todo. case Item::atIssuerfee:  // Same as above. Todo.
 
             // BALANCE AGREEMENT  /  TRANSACTION STATEMENT
 
@@ -3699,7 +3699,7 @@ bool OTTransaction::GetSuccess(
             // since such status is set on the item, not the transaction, and
             // since there are no other items that matter if this IS a success.
 
-            //      case OTItem::chequeReceipt:   // not needed in OTItem.
+            //      case Item::chequeReceipt:   // not needed in Item.
             // Meaning, actual OTTransaction cheque receipts do NOT need a
             // chequeReceipt Item attached....
             case itemType::chequeReceipt:  // ...but it's here anyway as a type,
@@ -5650,7 +5650,7 @@ void OTTransaction::CalculateNumberOfOrigin()
                               ? "chequeReceipt"
                               : "voucherReceipt")
                       << " "
-                         "(expected OTItem::depositCheque)\n";
+                         "(expected Item::depositCheque)\n";
                 SetNumberOfOrigin(0);
                 return;
             }

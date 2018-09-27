@@ -200,7 +200,7 @@ void OTTransactionType::Release()
                           // now...
 }
 
-// OTAccount, OTTransaction, OTItem, and OTLedger are all derived from
+// OTAccount, OTTransaction, Item, and OTLedger are all derived from
 // this class (OTTransactionType). Therefore they can all quickly identify
 // whether one of the other components belongs to the same account, using
 // this method.
@@ -258,36 +258,27 @@ bool OTTransactionType::VerifyContractID() const
 {
     // m_AcctID contains the number we read from the xml file
     // we can compare it to the existing and actual identifier.
-
     // m_AcctID  contains the "IDENTIFIER" of the object, according to the xml
     // file.
     //
     // Meanwhile m_ID contains the same identifier, except it was generated.
     //
     // Now let's compare the two and make sure they match...
-
     // Also, for this class, we compare NotaryID as well.  They go hand in hand.
 
     if ((m_ID != m_AcctID) || (m_NotaryID != m_AcctNotaryID)) {
         auto str1 = String::Factory(m_ID), str2 = String::Factory(m_AcctID),
              str3 = String::Factory(m_NotaryID),
              str4 = String::Factory(m_AcctNotaryID);
-        otErr << "Identifiers do NOT match in "
-                 "OTTransactionType::VerifyContractID.\n"
-                 "m_ID: "
-              << str1 << "\n m_AcctID: " << str2 << "\n m_NotaryID: " << str3
-              << "\n m_AcctNotaryID: " << str4 << "\n";
-
-        //      OT_FAIL;  // I was debugging.
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Identifiers mismatch").Flush();
+        LogOutput("m_AcctID actual: ")(m_AcctID)(" expected: ")(m_ID).Flush();
+        LogOutput("m_NotaryID actual: ")(m_AcctNotaryID)(" expected: ")(
+            m_NotaryID)
+            .Flush();
 
         return false;
     } else {
-        //        OTString str1(m_AcctID), str2(m_AcctNotaryID);
-        //        otErr << "Expected Account ID and Notary ID both *SUCCESSFUL*
-        //        match to "
-        //                "IDs in the xml:\n Account ID:\n%s\n NotaryID:\n%s\n"
-        //                "-----------------------------------------------------------------------------\n",
-        //                str1.Get(), str2.Get());
+
         return true;
     }
 }
@@ -334,8 +325,8 @@ void OTTransactionType::SetNumberOfOrigin(OTTransactionType& setFrom)
     m_lNumberOfOrigin = setFrom.GetNumberOfOrigin();
 }
 
-// Allows you to compare any OTTransaction or OTItem to any other OTTransaction
-// or OTItem,
+// Allows you to compare any OTTransaction or Item to any other OTTransaction
+// or Item,
 // and see if they share the same origin number.
 //
 // Let's say Alice sends a transfer #100 to Bob.

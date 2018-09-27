@@ -16,6 +16,7 @@
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Identifier.hpp"
+#include "opentxs/core/Item.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
@@ -91,10 +92,14 @@ OTIdentifier Identifier::Factory(const Contract& contract)
 
 OTIdentifier Identifier::Factory(const Cheque& cheque)
 {
-    OTIdentifier output{new implementation::Identifier()};
-    output->CalculateDigest(String::Factory(cheque));
+    return OTIdentifier(
+        implementation::Identifier::contract_contents_to_identifier(cheque));
+}
 
-    return output;
+OTIdentifier Identifier::Factory(const Item& item)
+{
+    return OTIdentifier(
+        implementation::Identifier::contract_contents_to_identifier(item));
 }
 
 OTIdentifier Identifier::Factory(const crypto::key::LegacySymmetric& key)
@@ -265,6 +270,17 @@ bool Identifier::CalculateDigest(const opentxs::Data& dataInput, const ID type)
 Identifier* Identifier::clone() const
 {
     return new Identifier(data_, position_, type_);
+}
+
+Identifier* Identifier::contract_contents_to_identifier(const Contract& in)
+{
+    auto output = new Identifier();
+
+    OT_ASSERT(nullptr != output);
+
+    output->CalculateDigest(String::Factory(in));
+
+    return output;
 }
 
 // This Identifier is stored in binary form.

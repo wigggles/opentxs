@@ -1431,8 +1431,6 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
         if (nullptr == transaction) {
             otErr << OT_METHOD << __FUNCTION__ << ": Invalid input ledger."
                   << std::endl;
-
-            OT_FAIL;
         }
 
         const auto inputNumber = transaction->GetTransactionNum();

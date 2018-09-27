@@ -49,6 +49,7 @@ private:
 
     Identifier* clone() const override;
 
+    static Identifier* contract_contents_to_identifier(const Contract& in);
     static proto::HashType IDToHashType(const ID type);
     static OTData path_to_data(
         const proto::ContactItemType type,

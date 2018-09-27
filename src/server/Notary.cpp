@@ -679,7 +679,7 @@ void Notary::NotarizeTransfer(
         Log::vOutput(
             0,
             "Notary::NotarizeTransfer: Expected "
-            "OTItem::balanceStatement in trans# %" PRId64 ": \n\n%s\n\n",
+            "Item::balanceStatement in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION INTO STRING) ");
@@ -692,7 +692,7 @@ void Notary::NotarizeTransfer(
         Log::vOutput(
             0,
             "Notary::NotarizeTransfer: Expected "
-            "OTItem::transfer in trans# %" PRId64 ": \n\n%s\n\n",
+            "Item::transfer in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION INTO STRING) ");
@@ -1154,12 +1154,12 @@ void Notary::NotarizeTransfer(
 
 /// NotarizeWithdrawal supports two withdrawal types:
 ///
-/// OTItem::withdrawVoucher    This is a bank voucher, like a cashier's check.
+/// Item::withdrawVoucher    This is a bank voucher, like a cashier's check.
 /// Funds are transferred to
 ///                            the bank, who then issues a cheque drawn on an
 /// internal voucher account.
 ///
-/// OTItem::withdrawal        This is a digital cash withdrawal, in the form of
+/// Item::withdrawal        This is a digital cash withdrawal, in the form of
 /// untraceable, blinded
 ///                            tokens. Funds are transferred to the bank, who
 /// blind-signs the tokens.
@@ -1237,8 +1237,8 @@ void Notary::NotarizeWithdrawal(
         auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
-            "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
-            "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
+            "Notary::NotarizeWithdrawal: Expected Item::withdrawal or "
+            "Item::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION INTO STRING) ");
@@ -1292,7 +1292,7 @@ void Notary::NotarizeWithdrawal(
         Log::vOutput(
             0,
             "Notary::NotarizeWithdrawal: Expected "
-            "OTItem::balanceStatement, but not found in trans # "
+            "Item::balanceStatement, but not found in trans # "
             "%" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
             strTemp->Exists() ? strTemp->Get()
@@ -1943,8 +1943,8 @@ void Notary::NotarizeWithdrawal(
         auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
-            "Notary::NotarizeWithdrawal: Expected OTItem::withdrawal or "
-            "OTItem::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
+            "Notary::NotarizeWithdrawal: Expected Item::withdrawal or "
+            "Item::withdrawVoucher in trans# %" PRId64 ": \n\n%s\n\n",
             tranIn.GetTransactionNum(),
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION INTO STRING) ");
@@ -1971,7 +1971,7 @@ void Notary::NotarizeWithdrawal(
 /// "dollar" transaction, using that example, and theAccount is a dollar
 /// account. But then how do we know those dollars are being paid to _Pepsi_
 /// shareholders? Because the instrument definition of the shares must be
-/// attached to the OTItem::payDividend within tranIn--and also so must the
+/// attached to the Item::payDividend within tranIn--and also so must the
 /// dividend payout amount, per share" be included, for the same reason. This
 /// function gets the asset contract for the shares, and passes a functor to it,
 /// so that it can iterate through all the Pepsi asset accounts and form/send a
@@ -2050,8 +2050,7 @@ void Notary::NotarizePayDividend(
         auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
-            "%s: Expected OTItem::payDividend in trans# %" PRId64
-            ": \n\n%s\n\n",
+            "%s: Expected Item::payDividend in trans# %" PRId64 ": \n\n%s\n\n",
             szFunc,
             tranIn.GetTransactionNum(),
             strTemp->Exists()
@@ -2092,7 +2091,7 @@ void Notary::NotarizePayDividend(
         auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
-            "%s: Expected OTItem::balanceStatement, but not "
+            "%s: Expected Item::balanceStatement, but not "
             "found in trans # %" PRId64 ": \n\n%s\n\n",
             szFunc,
             tranIn.GetTransactionNum(),
@@ -2780,8 +2779,7 @@ void Notary::NotarizePayDividend(
         auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
-            "%s: Expected OTItem::payDividend in trans# %" PRId64
-            ": \n\n%s\n\n",
+            "%s: Expected Item::payDividend in trans# %" PRId64 ": \n\n%s\n\n",
             szFunc,
             tranIn.GetTransactionNum(),
             strTemp->Exists() ? strTemp->Get()
@@ -2998,8 +2996,8 @@ void Notary::NotarizePaymentPlan(
     // not.
     else if ((nullptr == pItem) || (nullptr == pBalanceItem)) {
         Log::vError(
-            "%s: Error, expected OTItem::paymentPlan and "
-            "OTItem::transactionStatement.\n",
+            "%s: Error, expected Item::paymentPlan and "
+            "Item::transactionStatement.\n",
             __FUNCTION__);
     } else {
         if (DEPOSITOR_ACCT_ID != pItem->GetPurportedAccountID()) {
@@ -3673,8 +3671,8 @@ void Notary::NotarizeSmartContract(
     // So we treat it that way... I either get it successfully or not.
     else if ((nullptr == pItem) || (nullptr == pBalanceItem)) {
         Log::vError(
-            "%s: Error, expected OTItem::smartContract and "
-            "OTItem::transactionStatement.\n",
+            "%s: Error, expected Item::smartContract and "
+            "Item::transactionStatement.\n",
             __FUNCTION__);
     } else {
         if (ACTIVATOR_ACCT_ID != pItem->GetPurportedAccountID()) {
@@ -4574,7 +4572,7 @@ void Notary::NotarizeCancelCronItem(
         auto strTemp = String::Factory(tranIn);
         Log::vOutput(
             0,
-            "Error, expected OTItem::cancelCronItem "
+            "Error, expected Item::cancelCronItem "
             "in Notary::NotarizeCancelCronItem for trans# %" PRId64
             ":\n\n%s\n\n",
             tranIn.GetTransactionNum(),
@@ -5147,7 +5145,7 @@ void Notary::NotarizeExchangeBasket(
                                                 ->SetNumberOfOrigin(*pItem);
 
                                             // The "exchangeBasket request"
-                                            // OTItem is saved as the "In
+                                            // Item is saved as the "In
                                             // Reference To" field
                                             // on the inbox basketReceipt
                                             // transaction.
@@ -5348,7 +5346,7 @@ void Notary::NotarizeExchangeBasket(
                                     pInboxTransaction->SetNumberOfOrigin(
                                         *pItem);
 
-                                    // The exchangeBasket request OTItem is
+                                    // The exchangeBasket request Item is
                                     // saved as a "in reference to" field,
                                     // on the inbox basketReceipt
                                     // transaction. todo put these two
@@ -5578,7 +5576,7 @@ void Notary::NotarizeMarketOffer(
         Log::vOutput(
             0,
             "Notary::NotarizeMarketOffer: Expected "
-            "OTItem::marketOffer in trans# %" PRId64 ":\n\n%s\n\n",
+            "Item::marketOffer in trans# %" PRId64 ":\n\n%s\n\n",
             tranIn.GetTransactionNum(),
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION INTO STRING) ");
@@ -6055,7 +6053,7 @@ void Notary::NotarizeTransaction(
                     NotarizeProcessInbox(
                         context, theFromAccount, tranIn, tranOut, bOutSuccess);
                     //                    theReplyItemType =
-                    //                    OTItem::atProcessInbox;
+                    //                    Item::atProcessInbox;
                     // // Nonexistent, and here, unused.
                     // (There is a processInbox message that carries that
                     // transaction...)
@@ -6459,8 +6457,8 @@ void Notary::NotarizeProcessNymbox(
         }
 
         // NOTICE: We're adding up all the new transaction numbers being
-        // added. (OTItem::acceptTransaction)... but we're NOT bothering
-        // with the ones being REMOVED (OTItem::acceptFinalReceipt) here in
+        // added. (Item::acceptTransaction)... but we're NOT bothering
+        // with the ones being REMOVED (Item::acceptFinalReceipt) here in
         // NotarizeProecessNymbox. Why not? BECAUSE THEY WERE ALREADY
         // REMOVED. They were removed when the Cron Item expired, or was
         // canceled. The finalReceipt notice that went into the Nymbox was
@@ -6669,7 +6667,7 @@ void Notary::NotarizeProcessNymbox(
                             // acknowledgement instead of the default
                             // (rejection)
                             pResponseItem->SetStatus(Item::acknowledgement);
-                        }  // its type is OTItem::aacceptMessage
+                        }  // its type is Item::aacceptMessage
 
                         // The below block only executes for ACCEPTING a
                         // NOTICE
@@ -6706,7 +6704,7 @@ void Notary::NotarizeProcessNymbox(
                             // (rejection)
                             pResponseItem->SetStatus(Item::acknowledgement);
 
-                        }  // its type is OTItem::acceptNotice
+                        }  // its type is Item::acceptNotice
 
                         // The below block only executes for ACCEPTING a
                         // TRANSACTION NUMBER
@@ -6761,7 +6759,7 @@ void Notary::NotarizeProcessNymbox(
                                         pServerTransaction
                                             ->GetTransactionNum());
 
-                                    // Contains a copy of the OTItem where I
+                                    // Contains a copy of the Item where I
                                     // actually accepted the blank
                                     // transaction
                                     // #.
@@ -7544,7 +7542,7 @@ void Notary::NotarizeProcessInbox(
 
             Log::vError(
                 "Notary::%s: Error, unexpected "
-                "OTItem::itemType: %s\n",
+                "Item::itemType: %s\n",
                 __FUNCTION__,
                 strItemType->Get());
 
@@ -7648,7 +7646,7 @@ void Notary::NotarizeProcessInbox(
         // transactionType::paymentReceipt or
         // transactionType::marketReceipt,
         // the "in reference to" string will NOT contain an
-        // OTItem at all, but an OTPaymentPlan or
+        // Item at all, but an OTPaymentPlan or
         // an OTTrade!! Also, a paymentReceipt might be for a
         // smart contract, in which case there's
         // a smartcontract inside, instead of a payment plan! I
@@ -7792,7 +7790,7 @@ void Notary::NotarizeProcessInbox(
                                               // in the
                                               // pending
                                               // section,
-             )  // because this is where an OTItem is loaded
+             )  // because this is where an Item is loaded
             // up (since it
             )  // originated with a deposit transaction, not
                // a cron receipt.)
@@ -7845,7 +7843,7 @@ void Notary::NotarizeProcessInbox(
                 // need to take the money back into
                 // my inbox...
 
-                // The depositCheque request OTItem is saved as
+                // The depositCheque request Item is saved as
                 // a "in reference to" field
                 // on the inbox chequeReceipt transaction.
 
@@ -7919,8 +7917,8 @@ void Notary::NotarizeProcessInbox(
                     // No, because that is done at the bottom of
                     // the function.
                     //
-                }  // its type is OTItem::acceptPending or
-                // OTItem::depositCheque
+                }  // its type is Item::acceptPending or
+                // Item::depositCheque
 
                 // TODO: 'Accept a REJECT' -- NEED TO PERFORM
                 // THE TRANSFER OF FUNDS BACK TO THE SENDER'S
@@ -8208,7 +8206,7 @@ void Notary::NotarizeProcessInbox(
                                      "NotarizeProcessInbox.\n";
                         }
                     }  // outbox was successfully loaded
-                }      // its type is OTItem::transfer
+                }      // its type is Item::transfer
             }          // loaded original item from string
             else {
                 otErr << "Error loading original item from "

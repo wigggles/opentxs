@@ -228,8 +228,7 @@ Activity::TransferData Activity::Transfer(
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
         default: {
-            otErr << OT_METHOD << __FUNCTION__ << ": Wrong workflow type"
-                  << std::endl;
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong workflow type").Flush();
 
             return output;
         }
@@ -239,8 +238,9 @@ Activity::TransferData Activity::Transfer(
     const auto loaded = api_.Storage().Load(nym.str(), workflowID, workflow);
 
     if (false == loaded) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Workflow " << workflowID
-              << " for nym " << nym.str() << " can not be loaded" << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Workflow ")(workflowID)(
+            " for nym ")(nym)(" can not be loaded")
+            .Flush();
 
         return output;
     }
@@ -252,7 +252,24 @@ Activity::TransferData Activity::Transfer(
 
     OT_ASSERT(transfer)
 
-    const auto& unit = transfer->GetInstrumentDefinitionID();
+    if (0 == workflow->account_size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Workflow does not list any accounts.")
+            .Flush();
+
+        return output;
+    }
+
+    const auto unit = api_.Storage().AccountContract(
+        Identifier::Factory(workflow->account(0)));
+
+    if (unit->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Unable to calculate unit definition id.")
+            .Flush();
+
+        return output;
+    }
     contract = api_.Wallet().UnitDefinition(unit);
 
     if (false == bool(contract)) {

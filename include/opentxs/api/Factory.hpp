@@ -44,9 +44,14 @@ public:
         const String& strCronItem) const = 0;
 
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
+        const String& serialized) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::Item> Item(
+        const std::string& serialized) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::Item> Item(
         const Identifier& theNymID,
-        const Item& theOwner) const = 0;  // From owner we can get acct ID,
-                                          // server ID, and transaction Num
+        const opentxs::Item& theOwner) const = 0;  // From owner we can get acct
+                                                   // ID, server ID, and
+                                                   // transaction Num
     EXPORT virtual std::unique_ptr<opentxs::Item> Item(
         const Identifier& theNymID,
         const OTTransaction& theOwner) const = 0;  // From owner we can get acct

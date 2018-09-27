@@ -18,7 +18,7 @@
 
 namespace opentxs
 {
-// OTTransactionType is a base class for OTLedger, OTTransaction, and OTItem.
+// OTTransactionType is a base class for OTLedger, OTTransaction, and Item.
 class OTTransactionType : public Contract
 {
 public:
@@ -28,7 +28,7 @@ public:
     EXPORT bool Contains(const char* szContains);  // Allows you to
                                                    // string-search
                                                    // the raw contract.
-    // OTAccount, OTTransaction, OTItem, and OTLedger are all derived from
+    // OTAccount, OTTransaction, Item, and OTLedger are all derived from
     // this class (OTTransactionType). Therefore they can all quickly identify
     // whether one of the other components belongs to the same account.
     //
@@ -627,7 +627,7 @@ protected:
     OTIdentifier m_AcctNotaryID;
 
     // Update: instead of in the child classes, like OTLedger, OTTransaction,
-    // OTItem, etc, I put the "purported acct ID" and "purported server ID" here
+    // Item, etc, I put the "purported acct ID" and "purported server ID" here
     // in the base class, to manage it all centrally.
 
     // NymID of the user who created this item. (In the future, this item
@@ -684,7 +684,7 @@ protected:
                         // a separate transaction for EVERY NUMBER.
     // (Had to fix that... way too many box receipts were being downloaded.)
     // Note: I moved this to OTTransactionType so I can use it from within
-    // OTItem as well, so when I accept transaction
+    // Item as well, so when I accept transaction
     // numbers, I am able to list them in the accept item.
 
     // The parameters to the constructor are supposed to be the ACTUAL account

@@ -152,6 +152,9 @@ enum class StorageBox : std::uint8_t {
     OUTGOINGBLOCKCHAIN = 11,
     INCOMINGCHEQUE = 12,
     OUTGOINGCHEQUE = 13,
+    OUTGOINGTRANSFER = 14,
+    INCOMINGTRANSFER = 15,
+    INTERNALTRANSFER = 16,
     DRAFT = 254,
     UNKNOWN = 255,
 };
@@ -259,7 +262,7 @@ enum class itemType : std::uint8_t {
                            // in his inbox.
     atDisputeItemReceipt,  // Server reply to dispute message.
 
-    // Sometimes the attachment will be an OTItem, and sometimes it will be
+    // Sometimes the attachment will be an Item, and sometimes it will be
     // an OTPaymentPlan or OTTrade.  These different types above help the
     // code to differentiate.
     acceptFinalReceipt,     // this item is a client-side acceptance of a final
@@ -336,7 +339,7 @@ enum class itemType : std::uint8_t {
     // are used as real
     // receipts, and also in inbox reports to represent transaction items in
     // an inbox.
-    chequeReceipt,  // Currently don't create an OTItem for cheque receipt
+    chequeReceipt,  // Currently don't create an Item for cheque receipt
                     // in
                     // inbox. Not needed.
     // I also don't create one for the transfer receipt, currently.
@@ -395,8 +398,8 @@ enum class ledgerType : std::uint8_t {
 };  // If you add any types to this list, update the list of strings at the
 // top of Ledger.cpp.
 
-// originType is DISPLAY ONLY. Used in OTTransaction and OTItem.
-// sometimes an OTItem is used to represent an OTTransaction.
+// originType is DISPLAY ONLY. Used in OTTransaction and Item.
+// sometimes an Item is used to represent an OTTransaction.
 // (for example, processInbox transaction has a processInbox item that
 // contains a list of sub-items that represent the receipts aka
 // OTTransactions in the inbox.)
