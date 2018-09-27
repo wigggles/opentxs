@@ -93,8 +93,8 @@ NymFile::NymFile(
     , m_lUsageCredits(0)
     , m_bMarkForDeletion(false)
     , m_strNymFile(String::Factory())
-    , m_strVersion(NYMFILE_VERSION)
-    , m_strDescription("")
+    , m_strVersion(String::Factory(NYMFILE_VERSION))
+    , m_strDescription(String::Factory())
     , m_mapInboxHash()
     , m_mapOutboxHash()
     , m_dequeOutpayments()
@@ -178,7 +178,8 @@ bool NymFile::deserialize_nymfile(
                 const auto strNodeName = String::Factory(xml->getNodeName());
 
                 if (strNodeName->Compare("nymData")) {
-                    m_strVersion = xml->getAttributeValue("version");
+                    m_strVersion =
+                        String::Factory(xml->getAttributeValue("version"));
                     const auto UserNymID =
                         String::Factory(xml->getAttributeValue("nymID"));
 
@@ -199,7 +200,7 @@ bool NymFile::deserialize_nymfile(
                             .Flush();
                     }
                     bSuccess = true;
-                    convert = (String("1.0") == m_strVersion);
+                    convert = (String::Factory("1.0")->Compare(m_strVersion));
 
                     if (convert) {
                         otErr << __FUNCTION__
@@ -335,7 +336,7 @@ bool NymFile::deserialize_nymfile(
         }  // switch
     }      // while
 
-    if (converted) { m_strVersion = "1.1"; }
+    if (converted) { m_strVersion->Set("1.1"); }
 
     return bSuccess;
 }
