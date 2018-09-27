@@ -48,7 +48,7 @@ TEST_F(Test_AccountList, testList)
         Identifier::Factory(AliceNymID),
         BlockchainAccountType::BIP44,
         proto::CITEMTYPE_BTC);
-    std::cout << "Created Alice's Account: " << String(AliceAccountID).Get()
+    std::cout << "Created Alice's Account: " << String::Factory(AliceAccountID)->Get()
               << " !!\n";
 
     OTIdentifier AliceAccountID2 = client_.Blockchain().NewAccount(
@@ -56,7 +56,7 @@ TEST_F(Test_AccountList, testList)
         BlockchainAccountType::BIP32,
         proto::CITEMTYPE_BTC);
     std::cout << "Created Alice's 2nd Account: "
-              << String(AliceAccountID2).Get() << " !!\n";
+              << String::Factory(AliceAccountID2)->Get() << " !!\n";
 
     const std::set<OTIdentifier> as = client_.Blockchain().AccountList(
         Identifier::Factory(AliceNymID), proto::CITEMTYPE_BTC);

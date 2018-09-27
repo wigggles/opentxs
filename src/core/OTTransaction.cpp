@@ -930,11 +930,11 @@ bool OTTransaction::HarvestOpeningNumber(
                                 // Also load up the Payment Plan from inside the
                                 // transaction item.
                                 //
-                                String strPaymentPlan;
+                                auto strPaymentPlan = String::Factory();
                                 auto thePlan{api_.Factory().PaymentPlan()};
                                 pItem->GetAttachment(strPaymentPlan);
 
-                                if (strPaymentPlan.Exists() &&
+                                if (strPaymentPlan->Exists() &&
                                     thePlan->LoadContractFromString(
                                         strPaymentPlan))
                                     return thePlan->GetRecipientOpeningNum();
@@ -1065,13 +1065,13 @@ bool OTTransaction::HarvestOpeningNumber(
                            "smartContract item in smartContract transaction.\n";
                 } else  // Load up the smart contract...
                 {
-                    String strSmartContract;
+                    auto strSmartContract = String::Factory();
                     auto theSmartContract{
                         api_.Factory().SmartContract(GetPurportedNotaryID())};
                     pItem->GetAttachment(strSmartContract);
 
                     // If we failed to load the smart contract...
-                    if (!strSmartContract.Exists() ||
+                    if (!strSmartContract->Exists() ||
                         (false == theSmartContract->LoadContractFromString(
                                       strSmartContract))) {
                         otErr << "OTTransaction::HarvestOpeningNumber: Error: "
@@ -1183,12 +1183,12 @@ bool OTTransaction::HarvestClosingNumbers(
 
                     OT_ASSERT(false != bool(theTrade));
 
-                    String strTrade;
+                    auto strTrade = String::Factory();
                     pItem->GetAttachment(strTrade);
 
                     // First load the Trade up...
                     const bool bLoadContractFromString =
-                        (strTrade.Exists() &&
+                        (strTrade->Exists() &&
                          theTrade->LoadContractFromString(strTrade));
 
                     // If failed to load the trade...
@@ -1290,7 +1290,7 @@ bool OTTransaction::HarvestClosingNumbers(
                 } else  // pItem is good. Let's load up the OTPaymentPlan
                         // object...
                 {
-                    String strPaymentPlan;
+                    auto strPaymentPlan = String::Factory();
                     auto thePlan{api_.Factory().PaymentPlan()};
 
                     OT_ASSERT(false != bool(thePlan));
@@ -1299,7 +1299,7 @@ bool OTTransaction::HarvestClosingNumbers(
 
                     // First load the payment plan up...
                     const bool bLoadContractFromString =
-                        (strPaymentPlan.Exists() &&
+                        (strPaymentPlan->Exists() &&
                          thePlan->LoadContractFromString(strPaymentPlan));
 
                     // If failed to load the payment plan from string...
@@ -1399,7 +1399,7 @@ bool OTTransaction::HarvestClosingNumbers(
                            "smartContract item in smartContract transaction.\n";
                 } else  // Load up the smart contract...
                 {
-                    String strSmartContract;
+                    auto strSmartContract = String::Factory();
                     auto theSmartContract{
                         api_.Factory().SmartContract(GetPurportedNotaryID())};
 
@@ -1408,7 +1408,7 @@ bool OTTransaction::HarvestClosingNumbers(
                     pItem->GetAttachment(strSmartContract);
 
                     // If we failed to load the smart contract...
-                    if (!strSmartContract.Exists() ||
+                    if (!strSmartContract->Exists() ||
                         (false == theSmartContract->LoadContractFromString(
                                       strSmartContract))) {
                         otErr << "OTTransaction::HarvestClosingNumbers: Error: "
@@ -1677,14 +1677,15 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     const auto& SERVER_NYM = context.RemoteNym();
     auto NYM_ID = Identifier::Factory(THE_NYM),
          NOTARY_NYM_ID = Identifier::Factory(SERVER_NYM);
-    const String strNotaryID(GetRealNotaryID()), strReceiptID(NYM_ID);
+    const auto strNotaryID = String::Factory(GetRealNotaryID()),
+               strReceiptID = String::Factory(NYM_ID);
 
     // Load the last TRANSACTION STATEMENT as well...
-    String strFilename;
-    strFilename.Format("%s.success", strReceiptID.Get());
+    auto strFilename = String::Factory();
+    strFilename->Format("%s.success", strReceiptID->Get());
     const char* szFolder1name = OTFolders::Receipt().Get();
-    const char* szFolder2name = strNotaryID.Get();
-    const char* szFilename = strFilename.Get();
+    const char* szFolder2name = strNotaryID->Get();
+    const char* szFilename = strFilename->Get();
 
     if (!OTDB::Exists(
             api_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
@@ -1707,7 +1708,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         return false;
     }
 
-    String strTransaction(strFileContents.c_str());
+    auto strTransaction = String::Factory(strFileContents.c_str());
     const auto pContents{api_.Factory().Transaction(strTransaction)};
 
     if (false == bool(pContents)) {
@@ -1781,10 +1782,10 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
             return false;
         }
 
-        String strBalanceItem;
+        auto strBalanceItem = String::Factory();
         pResponseTransactionItem->GetReferenceString(strBalanceItem);
 
-        if (!strBalanceItem.Exists()) {
+        if (!strBalanceItem->Exists()) {
             otOut << "No transactionStatement item found as 'in ref to' string "
                      "on a receipt containing atTransactionStatement item.\n";
 
@@ -1858,10 +1859,10 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
     }
 
     std::unique_ptr<Item> pBalanceItem;
-    String strBalanceItem;
+    auto strBalanceItem = String::Factory();
     pResponseBalanceItem->GetReferenceString(strBalanceItem);
 
-    if (!strBalanceItem.Exists()) {
+    if (!strBalanceItem->Exists()) {
         otOut << "No balanceStatement item found as 'in ref to' string on a "
                  "receipt containing atBalanceStatement item.\n";
 
@@ -1892,7 +1893,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         return false;
     }
 
-    String serialized;
+    auto serialized = String::Factory();
     const bool useTransactionItem = (false != bool(pTransactionItem)) &&
                                     (tranOut.GetDateSigned() > GetDateSigned());
 
@@ -1904,7 +1905,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     pItemWithIssuedList->GetAttachment(serialized);
 
-    if (!serialized.Exists()) {
+    if (!serialized->Exists()) {
         otOut << "Unable to load message nym in "
                  "OTTransaction::VerifyBalanceReceipt.\n";
 
@@ -2028,7 +2029,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
                 break;
             }
             default: {
-                String strItemType;
+                auto strItemType = String::Factory();
                 pSubItem->GetTypeString(strItemType);
                 LogDebug(OT_METHOD)(__FUNCTION__)(": Ignoring ")(strItemType)(
                     " item in balance statement while verifying "
@@ -2652,7 +2653,7 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
         // Next I need to find out the transaction number that I ORIGINALLY
         // used, that's somehow associated with the receipt I found in my inbox,
         // by looking up the number from within the receipt...
-        String strRespTo;
+        auto strRespTo = String::Factory();
         // The number that must STILL be signed out to me, in order for this
         // receipt not be warrant disputing.
         TransactionNumber lIssuedNum = 0;
@@ -2875,7 +2876,8 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 //
 bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
 {
-    String strFolder1name, strFolder2name, strFolder3name, strFilename;
+    auto strFolder1name = String::Factory(), strFolder2name = String::Factory(),
+         strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
             theLedger,
@@ -2891,10 +2893,10 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     //
     if (!OTDB::Exists(
             api_.DataFolder(),
-            strFolder1name.Get(),
-            strFolder2name.Get(),
-            strFolder3name.Get(),
-            strFilename.Get())) {
+            strFolder1name->Get(),
+            strFolder2name->Get(),
+            strFolder3name->Get(),
+            strFilename->Get())) {
         otInfo
             << __FUNCTION__
             << ": Box receipt already doesn't exist, thus no need to delete: "
@@ -2905,7 +2907,7 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
         return false;
     }
 
-    String strFinal;
+    auto strFinal = String::Factory();
     Armored ascTemp;
 
     if (m_strRawFile->Exists()) {
@@ -2929,26 +2931,26 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
     //
     // Try to save the deleted box receipt to local storage.
     //
-    String strOutput;
+    auto strOutput = String::Factory();
 
     if (m_strRawFile->Exists())
-        strOutput.Format(
+        strOutput->Format(
             "%s\n\n%s\n",
-            strFinal.Get(),
+            strFinal->Get(),
             "MARKED_FOR_DELETION");  // todo hardcoded.
     else
-        strOutput.Format(
+        strOutput->Format(
             "%s\n\n%s\n",
             "(Transaction was already empty -- strange.)",
             "MARKED_FOR_DELETION");  // todo hardcoded.
 
     bool bDeleted = OTDB::StorePlainString(
-        strOutput.Get(),
+        strOutput->Get(),
         api_.DataFolder(),
-        strFolder1name.Get(),
-        strFolder2name.Get(),
-        strFolder3name.Get(),
-        strFilename.Get());
+        strFolder1name->Get(),
+        strFolder2name->Get(),
+        strFolder3name->Get(),
+        strFilename->Get());
     if (!bDeleted)
         otErr << __FUNCTION__
               << ": Error deleting (writing over) file: " << strFolder1name
@@ -2974,7 +2976,8 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
         return false;
     }
 
-    String strFolder1name, strFolder2name, strFolder3name, strFilename;
+    auto strFolder1name = String::Factory(), strFolder2name = String::Factory(),
+         strFolder3name = String::Factory(), strFilename = String::Factory();
 
     if (!SetupBoxReceiptFilename(
             lLedgerType,
@@ -2990,10 +2993,10 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     //
     if (OTDB::Exists(
             api_.DataFolder(),
-            strFolder1name.Get(),
-            strFolder2name.Get(),
-            strFolder3name.Get(),
-            strFilename.Get())) {
+            strFolder1name->Get(),
+            strFolder2name->Get(),
+            strFolder3name->Get(),
+            strFilename->Get())) {
         otOut << __FUNCTION__
               << ": Warning -- Box receipt already exists! (Overwriting)"
                  "At location: "
@@ -3005,7 +3008,7 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
 
     // Try to save the box receipt to local storage.
     //
-    String strFinal;
+    auto strFinal = String::Factory();
     Armored ascTemp(m_strRawFile);
 
     if (false ==
@@ -3019,12 +3022,12 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     }
 
     bool bSaved = OTDB::StorePlainString(
-        strFinal.Get(),
+        strFinal->Get(),
         api_.DataFolder(),
-        strFolder1name.Get(),
-        strFolder2name.Get(),
-        strFolder3name.Get(),
-        strFilename.Get());
+        strFolder1name->Get(),
+        strFolder2name->Get(),
+        strFolder3name->Get(),
+        strFilename->Get());
 
     if (!bSaved)
         otErr << __FUNCTION__ << ": Error writing file: " << strFolder1name
@@ -3183,8 +3186,9 @@ bool OTTransaction::VerifyItems(const Nym& theNym)
 // call.)
 void OTTransaction::InitTransaction()
 {
-    m_strContractType = "TRANSACTION";  // CONTRACT, MESSAGE, TRANSACTION,
-                                        // LEDGER, TRANSACTION ITEM
+    m_strContractType =
+        String::Factory("TRANSACTION");  // CONTRACT, MESSAGE, TRANSACTION,
+                                         // LEDGER, TRANSACTION ITEM
     m_DATE_SIGNED = OT_TIME_ZERO;  // Make sure to set this to the current time
                                    // whenever contract is signed.
     m_Type = transactionType::error_state;
@@ -3794,17 +3798,17 @@ const char* OTTransaction::GetTypeString() const
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
 std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
-    const String strNodeName = xml->getNodeName();
+    const auto strNodeName = String::Factory(xml->getNodeName());
 
     NumList* pNumList = nullptr;
-    if (strNodeName.Compare("nymboxRecord")) { pNumList = &m_Numlist; }
+    if (strNodeName->Compare("nymboxRecord")) { pNumList = &m_Numlist; }
 
-    if (strNodeName.Compare("nymboxRecord") ||
-        strNodeName.Compare("inboxRecord") ||
-        strNodeName.Compare("outboxRecord") ||
-        strNodeName.Compare("paymentInboxRecord") ||
-        strNodeName.Compare("recordBoxRecord") ||
-        strNodeName.Compare("expiredBoxRecord")) {
+    if (strNodeName->Compare("nymboxRecord") ||
+        strNodeName->Compare("inboxRecord") ||
+        strNodeName->Compare("outboxRecord") ||
+        strNodeName->Compare("paymentInboxRecord") ||
+        strNodeName->Compare("recordBoxRecord") ||
+        strNodeName->Compare("expiredBoxRecord")) {
         std::int64_t lNumberOfOrigin = 0;
         originType theOriginType = originType::not_applicable;  // default
         std::int64_t lTransactionNum = 0;
@@ -3813,7 +3817,7 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         time64_t the_DATE_SIGNED = OT_TIME_ZERO;
         transactionType theType = transactionType::error_state;  // default
-        String strHash;
+        auto strHash = String::Factory();
 
         std::int64_t lAdjustment = 0;
         std::int64_t lDisplayValue = 0;
@@ -3858,7 +3862,7 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_DATE_SIGNED = the_DATE_SIGNED;
         m_Type = static_cast<transactionType>(theType);
 
-        if (strHash.Exists())
+        if (strHash->Exists())
             m_Hash->SetString(strHash);
         else
             otErr << "OTTransaction::ProcessXMLNode: Missing receiptHash on "
@@ -3868,20 +3872,20 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     }
 
     // THIS PART is probably what you're looking for.
-    else if (strNodeName.Compare("transaction"))  // Todo:  notice how this
-                                                  // "else if" uses
-                                                  // OTString::Compare, where
-                                                  // most other ProcessXMLNode
-                                                  // functions in OT use
-                                                  // !strcmp()? (That's right:
-                                                  // Buffer overflow. Need to
-                                                  // fix elsewhere as it is
-                                                  // fixed here.)
+    else if (strNodeName->Compare("transaction"))  // Todo:  notice how this
+                                                   // "else if" uses
+                                                   // OTString::Compare, where
+                                                   // most other ProcessXMLNode
+                                                   // functions in OT use
+                                                   // !strcmp()? (That's right:
+                                                   // Buffer overflow. Need to
+                                                   // fix elsewhere as it is
+                                                   // fixed here.)
     {
 
-        const String strType = xml->getAttributeValue("type");
+        const auto strType = String::Factory(xml->getAttributeValue("type"));
 
-        if (strType.Exists())
+        if (strType->Exists())
             m_Type = OTTransaction::GetTypeFromString(strType);
         else {
             otOut << "OTTransaction::ProcessXMLNode: Failure: unknown "
@@ -3890,24 +3894,28 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        String strCancelled = xml->getAttributeValue("cancelled");
-        if (strCancelled.Exists() && strCancelled.Compare("true"))
+        auto strCancelled =
+            String::Factory(xml->getAttributeValue("cancelled"));
+        if (strCancelled->Exists() && strCancelled->Compare("true"))
             m_bCancelled = true;
         else
             m_bCancelled = false;
 
-        String strDateSigned = xml->getAttributeValue("dateSigned");
+        auto strDateSigned =
+            String::Factory(xml->getAttributeValue("dateSigned"));
         const std::int64_t lDateSigned =
-            strDateSigned.Exists() ? parseTimestamp(strDateSigned.Get()) : 0;
+            strDateSigned->Exists() ? parseTimestamp(strDateSigned->Get()) : 0;
         m_DATE_SIGNED =
             OTTimeGetTimeFromSeconds(lDateSigned);  // Todo casting ?
 
-        const String strAcctID = xml->getAttributeValue("accountID");
-        const String strNotaryID = xml->getAttributeValue("notaryID");
-        const String strNymID = xml->getAttributeValue("nymID");
+        const auto strAcctID =
+            String::Factory(xml->getAttributeValue("accountID"));
+        const auto strNotaryID =
+            String::Factory(xml->getAttributeValue("notaryID"));
+        const auto strNymID = String::Factory(xml->getAttributeValue("nymID"));
 
-        if (!strAcctID.Exists() || !strNotaryID.Exists() ||
-            !strNymID.Exists()) {
+        if (!strAcctID->Exists() || !strNotaryID->Exists() ||
+            !strNymID->Exists()) {
             otOut
                 << "OTTransaction::ProcessXMLNode: Failure: missing strAcctID ("
                 << strAcctID << ") or strNotaryID (" << strNotaryID
@@ -3915,12 +3923,16 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         }
 
-        const String strOrigin = xml->getAttributeValue("numberOfOrigin");
-        const String strOriginType = xml->getAttributeValue("originType");
-        const String strTransNum = xml->getAttributeValue("transactionNum");
-        const String strInRefTo = xml->getAttributeValue("inReferenceTo");
+        const auto strOrigin =
+            String::Factory(xml->getAttributeValue("numberOfOrigin"));
+        const auto strOriginType =
+            String::Factory(xml->getAttributeValue("originType"));
+        const auto strTransNum =
+            String::Factory(xml->getAttributeValue("transactionNum"));
+        const auto strInRefTo =
+            String::Factory(xml->getAttributeValue("inReferenceTo"));
 
-        if (!strTransNum.Exists() || !strInRefTo.Exists()) {
+        if (!strTransNum->Exists() || !strInRefTo->Exists()) {
             otOut << "OTTransaction::ProcessXMLNode: Failure: missing "
                      "strTransNum ("
                   << strTransNum << ") or strInRefTo (" << strInRefTo
@@ -3934,25 +3946,25 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // it is in reply to.
         //
         if (transactionType::replyNotice == m_Type) {
-            const String strRequestNum =
-                xml->getAttributeValue("requestNumber");
+            const auto strRequestNum =
+                String::Factory(xml->getAttributeValue("requestNumber"));
 
-            if (strRequestNum.Exists())
-                m_lRequestNumber = strRequestNum.ToLong();
+            if (strRequestNum->Exists())
+                m_lRequestNumber = strRequestNum->ToLong();
 
-            const String strTransSuccess =
-                xml->getAttributeValue("transSuccess");
+            const auto strTransSuccess =
+                String::Factory(xml->getAttributeValue("transSuccess"));
 
-            m_bReplyTransSuccess = strTransSuccess.Compare("true");
+            m_bReplyTransSuccess = strTransSuccess->Compare("true");
         }
 
         if ((transactionType::blank == m_Type) ||
             (transactionType::successNotice == m_Type)) {
-            const String strTotalList =
-                xml->getAttributeValue("totalListOfNumbers");
+            const auto strTotalList =
+                String::Factory(xml->getAttributeValue("totalListOfNumbers"));
             m_Numlist.Release();
 
-            if (strTotalList.Exists())
+            if (strTotalList->Exists())
                 m_Numlist.Add(strTotalList);  // (Comma-separated list of
                                               // numbers now becomes
                                               // std::set<std::int64_t>.)
@@ -3996,13 +4008,13 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetRealNotaryID(NOTARY_ID);
         }
 
-        if (strOrigin.Exists()) SetNumberOfOrigin(strOrigin.ToLong());
-        if (strOriginType.Exists())
+        if (strOrigin->Exists()) SetNumberOfOrigin(strOrigin->ToLong());
+        if (strOriginType->Exists())
             SetOriginType(
                 OTTransactionType::GetOriginTypeFromString(strOriginType));
 
-        SetTransactionNum(strTransNum.ToLong());
-        SetReferenceToNum(strInRefTo.ToLong());
+        SetTransactionNum(strTransNum->ToLong());
+        SetReferenceToNum(strInRefTo->ToLong());
         LogTrace(OT_METHOD)(__FUNCTION__)(": Loaded transaction ")(
             GetTransactionNum())(", in reference to: ")(GetReferenceToNum())(
             " type: ")(strType)
@@ -4010,12 +4022,13 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (!strcmp("closingTransactionNumber", xml->getNodeName())) {
-        String strClosingNumber = xml->getAttributeValue("value");
+        auto strClosingNumber =
+            String::Factory(xml->getAttributeValue("value"));
 
-        if (strClosingNumber.Exists() &&
+        if (strClosingNumber->Exists() &&
             ((transactionType::finalReceipt == m_Type) ||
              (transactionType::basketReceipt == m_Type))) {
-            m_lClosingTransactionNo = strClosingNumber.ToLong();
+            m_lClosingTransactionNo = strClosingNumber->ToLong();
         } else {
             otErr << "Error in OTTransaction::ProcessXMLNode: "
                      "closingTransactionNumber field without value, or in "
@@ -4042,10 +4055,10 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         return 1;
     } else if (!strcmp("item", xml->getNodeName())) {
-        String strData;
+        auto strData = String::Factory();
 
         if (!Contract::LoadEncodedTextField(xml, strData) ||
-            !strData.Exists()) {
+            !strData->Exists()) {
             otErr << "Error in OTTransaction::ProcessXMLNode: transaction item "
                      "field without value.\n";
             return (-1);  // error condition
@@ -4061,7 +4074,7 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             if (!pItem->LoadContractFromString(strData)) {
                 otErr << "ERROR: OTTransaction failed loading item from "
                          "string: \n\n"
-                      << (strData.Exists() ? strData.Get() : "") << "\n\n";
+                      << (strData->Exists() ? strData->Get() : "") << "\n\n";
                 return (-1);
             } else if (!pItem->VerifyContractID()) {
                 otErr << "ERROR: Failed verifying transaction Item in "
@@ -4096,25 +4109,27 @@ bool OTTransaction::AddNumbersToTransaction(const NumList& theAddition)
 void OTTransaction::UpdateContents()
 {
     const char* pTypeStr = GetTypeString();  // TYPE
-    const String strType((nullptr != pTypeStr) ? pTypeStr : "error_state"),
-        strAcctID(GetPurportedAccountID()), strNotaryID(GetPurportedNotaryID()),
-        strNymID(GetNymID());
+    const auto strType = String::Factory(
+                   (nullptr != pTypeStr) ? pTypeStr : "error_state"),
+               strAcctID = String::Factory(GetPurportedAccountID()),
+               strNotaryID = String::Factory(GetPurportedNotaryID()),
+               strNymID = String::Factory(GetNymID());
 
     // I release this because I'm about to repopulate it.
     m_xmlUnsigned.Release();
 
     Tag tag("transaction");
 
-    tag.add_attribute("type", strType.Get());
+    tag.add_attribute("type", strType->Get());
     tag.add_attribute("dateSigned", getTimestamp());
-    tag.add_attribute("accountID", strAcctID.Get());
-    tag.add_attribute("nymID", strNymID.Get());
-    tag.add_attribute("notaryID", strNotaryID.Get());
+    tag.add_attribute("accountID", strAcctID->Get());
+    tag.add_attribute("nymID", strNymID->Get());
+    tag.add_attribute("notaryID", strNotaryID->Get());
     tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        tag.add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        tag.add_attribute("originType", strOriginType->Get());
     }
 
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
@@ -4143,9 +4158,9 @@ void OTTransaction::UpdateContents()
         // Count is always 0, except for blanks
         // and successNotices.
         if (m_Numlist.Count() > 0) {
-            String strNumbers;
+            auto strNumbers = String::Factory();
             if (m_Numlist.Output(strNumbers))
-                tag.add_attribute("totalListOfNumbers", strNumbers.Get());
+                tag.add_attribute("totalListOfNumbers", strNumbers->Get());
         }
     }
 
@@ -4216,7 +4231,7 @@ void OTTransaction::UpdateContents()
             auto pItem = it;
             OT_ASSERT(nullptr != pItem);
 
-            String strItem;
+            auto strItem = String::Factory();
             pItem->SaveContractRaw(strItem);
 
             Armored ascItem;
@@ -4335,9 +4350,9 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
     // both set correctly.
 
     // TYPE
-    String strType;
+    auto strType = String::Factory();
     const char* pTypeStr = GetTypeString();
-    strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
+    strType->Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4345,7 +4360,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    String strHash;
+    auto strHash = String::Factory();
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash->GetString(strHash);
@@ -4362,9 +4377,9 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
 
     TagPtr pTag(new Tag("paymentInboxRecord"));
 
-    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
-    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("receiptHash", strHash->Get());
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute(
@@ -4372,8 +4387,8 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        pTag->add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType->Get());
     }
 
     parent.add_tag(pTag);
@@ -4424,9 +4439,9 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    String strType;
+    auto strType = String::Factory();
     const char* pTypeStr = GetTypeString();
-    strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
+    strType->Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4434,7 +4449,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    String strHash;
+    auto strHash = String::Factory();
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash->GetString(strHash);
@@ -4451,9 +4466,9 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
 
     TagPtr pTag(new Tag("expiredBoxRecord"));
 
-    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
-    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("receiptHash", strHash->Get());
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute(
@@ -4461,8 +4476,8 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        pTag->add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType->Get());
     }
 
     parent.add_tag(pTag);
@@ -4633,9 +4648,9 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    String strType;
+    auto strType = String::Factory();
     const char* pTypeStr = GetTypeString();
-    strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
+    strType->Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4643,7 +4658,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    String strHash;
+    auto strHash = String::Factory();
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash->GetString(strHash);
@@ -4660,16 +4675,16 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
 
     TagPtr pTag(new Tag("recordBoxRecord"));
 
-    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
-    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("receiptHash", strHash->Get());
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        pTag->add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType->Get());
     }
 
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
@@ -4696,10 +4711,11 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
     std::int64_t lDisplayValue = 0;
     bool bAddRequestNumber = false;
 
-    String strListOfBlanks;  // IF this transaction is "blank" or
-                             // "successNotice" this will serialize the list of
-                             // transaction numbers for it. (They now support
-                             // multiple numbers.)
+    auto strListOfBlanks =
+        String::Factory();  // IF this transaction is "blank" or
+                            // "successNotice" this will serialize the list of
+                            // transaction numbers for it. (They now support
+                            // multiple numbers.)
     switch (m_Type) {
         case transactionType::blank:  // freshly issued transaction number, not
                                       // accepted by the user (yet).
@@ -4765,9 +4781,9 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    String strType;
+    auto strType = String::Factory();
     const char* pTypeStr = GetTypeString();
-    strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
+    strType->Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4775,7 +4791,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    String strHash;
+    auto strHash = String::Factory();
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash->GetString(strHash);
@@ -4792,17 +4808,17 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
 
     TagPtr pTag(new Tag("nymboxRecord"));
 
-    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
-    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("receiptHash", strHash->Get());
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
     pTag->add_attribute(
         "inRefDisplay", formatLong(GetReferenceNumForDisplay()));
     pTag->add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        pTag->add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType->Get());
     }
 
     // I actually don't think you can put a basket receipt
@@ -4812,8 +4828,8 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
         (transactionType::basketReceipt == m_Type))
         pTag->add_attribute("closingNum", formatLong(GetClosingNum()));
     else {
-        if (strListOfBlanks.Exists())
-            pTag->add_attribute("totalListOfNumbers", strListOfBlanks.Get());
+        if (strListOfBlanks->Exists())
+            pTag->add_attribute("totalListOfNumbers", strListOfBlanks->Get());
         if (bAddRequestNumber) {
             pTag->add_attribute("requestNumber", formatLong(m_lRequestNumber));
             pTag->add_attribute(
@@ -4868,9 +4884,9 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    String strType;
+    auto strType = String::Factory();
     const char* pTypeStr = GetTypeString();
-    strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
+    strType->Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -4878,7 +4894,7 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    String strHash;
+    auto strHash = String::Factory();
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash->GetString(strHash);
@@ -4895,16 +4911,16 @@ void OTTransaction::SaveAbbreviatedOutboxRecord(Tag& parent)
 
     TagPtr pTag(new Tag("outboxRecord"));
 
-    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
-    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("receiptHash", strHash->Get());
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        pTag->add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType->Get());
     }
 
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
@@ -5023,9 +5039,9 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     // the adjustment and display value are both set correctly.
 
     // TYPE
-    String strType;
+    auto strType = String::Factory();
     const char* pTypeStr = GetTypeString();
-    strType.Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
+    strType->Set((nullptr != pTypeStr) ? pTypeStr : "error_state");
 
     // HASH OF THE COMPLETE "BOX RECEIPT"
     // Save abbreviated is only used for receipts in boxes such as inbox,
@@ -5033,7 +5049,7 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
     // (Thus the moniker "Box Receipt", as contrasted with cron receipts or
     // normal transaction receipts with balance agreements.)
     //
-    String strHash;
+    auto strHash = String::Factory();
 
     // If this is already an abbreviated record, then save the existing hash.
     if (IsAbbreviated()) m_Hash->GetString(strHash);
@@ -5050,16 +5066,16 @@ void OTTransaction::SaveAbbreviatedInboxRecord(Tag& parent)
 
     TagPtr pTag(new Tag("inboxRecord"));
 
-    pTag->add_attribute("type", strType.Get());
+    pTag->add_attribute("type", strType->Get());
     pTag->add_attribute("dateSigned", formatTimestamp(m_DATE_SIGNED));
-    pTag->add_attribute("receiptHash", strHash.Get());
+    pTag->add_attribute("receiptHash", strHash->Get());
     pTag->add_attribute("adjustment", formatLong(lAdjustment));
     pTag->add_attribute("displayValue", formatLong(lDisplayValue));
     pTag->add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        pTag->add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        pTag->add_attribute("originType", strOriginType->Get());
     }
 
     pTag->add_attribute("transactionNum", formatLong(GetTransactionNum()));
@@ -5326,7 +5342,7 @@ std::int64_t OTTransaction::GetReceiptAmount()
                                                 // acceptPending ITEM **, (here
                                                 // as reference string.)
         {
-            String strReference;
+            auto strReference = String::Factory();
             GetReferenceString(strReference);
 
             pOriginalItem.reset(api_.Factory()
@@ -5367,7 +5383,7 @@ std::int64_t OTTransaction::GetReceiptAmount()
                 return 0;
             }
 
-            String strAttachment;
+            auto strAttachment = String::Factory();
             auto theCheque{api_.Factory().Cheque()};
 
             // Get the cheque from the Item and load it up into a Cheque
@@ -5377,7 +5393,7 @@ std::int64_t OTTransaction::GetReceiptAmount()
                 theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                String strCheque(*theCheque);
+                auto strCheque = String::Factory(*theCheque);
 
                 otErr << "ERROR loading cheque from string in OTTransaction::"
                       << __FUNCTION__ << ":\n"
@@ -5611,7 +5627,7 @@ void OTTransaction::CalculateNumberOfOrigin()
                                                // your inbox, when someone
                                                // deposits your voucher.
         {
-            String strReference;
+            auto strReference = String::Factory();
             GetReferenceString(strReference);
 
             // "In reference to" is the depositor's trans#, which I use here
@@ -5771,9 +5787,9 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay()
         case transactionType::finalReceipt: {
             lReferenceNum = GetReferenceToNum();
 
-            String strRef;
+            auto strRef = String::Factory();
             GetReferenceString(strRef);
-            if (strRef.Exists()) {
+            if (strRef->Exists()) {
                 const auto pCronItem{api_.Factory().CronItem(strRef)};
 
                 if (false != bool(pCronItem)) {
@@ -5868,20 +5884,20 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
 
     std::shared_ptr<Item> pOriginalItem;
 
-    String strReference;
+    auto strReference = String::Factory();
     GetReferenceString(strReference);
 
-    if (strReference.GetLength() < 2) return false;
+    if (strReference->GetLength() < 2) return false;
 
     switch (GetType()) {
         case transactionType::notice:  // for paymentPlans AND smartcontracts.
         {
-            String strUpdatedCronItem;
+            auto strUpdatedCronItem = String::Factory();
             const auto pItem = GetItem(itemType::notice);
 
             if (false != bool(pItem))
                 pItem->GetNote(strUpdatedCronItem);
-            else if (strReference.Exists())
+            else if (strReference->Exists())
                 strUpdatedCronItem = strReference;  // Here we make-do with the
                                                     // original version of the
                                                     // cron item, instead of the
@@ -5937,7 +5953,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                                                // contract does a payment, it
                                                // leaves a paymentReceipt...)
         {
-            String strUpdatedCronItem;
+            auto strUpdatedCronItem = String::Factory();
             const auto pItem = GetItem(itemType::paymentReceipt);
 
             if (false != bool(pItem))
@@ -6009,7 +6025,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
 
             auto theSentMsg{api_.Factory().Message()};
 
-            if (strReference.Exists() &&
+            if (strReference->Exists() &&
                 theSentMsg->LoadContractFromString(strReference)) {
                 // All we need is this message itself. We aren't going to
                 // decrypt the payload, we're just going to grab the
@@ -6070,7 +6086,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
             }
 
             auto theCheque{api_.Factory().Cheque()};
-            String strAttachment;
+            auto strAttachment = String::Factory();
 
             // Get the cheque from the Item and load it up into a Cheque
             // object.
@@ -6079,7 +6095,7 @@ bool OTTransaction::GetSenderNymIDForDisplay(Identifier& theReturnID)
                 theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                String strCheque(*theCheque);
+                auto strCheque = String::Factory(*theCheque);
 
                 otErr << "ERROR loading cheque or voucher from string in "
                          "OTTransaction::"
@@ -6119,19 +6135,19 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
 
     std::shared_ptr<Item> pOriginalItem;
 
-    String strReference;
+    auto strReference = String::Factory();
     GetReferenceString(strReference);
 
     switch (GetType()) {
         case transactionType::notice:  // Used for paymentPlans AND for smart
                                        // contracts...
         {
-            String strUpdatedCronItem;
+            auto strUpdatedCronItem = String::Factory();
             const auto pItem = GetItem(itemType::notice);
 
             if (false != bool(pItem))
                 pItem->GetNote(strUpdatedCronItem);
-            else if (strReference.Exists())
+            else if (strReference->Exists())
                 strUpdatedCronItem = strReference;  // Better than  nothing.
                                                     // This is the original
             // version of the payment plan, instead of
@@ -6188,7 +6204,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
         case transactionType::paymentReceipt:  // Used for paymentPlans AND for
                                                // smart contracts...
         {
-            String strUpdatedCronItem;
+            auto strUpdatedCronItem = String::Factory();
             const auto pItem = GetItem(itemType::paymentReceipt);
 
             if (false != bool(pItem))
@@ -6259,7 +6275,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
 
             OT_ASSERT(false != bool(theSentMsg));
 
-            if (strReference.Exists() &&
+            if (strReference->Exists() &&
                 theSentMsg->LoadContractFromString(strReference)) {
                 // All we need is this message itself. We aren't going to
                 // decrypt the payload, we're just going to grab the
@@ -6332,7 +6348,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
             }
 
             auto theCheque{api_.Factory().Cheque()};
-            String strAttachment;
+            auto strAttachment = String::Factory();
 
             // Get the cheque from the Item and load it up into a Cheque
             // object.
@@ -6341,7 +6357,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                String strCheque(*theCheque);
+                auto strCheque = String::Factory(*theCheque);
 
                 otErr << "ERROR loading cheque or voucher from string in "
                          "OTTransaction::"
@@ -6375,14 +6391,14 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
 
     std::shared_ptr<Item> pOriginalItem;
 
-    String strReference;
+    auto strReference = String::Factory();
     GetReferenceString(strReference);
 
-    if (strReference.GetLength() < 2) return false;
+    if (strReference->GetLength() < 2) return false;
 
     switch (GetType()) {
         case transactionType::paymentReceipt: {
-            String strUpdatedCronItem;
+            auto strUpdatedCronItem = String::Factory();
             const auto pItem = GetItem(itemType::paymentReceipt);
 
             if (false != bool(pItem))
@@ -6464,7 +6480,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
             }
 
             auto theCheque{api_.Factory().Cheque()};
-            String strAttachment;
+            auto strAttachment = String::Factory();
 
             // Get the cheque from the Item and load it up into a Cheque
             // object.
@@ -6473,7 +6489,7 @@ bool OTTransaction::GetSenderAcctIDForDisplay(Identifier& theReturnID)
                 theCheque->LoadContractFromString(strAttachment);
 
             if (!bLoadContractFromString) {
-                String strCheque(*theCheque);
+                auto strCheque = String::Factory(*theCheque);
 
                 otErr << "ERROR loading cheque from string in transactionType::"
                       << __FUNCTION__ << ":\n"
@@ -6513,12 +6529,12 @@ bool OTTransaction::GetRecipientAcctIDForDisplay(Identifier& theReturnID)
 
     std::shared_ptr<Item> pOriginalItem;
 
-    String strReference;
+    auto strReference = String::Factory();
     GetReferenceString(strReference);
 
     switch (GetType()) {
         case transactionType::paymentReceipt: {
-            String strUpdatedCronItem;
+            auto strUpdatedCronItem = String::Factory();
             const auto pItem = GetItem(itemType::paymentReceipt);
 
             if (false != bool(pItem))
@@ -6639,12 +6655,12 @@ bool OTTransaction::GetMemo(String& strMemo)
 
     std::shared_ptr<Item> pOriginalItem;
 
-    String strReference;
+    auto strReference = String::Factory();
     GetReferenceString(strReference);
 
     switch (GetType()) {
         case transactionType::paymentReceipt: {
-            String strUpdatedCronItem;
+            auto strUpdatedCronItem = String::Factory();
             const auto pItem = GetItem(itemType::paymentReceipt);
 
             if (false != bool(pItem))
@@ -6731,10 +6747,10 @@ bool OTTransaction::GetMemo(String& strMemo)
 
                 OT_ASSERT(false != bool(theCheque));
 
-                String strCheque;
+                auto strCheque = String::Factory();
                 pOriginalItem->GetAttachment(strCheque);
 
-                if (!((strCheque.GetLength() > 2) &&
+                if (!((strCheque->GetLength() > 2) &&
                       theCheque->LoadContractFromString(strCheque))) {
                     otErr << __FUNCTION__
                           << ": Error loading cheque or voucher from string:\n"
@@ -6743,7 +6759,7 @@ bool OTTransaction::GetMemo(String& strMemo)
                 }
 
                 // Success loading the cheque.
-                strMemo = theCheque->GetMemo();
+                strMemo.Set(theCheque->GetMemo());
                 bSuccess = strMemo.Exists();
             }
         } break;

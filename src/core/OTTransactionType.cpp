@@ -269,8 +269,9 @@ bool OTTransactionType::VerifyContractID() const
     // Also, for this class, we compare NotaryID as well.  They go hand in hand.
 
     if ((m_ID != m_AcctID) || (m_NotaryID != m_AcctNotaryID)) {
-        String str1(m_ID), str2(m_AcctID), str3(m_NotaryID),
-            str4(m_AcctNotaryID);
+        auto str1 = String::Factory(m_ID), str2 = String::Factory(m_AcctID),
+             str3 = String::Factory(m_NotaryID),
+             str4 = String::Factory(m_AcctNotaryID);
         otErr << "Identifiers do NOT match in "
                  "OTTransactionType::VerifyContractID.\n"
                  "m_ID: "

@@ -2183,7 +2183,7 @@ OTIdentifier Sync::SendCheque(
         Clock::to_time_t(validTo),
         sourceAccountID,
         localNymID,
-        memo.c_str(),
+        String::Factory(memo.c_str()),
         recipientNymID));
 
     if (false == bool(cheque)) {

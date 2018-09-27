@@ -4107,7 +4107,7 @@ bool OTClient::processServerReplyProcessInbox(
     OT_ASSERT(nullptr != pTransaction);
 
     const auto& NYM_ID = context.Nym()->ID();
-    const String& strNotaryID = String(context.Server());
+    const auto strNotaryID = String::Factory(context.Server());
     const bool bIsSignedOut =
         context.VerifyIssuedNumber(pTransaction->GetTransactionNum());
 
@@ -4135,7 +4135,7 @@ bool OTClient::processServerReplyProcessInbox(
     bool bInbox = OTDB::Exists(
         api_.DataFolder(),
         OTFolders::Inbox().Get(),
-        strNotaryID.Get(),
+        strNotaryID->Get(),
         theReply.m_strAcctID->Get(),
         "");
 
@@ -4153,7 +4153,7 @@ bool OTClient::processServerReplyProcessInbox(
     bool bRecordBoxExists = OTDB::Exists(
         api_.DataFolder(),
         OTFolders::RecordBox().Get(),
-        strNotaryID.Get(),
+        strNotaryID->Get(),
         theReply.m_strAcctID->Get(),
         "");
     // Next, loop through the reply items for each "process inbox" item that
@@ -4679,7 +4679,7 @@ bool OTClient::processServerReplyProcessInbox(
                                 OTFolders::Nym().Get(),
                                 "trades",  // todo stop
                                            // hardcoding.
-                                strNotaryID.Get(),
+                                strNotaryID->Get(),
                                 strNymID->Get()))
                             pList.reset(dynamic_cast<OTDB::TradeListNym*>(
                                 OTDB::QueryObject(
@@ -4688,7 +4688,7 @@ bool OTClient::processServerReplyProcessInbox(
                                     OTFolders::Nym().Get(),
                                     "trades",  // todo stop
                                     // hardcoding.
-                                    strNotaryID.Get(),
+                                    strNotaryID->Get(),
                                     strNymID->Get())));
                         if (false == bool(pList)) {
                             otInfo << "Creating storage list of trade "
@@ -4798,7 +4798,7 @@ bool OTClient::processServerReplyProcessInbox(
                                          api_.DataFolder(),
                                          OTFolders::Nym().Get(),
                                          "trades",  // todo stop hardcoding.
-                                         strNotaryID.Get(),
+                                         strNotaryID->Get(),
                                          strNymID->Get()))
                             otErr << "OTClient::" << __FUNCTION__
                                   << ": Failed storing list of trades for "
@@ -4901,7 +4901,7 @@ bool OTClient::processServerReplyProcessInbox(
                           << ": while processing server reply to "
                              "processInbox: WARNING: Unable to load, "
                              "verify, or generate recordBox, with IDs: "
-                          << String(context.Nym()->ID()) << " / "
+                          << String::Factory(context.Nym()->ID()) << " / "
                           << theReply.m_strAcctID << "\n";
                 }
             }
@@ -5885,13 +5885,15 @@ bool OTClient::processServerReplyProcessNymbox(
                                         api_.DataFolder(),
                                         OTFolders::PaymentInbox().Get(),
                                         strNotaryID->Get(),
-                                        String(context.Nym()->ID()).Get(),
+                                        String::Factory(context.Nym()->ID())
+                                            ->Get(),
                                         "");
                                     const bool bExists2 = OTDB::Exists(
                                         api_.DataFolder(),
                                         OTFolders::RecordBox().Get(),
                                         strNotaryID->Get(),
-                                        String(context.Nym()->ID()).Get(),
+                                        String::Factory(context.Nym()->ID())
+                                            ->Get(),
                                         "");
 
                                     auto thePmntInbox = api_.Factory().Ledger(
@@ -5984,9 +5986,11 @@ bool OTClient::processServerReplyProcessNymbox(
                                                  "verify, or generate "
                                                  "paymentInbox or recordBox, "
                                                  "with IDs: "
-                                              << String(context.Nym()->ID())
+                                              << String::Factory(
+                                                     context.Nym()->ID())
                                               << " / "
-                                              << String(context.Nym()->ID())
+                                              << String::Factory(
+                                                     context.Nym()->ID())
                                               << "\n";
                                     } else  // --- ELSE ---
                                     {
@@ -7550,7 +7554,7 @@ void OTClient::ProcessWithdrawalResponse(
 
                 theWalletPurse->LoadPurse(
                     strNotaryID->Get(),
-                    String(NYM_ID).Get(),
+                    String::Factory(NYM_ID)->Get(),
                     strInstrumentDefinitionID->Get());
 
                 bool bSuccess = false;
