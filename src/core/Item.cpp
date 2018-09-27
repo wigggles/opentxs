@@ -192,7 +192,7 @@ bool Item::VerifyTransactionStatement(
     // then ADD IT AGAIN if this function fails.  (Because the new Balance
     // Agreement is always the user signing WHAT THE NEW VERSION WILL BE AFTER
     // THE TRANSACTION IS PROCESSED.)
-    const String NOTARY_ID(GetPurportedNotaryID());
+    const auto NOTARY_ID = String::Factory(GetPurportedNotaryID());
     const TransactionNumber itemNumber = GetTransactionNum();
     std::set<TransactionNumber> excluded;
 
@@ -247,10 +247,10 @@ bool Item::VerifyTransactionStatement(
         // otherwise used for Nymbox.)
     }
 
-    String serialized;
+    auto serialized = String::Factory();
     GetAttachment(serialized);
 
-    if (3 > serialized.GetLength()) { return false; }
+    if (3 > serialized->GetLength()) { return false; }
 
     const TransactionStatement statement(serialized);
 
@@ -345,7 +345,7 @@ bool Item::VerifyBalanceStatement(
                 break;
             }
             default: {
-                String strItemType;
+                auto strItemType = String::Factory();
                 GetTypeString(strItemType);
                 otWarn << "Item::" << __FUNCTION__ << ": Ignoring "
                        << strItemType << " item in balance statement while "
@@ -603,7 +603,7 @@ bool Item::VerifyBalanceStatement(
     // transactions stored on this (in a message Nym attached to this.) Check
     // for presence of each, then compare count, like above.
     const auto notaryID = Identifier::Factory(GetPurportedNotaryID());
-    const String notary(notaryID);
+    const auto notary = String::Factory(notaryID);
     const auto targetNumber = GetTransactionNum();
 
     // GetTransactionNum() is the ID for this balance agreement, THUS it's also
@@ -673,10 +673,10 @@ bool Item::VerifyBalanceStatement(
         } break;
     }
 
-    String serialized;
+    auto serialized = String::Factory();
     GetAttachment(serialized);
 
-    if (3 > serialized.GetLength()) {
+    if (3 > serialized->GetLength()) {
         otOut << "Item::" << __FUNCTION__
               << ": Unable to decode transaction statement.." << std::endl;
 
@@ -947,7 +947,7 @@ void Item::CalculateNumberOfOrigin()
                                        // cheque.
         {
             const auto theCheque{api_.Factory().Cheque()};
-            String strAttachment;
+            auto strAttachment = String::Factory();
             GetAttachment(strAttachment);
 
             if (!theCheque->LoadContractFromString(strAttachment))
@@ -974,7 +974,7 @@ void Item::CalculateNumberOfOrigin()
         case itemType::atDisputeFinalReceipt:  // server reply
         case itemType::atDisputeBasketReceipt:  // server reply
         {
-            String strReference;
+            auto strReference = String::Factory();
             GetReferenceString(strReference);
 
             // "In reference to" number is my original deposit trans#, which I
@@ -1011,7 +1011,7 @@ void Item::CalculateNumberOfOrigin()
                 ((m_Type == itemType::atDisputeBasketReceipt) &&
                  (itemType::disputeBasketReceipt !=
                   pOriginalItem->GetType()))) {
-                String strType;
+                auto strType = String::Factory();
                 pOriginalItem->GetTypeString(strType);
                 otErr << __FUNCTION__
                       << ": ERROR: Wrong item type as 'in "
@@ -1148,8 +1148,9 @@ void Item::InitItem()
 
     m_lClosingTransactionNo = 0;
 
-    m_strContractType = "TRANSACTION ITEM";  // CONTRACT, MESSAGE, TRANSACTION,
-                                             // LEDGER, TRANSACTION ITEM
+    m_strContractType =
+        String::Factory("TRANSACTION ITEM");  // CONTRACT, MESSAGE, TRANSACTION,
+                                              // LEDGER, TRANSACTION ITEM
 }
 
 void Item::Release()
@@ -1338,47 +1339,50 @@ itemType Item::GetItemTypeFromString(const String& strType)
 std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 {
     if (!strcmp("item", xml->getNodeName())) {
-        String strType, strStatus;
+        auto strType = String::Factory(), strStatus = String::Factory();
 
-        strType = xml->getAttributeValue("type");
-        strStatus = xml->getAttributeValue("status");
+        strType = String::Factory(xml->getAttributeValue("type"));
+        strStatus = String::Factory(xml->getAttributeValue("status"));
 
         // Type
         m_Type = GetItemTypeFromString(strType);  // just above.
 
         // Status
-        if (strStatus.Compare("request"))
+        if (strStatus->Compare("request"))
             m_Status = request;
-        else if (strStatus.Compare("acknowledgement"))
+        else if (strStatus->Compare("acknowledgement"))
             m_Status = acknowledgement;
-        else if (strStatus.Compare("rejection"))
+        else if (strStatus->Compare("rejection"))
             m_Status = rejection;
         else
             m_Status = error_status;
 
-        String strAcctFromID, strAcctToID, strNotaryID, strNymID,
-            strOutboxNewTransNum;
+        auto strAcctFromID = String::Factory(), strAcctToID = String::Factory(),
+             strNotaryID = String::Factory(), strNymID = String::Factory(),
+             strOutboxNewTransNum = String::Factory();
 
-        strAcctFromID = xml->getAttributeValue("fromAccountID");
-        strAcctToID = xml->getAttributeValue("toAccountID");
-        strNotaryID = xml->getAttributeValue("notaryID");
-        strNymID = xml->getAttributeValue("nymID");
+        strAcctFromID =
+            String::Factory(xml->getAttributeValue("fromAccountID"));
+        strAcctToID = String::Factory(xml->getAttributeValue("toAccountID"));
+        strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        strNymID = String::Factory(xml->getAttributeValue("nymID"));
 
-        strOutboxNewTransNum = xml->getAttributeValue("outboxNewTransNum");
+        strOutboxNewTransNum =
+            String::Factory(xml->getAttributeValue("outboxNewTransNum"));
 
-        if (strOutboxNewTransNum.Exists())
-            m_lNewOutboxTransNum = strOutboxNewTransNum.ToLong();
+        if (strOutboxNewTransNum->Exists())
+            m_lNewOutboxTransNum = strOutboxNewTransNum->ToLong();
 
         // an OTTransaction::blank may now contain 20 or 100 new numbers.
         // Therefore, the Item::acceptTransaction must contain the same list,
         // otherwise you haven't actually SIGNED for the list, have you!
         //
         if (itemType::acceptTransaction == m_Type) {
-            const String strTotalList =
-                xml->getAttributeValue("totalListOfNumbers");
+            const auto strTotalList =
+                String::Factory(xml->getAttributeValue("totalListOfNumbers"));
             m_Numlist.Release();
 
-            if (strTotalList.Exists())
+            if (strTotalList->Exists())
                 m_Numlist.Add(strTotalList);  // (Comma-separated list of
                                               // numbers now becomes
                                               // std::set<std::int64_t>.)
@@ -1401,19 +1405,19 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             SetRealNotaryID(NOTARY_ID);
         }
 
-        String strTemp;
+        auto strTemp = String::Factory();
 
-        strTemp = xml->getAttributeValue("numberOfOrigin");
-        if (strTemp.Exists()) SetNumberOfOrigin(strTemp.ToLong());
+        strTemp = String::Factory(xml->getAttributeValue("numberOfOrigin"));
+        if (strTemp->Exists()) SetNumberOfOrigin(strTemp->ToLong());
 
-        strTemp = xml->getAttributeValue("originType");
-        if (strTemp.Exists()) SetOriginType(GetOriginTypeFromString(strTemp));
+        strTemp = String::Factory(xml->getAttributeValue("originType"));
+        if (strTemp->Exists()) SetOriginType(GetOriginTypeFromString(strTemp));
 
-        strTemp = xml->getAttributeValue("transactionNum");
-        if (strTemp.Exists()) SetTransactionNum(strTemp.ToLong());
+        strTemp = String::Factory(xml->getAttributeValue("transactionNum"));
+        if (strTemp->Exists()) SetTransactionNum(strTemp->ToLong());
 
-        strTemp = xml->getAttributeValue("inReferenceTo");
-        if (strTemp.Exists()) SetReferenceToNum(strTemp.ToLong());
+        strTemp = String::Factory(xml->getAttributeValue("inReferenceTo"));
+        if (strTemp->Exists()) SetReferenceToNum(strTemp->ToLong());
 
         m_lAmount = String::StringToLong(xml->getAttributeValue("amount"));
 
@@ -1469,11 +1473,11 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                               // REPRESENT an inbox transaction
 
             // Type
-            String strType;
-            strType = xml->getAttributeValue(
-                "type");  // it's reading a TRANSACTION type: chequeReceipt,
-                          // voucherReceipt, marketReceipt, or paymentReceipt.
-                          // But I also have the same names for item types.
+            auto strType = String::Factory();
+            strType = String::Factory(xml->getAttributeValue(
+                "type"));  // it's reading a TRANSACTION type: chequeReceipt,
+                           // voucherReceipt, marketReceipt, or paymentReceipt.
+                           // But I also have the same names for item types.
 
             pItem->SetType(GetItemTypeFromString(strType));  // It's actually
                                                              // translating a
@@ -1494,11 +1498,12 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                                 // error_state later, I
                                                 // know I had a problem.
 
-            String strAccountID, strNotaryID, strNymID;
+            auto strAccountID = String::Factory(),
+                 strNotaryID = String::Factory(), strNymID = String::Factory();
 
-            strAccountID = xml->getAttributeValue("accountID");
-            strNotaryID = xml->getAttributeValue("notaryID");
-            strNymID = xml->getAttributeValue("nymID");
+            strAccountID = String::Factory(xml->getAttributeValue("accountID"));
+            strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+            strNymID = String::Factory(xml->getAttributeValue("nymID"));
 
             auto ACCOUNT_ID = Identifier::Factory(strAccountID),
                  NOTARY_ID = Identifier::Factory(strNotaryID),
@@ -1513,25 +1518,25 @@ std::int32_t Item::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                              // the PURPORTED Notary ID
             pItem->SetNymID(NYM_ID);
 
-            String strTemp;
+            auto strTemp = String::Factory();
 
-            strTemp = xml->getAttributeValue("numberOfOrigin");
-            if (strTemp.Exists()) pItem->SetNumberOfOrigin(strTemp.ToLong());
+            strTemp = String::Factory(xml->getAttributeValue("numberOfOrigin"));
+            if (strTemp->Exists()) pItem->SetNumberOfOrigin(strTemp->ToLong());
 
-            strTemp = xml->getAttributeValue("originType");
-            if (strTemp.Exists())
+            strTemp = String::Factory(xml->getAttributeValue("originType"));
+            if (strTemp->Exists())
                 pItem->SetOriginType(GetOriginTypeFromString(strTemp));
 
-            strTemp = xml->getAttributeValue("transactionNum");
-            if (strTemp.Exists()) pItem->SetTransactionNum(strTemp.ToLong());
+            strTemp = String::Factory(xml->getAttributeValue("transactionNum"));
+            if (strTemp->Exists()) pItem->SetTransactionNum(strTemp->ToLong());
 
-            strTemp = xml->getAttributeValue("inReferenceTo");
-            if (strTemp.Exists()) pItem->SetReferenceToNum(strTemp.ToLong());
+            strTemp = String::Factory(xml->getAttributeValue("inReferenceTo"));
+            if (strTemp->Exists()) pItem->SetReferenceToNum(strTemp->ToLong());
 
-            strTemp = xml->getAttributeValue(
-                "closingTransactionNum");  // only used in the inbox report for
-                                           // balance agreement.
-            if (strTemp.Exists()) pItem->SetClosingNum(strTemp.ToLong());
+            strTemp = String::Factory(xml->getAttributeValue(
+                "closingTransactionNum"));  // only used in the inbox report for
+                                            // balance agreement.
+            if (strTemp->Exists()) pItem->SetClosingNum(strTemp->ToLong());
 
             AddItem(pItem);  // <======= adding to list.
 
@@ -1800,25 +1805,26 @@ void Item::GetStringFromType(itemType theType, String& strType)
 void Item::UpdateContents()  // Before transmission or serialization, this is
                              // where the ledger saves its contents
 {
-    String strFromAcctID(GetPurportedAccountID()),
-        strToAcctID(GetDestinationAcctID()),
-        strNotaryID(GetPurportedNotaryID()), strType, strStatus,
-        strNymID(GetNymID());
+    auto strFromAcctID = String::Factory(GetPurportedAccountID()),
+         strToAcctID = String::Factory(GetDestinationAcctID()),
+         strNotaryID = String::Factory(GetPurportedNotaryID()),
+         strType = String::Factory(), strStatus = String::Factory(),
+         strNymID = String::Factory(GetNymID());
 
     GetStringFromType(m_Type, strType);
 
     switch (m_Status) {
         case request:
-            strStatus.Set("request");
+            strStatus->Set("request");
             break;
         case acknowledgement:
-            strStatus.Set("acknowledgement");
+            strStatus->Set("acknowledgement");
             break;
         case rejection:
-            strStatus.Set("rejection");
+            strStatus->Set("rejection");
             break;
         default:
-            strStatus.Set("error-unknown");
+            strStatus->Set("error-unknown");
             break;
     }
 
@@ -1827,22 +1833,22 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
 
     Tag tag("item");
 
-    tag.add_attribute("type", strType.Get());
-    tag.add_attribute("status", strStatus.Get());
+    tag.add_attribute("type", strType->Get());
+    tag.add_attribute("status", strStatus->Get());
     tag.add_attribute(
         "numberOfOrigin",  // GetRaw so it doesn't calculate.
         formatLong(GetRawNumberOfOrigin()));
 
     if (GetOriginType() != originType::not_applicable) {
-        String strOriginType(GetOriginTypeString());
-        tag.add_attribute("originType", strOriginType.Get());
+        auto strOriginType = String::Factory(GetOriginTypeString());
+        tag.add_attribute("originType", strOriginType->Get());
     }
 
     tag.add_attribute("transactionNum", formatLong(GetTransactionNum()));
-    tag.add_attribute("notaryID", strNotaryID.Get());
-    tag.add_attribute("nymID", strNymID.Get());
-    tag.add_attribute("fromAccountID", strFromAcctID.Get());
-    tag.add_attribute("toAccountID", strToAcctID.Get());
+    tag.add_attribute("notaryID", strNotaryID->Get());
+    tag.add_attribute("nymID", strNymID->Get());
+    tag.add_attribute("fromAccountID", strFromAcctID->Get());
+    tag.add_attribute("toAccountID", strToAcctID->Get());
     tag.add_attribute("inReferenceTo", formatLong(GetReferenceToNum()));
     tag.add_attribute("amount", formatLong(m_lAmount));
 
@@ -1870,10 +1876,10 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
             (m_Numlist.Count() > 0)) {
             // m_Numlist.Count is always 0, except for
             // itemType::acceptTransaction.
-            String strListOfBlanks;
+            auto strListOfBlanks = String::Factory();
 
             if (true == m_Numlist.Output(strListOfBlanks))
-                tag.add_attribute("totalListOfNumbers", strListOfBlanks.Get());
+                tag.add_attribute("totalListOfNumbers", strListOfBlanks->Get());
         }
     }
 
@@ -1896,29 +1902,29 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
             const auto pItem = it;
             OT_ASSERT(false != bool(pItem));
 
-            String acctID(pItem->GetPurportedAccountID()),
-                notaryID(pItem->GetPurportedNotaryID()),
-                nymID(pItem->GetNymID());
-
-            String receiptType;
+            auto acctID = String::Factory(pItem->GetPurportedAccountID()),
+                 notaryID = String::Factory(pItem->GetPurportedNotaryID()),
+                 nymID = String::Factory();
+            auto receiptType = String::Factory();
             GetStringFromType(pItem->GetType(), receiptType);
 
             TagPtr tagReport(new Tag("transactionReport"));
 
             tagReport->add_attribute(
                 "type",
-                receiptType.Exists() ? receiptType.Get() : "error_state");
+                receiptType->Exists() ? receiptType->Get() : "error_state");
             tagReport->add_attribute(
                 "adjustment", formatLong(pItem->GetAmount()));
-            tagReport->add_attribute("accountID", acctID.Get());
-            tagReport->add_attribute("nymID", nymID.Get());
-            tagReport->add_attribute("notaryID", notaryID.Get());
+            tagReport->add_attribute("accountID", acctID->Get());
+            tagReport->add_attribute("nymID", nymID->Get());
+            tagReport->add_attribute("notaryID", notaryID->Get());
             tagReport->add_attribute(
                 "numberOfOrigin", formatLong(pItem->GetRawNumberOfOrigin()));
 
             if (pItem->GetOriginType() != originType::not_applicable) {
-                String strOriginType(pItem->GetOriginTypeString());
-                tagReport->add_attribute("originType", strOriginType.Get());
+                auto strOriginType =
+                    String::Factory(pItem->GetOriginTypeString());
+                tagReport->add_attribute("originType", strOriginType->Get());
             }
 
             tagReport->add_attribute(

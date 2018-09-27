@@ -136,7 +136,7 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             String::Factory(xml->getAttributeValue("hasRemitter"));
         m_bHasRemitter = strHasRemitter->Compare("true");
 
-        m_strVersion = xml->getAttributeValue("version");
+        m_strVersion = String::Factory(xml->getAttributeValue("version"));
         m_lAmount = String::StringToLong(xml->getAttributeValue("amount"));
 
         SetTransactionNum(

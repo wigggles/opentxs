@@ -454,10 +454,10 @@ void Server::CreateMainFile(bool& mainFileExists)
 
     const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
     Armored ascContract(signedContract.get());
-    opentxs::String strBookended;
+    auto strBookended = String::Factory();
     ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(
-        strBookended.Get(),
+        strBookended->Get(),
         manager_.DataFolder(),
         SERVER_CONTRACT_FILE,
         "",
@@ -487,7 +487,7 @@ void Server::CreateMainFile(bool& mainFileExists)
         json, manager_.DataFolder(), SEED_BACKUP_FILE, "", "", "");
 
     mainFileExists = mainFile_.CreateMainFile(
-        strBookended.Get(), strNotaryID, "", nymID->str(), strCachedKey);
+        strBookended->Get(), strNotaryID, "", nymID->str(), strCachedKey);
 
     manager_.Config().Save();
 }

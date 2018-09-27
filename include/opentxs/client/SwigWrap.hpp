@@ -75,7 +75,7 @@ public:
     // (Android does something like that) then even though the prefix remains
     // as /usr/local, the scripts folder will be res/raw
     //
-    EXPORT static void SetAppBinaryFolder(const std::string& strFolder);
+    EXPORT static void SetAppBinaryFolder(const std::string& strLocation);
 
     // SetHomeFolder
     // OPTIONAL. Used in Android.
@@ -93,7 +93,7 @@ public:
     // "/data/app/packagename/res/raw",
     // and you would SetHomeFolder to "/data/data/[app package]/files/"
     //
-    EXPORT static void SetHomeFolder(const std::string& strFolder);
+    EXPORT static void SetHomeFolder(const std::string& strLocation);
 
     // Then:
 

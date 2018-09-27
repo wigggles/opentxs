@@ -2189,8 +2189,7 @@ void Notary::NotarizePayDividend(
                     "shares-based. Asset type ID: %s\n",
                     szFunc,
                     strSharesType->Get());
-            } else if (!(String(purportedID) ==
-                         String(pSharesContract->Nym()->ID()))) {
+            } else if (!(purportedID == pSharesContract->Nym()->ID())) {
                 const auto strSharesType =
                     String::Factory(SHARES_INSTRUMENT_DEFINITION_ID);
                 Log::vError(

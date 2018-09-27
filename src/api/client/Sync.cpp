@@ -3141,7 +3141,7 @@ bool Sync::write_and_send_cheque(
         Clock::to_time_t(validTo),
         accountID,
         nymID,
-        memo.c_str(),
+        String::Factory(memo.c_str()),
         targetNymID));
 
     if (false == bool(cheque)) {
@@ -3150,7 +3150,7 @@ bool Sync::write_and_send_cheque(
         return finish_task(taskID, false);
     }
 
-    auto payment{client_.Factory().Payment(String(*cheque))};
+    auto payment{client_.Factory().Payment(String::Factory(*cheque))};
 
     if (false == bool(payment)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate payment")

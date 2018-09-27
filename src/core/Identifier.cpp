@@ -92,7 +92,7 @@ OTIdentifier Identifier::Factory(const Contract& contract)
 OTIdentifier Identifier::Factory(const Cheque& cheque)
 {
     OTIdentifier output{new implementation::Identifier()};
-    output->CalculateDigest(String(cheque));
+    output->CalculateDigest(String::Factory(cheque));
 
     return output;
 }
@@ -207,38 +207,38 @@ Identifier::Identifier(
 
 bool Identifier::operator==(const opentxs::Identifier& s2) const
 {
-    const String ots1(*this), ots2(s2);
-    return ots1.Compare(ots2);
+    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
+    return ots1->Compare(ots2);
 }
 
 bool Identifier::operator!=(const opentxs::Identifier& s2) const
 {
-    const String ots1(*this), ots2(s2);
-    return !(ots1.Compare(ots2));
+    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
+    return !(ots1->Compare(ots2));
 }
 
 bool Identifier::operator>(const opentxs::Identifier& s2) const
 {
-    const String ots1(*this), ots2(s2);
-    return ots1.operator>(ots2);
+    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
+    return ots1->operator>(ots2);
 }
 
 bool Identifier::operator<(const opentxs::Identifier& s2) const
 {
-    const String ots1(*this), ots2(s2);
-    return ots1.operator<(ots2);
+    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
+    return ots1->operator<(ots2);
 }
 
 bool Identifier::operator<=(const opentxs::Identifier& s2) const
 {
-    const String ots1(*this), ots2(s2);
-    return ots1.operator<=(ots2);
+    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
+    return ots1->operator<=(ots2);
 }
 
 bool Identifier::operator>=(const opentxs::Identifier& s2) const
 {
-    const String ots1(*this), ots2(s2);
-    return ots1.operator>=(ots2);
+    const auto ots1 = String::Factory(*this), ots2 = String::Factory(s2);
+    return ots1->operator>=(ots2);
 }
 
 bool Identifier::CalculateDigest(const String& strInput, const ID type)
@@ -276,9 +276,9 @@ void Identifier::GetString(String& id) const
 
     data->Concatenate(this->data(), size());
 
-    String output("ot");
-    output.Concatenate(
-        String(OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
+    auto output = String::Factory("ot");
+    output->Concatenate(String::Factory(
+        OT::App().Crypto().Encode().IdentifierEncode(data).c_str()));
     id.swap(output);
 }
 

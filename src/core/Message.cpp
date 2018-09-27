@@ -550,7 +550,7 @@ std::int32_t Message::processXmlNodeNotaryMessage(
     __attribute__((unused)) Message& m,
     irr::io::IrrXMLReader*& xml)
 {
-    m_strVersion = xml->getAttributeValue("version");
+    m_strVersion = String::Factory(xml->getAttributeValue("version"));
 
     auto strDateSigned = String::Factory(xml->getAttributeValue("dateSigned"));
 
@@ -685,11 +685,12 @@ public:
 
     virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID2 = xml->getAttributeValue("marketID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("marketID"));
 
         auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
@@ -737,11 +738,12 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymID2 = xml->getAttributeValue("marketID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("marketID"));
 
         auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
@@ -811,11 +813,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID2 = xml->getAttributeValue("marketID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("marketID"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -859,11 +862,12 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymID2 = xml->getAttributeValue("marketID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("marketID"));
 
         auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
@@ -932,10 +936,11 @@ public:
 
     virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -977,10 +982,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
@@ -1066,10 +1072,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         // -------------------------------------------------
         const char* pElementExpected = "publicAuthentKey";
         Armored ascTextExpected;
@@ -1183,10 +1190,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nSuccess: " << (m.m_bSuccess ? "true" : "false")
@@ -1221,10 +1229,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_ascPayload.Set(xml->getAttributeValue("contract"));
 
         try {
@@ -1270,10 +1279,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         const char* pElementExpected = "inReferenceTo";
         Armored& ascTextExpected = m.m_ascInReferenceTo;
@@ -1317,10 +1327,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_ascPayload.Set(xml->getAttributeValue("publicnym"));
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -1362,10 +1373,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         if (m.m_bSuccess) {
             const char* pElementExpected = "nymfile";
@@ -1422,10 +1434,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -1462,10 +1475,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         const char* pElementExpected = "inReferenceTo";
         Armored& ascTextExpected = m.m_ascInReferenceTo;
@@ -1509,11 +1523,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -1558,11 +1573,12 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         Armored ascTextExpected;
         const char* pElementExpected = nullptr;
@@ -1637,11 +1653,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         auto strAdjustment =
             String::Factory(xml->getAttributeValue("adjustment"));
@@ -1685,11 +1702,12 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         auto strTotalCredits =
             String::Factory(xml->getAttributeValue("totalCredits"));
@@ -1740,11 +1758,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         const char* pElementExpected = "messagePayload";
         Armored& ascTextExpected = m.m_ascPayload;
@@ -1797,11 +1816,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         const char* pElementExpected = "messagePayload";
         Armored& ascTextExpected = m.m_ascPayload;
@@ -1849,11 +1869,12 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         otWarn << "\nCommand: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
@@ -1909,11 +1930,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymID2 = xml->getAttributeValue("nymID2");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         const char* pElementExpected = "messagePayload";
         Armored& ascTextExpected = m.m_ascPayload;
@@ -1961,10 +1983,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -2003,11 +2026,13 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         const auto strNewRequestNum =
             String::Factory(xml->getAttributeValue("newRequestNum"));
@@ -2053,12 +2078,13 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         const char* pElementExpected = "instrumentDefinition";
         Armored& ascTextExpected = m.m_ascPayload;
@@ -2120,14 +2146,16 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
 
         // If successful, we need to read 2 more things: inReferenceTo and
         // issuerAccount payload.
@@ -2218,10 +2246,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         const char* pElementExpected = "stringMap";
         Armored& ascTextExpected = m.m_ascPayload;
@@ -2277,10 +2306,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         // If successful, we need to read 2 more things: inReferenceTo and
         // issuerAccount payload.
@@ -2360,10 +2390,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         {
             const char* pElementExpected = "currencyBasket";
@@ -2429,13 +2460,14 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
 
         {
             const char* pElementExpected = "inReferenceTo";
@@ -2496,12 +2528,13 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << " \nNymID:    " << m.m_strNymID
@@ -2548,12 +2581,14 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
 
         // If successful, we need to read 2 more things: inReferenceTo and
         // issuerAccount payload.
@@ -2642,11 +2677,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         auto strTransactionNum =
             String::Factory(xml->getAttributeValue("transactionNum"));
@@ -2723,12 +2759,14 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
 
         auto strTransactionNum =
             String::Factory(xml->getAttributeValue("transactionNum"));
@@ -2829,11 +2867,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
@@ -2875,11 +2914,12 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
 
         // inReferenceTo contains the unregisterAccount (original request)
         // At this point, we do not send the REASON WHY if it failed.
@@ -2948,12 +2988,14 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         {
             const char* pElementExpected = "accountLedger";
@@ -3013,12 +3055,14 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
 
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
@@ -3098,11 +3142,13 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\n Command: " << m.m_strCommand
                << " \n NymID:    " << m.m_strNymID
@@ -3139,11 +3185,13 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         otWarn << "\n Command: " << m.m_strCommand << "   "
                << (m.m_bSuccess ? "SUCCESS" : "FAILED")
@@ -3176,10 +3224,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -3220,11 +3269,13 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         const char* pElementExpected;
         if (m.m_bSuccess)
@@ -3280,11 +3331,12 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -3338,13 +3390,15 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
-        m.m_strInboxHash = xml->getAttributeValue("inboxHash");
-        m.m_strOutboxHash = xml->getAttributeValue("outboxHash");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
+        m.m_strInboxHash = String::Factory(xml->getAttributeValue("inboxHash"));
+        m.m_strOutboxHash =
+            String::Factory(xml->getAttributeValue("outboxHash"));
 
         if (m.m_bSuccess) {
             if (!Contract::LoadEncodedTextFieldByName(
@@ -3414,12 +3468,13 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -3464,12 +3519,13 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
 
         const char* pElementExpected;
         if (m.m_bSuccess)
@@ -3528,12 +3584,13 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -3576,12 +3633,13 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strInstrumentDefinitionID =
-            xml->getAttributeValue("instrumentDefinitionID");
+            String::Factory(xml->getAttributeValue("instrumentDefinitionID"));
 
         const char* pElementExpected;
         if (m.m_bSuccess)
@@ -3644,12 +3702,14 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         {
             const char* pElementExpected = "processLedger";
@@ -3709,12 +3769,14 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strAcctID = xml->getAttributeValue("accountID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strAcctID = String::Factory(xml->getAttributeValue("accountID"));
 
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
@@ -3795,11 +3857,13 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         {
             const char* pElementExpected = "processLedger";
@@ -3857,11 +3921,13 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
 
         // If successful or failure, we need to read 2 more things:
         // inReferenceTo and the responseLedger payload.
@@ -3946,12 +4012,14 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNymboxHash = xml->getAttributeValue("nymboxHash");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strNymID2 = xml->getAttributeValue("clauseName");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNymboxHash =
+            String::Factory(xml->getAttributeValue("nymboxHash"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strNymID2 = String::Factory(xml->getAttributeValue("clauseName"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
         const auto strHasParam =
             String::Factory(xml->getAttributeValue("hasParam"));
 
@@ -4015,10 +4083,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         const char* pElementExpected = "inReferenceTo";
 
@@ -4064,10 +4133,11 @@ public:
 
     virtual std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -4089,10 +4159,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         auto strDepth = String::Factory(xml->getAttributeValue("depth"));
 
@@ -4181,10 +4252,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strAcctID->Set(xml->getAttributeValue("password"));
 
         otWarn << "\nCommand: " << m.m_strCommand
@@ -4223,10 +4295,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         const char* pElementExpected = "inReferenceTo";
         Armored& ascTextExpected = m.m_ascInReferenceTo;
@@ -4273,10 +4346,11 @@ public:
 
     std::int32_t processXml(Message& m, irr::io::IrrXMLReader*& xml)
     {
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         m.m_strNymID2->Set(xml->getAttributeValue("section"));
         m.m_strInstrumentDefinitionID->Set(xml->getAttributeValue("type"));
         m.m_strAcctID->Set(xml->getAttributeValue("value"));
@@ -4317,10 +4391,11 @@ public:
     {
         processXmlSuccess(m, xml);
 
-        m.m_strCommand = xml->getNodeName();  // Command
-        m.m_strRequestNum = xml->getAttributeValue("requestNum");
-        m.m_strNymID = xml->getAttributeValue("nymID");
-        m.m_strNotaryID = xml->getAttributeValue("notaryID");
+        m.m_strCommand = String::Factory(xml->getNodeName());  // Command
+        m.m_strRequestNum =
+            String::Factory(xml->getAttributeValue("requestNum"));
+        m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
+        m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
         const char* pElementExpected = "inReferenceTo";
         Armored& ascTextExpected = m.m_ascInReferenceTo;

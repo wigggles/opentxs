@@ -1285,7 +1285,7 @@ void OTAPI_Func::run()
             OT_ASSERT(contract_)
 
             last_attempt_ = api_.OTAPI().activateSmartContract(
-                context_, String::Factory(*contract_)->Get());
+                context_, String::Factory(*contract_));
         } break;
         case TRIGGER_CLAUSE: {
             last_attempt_ = api_.OTAPI().triggerClause(
@@ -1299,7 +1299,7 @@ void OTAPI_Func::run()
             last_attempt_ = api_.OTAPI().exchangeBasket(
                 context_,
                 instrumentDefinitionID_,
-                String::Factory(basketID_)->Get(),
+                String::Factory(basketID_),
                 direction_);
         } break;
         case GET_CONTRACT: {
@@ -1342,14 +1342,14 @@ void OTAPI_Func::run()
             OT_ASSERT(ledger_)
 
             last_attempt_ = api_.OTAPI().processInbox(
-                context_, accountID_, String::Factory(*ledger_)->Get());
+                context_, accountID_, String::Factory(*ledger_));
         } break;
         case DEPOSIT_CASH: {
 #if OT_CASH
             OT_ASSERT(purse_)
 
             last_attempt_ = api_.OTAPI().notarizeDeposit(
-                context_, accountID_, String::Factory(*purse_)->Get());
+                context_, accountID_, String::Factory(*purse_));
 #endif  // OT_CASH
         } break;
         case DEPOSIT_CHEQUE: {
@@ -1362,7 +1362,7 @@ void OTAPI_Func::run()
             OT_ASSERT(paymentPlan_)
 
             last_attempt_ = api_.OTAPI().depositPaymentPlan(
-                context_, String::Factory(*paymentPlan_)->Get());
+                context_, String::Factory(*paymentPlan_));
         } break;
         case WITHDRAW_CASH: {
 #if OT_CASH
