@@ -332,7 +332,7 @@ bool MessageProcessor::process_message(
         otWarn << OT_METHOD << __FUNCTION__
                << ": Failed to process user command " << request->m_strCommand
                << std::endl;
-        otInfo << String::Factory(*request) << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(String::Factory(*request)).Flush();
     } else {
         otWarn << OT_METHOD << __FUNCTION__
                << ": Successfully processed user command "

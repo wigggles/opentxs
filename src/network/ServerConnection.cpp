@@ -315,8 +315,8 @@ void ServerConnection::publish() const
 void ServerConnection::register_for_push(const ServerContext& context)
 {
     if (2 > context.Request()) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Nym is not yet registered"
-               << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Nym is not yet registered")
+            .Flush();
 
         return;
     }

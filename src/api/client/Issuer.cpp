@@ -304,15 +304,16 @@ bool Issuer::AddRequest(
 
 bool Issuer::BailmentInitiated(const Identifier& unitID) const
 {
-    otInfo << OT_METHOD << __FUNCTION__
-           << ": Searching for initiated bailment requests for unit "
-           << String::Factory(unitID) << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Searching for initiated bailment requests for unit ")(unitID)
+        .Flush();
     Lock lock(lock_);
     std::size_t count{0};
     const auto requests = get_requests(
         lock, proto::PEERREQUEST_BAILMENT, RequestStatus::Requested);
-    otInfo << OT_METHOD << __FUNCTION__ << ": Have " << requests.size()
-           << " initiated requests." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Have ")(requests.size())(
+        " initiated requests.")
+        .Flush();
 
     for (const auto& [requestID, a, b] : requests) {
         const auto& replyID[[maybe_unused]] = a;
@@ -334,9 +335,9 @@ bool Issuer::BailmentInitiated(const Identifier& unitID) const
         if (unitID == requestType) {
             ++count;
         } else {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Request "
-                   << String::Factory(requestID) << " is wrong type ("
-                   << request->bailment().unitid() << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Request ")(requestID)(
+                " is wrong type (")(request->bailment().unitid())(")")
+                .Flush();
         }
     }
 
@@ -388,15 +389,17 @@ std::vector<Issuer::BailmentDetails> Issuer::BailmentInstructions(
 std::vector<Issuer::ConnectionDetails> Issuer::ConnectionInfo(
     const proto::ConnectionInfoType type) const
 {
-    otInfo << OT_METHOD << __FUNCTION__ << ": Searching for type "
-           << static_cast<std::uint32_t>(type)
-           << " connection info requests (which have replies)." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Searching for type ")(
+        static_cast<std::uint32_t>(type))(
+        " connection info requests (which have replies).")
+        .Flush();
     Lock lock(lock_);
     std::vector<ConnectionDetails> output{};
     const auto replies = get_requests(
         lock, proto::PEERREQUEST_CONNECTIONINFO, RequestStatus::Replied);
-    otInfo << OT_METHOD << __FUNCTION__ << ": Have " << replies.size()
-           << " total requests." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Have ")(replies.size())(
+        " total requests.")
+        .Flush();
 
     for (const auto& [requestID, replyID, isUsed] : replies) {
         std::time_t notUsed{0};
@@ -412,9 +415,9 @@ std::vector<Issuer::ConnectionDetails> Issuer::ConnectionInfo(
         OT_ASSERT(request);
 
         if (type != request->connectioninfo().type()) {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Request "
-                   << String::Factory(requestID) << " is wrong type ("
-                   << request->connectioninfo().type() << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Request ")(requestID)(
+                " is wrong type (")(request->connectioninfo().type())(")")
+                .Flush();
 
             continue;
         }
@@ -437,15 +440,16 @@ std::vector<Issuer::ConnectionDetails> Issuer::ConnectionInfo(
 
 bool Issuer::ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
 {
-    otInfo << OT_METHOD << __FUNCTION__ << ": Searching for all type "
-           << static_cast<std::uint32_t>(type) << " connection info requests."
-           << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Searching for all type ")(
+        static_cast<std::uint32_t>(type))(" connection info requests.")
+        .Flush();
     Lock lock(lock_);
     std::size_t count{0};
     const auto requests = get_requests(
         lock, proto::PEERREQUEST_CONNECTIONINFO, RequestStatus::All);
-    otInfo << OT_METHOD << __FUNCTION__ << ": Have " << requests.size()
-           << " total requests." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Have ")(requests.size())(
+        " total requests.")
+        .Flush();
 
     for (const auto& [requestID, a, b] : requests) {
         const auto& replyID[[maybe_unused]] = a;
@@ -464,9 +468,9 @@ bool Issuer::ConnectionInfoInitiated(const proto::ConnectionInfoType type) const
         if (type == request->connectioninfo().type()) {
             ++count;
         } else {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Request "
-                   << String::Factory(requestID) << " is wrong type ("
-                   << request->connectioninfo().type() << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Request ")(requestID)(
+                " is wrong type (")(request->connectioninfo().type())(")")
+                .Flush();
         }
     }
 

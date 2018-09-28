@@ -162,7 +162,7 @@ bool Bidirectional::send(const Lock& lock, zeromq::Message& message)
 
 void Bidirectional::thread()
 {
-    otInfo << OT_METHOD << __FUNCTION__ << ": Starting listener" << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Starting listener").Flush();
 
     while (receiver_run_.get()) {
         if (have_callback()) { break; }
@@ -170,7 +170,7 @@ void Bidirectional::thread()
         Log::Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
     }
 
-    otInfo << OT_METHOD << __FUNCTION__ << ": Callback ready" << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Callback ready").Flush();
     zmq_pollitem_t poll[2];
 
     while (receiver_run_.get()) {
@@ -181,8 +181,7 @@ void Bidirectional::thread()
         const auto events = zmq_poll(poll, 2, POLL_MILLISECONDS);
 
         if (0 == events) {
-            otInfo << OT_METHOD << __FUNCTION__ << ": No messages."
-                   << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": No messages.").Flush();
 
             continue;
         }
@@ -207,7 +206,7 @@ void Bidirectional::thread()
         if (false == processed) { return; }
     }
 
-    otInfo << OT_METHOD << __FUNCTION__ << ": Shutting down" << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Shutting down").Flush();
 }
 
 Bidirectional::~Bidirectional() {}
