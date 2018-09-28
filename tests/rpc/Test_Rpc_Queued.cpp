@@ -340,13 +340,15 @@ TEST_F(Test_Rpc_Queued, RegisterNym)
     Lock lock(task_lock_);
     auto response = ot_.RPC(command);
 
-    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
     ASSERT_TRUE(0 == response.identifier_size());
 
-    register_nym_tasks_.emplace(response.task());
+    ASSERT_EQ(1, response.task_size());
+    register_nym_tasks_.emplace(response.task(0).id());
 
     // Register the receiver nym.
     command = init(proto::RPCCOMMAND_REGISTERNYM);
@@ -358,14 +360,16 @@ TEST_F(Test_Rpc_Queued, RegisterNym)
 
     response = ot_.RPC(command);
 
-    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
     ASSERT_TRUE(0 == response.identifier_size());
 
-    register_nym_tasks_.emplace(response.task());
+    ASSERT_EQ(1, response.task_size());
+    register_nym_tasks_.emplace(response.task(0).id());
 }
 
 TEST_F(Test_Rpc_Queued, Create_Issuer_Account)
@@ -380,12 +384,14 @@ TEST_F(Test_Rpc_Queued, Create_Issuer_Account)
     Lock lock(task_lock_);
     auto response = ot_.RPC(command);
 
-    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
-    issue_unitdef_task_ = response.task();
+    ASSERT_EQ(1, response.task_size());
+    issue_unitdef_task_ = response.task(0).id();
 }
 
 TEST_F(Test_Rpc_Queued, Verify_Responses) { verify_nym_and_unitdef(); }
@@ -426,7 +432,8 @@ TEST_F(Test_Rpc_Queued, Send_Payment_Cheque_No_Path)
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(proto::RPCRESPONSE_NO_PATH_TO_RECIPIENT, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_NO_PATH_TO_RECIPIENT, response.status(0).code());
 }
 
 TEST_F(Test_Rpc_Queued, Send_Payment_Cheque)
@@ -480,10 +487,11 @@ TEST_F(Test_Rpc_Queued, Send_Payment_Cheque)
 
     proto::RPCResponse response;
 
-    while (send_payment_cheque_task_.empty()) {
+    do {
         response = ot_.RPC(command);
 
-        auto responseCode = response.success();
+        ASSERT_EQ(1, response.status_size());
+        auto responseCode = response.status(0).code();
         auto responseIsValid = responseCode == proto::RPCRESPONSE_RETRY ||
                                responseCode == proto::RPCRESPONSE_QUEUED;
         ASSERT_TRUE(responseIsValid);
@@ -491,11 +499,14 @@ TEST_F(Test_Rpc_Queued, Send_Payment_Cheque)
         ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
         ASSERT_EQ(command.type(), response.type());
 
-        send_payment_cheque_task_ = response.task();
         command.set_cookie(opentxs::Identifier::Random()->str());
-    }
+    } while(proto::RPCRESPONSE_RETRY == response.status(0).code());
 
-    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
+
+    ASSERT_EQ(1, response.task_size());
+    send_payment_cheque_task_ = response.task(0).id();
 }
 
 // TODO: tests for RPCPAYMENTTYPE_VOUCHER, RPCPAYMENTTYPE_INVOICE,
@@ -580,7 +591,8 @@ TEST_F(Test_Rpc_Queued, Send_Payment_Cheque)
 //    ASSERT_TRUE(proto::Validate(response, VERBOSE));
 //    EXPECT_EQ(1, response.version());
 //
-//    EXPECT_EQ(proto::RPCRESPONSE_NONE, response.success());
+//	  ASSERT_EQ(1, response.status_size());
+//    EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
 //    EXPECT_EQ(1, response.version());
 //    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
 //    EXPECT_EQ(command.type(), response.type());
@@ -618,12 +630,14 @@ TEST_F(Test_Rpc_Queued, Create_Account)
     Lock lock(task_lock_);
     auto response = ot_.RPC(command);
 
-    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
-    create_account_task_ = response.task();
+    ASSERT_EQ(1, response.task_size());
+    create_account_task_ = response.task(0).id();
 }
 
 TEST_F(Test_Rpc_Queued, Verify_Account) { verify_account(); }

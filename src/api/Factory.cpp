@@ -574,6 +574,43 @@ std::unique_ptr<OTPayment> Factory::Payment(const String& strPayment) const
     return payment;
 }
 
+std::unique_ptr<OTPayment> Factory::Payment(
+    const opentxs::Contract& contract) const
+{
+    std::unique_ptr<OTPayment> payment;
+    payment = Factory::Payment(String::Factory(contract));
+
+    const opentxs::Cheque* cheque =
+        dynamic_cast<const opentxs::Cheque*>(&contract);
+    if (nullptr != cheque) { payment->SetTempValuesFromCheque(*cheque); }
+
+    const opentxs::OTPaymentPlan* paymentplan =
+        dynamic_cast<const opentxs::OTPaymentPlan*>(&contract);
+    if (nullptr != paymentplan) {
+        payment->SetTempValuesFromPaymentPlan(*paymentplan);
+    }
+
+    const opentxs::OTSmartContract* smartcontract =
+        dynamic_cast<const opentxs::OTSmartContract*>(&contract);
+    if (nullptr != smartcontract) {
+        payment->SetTempValuesFromSmartContract(*smartcontract);
+    }
+
+#if OT_CASH
+    const opentxs::Purse* purse =
+        dynamic_cast<const opentxs::Purse*>(&contract);
+    if (nullptr != purse) { payment->SetTempValuesFromPurse(*purse); }
+#endif
+
+    const opentxs::OTTransaction* transaction =
+        dynamic_cast<const opentxs::OTTransaction*>(&contract);
+    if (nullptr != transaction) {
+        payment->SetTempValuesFromNotice(*transaction);
+    }
+
+    return payment;
+}
+
 #if OT_CRYPTO_WITH_BIP39
 OTPaymentCode Factory::PaymentCode(const std::string& base58) const
 {

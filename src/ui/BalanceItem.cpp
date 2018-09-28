@@ -299,15 +299,6 @@ std::string ChequeBalanceItem::Memo() const
     return {};
 }
 
-TransactionNumber ChequeBalanceItem::Number() const
-{
-    sLock lock(shared_lock_);
-
-    if (cheque_) { return cheque_->GetTransactionNum(); }
-
-    return {};
-}
-
 void ChequeBalanceItem::reindex(
     const implementation::AccountActivitySortKey& key,
     const implementation::CustomData& custom)
@@ -324,6 +315,7 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     const auto event = extract_custom<proto::PaymentEvent>(custom, 1);
     eLock lock(shared_lock_);
     cheque_ = api::client::Workflow::InstantiateCheque(api_, workflow).second;
+    workflow_ = workflow.id();
 
     OT_ASSERT(cheque_)
 

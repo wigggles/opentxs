@@ -89,8 +89,9 @@ protected:
         auto response = ot_.RPC(command);
 
         EXPECT_TRUE(proto::Validate(response, VERBOSE));
-
-        return proto::RPCRESPONSE_SUCCESS == response.success();
+        
+        EXPECT_EQ(1, response.status_size());
+        return proto::RPCRESPONSE_SUCCESS == response.status(0).code();
     }
 
     void list(proto::RPCCommandType commandtype, std::int32_t session = -1)
@@ -106,7 +107,8 @@ protected:
         ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
         ASSERT_EQ(command.type(), response.type());
 
-        ASSERT_EQ(proto::RPCRESPONSE_NONE, response.success());
+        ASSERT_EQ(1, response.status_size());
+        ASSERT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
     }
 };
 
@@ -285,7 +287,8 @@ TEST_F(Test_Rpc, Add_Client_Session)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -308,7 +311,8 @@ TEST_F(Test_Rpc, Add_Server_Session)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -347,7 +351,8 @@ TEST_F(Test_Rpc, List_Client_Sessions)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -388,7 +393,8 @@ TEST_F(Test_Rpc, List_Server_Sessions)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -412,7 +418,8 @@ TEST_F(Test_Rpc, List_Server_Contracts)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -430,7 +437,8 @@ TEST_F(Test_Rpc, Get_Notary_Contract)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -451,7 +459,8 @@ TEST_F(Test_Rpc, Import_Server_Contract)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -472,7 +481,9 @@ TEST_F(Test_Rpc, Import_Server_Contract_Partial)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_PARTIAL, response.success());
+    ASSERT_EQ(2, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    ASSERT_EQ(proto::RPCRESPONSE_NONE, response.status(1).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -505,7 +516,8 @@ TEST_F(Test_Rpc, Create_Nym)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -529,7 +541,8 @@ TEST_F(Test_Rpc, Create_Nym)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_TRUE(0 != response.identifier_size());
 
@@ -549,7 +562,8 @@ TEST_F(Test_Rpc, Create_Nym)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_TRUE(0 != response.identifier_size());
 }
@@ -567,7 +581,8 @@ TEST_F(Test_Rpc, List_Contacts)
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_TRUE(3 == response.identifier_size());
 }
@@ -590,7 +605,8 @@ TEST_F(Test_Rpc, Add_Contact)
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_EQ(1, response.identifier_size());
 
@@ -617,7 +633,8 @@ TEST_F(Test_Rpc, Add_Contact)
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_EQ(1, response.identifier_size());
 
@@ -639,7 +656,8 @@ TEST_F(Test_Rpc, Add_Contact)
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_EQ(1, response.identifier_size());
 }
@@ -679,7 +697,8 @@ TEST_F(Test_Rpc, Create_Unit_Definition)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -696,7 +715,8 @@ TEST_F(Test_Rpc, List_Unit_Definitions)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -723,7 +743,8 @@ TEST_F(Test_Rpc, RegisterNym)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -743,7 +764,8 @@ TEST_F(Test_Rpc, RegisterNym)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -762,7 +784,8 @@ TEST_F(Test_Rpc, RegisterNym)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -798,7 +821,8 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -838,7 +862,8 @@ TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_UNNECESSARY, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_UNNECESSARY, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -867,7 +892,8 @@ TEST_F(Test_Rpc, Create_Account)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -896,7 +922,8 @@ TEST_F(Test_Rpc, Create_Account)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -925,7 +952,8 @@ TEST_F(Test_Rpc, Create_Account)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -984,7 +1012,8 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -1047,7 +1076,8 @@ TEST_F(Test_Rpc, Move_Funds)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
@@ -1095,7 +1125,8 @@ TEST_F(Test_Rpc, Get_Account_Balance)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.success());
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(1, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());

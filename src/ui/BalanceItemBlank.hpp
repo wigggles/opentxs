@@ -22,7 +22,7 @@ public:
     std::string DisplayAmount() const override { return {}; }
     bool Last() const override { return true; }
     std::string Memo() const override { return {}; }
-    TransactionNumber Number() const override { return {}; }
+    std::string Workflow() const override { return {}; }
     std::string Text() const override { return {}; }
     std::chrono::system_clock::time_point Timestamp() const override
     {

@@ -70,7 +70,7 @@ public:
     opentxs::Amount Amount() const override { return effective_amount(); }
     std::string DisplayAmount() const override;
     std::string Memo() const override;
-    TransactionNumber Number() const override;
+    std::string Workflow() const override { return workflow_; }
 
     void reindex(
         const implementation::AccountActivitySortKey& key,
@@ -83,6 +83,7 @@ private:
 
     std::unique_ptr<const opentxs::Cheque> cheque_{nullptr};
     mutable std::shared_ptr<const UnitDefinition> contract_{nullptr};
+    std::string workflow_{""};
 
     opentxs::Amount effective_amount() const;
     bool get_contract() const;

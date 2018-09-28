@@ -162,7 +162,7 @@ private:
         const std::string& remoteNymID,
         const std::string& accountID,
         const proto::AccountEventType type,
-        const TransactionNumber number,
+        const std::string& workflowID,
         const Amount amount,
         const Amount pending,
         const std::chrono::time_point<std::chrono::system_clock> time,

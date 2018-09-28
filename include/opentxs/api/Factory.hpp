@@ -115,6 +115,8 @@ public:
     EXPORT virtual std::unique_ptr<OTPayment> Payment() const = 0;
     EXPORT virtual std::unique_ptr<OTPayment> Payment(
         const String& strPayment) const = 0;
+    EXPORT virtual std::unique_ptr<OTPayment> Payment(
+        const opentxs::Contract& contract) const = 0;
 
 #if OT_CRYPTO_WITH_BIP39
     EXPORT virtual OTPaymentCode PaymentCode(
