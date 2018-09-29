@@ -101,7 +101,7 @@ bool Plugin::Migrate(
     const bool exists = to.LoadFromBucket(key, value, targetBucket);
 
     if (!exists) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Missing key." << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Missing key.").Flush();
 
         return false;
     }

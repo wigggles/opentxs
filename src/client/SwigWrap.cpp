@@ -2976,8 +2976,9 @@ std::string SwigWrap::Blockchain_Account_List(
 {
     const auto nym = Identifier::Factory(nymID);
     const auto type = static_cast<proto::ContactItemType>(chain);
-    otInfo << OT_METHOD << __FUNCTION__ << ": Loading account list for "
-           << proto::TranslateItemType(type) << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Loading account list for ")(
+        proto::TranslateItemType(type))
+        .Flush();
     const auto output = client_->Blockchain().AccountList(nym, type);
 
     return comma(output);

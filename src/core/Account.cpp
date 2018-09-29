@@ -202,10 +202,12 @@ std::unique_ptr<Ledger> Account::LoadInbox(const Nym& nym) const
 
     auto strNymID = String::Factory(GetNymID()),
          strAcctID = String::Factory(GetRealAccountID());
-    otInfo << "Unable to load or verify inbox:\n"
-           << strAcctID << "\n For user:\n"
-           << strNymID << "\n";
-
+    {
+        LogVerbose(OT_METHOD)(__FUNCTION__)("Unable to load or verify inbox: ")
+            .Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(strAcctID)("  For user: ").Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(strNymID).Flush();
+    }
     return nullptr;
 }
 
@@ -220,10 +222,12 @@ std::unique_ptr<Ledger> Account::LoadOutbox(const Nym& nym) const
 
     auto strNymID = String::Factory(GetNymID()),
          strAcctID = String::Factory(GetRealAccountID());
-    otInfo << "Unable to load or verify outbox:\n"
-           << strAcctID << "\n For user:\n"
-           << strNymID << "\n";
-
+    {
+        LogVerbose(OT_METHOD)(__FUNCTION__)("Unable to load or verify outbox: ")
+            .Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(strAcctID)(" For user: ").Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(strNymID).Flush();
+    }
     return nullptr;
 }
 
@@ -543,9 +547,10 @@ Account* Account::LoadExistingAccount(
             account->m_strFilename->Get(),
             "",
             "")) {
-        otInfo << "OTAccount::LoadExistingAccount: File does not exist: "
-               << account->m_strFoldername << Log::PathSeparator()
-               << account->m_strFilename << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
+            account->m_strFoldername)(Log::PathSeparator())(
+            account->m_strFilename)
+            .Flush();
 
         return nullptr;
     }

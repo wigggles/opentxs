@@ -19,6 +19,8 @@
 #include <sstream>
 #include <typeinfo>
 
+#define OT_METHOD "opentxs::Storage"
+
 /*
  // We want to store EXISTING OT OBJECTS (Usually signed contracts)
  // These have an EXISTING OT path, such as "inbox/acct_id".
@@ -380,8 +382,10 @@ bool InitDefaultStorage(StorageType eStoreType, PackType ePackType)
     //        }
 
     if (nullptr == details::s_pStorage) {
-        otInfo << "OTDB::InitDefaultStorage: Existing storage context doesn't "
-                  "already exist. (Creating it.)\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Existing storage context doesn't ")(
+            "already exist. (Creating it.) ")
+            .Flush();
 
         details::s_pStorage = Storage::Create(eStoreType, ePackType);
     }
@@ -2955,7 +2959,9 @@ bool StorageFS::onEraseValueByKey(
         otErr << "** Failed trying to delete file:  " << strOutput << " \n";
     } else {
         bSuccess = true;
-        otInfo << "** Success deleting file:  " << strOutput << " \n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)("** Success deleting file:  ")(
+            strOutput)
+            .Flush();
     }
 
     // TODO: Remove the .lock file.

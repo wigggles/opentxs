@@ -5875,6 +5875,7 @@ void Notary::NotarizeMarketOffer(
                                          // placed on the market.
 
                     LogVerbose(OT_METHOD)(__FUNCTION__)(
+                        " : "
                         "Successfully added Trade to Cron object.")
                         .Flush();
 

@@ -1326,7 +1326,7 @@ bool Sync::message_nym(
 
             if (false == messageID->empty()) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent message  ")(
-                    messageID->str())
+                    messageID)
                     .Flush();
                 associate_message_id(messageID, taskID);
             }
@@ -1369,9 +1369,8 @@ bool Sync::pay_nym(
             const auto messageID = action->MessageID();
 
             if (false == messageID->empty()) {
-                LogVerbose(OT_METHOD)(__FUNCTION__)(
-                    ": Sent (payment) "
-                    "message ")(messageID->str())
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent (payment) "
+                                                    "message ")(messageID)
                     .Flush();
             }
 
@@ -1417,7 +1416,7 @@ bool Sync::pay_nym_cash(
 
             if (false == messageID->empty()) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent (cash) message  ")(
-                    messageID->str())
+                    messageID)
                     .Flush();
             }
 
@@ -1777,8 +1776,7 @@ void Sync::refresh_contacts() const
             SHUTDOWN()
 
             const auto nym = client_.Wallet().Nym(nymID);
-            LogVerbose(OT_METHOD)(__FUNCTION__)(": Considering nym: ")(
-                nymID->str())
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Considering nym: ")(nymID)
                 .Flush();
 
             if (nym) {
@@ -1827,7 +1825,7 @@ void Sync::refresh_contacts() const
                     if (serverID->empty()) { continue; }
 
                     LogVerbose(OT_METHOD)(__FUNCTION__)(": Will download nym ")(
-                        nymID->str())(" from server ")(serverID->str())
+                        nymID)(" from server ")(serverID)
                         .Flush();
                     auto& serverQueue = get_nym_fetch(serverID);
                     const auto taskID(Identifier::Random());
@@ -2412,8 +2410,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     // Make sure the server contract is available
     while (running_) {
         if (check_server_contract(serverID)) {
-            LogVerbose(OT_METHOD)(__FUNCTION__)(": Server contract ")(
-                serverID->str())(" exists.")
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Server contract ")(serverID)(
+                " exists.")
                 .Flush();
 
             break;
@@ -2429,9 +2427,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     // Make sure the nym has registered for the first time on the server
     while (running_) {
         if (check_registration(nymID, serverID, context)) {
-            LogVerbose(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID->str())(
-                " has registered on server ")(serverID->str())(
-                " at least once.")
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(
+                " has registered on server ")(serverID)(" at least once.")
                 .Flush();
 
             break;
@@ -3188,7 +3185,7 @@ bool Sync::write_and_send_cheque(
 
             if (false == messageID->empty()) {
                 LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent (payment) ")(
-                    "message ")(messageID->str())
+                    "message ")(messageID)
                     .Flush();
             }
 

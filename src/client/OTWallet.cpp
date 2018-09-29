@@ -477,13 +477,22 @@ bool OTWallet::LoadWallet(const char* szFilename)
                             xml->getAttributeValue("accountID"));
                         NotaryID =
                             String::Factory(xml->getAttributeValue("notaryID"));
-                        otInfo << "\n------------------------------------------"
-                                  "----"
-                                  "----------------------------\n"
-                                  "****Account**** (wallet listing)\n"
-                                  " Account Name: "
-                               << AcctName << "\n   Account ID: " << AcctID
-                               << "\n    Notary ID: " << NotaryID << "\n";
+                        LogVerbose(OT_METHOD)(__FUNCTION__)(
+                            " ------------------------------------------")(
+                            "----")("---------------------------- ")
+                            .Flush();
+                        LogVerbose(OT_METHOD)(__FUNCTION__)(
+                            "****Account**** (wallet listing) ")
+                            .Flush();
+                        LogVerbose(OT_METHOD)(__FUNCTION__)(" Account Name: ")(
+                            AcctName)
+                            .Flush();
+                        LogVerbose(OT_METHOD)(__FUNCTION__)("   Account ID: ")(
+                            AcctID)
+                            .Flush();
+                        LogVerbose(OT_METHOD)(__FUNCTION__)("     Notary ID: ")(
+                            NotaryID)
+                            .Flush();
                         const auto ACCOUNT_ID = Identifier::Factory(AcctID),
                                    NOTARY_ID = Identifier::Factory(NotaryID);
                         std::unique_ptr<Account> pAccount(

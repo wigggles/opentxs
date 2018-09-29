@@ -93,7 +93,7 @@ bool StorageSqlite3::commit_transaction(const std::string& rootHash) const
     set_root(rootHash, sql);
     commit(sql);
     pending_.clear();
-    otInfo << sql.str() << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(sql.str()).Flush();
 
     return (
         SQLITE_OK ==
@@ -194,7 +194,7 @@ bool StorageSqlite3::Select(
         "SELECT v FROM '" + tablename + "' WHERE k GLOB ?1;";
     const auto sql = bind_key(query, key, 1);
     sqlite3_prepare_v2(db_, sql.c_str(), -1, &statement, 0);
-    otInfo << sql << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(sql).Flush();
     auto result = sqlite3_step(statement);
     bool success = false;
     std::size_t retry{3};
@@ -347,7 +347,7 @@ bool StorageSqlite3::Upsert(
     sqlite3_prepare_v2(db_, query.c_str(), -1, &statement, 0);
     sqlite3_bind_text(statement, 1, key.c_str(), key.size(), SQLITE_STATIC);
     sqlite3_bind_blob(statement, 2, value.c_str(), value.size(), SQLITE_STATIC);
-    otInfo << expand_sql(statement) << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(expand_sql(statement)).Flush();
     const auto result = sqlite3_step(statement);
     sqlite3_finalize(statement);
 

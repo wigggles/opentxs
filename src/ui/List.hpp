@@ -147,9 +147,9 @@ protected:
     void delete_inactive(const std::set<RowID>& active) const
     {
         Lock lock(lock_);
-        otInfo << LIST_METHOD << __FUNCTION__ << ": Removing "
-               << std::to_string(names_.size() - active.size()) << " items."
-               << std::endl;
+        LogVerbose(LIST_METHOD)(__FUNCTION__) (": Removing ")
+               (names_.size() - active.size()) ("items.")
+               .Flush();
         std::vector<RowID> deleteIDs{};
 
         for (const auto& it : names_) {
