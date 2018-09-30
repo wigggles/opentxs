@@ -166,8 +166,9 @@ void StorageMultiplex::init_fs(
     std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
 {
 #if OT_STORAGE_FS
-    otInfo << OT_METHOD << __FUNCTION__
-           << ": Initializing primary filesystem plugin." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Initializing primary filesystem plugin.")
+        .Flush();
     plugin.reset(Factory::StorageFSGC(
         storage_, config_, digest_, random_, primary_bucket_));
 #else
@@ -180,8 +181,8 @@ void StorageMultiplex::init_fs(
 void StorageMultiplex::init_memdb(
     std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
 {
-    otInfo << OT_METHOD << __FUNCTION__
-           << ": Initializing primary MemDB plugin." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Initializing primary MemDB plugin.")
+        .Flush();
     plugin.reset(Factory::StorageMemDB(
         storage_, config_, digest_, random_, primary_bucket_));
 }
@@ -190,8 +191,9 @@ void StorageMultiplex::init_sqlite(
     std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
 {
 #if OT_STORAGE_SQLITE
-    otInfo << OT_METHOD << __FUNCTION__
-           << ": Initializing primary sqlite3 plugin." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Initializing primary sqlite3 plugin.")
+        .Flush();
     plugin.reset(Factory::StorageSqlite3(
         storage_, config_, digest_, random_, primary_bucket_));
 #else
@@ -262,8 +264,9 @@ bool StorageMultiplex::Load(
     if (primary_plugin_->Load(key, checking, value)) { return true; }
 
     if (false == checking) {
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": key not found by primary storage plugin." << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": key not found by primary storage plugin.")
+            .Flush();
     }
 
     std::size_t count{0};
@@ -279,9 +282,9 @@ bool StorageMultiplex::Load(
         }
 
         if (false == checking) {
-            otInfo << OT_METHOD << __FUNCTION__
-                   << ": key not found by backup storage plugin " << count
-                   << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
+                ": key not found by backup storage plugin ")
+                .Flush();
         }
 
         ++count;

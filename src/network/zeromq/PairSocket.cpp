@@ -75,12 +75,12 @@ PairSocket::PairSocket(
 
     if (bind_) {
         init = Socket::bind(lock, endpoint_);
-        otInfo << OT_METHOD << __FUNCTION__ << ": Bound to " << endpoint_
-               << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Bound to ")(endpoint_).Flush();
+
     } else {
         init = start_client(lock, endpoint_);
-        otInfo << OT_METHOD << __FUNCTION__ << ": Connected to " << endpoint_
-               << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Connected to ")(endpoint_)
+            .Flush();
     }
 
     OT_ASSERT(init)

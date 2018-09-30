@@ -37,8 +37,8 @@ PairEventListener::PairEventListener(
 
     OT_ASSERT(started)
 
-    otInfo << OT_METHOD << __FUNCTION__ << ": Subscriber listening on "
-           << endpoint << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Subscriber listening on ")(endpoint)
+        .Flush();
 }
 
 PairEventListener* PairEventListener::clone() const

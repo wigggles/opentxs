@@ -245,7 +245,7 @@ extern "C" std::int32_t souped_up_pass_cb(
         return 0;
     }
 
-    opentxs::otInfo << __FUNCTION__ << ": Success!\n";
+    opentxs::LogVerbose(OT_METHOD)(__FUNCTION__)(": Success! ").Flush();
     std::int32_t len = thePassword.isPassword() ? thePassword.getPasswordSize()
                                                 : thePassword.getMemorySize();
 
@@ -424,14 +424,15 @@ const api::Crypto& Native::Crypto() const
 INTERNAL_PASSWORD_CALLBACK* Native::GetInternalPasswordCallback() const
 {
 #if defined OT_TEST_PASSWORD
-    otInfo << OT_METHOD << __FUNCTION__
-           << ": WARNING, OT_TEST_PASSWORD *is* defined. The "
-              "internal 'C'-based password callback was just "
-              "requested by OT (to pass to OpenSSL). So, returning "
-              "the default_pass_cb password callback, which will "
-              "automatically return "
-              "the 'test' password to OpenSSL, if/when it calls that "
-              "callback function.\n";
+    opentxs::LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": WARNING, OT_TEST_PASSWORD *is* defined. The "
+        "internal 'C'-based password callback was just "
+        "requested by OT (to pass to OpenSSL). So, returning "
+        "the default_pass_cb password callback, which will "
+        "automatically return "
+        "the 'test' password to OpenSSL, if/when it calls that "
+        "callback function. ")
+        .Flush();
     return &default_pass_cb;
 #else
     return &souped_up_pass_cb;

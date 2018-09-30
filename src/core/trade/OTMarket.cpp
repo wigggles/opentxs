@@ -2327,10 +2327,9 @@ bool OTMarket::ProcessTrade(
     OTOffer& theOffer)
 {
     if (theOffer.GetAmountAvailable() < theOffer.GetMinimumIncrement()) {
-        otInfo << "OTMarket::" << __FUNCTION__
-               << ": Removing offer from "
-                  "market. (Amount Available is "
-                  "less than Min Increment.)\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Removing offer from ")(
+            "market. (Amount Available is ")("less than Min Increment.) ")
+            .Flush();
         return false;
     }
 
@@ -2353,9 +2352,10 @@ bool OTMarket::ProcessTrade(
     //
     if ((0 == lRelevantPrice) &&  // Market order has 0 price.
         theOffer.IsMarketOrder()) {
-        otInfo << "OTMarket::" << __FUNCTION__
-               << ": Removing market order that has 0 price: "
-               << formatLong(theTrade.GetOpeningNum()) << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Removing market order that has 0 price: ")(
+            theTrade.GetOpeningNum())
+            .Flush();
         return false;
     }
     // If there were no bids/asks (whichever is relevant to this trade)
@@ -2475,16 +2475,13 @@ bool OTMarket::ProcessTrade(
                 (theOffer.GetMinimumIncrement() >
                  theOffer.GetAmountAvailable())) {
 
-                otInfo << "OTMarket::" << __FUNCTION__
-                       << ": Removing market order: "
-                       << formatLong(theTrade.GetOpeningNum())
-                       << ". IsFlaggedForRemoval: "
-                       << formatBool(theTrade.IsFlaggedForRemoval())
-                       << ". Minimum increment is larger than Amount "
-                          "available: "
-                       << (theOffer.GetMinimumIncrement() >
-                           theOffer.GetAmountAvailable())
-                       << "\n";
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": Removing market order: ")(theTrade.GetOpeningNum())(
+                    ". IsFlaggedForRemoval: ")(theTrade.IsFlaggedForRemoval())(
+                    ". Minimum increment is larger than Amount ")(
+                    "available: ")(theOffer.GetMinimumIncrement())(
+                    theOffer.GetAmountAvailable())
+                    .Flush();
 
                 return false;  // remove this trade from cron
             }
@@ -2565,16 +2562,13 @@ bool OTMarket::ProcessTrade(
                 (theOffer.GetMinimumIncrement() >
                  theOffer.GetAmountAvailable())) {
 
-                otInfo << "OTMarket::" << __FUNCTION__
-                       << ": Removing market order: "
-                       << formatLong(theTrade.GetOpeningNum())
-                       << ". IsFlaggedForRemoval: "
-                       << formatBool(theTrade.IsFlaggedForRemoval())
-                       << ". Minimum increment is larger than Amount "
-                          "available: "
-                       << (theOffer.GetMinimumIncrement() >
-                           theOffer.GetAmountAvailable())
-                       << "\n";
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": Removing market order: ")(theTrade.GetOpeningNum())(
+                    ". IsFlaggedForRemoval: ")(theTrade.IsFlaggedForRemoval())(
+                    ". Minimum increment is larger than Amount ")(
+                    "available: ")(theOffer.GetMinimumIncrement())(
+                    theOffer.GetAmountAvailable())
+                    .Flush();
 
                 return false;  // remove this trade from the market.
             }

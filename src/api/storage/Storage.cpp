@@ -2277,8 +2277,9 @@ void Storage::UpgradeNyms()
             .It()
             .UpgradeLocalnym();
     } else {
-        otInfo << OT_METHOD << __FUNCTION__ << ": No need to upgrade version "
-               << level << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": No need to upgrade version ")(
+            level)
+            .Flush();
     }
 }
 

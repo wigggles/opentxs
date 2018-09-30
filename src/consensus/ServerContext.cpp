@@ -374,21 +374,21 @@ ServerContext::ManagedNumber ServerContext::NextTransactionNumber(
     const std::size_t reserve = (MessageType::processInbox == reason) ? 0 : 1;
 
     if (0 == reserve) {
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": Allocating a transaction number for process inbox."
-               << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Allocating a transaction number for process inbox.")
+            .Flush();
     } else {
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": Allocating a transaction number for normal transaction."
-               << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Allocating a transaction number for normal transaction.")
+            .Flush();
     }
 
-    otInfo << OT_METHOD << __FUNCTION__ << ": "
-           << available_transaction_numbers_.size() << " numbers available."
-           << std::endl;
-    otInfo << OT_METHOD << __FUNCTION__ << ": "
-           << issued_transaction_numbers_.size() << " numbers issued."
-           << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(
+        available_transaction_numbers_.size())(" numbers available.")
+        .Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": ")(
+        issued_transaction_numbers_.size())(" numbers issued.")
+        .Flush();
 
     if (reserve >= available_transaction_numbers_.size()) {
 

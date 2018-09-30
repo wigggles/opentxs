@@ -37,6 +37,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::Message"
+
 #define ERROR_STRING "error"
 #define PING_NOTARY "pingNotary"
 #define PING_NOTARY_RESPONSE "pingNotaryResponse"
@@ -556,7 +558,9 @@ std::int32_t Message::processXmlNodeNotaryMessage(
 
     if (strDateSigned->Exists()) m_lTime = parseTimestamp(strDateSigned->Get());
 
-    otInfo << "\n===> Loading XML for Message into memory structures...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        " ===> Loading XML for Message into memory structures... ")
+        .Flush();
 
     return 1;
 }

@@ -357,8 +357,9 @@ bool UserCommandProcessor::check_client_nym(ReplyMessage& reply) const
         return false;
     }
 
-    otInfo << OT_METHOD << __FUNCTION__
-           << ": Message signature verification successful." << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Message signature verification successful.")
+        .Flush();
 
     return true;
 }

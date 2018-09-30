@@ -709,10 +709,11 @@ std::int32_t Utility::getAndProcessNymbox_8(
                 //
                 bool nRemovedMsg = SwigWrap::RemoveSentMessage(
                     std::int64_t(nRequestNumber), notaryID, nymID);
-                otInfo << strLocation
-                       << ": OT_API_RemoveSentMessage: (Found server reply in "
-                          "Nymbox. Removing local sent msg.) Request number: "
-                       << nRemovedMsg << "\n";
+                LogVerbose(OT_METHOD)(__FUNCTION__)(strLocation)(
+                    ": (Found server reply in ")(
+                    "Nymbox. Removing local sent msg.) Request number: ")(
+                    nRemovedMsg)
+                    .Flush();
             } else  // We DIDN'T find it in the nymbox, so we can harvest it:
             {
                 // NOTE: This may always fail,
@@ -725,12 +726,13 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     std::int64_t(nRequestNumber), notaryID, nymID);
 
                 if (!VerifyStringVal(strSentMsg)) {
-                    otInfo << strLocation
-                           << ": (1) OT_API_GetSentMessage returned nullptr "
-                              "for clawback. (Must have already been cleared. "
-                              "OT uses deliberate redundancy, though optimizes "
-                              "this wherever possible.) Request number: "
-                           << nRequestNumber << "\n";
+                    LogVerbose(OT_METHOD)(__FUNCTION__)(strLocation)(
+                        ": (1) OT_API_GetSentMessage returned nullptr ")(
+                        "for clawback. (Must have already been cleared. ")(
+                        "OT uses deliberate redundancy, though optimizes ")(
+                        "this wherever possible.) Request number: ")(
+                        nRequestNumber)
+                        .Flush();
                 } else  // SwigWrap::GetSentMessage success.
                 {
                     otOut << strLocation
@@ -761,9 +763,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
 
                     bool nRemovedMsg = SwigWrap::RemoveSentMessage(
                         std::int64_t(nRequestNumber), notaryID, nymID);
-                    otInfo << strLocation
-                           << ": OT_API_RemoveSentMessage: " << nRemovedMsg
-                           << "\n";
+                    LogVerbose(OT_METHOD)(__FUNCTION__)(strLocation)(
+                        nRemovedMsg)
+                        .Flush();
                 }  // strSentMsg NOT null!
             }
         }
@@ -1110,13 +1112,13 @@ std::int32_t Utility::getAndProcessNymbox_8(
                             std::int64_t(nProcess), notaryID, nymID);
 
                     if (!VerifyStringVal(strSentProcessNymboxMsg)) {
-                        otInfo << strLocation
-                               << ": (2) OT_API_GetSentMessage returned "
-                                  "nullptr for clawback. (Must have already "
-                                  "been cleared. OT uses deliberate "
-                                  "redundancy, though optimizes this wherever "
-                                  "possible.) Request number: "
-                               << nProcess << "\n";
+                        LogVerbose(OT_METHOD)(__FUNCTION__)(strLocation)(
+                            ": (2) OT_API_GetSentMessage returned ")(
+                            "nullptr for clawback. (Must have already ")(
+                            "been cleared. OT uses deliberate ")(
+                            "redundancy, though optimizes this wherever ")(
+                            "possible.) Request number: ")(nProcess)
+                            .Flush();
                     } else  // strSentProcessNymboxMsg NOT null!
                     {
                         otOut << strLocation
@@ -1153,8 +1155,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
                             SwigWrap::RemoveSentMessage(
                                 std::int64_t(nProcess), notaryID, nymID);
 
-                        otInfo << strLocation << ": OT_API_RemoveSentMessage: "
-                               << nRemovedProcessNymboxMsg << "\n";
+                        LogVerbose(OT_METHOD)(__FUNCTION__)(strLocation)(
+                            nRemovedProcessNymboxMsg)
+                            .Flush();
                     }  // strSentProcessNymboxMsg NOT null!
                 }  // a specific receipt was not found in the nymbox (need to
                    // clawback the transaction numbers on that receipt.)

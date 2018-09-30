@@ -5874,7 +5874,10 @@ void Notary::NotarizeMarketOffer(
                     bOutSuccess = true;  // The offer was successfully
                                          // placed on the market.
 
-                    otInfo << "Successfully added Trade to Cron object.\n";
+                    LogVerbose(OT_METHOD)(__FUNCTION__)(
+                        " : "
+                        "Successfully added Trade to Cron object.")
+                        .Flush();
 
                     // Server side, the Nym stores a list of all open cron
                     // item numbers. (So we know if there is still stuff

@@ -988,8 +988,8 @@ bool OTPaths::GetHomeFromSystem(String& out_strHomeFolder)
     auto home = String::Factory(getenv("HOME"));
     auto library = String::Factory();
     AppendFolder(library, home, String::Factory("Library"));
-    AppendFolder(out_strHomeFolder, library,
-                 String::Factory("Application Support"));
+    AppendFolder(
+        out_strHomeFolder, library, String::Factory("Application Support"));
 
 #else
     out_strHomeFolder.Set(getenv("HOME"));

@@ -308,8 +308,9 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
     remaining = items - count;
 
     if (0 == count) {
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": No items to accept in this account." << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": No items to accept in this account.")
+            .Flush();
         success = true;
 
         return output;
@@ -1324,8 +1325,9 @@ bool Sync::message_nym(
             const auto messageID = action->MessageID();
 
             if (false == messageID->empty()) {
-                otInfo << OT_METHOD << __FUNCTION__ << ": Sent message  "
-                       << messageID->str() << std::endl;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent message  ")(
+                    messageID)
+                    .Flush();
                 associate_message_id(messageID, taskID);
             }
 
@@ -1367,10 +1369,9 @@ bool Sync::pay_nym(
             const auto messageID = action->MessageID();
 
             if (false == messageID->empty()) {
-                otInfo << OT_METHOD << __FUNCTION__
-                       << ": Sent (payment) "
-                          "message "
-                       << messageID->str() << std::endl;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent (payment) "
+                                                    "message ")(messageID)
+                    .Flush();
             }
 
             return finish_task(taskID, true);
@@ -1414,8 +1415,9 @@ bool Sync::pay_nym_cash(
             const auto messageID = action->MessageID();
 
             if (false == messageID->empty()) {
-                otInfo << OT_METHOD << __FUNCTION__ << ": Sent (cash) message  "
-                       << messageID->str() << std::endl;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent (cash) message  ")(
+                    messageID)
+                    .Flush();
             }
 
             return finish_task(taskID, true);
@@ -1551,9 +1553,9 @@ void Sync::process_account(const zmq::Message& message) const
 
     OT_ASSERT(balance.size() == sizeof(Amount))
 
-    otInfo << OT_METHOD << __FUNCTION__ << ": Account " << id << " balance: "
-           << std::to_string(*static_cast<const Amount*>(balance.data()))
-           << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Account ")(id)(" balance: ")(
+        *static_cast<const Amount*>(balance.data()))
+        .Flush();
 }
 
 bool Sync::process_inbox(
@@ -1693,7 +1695,7 @@ std::uint64_t Sync::RefreshCount() const { return refresh_counter_.load(); }
 
 void Sync::refresh_accounts() const
 {
-    otInfo << OT_METHOD << __FUNCTION__ << ": Begin" << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Begin").Flush();
     const auto serverList = client_.Wallet().ServerList();
     const auto accounts = client_.Storage().AccountList();
 
@@ -1740,7 +1742,7 @@ void Sync::refresh_accounts() const
         queue.download_account_.Push(taskID, accountID);
     }
 
-    otInfo << OT_METHOD << __FUNCTION__ << ": End" << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": End").Flush();
 }
 
 void Sync::refresh_contacts() const
@@ -1749,8 +1751,9 @@ void Sync::refresh_contacts() const
         SHUTDOWN()
 
         const auto& contactID = it.first;
-        otInfo << OT_METHOD << __FUNCTION__
-               << ": Considering contact: " << contactID << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Considering contact: ")(
+            contactID)
+            .Flush();
         const auto contact =
             client_.Contacts().Contact(Identifier::Factory(contactID));
 
@@ -1762,8 +1765,9 @@ void Sync::refresh_contacts() const
         const auto nymList = contact->Nyms();
 
         if (nymList.empty()) {
-            otInfo << OT_METHOD << __FUNCTION__
-                   << ": No nyms associated with this contact." << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
+                ": No nyms associated with this contact.")
+                .Flush();
 
             continue;
         }
@@ -1772,15 +1776,16 @@ void Sync::refresh_contacts() const
             SHUTDOWN()
 
             const auto nym = client_.Wallet().Nym(nymID);
-            otInfo << OT_METHOD << __FUNCTION__
-                   << ": Considering nym: " << nymID->str() << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Considering nym: ")(nymID)
+                .Flush();
 
             if (nym) {
                 client_.Contacts().Update(nym->asPublicNym());
             } else {
-                otInfo << OT_METHOD << __FUNCTION__
-                       << ": We don't have credentials for this nym. "
-                       << " Will search on all servers." << std::endl;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": We don't have credentials for this nym. "
+                    " Will search on all servers.")
+                    .Flush();
                 const auto taskID(Identifier::Random());
                 missing_nyms_.Push(taskID, nymID);
 
@@ -1788,10 +1793,10 @@ void Sync::refresh_contacts() const
             }
 
             if (interval > limit) {
-                otInfo << OT_METHOD << __FUNCTION__
-                       << ": Hours since last update (" << interval.count()
-                       << ") exceeds the limit (" << limit.count() << ")"
-                       << std::endl;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": Hours since last update (")(interval.count())(
+                    ") exceeds the limit (")(limit.count())(")")
+                    .Flush();
                 // TODO add a method to Contact that returns the list of
                 // servers
                 const auto data = contact->Data();
@@ -1819,16 +1824,17 @@ void Sync::refresh_contacts() const
 
                     if (serverID->empty()) { continue; }
 
-                    otInfo << OT_METHOD << __FUNCTION__
-                           << ": Will download nym " << nymID->str()
-                           << " from server " << serverID->str() << std::endl;
+                    LogVerbose(OT_METHOD)(__FUNCTION__)(": Will download nym ")(
+                        nymID)(" from server ")(serverID)
+                        .Flush();
                     auto& serverQueue = get_nym_fetch(serverID);
                     const auto taskID(Identifier::Random());
                     serverQueue.Push(taskID, nymID);
                 }
             } else {
-                otInfo << OT_METHOD << __FUNCTION__
-                       << ": No need to update this nym." << std::endl;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": No need to update this nym.")
+                    .Flush();
             }
         }
     }
@@ -2404,8 +2410,9 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     // Make sure the server contract is available
     while (running_) {
         if (check_server_contract(serverID)) {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Server contract "
-                   << serverID->str() << " exists." << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Server contract ")(serverID)(
+                " exists.")
+                .Flush();
 
             break;
         }
@@ -2420,9 +2427,9 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     // Make sure the nym has registered for the first time on the server
     while (running_) {
         if (check_registration(nymID, serverID, context)) {
-            otInfo << OT_METHOD << __FUNCTION__ << ": Nym " << nymID->str()
-                   << " has registered on server " << serverID->str()
-                   << " at least once." << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(
+                " has registered on server ")(serverID)(" at least once.")
+                .Flush();
 
             break;
         }
@@ -3177,10 +3184,9 @@ bool Sync::write_and_send_cheque(
             const auto messageID = action->MessageID();
 
             if (false == messageID->empty()) {
-                otInfo << OT_METHOD << __FUNCTION__
-                       << ": Sent (payment) "
-                          "message "
-                       << messageID->str() << std::endl;
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Sent (payment) ")(
+                    "message ")(messageID)
+                    .Flush();
             }
 
             return finish_task(taskID, true);

@@ -27,6 +27,8 @@
 #include <ostream>
 #include <string>
 
+#define OT_METHOD "opentxs::Basket"
+
 // This is a good implementation. Dots all the i's, so to speak.
 // client-side.
 // The basket ONLY stores closing numbers, so this means "harvest 'em all."
@@ -242,10 +244,11 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_bExchangingIn = strDirection->Compare("in");
         if (strTemp->Exists()) SetClosingNum(strTemp->ToLong());
 
-        otInfo << "Basket Transfer multiple is " << m_nTransferMultiple
-               << ". Direction is " << strDirection << ". Closing number is "
-               << m_lClosingTransactionNo << ". Target account is:\n"
-               << strRequestAccountID << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)("Basket Transfer multiple is ")(
+            m_nTransferMultiple)(". Direction is ")(strDirection)(
+            ". Closing number is ")(m_lClosingTransactionNo)(
+            ". Target account is: ")(strRequestAccountID)
+            .Flush();
 
         return 1;
     } else if (strNodeName->Compare("basketItem")) {
@@ -273,7 +276,7 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_dequeItems.push_back(pItem);
 
-        otInfo << "Loaded basket item.\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)("Loaded basket item. ").Flush();
 
         return 1;
     }

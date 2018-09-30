@@ -110,8 +110,8 @@ bool RequestSocket::wait(const Lock& lock) const
         const auto events = zmq_poll(poll, 1, POLL_MILLISECONDS);
 
         if (0 == events) {
-            otInfo << OT_METHOD << __FUNCTION__ << ": No messages."
-                   << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": No messages.").Flush();
+
             const auto now = std::chrono::system_clock::now();
 
             if ((now - start) > std::chrono::milliseconds(receive_timeout_)) {

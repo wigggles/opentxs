@@ -794,13 +794,16 @@ bool OT_API::LoadWallet() const
         "OT_API::GetWalletFilename failed, wallet filename isn't set!");
 
     // Atempt Load
-    otInfo << "m_pWallet->LoadWallet() with: " << strWalletFilename << "\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)("m_pWallet->LoadWallet() with: ")(
+        strWalletFilename)
+        .Flush();
     bool bSuccess = m_pWallet->LoadWallet(strWalletFilename->Get());
 
     if (bSuccess)
-        otInfo << __FUNCTION__
-               << ": Success invoking m_pWallet->LoadWallet() with filename: "
-               << strWalletFilename << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Success invoking m_pWallet->LoadWallet() with filename: ")(
+            strWalletFilename)
+            .Flush();
     else
         otErr << OT_METHOD << __FUNCTION__
               << ": Failed invoking m_pWallet->LoadWallet() with filename: "
@@ -4370,7 +4373,7 @@ Purse* OT_API::LoadPurse(
         } else
             otErr << OT_METHOD << __FUNCTION__ << ": Failed verifying purse.\n";
     } else
-        otInfo << __FUNCTION__ << ": Failed loading purse.\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Failed loading purse. ").Flush();
 
     return nullptr;
 }

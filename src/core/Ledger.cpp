@@ -579,11 +579,12 @@ bool Ledger::LoadGeneric(ledgerType theType, const String& pString)
               << szFilename << "\n";
         return false;
     } else {
-        otInfo << "Successfully loaded " << pszType << " "
-               << ((pString.Exists()) ? "from string" : "from file")
-               << " in OTLedger::Load" << pszType << ": " << szFolder1name
-               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
-               << szFilename << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)("Successfully loaded ")(pszType)(
+            " ")((pString.Exists()) ? "from string" : "from file")(
+            " in OTLedger::Load")(pszType)(": ")(szFolder1name)(
+            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
+            szFilename)
+            .Flush();
     }
 
     return bSuccess;
@@ -682,9 +683,10 @@ bool Ledger::SaveGeneric(ledgerType theType)
               << szFolder2name << Log::PathSeparator() << szFilename << "\n";
         return false;
     } else
-        otInfo << "Successfully saved " << pszType << ": " << szFolder1name
-               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
-               << szFilename << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)("Successfully saved ")(pszType)(
+            ": ")(szFolder1name)(Log::PathSeparator())(szFolder2name)(
+            Log::PathSeparator())(szFilename)
+            .Flush();
 
     return bSaved;
 }
@@ -1558,15 +1560,17 @@ std::unique_ptr<Item> Ledger::GenerateBalanceStatement(
     // inbox, therefore added to the balance item. (So the balance item contains
     // a complete report on the receipts in this inbox.)
 
-    otInfo << "About to loop through the inbox items and produce a report for "
-              "each one...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        "About to loop through the inbox items and produce a report for ")(
+        "each one... ")
+        .Flush();
 
     for (auto& it : m_mapTransactions) {
         auto pTransaction = it.second;
 
         OT_ASSERT(false != bool(pTransaction));
 
-        otInfo << "Producing a report...\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)("Producing a report... ").Flush();
         // This function adds a receipt sub-item to pBalanceItem, where
         // appropriate for INBOX items.
         pTransaction->ProduceInboxReportItem(*pBalanceItem);

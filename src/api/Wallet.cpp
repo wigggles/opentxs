@@ -126,8 +126,9 @@ Wallet::AccountLock& Wallet::account(
     auto& pAccount = std::get<1>(row);
 
     if (pAccount) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Account " << account.str()
-               << " already exists in map." << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Account ")(account)(
+            " already exists in map.")
+            .Flush();
 
         return row;
     }
@@ -145,8 +146,9 @@ Wallet::AccountLock& Wallet::account(
         api_.Storage().Load(account.str(), serialized, alias, true);
 
     if (loaded) {
-        otInfo << OT_METHOD << __FUNCTION__ << ": Account " << account.str()
-               << " loaded from storage." << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Account ")(account)(
+            " loaded from storage.")
+            .Flush();
         pAccount.reset(account_factory(account, alias, serialized));
 
         OT_ASSERT(pAccount);
