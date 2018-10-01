@@ -101,6 +101,8 @@ public:
 
     std::unique_ptr<OTPayment> Payment() const override;
     std::unique_ptr<OTPayment> Payment(const String& strPayment) const override;
+    std::unique_ptr<OTPayment> Payment(
+        const opentxs::Contract& contract) const override;
 
 #if OT_CRYPTO_WITH_BIP39
     OTPaymentCode PaymentCode(const std::string& base58) const override;
@@ -146,7 +148,8 @@ public:
         const Identifier& NYM_ID) const override;  // NymID optional
     // OTPayment needs to be able to instantiate OTPurse without knowing the
     // server ID in advance.
-    std::unique_ptr<opentxs::Purse> Purse(const String& strInput) const override;
+    std::unique_ptr<opentxs::Purse> Purse(
+        const String& strInput) const override;
     std::unique_ptr<opentxs::Purse> Purse(
         const String& strInput,
         const Identifier& NOTARY_ID) const override;
@@ -175,7 +178,8 @@ public:
         const Identifier& NOTARY_ID) const override;
 
 #if OT_CASH
-    std::unique_ptr<opentxs::Token> Token(const String& strInput) const override;
+    std::unique_ptr<opentxs::Token> Token(
+        const String& strInput) const override;
     std::unique_ptr<opentxs::Token> Token(
         const String& strInput,
         const opentxs::Purse& thePurse) const override;

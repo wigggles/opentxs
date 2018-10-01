@@ -489,7 +489,7 @@ bool Workflow::ClearCheque(
         cheque->GetRecipientNymID().str(),
         cheque->SourceAccountID().str(),
         proto::ACCOUNTEVENT_OUTGOINGCHEQUE,
-        cheque->GetTransactionNum(),
+        workflow->id(),
         -1 * cheque->GetAmount(),
         0,
         time,
@@ -621,7 +621,7 @@ bool Workflow::DepositCheque(
             cheque.GetSenderNymID().str(),
             accountID.str(),
             proto::ACCOUNTEVENT_INCOMINGCHEQUE,
-            cheque.GetTransactionNum(),
+            workflow->id(),
             cheque.GetAmount(),
             0,
             std::chrono::system_clock::from_time_t(reply->m_lTime),
@@ -857,7 +857,7 @@ OTIdentifier Workflow::ImportCheque(
             cheque.GetSenderNymID().str(),
             "",
             proto::ACCOUNTEVENT_INCOMINGCHEQUE,
-            cheque.GetTransactionNum(),
+            workflowID->str(),
             0,
             cheque.GetAmount(),
             time,
@@ -978,7 +978,7 @@ OTIdentifier Workflow::ReceiveCheque(
             cheque.GetSenderNymID().str(),
             "",
             proto::ACCOUNTEVENT_INCOMINGCHEQUE,
-            cheque.GetTransactionNum(),
+            workflowID->str(),
             0,
             cheque.GetAmount(),
             time,
@@ -1100,7 +1100,7 @@ void Workflow::update_rpc(
     const std::string& remoteNymID,
     const std::string& accountID,
     const proto::AccountEventType type,
-    const TransactionNumber number,
+    const std::string& workflowID,
     const Amount amount,
     const Amount pending,
     const std::chrono::time_point<std::chrono::system_clock> time,
@@ -1120,7 +1120,7 @@ void Workflow::update_rpc(
             contact_.NymToContact(Identifier::Factory(remoteNymID))->str());
     }
 
-    event.set_number(number);
+    event.set_workflow(workflowID);
     event.set_amount(amount);
     event.set_pendingamount(pending);
     event.set_timestamp(std::chrono::system_clock::to_time_t(time));
@@ -1191,7 +1191,7 @@ OTIdentifier Workflow::WriteCheque(const opentxs::Cheque& cheque) const
             cheque.GetRecipientNymID().str(),
             cheque.SourceAccountID().str(),
             proto::ACCOUNTEVENT_OUTGOINGCHEQUE,
-            cheque.GetTransactionNum(),
+            workflowID->str(),
             0,
             -1 * cheque.GetAmount(),
             time,

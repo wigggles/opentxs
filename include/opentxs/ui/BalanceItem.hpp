@@ -44,7 +44,7 @@ public:
     EXPORT virtual std::vector<std::string> Contacts() const = 0;
     EXPORT virtual std::string DisplayAmount() const = 0;
     EXPORT virtual std::string Memo() const = 0;
-    EXPORT virtual TransactionNumber Number() const = 0;
+    EXPORT virtual std::string Workflow() const = 0;
     EXPORT virtual std::string Text() const = 0;
     EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
     EXPORT virtual StorageBox Type() const = 0;
