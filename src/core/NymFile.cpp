@@ -524,7 +524,8 @@ bool NymFile::load_signed_nymfile(const T& lock)
         return false;
     }
 
-    otInfo << "Loaded and verified signed nymfile. Reading from string...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)
+        (": Loaded and verified signed nymfile. Reading from string... ").Flush();
 
     if (1 > theNymFile->GetFilePayload().GetLength()) {
         const auto lLength = theNymFile->GetFilePayload().GetLength();
@@ -764,7 +765,8 @@ bool NymFile::save_signed_nymfile(const T& lock)
         api_.Factory().SignedFile(OTFolders::Nym().Get(), strNymID);
     theNymFile->GetFilename(m_strNymFile);
 
-    otInfo << "Saving nym to: " << m_strNymFile << "\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)
+        (": Saving nym to: ") (m_strNymFile).Flush();
 
     // First we save this nym to a string...
     // Specifically, the file payload string on the OTSignedFile object.

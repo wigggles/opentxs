@@ -25,6 +25,8 @@
 #include <ostream>
 #include <string>
 
+#define OT_METHOD "opentxs::Cheque"
+
 using namespace irr;
 using namespace io;
 
@@ -187,26 +189,23 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             m_REMITTER_NYM_ID->Release();
             m_REMITTER_ACCT_ID->Release();
         }
+    {
+        LogVerbose(OT_METHOD)(__FUNCTION__)
+               (": Cheque Amount: ") (m_lAmount)
+               (". Transaction Number: ") (m_lTransactionNum)
+               (" Valid From: ") (str_valid_from)
+               (" Valid To: ") (str_valid_to)
+               (" InstrumentDefinitionID: ") (strInstrumentDefinitionID)
+               (" NotaryID: ") (strNotaryID)
+               (" senderAcctID: ") (strSenderAcctID)
+               (" senderNymID: ") (strSenderNymID)
+               (" Has Recipient? ") (m_bHasRecipient ? "Yes" : "No")
+               (". If yes, NymID of Recipient: ") (strRecipientNymID)
+               (" Has Remitter? ") (m_bHasRemitter ? "Yes" : "No")
+               (". If yes, NymID/Acct of Remitter: ") (strRemitterNymID)
+               (" / ") (strRemitterAcctID).Flush();
 
-        otInfo << "\n\nCheque Amount: " << m_lAmount
-               << ".  Transaction Number: " << m_lTransactionNum
-               << "\n Valid From: " << str_valid_from
-               << "\n Valid To: " << str_valid_to
-               << "\n InstrumentDefinitionID: " << strInstrumentDefinitionID
-               << "\n NotaryID: " << strNotaryID
-               << "\n"
-                  " senderAcctID: "
-               << strSenderAcctID << "\n senderNymID: " << strSenderNymID
-               << "\n "
-                  " Has Recipient? "
-               << (m_bHasRecipient ? "Yes" : "No")
-               << ". If yes, NymID of Recipient: " << strRecipientNymID
-               << "\n"
-                  " Has Remitter? "
-               << (m_bHasRemitter ? "Yes" : "No")
-               << ". If yes, NymID/Acct of Remitter: " << strRemitterNymID
-               << " / " << strRemitterAcctID << "\n";
-
+        }
         nReturnVal = 1;
     } else if (!strcmp("memo", xml->getNodeName())) {
         if (!Contract::LoadEncodedTextField(xml, m_strMemo)) {

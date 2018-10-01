@@ -436,7 +436,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // user's version is saved
                 // as a receipt in the first place -- so we have a record of the
                 // user's authorization.)
-                otInfo << "Successfully loaded cron item and added to list.\n";
+                LogVerbose(OT_METHOD)(__FUNCTION__)
+                (": Successfully loaded cron item and added to list. ").Flush();
             } else {
                 otErr << "OTCron::ProcessXMLNode: Though loaded / verified "
                          "successfully, "
@@ -615,9 +616,9 @@ void OTCron::ProcessCronItems()
         }
         auto pItem = it->second;
         OT_ASSERT(false != bool(pItem));
-        otInfo << "OTCron::" << __FUNCTION__
-               << ": Processing item number: " << pItem->GetTransactionNum()
-               << " \n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)
+               (": Processing item number: ") (pItem->GetTransactionNum())
+               .Flush();
 
         if (pItem->ProcessCron()) {
             it++;

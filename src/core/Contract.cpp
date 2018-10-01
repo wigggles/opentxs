@@ -194,8 +194,8 @@ bool Contract::SaveToContractFolder()
     //    m_strFoldername    = strFoldername;
     //    m_strFilename    = strFilename;
 
-    otInfo << "Contract::SaveToContractFolder: Saving asset contract to "
-              "disk...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Saving asset contract to ")
+              ("disk... ").Flush();
 
     return SaveContract(strFoldername->Get(), strFilename->Get());
 }

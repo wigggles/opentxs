@@ -434,8 +434,8 @@ bool LegacySymmetric::ChangePassphrase(
     OT_ASSERT(m_bIsGenerated);
 
     // Todo: validate the passphrases exist or whatever?
-    otInfo << "  Begin: " << __FUNCTION__
-           << ": Changing password on symmetric key...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__) (": Begin: ")
+           (": Changing password on symmetric key... ").Flush();
     OTPassword theActualKey;
 
     if (!get_raw_key_from_passphrase(lock, oldPassphrase, theActualKey)) {
@@ -509,9 +509,9 @@ bool LegacySymmetric::ChangePassphrase(
         encrypted_key_);  // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
 
-    otInfo << "  End: " << __FUNCTION__
-           << ": (Changing passphrase on symmetric key...) "
-           << (m_bIsGenerated ? "SUCCESS" : "FAILED") << "\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__) (": End: ")
+           (": (Changing passphrase on symmetric key...) ")
+           (m_bIsGenerated ? "SUCCESS" : "FAILED").Flush();
 
     return m_bIsGenerated;
 }
@@ -536,8 +536,8 @@ bool LegacySymmetric::GenerateKey(
     OT_ASSERT(!m_bIsGenerated);
 
     Lock lock(lock_);
-    otInfo << "  Begin: " << __FUNCTION__
-           << ": GENERATING keys and passwords...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__) (": Begin: ")
+           (": GENERATING keys and passwords... ").Flush();
 
     if (!iv_->Randomize(crypto_.Config().SymmetricIvSize())) {
         otErr << __FUNCTION__
@@ -610,9 +610,9 @@ bool LegacySymmetric::GenerateKey(
         encrypted_key_);  // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
 
-    otInfo << "  End: " << __FUNCTION__
-           << ": (GENERATING keys and passwords...) "
-           << (m_bIsGenerated ? "SUCCESS" : "FAILED") << "\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__) (": End: ")
+           (": (GENERATING keys and passwords...) ")
+           (m_bIsGenerated ? "SUCCESS" : "FAILED").Flush();
 
     // return the pDerivedKey, if wanted.
     if (nullptr != ppDerivedKey) { *ppDerivedKey = pDerivedKey.release(); }
@@ -835,9 +835,8 @@ bool LegacySymmetric::get_raw_key_from_derived_key(
     // theDerivedKey is a symmetric key, in clear form. Used here
     // for decrypting encrypted_key_ into theRawKeyOutput.
     //
-    otInfo
-        << OT_METHOD << __FUNCTION__
-        << ": *Begin) Attempting to recover actual key using derived key...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)
+        (": Begin) Attempting to recover actual key using derived key... ").Flush();
 
     CryptoSymmetricDecryptOutput plaintext(theRawKeyOutput);
     const bool bDecryptedKey = crypto_.AES().Decrypt(
@@ -854,8 +853,8 @@ bool LegacySymmetric::get_raw_key_from_derived_key(
                      // can pass OTPassword& OR Data& here (either
                      // will work.)
 
-    otInfo << OT_METHOD << __FUNCTION__
-           << ": (End) attempt to recover actual key using derived key...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)
+           (": (End) attempt to recover actual key using derived key... ").Flush();
     return bDecryptedKey;
 }
 

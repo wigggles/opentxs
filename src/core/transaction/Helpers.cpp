@@ -30,6 +30,8 @@
 #include <ostream>
 #include <string>
 
+#define OT_METHOD "opentxs::Helpers"
+
 namespace
 {
 
@@ -469,10 +471,10 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
 
         return nullptr;
     } else
-        otInfo << __FUNCTION__ << ": Successfully loaded Box Receipt in:\n"
-               << strFolder1name << Log::PathSeparator() << strFolder2name
-               << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
-               << strFilename << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__) (": Successfully loaded Box Receipt in: ")
+               (strFolder1name) (Log::PathSeparator()) (strFolder2name)
+               (Log::PathSeparator()) (strFolder3name) (Log::PathSeparator())
+               (strFilename).Flush();
 
     // Todo: security analysis. By this point we've verified the hash of the
     // transaction against the stored

@@ -2715,9 +2715,9 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     }
 
                     if (AddParty(*pParty))
-                        otInfo << szFunc
-                               << ": Loaded Party: " << pParty->GetPartyName()
-                               << "\n";
+                        LogVerbose(OT_METHOD)(__FUNCTION__)
+                               (": Loaded Party: ") (pParty->GetPartyName())
+                               .Flush();
                     else {
                         otErr << szFunc << ": Failed loading Party: "
                               << pParty->GetPartyName() << "\n";
@@ -3269,9 +3269,9 @@ std::int32_t OTScriptable::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     }
 
                     if (AddBylaw(*pBylaw)) {
-                        otInfo << szFunc
-                               << ": Loaded Bylaw: " << pBylaw->GetName()
-                               << "\n";
+                        LogVerbose(OT_METHOD)(__FUNCTION__)
+                               (": Loaded Bylaw: ") (pBylaw->GetName())
+                               .Flush();
                     } else {
                         otErr << szFunc
                               << ": Failed loading Bylaw: " << pBylaw->GetName()

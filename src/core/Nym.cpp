@@ -994,7 +994,7 @@ bool Nym::LoadPublicKey()
     if (load_credentials(lock) && (m_mapCredentialSets.size() > 0)) {
         return true;
     }
-    otInfo << __FUNCTION__ << ": Failure.\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Failure. ").Flush();
     return false;
 }
 
