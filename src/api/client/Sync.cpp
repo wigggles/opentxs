@@ -1850,6 +1850,33 @@ bool Sync::register_account(
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == unitID.empty())
 
+    auto contract = client_.Wallet().UnitDefinition(unitID);
+
+    if (false == bool(contract)) {
+        auto action =
+            client_.ServerAction().DownloadContract(nymID, serverID, unitID);
+        action->Run();
+
+        if (SendResult::VALID_REPLY == action->LastSendResult()) {
+            contract = client_.Wallet().UnitDefinition(unitID);
+
+            if (false == bool(contract)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Notary ")(serverID)(
+                    " does not have unit definition ")(unitID)
+                    .Flush();
+
+                return finish_task(taskID, false);
+            }
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Communication error while downloading unit definition ")(
+                unitID)(" on server ")(serverID)
+                .Flush();
+
+            return finish_task(taskID, false);
+        }
+    }
+
     auto action =
         client_.ServerAction().RegisterAccount(nymID, serverID, unitID);
     action->Run();
