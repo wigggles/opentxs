@@ -93,11 +93,7 @@ PairSocket::PairSocket(
     : PairSocket(
           context,
           callback,
-          context.BuildEndpoint(
-              PAIR_ENDPOINT_PATH,
-              PAIR_ENDPOINT_INSTANCE,
-              PAIR_ENDPOINT_VERSION,
-              Identifier::Random()->str()),
+          Socket::random_inproc_endpoint(),
           true,
           startThread)
 {

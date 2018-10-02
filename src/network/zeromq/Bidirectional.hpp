@@ -34,7 +34,7 @@ protected:
     virtual ~Bidirectional();
 
 private:
-    std::string endpoint_;
+    const std::string endpoint_;
     void* pull_socket_{nullptr};
     mutable int linger_{0};
     mutable int send_timeout_{-1};
@@ -42,10 +42,14 @@ private:
     mutable std::mutex send_lock_;
 
     bool apply_timeouts(void* socket, std::mutex& socket_mutex) const;
-    bool bind(void* socket, std::mutex& socket_mutex, std::string& endpoint)
-        const;
-    bool connect(void* socket, std::mutex& socket_mutex, std::string& endpoint)
-        const;
+    bool bind(
+        void* socket,
+        std::mutex& socket_mutex,
+        const std::string& endpoint) const;
+    bool connect(
+        void* socket,
+        std::mutex& socket_mutex,
+        const std::string& endpoint) const;
     bool process_pull_socket();
     bool process_receiver_socket();
     bool send(const Lock& lock, zeromq::Message& message);

@@ -15,6 +15,10 @@
 
 #include <zmq.h>
 
+#include <random>
+
+#define INPROC_PREFIX "inproc://opentxs/"
+
 #define OT_METHOD "opentxs::network::zeromq::implementation::Socket::"
 
 namespace opentxs::network::zeromq::implementation
@@ -171,6 +175,16 @@ bool Socket::send_message(const Lock& lock, void* socket, Message& message)
 bool Socket::send_message(const Lock& lock, Message& message) const
 {
     return send_message(lock, socket_, message);
+}
+
+std::string Socket::random_inproc_endpoint()
+{
+    std::random_device seed;
+    std::mt19937 generator(seed());
+    std::uniform_int_distribution<std::uint64_t> rand;
+
+    return std::string(INPROC_PREFIX) + std::to_string(rand(generator)) +
+           std::to_string(rand(generator));
 }
 
 bool Socket::receive_message(const Lock& lock, Message& message) const
