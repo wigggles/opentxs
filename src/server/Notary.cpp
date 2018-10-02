@@ -1775,7 +1775,8 @@ void Notary::NotarizeWithdrawal(
                                 __FUNCTION__);
                             break;
                         } else {
-                            Armored theArmorReturnVal(theStringReturnVal);
+                            auto theArmorReturnVal =
+                                Armored::Factory(theStringReturnVal);
 
                             pToken->ReleaseSignatures();  // this releases the
                                                           // normal signatures,

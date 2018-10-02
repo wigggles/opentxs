@@ -153,11 +153,11 @@ bool LegacySymmetric::Decrypt(
         return false;
     }
 
-    Armored ascArmor;
+    auto ascArmor = Armored::Factory();
     const bool bLoadedArmor = Armored::LoadFromString(
         ascArmor, strCiphertext);  // str_bookend="-----BEGIN" by default
 
-    if (!bLoadedArmor || !ascArmor.Exists()) {
+    if (!bLoadedArmor || !ascArmor->Exists()) {
         otErr << __FUNCTION__ << ": Failure loading ciphertext envelope:\n\n"
               << strCiphertext << "\n\n";
         return false;
@@ -274,7 +274,7 @@ bool LegacySymmetric::Encrypt(
     } else
         pPassUserInput.reset(new OTPassword(*pAlreadyHavePW));
 
-    Armored ascOutput;
+    auto ascOutput = Armored::Factory();
     bool bSuccess = false;
 
     if (nullptr != pPassUserInput)  // Success retrieving the passphrase from
@@ -290,12 +290,12 @@ bool LegacySymmetric::Encrypt(
             bSuccess = true;
 
             if (bBookends) {
-                return ascOutput.WriteArmoredString(
+                return ascOutput->WriteArmoredString(
                     strOutput,
                     "SYMMETRIC MSG",  // todo hardcoding.
                     false);           // bEscaped=false
             } else {
-                strOutput.Set(ascOutput.Get());
+                strOutput.Set(ascOutput->Get());
             }
         } else {
             otWarn << __FUNCTION__ << ": Failed trying to encrypt. (Sorry.)\n";
@@ -434,8 +434,9 @@ bool LegacySymmetric::ChangePassphrase(
     OT_ASSERT(m_bIsGenerated);
 
     // Todo: validate the passphrases exist or whatever?
-    LogVerbose(OT_METHOD)(__FUNCTION__) (": Begin: ")
-           (": Changing password on symmetric key... ").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Begin: ")(
+        ": Changing password on symmetric key... ")
+        .Flush();
     OTPassword theActualKey;
 
     if (!get_raw_key_from_passphrase(lock, oldPassphrase, theActualKey)) {
@@ -509,9 +510,10 @@ bool LegacySymmetric::ChangePassphrase(
         encrypted_key_);  // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
 
-    LogVerbose(OT_METHOD)(__FUNCTION__) (": End: ")
-           (": (Changing passphrase on symmetric key...) ")
-           (m_bIsGenerated ? "SUCCESS" : "FAILED").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": End: ")(
+        ": (Changing passphrase on symmetric key...) ")(
+        m_bIsGenerated ? "SUCCESS" : "FAILED")
+        .Flush();
 
     return m_bIsGenerated;
 }
@@ -536,8 +538,9 @@ bool LegacySymmetric::GenerateKey(
     OT_ASSERT(!m_bIsGenerated);
 
     Lock lock(lock_);
-    LogVerbose(OT_METHOD)(__FUNCTION__) (": Begin: ")
-           (": GENERATING keys and passwords... ").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Begin: ")(
+        ": GENERATING keys and passwords... ")
+        .Flush();
 
     if (!iv_->Randomize(crypto_.Config().SymmetricIvSize())) {
         otErr << __FUNCTION__
@@ -610,9 +613,10 @@ bool LegacySymmetric::GenerateKey(
         encrypted_key_);  // OUTPUT. (Ciphertext.)
     m_bIsGenerated = bEncryptedKey;
 
-    LogVerbose(OT_METHOD)(__FUNCTION__) (": End: ")
-           (": (GENERATING keys and passwords...) ")
-           (m_bIsGenerated ? "SUCCESS" : "FAILED").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": End: ")(
+        ": (GENERATING keys and passwords...) ")(
+        m_bIsGenerated ? "SUCCESS" : "FAILED")
+        .Flush();
 
     // return the pDerivedKey, if wanted.
     if (nullptr != ppDerivedKey) { *ppDerivedKey = pDerivedKey.release(); }
@@ -835,8 +839,9 @@ bool LegacySymmetric::get_raw_key_from_derived_key(
     // theDerivedKey is a symmetric key, in clear form. Used here
     // for decrypting encrypted_key_ into theRawKeyOutput.
     //
-    LogVerbose(OT_METHOD)(__FUNCTION__)
-        (": Begin) Attempting to recover actual key using derived key... ").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Begin) Attempting to recover actual key using derived key... ")
+        .Flush();
 
     CryptoSymmetricDecryptOutput plaintext(theRawKeyOutput);
     const bool bDecryptedKey = crypto_.AES().Decrypt(
@@ -853,8 +858,9 @@ bool LegacySymmetric::get_raw_key_from_derived_key(
                      // can pass OTPassword& OR Data& here (either
                      // will work.)
 
-    LogVerbose(OT_METHOD)(__FUNCTION__)
-           (": (End) attempt to recover actual key using derived key... ").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": (End) attempt to recover actual key using derived key... ")
+        .Flush();
     return bDecryptedKey;
 }
 
@@ -1129,9 +1135,9 @@ bool LegacySymmetric::SerializeFrom(const Armored& ascInput)
 bool LegacySymmetric::SerializeFrom(const String& strInput, bool bEscaped)
 {
     Lock lock(lock_);
-    Armored ascInput;
+    auto ascInput = Armored::Factory();
 
-    if (strInput.Exists() && ascInput.LoadFromString(
+    if (strInput.Exists() && ascInput->LoadFromString(
                                  const_cast<String&>(strInput),
                                  bEscaped,
                                  "-----BEGIN OT ARMORED SYMMETRIC KEY")) {
@@ -1236,11 +1242,11 @@ bool LegacySymmetric::SerializeTo(Armored& ascOutput) const
 bool LegacySymmetric::SerializeTo(String& strOutput, bool bEscaped) const
 {
     Lock lock(lock_);
-    Armored ascOutput;
+    auto ascOutput = Armored::Factory();
 
     if (serialize_to(lock, ascOutput))
 
-        return ascOutput.WriteArmoredString(
+        return ascOutput->WriteArmoredString(
             strOutput, "SYMMETRIC KEY", bEscaped);
 
     return false;

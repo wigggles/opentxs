@@ -42,6 +42,27 @@ const char* OT_END_ARMORED_escaped = "- -----END OT ARMORED";
 const char* OT_BEGIN_SIGNED = "-----BEGIN SIGNED";
 const char* OT_BEGIN_SIGNED_escaped = "- -----BEGIN SIGNED";
 
+OTArmored Armored::Factory() { return OTArmored(new Armored()); }
+
+OTArmored Armored::Factory(const opentxs::String& value)
+{
+    return OTArmored(new Armored(value));
+}
+
+OTArmored Armored::Factory(const Data& value)
+{
+    return OTArmored(new Armored(value));
+}
+
+OTArmored Armored::Factory(const OTEnvelope& value)
+{
+    return OTArmored(new Armored(value));
+}
+OTArmored Armored::Factory(const char* value)
+{
+    return OTArmored(new Armored(value));
+}
+
 bool Armored::LoadFromString(
     Armored& ascArmor,
     const String& strInput,

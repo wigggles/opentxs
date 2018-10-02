@@ -1170,9 +1170,9 @@ std::string OTAPI_Exec::GetServer_Contract(
     if (!pServer) { return {}; }
 
     auto serialized = pServer->Serialize();
-    Armored armored(serialized);
+    auto armored = Armored::Factory(serialized);
     auto strOutput = String::Factory();
-    armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
+    armored->WriteArmoredString(strOutput, "SERVER CONTRACT");
 
     return strOutput->Get();
 }
@@ -2328,8 +2328,8 @@ std::string OTAPI_Exec::GetNym_OutpaymentsContentsByIndex(
         // There isn't any encrypted envelope this time, since it's my
         // outPayments box.
         //
-        if (pMessage->m_ascPayload.Exists() &&
-            pMessage->m_ascPayload.GetString(strPayment) &&
+        if (pMessage->m_ascPayload->Exists() &&
+            pMessage->m_ascPayload->GetString(strPayment) &&
             strPayment->Exists()) {
             auto thePayment{api_.Factory().Payment(strPayment)};
 
@@ -6846,9 +6846,9 @@ std::string OTAPI_Exec::LoadServerContract(
               << NOTARY_ID << "\n";
     } else  // success
     {
-        Armored armored(pContract->Serialize());
+        auto armored = Armored::Factory(pContract->Serialize());
         auto strOutput = String::Factory();
-        armored.WriteArmoredString(strOutput, "SERVER CONTRACT");
+        armored->WriteArmoredString(strOutput, "SERVER CONTRACT");
         return strOutput->Get();
     }
     return {};
@@ -11075,7 +11075,7 @@ std::string OTAPI_Exec::Message_GetPayload(const std::string& THE_MESSAGE) const
         !theMessage->LoadContractFromString(strMessage))
         return {};
 
-    std::string pBuf = theMessage->m_ascPayload.Get();
+    std::string pBuf = theMessage->m_ascPayload->Get();
     return pBuf;
 }
 

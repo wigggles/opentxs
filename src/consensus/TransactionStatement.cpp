@@ -137,7 +137,8 @@ TransactionStatement::operator OTString() const
         NumList issuedList(issued_);
         auto issued = String::Factory();
         issuedList.Output(issued);
-        TagPtr issuedTag(new Tag("issuedNums", Armored(issued).Get()));
+        TagPtr issuedTag(
+            new Tag("issuedNums", Armored::Factory(issued)->Get()));
         issuedTag->add_attribute("notaryID", notary_);
         serialized.add_tag(issuedTag);
     }
@@ -147,7 +148,7 @@ TransactionStatement::operator OTString() const
         auto available = String::Factory();
         availableList.Output(available);
         TagPtr availableTag(
-            new Tag("transactionNums", Armored(available).Get()));
+            new Tag("transactionNums", Armored::Factory(available)->Get()));
         availableTag->add_attribute("notaryID", notary_);
         serialized.add_tag(availableTag);
     }

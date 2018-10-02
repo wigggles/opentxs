@@ -182,9 +182,9 @@ bool RSA::SetPublicKey(const String& strKey)
 
     // This reads the string into the Armor and removes the bookends. (-----
     // BEGIN ...)
-    Armored theArmor;
+    auto theArmor = Armored::Factory();
 
-    if (theArmor.LoadFromString(const_cast<String&>(strKey), false)) {
+    if (theArmor->LoadFromString(const_cast<String&>(strKey), false)) {
         m_p_ascKey->Set(theArmor);
         return true;
     } else

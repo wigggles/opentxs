@@ -397,7 +397,7 @@ void OTMessageOutbuffer::Clear(
             exchangeBasket
         */
 
-        if (pThisMsg->m_ascPayload.Exists() &&
+        if (pThisMsg->m_ascPayload->Exists() &&
             (pThisMsg->m_strCommand->Compare("processNymbox") ||
              pThisMsg->m_strCommand->Compare("processInbox") ||
              pThisMsg->m_strCommand->Compare("notarizeTransaction") ||

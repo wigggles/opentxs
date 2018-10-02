@@ -659,10 +659,10 @@ bool Ledger::SaveGeneric(ledgerType theType)
     }
 
     auto strFinal = String::Factory();
-    Armored ascTemp(strRawFile);
+    auto ascTemp = Armored::Factory(strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "OTLedger::SaveGeneric: Error saving " << pszType
               << " (failed writing armored string):\n"
               << szFolder1name << Log::PathSeparator() << szFolder2name
@@ -1746,11 +1746,11 @@ void Ledger::UpdateContents()  // Before transmission or serialization, this is
             auto strTransaction = String::Factory();
 
             pTransaction->SaveContractRaw(strTransaction);
-            Armored ascTransaction;
-            ascTransaction.SetString(strTransaction, true);  // linebreaks =
-                                                             // true
+            auto ascTransaction = Armored::Factory();
+            ascTransaction->SetString(strTransaction, true);  // linebreaks =
+                                                              // true
 
-            tag.add_tag("transaction", ascTransaction.Get());
+            tag.add_tag("transaction", ascTransaction->Get());
         } else  // true == bSavingAbbreviated
         {
             // ALL OTHER ledger types are
@@ -2176,7 +2176,7 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     //
     else if (strNodeName->Compare("transaction")) {
         auto strTransaction = String::Factory();
-        Armored ascTransaction;
+        auto ascTransaction = Armored::Factory();
 
         // go to the next node and read the text.
         //        xml->read(); // <==================
@@ -2193,14 +2193,14 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             const auto strLoopNodeData = String::Factory(xml->getNodeData());
 
             if (strLoopNodeData->Exists())
-                ascTransaction.Set(strLoopNodeData);  // Put the ascii-armored
-                                                      // node data into the
-                                                      // ascii-armor object
+                ascTransaction->Set(strLoopNodeData);  // Put the ascii-armored
+                                                       // node data into the
+                                                       // ascii-armor object
 
             // Decode that into strTransaction, so we can load the transaction
             // object from that string.
-            if (!ascTransaction.Exists() ||
-                !ascTransaction.GetString(strTransaction)) {
+            if (!ascTransaction->Exists() ||
+                !ascTransaction->GetString(strTransaction)) {
                 otErr << __FUNCTION__
                       << ": ERROR: Missing expected transaction contents. "
                          "Ledger contents:\n\n"

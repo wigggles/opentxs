@@ -912,7 +912,7 @@ bool OT_API::Wallet_ChangePassphrase() const
         return false;
     }
 
-    Armored ascBackup;
+    auto ascBackup = Armored::Factory();
     cachedKey.SerializeTo(ascBackup);  // Just in case!
 
     const bool bSuccess = cachedKey.ChangeUserPassphrase();
@@ -1772,12 +1772,12 @@ bool OT_API::Encode(
     String& strOutput,
     bool bLineBreaks) const
 {
-    Armored ascArmor;
-    bool bSuccess = ascArmor.SetString(strPlaintext, bLineBreaks);  // encodes.
+    auto ascArmor = Armored::Factory();
+    bool bSuccess = ascArmor->SetString(strPlaintext, bLineBreaks);  // encodes.
 
     if (bSuccess) {
         strOutput.Release();
-        bSuccess = ascArmor.WriteArmoredString(
+        bSuccess = ascArmor->WriteArmoredString(
             strOutput, "ENCODED TEXT"  // -----BEGIN OT ENCODED TEXT-----
         );                             // (bool bEscaped=false by default.)
     }
@@ -1802,17 +1802,17 @@ bool OT_API::Decode(
     String& strOutput,
     bool bLineBreaks) const
 {
-    Armored ascArmor;
+    auto ascArmor = Armored::Factory();
     const bool bLoadedArmor = Armored::LoadFromString(
         ascArmor, strEncoded);  // str_bookend="-----BEGIN" by default
-    if (!bLoadedArmor || !ascArmor.Exists()) {
+    if (!bLoadedArmor || !ascArmor->Exists()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure loading string into Armored object:\n\n"
               << strEncoded << "\n\n";
         return false;
     }
     strOutput.Release();
-    const bool bSuccess = ascArmor.GetString(strOutput, bLineBreaks);
+    const bool bSuccess = ascArmor->GetString(strOutput, bLineBreaks);
     return bSuccess;
 }
 
@@ -1845,10 +1845,10 @@ bool OT_API::Encrypt(
     bool bSuccess = theEnvelope.Seal(*pRecipientNym, strPlaintext);
 
     if (bSuccess) {
-        Armored ascCiphertext(theEnvelope);
+        auto ascCiphertext = Armored::Factory(theEnvelope);
         strOutput.Release();
 
-        bSuccess = ascCiphertext.WriteArmoredString(
+        bSuccess = ascCiphertext->WriteArmoredString(
             strOutput, "ENCRYPTED TEXT"  // -----BEGIN OT ENCRYPTED TEXT-----
         );                               // (bool bEscaped=false by default.)
     }
@@ -1889,10 +1889,10 @@ bool OT_API::Decrypt(
     if (false == bool(pRecipientNym)) { return false; }
 
     OTEnvelope theEnvelope;
-    Armored ascCiphertext;
+    auto ascCiphertext = Armored::Factory();
     const bool bLoadedArmor = Armored::LoadFromString(
         ascCiphertext, strCiphertext);  // str_bookend="-----BEGIN" by default
-    if (!bLoadedArmor || !ascCiphertext.Exists()) {
+    if (!bLoadedArmor || !ascCiphertext->Exists()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Failure loading string into Armored object:\n\n"
               << strCiphertext << "\n\n";
@@ -2891,7 +2891,7 @@ bool OT_API::SmartContract_ConfirmParty(
     pMessage->m_strCommand = String::Factory("outpaymentsMessage");
     pMessage->m_strNymID = strNymID;
     //  pMessage->m_strNotaryID        = strNotaryID;
-    pMessage->m_ascPayload.SetString(strInstrument);
+    pMessage->m_ascPayload->SetString(strInstrument);
 
     auto pNym = api_.Wallet().Nym(nymfile.It().ID());
     OT_ASSERT(nullptr != pNym)
@@ -4208,7 +4208,7 @@ OTPaymentPlan* OT_API::ProposePaymentPlan(
     pMessage->m_strNymID = strNymID;
     pMessage->m_strNymID2 = strNymID2;
     pMessage->m_strNotaryID = strNotaryID;
-    pMessage->m_ascPayload.SetString(strInstrument);
+    pMessage->m_ascPayload->SetString(strInstrument);
 
     pMessage->SignContract(*nym);
     pMessage->SaveContract();
@@ -4312,7 +4312,7 @@ bool OT_API::ConfirmPaymentPlan(
     pMessage->m_strNymID = strNymID;
     pMessage->m_strNymID2 = strNymID2;
     pMessage->m_strNotaryID = strNotaryID;
-    pMessage->m_ascPayload.SetString(strInstrument);
+    pMessage->m_ascPayload->SetString(strInstrument);
 
     pMessage->SignContract(*nym);
     pMessage->SaveContract();
@@ -6330,7 +6330,7 @@ bool OT_API::RecordPayment(
         }
 
         auto strInstrument = String::Factory();
-        if (!pMessage->m_ascPayload.GetString(strInstrument)) {
+        if (!pMessage->m_ascPayload->GetString(strInstrument)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to find payment instrument in outpayment "
                      "message at index "
@@ -7801,7 +7801,7 @@ CommandResult OT_API::issueBasket(
     reply.reset();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::issueBasket,
-        Armored(proto::ProtoAsData(basket)),
+        Armored::Factory(proto::ProtoAsData(basket)),
         Identifier::Factory(),
         requestNum);
     requestNum = newRequestNumber;
@@ -8239,7 +8239,7 @@ CommandResult OT_API::exchangeBasket(
     ledger->SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -8497,7 +8497,7 @@ CommandResult OT_API::notarizeWithdrawal(
     ledger->SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -8724,7 +8724,7 @@ CommandResult OT_API::notarizeDeposit(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9013,7 +9013,7 @@ CommandResult OT_API::payDividend(
     ledger->SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         DIVIDEND_FROM_accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9169,7 +9169,7 @@ CommandResult OT_API::withdrawVoucher(
     ledger->SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9524,7 +9524,7 @@ CommandResult OT_API::depositCheque(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9675,7 +9675,7 @@ CommandResult OT_API::depositPaymentPlan(
     ledger->SignContract(nym);
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -9708,11 +9708,11 @@ CommandResult OT_API::triggerClause(
     transactionNum = transactionNumber;
     status = SendResult::ERROR;
     reply.reset();
-    Armored payload{};
+    auto payload = Armored::Factory();
 
     // Optional string parameter. Available as "param_string" inside the
     // script.
-    if (pStrParam.Exists()) { payload.SetString(pStrParam); }
+    if (pStrParam.Exists()) { payload->SetString(pStrParam); }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::triggerClause, payload, Identifier::Factory(), requestNum);
@@ -10005,7 +10005,7 @@ CommandResult OT_API::activateSmartContract(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         accountID,
         requestNum);
     requestNum = newRequestNumber;
@@ -10142,7 +10142,7 @@ CommandResult OT_API::cancelCronItem(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         ASSET_ACCOUNT_ID,
         requestNum);
     requestNum = newRequestNumber;
@@ -10475,7 +10475,7 @@ CommandResult OT_API::issueMarketOffer(
     ledger->SaveContract();
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         ASSET_ACCOUNT_ID,
         requestNum);
     requestNum = newRequestNumber;
@@ -10772,7 +10772,7 @@ CommandResult OT_API::notarizeTransfer(
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
         MessageType::notarizeTransaction,
-        Armored(String::Factory(*ledger)),
+        Armored::Factory(String::Factory(*ledger)),
         ACCT_FROM,
         requestNum);
     requestNum = newRequestNumber;
@@ -10914,7 +10914,10 @@ CommandResult OT_API::processInbox(
     }
 
     auto [newRequestNumber, message] = context.InitializeServerCommand(
-        MessageType::processInbox, Armored(ACCT_LEDGER), accountID, requestNum);
+        MessageType::processInbox,
+        Armored::Factory(ACCT_LEDGER),
+        accountID,
+        requestNum);
     requestNum = newRequestNumber;
 
     if (false == bool(message)) { return output; }
@@ -10973,7 +10976,7 @@ CommandResult OT_API::registerInstrumentDefinition(
 
     OTIdentifier newID = contract->ID();
     newID->GetString(message->m_strInstrumentDefinitionID);
-    message->m_ascPayload.SetData(
+    message->m_ascPayload->SetData(
         proto::ProtoAsData<proto::UnitDefinition>(contract->PublicContract()));
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
@@ -11348,7 +11351,8 @@ CommandResult OT_API::registerContract(
                 return output;
             }
 
-            message->m_ascPayload = proto::ProtoAsData(contract->asPublicNym());
+            message->m_ascPayload->SetData(
+                proto::ProtoAsData(contract->asPublicNym()));
         } break;
         case (ContractType::SERVER): {
             const auto contract = api_.Wallet().Server(CONTRACT);
@@ -11361,8 +11365,8 @@ CommandResult OT_API::registerContract(
                 return output;
             }
 
-            message->m_ascPayload =
-                proto::ProtoAsData(contract->PublicContract());
+            message->m_ascPayload->SetData(
+                proto::ProtoAsData(contract->PublicContract()));
         } break;
         case (ContractType::UNIT): {
             const auto contract = api_.Wallet().UnitDefinition(CONTRACT);
@@ -11375,7 +11379,8 @@ CommandResult OT_API::registerContract(
                 return output;
             }
 
-            message->m_ascPayload = proto::ProtoAsData(contract->Contract());
+            message->m_ascPayload->SetData(
+                proto::ProtoAsData(contract->Contract()));
         } break;
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Invalid contract type."
@@ -11640,7 +11645,7 @@ CommandResult OT_API::sendNymInstrument(
     pMessageLocalCopy->m_strNymID = String::Factory(nymID);
     pMessageLocalCopy->m_strNymID2 = String::Factory(recipientNymID);
     pMessageLocalCopy->m_strNotaryID = String::Factory(context.Server());
-    pMessageLocalCopy->m_ascPayload.SetString(strInstrumentForLocalCopy);
+    pMessageLocalCopy->m_ascPayload->SetString(strInstrumentForLocalCopy);
 
     // We only actually SEND if sender and recipient are different
     // nyms. (If they're the same Nym, we instead only save a copy
@@ -12359,7 +12364,7 @@ CommandResult OT_API::registerNym(ServerContext& context, const bool resync)
         return output;
     }
 
-    message->m_ascPayload.SetData(proto::ProtoAsData(nym.asPublicNym()));
+    message->m_ascPayload->SetData(proto::ProtoAsData(nym.asPublicNym()));
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 

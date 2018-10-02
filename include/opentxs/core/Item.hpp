@@ -114,10 +114,10 @@ public:
     {
         return m_lNewOutboxTransNum;
     }                   // See above comment in protected section.
-    Armored m_ascNote;  // a text field for the user. Cron may also store
+    OTArmored m_ascNote;  // a text field for the user. Cron may also store
     // receipt data here. Also inbox reports go here for
     // balance agreement
-    Armored m_ascAttachment;  // the digital cash token is sent here,
+    OTArmored m_ascAttachment;  // the digital cash token is sent here,
                               // signed, and returned here. (or purse of
                               // tokens.)
     // As well as a cheque, or a voucher, or a server update on a market offer,

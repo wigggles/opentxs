@@ -1467,8 +1467,8 @@ void OTParty::Serialize(
     }
 
     if (!bCalculatingID && m_strMySignedCopy->Exists()) {
-        Armored ascTemp(m_strMySignedCopy);
-        pTag->add_tag("mySignedCopy", ascTemp.Get());
+        auto ascTemp = Armored::Factory(m_strMySignedCopy);
+        pTag->add_tag("mySignedCopy", ascTemp->Get());
     }
 
     parent.add_tag(pTag);

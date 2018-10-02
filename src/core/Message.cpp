@@ -241,6 +241,10 @@ Message::Message(const api::Core& core)
     , m_strAcctID(String::Factory())
     , m_strType(String::Factory())
     , m_strRequestNum(String::Factory())
+    , m_ascInReferenceTo(Armored::Factory())
+    , m_ascPayload(Armored::Factory())
+    , m_ascPayload2(Armored::Factory())
+    , m_ascPayload3(Armored::Factory())
     , m_lNewRequestNum(0)
     , m_lDepth(0)
     , m_lTransactionNum(0)
@@ -468,8 +472,10 @@ void Message::UpdateContents()
     if (m_AcknowledgedReplies.Count() > 0) {
         auto strAck = String::Factory();
         if (m_AcknowledgedReplies.Output(strAck) && strAck->Exists()) {
-            const Armored ascTemp(strAck);
-            if (ascTemp.Exists()) { tag.add_tag("ackReplies", ascTemp.Get()); }
+            const auto ascTemp = Armored::Factory(strAck);
+            if (ascTemp->Exists()) {
+                tag.add_tag("ackReplies", ascTemp->Get());
+            }
         }
     }
 
@@ -728,11 +734,11 @@ public:
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
         pTag->add_attribute("marketID", m.m_strNymID2->Get());
 
-        if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
+        if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+            pTag->add_tag("messagePayload", m.m_ascPayload->Get());
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo->GetLength() > 2)) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -760,7 +766,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            Armored ascTextExpected;
+            auto ascTextExpected = Armored::Factory();
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -772,7 +778,7 @@ public:
             }
 
             if (m.m_bSuccess)
-                m.m_ascPayload.Set(ascTextExpected);
+                m.m_ascPayload->Set(ascTextExpected);
             else
                 m.m_ascInReferenceTo = ascTextExpected;
         }
@@ -852,11 +858,11 @@ public:
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
         pTag->add_attribute("marketID", m.m_strNymID2->Get());
 
-        if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
+        if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+            pTag->add_tag("messagePayload", m.m_ascPayload->Get());
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo->GetLength() > 2)) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -884,7 +890,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            Armored ascTextExpected;
+            auto ascTextExpected = Armored::Factory();
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -896,7 +902,7 @@ public:
             }
 
             if (m.m_bSuccess)
-                m.m_ascPayload.Set(ascTextExpected);
+                m.m_ascPayload->Set(ascTextExpected);
             else
                 m.m_ascInReferenceTo = ascTextExpected;
         }
@@ -972,11 +978,11 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
 
-        if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
+        if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+            pTag->add_tag("messagePayload", m.m_ascPayload->Get());
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo->GetLength() > 2)) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -1003,7 +1009,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            Armored ascTextExpected;
+            auto ascTextExpected = Armored::Factory();
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -1015,7 +1021,7 @@ public:
             }
 
             if (m.m_bSuccess)
-                m.m_ascPayload.Set(ascTextExpected);
+                m.m_ascPayload->Set(ascTextExpected);
             else
                 m.m_ascInReferenceTo = ascTextExpected;
         }
@@ -1083,7 +1089,7 @@ public:
         m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
         // -------------------------------------------------
         const char* pElementExpected = "publicAuthentKey";
-        Armored ascTextExpected;
+        auto ascTextExpected = Armored::Factory();
 
         String::Map temp_MapAttributesAuthent;
         temp_MapAttributesAuthent.insert(std::pair<std::string, std::string>(
@@ -1122,7 +1128,7 @@ public:
         m.m_strNymPublicKey->Set(ascTextExpected);
         // -------------------------------------------------
         pElementExpected = "publicEncryptionKey";
-        ascTextExpected.Release();
+        ascTextExpected->Release();
 
         String::Map temp_MapAttributesEncrypt;
         temp_MapAttributesEncrypt.insert(std::pair<std::string, std::string>(
@@ -1225,7 +1231,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("contract", m.m_ascPayload.Get());
+        pTag->add_attribute("contract", m.m_ascPayload->Get());
         pTag->add_attribute("type", std::to_string(m.enum_));
 
         parent.add_tag(pTag);
@@ -1238,7 +1244,7 @@ public:
             String::Factory(xml->getAttributeValue("requestNum"));
         m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
         m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
-        m.m_ascPayload.Set(xml->getAttributeValue("contract"));
+        m.m_ascPayload->Set(xml->getAttributeValue("contract"));
 
         try {
             m.enum_ = std::stoi(xml->getAttributeValue("type"));
@@ -1272,8 +1278,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength() > 2) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength() > 2) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -1324,7 +1330,7 @@ public:
         pTag->add_attribute("requestNum", m.m_strRequestNum->Get());
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
-        pTag->add_attribute("publicnym", m.m_ascPayload.Get());
+        pTag->add_attribute("publicnym", m.m_ascPayload->Get());
 
         parent.add_tag(pTag);
     }
@@ -1336,7 +1342,7 @@ public:
             String::Factory(xml->getAttributeValue("requestNum"));
         m.m_strNymID = String::Factory(xml->getAttributeValue("nymID"));
         m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
-        m.m_ascPayload.Set(xml->getAttributeValue("publicnym"));
+        m.m_ascPayload->Set(xml->getAttributeValue("publicnym"));
 
         otWarn << "\nCommand: " << m.m_strCommand
                << "\nNymID:    " << m.m_strNymID
@@ -1362,12 +1368,12 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2)) {
-            pTag->add_tag("nymfile", m.m_ascPayload.Get());
+        if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2)) {
+            pTag->add_tag("nymfile", m.m_ascPayload->Get());
         }
 
-        if (m.m_ascInReferenceTo.GetLength() > 2) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength() > 2) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -1468,8 +1474,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength() > 2) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength() > 2) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -1553,7 +1559,7 @@ public:
     {
         // This means new-style credentials are being sent, not just the public
         // key as before.
-        const bool bCredentials = (m.m_ascPayload.Exists());
+        const bool bCredentials = (m.m_ascPayload->Exists());
         OT_ASSERT(!m.m_bSuccess || bCredentials);
 
         TagPtr pTag(new Tag(m.m_strCommand->Get()));
@@ -1565,9 +1571,9 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
         if (m.m_bSuccess && bCredentials) {
-            pTag->add_tag("publicnym", m.m_ascPayload.Get());
+            pTag->add_tag("publicnym", m.m_ascPayload->Get());
         } else {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -1584,7 +1590,7 @@ public:
         m.m_strNymID2 = String::Factory(xml->getAttributeValue("nymID2"));
         m.m_strNotaryID = String::Factory(xml->getAttributeValue("notaryID"));
 
-        Armored ascTextExpected;
+        auto ascTextExpected = Armored::Factory();
         const char* pElementExpected = nullptr;
 
         if (!m.m_bSuccess) {
@@ -1600,7 +1606,7 @@ public:
             }
         } else {  // Success.
             pElementExpected = "publicnym";
-            ascTextExpected.Release();
+            ascTextExpected->Release();
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -1753,8 +1759,8 @@ public:
         pTag->add_attribute("nymID2", m.m_strNymID2->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascPayload.GetLength() > 2) {
-            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength() > 2) {
+            pTag->add_tag("messagePayload", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -1811,8 +1817,8 @@ public:
         pTag->add_attribute("nymID2", m.m_strNymID2->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascPayload.GetLength() > 2) {
-            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength() > 2) {
+            pTag->add_tag("messagePayload", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -1925,8 +1931,8 @@ public:
         pTag->add_attribute("nymID2", m.m_strNymID2->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascPayload.GetLength() > 2) {
-            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength() > 2) {
+            pTag->add_tag("messagePayload", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2073,8 +2079,8 @@ public:
         pTag->add_attribute(
             "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
-        if (m.m_ascPayload.GetLength()) {
-            pTag->add_tag("instrumentDefinition", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength()) {
+            pTag->add_tag("instrumentDefinition", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2135,12 +2141,12 @@ public:
         // the new issuer account ID
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("issuerAccount", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("issuerAccount", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2199,8 +2205,8 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there,
         // OR if it was successful but the Payload isn't there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength() ||
-            (m.m_bSuccess && !m.m_ascPayload.GetLength())) {
+        if (!m.m_ascInReferenceTo->GetLength() ||
+            (m.m_bSuccess && !m.m_ascPayload->GetLength())) {
             otErr << "Error in StrategyRegisterInstrumentDefinitionResponse:\n"
                      "Expected issuerAccount and/or inReferenceTo elements "
                      "with text fields in "
@@ -2241,8 +2247,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascPayload.GetLength()) {
-            pTag->add_tag("stringMap", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength()) {
+            pTag->add_tag("stringMap", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2295,12 +2301,12 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("stringMap", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("stringMap", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2352,8 +2358,8 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there,
         // OR if it was successful but the Payload isn't there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength() ||
-            (m.m_bSuccess && !m.m_ascPayload.GetLength())) {
+        if (!m.m_ascInReferenceTo->GetLength() ||
+            (m.m_bSuccess && !m.m_ascPayload->GetLength())) {
             otErr << "Error in StrategyQueryInstrumentDefinitionsResponse:\n"
                      "Expected stringMap and/or inReferenceTo elements with "
                      "text fields in "
@@ -2385,8 +2391,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascPayload.GetLength()) {
-            pTag->add_tag("currencyBasket", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength()) {
+            pTag->add_tag("currencyBasket", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2416,7 +2422,7 @@ public:
 
         // Did we find everything we were looking for?
         // If the Payload isn't there, then failure.
-        if (!m.m_ascPayload.GetLength()) {
+        if (!m.m_ascPayload->GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected currencyBasket element with text fields in "
                      "issueBasket message\n";
@@ -2453,8 +2459,8 @@ public:
             "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -2490,7 +2496,7 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there,
         // OR if it was successful but the Payload isn't there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength()) {
+        if (!m.m_ascInReferenceTo->GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected inReferenceTo element with text fields in "
                      "issueBasketResponse reply\n";
@@ -2570,12 +2576,12 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascInReferenceTo.Exists()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->Exists()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
-        if (m.m_bSuccess && m.m_ascPayload.Exists()) {
-            pTag->add_tag("newAccount", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->Exists()) {
+            pTag->add_tag("newAccount", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2631,7 +2637,7 @@ public:
         // If the "command responding to" isn't there,
         // OR if it was successful but the Payload isn't there, then failure.
         //
-        if (m.m_bSuccess && !m.m_ascPayload.GetLength()) {
+        if (m.m_bSuccess && !m.m_ascPayload->GetLength()) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected newAccount element with text field, in "
                      "registerAccountResponse reply\n";
@@ -2748,12 +2754,12 @@ public:
                               : ((m.m_lDepth == 1) ? "inbox" : "outbox"));
         pTag->add_attribute("transactionNum", formatLong(m.m_lTransactionNum));
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("boxReceipt", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("boxReceipt", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -2828,8 +2834,8 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there,
         // OR if it was successful but the Payload isn't there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength() ||
-            (m.m_bSuccess && !m.m_ascPayload.GetLength())) {
+        if (!m.m_ascInReferenceTo->GetLength() ||
+            (m.m_bSuccess && !m.m_ascPayload->GetLength())) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected boxReceipt and/or inReferenceTo elements with "
                      "text fields in "
@@ -2907,8 +2913,8 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -2944,7 +2950,7 @@ public:
 
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength()) {
+        if (!m.m_ascInReferenceTo->GetLength()) {
             otErr << "Error in StrategyUnregisterAccount:\n"
                      "Expected inReferenceTo element with text fields in "
                      "unregisterAccountResponse reply\n";
@@ -2983,8 +2989,8 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascPayload.GetLength()) {
-            pTag->add_tag("accountLedger", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength()) {
+            pTag->add_tag("accountLedger", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3045,11 +3051,11 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("responseLedger", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("responseLedger", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3102,8 +3108,8 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength() ||
-            (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+        if (!m.m_ascInReferenceTo->GetLength() ||
+            (!m.m_ascPayload->GetLength() && m.m_bSuccess)) {
             otErr << "Error in OTMessage::ProcessXMLNode:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
@@ -3258,12 +3264,12 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("nymboxLedger", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("nymboxLedger", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3287,7 +3293,7 @@ public:
         else
             pElementExpected = "inReferenceTo";
 
-        Armored ascTextExpected;
+        auto ascTextExpected = Armored::Factory();
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -3371,19 +3377,19 @@ public:
         pTag->add_attribute("inboxHash", m.m_strInboxHash->Get());
         pTag->add_attribute("outboxHash", m.m_strOutboxHash->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         if (m.m_bSuccess) {
-            if (m.m_ascPayload.GetLength()) {
-                pTag->add_tag("account", m.m_ascPayload.Get());
+            if (m.m_ascPayload->GetLength()) {
+                pTag->add_tag("account", m.m_ascPayload->Get());
             }
-            if (m.m_ascPayload2.GetLength()) {
-                pTag->add_tag("inbox", m.m_ascPayload2.Get());
+            if (m.m_ascPayload2->GetLength()) {
+                pTag->add_tag("inbox", m.m_ascPayload2->Get());
             }
-            if (m.m_ascPayload3.GetLength()) {
-                pTag->add_tag("outbox", m.m_ascPayload3.Get());
+            if (m.m_ascPayload3->GetLength()) {
+                pTag->add_tag("outbox", m.m_ascPayload3->Get());
             }
         }
 
@@ -3508,12 +3514,12 @@ public:
         pTag->add_attribute(
             "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("instrumentDefinition", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("instrumentDefinition", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3537,7 +3543,7 @@ public:
         else
             pElementExpected = "inReferenceTo";
 
-        Armored ascTextExpected;
+        auto ascTextExpected = Armored::Factory();
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -3622,12 +3628,12 @@ public:
         pTag->add_attribute(
             "instrumentDefinitionID", m.m_strInstrumentDefinitionID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("mint", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("mint", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3651,7 +3657,7 @@ public:
         else
             pElementExpected = "inReferenceTo";
 
-        Armored ascTextExpected;
+        auto ascTextExpected = Armored::Factory();
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -3697,8 +3703,8 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascPayload.GetLength()) {
-            pTag->add_tag("processLedger", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength()) {
+            pTag->add_tag("processLedger", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3759,11 +3765,11 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute("accountID", m.m_strAcctID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("responseLedger", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("responseLedger", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3816,8 +3822,8 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength() ||
-            (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+        if (!m.m_ascInReferenceTo->GetLength() ||
+            (!m.m_ascPayload->GetLength() && m.m_bSuccess)) {
             otErr << "Error in StrategyProcessInboxResponse:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
@@ -3852,8 +3858,8 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
-        if (m.m_ascPayload.GetLength()) {
-            pTag->add_tag("processLedger", m.m_ascPayload.Get());
+        if (m.m_ascPayload->GetLength()) {
+            pTag->add_tag("processLedger", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3911,11 +3917,11 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
-        if (m.m_bSuccess && m.m_ascPayload.GetLength()) {
-            pTag->add_tag("responseLedger", m.m_ascPayload.Get());
+        if (m.m_bSuccess && m.m_ascPayload->GetLength()) {
+            pTag->add_tag("responseLedger", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -3967,8 +3973,8 @@ public:
         // Did we find everything we were looking for?
         // If the "command responding to" isn't there, or the Payload isn't
         // there, then failure.
-        if (!m.m_ascInReferenceTo.GetLength() ||
-            (!m.m_ascPayload.GetLength() && m.m_bSuccess)) {
+        if (!m.m_ascInReferenceTo->GetLength() ||
+            (!m.m_ascPayload->GetLength() && m.m_bSuccess)) {
             otErr << "Error in StrategyProcessNymboxResponse:\n"
                      "Expected responseLedger and/or inReferenceTo elements "
                      "with text fields in "
@@ -4005,10 +4011,10 @@ public:
         pTag->add_attribute("nymboxHash", m.m_strNymboxHash->Get());
         pTag->add_attribute("smartContractID", formatLong(m.m_lTransactionNum));
         pTag->add_attribute("clauseName", m.m_strNymID2->Get());
-        pTag->add_attribute("hasParam", formatBool(m.m_ascPayload.Exists()));
+        pTag->add_attribute("hasParam", formatBool(m.m_ascPayload->Exists()));
 
-        if (m.m_ascPayload.Exists()) {
-            pTag->add_tag("parameter", m.m_ascPayload.Get());
+        if (m.m_ascPayload->Exists()) {
+            pTag->add_tag("parameter", m.m_ascPayload->Get());
         }
 
         parent.add_tag(pTag);
@@ -4034,7 +4040,7 @@ public:
 
         if (strHasParam->Compare("true")) {
             const char* pElementExpected = "parameter";
-            Armored ascTextExpected;
+            auto ascTextExpected = Armored::Factory();
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -4076,8 +4082,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength()) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength()) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -4095,7 +4101,7 @@ public:
 
         const char* pElementExpected = "inReferenceTo";
 
-        Armored ascTextExpected;
+        auto ascTextExpected = Armored::Factory();
 
         if (!Contract::LoadEncodedTextFieldByName(
                 xml, ascTextExpected, pElementExpected)) {
@@ -4180,7 +4186,7 @@ public:
             pElementExpected = "inReferenceTo";
 
         if (nullptr != pElementExpected) {
-            Armored ascTextExpected;
+            auto ascTextExpected = Armored::Factory();
 
             if (!Contract::LoadEncodedTextFieldByName(
                     xml, ascTextExpected, pElementExpected)) {
@@ -4192,9 +4198,9 @@ public:
             }
 
             if (m.m_bSuccess)
-                m.m_ascPayload.Set(ascTextExpected);
+                m.m_ascPayload->Set(ascTextExpected);
             else
-                m.m_ascInReferenceTo.Set(ascTextExpected);
+                m.m_ascInReferenceTo->Set(ascTextExpected);
         }
 
         if (m.m_bSuccess)
@@ -4223,11 +4229,11 @@ public:
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
         pTag->add_attribute("depth", formatLong(m.m_lDepth));
 
-        if (m.m_bSuccess && (m.m_ascPayload.GetLength() > 2) &&
+        if (m.m_bSuccess && (m.m_ascPayload->GetLength() > 2) &&
             (m.m_lDepth > 0)) {
-            pTag->add_tag("messagePayload", m.m_ascPayload.Get());
-        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo.GetLength() > 2)) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+            pTag->add_tag("messagePayload", m.m_ascPayload->Get());
+        } else if (!m.m_bSuccess && (m.m_ascInReferenceTo->GetLength() > 2)) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -4288,8 +4294,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength() > 2) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength() > 2) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);
@@ -4384,8 +4390,8 @@ public:
         pTag->add_attribute("nymID", m.m_strNymID->Get());
         pTag->add_attribute("notaryID", m.m_strNotaryID->Get());
 
-        if (m.m_ascInReferenceTo.GetLength() > 2) {
-            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo.Get());
+        if (m.m_ascInReferenceTo->GetLength() > 2) {
+            pTag->add_tag("inReferenceTo", m.m_ascInReferenceTo->Get());
         }
 
         parent.add_tag(pTag);

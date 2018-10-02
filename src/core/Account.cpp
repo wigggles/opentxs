@@ -756,14 +756,14 @@ bool Account::SaveContractWallet(Tag& parent) const
 
     // Name is in the clear in memory,
     // and base64 in storage.
-    Armored ascName;
+    auto ascName = Armored::Factory();
     if (m_strName->Exists()) {
-        ascName.SetString(m_strName, false);  // linebreaks == false
+        ascName->SetString(m_strName, false);  // linebreaks == false
     }
 
     TagPtr pTag(new Tag("account"));
 
-    pTag->add_attribute("name", m_strName->Exists() ? ascName.Get() : "");
+    pTag->add_attribute("name", m_strName->Exists() ? ascName->Get() : "");
     pTag->add_attribute("accountID", strAccountID->Get());
     pTag->add_attribute("nymID", strNymID->Get());
     pTag->add_attribute("notaryID", strNotaryID->Get());

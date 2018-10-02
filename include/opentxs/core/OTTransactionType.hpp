@@ -654,7 +654,7 @@ protected:
     // (See originType comment.)
     originType m_originType{originType::not_applicable};
     // This item may be in reference to a different item.
-    Armored m_ascInReferenceTo;
+    OTArmored m_ascInReferenceTo;
     bool m_bLoadSecurely{true};  // Defaults to true.
     // For a "blank" or "successNotice" transaction, this contains the list of
     // transaction

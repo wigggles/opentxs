@@ -471,10 +471,11 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
 
         return nullptr;
     } else
-        LogVerbose(OT_METHOD)(__FUNCTION__) (": Successfully loaded Box Receipt in: ")
-               (strFolder1name) (Log::PathSeparator()) (strFolder2name)
-               (Log::PathSeparator()) (strFolder3name) (Log::PathSeparator())
-               (strFilename).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Successfully loaded Box Receipt in: ")(strFolder1name)(
+            Log::PathSeparator())(strFolder2name)(Log::PathSeparator())(
+            strFolder3name)(Log::PathSeparator())(strFilename)
+            .Flush();
 
     // Todo: security analysis. By this point we've verified the hash of the
     // transaction against the stored

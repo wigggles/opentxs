@@ -274,7 +274,7 @@ bool NymFile::deserialize_nymfile(
                             "nym record.")
                             .Flush();
                 } else if (strNodeName->Compare("outpaymentsMessage")) {
-                    Armored armorMail;
+                    auto armorMail = Armored::Factory();
                     auto strMessage = String::Factory();
 
                     xml->read();
@@ -294,12 +294,12 @@ bool NymFile::deserialize_nymfile(
                             strNodeData->GetLength() > 2 &&
                             strNodeData->At(0, cNewline)) {
                             if ('\n' == cNewline)
-                                armorMail.Set(strNodeData->Get() + 1);
+                                armorMail->Set(strNodeData->Get() + 1);
                             else
-                                armorMail.Set(strNodeData->Get());
+                                armorMail->Set(strNodeData->Get());
 
-                            if (armorMail.GetLength() > 2) {
-                                armorMail.GetString(
+                            if (armorMail->GetLength() > 2) {
+                                armorMail->GetString(
                                     strMessage,
                                     true);  // linebreaks == true.
 
@@ -446,8 +446,8 @@ std::shared_ptr<Message> NymFile::GetOutpaymentsByTransNum(
         // There isn't any encrypted envelope this time, since it's my
         // outPayments box.
         //
-        if (pMsg->m_ascPayload.Exists() &&
-            pMsg->m_ascPayload.GetString(strPayment) && strPayment->Exists()) {
+        if (pMsg->m_ascPayload->Exists() &&
+            pMsg->m_ascPayload->GetString(strPayment) && strPayment->Exists()) {
             pPayment.reset(api_.Factory().Payment(strPayment).release());
 
             // Let's see if it's the cheque we're looking for...
@@ -524,8 +524,9 @@ bool NymFile::load_signed_nymfile(const T& lock)
         return false;
     }
 
-    LogVerbose(OT_METHOD)(__FUNCTION__)
-        (": Loaded and verified signed nymfile. Reading from string... ").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Loaded and verified signed nymfile. Reading from string... ")
+        .Flush();
 
     if (1 > theNymFile->GetFilePayload().GetLength()) {
         const auto lLength = theNymFile->GetFilePayload().GetLength();
@@ -666,13 +667,13 @@ bool NymFile::serialize_nymfile(const T& lock, String& strNym) const
 
             auto strOutpayments = String::Factory(*pMessage);
 
-            Armored ascOutpayments;
+            auto ascOutpayments = Armored::Factory();
 
             if (strOutpayments->Exists())
-                ascOutpayments.SetString(strOutpayments);
+                ascOutpayments->SetString(strOutpayments);
 
-            if (ascOutpayments.Exists()) {
-                tag.add_tag("outpaymentsMessage", ascOutpayments.Get());
+            if (ascOutpayments->Exists()) {
+                tag.add_tag("outpaymentsMessage", ascOutpayments->Get());
             }
         }
     }
@@ -765,8 +766,8 @@ bool NymFile::save_signed_nymfile(const T& lock)
         api_.Factory().SignedFile(OTFolders::Nym().Get(), strNymID);
     theNymFile->GetFilename(m_strNymFile);
 
-    LogVerbose(OT_METHOD)(__FUNCTION__)
-        (": Saving nym to: ") (m_strNymFile).Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Saving nym to: ")(m_strNymFile)
+        .Flush();
 
     // First we save this nym to a string...
     // Specifically, the file payload string on the OTSignedFile object.

@@ -195,16 +195,18 @@ bool OTCachedKey::GetMasterPassword(
         nullptr != szDisplay ? szDisplay : "(Display string was blank.)");
 
     if (master_password_) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": Master password was available. (Returning it now.) ").Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Master password was available. (Returning it now.) ")
+            .Flush();
         theOutput = *master_password_;
         reset_timer(outer);
 
         return true;
     }
 
-    LogVerbose(OT_METHOD)(__FUNCTION__)
-           (": Master password wasn't loaded. Instantiating... ").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(
+        ": Master password wasn't loaded. Instantiating... ")
+        .Flush();
 
     // If master_password_ is null, (which below this point it is) then...
     //
@@ -553,8 +555,9 @@ bool OTCachedKey::GetMasterPassword(
         if (bGenerated)  // If crypto::key::LegacySymmetric (*this) is already
                          // generated.
         {
-            LogVerbose(OT_METHOD)(__FUNCTION__)
-                   (": Calling key_->GetRawKeyFromPassphrase()... ").Flush();
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
+                ": Calling key_->GetRawKeyFromPassphrase()... ")
+                .Flush();
 
             // Once we have the user's password, then we use it to GetKey from
             // the crypto::key::LegacySymmetric (which
@@ -580,10 +583,9 @@ bool OTCachedKey::GetMasterPassword(
             const bool bCachedKey = key_->GetRawKeyFromPassphrase(
                 passUserInput, *master_password_, pDerivedKey);
             if (bCachedKey) {
-                LogVerbose(OT_METHOD)(__FUNCTION__)
-                       (": Finished calling ")
-                          ("key_->GetRawKeyFromPassphrase ")
-                          ("(Success.) ").Flush();
+                LogVerbose(OT_METHOD)(__FUNCTION__)(": Finished calling ")(
+                    "key_->GetRawKeyFromPassphrase ")("(Success.) ")
+                    .Flush();
                 theOutput = *master_password_;  // Success!
 
                 // Store the derived key to the system keyring.
@@ -619,8 +621,9 @@ bool OTCachedKey::GetMasterPassword(
 
     if (bReturnVal)  // Start the thread!
     {
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": Starting thread for Master Key... ").Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Starting thread for Master Key... ")
+            .Flush();
         reset_timer(outer);
         shutdown_->Off();
 

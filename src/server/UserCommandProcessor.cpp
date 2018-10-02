@@ -912,7 +912,7 @@ bool UserCommandProcessor::cmd_get_market_list(ReplyMessage& reply) const
 
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_market_list);
 
-    Armored output{};
+    auto output = Armored::Factory();
     std::int32_t count{0};
     reply.SetSuccess(server_.Cron().GetMarketList(output, count));
 
@@ -945,7 +945,7 @@ bool UserCommandProcessor::cmd_get_market_offers(ReplyMessage& reply) const
 
     if (false == bool(market)) { return false; }
 
-    Armored output{};
+    auto output = Armored::Factory();
     std::int32_t nOfferCount{0};
     reply.SetSuccess(market->GetOfferList(output, depth, nOfferCount));
 
@@ -975,7 +975,7 @@ bool UserCommandProcessor::cmd_get_market_recent_trades(
 
     if (false == bool(market)) { return false; }
 
-    Armored output;
+    auto output = Armored::Factory();
     std::int32_t count = 0;
     reply.SetSuccess(market->GetRecentTradeList(output, count));
 
@@ -1020,7 +1020,7 @@ bool UserCommandProcessor::cmd_get_nym_market_offers(ReplyMessage& reply) const
 
     const auto& nymID = reply.Context().RemoteNym().ID();
 
-    Armored output{};
+    auto output = Armored::Factory();
     std::int32_t count{0};
     reply.SetSuccess(server_.Cron().GetNym_OfferList(output, nymID, count));
 
@@ -1734,7 +1734,7 @@ bool UserCommandProcessor::cmd_query_instrument_definitions(
     OT_ENFORCE_PERMISSION_MSG(ServerSettings::__cmd_get_contract);
 
     std::unique_ptr<OTDB::Storable> pStorable(OTDB::DecodeObject(
-        OTDB::STORED_OBJ_STRING_MAP, msgIn.m_ascPayload.Get()));
+        OTDB::STORED_OBJ_STRING_MAP, msgIn.m_ascPayload->Get()));
     auto inputMap = dynamic_cast<OTDB::StringMap*>(pStorable.get());
 
     if (nullptr == inputMap) { return false; }

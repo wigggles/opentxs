@@ -60,9 +60,9 @@ void OTVariable::Serialize(Tag& parent, bool bCalculatingID) const
             str_type = "string";
             if ((false == bCalculatingID) && (m_str_Value.size() > 0)) {
                 auto strVal = String::Factory(m_str_Value.c_str());
-                Armored ascVal(strVal);
+                auto ascVal = Armored::Factory(strVal);
                 pTag->add_attribute("value", "exists");
-                pTag->set_text(ascVal.Get());
+                pTag->set_text(ascVal->Get());
             } else {
                 pTag->add_attribute("value", "none");
             }

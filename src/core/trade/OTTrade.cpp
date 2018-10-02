@@ -300,8 +300,8 @@ void OTTrade::UpdateContents()
     }
 
     if (marketOffer_->Exists()) {
-        Armored ascOffer(marketOffer_);
-        tag.add_tag("offer", ascOffer.Get());
+        auto ascOffer = Armored::Factory(marketOffer_);
+        tag.add_tag("offer", ascOffer->Get());
     }
 
     std::string str_result;

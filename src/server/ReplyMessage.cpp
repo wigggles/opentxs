@@ -95,7 +95,7 @@ void ReplyMessage::attach_request()
             LogVerbose(OT_METHOD)(__FUNCTION__)(": Attaching original ")(
                 command)(" message.")
                 .Flush();
-            message_.m_ascInReferenceTo.SetString(String::Factory(original_));
+            message_.m_ascInReferenceTo->SetString(String::Factory(original_));
         } break;
         case MessageType::pingNotary:
         case MessageType::usageCredits:
@@ -121,7 +121,7 @@ void ReplyMessage::clear_request()
             LogVerbose(OT_METHOD)(__FUNCTION__)(": Clearing original ")(
                 command)(" message.")
                 .Flush();
-            message_.m_ascInReferenceTo.Release();
+            message_.m_ascInReferenceTo->Release();
         } break;
         case MessageType::getMarketOffers:
         case MessageType::getMarketRecentTrades:
@@ -152,7 +152,7 @@ void ReplyMessage::clear_request()
     }
 }
 
-void ReplyMessage::ClearRequest() { message_.m_ascInReferenceTo.Release(); }
+void ReplyMessage::ClearRequest() { message_.m_ascInReferenceTo->Release(); }
 
 ClientContext& ReplyMessage::Context()
 {
@@ -257,12 +257,12 @@ void ReplyMessage::SetOutboxHash(const Identifier& hash)
 
 bool ReplyMessage::SetPayload(const String& payload)
 {
-    return message_.m_ascPayload.SetString(payload);
+    return message_.m_ascPayload->SetString(payload);
 }
 
 bool ReplyMessage::SetPayload(const Data& payload)
 {
-    return message_.m_ascPayload.SetData(payload);
+    return message_.m_ascPayload->SetData(payload);
 }
 
 void ReplyMessage::SetPayload(const Armored& payload)
@@ -272,12 +272,12 @@ void ReplyMessage::SetPayload(const Armored& payload)
 
 bool ReplyMessage::SetPayload2(const String& payload)
 {
-    return message_.m_ascPayload2.SetString(payload);
+    return message_.m_ascPayload2->SetString(payload);
 }
 
 bool ReplyMessage::SetPayload3(const String& payload)
 {
-    return message_.m_ascPayload3.SetString(payload);
+    return message_.m_ascPayload3->SetString(payload);
 }
 
 void ReplyMessage::SetRequestNumber(const RequestNumber number)

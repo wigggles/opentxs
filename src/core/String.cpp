@@ -587,8 +587,8 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
 
     if (bArmored)  // it's armored, we have to decode it first.
     {
-        Armored ascTemp;
-        if (false == (ascTemp.LoadFromString(
+        auto ascTemp = Armored::Factory();
+        if (false == (ascTemp->LoadFromString(
                          *this,
                          bArmoredAndALSOescaped,  // if it IS escaped or not,
                                                   // this variable will be true
@@ -956,8 +956,9 @@ bool String::TokenizeIntoKeyValuePairs(
             const std::string str_key = exp_result.we_wordv[i];
             const std::string str_val = exp_result.we_wordv[i + 1];
 
-            LogVerbose(OT_METHOD)(__FUNCTION__) (": Parsed: ") (str_key) (" = ") (str_val)
-                   .Flush();
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Parsed: ")(str_key)(" = ")(
+                str_val)
+                .Flush();
             mapOutput.insert(
                 std::pair<std::string, std::string>(str_key, str_val));
         }
@@ -1017,8 +1018,8 @@ bool String::TokenizeIntoKeyValuePairs(
         const std::string value = buf.substr(v, v2 - v);
 
         if (key.length() != 0 && value.length() != 0) {
-            LogVerbose(OT_METHOD)(__FUNCTION__)(": Parsed: ") (key) (" = ") (value)
-                   .Flush();
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Parsed: ")(key)(" = ")(value)
+                .Flush();
             mapOutput.insert(std::pair<std::string, std::string>(key, value));
         }
     }

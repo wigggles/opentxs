@@ -318,10 +318,10 @@ bool Mint::SaveMint(const char* szAppend)
     }
 
     auto strFinal = String::Factory();
-    Armored ascTemp(strRawFile);
+    auto ascTemp = Armored::Factory(strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "Mint::SaveMint: Error saving mint (failed writing armored "
                  "string):\n"
               << szFolder1name << Log::PathSeparator() << szFolder2name
@@ -397,8 +397,9 @@ bool Mint::VerifyContractID() const
         return false;
     } else {
         auto str1 = String::Factory(m_ID);
-        LogVerbose(OT_METHOD)(__FUNCTION__)(": Mint ID *SUCCESSFUL* match to Asset Contract ID: ")
-               (str1).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Mint ID *SUCCESSFUL* match to Asset Contract ID: ")(str1)
+            .Flush();
         return true;
     }
 }
