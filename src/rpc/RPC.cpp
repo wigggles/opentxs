@@ -105,7 +105,11 @@ proto::RPCResponse RPC::accept_pending_payments(
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     for (auto acceptpendingpayment : command.acceptpendingpayment()) {
         const auto destinationaccountID =
@@ -257,7 +261,11 @@ proto::RPCResponse RPC::add_contact(const proto::RPCCommand& command) const
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     for (const auto& addContact : command.addcontact()) {
         const auto contact = client.Contacts().NewContact(
@@ -313,7 +321,11 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     if (false == client.Wallet().IsLocalNym(command.owner())) {
         add_output_status(output, proto::RPCRESPONSE_ERROR);
@@ -378,7 +390,11 @@ proto::RPCResponse RPC::create_compatible_account(
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     if (false == client.Wallet().IsLocalNym(command.owner())) {
         add_output_status(output, proto::RPCRESPONSE_ERROR);
@@ -456,7 +472,11 @@ proto::RPCResponse RPC::create_issuer_account(
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     if (false == client.Wallet().IsLocalNym(command.owner())) {
         add_output_status(output, proto::RPCRESPONSE_ERROR);
@@ -682,7 +702,11 @@ proto::RPCResponse RPC::get_account_activity(
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     for (const auto& id : command.identifier()) {
         const auto accountid = Identifier::Factory(id);
@@ -792,12 +816,25 @@ ArgList RPC::get_args(const Args& serialized)
 
 const api::client::Manager* RPC::get_client(const std::int32_t instance) const
 {
-    auto is_server = instance % 2;
+    auto is_server = 1 == (instance % 2);
 
     if (is_server) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error: provided instance ")(
+            instance)(" is a server session.")
+            .Flush();
+
         return nullptr;
     } else {
-        return &ot_.Client(get_index(instance));
+
+        try {
+            return &ot_.Client(get_index(instance));
+        } catch (...) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Error: provided instance ")(
+                instance)(" is not a valid client session.")
+                .Flush();
+
+            return nullptr;
+        }
     }
 }
 
@@ -824,13 +861,11 @@ proto::RPCResponse RPC::get_compatible_accounts(
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
 
-    //    if (false == client.Wallet().IsLocalNym(command.owner())) {
-    //        add_output_status(output, proto::RPCRESPONSE_ERROR);
-    //        return output;
-    //    }
+    OT_ASSERT(nullptr != pClient)
 
+    const auto& client = *pClient;
     const auto ownerID = Identifier::Factory(command.owner());
     const auto workflowID = Identifier::Factory(command.identifier(0));
     const auto paymentWorkflow =
@@ -851,8 +886,6 @@ proto::RPCResponse RPC::get_compatible_accounts(
         return output;
     }
 
-    //    const auto& sourceaccountid = cheque->SourceAccountID();
-    //    const auto sourceaccount = client.Wallet().Account(sourceaccountid);
     const auto& unitdefinitionid = cheque->GetInstrumentDefinitionID();
 
     const auto accounts = client.Storage().AccountsByOwner(ownerID);
@@ -1068,7 +1101,7 @@ proto::RPCResponse RPC::get_server_contracts(
 
 const api::Core& RPC::get_session(const std::int32_t instance) const
 {
-    auto is_server = instance % 2;
+    auto is_server = 1 == (instance % 2);
 
     if (is_server) {
         return ot_.Server(get_index(instance));
@@ -1164,8 +1197,7 @@ bool RPC::is_server_session(std::int32_t instance) const
 
 bool RPC::is_session_valid(std::int32_t instance) const
 {
-    auto is_server = instance % 2;
-
+    auto is_server = 1 == (instance % 2);
     auto index = get_index(instance);
 
     if (is_server) {
@@ -1240,7 +1272,11 @@ proto::RPCResponse RPC::list_contacts(const proto::RPCCommand& command) const
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     auto contacts = client.Contacts().ContactList();
 
@@ -1397,7 +1433,11 @@ proto::RPCResponse RPC::move_funds(const proto::RPCCommand& command) const
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     const auto& movefunds = command.movefunds();
 
@@ -1584,7 +1624,11 @@ proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     if (false == client.Wallet().IsLocalNym(command.owner())) {
         add_output_status(output, proto::RPCRESPONSE_ERROR);
@@ -1655,7 +1699,11 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
         return output;
     }
 
-    const auto& client = *get_client(command.session());
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
 
     const auto& sendpayment = command.sendpayment();
     const auto contactid = Identifier::Factory(sendpayment.contact()),
