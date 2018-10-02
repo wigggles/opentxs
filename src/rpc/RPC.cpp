@@ -285,28 +285,23 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
     const auto ownerid = Identifier::Factory(command.owner()),
                notaryid = Identifier::Factory(command.notary()),
                unitdefinitionid = Identifier::Factory(command.unit());
-
+    const auto registered =
+        client.OTAPI().IsNym_RegisteredAtServer(ownerid, notaryid);
     const auto unitdefinition =
         client.Wallet().UnitDefinition(unitdefinitionid);
-    if (false == bool(unitdefinition)) {
-        add_output_status(output, proto::RPCRESPONSE_ERROR);
-        return output;
-    }
 
-    auto registered =
-        client.OTAPI().IsNym_RegisteredAtServer(ownerid, notaryid);
-    if (false != registered) {
+    if (registered && bool(unitdefinition)) {
         auto action = client.ServerAction().RegisterAccount(
             ownerid, notaryid, unitdefinitionid);
         action->Run();
+
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
+            const auto reply = action->Reply();
 
-            auto reply = action->Reply();
-
-            if (false == bool(reply) || false == reply->m_bSuccess) {
+            if (false == reply->m_bSuccess) {
                 add_output_status(output, proto::RPCRESPONSE_ERROR);
             } else {
-                output.add_identifier(action->Reply()->m_strAcctID->Get());
+                output.add_identifier(reply->m_strAcctID->Get());
                 add_output_status(output, proto::RPCRESPONSE_SUCCESS);
             }
         } else {
