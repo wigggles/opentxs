@@ -1324,7 +1324,7 @@ TEST_F(Test_Basic, send_cheque)
         0,
         find_issuer_account(),
         alice_nym_id_,
-        CHEQUE_MEMO,
+        String::Factory(CHEQUE_MEMO),
         bob_nym_id_)};
     std::unique_ptr<Message> request{};
 
@@ -1335,7 +1335,7 @@ TEST_F(Test_Basic, send_cheque)
     EXPECT_NE(0, cheque_transaction_number_);
 
     std::unique_ptr<OTPayment> payment{
-        client_1_.Factory().Payment(String(*cheque))};
+        client_1_.Factory().Payment(String::Factory(*cheque))};
 
     ASSERT_TRUE(payment);
 
@@ -1868,7 +1868,7 @@ TEST_F(Test_Basic, processInbox)
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
         client_1_.OTAPI().processInbox(
-            serverContext.It(), accountID, String(*response));
+            serverContext.It(), accountID, String::Factory(*response));
     const auto& [result, message] = reply;
     verify_state_post(
         client_1_,
