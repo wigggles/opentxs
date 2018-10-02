@@ -25,6 +25,7 @@ public:
         const Lock& lock,
         void* socket,
         zeromq::Message& message);
+    static std::string random_inproc_endpoint();
     static bool receive_message(
         const Lock& lock,
         void* socket,

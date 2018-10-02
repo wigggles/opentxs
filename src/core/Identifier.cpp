@@ -119,7 +119,12 @@ OTIdentifier Identifier::Random()
     OTIdentifier output{new implementation::Identifier};
     auto nonce = Data::Factory();
     OT::App().Crypto().Encode().Nonce(32, nonce);
+
+    OT_ASSERT(32 == nonce->size());
+
     output->CalculateDigest(nonce);
+
+    OT_ASSERT(false == output->empty());
 
     return output;
 }
@@ -334,11 +339,9 @@ void Identifier::SetString(const std::string& encoded)
 
         switch (type_) {
             case (ID::SHA256): {
-                break;
-            }
+            } break;
             case (ID::BLAKE2B): {
-                break;
-            }
+            } break;
             default: {
                 type_ = ID::ERROR;
 
@@ -354,18 +357,10 @@ void Identifier::SetString(const std::string& encoded)
 
 std::string Identifier::str() const
 {
-    auto data = Data::Factory();
-    data->Assign(&type_, sizeof(type_));
+    auto output = String::Factory();
+    GetString(output);
 
-    OT_ASSERT(1 == data->size());
-
-    if (0 == size()) { return {}; }
-
-    data->Concatenate(this->data(), size());
-
-    std::string output("ot");
-    output.append(OT::App().Crypto().Encode().IdentifierEncode(data).c_str());
-    return output;
+    return output->Get();
 }
 
 void Identifier::swap(opentxs::Identifier& rhs)
