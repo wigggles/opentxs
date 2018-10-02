@@ -836,10 +836,10 @@ bool OTPaths::ConfirmCreateFolder(
 #endif
 
         if (!bCreateDirSuccess) {
-            otInfo << OT_METHOD << __FUNCTION__
-                   << ": Unable To Confirm "
-                      "Created Directory "
-                   << strExactPath << ".\n";
+            LogVerbose(OT_METHOD)(__FUNCTION__)
+                   (": Unable To Confirm ")
+                      ("Created Directory ")
+                   (strExactPath).Flush();
             out_IsNew = false;
             out_Exists = false;
             return false;
@@ -1187,8 +1187,8 @@ bool OTPaths::BuildFolderPath(
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
             return false;
         if (bLog && l_bBuiltFolder)
-            otInfo << OT_METHOD << __FUNCTION__
-                   << ": Made new folder: " << l_strPathPart << std::endl;
+            LogVerbose(OT_METHOD)(__FUNCTION__)
+                   (": Made new folder: ") (l_strPathPart).Flush();
 
         if (!out_bFolderCreated && l_bBuiltFolder) out_bFolderCreated = true;
     }

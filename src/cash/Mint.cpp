@@ -397,8 +397,8 @@ bool Mint::VerifyContractID() const
         return false;
     } else {
         auto str1 = String::Factory(m_ID);
-        otInfo << "\nMint ID *SUCCESSFUL* match to Asset Contract ID:\n"
-               << str1 << "\n\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Mint ID *SUCCESSFUL* match to Asset Contract ID: ")
+               (str1).Flush();
         return true;
     }
 }

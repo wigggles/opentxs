@@ -303,9 +303,9 @@ OTPassword* OpenSSL::DeriveNewKey(
 {
     OT_ASSERT(!dataSalt.empty());
 
-    otInfo << __FUNCTION__
-           << ": Using a text passphrase, salt, and iteration count, "
-              "to make a derived key...\n";
+    LogVerbose(OT_METHOD)(__FUNCTION__)
+           (": Using a text passphrase, salt, and iteration count, ")
+              ("to make a derived key... ").Flush();
 
     std::unique_ptr<OTPassword> pDerivedKey(InstantiateBinarySecret());
 

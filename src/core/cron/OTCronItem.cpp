@@ -403,13 +403,11 @@ bool OTCronItem::SaveActiveCronReceipt(
             strNotaryID->Get(),
             szFilename,
             "")) {
-        otInfo << "OTCronItem::" << __FUNCTION__
-               << ": Cron Record already exists for transaction "
-               << GetTransactionNum() << " " << szFoldername
-               << Log::PathSeparator() << strNotaryID << Log::PathSeparator()
-               << szFilename
-               << ", "
-                  "overwriting.\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)
+               (": Cron Record already exists for transaction ")
+               (GetTransactionNum()) (" ") (szFoldername)
+               (Log::PathSeparator()) (strNotaryID) (Log::PathSeparator())
+               (szFilename) (", ") ("overwriting. ").Flush();
         // NOTE: We could just return here. But what if the record we have is
         // corrupted somehow?
         // Might as well just write it there again, so I let this continue

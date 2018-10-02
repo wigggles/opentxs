@@ -607,8 +607,8 @@ bool Sodium::Verify(
     // so he could find the right one. Metadata can be used
     // to avoid these extra, unnecessary sig verifications.
     //
-    otInfo << OT_METHOD << __FUNCTION__ << ": Failed to verify signature."
-           << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__) (": Failed to verify signature.")
+           .Flush();
 
     return false;
 }

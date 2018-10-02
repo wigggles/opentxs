@@ -590,9 +590,10 @@ bool Purse::LoadPurse(
                      szFolder2name,
                      szFolder3name,
                      szFilename)) {
-        otInfo << "Purse::LoadPurse: File does not exist: " << szFolder1name
-               << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
-               << szFolder3name << Log::PathSeparator() << szFilename << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)
+               (": File does not exist: ") (szFolder1name)
+               (Log::PathSeparator()) (szFolder2name) (Log::PathSeparator())
+               (szFolder3name) (Log::PathSeparator()) (szFilename).Flush();
         return false;
     }
 

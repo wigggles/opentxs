@@ -1201,18 +1201,16 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << (m_bCanceled ? "Canceled a" : "A")
                << "greement. Transaction Number: " << m_lTransactionNum << "\n";
 
-        otInfo << " Creation Date: " << tCreation
-               << "   Valid From: " << tValidFrom << "\n Valid To: " << tValidTo
-               << "\n"
-                  " InstrumentDefinitionID: "
-               << strInstrumentDefinitionID << "\n NotaryID: " << strNotaryID
-               << "\n"
-                  " senderAcctID: "
-               << strSenderAcctID << "\n senderNymID: " << strSenderNymID
-               << "\n "
-                  " recipientAcctID: "
-               << strRecipientAcctID
-               << "\n recipientNymID: " << strRecipientNymID << "\n ";
+        LogVerbose(OT_METHOD)(__FUNCTION__)
+               (": Creation Date: ") (tCreation)
+               (" Valid From: ") (tValidFrom)
+               (" Valid To: ") (tValidTo)
+               (" InstrumentDefinitionID: ") (strInstrumentDefinitionID)
+               (" NotaryID: ") (strNotaryID)
+               (" senderAcctID: ") (strSenderAcctID)
+               (" senderNymID: ") (strSenderNymID)
+               (" recipientAcctID: ") (strRecipientAcctID)
+               (" recipientNymID: ") (strRecipientNymID).Flush();
 
         nReturnVal = 1;
     } else if (!strcmp("consideration", xml->getNodeName())) {

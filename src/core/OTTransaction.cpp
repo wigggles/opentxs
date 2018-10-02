@@ -2897,13 +2897,12 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
             strFolder2name->Get(),
             strFolder3name->Get(),
             strFilename->Get())) {
-        otInfo
-            << __FUNCTION__
-            << ": Box receipt already doesn't exist, thus no need to delete: "
-               "At location: "
-            << strFolder1name << Log::PathSeparator() << strFolder2name
-            << Log::PathSeparator() << strFolder3name << Log::PathSeparator()
-            << strFilename << "\n";
+        LogVerbose(OT_METHOD)(__FUNCTION__)
+            (": Box receipt already doesn't exist, thus no need to delete: ")
+               ("At location: ")
+            (strFolder1name) (Log::PathSeparator()) (strFolder2name)
+            (Log::PathSeparator()) (strFolder3name) (Log::PathSeparator())
+            (strFilename).Flush();
         return false;
     }
 
