@@ -8,14 +8,22 @@ set(MODULE_NAME opentxs-consensus)
 set(cxx-sources
   ClientContext.cpp
   Context.cpp
+  ManagedNumber.cpp
   ServerContext.cpp
   TransactionStatement.cpp
 )
 
-file(GLOB_RECURSE cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/*.hpp")
+set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/ClientContext.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/Context.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/ManagedNumber.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/ServerContext.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/consensus/TransactionStatement.hpp"
+)
 
 set(cxx-headers
   ${cxx-install-headers}
+  ManagedNumber.hpp
 )
 
 if(WIN32)

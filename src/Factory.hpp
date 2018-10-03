@@ -188,6 +188,9 @@ public:
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom);
+    static opentxs::ManagedNumber* ManagedNumber(
+        const TransactionNumber number,
+        ServerContext& context);
     static ui::implementation::MessagableExternalInterface* MessagableList(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,

@@ -25,6 +25,7 @@
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/contract/ServerContract.hpp"
@@ -2869,7 +2870,7 @@ void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction) const
 /// returns true/false on whether or not the reply was actually
 /// verified and processed.
 bool OTClient::processServerReply(
-    const std::set<ServerContext::ManagedNumber>& managed,
+    const std::set<OTManagedNumber>& managed,
     const bool resync,
     ServerContext& context,
     std::shared_ptr<Message>& reply,
@@ -2965,7 +2966,7 @@ bool OTClient::processServerReply(
     // on the server connection that was passed in here...
 
     if (theReply.m_bSuccess) {
-        for (const auto& number : managed) { number.SetSuccess(true); }
+        for (const auto& number : managed) { number->SetSuccess(true); }
     } else {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Message status: failed for ")(
             theReply.m_strCommand)
@@ -3045,7 +3046,7 @@ bool OTClient::processServerReply(
 }
 
 bool OTClient::processServerReply(
-    const std::set<ServerContext::ManagedNumber>& managed,
+    const std::set<OTManagedNumber>& managed,
     const bool resync,
     ServerContext& context,
     std::shared_ptr<Message>& reply)
@@ -3054,7 +3055,7 @@ bool OTClient::processServerReply(
 }
 
 bool OTClient::processServerReply(
-    const std::set<ServerContext::ManagedNumber>& managed,
+    const std::set<OTManagedNumber>& managed,
     ServerContext& context,
     std::shared_ptr<Message>& reply,
     Ledger* pNymbox)

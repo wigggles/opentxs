@@ -30,6 +30,7 @@
 #include "opentxs/client/OTClient.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
 #include "opentxs/client/OTWallet.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
@@ -3935,7 +3936,7 @@ Cheque* OT_API::WriteCheque(
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
 
-    if (false == number.Valid()) {
+    if (false == number->Valid()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": User attempted to write a cheque, but had no "
                  "transaction numbers.\n";
@@ -3944,7 +3945,7 @@ Cheque* OT_API::WriteCheque(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << number << std::endl;
+          << number->Value() << std::endl;
 
     // At this point, I know that number contains one I can use.
     auto pCheque{api_.Factory().Cheque(
@@ -3957,7 +3958,7 @@ Cheque* OT_API::WriteCheque(
     // have to delete, or return to the caller.
     bool bIssueCheque = pCheque->IssueCheque(
         CHEQUE_AMOUNT,
-        number,
+        number->Value(),
         VALID_FROM,
         VALID_TO,
         SENDER_accountID,
@@ -3987,7 +3988,7 @@ Cheque* OT_API::WriteCheque(
     }
 
     // Above this line, the transaction number will be recovered automatically
-    number.SetSuccess(true);
+    number->SetSuccess(true);
 
     return pCheque.release();
 }
@@ -7956,7 +7957,7 @@ bool OT_API::AddBasketExchangeItem(
     const auto number =
         context.It().NextTransactionNumber(MessageType::notarizeTransaction);
 
-    if (false == number.Valid()) {
+    if (false == number->Valid()) {
         otErr << "OT_API::AddBasketExchangeItem: Failed getting next "
                  "transaction number. \n";
 
@@ -7964,10 +7965,10 @@ bool OT_API::AddBasketExchangeItem(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << number << std::endl;
-    number.SetSuccess(true);
+          << number->Value() << std::endl;
+    number->SetSuccess(true);
     theBasket.AddRequestSubContract(
-        INSTRUMENT_DEFINITION_ID, ASSET_ACCOUNT_ID, number);
+        INSTRUMENT_DEFINITION_ID, ASSET_ACCOUNT_ID, number->Value());
     theBasket.ReleaseSignatures();
     theBasket.SignContract(*nym);
     theBasket.SaveContract();
@@ -8163,12 +8164,12 @@ CommandResult OT_API::exchangeBasket(
         return output;
     }
 
-    std::set<ServerContext::ManagedNumber> managed{};
-    managed.insert(
+    std::set<OTManagedNumber> managed{};
+    managed.emplace(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
 
-    if (false == managedNumber.Valid()) {
+    if (false == managedNumber->Valid()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
@@ -8178,8 +8179,8 @@ CommandResult OT_API::exchangeBasket(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << managedNumber << std::endl;
-    transactionNum = managedNumber;
+          << managedNumber->Value() << std::endl;
+    transactionNum = managedNumber->Value();
     auto transaction{api_.Factory().Transaction(
         nymID,
         accountID,
@@ -8199,7 +8200,7 @@ CommandResult OT_API::exchangeBasket(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& closingNumber = *managed.rbegin();
 
-    if (false == closingNumber.Valid()) {
+    if (false == closingNumber->Valid()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
@@ -8208,8 +8209,8 @@ CommandResult OT_API::exchangeBasket(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << closingNumber << std::endl;
-    basket->SetClosingNum(closingNumber);
+          << closingNumber->Value() << std::endl;
+    basket->SetClosingNum(closingNumber->Value());
     basket->SetExchangingIn(bExchangeInOrOut);
     basket->ReleaseSignatures();
     basket->SignContract(nym);
@@ -8379,7 +8380,7 @@ CommandResult OT_API::notarizeWithdrawal(
         return output;
     }
 
-    std::set<ServerContext::ManagedNumber> managed{};
+    std::set<OTManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
@@ -8562,7 +8563,7 @@ CommandResult OT_API::notarizeDeposit(
         return output;
     }
 
-    std::set<ServerContext::ManagedNumber> managed;
+    std::set<OTManagedNumber> managed;
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
@@ -8866,12 +8867,12 @@ CommandResult OT_API::payDividend(
         return output;
     }
 
-    std::set<ServerContext::ManagedNumber> managed{};
+    std::set<OTManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
 
-    if (false == managedNumber.Valid()) {
+    if (false == managedNumber->Valid()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
@@ -8881,8 +8882,8 @@ CommandResult OT_API::payDividend(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << managedNumber << std::endl;
-    transactionNum = managedNumber;
+          << managedNumber->Value() << std::endl;
+    transactionNum = managedNumber->Value();
 
     const auto SHARES_ISSUER_accountID =
         Identifier::Factory(issuerAccount.get());
@@ -9068,7 +9069,7 @@ CommandResult OT_API::withdrawVoucher(
     const auto voucherNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
 
-    if ((!withdrawalNumber.Valid()) || (!voucherNumber.Valid())) {
+    if ((!withdrawalNumber->Valid()) || (!voucherNumber->Valid())) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Not enough Transaction Numbers were available. "
                  "(Suggest requesting the server for more.)\n";
@@ -9077,10 +9078,10 @@ CommandResult OT_API::withdrawVoucher(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << withdrawalNumber << " for withdrawal" << std::endl;
+          << withdrawalNumber->Value() << " for withdrawal" << std::endl;
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << voucherNumber << " for voucher" << std::endl;
+          << voucherNumber->Value() << " for voucher" << std::endl;
 
     const auto strChequeMemo = String::Factory(CHEQUE_MEMO.Get());
     const auto strRecipientNymID = String::Factory(RECIPIENT_NYM_ID);
@@ -9099,7 +9100,7 @@ CommandResult OT_API::withdrawVoucher(
 
     bool bIssueCheque = theRequestVoucher->IssueCheque(
         amount,
-        voucherNumber,
+        voucherNumber->Value(),
         VALID_FROM,
         VALID_TO,
         accountID,
@@ -9133,7 +9134,7 @@ CommandResult OT_API::withdrawVoucher(
         serverID,
         transactionType::withdrawal,
         originType::not_applicable,
-        withdrawalNumber)};
+        withdrawalNumber->Value())};
     if (false == bool(transaction)) { return output; }
 
     auto item{api_.Factory().Item(
@@ -9447,12 +9448,12 @@ CommandResult OT_API::depositCheque(
     }                               // cancelling cheque
 
     const auto& cheque = cancel ? *copy : theCheque;
-    std::set<ServerContext::ManagedNumber> managed{};
+    std::set<OTManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
 
-    if (false == managedNumber.Valid()) {
+    if (false == managedNumber->Valid()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
@@ -9462,8 +9463,8 @@ CommandResult OT_API::depositCheque(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << managedNumber << std::endl;
-    transactionNum = managedNumber;
+          << managedNumber->Value() << std::endl;
+    transactionNum = managedNumber->Value();
     auto transaction{api_.Factory().Transaction(
         nymID,
         accountID,
@@ -10085,12 +10086,12 @@ CommandResult OT_API::cancelCronItem(
         return output;
     }
 
-    std::set<ServerContext::ManagedNumber> managed{};
+    std::set<OTManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
 
-    if (false == managedNumber.Valid()) {
+    if (false == managedNumber->Valid()) {
         otErr << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
         status = SendResult::TRANSACTION_NUMBERS;
@@ -10099,8 +10100,8 @@ CommandResult OT_API::cancelCronItem(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << managedNumber << std::endl;
-    transactionNum = managedNumber;
+          << managedNumber->Value() << std::endl;
+    transactionNum = managedNumber->Value();
     auto transaction{api_.Factory().Transaction(
         nymID,
         ASSET_ACCOUNT_ID,
@@ -10234,12 +10235,12 @@ CommandResult OT_API::issueMarketOffer(
         return output;
     }
 
-    std::set<ServerContext::ManagedNumber> managed{};
+    std::set<OTManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& openingNumber = *managed.rbegin();
 
-    if (false == openingNumber.Valid()) {
+    if (false == openingNumber->Valid()) {
         otErr << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
 
@@ -10247,13 +10248,13 @@ CommandResult OT_API::issueMarketOffer(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << openingNumber << std::endl;
-    transactionNum = openingNumber;
+          << openingNumber->Value() << std::endl;
+    transactionNum = openingNumber->Value();
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& assetClosingNumber = *managed.rbegin();
 
-    if (false == openingNumber.Valid()) {
+    if (false == openingNumber->Valid()) {
         otErr << "No assetClosingNumber numbers were available. Suggest "
                  "requesting the server for one.\n";
 
@@ -10261,12 +10262,12 @@ CommandResult OT_API::issueMarketOffer(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << assetClosingNumber << std::endl;
+          << assetClosingNumber->Value() << std::endl;
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& currencyClosingNumber = *managed.rbegin();
 
-    if (false == currencyClosingNumber.Valid()) {
+    if (false == currencyClosingNumber->Valid()) {
         otErr << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
 
@@ -10274,7 +10275,7 @@ CommandResult OT_API::issueMarketOffer(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << currencyClosingNumber << std::endl;
+          << currencyClosingNumber->Value() << std::endl;
 
     // defaults to RIGHT NOW aka OT_API_GetTime() if set to 0 anyway.
     const time64_t VALID_FROM = GetTime();
@@ -10354,17 +10355,17 @@ CommandResult OT_API::issueMarketOffer(
     OT_ASSERT(false != bool(trade));
 
     bool bCreateOffer = offer->MakeOffer(
-        bBuyingOrSelling,     // True == SELLING, False == BUYING
-        lPriceLimit,          // Per Minimum Increment...
-        lTotalAssetsOnOffer,  // Total assets available for sale or
-                              // purchase.
-        lMinimumIncrement,    // The minimum increment that must be bought or
-                              // sold for each transaction
-        openingNumber,        // Transaction number matches on
-                              // transaction, item, offer, and trade.
-        VALID_FROM,           // defaults to RIGHT NOW aka OT_API_GetTime()
-        VALID_TO);            // defaults to 24 hours (a "Day Order") aka
-                              // OT_API_GetTime() + 86,400
+        bBuyingOrSelling,        // True == SELLING, False == BUYING
+        lPriceLimit,             // Per Minimum Increment...
+        lTotalAssetsOnOffer,     // Total assets available for sale or
+                                 // purchase.
+        lMinimumIncrement,       // The minimum increment that must be bought or
+                                 // sold for each transaction
+        openingNumber->Value(),  // Transaction number matches on
+                                 // transaction, item, offer, and trade.
+        VALID_FROM,              // defaults to RIGHT NOW aka OT_API_GetTime()
+        VALID_TO);               // defaults to 24 hours (a "Day Order") aka
+                                 // OT_API_GetTime() + 86,400
 
     if (false == bCreateOffer) {
         otErr << OT_METHOD << __FUNCTION__
@@ -10423,9 +10424,9 @@ CommandResult OT_API::issueMarketOffer(
     // useful for baskets. Since this is a market offer, it needs a closing
     // number (for later cancellation or expiration.) assetClosingNumber=0,
     // currencyClosingNumber=0;
-    trade->AddClosingTransactionNo(assetClosingNumber);
-    trade->AddClosingTransactionNo(currencyClosingNumber);
-    otErr << "Placing market offer " << openingNumber
+    trade->AddClosingTransactionNo(assetClosingNumber->Value());
+    trade->AddClosingTransactionNo(currencyClosingNumber->Value());
+    otErr << "Placing market offer " << openingNumber->Value()
           << ", type: " << (bBuyingOrSelling ? "selling" : "buying") << ", "
           << strOfferType << "\n"
           << strPrice << "Assets for sale/purchase: " << lTotalAssetsOnOffer
@@ -10439,7 +10440,7 @@ CommandResult OT_API::issueMarketOffer(
         serverID,
         transactionType::marketOffer,
         originType::origin_market_offer,
-        openingNumber)};
+        openingNumber->Value())};
 
     if (false == bool(transaction)) { return output; }
 
@@ -10655,12 +10656,12 @@ CommandResult OT_API::notarizeTransfer(
         return output;
     }
 
-    std::set<ServerContext::ManagedNumber> managed{};
+    std::set<OTManagedNumber> managed{};
     managed.insert(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
 
-    if (false == managedNumber.Valid()) {
+    if (false == managedNumber->Valid()) {
         otErr << "No transaction numbers were available. Suggest "
                  "requesting the server for one.\n";
         status = SendResult::TRANSACTION_NUMBERS;
@@ -10669,8 +10670,8 @@ CommandResult OT_API::notarizeTransfer(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << managedNumber << std::endl;
-    transactionNum = managedNumber;
+          << managedNumber->Value() << std::endl;
+    transactionNum = managedNumber->Value();
     auto transaction{api_.Factory().Transaction(
         nymID,
         ACCT_FROM,
@@ -12408,7 +12409,7 @@ CommandResult OT_API::unregisterNym(ServerContext& context) const
 }
 
 NetworkReplyMessage OT_API::send_message(
-    const std::set<ServerContext::ManagedNumber>& pending,
+    const std::set<OTManagedNumber>& pending,
     ServerContext& context,
     const Message& message,
     const bool resync) const
@@ -13203,7 +13204,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
         const auto number =
             context.NextTransactionNumber(MessageType::processInbox);
 
-        if (false == number.Valid()) {
+        if (false == number->Valid()) {
             otErr << OT_METHOD << __FUNCTION__ << ": Nym " << nymID.str()
                   << " is all out of transaction numbers." << std::endl;
 
@@ -13211,7 +13212,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
         }
 
         otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-              << number << std::endl;
+              << number->Value() << std::endl;
 
         auto newProcessInbox{api_.Factory().Transaction(
             nymID,
@@ -13219,7 +13220,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
             serverID,
             transactionType::processInbox,
             originType::not_applicable,
-            number)};
+            number->Value())};
 
         if (false == bool(newProcessInbox)) {
             otErr << OT_METHOD << __FUNCTION__
@@ -13232,7 +13233,7 @@ OTTransaction* OT_API::get_or_create_process_inbox(
 
         // Above this line, the transaction number will be recovered
         // automatically
-        number.SetSuccess(true);
+        number->SetSuccess(true);
         processInbox.reset(newProcessInbox.release());
         response.AddTransaction(processInbox);
     }

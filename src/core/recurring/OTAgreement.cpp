@@ -11,6 +11,7 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ClientContext.hpp"
+#include "opentxs/consensus/ManagedNumber.hpp"
 #include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
@@ -890,14 +891,14 @@ bool OTAgreement::SetProposal(
     const auto closingNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
 
-    if (0 == TransactionNumber(openingNumber)) {
+    if (0 == openingNumber->Value()) {
         otErr << __FUNCTION__
               << ": Error: Unable to get a transaction number.\n";
 
         return false;
     }
 
-    if (0 == TransactionNumber(closingNumber)) {
+    if (0 == closingNumber->Value()) {
         otErr << __FUNCTION__
               << ": Error: Unable to get a closing "
                  "transaction number.\n";
@@ -908,15 +909,15 @@ bool OTAgreement::SetProposal(
     }
 
     // Above this line, the transaction numbers will be recovered automatically
-    openingNumber.SetSuccess(true);
-    closingNumber.SetSuccess(true);
+    openingNumber->SetSuccess(true);
+    closingNumber->SetSuccess(true);
     otErr << OT_METHOD << __FUNCTION__
-          << ": Allocated opening transaction number "
-          << TransactionNumber(openingNumber) << std::endl;
+          << ": Allocated opening transaction number " << openingNumber->Value()
+          << std::endl;
 
     otErr << OT_METHOD << __FUNCTION__
-          << ": Allocated closing transaction number "
-          << TransactionNumber(closingNumber) << std::endl;
+          << ": Allocated closing transaction number " << closingNumber->Value()
+          << std::endl;
 
     // At this point we now have 2 transaction numbers...
     // We can't return without either USING THEM, or PUTTING THEM BACK.
@@ -925,8 +926,8 @@ bool OTAgreement::SetProposal(
     // Set the Transaction Number and the Closing transaction number... (for
     // merchant / recipient.)
     //
-    AddRecipientClosingTransactionNo(openingNumber);
-    AddRecipientClosingTransactionNo(closingNumber);
+    AddRecipientClosingTransactionNo(openingNumber->Value());
+    AddRecipientClosingTransactionNo(closingNumber->Value());
     // (They just both go onto this same list.)
 
     // Set the Consideration memo...
@@ -1045,14 +1046,14 @@ bool OTAgreement::Confirm(
     const auto closingNumber =
         context.NextTransactionNumber(MessageType::notarizeTransaction);
 
-    if (0 == TransactionNumber(openingNumber)) {
+    if (0 == openingNumber->Value()) {
         otErr << __FUNCTION__
               << ": Error: Strangely unable to get a transaction number.\n";
 
         return false;
     }
 
-    if (false == TransactionNumber(closingNumber)) {
+    if (false == closingNumber->Value()) {
         otErr << __FUNCTION__
               << ": Error: Strangely unable to get a closing "
                  "transaction number.\n";
@@ -1061,16 +1062,16 @@ bool OTAgreement::Confirm(
     }
 
     // Above this line, the transaction numbers will be recovered automatically
-    openingNumber.SetSuccess(true);
-    closingNumber.SetSuccess(true);
+    openingNumber->SetSuccess(true);
+    closingNumber->SetSuccess(true);
 
     // At this point we now HAVE 2 transaction numbers (for payer / sender)...
     // We can't return without USING THEM or PUTTING THEM BACK.
     //
 
-    SetTransactionNum(openingNumber);        // Set the Transaction Number
-    AddClosingTransactionNo(closingNumber);  // and the Closing Number (both for
-                                             // sender)...
+    SetTransactionNum(openingNumber->Value());  // Set the Transaction Number
+    AddClosingTransactionNo(closingNumber->Value());  // and the Closing Number
+                                                      // (both for sender)...
 
     // CREATION DATE was set in the Merchant's proposal, and it's RESET here in
     // the Confirm.
@@ -1201,16 +1202,13 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                << (m_bCanceled ? "Canceled a" : "A")
                << "greement. Transaction Number: " << m_lTransactionNum << "\n";
 
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": Creation Date: ") (tCreation)
-               (" Valid From: ") (tValidFrom)
-               (" Valid To: ") (tValidTo)
-               (" InstrumentDefinitionID: ") (strInstrumentDefinitionID)
-               (" NotaryID: ") (strNotaryID)
-               (" senderAcctID: ") (strSenderAcctID)
-               (" senderNymID: ") (strSenderNymID)
-               (" recipientAcctID: ") (strRecipientAcctID)
-               (" recipientNymID: ") (strRecipientNymID).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Creation Date: ")(tCreation)(
+            " Valid From: ")(tValidFrom)(" Valid To: ")(tValidTo)(
+            " InstrumentDefinitionID: ")(strInstrumentDefinitionID)(
+            " NotaryID: ")(strNotaryID)(" senderAcctID: ")(strSenderAcctID)(
+            " senderNymID: ")(strSenderNymID)(" recipientAcctID: ")(
+            strRecipientAcctID)(" recipientNymID: ")(strRecipientNymID)
+            .Flush();
 
         nReturnVal = 1;
     } else if (!strcmp("consideration", xml->getNodeName())) {
