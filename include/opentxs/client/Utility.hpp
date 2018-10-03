@@ -24,19 +24,24 @@ inline bool VerifyStringVal(const std::string& nValue)
 }
 
 EXPORT std::int32_t InterpretTransactionMsgReply(
+    const api::client::Manager& api,
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
     const std::string& strAttempt,
     const std::string& strResponse);
 EXPORT bool VerifyMessage(const std::string& strMessage);
-EXPORT NetworkOperationStatus VerifyMessageSuccess(const std::string& message);
+EXPORT NetworkOperationStatus VerifyMessageSuccess(
+    const api::client::Manager& api,
+    const std::string& message);
 EXPORT std::int32_t VerifyMsgBalanceAgrmntSuccess(
+    const api::client::Manager& api,
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,
     const std::string& strMessage);
 EXPORT std::int32_t VerifyMsgTrnxSuccess(
+    const api::client::Manager& api,
     const std::string& NOTARY_ID,
     const std::string& NYM_ID,
     const std::string& ACCOUNT_ID,

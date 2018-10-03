@@ -67,7 +67,7 @@ public:
         const api::client::Activity& activity);
 #endif
     static api::client::Cash* Cash(
-        const api::Core& api,
+        const api::client::Manager& api,
         const api::client::ServerAction& serverAction);
     static api::client::internal::Manager* ClientManager(
         const Flag& running,
