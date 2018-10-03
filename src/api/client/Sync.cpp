@@ -2536,8 +2536,10 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
         SHUTDOWN()
 
-        // Always download server nym in case it has been renamed
-        queue.check_nym_.Push(Identifier::Random(), context->RemoteNym().ID());
+        if (0 == queue.counter_ % 100) {
+            // download server nym in case it has been renamed
+            queue.check_nym_.Push(Identifier::Random(), context->RemoteNym().ID());
+        }
 
         SHUTDOWN()
 
@@ -2939,6 +2941,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
             process_inbox(taskID, nymID, serverID, accountID);
         }
+
+        ++queue.counter_;
 
         YIELD(MAIN_LOOP_MILLISECONDS);
     }
