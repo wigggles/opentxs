@@ -4,12 +4,12 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #include "opentxs/api/client/Cash.hpp"
+#include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/ServerAction.hpp"
-#include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/cash/Purse.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/ServerAction.hpp"
-#include "opentxs/client/SwigWrap.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -21,7 +21,7 @@
 namespace opentxs
 {
 api::client::Cash* Factory::Cash(
-    const api::Core& api,
+    const api::client::Manager& api,
     const api::client::ServerAction& serverAction)
 {
     return new api::client::implementation::Cash(api, serverAction);
@@ -30,7 +30,9 @@ api::client::Cash* Factory::Cash(
 
 namespace opentxs::api::client::implementation
 {
-Cash::Cash(const api::Core& api, const client::ServerAction& serverAction)
+Cash::Cash(
+    const api::client::Manager& api,
+    const client::ServerAction& serverAction)
     : api_(api)
     , server_action_(serverAction)
 {
@@ -73,7 +75,7 @@ std::string Cash::export_cash(
     bool bPasswordProtected,
     std::string& retainedCopy) const
 {
-    std::string strContract = SwigWrap::GetAssetType_Contract(unitTypeID);
+    std::string strContract = api_.Exec().GetAssetType_Contract(unitTypeID);
 
     if (strContract.empty()) {
         otOut << "Error: cannot load asset contract.\n";
@@ -82,7 +84,7 @@ std::string Cash::export_cash(
     std::string to_nym_id = TO_nymID;
     // -------------------------------------------------------------------
     std::string instrument =
-        SwigWrap::LoadPurse(notaryID, unitTypeID, FROM_nymID);
+        api_.Exec().LoadPurse(notaryID, unitTypeID, FROM_nymID);
     if (instrument.empty()) {
         otOut << "Error: cannot load purse.\n";
         return {};
@@ -123,10 +125,10 @@ bool Cash::withdraw_and_export_cash(
     std::shared_ptr<const Purse>& senderCopy,
     bool bPasswordProtected /*=false*/) const
 {
-    const std::string server = SwigWrap::GetAccountWallet_NotaryID(ACCT_ID);
-    const std::string mynym = SwigWrap::GetAccountWallet_NymID(ACCT_ID);
+    const std::string server = api_.Exec().GetAccountWallet_NotaryID(ACCT_ID);
+    const std::string mynym = api_.Exec().GetAccountWallet_NymID(ACCT_ID);
     const std::string asset_type =
-        SwigWrap::GetAccountWallet_InstrumentDefinitionID(ACCT_ID);
+        api_.Exec().GetAccountWallet_InstrumentDefinitionID(ACCT_ID);
     std::string hisnym = RECIPIENT_NYM_ID;
     std::string indices;
 
@@ -344,9 +346,9 @@ std::int32_t Cash::send_cash(
                        precipientCopy,
                        psenderCopy)
                    ->Run();
-    if (1 != VerifyMessageSuccess(response)) {
+    if (1 != VerifyMessageSuccess(api_, response)) {
         // cannot send cash so try to re-import into sender's purse
-        if (!SwigWrap::Wallet_ImportPurse(
+        if (!api_.Exec().Wallet_ImportPurse(
                 server, assetType, mynym, retainedCopy)) {
             otOut << "Error: cannot send cash AND failed re-importing purse."
                   << "\nServer: " << server << "\nAsset Type: " << assetType
@@ -384,13 +386,13 @@ bool Cash::get_purse_indices_or_amount(
         return false;
     }
 
-    std::string purse = SwigWrap::LoadPurse(server, assetType, mynym);
+    std::string purse = api_.Exec().LoadPurse(server, assetType, mynym);
     if (purse.empty()) {
         otOut << "Error: cannot load purse.\n";
         return false;
     }
 
-    std::int32_t items = SwigWrap::Purse_Count(server, assetType, purse);
+    std::int32_t items = api_.Exec().Purse_Count(server, assetType, purse);
     if (0 > items) {
         otOut << "Error: cannot load purse item count.\n\n";
         return false;
@@ -403,32 +405,33 @@ bool Cash::get_purse_indices_or_amount(
 
     for (std::int32_t i = 0; i < items; i++) {
         std::string token =
-            SwigWrap::Purse_Peek(server, assetType, mynym, purse);
+            api_.Exec().Purse_Peek(server, assetType, mynym, purse);
         if (token.empty()) {
             otOut << "Error:cannot load token from purse.\n";
             return false;
         }
 
-        purse = SwigWrap::Purse_Pop(server, assetType, mynym, purse);
+        purse = api_.Exec().Purse_Pop(server, assetType, mynym, purse);
         if (purse.empty()) {
             otOut << "Error: cannot load updated purse.\n";
             return false;
         }
 
         std::int64_t denomination =
-            SwigWrap::Token_GetDenomination(server, assetType, token);
+            api_.Exec().Token_GetDenomination(server, assetType, token);
         if (0 >= denomination) {
             otOut << "Error: cannot get token denomination.\n";
             return false;
         }
 
-        time64_t validTo = SwigWrap::Token_GetValidTo(server, assetType, token);
+        time64_t validTo =
+            api_.Exec().Token_GetValidTo(server, assetType, token);
         if (OT_TIME_ZERO > validTo) {
             otOut << "Error: cannot get token validTo.\n";
             return false;
         }
 
-        time64_t time = SwigWrap::GetTime();
+        time64_t time = api_.Exec().GetTime();
         if (OT_TIME_ZERO > time) {
             otOut << "Error: cannot get token time.\n";
             return false;
@@ -441,7 +444,7 @@ bool Cash::get_purse_indices_or_amount(
 
         if (findAmountFromIndices) {
             if ("all" == indices ||
-                SwigWrap::NumList_VerifyQuery(indices, std::to_string(i))) {
+                api_.Exec().NumList_VerifyQuery(indices, std::to_string(i))) {
                 remain += denomination;
             }
             continue;
@@ -455,7 +458,7 @@ bool Cash::get_purse_indices_or_amount(
         // though the three 2's would satisfy the 6...
 
         if (denomination <= remain) {
-            indices = SwigWrap::NumList_Add(indices, std::to_string(i));
+            indices = api_.Exec().NumList_Add(indices, std::to_string(i));
             remain -= denomination;
             if (0 == remain) { return true; }
         }
@@ -473,7 +476,7 @@ std::int32_t Cash::deposit_purse(
     std::string* pOptionalOutput /*=nullptr*/) const  // contains server reply
 {
     std::string assetType =
-        SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
+        api_.Exec().GetAccountWallet_InstrumentDefinitionID(myacct);
     if (assetType.empty()) {
         otOut << "Error: cannot get unit type from acct purse.\n";
         return -1;
@@ -493,7 +496,7 @@ std::int32_t Cash::deposit_purse(
     }
 
     // we have to load the purse ourselves
-    instrument = SwigWrap::LoadPurse(server, assetType, mynym);
+    instrument = api_.Exec().LoadPurse(server, assetType, mynym);
     if (instrument.empty()) {
         otOut << "Error: cannot load purse.\n";
         return -1;
@@ -528,14 +531,14 @@ std::int32_t Cash::deposit_purse_low_level(
     std::string* pOptionalOutput /*=nullptr*/) const  // copy of server
                                                       // response.
 {
-    std::string recipientNymID = SwigWrap::GetAccountWallet_NymID(accountID);
+    std::string recipientNymID = api_.Exec().GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
         otOut << "deposit_purse_low_level: Unable to find recipient "
                  "Nym based on myacct. \n";
         return -1;
     }
 
-    bool bPasswordProtected = SwigWrap::Purse_HasPassword(notaryID, oldPurse);
+    bool bPasswordProtected = api_.Exec().Purse_HasPassword(notaryID, oldPurse);
 
     std::string newPurse;                // being deposited.;
     std::string newPurseForSender = "";  // Probably unused in this case.;
@@ -574,7 +577,7 @@ std::int32_t Cash::deposit_purse_low_level(
     // HERE, WE INTERPRET THE SERVER REPLY, WHETHER SUCCESS, FAIL, OR ERROR...
 
     std::int32_t nInterpretReply = InterpretTransactionMsgReply(
-        notaryID, recipientNymID, accountID, strAttempt, strResponse);
+        api_, notaryID, recipientNymID, accountID, strAttempt, strResponse);
 
     if (1 == nInterpretReply) {
 
@@ -598,7 +601,7 @@ std::int32_t Cash::deposit_purse_low_level(
     {
 
         if (!bPasswordProtected && bReimportIfFailure) {
-            bool importStatus = SwigWrap::Wallet_ImportPurse(
+            bool importStatus = api_.Exec().Wallet_ImportPurse(
                 notaryID, unitTypeID, recipientNymID, newPurse);
             otOut << "Since failure in deposit_purse_low_level, "
                      "OT_API_Wallet_ImportPurse called. Status of "
@@ -645,20 +648,20 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
     const std::string& myacct,
     std::int64_t amount) const
 {
-    std::string server = SwigWrap::GetAccountWallet_NotaryID(myacct);
+    std::string server = api_.Exec().GetAccountWallet_NotaryID(myacct);
     if (server.empty()) {
         otOut << "Error: cannot determine server from myacct.\n";
         return -1;
     }
 
-    std::string mynym = SwigWrap::GetAccountWallet_NymID(myacct);
+    std::string mynym = api_.Exec().GetAccountWallet_NymID(myacct);
     if (mynym.empty()) {
         otOut << "Error: cannot determine mynym from myacct.\n";
         return -1;
     }
 
     std::string assetType =
-        SwigWrap::GetAccountWallet_InstrumentDefinitionID(myacct);
+        api_.Exec().GetAccountWallet_InstrumentDefinitionID(myacct);
     if (assetType.empty()) { return -1; }
 
     const opentxs::OTIdentifier theNotaryID = Identifier::Factory(server),
@@ -666,18 +669,18 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
                                 theAssetType = Identifier::Factory(assetType),
                                 theAcctID = Identifier::Factory(myacct);
 
-    std::string assetContract = SwigWrap::GetAssetType_Contract(assetType);
+    std::string assetContract = api_.Exec().GetAssetType_Contract(assetType);
     if (assetContract.empty()) {
         std::string response =
             server_action_
                 .DownloadContract(theNymID, theNotaryID, theAssetType)
                 ->Run();
-        if (1 != VerifyMessageSuccess(response)) {
+        if (1 != VerifyMessageSuccess(api_, response)) {
             otOut << "Error: cannot retrieve asset contract.\n";
             return -1;
         }
 
-        assetContract = SwigWrap::GetAssetType_Contract(assetType);
+        assetContract = api_.Exec().GetAssetType_Contract(assetType);
         if (assetContract.empty()) {
             otOut << "Error: cannot load asset contract.\n";
             return -1;
@@ -694,7 +697,7 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
         server_action_.WithdrawCash(theNymID, theNotaryID, theAcctID, amount)
             ->Run();
     std::int32_t reply = InterpretTransactionMsgReply(
-        server, mynym, myacct, "withdraw_cash", response);
+        api_, server, mynym, myacct, "withdraw_cash", response);
     if (1 != reply) { return reply; }
 
     if (!server_action_.DownloadAccount(
@@ -739,7 +742,7 @@ std::string Cash::load_or_retrieve_mint(
 {
     std::string response = check_nym(notaryID, nymID, nymID);
 
-    if (1 != VerifyMessageSuccess(response)) {
+    if (1 != VerifyMessageSuccess(api_, response)) {
         otOut << "load_or_retrieve_mint: Cannot verify nym for "
                  "IDs: \n";
         otOut << "   Notary ID: " << notaryID << "\n";
@@ -755,7 +758,7 @@ std::string Cash::load_or_retrieve_mint(
     // works.)
 
     // expired or missing.
-    if (!SwigWrap::Mint_IsStillGood(notaryID, unitTypeID)) {
+    if (!api_.Exec().Mint_IsStillGood(notaryID, unitTypeID)) {
         otWarn << "load_or_retrieve_mint: Mint file is "
                   "missing or expired. Downloading from "
                   "server...\n";
@@ -767,7 +770,7 @@ std::string Cash::load_or_retrieve_mint(
                            Identifier::Factory(unitTypeID))
                        ->Run();
 
-        if (1 != VerifyMessageSuccess(response)) {
+        if (1 != VerifyMessageSuccess(api_, response)) {
             otOut << "load_or_retrieve_mint: Unable to "
                      "retrieve mint for IDs: \n";
             otOut << "   Notary ID: " << notaryID << "\n";
@@ -776,7 +779,7 @@ std::string Cash::load_or_retrieve_mint(
             return "";
         }
 
-        if (!SwigWrap::Mint_IsStillGood(notaryID, unitTypeID)) {
+        if (!api_.Exec().Mint_IsStillGood(notaryID, unitTypeID)) {
             otOut << "load_or_retrieve_mint: Retrieved "
                      "mint, but still 'not good' for IDs: \n";
             otOut << "   Notary ID: " << notaryID << "\n";
@@ -792,7 +795,7 @@ std::string Cash::load_or_retrieve_mint(
     // or not.
     // It's here, and it's NOT expired. (Or we would have returned already.)
 
-    std::string strMint = SwigWrap::LoadMint(notaryID, unitTypeID);
+    std::string strMint = api_.Exec().LoadMint(notaryID, unitTypeID);
     if (!VerifyStringVal(strMint)) {
         otOut << "load_or_retrieve_mint: Unable to load mint "
                  "for IDs: \n";
@@ -861,9 +864,9 @@ bool Cash::process_cash_purse(
     if (selectedTokens.size() < 1) {
         // newPurse is created, OWNED BY RECIPIENT.
         newPurse =
-            (bPWProtectNewPurse ? SwigWrap::CreatePurse_Passphrase(
+            (bPWProtectNewPurse ? api_.Exec().CreatePurse_Passphrase(
                                       notaryID, instrumentDefinitionID, nymID)
-                                : SwigWrap::CreatePurse(
+                                : api_.Exec().CreatePurse(
                                       notaryID,
                                       instrumentDefinitionID,
                                       recipientNymID,
@@ -883,7 +886,7 @@ bool Cash::process_cash_purse(
         // call it newPurseForSender. This way the sender can later have the
         // option to recover the cash from his outbox.
         //
-        newPurseForSender = SwigWrap::CreatePurse(
+        newPurseForSender = api_.Exec().CreatePurse(
             notaryID,
             instrumentDefinitionID,
             nymID,
@@ -898,21 +901,21 @@ bool Cash::process_cash_purse(
         // Iterate through the OLD PURSE. (as tempOldPurse.)
         //
         std::int32_t count =
-            SwigWrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
+            api_.Exec().Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
         std::string tempOldPurse = oldPurse;
 
         for (std::int32_t i = 0; i < count; ++i) {
             // Peek into TOKEN, from the top token on the stack. (And it's STILL
             // on top after this call.)
             //
-            std::string token = SwigWrap::Purse_Peek(
+            std::string token = api_.Exec().Purse_Peek(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Now pop the token off of tempOldPurse (our iterator for the old
             // purse).
             // Store updated copy of purse (sans token) into "str1".
             //
-            std::string str1 = SwigWrap::Purse_Pop(
+            std::string str1 = api_.Exec().Purse_Pop(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(token) || !VerifyStringVal(str1)) {
@@ -942,7 +945,7 @@ bool Cash::process_cash_purse(
             // Change the OWNER on token, from NymID to RECIPIENT.
             // (In this block, we change ALL the tokens in the purse.)
             //
-            std::string exportedToken = SwigWrap::Token_ChangeOwner(
+            std::string exportedToken = api_.Exec().Token_ChangeOwner(
                 notaryID,
                 instrumentDefinitionID,
                 token,
@@ -961,7 +964,7 @@ bool Cash::process_cash_purse(
 
             // SAVE A COPY FOR THE SENDER...
             //
-            std::string retainedToken = SwigWrap::Token_ChangeOwner(
+            std::string retainedToken = api_.Exec().Token_ChangeOwner(
                 notaryID,
                 instrumentDefinitionID,
                 token,
@@ -987,7 +990,7 @@ bool Cash::process_cash_purse(
             // "strPushedForRecipient".
             // Results are, FYI, newPurse+exportedToken.
             //
-            std::string strPushedForRecipient = SwigWrap::Purse_Push(
+            std::string strPushedForRecipient = api_.Exec().Purse_Push(
                 notaryID,
                 instrumentDefinitionID,
                 nymID,         // server, asset, signer
@@ -1009,7 +1012,7 @@ bool Cash::process_cash_purse(
             // newPurseForSender and save results in "strPushedForRetention".
             // Results are, FYI, newPurseForSender+retainedToken.
             //
-            std::string strPushedForRetention = SwigWrap::Purse_Push(
+            std::string strPushedForRetention = api_.Exec().Purse_Push(
                 notaryID,
                 instrumentDefinitionID,
                 nymID,                 // server, asset, signer
@@ -1049,7 +1052,7 @@ bool Cash::process_cash_purse(
         if (!bPWProtectOldPurse)  // If old purse is NOT password-protected
                                   // (that is, it's encrypted to a Nym.)
         {
-            if (!SwigWrap::SavePurse(
+            if (!api_.Exec().SavePurse(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,
@@ -1089,21 +1092,21 @@ bool Cash::process_cash_purse(
         // newPurseUnSelectedTokens is created (CORRECTLY) with NymID as owner.
         // (Unselected tokens aren't being exported...)
         //
-        std::string newPurseUnSelectedTokens = SwigWrap::Purse_Empty(
+        std::string newPurseUnSelectedTokens = api_.Exec().Purse_Empty(
             notaryID,
             instrumentDefinitionID,
             nymID,
             oldPurse);  // Creates an empty copy of oldPurse.;
         std::string newPurseSelectedTokens =
-            (bPWProtectNewPurse ? SwigWrap::CreatePurse_Passphrase(
+            (bPWProtectNewPurse ? api_.Exec().CreatePurse_Passphrase(
                                       notaryID, instrumentDefinitionID, nymID)
-                                : SwigWrap::CreatePurse(
+                                : api_.Exec().CreatePurse(
                                       notaryID,
                                       instrumentDefinitionID,
                                       recipientNymID,
                                       nymID));  // recipientNymID = owner,
                                                 // nymID = signer;
-        std::string newPurseSelectedForSender = SwigWrap::CreatePurse(
+        std::string newPurseSelectedForSender = api_.Exec().CreatePurse(
             notaryID,
             instrumentDefinitionID,
             nymID,
@@ -1130,20 +1133,20 @@ bool Cash::process_cash_purse(
         // Iterate through oldPurse, using tempOldPurse as iterator.
         //
         std::int32_t count =
-            SwigWrap::Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
+            api_.Exec().Purse_Count(notaryID, instrumentDefinitionID, oldPurse);
         std::string tempOldPurse = oldPurse;
 
         for (std::int32_t i = 0; i < count; ++i) {
             // Peek at the token on top of the stack.
             // (Without removing it.)
             //
-            std::string token = SwigWrap::Purse_Peek(
+            std::string token = api_.Exec().Purse_Peek(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             // Remove the top token from the stack, and return the updated stack
             // in "str1".
             //
-            std::string str1 = SwigWrap::Purse_Pop(
+            std::string str1 = api_.Exec().Purse_Pop(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(str1) || !VerifyStringVal(token)) {
@@ -1161,8 +1164,8 @@ bool Cash::process_cash_purse(
 
             // Grab the TokenID for that token. (Token still has OLD OWNER.)
             //
-            std::string tokenID =
-                SwigWrap::Token_GetID(notaryID, instrumentDefinitionID, token);
+            std::string tokenID = api_.Exec().Token_GetID(
+                notaryID, instrumentDefinitionID, token);
 
             if (!VerifyStringVal(tokenID)) {
                 otOut << strLocation
@@ -1195,7 +1198,7 @@ bool Cash::process_cash_purse(
                 // (So the sender can recover his sent coins that got
                 // encrypted to someone else's key.);
 
-                std::string exportedToken = SwigWrap::Token_ChangeOwner(
+                std::string exportedToken = api_.Exec().Token_ChangeOwner(
                     notaryID,
                     instrumentDefinitionID,
                     token,          // server, asset, token,;
@@ -1210,7 +1213,7 @@ bool Cash::process_cash_purse(
                     return false;
                 }
 
-                std::string retainedToken = SwigWrap::Token_ChangeOwner(
+                std::string retainedToken = api_.Exec().Token_ChangeOwner(
                     notaryID,
                     instrumentDefinitionID,
                     token,                  // server, asset, token,;
@@ -1232,7 +1235,7 @@ bool Cash::process_cash_purse(
                 //              // Not needed.
                 strRecipient = bPWProtectNewPurse ? "" : recipientNymID;
 
-                std::string strPushedForRecipient = SwigWrap::Purse_Push(
+                std::string strPushedForRecipient = api_.Exec().Purse_Push(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,         // server, asset, signer;
@@ -1256,7 +1259,7 @@ bool Cash::process_cash_purse(
                 // in your payment outbox is now worthless and can be discarded,
                 // although its existence may be valuable to you as a receipt.
                 //
-                std::string strPushedForRetention = SwigWrap::Purse_Push(
+                std::string strPushedForRetention = api_.Exec().Purse_Push(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,  // server, asset, signer;
@@ -1279,7 +1282,7 @@ bool Cash::process_cash_purse(
             {
                 std::string strSender = bPWProtectOldPurse ? "" : nymID;
 
-                std::string str = SwigWrap::Purse_Push(
+                std::string str = api_.Exec().Purse_Push(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,      // server, asset, signer;
@@ -1303,7 +1306,7 @@ bool Cash::process_cash_purse(
         if (!bPWProtectOldPurse)  // If old purse is NOT password-protected
                                   // (that is, it's encrypted to a Nym.)
         {
-            if (!SwigWrap::SavePurse(
+            if (!api_.Exec().SavePurse(
                     notaryID,
                     instrumentDefinitionID,
                     nymID,
@@ -1351,7 +1354,7 @@ bool Cash::get_tokens(
 {
     if (indices.empty()) { return true; }
 
-    std::int32_t items = SwigWrap::Purse_Count(server, assetType, purse);
+    std::int32_t items = api_.Exec().Purse_Count(server, assetType, purse);
     if (0 > items) {
         otOut << "Error: cannot load purse item count.\n";
         return false;
@@ -1365,25 +1368,26 @@ bool Cash::get_tokens(
     const bool all = (0 == indices.compare("all"));
     for (std::int32_t i = 0; i < items; i++) {
         std::string token =
-            SwigWrap::Purse_Peek(server, assetType, mynym, purse);
+            api_.Exec().Purse_Peek(server, assetType, mynym, purse);
         if (token.empty()) {
             otOut << "Error: cannot load token from purse.\n";
             return false;
         }
 
-        purse = SwigWrap::Purse_Pop(server, assetType, mynym, purse);
+        purse = api_.Exec().Purse_Pop(server, assetType, mynym, purse);
         if (purse.empty()) {
             otOut << "Error: cannot load updated purse.\n";
             return false;
         }
 
-        std::string tokenID = SwigWrap::Token_GetID(server, assetType, token);
+        std::string tokenID = api_.Exec().Token_GetID(server, assetType, token);
         if (tokenID.empty()) {
             otOut << "Error: cannot get token ID.\n";
             return false;
         }
 
-        if (!all && SwigWrap::NumList_VerifyQuery(indices, std::to_string(i))) {
+        if (!all &&
+            api_.Exec().NumList_VerifyQuery(indices, std::to_string(i))) {
             tokens.push_back(tokenID);
         }
     }

@@ -1773,7 +1773,7 @@ std::string OTAPI_Func::send_once(
     //
     // strReply contains the reply itself (or null.)
     //
-    std::int32_t nReplySuccess = VerifyMessageSuccess(strReply);
+    std::int32_t nReplySuccess = VerifyMessageSuccess(api_, strReply);
 
     bool bMsgReplyError = (!VerifyStringVal(strReply) || (nReplySuccess < 0));
 
