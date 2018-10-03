@@ -8385,7 +8385,7 @@ CommandResult OT_API::notarizeWithdrawal(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
 
-    if (false == managedNumber.Valid()) {
+    if (false == managedNumber->Valid()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
@@ -8395,8 +8395,8 @@ CommandResult OT_API::notarizeWithdrawal(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << managedNumber << std::endl;
-    transactionNum = managedNumber;
+          << managedNumber->Value() << std::endl;
+    transactionNum = managedNumber->Value();
     auto transaction{api_.Factory().Transaction(
         nymID,
         accountID,
@@ -8568,7 +8568,7 @@ CommandResult OT_API::notarizeDeposit(
         context.NextTransactionNumber(MessageType::notarizeTransaction));
     auto& managedNumber = *managed.rbegin();
 
-    if (false == managedNumber.Valid()) {
+    if (false == managedNumber->Valid()) {
         otErr << OT_METHOD << __FUNCTION__
               << ": No transaction numbers were available. "
                  "Try requesting the server for a new one.\n";
@@ -8578,8 +8578,8 @@ CommandResult OT_API::notarizeDeposit(
     }
 
     otErr << OT_METHOD << __FUNCTION__ << ": Allocated transaction number "
-          << managedNumber << std::endl;
-    transactionNum = managedNumber;
+          << managedNumber->Value() << std::endl;
+    transactionNum = managedNumber->Value();
 
     auto transaction{api_.Factory().Transaction(
         nymID,
