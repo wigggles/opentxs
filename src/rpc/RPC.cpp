@@ -429,7 +429,30 @@ proto::RPCResponse RPC::create_compatible_account(
     const auto registered =
         client.OTAPI().IsNym_RegisteredAtServer(ownerID, notaryid);
 
-    if (registered) {
+    auto contract = client.Wallet().UnitDefinition(unitdefinitionid);
+
+    if (false == bool(contract)) {
+        auto action = client.ServerAction().DownloadContract(
+            ownerID, notaryid, unitdefinitionid);
+        action->Run();
+
+        if (SendResult::VALID_REPLY == action->LastSendResult()) {
+            contract = client.Wallet().UnitDefinition(unitdefinitionid);
+
+            if (false == bool(contract)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Notary ")(notaryid)(
+                    " does not have unit definition ")(unitdefinitionid)
+                    .Flush();
+            }
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Communication error while downloading unit definition ")(
+                unitdefinitionid)(" on server ")(notaryid)
+                .Flush();
+        }
+    }
+
+    if (registered && bool(contract)) {
         auto action = client.ServerAction().RegisterAccount(
             ownerID, notaryid, unitdefinitionid);
         action->Run();
