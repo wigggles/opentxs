@@ -1251,7 +1251,7 @@ private:
     itemType response_type(const transactionType sourceType, const bool success)
         const;
     NetworkReplyMessage send_message(
-        const std::set<ServerContext::ManagedNumber>& pending,
+        const std::set<OTManagedNumber>& pending,
         ServerContext& context,
         const Message& message,
         const bool resync = false) const;

@@ -32,17 +32,17 @@ public:
         const otx::Reply& notification,
         ServerContext& context);
     bool processServerReply(
-        const std::set<ServerContext::ManagedNumber>& managed,
+        const std::set<OTManagedNumber>& managed,
         const bool resync,
         ServerContext& context,
         std::shared_ptr<Message>& reply);
     bool processServerReply(
-        const std::set<ServerContext::ManagedNumber>& managed,
+        const std::set<OTManagedNumber>& managed,
         ServerContext& context,
         std::shared_ptr<Message>& reply,
         Ledger* pNymbox);
     bool processServerReply(
-        const std::set<ServerContext::ManagedNumber>& managed,
+        const std::set<OTManagedNumber>& managed,
         const bool resync,
         ServerContext& context,
         std::shared_ptr<Message>& reply,

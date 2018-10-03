@@ -3,8 +3,7 @@
 // License, v. 2.0. If a copy of the MPL was not distributed with this
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
-#define OPENTXS_CONSENSUS_SERVERCONTEXT_HPP
+#pragma once
 
 #include "opentxs/Forward.hpp"
 
@@ -22,6 +21,33 @@ namespace opentxs
 class ServerContext : public Context
 {
 public:
+    class ManagedNumber
+    {
+    public:
+        ManagedNumber(ManagedNumber&& rhs);
+
+        operator TransactionNumber() const;
+
+        void SetSuccess(const bool value = true) const;
+        bool Valid() const;
+
+        ~ManagedNumber();
+
+    private:
+        friend ServerContext;
+
+        ServerContext& context_;
+        const TransactionNumber number_;
+        mutable OTFlag success_;
+        bool managed_{true};
+
+        ManagedNumber(const TransactionNumber number, ServerContext& context);
+        ManagedNumber() = delete;
+        ManagedNumber(const ManagedNumber&) = delete;
+        ManagedNumber& operator=(const ManagedNumber&) = delete;
+        ManagedNumber& operator=(ManagedNumber&&) = delete;
+    };
+
     ServerContext(
         const api::Core& api,
         const ConstNym& local,
@@ -76,7 +102,7 @@ public:
         const RequestNumber provided,
         const bool withAcknowledgments = true,
         const bool withNymboxHash = false);
-    OTManagedNumber NextTransactionNumber(const MessageType reason);
+    ManagedNumber NextTransactionNumber(const MessageType reason);
     NetworkReplyMessage PingNotary();
     bool RemoveTentativeNumber(const TransactionNumber& number);
     bool Resync(const proto::Context& serialized);
@@ -157,5 +183,3 @@ private:
     ServerContext& operator=(ServerContext&&) = delete;
 };
 }  // namespace opentxs
-
-#endif

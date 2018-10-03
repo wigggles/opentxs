@@ -50,6 +50,7 @@
 #include <opentxs/client/Utility.hpp>
 #include <opentxs/consensus/ClientContext.hpp>
 #include <opentxs/consensus/Context.hpp>
+#include <opentxs/consensus/ManagedNumber.hpp>
 #include <opentxs/consensus/ServerContext.hpp>
 #include <opentxs/contact/Contact.hpp>
 #include <opentxs/contact/ContactData.hpp>

@@ -229,6 +229,7 @@ class Letter;
 class ListenCallbackSwig;
 class Log;
 class MasterCredential;
+class ManagedNumber;
 class Message;
 #if OT_CASH
 class Mint;
@@ -307,6 +308,7 @@ using OTKeypair = Pimpl<crypto::key::Keypair>;
 using OTFlag = Pimpl<Flag>;
 using OTIdentifier = Pimpl<Identifier>;
 using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
+using OTManagedNumber = Pimpl<opentxs::ManagedNumber>;
 using OTPaymentCode = Pimpl<PaymentCode>;
 using OTServerConnection = Pimpl<network::ServerConnection>;
 using OTString = Pimpl<String>;
