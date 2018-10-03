@@ -45,6 +45,8 @@ private:
     proto::RPCResponse add_claim(const proto::RPCCommand& command) const;
     proto::RPCResponse add_contact(const proto::RPCCommand& command) const;
     proto::RPCResponse create_account(const proto::RPCCommand& command) const;
+    proto::RPCResponse create_compatible_account(
+        const proto::RPCCommand& command) const;
     proto::RPCResponse create_issuer_account(
         const proto::RPCCommand& command) const;
     proto::RPCResponse create_nym(const proto::RPCCommand& command) const;
@@ -60,6 +62,8 @@ private:
     proto::RPCResponse get_account_activity(
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_account_balance(
+        const proto::RPCCommand& command) const;
+    proto::RPCResponse get_compatible_accounts(
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_pending_payments(
         const proto::RPCCommand& command) const;

@@ -19,9 +19,9 @@
 
 template class opentxs::Pimpl<opentxs::network::zeromq::PairSocket>;
 
-#define PAIR_ENDPOINT_PATH "pair"
-#define PAIR_ENDPOINT_INSTANCE -1
-#define PAIR_ENDPOINT_VERSION 1
+//#define PAIR_ENDPOINT_PATH "pair"
+//#define PAIR_ENDPOINT_INSTANCE -1
+//#define PAIR_ENDPOINT_VERSION 1
 
 #define OT_METHOD "opentxs::network::zeromq::implementation::PairSocket::"
 
