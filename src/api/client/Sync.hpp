@@ -206,6 +206,7 @@ private:
         std::tuple<OTIdentifier, OTIdentifier, Amount, std::string, Time, Time>;
 
     struct OperationQueue {
+        int counter_{0};
         UniqueQueue<OTIdentifier> check_nym_;
         UniqueQueue<DepositPaymentTask> deposit_payment_;
         UniqueQueue<OTIdentifier> download_account_;
