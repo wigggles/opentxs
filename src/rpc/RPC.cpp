@@ -88,7 +88,6 @@ proto::RPCResponse RPC::accept_pending_payments(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -198,7 +197,6 @@ proto::RPCResponse RPC::accept_pending_payments(
 proto::RPCResponse RPC::add_claim(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -309,7 +307,6 @@ void RPC::add_output_task(proto::RPCResponse& output, const std::string& taskid)
 proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -371,7 +368,6 @@ proto::RPCResponse RPC::create_compatible_account(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -421,8 +417,6 @@ proto::RPCResponse RPC::create_compatible_account(
         return output;
     }
 
-    // const auto& sourceaccountid = cheque->SourceAccountID();
-    // const auto sourceaccount = client.Wallet().Account(sourceaccountid);
     const auto& unitdefinitionid = cheque->GetInstrumentDefinitionID();
     const auto& notaryid = cheque->GetNotaryID();
 
@@ -483,7 +477,6 @@ proto::RPCResponse RPC::create_issuer_account(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -559,7 +552,6 @@ proto::RPCResponse RPC::create_issuer_account(
 proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -609,7 +601,6 @@ proto::RPCResponse RPC::create_unit_definition(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -647,7 +638,6 @@ proto::RPCResponse RPC::create_unit_definition(
 proto::RPCResponse RPC::delete_claim(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -706,7 +696,6 @@ proto::RPCResponse RPC::get_account_activity(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -779,7 +768,6 @@ proto::RPCResponse RPC::get_account_balance(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -865,7 +853,6 @@ proto::RPCResponse RPC::get_compatible_accounts(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -936,7 +923,6 @@ std::size_t RPC::get_index(const std::int32_t instance)
 proto::RPCResponse RPC::get_nyms(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     // This won't be necessary when CHECK_EXISTS is uncommented in
     // CHECK_IDENTIFIERS in Check.hpp.
@@ -972,7 +958,6 @@ proto::RPCResponse RPC::get_pending_payments(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1053,7 +1038,6 @@ proto::RPCResponse RPC::get_pending_payments(
 proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     // This won't be necessary when CHECK_EXISTS is uncommented in
     // CHECK_IDENTIFIERS in Check.hpp.
@@ -1092,7 +1076,6 @@ proto::RPCResponse RPC::get_server_contracts(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     // This won't be necessary when CHECK_EXISTS is uncommented in
     // CHECK_IDENTIFIERS in Check.hpp.
@@ -1136,7 +1119,6 @@ const api::Core& RPC::get_session(const std::int32_t instance) const
 proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     auto& seed = command.hdseed();
     OTPassword words;
@@ -1165,7 +1147,6 @@ proto::RPCResponse RPC::import_server_contract(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1233,7 +1214,6 @@ bool RPC::is_session_valid(std::int32_t instance) const
 proto::RPCResponse RPC::list_accounts(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1263,7 +1243,6 @@ proto::RPCResponse RPC::list_client_sessions(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     for (std::size_t i = 0; i < ot_.Clients(); ++i) {
         proto::SessionData& data = *output.add_sessions();
@@ -1283,7 +1262,6 @@ proto::RPCResponse RPC::list_client_sessions(
 proto::RPCResponse RPC::list_contacts(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1319,7 +1297,6 @@ proto::RPCResponse RPC::list_contacts(const proto::RPCCommand& command) const
 proto::RPCResponse RPC::list_nyms(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1345,7 +1322,6 @@ proto::RPCResponse RPC::list_nyms(const proto::RPCCommand& command) const
 proto::RPCResponse RPC::list_seeds(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1372,7 +1348,6 @@ proto::RPCResponse RPC::list_server_contracts(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1397,7 +1372,6 @@ proto::RPCResponse RPC::list_server_sessions(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     for (std::size_t i = 0; i < ot_.Servers(); ++i) {
         auto& data = *output.add_sessions();
@@ -1418,7 +1392,6 @@ proto::RPCResponse RPC::list_unit_definitions(
     const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1444,7 +1417,6 @@ proto::RPCResponse RPC::list_unit_definitions(
 proto::RPCResponse RPC::move_funds(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1635,7 +1607,6 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
 proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
@@ -1710,7 +1681,6 @@ proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
 proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
 {
     auto output = init(command);
-    Lock lock(lock_);
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
