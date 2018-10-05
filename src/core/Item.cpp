@@ -50,6 +50,8 @@ namespace opentxs
 // because I'm about to load it.
 Item::Item(const api::Core& core)
     : OTTransactionType(core)
+    , m_ascNote(Armored::Factory())
+    , m_ascAttachment(Armored::Factory())
     , m_AcctToID(Identifier::Factory())
     , m_lAmount(0)
     , m_listItems()
@@ -73,6 +75,8 @@ Item::Item(
           theOwner.GetRealNotaryID(),
           theOwner.GetTransactionNum(),
           theOwner.GetOriginType())
+    , m_ascNote(Armored::Factory())
+    , m_ascAttachment(Armored::Factory())
     , m_AcctToID(Identifier::Factory())
     , m_lAmount(0)
     , m_listItems()
@@ -96,6 +100,8 @@ Item::Item(
           theOwner.GetRealNotaryID(),
           theOwner.GetTransactionNum(),
           theOwner.GetOriginType())
+    , m_ascNote(Armored::Factory())
+    , m_ascAttachment(Armored::Factory())
     , m_AcctToID(Identifier::Factory())
     , m_lAmount(0)
     , m_listItems()
@@ -120,6 +126,8 @@ Item::Item(
           theOwner.GetRealNotaryID(),
           theOwner.GetTransactionNum(),
           theOwner.GetOriginType())
+    , m_ascNote(Armored::Factory())
+    , m_ascAttachment(Armored::Factory())
     , m_AcctToID(Identifier::Factory())
     , m_lAmount(0)
     , m_listItems()
@@ -1104,27 +1112,27 @@ void Item::CalculateNumberOfOrigin()
 
 void Item::GetAttachment(String& theStr) const
 {
-    m_ascAttachment.GetString(theStr);
+    m_ascAttachment->GetString(theStr);
 }
 
 void Item::SetAttachment(const String& theStr)
 {
-    m_ascAttachment.SetString(theStr);
+    m_ascAttachment->SetString(theStr);
 }
 
 void Item::SetNote(const String& theStr)
 {
     if (theStr.Exists() && theStr.GetLength() > 2) {
-        m_ascNote.SetString(theStr);
+        m_ascNote->SetString(theStr);
     } else {
-        m_ascNote.Release();
+        m_ascNote->Release();
     }
 }
 
 void Item::GetNote(String& theStr) const
 {
-    if (m_ascNote.GetLength() > 2) {
-        m_ascNote.GetString(theStr);
+    if (m_ascNote->GetLength() > 2) {
+        m_ascNote->GetString(theStr);
     } else {
         theStr.Release();
     }
@@ -1883,14 +1891,14 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
         }
     }
 
-    if (m_ascNote.GetLength() > 2) { tag.add_tag("note", m_ascNote.Get()); }
+    if (m_ascNote->GetLength() > 2) { tag.add_tag("note", m_ascNote->Get()); }
 
-    if (m_ascInReferenceTo.GetLength() > 2) {
-        tag.add_tag("inReferenceTo", m_ascInReferenceTo.Get());
+    if (m_ascInReferenceTo->GetLength() > 2) {
+        tag.add_tag("inReferenceTo", m_ascInReferenceTo->Get());
     }
 
-    if (m_ascAttachment.GetLength() > 2) {
-        tag.add_tag("attachment", m_ascAttachment.Get());
+    if (m_ascAttachment->GetLength() > 2) {
+        tag.add_tag("attachment", m_ascAttachment->Get());
     }
 
     if ((itemType::balanceStatement == m_Type) ||

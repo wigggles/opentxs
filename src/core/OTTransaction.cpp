@@ -65,7 +65,7 @@ OTTransaction::OTTransaction(const api::Core& core)
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
+    , m_ascCancellationRequest(Armored::Factory())
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
@@ -96,7 +96,7 @@ OTTransaction::OTTransaction(const api::Core& core, const Ledger& theOwner)
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
+    , m_ascCancellationRequest(Armored::Factory())
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
@@ -136,7 +136,7 @@ OTTransaction::OTTransaction(
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
+    , m_ascCancellationRequest(Armored::Factory())
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
@@ -172,7 +172,7 @@ OTTransaction::OTTransaction(
     , m_Type(transactionType::error_state)
     , m_listItems()
     , m_lClosingTransactionNo(0)
-    , m_ascCancellationRequest()
+    , m_ascCancellationRequest(Armored::Factory())
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
@@ -227,7 +227,7 @@ OTTransaction::OTTransaction(
     , m_Type(theType)
     , m_listItems()
     , m_lClosingTransactionNo(lClosingNum)
-    , m_ascCancellationRequest()
+    , m_ascCancellationRequest(Armored::Factory())
     , m_lRequestNumber(lRequestNum)
     , m_bReplyTransSuccess(bReplyTransSuccess)
     , m_bCancelled(false)
@@ -2897,23 +2897,23 @@ bool OTTransaction::DeleteBoxReceipt(Ledger& theLedger)
             strFolder2name->Get(),
             strFolder3name->Get(),
             strFilename->Get())) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-            (": Box receipt already doesn't exist, thus no need to delete: ")
-               ("At location: ")
-            (strFolder1name) (Log::PathSeparator()) (strFolder2name)
-            (Log::PathSeparator()) (strFolder3name) (Log::PathSeparator())
-            (strFilename).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Box receipt already doesn't exist, thus no need to delete: ")(
+            "At location: ")(strFolder1name)(Log::PathSeparator())(
+            strFolder2name)(Log::PathSeparator())(strFolder3name)(
+            Log::PathSeparator())(strFilename)
+            .Flush();
         return false;
     }
 
     auto strFinal = String::Factory();
-    Armored ascTemp;
+    auto ascTemp = Armored::Factory();
 
     if (m_strRawFile->Exists()) {
-        ascTemp.SetString(m_strRawFile);
+        ascTemp->SetString(m_strRawFile);
 
         if (false ==
-            ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+            ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
             otErr << __FUNCTION__
                   << ": Error deleting (writing over) box receipt (failed "
                      "writing armored string):\n"
@@ -3008,10 +3008,10 @@ bool OTTransaction::SaveBoxReceipt(std::int64_t lLedgerType)
     // Try to save the box receipt to local storage.
     //
     auto strFinal = String::Factory();
-    Armored ascTemp(m_strRawFile);
+    auto ascTemp = Armored::Factory(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << __FUNCTION__
               << ": Error saving box receipt (failed writing armored string):\n"
               << strFolder1name << Log::PathSeparator() << strFolder2name
@@ -4216,12 +4216,12 @@ void OTTransaction::UpdateContents()
         // a transaction contains a list of items, but it is also in reference
         // to some item, from someone else
         // We include a full copy of that item here.
-        if (m_ascInReferenceTo.GetLength()) {
-            tag.add_tag("inReferenceTo", m_ascInReferenceTo.Get());
+        if (m_ascInReferenceTo->GetLength()) {
+            tag.add_tag("inReferenceTo", m_ascInReferenceTo->Get());
         }
 
-        if (m_ascCancellationRequest.GetLength()) {
-            tag.add_tag("cancelRequest", m_ascCancellationRequest.Get());
+        if (m_ascCancellationRequest->GetLength()) {
+            tag.add_tag("cancelRequest", m_ascCancellationRequest->Get());
         }
 
         // loop through the items that make up this transaction and print them
@@ -4233,10 +4233,10 @@ void OTTransaction::UpdateContents()
             auto strItem = String::Factory();
             pItem->SaveContractRaw(strItem);
 
-            Armored ascItem;
-            ascItem.SetString(strItem, true);  // linebreaks = true
+            auto ascItem = Armored::Factory();
+            ascItem->SetString(strItem, true);  // linebreaks = true
 
-            tag.add_tag("item", ascItem.Get());
+            tag.add_tag("item", ascItem->Get());
         }
     }  // not abbreviated (full details.)
 

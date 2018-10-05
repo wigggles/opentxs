@@ -301,10 +301,10 @@ bool MessageProcessor::process_message(
 {
     if (messageString.size() < 1) { return true; }
 
-    Armored armored;
-    armored.MemSet(messageString.data(), messageString.size());
+    auto armored = Armored::Factory();
+    armored->MemSet(messageString.data(), messageString.size());
     auto serialized = String::Factory();
-    armored.GetString(serialized);
+    armored->GetString(serialized);
     auto request{server_.API().Factory().Message()};
 
     if (false == serialized->Exists()) {
@@ -348,16 +348,16 @@ bool MessageProcessor::process_message(
         return true;
     }
 
-    Armored armoredReply(serializedReply);
+    auto armoredReply = Armored::Factory(serializedReply);
 
-    if (false == armoredReply.Exists()) {
+    if (false == armoredReply->Exists()) {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to armor reply."
               << std::endl;
 
         return true;
     }
 
-    reply.assign(armoredReply.Get(), armoredReply.GetLength());
+    reply.assign(armoredReply->Get(), armoredReply->GetLength());
 
     return false;
 }

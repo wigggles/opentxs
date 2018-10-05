@@ -72,12 +72,15 @@ const std::int32_t Token__nMinimumPrototokenCount = 1;
 Token::Token(const api::Core& core)
     : Instrument(core)
     , m_bPasswordProtected(false)
+    , m_ascSpendable(Armored::Factory())
+    , m_Signature(Armored::Factory())
     , m_lDenomination(0)
     , m_nTokenCount(0)
     , m_nChosenIndex(0)
     , m_nSeries(0)
     , m_State(blankToken)
     , m_bSavePrivateKeys(false)
+
 {
     InitToken();
 }
@@ -88,6 +91,8 @@ Token::Token(
     const Identifier& INSTRUMENT_DEFINITION_ID)
     : Instrument(core, NOTARY_ID, INSTRUMENT_DEFINITION_ID)
     , m_bPasswordProtected(false)
+    , m_ascSpendable(Armored::Factory())
+    , m_Signature(Armored::Factory())
     , m_lDenomination(0)
     , m_nTokenCount(0)
     , m_nChosenIndex(0)
@@ -105,6 +110,8 @@ Token::Token(
 Token::Token(const api::Core& core, const Purse& thePurse)
     : Instrument(core)
     , m_bPasswordProtected(false)
+    , m_ascSpendable(Armored::Factory())
+    , m_Signature(Armored::Factory())
     , m_lDenomination(0)
     , m_nTokenCount(0)
     , m_nChosenIndex(0)
@@ -156,8 +163,8 @@ void Token::InitToken()
 void Token::Release_Token()
 {
 
-    m_Signature.Release();
-    m_ascSpendable.Release();
+    m_Signature->Release();
+    m_ascSpendable->Release();
 
     //  InitToken();
 
@@ -294,10 +301,10 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
     // The success of that operation is also now the success of this one.
 
     auto strFinal = String::Factory();
-    Armored ascTemp(m_strRawFile);
+    auto ascTemp = Armored::Factory(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "Token::RecordTokenAsSpent: Error recording token as "
                  "spent (failed writing armored string):\n"
               << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
@@ -427,7 +434,7 @@ bool Token::GetSpendableString(
 {
     const char* szFunc = "Token::GetSpendableString";
 
-    if (m_ascSpendable.Exists()) {
+    if (m_ascSpendable->Exists()) {
         OTEnvelope theEnvelope(m_ascSpendable);
 
         // Decrypt the Envelope into strContents
@@ -488,7 +495,7 @@ void Token::UpdateContents()
     // signed tokens, as well as spendable tokens, both carry a TokenID
     // (The spendable token contains the unblinded version.)
     if (Token::signedToken == m_State || Token::spendableToken == m_State) {
-        tag.add_tag("tokenID", m_ascSpendable.Get());
+        tag.add_tag("tokenID", m_ascSpendable->Get());
     }
 
     // Only signedTokens carry the signature, which is discarded in spendable
@@ -497,7 +504,7 @@ void Token::UpdateContents()
     // could
     // be used to track the token.)
     if (Token::signedToken == m_State) {
-        tag.add_tag("tokenSignature", m_Signature.Get());
+        tag.add_tag("tokenSignature", m_Signature->Get());
     }
 
     if ((Token::protoToken == m_State || Token::signedToken == m_State) &&
@@ -750,7 +757,7 @@ void Token::SetSignature(const Armored& theSignature, std::int32_t nTokenIndex)
     ReleasePrototokens();
 
     // We now officially have the bank's signature on this token.
-    m_Signature.Set(theSignature);
+    m_Signature->Set(theSignature);
 
     //    otErr << "DEBUG Token::SetSignature. nTokenIndex is %d.\nm_Signature
     // is:\n%s\n"
@@ -767,7 +774,7 @@ void Token::SetSignature(const Armored& theSignature, std::int32_t nTokenIndex)
 
 bool Token::GetSignature(Armored& theSignature) const
 {
-    theSignature = m_Signature;
+    theSignature.Set(m_Signature);
 
     return true;
 }

@@ -745,7 +745,7 @@ bool OTClient::AcceptEntireNymbox(
             // Extract the ledger into string form and add it as the payload on
             // the message.
             const auto serialized = String::Factory(*processLedger);
-            ready &= theMessage.m_ascPayload.SetString(serialized);
+            ready &= theMessage.m_ascPayload->SetString(serialized);
 
             OT_ASSERT(ready)
 
@@ -1916,7 +1916,7 @@ void OTClient::ProcessIncomingCronItemReply(
                 << ": Failed trying to remove outpayment with transaction num: "
                 << lNymOpeningNumber << "\n";
         }
-        if (!pMsg->m_ascPayload.GetString(strInstrument)) {
+        if (!pMsg->m_ascPayload->GetString(strInstrument)) {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Unable to find payment instrument in outpayment "
                      "message with transaction num: "
@@ -2641,10 +2641,10 @@ void OTClient::ProcessIncomingTransaction(
     auto strTransaction = String::Factory();
     pTransaction->SaveContractRaw(strTransaction);
     auto strFinal = String::Factory();
-    Armored ascTemp(strTransaction);
+    auto ascTemp = Armored::Factory(strTransaction);
 
     // todo hardcoding.
-    if (false == ascTemp.WriteArmoredString(strFinal, "TRANSACTION")) {
+    if (false == ascTemp->WriteArmoredString(strFinal, "TRANSACTION")) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error saving transaction receipt "
                  "(failed writing armored string):\n"
@@ -3096,9 +3096,9 @@ bool OTClient::processServerReplyGetAccountData(
     auto strAccount = String::Factory(), strInbox = String::Factory(),
          strOutbox = String::Factory();
 
-    if (!theReply.m_ascPayload.GetString(strAccount) ||
-        !theReply.m_ascPayload2.GetString(strInbox) ||
-        !theReply.m_ascPayload3.GetString(strOutbox)) {
+    if (!theReply.m_ascPayload->GetString(strAccount) ||
+        !theReply.m_ascPayload2->GetString(strInbox) ||
+        !theReply.m_ascPayload3->GetString(strOutbox)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decode armored reponse")
             .Flush();
     }
@@ -3349,8 +3349,8 @@ bool OTClient::processServerReplyGetMarketList(const Message& theReply)
 
     auto thePayload = Data::Factory();
 
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
+    if ((theReply.m_ascPayload->GetLength() <= 2) ||
+        (false == theReply.m_ascPayload->GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
                  "payload in getMarketListResponse reply.\n";
         return true;
@@ -3432,8 +3432,8 @@ bool OTClient::processServerReplyGetMarketOffers(const Message& theReply)
 
     auto thePayload = Data::Factory();
 
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
+    if ((theReply.m_ascPayload->GetLength() <= 2) ||
+        (false == theReply.m_ascPayload->GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
                  "payload in getMarketOffersResponse reply.\n";
         return true;
@@ -3515,8 +3515,8 @@ bool OTClient::processServerReplyGetMarketRecentTrades(const Message& theReply)
 
     auto thePayload = Data::Factory();
 
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
+    if ((theReply.m_ascPayload->GetLength() <= 2) ||
+        (false == theReply.m_ascPayload->GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
                  "payload in getMarketRecentTradesResponse reply.\n";
         return true;
@@ -3706,8 +3706,8 @@ bool OTClient::processServerReplyGetNymMarketOffers(const Message& theReply)
 
     auto thePayload = Data::Factory();
 
-    if ((theReply.m_ascPayload.GetLength() <= 2) ||
-        (false == theReply.m_ascPayload.GetData(thePayload))) {
+    if ((theReply.m_ascPayload->GetLength() <= 2) ||
+        (false == theReply.m_ascPayload->GetData(thePayload))) {
         otErr << "ProcessServerReply: unable to decode ascii-armored "
                  "payload in getNymMarketOffersResponse reply.\n";
         return true;
@@ -3814,8 +3814,8 @@ bool OTClient::processServerReplyProcessBox(
     // make sure to update my nym accordingly.
     auto strOriginalMessage = String::Factory();
 
-    if (theReply.m_ascInReferenceTo.Exists()) {
-        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+    if (theReply.m_ascInReferenceTo->Exists()) {
+        theReply.m_ascInReferenceTo->GetString(strOriginalMessage);
     }
 
     auto theOriginalMessage = api_.Factory().Message();
@@ -3843,8 +3843,8 @@ bool OTClient::processServerReplyProcessBox(
 
         OT_ASSERT(false != bool(theReplyLedger));
 
-        theOriginalMessage->m_ascPayload.GetString(strLedger);
-        theReply.m_ascPayload.GetString(strReplyLedger);
+        theOriginalMessage->m_ascPayload->GetString(strLedger);
+        theReply.m_ascPayload->GetString(strReplyLedger);
 
         if (!strLedger->Exists()) {
             auto strLogData = String::Factory(*theOriginalMessage);
@@ -4044,9 +4044,9 @@ bool OTClient::processServerReplyProcessBox(
                 }
 
                 auto strFinal = String::Factory();
-                Armored ascTemp(strTransaction);
+                auto ascTemp = Armored::Factory(strTransaction);
 
-                if (false == ascTemp.WriteArmoredString(
+                if (false == ascTemp->WriteArmoredString(
                                  strFinal, "TRANSACTION"))  // todo hardcoding.
                 {
                     otErr << "OTClient::ProcessServerReply: Error saving "
@@ -5739,7 +5739,7 @@ bool OTClient::processServerReplyProcessNymbox(
                                                  "outpayment with trans num: "
                                               << lNymOpeningNumber << "\n";
                                     }
-                                    if (!pMsg->m_ascPayload.GetString(
+                                    if (!pMsg->m_ascPayload->GetString(
                                             strSentInstrument)) {
                                         otErr << OT_METHOD << __FUNCTION__
                                               << ": Unable to find payment "
@@ -7159,7 +7159,7 @@ bool OTClient::processServerReplyRegisterAccount(
 {
     setRecentHash(theReply, false, context);
 
-    if (theReply.m_ascPayload.GetLength()) {
+    if (theReply.m_ascPayload->GetLength()) {
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         auto strAcctContents = String::Factory(theReply.m_ascPayload);
@@ -7187,7 +7187,7 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
 {
     setRecentHash(theReply, false, context);
 
-    if (theReply.m_ascPayload.GetLength()) {
+    if (theReply.m_ascPayload->GetLength()) {
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         auto strAcctContents = String::Factory(theReply.m_ascPayload);
@@ -7246,8 +7246,8 @@ bool OTClient::processServerReplyUnregisterAccount(
 {
     auto strOriginalMessage = String::Factory();
 
-    if (theReply.m_ascInReferenceTo.Exists()) {
-        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+    if (theReply.m_ascInReferenceTo->Exists()) {
+        theReply.m_ascInReferenceTo->GetString(strOriginalMessage);
     }
 
     auto theOriginalMessage = api_.Factory().Message();
@@ -7292,8 +7292,8 @@ bool OTClient::processServerReplyUnregisterNym(
 
     OT_ASSERT(false != bool(theOriginalMessage));
 
-    if (theReply.m_ascInReferenceTo.Exists()) {
-        theReply.m_ascInReferenceTo.GetString(strOriginalMessage);
+    if (theReply.m_ascInReferenceTo->Exists()) {
+        theReply.m_ascInReferenceTo->GetString(strOriginalMessage);
     }
 
     if (strOriginalMessage->Exists() &&

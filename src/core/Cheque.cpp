@@ -103,8 +103,8 @@ void Cheque::UpdateContents()
     tag.add_attribute("validTo", to);
 
     if (m_strMemo->Exists() && m_strMemo->GetLength() > 2) {
-        Armored ascMemo(m_strMemo);
-        tag.add_tag("memo", ascMemo.Get());
+        auto ascMemo = Armored::Factory(m_strMemo);
+        tag.add_tag("memo", ascMemo->Get());
     }
 
     std::string str_result;
@@ -189,22 +189,19 @@ std::int32_t Cheque::ProcessXMLNode(IrrXMLReader*& xml)
             m_REMITTER_NYM_ID->Release();
             m_REMITTER_ACCT_ID->Release();
         }
-    {
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": Cheque Amount: ") (m_lAmount)
-               (". Transaction Number: ") (m_lTransactionNum)
-               (" Valid From: ") (str_valid_from)
-               (" Valid To: ") (str_valid_to)
-               (" InstrumentDefinitionID: ") (strInstrumentDefinitionID)
-               (" NotaryID: ") (strNotaryID)
-               (" senderAcctID: ") (strSenderAcctID)
-               (" senderNymID: ") (strSenderNymID)
-               (" Has Recipient? ") (m_bHasRecipient ? "Yes" : "No")
-               (". If yes, NymID of Recipient: ") (strRecipientNymID)
-               (" Has Remitter? ") (m_bHasRemitter ? "Yes" : "No")
-               (". If yes, NymID/Acct of Remitter: ") (strRemitterNymID)
-               (" / ") (strRemitterAcctID).Flush();
-
+        {
+            LogVerbose(OT_METHOD)(__FUNCTION__)(": Cheque Amount: ")(m_lAmount)(
+                ". Transaction Number: ")(m_lTransactionNum)(" Valid From: ")(
+                str_valid_from)(" Valid To: ")(str_valid_to)(
+                " InstrumentDefinitionID: ")(strInstrumentDefinitionID)(
+                " NotaryID: ")(strNotaryID)(" senderAcctID: ")(strSenderAcctID)(
+                " senderNymID: ")(strSenderNymID)(" Has Recipient? ")(
+                m_bHasRecipient ? "Yes" : "No")(
+                ". If yes, NymID of Recipient: ")(strRecipientNymID)(
+                " Has Remitter? ")(m_bHasRemitter ? "Yes" : "No")(
+                ". If yes, NymID/Acct of Remitter: ")(strRemitterNymID)(" / ")(
+                strRemitterAcctID)
+                .Flush();
         }
         nReturnVal = 1;
     } else if (!strcmp("memo", xml->getNodeName())) {

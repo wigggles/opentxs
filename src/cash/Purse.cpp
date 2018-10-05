@@ -590,10 +590,11 @@ bool Purse::LoadPurse(
                      szFolder2name,
                      szFolder3name,
                      szFilename)) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": File does not exist: ") (szFolder1name)
-               (Log::PathSeparator()) (szFolder2name) (Log::PathSeparator())
-               (szFolder3name) (Log::PathSeparator()) (szFilename).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
+            szFolder1name)(Log::PathSeparator())(szFolder2name)(
+            Log::PathSeparator())(szFolder3name)(Log::PathSeparator())(
+            szFilename)
+            .Flush();
         return false;
     }
 
@@ -667,10 +668,10 @@ bool Purse::SavePurse(
     }
 
     auto strFinal = String::Factory();
-    Armored ascTemp(strRawFile);
+    auto ascTemp = Armored::Factory(strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "Purse::SavePurse: Error saving Pursefile (failed writing "
                  "armored string):\n"
               << szFolder1name << Log::PathSeparator() << szFolder2name
@@ -754,12 +755,13 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
                          "generated key! Even though "
                          "m_bPasswordProtected is true.\n";
             else {
-                Armored ascCachedKey, ascSymmetricKey;
+                auto ascCachedKey = Armored::Factory(),
+                     ascSymmetricKey = Armored::Factory();
 
                 if (!m_pCachedKey->SerializeTo(ascCachedKey) ||
-                    !ascCachedKey.Exists() ||
+                    !ascCachedKey->Exists() ||
                     !m_pSymmetricKey->SerializeTo(ascSymmetricKey) ||
-                    !ascSymmetricKey.Exists())
+                    !ascSymmetricKey->Exists())
                     otErr << __FUNCTION__
                           << ": Error: m_pCachedKey or m_pSymmetricKey failed "
                              "trying to serialize to Armored.\n";
@@ -771,10 +773,10 @@ void Purse::UpdateContents()  // Before transmission or serialization, this is
                     //
 
                     // The "password" for the internal symmetric key.
-                    tag.add_tag("cachedKey", ascCachedKey.Get());
+                    tag.add_tag("cachedKey", ascCachedKey->Get());
 
                     // The internal symmetric key, owned by the purse.
-                    tag.add_tag("internalKey", ascSymmetricKey.Get());
+                    tag.add_tag("internalKey", ascSymmetricKey->Get());
                 }
             }
         }
@@ -928,10 +930,10 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        Armored ascValue;
+        auto ascValue = Armored::Factory();
 
         if (!Contract::LoadEncodedTextField(xml, ascValue) ||
-            !ascValue.Exists()) {
+            !ascValue->Exists()) {
             otErr << szFunc << ": Error: Expected "
                   << "internalKey"
                   << " element to have text field.\n";
@@ -1006,10 +1008,10 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);  // error condition
         }
 
-        Armored ascValue;
+        auto ascValue = Armored::Factory();
 
         if (!Contract::LoadEncodedTextField(xml, ascValue) ||
-            !ascValue.Exists()) {
+            !ascValue->Exists()) {
             otErr << szFunc << ": Error: Expected "
                   << "cachedKey"
                   << " element to have text field.\n";

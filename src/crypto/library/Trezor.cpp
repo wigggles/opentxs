@@ -241,8 +241,8 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::GetHDKey(
     const OTPassword& seed,
     proto::HDPath& path) const
 {
-    LogVerbose(OT_METHOD)(__FUNCTION__) (": Deriving child: ")
-           (Print(path)).Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Deriving child: ")(Print(path))
+        .Flush();
     std::shared_ptr<proto::AsymmetricKey> output{nullptr};
     auto node = DeriveChild(curve, seed, path);
 

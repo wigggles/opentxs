@@ -277,10 +277,10 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
         return;
     }
 
-    Armored armored{};
-    armored.Set(std::string(frame).c_str());
+    auto armored = Armored::Factory();
+    armored->Set(std::string(frame).c_str());
     auto serialized = String::Factory();
-    armored.GetString(serialized);
+    armored->GetString(serialized);
     const auto loaded = message->LoadContractFromString(serialized);
     const RequestNumber number = message->m_strRequestNum->ToLong();
 
@@ -364,12 +364,12 @@ NetworkReplyMessage ServerConnection::Send(
 
     auto raw = String::Factory();
     message.SaveContractRaw(raw);
-    Armored envelope(raw);
+    auto envelope = Armored::Factory(raw);
 
-    if (false == envelope.Exists()) { return output; }
+    if (false == envelope->Exists()) { return output; }
 
     Lock socketLock(lock_);
-    auto request = zmq::Message::Factory(std::string(envelope.Get()));
+    auto request = zmq::Message::Factory(std::string(envelope->Get()));
     request->EnsureDelimiter();
     auto sent = get_socket(socketLock).Send(request);
 

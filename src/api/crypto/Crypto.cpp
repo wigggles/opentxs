@@ -175,7 +175,7 @@ const OTCachedKey& Crypto::CachedKey(const OTCachedKey& source) const
     auto& output = cached_keys_[id];
 
     if (false == bool(output)) {
-        Armored serialized{};
+        auto serialized = Armored::Factory();
         const bool haveSerialized = source.SerializeTo(serialized);
 
         OT_ASSERT(haveSerialized);

@@ -2538,7 +2538,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
 
         if (0 == queue.counter_ % 100) {
             // download server nym in case it has been renamed
-            queue.check_nym_.Push(Identifier::Random(), context->RemoteNym().ID());
+            queue.check_nym_.Push(
+                Identifier::Random(), context->RemoteNym().ID());
         }
 
         SHUTDOWN()

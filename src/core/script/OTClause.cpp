@@ -70,14 +70,14 @@ const char* OTClause::GetCode() const
 
 void OTClause::Serialize(Tag& parent) const
 {
-    Armored ascCode;
+    auto ascCode = Armored::Factory();
 
     if (m_strCode->GetLength() > 2)
-        ascCode.SetString(m_strCode);
+        ascCode->SetString(m_strCode);
     else
         otErr << "Empty script code in OTClause::Serialize()\n";
 
-    TagPtr pTag(new Tag("clause", ascCode.Get()));
+    TagPtr pTag(new Tag("clause", ascCode->Get()));
 
     pTag->add_attribute("name", m_strName->Get());
 

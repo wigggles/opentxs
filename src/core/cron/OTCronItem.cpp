@@ -329,9 +329,9 @@ bool OTCronItem::EraseActiveCronReceipt(
             numlist.Output(strNumlist);
 
             auto strFinal = String::Factory();
-            Armored ascTemp(strNumlist);
+            auto ascTemp = Armored::Factory(strNumlist);
 
-            if (false == ascTemp.WriteArmoredString(
+            if (false == ascTemp->WriteArmoredString(
                              strFinal, "ACTIVE CRON ITEMS"))  // todo hardcoding
             {
                 otErr << "OTCronItem::" << __FUNCTION__
@@ -403,11 +403,12 @@ bool OTCronItem::SaveActiveCronReceipt(
             strNotaryID->Get(),
             szFilename,
             "")) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": Cron Record already exists for transaction ")
-               (GetTransactionNum()) (" ") (szFoldername)
-               (Log::PathSeparator()) (strNotaryID) (Log::PathSeparator())
-               (szFilename) (", ") ("overwriting. ").Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(
+            ": Cron Record already exists for transaction ")(
+            GetTransactionNum())(" ")(szFoldername)(Log::PathSeparator())(
+            strNotaryID)(Log::PathSeparator())(szFilename)(", ")(
+            "overwriting. ")
+            .Flush();
         // NOTE: We could just return here. But what if the record we have is
         // corrupted somehow?
         // Might as well just write it there again, so I let this continue
@@ -454,9 +455,9 @@ bool OTCronItem::SaveActiveCronReceipt(
 
         if (numlist.Output(strNumlist)) {
             auto strFinal = String::Factory();
-            Armored ascTemp(strNumlist);
+            auto ascTemp = Armored::Factory(strNumlist);
 
-            if (false == ascTemp.WriteArmoredString(
+            if (false == ascTemp->WriteArmoredString(
                              strFinal, "ACTIVE CRON ITEMS"))  // todo hardcoding
             {
                 otErr << "OTCronItem::" << __FUNCTION__
@@ -486,10 +487,10 @@ bool OTCronItem::SaveActiveCronReceipt(
     }
 
     auto strFinal = String::Factory();
-    Armored ascTemp(m_strRawFile);
+    auto ascTemp = Armored::Factory(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
               << szFoldername << Log::PathSeparator() << strNotaryID
@@ -546,10 +547,10 @@ bool OTCronItem::SaveCronReceipt()
     }
 
     auto strFinal = String::Factory();
-    Armored ascTemp(m_strRawFile);
+    auto ascTemp = Armored::Factory(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << "OTCronItem::" << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
               << szFoldername << Log::PathSeparator() << szFilename << "\n";

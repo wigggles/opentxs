@@ -308,14 +308,14 @@ void OTPaymentPlan::UpdateContents()
 
     // OTAgreement
     if (m_strConsideration->Exists()) {
-        Armored ascTemp(m_strConsideration);
-        tag.add_tag("consideration", ascTemp.Get());
+        auto ascTemp = Armored::Factory(m_strConsideration);
+        tag.add_tag("consideration", ascTemp->Get());
     }
 
     // OTAgreement
     if (m_strMerchantSignedCopy->Exists()) {
-        Armored ascTemp(m_strMerchantSignedCopy);
-        tag.add_tag("merchantSignedCopy", ascTemp.Get());
+        auto ascTemp = Armored::Factory(m_strMerchantSignedCopy);
+        tag.add_tag("merchantSignedCopy", ascTemp->Get());
     }
 
     std::string str_result;

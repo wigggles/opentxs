@@ -2430,9 +2430,9 @@ std::string Storage::EncodeObject(Storable& theContents)
     }
 
     const auto theData = Data::Factory(pNewData, nNewSize);
-    const Armored theArmor(theData.get());
+    const auto theArmor = Armored::Factory(theData.get());
 
-    strReturnValue.assign(theArmor.Get(), theArmor.GetLength());
+    strReturnValue.assign(theArmor->Get(), theArmor->GetLength());
 
     // Don't want any leaks here, do we?
     delete pBuffer;
@@ -2467,8 +2467,9 @@ Storable* Storage::DecodeObject(
 
     // Below this point, responsible for pBuffer AND pStorable.
 
-    Armored theArmor;
-    theArmor.Set(strInput.c_str(), static_cast<std::uint32_t>(strInput.size()));
+    auto theArmor = Armored::Factory();
+    theArmor->Set(
+        strInput.c_str(), static_cast<std::uint32_t>(strInput.size()));
     const auto thePayload = Data::Factory(theArmor);
 
     // Put thePayload's contents into pBuffer here.

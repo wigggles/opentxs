@@ -5281,12 +5281,10 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         otWarn << "\n\n Smartcontract. Transaction Number: "
                << m_lTransactionNum << "\n";
 
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": Creation Date: ") (tCreation)
-               (" Valid From: ") (tValidFrom)
-               (" Valid To: ") (tValidTo)
-               (" NotaryID: ") (strNotaryID)
-               (" activatorNymID: ") (strActivatorNymID).Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Creation Date: ")(tCreation)(
+            " Valid From: ")(tValidFrom)(" Valid To: ")(tValidTo)(
+            " NotaryID: ")(strNotaryID)(" activatorNymID: ")(strActivatorNymID)
+            .Flush();
 
         nReturnVal = 1;
     } else if (strNodeName->Compare("accountList"))  // the stash reserve

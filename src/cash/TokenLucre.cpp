@@ -86,7 +86,7 @@ bool Token_Lucre::GenerateTokenRequest(
     // This version base64-DECODES the ascii-armored string passed in,
     // and then sets the decoded plaintext string onto the string.
     // OTString::OTString(const Armored & strValue)
-    Armored ascPublicMint;
+    auto ascPublicMint = Armored::Factory();
 
     theMint.GetPublic(ascPublicMint, lDenomination);
     //    otErr << "DEBUG: OTToken  public asc: \n%s\n", ascPublicMint.Get());
@@ -251,7 +251,7 @@ bool Token_Lucre::ProcessToken(
     // Get the bank's public key (decoded into strPublicMint)
     // and put it into bioBank so we can use it with Lucre.
     //
-    Armored ascPublicMint;
+    auto ascPublicMint = Armored::Factory();
     theMint.GetPublic(ascPublicMint, GetDenomination());
     auto strPublicMint = String::Factory(ascPublicMint);
     BIO_puts(bioBank, strPublicMint->Get());
@@ -264,8 +264,8 @@ bool Token_Lucre::ProcessToken(
 
     // I need the Private coin request also. (Only the client has this private
     // coin request data.)
-    Armored thePrototoken;  // The server sets m_nChosenIndex when it signs
-                            // the token.
+    auto thePrototoken = Armored::Factory();  // The server sets m_nChosenIndex
+                                              // when it signs the token.
     bool bFoundToken =
         theRequest.GetPrivatePrototoken(thePrototoken, m_nChosenIndex);
 
@@ -346,7 +346,7 @@ bool Token_Lucre::ProcessToken(
             // Lastly, we free the signature data, which is no longer needed,
             // and which could be
             // otherwise used to trace the token. (Which we don't want.)
-            m_Signature.Release();
+            m_Signature->Release();
         }
     }
     // Todo log error here if the private prototoken is not found. (Very strange

@@ -194,8 +194,9 @@ bool Contract::SaveToContractFolder()
     //    m_strFoldername    = strFoldername;
     //    m_strFilename    = strFilename;
 
-    LogVerbose(OT_METHOD)(__FUNCTION__)(": Saving asset contract to ")
-              ("disk... ").Flush();
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Saving asset contract to ")(
+        "disk... ")
+        .Flush();
 
     return SaveContract(strFoldername->Get(), strFilename->Get());
 }
@@ -1039,10 +1040,10 @@ bool Contract::WriteContract(
     }
 
     auto strFinal = String::Factory();
-    Armored ascTemp(m_strRawFile);
+    auto ascTemp = Armored::Factory(m_strRawFile);
 
     if (false ==
-        ascTemp.WriteArmoredString(strFinal, m_strContractType->Get())) {
+        ascTemp->WriteArmoredString(strFinal, m_strContractType->Get())) {
         otErr << OT_METHOD << __FUNCTION__
               << ": Error saving file (failed writing armored string): "
               << folder << Log::PathSeparator() << filename << std::endl;
@@ -1715,11 +1716,11 @@ bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
 // static
 bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, String& strOutput)
 {
-    Armored ascOutput;
+    auto ascOutput = Armored::Factory();
 
     if (Contract::LoadEncodedTextField(xml, ascOutput) &&
-        ascOutput.GetLength() > 2) {
-        return ascOutput.GetString(strOutput, true);  // linebreaks = true
+        ascOutput->GetLength() > 2) {
+        return ascOutput->GetString(strOutput, true);  // linebreaks = true
     }
 
     return false;
@@ -1804,12 +1805,12 @@ bool Contract::LoadEncodedTextFieldByName(
 {
     OT_ASSERT(nullptr != szName);
 
-    Armored ascOutput;
+    auto ascOutput = Armored::Factory();
 
     if (Contract::LoadEncodedTextFieldByName(
             xml, ascOutput, szName, pmapExtraVars) &&
-        ascOutput.GetLength() > 2) {
-        return ascOutput.GetString(strOutput, true);  // linebreaks = true
+        ascOutput->GetLength() > 2) {
+        return ascOutput->GetString(strOutput, true);  // linebreaks = true
     }
 
     return false;

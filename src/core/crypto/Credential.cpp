@@ -489,8 +489,8 @@ std::string Credential::asString(const bool asPrivate) const
     auto stringCredential = String::Factory();
     credenial = Serialized(asPrivate, WITH_SIGNATURES);
     dataCredential = proto::ProtoAsData<proto::Credential>(*credenial);
-    Armored armoredCredential(dataCredential);
-    armoredCredential.WriteArmoredString(stringCredential, "Credential");
+    auto armoredCredential = Armored::Factory(dataCredential);
+    armoredCredential->WriteArmoredString(stringCredential, "Credential");
 
     return stringCredential->Get();
 }
@@ -499,9 +499,9 @@ std::string Credential::asString(const bool asPrivate) const
 serializedCredential Credential::ExtractArmoredCredential(
     const String& stringCredential)
 {
-    Armored armoredCredential;
+    auto armoredCredential = Armored::Factory();
     auto strTemp = String::Factory(stringCredential.Get());
-    armoredCredential.LoadFromString(strTemp);
+    armoredCredential->LoadFromString(strTemp);
 
     return ExtractArmoredCredential(armoredCredential);
 }

@@ -619,7 +619,7 @@ protected:
     listOfItems m_listItems;  // the various items in this transaction.
 
     TransactionNumber m_lClosingTransactionNo{0};  // used by finalReceipt
-    Armored m_ascCancellationRequest;              // used by finalReceipt
+    OTArmored m_ascCancellationRequest;              // used by finalReceipt
 
     // ONLY the "replyNotice" transaction uses this field.
     // When replyNotices are dropped into your Nymbox (server notices

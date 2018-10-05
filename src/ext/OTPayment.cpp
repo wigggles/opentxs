@@ -2057,10 +2057,10 @@ void OTPayment::UpdateContents()
     tag.add_attribute("type", GetTypeString());
 
     if (m_strPayment->Exists()) {
-        const Armored ascContents(m_strPayment);
+        const auto ascContents = Armored::Factory(m_strPayment);
 
-        if (ascContents.Exists()) {
-            tag.add_tag("contents", ascContents.Get());
+        if (ascContents->Exists()) {
+            tag.add_tag("contents", ascContents->Get());
         }
     }
 

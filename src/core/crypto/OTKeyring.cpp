@@ -184,7 +184,7 @@ bool OTKeyring::Windows_StoreSecret(
         otErr << __FUNCTION__
               << ": Error: Output of Win32 CryptProtectData was empty.\n";
     } else {
-        Armored ascData(theOutput);
+        auto ascData = Armored::Factory(theOutput);
         const OTString strFoldername("win32_data");  // todo hardcoding.
 
         if (ascData.Exists())
@@ -206,7 +206,7 @@ bool OTKeyring::Windows_RetrieveSecret(
     OT_ASSERT(strUser.Exists());
 
     OTString strFoldername("win32_data");  // todo hardcoding.
-    Armored ascFileContents;
+    auto ascFileContents = Armored::Factory();
     bool bLoaded =
         (strFoldername.Exists() &&
          ascFileContents.LoadFromFile(strFoldername, strUser) &&
@@ -687,7 +687,7 @@ bool OTKeyring::Gnome_StoreSecret(
     OT_ASSERT(thePassword.getMemorySize() > 0);
 
     Data theData(thePassword.getMemory(), thePassword.getMemorySize());
-    Armored ascData(theData);
+    auto ascData = Armored::Factory(theData);
     theData.zeroMemory();  // security reasons.
 
     OTString strOutput;
@@ -832,7 +832,7 @@ bool OTKeyring::Gnome_RetrieveSecret(
             gnome_keyring_free_password(gchar_p_password);
             gchar_p_password = nullptr;
 
-            Armored ascData;
+            auto ascData = Armored::Factory();
             const bool bLoaded =
                 strData.Exists() && ascData.LoadFromString(strData);
             strData.zeroMemory();
@@ -1021,7 +1021,7 @@ bool OTKeyring::KWallet_StoreSecret(
         const QString qstrKey(strUser.Get());
 
         Data theData(thePassword.getMemory(), thePassword.getMemorySize());
-        Armored ascData(theData);
+        auto ascData = Armored::Factory(theData);
         theData.zeroMemory();  // security reasons.
 
         OTString strOutput;
@@ -1076,7 +1076,7 @@ bool OTKeyring::KWallet_RetrieveSecret(
                                         // isn't zero'd here.
 
             OTString strData(str_password);
-            Armored ascData;
+            auto ascData = Armored::Factory();
 
             const bool bLoaded =
                 strData.Exists() && ascData.LoadFromString(strData);
@@ -1183,7 +1183,7 @@ bool OTKeyring::FlatFile_StoreSecret(
         const std::string str_ExactPath(strExactPath.Get());
 
         Data theData(thePassword.getMemory(), thePassword.getMemorySize());
-        Armored ascData(theData);
+        auto ascData = Armored::Factory(theData);
         theData.zeroMemory();  // security reasons.
 
         // Save the password
@@ -1224,7 +1224,7 @@ bool OTKeyring::FlatFile_RetrieveSecret(
 
         // Get the password
         //
-        Armored ascData;
+        auto ascData = Armored::Factory();
 
         if (!ascData.LoadFromExactPath(str_ExactPath))
             otErr << "OTKeyring::FlatFile_RetrieveSecret: "
@@ -1301,8 +1301,10 @@ bool OTKeyring::FlatFile_DeleteSecret(
                   << str_ExactPath.c_str() << '\n';
         } else {
             bSuccess = true;
-            LogVerbose(OT_METHOD)(__FUNCTION__) (": ** (OTKeyring::FlatFile_DeleteSecret) Success ")
-                   ("deleting file: ") (str_ExactPath.c_str()).Flush();
+            LogVerbose(OT_METHOD)(__FUNCTION__)(
+                ": ** Success ")(
+                "deleting file: ")(str_ExactPath.c_str())
+                .Flush();
         }
 
         return bSuccess;

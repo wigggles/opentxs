@@ -163,15 +163,15 @@ public:
                              // messages from
                              // being intercepted and repeated by attackers.
 
-    Armored m_ascInReferenceTo;  // If the server responds to a user
+    OTArmored m_ascInReferenceTo;  // If the server responds to a user
                                  // command, he sends
     // it back to the user here in ascii armored format.
-    Armored m_ascPayload;  // If the reply needs to include a payload (such
+    OTArmored m_ascPayload;  // If the reply needs to include a payload (such
                            // as a new account
     // or a message envelope or request from another user etc) then
     // it can be put here in ascii-armored format.
-    Armored m_ascPayload2;  // Sometimes one payload just isn't enough.
-    Armored m_ascPayload3;  // Sometimes two payload just isn't enough.
+    OTArmored m_ascPayload2;  // Sometimes one payload just isn't enough.
+    OTArmored m_ascPayload3;  // Sometimes two payload just isn't enough.
 
     // This list of request numbers is stored for optimization, so client/server
     // can communicate about

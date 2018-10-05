@@ -223,9 +223,10 @@ void OTMarket::UpdateContents()
 
         auto strOffer = String::Factory(*pOffer);  // Extract the offer contract
                                                    // into string form.
-        Armored ascOffer(strOffer);  // Base64-encode that for storage.
+        auto ascOffer =
+            Armored::Factory(strOffer);  // Base64-encode that for storage.
 
-        TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
+        TagPtr tagOffer(new Tag("offer", ascOffer->Get()));
         tagOffer->add_attribute(
             "dateAdded", formatTimestamp(pOffer->GetDateAddedToMarket()));
         tag.add_tag(tagOffer);
@@ -238,9 +239,10 @@ void OTMarket::UpdateContents()
 
         auto strOffer = String::Factory(*pOffer);  // Extract the offer contract
                                                    // into string form.
-        Armored ascOffer(strOffer);  // Base64-encode that for storage.
+        auto ascOffer =
+            Armored::Factory(strOffer);  // Base64-encode that for storage.
 
-        TagPtr tagOffer(new Tag("offer", ascOffer.Get()));
+        TagPtr tagOffer(new Tag("offer", ascOffer->Get()));
         tagOffer->add_attribute(
             "dateAdded", formatTimestamp(pOffer->GetDateAddedToMarket()));
         tag.add_tag(tagOffer);

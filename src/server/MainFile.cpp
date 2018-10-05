@@ -64,10 +64,10 @@ bool MainFile::SaveMainFileToString(String& strMainFile)
 
     if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
-        Armored ascMasterContents;
+        auto ascMasterContents = Armored::Factory();
 
         if (cachedKey.SerializeTo(ascMasterContents)) {
-            tag.add_tag("cachedKey", ascMasterContents.Get());
+            tag.add_tag("cachedKey", ascMasterContents->Get());
         } else
             otErr << __FUNCTION__
                   << " Failed trying to write master key to notary file.\n";
@@ -132,10 +132,11 @@ bool MainFile::SaveMainFile()
     // Try to save the notary server's main datafile to local storage...
     //
     auto strFinal = String::Factory();
-    Armored ascTemp(strMainFile);
+    auto ascTemp = Armored::Factory(strMainFile);
 
-    if (false == ascTemp.WriteArmoredString(strFinal, "NOTARY"))  // todo
-                                                                  // hardcoding.
+    if (false ==
+        ascTemp->WriteArmoredString(strFinal, "NOTARY"))  // todo
+                                                          // hardcoding.
     {
         otErr << __FUNCTION__
               << ": Error saving notary (failed writing armored string)\n";
@@ -228,8 +229,8 @@ bool MainFile::CreateMainFile(
         otErr << "Failed trying to store the new notaryServer.xml file.\n";
         return false;
     }
-    Armored ascCachedKey;
-    ascCachedKey.Set(strCachedKey.c_str());
+    auto ascCachedKey = Armored::Factory();
+    ascCachedKey->Set(strCachedKey.c_str());
     auto& cachedKey = server_.API().Crypto().LoadDefaultKey(ascCachedKey);
 
     if (!cachedKey.HasHashCheck()) {
@@ -343,7 +344,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                               << server_.GetServerID().str()
                               << "\nServer Nym ID: " << server_.ServerNymID();
                     } else if (strNodeName->Compare("cachedKey")) {
-                        Armored ascCachedKey;
+                        auto ascCachedKey = Armored::Factory();
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             auto& cachedKey =
@@ -363,7 +364,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
                         }
 
                         otOut << "\nLoading cachedKey:\n"
-                              << ascCachedKey.Get() << "\n";
+                              << ascCachedKey->Get() << "\n";
                     }
                     // the voucher reserve account IDs.
                     else if (strNodeName->Compare("accountList")) {

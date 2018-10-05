@@ -125,8 +125,8 @@ void OTSignedFile::UpdateContents()
     }
 
     if (m_strSignedFilePayload->Exists()) {
-        Armored ascPayload(m_strSignedFilePayload);
-        tag.add_tag("filePayload", ascPayload.Get());
+        auto ascPayload = Armored::Factory(m_strSignedFilePayload);
+        tag.add_tag("filePayload", ascPayload->Get());
     }
 
     std::string str_result;

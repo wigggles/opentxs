@@ -1243,15 +1243,15 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
 
     // Name is in the clear in memory,
     // and base64 in storage.
-    Armored ascName;
+    auto ascName = Armored::Factory();
     if (!alias_.empty()) {
         auto temp = String::Factory(alias_);
-        ascName.SetString(temp, false);  // linebreaks == false
+        ascName->SetString(temp, false);  // linebreaks == false
     }
 
     TagPtr pTag(new Tag("pseudonym"));
 
-    pTag->add_attribute("name", !alias_.empty() ? ascName.Get() : "");
+    pTag->add_attribute("name", !alias_.empty() ? ascName->Get() : "");
     pTag->add_attribute("nymID", nymID->Get());
 
     parent.add_tag(pTag);
@@ -1310,12 +1310,12 @@ void Nym::SerializeNymIDSource(Tag& parent) const
         TagPtr pTag(new Tag("nymIDSource", source_->asString()->Get()));
 
         if (m_strDescription->Exists()) {
-            Armored ascDescription;
-            ascDescription.SetString(
+            auto ascDescription = Armored::Factory();
+            ascDescription->SetString(
                 m_strDescription,
                 false);  // bLineBreaks=true by default.
 
-            pTag->add_attribute("Description", ascDescription.Get());
+            pTag->add_attribute("Description", ascDescription->Get());
         }
         parent.add_tag(pTag);
     }

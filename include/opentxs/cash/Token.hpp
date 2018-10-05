@@ -109,7 +109,7 @@ public:
     inline const Armored& GetSpendable() const { return m_ascSpendable; }
     inline void SetSpendable(const Armored& theArmor)
     {
-        m_ascSpendable.Set(theArmor);
+        m_ascSpendable->Set(theArmor);
     }
     // TODO potentially return OTPassword here instead OTString (more secure.)
     EXPORT bool GetSpendableString(
@@ -176,11 +176,11 @@ protected:
     bool m_bPasswordProtected{false};  // this token might be encrypted to a
                                        // passphrase, instead of a Nym.
 
-    Armored m_ascSpendable;  // This is the final, signed, unblinded token
+    OTArmored m_ascSpendable;  // This is the final, signed, unblinded token
                              // ID, ready to be spent. (But still in
                              // envelope form, encrypted and
                              // ascii-armored.)
-    Armored m_Signature;     // This is the Mint's signature on the blinded
+    OTArmored m_Signature;     // This is the Mint's signature on the blinded
                              // prototoken.
 
     std::int64_t m_lDenomination{0};  // The actual value of the token is

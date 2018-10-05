@@ -211,23 +211,23 @@ bool OTWallet::save_contract(const Lock& lock, String& strContract)
 
     // Name is in the clear in memory,
     // and base64 in storage.
-    Armored ascName;
+    auto ascName = Armored::Factory();
 
     if (m_strName->Exists()) {
-        ascName.SetString(m_strName, false);  // linebreaks == false
+        ascName->SetString(m_strName, false);  // linebreaks == false
     }
 
     auto& cachedKey = api_.Crypto().DefaultKey();
-    tag.add_attribute("name", m_strName->Exists() ? ascName.Get() : "");
+    tag.add_attribute("name", m_strName->Exists() ? ascName->Get() : "");
     tag.add_attribute(
         "version", cachedKey.IsGenerated() ? "2.0" : m_strVersion->Get());
 
     if (cachedKey.IsGenerated())  // If it exists, then serialize it.
     {
-        Armored ascMasterContents;
+        auto ascMasterContents = Armored::Factory();
 
         if (cachedKey.SerializeTo(ascMasterContents)) {
-            tag.add_tag("cachedKey", ascMasterContents.Get());
+            tag.add_tag("cachedKey", ascMasterContents->Get());
         } else
             otErr << "OTWallet::SaveContract: Failed trying to write master "
                      "key to wallet.\n";
@@ -280,10 +280,10 @@ bool OTWallet::save_wallet(const Lock& lock, const char* szFilename)
         // Try to save the wallet to local storage.
         //
         auto strFinal = String::Factory();
-        Armored ascTemp(strContract);
+        auto ascTemp = Armored::Factory(strContract);
 
-        if (false ==
-            ascTemp.WriteArmoredString(strFinal, "WALLET"))  // todo hardcoding.
+        if (false == ascTemp->WriteArmoredString(
+                         strFinal, "WALLET"))  // todo hardcoding.
         {
             otErr << "OTWallet::SaveWallet: Error saving wallet (failed "
                      "writing armored string):\n"
@@ -426,10 +426,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
                     break;
                 case irr::io::EXN_ELEMENT: {
                     if (strNodeName->Compare("wallet")) {
-                        Armored ascWalletName = xml->getAttributeValue("name");
+                        auto ascWalletName =
+                            Armored::Factory(xml->getAttributeValue("name"));
 
-                        if (ascWalletName.Exists())
-                            ascWalletName.GetString(
+                        if (ascWalletName->Exists())
+                            ascWalletName->GetString(
                                 m_strName,
                                 false);  // linebreaks == false
 
@@ -443,7 +444,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otWarn << "\nLoading wallet: " << m_strName
                                << ", version: " << m_strVersion << "\n";
                     } else if (strNodeName->Compare("cachedKey")) {
-                        Armored ascCachedKey;
+                        auto ascCachedKey = Armored::Factory();
 
                         if (Contract::LoadEncodedTextField(xml, ascCachedKey)) {
                             // We successfully loaded the cachedKey from file,
@@ -466,10 +467,11 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         otWarn << "Loading cachedKey:\n"
                                << ascCachedKey << "\n";
                     } else if (strNodeName->Compare("account")) {
-                        Armored ascAcctName = xml->getAttributeValue("name");
+                        auto ascAcctName =
+                            Armored::Factory(xml->getAttributeValue("name"));
 
-                        if (ascAcctName.Exists())
-                            ascAcctName.GetString(
+                        if (ascAcctName->Exists())
+                            ascAcctName->GetString(
                                 AcctName,
                                 false);  // linebreaks == false
 

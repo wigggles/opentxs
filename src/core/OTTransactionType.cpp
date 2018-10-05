@@ -40,7 +40,7 @@ OTTransactionType::OTTransactionType(const api::Core& core)
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
     , m_originType(originType::not_applicable)
-    , m_ascInReferenceTo()
+    , m_ascInReferenceTo(Armored::Factory())
     , m_bLoadSecurely(true)
     , m_Numlist()
 {
@@ -65,7 +65,7 @@ OTTransactionType::OTTransactionType(
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
     , m_originType(theOriginType)
-    , m_ascInReferenceTo()
+    , m_ascInReferenceTo(Armored::Factory())
     , m_bLoadSecurely(true)
     , m_Numlist()
 {
@@ -89,7 +89,7 @@ OTTransactionType::OTTransactionType(
     , m_lInReferenceToTransaction(0)
     , m_lNumberOfOrigin(0)
     , m_originType(theOriginType)
-    , m_ascInReferenceTo()
+    , m_ascInReferenceTo(Armored::Factory())
     , m_bLoadSecurely(true)
     , m_Numlist()
 {
@@ -178,8 +178,8 @@ void OTTransactionType::Release_TransactionType()
     m_lInReferenceToTransaction = 0;
     m_lNumberOfOrigin = 0;
 
-    m_ascInReferenceTo.Release();  // This item may be in reference to a
-                                   // different item
+    m_ascInReferenceTo->Release();  // This item may be in reference to a
+                                    // different item
 
     // This was causing OTLedger to fail loading. Can't set this to true until
     // the END
@@ -216,12 +216,12 @@ bool OTTransactionType::IsSameAccount(const OTTransactionType& rhs) const
 
 void OTTransactionType::GetReferenceString(String& theStr) const
 {
-    m_ascInReferenceTo.GetString(theStr);
+    m_ascInReferenceTo->GetString(theStr);
 }
 
 void OTTransactionType::SetReferenceString(const String& theStr)
 {
-    m_ascInReferenceTo.SetString(theStr);
+    m_ascInReferenceTo->SetString(theStr);
 }
 
 // Make sure this contract checks out. Very high level.

@@ -436,8 +436,9 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 // user's version is saved
                 // as a receipt in the first place -- so we have a record of the
                 // user's authorization.)
-                LogVerbose(OT_METHOD)(__FUNCTION__)
-                (": Successfully loaded cron item and added to list. ").Flush();
+                LogVerbose(OT_METHOD)(__FUNCTION__)(
+                    ": Successfully loaded cron item and added to list. ")
+                    .Flush();
             } else {
                 otErr << "OTCron::ProcessXMLNode: Though loaded / verified "
                          "successfully, "
@@ -538,9 +539,10 @@ void OTCron::UpdateContents()
         time64_t tDateAdded = it.first;
         auto strItem = String::Factory(*pItem);  // Extract the cron item
                                                  // contract into string form.
-        Armored ascItem(strItem);  // Base64-encode that for storage.
+        auto ascItem =
+            Armored::Factory(strItem);  // Base64-encode that for storage.
 
-        TagPtr tagCronItem(new Tag("cronItem", ascItem.Get()));
+        TagPtr tagCronItem(new Tag("cronItem", ascItem->Get()));
         tagCronItem->add_attribute("dateAdded", formatTimestamp(tDateAdded));
         tag.add_tag(tagCronItem);
     }
@@ -616,9 +618,9 @@ void OTCron::ProcessCronItems()
         }
         auto pItem = it->second;
         OT_ASSERT(false != bool(pItem));
-        LogVerbose(OT_METHOD)(__FUNCTION__)
-               (": Processing item number: ") (pItem->GetTransactionNum())
-               .Flush();
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Processing item number: ")(
+            pItem->GetTransactionNum())
+            .Flush();
 
         if (pItem->ProcessCron()) {
             it++;

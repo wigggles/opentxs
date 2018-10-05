@@ -425,11 +425,11 @@ void Server::CreateMainFile(bool& mainFileExists)
     auto& cachedKey = manager_.Crypto().DefaultKey();
 
     if (cachedKey.IsGenerated()) {
-        Armored ascMasterContents;
+        auto ascMasterContents = Armored::Factory();
 
         if (cachedKey.SerializeTo(ascMasterContents)) {
             strCachedKey.assign(
-                ascMasterContents.Get(), ascMasterContents.GetLength());
+                ascMasterContents->Get(), ascMasterContents->GetLength());
         } else
             OT_FAIL;
     } else {
@@ -453,9 +453,9 @@ void Server::CreateMainFile(bool& mainFileExists)
     OT_ASSERT(m_nymServer)
 
     const auto signedContract = proto::ProtoAsData(pContract->PublicContract());
-    Armored ascContract(signedContract.get());
+    auto ascContract = Armored::Factory(signedContract.get());
     auto strBookended = String::Factory();
-    ascContract.WriteArmoredString(strBookended, "SERVER CONTRACT");
+    ascContract->WriteArmoredString(strBookended, "SERVER CONTRACT");
     OTDB::StorePlainString(
         strBookended->Get(),
         manager_.DataFolder(),
@@ -846,7 +846,7 @@ bool Server::DropMessageToNymbox(
         //
         OTEnvelope theEnvelope;
 
-        theMsgAngel->m_ascPayload.Release();
+        theMsgAngel->m_ascPayload->Release();
 
         if ((!pstrMessage.empty()) &&
             theEnvelope.Seal(thePubkey, pstrMessage) &&  // Seal pstrMessage
