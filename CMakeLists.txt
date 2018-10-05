@@ -100,6 +100,7 @@ option(OT_CRYPTO_USING_LIBBITCOIN  "Enable libbitcoin support" OFF)
 option(OT_CRYPTO_SHA2_PREFER_OPENSSL       "Use OpenSSL SHA2 implementation when available" OFF)
 
 option(OT_CASH_USING_LUCRE  "Enable Lucre support" ON)
+option(OT_LUCRE_DEBUG 		"Output Lucre debug info" OFF)
 
 if(ANDROID)
   option(OT_SCRIPT_USING_CHAI  "Use chaiscript" OFF)
@@ -208,6 +209,7 @@ message(STATUS "libbitcoin:             ${OT_CRYPTO_USING_LIBBITCOIN}")
 
 message(STATUS "Cash library providers---------------------")
 message(STATUS "Lucre:                  ${OT_CASH_USING_LUCRE}")
+message(STATUS "Lucre debug info:       ${OT_LUCRE_DEBUG}")
 
 message(STATUS "Bindings ------------------------------------")
 message(STATUS "Java binding:           ${JAVA}")
@@ -673,6 +675,12 @@ if (OT_CASH_USING_LUCRE)
     set(OT_CASH_EXPORT 1)
 else()
     set(CASH_LUCRE_EXPORT 0)
+endif()
+
+if (OT_LUCRE_DEBUG)
+	add_definitions(-DOT_LUCRE_DEBUG=1)
+else()
+	add_definitions(-DOT_LUCRE_DEBUG=0)
 endif()
 
 if (FALSE)

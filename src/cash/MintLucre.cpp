@@ -93,12 +93,14 @@ bool MintLucre::AddDenomination(
         return false;
     }
 
+#if OT_LUCRE_DEBUG
 #ifdef _WIN32
     BIO* out = BIO_new_file("openssl.dump", "w");
     assert(out);
     SetDumper(out);
 #else
     SetMonitor(stderr);
+#endif
 #endif
 
     crypto::implementation::OpenSSL_BIO bio = BIO_new(BIO_s_mem());
