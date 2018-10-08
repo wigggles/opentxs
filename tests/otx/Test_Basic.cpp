@@ -2040,7 +2040,7 @@ TEST_F(Test_Basic, getAccountData_after_incomingTransfer)
         result,
         message,
         SUCCESS,
-        NYMBOX_UPDATED,
+        NYMBOX_SAME,
         NO_TRANSACTION,
         0);
     const auto clientAccount = client_2_.Wallet().Account(accountID);
@@ -2385,7 +2385,7 @@ TEST_F(Test_Basic, getBoxReceipt_transfer_receipt)
         result,
         message,
         SUCCESS,
-        NYMBOX_SAME,
+        NYMBOX_UPDATED,
         NO_TRANSACTION,
         0);
     const auto clientAccount = client_1_.Wallet().Account(accountID);
