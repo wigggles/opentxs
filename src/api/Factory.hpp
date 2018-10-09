@@ -31,6 +31,10 @@ public:
         const String& strCronItem) const override;
 
     std::unique_ptr<opentxs::Item> Item(
+        const String& serialized) const override;
+    std::unique_ptr<opentxs::Item> Item(
+        const std::string& serialized) const override;
+    std::unique_ptr<opentxs::Item> Item(
         const Identifier& theNymID,
         const opentxs::Item& theOwner) const override;  // From owner we can get
                                                         // acct ID, server ID,

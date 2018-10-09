@@ -28,6 +28,9 @@ public:
     using ChequeData = std::pair<
         std::unique_ptr<const class Cheque>,
         std::shared_ptr<const UnitDefinition>>;
+    using TransferData = std::pair<
+        std::unique_ptr<const opentxs::Item>,
+        std::shared_ptr<const UnitDefinition>>;
 
     EXPORT virtual bool AddBlockchainTransaction(
         const Identifier& nymID,
@@ -125,6 +128,11 @@ public:
         const Identifier& itemId) const = 0;
 
     EXPORT virtual ChequeData Cheque(
+        const Identifier& nym,
+        const std::string& id,
+        const std::string& workflow) const = 0;
+
+    EXPORT virtual TransferData Transfer(
         const Identifier& nym,
         const std::string& id,
         const std::string& workflow) const = 0;

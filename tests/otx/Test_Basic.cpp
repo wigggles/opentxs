@@ -51,6 +51,9 @@ public:
     static TransactionNumber cheque_transaction_number_;
     static std::string bob_account_1_id_;
     static std::string bob_account_2_id_;
+    static std::string outgoing_transfer_workflow_id_;
+    static std::string incoming_transfer_workflow_id_;
+    static std::string internal_transfer_workflow_id_;
 
     const opentxs::api::client::Manager& client_1_;
     const opentxs::api::client::Manager& client_2_;
@@ -280,6 +283,9 @@ const std::shared_ptr<const UnitDefinition> Test_Basic::asset_contract_1_{
 TransactionNumber Test_Basic::cheque_transaction_number_{0};
 std::string Test_Basic::bob_account_1_id_{""};
 std::string Test_Basic::bob_account_2_id_{""};
+std::string Test_Basic::outgoing_transfer_workflow_id_{};
+std::string Test_Basic::incoming_transfer_workflow_id_{};
+std::string Test_Basic::internal_transfer_workflow_id_{};
 
 TEST_F(Test_Basic, getRequestNumber_not_registered)
 {
@@ -1420,17 +1426,9 @@ TEST_F(Test_Basic, getNymbox_receive_cheque)
 
     ASSERT_EQ(1, transactionMap.size());
 
-    const TransactionNumber number{transactionMap.begin()->first};
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_EQ(transactionType::message, transaction.GetType());
-
-    // If the push notification was received, then the box receipt already
-    // exists. But since we can't guarantee timing it's possible the
-    // notification did not arrive.
-    if (transaction.IsAbbreviated()) {
-        EXPECT_FALSE(nymbox->LoadBoxReceipt(number));
-    }
 }
 
 TEST_F(Test_Basic, getBoxReceipt_incoming_cheque)
@@ -2010,6 +2008,7 @@ TEST_F(Test_Basic, sendTransfer)
         0);
 
     const auto serverAccount = server_.Wallet().Account(senderAccountID);
+
     ASSERT_TRUE(serverAccount);
 
     // A successful sent transfer has an immediate effect on the
@@ -2017,8 +2016,18 @@ TEST_F(Test_Basic, sendTransfer)
     EXPECT_EQ(
         (-1 * (CHEQUE_AMOUNT + TRANSFER_AMOUNT)),
         serverAccount.get().GetBalance());
-}
 
+    const auto workflows = client_1_.Storage().PaymentWorkflowsByState(
+        alice_nym_id_->str(),
+        proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER,
+        proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED);
+
+    ASSERT_EQ(workflows.size(), 1);
+
+    outgoing_transfer_workflow_id_ = *workflows.cbegin();
+
+    EXPECT_NE(outgoing_transfer_workflow_id_.size(), 0);
+}
 TEST_F(Test_Basic, getAccountData_after_incomingTransfer)
 {
     const RequestNumber sequence{20};
@@ -2142,8 +2151,18 @@ TEST_F(Test_Basic, getBoxReceipt_incomingTransfer)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_FALSE(transaction.IsAbbreviated());
-}
 
+    const auto workflows = client_2_.Storage().PaymentWorkflowsByState(
+        bob_nym_id_->str(),
+        proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER,
+        proto::PAYMENTWORKFLOWSTATE_CONVEYED);
+
+    ASSERT_EQ(workflows.size(), 1);
+
+    incoming_transfer_workflow_id_ = *workflows.cbegin();
+
+    EXPECT_NE(incoming_transfer_workflow_id_.size(), 0);
+}
 TEST_F(Test_Basic, processInbox_after_incomingTransfer)
 {
     const RequestNumber sequence{22};
@@ -2203,9 +2222,14 @@ TEST_F(Test_Basic, processInbox_after_incomingTransfer)
     const auto serverAccount = server_.Wallet().Account(accountID);
 
     ASSERT_TRUE(serverAccount);
-
     EXPECT_EQ(
         (CHEQUE_AMOUNT + TRANSFER_AMOUNT), serverAccount.get().GetBalance());
+
+    const auto [type, state] = client_2_.Storage().PaymentWorkflowState(
+        bob_nym_id_->str(), incoming_transfer_workflow_id_);
+
+    EXPECT_EQ(type, proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER);
+    EXPECT_EQ(state, proto::PAYMENTWORKFLOWSTATE_COMPLETED);
 }
 
 TEST_F(Test_Basic, getAccountData_after_processInbox_incomingTransfer)
@@ -2408,6 +2432,12 @@ TEST_F(Test_Basic, getBoxReceipt_transfer_receipt)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_FALSE(transaction.IsAbbreviated());
+
+    const auto [type, state] = client_1_.Storage().PaymentWorkflowState(
+        alice_nym_id_->str(), outgoing_transfer_workflow_id_);
+
+    EXPECT_EQ(type, proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER);
+    EXPECT_EQ(state, proto::PAYMENTWORKFLOWSTATE_ACCEPTED);
 }
 
 TEST_F(Test_Basic, getNymbox_after_transfer_accepted)
@@ -2510,6 +2540,12 @@ TEST_F(Test_Basic, processInbox_after_transferReceipt)
     EXPECT_EQ(
         -1 * (CHEQUE_AMOUNT + TRANSFER_AMOUNT),
         serverAccount.get().GetBalance());
+
+    const auto [type, state] = client_1_.Storage().PaymentWorkflowState(
+        alice_nym_id_->str(), outgoing_transfer_workflow_id_);
+
+    EXPECT_EQ(type, proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER);
+    EXPECT_EQ(state, proto::PAYMENTWORKFLOWSTATE_COMPLETED);
 }
 
 TEST_F(Test_Basic, getAccountData_after_processInbox_transferReceipt)
@@ -2589,7 +2625,6 @@ TEST_F(Test_Basic, getNymbox_after_processInbox_transferReceipt)
         NO_TRANSACTION,
         0);
 }
-
 TEST_F(Test_Basic, register_second_account)
 {
     const RequestNumber sequence{25};
@@ -2718,6 +2753,17 @@ TEST_F(Test_Basic, send_internal_transfer)
     EXPECT_EQ(
         (CHEQUE_AMOUNT + TRANSFER_AMOUNT - SECOND_TRANSFER_AMOUNT),
         serverAccount.get().GetBalance());
+
+    const auto workflows = client_2_.Storage().PaymentWorkflowsByState(
+        bob_nym_id_->str(),
+        proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
+        proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED);
+
+    ASSERT_EQ(workflows.size(), 1);
+
+    internal_transfer_workflow_id_ = *workflows.cbegin();
+
+    EXPECT_NE(internal_transfer_workflow_id_.size(), 0);
 }
 
 TEST_F(Test_Basic, getNymbox_after_receiving_incoming_internal_transfer)
@@ -2870,6 +2916,12 @@ TEST_F(Test_Basic, getBoxReceipt_incoming_internal_Transfer)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_FALSE(transaction.IsAbbreviated());
+
+    const auto [type, state] = client_2_.Storage().PaymentWorkflowState(
+        bob_nym_id_->str(), internal_transfer_workflow_id_);
+
+    EXPECT_EQ(type, proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER);
+    EXPECT_EQ(state, proto::PAYMENTWORKFLOWSTATE_CONVEYED);
 }
 
 TEST_F(Test_Basic, processInbox_after_incoming_internal_transfer)
@@ -3133,6 +3185,12 @@ TEST_F(Test_Basic, getBoxReceipt_internal_transfer_receipt)
     const auto& transaction = *transactionMap.begin()->second;
 
     EXPECT_FALSE(transaction.IsAbbreviated());
+
+    const auto [type, state] = client_2_.Storage().PaymentWorkflowState(
+        bob_nym_id_->str(), internal_transfer_workflow_id_);
+
+    EXPECT_EQ(type, proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER);
+    EXPECT_EQ(state, proto::PAYMENTWORKFLOWSTATE_ACCEPTED);
 }
 
 TEST_F(Test_Basic, getNymbox_after_internal_transfer_accepted)
@@ -3235,6 +3293,12 @@ TEST_F(Test_Basic, processInbox_after_internal_transferReceipt)
     EXPECT_EQ(
         CHEQUE_AMOUNT + TRANSFER_AMOUNT - SECOND_TRANSFER_AMOUNT,
         serverAccount.get().GetBalance());
+
+    const auto [type, state] = client_2_.Storage().PaymentWorkflowState(
+        bob_nym_id_->str(), internal_transfer_workflow_id_);
+
+    EXPECT_EQ(type, proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER);
+    EXPECT_EQ(state, proto::PAYMENTWORKFLOWSTATE_COMPLETED);
 }
 
 TEST_F(Test_Basic, getAccountData_after_processInbox_internal_transferReceipt)

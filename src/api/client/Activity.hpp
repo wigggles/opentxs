@@ -120,6 +120,11 @@ public:
         const std::string& id,
         const std::string& workflow) const override;
 
+    TransferData Transfer(
+        const Identifier& nym,
+        const std::string& id,
+        const std::string& workflow) const override;
+
     /**   Summarize a payment workflow event in human-friendly test form
      *
      *    \param[in] nym the identifier of the nym who owns the thread

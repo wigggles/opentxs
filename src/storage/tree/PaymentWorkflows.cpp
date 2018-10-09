@@ -11,7 +11,9 @@
 
 #include "storage/Plugin.hpp"
 
-#define CURRENT_VERSION 1
+#define CURRENT_VERSION 2
+#define TYPE_VERSION 2
+#define INDEX_VERSION 1
 
 #define OT_METHOD "opentxs::storage::PaymentWorkflows::"
 
@@ -251,7 +253,7 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
 
     for (const auto& [item, workflow] : item_workflow_map_) {
         auto& newIndex = *serialized.add_items();
-        newIndex.set_version(1);
+        newIndex.set_version(INDEX_VERSION);
         newIndex.set_workflow(workflow);
         newIndex.set_item(item);
     }
@@ -263,7 +265,7 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
             OT_ASSERT(false == workflow.empty())
 
             auto& newAccount = *serialized.add_accounts();
-            newAccount.set_version(1);
+            newAccount.set_version(INDEX_VERSION);
             newAccount.set_workflow(workflow);
             newAccount.set_item(account);
         }
@@ -276,7 +278,7 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
             OT_ASSERT(false == workflow.empty())
 
             auto& newUnit = *serialized.add_units();
-            newUnit.set_version(1);
+            newUnit.set_version(INDEX_VERSION);
             newUnit.set_workflow(workflow);
             newUnit.set_item(unit);
         }
@@ -291,7 +293,7 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
         OT_ASSERT(proto::PAYMENTWORKFLOWSTATE_ERROR != state)
 
         auto& newIndex = *serialized.add_types();
-        newIndex.set_version(1);
+        newIndex.set_version(TYPE_VERSION);
         newIndex.set_workflow(workflow);
         newIndex.set_type(type);
         newIndex.set_state(state);

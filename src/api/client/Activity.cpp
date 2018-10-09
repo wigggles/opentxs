@@ -164,7 +164,11 @@ Activity::ChequeData Activity::Cheque(
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE: {
         } break;
+
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
         default: {
             otErr << OT_METHOD << __FUNCTION__ << ": Wrong workflow type"
                   << std::endl;
@@ -191,6 +195,81 @@ Activity::ChequeData Activity::Cheque(
     OT_ASSERT(cheque)
 
     const auto& unit = cheque->GetInstrumentDefinitionID();
+    contract = api_.Wallet().UnitDefinition(unit);
+
+    if (false == bool(contract)) {
+        otErr << OT_METHOD << __FUNCTION__
+              << ": Unable to load unit definition contract" << std::endl;
+    }
+
+    return output;
+}
+
+Activity::TransferData Activity::Transfer(
+    const Identifier& nym,
+    [[maybe_unused]] const std::string& id,
+    const std::string& workflowID) const
+{
+    TransferData output;
+    auto& [transfer, contract] = output;
+    auto [type, state] =
+        api_.Storage().PaymentWorkflowState(nym.str(), workflowID);
+    [[maybe_unused]] const auto& notUsed = state;
+
+    switch (type) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+        } break;
+
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong workflow type").Flush();
+
+            return output;
+        }
+    }
+
+    std::shared_ptr<proto::PaymentWorkflow> workflow{nullptr};
+    const auto loaded = api_.Storage().Load(nym.str(), workflowID, workflow);
+
+    if (false == loaded) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Workflow ")(workflowID)(
+            " for nym ")(nym)(" can not be loaded")
+            .Flush();
+
+        return output;
+    }
+
+    OT_ASSERT(workflow)
+
+    auto instantiated = client::Workflow::InstantiateTransfer(api_, *workflow);
+    transfer.reset(std::get<1>(instantiated).release());
+
+    OT_ASSERT(transfer)
+
+    if (0 == workflow->account_size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Workflow does not list any accounts.")
+            .Flush();
+
+        return output;
+    }
+
+    const auto unit = api_.Storage().AccountContract(
+        Identifier::Factory(workflow->account(0)));
+
+    if (unit->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Unable to calculate unit definition id.")
+            .Flush();
+
+        return output;
+    }
     contract = api_.Wallet().UnitDefinition(unit);
 
     if (false == bool(contract)) {
@@ -497,9 +576,19 @@ std::shared_ptr<const std::string> Activity::PaymentText(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE: {
             output.reset(new std::string("Received cheque"));
         } break;
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER: {
+            output.reset(new std::string("Sent transfer"));
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER: {
+            output.reset(new std::string("Received transfer"));
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+            output.reset(new std::string("Internal transfer"));
+        } break;
+
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
-        case proto::PAYMENTWORKFLOWTYPE_ERROR:
         default: {
 
             return output;
@@ -540,6 +629,28 @@ std::shared_ptr<const std::string> Activity::PaymentText(
                 }
             }
         } break;
+
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER: {
+            auto transferData = Transfer(nym, id, workflowID);
+            const auto& [transfer, contract] = transferData;
+
+            OT_ASSERT(transfer)
+
+            if (contract) {
+                std::string amount{};
+                const bool haveAmount = contract->FormatAmountLocale(
+                    transfer->GetAmount(), amount, ",", ".");
+
+                if (haveAmount) {
+                    const std::string text =
+                        *output + std::string{" for "} + amount;
+                    *output = text;
+                }
+            }
+        } break;
+
         case proto::PAYMENTWORKFLOWTYPE_ERROR:
         default: {
 

@@ -25,6 +25,7 @@
 namespace opentxs::ui::internal
 {
 struct AccountActivity {
+    virtual const Identifier& AccountID() const = 0;
     virtual bool last(const implementation::AccountActivityRowID& id) const = 0;
     virtual OTIdentifier WidgetID() const = 0;
 };

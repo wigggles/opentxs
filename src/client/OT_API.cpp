@@ -10682,7 +10682,8 @@ CommandResult OT_API::notarizeTransfer(
 
     if (false == bool(transaction)) { return output; }
 
-    auto item{api_.Factory().Item(*transaction, itemType::transfer, ACCT_TO)};
+    std::shared_ptr<Item> item{
+        api_.Factory().Item(*transaction, itemType::transfer, ACCT_TO)};
 
     if (false == bool(item)) { return output; }
 
@@ -10739,8 +10740,7 @@ CommandResult OT_API::notarizeTransfer(
     std::shared_ptr<OTTransaction> poutboxTransaction{
         outboxTransaction.release()};
     outbox->AddTransaction(poutboxTransaction);
-    std::shared_ptr<Item> pitem{item.release()};
-    transaction->AddItem(pitem);
+    transaction->AddItem(item);
 
     // BALANCE AGREEMENT
     // balanceItem is signed and saved within this call. No need to do
@@ -10782,6 +10782,18 @@ CommandResult OT_API::notarizeTransfer(
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
     account.Release();
+    const auto workflowID = workflow_.CreateTransfer(*item, *message);
+
+    if (workflowID->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to create transfer workflow")
+            .Flush();
+    } else {
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Created transfer workflow ")(
+            workflowID)
+            .Flush();
+    }
+
     result = send_message(managed, context, *message);
 
     return output;
@@ -12740,6 +12752,7 @@ bool OT_API::IncludeResponse(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
     const auto serverID = Identifier::Factory(context.Server());
     const auto type = source.GetType();
+    const auto inRefTo = String::Factory(source);
 
     switch (type) {
         case transactionType::pending:
@@ -12781,16 +12794,16 @@ bool OT_API::IncludeResponse(
         return false;
     }
 
-    const auto sourceType = source.GetType();
     auto note = String::Factory();
     const auto originNumber = get_origin(serverID, source, note);
     const bool acceptItemAdded = add_accept_item(
-        response_type(sourceType, accept),
+        response_type(type, accept),
         originNumber,
         source.GetTransactionNum(),
         note,
         nym,
         source.GetReceiptAmount(),
+        inRefTo,
         *processInbox);
 
     if (false == acceptItemAdded) {
@@ -13173,9 +13186,10 @@ bool OT_API::add_accept_item(
     const String& note,
     const Nym& nym,
     const Amount amount,
+    const String& inRefTo,
     OTTransaction& processInbox) const
 {
-    auto acceptItem{
+    std::shared_ptr<Item> acceptItem{
         api_.Factory().Item(processInbox, type, Identifier::Factory())};
 
     if (false == bool(acceptItem)) { return false; }
@@ -13186,12 +13200,13 @@ bool OT_API::add_accept_item(
 
     if (note.Exists()) { acceptItem->SetNote(note); }
 
+    if (inRefTo.Exists()) { acceptItem->SetAttachment(inRefTo); }
+
     bool output = true;
     output &= acceptItem->SignContract(nym);
     output &= (output && acceptItem->SaveContract());
 
-    std::shared_ptr<Item> pacceptItem{acceptItem.release()};
-    if (output) { processInbox.AddItem(pacceptItem); }
+    if (output) { processInbox.AddItem(acceptItem); }
 
     return output;
 }

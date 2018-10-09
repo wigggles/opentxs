@@ -66,6 +66,8 @@ public:
         const api::client::Workflow& workflow);
 
 private:
+    enum class TransactionAttempt : bool { Accepted = true, Rejected = false };
+
 #if OT_CASH
     OTWallet& m_pWallet;
 #endif
@@ -79,6 +81,16 @@ private:
         const Nym& nym,
         const Message& transportItem,
         const std::string& item) const;
+    void complete_incoming_transfer_workflow(
+        const ServerContext& context,
+        const Identifier& accountID,
+        const Item& acceptItemReceipt,
+        const Message& serverReply) const;
+    void complete_transfer_workflow(
+        const ServerContext& context,
+        const Identifier& accountID,
+        const Item& acceptItemReceipt,
+        const Message& serverReply) const;
     bool createInstrumentNoticeFromPeerObject(
         const ServerContext& context,
         const Message& message,
@@ -224,6 +236,11 @@ private:
         const Message& theReply,
         bool setNymboxHash,
         ServerContext& context);
+    bool update_workflow_send_transfer(
+        const Message& reply,
+        const ServerContext& context,
+        const Item& responseItem,
+        const TransactionAttempt status) const;
 };
 }  // namespace opentxs
 #endif

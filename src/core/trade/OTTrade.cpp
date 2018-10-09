@@ -848,9 +848,9 @@ void OTTrade::onFinalReceipt(
     //          1. ORIGINAL (user-signed) Cron Items are always stored "in
     // reference to" on cron receipts in the Inbox (an OTTransaction).
     //          2. The UPDATED VERSION of that same cron item (a trade or
-    // payment plan) is stored in the ATTACHMENT on the OTItem member.
+    // payment plan) is stored in the ATTACHMENT on the Item member.
     //          3. ADDITIONAL INFORMATION is stored in the NOTE field of the
-    // OTItem member.
+    // Item member.
     //
     // Unfortunately, marketReceipt doesn't adhere to this convention, as it
     // stores the Updated Cron Item (the trade) in

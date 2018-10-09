@@ -42,19 +42,84 @@ namespace client
  *    2. (optional) ExpireCheque
  *    3. DepositCheque
  *       a. May be repeated as necessary until successful
+ *
+ *  Sequence for sending a transfer:
+ *    1. CreateTransfer
+ *       a. Called just before sending a notarizeTransaction message to notary.
+ *    2. AcknowledgeTransfer
+ *       a. Called after receiving a server response with a successful
+ *          transaction reply
+ *    3. AbortTransfer
+ *       a. Called after receiving a server response with an unsuccessful
+ *          transaction reply, or after proving the server did not receive the
+ *          original transaction
+ *    4. ClearTransfer
+ *       a. Called after receiving a transfer receipt
+ *    5. CompleteTransfer
+ *       a. Called after a process inbox attempt
+ *       b. May be repeated as necessary until successful
+ *
+ *  Sequence for receiving a transfer:
+ *    1. ConveyTransfer
+ *       a. Called after receiving a transfer
+ *    3. AcceptTransfer
+ *       a. May be repeated as necessary until successful
+ *
+ *  Sequence for an internal transfer:
+ *    NOTE: AcknowledgeTransfer and ConveyTransfer may be called out of order
+ *
+ *    1. CreateTransfer
+ *       a. Called just before sending a notarizeTransaction message to notary.
+ *    2. AcknowledgeTransfer
+ *       a. Called after receiving a server response with a successful
+ *          transaction reply
+ *    3. AbortTransfer
+ *       a. Called after receiving a server response with an unsuccessful
+ *          transaction reply, or after proving the server did not receive the
+ *          original transaction
+ *    4. ConveyTransfer
+ *       a. Called after receiving a transfer
+ *    5. ClearTransfer
+ *       a. Called after receiving a transfer receipt
+ *    6. CompleteTransfer
+ *       a. Called after a process inbox attempt
+ *       b. May be repeated as necessary until successful
  */
 class Workflow
 {
 public:
     using Cheque = std::
         pair<proto::PaymentWorkflowState, std::unique_ptr<opentxs::Cheque>>;
+    using Transfer =
+        std::pair<proto::PaymentWorkflowState, std::unique_ptr<opentxs::Item>>;
 
     static bool ContainsCheque(const proto::PaymentWorkflow& workflow);
+    static bool ContainsTransfer(const proto::PaymentWorkflow& workflow);
     static std::string ExtractCheque(const proto::PaymentWorkflow& workflow);
+    static std::string ExtractTransfer(const proto::PaymentWorkflow& workflow);
     static Cheque InstantiateCheque(
         const api::Core& core,
         const proto::PaymentWorkflow& workflow);
+    static Transfer InstantiateTransfer(
+        const api::Core& core,
+        const proto::PaymentWorkflow& workflow);
 
+    /** Record a failed transfer attempt */
+    EXPORT virtual bool AbortTransfer(
+        const Identifier& nymID,
+        const Item& transfer,
+        const Message& reply) const = 0;
+    /** Record a transfer accept, or accept attempt */
+    EXPORT virtual bool AcceptTransfer(
+        const Identifier& nymID,
+        const Identifier& notaryID,
+        const OTTransaction& pending,
+        const Message& reply) const = 0;
+    /** Record a successful transfer attempt */
+    EXPORT virtual bool AcknowledgeTransfer(
+        const Identifier& nymID,
+        const Item& transfer,
+        const Message& reply) const = 0;
     /** Record a cheque cancellation or cancellation attempt */
     EXPORT virtual bool CancelCheque(
         const opentxs::Cheque& cheque,
@@ -64,6 +129,28 @@ public:
     EXPORT virtual bool ClearCheque(
         const Identifier& recipientNymID,
         const OTTransaction& receipt) const = 0;
+    /** Record receipt of a transfer receipt */
+    EXPORT virtual bool ClearTransfer(
+        const Identifier& nymID,
+        const Identifier& notaryID,
+        const OTTransaction& receipt) const = 0;
+    /** Record a process inbox for sender that accepts a transfer receipt */
+    EXPORT virtual bool CompleteTransfer(
+        const Identifier& nymID,
+        const Identifier& notaryID,
+        const OTTransaction& receipt,
+        const Message& reply) const = 0;
+    /** Create a new incoming transfer workflow, or update an existing internal
+     *  transfer workflow. */
+    EXPORT virtual OTIdentifier ConveyTransfer(
+        const Identifier& nymID,
+        const Identifier& notaryID,
+        const OTTransaction& pending) const = 0;
+    /** Record a new outgoing or internal "sent transfer" (or attempt) workflow
+     */
+    EXPORT virtual OTIdentifier CreateTransfer(
+        const Item& transfer,
+        const Message& request) const = 0;
     /** Record a cheque deposit or deposit attempt */
     EXPORT virtual bool DepositCheque(
         const Identifier& nymID,
@@ -94,6 +181,12 @@ public:
         const Identifier& nymID,
         const Identifier& chequeID) const = 0;
     EXPORT virtual Cheque LoadChequeByWorkflow(
+        const Identifier& nymID,
+        const Identifier& workflowID) const = 0;
+    EXPORT virtual Transfer LoadTransfer(
+        const Identifier& nymID,
+        const Identifier& transferID) const = 0;
+    EXPORT virtual Transfer LoadTransferByWorkflow(
         const Identifier& nymID,
         const Identifier& workflowID) const = 0;
     /** Load a serialized workflow, if it exists*/

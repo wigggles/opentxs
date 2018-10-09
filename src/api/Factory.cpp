@@ -38,7 +38,7 @@
 
 #include "Factory.hpp"
 
-//#define OT_METHOD "opentxs::api::implementation::Factory::"
+#define OT_METHOD "opentxs::api::implementation::Factory::"
 
 namespace opentxs
 {
@@ -283,6 +283,31 @@ std::unique_ptr<OTCronItem> Factory::CronItem(const String& strCronItem) const
     if (pItem->LoadContractFromString(strContract)) { return pItem; }
 
     return nullptr;
+}
+
+std::unique_ptr<opentxs::Item> Factory::Item(
+    const std::string& serialized) const
+{
+    return Item(String::Factory(serialized));
+}
+
+std::unique_ptr<opentxs::Item> Factory::Item(const String& serialized) const
+{
+    std::unique_ptr<opentxs::Item> output{new opentxs::Item(api_)};
+
+    if (output) {
+        const auto loaded = output->LoadContractFromString(serialized);
+
+        if (false == loaded) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to deserialize.")
+                .Flush();
+            output.reset();
+        }
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.").Flush();
+    }
+
+    return output;
 }
 
 std::unique_ptr<opentxs::Item> Factory::Item(
