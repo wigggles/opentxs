@@ -279,10 +279,7 @@ bool NymIDSource::Sign(
 
 OTString NymIDSource::asString() const
 {
-    auto dataSource = asData();
-    auto armoredSource = Armored::Factory(dataSource);
-
-    return String::Factory(armoredSource->Get());
+    return OTString(Armored::Factory(asData()));
 }
 
 // static

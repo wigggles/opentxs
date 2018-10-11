@@ -25,7 +25,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
@@ -1837,7 +1837,7 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
     }
 
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("item");
 
@@ -1949,7 +1949,7 @@ void Item::UpdateContents()  // Before transmission or serialization, this is
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 Item::~Item() { Release_Item(); }

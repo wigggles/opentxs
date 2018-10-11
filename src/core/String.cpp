@@ -8,7 +8,7 @@
 #include "opentxs/core/String.hpp"
 
 #include "opentxs/core/crypto/OTPassword.hpp"
-#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/StringUtils.hpp"
 #include "opentxs/core/Armored.hpp"
@@ -33,6 +33,10 @@
 #include <string>
 #include <utility>
 
+#include "String.hpp"
+
+#define MAX_STRING_LENGTH 0x800000  // this is about 8 megs.
+
 #define OT_METHOD "opentxs::String"
 
 template class opentxs::Pimpl<opentxs::String>;
@@ -45,46 +49,46 @@ std::ostream& operator<<(std::ostream& os, const String& obj)
     return os;
 }
 
-OTString String::Factory() { return OTString(new String()); }
+OTString String::Factory() { return OTString(new implementation::String()); }
 
 OTString String::Factory(const Armored& value)
 {
-    return OTString(new String(value));
+    return OTString(new implementation::String(value));
 }
 
-OTString String::Factory(const OTSignature& value)
+OTString String::Factory(const Signature& value)
 {
-    return OTString(new String(value));
+    return OTString(new implementation::String(value));
 }
 
 OTString String::Factory(const Contract& value)
 {
-    return OTString(new String(value));
+    return OTString(new implementation::String(value));
 }
 
 OTString String::Factory(const Identifier& value)
 {
-    return OTString(new String(value));
+    return OTString(new implementation::String(value));
 }
 
 OTString String::Factory(const NymFile& value)
 {
-    return OTString(new String(value));
+    return OTString(new implementation::String(value));
 }
 
 OTString String::Factory(const char* value)
 {
-    return OTString(new String(value));
+    return OTString(new implementation::String(value));
 }
 
 OTString String::Factory(const std::string& value)
 {
-    return OTString(new String(value));
+    return OTString(new implementation::String(value));
 }
 
 OTString String::Factory(const char* value, std::size_t size)
 {
-    return OTString(new String(value, size));
+    return OTString(new implementation::String(value, size));
 }
 
 std::string String::LongToString(const std::int64_t& lNumber)
@@ -312,12 +316,14 @@ std::string String::ws2s(const std::wstring& s)
 #endif
 }  // namespace opentxs
 
-namespace opentxs
+namespace opentxs::implementation
 {
+const std::string String::empty_{""};
+
 String::String()
     : length_(0)
     , position_(0)
-    , data_(nullptr)
+    , internal_()
 {
 }
 
@@ -352,7 +358,7 @@ String::String(const Armored& strValue)
 // But Lucre signatures, as used in this library, ARE in text form, so I
 // provided this constructor to easily base64-decode them to prepare for
 // loading into a bio and then a Lucre object.
-String::String(const OTSignature& strValue)
+String::String(const Signature& strValue)
     : String()
 {
     if (strValue.Exists()) strValue.GetString(*this);
@@ -397,51 +403,62 @@ String& String::operator=(const String& rhs)
     return *this;
 }
 
-bool String::operator>(const String& s2) const
+bool String::operator>(const opentxs::String& s2) const
 {
-    if (s2.length_ == 0) { return (true); }
+    auto& rhs = dynamic_cast<const String&>(s2);
+
+    if (rhs.length_ == 0) { return (true); }
     if (length_ == 0) { return (false); }
-    if (strcmp(data_, s2.data_) <= 0) { return (false); }
+    if (strcmp(internal_.data(), rhs.internal_.data()) <= 0) { return (false); }
     return (true);
 }
 
-bool String::operator<(const String& s2) const
+bool String::operator<(const opentxs::String& s2) const
 {
+    auto& rhs = dynamic_cast<const String&>(s2);
+
     if (length_ == 0) { return (true); }
-    if (s2.length_ == 0) { return (false); }
-    if (strcmp(data_, s2.data_) >= 0) { return (false); }
+    if (rhs.length_ == 0) { return (false); }
+    if (strcmp(internal_.data(), rhs.internal_.data()) >= 0) { return (false); }
     return (true);
 }
 
-bool String::operator<=(const String& s2) const
+bool String::operator<=(const opentxs::String& s2) const
 {
+    auto& rhs = dynamic_cast<const String&>(s2);
+
     if (length_ == 0) { return (true); }
-    if (s2.length_ == 0) { return (false); }
-    if (strcmp(data_, s2.data_) > 0) { return (false); }
+    if (rhs.length_ == 0) { return (false); }
+    if (strcmp(internal_.data(), rhs.internal_.data()) > 0) { return (false); }
     return (true);
 }
 
-bool String::operator>=(const String& s2) const
+bool String::operator>=(const opentxs::String& s2) const
 {
-    if (s2.length_ == 0) { return (true); }
+    auto& rhs = dynamic_cast<const String&>(s2);
+
+    if (rhs.length_ == 0) { return (true); }
     if (length_ == 0) { return (false); }
-    if (strcmp(data_, s2.data_) < 0) { return (false); }
+    if (strcmp(internal_.data(), rhs.internal_.data()) < 0) { return (false); }
     return (true);
 }
 
-bool String::operator==(const String& s2) const
+bool String::operator==(const opentxs::String& s2) const
 {
+    auto& rhs = dynamic_cast<const String&>(s2);
+
     // If they are not the same length, return false
-    if (length_ != s2.length_) { return (false); }
+    if (length_ != rhs.length_) { return (false); }
 
     // At this point we know they are at least the same length.
     // Next--are they both 0? If they are both 0, return true
-    if (length_ == 0 && s2.length_ == 0) { return (true); }
+    if (length_ == 0 && rhs.length_ == 0) { return (true); }
 
     // At this point we have 2 identical-length strings.
     // Now we call strcmp and convert it to true or false.
-    if (strcmp(data_, s2.data_) == 0) {  // TODO security: use a replacement for
-                                         // strcmp.
+    if (strcmp(internal_.data(), rhs.internal_.data()) ==
+        0) {  // TODO security: use a replacement for
+              // strcmp.
         return (true);
     }
     return (false);
@@ -450,7 +467,7 @@ bool String::operator==(const String& s2) const
 bool String::At(std::uint32_t lIndex, char& c) const
 {
     if (lIndex < length_) {
-        c = data_[lIndex];
+        c = internal_.data()[lIndex];
         return true;
     } else
         return false;
@@ -461,10 +478,10 @@ String* String::clone() const { return new String(*this); }
 // Compare is simple.  True if they match, False if they don't match.
 bool String::Compare(const char* strCompare) const
 {
-    if (nullptr == data_ || nullptr == strCompare) { return false; }
+    if (internal_.empty() || nullptr == strCompare) { return false; }
 
-    char* s1 = data_;
-    char* s2 = const_cast<char*>(strCompare);
+    const char* s1 = internal_.data();
+    const char* s2 = strCompare;
 
     for (; *s1 && *s2; s1++, s2++)
         if (*s1 != *s2) return false;
@@ -474,11 +491,11 @@ bool String::Compare(const char* strCompare) const
     return true;
 }
 
-bool String::Compare(const String& strCompare) const
+bool String::Compare(const opentxs::String& strCompare) const
 {
-    if (nullptr == data_ || !strCompare.Exists()) { return false; }
+    if (internal_.empty() || !strCompare.Exists()) { return false; }
 
-    char* s1 = data_;
+    const char* s1 = internal_.data();
     const char* s2 = strCompare.Get();
 
     for (; *s1 && *s1 != ' '; s1++, s2++)
@@ -507,11 +524,12 @@ void String::Concatenate(const char* fmt, ...)
 }
 
 // append a string at the end of the current buffer.
-void String::Concatenate(const String& strBuf)
+void String::Concatenate(const opentxs::String& strBuf)
 {
     std::string str_output;
 
-    if ((length_ > 0) && (nullptr != data_)) str_output += data_;
+    if ((length_ > 0) && (false == internal_.empty()))
+        str_output += internal_.data();
 
     if (strBuf.Exists() && (strBuf.GetLength() > 0)) str_output += strBuf.Get();
 
@@ -523,27 +541,29 @@ void String::Concatenate(const String& strBuf)
 // Should be easy to modify if the need arises.
 bool String::Contains(const char* strCompare) const
 {
-    if (nullptr == data_ || nullptr == strCompare) { return false; }
+    if (internal_.empty() || nullptr == strCompare) { return false; }
 
-    if (strstr(data_, strCompare)) return true;
+    if (strstr(internal_.data(), strCompare)) return true;
 
     return false;
 }
 
-bool String::Contains(const String& strCompare) const
+bool String::Contains(const opentxs::String& strCompare) const
 {
-    if (nullptr == data_ || !strCompare.Exists()) { return false; }
+    if (internal_.empty() || !strCompare.Exists()) { return false; }
 
-    if (strstr(data_, strCompare.Get())) return true;
+    if (strstr(internal_.data(), strCompare.Get())) return true;
 
     return false;
 }
 
 void String::ConvertToUpperCase()
 {
-    if (data_ == nullptr) { return; }
+    if (internal_.data() == nullptr) { return; }
 
-    for (char* s1 = data_; *s1; s1++) { *s1 = static_cast<char>(toupper(*s1)); }
+    for (char* s1 = internal_.data(); *s1; s1++) {
+        *s1 = static_cast<char>(toupper(*s1));
+    }
 }
 
 // If this string starts with -----BEGIN OT ARMORED...
@@ -631,7 +651,7 @@ bool String::DecodeIfArmored(bool bEscapedIsAllowed)
     return Exists();
 }
 
-bool String::empty(void) const { return (nullptr == data_) ? true : false; }
+bool String::empty(void) const { return (internal_.empty()) ? true : false; }
 
 bool String::Exists(void) const { return !empty(); }
 
@@ -649,9 +669,15 @@ void String::Format(const char* fmt, ...)
     if (bSuccess) Set(str_output.c_str());
 }
 
-const char* String::Get(void) const
+const char* String::Get() const
 {
-    return (nullptr != data_) ? const_cast<const char*>(data_) : "";
+    if (internal_.empty()) {
+
+        return empty_.c_str();
+    } else {
+
+        return internal_.data();
+    }
 }
 
 std::uint32_t String::GetLength(void) const { return length_; }
@@ -660,7 +686,8 @@ void String::Initialize()
 {
     length_ = 0;
     position_ = 0;
-    data_ = nullptr;
+
+    if (false == internal_.empty()) { Release_String(); }
 }
 
 // if nEnforcedMaxLength is 10, then it will actually enforce a string at 9
@@ -674,7 +701,7 @@ void String::LowLevelSet(
     const char* new_string,
     std::uint32_t nEnforcedMaxLength)
 {
-    OT_ASSERT(nullptr == data_);  // otherwise memory leak.
+    OT_ASSERT(internal_.empty());  // otherwise memory leak.
 
     if (nullptr != new_string) {
         std::uint32_t nLength =
@@ -689,7 +716,7 @@ void String::LowLevelSet(
                                                      // \0
 
         // don't bother allocating memory for a 0 length string.
-        if (0 == nLength) return;
+        if (0 == nLength) { return; }
 
         OT_ASSERT_MSG(
             nLength < (MAX_STRING_LENGTH - 10),
@@ -698,27 +725,19 @@ void String::LowLevelSet(
             "anyway--it would have been truncated here, potentially "
             "causing data corruption.)");  // 10 being a buffer.
 
-        // Add null terminator to source string JUST IN CASE...
-        // Update: this is const, so we can't change it. However, the strnlen
-        // above will only have
-        // worked if there was a null terminator, since otherwise we would have
-        // hit the above ASSERT.
-        // Therefore we should be safe enough without it here...
-        //
-        //      new_string[nLength] = '\0';
+        internal_ = make_string(new_string, nLength);
 
-        data_ = str_dup2(new_string, nLength);
-
-        if (nullptr != data_)
+        if (false == internal_.empty()) {
             length_ = nLength;
-        else
+        } else {
             length_ = 0;
+        }
     }
 }
 
 void String::LowLevelSetStr(const String& strBuf)
 {
-    OT_ASSERT(nullptr == data_);  // otherwise memory leak.
+    OT_ASSERT(internal_.empty());  // otherwise memory leak.
 
     if (strBuf.Exists()) {
         length_ = (MAX_STRING_LENGTH > strBuf.length_)
@@ -732,8 +751,36 @@ void String::LowLevelSetStr(const String& strBuf)
             "anyway--it would have been truncated here, potentially "
             "causing data corruption.)");  // 10 being a buffer.
 
-        data_ = str_dup2(strBuf.data_, length_);
+        internal_ = make_string(strBuf.internal_.data(), length_);
     }
+}
+
+std::vector<char> String::make_string(const char* str, std::uint32_t length)
+{
+    std::vector<char> output{};
+
+    if ((nullptr != str) && (0 < length)) {
+        auto* it = str;
+
+        for (std::size_t i = 0; i < length; ++i, ++it) {
+            output.emplace_back(*it);
+        }
+    }
+
+    // INITIALIZE EXTRA BYTE OF SPACE
+    //
+    // If length is 10, then buffer is created with 11 elements,
+    // indexed from 0 (first element) through 10 (11th element).
+    //
+    // Therefore str_new[length==10] is the 11th element, which was
+    // the extra one created on our buffer, to store the \0 null terminator.
+    //
+    // This way I know I'm never cutting off data that was in the string itself.
+    // Rather, I am only setting to 0 an EXTRA byte that I created myself, AFTER
+    // the string's length itself.
+    output.emplace_back('\0');
+
+    return output;
 }
 
 // The source is probably NOT null-terminated.
@@ -745,51 +792,25 @@ bool String::MemSet(const char* pMem, std::uint32_t theSize)  // if theSize is
 
     if ((nullptr == pMem) || (theSize < 1)) { return true; }
 
-    char* str_new = new char[theSize + 1];  // then we allocate 11
+    const auto* it = pMem;
 
-    OT_ASSERT(nullptr != str_new);
-    OTPassword::zeroMemory(str_new, theSize + 1);
-    OTPassword::safe_memcpy(
-        static_cast<void*>(str_new), theSize + 1, pMem, theSize);
+    for (std::size_t i = 0; i < theSize; ++i, ++it) {
+        internal_.emplace_back(*it);
+    }
 
-    // todo optimize: This is probably superfluous due to the zeroMemory above.
-    // Then again, we might want to remove that, and then keep this.
-    str_new[theSize] = '\0';  // add null-terminator. (I deliberately made this
-    // buffer 1 byte larger so I could put the 0 at the
-    // end.) Here the index[10] is the 11th byte, since
-    // we're counting from 0.
-
-    // Calculate the length (in case there was a null terminator in the
-    // middle...) This way we're guaranteed to have the correct length.
-    std::uint32_t nLength = static_cast<std::uint32_t>(
-        String::safe_strlen(str_new, static_cast<std::size_t>(theSize)));
-    str_new[nLength] = '\0';  // This SHOULD be superfluous as well...
-    length_ = nLength;        // the length doesn't count the 0.
-    data_ = str_new;
+    internal_.emplace_back('\0');
+    length_ = theSize;  // the length doesn't count the 0.
 
     return true;
-}
-
-void String::OTfgets(std::istream& ifs)
-{
-    std::stringbuf sb;
-    ifs.get(sb);  // delimiter defaults to '\n'
-
-    if (ifs.good()) {
-        const std::string str_output = sb.str();
-
-        Set(str_output.c_str());
-    }
 }
 
 void String::Release(void) { Release_String(); }
 
 void String::Release_String(void)
 {
-    if (nullptr != data_) {
-        // for security purposes.
-        OTPassword::zeroMemory(data_, length_);
-        delete[] data_;
+    if (false == internal_.empty()) {
+        zeroMemory();
+        internal_.clear();
     }
 
     Initialize();
@@ -802,7 +823,7 @@ void String::reset(void) { position_ = 0; }
 // at that length of the string minus 1.
 void String::Set(const char* new_string, std::uint32_t nEnforcedMaxLength)
 {
-    if (new_string == data_)  // Already the same string.
+    if (new_string == internal_.data())  // Already the same string.
         return;
 
     Release();
@@ -812,14 +833,16 @@ void String::Set(const char* new_string, std::uint32_t nEnforcedMaxLength)
     LowLevelSet(new_string, nEnforcedMaxLength);
 }
 
-void String::Set(const String& strBuf)
+void String::Set(const opentxs::String& strBuf)
 {
-    if (this == &strBuf)  // Already the same string.
+    const auto& in = dynamic_cast<const String&>(strBuf);
+
+    if (this == &in)  // Already the same string.
         return;
 
     Release();
 
-    LowLevelSetStr(strBuf);
+    LowLevelSetStr(in);
 }
 
 // true  == there are more lines to read.
@@ -832,7 +855,7 @@ bool String::sgets(char* szBuffer, std::uint32_t nBufSize)
     if (position_ >= length_) return false;
 
     std::uint32_t lIndex = 0;
-    char* pChar = data_ + position_;
+    char* pChar = internal_.data() + position_;
 
     // while *pChar isn't at the end of the source string,
     // and lIndex hasn't reached the end of the destination buffer,
@@ -889,23 +912,19 @@ char String::sgetc(void)
     char answer;
 
     if (position_ >= length_) { return EOF; }
-    answer = *(data_ + position_);
+    answer = *(internal_.data() + position_);
 
     ++position_;
 
     return answer;
 }
 
-void String::sungetc(void)
+void String::swap(opentxs::String& rhs)
 {
-    if (position_ > 0) { --position_; }
-}
-
-void String::swap(String& rhs)
-{
-    std::swap(length_, rhs.length_);
-    std::swap(position_, rhs.position_);
-    std::swap(data_, rhs.data_);
+    auto& in = dynamic_cast<String&>(rhs);
+    std::swap(length_, in.length_);
+    std::swap(position_, in.position_);
+    std::swap(internal_, in.internal_);
 }
 
 std::int32_t String::ToInt() const
@@ -1048,17 +1067,11 @@ std::uint64_t String::ToUlong() const
     return StringToUlong(str_number);
 }
 
-void String::Truncate(std::uint32_t lAt)
-{
-    String strTruncated;
-    strTruncated.Set(Get(), lAt);
-    Set(strTruncated);
-}
-
 void String::WriteToFile(std::ostream& ofs) const
 {
-    if (!data_) { return; }
-    char* pchar = const_cast<char*>(data_);
+    if (internal_.empty()) { return; }
+    char* pchar = const_cast<char*>(internal_.data());
+
     while (*pchar) {
         if (*pchar != '\r') ofs << *pchar;
         pchar++;
@@ -1067,8 +1080,10 @@ void String::WriteToFile(std::ostream& ofs) const
 
 void String::zeroMemory()
 {
-    if (nullptr != data_) { OTPassword::zeroMemory(data_, length_); }
+    if (false == internal_.empty()) {
+        OTPassword::zeroMemory(internal_.data(), length_);
+    }
 }
 
 String::~String() { Release_String(); }
-}  // namespace opentxs
+}  // namespace opentxs::implementation

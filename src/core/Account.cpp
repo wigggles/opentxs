@@ -25,7 +25,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
@@ -805,7 +805,7 @@ void Account::UpdateContents()
     TranslateAccountTypeToString(acctType_, acctType);
 
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("account");
 
@@ -850,7 +850,7 @@ void Account::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

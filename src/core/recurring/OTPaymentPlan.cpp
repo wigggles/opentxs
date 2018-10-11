@@ -25,7 +25,7 @@
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -193,7 +193,7 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 void OTPaymentPlan::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     const auto NOTARY_ID = String::Factory(GetNotaryID()),
                INSTRUMENT_DEFINITION_ID =
@@ -321,7 +321,7 @@ void OTPaymentPlan::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 // *** Set Initial Payment ***  / Make sure to call SetAgreement() first.

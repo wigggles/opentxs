@@ -33,7 +33,7 @@
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
@@ -189,7 +189,7 @@ OTTransaction::OTTransaction(
 // This CONSTRUCTOR is used for instantiating "abbreviated" transactions,
 // each of which separately load their full contents from a separate datafile
 // not during loading but during the subsequent verification process.
-// See: bool OTTransaction::VerifyItems(OTPseudonym& theNym)
+// See: bool OTTransaction::VerifyItems(Nym& theNym)
 //
 OTTransaction::OTTransaction(
     const api::Core& core,
@@ -4115,7 +4115,7 @@ void OTTransaction::UpdateContents()
                strNymID = String::Factory(GetNymID());
 
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("transaction");
 
@@ -4242,7 +4242,7 @@ void OTTransaction::UpdateContents()
 
     std::string str_result;
     tag.output(str_result);
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 /*

@@ -13,7 +13,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Instrument.hpp"
 #include "opentxs/core/Log.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -335,7 +335,7 @@ void OTOffer::UpdateContents()
                CURRENCY_TYPE_ID = String::Factory(GetCurrencyID());
 
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("marketOffer");
 
@@ -359,7 +359,7 @@ void OTOffer::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 bool OTOffer::MakeOffer(

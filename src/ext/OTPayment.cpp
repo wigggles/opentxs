@@ -25,7 +25,7 @@
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTrackable.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
@@ -2049,7 +2049,7 @@ bool OTPayment::SetPayment(const String& strPayment)
 void OTPayment::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("payment");
 
@@ -2067,7 +2067,7 @@ void OTPayment::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 OTPayment::~OTPayment() { Release_Payment(); }

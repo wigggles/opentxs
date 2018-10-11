@@ -27,7 +27,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -198,7 +198,7 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 void OTMarket::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     const auto NOTARY_ID = String::Factory(m_NOTARY_ID),
                INSTRUMENT_DEFINITION_ID =
@@ -251,7 +251,7 @@ void OTMarket::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 std::int64_t OTMarket::GetTotalAvailableAssets()

@@ -5,7 +5,7 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -65,7 +65,7 @@ namespace opentxs::crypto::implementation
 bool AsymmetricProvider::SignContract(
     const String& strContractUnsigned,
     const key::Asymmetric& theKey,
-    OTSignature& theSignature,  // output
+    Signature& theSignature,  // output
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
@@ -83,7 +83,7 @@ bool AsymmetricProvider::SignContract(
 bool AsymmetricProvider::VerifyContractSignature(
     const String& strContractToVerify,
     const key::Asymmetric& theKey,
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {

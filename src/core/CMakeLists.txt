@@ -37,11 +37,11 @@ set(cxx-sources
   NymFile.cpp
   NymIDSource.cpp
   OTStorage.cpp
-  OTStringXML.cpp
   OTTrackable.cpp
   OTTransaction.cpp
   OTTransactionType.cpp
   String.cpp
+  StringXML.cpp
 )
 
 set(cxx-install-headers
@@ -68,20 +68,23 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/NymIDSource.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStorage.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStoragePB.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTStringXML.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTrackable.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransaction.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/OTTransactionType.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/String.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/StringXML.hpp"
 )
 
 set(cxx-headers
   "${cxx-install-headers}"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/core/UniqueQueue.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Armored.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Data.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Flag.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Identifier.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/NymFile.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/String.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/StringXML.hpp"
 )
 
 if(KEYRING_GNOME)

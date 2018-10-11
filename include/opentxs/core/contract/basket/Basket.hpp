@@ -186,7 +186,7 @@ private:
         std::int32_t nCount,
         std::int64_t lMinimumTransferAmount);
 
-    void GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID) const;
+    void GenerateContents(StringXML& xmlUnsigned, bool bHideAccountID) const;
 
     Basket() = delete;
 };

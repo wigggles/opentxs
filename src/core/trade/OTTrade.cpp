@@ -22,7 +22,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -250,7 +250,7 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 void OTTrade::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     const auto NOTARY_ID = String::Factory(GetNotaryID()),
                NYM_ID = String::Factory(GetSenderNymID()),
@@ -307,7 +307,7 @@ void OTTrade::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 // The trade stores a copy of the Offer in string form.

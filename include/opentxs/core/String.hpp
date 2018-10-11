@@ -13,7 +13,7 @@
 #include "util/win32_utf8conv.hpp"
 #endif
 
-#include <stddef.h>
+#include <cstddef>
 #include <cstdarg>
 #include <cstdint>
 #include <iosfwd>
@@ -21,8 +21,7 @@
 #include <utility>
 #include <string>
 #include <map>
-
-#define MAX_STRING_LENGTH 0x800000  // this is about 8 megs.
+#include <vector>
 
 #ifdef __GNUC__
 #define ATTR_PRINTF(a, b) __attribute__((format(printf, a, b)))
@@ -47,7 +46,7 @@ public:
     EXPORT static opentxs::Pimpl<opentxs::String> Factory();
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(const Armored& value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(
-        const OTSignature& value);
+        const Signature& value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(
         const Contract& value);
     EXPORT static opentxs::Pimpl<opentxs::String> Factory(
@@ -83,90 +82,67 @@ public:
     EXPORT static std::string ws2s(const std::wstring& s);
 #endif
 
-    EXPORT virtual bool operator>(const String& rhs) const;
-    EXPORT virtual bool operator<(const String& rhs) const;
-    EXPORT virtual bool operator<=(const String& rhs) const;
-    EXPORT virtual bool operator>=(const String& rhs) const;
-    EXPORT virtual bool operator==(const String& rhs) const;
+    EXPORT virtual bool operator>(const String& rhs) const = 0;
+    EXPORT virtual bool operator<(const String& rhs) const = 0;
+    EXPORT virtual bool operator<=(const String& rhs) const = 0;
+    EXPORT virtual bool operator>=(const String& rhs) const = 0;
+    EXPORT virtual bool operator==(const String& rhs) const = 0;
 
-    EXPORT virtual bool At(std::uint32_t index, char& c) const;
-    EXPORT virtual bool Compare(const char* compare) const;
-    EXPORT virtual bool Compare(const String& compare) const;
-    EXPORT virtual bool Contains(const char* compare) const;
-    EXPORT virtual bool Contains(const String& compare) const;
-    EXPORT virtual bool empty() const;
-    EXPORT virtual bool Exists() const;
-    EXPORT virtual const char* Get() const;
-    EXPORT virtual std::uint32_t GetLength() const;
-    EXPORT virtual std::int32_t ToInt() const;
-    EXPORT virtual bool TokenizeIntoKeyValuePairs(Map& map) const;
-    EXPORT virtual std::int64_t ToLong() const;
-    EXPORT virtual std::uint32_t ToUint() const;
-    EXPORT virtual std::uint64_t ToUlong() const;
-    EXPORT virtual void WriteToFile(std::ostream& ofs) const;
+    EXPORT virtual bool At(std::uint32_t index, char& c) const = 0;
+    EXPORT virtual bool Compare(const char* compare) const = 0;
+    EXPORT virtual bool Compare(const String& compare) const = 0;
+    EXPORT virtual bool Contains(const char* compare) const = 0;
+    EXPORT virtual bool Contains(const String& compare) const = 0;
+    EXPORT virtual bool empty() const = 0;
+    EXPORT virtual bool Exists() const = 0;
+    EXPORT virtual const char* Get() const = 0;
+    EXPORT virtual std::uint32_t GetLength() const = 0;
+    EXPORT virtual std::int32_t ToInt() const = 0;
+    EXPORT virtual bool TokenizeIntoKeyValuePairs(Map& map) const = 0;
+    EXPORT virtual std::int64_t ToLong() const = 0;
+    EXPORT virtual std::uint32_t ToUint() const = 0;
+    EXPORT virtual std::uint64_t ToUlong() const = 0;
+    EXPORT virtual void WriteToFile(std::ostream& ofs) const = 0;
 
-    EXPORT virtual void Concatenate(const char* arg, ...) ATTR_PRINTF(2, 3);
-    EXPORT virtual void Concatenate(const String& data);
-    EXPORT virtual void ConvertToUpperCase();
-    EXPORT virtual bool DecodeIfArmored(bool escapedIsAllowed = true);
-    EXPORT virtual void Format(const char* fmt, ...) ATTR_PRINTF(2, 3);
-    EXPORT virtual void Initialize();
+    EXPORT virtual void Concatenate(const char* arg, ...) ATTR_PRINTF(2, 3) = 0;
+    EXPORT virtual void Concatenate(const String& data) = 0;
+    EXPORT virtual void ConvertToUpperCase() = 0;
+    EXPORT virtual bool DecodeIfArmored(bool escapedIsAllowed = true) = 0;
+    EXPORT virtual void Format(const char* fmt, ...) ATTR_PRINTF(2, 3) = 0;
     /** For a straight-across, exact-size copy of bytes. Source not expected to
      * be null-terminated. */
-    EXPORT virtual bool MemSet(const char* mem, std::uint32_t size);
-    EXPORT virtual void OTfgets(std::istream& ofs);
-    EXPORT virtual void Release();
+    EXPORT virtual bool MemSet(const char* mem, std::uint32_t size) = 0;
+    EXPORT virtual void Release() = 0;
     /** new_string MUST be at least nEnforcedMaxLength in size if
     nEnforcedMaxLength is passed in at all.
     That's because this function forces the null terminator at that length,
     minus 1. For example, if the max is set to 10, then the valid range is 0..9.
     Therefore 9 (10 minus 1) is where the nullptr terminator goes. */
-    EXPORT void Set(const char* data, std::uint32_t enforcedMaxLength = 0);
-    EXPORT void Set(const String& data);
+    EXPORT virtual void Set(
+        const char* data,
+        std::uint32_t enforcedMaxLength = 0) = 0;
+    EXPORT virtual void Set(const String& data) = 0;
     /** true  == there are more lines to read.
     false == this is the last line. Like EOF. */
-    EXPORT virtual bool sgets(char* buffer, std::uint32_t size);
-    EXPORT virtual char sgetc();
-    EXPORT virtual void sungetc();
-    EXPORT virtual void reset();
-    EXPORT virtual void swap(String& rhs);
-    EXPORT virtual void Truncate(std::uint32_t index);
-    EXPORT virtual void zeroMemory();
+    EXPORT virtual bool sgets(char* buffer, std::uint32_t size) = 0;
+    EXPORT virtual char sgetc() = 0;
+    EXPORT virtual void swap(String& rhs) = 0;
+    EXPORT virtual void reset() = 0;
 
-    EXPORT virtual ~String();
+    EXPORT virtual ~String() = default;
 
 protected:
-    std::uint32_t length_{0};
-    std::uint32_t position_{0};
-    char* data_{nullptr};
-
-    virtual void Release_String();
+    String() = default;
 
 private:
     friend OTString;
     friend std::ostream& operator<<(std::ostream& os, const String& obj);
 
-    String* clone() const;
-    /** Only call this right after calling Initialize() or Release(). Also, this
-     * function ASSUMES the new_string pointer is good. */
-    void LowLevelSet(const char* data, std::uint32_t enforcedMaxLength);
-    /** You better have called Initialize() or Release() before you dare call
-     * this. */
-    void LowLevelSetStr(const String& buffer);
+    virtual String* clone() const = 0;
 
-protected:
-//public:
-    EXPORT explicit String(const Armored& value);
-    EXPORT explicit String(const OTSignature& value);
-    EXPORT explicit String(const Contract& value);
-    EXPORT explicit String(const Identifier& value);
-    EXPORT explicit String(const NymFile& value);
-    EXPORT String(const char* value);
-    EXPORT explicit String(const std::string& value);
-    EXPORT String(const char* value, std::size_t size);
-    EXPORT String();
-    EXPORT String(const String& rhs);
-    EXPORT String& operator=(const String& rhs);
+    String(String&& rhs) = delete;
+    String& operator=(const String& rhs) = delete;
+    String& operator=(String&& rhs) = delete;
 };
 }  // namespace opentxs
 #endif

@@ -13,13 +13,10 @@
 #include <cstdint>
 #include <iosfwd>
 #include <map>
-#include <memory>
 #include <string>
 
 namespace opentxs
 {
-typedef std::map<std::int64_t, OTArmored> mapOfArmor;
-
 extern const char* OT_BEGIN_ARMORED;
 extern const char* OT_END_ARMORED;
 
@@ -56,7 +53,7 @@ extern const char* OT_BEGIN_SIGNED_escaped;
 
       Note: if an Armored is provided to the constructor of String(),
       the resulting String will be in *decoded* form. */
-class Armored : public String
+class Armored : virtual public String
 {
 public:
     EXPORT static opentxs::Pimpl<opentxs::Armored> Factory();
@@ -65,8 +62,6 @@ public:
     EXPORT static opentxs::Pimpl<opentxs::Armored> Factory(const String& in);
     EXPORT static opentxs::Pimpl<opentxs::Armored> Factory(
         const OTEnvelope& in);
-
-    EXPORT static OTDB::OTPacker* GetPacker();
 
     /** Let's say you don't know if the input string is raw base64, or if it has
      * bookends on it like -----BEGIN BLAH BLAH ... And if it DOES have
@@ -83,19 +78,21 @@ public:
         const String& strInput,
         std::string str_bookend = "-----BEGIN");
 
-    EXPORT bool GetData(Data& theData, bool bLineBreaks = true) const;
-    EXPORT bool GetString(String& theData, bool bLineBreaks = true) const;
+    EXPORT virtual bool GetData(Data& theData, bool bLineBreaks = true)
+        const = 0;
+    EXPORT virtual bool GetString(String& theData, bool bLineBreaks = true)
+        const = 0;
     // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER" There's
     // no default, to force you to enter the right string.
     // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER" There's
     // no default, to force you to enter the right string.
-    EXPORT bool WriteArmoredString(
+    EXPORT virtual bool WriteArmoredString(
         String& strOutput,
         const std::string str_type,
-        bool bEscaped = false) const;
+        bool bEscaped = false) const = 0;
 
-    EXPORT bool LoadFrom_ifstream(std::ifstream& fin);
-    EXPORT bool LoadFromExactPath(const std::string& filename);
+    EXPORT virtual bool LoadFrom_ifstream(std::ifstream& fin) = 0;
+    EXPORT virtual bool LoadFromExactPath(const std::string& filename) = 0;
     // This code reads up the string, discards the bookends, and saves only the
     // gibberish itself. the bEscaped option allows you to load a normal
     // ASCII-Armored file if off, and allows you to load an escaped
@@ -104,42 +101,33 @@ public:
     //
     // str_override determines where the content starts, when loading.
     // "-----BEGIN" is the default "content start" substr.
-    EXPORT bool LoadFromString(
+    EXPORT virtual bool LoadFromString(
         String& theStr,
         bool bEscaped = false,
-        const std::string str_override = "-----BEGIN");
-    EXPORT bool SaveTo_ofstream(std::ofstream& fout);
-    EXPORT bool SaveToExactPath(const std::string& filename);
-    EXPORT bool SetData(const Data& theData, bool bLineBreaks = true);
-    EXPORT bool SetString(const String& theData, bool bLineBreaks = true);
+        const std::string str_override = "-----BEGIN") = 0;
+    EXPORT virtual bool SaveTo_ofstream(std::ofstream& fout) = 0;
+    EXPORT virtual bool SaveToExactPath(const std::string& filename) = 0;
+    EXPORT virtual bool SetData(
+        const Data& theData,
+        bool bLineBreaks = true) = 0;
+    EXPORT virtual bool SetString(
+        const String& theData,
+        bool bLineBreaks = true) = 0;
 
     EXPORT ~Armored() = default;
 
-private:
+protected:
     friend OTArmored;
 
-    static std::unique_ptr<OTDB::OTPacker> s_pPacker;
+    virtual Armored* clone() const = 0;
 
-    Armored* clone() const;
-    std::string compress_string(
-        const std::string& str,
-        std::int32_t compressionlevel) const;
-    std::string decompress_string(const std::string& str) const;
+    Armored() = default;
 
-
-protected:
-//public:
-    Armored(const char* szValue);
-    explicit Armored(const Data& theValue);
-    explicit Armored(const String& strValue);
-    explicit Armored(const OTEnvelope& theEnvelope);
-    Armored();
-    Armored(const Armored& strValue);
-
-    Armored& operator=(const char* szValue);
-    Armored& operator=(const Data& theValue);
-    Armored& operator=(const String& strValue);
-    Armored& operator=(const Armored& strValue);
+private:
+    Armored(const Armored&) = delete;
+    Armored(Armored&&) = delete;
+    Armored& operator=(const Armored&) = delete;
+    Armored& operator=(Armored&&) = delete;
 };
 }  // namespace opentxs
 #endif

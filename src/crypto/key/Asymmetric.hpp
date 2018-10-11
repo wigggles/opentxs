@@ -94,7 +94,7 @@ protected:
     //
     // Here's how metadata works: It's optional. You can set it, or not. If it's
     // there, OT will add it to the signature on the contract itself, when this
-    // key is used to sign something. (OTSignature has the same
+    // key is used to sign something. (Signature has the same
     // OTSignatureMetadata struct.) Later on when verifying the signature, the
     // metadata is used to speed up the lookup/verification process so we don't
     // have to verify the signature against every single child key credential

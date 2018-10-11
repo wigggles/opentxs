@@ -29,6 +29,8 @@
 #include <stdexcept>
 #include <string>
 
+#include "Armored.hpp"
+
 template class opentxs::Pimpl<opentxs::Armored>;
 
 namespace opentxs
@@ -42,25 +44,29 @@ const char* OT_END_ARMORED_escaped = "- -----END OT ARMORED";
 const char* OT_BEGIN_SIGNED = "-----BEGIN SIGNED";
 const char* OT_BEGIN_SIGNED_escaped = "- -----BEGIN SIGNED";
 
-OTArmored Armored::Factory() { return OTArmored(new Armored()); }
+OTArmored Armored::Factory()
+{
+    return OTArmored(new implementation::Armored());
+}
 
 OTArmored Armored::Factory(const opentxs::String& value)
 {
-    return OTArmored(new Armored(value));
+    return OTArmored(new implementation::Armored(value));
 }
 
 OTArmored Armored::Factory(const Data& value)
 {
-    return OTArmored(new Armored(value));
+    return OTArmored(new implementation::Armored(value));
 }
 
 OTArmored Armored::Factory(const OTEnvelope& value)
 {
-    return OTArmored(new Armored(value));
+    return OTArmored(new implementation::Armored(value));
 }
+
 OTArmored Armored::Factory(const char* value)
 {
-    return OTArmored(new Armored(value));
+    return OTArmored(new implementation::Armored(value));
 }
 
 bool Armored::LoadFromString(
@@ -94,7 +100,7 @@ bool Armored::LoadFromString(
 }
 }  // namespace opentxs
 
-namespace opentxs
+namespace opentxs::implementation
 {
 // initializes blank.
 Armored::Armored()
@@ -103,7 +109,7 @@ Armored::Armored()
 }
 
 // encodes
-Armored::Armored(const String& strValue)
+Armored::Armored(const opentxs::String& strValue)
     : Armored()
 {
     SetString(strValue);
@@ -144,9 +150,9 @@ Armored& Armored::operator=(const char* szValue)
 }
 
 // encodes
-Armored& Armored::operator=(const String& strValue)
+Armored& Armored::operator=(const opentxs::String& strValue)
 {
-    if ((&strValue) != (&(dynamic_cast<const String&>(*this)))) {
+    if ((&strValue) != (&(dynamic_cast<const opentxs::String&>(*this)))) {
         SetString(strValue);
     }
     return *this;
@@ -273,7 +279,7 @@ bool Armored::GetData(Data& theData,
 }
 
 // Base64-decode and decompress
-bool Armored::GetString(String& strData, bool bLineBreaks) const
+bool Armored::GetString(opentxs::String& strData, bool bLineBreaks) const
 {
     strData.Release();
 
@@ -330,7 +336,7 @@ bool Armored::LoadFromExactPath(const std::string& filename)
 }
 
 bool Armored::LoadFromString(
-    String& theStr,  // input
+    opentxs::String& theStr,  // input
     bool bEscaped,
     const std::string str_override)
 {
@@ -507,7 +513,9 @@ bool Armored::SaveToExactPath(const std::string& filename)
 }
 
 // Compress and Base64-encode
-bool Armored::SetString(const String& strData, bool bLineBreaks)  //=true
+bool Armored::SetString(
+    const opentxs::String& strData,
+    bool bLineBreaks)  //=true
 {
     Release();
 
@@ -538,11 +546,10 @@ bool Armored::SetString(const String& strData, bool bLineBreaks)  //=true
 }
 
 bool Armored::WriteArmoredString(
-    String& strOutput,
-    const  // for "-----BEGIN OT LEDGER-----", str_type would contain "LEDGER"
-    std::string str_type,  // There's no default, to force you to enter the
-                           // right
-                           // string.
+    opentxs::String& strOutput,
+    const std::string str_type,  // for "-----BEGIN OT LEDGER-----", str_type
+                                 // would contain "LEDGER" There's no default,
+                                 // to force you to enter the right string.
     bool bEscaped) const
 {
     const char* szEscape = "- ";
@@ -572,4 +579,4 @@ bool Armored::WriteArmoredString(
 
     return true;
 }
-}  // namespace opentxs
+}  // namespace opentxs::implementation

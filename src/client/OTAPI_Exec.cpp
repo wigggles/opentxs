@@ -1755,10 +1755,10 @@ bool OTAPI_Exec::Wallet_ChangePassphrase() const
     return ot_api_.Wallet_ChangePassphrase();
 }
 
-// bool OTPseudonym::Savex509CertAndPrivateKeyToString(OTString& strOutput,
+// bool Nym::Savex509CertAndPrivateKeyToString(OTString& strOutput,
 // OTString * pstrReason)
 
-// bool OTPseudonym::Savex509CertAndPrivateKey(bool       bCreateFile,
+// bool Nym::Savex509CertAndPrivateKey(bool       bCreateFile,
 //                                            OTString * pstrReason)
 
 // Attempts to find a full ID in the wallet, based on a partial of the same ID.
@@ -7876,7 +7876,7 @@ OTAPI_Exec::GetNym_MailContentsByIndex");
 
     std::string strFunc = "OTAPI_Exec::GetNym_MailContentsByIndex";
     OTIdentifier    theNymID(NYM_ID);
-    OTPseudonym * pNym = ot_api_.GetNym(theNymID, strFunc);
+    Nym * pNym = ot_api_.GetNym(theNymID, strFunc);
     if (nullptr == pNym) return {};
     OTMessage * pMessage = pNym->GetMailByIndex(nIndex);
 

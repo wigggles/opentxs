@@ -31,7 +31,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
 #if OT_CRYPTO_WITH_BIP32
 #include "opentxs/crypto/Bip32.hpp"
@@ -385,9 +385,9 @@ bool OTWallet::LoadWallet(const char* szFilename)
     bool bNeedToSaveAgain = false;
 
     {
-        OTStringXML xmlFileContents(strFileContents);
+        auto xmlFileContents = StringXML::Factory(strFileContents);
 
-        if (!xmlFileContents.DecodeIfArmored()) {
+        if (!xmlFileContents->DecodeIfArmored()) {
             otErr << __FUNCTION__
                   << ": Input string apparently was encoded and then failed "
                      "decoding. Filename: "
@@ -399,7 +399,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
         }
 
         irr::io::IrrXMLReader* xml =
-            irr::io::createIrrXMLReader(xmlFileContents);
+            irr::io::createIrrXMLReader(xmlFileContents.get());
 
         // parse the file until end reached
         while (xml && xml->read()) {

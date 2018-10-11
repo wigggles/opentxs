@@ -29,7 +29,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Contract.hpp"
 #include "opentxs/core/Identifier.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/OT.hpp"
 
@@ -1042,7 +1042,7 @@ bool OTScriptable::VerifyPartyAuthorization(
             {
                 // This function also adds lOpeningNo to the agent's nym's list
                 // of open cron items.
-                // (OTPseudonym::GetSetOpenCronItems)
+                // (Nym::GetSetOpenCronItems)
                 //
                 pAuthorizingAgent->RemoveTransactionNumber(
                     lOpeningNo, strNotaryID);
@@ -2170,7 +2170,7 @@ bool OTScriptable::Compare(OTScriptable& rhs) const
 void OTScriptable::CalculateContractID(Identifier& newID) const
 {
     // Produce a template version of the scriptable.
-    OTStringXML xmlUnsigned;
+    auto xmlUnsigned = StringXML::Factory();
 
     Tag tag("scriptable");
 
@@ -2179,7 +2179,7 @@ void OTScriptable::CalculateContractID(Identifier& newID) const
     std::string str_result;
     tag.output(str_result);
 
-    xmlUnsigned.Concatenate("%s", str_result.c_str());
+    xmlUnsigned->Concatenate("%s", str_result.c_str());
 
     newID.CalculateDigest(xmlUnsigned);
 }
@@ -2257,7 +2257,7 @@ void OTScriptable::UpdateContents()  // Before transmission or serialization,
                                      // contents
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("scriptable");
 
@@ -2266,7 +2266,7 @@ void OTScriptable::UpdateContents()  // Before transmission or serialization,
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.

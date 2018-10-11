@@ -98,7 +98,7 @@ public:
     bool ReEncryptKeys(const OTPassword& theExportPassword, bool bImporting);
     EXPORT std::int32_t GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         char cKeyType = '0') const;  // 'S' (signing key) or
                                      // 'E' (encryption key)
                                      // or 'A'

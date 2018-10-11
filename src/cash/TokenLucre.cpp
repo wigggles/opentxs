@@ -186,11 +186,6 @@ bool Token_Lucre::GenerateTokenRequest(
             auto pArmoredPublic = Armored::Factory(strPublicCoin);
             auto pArmoredPrivate = Armored::Factory();
 
-            OT_ASSERT_MSG(
-                ((pArmoredPublic->Exists()) && (pArmoredPrivate->Exists())),
-                "ERROR: Unable to allocate memory in "
-                "Token_Lucre::GenerateTokenRequest\n");
-
             // Change the state. It's no longer a blank token, but a prototoken.
             m_State = Token::protoToken;
 
@@ -203,9 +198,8 @@ bool Token_Lucre::GenerateTokenRequest(
                                                        // functions
             theEnvelope.GetCiphertext(pArmoredPrivate);
 
-            m_mapPublic.emplace(i, Armored::Factory(pArmoredPublic));
-            m_mapPrivate.emplace(i, Armored::Factory(pArmoredPrivate));
-
+            m_mapPublic.emplace(i, std::move(pArmoredPublic));
+            m_mapPublic.emplace(i, std::move(pArmoredPrivate));
             m_nTokenCount = nFinalTokenCount;
             SetDenomination(lDenomination);
         } else {

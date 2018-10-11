@@ -56,7 +56,7 @@ public:
 
     EXPORT bool CompareID(const OTNym_or_SymmetricKey& rhs) const;
 
-    // Seal / Open is for public / private key crypto. (With OTPseudonym and
+    // Seal / Open is for public / private key crypto. (With Nym and
     // crypto::key::Asymmetric.)
     // Whereas Encrypt/Decrypt is for symmetric key crypto (With
     // crypto::key::LegacySymmetric.)

@@ -18,7 +18,7 @@ public:
     bool GetPublicKey(String& strKey) const override;
     std::int32_t GetPublicKeyBySignature(
         Keys& listOutput,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         bool bInclusive = false) const override;
     bool hasCapability(const NymCapability& capability) const override;
     bool HasPrivateKey() const override;

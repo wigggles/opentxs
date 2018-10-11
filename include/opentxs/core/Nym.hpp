@@ -100,7 +100,7 @@ public:
     // 'A' (authentication key)
     EXPORT std::int32_t GetPublicKeysBySignature(
         crypto::key::Keypair::Keys& listOutput,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         char cKeyType = '0') const;
     EXPORT const crypto::key::Asymmetric& GetPublicSignKey(
         proto::AsymmetricKeyType keytype = proto::AKEYTYPE_NULL) const;
