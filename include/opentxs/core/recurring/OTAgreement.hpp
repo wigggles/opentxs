@@ -192,8 +192,8 @@ public:
 
      THE RECIPIENT:
 
-     3) bool bConfirmation =  pPlan->Confirm(OTPseudonym& PAYER_NYM,
-                                             OTPseudonym *
+     3) bool bConfirmation =  pPlan->Confirm(Nym& PAYER_NYM,
+                                             Nym *
     pMERCHANT_NYM=nullptr,
                                              OTIdentifier *
     p_id_MERCHANT_NYM=nullptr);
@@ -367,7 +367,7 @@ public:
     /*
      From Contract, I have:
 
-     virtual bool SignContract (const OTPseudonym& theNym);
+     virtual bool SignContract (const Nym& theNym);
 
      */
     EXPORT bool SendNoticeToAllParties(

@@ -21,7 +21,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
@@ -433,7 +433,7 @@ void Message::SetAcknowledgments(const std::set<RequestNumber>& numbers)
 void Message::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     m_lTime = OTTimeGetCurrentTime();
 
@@ -482,7 +482,7 @@ void Message::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 bool Message::updateContentsByType(Tag& parent)
@@ -620,7 +620,7 @@ bool Message::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
         // "\n******************************************************\n"
         //                "Contents of signed
         // message:\n\n%s******************************************************\n\n",
-        // m_xmlUnsigned.Get());
+        // m_xmlUnsigned->Get());
     } else
         otWarn << "Failure signing message:\n" << m_xmlUnsigned << "";
 

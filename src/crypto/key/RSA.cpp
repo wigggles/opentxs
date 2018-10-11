@@ -88,7 +88,7 @@ RSA::RSA()
 RSA::RSA(const proto::KeyRole role)
     : Asymmetric(proto::AKEYTYPE_LEGACY, role)
     , dp(new d())
-    , m_p_ascKey(nullptr)
+    , m_p_ascKey(Armored::Factory())
 {
     dp->backlink = this;
     dp->m_pX509 = nullptr;
@@ -119,7 +119,7 @@ RSA::RSA(const proto::AsymmetricKey& serializedKey)
 RSA::RSA(const String& publicKey)
     : Asymmetric()
     , dp(new d())
-    , m_p_ascKey(nullptr)
+    , m_p_ascKey(Armored::Factory())
 {
 
     dp->backlink = this;
@@ -139,34 +139,28 @@ RSA* RSA::clone() const
 
     OT_ASSERT(nullptr != key)
 
-    if (m_p_ascKey->Exists()) {
-        if (key->m_p_ascKey->Exists()) { key->m_p_ascKey->Release(); }
-
-        key->m_p_ascKey = Armored::Factory(m_p_ascKey);
-    }
+    key->m_p_ascKey = m_p_ascKey;
 
     return key;
 }
 
 // virtual
-
-bool RSA::IsEmpty() const { return (!m_p_ascKey->Exists()); }
+bool RSA::IsEmpty() const { return (m_p_ascKey->empty()); }
 
 // virtual
 bool RSA::GetPublicKey(String& strKey) const
 {
-
-    if (m_p_ascKey->Exists()) {
-
+    if (false == m_p_ascKey->empty()) {
         strKey.Concatenate(
             "-----BEGIN PUBLIC KEY-----\n"  // UN-ESCAPED VERSION
             "%s"
             "-----END PUBLIC KEY-----\n",
             m_p_ascKey->Get());
         return true;
-    } else
+    } else {
         otErr << "RSA::GetPublicKey: Error: no "
                  "public key.\n";
+    }
 
     return false;
 }
@@ -443,9 +437,6 @@ bool RSA::ReEncryptPrivateKey(
     const OTPassword& theExportPassword,
     bool bImporting) const
 {
-
-    OT_ASSERT(m_p_ascKey->Exists());
-
     OT_ASSERT(IsPrivate());
 
     bool bReturnVal = false;
@@ -601,12 +592,7 @@ bool RSA::ReEncryptPrivateKey(
                     // This base64 encodes the private key data, which
                     // is already encrypted to its passphase as well.
                     //
-                    // const auto temp = Armored::Factory(theNewData);
-
-                    (const_cast<RSA*>(this))
-                        ->m_p_ascKey->SetData(theNewData);  // <========
-                                                            // Success!
-
+                    m_p_ascKey->SetData(theNewData);  // <======== Success!
                     bReturnVal = true;
                 } else
                     otErr << __FUNCTION__
@@ -779,11 +765,7 @@ std::shared_ptr<proto::AsymmetricKey> RSA::Serialize() const
 
 {
     std::shared_ptr<proto::AsymmetricKey> serializedKey = ot_super::Serialize();
-
     auto dataKey = Data::Factory();
-
-    OT_ASSERT(m_p_ascKey->Exists());
-
     m_p_ascKey->GetData(dataKey);
 
     if (IsPrivate()) {
@@ -802,9 +784,6 @@ bool RSA::TransportKey(
     [[maybe_unused]] OTPassword& privateKey) const
 {
 #if OT_CRYPTO_SUPPORTED_KEY_ED25519
-
-    OT_ASSERT(m_p_ascKey->Exists());
-
     if (!IsPrivate()) { return false; }
 
     auto key = Data::Factory();
@@ -825,14 +804,8 @@ bool RSA::TransportKey(
 
 RSA::~RSA()
 {
-    // Release the ascii-armored version of the key (safe to store in this
-    // form.)
-    //
-
-    if (m_p_ascKey->Exists()) m_p_ascKey->Release();
-
+    m_p_ascKey->Release();
     Release_AsymmetricKey_OpenSSL();
-
     ReleaseKeyLowLevel_Hook();
 
     if (nullptr != dp->m_pX509)  // Todo: figure out if I should put a copy of

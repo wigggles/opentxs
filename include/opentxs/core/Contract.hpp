@@ -10,7 +10,7 @@
 
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/Proto.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/Types.hpp"
@@ -36,7 +36,7 @@ typedef IIrrXMLReader<char, IXMLBase> IrrXMLReader;
 
 namespace opentxs
 {
-typedef std::list<OTSignature*> listOfSignatures;
+typedef std::list<OTSignature> listOfSignatures;
 
 OTString trim(const String& str);
 
@@ -141,7 +141,10 @@ public:
         const String& strContractType,  // "LEDGER" or "PURSE" etc.
         const Nym& theSigner,
         String& strOutput);
-    EXPORT inline void GetName(String& strName) const { strName.Set(m_strName->Get()); }
+    EXPORT inline void GetName(String& strName) const
+    {
+        strName.Set(m_strName->Get());
+    }
     EXPORT inline void SetName(const String& strName) { m_strName = strName; }
     EXPORT inline const String& GetContractType() const
     {
@@ -241,17 +244,17 @@ public:
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(
         const Nym& theNym,
-        OTSignature& theSignature,
+        Signature& theSignature,
         const OTPasswordData* pPWData = nullptr);
 
     /** Uses authentication key instead of signing key. */
     EXPORT bool SignContractAuthent(
         const Nym& theNym,
-        OTSignature& theSignature,
+        Signature& theSignature,
         const OTPasswordData* pPWData = nullptr);
     EXPORT bool SignContract(
         const crypto::key::Asymmetric& theKey,
-        OTSignature& theSignature,
+        Signature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr);
 
@@ -286,17 +289,17 @@ public:
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT bool VerifySignature(
         const Nym& theNym,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         const OTPasswordData* pPWData = nullptr) const;
 
     /** Uses authentication key instead of signing key. */
     EXPORT bool VerifySigAuthent(
         const Nym& theNym,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT bool VerifySignature(
         const crypto::key::Asymmetric& theKey,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const;
     EXPORT ConstNym GetContractPublicNym() const;
@@ -359,7 +362,7 @@ protected:
     /** The legal conditions, usually human-readable, on a contract. */
     String::Map m_mapConditions;
 
-    /** The XML file is in m_xmlUnsigned. Load it from there into members here.
+    /** The XML file is in m_xmlUnsigned-> Load it from there into members here.
      */
     bool LoadContractXML();
 

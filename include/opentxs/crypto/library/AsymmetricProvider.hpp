@@ -33,7 +33,7 @@ public:
     EXPORT virtual bool SignContract(
         const String& strContractUnsigned,
         const key::Asymmetric& theKey,
-        OTSignature& theSignature,  // output
+        Signature& theSignature,  // output
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const = 0;
     EXPORT virtual bool Verify(
@@ -45,7 +45,7 @@ public:
     EXPORT virtual bool VerifyContractSignature(
         const String& strContractToVerify,
         const key::Asymmetric& theKey,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         const proto::HashType hashType,
         const OTPasswordData* pPWData = nullptr) const = 0;
 

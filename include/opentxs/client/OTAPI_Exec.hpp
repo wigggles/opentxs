@@ -770,7 +770,7 @@ public:
     EXPORT std::int32_t GetAssetTypeCount() const;
     EXPORT std::int32_t GetNymCount() const;
 
-    EXPORT[[deprecated]] std::string GetServer_ID(
+    EXPORT [[deprecated]] std::string GetServer_ID(
         const std::int32_t& nIndex) const;
     EXPORT std::string GetServer_Name(const std::string& NOTARY_ID) const;
     EXPORT std::string GetServer_Contract(const std::string& NOTARY_ID) const;
@@ -833,7 +833,7 @@ public:
     /** GetAssetType_ID:
      Returns Asset Type ID based on index from GetAssetTypeCount.
      */
-    EXPORT[[deprecated]] std::string GetAssetType_ID(
+    EXPORT [[deprecated]] std::string GetAssetType_ID(
         const std::int32_t& nIndex) const;
 
     /** GetAssetType_Name:
@@ -1355,7 +1355,7 @@ public:
     From OTAgreement: (This must be called first, before the other two methods
     below can be called.)
 
-    bool    OTAgreement::SetProposal(const OTPseudonym& MERCHANT_NYM, const
+    bool    OTAgreement::SetProposal(const Nym& MERCHANT_NYM, const
     OTString& strConsideration,
     const time64_t& VALID_FROM=0, const time64_t& VALID_TO=0);
 

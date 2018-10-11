@@ -148,8 +148,8 @@ bool MintLucre::AddDenomination(
         theEnvelope.GetCiphertext(pPrivate);
 
         // Add the new key pair to the maps, using denomination as the key
-        m_mapPublic.emplace(lDenomination, Armored::Factory(pPublic));
-        m_mapPrivate.emplace(lDenomination, Armored::Factory(pPrivate));
+        m_mapPublic.emplace(lDenomination, std::move(pPublic));
+        m_mapPublic.emplace(lDenomination, std::move(pPrivate));
 
         // Grab the Server Nym ID and save it with this Mint
         theNotary.GetIdentifier(m_ServerNymID);

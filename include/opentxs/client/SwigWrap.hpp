@@ -1211,7 +1211,7 @@ public:
     From OTAgreement: (This must be called first, before the other two methods
     below can be called.)
 
-    bool    OTAgreement::SetProposal(const OTPseudonym& MERCHANT_NYM, const
+    bool    OTAgreement::SetProposal(const Nym& MERCHANT_NYM, const
     OTString& strConsideration,
     const time64_t& VALID_FROM=0, const time64_t& VALID_TO=0);
 

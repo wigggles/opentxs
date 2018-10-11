@@ -34,7 +34,7 @@
 #include "opentxs/core/crypto/LowLevelKeyGenerator.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -150,7 +150,7 @@ bool Keypair::GetPublicKey(String& strKey) const
 std::int32_t Keypair::GetPublicKeyBySignature(
     Keys& listOutput,  // Inclusive means, return the key even
                        // when theSignature has no metadata.
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     bool bInclusive) const
 {
     OT_ASSERT(m_pkeyPublic.get());

@@ -190,7 +190,7 @@ bool CredentialSet::Path(proto::HDPath& output) const
 
 std::int32_t CredentialSet::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
                           // or 'A' (authentication key)
 {
@@ -839,7 +839,7 @@ void CredentialSet::ClearChildCredentials() { m_mapCredentials.clear(); }
 // serializing them.
 // bShowRevoked allows us to include/exclude the revoked credentials from
 // the output (filter for valid-only.) bValid=true means we are saving
-// OTPseudonym::m_mapCredentials. Whereas bValid=false means we're saving
+// Nym::m_mapCredentials. Whereas bValid=false means we're saving
 // m_mapRevoked. pmapPubInfo is optional output, the public info for all the
 // credentials will be placed inside, if a pointer is provided.
 //

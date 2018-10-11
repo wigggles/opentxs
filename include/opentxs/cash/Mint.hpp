@@ -17,8 +17,6 @@
 
 namespace opentxs
 {
-typedef std::map<std::int64_t, OTArmored> mapOfArmor;
-
 class Mint : public Contract
 {
 public:
@@ -130,6 +128,8 @@ public:
     virtual ~Mint();
 
 protected:
+    using mapOfArmor = std::map<std::int64_t, OTArmored>;
+
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
 
     void InitMint();

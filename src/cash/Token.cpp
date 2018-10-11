@@ -27,7 +27,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -181,10 +181,8 @@ void Token::Release()
 
 void Token::ReleasePrototokens()
 {
-
     m_mapPublic.clear();
     m_mapPrivate.clear();
-
     m_nTokenCount = 0;
 }
 
@@ -331,7 +329,7 @@ bool Token::RecordTokenAsSpent(String& theCleartextToken)
 // thePassword);
 
 // OTNym_or_SymmetricKey:
-// const OTPseudonym    * GetNym()      const { return m_pNym;      }
+// const Nym    * GetNym()      const { return m_pNym;      }
 // const crypto::key::LegacySymmetric * GetKey()      const { return m_pKey; }
 // const OTPassword     * GetPassword() const { return m_pPassword; } // for
 // symmetric key (optional)
@@ -459,7 +457,7 @@ void Token::UpdateContents()
     }
 
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("token");
 
@@ -495,12 +493,8 @@ void Token::UpdateContents()
         tagProtoPurse->add_attribute("count", formatInt(m_nTokenCount));
         tagProtoPurse->add_attribute("chosenIndex", formatInt(m_nChosenIndex));
 
-        for (auto& it : m_mapPublic) {
-            auto& pPrototoken = it.second;
-
-            OT_ASSERT(pPrototoken->Exists());
-
-            tagProtoPurse->add_tag("prototoken", pPrototoken->Get());
+        for (auto& protoToken : m_mapPublic) {
+            tagProtoPurse->add_tag("prototoken", protoToken.second->Get());
         }
 
         tag.add_tag(tagProtoPurse);
@@ -511,13 +505,9 @@ void Token::UpdateContents()
 
         TagPtr tagPrivateProtoPurse(new Tag("privateProtopurse"));
 
-        for (auto& it : m_mapPrivate) {
-            auto& pPrototoken = it.second;
-
-            OT_ASSERT(pPrototoken->Exists());
-
+        for (auto& protoToken : m_mapPrivate) {
             tagPrivateProtoPurse->add_tag(
-                "privatePrototoken", pPrototoken->Get());
+                "privatePrototoken", protoToken.second->Get());
         }
         tag.add_tag(tagPrivateProtoPurse);
     }
@@ -525,7 +515,7 @@ void Token::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -632,10 +622,8 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             return (-1);  // error condition
         } else {
-
             m_mapPublic.emplace(
-                nPublicTokenCount, Armored::Factory(pArmoredPrototoken));
-
+                nPublicTokenCount, std::move(pArmoredPrototoken));
             nPublicTokenCount++;
         }
 
@@ -654,10 +642,8 @@ std::int32_t Token::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             return (-1);  // error condition
         } else {
-
             m_mapPrivate.emplace(
-                nPrivateTokenCount, Armored::Factory(pArmoredPrototoken));
-
+                nPrivateTokenCount, std::move(pArmoredPrototoken));
             nPrivateTokenCount++;
             LogTrace(OT_METHOD)(__FUNCTION__)(
                 ": Loaded prototoken and adding to m_mapPrivate at index: ")(
@@ -677,20 +663,14 @@ bool Token::GetPrototoken(Armored& ascPrototoken, std::int32_t nTokenIndex)
     // thus if attempted index is equal or larger to the count, out of bounds.
     if (nTokenIndex >= m_nTokenCount) { return false; }
 
-    for (auto& it : m_mapPublic) {
-        auto& pPrototoken = it.second;
+    try {
+        ascPrototoken.Set(m_mapPublic.at(nTokenIndex));
 
-        OT_ASSERT(pPrototoken->Exists());
+        return true;
+    } catch (...) {
 
-        const bool bSuccess = (nTokenIndex == it.first);
-
-        if (bSuccess) {
-            ascPrototoken.Set(pPrototoken);
-
-            return true;
-        }
+        return false;
     }
-    return false;
 }
 
 bool Token::GetPrivatePrototoken(
@@ -701,19 +681,14 @@ bool Token::GetPrivatePrototoken(
     // thus if attempted index is equal or larger to the count, out of bounds.
     if (nTokenIndex >= m_nTokenCount) { return false; }
 
-    for (auto& it : m_mapPrivate) {
-        auto& pPrototoken = it.second;
+    try {
+        ascPrototoken.Set(m_mapPrivate.at(nTokenIndex));
 
-        OT_ASSERT(pPrototoken->Exists());
+        return true;
+    } catch (...) {
 
-        bool bSuccess = (nTokenIndex == it.first);
-
-        if (bSuccess) {
-            ascPrototoken.Set(pPrototoken);
-            return true;
-        }
+        return false;
     }
-    return false;
 }
 
 inline bool Token::ChooseIndex(const std::int32_t nIndex)

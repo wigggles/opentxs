@@ -185,7 +185,7 @@ void OTNym_or_SymmetricKey::Release()  // Someday make this virtual, if we ever
 void OTNym_or_SymmetricKey::Release_Nym_or_SymmetricKey()
 {
     if (nullptr != m_pNym) {
-        //      m_pNym->Release(); // no such call on OTPseudonym. (Otherwise it
+        //      m_pNym->Release(); // no such call on Nym. (Otherwise it
         // wouldn't be commented out.)
     }
 

@@ -13,7 +13,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/NumList.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 
 #include <irrxml/irrXML.hpp>
 
@@ -35,7 +35,8 @@ TransactionStatement::TransactionStatement(
 
 TransactionStatement::TransactionStatement(const String& serialized)
 {
-    auto raw = irr::io::createIrrXMLReader(OTStringXML(serialized));
+    auto raw =
+        irr::io::createIrrXMLReader(StringXML::Factory(serialized).get());
     std::unique_ptr<irr::io::IrrXMLReader> xml(raw);
 
     if (!xml) { return; }

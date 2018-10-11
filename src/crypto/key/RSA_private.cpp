@@ -90,13 +90,7 @@ void RSA::d::SetKeyAsCopyOf(
 
     backlink->m_bIsPublicKey = !bIsPrivateKey;
     backlink->m_bIsPrivateKey = bIsPrivateKey;
-
-    if (!backlink->m_p_ascKey->Exists()) {
-        backlink->m_p_ascKey = Armored::Factory();
-
-    } else {
-        backlink->m_p_ascKey->Release();
-    }
+    backlink->m_p_ascKey->Release();
     // By this point, m_p_ascKey definitely exists, and it's empty.
 
     if (backlink->m_bIsPrivateKey) {
@@ -122,19 +116,6 @@ EVP_PKEY* RSA::d::GetKeyLowLevel() const { return m_pKey; }
 
 const EVP_PKEY* RSA::d::GetKey(const OTPasswordData* pPWData)
 {
-    OT_ASSERT_MSG(
-
-        backlink->m_p_ascKey->Exists(), "RSA::GetKey: nullptr != m_p_ascKey\n");
-
-    if (!backlink->m_p_ascKey->Exists()) {
-
-        otErr << __FUNCTION__
-              << ": Unexpected nullptr m_p_ascKey. Printing stack "
-                 "trace (and returning nullptr):\n";
-        print_stacktrace();
-        return nullptr;
-    }
-
     if (backlink->m_timer.getElapsedTimeInSec() > OT_KEY_TIMER)
         backlink->Release();  // This releases the actual loaded key,
                               // but not the ascii-armored, encrypted
@@ -495,7 +476,6 @@ bool RSA::d::ArmorPublicKey(EVP_PKEY& theKey, Armored& ascKey)
 EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == nullptr);
-    OT_ASSERT(backlink->m_p_ascKey->Exists());
     OT_ASSERT(backlink->IsPublic());
 
     const char* szFunc = "RSA::InstantiatePublicKey";
@@ -562,7 +542,6 @@ EVP_PKEY* RSA::d::InstantiatePublicKey(const OTPasswordData* pPWData)
 EVP_PKEY* RSA::d::InstantiatePrivateKey(const OTPasswordData* pPWData)
 {
     OT_ASSERT(m_pKey == nullptr);
-    OT_ASSERT(backlink->m_p_ascKey->Exists());
     OT_ASSERT(backlink->IsPrivate());
 
     EVP_PKEY* pReturnKey = nullptr;

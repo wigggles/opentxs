@@ -39,7 +39,7 @@
 #include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/core/crypto/Credential.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
-#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Data.hpp"
@@ -159,7 +159,7 @@ bool KeyCredential::VerifySignedBySelf(const Lock& lock) const
 //
 std::int32_t KeyCredential::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     char cKeyType) const  // 'S' (signing key) or 'E' (encryption key)
                           // or 'A' (authentication key)
 {

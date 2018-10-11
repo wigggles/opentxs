@@ -27,7 +27,7 @@ public:
     bool SignContract(
         const String&,
         const key::Asymmetric&,
-        OTSignature&,  // output
+        Signature&,  // output
         const proto::HashType,
         const OTPasswordData* = nullptr) const override
     {
@@ -45,7 +45,7 @@ public:
     bool VerifyContractSignature(
         const String&,
         const key::Asymmetric&,
-        const OTSignature&,
+        const Signature&,
         const proto::HashType,
         const OTPasswordData* = nullptr) const override
     {

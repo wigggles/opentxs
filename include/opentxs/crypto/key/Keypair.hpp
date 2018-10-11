@@ -42,7 +42,7 @@ public:
     // inclusive means, return keys when theSignature has no metadata.
     EXPORT virtual std::int32_t GetPublicKeyBySignature(
         Keys& listOutput,
-        const OTSignature& theSignature,
+        const Signature& theSignature,
         bool bInclusive = false) const = 0;
     EXPORT virtual bool hasCapability(
         const NymCapability& capability) const = 0;

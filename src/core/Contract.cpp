@@ -10,7 +10,7 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
-#include "opentxs/core/crypto/OTSignature.hpp"
+#include "opentxs/core/crypto/Signature.hpp"
 #include "opentxs/core/crypto/OTSignatureMetadata.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -20,7 +20,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/Asymmetric.hpp"
 #include "opentxs/crypto/library/AsymmetricProvider.hpp"
@@ -72,7 +72,7 @@ Contract::Contract(
     , m_strFoldername(foldername)
     , m_strFilename(filename)
     , m_ID(Identifier::Factory(strID))
-    , m_xmlUnsigned()
+    , m_xmlUnsigned(StringXML::Factory())
     , m_strRawFile(String::Factory())
     , m_strSigHashType(proto::HASHTYPE_ERROR)
     , m_strContractType(String::Factory("CONTRACT"))
@@ -163,7 +163,7 @@ void Contract::SetIdentifier(const Identifier& theID)
 void Contract::Release_Contract()
 {
     m_strSigHashType = proto::HASHTYPE_ERROR;
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
     m_strRawFile->Release();
 
     ReleaseSignatures();
@@ -344,21 +344,15 @@ ConstNym Contract::GetContractPublicNym() const
 //
 bool Contract::SignContract(const Nym& theNym, const OTPasswordData* pPWData)
 {
-    OTSignature* pSig = new OTSignature;
-    OT_ASSERT_MSG(
-        nullptr != pSig,
-        "Contract::SignContract: Error allocating memory for Signature.\n");
+    auto sig = Signature::Factory();
+    bool bSigned = SignContract(theNym, sig, pPWData);
 
-    bool bSigned = SignContract(theNym, *pSig, pPWData);
-
-    if (bSigned)
-        m_listSignatures.push_back(pSig);
-    else {
+    if (bSigned) {
+        m_listSignatures.emplace_back(std::move(sig));
+    } else {
         otErr << __FUNCTION__
               << ": Failure while calling "
-                 "SignContract(theNym, *pSig, pPWData)\n";
-        delete pSig;
-        pSig = nullptr;
+                 "SignContract(theNym, sig, pPWData)\n";
     }
 
     return bSigned;
@@ -370,23 +364,16 @@ bool Contract::SignContractAuthent(
     const Nym& theNym,
     const OTPasswordData* pPWData)
 {
-    OTSignature* pSig = new OTSignature;
-    OT_ASSERT_MSG(
-        nullptr != pSig,
-        "Contract::SignContractAuthent: Error "
-        "allocating memory for Signature.\n");
+    auto sig = Signature::Factory();
+    bool bSigned = SignContractAuthent(theNym, sig, pPWData);
 
-    bool bSigned = SignContractAuthent(theNym, *pSig, pPWData);
-
-    if (bSigned)
-        m_listSignatures.push_back(pSig);
-    else {
+    if (bSigned) {
+        m_listSignatures.emplace_back(std::move(sig));
+    } else {
         otErr << __FUNCTION__
               << ": Failure while calling "
-                 "SignContractAuthent(theNym, *pSig, "
+                 "SignContractAuthent(theNym, sig, "
                  "pPWData)\n";
-        delete pSig;
-        pSig = nullptr;
     }
 
     return bSigned;
@@ -396,7 +383,7 @@ bool Contract::SignContractAuthent(
 // It is NOT attached to the contract.  This is just a utility function.
 bool Contract::SignContract(
     const Nym& theNym,
-    OTSignature& theSignature,
+    Signature& theSignature,
     const OTPasswordData* pPWData)
 {
     const auto& key = theNym.GetPrivateSignKey();
@@ -408,7 +395,7 @@ bool Contract::SignContract(
 // Uses authentication key instead of signing key.
 bool Contract::SignContractAuthent(
     const Nym& theNym,
-    OTSignature& theSignature,
+    Signature& theSignature,
     const OTPasswordData* pPWData)
 {
     const auto& key = theNym.GetPrivateAuthKey();
@@ -417,7 +404,7 @@ bool Contract::SignContractAuthent(
     return SignContract(key, theSignature, m_strSigHashType, pPWData);
 }
 
-// Normally you'd use Contract::SignContract(const OTPseudonym& theNym)...
+// Normally you'd use Contract::SignContract(const Nym& theNym)...
 // Normally you WOULDN'T use this function SignWithKey.
 // But this is here anyway for those peculiar places where you need it. For
 // example,
@@ -433,21 +420,15 @@ bool Contract::SignWithKey(
     const crypto::key::Asymmetric& theKey,
     const OTPasswordData* pPWData)
 {
-    OTSignature* pSig = new OTSignature;
-    OT_ASSERT_MSG(
-        nullptr != pSig,
-        "Contract::SignWithKey: Error allocating memory for Signature.\n");
-
+    auto sig = Signature::Factory();
     m_strSigHashType = theKey.SigHashType();
-    bool bSigned = SignContract(theKey, *pSig, m_strSigHashType, pPWData);
+    bool bSigned = SignContract(theKey, sig, m_strSigHashType, pPWData);
 
-    if (bSigned)
-        m_listSignatures.push_back(pSig);
-    else {
+    if (bSigned) {
+        m_listSignatures.emplace_back(std::move(sig));
+    } else {
         otErr << __FUNCTION__
-              << ": Failure while calling SignContract(theNym, *pSig).\n";
-        delete pSig;
-        pSig = nullptr;
+              << ": Failure while calling SignContract(theNym, sig).\n";
     }
 
     return bSigned;
@@ -514,7 +495,7 @@ bool Contract::SignWithKey(
 //
 bool Contract::SignContract(
     const crypto::key::Asymmetric& theKey,
-    OTSignature& theSignature,
+    Signature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData)
 {
@@ -557,22 +538,17 @@ bool Contract::VerifySigAuthent(
     std::uint32_t uIndex = 3;
     const bool bNymID = strNymID->At(uIndex, cNymID);
 
-    for (auto& it : m_listSignatures) {
-        OTSignature* pSig = it;
-        OT_ASSERT(nullptr != pSig);
-
-        if (bNymID && pSig->getMetaData().HasMetadata()) {
+    for (const auto& sig : m_listSignatures) {
+        if (bNymID && sig->getMetaData().HasMetadata()) {
             // If the signature has metadata, then it knows the fourth character
             // of the NymID that signed it. We know the fourth character of the
-            // NymID
-            // who's trying to verify it. Thus, if they don't match, we can skip
-            // this
-            // signature without having to try to verify it at all.
-            //
-            if (pSig->getMetaData().FirstCharNymID() != cNymID) continue;
+            // NymID who's trying to verify it. Thus, if they don't match, we
+            // can skip this signature without having to try to verify it at
+            // all.
+            if (sig->getMetaData().FirstCharNymID() != cNymID) { continue; }
         }
 
-        if (VerifySigAuthent(theNym, *pSig, pPWData)) return true;
+        if (VerifySigAuthent(theNym, sig, pPWData)) { return true; }
     }
 
     return false;
@@ -586,22 +562,17 @@ bool Contract::VerifySignature(const Nym& theNym, const OTPasswordData* pPWData)
     std::uint32_t uIndex = 3;
     const bool bNymID = strNymID->At(uIndex, cNymID);
 
-    for (auto& it : m_listSignatures) {
-        OTSignature* pSig = it;
-        OT_ASSERT(nullptr != pSig);
-
-        if (bNymID && pSig->getMetaData().HasMetadata()) {
-            // If the signature has metadata, then it knows the first character
-            // of the NymID that signed it. We know the first character of the
-            // NymID
-            // who's trying to verify it. Thus, if they don't match, we can skip
-            // this
-            // signature without having to try to verify it at all.
-            //
-            if (pSig->getMetaData().FirstCharNymID() != cNymID) continue;
+    for (const auto& sig : m_listSignatures) {
+        if (bNymID && sig->getMetaData().HasMetadata()) {
+            // If the signature has metadata, then it knows the fourth character
+            // of the NymID that signed it. We know the fourth character of the
+            // NymID who's trying to verify it. Thus, if they don't match, we
+            // can skip this signature without having to try to verify it at
+            // all.
+            if (sig->getMetaData().FirstCharNymID() != cNymID) { continue; }
         }
 
-        if (VerifySignature(theNym, *pSig, pPWData)) return true;
+        if (VerifySignature(theNym, sig, pPWData)) { return true; }
     }
 
     return false;
@@ -611,46 +582,40 @@ bool Contract::VerifyWithKey(
     const crypto::key::Asymmetric& theKey,
     const OTPasswordData* pPWData) const
 {
-    for (auto& it : m_listSignatures) {
-        OTSignature* pSig = it;
-
-        OT_ASSERT(nullptr != pSig);
-
+    for (const auto& sig : m_listSignatures) {
         const auto* metadata = theKey.GetMetadata();
 
         if ((nullptr != metadata) && metadata->HasMetadata() &&
-            pSig->getMetaData().HasMetadata()) {
+            sig->getMetaData().HasMetadata()) {
             // Since key and signature both have metadata, we can use it
             // to skip signatures which don't match this key.
             //
-            if (pSig->getMetaData() != *(metadata)) continue;
+            if (sig->getMetaData() != *(metadata)) continue;
         }
 
         OTPasswordData thePWData("Contract::VerifyWithKey");
 
         if (VerifySignature(
                 theKey,
-                *pSig,
+                sig,
                 m_strSigHashType,
-                (nullptr != pPWData) ? pPWData : &thePWData))
+                (nullptr != pPWData) ? pPWData : &thePWData)) {
             return true;
+        }
     }
 
     return false;
 }
 
 // Like VerifySignature, except it uses the authentication key instead of the
-// signing key.
-// (Like for sent messages or stored files, where you want a signature but you
-// don't want
-// a legally binding signature, just a technically secure signature.)
-//
+// signing key. (Like for sent messages or stored files, where you want a
+// signature but you don't want a legally binding signature, just a technically
+// secure signature.)
 bool Contract::VerifySigAuthent(
     const Nym& theNym,
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     const OTPasswordData* pPWData) const
 {
-
     OTPasswordData thePWData("Contract::VerifySigAuthent 1");
     crypto::key::Keypair::Keys listOutput;
 
@@ -697,7 +662,7 @@ bool Contract::VerifySigAuthent(
 //
 bool Contract::VerifySignature(
     const Nym& theNym,
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     const OTPasswordData* pPWData) const
 {
 
@@ -741,7 +706,7 @@ bool Contract::VerifySignature(
 
 bool Contract::VerifySignature(
     const crypto::key::Asymmetric& theKey,
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     const proto::HashType hashType,
     const OTPasswordData* pPWData) const
 {
@@ -773,15 +738,7 @@ bool Contract::VerifySignature(
     return true;
 }
 
-void Contract::ReleaseSignatures()
-{
-
-    while (!m_listSignatures.empty()) {
-        OTSignature* pSig = m_listSignatures.front();
-        m_listSignatures.pop_front();
-        delete pSig;
-    }
-}
+void Contract::ReleaseSignatures() { m_listSignatures.clear(); }
 
 bool Contract::DisplayStatistics(String& strContents) const
 {
@@ -901,7 +858,7 @@ bool Contract::SignFlatText(
     else
         strInput->Format("%s\n", strFlatText.Get());
 
-    OTSignature theSignature;
+    auto theSignature = Signature::Factory();
     OTPasswordData thePWData("Signing flat text (need private key)");
 
     auto& key = theSigner.GetPrivateSignKey();
@@ -919,7 +876,7 @@ bool Contract::SignFlatText(
     }
 
     listOfSignatures listSignatures;
-    listSignatures.push_back(&theSignature);
+    listSignatures.emplace_back(std::move(theSignature));
 
     const bool bBookends = Contract::AddBookendsAroundContent(
         strOutput,  // the output (other params are input.)
@@ -957,10 +914,7 @@ bool Contract::AddBookendsAroundContent(
 
     strTemp->Concatenate("%s", strContents.Get());
 
-    for (const auto& it : listSignatures) {
-        OTSignature* pSig = it;
-        OT_ASSERT(nullptr != pSig);
-
+    for (const auto& sig : listSignatures) {
         strTemp->Concatenate(
             "-----BEGIN %s SIGNATURE-----\n"
             "Version: Open Transactions %s\n"
@@ -969,17 +923,17 @@ bool Contract::AddBookendsAroundContent(
             strContractType.Get(),
             Log::Version());
 
-        if (pSig->getMetaData().HasMetadata())
+        if (sig->getMetaData().HasMetadata())
             strTemp->Concatenate(
                 "Meta:    %c%c%c%c\n",
-                pSig->getMetaData().GetKeyType(),
-                pSig->getMetaData().FirstCharNymID(),
-                pSig->getMetaData().FirstCharMasterCredID(),
-                pSig->getMetaData().FirstCharChildCredID());
+                sig->getMetaData().GetKeyType(),
+                sig->getMetaData().FirstCharNymID(),
+                sig->getMetaData().FirstCharMasterCredID(),
+                sig->getMetaData().FirstCharChildCredID());
 
         strTemp->Concatenate(
             "%s",
-            pSig->Get());  // <=== *** THE SIGNATURE ITSELF ***
+            sig->Get());  // <=== *** THE SIGNATURE ITSELF ***
         strTemp->Concatenate(
             "\n-----END %s SIGNATURE-----\n\n", strContractType.Get());
     }
@@ -1197,10 +1151,9 @@ bool Contract::LoadContractFromString(const String& theStr)
 bool Contract::ParseRawFile()
 {
     char buffer1[2100];  // a bit bigger than 2048, just for safety reasons.
-    OTSignature* pSig = nullptr;
-
+    auto sig = Signature::Factory();
+    auto* pSig = &sig.get();
     std::string line;
-
     bool bSignatureMode = false;           // "currently in signature mode"
     bool bContentMode = false;             // "currently in content mode"
     bool bHaveEnteredContentMode = false;  // "have yet to enter content mode"
@@ -1242,8 +1195,6 @@ bool Contract::ParseRawFile()
         else if (line.at(0) == '-') {
             if (bSignatureMode) {
                 // we just reached the end of a signature
-                //    otErr << "%s\n", pSig->Get());
-                pSig = nullptr;
                 bSignatureMode = false;
                 continue;
             }
@@ -1259,8 +1210,6 @@ bool Contract::ParseRawFile()
                     (line.find("BEGIN") != std::string::npos) &&
                     line.at(1) == '-' && line.at(2) == '-' &&
                     line.at(3) == '-') {
-                    //                    otErr << "\nProcessing contract...
-                    // \n";
                     bHaveEnteredContentMode = true;
                     bContentMode = true;
                     continue;
@@ -1275,24 +1224,9 @@ bool Contract::ParseRawFile()
                 line.length() > 3 &&
                 line.find("SIGNATURE") != std::string::npos &&
                 line.at(1) == '-' && line.at(2) == '-' && line.at(3) == '-') {
-                // if (bContentMode)
-                //    otLog3 << "Finished reading contract.\n\nReading a
-                // signature at the bottom of the contract...\n");
-                // else
-                //    otLog3 << "Reading another signature...\n");
-
                 bSignatureMode = true;
                 bContentMode = false;
-
-                pSig = new OTSignature;
-
-                OT_ASSERT_MSG(
-                    nullptr != pSig,
-                    "Error allocating memory for "
-                    "Signature in "
-                    "Contract::ParseRawFile\n");
-
-                m_listSignatures.push_back(pSig);
+                m_listSignatures.emplace_back(std::move(sig));
 
                 continue;
             }
@@ -1379,7 +1313,6 @@ bool Contract::ParseRawFile()
                             return false;
                         }
 
-                        OT_ASSERT(nullptr != pSig);
                         if (false == pSig->getMetaData().SetMetadata(
                                          line.at(9),
                                          line.at(10),
@@ -1433,15 +1366,9 @@ bool Contract::ParseRawFile()
         }
 
         if (bSignatureMode) {
-            OT_ASSERT_MSG(
-                nullptr != pSig,
-                "Error: Null Signature pointer WHILE "
-                "processing signature, in "
-                "Contract::ParseRawFile");
-
             pSig->Concatenate("%s\n", pBuf);
         } else if (bContentMode)
-            m_xmlUnsigned.Concatenate("%s\n", pBuf);
+            m_xmlUnsigned->Concatenate("%s\n", pBuf);
     } while (!bIsEOF);
 
     if (!bHaveEnteredContentMode) {
@@ -1476,11 +1403,11 @@ bool Contract::LoadContractXML()
 {
     std::int32_t retProcess = 0;
 
-    if (!m_xmlUnsigned.Exists()) { return false; }
+    if (!m_xmlUnsigned->Exists()) { return false; }
 
-    m_xmlUnsigned.reset();
+    m_xmlUnsigned->reset();
 
-    IrrXMLReader* xml = irr::io::createIrrXMLReader(m_xmlUnsigned);
+    IrrXMLReader* xml = irr::io::createIrrXMLReader(m_xmlUnsigned.get());
     OT_ASSERT_MSG(
         nullptr != xml,
         "Memory allocation issue with xml reader in "
@@ -1921,9 +1848,9 @@ bool Contract::CreateContract(const String& strContract, const Nym& theSigner)
     // Concatenate one!
 
     if ('\n' == cNewline)  // It already has a newline
-        m_xmlUnsigned = strContract;
+        m_xmlUnsigned.get() = strContract;
     else
-        m_xmlUnsigned.Format("%s\n", strContract.Get());
+        m_xmlUnsigned->Format("%s\n", strContract.Get());
 
     // This function assumes that m_xmlUnsigned is ready to be processed.
     // This function only processes that portion of the contract.

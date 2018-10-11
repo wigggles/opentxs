@@ -28,6 +28,7 @@ set(cxx-sources
   OTSignatureMetadata.cpp
   OTSignedFile.cpp
   PaymentCode.cpp
+  Signature.cpp
   VerificationCredential.cpp
   mkcert.cpp
 )
@@ -51,18 +52,18 @@ set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTPasswordData.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTPassword.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSignature.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSignatureMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/OTSignedFile.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/PaymentCode.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/Signature.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/crypto/VerificationCredential.hpp"
 )
 
 set(cxx-headers
   ${cxx-install-headers}
-  CryptoSymmetricDecryptOutput.cpp
   NullCallback.hpp
   PaymentCode.hpp
+  Signature.hpp
 )
 
 if(WIN32)

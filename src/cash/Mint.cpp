@@ -21,7 +21,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -398,35 +398,28 @@ bool Mint::VerifyContractID() const
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
 bool Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination)
 {
-    for (auto& it : m_mapPrivate) {
-        const auto& pArmor = it.second;
-        OT_ASSERT_MSG(
-            pArmor->Exists(), "nullptr mint pointer in Mint::GetPrivate.\n");
-        // if this denomination (say, 50) matches the one passed in
-        if (it.first == lDenomination) {
-            theArmor.Set(pArmor);
-            return true;
-        }
+    try {
+        theArmor.Set(m_mapPrivate.at(lDenomination));
+
+        return true;
+    } catch (...) {
+
+        return false;
     }
-    return false;
 }
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
 bool Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination)
 {
-    for (auto& it : m_mapPublic) {
-        const auto& pArmor = it.second;
-        OT_ASSERT_MSG(
-            pArmor->Exists(), "nullptr mint pointer in Mint::GetPublic.\n");
-        // if this denomination (say, 50) matches the one passed in
-        if (it.first == lDenomination) {
-            theArmor.Set(pArmor);
-            return true;
-        }
-    }
+    try {
+        theArmor.Set(m_mapPublic.at(lDenomination));
 
-    return false;
+        return true;
+    } catch (...) {
+
+        return false;
+    }
 }
 
 // If you need to withdraw a specific amount, pass it in here and the
@@ -459,10 +452,6 @@ std::int64_t Mint::GetDenomination(std::int32_t nIndex)
 
     for (auto it = m_mapPublic.begin(); it != m_mapPublic.end();
          ++it, nIterateIndex++) {
-        const auto& pArmor = it->second;
-        OT_ASSERT_MSG(
-            pArmor->Exists(),
-            "nullptr mint pointer in Mint::GetDenomination.\n");
 
         if (nIndex == nIterateIndex) return it->first;
     }
@@ -482,7 +471,7 @@ void Mint::UpdateContents()
          CASH_ACCOUNT_ID = String::Factory(m_CashAccountID);
 
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     Tag tag("mint");
 
@@ -503,27 +492,15 @@ void Mint::UpdateContents()
                                          // SetSavePrivateKeys() to set it true.
 
             for (auto& it : m_mapPrivate) {
-                const auto& pArmor = it.second;
-                OT_ASSERT_MSG(
-                    pArmor->Exists(),
-                    "nullptr private mint pointer "
-                    "in "
-                    "Mint::UpdateContents.\n");
-
                 TagPtr tagPrivateInfo(
-                    new Tag("mintPrivateInfo", pArmor->Get()));
+                    new Tag("mintPrivateInfo", it.second->Get()));
                 tagPrivateInfo->add_attribute(
                     "denomination", formatLong(it.first));
                 tag.add_tag(tagPrivateInfo);
             }
         }
         for (auto& it : m_mapPublic) {
-            const auto& pArmor = it.second;
-            OT_ASSERT_MSG(
-                pArmor->Exists(),
-                "nullptr public mint pointer in Mint::UpdateContents.\n");
-
-            TagPtr tagPublicInfo(new Tag("mintPublicInfo", pArmor->Get()));
+            TagPtr tagPublicInfo(new Tag("mintPublicInfo", it.second->Get()));
             tagPublicInfo->add_attribute("denomination", formatLong(it.first));
             tag.add_tag(tagPublicInfo);
         }
@@ -532,7 +509,7 @@ void Mint::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 // return -1 if error, 0 if nothing, and 1 if the node was processed.
@@ -601,7 +578,6 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
     } else if (strNodeName->Compare("mintPrivateInfo")) {
         std::int64_t lDenomination =
             String::StringToLong(xml->getAttributeValue("denomination"));
-
         auto pArmor = Armored::Factory();
 
         if (!Contract::LoadEncodedTextField(xml, pArmor) || !pArmor->Exists()) {
@@ -610,7 +586,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             return (-1);  // error condition
         } else {
-            m_mapPrivate.emplace(lDenomination, Armored::Factory(pArmor));
+            m_mapPrivate.emplace(lDenomination, std::move(pArmor));
         }
 
         return 1;
@@ -626,11 +602,10 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
             return (-1);  // error condition
         } else {
-            m_mapPublic.emplace(lDenomination, Armored::Factory(pArmor));
-            m_nDenominationCount++;  // Whether client or server, both sides
-                                     // have
-                                     // public. Each public denomination should
-                                     // increment this count.
+            m_mapPublic.emplace(lDenomination, std::move(pArmor));
+            // Whether client or server, both sides have public. Each public
+            // denomination should increment this count.
+            m_nDenominationCount++;
         }
 
         return 1;
@@ -650,14 +625,14 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
  OTAccount::GenerateNewAccount)
  OTAccount * OTAccount::GenerateNewAccount(    const Identifier& theNymID,
  const Identifier& theNotaryID,
-                                            const OTPseudonym & theServerNym,
+                                            const Nym & theServerNym,
  const OTMessage & theMessage,
                                             const OTAccount::AccountType
  eAcctType=OTAccount::user)
 
 
  // The above method uses this one internally...
- bool OTAccount::GenerateNewAccount(const OTPseudonym & theServer, const
+ bool OTAccount::GenerateNewAccount(const Nym & theServer, const
  OTMessage & theMessage,
                                     const OTAccount::AccountType
  eAcctType=OTAccount::user)

@@ -16,7 +16,7 @@
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -291,8 +291,7 @@ void Basket::UpdateContents()
     GenerateContents(m_xmlUnsigned, m_bHideAccountID);
 }
 
-void Basket::GenerateContents(OTStringXML& xmlUnsigned, bool bHideAccountID)
-    const
+void Basket::GenerateContents(StringXML& xmlUnsigned, bool bHideAccountID) const
 {
     // I release this because I'm about to repopulate it.
     xmlUnsigned.Release();
@@ -365,7 +364,7 @@ void Basket::CalculateContractID(Identifier& newID) const
     // Produce a version of the file without account IDs (which are different
     // from server to server.)
     // do this on a copy since we don't want to modify this basket
-    OTStringXML xmlUnsigned;
+    auto xmlUnsigned = StringXML::Factory();
     GenerateContents(xmlUnsigned, true);
     newID.CalculateDigest(xmlUnsigned);
 }

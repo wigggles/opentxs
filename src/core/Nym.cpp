@@ -38,7 +38,7 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/NymIDSource.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
@@ -728,7 +728,7 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
 }
 
 // This is being called by:
-// Contract::VerifySignature(const OTPseudonym& theNym, const OTSignature&
+// Contract::VerifySignature(const Nym& theNym, const Signature&
 // theSignature, OTPasswordData * pPWData=nullptr)
 //
 // Note: Need to change Contract::VerifySignature so that it checks all of
@@ -740,7 +740,7 @@ const crypto::key::Asymmetric& Nym::GetPublicEncrKey(
 // the signature.
 std::int32_t Nym::GetPublicKeysBySignature(
     crypto::key::Keypair::Keys& listOutput,
-    const OTSignature& theSignature,
+    const Signature& theSignature,
     char cKeyType) const
 {
     // Unfortunately, theSignature can only narrow the search down (there may be

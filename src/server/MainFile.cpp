@@ -24,7 +24,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/OTStorage.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/String.hpp"
 
 #include "Server.hpp"
@@ -295,9 +295,9 @@ bool MainFile::LoadMainFile(bool bReadOnly)
     bool bFailure = false;
 
     {
-        OTStringXML xmlFileContents(strFileContents);
+        auto xmlFileContents = StringXML::Factory(strFileContents);
 
-        if (false == xmlFileContents.DecodeIfArmored()) {
+        if (false == xmlFileContents->DecodeIfArmored()) {
             otErr << __FUNCTION__
                   << ": Notary server file apparently was encoded and "
                      "then failed decoding. Filename: "
@@ -307,7 +307,7 @@ bool MainFile::LoadMainFile(bool bReadOnly)
         }
 
         irr::io::IrrXMLReader* xml =
-            irr::io::createIrrXMLReader(xmlFileContents);
+            irr::io::createIrrXMLReader(xmlFileContents.get());
         std::unique_ptr<irr::io::IrrXMLReader> theXMLGuardian(xml);
 
         while (xml && xml->read()) {

@@ -506,7 +506,7 @@ various sequence numbers. Hm.
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Nym.hpp"
-#include "opentxs/core/OTStringXML.hpp"
+#include "opentxs/core/StringXML.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 
@@ -894,9 +894,9 @@ void OTSmartContract::DeactivateSmartContract()  // Called from within script.
 OTParty        * GetParty    (std::string str_party_name);
 OTBylaw        * GetBylaw    (std::string str_bylaw_name);
 OTClause    * GetClause    (std::string str_clause_name);
-OTParty * FindPartyBasedOnNymAsAgent(OTPseudonym& theNym, OTAgent **
+OTParty * FindPartyBasedOnNymAsAgent(Nym& theNym, OTAgent **
 ppAgent=nullptr);
-OTParty * FindPartyBasedOnNymAsAuthAgent(OTPseudonym& theNym, OTAgent **
+OTParty * FindPartyBasedOnNymAsAuthAgent(Nym& theNym, OTAgent **
 ppAgent=nullptr);
 OTParty * FindPartyBasedOnAccount(OTAccount& theAccount, OTPartyAccount **
 ppPartyAccount=nullptr);
@@ -3876,7 +3876,7 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
     //
     //
     // ===> THIS version (OTSmartContract) will look up pParty using theNym via:
-    // OTParty * OTScriptable::FindPartyBasedOnNymAsAgent(const OTPseudonym&
+    // OTParty * OTScriptable::FindPartyBasedOnNymAsAgent(const Nym&
     // theNym, OTAgent ** ppAgent=nullptr);
     //
     // ...Then it WILL check to see if pParty has its Opening number verified as
@@ -3975,7 +3975,7 @@ bool OTSmartContract::CanRemoveItemFromCron(const ClientContext& context)
 // Server will also want to verify that originator IS a party (this function
 // won't do it.)
 //
-// bool OTSmartContract::VerifySmartContract(OTPseudonym& theNym)
+// bool OTSmartContract::VerifySmartContract(Nym& theNym)
 //{
 // Need to verify:
 //
@@ -5026,7 +5026,7 @@ bool OTSmartContract::Compare(OTScriptable& rhs) const
 void OTSmartContract::UpdateContents()
 {
     // I release this because I'm about to repopulate it.
-    m_xmlUnsigned.Release();
+    m_xmlUnsigned->Release();
 
     const auto NOTARY_ID = String::Factory(GetNotaryID()),
                ACTIVATOR_NYM_ID = String::Factory(GetSenderNymID()),
@@ -5128,7 +5128,7 @@ void OTSmartContract::UpdateContents()
     std::string str_result;
     tag.output(str_result);
 
-    m_xmlUnsigned.Concatenate("%s", str_result.c_str());
+    m_xmlUnsigned->Concatenate("%s", str_result.c_str());
 }
 
 // Used internally here.

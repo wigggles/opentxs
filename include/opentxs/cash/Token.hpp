@@ -30,8 +30,6 @@ class Factory;
 }  // namespace implementation
 }  // namespace api
 
-typedef std::map<std::int32_t, OTArmored> mapOfPrototokens;
-
 /*
 Here's a rough sketch of the protocol:
 
@@ -171,17 +169,18 @@ public:
         std::int32_t nTokenIndex);
 
 protected:
+    typedef std::map<std::int32_t, OTArmored> mapOfPrototokens;
     friend api::implementation::Factory;
 
     bool m_bPasswordProtected{false};  // this token might be encrypted to a
                                        // passphrase, instead of a Nym.
 
     OTArmored m_ascSpendable;  // This is the final, signed, unblinded token
-                             // ID, ready to be spent. (But still in
-                             // envelope form, encrypted and
-                             // ascii-armored.)
+                               // ID, ready to be spent. (But still in
+                               // envelope form, encrypted and
+                               // ascii-armored.)
     OTArmored m_Signature;     // This is the Mint's signature on the blinded
-                             // prototoken.
+                               // prototoken.
 
     std::int64_t m_lDenomination{0};  // The actual value of the token is
                                       // between issuer and trader.
