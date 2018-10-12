@@ -43,6 +43,8 @@
 
 #include "internal/rpc/Internal.hpp"
 
+#include <algorithm>
+
 #include "RPC.hpp"
 
 #define SESSION_DATA_VERSION 1
@@ -898,13 +900,19 @@ proto::RPCResponse RPC::get_compatible_accounts(
     }
 
     const auto& unitdefinitionid = cheque->GetInstrumentDefinitionID();
+    const auto owneraccounts = client.Storage().AccountsByOwner(ownerID);
+    const auto unitaccounts =
+        client.Storage().AccountsByContract(unitdefinitionid);
+    std::vector<OTIdentifier> compatible{};
+    std::set_union(
+        owneraccounts.begin(),
+        owneraccounts.end(),
+        unitaccounts.begin(),
+        unitaccounts.end(),
+        std::back_inserter(compatible));
 
-    const auto accounts = client.Storage().AccountsByOwner(ownerID);
-    for (auto accountid : accounts) {
-        const auto& account = client.Wallet().Account(accountid);
-        if (unitdefinitionid == account.get().GetInstrumentDefinitionID()) {
-            output.add_identifier(accountid->str());
-        }
+    for (const auto& accountid : compatible) {
+        output.add_identifier(accountid->str());
     }
 
     if (0 == output.identifier_size()) {
@@ -1711,9 +1719,14 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
         return output;
     }
 
-    // auto sender = client.Storage().AccountOwner(sourceaccountid);
-    const auto sourceaccount = client.Wallet().Account(sourceaccountid);
-    auto& sender = sourceaccount.get().GetNymID();
+    const auto sender = client.Storage().AccountOwner(sourceaccountid);
+
+    if (sender->empty()) {
+        add_output_status(output, proto::RPCRESPONSE_ERROR);
+
+        return output;
+    }
+
     const auto ready = client.Sync().CanMessage(sender, contactid);
 
     switch (ready) {
@@ -1773,7 +1786,7 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
                     auto transuccess =
                         client.Exec().Message_GetTransactionSuccess(
                             notary->str(),
-                            sender.str(),
+                            sender->str(),
                             sourceaccountid->str(),
                             strReply);
                     if (1 == transuccess) {
