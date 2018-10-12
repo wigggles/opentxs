@@ -308,12 +308,16 @@ std::pair<bool, std::size_t> Sync::accept_incoming(
     remaining = items - count;
 
     if (0 == count) {
-        LogVerbose(OT_METHOD)(__FUNCTION__)(
+        LogOutput(OT_METHOD)(__FUNCTION__)(
             ": No items to accept in this account.")
             .Flush();
         success = true;
 
         return output;
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Items to accept in this account: ")(count)
+            .Flush();
     }
 
     for (std::size_t i = 0; i < count; i++) {

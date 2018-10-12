@@ -20,6 +20,7 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -41,6 +42,8 @@
 #include "opentxs/Proto.hpp"
 
 #include "internal/rpc/Internal.hpp"
+
+#include <algorithm>
 
 #include "RPC.hpp"
 
@@ -897,13 +900,19 @@ proto::RPCResponse RPC::get_compatible_accounts(
     }
 
     const auto& unitdefinitionid = cheque->GetInstrumentDefinitionID();
+    const auto owneraccounts = client.Storage().AccountsByOwner(ownerID);
+    const auto unitaccounts =
+        client.Storage().AccountsByContract(unitdefinitionid);
+    std::vector<OTIdentifier> compatible{};
+    std::set_union(
+        owneraccounts.begin(),
+        owneraccounts.end(),
+        unitaccounts.begin(),
+        unitaccounts.end(),
+        std::back_inserter(compatible));
 
-    const auto accounts = client.Storage().AccountsByOwner(ownerID);
-    for (auto accountid : accounts) {
-        const auto& account = client.Wallet().Account(accountid);
-        if (unitdefinitionid == account.get().GetInstrumentDefinitionID()) {
-            output.add_identifier(accountid->str());
-        }
+    for (const auto& accountid : compatible) {
+        output.add_identifier(accountid->str());
     }
 
     if (0 == output.identifier_size()) {
@@ -1710,7 +1719,14 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
         return output;
     }
 
-    auto sender = client.Storage().AccountOwner(sourceaccountid);
+    const auto sender = client.Storage().AccountOwner(sourceaccountid);
+
+    if (sender->empty()) {
+        add_output_status(output, proto::RPCRESPONSE_ERROR);
+
+        return output;
+    }
+
     const auto ready = client.Sync().CanMessage(sender, contactid);
 
     switch (ready) {
@@ -1766,7 +1782,18 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
                 if (false == bool(reply) || false == reply->m_bSuccess) {
                     add_output_status(output, proto::RPCRESPONSE_ERROR);
                 } else {
-                    add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+                    std::string strReply = String::Factory(*reply)->Get();
+                    auto transuccess =
+                        client.Exec().Message_GetTransactionSuccess(
+                            notary->str(),
+                            sender->str(),
+                            sourceaccountid->str(),
+                            strReply);
+                    if (1 == transuccess) {
+                        add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+                    } else {
+                        add_output_status(output, proto::RPCRESPONSE_ERROR);
+                    }
                 }
             } else {
                 add_output_status(output, proto::RPCRESPONSE_ERROR);

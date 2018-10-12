@@ -48,7 +48,7 @@ private:
     OTZMQDealerSocket internal_socket_;
     OTZMQListenCallback notification_callback_;
     OTZMQPullSocket notification_socket_;
-    std::unique_ptr<std::thread> thread_{nullptr};
+    std::thread thread_;
     const std::string internal_endpoint_;
     mutable std::mutex counter_lock_;
     mutable int drop_incoming_{0};

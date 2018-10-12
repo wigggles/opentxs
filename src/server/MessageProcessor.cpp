@@ -86,7 +86,7 @@ MessageProcessor::MessageProcessor(
     , notification_socket_(context.PullSocket(
           notification_callback_,
           zmq::Socket::Direction::Bind))
-    , thread_(nullptr)
+    , thread_()
     , internal_endpoint_(
           std::string("inproc://opentxs/notary/") + Identifier::Random()->str())
     , counter_lock_()
@@ -120,10 +120,7 @@ void MessageProcessor::associate_connection(
 
 void MessageProcessor::cleanup()
 {
-    if (thread_) {
-        thread_->join();
-        thread_.reset();
-    }
+    if (thread_.joinable()) { thread_.join(); }
 }
 
 void MessageProcessor::DropIncoming(const int count) const
@@ -416,10 +413,8 @@ OTData MessageProcessor::query_connection(const Identifier& nymID)
 
 void MessageProcessor::Start()
 {
-    if (false == bool(thread_)) {
-        thread_.reset(new std::thread(&MessageProcessor::run, this));
-    }
+    thread_ = std::thread(&MessageProcessor::run, this);
 }
 
-MessageProcessor::~MessageProcessor() {}
+MessageProcessor::~MessageProcessor() { cleanup(); }
 }  // namespace opentxs::server

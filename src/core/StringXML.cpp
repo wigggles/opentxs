@@ -58,7 +58,9 @@ StringXML::StringXML(const opentxs::String& value)
 }
 
 StringXML::StringXML(const StringXML& value)
-    : String(value)
+    : opentxs::String()
+    , opentxs::StringXML()
+    , String(value)
     , pvt_(new StringXMLPvt(this))
 {
 }

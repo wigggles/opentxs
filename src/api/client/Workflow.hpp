@@ -103,6 +103,7 @@ private:
     const Contacts& contact_;
     const OTZMQPublishSocket account_publisher_;
     const OTZMQPushSocket rpc_publisher_;
+    mutable std::map<std::string, std::shared_mutex> workflow_locks_;
 
     static bool can_abort_transfer(const proto::PaymentWorkflow& workflow);
     static bool can_accept_cheque(const proto::PaymentWorkflow& workflow);
@@ -130,6 +131,7 @@ private:
         const opentxs::Cheque& cheque);
 
     bool add_cheque_event(
+        const eLock& lock,
         const std::string& nymID,
         const std::string& eventNym,
         proto::PaymentWorkflow& workflow,
@@ -140,6 +142,7 @@ private:
         const Message* reply,
         const std::string& account = "") const;
     bool add_cheque_event(
+        const eLock& lock,
         const std::string& nymID,
         const std::string& accountID,
         proto::PaymentWorkflow& workflow,
@@ -151,6 +154,7 @@ private:
         const std::chrono::time_point<std::chrono::system_clock> time =
             std::chrono::system_clock::from_time_t(now())) const;
     bool add_transfer_event(
+        const eLock& lock,
         const std::string& nymID,
         const std::string& eventNym,
         proto::PaymentWorkflow& workflow,
@@ -161,6 +165,7 @@ private:
         const std::string& account,
         const bool success) const;
     bool add_transfer_event(
+        const eLock& lock,
         const std::string& nymID,
         const std::string& notaryID,
         const std::string& eventNym,
@@ -185,7 +190,7 @@ private:
         const std::string& senderNymID,
         const Item& transfer) const;
     std::pair<OTIdentifier, proto::PaymentWorkflow> create_cheque(
-        const eLock& lock,
+        const Lock& global,
         const std::string& nymID,
         const opentxs::Cheque& cheque,
         const proto::PaymentWorkflowType workflowType,
@@ -197,7 +202,7 @@ private:
         const std::string& account,
         const Message* message = nullptr) const;
     std::pair<OTIdentifier, proto::PaymentWorkflow> create_transfer(
-        const eLock& lock,
+        const Lock& global,
         const std::string& nymID,
         const Item& transfer,
         const proto::PaymentWorkflowType workflowType,
@@ -216,6 +221,7 @@ private:
         Identifier& depositorNymID) const;
     template <typename T>
     std::shared_ptr<proto::PaymentWorkflow> get_workflow(
+        const Lock& global,
         const std::set<proto::PaymentWorkflowType>& types,
         const std::string& nymID,
         const T& source) const;
@@ -230,6 +236,8 @@ private:
         const std::set<proto::PaymentWorkflowType>& types,
         const std::string& nymID,
         const std::string& sourceID) const;
+    // Unlocks global after successfully locking the workflow-specific mutex
+    eLock get_workflow_lock(Lock& global, const std::string& id) const;
     bool isInternalTransfer(
         const Identifier& sourceAccount,
         const Identifier& destinationAccount) const;
