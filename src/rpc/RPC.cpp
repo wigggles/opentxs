@@ -20,6 +20,7 @@
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
+#include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/contact/Contact.hpp"
@@ -1710,7 +1711,9 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
         return output;
     }
 
-    auto sender = client.Storage().AccountOwner(sourceaccountid);
+    // auto sender = client.Storage().AccountOwner(sourceaccountid);
+    const auto sourceaccount = client.Wallet().Account(sourceaccountid);
+    auto& sender = sourceaccount.get().GetNymID();
     const auto ready = client.Sync().CanMessage(sender, contactid);
 
     switch (ready) {
@@ -1766,7 +1769,18 @@ proto::RPCResponse RPC::send_payment(const proto::RPCCommand& command) const
                 if (false == bool(reply) || false == reply->m_bSuccess) {
                     add_output_status(output, proto::RPCRESPONSE_ERROR);
                 } else {
-                    add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+                    std::string strReply = String::Factory(*reply)->Get();
+                    auto transuccess =
+                        client.Exec().Message_GetTransactionSuccess(
+                            notary->str(),
+                            sender.str(),
+                            sourceaccountid->str(),
+                            strReply);
+                    if (1 == transuccess) {
+                        add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+                    } else {
+                        add_output_status(output, proto::RPCRESPONSE_ERROR);
+                    }
                 }
             } else {
                 add_output_status(output, proto::RPCRESPONSE_ERROR);

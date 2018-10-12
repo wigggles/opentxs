@@ -34,20 +34,20 @@ private:
     std::shared_ptr<const ServerContract> remote_contract_{nullptr};
     std::thread thread_;
     OTZMQListenCallback callback_;
-    OTZMQDealerSocket socket_;
+    OTZMQDealerSocket registration_socket_;
+    OTZMQRequestSocket socket_;
     OTZMQPushSocket notification_socket_;
     std::atomic<std::time_t> last_activity_{0};
-    OTFlag socket_ready_;
+    OTFlag sockets_ready_;
     OTFlag status_;
     OTFlag use_proxy_;
-    std::mutex incoming_lock_;
-    std::map<RequestNumber, std::unique_ptr<Message>> incoming_;
-    mutable std::mutex registation_lock_;
+    mutable std::mutex registration_lock_;
     std::map<OTIdentifier, bool> registered_for_push_;
 
     static std::pair<bool, proto::ServerReply> check_for_protobuf(
         const zeromq::Frame& frame);
 
+    OTZMQDealerSocket async_socket(const Lock& lock) const;
     ServerConnection* clone() const override { return nullptr; }
     std::string endpoint() const;
     std::string form_endpoint(
@@ -56,13 +56,14 @@ private:
         std::uint32_t port) const;
     std::chrono::time_point<std::chrono::system_clock> get_timeout();
     void publish() const;
-    void set_curve(const Lock& lock, zeromq::DealerSocket& socket) const;
+    void set_curve(const Lock& lock, zeromq::CurveClient& socket) const;
     void set_proxy(const Lock& lock, zeromq::DealerSocket& socket) const;
-    void set_timeouts(const Lock& lock, zeromq::DealerSocket& socket) const;
-    OTZMQDealerSocket socket(const Lock& lock) const;
+    void set_timeouts(const Lock& lock, zeromq::Socket& socket) const;
+    OTZMQRequestSocket sync_socket(const Lock& lock) const;
 
     void activity_timer();
-    zeromq::DealerSocket& get_socket(const Lock& lock);
+    zeromq::DealerSocket& get_async(const Lock& lock);
+    zeromq::RequestSocket& get_sync(const Lock& lock);
     void process_incoming(const zeromq::Message& in);
     void process_incoming(const proto::ServerReply& in);
     void register_for_push(const ServerContext& context);

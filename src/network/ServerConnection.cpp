@@ -84,18 +84,17 @@ ServerConnection::ServerConnection(
           [=](const zeromq::Message& in) -> void {
               this->process_incoming(in);
           }))
-    , socket_(zmq.Context().DealerSocket(
+    , registration_socket_(zmq.Context().DealerSocket(
           callback_,
           zmq::Socket::Direction::Connect))
+    , socket_(zmq.Context().RequestSocket())
     , notification_socket_(
           zmq.Context().PushSocket(zmq::Socket::Direction::Connect))
     , last_activity_(std::time(nullptr))
-    , socket_ready_(Flag::Factory(false))
+    , sockets_ready_(Flag::Factory(false))
     , status_(Flag::Factory(false))
     , use_proxy_(Flag::Factory(false))
-    , incoming_lock_()
-    , incoming_()
-    , registation_lock_()
+    , registration_lock_()
     , registered_for_push_()
 {
     OT_ASSERT(remote_contract_)
@@ -117,7 +116,7 @@ void ServerConnection::activity_timer()
 
         if (duration > limit) {
             if (limit > std::chrono::seconds(0)) {
-                socket_->Send(std::string(""));
+                registration_socket_->Send(std::string(""));
             } else {
                 if (status_->Off()) { publish(); };
             }
@@ -125,6 +124,18 @@ void ServerConnection::activity_timer()
 
         Log::Sleep(std::chrono::seconds(1));
     }
+}
+
+OTZMQDealerSocket ServerConnection::async_socket(const Lock& lock) const
+{
+    auto output =
+        zmq_.Context().DealerSocket(callback_, zmq::Socket::Direction::Connect);
+    set_proxy(lock, output);
+    set_timeouts(lock, output);
+    set_curve(lock, output);
+    output->Start(endpoint());
+
+    return output;
 }
 
 bool ServerConnection::ChangeAddressType(const proto::AddressType type)
@@ -210,13 +221,27 @@ std::string ServerConnection::form_endpoint(
     return output;
 }
 
-zeromq::DealerSocket& ServerConnection::get_socket(const Lock& lock)
+zeromq::DealerSocket& ServerConnection::get_async(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
 
-    if (false == socket_ready_.get()) {
-        socket_ = socket(lock);
-        socket_ready_->On();
+    if (false == sockets_ready_.get()) {
+        registration_socket_ = async_socket(lock);
+        socket_ = sync_socket(lock);
+        sockets_ready_->On();
+    }
+
+    return registration_socket_;
+}
+
+zeromq::RequestSocket& ServerConnection::get_sync(const Lock& lock)
+{
+    OT_ASSERT(verify_lock(lock))
+
+    if (false == sockets_ready_.get()) {
+        registration_socket_ = async_socket(lock);
+        socket_ = sync_socket(lock);
+        sockets_ready_->On();
     }
 
     return socket_;
@@ -276,31 +301,6 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
 
         return;
     }
-
-    auto armored = Armored::Factory();
-    armored->Set(std::string(frame).c_str());
-    auto serialized = String::Factory();
-    armored->GetString(serialized);
-    const auto loaded = message->LoadContractFromString(serialized);
-    const RequestNumber number = message->m_strRequestNum->ToLong();
-
-    if (0 > number) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Invalid incoming request number." << std::endl;
-
-        return;
-    }
-
-    Lock lock(incoming_lock_);
-    auto& reply = incoming_[number];
-
-    if (loaded) {
-        reply.reset(message.release());
-    } else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Received server reply, "
-              << "but unable to instantiate it as a Message." << std::endl;
-        reply.reset();
-    }
 }
 
 void ServerConnection::publish() const
@@ -321,7 +321,7 @@ void ServerConnection::register_for_push(const ServerContext& context)
         return;
     }
 
-    Lock registrationLock(registation_lock_);
+    Lock registrationLock(registration_lock_);
     const auto& nymID = context.Nym()->ID();
     auto& isRegistered = registered_for_push_[nymID];
 
@@ -335,14 +335,14 @@ void ServerConnection::register_for_push(const ServerContext& context)
     message->AddFrame(proto::ProtoAsData(request->Contract()));
     message->AddFrame();
     Lock socketLock(lock_);
-    isRegistered = get_socket(socketLock).Send(message);
+    isRegistered = get_async(socketLock).Send(message);
 }
 
 void ServerConnection::reset_socket(const Lock& lock)
 {
     OT_ASSERT(verify_lock(lock))
 
-    socket_ready_->Off();
+    sockets_ready_->Off();
 }
 
 void ServerConnection::reset_timer()
@@ -370,47 +370,52 @@ NetworkReplyMessage ServerConnection::Send(
 
     Lock socketLock(lock_);
     auto request = zmq::Message::Factory(std::string(envelope->Get()));
-    request->EnsureDelimiter();
-    auto sent = get_socket(socketLock).Send(request);
 
-    if (false == sent) { return output; }
+    auto sendresult = get_sync(socketLock).SendRequest(request);
 
-    const auto limit = get_timeout();
-    const RequestNumber number = message.m_strRequestNum->ToLong();
+    if (status_->On()) { publish(); }
 
-    while (zmq_.Running() && (std::chrono::system_clock::now() < limit)) {
-        Lock mapLock(incoming_lock_);
-        auto it = incoming_.find(number);
+    status = sendresult.first;
+    auto in = sendresult.second;
 
-        if (incoming_.end() != it) {
-            reply.reset(it->second.release());
+    auto replymessage{api_.Factory().Message()};
 
-            if (reply) {
-                status = SendResult::VALID_REPLY;
-            } else {
-                status = SendResult::INVALID_REPLY;
-                reset_socket(socketLock);
-            }
+    OT_ASSERT(false != bool(replymessage));
 
-            incoming_.erase(it);
-            reset_timer();
+    if (1 > in->Body().size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
+              << std::endl;
 
-            return output;
-        }
-
-        mapLock.unlock();
-        Log::Sleep(std::chrono::milliseconds(5));
+        return output;
     }
 
-    if (zmq_.Running()) {
-        status = SendResult::TIMEOUT;
-        reset_socket(socketLock);
+    auto& frame = *in->Body().begin();
+
+    if (0 == frame.size()) {
+        otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
+              << std::endl;
+
+        return output;
+    }
+
+    auto armored = Armored::Factory();
+    armored->Set(std::string(frame).c_str());
+    auto serialized = String::Factory();
+    armored->GetString(serialized);
+    const auto loaded = replymessage->LoadContractFromString(serialized);
+
+    if (loaded) {
+        reply.reset(replymessage.release());
+    } else {
+        otErr << OT_METHOD << __FUNCTION__ << ": Received server reply, "
+              << "but unable to instantiate it as a Message." << std::endl;
+        reply.reset();
     }
 
     return output;
 }
 
-void ServerConnection::set_curve(const Lock& lock, zeromq::DealerSocket& socket)
+void ServerConnection::set_curve(const Lock& lock, zeromq::CurveClient& socket)
     const
 {
     OT_ASSERT(verify_lock(lock));
@@ -438,9 +443,8 @@ void ServerConnection::set_proxy(const Lock& lock, zeromq::DealerSocket& socket)
     }
 }
 
-void ServerConnection::set_timeouts(
-    const Lock& lock,
-    zeromq::DealerSocket& socket) const
+void ServerConnection::set_timeouts(const Lock& lock, zeromq::Socket& socket)
+    const
 {
     OT_ASSERT(verify_lock(lock));
 
@@ -450,11 +454,9 @@ void ServerConnection::set_timeouts(
     OT_ASSERT(set);
 }
 
-OTZMQDealerSocket ServerConnection::socket(const Lock& lock) const
+OTZMQRequestSocket ServerConnection::sync_socket(const Lock& lock) const
 {
-    auto output =
-        zmq_.Context().DealerSocket(callback_, zmq::Socket::Direction::Connect);
-    set_proxy(lock, output);
+    auto output = zmq_.Context().RequestSocket();
     set_timeouts(lock, output);
     set_curve(lock, output);
     output->Start(endpoint());
