@@ -124,8 +124,8 @@ void PayableList::process_contact(
 
         add_item(id, key, {paymentCode.release()});
     } else {
-        otWarn << OT_METHOD << __FUNCTION__ << ": Skipping unpayable contact "
-               << id->str() << std::endl;
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Skipping unpayable contact ")(id)
+            .Flush();
     }
 }
 
@@ -163,8 +163,9 @@ void PayableList::process_nym(const network::zeromq::Message& message)
 void PayableList::startup()
 {
     const auto contacts = api_.Contacts().ContactList();
-    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
-           << " contacts." << std::endl;
+    LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(contacts.size())(
+        " contacts.")
+        .Flush();
 
     for (const auto& [id, alias] : contacts) {
         process_contact(Identifier::Factory(id), alias);

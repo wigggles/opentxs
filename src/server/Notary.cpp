@@ -7242,9 +7242,11 @@ void Notary::NotarizeProcessInbox(
 
                 if (verified) {
                     closedNumbers.insert(closingNum);
-                    otWarn << __FUNCTION__ << ": Closing "
-                           << "acceptBasketReceipt or acceptFinalReceipt "
-                           << "number " << closingNum << std::endl;
+                    LogDetail(OT_METHOD)(__FUNCTION__)(
+                        ": Closing "
+                        "acceptBasketReceipt or acceptFinalReceipt "
+                        "number ")(closingNum)
+                        .Flush();
                 } else {
                     bSuccessFindingAllTransactions = false;
 
@@ -7349,9 +7351,10 @@ void Notary::NotarizeProcessInbox(
 
                             if (verified) {
                                 closedNumbers.insert(number);
-                                otWarn << __FUNCTION__ << ": Closing "
-                                       << "depositCheque number " << number
-                                       << std::endl;
+                                LogDetail(OT_METHOD)(__FUNCTION__)(
+                                    ": Closing "
+                                    "depositCheque number ")(number)
+                                    .Flush();
                             } else {
                                 bSuccessFindingAllTransactions = false;
                                 Log::vError(
@@ -7383,9 +7386,10 @@ void Notary::NotarizeProcessInbox(
 
                         if (verified) {
                             closedNumbers.insert(number);
-                            otWarn << __FUNCTION__ << ": Closing "
-                                   << "acceptPending number " << number
-                                   << std::endl;
+                            LogDetail(OT_METHOD)(__FUNCTION__)(
+                                ": Closing "
+                                "acceptPending number ")(number)
+                                .Flush();
                         } else {
                             bSuccessFindingAllTransactions = false;
                             Log::vError(
@@ -8609,9 +8613,10 @@ void Notary::process_cash_deposit(
                 pMintCashReserveAcct.Release();
                 responseItem.SetStatus(Item::acknowledgement);
                 success = true;  // The cash deposit was successful.
-                otWarn << "Notary::NotarizeDeposit: .....SUCCESS "
-                          "-- crediting account from cash "
-                          "deposit.\n";
+                LogDetail(OT_METHOD)(__FUNCTION__)(
+                    "SUCCESS -- crediting account from cash "
+                    "deposit.")
+                    .Flush();
 
                 // TODO:  Right here, again, I need to save the receipt from
                 // the new balance agreement, since we have

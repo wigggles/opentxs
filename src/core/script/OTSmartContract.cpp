@@ -5278,8 +5278,9 @@ std::int32_t OTSmartContract::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // party who RECEIVED
         // money.
 
-        otWarn << "\n\n Smartcontract. Transaction Number: "
-               << m_lTransactionNum << "\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Smartcontract. Transaction Number: ")(m_lTransactionNum)
+            .Flush();
 
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Creation Date: ")(tCreation)(
             " Valid From: ")(tValidFrom)(" Valid To: ")(tValidTo)(
