@@ -320,7 +320,7 @@ bool Purse::GenerateInternalKey()
     m_bIsNymIDIncluded = false;
 
     LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": Successfully created a purse's internal key. ")
+        ": Successfully created a purse's internal key.")
         .Flush();
 
     m_bPasswordProtected = true;
@@ -460,9 +460,9 @@ bool Purse::Merge(
                   << ": Error: Failed while attempting to re-assign "
                      "ownership of token during purse merge.\n";
         } else {
-            LogDetail(OT_METHOD)(__FUNCTION__)(szFunc)(
-                ": FYI: Success re-assigning ownership of ")(
-                "token during purse merge. ")
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                ": FYI: Success re-assigning ownership of "
+                "token during purse merge.")
                 .Flush();
 
             pToken->ReleaseSignatures();
@@ -981,8 +981,8 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // By this point, the symmetric key has loaded successfully from
         // storage.
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(szFunc)(
-            ": Successfully loaded a purse's internal key. ")
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Successfully loaded a purse's internal key.")
             .Flush();
 
         // No more worry about pSymmetricKey cleanup, now that this pointer is
@@ -1064,8 +1064,8 @@ std::int32_t Purse::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // By this point, the symmetric key has loaded successfully from
         // storage.
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(szFunc)(
-            ": Successfully loaded a purse's master key. ")
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Successfully loaded a purse's master key.")
             .Flush();
 
         // No more worry about pSymmetricKey cleanup, now that this pointer is

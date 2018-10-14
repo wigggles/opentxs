@@ -632,7 +632,7 @@ void Pair::state_machine(
     const Identifier& issuerNymID) const
 {
     LogDetail(OT_METHOD)(__FUNCTION__)(": Local nym: ")(localNymID)(
-        "Issuer Nym: ")(issuerNymID)
+        " Issuer Nym: ")(issuerNymID)
         .Flush();
     Lock lock(status_lock_);
     auto& [status, trusted] = pair_status_[{localNymID, issuerNymID}];
@@ -672,8 +672,9 @@ void Pair::state_machine(
         otErr << OT_METHOD << __FUNCTION__
               << ": Issuer does not advertise any contracts." << std::endl;
     } else {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Issuer advertise ")(
-            contractSection->Size())(" contracts.")
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Issuer advertises ")(
+            contractSection->Size())(" contract")(
+            (1 == contractSection->Size()) ? "." : "s.")
             .Flush();
     }
 

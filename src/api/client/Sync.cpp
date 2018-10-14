@@ -1711,20 +1711,22 @@ void Sync::refresh_accounts() const
 
         for (const auto& nymID : client_.OTAPI().LocalNymList()) {
             SHUTDOWN()
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Nym ")(nymID)(" ").Flush();
+            auto logStr = String::Factory(": Nym ");
+            logStr->Concatenate("%s", nymID->str().c_str());
             const bool registered =
                 client_.OTAPI().IsNym_RegisteredAtServer(nymID, serverID);
 
             if (registered) {
-                LogDetail(OT_METHOD)(__FUNCTION__)(": is ").Flush();
+                logStr->Concatenate(" %s ", "is");
                 auto& queue = get_operations({nymID, serverID});
                 const auto taskID(Identifier::Random());
                 queue.download_nymbox_.Push(taskID, true);
             } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(": is not ").Flush();
+                logStr->Concatenate(" %s ", "is");
             }
 
-            LogDetail(OT_METHOD)(__FUNCTION__)(": registered here.").Flush();
+            logStr->Concatenate("%s", "registered here.");
+            LogDetail(OT_METHOD)(__FUNCTION__)(logStr).Flush();
         }
     }
 

@@ -467,7 +467,7 @@ bool OTWallet::LoadWallet(const char* szFilename)
                         }
 
                         LogDetail(OT_METHOD)(__FUNCTION__)(
-                            "Loading cachedKey: ")(ascCachedKey)
+                            ": Loading cachedKey: ")(ascCachedKey)
                             .Flush();
                     } else if (strNodeName->Compare("account")) {
                         auto ascAcctName =

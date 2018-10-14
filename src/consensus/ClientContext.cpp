@@ -186,8 +186,8 @@ bool ClientContext::Verify(
         }
 
         LogDetail(OT_METHOD)(__FUNCTION__)(": Transaction statement MUST ")(
-            "include number ")(number)(" which IS NOT currently in ")(
-            "the context. ")
+            "include number ")(number)(" which IS NOT currently in "
+                                       "the context. ")
             .Flush();
     }
 
@@ -201,9 +201,10 @@ bool ClientContext::Verify(
             return false;
         }
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Transaction statement MUST ")(
-            "NOT include number ")(number)(" which IS currently in ")(
-            "the context. ")
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Transaction statement MUST "
+            "NOT include number ")(number)(" which IS currently in "
+                                           "the context.")
             .Flush();
     }
 

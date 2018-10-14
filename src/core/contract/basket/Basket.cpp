@@ -222,7 +222,7 @@ std::int32_t Basket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_nSubCount = atoi(strSubCount->Get());
         m_lMinimumTransfer = strMinTrans->ToLong();
 
-        LogDetail(OT_METHOD)(__FUNCTION__)("Loading currency basket... ")
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Loading currency basket...")
             .Flush();
 
         return 1;

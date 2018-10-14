@@ -143,7 +143,7 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         otOut << "\n\nMarket. Scale: " << m_lScale << "\n";
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(" instrumentDefinitionID: ")(
+        LogDetail(OT_METHOD)(__FUNCTION__)(": instrumentDefinitionID: ")(
             strInstrumentDefinitionID)(" currencyTypeID: ")(strCurrencyTypeID)(
             " NotaryID: ")(strNotaryID)
             .Flush();
@@ -178,7 +178,7 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             // bSaveMarket = false (Don't SAVE -- we're loading right now!)
             {
                 LogDetail(OT_METHOD)(__FUNCTION__)(
-                    "Successfully loaded offer and added to market. ")
+                    ": Successfully loaded offer and added to market.")
                     .Flush();
             } else {
                 otErr << "Error adding offer to market while loading market.\n";
@@ -2148,7 +2148,7 @@ void OTMarket::ProcessTrade(
             // to all four inboxes.
             else {
                 LogDetail(OT_METHOD)(__FUNCTION__)(
-                    "Unable to perform trade in OTMarket::")
+                    ": Unable to perform trade in OTMarket::")
                     .Flush();
 
                 // Let's figure out which one it was and remove his

@@ -157,8 +157,8 @@ bool MintLucre::AddDenomination(
         theNotary.GetIdentifier(m_ServerNymID);
         m_nDenominationCount++;
         bReturnValue = true;
-        LogDetail(OT_METHOD)(__FUNCTION__)("Successfully added denomination: ")(
-            lDenomination)
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Successfully added denomination: ")(lDenomination)
             .Flush();
     }
 

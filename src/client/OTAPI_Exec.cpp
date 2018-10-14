@@ -2051,7 +2051,7 @@ std::string OTAPI_Exec::GetNym_InboxHash(
             //
             LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": InboxHash not found, on client side, for account ")(
-                str_acct_id)(" and nym ")(strNymID)(". (Returning .) ")
+                str_acct_id)(" and nym ")(strNymID)(". (Returning.) ")
                 .Flush();
         } else  // Success: the hash was there, for that Nym, for that server
                 // ID.
@@ -2098,7 +2098,7 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
             //
             LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": OutboxHash not found, on client side, for account ")(
-                str_acct_id)(" and nym ")(strNymID)(". (Returning .) ")
+                str_acct_id)(" and nym ")(strNymID)(". (Returning.) ")
                 .Flush();
         } else  // Success: the hash was there, for that Nym, for that server
                 // ID.
@@ -3833,7 +3833,7 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
     auto theInstrumentDefinitionID =
         Identifier::Factory(account.get().GetInstrumentDefinitionID());
     LogDetail(OT_METHOD)(__FUNCTION__)(": Returning instrument definition ")(
-        theInstrumentDefinitionID)("for account ")(THE_ID)
+        theInstrumentDefinitionID)(" for account ")(THE_ID)
         .Flush();
 
     return theInstrumentDefinitionID->str();
@@ -5214,7 +5214,7 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
             // parties are NOT confirmed:\n\n" << strContract << "\n\n";
             LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": Smart contract loaded up, but all ")(
-                "parties are NOT confirmed. ")
+                "parties are NOT confirmed.")
                 .Flush();
             return false;
         } else if (bVerified) {
@@ -5238,7 +5238,7 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
         }
         otOut << OT_METHOD << __FUNCTION__
               << ": Suspicious: Smart contract loaded up, and is supposedly "
-                 " confirmed by all parties, but failed to verify:\n\n"
+                 "confirmed by all parties, but failed to verify:\n\n"
               << strContract << "\n\n";
     }
     return false;
@@ -5278,7 +5278,7 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
         LogDetail(OT_METHOD)(__FUNCTION__)(
             ": Smart contract loaded up, and party ")(PARTY_NAME)(
             " was found, but didn't find a signed copy of the ")(
-            "agreement for that party. ")
+            "agreement for that party.")
             .Flush();
         return false;
     }
@@ -7104,8 +7104,7 @@ std::string OTAPI_Exec::LoadInbox(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadInbox. ")("Account ID : ")(
-            ACCOUNT_ID)
+            ": Failure calling OT_API::LoadInbox. Account ID: ")(ACCOUNT_ID)
             .Flush();
     } else {                                         // success
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7136,7 +7135,7 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadInboxNoVerify. ")("Account ID : ")(
+            ": Failure calling OT_API::LoadInboxNoVerify. Account ID: ")(
             ACCOUNT_ID)
             .Flush();
     } else  // success
@@ -7169,8 +7168,7 @@ std::string OTAPI_Exec::LoadOutbox(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadOutbox(). ")("Account ID : ")(
-            ACCOUNT_ID)
+            ": Failure calling OT_API::LoadOutbox(). Account ID : ")(ACCOUNT_ID)
             .Flush();
     } else  // success
     {
@@ -7202,7 +7200,7 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadOutboxNoVerify. ")("Account ID : ")(
+            ": Failure calling OT_API::LoadOutboxNoVerify. Account ID: ")(
             ACCOUNT_ID)
             .Flush();
     } else  // success
@@ -7235,7 +7233,7 @@ std::string OTAPI_Exec::LoadPaymentInbox(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadPaymentInbox. ")("Nym ID : ")(NYM_ID)
+            ": Failure calling OT_API::LoadPaymentInbox. Nym ID: ")(NYM_ID)
             .Flush();
     } else  // success
     {
@@ -7264,7 +7262,7 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(": Failure calling ")(
-            " OT_API::LoadPaymentInboxNoVerify. ")("Nym ID: ")(NYM_ID)
+            " OT_API::LoadPaymentInboxNoVerify. Nym ID: ")(NYM_ID)
             .Flush();
     } else  // success
     {
@@ -7296,7 +7294,7 @@ std::string OTAPI_Exec::LoadRecordBox(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadRecordBox. ")
+            ": Failure calling OT_API::LoadRecordBox.")
             .Flush();
     } else  // success
     {
@@ -7327,7 +7325,7 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadRecordBoxNoVerify. ")
+            ": Failure calling OT_API::LoadRecordBoxNoVerify.")
             .Flush();
     } else  // success
     {
@@ -7355,7 +7353,7 @@ std::string OTAPI_Exec::LoadExpiredBox(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadExpiredBox. ")
+            ": Failure calling OT_API::LoadExpiredBox.")
             .Flush();
     } else  // success
     {
@@ -7383,7 +7381,7 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
 
     if (!pLedger) {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadExpiredBoxNoVerify. ")
+            ": Failure calling OT_API::LoadExpiredBoxNoVerify.")
             .Flush();
     } else  // success
     {
@@ -10858,8 +10856,7 @@ std::string OTAPI_Exec::GetSentMessage(
     if (nullptr == pMsg)  // The message wasn't found with that request number.
     {
         LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Message not found with request number ")(lRequestNum)(
-            ", sorry. ")
+            ": Message not found with request number ")(lRequestNum)(", sorry.")
             .Flush();
         return {};
     }

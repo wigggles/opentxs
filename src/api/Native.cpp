@@ -98,7 +98,7 @@ extern "C" std::int32_t default_pass_cb(
     }
 
     opentxs::LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": Using DEFAULT TEST PASSWORD: 'test' (for  ")(str_userdata)(" ) ")
+        ": Using DEFAULT TEST PASSWORD: 'test' (for  ")(str_userdata)(") ")
         .Flush();
 
     const char* tmp_passwd = "test";

@@ -563,7 +563,7 @@ std::int32_t Mint::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             (": Mint version: ")(m_strVersion)(" Notary ID: ")(strNotaryID)(
                 " Instrument Definition ID: ")(strInstrumentDefinitionID)(
                 " Cash Acct ID: ")(strCashAcctID)(
-                (false == m_CashAccountID->empty()) ? "SUCCESS" : "FAILURE")(
+                (m_CashAccountID->empty()) ? "FAILURE" : "SUCCESS")(
                 " loading Cash Account into memory for pointer: ")(
                 "Mint::m_pReserveAcct ")(" Series: ")(m_nSeries)(
                 " Expiration: ")(nExpiration)(" Valid From: ")(nValidFrom)(
