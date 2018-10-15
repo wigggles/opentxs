@@ -5,10 +5,17 @@
 
 set(MODULE_NAME opentxs-storage-drivers)
 
+if (OT_STORAGE_LMDB)
+  include_directories(SYSTEM
+    ${LMDB_INCLUDE_DIRS}
+  )
+endif()
+
 set(cxx-sources
   StorageFS.cpp
   StorageFSGC.cpp
   StorageFSArchive.cpp
+  StorageLMDB.cpp
   StorageMemDB.cpp
   StorageMultiplex.cpp
   StorageSqlite3.cpp
@@ -18,6 +25,7 @@ set(cxx-headers
   StorageFS.hpp
   StorageFSGC.hpp
   StorageFSArchive.hpp
+  StorageLMDB.hpp
   StorageMemDB.hpp
   StorageMultiplex.hpp
   StorageSqlite3.hpp

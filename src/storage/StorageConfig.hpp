@@ -13,6 +13,7 @@
 #include <string>
 
 #define OT_STORAGE_PRIMARY_PLUGIN_SQLITE "sqlite"
+#define OT_STORAGE_PRIMARY_PLUGIN_LMDB "lmdb"
 #define OT_STORAGE_PRIMARY_PLUGIN_MEMDB "mem"
 #define OT_STORAGE_PRIMARY_PLUGIN_FS "fs"
 #define STORAGE_CONFIG_PRIMARY_PLUGIN_KEY "primary_plugin"
@@ -37,7 +38,9 @@ public:
     std::string path_{};
     InsertCB dht_callback_{};
 
-#if OT_STORAGE_SQLITE
+#if OT_STORAGE_LMDB
+    std::string primary_plugin_ = OT_STORAGE_PRIMARY_PLUGIN_LMDB;
+#elif OT_STORAGE_SQLITE
     std::string primary_plugin_ = OT_STORAGE_PRIMARY_PLUGIN_SQLITE;
 #elif OT_STORAGE_FS
     std::string primary_plugin_ = OT_STORAGE_PRIMARY_PLUGIN_FS;
@@ -59,6 +62,13 @@ public:
     std::string sqlite3_control_table_ = "control";
     std::string sqlite3_root_key_ = "a";
     std::string sqlite3_db_file_ = "opentxs.sqlite3";
+#endif
+
+#ifdef OT_STORAGE_LMDB
+    std::string lmdb_primary_bucket_ = "a";
+    std::string lmdb_secondary_bucket_ = "b";
+    std::string lmdb_control_table_ = "control";
+    std::string lmdb_root_key_ = "root";
 #endif
 };
 }  // namespace opentxs
