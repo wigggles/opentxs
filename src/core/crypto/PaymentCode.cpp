@@ -154,10 +154,10 @@ PaymentCode::PaymentCode(
             bitmessage_stream_ = rawCode[BITMESSAGE_STREAM_SIZE];
         }
     } else {
-        otWarn << OT_METHOD << __FUNCTION__ << "Can not construct payment code."
-               << std::endl
-               << "Required size: " << SERIALIZED_BYTES << std::endl
-               << "Actual size: " << rawCode.size() << std::endl;
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Can not construct payment code.")(
+            " Required size: ")(SERIALIZED_BYTES)(" Actual size: ")(
+            rawCode.size())
+            .Flush();
         chain_code_.reset();
     }
 }

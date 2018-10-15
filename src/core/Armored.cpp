@@ -31,6 +31,8 @@
 
 #include "Armored.hpp"
 
+#define OT_METHOD "opentxs:Contract"
+
 template class opentxs::Pimpl<opentxs::Armored>;
 
 namespace opentxs
@@ -331,8 +333,8 @@ bool Armored::LoadFromExactPath(const std::string& filename)
     std::ifstream fin(filename.c_str(), std::ios::binary);
 
     if (!fin.is_open()) {
-        otWarn << "Armored::LoadFromExactPath: Failed opening file: "
-               << filename << "\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed opening file: ")(filename)
+            .Flush();
         return false;
     }
 
@@ -508,8 +510,8 @@ bool Armored::SaveToExactPath(const std::string& filename)
     std::ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
 
     if (!fout.is_open()) {
-        otWarn << "Armored::SaveToExactPath: Failed opening file: " << filename
-               << "\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed opening file: ")(filename)
+            .Flush();
         return false;
     }
 
