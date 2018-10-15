@@ -47,7 +47,7 @@ PullSocket::PullSocket(
     const bool startThread)
     : ot_super(context, SocketType::Pull, direction)
     , CurveServer(lock_, socket_)
-    , Receiver(lock_, socket_, startThread)
+    , Receiver(lock_, running_, socket_, startThread)
     , callback_(callback)
 {
 }
@@ -94,5 +94,5 @@ bool PullSocket::Start(const std::string& endpoint) const
     }
 }
 
-PullSocket::~PullSocket() {}
+PullSocket::~PullSocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

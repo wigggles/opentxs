@@ -42,6 +42,11 @@ Socket::Socket(
     : context_(context)
     , direction_(direction)
     , socket_(zmq_socket(context, types_.at(type)))
+    , linger_(0)
+    , send_timeout_(-1)
+    , receive_timeout_(-1)
+    , endpoints_()
+    , running_(Flag::Factory(true))
     , type_(type)
 {
     OT_ASSERT(nullptr != socket_);
@@ -88,16 +93,28 @@ bool Socket::apply_timeouts(const Lock& lock) const
 
 bool Socket::bind(const Lock& lock, const std::string& endpoint) const
 {
+    if (false == running_.get()) { return false; }
+
     apply_timeouts(lock);
 
-    return (0 == zmq_bind(socket_, endpoint.c_str()));
+    const auto output = (0 == zmq_bind(socket_, endpoint.c_str()));
+
+    if (output) { endpoints_.emplace_back(endpoint); }
+
+    return output;
 }
 
 bool Socket::connect(const Lock& lock, const std::string& endpoint) const
 {
+    if (false == running_.get()) { return false; }
+
     apply_timeouts(lock);
 
-    return (0 == zmq_connect(socket_, endpoint.c_str()));
+    const auto output = (0 == zmq_connect(socket_, endpoint.c_str()));
+
+    if (output) { endpoints_.emplace_back(endpoint); }
+
+    return output;
 }
 
 bool Socket::Close() const
@@ -118,7 +135,7 @@ bool Socket::receive_message(
 
     while (receiving) {
         auto& frame = message.AddFrame();
-        const bool received = (-1 != zmq_msg_recv(frame, socket, 0));
+        const bool received = (-1 != zmq_msg_recv(frame, socket, ZMQ_DONTWAIT));
 
         if (false == received) {
             otErr << OT_METHOD << __FUNCTION__
@@ -214,6 +231,22 @@ bool Socket::SetTimeouts(
     receive_timeout_ = receive.count();
 
     return apply_timeouts(lock);
+}
+
+void Socket::shutdown()
+{
+    Lock lock(lock_);
+    running_->Off();
+
+    for (const auto& endpoint : endpoints_) {
+        if (Socket::Direction::Connect == direction_) {
+            zmq_disconnect(socket_, endpoint.c_str());
+        } else {
+            zmq_unbind(socket_, endpoint.c_str());
+        }
+    }
+
+    endpoints_.clear();
 }
 
 bool Socket::start_client(const Lock& lock, const std::string& endpoint) const

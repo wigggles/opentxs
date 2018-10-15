@@ -14,9 +14,9 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class PairSocket : virtual public zeromq::PairSocket,
-                   public Socket,
-                   Bidirectional
+class PairSocket final : virtual public zeromq::PairSocket,
+                         public Socket,
+                         Bidirectional
 {
 public:
     const std::string& Endpoint() const override;

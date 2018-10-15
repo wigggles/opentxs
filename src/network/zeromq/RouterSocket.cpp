@@ -40,7 +40,7 @@ RouterSocket::RouterSocket(
     : ot_super(context, SocketType::Router, direction)
     , CurveClient(lock_, socket_)
     , CurveServer(lock_, socket_)
-    , Bidirectional(context, lock_, socket_, true)
+    , Bidirectional(context, lock_, running_, socket_, true)
     , callback_(callback)
 {
 }
@@ -103,5 +103,5 @@ bool RouterSocket::Start(const std::string& endpoint) const
     }
 }
 
-RouterSocket::~RouterSocket() {}
+RouterSocket::~RouterSocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

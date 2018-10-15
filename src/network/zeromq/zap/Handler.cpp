@@ -40,7 +40,7 @@ namespace opentxs::network::zeromq::zap::implementation
 Handler::Handler(const zeromq::Context& context, const zap::Callback& callback)
     : ot_super(context, SocketType::Router, Socket::Direction::Bind)
     , CurveServer(lock_, socket_)
-    , Receiver(lock_, socket_, true)
+    , Receiver(lock_, running_, socket_, true)
     , callback_(callback)
 {
     Lock lock(lock_);
@@ -58,4 +58,6 @@ void Handler::process_incoming(const Lock& lock, zap::Request& message)
     Message& reply = output;
     send_message(lock, reply);
 }
+
+Handler::~Handler() { shutdown(); }
 }  // namespace opentxs::network::zeromq::zap::implementation

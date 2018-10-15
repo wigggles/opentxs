@@ -11,7 +11,7 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class PairEventListener : public SubscribeSocket
+class PairEventListener final : public SubscribeSocket
 {
 public:
     ~PairEventListener();

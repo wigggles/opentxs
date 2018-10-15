@@ -15,7 +15,7 @@ class Handler final : virtual zap::Handler,
 public:
     bool Start(const std::string& endpoint) const override { return false; }
 
-    virtual ~Handler() = default;
+    ~Handler();
 
 private:
     friend zap::Handler;

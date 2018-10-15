@@ -26,6 +26,7 @@ protected:
     Bidirectional(
         const zeromq::Context& context,
         std::mutex& lock,
+        const Flag& running,
         void* socket,
         const bool startThread);
 

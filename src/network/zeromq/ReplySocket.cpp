@@ -37,7 +37,7 @@ ReplySocket::ReplySocket(
     const ReplyCallback& callback)
     : ot_super(context, SocketType::Reply, direction)
     , CurveServer(lock_, socket_)
-    , Receiver(lock_, socket_, true)
+    , Receiver(lock_, running_, socket_, true)
     , callback_(callback)
 {
 }
@@ -68,4 +68,6 @@ bool ReplySocket::Start(const std::string& endpoint) const
         return bind(lock, endpoint);
     }
 }
+
+ReplySocket::~ReplySocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

@@ -28,9 +28,10 @@ namespace opentxs::network::zeromq::implementation
 Bidirectional::Bidirectional(
     const zeromq::Context& context,
     std::mutex& lock,
+    const Flag& running,
     void* socket,
     const bool startThread)
-    : Receiver(lock, socket, false)
+    : Receiver(lock, running, socket, false)
     , push_socket_{zmq_socket(context, ZMQ_PUSH)}
     , endpoint_{Socket::random_inproc_endpoint()}
     , pull_socket_{zmq_socket(context, ZMQ_PULL)}
@@ -148,6 +149,8 @@ bool Bidirectional::queue_message(zeromq::Message& message) const
 
     Lock lock(send_lock_);
 
+    if (false == receiver_run_) { return false; }
+
     return Socket::send_message(lock, push_socket_, message);
 }
 
@@ -160,7 +163,7 @@ void Bidirectional::thread()
 {
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Starting listener").Flush();
 
-    while (receiver_run_.get()) {
+    while (receiver_run_) {
         if (have_callback()) { break; }
 
         Log::Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
@@ -169,7 +172,7 @@ void Bidirectional::thread()
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Callback ready").Flush();
     zmq_pollitem_t poll[2];
 
-    while (receiver_run_.get()) {
+    while (receiver_run_) {
         poll[0].socket = receiver_socket_;
         poll[0].events = ZMQ_POLLIN;
         poll[1].socket = pull_socket_;
@@ -205,5 +208,9 @@ void Bidirectional::thread()
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Shutting down").Flush();
 }
 
-Bidirectional::~Bidirectional() {}
+Bidirectional::~Bidirectional()
+{
+    zmq_disconnect(push_socket_, endpoint_.c_str());
+    zmq_unbind(pull_socket_, endpoint_.c_str());
+}
 }  // namespace opentxs::network::zeromq::implementation

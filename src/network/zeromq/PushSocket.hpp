@@ -14,7 +14,9 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class PushSocket : virtual public zeromq::PushSocket, public Socket, CurveClient
+class PushSocket final : virtual public zeromq::PushSocket,
+                         public Socket,
+                         CurveClient
 {
 public:
     bool Push(const std::string& data) const override;
@@ -22,7 +24,7 @@ public:
     bool Push(zeromq::Message& data) const override;
     bool Start(const std::string& endpoint) const override;
 
-    ~PushSocket() = default;
+    ~PushSocket();
 
 private:
     friend opentxs::network::zeromq::PushSocket;

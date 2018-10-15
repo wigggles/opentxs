@@ -38,7 +38,7 @@ SubscribeSocket::SubscribeSocket(
     const zeromq::ListenCallback& callback)
     : ot_super(context, SocketType::Subscribe, Socket::Direction::Connect)
     , CurveClient(lock_, socket_)
-    , Receiver(lock_, socket_, true)
+    , Receiver(lock_, running_, socket_, true)
     , callback_(callback)
 {
     // subscribe to all messages until filtering is implemented
@@ -76,5 +76,5 @@ bool SubscribeSocket::Start(const std::string& endpoint) const
     return start_client(lock, endpoint);
 }
 
-SubscribeSocket::~SubscribeSocket() {}
+SubscribeSocket::~SubscribeSocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

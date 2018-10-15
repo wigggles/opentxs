@@ -15,10 +15,10 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class DealerSocket : virtual public zeromq::DealerSocket,
-                     public Socket,
-                     CurveClient,
-                     Bidirectional
+class DealerSocket final : virtual public zeromq::DealerSocket,
+                           public Socket,
+                           CurveClient,
+                           Bidirectional
 {
 public:
     bool Send(opentxs::Data& message) const override;
