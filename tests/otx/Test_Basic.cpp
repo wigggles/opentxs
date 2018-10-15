@@ -2754,12 +2754,34 @@ TEST_F(Test_Basic, send_internal_transfer)
         (CHEQUE_AMOUNT + TRANSFER_AMOUNT - SECOND_TRANSFER_AMOUNT),
         serverAccount.get().GetBalance());
 
-    const auto workflows = client_2_.Storage().PaymentWorkflowsByState(
-        bob_nym_id_->str(),
-        proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
-        proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED);
+    std::size_t count{0}, tries{100};
+    std::set<std::string> workflows{};
 
-    ASSERT_EQ(workflows.size(), 1);
+    while (0 == count) {
+        // The state change from ACKNOWLEDGED to CONVEYED occurs asynchronously
+        // due to server push notifications so the order in which these states
+        // are observed by the sender is undefined.
+        Log::Sleep(std::chrono::milliseconds(100));
+        workflows = client_2_.Storage().PaymentWorkflowsByState(
+            bob_nym_id_->str(),
+            proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
+            proto::PAYMENTWORKFLOWSTATE_ACKNOWLEDGED);
+        count = workflows.size();
+
+        if (0 == count) {
+            workflows = client_2_.Storage().PaymentWorkflowsByState(
+                bob_nym_id_->str(),
+                proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
+                proto::PAYMENTWORKFLOWSTATE_CONVEYED);
+            count = workflows.size();
+        }
+
+        if (0 == --tries) {
+            break;
+        }
+    }
+
+    ASSERT_EQ(count, 1);
 
     internal_transfer_workflow_id_ = *workflows.cbegin();
 
