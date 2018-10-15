@@ -1689,9 +1689,9 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     if (!OTDB::Exists(
             api_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
-        otWarn << "Receipt file doesn't exist in "
-                  "OTTransaction::VerifyBalanceReceipt:\n "
-               << szFilename << "\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Receipt file doesn't exist in ")(
+            szFilename)
+            .Flush();
 
         return false;
     }
@@ -1989,8 +1989,10 @@ bool OTTransaction::VerifyBalanceReceipt(const ServerContext& context)
 
     // Notice here, I'm back to using pBalanceItem instead of
     // pItemWithIssuedList, since this is the inbox/outbox section...
-    otWarn << "Number of inbox/outbox items on the balance statement: "
-           << pBalanceItem->GetItemCount() << "\n";
+    LogDetail(OT_METHOD)(__FUNCTION__)(
+        ": Number of inbox/outbox items on the balance statement: ")(
+        pBalanceItem->GetItemCount())
+        .Flush();
 
     // TODO:  If the balance item shows a FINAL RECEIPT present, then ALL the
     // co-related cron receipts in the ACTUAL INBOX must ALSO be present on the

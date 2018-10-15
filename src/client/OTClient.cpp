@@ -4988,8 +4988,8 @@ bool OTClient::processServerReplyProcessInbox(
 
             case itemType::atAcceptFinalReceipt: {
                 LogDetail(OT_METHOD)(__FUNCTION__)(
-                    ": Successfully removed finalReceipt with closing number: ")(
-                    pServerTransaction->GetClosingNum())
+                    ": Successfully removed finalReceipt with closing "
+                    "number: ")(pServerTransaction->GetClosingNum())
                     .Flush();
                 context.ConsumeIssued(pServerTransaction->GetClosingNum());
 
