@@ -57,10 +57,11 @@ void DealerSocket::process_incoming(
 {
     OT_ASSERT(verify_lock(lock))
 
-    otWarn << OT_METHOD << __FUNCTION__
-           << ": Incoming messaged received. Triggering callback." << std::endl;
+    LogDetail(OT_METHOD)(__FUNCTION__)(
+        ": Incoming messaged received. Triggering callback.")
+        .Flush();
     callback_.Process(message);
-    otWarn << "Done." << std::endl;
+    LogDetail(OT_METHOD)(__FUNCTION__)("Done.").Flush();
 }
 
 bool DealerSocket::Send(opentxs::Data& input) const
