@@ -331,11 +331,10 @@ bool VerifyBoxReceiptExists(
         strFolder3name->Get(),
         strFilename->Get());
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(
-        bExists ? ": (Already have this one)"
-                : "(Need to download this one) : ")(strFolder1name)(
-        Log::PathSeparator())(strFolder2name)(Log::PathSeparator())(
-        strFolder3name)(Log::PathSeparator())(strFilename)
+    LogDetail(OT_METHOD)(__FUNCTION__)(": ")(
+        bExists ? "(Already have this one)" : "(Need to download this one) : ")(
+        strFolder1name)(Log::PathSeparator())(strFolder2name)(
+        Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(strFilename)
         .Flush();
 
     return bExists;

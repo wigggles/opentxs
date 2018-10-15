@@ -861,7 +861,7 @@ const BasketContract* OT_API::GetBasketContract(
     if (!contract) {
         if (nullptr != szFunc) {  // We only log if the caller asked us to.
             const auto strID = String::Factory(THE_ID);
-            LogDetail(OT_METHOD)(__FUNCTION__)(szFunc)(
+            LogDetail(OT_METHOD)(__FUNCTION__)(
                 ": No asset contract found in wallet for Unit Type ID: ")(strID)
                 .Flush();
         }

@@ -2494,7 +2494,7 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
     }
 
     if (!md) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
+        LogDetail(OT_METHOD)(__FUNCTION__)(szFunc)(
             ": Unknown message digest algorithm: ")(strHashType)
             .Flush();
         return false;

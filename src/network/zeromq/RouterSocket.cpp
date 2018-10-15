@@ -66,7 +66,7 @@ void RouterSocket::process_incoming(const Lock& lock, Message& message)
     message.EnsureDelimiter();
 
     callback_.Process(message);
-    LogDetail(OT_METHOD)(__FUNCTION__)("Done.").Flush();
+    LogDetail(OT_METHOD)(__FUNCTION__)(": Done.").Flush();
 }
 
 bool RouterSocket::Send(opentxs::Data& input) const

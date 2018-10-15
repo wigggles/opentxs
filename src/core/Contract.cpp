@@ -1513,7 +1513,7 @@ bool Contract::SkipToElement(IrrXMLReader*& xml)
         //        { otOut << "*** Contract::SkipToElement: EXN_ELEMENT_END
         // (ERROR)\n";  return false; }
         {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": *** ")(szFunc)(
+            LogDetail(OT_METHOD)(__FUNCTION__)(": *** ")(
                 ": EXN_ELEMENT_END  (skipping ")(xml->getNodeName())(")")
                 .Flush();
             continue;
@@ -2006,7 +2006,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             String::Factory(xml->getAttributeValue("longname"));
         m_strEntityEmail = String::Factory(xml->getAttributeValue("email"));
 
-        LogDetail(OT_METHOD)(__FUNCTION__)("Loaded Entity, shortname: ")(
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Loaded Entity, shortname: ")(
             m_strEntityShortName)(", Longname: ")(m_strEntityLongName)(
             ", email: ")(m_strEntityEmail)
             .Flush();

@@ -141,9 +141,7 @@ Armored::Armored(const char* szValue)
 
 // Copies (already encoded)
 Armored::Armored(const Armored& strValue)
-    : opentxs::String()
-    , opentxs::Armored()
-    , String(dynamic_cast<const String&>(strValue))
+    : Armored()
 {
     Set(strValue.Get());
 }

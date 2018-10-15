@@ -8614,8 +8614,7 @@ void Notary::process_cash_deposit(
                 responseItem.SetStatus(Item::acknowledgement);
                 success = true;  // The cash deposit was successful.
                 LogDetail(OT_METHOD)(__FUNCTION__)(
-                    "Notary::NotarizeDeposit: .....SUCCESS "
-                    "-- crediting account from cash "
+                    "SUCCESS -- crediting account from cash "
                     "deposit.")
                     .Flush();
 

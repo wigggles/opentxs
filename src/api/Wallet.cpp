@@ -1859,7 +1859,7 @@ bool Wallet::SaveCredentialIDs(const opentxs::Nym& nym) const
         return false;
     }
 
-    LogDetail(OT_METHOD)(__FUNCTION__)("Credentials saved.").Flush();
+    LogDetail(OT_METHOD)(__FUNCTION__)(": Credentials saved.").Flush();
 
     return true;
 }

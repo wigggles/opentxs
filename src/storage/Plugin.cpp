@@ -10,7 +10,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Log.hpp"
 
-#define OT_METHOD "opentxs::Plugin::"
+#define OT_METHOD "opentxs::Plugin"
 
 namespace opentxs
 {

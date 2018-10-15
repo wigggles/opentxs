@@ -1722,10 +1722,10 @@ void Sync::refresh_accounts() const
                 const auto taskID(Identifier::Random());
                 queue.download_nymbox_.Push(taskID, true);
             } else {
-                logStr->Concatenate(" %s ", "is");
+                logStr->Concatenate(" %s ", "is not");
             }
 
-            logStr->Concatenate("%s", "registered here.");
+            logStr->Concatenate("%s", " registered here.");
             LogDetail(OT_METHOD)(__FUNCTION__)(logStr).Flush();
         }
     }

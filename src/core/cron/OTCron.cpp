@@ -491,7 +491,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             return (-1);
         } else {
             LogDetail(OT_METHOD)(__FUNCTION__)(
-                "Loaded market entry from cronfile, and also loaded the "
+                ": Loaded market entry from cronfile, and also loaded the "
                 "market file itself.")
                 .Flush();
         }

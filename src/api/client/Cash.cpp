@@ -761,8 +761,9 @@ std::string Cash::load_or_retrieve_mint(
 
     // expired or missing.
     if (!api_.Exec().Mint_IsStillGood(notaryID, unitTypeID)) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Mint file is ")(
-            "missing or expired. Downloading from ")("server...")
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Mint file is "
+            "missing or expired. Downloading from server...")
             .Flush();
 
         response = server_action_

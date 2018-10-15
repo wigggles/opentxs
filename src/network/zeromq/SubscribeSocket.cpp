@@ -62,7 +62,7 @@ void SubscribeSocket::process_incoming(const Lock& lock, Message& message)
         ": Incoming messaged received. Triggering callback.")
         .Flush();
     callback_.Process(message);
-    LogDetail(OT_METHOD)(__FUNCTION__)("Done.").Flush();
+    LogDetail(OT_METHOD)(__FUNCTION__)(" Done.").Flush();
 }
 
 bool SubscribeSocket::SetSocksProxy(const std::string& proxy) const

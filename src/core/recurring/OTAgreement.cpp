@@ -1199,8 +1199,8 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetRecipientNymID(RECIPIENT_NYM_ID);
 
         LogDetail(OT_METHOD)(__FUNCTION__)(": ")(
-            m_bCanceled ? "Canceled a"
-                        : "Agreement. Transaction Number: ")(m_lTransactionNum)
+            m_bCanceled ? "Canceled a" : "A")("greement. Transaction Number: ")(
+            m_lTransactionNum)
             .Flush();
 
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Creation Date: ")(tCreation)(

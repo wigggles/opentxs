@@ -61,7 +61,7 @@ void DealerSocket::process_incoming(
         ": Incoming messaged received. Triggering callback.")
         .Flush();
     callback_.Process(message);
-    LogDetail(OT_METHOD)(__FUNCTION__)("Done.").Flush();
+    LogDetail(OT_METHOD)(__FUNCTION__)(": Done.").Flush();
 }
 
 bool DealerSocket::Send(opentxs::Data& input) const
