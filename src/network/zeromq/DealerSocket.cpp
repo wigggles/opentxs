@@ -39,7 +39,7 @@ DealerSocket::DealerSocket(
     const zeromq::ListenCallback& callback)
     : ot_super(context, SocketType::Dealer, direction)
     , CurveClient(lock_, socket_)
-    , Bidirectional(context, lock_, socket_, true)
+    , Bidirectional(context, lock_, running_, socket_, true)
     , callback_(callback)
 {
 }
@@ -98,6 +98,5 @@ bool DealerSocket::Start(const std::string& endpoint) const
     }
 }
 
-DealerSocket::~DealerSocket() {}
-
+DealerSocket::~DealerSocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

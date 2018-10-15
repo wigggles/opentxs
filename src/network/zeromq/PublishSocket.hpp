@@ -14,9 +14,9 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class PublishSocket : virtual public zeromq::PublishSocket,
-                      public Socket,
-                      CurveServer
+class PublishSocket final : virtual public zeromq::PublishSocket,
+                            public Socket,
+                            CurveServer
 {
 public:
     bool Publish(const std::string& data) const override;
@@ -24,7 +24,7 @@ public:
     bool Publish(zeromq::Message& data) const override;
     bool Start(const std::string& endpoint) const override;
 
-    ~PublishSocket() = default;
+    ~PublishSocket();
 
 private:
     friend opentxs::network::zeromq::PublishSocket;

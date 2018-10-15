@@ -14,9 +14,9 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class RequestSocket : virtual public zeromq::RequestSocket,
-                      public Socket,
-                      CurveClient
+class RequestSocket final : virtual public zeromq::RequestSocket,
+                            public Socket,
+                            CurveClient
 {
 public:
     SendResult SendRequest(opentxs::Data& message) const override;
@@ -25,7 +25,7 @@ public:
     bool SetSocksProxy(const std::string& proxy) const override;
     bool Start(const std::string& endpoint) const override;
 
-    ~RequestSocket() = default;
+    ~RequestSocket();
 
 private:
     friend opentxs::network::zeromq::RequestSocket;

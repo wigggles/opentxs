@@ -15,10 +15,10 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class PullSocket : virtual public zeromq::PullSocket,
-                   public Socket,
-                   CurveServer,
-                   Receiver<zeromq::Message>
+class PullSocket final : virtual public zeromq::PullSocket,
+                         public Socket,
+                         CurveServer,
+                         Receiver<zeromq::Message>
 {
 public:
     bool Start(const std::string& endpoint) const override;

@@ -63,7 +63,7 @@ PairSocket::PairSocket(
           context,
           SocketType::Pair,
           (listener) ? Socket::Direction::Bind : Socket::Direction::Connect)
-    , Bidirectional(context, lock_, socket_, startThread)
+    , Bidirectional(context, lock_, running_, socket_, startThread)
     , callback_(callback)
     , endpoint_(endpoint)
     , bind_(listener)
@@ -148,5 +148,5 @@ bool PairSocket::Send(zeromq::Message& data) const
 
 bool PairSocket::Start(const std::string&) const { return false; }
 
-PairSocket::~PairSocket() {}
+PairSocket::~PairSocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

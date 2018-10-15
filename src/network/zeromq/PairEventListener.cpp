@@ -49,5 +49,5 @@ PairEventListener* PairEventListener::clone() const
         instance_);
 }
 
-PairEventListener::~PairEventListener() {}
+PairEventListener::~PairEventListener() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

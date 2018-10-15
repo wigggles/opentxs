@@ -63,9 +63,12 @@ Socket::SendResult RequestSocket::SendRequest(zeromq::Message& request) const
     OT_ASSERT(nullptr != socket_);
 
     Lock lock(lock_);
+
     SendResult output{opentxs::SendResult::ERROR, Message::Factory()};
     auto& status = output.first;
     auto& reply = output.second;
+
+    if (false == running_) { return output; }
 
     if (false == send_message(lock, request)) { return output; }
 
@@ -135,4 +138,6 @@ bool RequestSocket::wait(const Lock& lock) const
 
     return false;
 }
+
+RequestSocket::~RequestSocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

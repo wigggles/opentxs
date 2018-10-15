@@ -16,11 +16,11 @@
 
 namespace opentxs::network::zeromq::implementation
 {
-class RouterSocket : virtual public zeromq::RouterSocket,
-                     public Socket,
-                     CurveClient,
-                     CurveServer,
-                     Bidirectional
+class RouterSocket final : virtual public zeromq::RouterSocket,
+                           public Socket,
+                           CurveClient,
+                           CurveServer,
+                           Bidirectional
 {
 public:
     bool Send(opentxs::Data& message) const override;

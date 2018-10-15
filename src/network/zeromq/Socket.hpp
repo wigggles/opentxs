@@ -7,6 +7,7 @@
 
 #include "Internal.hpp"
 
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/Socket.hpp"
 
@@ -51,6 +52,8 @@ protected:
     mutable int linger_{0};
     mutable int send_timeout_{-1};
     mutable int receive_timeout_{-1};
+    mutable std::vector<std::string> endpoints_;
+    OTFlag running_;
 
     bool apply_timeouts(const Lock& lock) const;
     bool bind(const Lock& lock, const std::string& endpoint) const;
@@ -59,6 +62,8 @@ protected:
     bool send_message(const Lock& lock, Message& message) const;
     bool set_socks_proxy(const std::string& proxy) const;
     bool start_client(const Lock& lock, const std::string& endpoint) const;
+
+    void shutdown();
 
     explicit Socket(
         const zeromq::Context& context,

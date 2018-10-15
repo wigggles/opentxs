@@ -34,9 +34,9 @@ class Receiver
 {
 protected:
     std::mutex& receiver_lock_;
+    const Flag& receiver_run_;
     // Not owned by this class
     void* receiver_socket_{nullptr};
-    OTFlag receiver_run_;
     std::thread receiver_thread_{};
 
     virtual bool have_callback() const { return false; }
@@ -44,7 +44,7 @@ protected:
     virtual void process_incoming(const Lock& lock, T& message) = 0;
     virtual void thread()
     {
-        while (receiver_run_.get()) {
+        while (receiver_run_) {
             if (have_callback()) { break; }
 
             Log::Sleep(std::chrono::milliseconds(CALLBACK_WAIT_MILLISECONDS));
@@ -52,7 +52,7 @@ protected:
 
         zmq_pollitem_t poll[1];
 
-        while (receiver_run_.get()) {
+        while (receiver_run_) {
             poll[0].socket = receiver_socket_;
             poll[0].events = ZMQ_POLLIN;
             const auto events = zmq_poll(poll, 1, RECEIVER_POLL_MILLISECONDS);
@@ -68,9 +68,9 @@ protected:
                 continue;
             }
 
-            Lock lock(receiver_lock_, std::try_to_lock);
+            Lock lock(receiver_lock_);
 
-            if (!lock.owns_lock()) { return; }
+            if (false == receiver_run_) { return; }
 
             auto reply = T::Factory();
             const auto received =
@@ -79,14 +79,17 @@ protected:
             if (false == received) { return; }
 
             process_incoming(lock, reply);
-            lock.unlock();
         }
     }
 
-    Receiver(std::mutex& lock, void* socket, const bool startThread)
+    Receiver(
+        std::mutex& lock,
+        const Flag& running,
+        void* socket,
+        const bool startThread)
         : receiver_lock_(lock)
+        , receiver_run_(running)
         , receiver_socket_(socket)
-        , receiver_run_(Flag::Factory(true))
         , receiver_thread_()
     {
         if (startThread) {
@@ -96,12 +99,7 @@ protected:
 
     virtual ~Receiver()
     {
-        receiver_run_->Off();
-        Lock lock(receiver_lock_);
-
         if (receiver_thread_.joinable()) { receiver_thread_.join(); }
-
-        receiver_socket_ = nullptr;
     }
 
 private:

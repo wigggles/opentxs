@@ -47,6 +47,8 @@ bool PublishSocket::Publish(zeromq::Message& data) const
 {
     Lock lock(lock_);
 
+    if (false == running_.get()) { return false; }
+
     return send_message(lock, data);
 }
 
@@ -61,4 +63,6 @@ bool PublishSocket::Start(const std::string& endpoint) const
 
     return bind(lock, endpoint);
 }
+
+PublishSocket::~PublishSocket() { shutdown(); }
 }  // namespace opentxs::network::zeromq::implementation

@@ -23,7 +23,7 @@ class ReplySocket : virtual public zeromq::ReplySocket,
 public:
     bool Start(const std::string& endpoint) const override;
 
-    virtual ~ReplySocket() = default;
+    virtual ~ReplySocket();
 
 private:
     friend opentxs::network::zeromq::ReplySocket;
