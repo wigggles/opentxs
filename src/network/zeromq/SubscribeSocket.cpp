@@ -58,10 +58,11 @@ void SubscribeSocket::process_incoming(const Lock& lock, Message& message)
 {
     OT_ASSERT(verify_lock(lock))
 
-    otWarn << OT_METHOD << __FUNCTION__
-           << ": Incoming messaged received. Triggering callback." << std::endl;
+    LogDetail(OT_METHOD)(__FUNCTION__)(
+        ": Incoming messaged received. Triggering callback.")
+        .Flush();
     callback_.Process(message);
-    otWarn << "Done." << std::endl;
+    LogDetail(OT_METHOD)(__FUNCTION__)("Done.").Flush();
 }
 
 bool SubscribeSocket::SetSocksProxy(const std::string& proxy) const
