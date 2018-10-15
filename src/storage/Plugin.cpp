@@ -61,10 +61,9 @@ bool Plugin::Load(
     }
 
     if (!valid && !checking) {
-        otWarn << OT_METHOD << __FUNCTION__
-               << ": Specified object is not found." << std::endl
-               << "Hash: " << key << std::endl
-               << "Size: " << value.size() << std::endl;
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Specified object is not found.")(
+            " Hash: ")(key)(".")(" Size: ")(value.size())(".")
+            .Flush();
     }
 
     return valid;

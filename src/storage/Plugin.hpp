@@ -16,6 +16,8 @@
 #include <atomic>
 #include <string>
 
+#define OT_METHOD "opentxs::Plugin"
+
 namespace opentxs
 {
 class StorageConfig;
@@ -115,14 +117,15 @@ bool opentxs::api::storage::Driver::LoadProto(
 
     if (!valid) {
         if (loaded) {
-            otErr << "Specified object was located but could not be "
+            otErr << ": Specified object was located but could not be "
                   << "validated." << std::endl
                   << "Hash: " << hash << std::endl
                   << "Size: " << raw.size() << std::endl;
         } else {
-            otWarn << "Specified object is missing." << std::endl
-                   << "Hash: " << hash << std::endl
-                   << "Size: " << raw.size() << std::endl;
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                   ": Specified object is missing.")
+                   (" Hash: ")(hash)(".")
+                   (" Size: ")(raw.size())(".").Flush();
         }
     }
 
