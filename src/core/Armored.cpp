@@ -31,6 +31,8 @@
 
 #include "Armored.hpp"
 
+#define OT_METHOD "opentxs:Contract"
+
 template class opentxs::Pimpl<opentxs::Armored>;
 
 namespace opentxs
@@ -132,16 +134,16 @@ Armored::Armored(const OTEnvelope& theEnvelope)
 
 // copies (already encoded)
 Armored::Armored(const char* szValue)
-    : String(szValue)
+    : Armored()
 {
+    Set(szValue);
 }
 
 // Copies (already encoded)
 Armored::Armored(const Armored& strValue)
-    : opentxs::String()
-    , opentxs::Armored()
-    , String(dynamic_cast<const String&>(strValue))
+    : Armored()
 {
+    Set(strValue.Get());
 }
 
 // copies, assumes already encoded.
@@ -329,8 +331,8 @@ bool Armored::LoadFromExactPath(const std::string& filename)
     std::ifstream fin(filename.c_str(), std::ios::binary);
 
     if (!fin.is_open()) {
-        otWarn << "Armored::LoadFromExactPath: Failed opening file: "
-               << filename << "\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed opening file: ")(filename)
+            .Flush();
         return false;
     }
 
@@ -506,8 +508,8 @@ bool Armored::SaveToExactPath(const std::string& filename)
     std::ofstream fout(filename.c_str(), std::ios::out | std::ios::binary);
 
     if (!fout.is_open()) {
-        otWarn << "Armored::SaveToExactPath: Failed opening file: " << filename
-               << "\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed opening file: ")(filename)
+            .Flush();
         return false;
     }
 

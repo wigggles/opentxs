@@ -178,9 +178,9 @@ void ActivitySummary::process_thread(const network::zeromq::Message& message)
 void ActivitySummary::startup()
 {
     const auto threads = api_.Activity().Threads(nym_id_, false);
-    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << threads.size()
-           << " threads." << std::endl;
-
+    LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(threads.size())(
+        " threads.")
+        .Flush();
     for (const auto& [id, alias] : threads) {
         [[maybe_unused]] const auto& notUsed = alias;
         process_thread(id);

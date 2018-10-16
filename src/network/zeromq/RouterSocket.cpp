@@ -56,8 +56,9 @@ void RouterSocket::process_incoming(const Lock& lock, Message& message)
 {
     OT_ASSERT(verify_lock(lock))
 
-    otWarn << OT_METHOD << __FUNCTION__
-           << ": Incoming messaged received. Triggering callback." << std::endl;
+    LogDetail(OT_METHOD)(__FUNCTION__)(
+        ": Incoming messaged received. Triggering callback.")
+        .Flush();
 
     // RouterSocket prepends an identity frame to the message.  This makes sure
     // there is an empty frame between the identity frame(s) and the frames that
@@ -65,7 +66,7 @@ void RouterSocket::process_incoming(const Lock& lock, Message& message)
     message.EnsureDelimiter();
 
     callback_.Process(message);
-    otWarn << "Done." << std::endl;
+    LogDetail(OT_METHOD)(__FUNCTION__)(": Done.").Flush();
 }
 
 bool RouterSocket::Send(opentxs::Data& input) const
