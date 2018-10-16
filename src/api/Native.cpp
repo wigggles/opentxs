@@ -485,6 +485,15 @@ void Native::Init_Zap()
     OT_ASSERT(zap_);
 }
 
+const ArgList Native::merge_arglist(const ArgList& args) const
+{
+    ArgList arguments{server_args_};
+
+    for (const auto& [arg, val] : args) { arguments[arg] = val; }
+
+    return arguments;
+}
+
 proto::RPCResponse Native::RPC(const proto::RPCCommand& command) const
 {
     OT_ASSERT(rpc_);
@@ -563,11 +572,12 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
     OT_ASSERT(crypto_);
     OT_ASSERT(legacy_);
 
+    auto merged_args = merge_arglist(args);
     const int next = client_.size();
     const auto instance = client_instance(next);
     client_.emplace_back(opentxs::Factory::ClientManager(
         running_,
-        args,
+        merged_args,
         Config(legacy_->ClientConfigFilePath(next)),
         *crypto_,
         zmq_context_,
@@ -601,11 +611,12 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
     OT_ASSERT(verify_lock(lock))
     OT_ASSERT(crypto_);
 
+    const auto merged_args = merge_arglist(args);
     const auto next{server_.size()};
     const auto instance{server_instance(next)};
     server_.emplace_back(opentxs::Factory::ServerManager(
         running_,
-        args,
+        merged_args,
         *crypto_,
         Config(legacy_->ServerConfigFilePath(next)),
         zmq_context_,

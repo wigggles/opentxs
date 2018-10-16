@@ -29,7 +29,7 @@
 
 #include "Contacts.hpp"
 
-#define OT_METHOD "opentxs::api::implementation::Contacts"
+#define OT_METHOD "opentxs::api::implementation::Contacts::"
 
 namespace opentxs
 {

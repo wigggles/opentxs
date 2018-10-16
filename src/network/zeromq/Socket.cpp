@@ -138,9 +138,14 @@ bool Socket::receive_message(
         const bool received = (-1 != zmq_msg_recv(frame, socket, ZMQ_DONTWAIT));
 
         if (false == received) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Receive error: " << zmq_strerror(zmq_errno())
-                  << std::endl;
+            auto zerr = zmq_errno();
+            if (EAGAIN == zerr) {
+                otErr << OT_METHOD << __FUNCTION__ << ": No messages."
+                      << std::endl;
+            } else {
+                otErr << OT_METHOD << __FUNCTION__
+                      << ": Receive error: " << zmq_strerror(zerr) << std::endl;
+            }
 
             return false;
         }
