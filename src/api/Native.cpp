@@ -97,9 +97,9 @@ extern "C" std::int32_t default_pass_cb(
         str_userdata = "";
     }
 
-    opentxs::otWarn << __FUNCTION__
-                    << ": Using DEFAULT TEST PASSWORD: 'test' (for \""
-                    << str_userdata << "\")\n";
+    opentxs::LogDetail(OT_METHOD)(__FUNCTION__)(
+        ": Using DEFAULT TEST PASSWORD: 'test' (for  ")(str_userdata)(") ")
+        .Flush();
 
     const char* tmp_passwd = "test";
     len = static_cast<std::int32_t>(strlen(tmp_passwd));
@@ -346,7 +346,7 @@ Native::Native(
     , legacy_(opentxs::Factory::Legacy())
     , client_()
     , server_()
-    , zap_(opentxs::Factory::ZAP(zmq_context_))
+    , zap_(nullptr)
     , server_args_(args)
     , shutdown_callback_{nullptr}
     , null_callback_{nullptr}
@@ -357,7 +357,6 @@ Native::Native(
     // NOTE: OT_ASSERT is not available until Init() has been called
     assert(legacy_);
     assert(log_);
-    assert(zap_);
 
     if (nullptr == external_password_callback_) {
         setup_default_external_password_callback();
@@ -461,6 +460,7 @@ void Native::Init()
 {
     Init_Log();
     Init_Crypto();
+    Init_Zap();
 }
 
 void Native::Init_Crypto()
@@ -476,6 +476,13 @@ void Native::Init_Log()
     const auto init = Log::Init(Config(legacy_->LogConfigFilePath()));
 
     if (false == init) { abort(); }
+}
+
+void Native::Init_Zap()
+{
+    zap_.reset(opentxs::Factory::ZAP(zmq_context_));
+
+    OT_ASSERT(zap_);
 }
 
 proto::RPCResponse Native::RPC(const proto::RPCCommand& command) const

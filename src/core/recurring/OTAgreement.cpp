@@ -1198,9 +1198,10 @@ std::int32_t OTAgreement::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetRecipientAcctID(RECIPIENT_ACCT_ID);
         SetRecipientNymID(RECIPIENT_NYM_ID);
 
-        otWarn << "\n\n"
-               << (m_bCanceled ? "Canceled a" : "A")
-               << "greement. Transaction Number: " << m_lTransactionNum << "\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(": ")(
+            m_bCanceled ? "Canceled a" : "A")("greement. Transaction Number: ")(
+            m_lTransactionNum)
+            .Flush();
 
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Creation Date: ")(tCreation)(
             " Valid From: ")(tValidFrom)(" Valid To: ")(tValidTo)(

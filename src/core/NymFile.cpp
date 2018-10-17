@@ -206,9 +206,10 @@ bool NymFile::deserialize_nymfile(
                               << ": Converting nymfile with version "
                               << m_strVersion << std::endl;
                     } else {
-                        otWarn << __FUNCTION__
-                               << ": Not converting nymfile because version is "
-                               << m_strVersion << std::endl;
+                        LogDetail(OT_METHOD)(__FUNCTION__)(
+                            ": Not converting nymfile because version is ")(
+                            m_strVersion)
+                            .Flush();
                     }
                 } else if (strNodeName->Compare("nymIDSource")) {
                     // noop
@@ -494,8 +495,9 @@ bool NymFile::load_signed_nymfile(const T& lock)
     auto theNymFile = api_.Factory().SignedFile(OTFolders::Nym(), nymID);
 
     if (!theNymFile->LoadFile()) {
-        otWarn << __FUNCTION__ << ": Failed loading a signed nymfile: " << nymID
-               << std::endl;
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Failed loading a signed nymfile: ")(nymID)
+            .Flush();
 
         return false;
     }
