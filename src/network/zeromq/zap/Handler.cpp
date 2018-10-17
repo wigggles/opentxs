@@ -48,7 +48,8 @@ Handler::Handler(const zeromq::Context& context, const zap::Callback& callback)
 
     OT_ASSERT(running);
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Listening on ")(ZAP_ENDPOINT).Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Listening on " << ZAP_ENDPOINT
+           << std::endl;
 }
 
 void Handler::process_incoming(const Lock& lock, zap::Request& message)

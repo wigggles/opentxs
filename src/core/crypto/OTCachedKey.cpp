@@ -271,11 +271,10 @@ bool OTCachedKey::GetMasterPassword(
 
     if (!key_->IsGenerated())  // doesn't already exist.
     {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Master key didn't exist. Need to collect a "
-            "passphrase from the user, "
-            "so we can generate a master key...")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Master key didn't exist. Need to collect a "
+                  "passphrase from the user, "
+                  "so we can generate a master key...\n ";
 
         bVerifyTwice = true;  // we force it, in this case.
     } else  // If the symmetric key itself ALREADY exists (which it usually
@@ -347,9 +346,10 @@ bool OTCachedKey::GetMasterPassword(
             //
             if (bCachedKey)  // It works!
             {
-                LogDetail(OT_METHOD)(__FUNCTION__)(": Finished calling ")(
-                    "key_->GetRawKeyFromDerivedKey ")("(Success.)")
-                    .Flush();
+                otWarn << OT_METHOD << __FUNCTION__
+                       << ": Finished calling "
+                          "key_->GetRawKeyFromDerivedKey "
+                          "(Success.)\n";
                 theOutput = *master_password_;  // Return it to the caller.
                 theDerivedAngel.reset(
                     pDerivedKey);  // Set our own copy to be destroyed later. It
@@ -368,9 +368,8 @@ bool OTCachedKey::GetMasterPassword(
         {
             if (IsUsingSystemKeyring())  // We WERE using the keying, but
                                          // we DIDN'T find the derived key.
-                LogDetail(OT_METHOD)(__FUNCTION__)(
-                    ": Unable to find derived key on system keyring.")
-                    .Flush();
+                otWarn << OT_METHOD << __FUNCTION__
+                       << ": Unable to find derived key on system keyring.\n";
             // (Otherwise if we WEREN'T using the system keyring, then of course
             // we didn't find any derived key cached there.)
             delete pDerivedKey;
@@ -536,10 +535,9 @@ bool OTCachedKey::GetMasterPassword(
             }
             theDerivedAngel.reset(pDerivedKey);
 
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": FYI, symmetric key was already generated. "
-                "Proceeding to try and use it...")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": FYI, symmetric key was already generated. "
+                      "Proceeding to try and use it...\n";
 
             // bGenerated is true, if we're even in this block in the first
             // place.
@@ -600,14 +598,14 @@ bool OTCachedKey::GetMasterPassword(
                         *pDerivedKey,  // (Input) Derived Key BEING STORED.
                         str_display);  // optional display string.
                 } else
-                    LogDetail(OT_METHOD)(__FUNCTION__)(
-                        ": Strange: Problem with either: "
-                        "IsUsingSystemKeyring (")(
-                        IsUsingSystemKeyring() ? "true" : "false")(
-                        ") "
-                        "or: (nullptr != pDerivedKey) (")(
-                        (nullptr != pDerivedKey) ? "true" : "false")(" )")
-                        .Flush();
+                    otWarn << OT_METHOD << __FUNCTION__
+                           << ": Strange: Problem with either: "
+                              "IsUsingSystemKeyring ("
+                           << (IsUsingSystemKeyring() ? "true" : "false")
+                           << ") "
+                              "or: (nullptr != pDerivedKey) ("
+                           << ((nullptr != pDerivedKey) ? "true" : "false")
+                           << ")\n";
 
                 bReturnVal = true;
             } else

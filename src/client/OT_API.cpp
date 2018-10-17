@@ -198,11 +198,8 @@ bool VerifyBalanceReceipt(
             szFolder2name,
             szFilename,
             "")) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Receipt file doesn't exist: ")(
-            context.LegacyDataFolder())(Log::PathSeparator())(szFolder1name)(
-            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
-            szFilename)
-            .Flush();
+        otWarn << "Receipt file doesn't exist in "
+                  "OTTransaction::VerifyBalanceReceipt.\n";
         return false;
     }
 
@@ -339,8 +336,7 @@ void OT_API::Pid::OpenPid(const String& strPidFilePath)
         OT_FAIL;
     }
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Using Pid File: ")(strPidFilePath)
-        .Flush();
+    otWarn << __FUNCTION__ << ": Using Pid File: " << strPidFilePath << "\n";
     m_strPidFilePath = strPidFilePath;
 
     {
@@ -558,9 +554,7 @@ bool OT_API::Init()
         OTDB_DEFAULT_PACKER);  // We only need to do this once now.
 
     if (m_bDefaultStore) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Success invoking OTDB::InitDefaultStorage")
-            .Flush();
+        otWarn << __FUNCTION__ << ": Success invoking OTDB::InitDefaultStorage";
 
         m_pWallet = new OTWallet(api_);
         m_pClient.reset(
@@ -645,8 +639,7 @@ bool OT_API::LoadConfigFile()
             strValue,
             bIsNewKey);
         OT_API::SetWalletFilename(strValue);
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Using Wallet: ")(strValue)
-            .Flush();
+        otWarn << "Using Wallet: " << strValue << "\n";
     }
 
     // LATENCY
@@ -745,9 +738,9 @@ bool OT_API::SetWallet(const String& strFilename) const
     OT_API::GetWalletFilename(strWalletFilename);
 
     if (strFilename.Compare(strWalletFilename)) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Wallet Filename: ")(strFilename)(
-            " is same as in configuration. (Skipping).")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Wallet Filename: " << strFilename
+               << "  is same as in configuration. (skipping)\n";
         return true;
     } else
         strWalletFilename->Set(strWalletFilename);
@@ -861,9 +854,10 @@ const BasketContract* OT_API::GetBasketContract(
     if (!contract) {
         if (nullptr != szFunc) {  // We only log if the caller asked us to.
             const auto strID = String::Factory(THE_ID);
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": No asset contract found in wallet for Unit Type ID: ")(strID)
-                .Flush();
+            otWarn << __FUNCTION__ << " " << szFunc
+                   << ": No asset contract "
+                      "found in wallet with ID: "
+                   << strID << "\n";
         }
     } else {
         auto currency = dynamic_cast<const BasketContract*>(contract.get());
@@ -5535,10 +5529,9 @@ std::unique_ptr<Ledger> OT_API::LoadInbox(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(ACCOUNT_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify inbox: ")(strAcctID)(" For user: ")(
-            strNymID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load or verify inbox: " << strAcctID
+               << "\n For user: " << strNymID << "\n";
     }
     return nullptr;
 }
@@ -5573,9 +5566,9 @@ std::unique_ptr<Ledger> OT_API::LoadInboxNoVerify(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(ACCOUNT_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Unable to load inbox: ")(
-            strAcctID)(" For user: ")(strNymID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load inbox: " << strAcctID
+               << "\n For user: " << strNymID << "\n";
     }
     return nullptr;
 }
@@ -5613,10 +5606,9 @@ std::unique_ptr<Ledger> OT_API::LoadOutbox(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(ACCOUNT_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify outbox: ")(strAcctID)(" For user: ")(
-            strNymID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load  or verify outbox: " << strAcctID
+               << "\n For user: " << strNymID << "\n";
     }
     return nullptr;
 }
@@ -5652,10 +5644,9 @@ std::unique_ptr<Ledger> OT_API::LoadOutboxNoVerify(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(ACCOUNT_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify outbox: ")(strAcctID)(" For user: ")(
-            strNymID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load  or verify outbox: " << strAcctID
+               << "\n For user: " << strNymID << "\n";
     }
     return nullptr;
 }
@@ -5688,10 +5679,9 @@ std::unique_ptr<Ledger> OT_API::LoadPaymentInbox(
     } else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(NYM_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify for Nym/Account: ")(strNymID)(" / ")(
-            strAcctID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load or verify for Nym/Acct: " << strNymID
+               << " / " << strAcctID << "\n";
     }
     return nullptr;
 }
@@ -5717,10 +5707,9 @@ std::unique_ptr<Ledger> OT_API::LoadPaymentInboxNoVerify(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(NYM_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify for Nym/Account: ")(strNymID)(" / ")(
-            strAcctID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load or verify for Nym/Acct: " << strNymID
+               << " / " << strAcctID << "\n";
     }
     return nullptr;
 }
@@ -5760,10 +5749,9 @@ std::unique_ptr<Ledger> OT_API::LoadRecordBox(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(ACCOUNT_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify for Nym/Account: ")(strNymID)(" / ")(
-            strAcctID)
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Unable to load or verify for Nym/Acct: " << strNymID
+               << " / " << strAcctID << "\n";
     }
     return nullptr;
 }
@@ -5790,10 +5778,9 @@ std::unique_ptr<Ledger> OT_API::LoadRecordBoxNoVerify(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strAcctID = String::Factory(ACCOUNT_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify for Nym/Account: ")(strNymID)(" / ")(
-            strAcctID)
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Unable to load or verify for Nym/Acct: " << strNymID
+               << " / " << strAcctID << "\n";
     }
     return nullptr;
 }
@@ -5832,10 +5819,9 @@ std::unique_ptr<Ledger> OT_API::LoadExpiredBox(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strNotaryID = String::Factory(NOTARY_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify for Nym/Notary: ")(strNymID)(" / ")(
-            strNotaryID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load or verify for Nym/Notary: " << strNymID
+               << " / " << strNotaryID << "\n";
     }
     return nullptr;
 }
@@ -5860,10 +5846,9 @@ std::unique_ptr<Ledger> OT_API::LoadExpiredBoxNoVerify(
     else {
         auto strNymID = String::Factory(NYM_ID),
              strNotaryID = String::Factory(NOTARY_ID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify for Nym/Notary: ")(strNymID)(" / ")(
-            strNotaryID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load or verify for Nym/Notary: " << strNymID
+               << " / " << strNotaryID << "\n";
     }
     return nullptr;
 }
@@ -8691,9 +8676,9 @@ CommandResult OT_API::notarizeDeposit(
             return output;
         }
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Success re-assigning ownership of token (to server).")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Success re-assigning ownership of token (to server.)"
+               << std::endl;
         token->ReleaseSignatures();
         token->SignContract(nym);
         token->SaveContract();
@@ -10873,9 +10858,9 @@ CommandResult OT_API::processNymbox(ServerContext& context) const
     }
 
     if (1 > nymbox->GetTransactionCount()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Nymbox (")(nymID)(
-            ") is empty (so, skipping processNymbox).")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Nymbox ("
+               << String::Factory(nymID)
+               << ") is empty (so, skipping processNymbox.)" << std::endl;
 
         requestNum = 0;
         status = SendResult::UNNECESSARY;
@@ -12722,9 +12707,8 @@ OT_API::ProcessInbox OT_API::CreateProcessInbox(
     inbox.reset(LoadInbox(serverID, nymID, accountID).release());
 
     if (false == bool(inbox)) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load inbox for account ")(account)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Unable to load inbox for account " << account << std::endl;
 
         return {};
     }

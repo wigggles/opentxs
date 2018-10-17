@@ -185,10 +185,9 @@ bool ClientContext::Verify(
             return false;
         }
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Transaction statement MUST ")(
-            "include number ")(number)(" which IS NOT currently in "
-                                       "the context. ")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Transaction statement MUST "
+               << "include number " << number << " which IS NOT currently in "
+               << "the context. " << std::endl;
     }
 
     for (const auto& number : excluded) {
@@ -201,11 +200,9 @@ bool ClientContext::Verify(
             return false;
         }
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Transaction statement MUST "
-            "NOT include number ")(number)(" which IS currently in "
-                                           "the context.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Transaction statement MUST "
+               << "NOT include number " << number << " which IS currently in "
+               << "the context. " << std::endl;
     }
 
     for (const auto& number : statement.Issued()) {

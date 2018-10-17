@@ -212,12 +212,10 @@ bool OTKeyring::Windows_RetrieveSecret(
          ascFileContents.LoadFromFile(strFoldername, strUser) &&
          ascFileContents.Exists());
     if (!bLoaded) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": No cached ciphertext of master key loaded during "
-            "attempted retrieval. "
-            "(However, once one is available, it WILL be cached using "
-            "DPAPI).")
-            .Flush();
+        otWarn << "%s: No cached ciphertext of master key loaded during "
+                  "attempted retrieval. "
+                  "(However, once one is available, it WILL be cached using "
+                  "DPAPI.) \n";
         return false;
     }
     // Below this point, we know for sure the ciphertext of the master
@@ -1110,7 +1108,7 @@ bool OTKeyring::KWallet_RetrieveSecret(
 
     // Not an error: what if it just hasn't been set there yet?
     //
-    LogDetail(OT_METHOD)(__FUNCTION__)(": No secret found.").Flush();
+    otWarn << "OTKeyring::KWallet_RetrieveSecret: No secret found.\n";
 
     return false;
 }
@@ -1251,10 +1249,9 @@ bool OTKeyring::FlatFile_RetrieveSecret(
 
     // Not an error: what if it just hasn't been set there yet?
     //
-    LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": Unable to retrieve any derived key, since "
-        "password_folder not provided in config file.")
-        .Flush();
+    otWarn << __FUNCTION__
+           << ": Unable to retrieve any derived key, since "
+              "password_folder not provided in config file.\n";
 
     return false;
 }

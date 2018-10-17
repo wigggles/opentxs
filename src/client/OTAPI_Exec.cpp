@@ -2049,10 +2049,10 @@ std::string OTAPI_Exec::GetNym_InboxHash(
             // place, and thus I can't always expect that variable will be
             // there.
             //
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": InboxHash not found, on client side, for account ")(
-                str_acct_id)(" and nym ")(strNymID)(". (Returning.) ")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": InboxHash not found, on client side, for account "
+                   << str_acct_id << " and nym " << strNymID
+                   << ". (Returning .)\n";
         } else  // Success: the hash was there, for that Nym, for that server
                 // ID.
         {
@@ -2096,10 +2096,10 @@ std::string OTAPI_Exec::GetNym_OutboxHash(
             // place, and thus I can't always expect that variable will be
             // there.
             //
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": OutboxHash not found, on client side, for account ")(
-                str_acct_id)(" and nym ")(strNymID)(". (Returning.) ")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": OutboxHash not found, on client side, for account "
+                   << str_acct_id << " and nym " << strNymID
+                   << ". (Returning .)\n";
         } else  // Success: the hash was there, for that Nym, for that server
                 // ID.
         {
@@ -3832,9 +3832,9 @@ std::string OTAPI_Exec::GetAccountWallet_InstrumentDefinitionID(
 
     auto theInstrumentDefinitionID =
         Identifier::Factory(account.get().GetInstrumentDefinitionID());
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Returning instrument definition ")(
-        theInstrumentDefinitionID)(" for account ")(THE_ID)
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Returning instrument definition "
+           << theInstrumentDefinitionID->str() << " for account " << THE_ID
+           << "\n";
 
     return theInstrumentDefinitionID->str();
 }
@@ -5212,10 +5212,9 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
             //          loaded up,
             // but all
             // parties are NOT confirmed:\n\n" << strContract << "\n\n";
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Smart contract loaded up, but all ")(
-                "parties are NOT confirmed.")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": Smart contract loaded up, but all "
+                      "parties are NOT confirmed.\n";
             return false;
         } else if (bVerified) {
             //          otOut << OT_METHOD << __FUNCTION__ << ": Success: Smart
@@ -5275,11 +5274,10 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     //...is he confirmed?
     //
     if (!pParty->GetMySignedCopy().Exists()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Smart contract loaded up, and party ")(PARTY_NAME)(
-            " was found, but didn't find a signed copy of the ")(
-            "agreement for that party.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Smart contract loaded up, and party " << PARTY_NAME
+               << " was found, but didn't find a signed copy of the "
+                  "agreement for that party.\n";
         return false;
     }
 
@@ -7103,9 +7101,10 @@ std::string OTAPI_Exec::LoadInbox(
         ot_api_.LoadInbox(theNotaryID, theNymID, theAccountID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadInbox. Account ID: ")(ACCOUNT_ID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadInbox.\n"
+                  "Account ID : "
+               << ACCOUNT_ID << "\n";
     } else {                                         // success
         auto strOutput = String::Factory(*pLedger);  // For the output
         std::string pBuf = strOutput->Get();
@@ -7134,10 +7133,9 @@ std::string OTAPI_Exec::LoadInboxNoVerify(
         theNotaryID, Identifier::Factory(theNymID), theAccountID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadInboxNoVerify. Account ID: ")(
-            ACCOUNT_ID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadInboxNoVerify.\nAccount ID : "
+               << ACCOUNT_ID << "\n";
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7167,9 +7165,9 @@ std::string OTAPI_Exec::LoadOutbox(
         ot_api_.LoadOutbox(theNotaryID, theNymID, theAccountID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadOutbox(). Account ID : ")(ACCOUNT_ID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadOutbox().\nAccount ID : "
+               << ACCOUNT_ID << "\n";
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7199,10 +7197,10 @@ std::string OTAPI_Exec::LoadOutboxNoVerify(
         ot_api_.LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadOutboxNoVerify. Account ID: ")(
-            ACCOUNT_ID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadOutboxNoVerify.\n"
+                  "Account ID : "
+               << ACCOUNT_ID << "\n";
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7232,9 +7230,9 @@ std::string OTAPI_Exec::LoadPaymentInbox(
         ot_api_.LoadPaymentInbox(theNotaryID, theNymID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadPaymentInbox. Nym ID: ")(NYM_ID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadPaymentInbox.\n Nym ID : "
+               << NYM_ID << "\n";
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7261,9 +7259,10 @@ std::string OTAPI_Exec::LoadPaymentInboxNoVerify(
         ot_api_.LoadPaymentInboxNoVerify(theNotaryID, theNymID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Failure calling ")(
-            " OT_API::LoadPaymentInboxNoVerify. Nym ID: ")(NYM_ID)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling "
+                  "OT_API::LoadPaymentInboxNoVerify.\nNym ID: "
+               << NYM_ID << "\n";
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7293,9 +7292,8 @@ std::string OTAPI_Exec::LoadRecordBox(
         ot_api_.LoadRecordBox(theNotaryID, theNymID, theAccountID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadRecordBox.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadRecordBox.\n";
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7324,9 +7322,8 @@ std::string OTAPI_Exec::LoadRecordBoxNoVerify(
         ot_api_.LoadRecordBoxNoVerify(theNotaryID, theNymID, theAccountID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadRecordBoxNoVerify.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadRecordBoxNoVerify.\n";
     } else  // success
     {
         const auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7352,9 +7349,8 @@ std::string OTAPI_Exec::LoadExpiredBox(
         ot_api_.LoadExpiredBox(theNotaryID, theNymID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadExpiredBox.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadExpiredBox.\n";
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7380,9 +7376,8 @@ std::string OTAPI_Exec::LoadExpiredBoxNoVerify(
         ot_api_.LoadExpiredBoxNoVerify(theNotaryID, theNymID));
 
     if (!pLedger) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure calling OT_API::LoadExpiredBoxNoVerify.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failure calling OT_API::LoadExpiredBoxNoVerify.\n";
     } else  // success
     {
         const auto strOutput = String::Factory(*pLedger);  // For the output
@@ -10855,9 +10850,9 @@ std::string OTAPI_Exec::GetSentMessage(
 
     if (nullptr == pMsg)  // The message wasn't found with that request number.
     {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Message not found with request number ")(lRequestNum)(", sorry.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Message not found with request number " << lRequestNum
+               << ", sorry.\n";
         return {};
     }
     const auto strOutput =
@@ -11379,11 +11374,11 @@ std::int32_t OTAPI_Exec::Message_GetSuccess(
                        // << "\n\n"
         return OT_TRUE;
     } else {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": ** FYI, server reply was received, and it ")(
-            "said 'No.' (Status = failed). RequestNum: ")(
-            StringToLong(theMessage->m_strRequestNum->Get()))
-            .Flush();  // Contents:\n\n" << THE_MESSAGE << "\n\n"
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": ** FYI, server reply was received, and it "
+                  "said 'No.' (Status = failed). RequestNum: "
+               << StringToLong(theMessage->m_strRequestNum->Get())
+               << "\n";  // Contents:\n\n" << THE_MESSAGE << "\n\n"
     }
     return OT_FALSE;
 }
@@ -11603,12 +11598,11 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
             StringToLong(theMessage->m_strRequestNum->Get());
         const std::int64_t lTransactionNum = pTransaction->GetTransactionNum();
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": ** FYI, server reply was received, and it said 'No.' ")(
-            "(Status = failed). RequestNum: ")(lRequestNum)(", TransNum: ")(
-            lTransactionNum)
-            .Flush();
-        // Contents: \n\n" << THE_MESSAGE << "\n\n"
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": ** FYI, server reply was received, and it said 'No.' "
+                  "(Status = failed). RequestNum: "
+               << lRequestNum << ", TransNum: " << lTransactionNum
+               << "\n";  // Contents: \n\n" << THE_MESSAGE << "\n\n"
     }
 
     return OT_FALSE;

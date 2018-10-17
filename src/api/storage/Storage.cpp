@@ -101,9 +101,8 @@ api::storage::StorageInternal* Factory::Storage(
     auto archiveDirectory = String::Factory();
     auto encryptedDirectory = String::Factory();
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Using ")(defaultPlugin)(
-        " as primary storage plugin.")
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Using " << defaultPlugin
+           << " as primary storage plugin." << std::endl;
 
     if (archiveDirectoryCLI.empty()) {
         archiveDirectory =

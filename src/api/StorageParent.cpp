@@ -88,9 +88,8 @@ void StorageParent::init([[maybe_unused]] const api::HDSeed& seeds)
     storage_encryption_key_ = crypto_.GetStorageKey(*rawKey);
 
     if (storage_encryption_key_.get()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Obtained storage key ")(
-            storage_encryption_key_->ID())
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Obtained storage key "
+               << storage_encryption_key_->ID()->str() << std::endl;
     } else {
         otErr << OT_METHOD << __FUNCTION__ << ": Failed to load storage key "
               << seed << std::endl;
@@ -156,13 +155,13 @@ OTString StorageParent::get_primary_storage_plugin(
         return commandLine;
     } else {
         if (haveConfigured) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Using config file value.")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__ << ": Using config file value."
+                   << std::endl;
 
             return configured;
         } else {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Using default value.")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__ << ": Using default value."
+                   << std::endl;
 
             return hardcoded;
         }

@@ -305,8 +305,8 @@ const opentxs::network::zeromq::PublishSocket& Activity::get_publisher(
 
     auto& output = publisher->second.get();
     output.Start(endpoint);
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Publisher started on ")(endpoint)
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Publisher started on " << endpoint
+           << std::endl;
 
     return output;
 }

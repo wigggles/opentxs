@@ -326,14 +326,14 @@ bool MessageProcessor::process_message(
         server_.CommandProcessor().ProcessUserCommand(*request, *replymsg);
 
     if (false == processed) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to process user command ")(
-            request->m_strCommand)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Failed to process user command " << request->m_strCommand
+               << std::endl;
         LogVerbose(OT_METHOD)(__FUNCTION__)(String::Factory(*request)).Flush();
     } else {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Successfully processed user command ")(request->m_strCommand)
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Successfully processed user command "
+               << request->m_strCommand << std::endl;
     }
 
     auto serializedReply = String::Factory(*replymsg);

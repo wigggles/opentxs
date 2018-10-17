@@ -362,10 +362,9 @@ OTPassword* OpenSSL::DeriveNewKey(
             tmpHashCheck->size());
 
         if (!strDataCheck->Compare(strTestCheck)) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Incorrect password provided. "
-                                               "Provided check hash: ")(
-                strDataCheck)(" Calculated check hash: ")(strTestCheck)
-                .Flush();
+            otWarn << __FUNCTION__ << ": Incorrect password provided.\n"
+                   << "Provided check hash: " << strDataCheck << "\n"
+                   << "Calculated check hash: " << strTestCheck << std::endl;
 
             pDerivedKey.reset();
         }
@@ -522,10 +521,9 @@ void OpenSSL::thread_cleanup() const
 
 void OpenSSL::Init()
 {
-    LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": Setting up OpenSSL: SSL_library_init, error "
-        "strings and algorithms, and OpenSSL config...")
-        .Flush();
+    otWarn << __FUNCTION__
+           << ": Setting up OpenSSL:  SSL_library_init, error "
+              "strings and algorithms, and OpenSSL config...\n";
 
     static bool Initialized = false;
 
@@ -789,10 +787,9 @@ void OpenSSL::Init()
 #if defined(OPENSSL_THREADS)
     // thread support enabled
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": OpenSSL WAS compiled with thread support, FYI. "
-        "Setting up mutexes...")
-        .Flush();
+    otWarn << __FUNCTION__
+           << ": OpenSSL WAS compiled with thread support, FYI. "
+              "Setting up mutexes...\n";
 
     this->thread_setup();
 
@@ -2494,9 +2491,8 @@ bool OpenSSL::OpenSSLdp::VerifySignature(
     }
 
     if (!md) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(szFunc)(
-            ": Unknown message digest algorithm: ")(strHashType)
-            .Flush();
+        otWarn << szFunc
+               << ": Unknown message digest algorithm: " << strHashType << "\n";
         return false;
     }
 

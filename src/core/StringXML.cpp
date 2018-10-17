@@ -46,17 +46,13 @@ public:
 };
 
 StringXML::StringXML()
-    : opentxs::String()
-    , opentxs::StringXML()
-    , String()
+    : String()
     , pvt_(new StringXMLPvt(this))
 {
 }
 
 StringXML::StringXML(const opentxs::String& value)
-    : opentxs::String()
-    , opentxs::StringXML()
-    , String(value.Get())
+    : String(value.Get())
     , pvt_(new StringXMLPvt(this))
 {
 }
@@ -67,7 +63,6 @@ StringXML::StringXML(const StringXML& value)
     , String(value)
     , pvt_(new StringXMLPvt(this))
 {
-    Set(value.Get());
 }
 
 opentxs::StringXML& StringXML::operator=(const opentxs::String& rhs)

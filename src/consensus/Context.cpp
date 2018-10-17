@@ -126,9 +126,9 @@ bool Context::ConsumeIssued(const TransactionNumber& number)
     Lock lock(lock_);
 
     if (0 < available_transaction_numbers_.count(number)) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Consuming an issued number that was still available.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Consuming an issued number that was still available."
+               << std::endl;
 
         available_transaction_numbers_.erase(number);
     }

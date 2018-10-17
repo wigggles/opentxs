@@ -10,7 +10,7 @@
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/core/Log.hpp"
 
-#define OT_METHOD "opentxs::Plugin"
+#define OT_METHOD "opentxs::Plugin::"
 
 namespace opentxs
 {
@@ -61,9 +61,10 @@ bool Plugin::Load(
     }
 
     if (!valid && !checking) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Specified object is not found.")(
-            " Hash: ")(key)(".")(" Size: ")(value.size())(".")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__
+               << ": Specified object is not found." << std::endl
+               << "Hash: " << key << std::endl
+               << "Size: " << value.size() << std::endl;
     }
 
     return valid;

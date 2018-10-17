@@ -98,13 +98,12 @@ bool LegacySymmetric::CreateNewKey(
         if (bGenerated && theKey.SerializeTo(strOutput))
             bSuccess = true;
         else
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Sorry, unable to generate key. (Failure).")
-                .Flush();
+            otWarn << __FUNCTION__
+                   << ": Sorry, unable to generate key. (Failure.)\n";
     } else
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Sorry, unable to retrieve password from user. (Failure).")
-            .Flush();
+        otWarn
+            << __FUNCTION__
+            << ": Sorry, unable to retrieve password from user. (Failure.)\n";
 
     return bSuccess;
 }
@@ -119,19 +118,18 @@ bool LegacySymmetric::Decrypt(
 {
 
     if (!strKey.Exists()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Nonexistent: The symmetric key. Please supply. (Failure).")
-            .Flush();
+        otWarn
+            << __FUNCTION__
+            << ": Nonexistent: The symmetric key. Please supply. (Failure.)\n";
         return false;
     }
 
     implementation::LegacySymmetric theKey(crypto);
 
     if (!theKey.SerializeFrom(strKey)) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failed trying to load symmetric key from "
-            "string. (Returning false).")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -149,10 +147,9 @@ bool LegacySymmetric::Decrypt(
     const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure: theKey.IsGenerated() was false. (The calling "
-            "code probably should have checked for that...).")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Failure: theKey.IsGenerated() was false. (The calling "
+                  "code probably should have checked for that...)\n";
         return false;
     }
 
@@ -193,14 +190,12 @@ bool LegacySymmetric::Decrypt(
                 pPassUserInput ? *pPassUserInput : *pAlreadyHavePW)) {
             bSuccess = true;
         } else {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Failed trying to decrypt. (Sorry).")
-                .Flush();
+            otWarn << __FUNCTION__ << ": Failed trying to decrypt. (Sorry.)\n";
         }
     } else
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Sorry, unable to retrieve passphrase from user. (Failure).")
-            .Flush();
+        otWarn
+            << __FUNCTION__
+            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
 
     return bSuccess;
 }
@@ -216,20 +211,18 @@ bool LegacySymmetric::Encrypt(
     const OTPassword* pAlreadyHavePW)
 {
     if (!strKey.Exists() || !strPlaintext.Exists()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Nonexistent: either the key or the "
-            "plaintext. Please supply. (Failure).")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Nonexistent: either the key or the "
+                  "plaintext. Please supply. (Failure.)\n";
         return false;
     }
 
     implementation::LegacySymmetric theKey(crypto);
 
     if (!theKey.SerializeFrom(strKey)) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failed trying to load symmetric key from "
-            "string. (Returning false).")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Failed trying to load symmetric key from "
+                  "string. (Returning false.)\n";
         return false;
     }
 
@@ -254,17 +247,15 @@ bool LegacySymmetric::Encrypt(
     const OTPassword* pAlreadyHavePW)
 {
     if (!theKey.IsGenerated()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Failure: theKey.IsGenerated() was false. (The calling "
-            "code probably should have checked that key already...).")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Failure: theKey.IsGenerated() was false. (The calling "
+                  "code probably should have checked that key already...)\n";
         return false;
     }
 
     if (!strPlaintext.Exists()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Plaintext is empty. Please supply. (Failure).")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Plaintext is empty. Please supply. (Failure.)\n";
         return false;
     }
 
@@ -307,14 +298,12 @@ bool LegacySymmetric::Encrypt(
                 strOutput.Set(ascOutput->Get());
             }
         } else {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Failed trying to encrypt. (Sorry).")
-                .Flush();
+            otWarn << __FUNCTION__ << ": Failed trying to encrypt. (Sorry.)\n";
         }
     } else
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Sorry, unable to retrieve passphrase from user. (Failure).")
-            .Flush();
+        otWarn
+            << __FUNCTION__
+            << ": Sorry, unable to retrieve passphrase from user. (Failure.)\n";
 
     return bSuccess;
 }

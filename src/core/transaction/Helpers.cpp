@@ -331,11 +331,12 @@ bool VerifyBoxReceiptExists(
         strFolder3name->Get(),
         strFilename->Get());
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(": ")(
-        bExists ? "(Already have this one)" : "(Need to download this one) : ")(
-        strFolder1name)(Log::PathSeparator())(strFolder2name)(
-        Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(strFilename)
-        .Flush();
+    otWarn << "OTTransaction::"
+           << (bExists ? "(Already have this one)"
+                       : "(Need to download this one)")
+           << ": " << __FUNCTION__ << ": " << strFolder1name
+           << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+           << strFolder3name << Log::PathSeparator() << strFilename << "\n";
 
     return bExists;
 }
@@ -392,11 +393,10 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
             strFolder2name->Get(),
             strFolder3name->Get(),
             strFilename->Get())) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Box receipt does not exist: ")(
-            strFolder1name)(Log::PathSeparator())(strFolder2name)(
-            Log::PathSeparator())(strFolder3name)(Log::PathSeparator())(
-            strFilename)
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Box receipt does not exist: " << strFolder1name
+               << Log::PathSeparator() << strFolder2name << Log::PathSeparator()
+               << strFolder3name << Log::PathSeparator() << strFilename << "\n";
         return nullptr;
     }
 
