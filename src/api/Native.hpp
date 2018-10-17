@@ -93,6 +93,7 @@ private:
 
     void Init_Crypto();
     void Init_Log();
+    void Init_Zap();
     void Init() override;
     void shutdown() override;
     void start_client(const Lock& lock, const ArgList& args) const;
