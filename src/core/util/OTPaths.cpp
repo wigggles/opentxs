@@ -918,18 +918,14 @@ bool OTPaths::ToReal(const String& strExactPath, String& out_strCanonicalPath)
     if (actualpath == NULL) {
 
         if (errno == ENOTDIR) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Input value to RealPath is not a directory: (Realpath: "
-                "skipping)")
-                .Flush();
+            otWarn << "Input value to RealPath is not a directory: (Realpath: "
+                      "skipping)\n";
             out_strCanonicalPath.Set(strExactPath);
             return true;
         }
 
         if (errno == ENOENT) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": File doesn't exist: (Realpath: skipping)")
-                .Flush();
+            otWarn << "File doesn't exist: (Realpath: skipping)\n";
             out_strCanonicalPath.Set(strExactPath);
             return true;
         }

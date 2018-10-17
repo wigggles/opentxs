@@ -178,13 +178,18 @@ std::int32_t OTTrade::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             m_lTransactionNum)("Completed # of Trades: ")(tradesAlreadyDone_)
             .Flush();
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Creation Date: ")(creation)(
-            " Valid From: ")(validFrom)(" Valid To: ")(validTo)(
-            " assetTypeID: ")(instrumentDefinitionID)(" assetAccountID: ")(
-            assetAcctID)(" NotaryID: ")(notaryID)(" NymID: ")(nymID)(
-            " currencyTypeID: ")(currencyTypeID)(" currencyAccountID: ")(
-            currencyAcctID)
-            .Flush();
+        otWarn << " Creation Date: " << creation
+               << "   Valid From: " << validFrom << "\n Valid To: " << validTo
+               << "\n"
+                  " instrumentDefinitionID: "
+               << instrumentDefinitionID << "\n assetAcctID: " << assetAcctID
+               << "\n"
+                  " NotaryID: "
+               << notaryID << "\n NymID: " << nymID
+               << "\n "
+                  " currencyTypeID: "
+               << currencyTypeID << "\n currencyAcctID: " << currencyAcctID
+               << "\n ";
 
         returnVal = 1;
     }

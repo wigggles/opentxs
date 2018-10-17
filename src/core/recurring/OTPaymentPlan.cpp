@@ -122,14 +122,16 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             String::Factory(xml->getAttributeValue("completed"));
         m_bInitialPaymentDone = strCompleted->Compare("true");
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Initial Payment. Amount: ")(
-            m_lInitialPaymentAmount)(". Date: ")(GetInitialPaymentDate())(
-            ". Completed Date: ")(GetInitialPaymentCompletedDate())(
-            ". Number of failed attempts: ")(m_nNumberInitialFailures)(
-            ". Date of last failed attempt: ")(
-            GetLastFailedInitialPaymentDate())(". Payment ")(
-            m_bInitialPaymentDone ? "COMPLETED" : "NOT completed")(".")
-            .Flush();
+        otWarn << "\n\nInitial Payment. Amount: " << m_lInitialPaymentAmount
+               << ".   Date: " << GetInitialPaymentDate()
+               << ".   Completed Date: " << GetInitialPaymentCompletedDate()
+               << "\n"
+                  " Number of failed attempts: "
+               << m_nNumberInitialFailures
+               << ".   Date of last failed attempt: "
+               << GetLastFailedInitialPaymentDate() << "\n Payment "
+               << (m_bInitialPaymentDone ? "COMPLETED" : "NOT completed")
+               << ".\n";
 
         nReturnVal = 1;
     } else if (!strcmp("paymentPlan", xml->getNodeName())) {
@@ -165,16 +167,22 @@ std::int32_t OTPaymentPlan::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         SetDateOfLastPayment(OTTimeGetTimeFromSeconds(tLast));
         SetDateOfLastFailedPayment(OTTimeGetTimeFromSeconds(tLastAttempt));
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Payment Plan. Amount per payment: ")(m_lPaymentPlanAmount)(
-            ". Time between payments: ")(tBetween)(
-            ". Payment plan Start Date: ")(tStart)(". Length: ")(tLength)(
-            ". Maximum No. of Payments: ")(m_nMaximumNoPayments)(
-            ". Completed No. of Payments: ")(m_nNoPaymentsDone)(
-            ". Failed No. of Payments: ")(m_nNoFailedPayments)(
-            ". Date of last payment: ")(tLast)(
-            ". Date of last failed payment: ")(tLastAttempt)(".")
-            .Flush();
+        otWarn << "\n\nPayment Plan. Amount per payment: "
+               << m_lPaymentPlanAmount
+               << ".  Time between payments: " << tBetween
+               << ".\n"
+                  " Payment plan Start Date: "
+               << tStart << ".  Length: " << tLength
+               << ".   Maximum No. of Payments: " << m_nMaximumNoPayments
+               << ".\n"
+                  " Completed No. of Payments: "
+               << m_nNoPaymentsDone
+               << ".  Failed No. of Payments: " << m_nNoFailedPayments
+               << "\n"
+                  " Date of last payment: "
+               << tLast
+               << "        Date of last failed payment: " << tLastAttempt
+               << "\n";
 
         nReturnVal = 1;
     }
@@ -1451,10 +1459,8 @@ bool OTPaymentPlan::ProcessCron()
              OTTimeAddTimeInterval(
                  GetPaymentPlanStartDate(),
                  OTTimeGetSecondsFromTime(GetPaymentPlanLength())))) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Payment plan has expired by reaching its maximum length "
-                "of time.")
-                .Flush();
+            otWarn << "Payment plan has expired by reaching its maximum length "
+                      "of time.\n";
             return false;  // This payment plan will be removed from Cron by
                            // returning false.
         } else if (
@@ -1471,9 +1477,7 @@ bool OTPaymentPlan::ProcessCron()
                                                                  // since last
         // payment is more than the payment period...
         {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": DEBUG: Not enough time has elapsed.")
-                .Flush();
+            otWarn << "DEBUG: Not enough time has elapsed.\n";
         } else if (
             (0 != GetDateOfLastFailedPayment()) &&
             (OTTimeGetTimeInterval(

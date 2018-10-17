@@ -355,10 +355,9 @@ bool Item::VerifyBalanceStatement(
             default: {
                 auto strItemType = String::Factory();
                 GetTypeString(strItemType);
-                LogDetail(OT_METHOD)(__FUNCTION__)(": Ignoring ")(strItemType)(
-                    " item in balance statement while "
-                    "verifying it against inbox.")
-                    .Flush();
+                otWarn << "Item::" << __FUNCTION__ << ": Ignoring "
+                       << strItemType << " item in balance statement while "
+                       << "verifying it against inbox." << std::endl;
             }
                 continue;
         }
@@ -659,10 +658,10 @@ bool Item::VerifyBalanceStatement(
         case transactionType::cancelCronItem:
         case transactionType::exchangeBasket: {
             removed.insert(targetNumber);
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Transaction number: ")(
-                targetNumber)(" from TARGET_TRANSACTION "
-                              "is being closed.")
-                .Flush();
+            otWarn << "Item::" << __FUNCTION__
+                   << ": Transaction number: " << targetNumber
+                   << " from TARGET_TRANSACTION."
+                   << "is being closed." << std::endl;
         } break;
         case transactionType::transfer:
         case transactionType::marketOffer:
@@ -670,10 +669,10 @@ bool Item::VerifyBalanceStatement(
         case transactionType::smartContract: {
             // These, assuming success, do NOT remove an issued number. So no
             // need to anticipate setting up the list that way, to get a match.
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Transaction number: ")(
-                targetNumber)(" from TARGET_TRANSACTION "
-                              "will remain open.")
-                .Flush();
+            otWarn << "Item::" << __FUNCTION__
+                   << ": Transaction number: " << targetNumber
+                   << " from TARGET_TRANSACTION."
+                   << "will remain open." << std::endl;
         } break;
         default: {
             otErr << "Item::" << __FUNCTION__

@@ -155,12 +155,12 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
     }
 
     reply_.SetPayload(String::Factory(ledger_));
-    LogDetail(OT_METHOD)(__FUNCTION__)(": ")(
-        reply_.Context().AvailableNumbers())(" numbers available.")
-        .Flush();
-    LogDetail(OT_METHOD)(__FUNCTION__)(": ")(
-        reply_.Context().IssuedNumbers({}))(" numbers issued.")
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": "
+           << reply_.Context().AvailableNumbers() << " numbers available."
+           << std::endl;
+    otWarn << OT_METHOD << __FUNCTION__ << ": "
+           << reply_.Context().IssuedNumbers({}) << " numbers issued."
+           << std::endl;
 }
 
 UserCommandProcessor::UserCommandProcessor(

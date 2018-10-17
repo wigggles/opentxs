@@ -255,9 +255,8 @@ void ActivityThread::load_thread(const proto::StorageThread& thread)
         participants_.emplace(Identifier::Factory(id));
     }
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(thread.item().size())(
-        " items.")
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << thread.item().size()
+           << " items." << std::endl;
 
     for (const auto& item : thread.item()) { process_item(item); }
 

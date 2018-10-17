@@ -375,9 +375,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         const std::int64_t lTransactionNum =
             String::StringToLong(xml->getAttributeValue("value"));
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Transaction Number ")(
-            lTransactionNum)(" available for Cron.")
-            .Flush();
+        otWarn << "Transaction Number " << lTransactionNum
+               << " available for Cron.\n";
 
         AddTransactionNumber(lTransactionNum);  // This doesn't save to disk.
         // Make sure to save Cron when it
@@ -465,9 +464,7 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                Identifier::Factory(strInstrumentDefinitionID),
                            CURRENCY_ID = Identifier::Factory(strCurrencyID);
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Loaded cron entry for Market: ")(
-            strMarketID)(".")
-            .Flush();
+        otWarn << "Loaded cron entry for Market:\n" << strMarketID << ".\n";
 
         // LoadMarket() needs this info to do its thing.
         auto pMarket{api_.Factory().Market(
@@ -490,10 +487,8 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                      "while loading Cron file.\n";
             return (-1);
         } else {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Loaded market entry from cronfile, and also loaded the "
-                "market file itself.")
-                .Flush();
+            otWarn << "Loaded market entry from cronfile, and also loaded the "
+                      "market file itself.\n";
         }
         nReturnVal = 1;
     }

@@ -224,8 +224,7 @@ bool Contract::VerifyContract() const
     // Make sure that the supposed Contract ID that was set is actually
     // a hash of the contract file, signatures and all.
     if (!VerifyContractID()) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed verifying contract ID.")
-            .Flush();
+        otWarn << __FUNCTION__ << ": Failed verifying contract ID.\n";
         return false;
     }
 
@@ -250,13 +249,11 @@ bool Contract::VerifyContract() const
         return false;
     }
 
-    LogDetail(OT_METHOD)(__FUNCTION__)(
-        ": Verified -- The Contract ID from the wallet matches the "
-        "newly-calculated hash of the contract file. "
-        "Verified -- A standard \"contract\" Public Key or x509 Cert WAS "
-        "found inside the contract. "
-        "Verified -- And the **SIGNATURE VERIFIED** with THAT key.")
-        .Flush();
+    otWarn << "\nVerified -- The Contract ID from the wallet matches the "
+              "newly-calculated hash of the contract file.\n"
+              "Verified -- A standard \"contract\" Public Key or x509 Cert WAS "
+              "found inside the contract.\n"
+              "Verified -- And the **SIGNATURE VERIFIED** with THAT key.\n\n";
     return true;
 }
 
@@ -305,10 +302,8 @@ bool Contract::VerifyContractID() const
     } else {
         auto str1 = String::Factory();
         newID->GetString(str1);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Contract ID *SUCCESSFUL* match to "
-            "hash of contract file: ")(str1)
-            .Flush();
+        otWarn << "\nContract ID *SUCCESSFUL* match to "
+               << " hash of contract file: " << str1 << "\n\n";
         return true;
     }
 }
@@ -643,12 +638,12 @@ bool Contract::VerifySigAuthent(
     } else {
         auto strNymID = String::Factory();
         theNym.GetIdentifier(strNymID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Tried to grab a list of keys from this Nym (")(strNymID)(
-            ") which might match this signature, "
-            "but recovered none. Therefore, will attempt to verify using "
-            "the Nym's default public AUTHENTICATION key.")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Tried to grab a list of keys from this Nym (" << strNymID
+               << ") which might match this signature, "
+                  "but recovered none. Therefore, will attempt to verify using "
+                  "the Nym's default public "
+                  "AUTHENTICATION key.\n";
     }
     // else found no keys.
 
@@ -693,12 +688,12 @@ bool Contract::VerifySignature(
     } else {
         auto strNymID = String::Factory();
         theNym.GetIdentifier(strNymID);
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Tried to grab a list of keys from this Nym (")(strNymID)(
-            ") which might match this signature, "
-            "but recovered none. Therefore, will attempt to verify using "
-            "the Nym's default public SIGNING key.")
-            .Flush();
+        otWarn << __FUNCTION__
+               << ": Tried to grab a list of keys from this Nym (" << strNymID
+               << ") which might match this signature, "
+                  "but recovered none. Therefore, will attempt to verify using "
+                  "the Nym's default public "
+                  "SIGNING key.\n";
     }
     // else found no keys.
 
@@ -1513,9 +1508,8 @@ bool Contract::SkipToElement(IrrXMLReader*& xml)
         //        { otOut << "*** Contract::SkipToElement: EXN_ELEMENT_END
         // (ERROR)\n";  return false; }
         {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": *** ")(
-                ": EXN_ELEMENT_END  (skipping ")(xml->getNodeName())(")")
-                .Flush();
+            otWarn << "*** " << szFunc << ": EXN_ELEMENT_END  (skipping "
+                   << xml->getNodeName() << ")\n";
             continue;
         } else if (xml->getNodeType() == EXN_CDATA) {
             otOut << "*** " << szFunc
@@ -2006,10 +2000,9 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
             String::Factory(xml->getAttributeValue("longname"));
         m_strEntityEmail = String::Factory(xml->getAttributeValue("email"));
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Loaded Entity, shortname: ")(
-            m_strEntityShortName)(", Longname: ")(m_strEntityLongName)(
-            ", email: ")(m_strEntityEmail)
-            .Flush();
+        otWarn << "Loaded Entity, shortname: " << m_strEntityShortName
+               << "\nLongname: " << m_strEntityLongName
+               << ", email: " << m_strEntityEmail << "\n----------\n";
 
         return 1;
     } else if (strNodeName->Compare("condition")) {
@@ -2042,9 +2035,7 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         m_mapConditions.insert(std::pair<std::string, std::string>(
             strConditionName->Get(), strConditionValue->Get()));
 
-        LogDetail(OT_METHOD)(__FUNCTION__)(": ---- Loaded condition ")(
-            strConditionName)
-            .Flush();
+        otWarn << "---- Loaded condition \"" << strConditionName << "\"\n";
         //        otWarn << "Loading condition \"%s\": %s----------(END
         // DATA)----------\n", strConditionName.Get(),
         //                strConditionValue.Get());

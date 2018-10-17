@@ -2706,9 +2706,8 @@ ot_exit_block:
             return -4;
         }
         if (!bMakePath && !bFolderExists) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(": Debug: Cannot find Folder: ")(
-                strFolder)
-                .Flush();
+            otWarn << __FUNCTION__
+                   << ": Debug: Cannot find Folder: " << strFolder << " \n";
         }
     }
 

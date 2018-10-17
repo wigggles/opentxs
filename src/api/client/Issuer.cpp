@@ -279,9 +279,8 @@ bool Issuer::AddReply(
     auto& [reply, used] = it->second;
 
     if (false == found) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Request ")(requestID)(
-            " not found.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Request "
+               << String::Factory(requestID) << " not found." << std::endl;
 
         return add_request(lock, type, requestID, replyID);
     }

@@ -456,7 +456,8 @@ bool Trezor::ECDH(
         &point);
 
     if (!havePublic) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Invalid public key.").Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Invalid public key."
+               << std::endl;
 
         return false;
     }
@@ -511,7 +512,7 @@ std::string Trezor::Base58CheckEncode(
     if (0 == inputSize) { return output; }
 
     if (128 < inputSize) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Input too long.").Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Input too long." << std::endl;
 
         return output;
     }
@@ -539,7 +540,7 @@ bool Trezor::Base58CheckDecode(const std::string&& input, RawData& output) const
     if (0 == inputSize) { return false; }
 
     if (128 < inputSize) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Input too long.").Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Input too long." << std::endl;
 
         return false;
     }
@@ -550,7 +551,8 @@ bool Trezor::Base58CheckDecode(const std::string&& input, RawData& output) const
         input.data(), HASHER_SHA2D, output.data(), output.size());
 
     if (0 == outputSize) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Decoding failed.").Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Decoding failed."
+               << std::endl;
 
         return false;
     }

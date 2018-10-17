@@ -231,9 +231,8 @@ void AccountSummary::process_server(const OTIdentifier& serverID)
 void AccountSummary::startup()
 {
     const auto issuers = api_.Wallet().IssuerList(nym_id_);
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(issuers.size())(
-        " issuers.")
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << issuers.size()
+           << " issuers." << std::endl;
 
     for (const auto& id : issuers) { process_issuer(id); }
 

@@ -134,9 +134,8 @@ void IssuerItem::refresh_accounts()
 {
     const auto blank = Identifier::Factory();
     const auto accounts = issuer_->AccountList(currency_, blank);
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(accounts.size())(
-        " accounts.")
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << accounts.size()
+           << " accounts." << std::endl;
 
     for (const auto& id : accounts) { process_account(id); }
 

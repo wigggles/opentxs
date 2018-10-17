@@ -544,9 +544,8 @@ void Pair::process_store_secret(
             pair_event_->Publish(proto::ProtoAsString(event));
 
         if (published) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Published store secret notification.")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": Published store secret notification." << std::endl;
         } else {
             otErr << OT_METHOD << __FUNCTION__
                   << ": Error Publishing store secret notification."
@@ -631,9 +630,9 @@ void Pair::state_machine(
     const Identifier& localNymID,
     const Identifier& issuerNymID) const
 {
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Local nym: ")(localNymID)(
-        " Issuer Nym: ")(issuerNymID)
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__
+           << ": Local nym: " << String::Factory(localNymID)
+           << "\nIssuer Nym: " << String::Factory(issuerNymID) << std::endl;
     Lock lock(status_lock_);
     auto& [status, trusted] = pair_status_[{localNymID, issuerNymID}];
     lock.unlock();
@@ -672,10 +671,8 @@ void Pair::state_machine(
         otErr << OT_METHOD << __FUNCTION__
               << ": Issuer does not advertise any contracts." << std::endl;
     } else {
-        LogDetail(OT_METHOD)(__FUNCTION__)(": Issuer advertises ")(
-            contractSection->Size())(" contract")(
-            (1 == contractSection->Size()) ? "." : "s.")
-            .Flush();
+        otWarn << OT_METHOD << __FUNCTION__ << ": Issuer advertise "
+               << contractSection->Size() << " contracts." << std::endl;
     }
 
     auto editor = client_.Wallet().mutable_Issuer(localNymID, issuerNymID);
@@ -687,9 +684,8 @@ void Pair::state_machine(
 
     switch (status) {
         case Status::Error: {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": First pass through state machine.")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": First pass through state machine." << std::endl;
             status = Status::Started;
             [[fallthrough]];
         }
@@ -724,9 +720,9 @@ void Pair::state_machine(
         case Status::Registered: {
             SHUTDOWN()
 
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Local nym is registered on issuer's notary.")
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": Local nym is registered on issuer's notary."
+                   << std::endl;
 
             if (trusted) {
                 needStoreSecret = (false == issuer.StoreSecretComplete()) &&
@@ -748,9 +744,9 @@ void Pair::state_machine(
                         pair_event_->Publish(proto::ProtoAsString(event));
 
                     if (published) {
-                        LogDetail(OT_METHOD)(__FUNCTION__)(
-                            ": Published should rename notification.")
-                            .Flush();
+                        otWarn << OT_METHOD << __FUNCTION__
+                               << ": Published should rename notification."
+                               << std::endl;
                     } else {
                         otErr
                             << OT_METHOD << __FUNCTION__
@@ -833,10 +829,11 @@ void Pair::state_machine(
                                 continue;
                             }
                         } else {
-                            LogDetail(OT_METHOD)(__FUNCTION__)(": ")(unitID)(
-                                " account for ")(localNymID)(" on ")(serverID)(
-                                " already exists.")
-                                .Flush();
+                            otWarn << OT_METHOD << __FUNCTION__ << ": "
+                                   << unitID->str() << " account for "
+                                   << localNymID.str() << " on "
+                                   << serverID->str() << " already exists."
+                                   << std::endl;
                         }
 
                         const auto instructions =

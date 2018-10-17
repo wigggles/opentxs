@@ -102,9 +102,9 @@ void MessagableList::process_contact(
         case Messagability::CONTACT_LACKS_NYM:
         case Messagability::MISSING_CONTACT:
         default: {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Skipping unmessagable contact ")(id)
-                .Flush();
+            otWarn << OT_METHOD << __FUNCTION__
+                   << ": Skipping unmessagable contact " << id->str()
+                   << std::endl;
         }
     }
 }
@@ -143,9 +143,8 @@ void MessagableList::process_nym(const network::zeromq::Message& message)
 void MessagableList::startup()
 {
     const auto contacts = api_.Contacts().ContactList();
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Loading ")(contacts.size())(
-        " contacts.")
-        .Flush();
+    otWarn << OT_METHOD << __FUNCTION__ << ": Loading " << contacts.size()
+           << " contacts." << std::endl;
 
     for (const auto& [id, alias] : contacts) {
         process_contact(Identifier::Factory(id), alias);
