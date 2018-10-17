@@ -107,10 +107,7 @@ const OTString Log::m_strVersion = String::Factory(OPENTXS_VERSION_STRING);
 const OTString Log::m_strPathSeparator = String::Factory("/");
 
 OTLOG_IMPORT OTLogStream otErr(-1);  // logs using OTLog::vOutput(-1)
-OTLOG_IMPORT OTLogStream otInfo(2);  // logs using OTLog::vOutput(2)
 OTLOG_IMPORT OTLogStream otOut(0);   // logs using OTLog::vOutput(0)
-OTLOG_IMPORT OTLogStream otWarn(1);  // logs using OTLog::vOutput(1)
-OTLOG_IMPORT OTLogStream otLog3(3);  // logs using OTLog::vOutput(3)
 
 LogSource LogOutput{-1};
 LogSource LogNormal{0};

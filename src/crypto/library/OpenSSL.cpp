@@ -923,9 +923,9 @@ bool OpenSSL::ArgumentCheck(
         LegacySymmetricProvider::ModeToString(cipher))
         .Flush();
 
-    if (ECB) { otLog3 << "...in ECB mode.\n"; }
+    if (ECB) { LogDebug("...in ECB mode.").Flush(); }
 
-    if (AEAD) { otLog3 << "...in AEAD mode.\n"; }
+    if (AEAD) { LogDebug("...in AEAD mode.").Flush(); }
 
     LogDebug(OT_METHOD)(__FUNCTION__)(":...with a ")(
         8 * LegacySymmetricProvider::KeySize(cipher))("bit key.")

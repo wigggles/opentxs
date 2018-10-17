@@ -270,16 +270,14 @@ bool Ledger::LoadBoxReceipts(std::set<std::int64_t>* psetUnloaded)
             // is bad if success on LoadBoxReceipt() call.
             //
             bRetVal = false;
-            OTLogStream* pLog = &otOut;
+            auto& log = (nullptr != psetUnloaded) ? LogDebug : LogNormal;
 
-            if (nullptr != psetUnloaded) {
-                psetUnloaded->insert(lSetNum);
-                pLog = &otLog3;
-            }
-            *pLog << "OTLedger::LoadBoxReceipts: Failed calling LoadBoxReceipt "
-                     "on "
-                     "abbreviated transaction number:"
-                  << lSetNum << ".\n";
+            if (nullptr != psetUnloaded) { psetUnloaded->insert(lSetNum); }
+
+            log(OT_METHOD)(__FUNCTION__)(
+                ": Failed calling LoadBoxReceipt on "
+                "abbreviated transaction number: ")(lSetNum)
+                .Flush();
             // If psetUnloaded is passed in, then we don't want to break,
             // because we want to
             // populate it with the conmplete list of IDs that wouldn't load as
