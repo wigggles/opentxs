@@ -8514,9 +8514,9 @@ void Notary::process_cash_deposit(
                             "was already spent. \n");
                         break;
                     } else {
-                        otLog3 << "Notary::NotarizeDeposit: "
-                                  "SUCCESS verifying token...    "
-                                  "\n";
+                        LogDebug(OT_METHOD)(__FUNCTION__)(
+                            ": SUCCESS verifying token...")
+                            .Flush();
 
                         // need to be able to "roll back" if anything inside
                         // this block fails.

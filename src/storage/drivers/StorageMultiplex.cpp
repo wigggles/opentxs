@@ -184,8 +184,8 @@ void StorageMultiplex::init_lmdb(
     std::unique_ptr<opentxs::api::storage::Plugin>& plugin)
 {
 #if OT_STORAGE_LMDB
-    otInfo << OT_METHOD << __FUNCTION__ << ": Initializing primary LMDB plugin."
-           << std::endl;
+    LogVerbose(OT_METHOD)(__FUNCTION__)(": Initializing primary LMDB plugin.")
+        .Flush();
     plugin.reset(Factory::StorageLMDB(
         storage_, config_, digest_, random_, primary_bucket_));
 #else

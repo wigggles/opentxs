@@ -1053,8 +1053,7 @@ bool OTTrade::ProcessCron()
 
         else  // Process it!  <===================
         {
-            otInfo << "Processing trade: " << GetTransactionNum() << ".\n";
-
+            LogVerbose("Processing trade: ")(GetTransactionNum()).Flush();
             bStayOnMarket = market->ProcessTrade(api_.Wallet(), *this, *offer);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.

@@ -56,14 +56,11 @@ class Settings;
 #endif
 #endif
 
-OTLOG_IMPORT extern OTLogStream otErr;   // logs using OTLog::vError()
-OTLOG_IMPORT extern OTLogStream otOut;   // logs using OTLog::vOutput(0)
-OTLOG_IMPORT extern OTLogStream otWarn;  // logs using OTLog::vOutput(1)
-OTLOG_IMPORT extern OTLogStream otInfo;  // logs using OTLog::vOutput(2)
-OTLOG_IMPORT extern OTLogStream otLog3;  // logs using OTLog::vOutput(3)
+OTLOG_IMPORT extern OTLogStream otErr;  // logs using OTLog::vError()
+OTLOG_IMPORT extern OTLogStream otOut;  // logs using OTLog::vOutput(0)
 
-extern LogSource LogOutput;
-extern LogSource LogNormal;
+extern LogSource LogOutput;  // otErr
+extern LogSource LogNormal;  // otOut
 extern LogSource LogDetail;
 extern LogSource LogVerbose;
 extern LogSource LogDebug;
