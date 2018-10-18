@@ -44,11 +44,6 @@ protected:
     static std::map<std::string, int> widget_update_counters_;
     static std::mutex widget_update_lock_;
 
-    static void accept_cheque_1(
-        const api::client::Manager& client,
-        const Identifier& serverID,
-        const Identifier& nymID,
-        const Identifier& accountID);
     static void accept_transfer_1(
         const api::client::Manager& client,
         const Identifier& serverID,
@@ -56,8 +51,6 @@ protected:
         const Identifier& accountID);
     static std::size_t get_index(const std::int32_t instance);
     static const api::Core& get_session(const std::int32_t instance);
-    static int get_widget_count(const std::string& id);
-    static void increment_widget(const std::string& id);
     static void process_receipt_1(
         const api::client::Manager& client,
         const Identifier& serverID,
@@ -121,65 +114,6 @@ std::string Test_Rpc::nym3_account2_id_{};
 std::map<std::string, int> Test_Rpc::widget_update_counters_{};
 std::mutex Test_Rpc::widget_update_lock_{};
 
-void Test_Rpc::accept_cheque_1(
-    const api::client::Manager& client,
-    const Identifier& serverID,
-    const Identifier& nymID,
-    const Identifier& accountID)
-{
-    auto nymbox = client.ServerAction().DownloadNymbox(nymID, serverID);
-
-    ASSERT_TRUE(nymbox);
-
-    auto account =
-        client.ServerAction().DownloadAccount(nymID, serverID, accountID, true);
-
-    ASSERT_TRUE(account);
-
-    const auto workflows = client.Storage().PaymentWorkflowList(nymID.str());
-
-    ASSERT_EQ(1, workflows.size());
-
-    const auto workflowID = Identifier::Factory(workflows.begin()->first);
-    const auto workflow = client.Workflow().LoadWorkflow(nymID, workflowID);
-
-    ASSERT_TRUE(workflow);
-    ASSERT_TRUE(api::client::Workflow::ContainsCheque(*workflow));
-
-    auto [state, cheque] =
-        api::client::Workflow::InstantiateCheque(client, *workflow);
-
-    ASSERT_EQ(state, proto::PAYMENTWORKFLOWSTATE_CONVEYED);
-    ASSERT_TRUE(cheque);
-
-    nymbox = client.ServerAction().DownloadNymbox(nymID, serverID);
-
-    ASSERT_TRUE(nymbox);
-
-    const auto numbers =
-        client.ServerAction().GetTransactionNumbers(nymID, serverID, 1);
-
-    ASSERT_TRUE(numbers);
-
-    auto deposited =
-        client.ServerAction().DepositCheque(nymID, serverID, accountID, cheque);
-
-    deposited->Run();
-
-    ASSERT_EQ(SendResult::VALID_REPLY, deposited->LastSendResult());
-    ASSERT_TRUE(deposited->Reply());
-    ASSERT_TRUE(deposited->Reply()->m_bSuccess);
-
-    account =
-        client.ServerAction().DownloadAccount(nymID, serverID, accountID, true);
-
-    ASSERT_TRUE(account);
-
-    nymbox = client.ServerAction().DownloadNymbox(nymID, serverID);
-
-    ASSERT_TRUE(nymbox);
-}
-
 void Test_Rpc::accept_transfer_1(
     const api::client::Manager& client,
     const Identifier& serverID,
@@ -223,17 +157,6 @@ const api::Core& Test_Rpc::get_session(const std::int32_t instance)
     }
 };
 
-int Test_Rpc::get_widget_count(const std::string& id)
-{
-    Lock lock(widget_update_lock_);
-
-    try {
-        return widget_update_counters_.at(id);
-    } catch (...) {
-        return -1;
-    }
-}
-
 void Test_Rpc::process_receipt_1(
     const api::client::Manager& client,
     const Identifier& serverID,
@@ -253,18 +176,6 @@ void Test_Rpc::process_receipt_1(
         client.Sync().AcceptIncoming(nymID, accountID, serverID);
 
     ASSERT_TRUE(accepted);
-}
-
-void Test_Rpc::increment_widget(const std::string& id)
-{
-    Lock lock(widget_update_lock_);
-
-    try {
-        LogOutput("Widget ")(id)(" update counter incremented to ")(
-            ++widget_update_counters_.at(id))
-            .Flush();
-    } catch (...) {
-    }
 }
 
 TEST_F(Test_Rpc, List_Client_Sessions_None)
@@ -369,19 +280,12 @@ TEST_F(Test_Rpc, List_Client_Sessions)
 
 TEST_F(Test_Rpc, List_Server_Sessions)
 {
-    ArgList args{{OPENTXS_ARG_COMMANDPORT, {"7086"}},
-                 {OPENTXS_ARG_LISTENCOMMAND, {"7086"}}};
+    ArgList args{{OPENTXS_ARG_INPROC, {std::to_string(ot_.Servers())}}};
 
     auto added = add_session(proto::RPCCOMMAND_ADDSERVERSESSION, args);
     ASSERT_TRUE(added);
 
-    auto& commandport = args[OPENTXS_ARG_COMMANDPORT];
-    commandport.clear();
-    commandport.emplace("7087");
-
-    auto& listencommand = args[OPENTXS_ARG_LISTENCOMMAND];
-    listencommand.clear();
-    listencommand.emplace("7087");
+    args[OPENTXS_ARG_INPROC] = {std::to_string(ot_.Servers())};
 
     added = add_session(proto::RPCCOMMAND_ADDSERVERSESSION, args);
     ASSERT_TRUE(added);

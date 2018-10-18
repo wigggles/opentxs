@@ -8729,7 +8729,12 @@ void Notary::send_push_notification(
 {
     OT_ASSERT(inbox);
     OT_ASSERT(outbox);
-    OT_ASSERT(item);
+
+    if (false == bool(item)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No transaction item.").Flush();
+
+        return;
+    }
 
     auto inboxHash = Identifier::Factory();
     auto outboxHash = Identifier::Factory();

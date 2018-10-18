@@ -4,7 +4,7 @@ set(name unittests-opentxs-rpc)
 set(cxx-sources
   ${PROJECT_SOURCE_DIR}/tests/main.cpp
   Test_Rpc.cpp
-  Test_Rpc_Queued.cpp
+  Test_Rpc_Async.cpp
   ${PROJECT_SOURCE_DIR}/tests/OTTestEnvironment.cpp
 )
 
