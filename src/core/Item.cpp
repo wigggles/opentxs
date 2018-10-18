@@ -190,8 +190,9 @@ bool Item::VerifyTransactionStatement(
     const bool bIsRealTransaction) const
 {
     if (GetType() != itemType::transactionStatement) {
-        otOut << __FUNCTION__
-              << ": wrong item type. Expected Item::transactionStatement.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Wrong item type. Expected Item::transactionStatement.")
+            .Flush();
         return false;
     }
 
@@ -214,8 +215,9 @@ bool Item::VerifyTransactionStatement(
         const bool found = (foundExisting || foundNew);
 
         if (!found) {
-            otOut << __FUNCTION__ << ": Transaction# (" << itemNumber
-                  << ") doesn't appear on Nym's issued list.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction# (")(itemNumber)(
+                ") doesn't appear on Nym's issued list.")
+                .Flush();
 
             return false;
         }
@@ -298,7 +300,7 @@ bool Item::VerifyBalanceStatement(
     std::set<TransactionNumber> removed(excluded);
 
     if (GetType() != itemType::balanceStatement) {
-        otOut << "Item::" << __FUNCTION__ << ": wrong item type.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong item type.").Flush();
 
         return false;
     }
@@ -311,12 +313,12 @@ bool Item::VerifyBalanceStatement(
     // GetAmount() contains what the balance WOULD be AFTER successful
     // transaction.
     if ((THE_ACCOUNT.GetBalance() + lActualAdjustment) != GetAmount()) {
-        otOut << "Item::" << __FUNCTION__
-              << ": This balance statement has a value of " << GetAmount()
-              << ", but expected "
-              << (THE_ACCOUNT.GetBalance() + lActualAdjustment)
-              << ". (Acct balance of " << THE_ACCOUNT.GetBalance()
-              << " plus actualAdjustment of " << lActualAdjustment << ".)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": This balance statement has a value of ")(GetAmount())(
+            ", but expected ")(THE_ACCOUNT.GetBalance() + lActualAdjustment)(
+            ". (Acct balance of ")(THE_ACCOUNT.GetBalance())(
+            " plus actualAdjustment of ")(lActualAdjustment)(").")
+            .Flush();
 
         return false;
     }
@@ -449,10 +451,11 @@ bool Item::VerifyBalanceStatement(
         // Make sure that the transaction number of each sub-item is found on
         // the appropriate ledger (inbox or outbox).
         if (false == bool(pTransaction)) {
-            otOut << "Item::" << __FUNCTION__ << ": Expected " << pszLedgerType
-                  << " transaction (serv " << outboxNum << ", client "
-                  << pSubItem->GetTransactionNum() << ") not found. (Amount "
-                  << pSubItem->GetAmount() << ".)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Expected ")(pszLedgerType)(
+                " transaction (server ")(outboxNum)(", client ")(
+                pSubItem->GetTransactionNum())(") not found. (Amount ")(
+                pSubItem->GetAmount())(").")
+                .Flush();
 
             return false;
         }
@@ -461,22 +464,22 @@ bool Item::VerifyBalanceStatement(
 
         if (pSubItem->GetReferenceToNum() !=
             pTransaction->GetReferenceToNum()) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") mismatch Reference Num: "
-                  << pSubItem->GetReferenceToNum() << ", expected "
-                  << pTransaction->GetReferenceToNum() << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(") mismatch Reference Num: ")(
+                pSubItem->GetReferenceToNum())(", expected ")(
+                pTransaction->GetReferenceToNum())(".")
+                .Flush();
 
             return false;
         }
 
         if (pSubItem->GetRawNumberOfOrigin() !=
             pTransaction->GetRawNumberOfOrigin()) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") mismatch Origin Num: "
-                  << pSubItem->GetRawNumberOfOrigin() << ", expected "
-                  << pTransaction->GetRawNumberOfOrigin() << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(") mismatch Origin Num: ")(
+                pSubItem->GetRawNumberOfOrigin())(", expected ")(
+                pTransaction->GetRawNumberOfOrigin())(".")
+                .Flush();
 
             return false;
         }
@@ -485,31 +488,33 @@ bool Item::VerifyBalanceStatement(
         lTransactionAmount *= lReceiptAmountMultiplier;
 
         if (pSubItem->GetAmount() != lTransactionAmount) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") amounts don't match: report amount is "
-                  << pSubItem->GetAmount() << ", but expected "
-                  << lTransactionAmount
-                  << ". Trans Receipt Amt: " << pTransaction->GetReceiptAmount()
-                  << " (GetAmount() == " << GetAmount() << ".)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") amounts don't match: report amount is ")(
+                pSubItem->GetAmount())(", but expected ")(lTransactionAmount)(
+                ". Trans Receipt Amt: ")(pTransaction->GetReceiptAmount())(
+                " (GetAmount() == ")(GetAmount())(").")
+                .Flush();
 
             return false;
         }
 
         if ((pSubItem->GetType() == itemType::transfer) &&
             (pTransaction->GetType() != transactionType::pending)) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type. (transfer block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") wrong type. (transfer block).")
+                .Flush();
 
             return false;
         }
 
         if ((pSubItem->GetType() == itemType::chequeReceipt) &&
             (pTransaction->GetType() != transactionType::chequeReceipt)) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type. (chequeReceipt block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") wrong type. (chequeReceipt block).")
+                .Flush();
 
             return false;
         }
@@ -517,18 +522,20 @@ bool Item::VerifyBalanceStatement(
         if ((pSubItem->GetType() == itemType::voucherReceipt) &&
             ((pTransaction->GetType() != transactionType::voucherReceipt) ||
              (pSubItem->GetOriginType() != pTransaction->GetOriginType()))) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type or origin type. (voucherReceipt block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") wrong type or origin type. (voucherReceipt block).")
+                .Flush();
 
             return false;
         }
 
         if ((pSubItem->GetType() == itemType::marketReceipt) &&
             (pTransaction->GetType() != transactionType::marketReceipt)) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type. (marketReceipt block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") wrong type. (marketReceipt block).")
+                .Flush();
 
             return false;
         }
@@ -536,18 +543,20 @@ bool Item::VerifyBalanceStatement(
         if ((pSubItem->GetType() == itemType::paymentReceipt) &&
             ((pTransaction->GetType() != transactionType::paymentReceipt) ||
              (pSubItem->GetOriginType() != pTransaction->GetOriginType()))) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type or origin type. (paymentReceipt block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") wrong type or origin type. (paymentReceipt block).")
+                .Flush();
 
             return false;
         }
 
         if ((pSubItem->GetType() == itemType::transferReceipt) &&
             (pTransaction->GetType() != transactionType::transferReceipt)) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type. (transferReceipt block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") wrong type. (transferReceipt block).")
+                .Flush();
 
             return false;
         }
@@ -555,10 +564,10 @@ bool Item::VerifyBalanceStatement(
         if ((pSubItem->GetType() == itemType::basketReceipt) &&
             ((pTransaction->GetType() != transactionType::basketReceipt) ||
              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()))) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type or closing num ("
-                  << pSubItem->GetClosingNum() << "). (basketReceipt block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(") wrong type or closing num (")(
+                pSubItem->GetClosingNum())("). (basketReceipt block).")
+                .Flush();
 
             return false;
         }
@@ -567,10 +576,11 @@ bool Item::VerifyBalanceStatement(
             ((pTransaction->GetType() != transactionType::finalReceipt) ||
              (pSubItem->GetClosingNum() != pTransaction->GetClosingNum()) ||
              (pSubItem->GetOriginType() != pTransaction->GetOriginType()))) {
-            otOut << "Item::" << __FUNCTION__ << ": " << pszLedgerType
-                  << " transaction (" << pSubItem->GetTransactionNum()
-                  << ") wrong type or origin type or closing num ("
-                  << pSubItem->GetClosingNum() << "). (finalReceipt block)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction (")(
+                pSubItem->GetTransactionNum())(
+                ") wrong type or origin type or closing num (")(
+                pSubItem->GetClosingNum())("). (finalReceipt block).")
+                .Flush();
 
             return false;
         }
@@ -581,15 +591,13 @@ bool Item::VerifyBalanceStatement(
     // inbox and outbox on my side:
     if ((nInboxItemCount != THE_INBOX.GetTransactionCount()) ||
         (nOutboxItemCount != THE_OUTBOX.GetTransactionCount())) {
-        otOut << "Item::" << __FUNCTION__
-              << ": Inbox or Outbox mismatch in expected transaction count.\n"
-                 " --- THE_INBOX count: "
-              << THE_INBOX.GetTransactionCount()
-              << " --- THE_OUTBOX count: " << THE_OUTBOX.GetTransactionCount()
-              << "\n"
-                 "--- nInboxItemCount count: "
-              << nInboxItemCount
-              << " --- nOutboxItemCount count: " << nOutboxItemCount << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Inbox or Outbox mismatch in expected transaction count."
+            " --- THE_INBOX count: ")(THE_INBOX.GetTransactionCount())(
+            " --- THE_OUTBOX count: ")(THE_OUTBOX.GetTransactionCount())(
+            " --- nInboxItemCount count: ")(nInboxItemCount)(
+            " --- nOutboxItemCount count: ")(nOutboxItemCount)(".")
+            .Flush();
 
         return false;
     }
@@ -622,8 +630,10 @@ bool Item::VerifyBalanceStatement(
     const bool bIWasFound = context.VerifyIssuedNumber(targetNumber, removed);
 
     if (!bIWasFound) {
-        otOut << "Item::" << __FUNCTION__ << ": Transaction has # that "
-              << "doesn't appear on Nym's issued list." << std::endl;
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Transaction has a # that "
+            "doesn't appear on Nym's issued list.")
+            .Flush();
 
         return false;
     }
@@ -686,8 +696,9 @@ bool Item::VerifyBalanceStatement(
     GetAttachment(serialized);
 
     if (3 > serialized->GetLength()) {
-        otOut << "Item::" << __FUNCTION__
-              << ": Unable to decode transaction statement.." << std::endl;
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Unable to decode transaction statement...")
+            .Flush();
 
         return false;
     }
