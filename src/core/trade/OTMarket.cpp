@@ -141,7 +141,8 @@ std::int32_t OTMarket::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         m_INSTRUMENT_DEFINITION_ID->SetString(strInstrumentDefinitionID);
         m_CURRENCY_TYPE_ID->SetString(strCurrencyTypeID);
 
-        otOut << "\n\nMarket. Scale: " << m_lScale << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Market. Scale: ")(m_lScale)(".")
+            .Flush();
 
         LogDetail(OT_METHOD)(__FUNCTION__)(": instrumentDefinitionID: ")(
             strInstrumentDefinitionID)(" currencyTypeID: ")(strCurrencyTypeID)(
@@ -1048,7 +1049,9 @@ void OTMarket::ProcessTrade(
     const auto NOTARY_ID = Identifier::Factory(pCron->GetNotaryID());
 
     if (pCron->GetTransactionCount() < 1) {
-        otOut << "Failed to process trades: Out of transaction numbers!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed to process trades: Out of transaction numbers!")
+            .Flush();
         return;
     }
 
@@ -1209,13 +1212,17 @@ void OTMarket::ProcessTrade(
         wallet.mutable_Account(pOtherTrade->GetCurrencyAcctID());
 
     if ((!pFirstAssetAcct) || (!pFirstCurrencyAcct)) {
-        otOut << "ERROR verifying existence of one of the first trader's "
-                 "accounts during attempted Market trade.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR verifying existence of one of the first trader's "
+            "accounts during attempted Market trade.")
+            .Flush();
         theTrade.FlagForRemoval();  // Removes from Cron.
         return;
     } else if ((!pOtherAssetAcct) || (!pOtherCurrencyAcct)) {
-        otOut << "ERROR verifying existence of one of the second trader's "
-                 "accounts during attempted Market trade.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR verifying existence of one of the second trader's "
+            "accounts during attempted Market trade.")
+            .Flush();
         pOtherTrade->FlagForRemoval();  // Removes from Cron.
         return;
     }
@@ -1385,8 +1392,10 @@ void OTMarket::ProcessTrade(
             //            OT_ASSERT(lNewTransactionNumber > 0); // this can be
             // my reminder.
             if (0 == lNewTransactionNumber) {
-                otOut << "WARNING: Market is unable to process because there "
-                         "are no more transaction numbers available.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": WARNING: Market is unable to process because there "
+                    "are no more transaction numbers available.")
+                    .Flush();
                 // (Here I flag neither trade for removal.)
                 return;
             }
@@ -2664,8 +2673,9 @@ bool OTMarket::ValidateOfferForMarket(OTOffer& theOffer)
     if (bValidOffer) {
         LogTrace(OT_METHOD)(__FUNCTION__)("Offer is valid for market.").Flush();
     } else {
-        otOut << __FUNCTION__
-              << ": Offer is invalid for this market: " << strReason << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Offer is invalid for this market: ")(strReason)(".")
+            .Flush();
     }
 
     return bValidOffer;

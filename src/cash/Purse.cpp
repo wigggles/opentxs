@@ -174,8 +174,9 @@ bool Purse::GetPassphrase(OTPassword& theOutput, const char* szDisplay)
     const char* szFunc = "Purse::GetPassphrase";
 
     if (!IsPasswordProtected()) {
-        otOut << szFunc
-              << ": Failed: this purse isn't even password-protected.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed: This purse isn't even password-protected.")
+            .Flush();
         return false;
     }
 
@@ -201,15 +202,17 @@ const OTCachedKey& Purse::GetInternalMaster()
 {
 
     if (false == IsPasswordProtected() || (false == bool(m_pCachedKey))) {
-        otOut << __FUNCTION__
-              << ": Failed: no internal master key exists, in this purse.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed: No internal master key exists, in this purse.")
+            .Flush();
 
         OT_FAIL;
     }
 
     if (false == m_pCachedKey->IsGenerated()) {
-        otOut << __FUNCTION__
-              << ": Error: internal master key has not yet been generated.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: Internal master key has not yet been generated.")
+            .Flush();
 
         OT_FAIL;
     }
@@ -243,22 +246,24 @@ bool Purse::GenerateInternalKey()
     if (IsPasswordProtected() ||
         (m_pSymmetricKey.get()) ||  // GetInternalKey())
         (m_pCachedKey)) {
-        otOut << __FUNCTION__
-              << ": Failed: internal Key  or master key already exists. "
-                 "Or IsPasswordProtected was true.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed: Internal Key or master key already exists. "
+            "Or IsPasswordProtected was true.")
+            .Flush();
         return false;
     }
 
     if (!IsEmpty()) {
-        otOut << __FUNCTION__
-              << ": Failed: The purse must be EMPTY before you create a "
-                 "new symmetric key, internal to that purse. (For the purposes "
-                 "of "
-                 "adding a passphrase to the purse, normally.) Otherwise I "
-                 "would have "
-                 "to loop through all the tokens and re-assign ownership of "
-                 "each one. "
-                 "Instead, I'm just going to return false. That's easier.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed: The purse must be EMPTY before you create a "
+            "new symmetric key, internal to that purse. (For the purposes "
+            "of "
+            "adding a passphrase to the purse, normally.) Otherwise I "
+            "would have "
+            "to loop through all the tokens and re-assign ownership of "
+            "each one. "
+            "Instead, I'm just going to return false. That's easier.")
+            .Flush();
         return false;
     }
 
@@ -295,8 +300,9 @@ bool Purse::GenerateInternalKey()
     // already checks it.
     // todo optimize.
     {
-        otOut << __FUNCTION__
-              << ": Failed: While calling OTCachedKey::CreateMasterPassword.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed: While calling OTCachedKey::CreateMasterPassword.")
+            .Flush();
         return false;
     }
 
@@ -309,7 +315,9 @@ bool Purse::GenerateInternalKey()
     OT_ASSERT(m_pSymmetricKey.get());
 
     if (!m_pSymmetricKey->IsGenerated()) {
-        otOut << __FUNCTION__ << ": Failed: generating m_pSymmetricKey.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed: Generating m_pSymmetricKey.")
+            .Flush();
         m_pSymmetricKey = crypto::key::LegacySymmetric::Blank();
         m_pCachedKey.reset();
 

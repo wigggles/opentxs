@@ -14,6 +14,8 @@
 #include <cstdint>
 #include <ostream>
 
+#define OT_METHOD "opentxs::OTCaller"
+
 namespace opentxs
 {
 
@@ -69,8 +71,10 @@ void OTCaller::delCallback()
 void OTCaller::setCallback(OTCallback* cb)
 {
     if (nullptr == cb) {
-        otOut << "OTCaller::setCallback: ERROR: nullptr password OTCallback "
-                 "object passed in. (Returning.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR: nullptr password OTCallback "
+            "object passed in. (Returning).")
+            .Flush();
         return;
     }
 
@@ -92,9 +96,11 @@ void OTCaller::callOne()
     if (isCallbackSet()) {
         _callback->runOne(GetDisplay(), m_Password);
     } else {
-        otOut << "OTCaller::callOne: WARNING: Failed attempt to trigger "
-                 "password callback (one), due to \"it hasn't been set "
-                 "yet.\"\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": WARNING: Failed attempt to trigger "
+            "password callback (one), due to it hasn't been set "
+            "yet.")
+            .Flush();
     }
 }
 
@@ -106,9 +112,11 @@ void OTCaller::callTwo()
     if (isCallbackSet()) {
         _callback->runTwo(GetDisplay(), m_Password);
     } else {
-        otOut << "OTCaller::callTwo: WARNING: Failed attempt to trigger "
-                 "password callback (two), due to \"it hasn't been set "
-                 "yet.\"\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": WARNING: Failed attempt to trigger "
+            "password callback (two), due to it hasn't been set "
+            "yet.")
+            .Flush();
     }
 }
 }  // namespace opentxs

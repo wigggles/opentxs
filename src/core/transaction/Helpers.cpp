@@ -158,12 +158,12 @@ std::int32_t LoadAbbreviatedRecord(
 
     if (!strTransNum->Exists() || !strInRefTo->Exists() ||
         !strInRefDisplay->Exists() || !strDateSigned->Exists()) {
-        otOut << "LoadAbbreviatedRecord: Failure: missing "
-                 "strTransNum ("
-              << strTransNum << ") or strInRefTo (" << strInRefTo
-              << ") or strInRefDisplay (" << strInRefDisplay
-              << ") or strDateSigned(" << strDateSigned
-              << ") while loading abbreviated receipt. \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: missing "
+            "strTransNum (")(strTransNum)(") or strInRefTo (")(strInRefTo)(
+            ") or strInRefDisplay (")(strInRefDisplay)(") or strDateSigned(")(
+            strDateSigned)(") while loading abbreviated receipt.")
+            .Flush();
         return (-1);
     }
     lTransactionNum = strTransNum->ToLong();
@@ -197,12 +197,12 @@ std::int32_t LoadAbbreviatedRecord(
             return (-1);
         }
     } else {
-        otOut << "LoadAbbreviatedRecord: Failure: unknown "
-                 "transaction type ("
-              << strAbbrevType
-              << ") when "
-                 "loading abbreviated receipt for trans num: "
-              << lTransactionNum << " (In Reference To: " << lInRefTo << ") \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Failure: unknown "
+                                           "transaction type (")(strAbbrevType)(
+            ") when "
+            "loading abbreviated receipt for trans num: ")(lTransactionNum)(
+            " (In Reference To: ")(lInRefTo)(").")
+            .Flush();
         return (-1);
     }
 
@@ -210,10 +210,12 @@ std::int32_t LoadAbbreviatedRecord(
     //
     strHash.Set(xml->getAttributeValue("receiptHash"));
     if (!strHash.Exists()) {
-        otOut << "LoadAbbreviatedRecord: Failure: Expected "
-                 "receiptHash while loading "
-                 "abbreviated receipt for trans num: "
-              << lTransactionNum << " (In Reference To: " << lInRefTo << ")\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: Expected "
+            "receiptHash while loading "
+            "abbreviated receipt for trans num: ")(lTransactionNum)(
+            " (In Reference To: ")(lInRefTo)(").")
+            .Flush();
         return (-1);
     }
 
@@ -236,11 +238,12 @@ std::int32_t LoadAbbreviatedRecord(
             String::Factory(xml->getAttributeValue("requestNumber"));
 
         if (!strRequestNum->Exists()) {
-            otOut << "LoadAbbreviatedRecord: Failed loading "
-                     "abbreviated receipt: "
-                     "expected requestNumber on replyNotice trans num: "
-                  << lTransactionNum << " (In Reference To: " << lInRefTo
-                  << ")\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed loading "
+                "abbreviated receipt: "
+                "expected requestNumber on replyNotice trans num: ")(
+                lTransactionNum)(" (In Reference To: ")(lInRefTo)(").")
+                .Flush();
             return (-1);
         }
         lRequestNum = strRequestNum->ToLong();
@@ -261,11 +264,12 @@ std::int32_t LoadAbbreviatedRecord(
             String::Factory(xml->getAttributeValue("closingNum"));
 
         if (!strAbbrevClosingNum->Exists()) {
-            otOut << "LoadAbbreviatedRecord: Failed loading "
-                     "abbreviated receipt: "
-                     "expected closingNum on trans num: "
-                  << lTransactionNum << " (In Reference To: " << lInRefTo
-                  << ")\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed loading "
+                "abbreviated receipt: "
+                "expected closingNum on trans num: ")(lTransactionNum)(
+                " (In Reference To: ")(lInRefTo)(").")
+                .Flush();
             return (-1);
         }
         lClosingNum = strAbbrevClosingNum->ToLong();
@@ -361,10 +365,11 @@ std::unique_ptr<OTTransaction> LoadBoxReceipt(
     // form.)
     //
     if (!theAbbrev.IsAbbreviated()) {
-        otOut << __FUNCTION__ << ": Unable to load box receipt "
-              << theAbbrev.GetTransactionNum()
-              << ": "
-                 "(Because argument 'theAbbrev' wasn't abbreviated.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load box receipt ")(
+            theAbbrev.GetTransactionNum())(
+            ": "
+            "(Because argument 'theAbbrev' wasn't abbreviated).")
+            .Flush();
         return nullptr;
     }
 

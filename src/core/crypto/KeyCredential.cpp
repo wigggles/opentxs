@@ -62,6 +62,8 @@
 #include <memory>
 #include <ostream>
 
+#define OT_METHOD "opentxs::KeyCredential"
+
 namespace opentxs
 {
 KeyCredential::KeyCredential(
@@ -237,9 +239,10 @@ bool KeyCredential::verify_internally(const Lock& lock) const
 
     // All KeyCredentials must sign themselves
     if (!VerifySignedBySelf(lock)) {
-        otOut << __FUNCTION__
-              << ": Failed verifying key credential: it's not "
-                 "signed by itself (its own signing key.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed verifying key credential: it's not "
+            "signed by itself (its own signing key).")
+            .Flush();
         return false;
     }
 

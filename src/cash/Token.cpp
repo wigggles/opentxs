@@ -225,9 +225,10 @@ bool Token::IsTokenAlreadySpent(String& theCleartextToken)
         "");
 
     if (bTokenIsPresent) {
-        otOut << "\nToken::IsTokenAlreadySpent: Token was already spent: "
-              << OTFolders::Spent() << Log::PathSeparator() << strAssetFolder
-              << Log::PathSeparator() << strTokenHash << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Token was already spent: ")(
+            OTFolders::Spent())(Log::PathSeparator())(strAssetFolder)(
+            Log::PathSeparator())(strTokenHash)
+            .Flush();
         return true;  // all errors must return true in this function.
                       // But this is not an error. Token really WAS already
     }                 // spent, and this true is for real. The others are just
@@ -783,8 +784,10 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
         // BEFORE checking the date.
         m_VALID_FROM != theMint.GetValidFrom() ||
         m_VALID_TO != theMint.GetValidTo()) {
-        otOut << "Token series information doesn't match Mint series "
-                 "information!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Token series information doesn't match Mint series "
+            "information!")
+            .Flush();
         return false;
     }
 
@@ -794,7 +797,7 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
     // mint of that series above. So now we just make sure that the CURRENT date
     // and time is within the range described on the token.
     if (!VerifyCurrentDate()) {
-        otOut << "Token is expired!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Token is expired!").Flush();
         return false;
     }
 
@@ -805,10 +808,10 @@ bool Token::VerifyToken(Nym& theNotary, Mint& theMint)
             GetDenomination()))  // Here's the boolean output:
                                  // coin is verified!
     {
-        otOut << "Token verified!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Token verified!").Flush();
         return true;
     } else {
-        otOut << "Bad coin!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Bad coin!").Flush();
         return false;
     }
 }

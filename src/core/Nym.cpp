@@ -1536,19 +1536,20 @@ bool Nym::verify_pseudonym(const eLock& lock) const
             const OTIdentifier theCredentialNymID =
                 Identifier::Factory(pCredential->GetNymID());
             if (m_nymID != theCredentialNymID) {
-                otOut << __FUNCTION__ << ": Credential NymID ("
-                      << pCredential->GetNymID()
-                      << ") doesn't match actual NymID: " << m_nymID->str()
-                      << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(": Credential NymID (")(
+                    pCredential->GetNymID())(") doesn't match actual NymID: ")(
+                    m_nymID->str())(".")
+                    .Flush();
                 return false;
             }
 
             // Verify all Credentials in the CredentialSet, including source
             // verification for the master credential.
             if (!pCredential->VerifyInternally()) {
-                otOut << __FUNCTION__ << ": Credential ("
-                      << pCredential->GetMasterCredID()
-                      << ") failed its own internal verification." << std::endl;
+                LogNormal(OT_METHOD)(__FUNCTION__)(": Credential (")(
+                    pCredential->GetMasterCredID())(
+                    ") failed its own internal verification.")
+                    .Flush();
                 return false;
             }
         }

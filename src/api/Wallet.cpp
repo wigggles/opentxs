@@ -383,8 +383,7 @@ std::string Wallet::CreateNymHD(
             break;
         }
         default: {
-            otOut << OT_METHOD << __FUNCTION__ << ": Invalid nym type."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid nym type.").Flush();
 
             return {};
         }
@@ -403,8 +402,8 @@ std::string Wallet::CreateNymHD(
     auto nym = Nym(nymParameters, type, name);
 
     if (nullptr == nym) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Failed trying to create Nym."
-              << std::endl;
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Failed trying to create Nym.")
+            .Flush();
 
         return {};
     }
@@ -427,10 +426,10 @@ std::string Wallet::CreateNymHD(
 
     return nym->ID().str();
 #else
-    otOut << OT_METHOD << __FUNCTION__ << ": No support for HD key derivation."
-          << std::endl;
+    LogNormal(OT_METHOD)(__FUNCTION__)(": No support for HD key derivation.")
+        .Flush()
 
-    return {};
+            return {};
 #endif
 }
 

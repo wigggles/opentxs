@@ -202,10 +202,10 @@ bool Ledger::SaveBoxReceipt(const std::int64_t& lTransactionNum)
     auto pTransaction = GetTransaction(lTransactionNum);
 
     if (false == bool(pTransaction)) {
-        otOut << "OTLedger::SaveBoxReceipt: Unable to save box receipt "
-              << lTransactionNum
-              << ": "
-                 "couldn't find the transaction on this ledger.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to save box receipt ")(
+            lTransactionNum)(": "
+                             "couldn't find the transaction on this ledger.")
+            .Flush();
         return false;
     }
 
@@ -220,10 +220,10 @@ bool Ledger::DeleteBoxReceipt(const std::int64_t& lTransactionNum)
     auto pTransaction = GetTransaction(lTransactionNum);
 
     if (false == bool(pTransaction)) {
-        otOut << "OTLedger::DeleteBoxReceipt: Unable to delete (overwrite) box "
-                 "receipt "
-              << lTransactionNum
-              << ": couldn't find the transaction on this ledger.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to delete (overwrite) box "
+                                           "receipt ")(lTransactionNum)(
+            ": couldn't find the transaction on this ledger.")
+            .Flush();
         return false;
     }
 
@@ -324,10 +324,10 @@ bool Ledger::LoadBoxReceipt(const std::int64_t& lTransactionNum)
     auto pTransaction = GetTransaction(lTransactionNum);
 
     if (false == bool(pTransaction)) {
-        otOut
-            << __FUNCTION__ << ": Unable to load box receipt "
-            << lTransactionNum
-            << ": couldn't find abbreviated version already on this ledger.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load box receipt ")(
+            lTransactionNum)(
+            ": couldn't find abbreviated version already on this ledger.")
+            .Flush();
         return false;
     }
     // Todo: security analysis. By this point we've verified the hash of the
@@ -954,15 +954,19 @@ bool Ledger::generate_ledger(
                 szFolder2name,
                 szFilename,
                 "")) {
-            otOut << "ERROR: trying to generate ledger that already exists: "
-                  << szFolder1name << Log::PathSeparator() << szFolder2name
-                  << Log::PathSeparator() << szFilename << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR: trying to generate ledger that already exists: ")(
+                szFolder1name)(Log::PathSeparator())(szFolder2name)(
+                Log::PathSeparator())(szFilename)(".")
+                .Flush();
             return false;
         }
 
         // Okay, it doesn't already exist. Let's generate it.
-        otOut << "Generating " << szFolder1name << Log::PathSeparator()
-              << szFolder2name << Log::PathSeparator() << szFilename << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Generating ")(szFolder1name)(
+            Log::PathSeparator())(szFolder2name)(Log::PathSeparator())(
+            szFilename)(".")
+            .Flush();
     }
 
     SetNymID(theNymID);
@@ -1861,14 +1865,12 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         if (!strLedgerAcctID->Exists() || !strLedgerAcctNotaryID->Exists() ||
             !strNymID->Exists()) {
-            otOut << szFunc << ": Failure: missing strLedgerAcctID ("
-                  << strLedgerAcctID
-                  << ") or "
-                     "strLedgerAcctNotaryID ("
-                  << strLedgerAcctNotaryID << ") or strNymID (" << strNymID
-                  << ") while loading transaction "
-                     "from "
-                  << strType << " ledger. \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: missing strLedgerAcctID (")(strLedgerAcctID)(
+                ") or strLedgerAcctNotaryID (")(strLedgerAcctNotaryID)(
+                ") or strNymID (")(strNymID)(
+                ") while loading transaction from ")(strType)(" ledger.")
+                .Flush();
             return (-1);
         }
 
@@ -1955,14 +1957,12 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             while (nPartialRecordCount-- > 0) {
                 //                xml->read(); // <==================
                 if (!SkipToElement(xml)) {
-                    otOut << szFunc
-                          << ": Failure: Unable to find element when "
-                             "one was expected ("
-                          << strExpected
-                          << ") "
-                             "for abbreviated record of receipt in "
-                          << GetTypeString() << " box:\n\n"
-                          << m_strRawFile << "\n\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Failure: Unable to find element when "
+                        "one was expected (")(strExpected)(
+                        ") for abbreviated record of receipt in ")(
+                        GetTypeString())(" box: ")(m_strRawFile)(".")
+                        .Flush();
                     return (-1);
                 }
 
@@ -2030,11 +2030,12 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                     if (false != bool(pExistingTrans))  // Uh-oh, it's already
                                                         // there!
                     {
-                        otOut << szFunc << ": Error loading transaction "
-                              << lTransactionNum << " (" << strExpected
-                              << "), since one was already there, in box for "
-                                 "account: "
-                              << strLedgerAcctID << ".\n";
+                        LogNormal(OT_METHOD)(__FUNCTION__)(
+                            ": Error loading transaction ")(lTransactionNum)(
+                            " (")(strExpected)(
+                            "), since one was already there, in box for "
+                            "account: ")(strLedgerAcctID)(".")
+                            .Flush();
                         return (-1);
                     }
 
@@ -2185,9 +2186,10 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // go to the next node and read the text.
         //        xml->read(); // <==================
         if (!SkipToTextField(xml)) {
-            otOut << __FUNCTION__
-                  << ": Failure: Unable to find expected text field "
-                     "containing receipt transaction in box. \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Unable to find expected text field "
+                "containing receipt transaction in box.")
+                .Flush();
             return (-1);
         }
 
@@ -2264,11 +2266,12 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                 {
                     const auto strPurportedAcctID =
                         String::Factory(GetPurportedAccountID());
-                    otOut
-                        << szFunc << ": Error loading full transaction "
-                        << pTransaction->GetTransactionNum()
-                        << ", since one was already there, in box for account: "
-                        << strPurportedAcctID << ".\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Error loading full transaction ")(
+                        pTransaction->GetTransactionNum())(
+                        ", since one was already there, in box for account: ")(
+                        strPurportedAcctID)(".")
+                        .Flush();
                     return (-1);
                 }
 
@@ -2293,10 +2296,11 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         // receipt here,
                         // and re-save that box receipt if it doesn't exist.
                         //
-                        otOut << "--- Apparently this is old data (the "
-                                 "transaction "
-                                 "is still stored inside the ledger itself)... "
-                                 "\n";
+                        LogNormal(OT_METHOD)(__FUNCTION__)(
+                            ": --- Apparently this is old data (the "
+                            "transaction "
+                            "is still stored inside the ledger itself)... ")
+                            .Flush();
                         m_bLoadedLegacyData =
                             true;  // Only place this is set true.
 
@@ -2321,9 +2325,11 @@ std::int32_t Ledger::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                         {
                             // Okay then, let's create it...
                             //
-                            otOut << "--- The BoxReceipt doesn't exist "
-                                     "separately "
-                                     "(yet.) Creating it in local storage...\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": --- The BoxReceipt doesn't exist "
+                                "separately "
+                                "(yet). Creating it in local storage...")
+                                .Flush();
 
                             const std::int64_t lBoxType =
                                 static_cast<std::int64_t>(nBoxType);

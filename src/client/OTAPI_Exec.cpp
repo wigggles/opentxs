@@ -476,8 +476,8 @@ std::string OTAPI_Exec::CreateNymLegacy(
 
     if (false == bool(pNym))  // Creation failed.
     {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to create Nym.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Failed trying to create Nym.")
+            .Flush();
         return {};
     }
     // -----------------------------------------------------}
@@ -501,8 +501,7 @@ std::string OTAPI_Exec::CreateNymHD(
             break;
         }
         default: {
-            otOut << OT_METHOD << __FUNCTION__ << ": Invalid nym type."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Invalid nym type.").Flush();
 
             return {};
         }
@@ -525,8 +524,8 @@ std::string OTAPI_Exec::CreateNymHD(
     auto nym = api_.Wallet().Nym(nymParameters, type, name);
 
     if (nullptr == nym) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Failed trying to create Nym."
-              << std::endl;
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Failed trying to create Nym.")
+            .Flush();
 
         return {};
     }
@@ -545,8 +544,8 @@ std::string OTAPI_Exec::CreateNymHD(
 
     return nym->ID().str();
 #else
-    otOut << OT_METHOD << __FUNCTION__ << ": No support for HD key derivation."
-          << std::endl;
+    LogNormal(OT_METHOD)(__FUNCTION__)(": No support for HD key derivation.")
+        .Flush();
 
     return {};
 #endif
@@ -997,7 +996,8 @@ std::string OTAPI_Exec::GetSignerNymID(const std::string& str_Contract) const
     auto strContract = String::Factory(str_Trim2.c_str());
 
     if (strContract->GetLength() < 2) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Empty contract passed in!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Empty contract passed in!")
+            .Flush();
         return {};
     }
 
@@ -1035,7 +1035,8 @@ std::string OTAPI_Exec::CalculateContractID(
     auto strContract = String::Factory(str_Trim2.c_str());
 
     if (strContract->GetLength() < 2) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Empty contract passed in!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Empty contract passed in!")
+            .Flush();
         return {};
     }
 
@@ -1432,9 +1433,9 @@ bool OTAPI_Exec::Wallet_RemoveServer(const std::string& NOTARY_ID) const
     auto theID = Identifier::Factory(NOTARY_ID);
 
     if (api_.Wallet().RemoveServer(theID)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Removed server contract from the wallet: " << NOTARY_ID
-              << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Removed server contract from the wallet: ")(NOTARY_ID)
+            .Flush();
         return true;
     }
     return false;
@@ -1481,9 +1482,10 @@ bool OTAPI_Exec::Wallet_RemoveAssetType(
     auto theID = Identifier::Factory(INSTRUMENT_DEFINITION_ID);
 
     if (api_.Wallet().RemoveUnitDefinition(theID)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Removed unit definition contract from the wallet: "
-              << INSTRUMENT_DEFINITION_ID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Removed unit definition contract from the wallet: ")(
+            INSTRUMENT_DEFINITION_ID)
+            .Flush();
         return true;
     }
     return false;
@@ -1540,8 +1542,9 @@ bool OTAPI_Exec::Wallet_RemoveNym(const std::string& NYM_ID) const
     //        pWallet->SaveWallet();
     //        return true;
     //    } else
-    otOut << OT_METHOD << __FUNCTION__
-          << ": Failure erasing Nym from wallet: " << NYM_ID << "\n";
+    LogNormal(OT_METHOD)(__FUNCTION__)(": Failure erasing Nym from wallet: ")(
+        NYM_ID)(".")
+        .Flush();
 
     return false;
 }
@@ -1572,10 +1575,10 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         return false;
         // Balance must be zero in order to close an account!
     } else if (account.get().GetBalance() != 0) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Account balance MUST be zero in order to "
-                 "close an asset account: "
-              << ACCOUNT_ID << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Account balance MUST be zero in order to "
+            "close an asset account: ")(ACCOUNT_ID)(".")
+            .Flush();
         return false;
     }
     bool BOOL_RETURN_VALUE = false;
@@ -1591,20 +1594,23 @@ bool OTAPI_Exec::Wallet_CanRemoveAccount(const std::string& ACCOUNT_ID) const
         ot_api_.LoadOutbox(theNotaryID, theNymID, theAccountID));
 
     if (nullptr == pInbox) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadInbox.\n Account ID : "
-              << ACCOUNT_ID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure calling OT_API::LoadInbox. Account ID: ")(ACCOUNT_ID)(
+            ".")
+            .Flush();
     } else if (nullptr == pOutbox) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadOutbox.\n Account ID : "
-              << ACCOUNT_ID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure calling OT_API::LoadOutbox. Account ID: ")(ACCOUNT_ID)(
+            ".")
+            .Flush();
     } else if (
         (pInbox->GetTransactionCount() > 0) ||
         (pOutbox->GetTransactionCount() > 0)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure: You cannot remove an asset "
-                 "account if there are inbox/outbox items "
-                 "still waiting to be processed.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: You cannot remove an asset "
+            "account if there are inbox/outbox items "
+            "still waiting to be processed.")
+            .Flush();
     } else
         BOOL_RETURN_VALUE = true;  // SUCCESS!
 
@@ -2523,15 +2529,16 @@ std::int64_t OTAPI_Exec::Instrmnt_GetAmount(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return -1;
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return -1;
     }
     // BY THIS POINT, we have definitely loaded up all the values of the
@@ -2555,15 +2562,16 @@ std::int64_t OTAPI_Exec::Instrmnt_GetTransNum(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return -1;
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return -1;
     }
     // BY THIS POINT, we have definitely loaded up all the values of the
@@ -2589,15 +2597,16 @@ time64_t OTAPI_Exec::Instrmnt_GetValidFrom(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return OTTimeGetTimeFromSeconds(-1);
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return OTTimeGetTimeFromSeconds(-1);
     }
 
@@ -2625,15 +2634,16 @@ time64_t OTAPI_Exec::Instrmnt_GetValidTo(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return OTTimeGetTimeFromSeconds(-1);
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return OTTimeGetTimeFromSeconds(-1);
     }
 
@@ -2661,15 +2671,16 @@ std::string OTAPI_Exec::Instrmnt_GetType(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     // BY THIS POINT, we have definitely loaded up all the values of the
@@ -2700,15 +2711,16 @@ std::string OTAPI_Exec::Instrmnt_GetMemo(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -2740,15 +2752,16 @@ std::string OTAPI_Exec::Instrmnt_GetNotaryID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -2781,15 +2794,16 @@ std::string OTAPI_Exec::Instrmnt_GetInstrumentDefinitionID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -2823,15 +2837,16 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterNymID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -2864,15 +2879,16 @@ std::string OTAPI_Exec::Instrmnt_GetRemitterAcctID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -2906,15 +2922,16 @@ std::string OTAPI_Exec::Instrmnt_GetSenderNymID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -2947,15 +2964,16 @@ std::string OTAPI_Exec::Instrmnt_GetSenderAcctID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -2988,15 +3006,16 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientNymID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
 
@@ -3030,15 +3049,16 @@ std::string OTAPI_Exec::Instrmnt_GetRecipientAcctID(
     auto thePayment{api_.Factory().Payment(strInstrument)};
 
     if (!thePayment->IsValid()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Unable to parse instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to parse instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     const bool bSetValues = thePayment->SetTempValues();
     if (!bSetValues) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load instrument:\n\n"
-              << strInstrument << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load instrument: ")(
+            strInstrument)(".")
+            .Flush();
         return {};
     }
     // BY THIS POINT, we have definitely loaded up all the values of the
@@ -3730,10 +3750,11 @@ std::string OTAPI_Exec::VerifyAndRetrieveXMLContents(
 
     if (false == ot_api_.VerifyAndRetrieveXMLContents(
                      strContract, theSignerID, strOutput)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure: "
-                 "ot_api_.VerifyAndRetrieveXMLContents() "
-                 "returned false.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: "
+            "ot_api_.VerifyAndRetrieveXMLContents() "
+            "returned false.")
+            .Flush();
         return {};
     }
     std::string pBuf = strOutput->Get();
@@ -4282,8 +4303,9 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
 
     if (!strPlan->Exists() ||
         (false == thePlan->LoadContractFromString(strPlan))) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure loading payment plan from string.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure loading payment plan from string.")
+            .Flush();
         return {};
     }
     bool bConfirmed = ot_api_.ConfirmPaymentPlan(
@@ -4293,8 +4315,9 @@ std::string OTAPI_Exec::ConfirmPaymentPlan(
         theRecipientNymID,
         *thePlan);
     if (!bConfirmed) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": failed in OTAPI_Exec::ConfirmPaymentPlan().\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": failed in OTAPI_Exec::ConfirmPaymentPlan().")
+            .Flush();
         return {};
     }
 
@@ -5199,9 +5222,10 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
     } else {
         const bool bConfirmed =
             pScriptable->AllPartiesHaveSupposedlyConfirmed();
@@ -5236,10 +5260,11 @@ bool OTAPI_Exec::Smart_AreAllPartiesConfirmed(
             //
             return true;
         }
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Suspicious: Smart contract loaded up, and is supposedly "
-                 "confirmed by all parties, but failed to verify:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Suspicious: Smart contract loaded up, and is supposedly "
+            "confirmed by all parties, but failed to verify: ")(strContract)(
+            ".")
+            .Flush();
     }
     return false;
 }
@@ -5256,18 +5281,19 @@ bool OTAPI_Exec::Smart_IsPartyConfirmed(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
         return false;
     }
 
     OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
     if (nullptr == pParty) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: "
-              << PARTY_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a party "
+            "with the name: ")(PARTY_NAME)(".")
+            .Flush();
         return false;
     }
 
@@ -5331,9 +5357,10 @@ std::int32_t OTAPI_Exec::Smart_GetPartyCount(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << " Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;  // Error condition.
     }
 
@@ -5348,9 +5375,10 @@ std::int32_t OTAPI_Exec::Smart_GetBylawCount(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;  // Error condition.
     }
 
@@ -5367,9 +5395,10 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
@@ -5377,10 +5406,10 @@ std::string OTAPI_Exec::Smart_GetPartyByIndex(
     OTParty* pParty = pScriptable->GetPartyByIndex(
         nTempIndex);  // has range-checking built-in.
     if (nullptr == pParty) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "party using index: "
-              << nTempIndex << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "party using index: ")(nTempIndex)(".")
+            .Flush();
         return {};
     }
 
@@ -5397,9 +5426,10 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
@@ -5407,10 +5437,10 @@ std::string OTAPI_Exec::Smart_GetBylawByIndex(
     OTBylaw* pBylaw = pScriptable->GetBylawByIndex(
         nTempIndex);  // has range-checking built-in.
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw using index: "
-              << nTempIndex << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw using index: ")(nTempIndex)(".")
+            .Flush();
         return {};
     }
 
@@ -5428,18 +5458,19 @@ std::string OTAPI_Exec::Bylaw_GetLanguage(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a bylaw "
+            "with the name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
     // We found the bylaw...
@@ -5457,18 +5488,19 @@ std::int32_t OTAPI_Exec::Bylaw_GetClauseCount(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a bylaw "
+            "with the name: ")(BYLAW_NAME)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -5485,18 +5517,19 @@ std::int32_t OTAPI_Exec::Bylaw_GetVariableCount(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a bylaw "
+            "with the name: ")(BYLAW_NAME)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -5513,18 +5546,19 @@ std::int32_t OTAPI_Exec::Bylaw_GetHookCount(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string : \n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string : ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a bylaw "
+            "with the name: ")(BYLAW_NAME)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -5541,18 +5575,19 @@ std::int32_t OTAPI_Exec::Bylaw_GetCallbackCount(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a bylaw "
-                 "with the name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a bylaw "
+            "with the name: ")(BYLAW_NAME)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -5570,29 +5605,30 @@ std::string OTAPI_Exec::Clause_GetNameByIndex(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
     const std::int32_t nTempIndex = nIndex;
     OTClause* pClause = pBylaw->GetClauseByIndex(nTempIndex);
     if (nullptr == pClause) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "bylaw found, but failed to retrieve "
-                 "the clause at index: "
-              << nTempIndex << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and "
+            "bylaw found, but failed to retrieve "
+            "the clause at index: ")(nTempIndex)(".")
+            .Flush();
         return {};
     }
 
@@ -5613,29 +5649,30 @@ std::string OTAPI_Exec::Clause_GetContents(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
     OTClause* pClause = pBylaw->GetClause(CLAUSE_NAME);
 
     if (nullptr == pClause) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "bylaw found, but failed to retrieve "
-                 "the clause with name: "
-              << CLAUSE_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and "
+            "bylaw found, but failed to retrieve "
+            "the clause with name: ")(CLAUSE_NAME)(".")
+            .Flush();
         return {};
     }
     // Success.
@@ -5653,29 +5690,30 @@ std::string OTAPI_Exec::Variable_GetNameByIndex(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
     const std::int32_t nTempIndex = nIndex;
     OTVariable* pVar = pBylaw->GetVariableByIndex(nTempIndex);
     if (nullptr == pVar) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "bylaw found, but failed to retrieve "
-                 "the variable at index: "
-              << nTempIndex << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and "
+            "bylaw found, but failed to retrieve "
+            "the variable at index: ")(nTempIndex)(".")
+            .Flush();
         return {};
     }
 
@@ -5695,27 +5733,28 @@ std::string OTAPI_Exec::Variable_GetType(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
     OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
     if (nullptr == pVar) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the variable with name: "
-              << VARIABLE_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and bylaw found, but "
+            "failed to retrieve the variable with name: ")(VARIABLE_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -5738,27 +5777,28 @@ std::string OTAPI_Exec::Variable_GetAccess(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
     OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
     if (nullptr == pVar) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the variable with name: "
-              << VARIABLE_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and bylaw found, but "
+            "failed to retrieve the variable with name: ")(VARIABLE_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -5781,27 +5821,28 @@ std::string OTAPI_Exec::Variable_GetContents(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
     OTVariable* pVar = pBylaw->GetVariable(VARIABLE_NAME);
     if (nullptr == pVar) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the variable with name: "
-              << VARIABLE_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and bylaw found, but "
+            "failed to retrieve the variable with name: ")(VARIABLE_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -5831,18 +5872,19 @@ std::string OTAPI_Exec::Hook_GetNameByIndex(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -5863,18 +5905,19 @@ std::int32_t OTAPI_Exec::Hook_GetClauseCount(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -5903,18 +5946,19 @@ std::string OTAPI_Exec::Hook_GetClauseAtIndex(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -5949,18 +5993,19 @@ std::string OTAPI_Exec::Callback_GetNameByIndex(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -5981,27 +6026,28 @@ std::string OTAPI_Exec::Callback_GetClause(
     const auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTBylaw* pBylaw = pScriptable->GetBylaw(BYLAW_NAME);
     if (nullptr == pBylaw) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "bylaw with name: "
-              << BYLAW_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "bylaw with name: ")(BYLAW_NAME)(".")
+            .Flush();
         return {};
     }
 
     OTClause* pClause = pBylaw->GetCallback(CALLBACK_NAME);
     if (nullptr == pClause) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and bylaw found, but "
-                 "failed to retrieve the clause for callback: "
-              << CALLBACK_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and bylaw found, but "
+            "failed to retrieve the clause for callback: ")(CALLBACK_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -6018,18 +6064,19 @@ std::int32_t OTAPI_Exec::Party_GetAcctCount(
     auto strContract = String::Factory(THE_CONTRACT);
     auto pScriptable(api_.Factory().Scriptable(strContract));
     if (nullptr == pScriptable) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;
     }
 
     OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
     if (nullptr == pParty) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: "
-              << PARTY_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a party "
+            "with the name: ")(PARTY_NAME)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -6047,18 +6094,19 @@ std::int32_t OTAPI_Exec::Party_GetAgentCount(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return OT_ERROR;
     }
 
     OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
     if (nullptr == pParty) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: "
-              << PARTY_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a party "
+            "with the name: ")(PARTY_NAME)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -6079,18 +6127,19 @@ std::string OTAPI_Exec::Party_GetID(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
     if (nullptr == pParty) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to find a party "
-                 "with the name: "
-              << PARTY_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to find a party "
+            "with the name: ")(PARTY_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -6109,29 +6158,30 @@ std::string OTAPI_Exec::Party_GetAcctNameByIndex(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
     if (nullptr == pParty) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "party with name: "
-              << PARTY_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "party with name: ")(PARTY_NAME)(".")
+            .Flush();
         return {};
     }
 
     const std::int32_t nTempIndex = nIndex;
     OTPartyAccount* pAcct = pParty->GetAccountByIndex(nTempIndex);
     if (nullptr == pAcct) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "party found, but failed to retrieve "
-                 "the account at index: "
-              << nTempIndex << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and "
+            "party found, but failed to retrieve "
+            "the account at index: ")(nTempIndex)(".")
+            .Flush();
         return {};
     }
 
@@ -6153,28 +6203,29 @@ std::string OTAPI_Exec::Party_GetAcctID(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
         return {};
     }
 
     OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
     if (nullptr == pParty) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, but failed to retrieve the "
-                 "party with name: "
-              << PARTY_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, but failed to retrieve the "
+            "party with name: ")(PARTY_NAME)(".")
+            .Flush();
         return {};
     }
 
     const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
     if (nullptr == pAcct) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Smart contract loaded up, and "
-                 "party found, but failed to retrieve "
-                 "party's account named: "
-              << ACCT_NAME << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Smart contract loaded up, and "
+            "party found, but failed to retrieve "
+            "party's account named: ")(ACCT_NAME)(".")
+            .Flush();
         return {};
     }
 
@@ -6197,26 +6248,27 @@ std::string OTAPI_Exec::Party_GetAcctInstrumentDefinitionID(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
     } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: "
-                  << PARTY_NAME << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Smart contract loaded up, but failed to retrieve the "
+                "party with name: ")(PARTY_NAME)(".")
+                .Flush();
         } else  // We found the party...
         {
             const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
 
             if (nullptr == pAcct) {
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Smart contract loaded up, and "
-                         "party found, but failed to retrieve "
-                         "party's account named: "
-                      << ACCT_NAME << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Smart contract loaded up, and "
+                    "party found, but failed to retrieve "
+                    "party's account named: ")(ACCT_NAME)(".")
+                    .Flush();
             } else  // We found the account...
             {
                 const std::string str_return(
@@ -6243,26 +6295,27 @@ std::string OTAPI_Exec::Party_GetAcctAgentName(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
     } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: "
-                  << PARTY_NAME << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Smart contract loaded up, but failed to retrieve the "
+                "party with name: ")(PARTY_NAME)(".")
+                .Flush();
         } else  // We found the party...
         {
             const OTPartyAccount* pAcct = pParty->GetAccount(ACCT_NAME);
 
             if (nullptr == pAcct) {
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Smart contract loaded up, and "
-                         "party found, but failed to retrieve "
-                         "party's account named: "
-                      << ACCT_NAME << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Smart contract loaded up, and "
+                    "party found, but failed to retrieve "
+                    "party's account named: ")(ACCT_NAME)(".")
+                    .Flush();
             } else  // We found the account...
             {
                 const std::string str_return(
@@ -6286,26 +6339,27 @@ std::string OTAPI_Exec::Party_GetAgentNameByIndex(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
     } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: "
-                  << PARTY_NAME << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Smart contract loaded up, but failed to retrieve the "
+                "party with name: ")(PARTY_NAME)(".")
+                .Flush();
         } else  // We found the party...
         {
             const std::int32_t nTempIndex = nIndex;
             OTAgent* pAgent = pParty->GetAgentByIndex(nTempIndex);
 
             if (nullptr == pAgent) {
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Smart contract loaded up, and party found, but "
-                         "failed to retrieve the agent at index: "
-                      << nTempIndex << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Smart contract loaded up, and party found, but "
+                    "failed to retrieve the agent at index: ")(nTempIndex)(".")
+                    .Flush();
             } else  // We found the agent...
             {
                 const std::string str_name(
@@ -6331,26 +6385,27 @@ std::string OTAPI_Exec::Party_GetAgentID(
     std::unique_ptr<OTScriptable> pScriptable(
         api_.Factory().Scriptable(strContract));
     if (false == bool(pScriptable)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load smart contract from string:\n\n"
-              << strContract << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load smart contract from string: ")(
+            strContract)(".")
+            .Flush();
     } else {
         OTParty* pParty = pScriptable->GetParty(PARTY_NAME);
         if (nullptr == pParty) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Smart contract loaded up, but failed to retrieve the "
-                     "party with name: "
-                  << PARTY_NAME << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Smart contract loaded up, but failed to retrieve the "
+                "party with name: ")(PARTY_NAME)(".")
+                .Flush();
         } else  // We found the party...
         {
             OTAgent* pAgent = pParty->GetAgent(AGENT_NAME);
 
             if (nullptr == pAgent) {
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Smart contract loaded up, and "
-                         "party found, but failed to retrieve "
-                         "party's agent named: "
-                      << AGENT_NAME << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Smart contract loaded up, and "
+                    "party found, but failed to retrieve "
+                    "party's agent named: ")(AGENT_NAME)(".")
+                    .Flush();
             } else  // We found the agent...
             {
                 auto theAgentID = Identifier::Factory();
@@ -6442,8 +6497,9 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     const auto strMsg = String::Factory(THE_MESSAGE);
 
     if (!strMsg->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load message from empty string.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load message from empty string.")
+            .Flush();
         return false;
     }
 
@@ -6453,25 +6509,27 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     if (strMsg->Contains("PAYMENT PLAN") || strMsg->Contains("SMARTCONTRACT")) {
         const String& strCronItem = strMsg;
 
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Attempting to harvest transaction numbers "
-                 "from cron item...\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Attempting to harvest transaction numbers "
+            "from cron item...")
+            .Flush();
         // Unfortunately the ONLY reason we are loading up this cron item here,
         // is so we can get the server ID off of it.
         //
         auto pCronItem{api_.Factory().CronItem(strCronItem)};
         if (false == bool(pCronItem)) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failed trying to load message from string.";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed trying to load message from string.")
+                .Flush();
 
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Error trying to load the cron item from string (a "
-                     "cron "
-                     "item is a smart contract, or some other recurring "
-                     "transaction such as a market offer, or a payment "
-                     "plan.) "
-                     "Contents:\n\n"
-                  << strCronItem << "\n\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error trying to load the cron item from string (a "
+                "cron "
+                "item is a smart contract, or some other recurring "
+                "transaction such as a market offer, or a payment "
+                "plan.) "
+                "Contents: ")(strCronItem)(".")
+                .Flush();
             return false;
         }
 
@@ -6493,19 +6551,20 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
     if (strMsg->Contains("currencyBasket")) {
         const String& strBasket = strMsg;
 
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Attempting to harvest transaction numbers "
-                 "from a basket currency exchange request...\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Attempting to harvest transaction numbers "
+            "from a basket currency exchange request...")
+            .Flush();
         if (!api_.Wallet().IsLocalNym(NYM_ID)) { return false; }
 
         auto theRequestBasket{api_.Factory().Basket()};
 
         if (theRequestBasket->LoadContractFromString(strBasket)) {
             if (!theRequestBasket->IsExchanging()) {
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Error: This is apparently NOT a "
-                         "basket exchange request!\nContents:\n"
-                      << strBasket << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Error: This is apparently NOT a "
+                    "basket exchange request!")("Contents: ")(strBasket)(".")
+                    .Flush();
                 return false;
             }
             // Now we need to find the account ID (so we can find the server
@@ -6517,10 +6576,10 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
             if (false == bool(account)) {
                 const auto strAcctID =
                     String::Factory(theRequestBasket->GetRequestAccountID());
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Error: Unable to find the main account based on "
-                         "the ID from the exchange request: "
-                      << strAcctID << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Error: Unable to find the main account based on "
+                    "the ID from the exchange request: ")(strAcctID)(".")
+                    .Flush();
                 return false;
             }
             // Now let's get the server ID...
@@ -6530,10 +6589,10 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 
             if (!pServer) {
                 const auto strNotaryID = String::Factory(serverID);
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Error: Unable to find the server based on the "
-                         "exchange request: "
-                      << strNotaryID << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Error: Unable to find the server based on the "
+                    "exchange request: ")(strNotaryID)(".")
+                    .Flush();
 
                 return false;
             }
@@ -6545,14 +6604,16 @@ bool OTAPI_Exec::Msg_HarvestTransactionNumbers(
 
             return true;
         } else {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Error loading original basket request.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error loading original basket request.")
+                .Flush();
         }
 
         return false;
     } else if (!theMessage->LoadContractFromString(strMsg)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed trying to load message from string.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to load message from string.")
+            .Flush();
         return false;
     }
 
@@ -6656,10 +6717,10 @@ std::string OTAPI_Exec::LoadPubkey_Encryption(
                                                                     // 6/13/12
     {
         auto strNymID = String::Factory(nym_id);
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure retrieving encryption pubkey."
-                 " From Nym: "
-              << strNymID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure retrieving encryption pubkey."
+            " From Nym: ")(strNymID)(".")
+            .Flush();
     } else  // success
     {
         std::string pBuf = strPubkey->Get();
@@ -6680,10 +6741,10 @@ std::string OTAPI_Exec::LoadPubkey_Signing(
     if (false == bool(pNym)) return {};
     if (false == pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         auto strNymID = String::Factory(nym_id);
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure retrieving signing pubkey."
-                 " From Nym: "
-              << strNymID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure retrieving signing pubkey."
+            " From Nym: ")(strNymID)(".")
+            .Flush();
     } else  // success
     {
         std::string pBuf = strPubkey->Get();
@@ -6709,9 +6770,9 @@ std::string OTAPI_Exec::LoadUserPubkey_Encryption(
 
     if (!pNym->GetPublicEncrKey().GetPublicKey(strPubkey)) {
         auto strNymID = String::Factory(nym_id);
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure retrieving encryption pubkey from Nym: " << strNymID
-              << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure retrieving encryption pubkey from Nym: ")(strNymID)(".")
+            .Flush();
     } else  // success
     {
         std::string pBuf = strPubkey->Get();
@@ -6734,9 +6795,9 @@ std::string OTAPI_Exec::LoadUserPubkey_Signing(
 
     if (!pNym->GetPublicSignKey().GetPublicKey(strPubkey)) {
         auto strNymID = String::Factory(nym_id);
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure retrieving signing pubkey from Nym: " << strNymID
-              << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure retrieving signing pubkey from Nym: ")(strNymID)(".")
+            .Flush();
     } else  // success
     {
         std::string pBuf = strPubkey->Get();
@@ -6784,9 +6845,10 @@ bool OTAPI_Exec::Mint_IsStillGood(
         ot_api_.LoadMint(theNotaryID, theInstrumentDefinitionID));
 
     if (!pMint)
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadMint.\nServer: " << NOTARY_ID
-              << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure calling OT_API::LoadMint. ")("Server: ")(NOTARY_ID)(
+            " Asset Type: ")(INSTRUMENT_DEFINITION_ID)(".")
+            .Flush();
     else  // success
     {
         const bool bExpired = pMint->Expired();
@@ -6815,12 +6877,10 @@ std::string OTAPI_Exec::LoadMint(
         ot_api_.LoadMint(theNotaryID, theInstrumentDefinitionID));
 
     if (!pMint)
-        otOut << OT_METHOD << __FUNCTION__
-              << "OTAPI_Exec::LoadMint: Failure calling "
-                 "OT_API::LoadMint.\n"
-                 "Server: "
-              << NOTARY_ID << "\n Asset Type: " << INSTRUMENT_DEFINITION_ID
-              << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            "Failure calling OT_API::LoadMint. ")("Server: ")(NOTARY_ID)(
+            " Asset Type: ")(INSTRUMENT_DEFINITION_ID)(".")
+            .Flush();
     else  // success
     {
         auto strOutput = String::Factory(*pMint);  // For the output
@@ -6843,9 +6903,10 @@ std::string OTAPI_Exec::LoadServerContract(
     auto pContract = api_.Wallet().Server(theNotaryID);
 
     if (!pContract) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadServerContract.\nNotary ID: "
-              << NOTARY_ID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure calling OT_API::LoadServerContract. ")("Notary ID: ")(
+            NOTARY_ID)(".")
+            .Flush();
     } else  // success
     {
         auto armored = Armored::Factory(pContract->Serialize());
@@ -6898,8 +6959,9 @@ std::string OTAPI_Exec::Nymbox_GetReplyNotice(
         ot_api_.LoadNymboxNoVerify(theNotaryID, theNymID));
 
     if (nullptr == pLedger) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadNymboxNoVerify.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure calling OT_API::LoadNymboxNoVerify.")
+            .Flush();
         return {};
     }
     auto pTransaction =
@@ -7043,8 +7105,9 @@ std::string OTAPI_Exec::LoadNymbox(
     std::unique_ptr<Ledger> pLedger(ot_api_.LoadNymbox(theNotaryID, theNymID));
 
     if (!pLedger) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadNymbox.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure calling OT_API::LoadNymbox.")
+            .Flush();
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7071,8 +7134,9 @@ std::string OTAPI_Exec::LoadNymboxNoVerify(
         ot_api_.LoadNymboxNoVerify(theNotaryID, theNymID));
 
     if (!pLedger) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure calling OT_API::LoadNymboxNoVerify.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure calling OT_API::LoadNymboxNoVerify.")
+            .Flush();
     } else  // success
     {
         auto strOutput = String::Factory(*pLedger);  // For the output
@@ -7688,9 +7752,10 @@ std::string OTAPI_Exec::Ledger_GetTransactionByID(
     // No need to cleanup this transaction, the ledger owns it already.
 
     if (nullptr == pTransaction) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": No transaction found in ledger with that number : "
-              << TRANSACTION_NUMBER << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": No transaction found in ledger with that number: ")(
+            TRANSACTION_NUMBER)(".")
+            .Flush();
 
         return {};  // Maybe he was just looking; this isn't
                     // necessarily an error.
@@ -7861,9 +7926,10 @@ std::string OTAPI_Exec::Ledger_GetInstrument_lowlevel(
     //
     auto strPaymentContents = String::Factory();
     if (!pPayment->GetPaymentContents(strPaymentContents)) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failed retrieving payment instrument "
-                 "from OTPayment object.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed retrieving payment instrument "
+            "from OTPayment object.")
+            .Flush();
         return {};
     }
     return strPaymentContents->Get();
@@ -9293,7 +9359,7 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return OT_ERROR;
     }
 
@@ -9305,8 +9371,9 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
          theMessage->m_strCommand->Compare("notarizeTransactionResponse")) &&
         (false == theMessage->m_strCommand->Compare("processNymboxResponse")) &&
         (false == theMessage->m_strCommand->Compare("processInboxResponse"))) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type: " << theMessage->m_strCommand << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type: ")(
+            theMessage->m_strCommand)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -9314,7 +9381,8 @@ std::int32_t OTAPI_Exec::Message_GetBalanceAgreementSuccess(
     auto strLedger = String::Factory(theMessage->m_ascPayload);
 
     if (!strLedger->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__ << ": No ledger found on message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": No ledger found on message.")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -9413,11 +9481,14 @@ bool OTAPI_Exec::SavePurse(
                 theNotaryID, theInstrumentDefinitionID, theNymID, *thePurse)) {
             bSuccess = true;
         } else {
-            otOut << strFunc << ": Failure saving purse:\n" << strPurse << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Failure saving purse: ")(
+                strPurse)(".")
+                .Flush();
         }
     } else {
-        otOut << strFunc << ": Failure loading purse from string:\n"
-              << strPurse << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure loading purse from string: ")(strPurse)(".")
+            .Flush();
     }
 
     return bSuccess;
@@ -9673,7 +9744,9 @@ std::string OTAPI_Exec::Purse_Peek(
         std::string pBuf = strOutput->Get();
         return pBuf;
     } else
-        otOut << strFunc << ": Failed peeking at a token on a cash purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed peeking at a token on a cash purse.")
+            .Flush();
     return {};
 }
 
@@ -9744,7 +9817,9 @@ std::string OTAPI_Exec::Purse_Pop(
         std::string pBuf = strOutput->Get();
         return pBuf;
     } else
-        otOut << strFunc << ": Failed popping a token off of a cash purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed popping a token off of a cash purse.")
+            .Flush();
 
     return {};
 }
@@ -9827,7 +9902,8 @@ std::string OTAPI_Exec::Purse_Empty(
 
         return pBuf;
     } else
-        otOut << strFunc << ": Failed emptying a cash purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Failed emptying a cash purse.")
+            .Flush();
 
     return {};
 }
@@ -9920,7 +9996,9 @@ std::string OTAPI_Exec::Purse_Push(
 
         return pBuf;
     } else
-        otOut << strFunc << ": Failed pushing a token onto a cash purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed pushing a token onto a cash purse.")
+            .Flush();
 
     return {};
 }
@@ -11124,7 +11202,7 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return {};
     }
 
@@ -11135,8 +11213,9 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     if ((false == theMessage->m_strCommand->Compare("notarizeTransaction")) &&
         (false ==
          theMessage->m_strCommand->Compare("notarizeTransactionResponse"))) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type: " << theMessage->m_strCommand << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type: ")(
+            theMessage->m_strCommand)(".")
+            .Flush();
         return {};
     }
 
@@ -11144,7 +11223,8 @@ std::string OTAPI_Exec::Message_GetLedger(const std::string& THE_MESSAGE) const
     auto strOutput = String::Factory(theMessage->m_ascPayload);
 
     if (!strOutput->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__ << ": No ledger found on message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": No ledger found on message.")
+            .Flush();
         return {};
     }
 
@@ -11169,7 +11249,7 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return {};
     }
 
@@ -11180,8 +11260,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
     if ((false == theMessage->m_strCommand->Compare(
                       "registerInstrumentDefinitionResponse")) &&
         (false == theMessage->m_strCommand->Compare("issueBasketResponse"))) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type: " << theMessage->m_strCommand << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type: ")(
+            theMessage->m_strCommand)(".")
+            .Flush();
         return {};
     }
 
@@ -11189,8 +11270,9 @@ std::string OTAPI_Exec::Message_GetNewInstrumentDefinitionID(
         String::Factory(theMessage->m_strInstrumentDefinitionID->Get());
 
     if (!strOutput->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": No new instrument definition ID found on message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": No new instrument definition ID found on message.")
+            .Flush();
         return {};
     }
 
@@ -11215,7 +11297,7 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return {};
     }
 
@@ -11226,16 +11308,18 @@ std::string OTAPI_Exec::Message_GetNewIssuerAcctID(
     //
     if (!theMessage->m_strCommand->Compare(
             "registerInstrumentDefinitionResponse")) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type: " << theMessage->m_strCommand << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type: ")(
+            theMessage->m_strCommand)(".")
+            .Flush();
         return {};
     }
 
     auto strOutput = String::Factory(theMessage->m_strAcctID->Get());
 
     if (!strOutput->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": No issuer account ID found on message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": No issuer account ID found on message.")
+            .Flush();
         return {};
     }
 
@@ -11263,7 +11347,7 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return {};
     }
 
@@ -11272,16 +11356,18 @@ std::string OTAPI_Exec::Message_GetNewAcctID(
     // whatever it DOES contain in that case, now do I?)
     //
     if (!theMessage->m_strCommand->Compare("registerAccountResponse")) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type: " << theMessage->m_strCommand << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type: ")(
+            theMessage->m_strCommand)(".")
+            .Flush();
         return {};
     }
 
     auto strOutput = String::Factory(theMessage->m_strAcctID->Get());
 
     if (!strOutput->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": No asset account ID found on message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": No asset account ID found on message.")
+            .Flush();
         return {};
     }
 
@@ -11307,7 +11393,7 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return {};
     }
 
@@ -11322,16 +11408,17 @@ std::string OTAPI_Exec::Message_GetNymboxHash(
          theMessage->m_strCommand->Compare("getRequestNumberResponse")) &&
         (false ==
          theMessage->m_strCommand->Compare("getTransactionNumbersResponse"))) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type : " << theMessage->m_strCommand
-              << " \nFYI, with m_strNymboxHash : "
-              << theMessage->m_strNymboxHash << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type : ")(
+            theMessage->m_strCommand)(".")(" FYI, with m_strNymboxHash: ")(
+            theMessage->m_strNymboxHash)(".")
+            .Flush();
         return {};
     }
 
     if (!theMessage->m_strNymboxHash->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": No NymboxHash found on message: " << strMessage << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": No NymboxHash found on message: ")(strMessage)(".")
+            .Flush();
         return {};
     }
 
@@ -11449,7 +11536,7 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return OT_ERROR;
     }
 
@@ -11461,8 +11548,9 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
          theMessage->m_strCommand->Compare("notarizeTransactionResponse")) &&
         (false == theMessage->m_strCommand->Compare("processInboxResponse")) &&
         (false == theMessage->m_strCommand->Compare("processNymboxResponse"))) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type: " << theMessage->m_strCommand << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type: ")(
+            theMessage->m_strCommand)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -11470,7 +11558,8 @@ std::int32_t OTAPI_Exec::Message_IsTransactionCanceled(
     auto strLedger = String::Factory(theMessage->m_ascPayload);
 
     if (!strLedger->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__ << ": No ledger found on message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": No ledger found on message.")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -11538,7 +11627,7 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
 
     if (!strMessage->Exists() ||
         !theMessage->LoadContractFromString(strMessage)) {
-        otOut << OT_METHOD << __FUNCTION__ << ": Unable to load message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load message.").Flush();
         return OT_ERROR;
     }
 
@@ -11550,8 +11639,9 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
          theMessage->m_strCommand->Compare("notarizeTransactionResponse")) &&
         (false == theMessage->m_strCommand->Compare("processInboxResponse")) &&
         (false == theMessage->m_strCommand->Compare("processNymboxResponse"))) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Wrong message type: " << theMessage->m_strCommand << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Wrong message type: ")(
+            theMessage->m_strCommand)(".")
+            .Flush();
         return OT_ERROR;
     }
 
@@ -11559,7 +11649,8 @@ std::int32_t OTAPI_Exec::Message_GetTransactionSuccess(
     auto strLedger = String::Factory(theMessage->m_ascPayload);
 
     if (!strLedger->Exists()) {
-        otOut << OT_METHOD << __FUNCTION__ << ": No ledger found on message.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": No ledger found on message.")
+            .Flush();
         return OT_ERROR;
     }
 

@@ -234,19 +234,20 @@ bool Contract::VerifyContract() const
     auto pNym = GetContractPublicNym();
 
     if (nullptr == pNym) {
-        otOut << __FUNCTION__
-              << ": Failed retrieving public nym from contract.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed retrieving public nym from contract.")
+            .Flush();
         return false;
     }
 
     if (!VerifySignature(*pNym)) {
         const auto theNymID = Identifier::Factory(*pNym);
         const auto strNymID = String::Factory(theNymID);
-        otOut << __FUNCTION__
-              << ": Failed verifying the contract's signature "
-                 "against the public key that was retrieved "
-                 "from the contract, with key ID: "
-              << strNymID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed verifying the contract's signature "
+            "against the public key that was retrieved "
+            "from the contract, with key ID: ")(strNymID)(".")
+            .Flush();
         return false;
     }
 
@@ -295,12 +296,10 @@ bool Contract::VerifyContractID() const
     if (!(m_ID == newID)) {
         auto str1 = String::Factory(m_ID), str2 = String::Factory(newID);
 
-        otOut << "\nHashes do NOT match in Contract::VerifyContractID.\n "
-                 "Expected: "
-              << str1 << "\n   Actual: " << str2
-              << "\n"
-                 //               "\nRAW FILE:\n--->" << m_strRawFile << "<---"
-                 "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Hashes do NOT match in Contract::VerifyContractID. "
+            "Expected: ")(str1)(". ")("Actual: ")(str2)(".")
+            .Flush();
         return false;
     } else {
         auto str1 = String::Factory();
@@ -1238,11 +1237,12 @@ bool Contract::ParseRawFile()
             // c. There is an error in the file!
             else if (
                 line.length() < 3 || line.at(1) != ' ' || line.at(2) != '-') {
-                otOut
-                    << "Error in contract " << m_strFilename
-                    << ": a dash at the beginning of the "
-                       "line should be followed by a space and another dash:\n"
-                    << m_strRawFile << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(": Error in contract ")(
+                    m_strFilename)(
+                    ": A dash at the beginning of the "
+                    "line should be followed by a space and another dash: ")(
+                    m_strRawFile)(".")
+                    .Flush();
                 return false;
             }
             // d. It is an escaped dash, and therefore kosher, so I merely
@@ -1264,9 +1264,11 @@ bool Contract::ParseRawFile()
                             .Flush();
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
-                            otOut << "Error in signature for contract "
-                                  << m_strFilename
-                                  << ": Unexpected EOF after short line.\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Error in signature for contract ")(
+                                m_strFilename)(
+                                ": Unexpected EOF after short line.")
+                                .Flush();
                             return false;
                         }
 
@@ -1277,9 +1279,11 @@ bool Contract::ParseRawFile()
                             .Flush();
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
-                            otOut << "Error in signature for contract "
-                                  << m_strFilename
-                                  << ": Unexpected EOF after \"Version:\"\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Error in signature for contract ")(
+                                m_strFilename)(
+                                ": Unexpected EOF after Version: .")
+                                .Flush();
                             return false;
                         }
 
@@ -1290,9 +1294,11 @@ bool Contract::ParseRawFile()
                             .Flush();
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
-                            otOut << "Error in signature for contract "
-                                  << m_strFilename
-                                  << ": Unexpected EOF after \"Comment:\"\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Error in signature for contract ")(
+                                m_strFilename)(
+                                ": Unexpected EOF after Comment: .")
+                                .Flush();
                             return false;
                         }
 
@@ -1311,10 +1317,11 @@ bool Contract::ParseRawFile()
                         // Master Cred ID, and ChildCred ID. Key type is
                         // (A|E|S) and the others are base62.
                         {
-                            otOut << "Error in signature for contract "
-                                  << m_strFilename
-                                  << ": Unexpected length for "
-                                     "\"Meta:\" comment.\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Error in signature for contract ")(
+                                m_strFilename)(": Unexpected length for "
+                                               "Meta: comment.")
+                                .Flush();
                             return false;
                         }
 
@@ -1325,18 +1332,20 @@ bool Contract::ParseRawFile()
                                          line.at(12)))  // "knms" from "Meta:
                                                         // knms"
                         {
-                            otOut << "Error in signature for contract "
-                                  << m_strFilename
-                                  << ": Unexpected metadata in the \"Meta:\" "
-                                     "comment.\nLine: "
-                                  << line << "\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Error in signature for contract ")(
+                                m_strFilename)(
+                                ": Unexpected metadata in the Meta: "
+                                "comment. Line: ")(line)(".")
+                                .Flush();
                             return false;
                         }
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
-                            otOut << "Error in signature for contract "
-                                  << m_strFilename
-                                  << ": Unexpected EOF after \"Meta:\"\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Error in signature for contract ")(
+                                m_strFilename)(": Unexpected EOF after Meta: .")
+                                .Flush();
                             return false;
                         }
 
@@ -1359,8 +1368,10 @@ bool Contract::ParseRawFile()
                                 strHashType);
 
                         if (bIsEOF || !m_strRawFile->sgets(buffer1, 2048)) {
-                            otOut << "Error in contract " << m_strFilename
-                                  << ": Unexpected EOF after \"Hash:\"\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Error in contract ")(m_strFilename)(
+                                ": Unexpected EOF after Hash: .")
+                                .Flush();
                             return false;
                         }
 
@@ -1502,11 +1513,13 @@ bool Contract::SkipToElement(IrrXMLReader*& xml)
         // on: " << xml->getNodeName() << " \n";
 
         if (xml->getNodeType() == EXN_NONE) {
-            otOut << "*** " << szFunc << ": EXN_NONE  (skipping)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": EXN_NONE  (Skipping).")
+                .Flush();
             continue;
         }  // SKIP
         else if (xml->getNodeType() == EXN_COMMENT) {
-            otOut << "*** " << szFunc << ": EXN_COMMENT  (skipping)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": EXN_COMMENT  (Skipping).")
+                .Flush();
             continue;
         }  // SKIP
         else if (xml->getNodeType() == EXN_ELEMENT_END)
@@ -1518,14 +1531,15 @@ bool Contract::SkipToElement(IrrXMLReader*& xml)
                 .Flush();
             continue;
         } else if (xml->getNodeType() == EXN_CDATA) {
-            otOut << "*** " << szFunc
-                  << ": EXN_CDATA (ERROR -- unexpected CData)\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                ": EXN_CDATA (ERROR -- unexpected CData).")
+                .Flush();
             return false;
         } else if (xml->getNodeType() == EXN_TEXT) {
             otErr << "*** " << szFunc << ": EXN_TEXT\n";
             return false;
         } else if (xml->getNodeType() == EXN_ELEMENT) {
-            otOut << "*** " << szFunc << ": EXN_ELEMENT\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(": EXN_ELEMENT.").Flush();
             break;
         }  // (Should never happen due to while() second condition.) Still
            // returns true.
@@ -1549,11 +1563,13 @@ bool Contract::SkipToTextField(IrrXMLReader*& xml)
 
     while (xml->read() && (xml->getNodeType() != EXN_TEXT)) {
         if (xml->getNodeType() == EXN_NONE) {
-            otOut << "*** " << szFunc << ": EXN_NONE  (skipping)\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(": EXN_NONE  (Skipping).")
+                .Flush();
             continue;
         }  // SKIP
         else if (xml->getNodeType() == EXN_COMMENT) {
-            otOut << "*** " << szFunc << ": EXN_COMMENT  (skipping)\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(": EXN_COMMENT  (Skipping).")
+                .Flush();
             continue;
         }  // SKIP
         else if (xml->getNodeType() == EXN_ELEMENT_END)
@@ -1561,14 +1577,16 @@ bool Contract::SkipToTextField(IrrXMLReader*& xml)
         // EXN_ELEMENT_END  (skipping)\n";  continue; }     // SKIP
         // (debugging...)
         {
-            otOut << "*** " << szFunc << ": EXN_ELEMENT_END  (ERROR)\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(": EXN_ELEMENT_END  (ERROR).")
+                .Flush();
             return false;
         } else if (xml->getNodeType() == EXN_CDATA) {
-            otOut << "*** " << szFunc
-                  << ": EXN_CDATA (ERROR -- unexpected CData)\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                ": EXN_CDATA (ERROR -- unexpected CData).")
+                .Flush();
             return false;
         } else if (xml->getNodeType() == EXN_ELEMENT) {
-            otOut << "*** " << szFunc << ": EXN_ELEMENT\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(": EXN_ELEMENT.").Flush();
             return false;
         } else if (xml->getNodeType() == EXN_TEXT) {
             otErr << "*** " << szFunc << ": EXN_TEXT\n";
@@ -1605,11 +1623,13 @@ bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
         //
         while (xml->read()) {
             if (xml->getNodeType() == EXN_NONE) {
-                otOut << "*** " << szFunc << ": EXN_NONE  (skipping)\n";
+                LogDetail(OT_METHOD)(__FUNCTION__)(": EXN_NONE  (Skipping).")
+                    .Flush();
                 continue;
             }  // SKIP
             else if (xml->getNodeType() == EXN_COMMENT) {
-                otOut << "*** " << szFunc << ": EXN_COMMENT  (skipping)\n";
+                LogDetail(OT_METHOD)(__FUNCTION__)(": EXN_COMMENT  (Skipping).")
+                    .Flush();
                 continue;
             }  // SKIP
             else if (xml->getNodeType() == EXN_ELEMENT_END) {
@@ -1619,11 +1639,15 @@ bool Contract::SkipAfterLoadingField(IrrXMLReader*& xml)
                 break;
             }  // Success...
             else if (xml->getNodeType() == EXN_CDATA) {
-                otOut << "*** " << szFunc << ": EXN_CDATA  (Unexpected!)\n";
+                LogDetail(OT_METHOD)(__FUNCTION__)(
+                    ": EXN_CDATA  (Unexpected!).")
+                    .Flush();
                 return false;
             }  // Failure / Error
             else if (xml->getNodeType() == EXN_ELEMENT) {
-                otOut << "*** " << szFunc << ": EXN_ELEMENT  (Unexpected!)\n";
+                LogDetail(OT_METHOD)(__FUNCTION__)(
+                    ": EXN_ELEMENT  (Unexpected!).")
+                    .Flush();
                 return false;
             }  // Failure / Error
             else if (xml->getNodeType() == EXN_TEXT) {
@@ -1666,7 +1690,7 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
         nullptr != xml,
         "Contract::LoadEncodedTextField -- assert: nullptr != xml");
 
-    const char* szFunc = "Contract::LoadEncodedTextField";
+    // const char* szFunc = "Contract::LoadEncodedTextField";
 
     // If we're not ALREADY on a text field, maybe there is some whitespace, so
     // let's skip ahead...
@@ -1677,8 +1701,9 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
 
         // move to the next node which SHOULD be the expected text field.
         if (!SkipToTextField(xml)) {
-            otOut << szFunc
-                  << ": Failure: Unable to find expected text field.\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Unable to find expected text field.")
+                .Flush();
             return false;
         }
 
@@ -1714,16 +1739,19 @@ bool Contract::LoadEncodedTextField(IrrXMLReader*& xml, Armored& ascOutput)
             // The below call won't advance any further if it's ALREADY on the
             // closing tag (e.g. from the above xml->read() call.)
             if (!SkipAfterLoadingField(xml)) {
-                otOut << "*** " << szFunc
-                      << ": Bad data? Expected EXN_ELEMENT_END here, but "
-                         "didn't get it. Returning false.\n";
+                LogDetail(OT_METHOD)(__FUNCTION__)(
+                    ": Bad data? Expected EXN_ELEMENT_END here, but "
+                    "didn't get it. Returning false.")
+                    .Flush();
                 return false;
             }
 
             return true;
         }
     } else
-        otOut << szFunc << ": Failure: Unable to find expected text field. 2\n";
+        LogDetail(OT_METHOD)(__FUNCTION__)(
+            ": Failure: Unable to find expected text field 2.")
+            .Flush();
 
     return false;
 }
@@ -1767,9 +1795,9 @@ bool Contract::LoadEncodedTextFieldByName(
         strcmp(szName, xml->getNodeName()) != 0) {
         // move to the next node which SHOULD be the expected name.
         if (!SkipToElement(xml)) {
-            otOut << __FUNCTION__
-                  << ": Failure: Unable to find expected element: " << szName
-                  << ". \n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Unable to find expected element: ")(szName)(".")
+                .Flush();
             return false;
         }
     }
@@ -2022,9 +2050,11 @@ std::int32_t Contract::ProcessXMLNode(IrrXMLReader*& xml)
         strConditionName = String::Factory(xml->getAttributeValue("name"));
 
         if (!SkipToTextField(xml)) {
-            otOut << "Contract::ProcessXMLNode: Failure: Unable to find "
-                     "expected text field for xml node named: "
-                  << xml->getNodeName() << "\n";
+            LogDetail(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Unable to find "
+                "expected text field for xml node named: ")(xml->getNodeName())(
+                ".")
+                .Flush();
             return (-1);  // error condition
         }
 

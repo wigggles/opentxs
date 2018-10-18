@@ -178,7 +178,7 @@ void Mint::InitMint()
 
 bool Mint::LoadContract()
 {
-    otOut << "Mint::LoadContract OVERRIDE.\n";
+    LogNormal(OT_METHOD)(__FUNCTION__)(": OVERRIDE.").Flush();
     return LoadMint();
 }
 
@@ -231,9 +231,10 @@ bool Mint::LoadMint(const char* szAppend)  // todo: server should
 
     if (!OTDB::Exists(
             api_.DataFolder(), szFolder1name, szFolder2name, szFilename, "")) {
-        otOut << "Mint::LoadMint: File does not exist: " << szFolder1name
-              << Log::PathSeparator() << szFolder2name << Log::PathSeparator()
-              << szFilename << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": File does not exist: ")(
+            szFolder1name)(Log::PathSeparator())(szFolder2name)(
+            Log::PathSeparator())(szFilename)
+            .Flush();
         return false;
     }
 
@@ -685,9 +686,13 @@ void Mint::GenerateNewMint(
 
     if (account) {
         account.get().GetIdentifier(m_CashAccountID);
-        otOut << "Successfully created cash reserve account for new mint.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Successfully created cash reserve account for new mint.")
+            .Flush();
     } else {
-        otErr << "Error creating cash reserve account for new mint.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error creating cash reserve account for new mint.")
+            .Flush();
     }
 
     account.Release();

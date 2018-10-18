@@ -506,9 +506,10 @@ bool OTClient::AcceptEntireNymbox(
                         }
                     }
                 } else {
-                    otOut << __FUNCTION__
-                          << ": the replyNotice item was either nullptr, or "
-                             "rejected. (Unexpectedly on either count.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": The replyNotice item was either nullptr, or "
+                        "rejected. (Unexpectedly on either count).")
+                        .Flush();
                 }
                 // sign the item
                 acceptItem->SignContract(nym);
@@ -540,20 +541,23 @@ bool OTClient::AcceptEntireNymbox(
                 // Trans number is already issued to this nym (must be an old
                 // notice.)
                 if (context.VerifyIssuedNumber(it)) {
-                    otOut << __FUNCTION__
-                          << ": Attempted to accept a blank "
-                             "transaction number that I "
-                             "ALREADY HAD...(Skipping.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Attempted to accept a blank "
+                        "transaction number that I "
+                        "ALREADY HAD...(Skipping).")
+                        .Flush();
                 } else if (context.VerifyTentativeNumber(it)) {
-                    otOut << __FUNCTION__
-                          << ": Attempted to accept a blank transaction number "
-                             "that I ALREADY ACCEPTED (it's on my tentative "
-                             "list already; Skipping.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Attempted to accept a blank transaction number "
+                        "that I ALREADY ACCEPTED (it's on my tentative "
+                        "list already; Skipping).")
+                        .Flush();
                 } else if (it <= lHighestNum) {
-                    otOut << __FUNCTION__
-                          << ": Attempted to accept a blank transaction number "
-                             "that I've HAD BEFORE, or at least, is <= to ones "
-                             "I've had before. (Skipping...)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Attempted to accept a blank transaction number "
+                        "that I've HAD BEFORE, or at least, is <= to ones "
+                        "I've had before. (Skipping...).")
+                        .Flush();
                 } else {
                     verifiedNumbers.insert(it);
                     theBlankList.Add(it);
@@ -998,10 +1002,10 @@ bool OTClient::createInstrumentNoticeFromPeerObject(
     // (generation might have failed, or verification.)
     // -------------------------------------------------
     if (!bSuccessLoading) {
-        otOut << __FUNCTION__
-              << ": WARNING: Unable to load, verify, or generate paymentInbox, "
-                 "with Notary ID / Nym ID: "
-              << strNotaryID << " / " << strNymID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": WARNING: Unable to load, verify, or generate paymentInbox, "
+            "with Notary ID / Nym ID: ")(strNotaryID)(" / ")(strNymID)(".")
+            .Flush();
         return false;
     }
     // -------------------------------------------------
@@ -1237,10 +1241,10 @@ void OTClient::load_str_trans_add_to_ledger(
     // it's an OTTransactionType, but not an OTTransaction.
     if (false == bool(pCopy)) {
         // const String strNymID(the_nym_id), strAcctID(the_nym_id);
-        otOut << __FUNCTION__
-              << ": it's a transaction type but not a transaction: (for "
-              << str_box_type << "):\n\n"
-              << str_trans_to_add << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": It's a transaction type but not a transaction: (for ")(
+            str_box_type)(")")(": ")(str_trans_to_add)(".")
+            .Flush();
         return;
     }
     // -----------------------------------------
@@ -1253,10 +1257,11 @@ void OTClient::load_str_trans_add_to_ledger(
         // ledger:
         auto strNymID = String::Factory(the_nym_id),
              strAcctID = String::Factory(the_nym_id);
-        otOut << __FUNCTION__ << ": Unable to add the transaction to the "
-              << str_box_type << " with user/acct IDs: " << strNymID << " / "
-              << strAcctID << ", and loading from string:\n\n"
-              << str_trans_to_add << "\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Unable to add the transaction to the ")(str_box_type)(
+            " with user/acct IDs: ")(strNymID)(" / ")(strAcctID)(
+            ", and loading from string: ")(str_trans_to_add)(".")
+            .Flush();
         return;
     }
     // We were able to add it, so now let's save the
@@ -1836,10 +1841,11 @@ void OTClient::ProcessDepositChequeResponse(
                           << ": Failure while trying to save payment "
                              "inbox.\n";
                 } else {
-                    otOut << __FUNCTION__
-                          << ": Removed cheque from payments inbox. "
-                             "(Deposited "
-                             "successfully.)\nSaved payments inbox.\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Removed cheque from payments inbox. "
+                        "(Deposited "
+                        "successfully). Saved payments inbox.")
+                        .Flush();
                 }
             }
         }  // if (nullptr != pTransaction)
@@ -1888,11 +1894,11 @@ void OTClient::ProcessDepositChequeResponse(
         if (!bSuccessLoading) {
             auto strNymID = String::Factory(nymID),
                  strAcctID = String::Factory(nymID);
-            otOut << __FUNCTION__
-                  << ": WARNING: Unable to load, verify, or generate "
-                     "recordBox,"
-                     " with Nym/Acct ID: "
-                  << strNymID << " / " << strAcctID << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": WARNING: Unable to load, verify, or generate "
+                "recordBox,"
+                " with Nym/Acct ID: ")(strNymID)(" / ")(strAcctID)(".")
+                .Flush();
             continue;
         }
         // --- ELSE --- Success loading the recordBox and verifying its
@@ -1934,15 +1940,18 @@ void OTClient::ProcessDepositResponse(
         if ((itemType::atDeposit == pReplyItem->GetType()) ||
             (itemType::atDepositCheque == pReplyItem->GetType())) {
             if (Item::acknowledgement == pReplyItem->GetStatus()) {
-                otOut << "TRANSACTION SUCCESS -- Server acknowledges "
-                         "deposit.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": TRANSACTION SUCCESS -- Server acknowledges "
+                    "deposit.")
+                    .Flush();
                 // ------------------------------------------------
                 if (itemType::atDepositCheque == pReplyItem->GetType()) {
                     ProcessDepositChequeResponse(context, pReplyItem);
                 }
             } else {
-                otOut << __FUNCTION__
-                      << ": TRANSACTION FAILURE -- Server rejects deposit.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": TRANSACTION FAILURE -- Server rejects deposit.")
+                    .Flush();
             }
         }
     }
@@ -2117,12 +2126,12 @@ void OTClient::ProcessIncomingCronItemReply(
         // might have failed, or verification.)
         //
         if (!bSuccessLoading1 || !bSuccessLoading2) {
-            otOut << __FUNCTION__
-                  << ": while processing server reply containing rejection "
-                     "of cron item: WARNING: Unable to load, verify, or "
-                     "generate paymentInbox or recordBox, with IDs: "
-                  << String::Factory(context.Nym()->ID()) << " / "
-                  << String::Factory(context.Nym()->ID()) << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": While processing server reply containing rejection "
+                "of cron item: WARNING: Unable to load, verify, or "
+                "generate paymentInbox or recordBox, with IDs: ")(
+                context.Nym()->ID())(" / ")(context.Nym()->ID())(".")
+                .Flush();
         } else {
             // --- ELSE --- Success loading the payment inbox and recordBox
             // and verifying their contractID and signature, (OR success
@@ -2186,18 +2195,20 @@ void OTClient::ProcessIncomingCronItemReply(
                     *context.Nym(), receipt_id, *thePmntInbox);
 
                 if (false == bool(pPayment)) {
-                    otOut << __FUNCTION__
-                          << ": While looping payments inbox to remove a "
-                             "payment, unable to retrieve payment on receipt "
-                          << receipt_id << " (skipping.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": While looping payments inbox to remove a "
+                        "payment, unable to retrieve payment on receipt ")(
+                        receipt_id)(" (skipping).")
+                        .Flush();
                     continue;
                 } else if (false == pPayment->SetTempValues()) {
-                    otOut << __FUNCTION__
-                          << ": While looping payments inbox to remove a "
-                             "payment, unable to set temp values for "
-                             "payment on "
-                             "receipt "
-                          << receipt_id << " (skipping.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": While looping payments inbox to remove a "
+                        "payment, unable to set temp values for "
+                        "payment on "
+                        "receipt ")(receipt_id)(" (skipping).")
+                        .Flush();
+
                     continue;
                 }
 
@@ -2264,11 +2275,10 @@ void OTClient::ProcessIncomingCronItemReply(
                                      "inbox."
                                      "\n";
                         } else {
-                            otOut << __FUNCTION__
-                                  << ": "
-                                     "Removed instrument from payment inbox."
-                                     "\nSaved payment inbox."
-                                     "\n";
+                            LogNormal(OT_METHOD)(__FUNCTION__)(
+                                ": Removed instrument from payment inbox."
+                                " Saved payment inbox.")
+                                .Flush();
                         }
                     } else {
                         otErr << OT_METHOD << __FUNCTION__
@@ -2924,9 +2934,10 @@ void OTClient::ProcessIncomingTransactions(
             ProcessIncomingTransaction(
                 theReply, context, pTransaction, strReceiptID);
         } else {
-            otOut << __FUNCTION__
-                  << ": Failed verifying server ownership of this "
-                     "transaction.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed verifying server ownership of this "
+                "transaction.")
+                .Flush();
         }
     }
 }
@@ -2973,12 +2984,16 @@ void OTClient::ProcessPayDividendResponse(OTTransaction& theTransaction) const
 
         if (itemType::atPayDividend == pItem->GetType()) {
             if (Item::acknowledgement == pItem->GetStatus()) {
-                otOut << "TRANSACTION SUCCESS -- Server acknowledges "
-                         "dividend "
-                         "payout.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": TRANSACTION SUCCESS -- Server acknowledges "
+                    "dividend "
+                    "payout.")
+                    .Flush();
             } else {
-                otOut << "TRANSACTION FAILURE -- Server rejects dividend "
-                         "payout.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": TRANSACTION FAILURE -- Server rejects dividend "
+                    "payout.")
+                    .Flush();
             }
         }
     }
@@ -3720,7 +3735,8 @@ bool OTClient::processServerReplyGetMint(const Message& theReply)
 
     // TODO check the server signature on the mint here...
     if (pMint->LoadContractFromString(strMint)) {
-        otOut << "Saving mint file to disk...\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Saving mint file to disk...")
+            .Flush();
         pMint->SaveMint();
     }
     return true;
@@ -4002,10 +4018,11 @@ bool OTClient::processServerReplyProcessBox(
                   << strLogData << "\n\n";
         } else if (!strReplyLedger->Exists()) {
             auto strReply = String::Factory(theReply);
-            otOut << "Strange... received server acknowledgment ("
-                  << theReply.m_strCommand
-                  << "), but found no reply ledger within:\n\n"
-                  << strReply << "\n\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Strange... received server acknowledgment (")(
+                theReply.m_strCommand)(
+                " ), but found no reply ledger within: ")(strReply)(".")
+                .Flush();
         } else if (!theLedger->LoadLedgerFromString(strLedger)) {
             otErr << "Strange: Received server acknowledgment ("
                   << theReply.m_strCommand
@@ -4251,8 +4268,10 @@ bool OTClient::processServerReplyProcessBox(
             }
         }
     } else {
-        otOut << "Strange... received server acknowledgment but 'in "
-                 "reference to' message was blank.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Strange... received server acknowledgment but 'in "
+            "reference to' message was blank.")
+            .Flush();
     }
 
     return true;
@@ -5073,12 +5092,12 @@ bool OTClient::processServerReplyProcessInbox(
                 // (generation might have failed, or verification.)
                 //
                 if (!bLoadedRecordBox) {
-                    otOut << __FUNCTION__
-                          << ": while processing server reply to "
-                             "processInbox: WARNING: Unable to load, "
-                             "verify, or generate recordBox, with IDs: "
-                          << String::Factory(context.Nym()->ID()) << " / "
-                          << theReply.m_strAcctID << "\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": While processing server reply to "
+                        "processInbox: WARNING: Unable to load, "
+                        "verify, or generate recordBox, with IDs: ")(
+                        context.Nym()->ID())(" / ")(theReply.m_strAcctID)(".")
+                        .Flush();
                 }
             }
             if (bLoadedRecordBox) {
@@ -5172,14 +5191,17 @@ bool OTClient::processServerReplyProcessNymbox(
 
     // We found it!
     if (false == bool(pStatementItem)) {
-        otOut << "Strange... found transaction in ledger in "
-              << theReply.m_strCommand << ", but didn't find a "
-              << "transactionStatement item within.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Strange... found transaction in ledger in ")(
+            theReply.m_strCommand)(", but didn't find a "
+                                   "transactionStatement item within.")
+            .Flush();
     } else if (!pReplyTransaction->GetSuccess()) {
-        otOut << "Found the receipt you're talking about, in "
-              << "ledger in " << theReply.m_strCommand
-              << ", but the Server's Reply transaction says "
-              << "FAILED.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Found the receipt you're talking about, in "
+            "ledger in ")(theReply.m_strCommand)(
+            ", but the Server's Reply transaction says ")("FAILED.")
+            .Flush();
     } else {
         auto serialized = String::Factory();
         pStatementItem->GetAttachment(serialized);
@@ -5206,9 +5228,11 @@ bool OTClient::processServerReplyProcessNymbox(
             //
             context.AcceptIssuedNumbers(statement);
         } else {
-            otOut << "Strange... found transaction item in "
-                  << "ledger in " << theReply.m_strCommand
-                  << ", but didn't find statement within.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Strange... found transaction item in "
+                "ledger in ")(theReply.m_strCommand)(
+                ", but didn't find statement within.")
+                .Flush();
         }
     }
 
@@ -6174,19 +6198,15 @@ bool OTClient::processServerReplyProcessNymbox(
                                     //
                                     if (!bSuccessLoading1 ||
                                         !bSuccessLoading2) {
-                                        otOut << __FUNCTION__
-                                              << ": while processing server "
-                                                 "rejection of cron item: "
-                                                 "WARNING: Unable to load, "
-                                                 "verify, or generate "
-                                                 "paymentInbox or recordBox, "
-                                                 "with IDs: "
-                                              << String::Factory(
-                                                     context.Nym()->ID())
-                                              << " / "
-                                              << String::Factory(
-                                                     context.Nym()->ID())
-                                              << "\n";
+                                        LogNormal(OT_METHOD)(__FUNCTION__)(
+                                            ": While processing server "
+                                            "rejection of cron item: "
+                                            "WARNING: Unable to load, "
+                                            "verify, or generate "
+                                            "paymentInbox or recordBox, "
+                                            "with IDs: ")(context.Nym()->ID())(
+                                            " / ")(context.Nym()->ID())(".")
+                                            .Flush();
                                     } else  // --- ELSE ---
                                     {
                                         // Success
@@ -6570,35 +6590,35 @@ bool OTClient::processServerReplyProcessNymbox(
                                                     *thePmntInbox);
 
                                             if (false == bool(pPayment)) {
-                                                otOut << __FUNCTION__
-                                                      << ": "
-                                                         "(Upon receiving "
-                                                         "notice)"
-                                                         " While looping "
-                                                         "payments inbox "
-                                                         "to remove a "
-                                                         "payment, "
-                                                         "unable to retrieve "
-                                                         "payment on receipt "
-                                                      << receipt_id
-                                                      << " (skipping.)\n";
+                                                LogNormal(OT_METHOD)(
+                                                    __FUNCTION__)(
+                                                    ": (Upon receiving "
+                                                    "notice)"
+                                                    " While looping "
+                                                    "payments inbox "
+                                                    "to remove a "
+                                                    "payment, "
+                                                    "unable to retrieve "
+                                                    "payment on receipt ")(
+                                                    receipt_id)(" (skipping).")
+                                                    .Flush();
                                                 continue;
                                             } else if (
                                                 false ==
                                                 pPayment->SetTempValues()) {
-                                                otOut << __FUNCTION__
-                                                      << ": "
-                                                         "(Upon receiving "
-                                                         "notice) While "
-                                                         "looping "
-                                                         "payments inbox to "
-                                                         "remove a payment, "
-                                                         "unable to set temp "
-                                                         "values for payment "
-                                                         "on "
-                                                         "receipt "
-                                                      << receipt_id
-                                                      << " (skipping.)\n";
+                                                LogNormal(OT_METHOD)(
+                                                    __FUNCTION__)(
+                                                    ": (Upon receiving "
+                                                    "notice) While "
+                                                    "looping "
+                                                    "payments inbox to "
+                                                    "remove a payment, "
+                                                    "unable to set temp "
+                                                    "values for payment "
+                                                    "on "
+                                                    "receipt ")(receipt_id)(
+                                                    " (skipping).")
+                                                    .Flush();
                                                 continue;
                                             }
 
@@ -6718,15 +6738,17 @@ bool OTClient::processServerReplyProcessNymbox(
                                                                  "payment "
                                                                  "inbox.\n";
                                                     } else {
-                                                        otOut << __FUNCTION__
-                                                              << ": Removed "
-                                                                 "instrument "
-                                                                 "from "
-                                                                 "payment "
-                                                                 "inbox.\n"
-                                                                 "Saved "
-                                                                 "payment "
-                                                                 "inbox.\n";
+                                                        LogNormal(OT_METHOD)(
+                                                            __FUNCTION__)(
+                                                            ": Removed "
+                                                            "instrument "
+                                                            "from "
+                                                            "payment "
+                                                            "inbox. "
+                                                            "Saved "
+                                                            "payment "
+                                                            "inbox.")
+                                                            .Flush();
                                                     }
                                                 } else {
                                                     otErr << __FUNCTION__
@@ -7490,8 +7512,10 @@ bool OTClient::processServerReplyUnregisterAccount(
             api_.Wallet().DeleteAccount(theAccountID);
         }
 
-        otOut << "Successfully DELETED Asset Acct " << theReply.m_strAcctID
-              << " from Server: " << strNotaryID << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Successfully DELETED Asset Acct ")(theReply.m_strAcctID)(
+            " from Server: ")(strNotaryID)(".")
+            .Flush();
     } else {
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my account "
@@ -7521,9 +7545,11 @@ bool OTClient::processServerReplyUnregisterNym(
         theOriginalMessage->m_strNymID->Compare(theReply.m_strNymID) &&
         theOriginalMessage->m_strCommand->Compare("unregisterNym")) {
         context.Reset();
-        otOut << "Successfully DELETED Nym from Server: removed request "
-                 "number, plus all issued and transaction numbers for Nym "
-              << theReply.m_strNymID << " for Server " << strNotaryID << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Successfully DELETED Nym from Server: removed request "
+            "number, plus all issued and transaction numbers for Nym ")(
+            theReply.m_strNymID)(" for Server ")(strNotaryID)(".")
+            .Flush();
     } else {
         otErr << "The server just for some reason tried to trick me into "
                  "erasing my issued and transaction numbers for Nym "
@@ -7683,7 +7709,7 @@ std::int32_t OTClient::ProcessUserCommand(
             lReturnValue = lRequestNumber;
         } break;
         default: {
-            otOut << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__).Flush();
         }
     }
 
@@ -7851,9 +7877,11 @@ void OTClient::ProcessWithdrawalResponse(
                         String::Factory(NYM_ID)->Get(),
                         strInstrumentDefinitionID->Get());
 
-                    otOut << "SUCCESSFULLY UNBLINDED token, and added the "
-                             "cash "
-                             "to the local purse, and saved.\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": SUCCESSFULLY UNBLINDED token, and added the "
+                        "cash "
+                        "to the local purse, and saved.")
+                        .Flush();
                 }
             }
         }

@@ -105,7 +105,8 @@ extern "C" std::int32_t default_pass_cb(
     len = static_cast<std::int32_t>(strlen(tmp_passwd));
 
     if (len <= 0) {
-        opentxs::otOut << __FUNCTION__ << ": Problem? Returning 0...\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(": Problem? Returning 0...")
+            .Flush();
 
         return 0;
     }
@@ -238,9 +239,9 @@ extern "C" std::int32_t souped_up_pass_cb(
     }
 
     if (false == bGotPassword) {
-        opentxs::otOut
-            << __FUNCTION__
-            << ": Failure: (false == bGotPassword.) (Returning 0.)\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: (false == bGotPassword). (Returning 0).")
+            .Flush();
 
         return 0;
     }
@@ -250,18 +251,20 @@ extern "C" std::int32_t souped_up_pass_cb(
                                                 : thePassword.getMemorySize();
 
     if (len < 0) {
-        opentxs::otOut << __FUNCTION__
-                       << ": <0 length password was "
-                          "returned from the API password callback. "
-                          "Returning 0.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": <0 length password was "
+            "returned from the API password callback. "
+            "Returning 0.")
+            .Flush();
 
         return 0;
     } else if (len == 0) {
         const char* szDefault = "test";
-        opentxs::otOut << __FUNCTION__
-                       << ": 0 length password was "
-                          "returned from the API password callback. "
-                          "Substituting default password 'test'.\n";
+        opentxs::LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": 0 length password was "
+            "returned from the API password callback. "
+            "Substituting default password 'test'.")
+            .Flush();
 
         if (thePassword.isPassword()) {
             thePassword.setPassword(

@@ -132,11 +132,11 @@ std::shared_ptr<OTPayment> GetInstrument(
     if ((transactionType::instrumentNotice != pTransaction->GetType()) &&
         (transactionType::payDividend != pTransaction->GetType()) &&
         (transactionType::notice != pTransaction->GetType())) {
-        otOut << OT_METHOD << __FUNCTION__
-              << ": Failure: Expected OTTransaction::instrumentNotice, "
-                 "::payDividend or ::notice, "
-                 "but found: OTTransaction::"
-              << pTransaction->GetTypeString() << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: Expected OTTransaction::instrumentNotice, "
+            "::payDividend or ::notice, "
+            "but found: OTTransaction::")(pTransaction->GetTypeString())(".")
+            .Flush();
 
         return nullptr;
     }
@@ -170,10 +170,11 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
         pTransaction->GetReferenceString(strMsg);
 
         if (!strMsg->Exists()) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failure: Expected OTTransaction::instrumentNotice to "
-                     "contain an 'in reference to' string, but it was empty. "
-                     "(Returning \"\".)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Expected OTTransaction::instrumentNotice to "
+                "contain an 'in reference to' string, but it was empty. "
+                "(Returning).")
+                .Flush();
             return nullptr;
         }
         // --------------------
@@ -185,9 +186,9 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
             OT_FAIL;
         }
         if (!pMsg->LoadContractFromString(strMsg)) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failed trying to load OTMessage from string:\n\n"
-                  << strMsg << "\n\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed trying to load OTMessage from string: ")(strMsg)(".")
+                .Flush();
             return nullptr;
         }
         // --------------------
@@ -208,19 +209,21 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
 
         // Decrypt the Envelope.
         if (!theEnvelope.SetCiphertext(pMsg->m_ascPayload))
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failed trying to set ASCII-armored data for envelope:\n"
-                  << strMsg << "\n\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed trying to set ASCII-armored data for envelope: ")(
+                strMsg)(".")
+                .Flush();
         else if (!theEnvelope.Open(theNym, strEnvelopeContents))
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failed trying to decrypt the financial instrument "
-                     "that was supposedly attached as a payload to this "
-                     "payment message:\n"
-                  << strMsg << "\n\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed trying to decrypt the financial instrument "
+                "that was supposedly attached as a payload to this "
+                "payment message: ")(strMsg)(".")
+                .Flush();
         else if (!strEnvelopeContents->Exists())
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failed: after decryption, cleartext is empty. From:\n"
-                  << strMsg << "\n\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed: after decryption, cleartext is empty. From: ")(
+                strMsg)(".")
+                .Flush();
         else {
             // strEnvelopeContents contains a PURSE or CHEQUE
             // (etc) and not specifically a generic "PAYMENT".
@@ -228,10 +231,10 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
             auto pPayment{
                 pTransaction->API().Factory().Payment(strEnvelopeContents)};
             if (false == bool(pPayment) || !pPayment->IsValid())
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Failed: after decryption, payment is invalid. "
-                         "Contents:\n\n"
-                      << strEnvelopeContents << "\n\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failed: after decryption, payment is invalid. "
+                    "Contents: ")(strEnvelopeContents)(".")
+                    .Flush();
             else  // success.
             {
                 std::shared_ptr<OTPayment> payment{pPayment.release()};
@@ -243,9 +246,9 @@ std::shared_ptr<OTPayment> extract_payment_instrument_from_notice(
         auto pPayment{pTransaction->API().Factory().Payment(strNotice)};
 
         if (false == bool(pPayment) || !pPayment->IsValid())
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Failed: the notice is invalid. Contents:\n\n"
-                  << strNotice << "\n\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed: the notice is invalid. Contents: ")(strNotice)(".")
+                .Flush();
         else  // success.
         {
             std::shared_ptr<OTPayment> payment{pPayment.release()};

@@ -179,8 +179,9 @@ bool ClientContext::Verify(
         const bool inserted = effective.insert(number).second;
 
         if (!inserted) {
-            otOut << OT_METHOD << __FUNCTION__ << ": New transaction # "
-                  << number << " already exists in context." << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": New transaction # ")(number)(
+                " already exists in context.")
+                .Flush();
 
             return false;
         }
@@ -195,8 +196,9 @@ bool ClientContext::Verify(
         const bool removed = (1 == effective.erase(number));
 
         if (!removed) {
-            otOut << OT_METHOD << __FUNCTION__ << ": Burned transaction # "
-                  << number << " does not exist in context." << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Burned transaction # ")(
+                number)(" does not exist in context.")
+                .Flush();
 
             return false;
         }
@@ -212,9 +214,9 @@ bool ClientContext::Verify(
         const bool found = (1 == effective.count(number));
 
         if (!found) {
-            otOut << OT_METHOD << __FUNCTION__ << ": Issued transaction # "
-                  << number << " from statement not found on context."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Issued transaction # ")(
+                number)(" from statement not found on context.")
+                .Flush();
 
             return false;
         }
@@ -224,9 +226,9 @@ bool ClientContext::Verify(
         const bool found = (1 == statement.Issued().count(number));
 
         if (!found) {
-            otOut << OT_METHOD << __FUNCTION__ << ": Issued transaction # "
-                  << number << " from context not found on statement."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Issued transaction # ")(
+                number)(" from context not found on statement.")
+                .Flush();
 
             return false;
         }

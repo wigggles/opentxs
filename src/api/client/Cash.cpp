@@ -18,16 +18,13 @@
 
 #define OT_METHOD "opentxs::Cash"
 
-//#define OT_METHOD "opentxs::api::client::implementation::Cash::"
-
-namespace opentxs
 {
-api::client::Cash* Factory::Cash(
-    const api::client::Manager& api,
-    const api::client::ServerAction& serverAction)
-{
-    return new api::client::implementation::Cash(api, serverAction);
-}
+    api::client::Cash* Factory::Cash(
+        const api::client::Manager& api,
+        const api::client::ServerAction& serverAction)
+    {
+        return new api::client::implementation::Cash(api, serverAction);
+    }
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
@@ -80,7 +77,9 @@ std::string Cash::export_cash(
     std::string strContract = api_.Exec().GetAssetType_Contract(unitTypeID);
 
     if (strContract.empty()) {
-        otOut << "Error: cannot load asset contract.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: Cannot load asset contract.")
+            .Flush();
         return {};
     }
     std::string to_nym_id = TO_nymID;
@@ -88,16 +87,18 @@ std::string Cash::export_cash(
     std::string instrument =
         api_.Exec().LoadPurse(notaryID, unitTypeID, FROM_nymID);
     if (instrument.empty()) {
-        otOut << "Error: cannot load purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot load purse.")
+            .Flush();
         return {};
     }
     // -------------------------------------------------------------------
     if (!bPasswordProtected && TO_nymID.empty()) {
         // If no recipient, then recipient == Nym.
         //
-        otOut << "Cash::export_cash: recipientNym empty--using "
-                 "'FROM_nymID' also as 'TO_nymID': "
-              << FROM_nymID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": recipientNym empty--using "
+            "'FROM_nymID' also as 'TO_nymID': ")(FROM_nymID)
+            .Flush();
         to_nym_id = FROM_nymID;
     }
     // -------------------------------------------------------------------
@@ -232,24 +233,28 @@ std::int32_t Cash::withdraw_and_export_cash_low_level(
     if (!get_purse_indices_or_amount(
             server, mynym, assetType, remain, indices)) {
         if (!indices.empty()) {
-            otOut << "Error: invalid purse indices.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Invalid purse indices.")
+                .Flush();
             return -1;
         }
 
         // Not enough cash found in existing purse to match the amount
         if (1 != easy_withdraw_cash_low_level(myacct, remain)) {
-            otOut << "Error: cannot withdraw cash.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot withdraw cash.")
+                .Flush();
             return -1;
         }
 
         remain = startAmount;
         if (!get_purse_indices_or_amount(
                 server, mynym, assetType, remain, indices)) {
-            otOut
-                << "Error: cannot retrieve purse indices. "
-                   "(It's possible that you have enough cash, yet lack the "
-                   "correct "
-                   "denominations of token for the exact amount requested).\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot retrieve purse indices. "
+                "(It's possible that you have enough cash, yet lack the "
+                "correct denominations of token for the "
+                "exact amount requested).")
+                .Flush();
             return -1;
         }
     }
@@ -258,7 +263,8 @@ std::int32_t Cash::withdraw_and_export_cash_low_level(
     std::string exportedCash = export_cash(
         server, mynym, assetType, hisnym, indices, hasPassword, retainedCopy);
     if (exportedCash.empty()) {
-        otOut << "Error: cannot export cash.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot export cash.")
+            .Flush();
         return -1;
     }
     // By this point, exportedCash and retainedCopy should both be valid.
@@ -300,24 +306,28 @@ std::int32_t Cash::send_cash(
     if (false == get_purse_indices_or_amount(
                      server, mynym, assetType, remain, indices)) {
         if (!indices.empty()) {
-            otOut << "Error: invalid purse indices.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Invalid purse indices.")
+                .Flush();
             return -1;
         }
 
         // Not enough cash found in existing purse to match the amount
         if (1 != easy_withdraw_cash_low_level(myacct, remain)) {
-            otOut << "Error: cannot withdraw cash.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot withdraw cash.")
+                .Flush();
             return -1;
         }
 
         remain = startAmount;
         if (false == get_purse_indices_or_amount(
                          server, mynym, assetType, remain, indices)) {
-            otOut
-                << "Error: cannot retrieve purse indices. "
-                   "(It's possible that you have enough cash, yet lack the "
-                   "correct "
-                   "denominations of token for the exact amount requested).\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot retrieve purse indices. "
+                "(It's possible that you have enough cash, yet lack the "
+                "correct denominations of token for the exact "
+                "amount requested).")
+                .Flush();
             return -1;
         }
     }
@@ -326,7 +336,8 @@ std::int32_t Cash::send_cash(
     std::string exportedCash = export_cash(
         server, mynym, assetType, hisnym, indices, hasPassword, retainedCopy);
     if (exportedCash.empty()) {
-        otOut << "Error: cannot export cash.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot export cash.")
+            .Flush();
         return -1;
     }
     // By this point, exportedCash and retainedCopy should both be valid.
@@ -352,16 +363,18 @@ std::int32_t Cash::send_cash(
         // cannot send cash so try to re-import into sender's purse
         if (!api_.Exec().Wallet_ImportPurse(
                 server, assetType, mynym, retainedCopy)) {
-            otOut << "Error: cannot send cash AND failed re-importing purse."
-                  << "\nServer: " << server << "\nAsset Type: " << assetType
-                  << "\nNym: " << mynym
-                  << "\n\nPurse (SAVE THIS SOMEWHERE!):\n\n"
-                  << retainedCopy << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot send cash AND failed re-importing purse."
+                " Server: ")(server)(".")(" Asset Type: ")(assetType)(".")(
+                " Nym: ")(mynym)(".")(" Purse (SAVE THIS SOMEWHERE!) : ")(
+                retainedCopy)
+                .Flush();
             return -1;
         }
 
         // at least re-importing succeeeded
-        otOut << "Error: cannot send cash.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot send cash.")
+            .Flush();
         return -1;
     }
 
@@ -384,24 +397,30 @@ bool Cash::get_purse_indices_or_amount(
     bool findAmountFromIndices = "" != indices && 0 == remain;
     bool findIndicesFromAmount = "" == indices && 0 != remain;
     if (!findAmountFromIndices && !findIndicesFromAmount) {
-        otOut << "Error: invalid parameter combination.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: invalid parameter combination.")
+            .Flush();
         return false;
     }
 
     std::string purse = api_.Exec().LoadPurse(server, assetType, mynym);
     if (purse.empty()) {
-        otOut << "Error: cannot load purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot load purse.")
+            .Flush();
         return false;
     }
 
     std::int32_t items = api_.Exec().Purse_Count(server, assetType, purse);
     if (0 > items) {
-        otOut << "Error: cannot load purse item count.\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: Cannot load purse item count.")
+            .Flush();
         return false;
     }
 
     if (0 == items) {
-        otOut << "Error: the purse is empty.\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: The purse is empty.")
+            .Flush();
         return false;
     }
 
@@ -409,38 +428,49 @@ bool Cash::get_purse_indices_or_amount(
         std::string token =
             api_.Exec().Purse_Peek(server, assetType, mynym, purse);
         if (token.empty()) {
-            otOut << "Error:cannot load token from purse.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot load token from purse.")
+                .Flush();
             return false;
         }
 
         purse = api_.Exec().Purse_Pop(server, assetType, mynym, purse);
         if (purse.empty()) {
-            otOut << "Error: cannot load updated purse.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot load updated purse.")
+                .Flush();
             return false;
         }
 
         std::int64_t denomination =
             api_.Exec().Token_GetDenomination(server, assetType, token);
         if (0 >= denomination) {
-            otOut << "Error: cannot get token denomination.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot get token denomination.")
+                .Flush();
             return false;
         }
 
         time64_t validTo =
             api_.Exec().Token_GetValidTo(server, assetType, token);
         if (OT_TIME_ZERO > validTo) {
-            otOut << "Error: cannot get token validTo.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot get token validTo.")
+                .Flush();
             return false;
         }
 
         time64_t time = api_.Exec().GetTime();
         if (OT_TIME_ZERO > time) {
-            otOut << "Error: cannot get token time.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot get token time.")
+                .Flush();
             return false;
         }
 
         if (time > validTo) {
-            otOut << "Skipping: token is expired.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Skipping: Token is expired.")
+                .Flush();
             continue;
         }
 
@@ -480,7 +510,9 @@ std::int32_t Cash::deposit_purse(
     std::string assetType =
         api_.Exec().GetAccountWallet_InstrumentDefinitionID(myacct);
     if (assetType.empty()) {
-        otOut << "Error: cannot get unit type from acct purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: Cannot get unit type from acct purse.")
+            .Flush();
         return -1;
     }
 
@@ -500,7 +532,8 @@ std::int32_t Cash::deposit_purse(
     // we have to load the purse ourselves
     instrument = api_.Exec().LoadPurse(server, assetType, mynym);
     if (instrument.empty()) {
-        otOut << "Error: cannot load purse.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: cannot load purse.")
+            .Flush();
         return -1;
     }
 
@@ -535,8 +568,9 @@ std::int32_t Cash::deposit_purse_low_level(
 {
     std::string recipientNymID = api_.Exec().GetAccountWallet_NymID(accountID);
     if (!VerifyStringVal(recipientNymID)) {
-        otOut << "deposit_purse_low_level: Unable to find recipient "
-                 "Nym based on myacct. \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to find recipient "
+                                           "Nym based on myacct.")
+            .Flush();
         return -1;
     }
 
@@ -558,9 +592,9 @@ std::int32_t Cash::deposit_purse_low_level(
         false);
 
     if (!bSuccessProcess || !VerifyStringVal(newPurse)) {
-        otOut << "deposit_purse_low_level: new Purse is empty, after "
-                 "processing "
-                 "it for deposit. \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": new Purse is empty, after "
+                                           "processing it for deposit.")
+            .Flush();
         return -1;
     }
 
@@ -595,46 +629,56 @@ std::int32_t Cash::deposit_purse_low_level(
             Identifier::Factory(accountID),
             true);  // bForceDownload defaults to false.;
 
-        otOut << "\nServer response (" << strAttempt
-              << "): SUCCESS depositing cash!\n";
-        otOut << std::string(bRetrieved ? "Success" : "Failed")
-              << " retrieving intermediary files for account.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Server response (")(strAttempt)(
+            "): SUCCESS depositing cash!")
+            .Flush();
+        LogNormal(OT_METHOD)(__FUNCTION__)(bRetrieved ? "Success" : "Failed")(
+            " retrieving intermediary files for account.")
+            .Flush();
     } else  // failure. (so we re-import the cash, so as not to lose it...)
     {
 
         if (!bPasswordProtected && bReimportIfFailure) {
             bool importStatus = api_.Exec().Wallet_ImportPurse(
                 notaryID, unitTypeID, recipientNymID, newPurse);
-            otOut << "Since failure in deposit_purse_low_level, "
-                     "OT_API_Wallet_ImportPurse called. Status of "
-                     "import: "
-                  << importStatus << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Since failure in deposit_purse_low_level, "
+                "OT_API_Wallet_ImportPurse called. Status of "
+                "import: ")(importStatus)
+                .Flush();
 
             if (!importStatus) {
                 // Raise the alarm here that we failed depositing the purse, and
                 // then we failed
                 // importing it back into our wallet again.
-                otOut << "Error: Failed depositing the cash purse, and then "
-                         "failed re-importing it back to wallet. Therefore YOU "
-                         "must copy the purse NOW and save it to a safe place! "
-                         "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Error: Failed depositing the cash purse, and then "
+                    "failed re-importing it back to wallet. Therefore YOU "
+                    "must copy the purse NOW and save it to a safe place!")
+                    .Flush();
 
-                otOut << newPurse << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(": ")(newPurse).Flush();
 
-                otOut << "AGAIN: Be sure to copy the above purse "
-                         "to a safe place, since it FAILED to "
-                         "deposit and FAILED to re-import back "
-                         "into the wallet. \n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": AGAIN: Be sure to copy the above purse "
+                    "to a safe place, since it FAILED to "
+                    "deposit and FAILED to re-import back "
+                    "into the wallet.")
+                    .Flush();
             }
         } else {
-            otOut << "Error: Failed depositing the cash purse. "
-                     "Therefore YOU must copy the purse NOW and "
-                     "save it to a safe place! \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Failed depositing the cash purse. "
+                "Therefore YOU must copy the purse NOW and "
+                "save it to a safe place!")
+                .Flush();
 
-            otOut << newPurse << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": ")(newPurse).Flush();
 
-            otOut << "AGAIN: Be sure to copy the above purse to a "
-                     "safe place, since it FAILED to deposit. \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": AGAIN: Be sure to copy the above purse to a "
+                "safe place, since it FAILED to deposit.")
+                .Flush();
         }
 
         return -1;
@@ -652,13 +696,17 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
 {
     std::string server = api_.Exec().GetAccountWallet_NotaryID(myacct);
     if (server.empty()) {
-        otOut << "Error: cannot determine server from myacct.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: cannot determine server from myacct.")
+            .Flush();
         return -1;
     }
 
     std::string mynym = api_.Exec().GetAccountWallet_NymID(myacct);
     if (mynym.empty()) {
-        otOut << "Error: cannot determine mynym from myacct.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: cannot determine mynym from myacct.")
+            .Flush();
         return -1;
     }
 
@@ -678,20 +726,25 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
                 .DownloadContract(theNymID, theNotaryID, theAssetType)
                 ->Run();
         if (1 != VerifyMessageSuccess(api_, response)) {
-            otOut << "Error: cannot retrieve asset contract.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: cannot retrieve asset contract.")
+                .Flush();
             return -1;
         }
 
         assetContract = api_.Exec().GetAssetType_Contract(assetType);
         if (assetContract.empty()) {
-            otOut << "Error: cannot load asset contract.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: cannot load asset contract.")
+                .Flush();
             return -1;
         }
     }
 
     std::string mint = load_or_retrieve_mint(server, mynym, assetType);
     if (mint.empty()) {
-        otOut << "Error: cannot load asset mint.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: cannot load asset mint.")
+            .Flush();
         return -1;
     }
 
@@ -704,7 +757,9 @@ std::int32_t Cash::easy_withdraw_cash_low_level(
 
     if (!server_action_.DownloadAccount(
             theNymID, theNotaryID, theAcctID, true)) {
-        otOut << "Error retrieving intermediary files for account.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error retrieving intermediary files for account.")
+            .Flush();
         return -1;
     }
 
@@ -745,11 +800,10 @@ std::string Cash::load_or_retrieve_mint(
     std::string response = check_nym(notaryID, nymID, nymID);
 
     if (1 != VerifyMessageSuccess(api_, response)) {
-        otOut << "load_or_retrieve_mint: Cannot verify nym for "
-                 "IDs: \n";
-        otOut << "   Notary ID: " << notaryID << "\n";
-        otOut << "      Nym ID: " << nymID << "\n";
-        otOut << "Unit Type Id: " << unitTypeID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Cannot verify nym for "
+                                           "IDs: Notary ID: ")(notaryID)(".")(
+            " Nym ID: ")(nymID)(".")(" Unit Type Id: ")(unitTypeID)
+            .Flush();
         return "";
     }
 
@@ -774,20 +828,20 @@ std::string Cash::load_or_retrieve_mint(
                        ->Run();
 
         if (1 != VerifyMessageSuccess(api_, response)) {
-            otOut << "load_or_retrieve_mint: Unable to "
-                     "retrieve mint for IDs: \n";
-            otOut << "   Notary ID: " << notaryID << "\n";
-            otOut << "      Nym ID: " << nymID << "\n";
-            otOut << "Unit Type Id: " << unitTypeID << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Unable to retrieve mint for IDs: "
+                "Notary ID: ")(notaryID)(".")(" Nym ID: ")(nymID)(".")(
+                " Unit Type Id: ")(unitTypeID)
+                .Flush();
             return "";
         }
 
         if (!api_.Exec().Mint_IsStillGood(notaryID, unitTypeID)) {
-            otOut << "load_or_retrieve_mint: Retrieved "
-                     "mint, but still 'not good' for IDs: \n";
-            otOut << "   Notary ID: " << notaryID << "\n";
-            otOut << "      Nym ID: " << nymID << "\n";
-            otOut << "Unit Type Id: " << unitTypeID << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Retrieved mint, but still 'not good' for IDs: "
+                "Notary ID: ")(notaryID)(".")(" Nym ID: ")(nymID)(".")(
+                " Unit Type Id: ")(unitTypeID)
+                .Flush();
             return "";
         }
     }
@@ -800,11 +854,10 @@ std::string Cash::load_or_retrieve_mint(
 
     std::string strMint = api_.Exec().LoadMint(notaryID, unitTypeID);
     if (!VerifyStringVal(strMint)) {
-        otOut << "load_or_retrieve_mint: Unable to load mint "
-                 "for IDs: \n";
-        otOut << "   Notary ID: " << notaryID << "\n";
-        otOut << "      Nym ID: " << nymID << "\n";
-        otOut << "Unit Type Id: " << unitTypeID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to load mint "
+                                           "for IDs: Notary ID: ")(notaryID)(
+            ".")(" Nym ID: ")(nymID)(".")(" Unit Type Id: ")(unitTypeID)
+            .Flush();
     }
 
     return strMint;
@@ -877,10 +930,10 @@ bool Cash::process_cash_purse(
                                                 // nymID is signer;
 
         if (!VerifyStringVal(newPurse)) {
-            otOut << strLocation << ": "
-                  << (bPWProtectNewPurse ? "OT_API_CreatePurse_Passphrase"
-                                         : "OT_API_CreatePurse")
-                  << " returned null\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": ")(
+                bPWProtectNewPurse ? "OT_API_CreatePurse_Passphrase"
+                                   : "OT_API_CreatePurse")(" returned null.")
+                .Flush();
             return false;
         }
 
@@ -896,8 +949,9 @@ bool Cash::process_cash_purse(
             nymID);  // nymID is owner, nymID is signer;
 
         if (!VerifyStringVal(newPurseForSender)) {
-            otOut << strLocation
-                  << ": Failure: OT_API_CreatePurse returned null\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: OT_API_CreatePurse returned null.")
+                .Flush();
             return false;
         }
 
@@ -922,10 +976,11 @@ bool Cash::process_cash_purse(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(token) || !VerifyStringVal(str1)) {
-                otOut << strLocation
-                      << ": OT_API_Purse_Peek or OT_API_Purse_Pop "
-                         "returned null... SHOULD NEVER HAPPEN. "
-                         "Returning null.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": OT_API_Purse_Peek or OT_API_Purse_Pop "
+                    "returned null...(SHOULD NEVER HAPPEN). "
+                    "Returning null.")
+                    .Flush();
                 return false;
             }
 
@@ -958,10 +1013,11 @@ bool Cash::process_cash_purse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(exportedToken)) {
-                otOut << strLocation
-                      << ": 1, OT_API_Token_ChangeOwner "
-                         "returned null...(should never "
-                         "happen) Returning null.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": 1, OT_API_Token_ChangeOwner "
+                    "returned null...(SHOULD NEVER HAPPEN)."
+                    " Returning null.")
+                    .Flush();
                 return false;
             }
 
@@ -977,10 +1033,11 @@ bool Cash::process_cash_purse(
             // If change failed, then continue.
             //
             if (!VerifyStringVal(retainedToken)) {
-                otOut << strLocation
-                      << ":  2, OT_API_Token_ChangeOwner "
-                         "returned null...(should never "
-                         "happen) Returning null.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": 2, OT_API_Token_ChangeOwner "
+                    "returned null...(should never "
+                    "happen). Returning null.")
+                    .Flush();
                 return false;
             }
 
@@ -1005,9 +1062,10 @@ bool Cash::process_cash_purse(
 
             // If push failed, then continue.
             if (!VerifyStringVal(strPushedForRecipient)) {
-                otOut << strLocation
-                      << ":  OT_API_Purse_Push 1 returned null... "
-                         "(should never happen) Returning null.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": OT_API_Purse_Push 1 returned null... "
+                    "(should never happen). Returning null.")
+                    .Flush();
                 return false;
             }
 
@@ -1027,9 +1085,10 @@ bool Cash::process_cash_purse(
 
             // If push failed, then continue.
             if (!VerifyStringVal(strPushedForRetention)) {
-                otOut << strLocation
-                      << ":  OT_API_Purse_Push 2 returned null... "
-                         "(should never happen) Returning null.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": OT_API_Purse_Push 2 returned null... "
+                    "(should never happen). Returning null.")
+                    .Flush();
                 return false;
             }
 
@@ -1065,9 +1124,10 @@ bool Cash::process_cash_purse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation
-                      << ": OT_API_SavePurse "
-                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": OT_API_SavePurse "
+                    "FAILED. SHOULD NEVER HAPPEN!!!!!!")
+                    .Flush();
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
@@ -1119,17 +1179,22 @@ bool Cash::process_cash_purse(
                      // decrypt if necessary.);
 
         if (!VerifyStringVal(newPurseSelectedForSender)) {
-            otOut << strLocation << ":  OT_API_CreatePurse returned null\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": OT_API_CreatePurse returned null.")
+                .Flush();
             return false;
         }
         if (!VerifyStringVal(newPurseSelectedTokens)) {
-            otOut << strLocation
-                  << ":  OT_API_CreatePurse or "
-                     "OT_API_CreatePurse_Passphrase returned null\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": OT_API_CreatePurse or "
+                "OT_API_CreatePurse_Passphrase returned null.")
+                .Flush();
             return false;
         }
         if (!VerifyStringVal((newPurseUnSelectedTokens))) {
-            otOut << strLocation << ":  OT_API_Purse_Empty returned null\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": OT_API_Purse_Empty returned null.")
+                .Flush();
             return false;
         }
 
@@ -1153,10 +1218,11 @@ bool Cash::process_cash_purse(
                 notaryID, instrumentDefinitionID, nymID, tempOldPurse);
 
             if (!VerifyStringVal(str1) || !VerifyStringVal(token)) {
-                otOut << strLocation
-                      << ":  OT_API_Purse_Peek or "
-                         "OT_API_Purse_Pop returned null... returning Null. "
-                         "(SHOULD NEVER HAPPEN.)\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": OT_API_Purse_Peek or "
+                    "OT_API_Purse_Pop returned null...Returning Null. "
+                    "(SHOULD NEVER HAPPEN).")
+                    .Flush();
                 return false;
             }
 
@@ -1171,9 +1237,10 @@ bool Cash::process_cash_purse(
                 notaryID, instrumentDefinitionID, token);
 
             if (!VerifyStringVal(tokenID)) {
-                otOut << strLocation
-                      << ":  OT_API_Token_GetID returned null... "
-                         "SHOULD NEVER HAPPEN. Returning now.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": OT_API_Token_GetID returned null..."
+                    "(SHOULD NEVER HAPPEN). Returning now.")
+                    .Flush();
                 return false;
             }
 
@@ -1209,10 +1276,11 @@ bool Cash::process_cash_purse(
                     strSender,      // old owner
                     strRecipient);  // new owner
                 if (!VerifyStringVal(exportedToken)) {
-                    otOut << strLocation
-                          << ": 1  OT_API_Token_ChangeOwner "
-                             "returned null... SHOULD NEVER "
-                             "HAPPEN. Returning now.\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": 1, OT_API_Token_ChangeOwner "
+                        "returned null...(SHOULD NEVER "
+                        "HAPPEN). Returning now.")
+                        .Flush();
                     return false;
                 }
 
@@ -1224,10 +1292,11 @@ bool Cash::process_cash_purse(
                     strSender,              // old owner
                     strSenderAsRecipient);  // new owner
                 if (!VerifyStringVal(retainedToken)) {
-                    otOut << strLocation
-                          << ": 2  OT_API_Token_ChangeOwner "
-                             "returned null... SHOULD NEVER "
-                             "HAPPEN. Returning now.\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": 2, OT_API_Token_ChangeOwner "
+                        "returned null...(SHOULD NEVER "
+                        "HAPPEN). Returning now.")
+                        .Flush();
                     return false;
                 }
 
@@ -1247,10 +1316,11 @@ bool Cash::process_cash_purse(
                     newPurseSelectedTokens,
                     exportedToken);  // purse, token
                 if (!VerifyStringVal(strPushedForRecipient)) {
-                    otOut << strLocation
-                          << ":  OT_API_Purse_Push "
-                             "newPurseSelectedTokens returned null... "
-                             "SHOULD NEVER HAPPEN (returning.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": OT_API_Purse_Push "
+                        "newPurseSelectedTokens returned null..."
+                        "(SHOULD NEVER HAPPEN). Returning.")
+                        .Flush();
                     return false;
                 }
 
@@ -1270,10 +1340,11 @@ bool Cash::process_cash_purse(
                     newPurseSelectedForSender,
                     retainedToken);  // purse, token
                 if (!VerifyStringVal(strPushedForRetention)) {
-                    otOut << strLocation
-                          << ":  OT_API_Purse_Push "
-                             "newPurseSelectedForSender returned null... "
-                             "SHOULD NEVER HAPPEN (returning.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": OT_API_Purse_Push "
+                        "newPurseSelectedForSender returned null..."
+                        "(SHOULD NEVER HAPPEN). Returning.")
+                        .Flush();
                     return false;
                 }
 
@@ -1295,10 +1366,11 @@ bool Cash::process_cash_purse(
                     newPurseUnSelectedTokens,
                     token);  // purse, token
                 if (!VerifyStringVal(str)) {
-                    otOut << strLocation
-                          << ": OT_API_Purse_Push "
-                             "newPurseUnSelectedTokens returned null... "
-                             "SHOULD NEVER HAPPEN. Returning false.\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": OT_API_Purse_Push "
+                        "newPurseUnSelectedTokens returned null..."
+                        "(SHOULD NEVER HAPPEN). Returning false.")
+                        .Flush();
                     return false;
                 }
 
@@ -1319,9 +1391,10 @@ bool Cash::process_cash_purse(
                 // No modal?
                 //
                 // FT: adding log.
-                otOut << strLocation
-                      << ":  OT_API_SavePurse "
-                         "FAILED. SHOULD NEVER HAPPEN!!!!!!\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": OT_API_SavePurse "
+                    "FAILED. SHOULD NEVER HAPPEN!!!!!!")
+                    .Flush();
                 return false;
             }
         } else  // old purse IS password protected. (So return its updated
@@ -1359,12 +1432,15 @@ bool Cash::get_tokens(
 
     std::int32_t items = api_.Exec().Purse_Count(server, assetType, purse);
     if (0 > items) {
-        otOut << "Error: cannot load purse item count.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error: Cannot load purse item count.")
+            .Flush();
         return false;
     }
 
     if (1 > items) {
-        otOut << "Error: The purse is empty.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Error: The purse is empty.")
+            .Flush();
         return false;
     }
 
@@ -1373,19 +1449,24 @@ bool Cash::get_tokens(
         std::string token =
             api_.Exec().Purse_Peek(server, assetType, mynym, purse);
         if (token.empty()) {
-            otOut << "Error: cannot load token from purse.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot load token from purse.")
+                .Flush();
             return false;
         }
 
         purse = api_.Exec().Purse_Pop(server, assetType, mynym, purse);
         if (purse.empty()) {
-            otOut << "Error: cannot load updated purse.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Cannot load updated purse.")
+                .Flush();
             return false;
         }
 
         std::string tokenID = api_.Exec().Token_GetID(server, assetType, token);
         if (tokenID.empty()) {
-            otOut << "Error: cannot get token ID.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Error: Cannot get token ID.")
+                .Flush();
             return false;
         }
 

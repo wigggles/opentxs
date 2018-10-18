@@ -435,9 +435,9 @@ OTOffer* OTTrade::GetOffer(Identifier& offerMarketId, OTMarket** market)
 
     // Couldn't find (or create) the market.
     if (false == bool(pMarket)) {
-        otOut
-            << "OTTrade::" << __FUNCTION__
-            << ": Unable to find or create market within requested parameters.";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Unable to find or create market within requested parameters.")
+            .Flush();
         return nullptr;
     }
 
@@ -731,18 +731,19 @@ bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
     if (!context.Nym()->CompareID(GetSenderNymID())) {
         LogInsane(OT_METHOD)(__FUNCTION__)(
             ": nym is not the originator of this CronItem. (He could be a "
-            "recipient though, so this is normal.)")
+            "recipient though, so this is normal).")
             .Flush();
 
         return false;
     }
     // By this point, that means nym is DEFINITELY the originator (sender)...
     else if (GetCountClosingNumbers() < 2) {
-        otOut
-            << "OTTrade::CanRemoveItem Weird: Sender tried to remove a market "
-               "trade; expected at "
-               "least 2 closing numbers to be available--that weren't. (Found "
-            << GetCountClosingNumbers() << ").\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Weird: Sender tried to remove a market "
+            "trade; expected at "
+            "least 2 closing numbers to be available--that weren't. (Found ")(
+            GetCountClosingNumbers())(").")
+            .Flush();
 
         return false;
     }
@@ -750,15 +751,17 @@ bool OTTrade::CanRemoveItemFromCron(const ClientContext& context)
     const auto notaryID = String::Factory(GetNotaryID());
 
     if (!context.VerifyIssuedNumber(GetAssetAcctClosingNum())) {
-        otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
-                 "for asset account.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Closing number didn't verify "
+                                           "for asset account.")
+            .Flush();
 
         return false;
     }
 
     if (!context.VerifyIssuedNumber(GetCurrencyAcctClosingNum())) {
-        otOut << "OTTrade::CanRemoveItemFromCron: Closing number didn't verify "
-                 "for currency account.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Closing number didn't verify "
+                                           "for currency account.")
+            .Flush();
 
         return false;
     }
@@ -1054,6 +1057,7 @@ bool OTTrade::ProcessCron()
         else  // Process it!  <===================
         {
             LogVerbose("Processing trade: ")(GetTransactionNum()).Flush();
+
             bStayOnMarket = market->ProcessTrade(api_.Wallet(), *this, *offer);
             // No need to save the Trade or Offer, since they will
             // be saved inside this call if they are changed.
