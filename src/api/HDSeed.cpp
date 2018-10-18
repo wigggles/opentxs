@@ -373,7 +373,7 @@ std::shared_ptr<proto::Seed> HDSeed::SerializedSeed(
         storage_.Load(fingerprint, serialized);
     }
 
-    index = serialized->index();
+    if (serialized) { index = serialized->index(); }
 
     return serialized;
 }

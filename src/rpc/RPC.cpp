@@ -47,11 +47,12 @@
 
 #include "RPC.hpp"
 
-#define SESSION_DATA_VERSION 1
 #define ACCOUNTEVENT_VERSION 1
 #define ACCOUNTDATA_VERSION 1
 #define RPCTASK_VERSION 1
 #define RPCSTATUS_VERSION 1
+#define SEED_VERSION 1
+#define SESSION_DATA_VERSION 1
 
 #define OT_METHOD "opentxs::rpc::implementation::RPC::"
 
@@ -1068,6 +1069,7 @@ proto::RPCResponse RPC::get_seeds(const proto::RPCCommand& command) const
         auto passphrase = hdseeds.Passphrase(id);
         if (false == words.empty() || false == passphrase.empty()) {
             auto& seed = *output.add_seed();
+            seed.set_version(SEED_VERSION);
             seed.set_id(id);
             seed.set_words(words);
             seed.set_passphrase(passphrase);

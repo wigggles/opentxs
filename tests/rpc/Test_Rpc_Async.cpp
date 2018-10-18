@@ -482,6 +482,32 @@ TEST_F(Test_Rpc_Async, Create_Compatible_Account)
     ASSERT_TRUE(!destination_account_id_.empty());
 }
 
+TEST_F(Test_Rpc_Async, Get_Compatible_Account)
+{
+    auto command = init(proto::RPCCOMMAND_GETCOMPATIBLEACCOUNTS);
+
+    command.set_session(client_b_);
+    command.set_owner(receiver_nym_id_);
+    command.add_identifier(workflow_id_);
+    Lock lock(task_lock_);
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.version());
+
+    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+
+    EXPECT_EQ(1, response.identifier_size());
+
+    ASSERT_STREQ(
+        destination_account_id_.c_str(), response.identifier(0).c_str());
+}
+
 TEST_F(Test_Rpc_Async, Accept_Pending_Payments)
 {
     auto command = init(proto::RPCCOMMAND_ACCEPTPENDINGPAYMENTS);
@@ -587,7 +613,9 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
             proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE,
             proto::PAYMENTWORKFLOWSTATE_COMPLETED);
 
-        if (receiverworkflows.empty()) { Log::Sleep(std::chrono::milliseconds(100)); }
+        if (receiverworkflows.empty()) {
+            Log::Sleep(std::chrono::milliseconds(100));
+        }
     } while (receiverworkflows.empty() && std::time(nullptr) < end);
 
     ASSERT_TRUE(!receiverworkflows.empty());
