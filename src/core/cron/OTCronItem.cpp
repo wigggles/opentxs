@@ -320,10 +320,11 @@ bool OTCronItem::EraseActiveCronReceipt(
                     strNotaryID->Get(),
                     strListFilename->Get(),
                     "")) {
-                otOut << "OTCronItem::" << __FUNCTION__
-                      << ": FYI, failure erasing recurring IDs file: "
-                      << szFoldername << Log::PathSeparator() << strNotaryID
-                      << Log::PathSeparator() << strListFilename << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": FYI, failure erasing recurring IDs file: ")(
+                    szFoldername)(Log::PathSeparator())(strNotaryID)(
+                    Log::PathSeparator())(strListFilename)(".")
+                    .Flush();
             }
         } else {
             numlist.Output(strNumlist);
@@ -667,17 +668,19 @@ bool OTCronItem::CanRemoveItemFromCron(const ClientContext& context)
     }
     // By this point, that means theNym is DEFINITELY the originator (sender)...
     else if (GetCountClosingNumbers() < 1) {
-        otOut << "Weird: Sender tried to remove a cron item; expected at least "
-                 "1 closing number to be available"
-                 "--that wasn't. (Found "
-              << GetCountClosingNumbers() << ").\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Weird: Sender tried to remove a cron item; expected at least "
+            "1 closing number to be available"
+            " -- that wasn't. (Found ")(GetCountClosingNumbers())(").")
+            .Flush();
 
         return false;
     }
 
     if (!context.VerifyIssuedNumber(GetClosingNum())) {
-        otOut << "OTCronItem::CanRemoveItemFromCron: Closing number didn't "
-                 "verify (for removal from cron).\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Closing number didn't "
+                                           "verify (for removal from cron).")
+            .Flush();
 
         return false;
     }

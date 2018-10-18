@@ -486,9 +486,9 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
             AppendFolder(
                 strAppBinaryScriptPath, AppBinaryFolder(), strConfigFolder);
             if (!OTPaths::FolderExists(strAppBinaryScriptPath)) {
-                otOut << __FUNCTION__
-                      << ": Warning: Cannot Find: " << strAppBinaryScriptPath
-                      << ", using default!";
+                LogNormal(OT_METHOD)(__FUNCTION__)(": Warning: Cannot Find: ")(
+                    strAppBinaryScriptPath)(", using default!")
+                    .Flush();
                 strAppBinaryScriptPath =
                     String::Factory();  // don't have anything here.
             }
@@ -1245,8 +1245,9 @@ bool OTPaths::BuildFilePath(
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
             return false;
         if (bLog && l_bBuiltFolder)
-            otOut << __FUNCTION__ << ": Made new folder: " << l_strPathPart
-                  << "";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Made new folder: ")(
+                l_strPathPart)(".")
+                .Flush();
 
         if (!out_bFolderCreated && l_bBuiltFolder) out_bFolderCreated = true;
     }
