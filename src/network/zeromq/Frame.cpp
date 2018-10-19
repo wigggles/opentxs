@@ -11,8 +11,6 @@
 #include "opentxs/core/Data.hpp"
 #include "opentxs/core/Log.hpp"
 
-#include <zmq.h>
-
 template class opentxs::Pimpl<opentxs::network::zeromq::Frame>;
 
 namespace opentxs::network::zeromq
@@ -33,26 +31,22 @@ OTZMQFrame Frame::Factory(const std::string& input)
 namespace opentxs::network::zeromq::implementation
 {
 Frame::Frame()
-    : message_(new zmq_msg_t)
+    : message_()
 {
-    OT_ASSERT(nullptr != message_);
-
-    const auto init = zmq_msg_init(message_);
+    const auto init = zmq_msg_init(&message_);
 
     OT_ASSERT(0 == init);
 }
 
 Frame::Frame(const Data& input)
-    : message_(new zmq_msg_t)
+    : message_()
 {
-    OT_ASSERT(nullptr != message_);
-
-    const auto init = zmq_msg_init_size(message_, input.size());
+    const auto init = zmq_msg_init_size(&message_, input.size());
 
     if (0 < input.size()) {
         OTPassword::safe_memcpy(
-            zmq_msg_data(message_),
-            zmq_msg_size(message_),
+            zmq_msg_data(&message_),
+            zmq_msg_size(&message_),
             input.data(),
             input.size(),
             false);
@@ -62,14 +56,12 @@ Frame::Frame(const Data& input)
 }
 
 Frame::Frame(const std::string& input)
-    : message_(new zmq_msg_t)
+    : message_()
 {
-    OT_ASSERT(nullptr != message_);
-
-    const auto init = zmq_msg_init_size(message_, input.size());
+    const auto init = zmq_msg_init_size(&message_, input.size());
     OTPassword::safe_memcpy(
-        zmq_msg_data(message_),
-        zmq_msg_size(message_),
+        zmq_msg_data(&message_),
+        zmq_msg_size(&message_),
         input.data(),
         input.size(),
         false);
@@ -77,7 +69,7 @@ Frame::Frame(const std::string& input)
     OT_ASSERT(0 == init);
 }
 
-Frame::operator zmq_msg_t*() { return message_; }
+Frame::operator zmq_msg_t*() { return &message_; }
 
 Frame::operator std::string() const
 {
@@ -88,22 +80,9 @@ Frame::operator std::string() const
 
 Frame* Frame::clone() const { return new Frame(std::string(*this)); }
 
-const void* Frame::data() const
-{
-    OT_ASSERT(nullptr != message_);
+const void* Frame::data() const { return zmq_msg_data(&message_); }
 
-    return zmq_msg_data(message_);
-}
+std::size_t Frame::size() const { return zmq_msg_size(&message_); }
 
-std::size_t Frame::size() const
-{
-    OT_ASSERT(nullptr != message_);
-
-    return zmq_msg_size(message_);
-}
-
-Frame::~Frame()
-{
-    if (nullptr != message_) { zmq_msg_close(message_); }
-}
+Frame::~Frame() { zmq_msg_close(&message_); }
 }  // namespace opentxs::network::zeromq::implementation
