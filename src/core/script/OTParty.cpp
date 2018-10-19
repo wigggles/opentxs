@@ -31,6 +31,8 @@
 #include <string>
 #include <utility>
 
+#define OT_METHOD "opentxs::OTParty"
+
 namespace opentxs
 {
 OTParty::OTParty(const api::Wallet& wallet, const std::string& dataFolder)
@@ -231,8 +233,9 @@ bool OTParty::AddAgent(OTAgent& theAgent)
 
         return true;
     } else
-        otOut << "OTParty::AddAgent: Failed -- Agent was already there named "
-              << str_agent_name << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed -- Agent was already there named ")(str_agent_name)(".")
+            .Flush();
 
     return false;
 }
@@ -341,9 +344,10 @@ bool OTParty::AddAccount(OTPartyAccount& thePartyAcct)
 
         return true;
     } else
-        otOut << "OTParty::AddAccount: Failed -- Account was already on party "
-                 "named "
-              << str_acct_name << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed -- Account was already on party "
+            "named ")(str_acct_name)(".")
+            .Flush();
 
     return false;
 }
@@ -354,8 +358,9 @@ std::int64_t OTParty::GetClosingTransNo(std::string str_for_acct_name) const
 
     if (m_mapPartyAccounts.end() == it)  // If it wasn't already there...
     {
-        otOut << "OTParty::GetClosingTransNo: Failed -- Account wasn't found: "
-              << str_for_acct_name << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed -- Account wasn't found: ")(str_for_acct_name)(".")
+            .Flush();
         return 0;
     }
 
@@ -1021,9 +1026,10 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         const String& strAcctID = pPartyAcct->GetAcctID();
 
         if (!strAcctID.Exists()) {
-            otOut << "OTParty::LoadAndVerifyAssetAccounts: Bad: Acct ID is "
-                     "blank for account: "
-                  << str_acct_name << ", on party: " << GetPartyName() << ".\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Bad: Acct ID is "
+                                               "blank for account: ")(
+                str_acct_name)(", on party: ")(GetPartyName())(".")
+                .Flush();
             return false;
         }
 
@@ -1038,9 +1044,10 @@ bool OTParty::LoadAndVerifyAssetAccounts(
                                                    // sure there's no duplicate
                                                    // acct IDs. (Not allowed.)
         } else {
-            otOut << "OTParty::LoadAndVerifyAssetAccounts: Failure: Found a "
-                     "duplicate Acct ID ("
-                  << strAcctID << "), on acct: " << str_acct_name << ".\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Failure: Found a "
+                                               "duplicate Acct ID (")(
+                strAcctID)("), on acct: ")(str_acct_name)(".")
+                .Flush();
             return false;
         }
 
@@ -1078,9 +1085,10 @@ bool OTParty::LoadAndVerifyAssetAccounts(
         //
         if (bHadToLoadtheAcctMyself == true) {
             if ((account = pPartyAcct->LoadAccount())) {
-                otOut << "OTParty::LoadAndVerifyAssetAccounts: Failed loading "
-                         "Account with name: "
-                      << str_acct_name << " and ID: " << strAcctID << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(": Failed loading "
+                                                   "Account with name: ")(
+                    str_acct_name)(" and ID: ")(strAcctID)(".")
+                    .Flush();
                 return false;
             }
             // Successfully loaded the Acct! We add to this map so it gets
@@ -1137,10 +1145,11 @@ bool OTParty::VerifyAccountsWithTheirAgents(
                                      // first failure, but let them all go
                                      // through. (This is in order to keep the
                                      // output consistent.)
-            otOut << "OTParty::" << __FUNCTION__
-                  << ": Ownership, agency, or potentially "
-                     "closing transaction # failed to verify on account: "
-                  << str_acct_name << " \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Ownership, agency, or potentially "
+                "closing transaction # failed to verify on account: ")(
+                str_acct_name)(".")
+                .Flush();
         }
     }
 
@@ -1280,9 +1289,10 @@ void OTParty::recover_opening_number(OTAgent& theAgent, ServerContext& context)
     } else if (GetOpeningTransNo() > 0) {
         theAgent.RecoverTransactionNumber(GetOpeningTransNo(), context);
     } else {
-        otOut << "OTParty::" << __FUNCTION__
-              << ": Nothing to harvest, it was already 0 for party: "
-              << GetPartyName() << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Nothing to harvest, it was already 0 for party: ")(
+            GetPartyName())(".")
+            .Flush();
     }
 }
 
@@ -1311,9 +1321,10 @@ void OTParty::CloseoutOpeningNumber(const String& strNotaryID)
     } else if (GetOpeningTransNo() > 0) {
         pAgent->RemoveIssuedNumber(GetOpeningTransNo(), strNotaryID);
     } else {
-        otOut << "OTParty::" << __FUNCTION__
-              << ": Nothing to closeout, it was already 0 for party: "
-              << GetPartyName() << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Nothing to closeout, it was already 0 for party: ")(
+            GetPartyName())(".")
+            .Flush();
     }
 }
 
@@ -1335,29 +1346,30 @@ bool OTParty::ReserveTransNumsForConfirm(ServerContext& context)
     // FOR THIS PARTY.
 
     if (GetAuthorizingAgentName().size() <= 0) {
-        otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Authorizing "
-                 "agent's name is empty on this party: "
-              << GetPartyName() << " \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: Authorizing "
+            "agent's name is empty on this party: ")(GetPartyName())(".")
+            .Flush();
         return false;
     }
 
     OTAgent* pMainAgent = GetAgent(GetAuthorizingAgentName());
 
     if (nullptr == pMainAgent) {
-        otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Authorizing "
-                 "agent ("
-              << GetPartyName()
-              << ") not found on this party: " << GetAuthorizingAgentName()
-              << " \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Failure: Authorizing "
+                                           "agent (")(GetPartyName())(
+            ") not found on this party: ")(GetAuthorizingAgentName())(".")
+            .Flush();
         return false;
     }
 
     if (!pMainAgent->ReserveOpeningTransNum(context)) {
-        otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Authorizing "
-                 "agent ("
-              << GetAuthorizingAgentName()
-              << ") didn't have an opening transaction #, on party: "
-              << GetPartyName() << " \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: Authorizing "
+            "agent (")(GetAuthorizingAgentName())(
+            ") didn't have an opening transaction #, on party: ")(
+            GetPartyName())(".")
+            .Flush();
         return false;
     }
     // BELOW THIS POINT, the OPENING trans# has been RESERVED and
@@ -1373,9 +1385,11 @@ bool OTParty::ReserveTransNumsForConfirm(ServerContext& context)
         OT_ASSERT(nullptr != pPartyAccount);
 
         if (!pPartyAccount->GetAgentName().Exists()) {
-            otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Authorized "
-                     "agent name is blank for account: "
-                  << pPartyAccount->GetName() << " \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Authorized "
+                "agent name is blank for account: ")(pPartyAccount->GetName())(
+                ".")
+                .Flush();
             // We have to put them back before returning, since this function
             // has failed.
             HarvestAllTransactionNumbers(context);
@@ -1386,9 +1400,11 @@ bool OTParty::ReserveTransNumsForConfirm(ServerContext& context)
         OTAgent* pAgent = GetAgent(pPartyAccount->GetAgentName().Get());
 
         if (nullptr == pAgent) {
-            otOut << "OTParty::ReserveTransNumsForConfirm: Failure: Unable to "
-                     "locate Authorized agent for account: "
-                  << pPartyAccount->GetName() << " \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Unable to "
+                "locate Authorized agent for account: ")(
+                pPartyAccount->GetName())(".")
+                .Flush();
             // We have to put them back before returning, since this function
             // has failed.
             HarvestAllTransactionNumbers(context);
@@ -1398,11 +1414,12 @@ bool OTParty::ReserveTransNumsForConfirm(ServerContext& context)
         // Below this point, pAgent is good.
 
         if (!pAgent->ReserveClosingTransNum(context, *pPartyAccount)) {
-            otOut << "OTParty::ReserveTransNumsForConfirm: Failure: "
-                     "Authorizing agent ("
-                  << GetAuthorizingAgentName()
-                  << ") didn't have a closing transaction #, on party: "
-                  << GetPartyName() << " \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: "
+                "Authorizing agent (")(GetAuthorizingAgentName())(
+                ") didn't have a closing transaction #, on party: ")(
+                GetPartyName())(".")
+                .Flush();
             // We have to put them back before returning, since this function
             // has failed.
             HarvestAllTransactionNumbers(context);
@@ -1494,8 +1511,9 @@ bool OTParty::Compare(const OTParty& rhs) const
     const std::string str_party_name(rhs.GetPartyName());
 
     if (!(str_party_name.compare(GetPartyName()) == 0)) {
-        otOut << "OTParty::Compare: Names don't match.  " << GetPartyName()
-              << "  /  " << str_party_name << " \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Names don't match. ")(
+            GetPartyName())(" / ")(str_party_name)(".")
+            .Flush();
         return false;
     }
 
@@ -1513,18 +1531,20 @@ bool OTParty::Compare(const OTParty& rhs) const
 
     if ((GetOpeningTransNo() > 0) && (rhs.GetOpeningTransNo() > 0) &&
         (GetOpeningTransNo() != rhs.GetOpeningTransNo())) {
-        otOut << "OTParty::Compare: Opening transaction numbers don't match "
-                 "for party "
-              << GetPartyName() << ". ( " << GetOpeningTransNo() << "  /  "
-              << rhs.GetOpeningTransNo() << " ) \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Opening transaction numbers don't match "
+            "for party ")(GetPartyName())(". (")(GetOpeningTransNo())(" / ")(
+            rhs.GetOpeningTransNo())(").")
+            .Flush();
         return false;
     }
 
     if ((GetPartyID().size() > 0) && (rhs.GetPartyID().size() > 0) &&
         !(GetPartyID().compare(rhs.GetPartyID()) == 0)) {
-        otOut << "OTParty::Compare: Party IDs don't match for party "
-              << GetPartyName() << ". ( " << GetPartyID() << "  /  "
-              << rhs.GetPartyID() << " ) \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Party IDs don't match for party ")(GetPartyName())(". (")(
+            GetPartyID())(" / ")(rhs.GetPartyID())(").")
+            .Flush();
         return false;
     }
 
@@ -1532,10 +1552,11 @@ bool OTParty::Compare(const OTParty& rhs) const
         (rhs.GetAuthorizingAgentName().size() > 0) &&
         !(GetAuthorizingAgentName().compare(rhs.GetAuthorizingAgentName()) ==
           0)) {
-        otOut << "OTParty::Compare: Authorizing agent names don't match for "
-                 "party "
-              << GetPartyName() << ". ( " << GetAuthorizingAgentName()
-              << "  /  " << rhs.GetAuthorizingAgentName() << " ) \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Authorizing agent names don't match for "
+            "party ")(GetPartyName())(". (")(GetAuthorizingAgentName())(" / ")(
+            rhs.GetAuthorizingAgentName())(").")
+            .Flush();
         return false;
     }
 
@@ -1544,9 +1565,10 @@ bool OTParty::Compare(const OTParty& rhs) const
     //    mapOfAgents            m_mapAgents; // These are owned.
 
     if (GetAccountCount() != rhs.GetAccountCount()) {
-        otOut << "OTParty::Compare: Mismatched number of accounts when "
-                 "comparing party "
-              << GetPartyName() << ". \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Mismatched number of accounts when "
+            "comparing party ")(GetPartyName())(".")
+            .Flush();
         return false;
     }
 
@@ -1558,15 +1580,16 @@ bool OTParty::Compare(const OTParty& rhs) const
         OTPartyAccount* p2 = rhs.GetAccount(str_acct_name);
 
         if (nullptr == p2) {
-            otOut << "OTParty::Compare: Unable to find Account "
-                  << str_acct_name << " on rhs, when comparing party "
-                  << GetPartyName() << ". \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to find Account ")(
+                str_acct_name)(" on rhs, when comparing party ")(
+                GetPartyName())(".")
+                .Flush();
             return false;
         }
         if (!pAcct->Compare(*p2)) {
-            otOut << "OTParty::Compare: Accounts (" << str_acct_name
-                  << ") don't match when comparing party " << GetPartyName()
-                  << ". \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Accounts (")(str_acct_name)(
+                ") don't match when comparing party ")(GetPartyName())(".")
+                .Flush();
             return false;
         }
     }
@@ -1594,10 +1617,10 @@ bool OTParty::CopyAcctsToConfirmingParty(OTParty& theParty) const
                          pAcct->GetAcctID(),
                          pAcct->GetInstrumentDefinitionID(),
                          pAcct->GetClosingTransNo())) {
-            otOut
-                << "OTParty::CopyAcctsToConfirmingParty: Unable to add Account "
-                << str_acct_name << ", when copying from *this party "
-                << GetPartyName() << ". \n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Unable to add Account ")(
+                str_acct_name)(", when copying from *this party ")(
+                GetPartyName())(".")
+                .Flush();
             return false;
         }
     }
