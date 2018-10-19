@@ -170,7 +170,9 @@ void MessageProcessor::init(
     endpoint << std::to_string(port);
     const auto bound = frontend_socket_->Start(endpoint.str());
 
-    OT_ASSERT(bound);
+    if (false == bound) {
+        throw std::invalid_argument("Cannot connect to endpoint.");
+    }
 
     otErr << std::endl
           << OT_METHOD << __FUNCTION__ << ": Bound to endpoint "

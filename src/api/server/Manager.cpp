@@ -64,8 +64,27 @@ api::server::Manager* Factory::ServerManager(
     const std::string& dataFolder,
     const int instance)
 {
-    return new api::server::implementation::Manager(
-        running, args, crypto, config, context, dataFolder, instance);
+    api::server::implementation::Manager* manager =
+        new api::server::implementation::Manager(
+            running, args, crypto, config, context, dataFolder, instance);
+    if (nullptr != manager) {
+        try {
+            manager->Init();
+        } catch (const std::invalid_argument& e) {
+            manager->Cleanup();
+
+            OTDB::EraseValueByKey(
+                manager->DataFolder(), ".", "NEW_SERVER_CONTRACT.otc", "", "");
+            OTDB::EraseValueByKey(
+                manager->DataFolder(), ".", "notaryServer.xml", "", "");
+            OTDB::EraseValueByKey(
+                manager->DataFolder(), ".", "seed_backup.json", "", "");
+
+            std::rethrow_exception(std::current_exception());
+        }
+    }
+
+    return manager;
 }
 }  // namespace opentxs
 
@@ -86,7 +105,7 @@ Manager::Manager(
           new opentxs::server::MessageProcessor(server_, context, running_))
     , message_processor_(*message_processor_p_)
 #if OT_CASH
-    , mint_thread_(nullptr)
+    , mint_thread_()
     , mint_lock_()
     , mint_update_lock_()
     , mint_scan_lock_()
@@ -99,12 +118,6 @@ Manager::Manager(
     OT_ASSERT(wallet_);
     OT_ASSERT(server_p_);
     OT_ASSERT(message_processor_p_);
-
-#if OT_CASH
-    mint_thread_.reset(new std::thread(&Manager::mint, this));
-#endif  // OT_CASH
-
-    Init();
 }
 
 void Manager::Cleanup()
@@ -329,6 +342,10 @@ void Manager::Init()
 {
     OT_ASSERT(dht_);
     OT_ASSERT(seeds_);
+
+#if OT_CASH
+    mint_thread_ = std::thread(&Manager::mint, this);
+#endif  // OT_CASH
 
     Scheduler::Start(storage_.get(), dht_.get());
     StorageParent::init(*seeds_);
@@ -578,10 +595,7 @@ bool Manager::verify_mint_directory(const std::string& serverID) const
 Manager::~Manager()
 {
 #if OT_CASH
-    if (mint_thread_) {
-        mint_thread_->join();
-        mint_thread_.reset();
-    }
+    if (mint_thread_.joinable()) { mint_thread_.join(); }
 #endif  // OT_CASH
 
     Cleanup();
