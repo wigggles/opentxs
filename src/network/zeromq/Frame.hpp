@@ -9,6 +9,8 @@
 
 #include "opentxs/network/zeromq/Frame.hpp"
 
+#include <zmq.h>
+
 namespace opentxs::network::zeromq::implementation
 {
 class Frame : virtual public zeromq::Frame
@@ -26,7 +28,7 @@ public:
 private:
     friend network::zeromq::Frame;
 
-    zmq_msg_t* message_{nullptr};
+    mutable zmq_msg_t message_;
 
     Frame* clone() const override;
 
