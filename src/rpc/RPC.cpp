@@ -1849,8 +1849,12 @@ proto::RPCResponse RPC::start_server(const proto::RPCCommand& command) const
     try {
         auto& manager = ot_.StartServer(get_args(command.arg()), session);
         instance = manager.Instance();
+    } catch (const std::invalid_argument& e) {
+        add_output_status(output, proto::RPCRESPONSE_ERROR);
+        return output;
     } catch (...) {
         add_output_status(output, proto::RPCRESPONSE_INVALID);
+        return output;
     }
 
     output.set_session(instance);

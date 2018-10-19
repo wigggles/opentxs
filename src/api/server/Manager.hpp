@@ -55,7 +55,7 @@ private:
     std::unique_ptr<opentxs::server::MessageProcessor> message_processor_p_;
     opentxs::server::MessageProcessor& message_processor_;
 #if OT_CASH
-    std::unique_ptr<std::thread> mint_thread_;
+    std::thread mint_thread_;
     mutable std::mutex mint_lock_;
     mutable std::mutex mint_update_lock_;
     mutable std::mutex mint_scan_lock_;
