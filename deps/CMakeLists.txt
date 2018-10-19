@@ -244,7 +244,7 @@ if(OT_BUNDLED_OPENTXS_PROTO)
   add_library(opentxs-proto-objects OBJECT "${opentxs-proto-headers}" "${opentxs-proto-sources}")
   set_property(TARGET opentxs-proto-objects PROPERTY POSITION_INDEPENDENT_CODE 1)
   target_include_directories(opentxs-proto-objects PUBLIC ${OT_PROTOBUF_HEADERS})
-  target_include_directories(opentxs-verify PUBLIC ${OT_PROTOBUF_HEADERS})
+  target_include_directories(verify PUBLIC ${OT_PROTOBUF_HEADERS})
   install(FILES ${opentxs-proto-headers}
           DESTINATION include/opentxs-proto
           COMPONENT dev)
