@@ -21,6 +21,7 @@
 #define CREATEINSTRUMENTDEFINITION_VERSION 1
 #define SENDPAYMENT_VERSION 1
 #define MOVEFUNDS_VERSION 1
+#define GETWORKFLOW_VERSION 1
 
 using namespace opentxs;
 
@@ -1010,6 +1011,55 @@ TEST_F(Test_Rpc, Move_Funds)
 
         ASSERT_EQ(25, account.get().GetBalance());
     }
+}
+
+TEST_F(Test_Rpc, Get_Workflow)
+{
+    auto& client = ot_.Client(0);
+
+    // Make sure the workflows on the client are up-to-date.
+    client.Sync().Refresh();
+
+    auto nym3 = client.Wallet().NymByIDPartialMatch(TEST_NYM_3);
+
+    ASSERT_TRUE(bool(nym3));
+
+    const auto& workflow = client.Workflow();
+    auto workflows = workflow.List(
+        nym3->ID(),
+        proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
+        proto::PAYMENTWORKFLOWSTATE_COMPLETED);
+    
+    ASSERT_TRUE(!workflows.empty());
+    
+    auto workflowid = *workflows.begin();
+    
+    auto command = init(proto::RPCCOMMAND_GETWORKFLOW);
+
+    command.set_session(0);
+
+    auto& getworkflow = *command.add_getworkflow();
+    getworkflow.set_version(GETWORKFLOW_VERSION);
+    getworkflow.set_nymid(nym3->ID().str());
+    getworkflow.set_workflowid(workflowid->str());
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.version());
+
+    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+
+    EXPECT_EQ(1, response.workflow_size());
+
+    const auto& paymentworkflow = response.workflow(0);
+    EXPECT_STREQ(workflowid->str().c_str(), paymentworkflow.id().c_str());
+    EXPECT_EQ(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER, paymentworkflow.type());
+    EXPECT_EQ(proto::PAYMENTWORKFLOWSTATE_COMPLETED, paymentworkflow.state());
 }
 
 TEST_F(Test_Rpc, Get_Account_Balance)

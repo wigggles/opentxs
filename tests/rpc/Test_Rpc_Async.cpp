@@ -309,7 +309,6 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
     ASSERT_TRUE(false == issueraccounts.empty());
 
     auto issueraccountid = *issueraccounts.cbegin();
-    Lock lock(task_lock_);
 
     const auto contact = client_a.Contacts().NewContact(
         "label_only_contact",
@@ -434,7 +433,6 @@ TEST_F(Test_Rpc_Async, Get_Pending_Payments)
 
     command.set_session(client_b_);
     command.set_owner(receiver_nym_id_);
-    Lock lock(task_lock_);
 
     auto response = ot_.RPC(command);
 
@@ -462,7 +460,6 @@ TEST_F(Test_Rpc_Async, Create_Compatible_Account)
     command.set_session(client_b_);
     command.set_owner(receiver_nym_id_);
     command.add_identifier(workflow_id_);
-    Lock lock(task_lock_);
 
     auto response = ot_.RPC(command);
 
@@ -489,7 +486,6 @@ TEST_F(Test_Rpc_Async, Get_Compatible_Account)
     command.set_session(client_b_);
     command.set_owner(receiver_nym_id_);
     command.add_identifier(workflow_id_);
-    Lock lock(task_lock_);
 
     auto response = ot_.RPC(command);
 
@@ -517,7 +513,6 @@ TEST_F(Test_Rpc_Async, Accept_Pending_Payments)
     acceptpendingpayment.set_version(1);
     acceptpendingpayment.set_destinationaccount(destination_account_id_);
     acceptpendingpayment.set_workflow(workflow_id_);
-    Lock lock(task_lock_);
 
     auto response = ot_.RPC(command);
 
@@ -531,9 +526,9 @@ TEST_F(Test_Rpc_Async, Accept_Pending_Payments)
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(1, response.task_size());
 
-    pending_payment_task_id_ = response.task(0).id();
+    auto pending_payment_task_id = response.task(0).id();
 
-    ASSERT_TRUE(!pending_payment_task_id_.empty());
+    ASSERT_TRUE(!pending_payment_task_id.empty());
 }
 
 TEST_F(Test_Rpc_Async, Get_Account_Activity)

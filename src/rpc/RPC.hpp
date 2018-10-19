@@ -65,13 +65,14 @@ private:
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_compatible_accounts(
         const proto::RPCCommand& command) const;
+    proto::RPCResponse get_nyms(const proto::RPCCommand& command) const;
     proto::RPCResponse get_pending_payments(
         const proto::RPCCommand& command) const;
+    proto::RPCResponse get_seeds(const proto::RPCCommand& command) const;
     proto::RPCResponse get_server_contracts(
         const proto::RPCCommand& command) const;
-    proto::RPCResponse get_nyms(const proto::RPCCommand& command) const;
-    proto::RPCResponse get_seeds(const proto::RPCCommand& command) const;
     const api::Core& get_session(std::int32_t instance) const;
+    proto::RPCResponse get_workflow(const proto::RPCCommand& command) const;
     proto::RPCResponse import_seed(const proto::RPCCommand& command) const;
     proto::RPCResponse import_server_contract(
         const proto::RPCCommand& command) const;
