@@ -53,7 +53,7 @@ endif()
 if(OT_BUNDLED_OPENTXS_PROTO)
   set(bundled-opentxs-proto
     $<TARGET_OBJECTS:opentxs-proto-objects>
-    $<TARGET_OBJECTS:opentxs-verify>
+    $<TARGET_OBJECTS:verify>
   )
 else()
   set(bundled-opentxs-proto "")
@@ -81,7 +81,7 @@ if(OT_BUNDLED_PROTOBUF)
 
   if(OT_BUNDLED_OPENTXS_PROTO)
     add_dependencies(opentxs-proto-objects protobuf)
-    add_dependencies(opentxs-verify protobuf)
+    add_dependencies(verify protobuf)
   endif()
 
   add_dependencies(otprotob protobuf)

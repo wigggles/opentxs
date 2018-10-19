@@ -398,11 +398,11 @@ size_t Log::logAssert(
         LogToFile(String::Factory(strTemp->Get()));
 
 #else  // if Android
-        String strAndroidAssertMsg;
-        strAndroidAssertMsg.Format(
+        auto strAndroidAssertMsg = String::Factory();
+        strAndroidAssertMsg->Format(
             "\nOT_ASSERT in %s at line %d\n", szFilename, nLinenumber);
         __android_log_write(
-            ANDROID_LOG_FATAL, "OT Assert", strAndroidAssertMsg.Get());
+            ANDROID_LOG_FATAL, "OT Assert", strAndroidAssertMsg->Get());
 #endif
     }
 
