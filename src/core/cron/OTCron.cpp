@@ -368,7 +368,9 @@ std::int32_t OTCron::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
 
         m_NOTARY_ID->SetString(strNotaryID);
 
-        otOut << "\n\nLoading OTCron for NotaryID: " << strNotaryID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Loading OTCron for NotaryID: ")(
+            strNotaryID)(".")
+            .Flush();
 
         nReturnVal = 1;
     } else if (!strcmp("transactionNum", xml->getNodeName())) {
@@ -633,8 +635,9 @@ void OTCron::ProcessCronItems()
         }
         pItem->HookRemovalFromCron(
             api_.Wallet(), nullptr, GetNextTransactionNumber());
-        otOut << "OTCron::" << __FUNCTION__
-              << ": Removing cron item: " << pItem->GetTransactionNum() << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Removing cron item: ")(
+            pItem->GetTransactionNum())(".")
+            .Flush();
         it = m_multimapCronItems.erase(it);
         auto it_map = FindItemOnMap(pItem->GetTransactionNum());
         OT_ASSERT(m_mapCronItems.end() != it_map);
@@ -739,9 +742,10 @@ bool OTCron::AddCronItem(
             bSuccess = SaveCron();
 
             if (bSuccess)
-                otOut << __FUNCTION__
-                      << ": New CronItem has been added to Cron: "
-                      << theItem->GetTransactionNum() << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": New CronItem has been added to Cron: ")(
+                    theItem->GetTransactionNum())(".")
+                    .Flush();
             else
                 otErr << __FUNCTION__
                       << ": Error saving while adding new CronItem to Cron: "
@@ -1028,7 +1032,9 @@ std::shared_ptr<OTMarket> OTCron::GetOrCreateMarket(
                                             // since it was created new.
 
     if (bAdded) {
-        otOut << "New market created and added to Cron.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            "New market created and added to Cron.")
+            .Flush();
     } else {
         otErr << "Error trying to add new market to Cron.\n";
     }
