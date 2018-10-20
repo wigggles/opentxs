@@ -57,6 +57,8 @@ private:
     std::map<OTIdentifier, OTData> active_connections_;
     mutable std::shared_mutex connection_map_lock_;
 
+    static OTData get_connection(const network::zeromq::Message& incoming);
+
     proto::ServerRequest extract_proto(
         const network::zeromq::Frame& incoming) const;
 
@@ -67,8 +69,14 @@ private:
         Identifier& nymID);
     void process_frontend(const network::zeromq::Message& incoming);
     void process_internal(const network::zeromq::Message& incoming);
+    void process_legacy(
+        const Data& id,
+        const network::zeromq::Message& incoming);
     bool process_message(const std::string& messageString, std::string& reply);
     void process_notification(const network::zeromq::Message& incoming);
+    void process_proto(
+        const Data& id,
+        const network::zeromq::Message& incoming);
     OTData query_connection(const Identifier& nymID);
     void run();
 

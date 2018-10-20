@@ -116,7 +116,13 @@ void ServerConnection::activity_timer()
 
         if (duration > limit) {
             if (limit > std::chrono::seconds(0)) {
-                registration_socket_->Send(std::string(""));
+                const auto result = socket_->SendRequest(std::string(""));
+
+                if (SendResult::TIMEOUT != result.first) {
+                    reset_timer();
+
+                    if (status_->On()) { publish(); };
+                }
             } else {
                 if (status_->Off()) { publish(); };
             }
@@ -186,15 +192,15 @@ std::string ServerConnection::endpoint() const
         remote_contract_->ConnectInfo(hostname, port, type, address_type_);
 
     if (false == have) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": Failed retrieving connection info from server contract."
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed retrieving connection info from server contract.")
+            .Flush();
 
         OT_FAIL;
     }
 
     const auto endpoint = form_endpoint(type, hostname, port);
-    otErr << "Establishing connection to: " << endpoint << std::endl;
+    LogOutput("Establishing connection to: ")(endpoint).Flush();
 
     return endpoint;
 }
@@ -258,8 +264,8 @@ void ServerConnection::process_incoming(const proto::ServerReply& in)
     auto message = otx::Reply::Factory(api_, in);
 
     if (false == message->Validate()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid push notification.")
+            .Flush();
 
         return;
     }
@@ -276,8 +282,9 @@ void ServerConnection::process_incoming(const zeromq::Message& in)
     OT_ASSERT(false != bool(message));
 
     if (1 > in.Body().size()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Received legacy reply on async socket.")
+            .Flush();
 
         return;
     }
@@ -354,6 +361,39 @@ NetworkReplyMessage ServerConnection::Send(
     const ServerContext& context,
     const Message& message)
 {
+    struct Cleanup {
+        const Lock& lock_;
+        ServerConnection& connection_;
+        SendResult& result_;
+        std::shared_ptr<Message>& reply_;
+        bool success_{false};
+
+        void SetStatus(const SendResult status)
+        {
+            if (SendResult::VALID_REPLY == status) { success_ = true; }
+        }
+
+        Cleanup(
+            const Lock& lock,
+            ServerConnection& connection,
+            SendResult& result,
+            std::shared_ptr<Message>& reply)
+            : lock_(lock)
+            , connection_(connection)
+            , result_(result)
+            , reply_(reply)
+        {
+        }
+
+        ~Cleanup()
+        {
+            if (false == success_) {
+                connection_.reset_socket(lock_);
+                reply_.reset();
+            }
+        }
+    };
+
     register_for_push(context);
     NetworkReplyMessage output{SendResult::ERROR, nullptr};
     auto& status = output.first;
@@ -369,22 +409,37 @@ NetworkReplyMessage ServerConnection::Send(
     if (false == envelope->Exists()) { return output; }
 
     Lock socketLock(lock_);
+    Cleanup cleanup(socketLock, *this, status, reply);
     auto request = zmq::Message::Factory(std::string(envelope->Get()));
-
     auto sendresult = get_sync(socketLock).SendRequest(request);
 
     if (status_->On()) { publish(); }
 
     status = sendresult.first;
     auto in = sendresult.second;
-
     auto replymessage{api_.Factory().Message()};
 
     OT_ASSERT(false != bool(replymessage));
 
+    if (SendResult::TIMEOUT == status) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Reply timeout.").Flush();
+        cleanup.SetStatus(SendResult::TIMEOUT);
+
+        return output;
+    }
+
     if (1 > in->Body().size()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Empty reply.").Flush();
+        cleanup.SetStatus(SendResult::INVALID_REPLY);
+
+        return output;
+    }
+
+    if (1 < in->Body().size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Push notification received as a reply.")
+            .Flush();
+        cleanup.SetStatus(SendResult::INVALID_REPLY);
 
         return output;
     }
@@ -392,8 +447,8 @@ NetworkReplyMessage ServerConnection::Send(
     auto& frame = *in->Body().begin();
 
     if (0 == frame.size()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Invalid incoming message."
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid reply message.").Flush();
+        cleanup.SetStatus(SendResult::INVALID_REPLY);
 
         return output;
     }
@@ -407,10 +462,14 @@ NetworkReplyMessage ServerConnection::Send(
     if (loaded) {
         reply.reset(replymessage.release());
     } else {
-        otErr << OT_METHOD << __FUNCTION__ << ": Received server reply, "
-              << "but unable to instantiate it as a Message." << std::endl;
-        reply.reset();
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Received server reply, but unable to instantiate it as a "
+            "Message.")
+            .Flush();
+        cleanup.SetStatus(SendResult::INVALID_REPLY);
     }
+
+    cleanup.SetStatus(SendResult::VALID_REPLY);
 
     return output;
 }
@@ -435,8 +494,8 @@ void ServerConnection::set_proxy(const Lock& lock, zeromq::DealerSocket& socket)
     auto proxy = zmq_.SocksProxy();
 
     if (false == proxy.empty()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Setting proxy to " << proxy
-              << std::endl;
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Setting proxy to ")(proxy)
+            .Flush();
         const auto set = socket.SetSocksProxy(proxy);
 
         OT_ASSERT(set);
