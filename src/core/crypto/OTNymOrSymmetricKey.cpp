@@ -25,6 +25,8 @@ extern "C" {
 #include <algorithm>
 #include <ostream>
 
+#define OT_METHOD "opentxs::OTNymOrSymmetricKey"
+
 namespace opentxs
 {
 
@@ -275,9 +277,10 @@ bool OTNym_or_SymmetricKey::Open_or_Decrypt(
             if (nullptr == pPassword)  // Unable to retrieve passphrase from
                                        // user.
             {
-                otOut << szFunc
-                      << ": Failed trying to retrieve passphrase for key. "
-                         "Returning false.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failed trying to retrieve passphrase for key. "
+                    "Returning false.")
+                    .Flush();
                 return false;
             } else  // OTNym_or_SymmetricKey stores this, if it creates it.
                 // (And cleans it up on destruction, IF it created it.)
@@ -344,9 +347,10 @@ bool OTNym_or_SymmetricKey::Seal_or_Encrypt(
             if (nullptr == pPassword)  // Unable to retrieve passphrase from
                                        // user.
             {
-                otOut << szFunc
-                      << ": Failed trying to retrieve passphrase for key. "
-                         "Returning false.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failed trying to retrieve passphrase for key. "
+                    "Returning false.")
+                    .Flush();
                 return false;
             } else  // OTNym_or_SymmetricKey stores this, if it creates it.
                 // (And cleans it up on destruction, IF it created it.)

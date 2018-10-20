@@ -47,9 +47,9 @@ NetworkOperationStatus VerifyMessageSuccess(
 
     switch (status) {
         case REPLY_NOT_RECEIVED: {
-            otOut << __FUNCTION__
-                  << ": Unable to check success status for message:\n"
-                  << message << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Unable to check success status for message: ")(message)
+                .Flush();
         } break;
         case MESSAGE_SUCCESS_FALSE: {
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -62,8 +62,9 @@ NetworkOperationStatus VerifyMessageSuccess(
                 .Flush();
         } break;
         default: {
-            otOut << __FUNCTION__ << ": Unknown message status: " << status
-                  << " for message: " << message << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Unknown message status: ")(
+                status)(" for message: ")(message)
+                .Flush();
 
             return REPLY_NOT_RECEIVED;
         } break;
@@ -85,10 +86,11 @@ std::int32_t VerifyMsgBalanceAgrmntSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
         case -1:
-            otOut << __FUNCTION__
-                  << ": Error calling "
-                     "OT_API_Msg_GetBlnceAgrmntSuccess, for message:\n\n"
-                  << strMessage << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error calling "
+                "OT_API_Msg_GetBlnceAgrmntSuccess, for message: ")(strMessage)(
+                ".")
+                .Flush();
             break;
         case 0:
             LogDetail(OT_METHOD)(__FUNCTION__)(": Reply received: success == ")(
@@ -101,10 +103,10 @@ std::int32_t VerifyMsgBalanceAgrmntSuccess(
                 .Flush();
             break;
         default:
-            otOut << __FUNCTION__
-                  << ": Error. (This should never "
-                     "happen!) Input: "
-                  << strMessage << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error. (This should never "
+                "happen!) Input: ")(strMessage)(".")
+                .Flush();
             nSuccess = -1;
             break;
     }
@@ -125,10 +127,10 @@ std::int32_t VerifyMsgTrnxSuccess(
         NOTARY_ID, NYM_ID, ACCOUNT_ID, strMessage);
     switch (nSuccess) {
         case -1:
-            otOut << __FUNCTION__
-                  << ": Error calling "
-                     "OT_API_Message_GetSuccess, for message:\n\n"
-                  << strMessage << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error calling "
+                "OT_API_Message_GetSuccess, for message: ")(strMessage)(".")
+                .Flush();
             break;
         case 0:
             LogDetail(OT_METHOD)(__FUNCTION__)(
@@ -142,10 +144,10 @@ std::int32_t VerifyMsgTrnxSuccess(
                 .Flush();
             break;
         default:
-            otOut << __FUNCTION__
-                  << ": Error. (This should never happen!) "
-                     "Input: "
-                  << strMessage << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error. (This should never happen!) "
+                "Input: ")(strMessage)(".")
+                .Flush();
             nSuccess = -1;
             break;
     }
@@ -166,12 +168,14 @@ std::int32_t InterpretTransactionMsgReply(
 {
     std::int32_t nMessageSuccess = VerifyMessageSuccess(api, strResponse);
     if (-1 == nMessageSuccess) {
-        otOut << __FUNCTION__ << ": Message error: " << strAttempt << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Message error: ")(strAttempt)(".")
+            .Flush();
         return -1;
     }
     if (0 == nMessageSuccess) {
-        otOut << __FUNCTION__ << ": Server reply (" << strAttempt
-              << "): Message failure.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Server reply (")(strAttempt)(
+            "): Message failure.")
+            .Flush();
 
         return 0;
     }
@@ -179,25 +183,30 @@ std::int32_t InterpretTransactionMsgReply(
     std::int32_t nBalanceSuccess = VerifyMsgBalanceAgrmntSuccess(
         api, NOTARY_ID, NYM_ID, ACCOUNT_ID, strResponse);
     if (-1 == nBalanceSuccess) {
-        otOut << __FUNCTION__ << ": Balance agreement error: " << strAttempt
-              << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Balance agreement error: ")(
+            strAttempt)(".")
+            .Flush();
         return -1;
     }
     if (0 == nBalanceSuccess) {
-        otOut << __FUNCTION__ << ": Server reply (" << strAttempt
-              << "): Balance agreement failure.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Server reply (")(strAttempt)(
+            "): Balance agreement failure.")
+            .Flush();
         return 0;
     }
 
     std::int32_t nTransSuccess =
         VerifyMsgTrnxSuccess(api, NOTARY_ID, NYM_ID, ACCOUNT_ID, strResponse);
     if (-1 == nTransSuccess) {
-        otOut << __FUNCTION__ << ": Transaction error: " << strAttempt << ".\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Transaction error: ")(strAttempt)(
+            ".")
+            .Flush();
         return -1;
     }
     if (0 == nTransSuccess) {
-        otOut << __FUNCTION__ << ": Server reply (" << strAttempt
-              << "): Transaction failure.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Server reply (")(strAttempt)(
+            "): Transaction failure.")
+            .Flush();
         return 0;
     }
 
@@ -296,11 +305,12 @@ std::int32_t Utility::getNymbox(
     std::string strRecentHash = api_.Exec().GetNym_RecentHash(notaryID, nymID);
     bool bRecentHash = VerifyStringVal(strRecentHash);
     if (!bRecentHash) {
-        otOut << strLocation
-              << ": Warning: Unable to retrieve recent cached "
-                 "copy  of server-side NymboxHash from "
-                 "client-side nym (perhaps he's never "
-                 "downloaded it before?)\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Warning: Unable to retrieve recent cached "
+            "copy  of server-side NymboxHash from "
+            "client-side nym (perhaps he's never "
+            "downloaded it before?).")
+            .Flush();
     }
 
     std::string strLocalHash = api_.Exec().GetNym_NymboxHash(notaryID, nymID);
@@ -339,26 +349,29 @@ std::int32_t Utility::getNymbox(
     }
 
     if (!(bWasMsgSent) || ((nGetNymbox <= 0) && (-1 != nGetNymbox))) {
-        otOut << strLocation
-              << ": Failure: this.getNymboxLowLevel returned unexpected value: "
-              << nGetNymbox << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: this.getNymboxLowLevel returned unexpected value: ")(
+            nGetNymbox)(".")
+            .Flush();
         return -1;
     }  // NOTE: for getNymbox, there is no '0' return value;
 
     if (-1 == nGetNymbox)  // we'll try re-syncing the request number, then try
                            // again.
     {
-        otOut << strLocation
-              << ": FYI: this.getNymboxLowLevel returned -1. (Re-trying...)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": FYI: this.getNymboxLowLevel returned -1. (Re-trying...).")
+            .Flush();
 
         const auto nGetRequestNumber = context_.UpdateRequestNumber();
 
         if (0 >= nGetRequestNumber) {
-            otOut << strLocation
-                  << ": Failure: this.getNymboxLowLevel failed, "
-                     "then I tried to resync with "
-                     "this.getRequestNumber and then that "
-                     "failed too. (I give up.)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: this.getNymboxLowLevel failed, "
+                "then I tried to resync with "
+                "this.getRequestNumber and then that "
+                "failed too. (I give up.).")
+                .Flush();
             return -1;
         }
 
@@ -371,11 +384,12 @@ std::int32_t Utility::getNymbox(
         // reply itself. But in this case, I needed it.
         if (!VerifyStringVal(lastReplyReceived))  // THIS SHOULD NEVER HAPPEN.
         {
-            otOut << strLocation
-                  << ": ERROR in getLastReplyReceived(): why "
-                     "was this std::string not set, when "
-                     "this.getRequestNumber was otherwise an "
-                     "apparent success?\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR in getLastReplyReceived(): Why "
+                "was this std::string not set, when "
+                "this.getRequestNumber was otherwise an "
+                "apparent success?")
+                .Flush();
             return -1;  // (SHOULD NEVER HAPPEN. This std::string is set in the
                         // getRequestNumber function.)
         }
@@ -440,19 +454,20 @@ std::int32_t Utility::getNymbox(
             api_.Exec().Message_GetNymboxHash(lastReplyReceived);
         bool bServerHash = VerifyStringVal(strServerHash);
         if (!bServerHash) {
-            otOut << strLocation
-                  << ": Warning: Unable to retrieve server-side NymboxHash "
-                     "from server getRequestNumberResponse reply:\n\n"
-                  << lastReplyReceived << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Warning: Unable to retrieve server-side NymboxHash "
+                "from server getRequestNumberResponse reply: ")(
+                lastReplyReceived)(".")
+                .Flush();
         }
 
         strLocalHash = api_.Exec().GetNym_NymboxHash(notaryID, nymID);
         bLocalHash = VerifyStringVal(strLocalHash);
         if (!bLocalHash) {
-            otOut << strLocation
-                  << ": Warning(2): Unable to retrieve client-side NymboxHash "
-                     "for:\n notaryID: "
-                  << notaryID << "\n nymID: " << nymID << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Warning(2): Unable to retrieve client-side NymboxHash "
+                "for: notaryID: ")(notaryID)(" nymID: ")(nymID)(".")
+                .Flush();
         }
 
         // The hashes don't match -- so let's definitely re-try to download the
@@ -465,21 +480,22 @@ std::int32_t Utility::getNymbox(
             nGetNymbox = getNymboxLowLevel(bWasMsgSent);
 
             if (!(bWasMsgSent) || ((nGetNymbox <= 0) && (-1 != nGetNymbox))) {
-                otOut << strLocation
-                      << ": Failure(2): this.getNymboxLowLevel returned "
-                         "unexpected value: "
-                      << nGetNymbox << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failure(2): this.getNymboxLowLevel returned "
+                    "unexpected value: ")(nGetNymbox)(".")
+                    .Flush();
                 return -1;
             }
 
             if (-1 == nGetNymbox)  // we'll try re-syncing the request number,
                                    // then try again.
             {
-                otOut << strLocation
-                      << ": Failure: this.getNymboxLowLevel "
-                         "returned -1, even after syncing the "
-                         "request number successfully. (Giving "
-                         "up.)\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failure: this.getNymboxLowLevel "
+                    "returned -1, even after syncing the "
+                    "request number successfully. (Giving "
+                    "up).")
+                    .Flush();
                 return -1;
             }
         }
@@ -583,14 +599,16 @@ std::int32_t Utility::getAndProcessNymbox_8(
     bool bMsgTransFailure = bMsgFoursome[3];
 
     if (0 > nRequestNumber) {
-        otOut << "\n\n\n\n Failed verifying nRequestNumber as an integer. "
-                 "\n\n\n\n\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed verifying nRequestNumber as an integer.")
+            .Flush();
         return -1;
     }
 
     if (1 == nRequestNumber) {
-        otOut << strLocation
-              << ": WARNING: Request Num of '1' was just passed in here.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": WARNING: Request Num of '1' was just passed in here.")
+            .Flush();
     }
 
     bWasMsgSent = false;
@@ -641,8 +659,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
 
     std::int32_t nGetNymbox = getNymbox(notaryID, nymID, bForceDownload);
     if (nGetNymbox < 1) {
-        otOut << strLocation
-              << ": Failure: this.getNymbox returned: " << nGetNymbox << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failure: this.getNymbox returned: ")(nGetNymbox)(".")
+            .Flush();
         return -1;
     }
 
@@ -746,10 +765,11 @@ std::int32_t Utility::getAndProcessNymbox_8(
                         .Flush();
                 } else  // SwigWrap::GetSentMessage success.
                 {
-                    otOut << strLocation
-                          << ": FYI: Harvesting transaction "
-                             "numbers from failed Msg "
-                             "attempt...\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": FYI: Harvesting transaction "
+                        "numbers from failed Msg "
+                        "attempt...")
+                        .Flush();
 
                     bool nHarvested = api_.Exec().Msg_HarvestTransactionNumbers(
                         strSentMsg,
@@ -768,9 +788,10 @@ std::int32_t Utility::getAndProcessNymbox_8(
                                             // MESSAGE
                                             // success, Transaction failure.
                                             // (Explicit.)
-                    otOut << strLocation
-                          << ": OT_API_Msg_HarvestTransactionNumbers: "
-                          << nHarvested << "\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": OT_API_Msg_HarvestTransactionNumbers: ")(nHarvested)(
+                        ".")
+                        .Flush();
 
                     bool nRemovedMsg = api_.Exec().RemoveSentMessage(
                         std::int64_t(nRequestNumber), notaryID, nymID);
@@ -844,10 +865,10 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // have
         // nymbox replies, and only harvest the others.
         else {
-            otOut << strLocation
-                  << ": Error while trying to flush sent messages: Failed "
-                     "loading Nymbox for nym: "
-                  << nymID << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error while trying to flush sent messages: Failed "
+                "loading Nymbox for nym: ")(nymID)(".")
+                .Flush();
         }
 
         std::int32_t nMsgSentRequestNumOut = -1;
@@ -880,9 +901,10 @@ std::int32_t Utility::getAndProcessNymbox_8(
             // is true.
             // (Just like case 0.)
             //
-            otOut << strLocation
-                  << ": Failure: processNymbox: error (-1). (It "
-                     "couldn't send. I give up.)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: processNymbox: error (-1). (It "
+                "couldn't send. I give up.).")
+                .Flush();
 
             return -1;  // (It didn't even send.)
         } else if (0 == nProcess) {
@@ -896,9 +918,10 @@ std::int32_t Utility::getAndProcessNymbox_8(
             //       in its REPLY to that message! Thus we continue and DROP
             // THROUGH...
         } else if (nProcess < 0) {
-            otOut << strLocation
-                  << ": Failure: processNymbox: unexpected: " << nProcess
-                  << ". (I give up.)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: processNymbox: unexpected: ")(nProcess)(
+                ". (I give up.).")
+                .Flush();
 
             return -1;
         }
@@ -939,11 +962,12 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // reply itself. But in this case, I needed it.
         if (!VerifyStringVal(strReplyProcess))  // THIS SHOULD NEVER HAPPEN.
         {
-            otOut << strLocation
-                  << ": ERROR in getLastReplyReceived(): why "
-                     "was this std::string not set, when "
-                     "getRequestNumber was otherwise an "
-                     "apparent success?\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR in getLastReplyReceived(): why "
+                "was this std::string not set, when "
+                "getRequestNumber was otherwise an "
+                "apparent success?")
+                .Flush();
 
             return -1;  // (SHOULD NEVER HAPPEN. This std::string is set in the
                         // getRequestNumber function.)
@@ -1044,9 +1068,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
                         // it still work.;
 
             if (nGetNymbox < 1) {
-                otOut << strLocation
-                      << ": Failure: this.getNymbox returned: " << nGetNymbox
-                      << "\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failure: this.getNymbox returned: ")(nGetNymbox)(".")
+                    .Flush();
 
                 return -1;
             }
@@ -1091,11 +1115,12 @@ std::int32_t Utility::getAndProcessNymbox_8(
                     // already removed the sent message from the sent buffer (so
                     // no need to do that here.)
 
-                    otOut << strLocation
-                          << ": FYI: I *did* find the "
-                             "processNymboxResponse reply in my "
-                             "Nymbox, so NO NEED to clawback "
-                             "any transaction numbers.\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": FYI: I *did* find the "
+                        "processNymboxResponse reply in my "
+                        "Nymbox, so NO NEED to clawback "
+                        "any transaction numbers.")
+                        .Flush();
                 } else  // was NOT found... we need to clawback.
                 {
                     // This means the server's reply was definitely NOT found in
@@ -1130,10 +1155,11 @@ std::int32_t Utility::getAndProcessNymbox_8(
                             .Flush();
                     } else  // strSentProcessNymboxMsg NOT null!
                     {
-                        otOut << strLocation
-                              << ": FYI: Harvesting transaction "
-                                 "numbers from failed "
-                                 "processNymbox attempt...\n";
+                        LogNormal(OT_METHOD)(__FUNCTION__)(
+                            ": FYI: Harvesting transaction "
+                            "numbers from failed "
+                            "processNymbox attempt...")
+                            .Flush();
 
                         nHarvested = api_.Exec().Msg_HarvestTransactionNumbers(
                             strSentProcessNymboxMsg,
@@ -1156,9 +1182,10 @@ std::int32_t Utility::getAndProcessNymbox_8(
                         // Transaction failure.
                         // (Explicit.)
 
-                        otOut << strLocation
-                              << ": OT_API_Msg_HarvestTransactionNumbers: "
-                              << nHarvested << "\n";
+                        LogNormal(OT_METHOD)(__FUNCTION__)(
+                            ": OT_API_Msg_HarvestTransactionNumbers: ")(
+                            nHarvested)(".")
+                            .Flush();
 
                         bool nRemovedProcessNymboxMsg =
                             api_.Exec().RemoveSentMessage(
@@ -1199,18 +1226,19 @@ std::int32_t Utility::getAndProcessNymbox_8(
                 // messages that have
                 // nymbox replies, and only harvest the others.
                 else {
-                    otOut << strLocation
-                          << ": Error while trying to flush "
-                             "sent messages: Failed loading "
-                             "Nymbox for nym: "
-                          << nymID << "\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Error while trying to flush "
+                        "sent messages: Failed loading "
+                        "Nymbox for nym: ")(nymID)(".")
+                        .Flush();
                 }
             }     // if insureHaveAllBoxReceipts()
             else  // we do NOT have all the box receipts.
             {
-                otOut << strLocation
-                      << ": Error: insureHaveAllBoxReceipts "
-                         "failed. (I give up.)\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Error: insureHaveAllBoxReceipts "
+                    "failed. (I give up).")
+                    .Flush();
                 return -1;
             }
         }  // else if (bProcessAnyError || bProcessAnyFailure)
@@ -1246,8 +1274,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
         return -1;  // must've been an error.
     }               // if insureAllBoxReceipts()
     else {
-        otOut << strLocation
-              << ": insureHaveAllBoxReceipts failed. (I give up.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": insureHaveAllBoxReceipts failed. (I give up).")
+            .Flush();
     }
 
     return -1;
@@ -1265,9 +1294,10 @@ std::int32_t Utility::getAndProcessNymbox_4(
     std::string strLocation = "Utility::getAndProcessNymbox_4";
 
     if (!VerifyStringVal(notaryID) || !VerifyStringVal(nymID)) {
-        otOut << strLocation
-              << ": SHOULD NEVER HAPPEN!!! ASSERT!! ERROR!! "
-                 "FAILURE!!! PROBLEM!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": SHOULD NEVER HAPPEN!!! ASSERT!! ERROR!! "
+            "FAILURE!!! PROBLEM!!!!!")
+            .Flush();
         return -1;
     }
     //   bool bMsgReplySuccess5 = false;
@@ -1358,10 +1388,11 @@ std::int32_t Utility::processNymbox(
     [[maybe_unused]] const auto& notUsed2 = status;
 
     if (-1 == nProcess) {
-        otOut << strLocation
-              << "(2): error (-1), when calling "
-                 "sendProcessNymboxLowLevel. (It couldn't send. "
-                 "I give up.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": (2) error (-1), when calling "
+            "sendProcessNymboxLowLevel. (It couldn't send. "
+            "I give up).")
+            .Flush();
         return -1;  // (It didn't even send.)
     }
     // Nymbox was empty. (So we didn't send any process message because there
@@ -1370,8 +1401,9 @@ std::int32_t Utility::processNymbox(
         return 0;  // success. done.
     }
     if (nProcess < 0) {
-        otOut << strLocation << ": unexpected: " << nProcess
-              << ", when calling sendProcessNymboxLowLevel. (I give up.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Unexpected: ")(nProcess)(
+            ", when calling sendProcessNymboxLowLevel. (I give up).")
+            .Flush();
         return -1;
     }
 
@@ -1486,17 +1518,18 @@ bool Utility::getBoxReceiptWithErrorCorrection(
                 accountID, nBoxType, strTransactionNum, bWasSent)) {
             return true;
         }
-        otOut << strLocation
-              << ": getBoxReceiptLowLevel failed, then "
-                 "getRequestNumber succeeded, then "
-                 "getBoxReceiptLowLevel failed again. (I give "
-                 "up.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getBoxReceiptLowLevel failed, then "
+            "getRequestNumber succeeded, then "
+            "getBoxReceiptLowLevel failed again. (I give "
+            "up).")
+            .Flush();
     } else {
-        otOut << strLocation
-              << ": getBoxReceiptLowLevel failed, then "
-                 "getRequestNumber failed. (I give up.) Was "
-                 "getRequestNumber message sent: "
-              << bWasRequestSent << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getBoxReceiptLowLevel failed, then "
+            "getRequestNumber failed. (I give up.) Was "
+            "getRequestNumber message sent: ")(bWasRequestSent)(".")
+            .Flush();
     }
 
     return false;
@@ -1551,9 +1584,10 @@ bool Utility::insureHaveAllBoxReceipts(
                 .LoadOutboxNoVerify(theNotaryID, theNymID, theAccountID)
                 .release());
     } else {
-        otOut << strLocation
-              << ": Error. Expected nBoxType of 0,1,2 (nymbox, "
-                 "inbox, or outbox.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Error. Expected nBoxType of 0,1,2 (nymbox, "
+            "inbox, or outbox).")
+            .Flush();
         return false;
     }
 
@@ -1571,9 +1605,10 @@ bool Utility::insureHaveAllBoxReceipts(
     if (!pLedger
         //      || !pLedger->VerifySignature(nymID, ledger)
     ) {
-        otOut << strLocation
-              << ": Unable to load "  // or verify signature on "
-                 "ledger. (Failure.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Unable to load "  // or verify signature on "
+            "ledger. (Failure).")
+            .Flush();
         return false;
     }
     // ----------------------------------------------------------------
@@ -1593,9 +1628,10 @@ bool Utility::insureHaveAllBoxReceipts(
         auto& pTransaction = receipt_entry.second;
 
         if (lTransactionNum <= 0 || nullptr == pTransaction) {
-            otOut << strLocation
-                  << ": Error: Transaction null or has ID "
-                     "less-than-or-equal-to 0.\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Error: Transaction null or has ID "
+                "less-than-or-equal-to 0.")
+                .Flush();
             continue;
         }
 
@@ -1623,11 +1659,11 @@ bool Utility::insureHaveAllBoxReceipts(
                 const bool bDownloaded = getBoxReceiptWithErrorCorrection(
                     notaryID, nymID, accountID, nBoxType, lTransactionNum);
                 if (!bDownloaded) {
-                    otOut << strLocation
-                          << ": Failed downloading box receipt. "
-                             "(Skipping any others.) Transaction "
-                             "number: "
-                          << lTransactionNum << "\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Failed downloading box receipt. "
+                        "(Skipping any others.) Transaction "
+                        "number: ")(lTransactionNum)(".")
+                        .Flush();
 
                     bReturnValue = false;
                     break;
@@ -2188,15 +2224,18 @@ bool Utility::getIntermediaryFiles(
     std::string strLocation = "Utility::getIntermediaryFiles";
 
     if (!VerifyStringVal(notaryID) || notaryID.size() < 10) {
-        otOut << strLocation << ": nullptr or invalid notaryID.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": nullptr or invalid notaryID.")
+            .Flush();
         return false;
     }
     if (!VerifyStringVal(nymID) || nymID.size() < 10) {
-        otOut << strLocation << ": nullptr or invalid nymID.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Nullptr or invalid nymID.")
+            .Flush();
         return false;
     }
     if (!VerifyStringVal(accountID) || accountID.size() < 10) {
-        otOut << strLocation << ": nullptr or invalid accountID.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": nullptr or invalid accountID.")
+            .Flush();
         return false;
     }
 
@@ -2215,10 +2254,11 @@ bool Utility::getIntermediaryFiles(
     //
     if (-1 == nGetInboxAcct) {
         if (!bWasSentAccount) {
-            otOut << strLocation
-                  << ": this.getInboxAccount failed, without "
-                     "even sending getAccountData. (Returning "
-                     "false.)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": this.getInboxAccount failed, without "
+                "even sending getAccountData. (Returning "
+                "false).")
+                .Flush();
             return false;
         }
     }
@@ -2229,15 +2269,17 @@ bool Utility::getIntermediaryFiles(
     else if (!bWasSentInbox && (0 == nGetInboxAcct)) {
         // we don't return true;
     } else if (1 != nGetInboxAcct) {
-        otOut << strLocation
-              << ": getInboxAccount failed. (Trying one more time...)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getInboxAccount failed. (Trying one more time...")(".")
+            .Flush();
         const auto nGetRequestNumber = context_.UpdateRequestNumber();
 
         if (0 >= nGetRequestNumber) {
-            otOut << strLocation
-                  << ": Failure: getInboxAccount failed, then I "
-                     "tried to resync with getRequestNumber and "
-                     "then that failed too. (I give up.)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: getInboxAccount failed, then I "
+                "tried to resync with getRequestNumber and "
+                "then that failed too. (I give up).")
+                .Flush();
             return false;
         }
 
@@ -2254,10 +2296,11 @@ bool Utility::getIntermediaryFiles(
             // wasn't even sent,
             // then no point doing a bunch of retries -- it failed.
             //
-            otOut << strLocation
-                  << ": getInboxAccount failed a second time, "
-                     "without even sending getAccountData. "
-                     "(Returning false.)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": getInboxAccount failed a second time, "
+                "without even sending getAccountData. "
+                "(Returning false).")
+                .Flush();
             return false;
         }
         // If it wasn't sent, and 0 was returned, that means
@@ -2266,14 +2309,15 @@ bool Utility::getIntermediaryFiles(
         if (!bWasSentInbox && (0 == nSecondtry)) {
             // we don't return true;
         } else if (1 != nSecondtry) {
-            otOut << strLocation
-                  << ": getInboxAccount re-try failed. (That's twice "
-                     "now--Returning false.) Value: "
-                  << nSecondtry << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": getInboxAccount re-try failed. (That's twice "
+                "now--Returning false.) Value: ")(nSecondtry)(".")
+                .Flush();
             return false;
         }
-        otOut << strLocation
-              << ": getInboxAccount second call succeeded. (Continuing...)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getInboxAccount second call succeeded. (Continuing...).")
+            .Flush();
     }
 
     return true;
@@ -2328,10 +2372,11 @@ std::int32_t Utility::getInboxAccount(
             accountID,
             1))  // <===== nBoxType = 1 aka INBOX;
     {
-        otOut << strLocation
-              << ": getAccountData succeeded, but then "
-                 "insureHaveAllBoxReceipts failed on the inbox. "
-                 "(I give up.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getAccountData succeeded, but then "
+            "insureHaveAllBoxReceipts failed on the inbox. "
+            "(I give up).")
+            .Flush();
         return -1;
     }
 
@@ -2341,10 +2386,11 @@ std::int32_t Utility::getInboxAccount(
             accountID,
             2))  // <===== nBoxType = 2 aka OUTBOX;
     {
-        otOut << strLocation
-              << ": getAccountData succeeded, but then "
-                 "insureHaveAllBoxReceipts failed on the "
-                 "outbox. (I give up.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getAccountData succeeded, but then "
+            "insureHaveAllBoxReceipts failed on the "
+            "outbox. (I give up).")
+            .Flush();
         return -1;
     }
 
@@ -2367,14 +2413,18 @@ bool Utility::getInboxOutboxAccount(
     std::string strLocation = "Utility::getInboxOutboxAccount";
 
     if (!VerifyStringVal(accountID) || accountID.size() < 10) {
-        otOut << strLocation << ": invalid accountID: " << accountID << "\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": invalid accountID: ")(accountID)(
+            ".")
+            .Flush();
         return false;
     }
 
     std::string notaryID = api_.Exec().GetAccountWallet_NotaryID(accountID);
     std::string nymID = api_.Exec().GetAccountWallet_NymID(accountID);
     if (!getIntermediaryFiles(notaryID, nymID, accountID, bForceDownload)) {
-        otOut << strLocation << ": getIntermediaryFiles failed. (Returning.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getIntermediaryFiles failed. (Returning).")
+            .Flush();
         return false;
     }
 

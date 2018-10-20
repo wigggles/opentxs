@@ -357,9 +357,10 @@ bool OTCachedKey::GetMasterPassword(
                 bReturnVal = true;  // Success.
             } else                  // It didn't unlock with the one we found.
             {
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Unable to unlock master key using "
-                         "derived key found on system keyring.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Unable to unlock master key using "
+                    "derived key found on system keyring.")
+                    .Flush();
                 delete pDerivedKey;
                 pDerivedKey = nullptr;  // Below, this function checks
                                         // pDerivedKey for nullptr.
@@ -439,11 +440,13 @@ bool OTCachedKey::GetMasterPassword(
             bool bUsingDefaultPassword = false;
             {
                 if (4 > passUserInput.getPasswordSize()) {
-                    otOut << "\n Password entered was less than 4 characters "
-                             "std::int64_t! This is NOT secure!!\n"
-                             "... Assuming password is for testing only... "
-                             "setting to default password: "
-                          << OT_DEFAULT_PASSWORD << " \n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Password entered was less than 4 characters "
+                        "std::int64_t! This is NOT secure!!"
+                        "... Assuming password is for testing only... "
+                        "setting to default password: ")(OT_DEFAULT_PASSWORD)(
+                        ".")
+                        .Flush();
                     bUsingDefaultPassword = true;
                 }
             }
@@ -489,9 +492,9 @@ bool OTCachedKey::GetMasterPassword(
                     passwordDefault);  // asserts already.
 
                 if (nullptr == pDerivedKey) {
-                    otOut << "\n\n"
-                          << __FUNCTION__
-                          << ": Please enter your password.\n\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Please enter your password.")
+                        .Flush();
 
                     for (;;)  // bad passphase (as the calculate key returned
                               // nullptr)
@@ -511,14 +514,16 @@ bool OTCachedKey::GetMasterPassword(
                             passUserInput);                 // asserts already.
                         if (nullptr != pDerivedKey) break;  // success
 
-                        otOut << "\n\n"
-                              << __FUNCTION__
-                              << ": Wrong Password, Please Try Again.\n\n";
+                        LogNormal(OT_METHOD)(__FUNCTION__)(
+                            ": Wrong Password, Please Try Again.")
+                            .Flush();
                     }
                 }
             } else {
-                otOut << "\n Please enter your current password twice, (not a "
-                         "new password!!) \n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Please enter your current password twice, (not a "
+                    "new password!!).")
+                    .Flush();
 
                 if (!(*pPasswordCallback)(
                         nullptr,
@@ -611,8 +616,9 @@ bool OTCachedKey::GetMasterPassword(
 
                 bReturnVal = true;
             } else
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": key_->GetRawKeyFromPassphrase() failed.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": key_->GetRawKeyFromPassphrase() failed.")
+                    .Flush();
         }  // bGenerated
         else
             otErr << OT_METHOD << __FUNCTION__

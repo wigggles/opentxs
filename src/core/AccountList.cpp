@@ -107,9 +107,9 @@ std::int32_t AccountList::ReadFromXMLNode(
     if (count > 0) {
         while (count-- > 0) {
             if (!Contract::SkipToElement(xml)) {
-                otOut
-                    << "AccountList::ReadFromXMLNode: Failure: Unable to find "
-                       "expected element.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(": Failure: Unable to find "
+                                                   "expected element.")
+                    .Flush();
                 return -1;
             }
 
@@ -141,9 +141,10 @@ std::int32_t AccountList::ReadFromXMLNode(
 
     if (!Contract::SkipAfterLoadingField(xml))  // </accountList>
     {
-        otOut << "*** AccountList::ReadFromXMLNode: Bad data? Expected "
-                 "EXN_ELEMENT_END here, but "
-                 "didn't get it. Returning false.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Bad data? Expected "
+                                           "EXN_ELEMENT_END here, but "
+                                           "didn't get it. Returning false.")
+            .Flush();
         return -1;
     }
 
@@ -215,10 +216,10 @@ ExclusiveAccount AccountList::GetOrRegisterAccount(
         auto acctIDString = String::Factory();
         account.get().GetIdentifier(acctIDString);
 
-        otOut << "Successfully created " << acctTypeString
-              << " account ID: " << acctIDString
-              << " Instrument Definition ID: " << instrumentDefinitionID.str()
-              << std::endl;
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Successfully created ")(
+            acctTypeString)(" account ID: ")(acctIDString)(
+            " Instrument Definition ID: ")(instrumentDefinitionID.str())
+            .Flush();
         mapAcctIDs_[instrumentDefinitionID.str()] = acctIDString->Get();
 
         wasAcctCreated = true;

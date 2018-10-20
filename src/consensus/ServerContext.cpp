@@ -692,15 +692,15 @@ TransactionNumber ServerContext::update_highest(
 
     if (!good.empty()) {
         if (0 != oldHighest) {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Raising Highest Transaction Number "
-                  << "from " << oldHighest << " to " << highest << "."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Raising Highest Transaction Number "
+                "from ")(oldHighest)(" to ")(highest)(".")
+                .Flush();
         } else {
-            otOut << OT_METHOD << __FUNCTION__
-                  << ": Creating Highest Transaction Number "
-                  << "entry for this server as '" << highest << "'."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Creating Highest Transaction Number "
+                "entry for this server as '")(highest)("'.")
+                .Flush();
         }
 
         highest_transaction_number_.store(highest);
@@ -854,9 +854,9 @@ bool ServerContext::Verify(const TransactionStatement& statement) const
         const bool missing = (1 != statement.Issued().count(number));
 
         if (missing) {
-            otOut << OT_METHOD << __FUNCTION__ << ": Issued transaction # "
-                  << number << " on context not found on statement."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Issued transaction # ")(
+                number)(" on context not found on statement.")
+                .Flush();
 
             return false;
         }

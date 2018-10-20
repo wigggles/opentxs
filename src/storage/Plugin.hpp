@@ -120,6 +120,7 @@ bool opentxs::api::storage::Driver::LoadProto(
                   << "Hash: " << hash << std::endl
                   << "Size: " << raw.size() << std::endl;
         } else {
+
             LogDetail("Specified object is missing.").Flush();
             LogDetail("Hash: ")(hash).Flush();
             LogDetail("Size: ")(raw.size()).Flush();

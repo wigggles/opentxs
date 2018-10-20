@@ -205,9 +205,10 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                               // below error to fire.
 
         if (!isPowerOfTen(lScale)) {
-            otOut << "OTOffer::ProcessXMLNode: Failure: marketScale *must* be "
-                     "1, or a power of 10. Instead I got: "
-                  << lScale << ".\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: marketScale *must* be "
+                "1, or a power of 10. Instead I got: ")(lScale)(".")
+                .Flush();
             return (-1);
         } else
             SetScale(lScale);
@@ -224,9 +225,10 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         if (!strPriceLimit->Exists())
         //      if (lPriceLimit < 1)
         {
-            otOut << "OTOffer::ProcessXMLNode: Failure: priceLimit *must* be "
-                     "provided("
-                  << lPriceLimit << ").\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: priceLimit *must* be "
+                "provided(")(lPriceLimit)(").")
+                .Flush();
             return (-1);
         } else
             SetPriceLimit(lPriceLimit);
@@ -239,9 +241,10 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                               // the 0 here causes the
                                               // below error to fire.
         if (lTotal < 1) {
-            otOut << "OTOffer::ProcessXMLNode: Failure: totalAssetsOnOffer "
-                     "*must* be larger than 0. Instead I got: "
-                  << lTotal << ".\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: totalAssetsOnOffer "
+                "*must* be larger than 0. Instead I got: ")(lTotal)(".")
+                .Flush();
             return (-1);
         } else
             SetTotalAssetsOnOffer(lTotal);
@@ -253,9 +256,10 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                   : 0;  // if it doesn't exist, the 0 here
                                         // causes the below error to fire.
         if (lFinished < 0) {
-            otOut << "OTOffer::ProcessXMLNode: Failure: finishedSoFar *must* "
-                     "be 0 or larger. Instead I got: "
-                  << lFinished << ".\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: finishedSoFar *must* "
+                "be 0 or larger. Instead I got: ")(lFinished)(".")
+                .Flush();
             return (-1);
         } else
             SetFinishedSoFar(lFinished);
@@ -270,11 +274,12 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
         // logically be higher than the
         // total assets on offer...
         {
-            otOut << "OTOffer::ProcessXMLNode: Failure: minimumIncrement "
-                     "*must* be 1 or larger, \n"
-                     "and must also be less than the total assets on offer. "
-                     "Instead I got: "
-                  << lMinInc << ".\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: minimumIncrement "
+                "*must* be 1 or larger, "
+                "and must also be less than the total assets on offer. "
+                "Instead I got: ")(lMinInc)(".")
+                .Flush();
             return (-1);
         } else
             SetMinimumIncrement(lMinInc);
@@ -298,11 +303,10 @@ std::int32_t OTOffer::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             str_valid_to->Exists() ? parseTimestamp(str_valid_to->Get()) : 0;
 
         if ((tValidTo < tValidFrom) && (tValidTo != 0)) {
-            otOut << "OTOffer::" << __FUNCTION__ << ": Failure: validTo date ("
-                  << tValidFrom
-                  << ") cannot be earlier than "
-                     "validFrom date ("
-                  << tValidTo << ").\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Failure: validTo date (")(
+                tValidFrom)(") cannot be earlier than "
+                            "validFrom date (")(tValidTo)(").")
+                .Flush();
             return (-1);
         }
 

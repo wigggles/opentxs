@@ -729,7 +729,7 @@ bool OTKeyring::Gnome_StoreSecret(
         return bResult;
     }
 
-    otOut << "OTKeyring::Gnome_StoreSecret: No secret to store.\n";
+    LogNormal(OT_METHOD)(__FUNCTION__)(": No secret to store.").Flush();
 
     return false;
 }
@@ -866,9 +866,10 @@ bool OTKeyring::Gnome_RetrieveSecret(
 
     // Not an error: what if it just hasn't been set there yet?
     //
-    otOut << "OTKeyring::Gnome_RetrieveSecret: "
-          << "No secret found: gnome_keyring_find_password_sync: "
-          << gnome_keyring_result_to_message(theResult) << '\n';
+    LogNormal(OT_METHOD)(__FUNCTION__)(
+        ": No secret found: gnome_keyring_find_password_sync: ")(
+        gnome_keyring_result_to_message(theResult))(".")
+        .Flush();
 
     return false;
 }

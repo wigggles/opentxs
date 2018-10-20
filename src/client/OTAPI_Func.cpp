@@ -272,8 +272,9 @@ OTAPI_Func::OTAPI_Func(
             password_ = password;
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -294,8 +295,9 @@ OTAPI_Func::OTAPI_Func(
             unitDefinition_ = unitDefinition;
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -334,8 +336,9 @@ OTAPI_Func::OTAPI_Func(
             accountID_ = nymID2;
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -358,7 +361,9 @@ OTAPI_Func::OTAPI_Func(
             ledger_.reset(ledger.release());
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -388,7 +393,9 @@ OTAPI_Func::OTAPI_Func(
             OT_ASSERT(peer_request_);
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -411,7 +418,9 @@ OTAPI_Func::OTAPI_Func(
             cheque_.reset(cheque.release());
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -440,7 +449,9 @@ OTAPI_Func::OTAPI_Func(
             purse_.reset(purse.release());
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -466,7 +477,9 @@ OTAPI_Func::OTAPI_Func(
             paymentPlan_.reset(paymentPlan.release());
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -503,7 +516,9 @@ OTAPI_Func::OTAPI_Func(
             amount_ = int64val;
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -535,8 +550,9 @@ OTAPI_Func::OTAPI_Func(
             OT_ASSERT(peer_request_)
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -562,8 +578,10 @@ OTAPI_Func::OTAPI_Func(
 
         OT_ASSERT(peer_reply_)
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -597,8 +615,10 @@ OTAPI_Func::OTAPI_Func(
         clause_ = clause;
         parameter_ = parameter;
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -620,8 +640,10 @@ OTAPI_Func::OTAPI_Func(
         recipientID_ = recipientID;
         payment_.reset(payment.release());
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -650,8 +672,10 @@ OTAPI_Func::OTAPI_Func(
         recipientID_ = recipientID;
         message_ = message;
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -675,8 +699,10 @@ OTAPI_Func::OTAPI_Func(
         remoteBoxType_ = remoteBoxType;
         transactionNumber_ = transactionNumber;
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -714,8 +740,10 @@ OTAPI_Func::OTAPI_Func(
 
         if (nNumsNeeded > 0) { nTransNumsNeeded_ = nNumsNeeded; }
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -764,8 +792,10 @@ OTAPI_Func::OTAPI_Func(
             OT_ASSERT(peer_reply_)
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                     "ERROR!!!!!!\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+                "ERROR!!!!!!")
+                .Flush();
             OT_FAIL
         }
     }
@@ -822,8 +852,10 @@ OTAPI_Func::OTAPI_Func(
             recipientID_ = nymID2;
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                     "ERROR!!!!!!\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+                "ERROR!!!!!!")
+                .Flush();
             OT_FAIL
         }
     }
@@ -872,8 +904,10 @@ OTAPI_Func::OTAPI_Func(
             OT_ASSERT(peer_request_)
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                     "ERROR!!!!!!\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+                "ERROR!!!!!!")
+                .Flush();
             OT_FAIL
         }
     }
@@ -902,8 +936,10 @@ OTAPI_Func::OTAPI_Func(
                                                     // (Optional.);
         cash_ = true;
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -949,8 +985,10 @@ OTAPI_Func::OTAPI_Func(
 
         OT_ASSERT(peer_request_)
     } else {
-        otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func() "
-                 "ERROR!!!!!!\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
+            "ERROR!!!!!!")
+            .Flush();
         OT_FAIL
     }
 }
@@ -980,8 +1018,9 @@ OTAPI_Func::OTAPI_Func(
             isPrimary_ = primary;
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -1067,8 +1106,9 @@ OTAPI_Func::OTAPI_Func(
             OT_ASSERT(peer_reply_)
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -1108,8 +1148,9 @@ OTAPI_Func::OTAPI_Func(
             activationPrice_ = activationPrice;
         } break;
         default: {
-            otOut << "ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func()"
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
             OT_FAIL
         }
     }
@@ -1193,10 +1234,11 @@ void OTAPI_Func::run()
             auto payment{api_.Factory().Payment(serialized)};
 
             if (!payment->IsValid() || !payment->SetTempValues()) {
-                otOut << OT_METHOD << __FUNCTION__
-                      << ": Failure loading payment instrument "
-                         "(intended for recipient) from string:\n\n"
-                      << payment->Payment() << std::endl;
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failure loading payment instrument "
+                    "(intended for recipient) from string: ")(
+                    payment->Payment())
+                    .Flush();
                 return;
             }
 
@@ -1211,10 +1253,11 @@ void OTAPI_Func::run()
 
                 if (!theSenderPayment->IsValid() ||
                     !theSenderPayment->SetTempValues()) {
-                    otOut << OT_METHOD << __FUNCTION__
-                          << ": Failure loading payment instrument (copy "
-                          << "intended for sender's records) from string:\n\n"
-                          << senderPurseString.Get() << std::endl;
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Failure loading payment instrument (copy "
+                        "intended for sender's records) from string: ")(
+                        senderPurseString.Get())
+                        .Flush();
 
                     return;
                 }
@@ -1555,17 +1598,20 @@ std::int32_t OTAPI_Func::send()
         case SendResult::INVALID_REPLY:
         case SendResult::TIMEOUT:
         case SendResult::ERROR: {
-            otOut << strLocation << ": Failed to send message due to error."
-                  << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed to send message due to error.")
+                .Flush();
 
             nRequestNum_ = -1;
         } break;
         case SendResult::UNNECESSARY: {
-            otOut << strLocation << ": Didn't send this message, but NO error "
-                  << "occurred, either. (For example, a request to process "
-                     "an "
-                  << "empty Nymbox will return 0, meaning, nothing was sent, "
-                  << "but also no error occurred.)" << std::endl;
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Didn't send this message, but NO error "
+                "occurred, either. (For example, a request to process "
+                "an "
+                "empty Nymbox will return 0, meaning, nothing was sent, "
+                "but also no error occurred).")
+                .Flush();
 
             nRequestNum_ = 0;
         } break;
@@ -1599,9 +1645,10 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
             accountID_->str(),
             false))  // bForceDownload=false))
     {
-        otOut << strLocation
-              << ", getIntermediaryFiles returned false. (It "
-                 "couldn't download files that it needed.)\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": getIntermediaryFiles returned false. (It "
+            "couldn't download files that it needed).")
+            .Flush();
         return "";
     }
 
@@ -1620,9 +1667,10 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     }
 
     if (getnym_trnsnum_count < comparative) {
-        otOut << strLocation
-              << ", I don't have enough transaction numbers to "
-                 "perform this transaction.\n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": I don't have enough transaction numbers to "
+            "perform this transaction.")
+            .Flush();
         return "";
     }
 
@@ -1631,17 +1679,19 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
     std::string strResult = send_once(true, true, bCanRetryAfterThis);
 
     if (VerifyStringVal(strResult)) {
-        otOut << " Getting Intermediary files.. \n";
+        LogNormal(OT_METHOD)(__FUNCTION__)(": Getting Intermediary files...")
+            .Flush();
 
         if (!MsgUtil.getIntermediaryFiles(
                 context_.Server().str(),
                 context_.Nym()->ID().str(),
                 accountID_->str(),
                 true)) {
-            otOut << strLocation
-                  << ", getIntermediaryFiles returned false. "
-                     "(After a success sending the transaction. "
-                     "Strange...)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": getIntermediaryFiles returned false. "
+                "(After a success sending the transaction. "
+                "Strange...).")
+                .Flush();
             return "";
         }
 
@@ -1695,9 +1745,10 @@ std::string OTAPI_Func::send_transaction(std::size_t totalRetries)
                     context_.Nym()->ID().str(),
                     accountID_->str(),
                     true)) {
-                otOut << strLocation
-                      << ", getIntermediaryFiles (loop) returned false even "
-                         "after successfully sending the transaction.\n";
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": getIntermediaryFiles (loop) returned false even "
+                    "after successfully sending the transaction.")
+                    .Flush();
                 return "";
             }
             break;
@@ -1976,11 +2027,12 @@ std::string OTAPI_Func::send_once(
                         context_.Nym()->ID().str(),
                         accountID_->str(),
                         bForceDownload)) {
-                    otOut << strLocation
-                          << ", getIntermediaryFiles returned "
-                             "false. (After a failure to send "
-                             "the transaction. Thus, I give "
-                             "up.)\n";
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": getIntermediaryFiles returned "
+                        "false. (After a failure to send "
+                        "the transaction. Thus, I give "
+                        "up).")
+                        .Flush();
                     return "";
                 }
 
@@ -2058,10 +2110,11 @@ std::string OTAPI_Func::send_once(
 
         }  // if getRequestNumber was success.
         else {
-            otOut << strLocation
-                  << ", Failure: Never got reply from server, "
-                     "so tried getRequestNumber, and that failed too. "
-                     "(I give up.)\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: Never got reply from server, "
+                "so tried getRequestNumber, and that failed too. "
+                "(I give up).")
+                .Flush();
 
             // Note: cannot harvest transaction nums here because I do NOT
             // know for sure whether the server has replied to the message

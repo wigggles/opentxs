@@ -127,8 +127,10 @@ bool MasterCredential::verify_internally(const Lock& lock) const
 
     // Check that the source validates this credential
     if (!verify_against_source(lock)) {
-        otOut << __FUNCTION__ << ": Failed verifying master credential against "
-              << "nym id source." << std::endl;
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Failed verifying master credential against "
+            "nym id source.")
+            .Flush();
 
         return false;
     }

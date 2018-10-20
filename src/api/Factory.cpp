@@ -201,14 +201,16 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
         // The string didn't match any of the options in the factory.
         //
         if (!pContract) {
-            otOut << __FUNCTION__
-                  << ": Object type not yet supported by class factory: "
-                  << strFirstLine << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Object type not yet supported by class factory: ")(
+                strFirstLine)
+                .Flush();
             // Does the contract successfully load from the string passed in?
         } else if (!pContract->LoadContractFromString(strContract)) {
-            otOut << __FUNCTION__
-                  << ": Failed loading contract from string (first line): "
-                  << strFirstLine << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failed loading contract from string (first line): ")(
+                strFirstLine)
+                .Flush();
         } else {
             return pContract;
         }
@@ -1314,9 +1316,10 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
         //        const char* szFunc = "OTTransactionType::TransactionFactory";
         // The string didn't match any of the options in the factory.
         if (nullptr == pContract) {
-            otOut  //<< szFunc
-                << ": Object type not yet supported by class factory: "
-                << strFirstLine << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(  //<< szFunc
+                ": Object type not yet supported by class factory: ")(
+                strFirstLine)
+                .Flush();
             return nullptr;
         }
 
@@ -1342,9 +1345,10 @@ std::unique_ptr<OTTransactionType> Factory::Transaction(
 
             return pContract;
         } else {
-            otOut  //<< szFunc
-                << ": Failed loading contract from string (first line): "
-                << strFirstLine << "\n";
+            LogNormal(OT_METHOD)(__FUNCTION__)(  //<< szFunc
+                ": Failed loading contract from string (first line): ")(
+                strFirstLine)
+                .Flush();
         }
     }
 
