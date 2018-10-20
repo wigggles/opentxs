@@ -18,13 +18,14 @@
 
 #define OT_METHOD "opentxs::Cash"
 
+namespace opentxs
 {
-    api::client::Cash* Factory::Cash(
-        const api::client::Manager& api,
-        const api::client::ServerAction& serverAction)
-    {
-        return new api::client::implementation::Cash(api, serverAction);
-    }
+api::client::Cash* Factory::Cash(
+    const api::client::Manager& api,
+    const api::client::ServerAction& serverAction)
+{
+    return new api::client::implementation::Cash(api, serverAction);
+}
 }  // namespace opentxs
 
 namespace opentxs::api::client::implementation
