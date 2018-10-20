@@ -142,6 +142,20 @@ proto::ServerRequest MessageProcessor::extract_proto(
         incoming.data(), incoming.size());
 }
 
+OTData MessageProcessor::get_connection(
+    const network::zeromq::Message& incoming)
+{
+    auto output = Data::Factory();
+    const auto& header = incoming.Header();
+
+    if (0 < header.size()) {
+        const auto& frame = header.at(0);
+        output = Data::Factory(frame.data(), frame.size());
+    }
+
+    return output;
+}
+
 void MessageProcessor::init(
     const bool inproc,
     const int port,
@@ -250,35 +264,20 @@ void MessageProcessor::process_frontend(const zmq::Message& incoming)
     Lock lock(counter_lock_);
 
     if (0 < drop_incoming_) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Dropping incoming message for testing.")
+            .Flush();
         --drop_incoming_;
     } else {
-        proto::ServerRequest command{};
-        bool isProto{false};
-
-        if (1 < incoming.Body().size()) {
-            command = extract_proto(incoming.Body().at(0));
-            isProto = proto::Validate(command, SILENT);
-        }
+        lock.unlock();
+        const auto id = get_connection(incoming);
+        const bool isProto{1 < incoming.Body().size()};
 
         if (isProto) {
-            auto nymID = Identifier::Factory();
-            const auto valid = process_command(command, nymID);
-
-            if (valid) {
-                const auto headerFrames = incoming.Header().size();
-
-                if (0 < headerFrames) {
-                    const auto& frame = incoming.Header().at(0);
-                    const auto id = Data::Factory(frame.data(), frame.size());
-                    associate_connection(nymID, id);
-                }
-
-                return;
-            }
+            process_proto(id, incoming);
+        } else {
+            process_legacy(id, incoming);
         }
-
-        OTZMQMessage request{incoming};
-        internal_socket_->Send(request);
     }
 }
 
@@ -287,11 +286,34 @@ void MessageProcessor::process_internal(const zmq::Message& incoming)
     Lock lock(counter_lock_);
 
     if (0 < drop_outgoing_) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": Dropping outgoing message for testing.")
+            .Flush();
         --drop_outgoing_;
     } else {
+        lock.unlock();
         OTZMQMessage reply{incoming};
-        frontend_socket_->Send(reply);
+        const auto sent = frontend_socket_->Send(reply);
+
+        if (sent) {
+            LogTrace(OT_METHOD)(__FUNCTION__)(": Reply message delivered.")
+                .Flush();
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to send reply message.")
+                .Flush();
+        }
     }
+}
+
+void MessageProcessor::process_legacy(
+    const Data& id,
+    const network::zeromq::Message& incoming)
+{
+    LogTrace(OT_METHOD)(__FUNCTION__)(": Processing request via ")(id.asHex())
+        .Flush();
+    OTZMQMessage request{incoming};
+    internal_socket_->Send(request);
 }
 
 bool MessageProcessor::process_message(
@@ -397,10 +419,44 @@ void MessageProcessor::process_notification(const zmq::Message& incoming)
     pushNotification->AddFrame();
     pushNotification->AddFrame(reply);
     pushNotification->AddFrame();
-    frontend_socket_->Send(pushNotification);
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Push notification for ")(nymID)(
-        " delivered via ")(connection->asHex())
+    const auto sent = frontend_socket_->Send(pushNotification);
+
+    if (sent) {
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Push notification for ")(nymID)(
+            " delivered via ")(connection->asHex())
+            .Flush();
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to deliver push notifcation for  ")(nymID)(" via ")(
+            connection->asHex())
+            .Flush();
+    }
+}
+
+void MessageProcessor::process_proto(
+    const Data& id,
+    const network::zeromq::Message& incoming)
+{
+    LogTrace(OT_METHOD)(__FUNCTION__)(": Processing request via ")(id.asHex())
         .Flush();
+    const auto command = extract_proto(incoming.Body().at(0));
+
+    if (false == proto::Validate(command, VERBOSE)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid otx request").Flush();
+
+        return;
+    }
+
+    auto nymID = Identifier::Factory();
+    const auto valid = process_command(command, nymID);
+
+    if (valid) {
+        const auto id = get_connection(incoming);
+
+        if (false == id->empty()) { associate_connection(nymID, id); }
+
+        return;
+    }
 }
 
 OTData MessageProcessor::query_connection(const Identifier& nymID)
