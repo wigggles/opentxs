@@ -1127,6 +1127,42 @@ const api::Core& RPC::get_session(const std::int32_t instance) const
     }
 }
 
+proto::RPCResponse RPC::get_workflow(const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    if (!is_session_valid(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+        return output;
+    }
+
+    if (!is_client_session(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_INVALID);
+        return output;
+    }
+
+    auto& client = *get_client(command.session());
+
+    for (const auto& getworkflow : command.getworkflow()) {
+        const auto workflow = client.Workflow().LoadWorkflow(
+            Identifier::Factory(getworkflow.nymid()),
+            Identifier::Factory(getworkflow.workflowid()));
+
+        if (workflow) {
+            auto& paymentworkflow = *output.add_workflow();
+            paymentworkflow = *workflow;
+        }
+    }
+
+    if (0 == output.workflow_size()) {
+        add_output_status(output, proto::RPCRESPONSE_NONE);
+    } else {
+        add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+    }
+
+    return output;
+}
+
 proto::RPCResponse RPC::import_seed(const proto::RPCCommand& command) const
 {
     auto output = init(command);
@@ -1604,6 +1640,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_CREATECOMPATIBLEACCOUNT: {
             return create_compatible_account(command);
+        } break;
+        case proto::RPCCOMMAND_GETWORKFLOW: {
+            return get_workflow(command);
         } break;
         case proto::RPCCOMMAND_ERROR:
         default: {
