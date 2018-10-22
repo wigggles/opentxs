@@ -12,6 +12,7 @@ set(cxx-sources
   ActivityThread.cpp
   ActivityThreadItem.cpp
   BalanceItem.cpp
+  ChequeBalanceItem.cpp
   Contact.cpp
   ContactItem.cpp
   ContactList.cpp
@@ -28,6 +29,7 @@ set(cxx-sources
   ProfileItem.cpp
   ProfileSection.cpp
   ProfileSubsection.cpp
+  TransferBalanceItem.cpp
   Widget.cpp
 )
 
