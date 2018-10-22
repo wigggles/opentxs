@@ -2027,6 +2027,13 @@ TEST_F(Test_Basic, sendTransfer)
     outgoing_transfer_workflow_id_ = *workflows.cbegin();
 
     EXPECT_NE(outgoing_transfer_workflow_id_.size(), 0);
+
+    auto workflow = client_1_.Workflow().LoadWorkflow(
+        alice_nym_id_, Identifier::Factory(outgoing_transfer_workflow_id_));
+
+    ASSERT_TRUE(workflow);
+
+    EXPECT_EQ(0, workflow->party_size());
 }
 TEST_F(Test_Basic, getAccountData_after_incomingTransfer)
 {
@@ -2162,7 +2169,16 @@ TEST_F(Test_Basic, getBoxReceipt_incomingTransfer)
     incoming_transfer_workflow_id_ = *workflows.cbegin();
 
     EXPECT_NE(incoming_transfer_workflow_id_.size(), 0);
+
+    auto workflow = client_2_.Workflow().LoadWorkflow(
+        bob_nym_id_, Identifier::Factory(incoming_transfer_workflow_id_));
+
+    ASSERT_TRUE(workflow);
+
+    EXPECT_EQ(1, workflow->party_size());
+    EXPECT_STREQ(alice_nym_id_->str().c_str(), workflow->party(0).c_str());
 }
+
 TEST_F(Test_Basic, processInbox_after_incomingTransfer)
 {
     const RequestNumber sequence{22};
@@ -2776,9 +2792,7 @@ TEST_F(Test_Basic, send_internal_transfer)
             count = workflows.size();
         }
 
-        if (0 == --tries) {
-            break;
-        }
+        if (0 == --tries) { break; }
     }
 
     ASSERT_EQ(count, 1);
