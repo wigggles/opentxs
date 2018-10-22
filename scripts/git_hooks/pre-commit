@@ -3,16 +3,15 @@
 clang_bin=clang-format
 
 if ! command -v clang-format >/dev/null ; then
-    clang_bin=clang-format-6.0
-    if ! command -v clang-format-6.0 >/dev/null ; then
-        echo -n "error: please install clang-format v6.0 in order to be able"
-        echo    " to use this pre-commit git-hook"
-        exit 1
-    fi
+    echo -n "error: please install clang-format == 6.* to use"
+    echo    " this pre-commit git-hook"
+    exit 1
 fi
 
-if ! (${clang_bin} --version | grep 6.0) ; then
-    echo "Checking for clang-format version 6.0 ... failed"
+version=$(clang-format  --version | sed 's/clang-format version //' | head -c 1)
+
+if ! (($version == 6)) ; then
+    echo "Checking for clang-format version == 6.* ... failed"
     exit 1
 fi
 
@@ -27,7 +26,7 @@ fi
 exec 1>&2
 
 files=$(git diff --cached --name-only --diff-filter=AM $against | \
-        grep -E '^(src|include/opentxs)' | grep pp$)
+        grep -E '^(src|tests|include/opentxs)' | grep pp$)
 diffs=$(./scripts/build/clang-format-wrapper.sh "$files")
 [ "$diffs" ] || exit 0
 echo Found C++ code style formatting issues:
