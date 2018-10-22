@@ -1003,6 +1003,7 @@ bool Workflow::ClearTransfer(
         return false;
     }
 
+    contact_.NymToContact(depositorNymID);
     const auto& accountID = transfer->GetPurportedAccountID();
 
     if (accountID.empty()) {
@@ -1294,6 +1295,7 @@ OTIdentifier Workflow::ConveyTransfer(
     }
 
     const auto senderNymID = transfer->GetNymID().str();
+    contact_.NymToContact(transfer->GetNymID());
     const auto recipientNymID = pending.GetNymID().str();
 
     if (pending.GetNymID() != nymID) {
