@@ -1196,8 +1196,6 @@ public:
 private:
     friend class api::client::implementation::Manager;
 
-    class Pid;
-
     const api::Core& api_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
@@ -1209,7 +1207,6 @@ private:
     OTString m_strWalletFilePath;
     OTString m_strConfigFilename;
     OTString m_strConfigFilePath;
-    std::unique_ptr<Pid> pid_;
     OTWallet* m_pWallet{nullptr};
     std::unique_ptr<OTClient> m_pClient;
     ContextLockCallback lock_callback_;

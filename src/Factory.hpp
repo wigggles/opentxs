@@ -230,6 +230,7 @@ public:
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom);
+    static opentxs::PIDFile* PIDFile(const std::string& path);
     static ui::implementation::ProfileExternalInterface* ProfileWidget(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,

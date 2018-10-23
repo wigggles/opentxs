@@ -57,7 +57,6 @@
 #include <string>
 
 #define OTX_PUSH_VERSION 1
-#define SERVER_PID_FILENAME "ot.pid"
 #define SEED_BACKUP_FILE "seed_backup.json"
 #define SERVER_CONTRACT_FILE "NEW_SERVER_CONTRACT.otc"
 #define SERVER_CONFIG_LISTEN_SECTION "listen"
@@ -502,80 +501,6 @@ void Server::Init(bool readOnly)
         OT_FAIL;
     }
 
-    auto dataPath = String::Factory(manager_.DataFolder().c_str());
-
-    // PID -- Make sure we're not running two copies of OT on the same data
-    // simultaneously here.
-    // If we want to WRITE to the data location, then we can't be in
-    // read-only mode.
-    if (!readOnly) {
-        // 1. READ A FILE STORING THE PID. (It will already exist, if OT is
-        // already running.)
-        //
-        // We open it for reading first, to see if it already exists. If it
-        // does, we read the number. 0 is fine, since we overwrite with 0 on
-        // shutdown. But any OTHER number means OT is still running. Or it
-        // means it was killed while running and didn't shut down properly,
-        // and that you need to delete the pid file by hand before running
-        // OT again. (This is all for the purpose of preventing two copies
-        // of OT running at the same time and corrupting the data folder.)
-        //
-        auto strPIDPath = String::Factory();
-        OTPaths::AppendFile(
-            strPIDPath, dataPath, String::Factory(SERVER_PID_FILENAME));
-
-        std::ifstream pid_infile(strPIDPath->Get());
-
-        // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
-        if (pid_infile.is_open()) {
-            std::uint32_t old_pid = 0;
-            pid_infile >> old_pid;
-            pid_infile.close();
-
-            // There was a real PID in there.
-            if (old_pid != 0) {
-                std::uint64_t lPID = old_pid;
-                otErr << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
-                         "I found a PID ("
-                      << lPID
-                      << ") in the data lock file, located "
-                         "at: "
-                      << strPIDPath->Get()
-                      << "\n\n"
-                         "If the OT process with PID "
-                      << lPID
-                      << " is truly not running anymore, "
-                         "then just ERASE THAT FILE and then RESTART.\n";
-                exit(-1);
-            }
-            // Otherwise, though the file existed, the PID within was 0.
-            // (Meaning the previous instance of OT already set it to 0 as
-            // it was shutting down.)
-        }
-        // Next let's record our PID to the same file, so other copies of OT
-        // can't trample on US.
-
-        // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
-        std::uint64_t the_pid = 0;
-
-#ifdef _WIN32
-        the_pid = GetCurrentProcessId();
-#else
-        the_pid = getpid();
-#endif
-
-        // 4. OPEN THE FILE IN WRITE MODE, AND SAVE THE PID TO IT.
-        std::ofstream pid_outfile(strPIDPath->Get());
-
-        if (pid_outfile.is_open()) {
-            pid_outfile << the_pid;
-            pid_outfile.close();
-        } else {
-            otErr << "Failed trying to open data locking file (to "
-                     "store PID "
-                  << the_pid << "): " << strPIDPath->Get() << "\n";
-        }
-    }
     OTDB::InitDefaultStorage(OTDB_DEFAULT_STORAGE, OTDB_DEFAULT_PACKER);
 
     // Load up the transaction number and other Server data members.
@@ -1040,30 +965,5 @@ std::unique_ptr<OTPassword> Server::TransportKey(Data& pubkey) const
     return contract->TransportKey(pubkey);
 }
 
-Server::~Server()
-{
-    // PID -- Set it to 0 in the lock file so the next time we run OT, it knows
-    // there isn't
-    // another copy already running (otherwise we might wind up with two copies
-    // trying to write
-    // to the same data folder simultaneously, which could corrupt the data...)
-    auto strDataPath = String::Factory(manager_.DataFolder().c_str());
-
-    if (!m_bReadOnly) {
-        auto strPIDPath = String::Factory();
-        OTPaths::AppendFile(
-            strPIDPath, strDataPath, String::Factory(SERVER_PID_FILENAME));
-        std::ofstream pid_outfile(strPIDPath->Get());
-
-        if (pid_outfile.is_open()) {
-            std::uint32_t the_pid = 0;
-            pid_outfile << the_pid;
-            pid_outfile.close();
-        } else {
-            otErr << "Failed trying to open data locking file (to wipe "
-                     "PID back to 0): "
-                  << strPIDPath->Get() << "\n";
-        }
-    }
-}
+Server::~Server() {}
 }  // namespace opentxs::server
