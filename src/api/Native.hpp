@@ -74,9 +74,22 @@ private:
     std::unique_ptr<OTCaller> default_external_password_callback_{nullptr};
     OTCaller* external_password_callback_{nullptr};
     std::unique_ptr<rpc::internal::RPC> rpc_;
+    mutable std::unique_ptr<opentxs::PIDFile> pid_;
 
     static int client_instance(const int count);
     static int server_instance(const int count);
+
+    void init_pid(const Lock& lock) const;
+    const ArgList merge_arglist(const ArgList& args) const;
+    void start_client(const Lock& lock, const ArgList& args) const;
+    void start_server(const Lock& lock, const ArgList& args) const;
+
+    void Init_Crypto();
+    void Init_Log();
+    void Init_Zap();
+    void Init() override;
+    void setup_default_external_password_callback();
+    void shutdown() override;
 
     explicit Native(
         Flag& running,
@@ -88,17 +101,6 @@ private:
     Native(Native&&) = delete;
     Native& operator=(const Native&) = delete;
     Native& operator=(Native&&) = delete;
-
-    void setup_default_external_password_callback();
-
-    void Init_Crypto();
-    void Init_Log();
-    void Init_Zap();
-    void Init() override;
-    const ArgList merge_arglist(const ArgList& args) const;
-    void shutdown() override;
-    void start_client(const Lock& lock, const ArgList& args) const;
-    void start_server(const Lock& lock, const ArgList& args) const;
 
     ~Native();
 };

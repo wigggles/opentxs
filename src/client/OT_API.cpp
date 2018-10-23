@@ -102,42 +102,13 @@ extern "C" {
 }
 #endif
 
-// On certain platforms we can actually check to
-// see if the PID is running, and if not, we can
-// proceed even if the PID is in the file. (To
-// spare the user from having to delete the pid
-// file by hand.)
-//
-#ifdef PREDEF_PLATFORM_UNIX
-
-#if defined(ANDROID)
-// blank
-#elif defined(TARGET_OS_MAC)
-
-#if TARGET_OS_MAC
-#include <sys/wait.h>
-
-#define OT_CHECK_PID 1
-#endif
-
-#else
-#include <sys/wait.h>
-
-#define OT_CHECK_PID 1
-#endif
-
-#endif
-
 #define CLIENT_MASTER_KEY_TIMEOUT_DEFAULT 300
 #define CLIENT_WALLET_FILENAME String::Factory("wallet.xml")
 #define CLIENT_USE_SYSTEM_KEYRING false
-#define CLIENT_PID_FILENAME String::Factory("ot.pid")
-// -------------------------------------------------------
+
 #define OT_METHOD "opentxs::OT_API::"
-// -------------------------------------------------------
 
 // The #defines for the latency values can be found in ServerConnection.cpp.
-
 namespace opentxs
 {
 namespace
@@ -281,190 +252,6 @@ bool VerifyBalanceReceipt(
 }
 }  // namespace
 
-class OT_API::Pid
-{
-public:
-    Pid();
-    ~Pid();
-    void OpenPid(const String& strPidFilePath);
-    void ClosePid();
-    bool IsPidOpen() const;
-    static bool PIDAutorecoverImpossible(std::uint32_t pid);
-
-private:
-    bool m_bIsPidOpen;
-    OTString m_strPidFilePath;
-};
-
-OT_API::Pid::Pid()
-    : m_bIsPidOpen(false)
-    , m_strPidFilePath(String::Factory(""))
-{
-}
-
-OT_API::Pid::~Pid()
-{
-    // nothing for now
-}
-
-// static
-bool OT_API::Pid::PIDAutorecoverImpossible(std::uint32_t pid)
-{
-#ifdef OT_CHECK_PID
-    while (waitpid(-1, 0, WNOHANG) > 0) {
-        // Wait for defunct....
-    }
-
-    if (0 != kill(pid, 0)) return false;  // Process exists
-#endif
-    return true;
-}
-
-void OT_API::Pid::OpenPid(const String& strPidFilePath)
-{
-    if (IsPidOpen()) {
-        otErr << OT_METHOD << __FUNCTION__
-              << ": strPidFilePath is OPEN, MUST CLOSE BEFORE "
-                 "OPENING A NEW ONE!\n";
-        OT_FAIL;
-    }
-
-    if (!strPidFilePath.Exists()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": strPidFilePath is Empty!\n";
-        OT_FAIL;
-    }
-    if (3 > strPidFilePath.GetLength()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": strPidFilePath is Too Short! ("
-              << strPidFilePath << ")\n";
-        OT_FAIL;
-    }
-
-    LogDetail(OT_METHOD)(__FUNCTION__)(": Using Pid File: ")(strPidFilePath)
-        .Flush();
-    m_strPidFilePath = strPidFilePath;
-
-    {
-        // 1. READ A FILE STORING THE PID. (It will already exist, if OT is
-        // already running.)
-        //
-        // We open it for reading first, to see if it already exists. If it
-        // does,
-        // we read the number. 0 is fine, since we overwrite with 0 on shutdown.
-        // But
-        // any OTHER number means OT is still running. Or it means it was killed
-        // while
-        // running and didn't shut down properly, and that you need to delete
-        // the pid file
-        // by hand before running OT again. (This is all for the purpose of
-        // preventing two
-        // copies of OT running at the same time and corrupting the data
-        // folder.)
-        //
-        std::ifstream pid_infile(m_strPidFilePath->Get());
-
-        // 2. (IF FILE EXISTS WITH ANY PID INSIDE, THEN DIE.)
-        //
-
-        if (pid_infile.is_open())  // it existed already
-        {
-            std::uint32_t old_pid = 0;
-            pid_infile >> old_pid;
-            pid_infile.close();
-
-            // There was a real PID in there.
-            if ((old_pid != 0) && PIDAutorecoverImpossible(old_pid)) {
-#if !(defined(ANDROID) || (defined(TARGET_OS_IPHONE) && TARGET_OS_IPHONE))
-                const std::uint64_t lPID = old_pid;
-                otErr
-                    << "\n\n\nIS OPEN-TRANSACTIONS ALREADY RUNNING?\n\n"
-                       "I found a PID ("
-                    << lPID << ") in the data lock file, located at: "
-                    << m_strPidFilePath
-                    << "\n\n"
-                       "If the OT process with PID "
-                    << lPID
-                    << " is truly not running "
-                       "anymore, "
-                       "then just erase that file and restart.\nThis is "
-                       "normally "
-                       "cleaned "
-                       "up during AppCleanup / AppShutdown. (Or should be.)\n";
-
-                m_bIsPidOpen = false;
-                return;
-#endif
-            }
-            // Otherwise, though the file existed, the PID within was 0.
-            // (Meaning the previous instance of OT already set it to 0 as it
-            // was shutting down.)
-        }
-        // Next let's record our PID to the same file, so other copies of OT
-        // can't trample on US.
-
-        // 3. GET THE CURRENT (ACTUAL) PROCESS ID.
-        //
-        std::uint64_t the_pid = 0;
-
-#ifdef _WIN32
-        the_pid = GetCurrentProcessId();
-#else
-        the_pid = getpid();
-#endif
-
-        // 4. OPEN THE FILE IN WRITE MODE, AND SAVE THE PID TO IT.
-        //
-        std::ofstream pid_outfile(m_strPidFilePath->Get());
-
-        if (pid_outfile.is_open()) {
-            pid_outfile << the_pid;
-            pid_outfile.close();
-            m_bIsPidOpen = true;
-        } else {
-            otErr << "Failed trying to open data locking file (to store "
-                     "PID "
-                  << the_pid << "): " << m_strPidFilePath << "\n";
-            m_bIsPidOpen = false;
-        }
-    }
-}
-
-void OT_API::Pid::ClosePid()
-{
-    if (!IsPidOpen()) {
-        otErr
-            << __FUNCTION__
-            << ": strPidFilePath is CLOSED, WHY CLOSE A PID IF NONE IS OPEN!\n";
-        OT_FAIL;
-    }
-    if (!m_strPidFilePath->Exists()) {
-        otErr << OT_METHOD << __FUNCTION__ << ": m_strPidFilePath is Empty!\n";
-        OT_FAIL;
-    }
-
-    // PID -- Set it to 0 in the lock file so the next time we run OT, it knows
-    // there isn't
-    // another copy already running (otherwise we might wind up with two copies
-    // trying to write
-    // to the same data folder simultaneously, which could corrupt the data...)
-    //
-
-    std::ofstream pid_outfile(m_strPidFilePath->Get());
-
-    if (pid_outfile.is_open()) {
-        std::uint32_t the_pid = 0;
-        pid_outfile << the_pid;
-        pid_outfile.close();
-        m_bIsPidOpen = false;
-    } else {
-        otErr << "Failed trying to open data locking file (to wipe PID "
-                 "back to 0): "
-              << m_strPidFilePath << "\n";
-        m_bIsPidOpen = true;
-    }
-}
-
-bool OT_API::Pid::IsPidOpen() const { return m_bIsPidOpen; }
-
 OT_API::OT_API(
     const api::Core& api,
     const api::client::Activity& activity,
@@ -489,7 +276,6 @@ OT_API::OT_API(
     , reply_received_(api.ZeroMQ().PublishSocket())
 {
     // WARNING: do not access api_.Wallet() during construction
-    pid_.reset(new Pid);
 
     if (!Init()) {
         Cleanup();
@@ -544,15 +330,8 @@ bool OT_API::Init()
         }
     }
 
-    auto strPIDPath = String::Factory();
-    OTPaths::AppendFile(strPIDPath, strDataPath, CLIENT_PID_FILENAME);
-    pid_->OpenPid(strPIDPath);
-
-    if (!pid_->IsPidOpen()) { return false; }  // failed loading
-
     // This way, everywhere else I can use the default storage context (for now)
     // and it will work everywhere I put it. (Because it's now set up...)
-    //
     m_bDefaultStore = OTDB::InitDefaultStorage(
         OTDB_DEFAULT_STORAGE,
         OTDB_DEFAULT_PACKER);  // We only need to do this once now.
@@ -575,19 +354,7 @@ bool OT_API::Init()
     return false;
 }
 
-bool OT_API::Cleanup()
-{
-    if (!pid_->IsPidOpen()) {
-
-        return false;
-    }  // pid isn't open, just return false.
-
-    pid_->ClosePid();
-
-    if (pid_->IsPidOpen()) { OT_FAIL; }  // failed closing
-
-    return true;
-}
+bool OT_API::Cleanup() { return true; }
 
 // Get
 bool OT_API::GetWalletFilename(String& strPath) const
@@ -13464,7 +13231,5 @@ OT_API::~OT_API()
 
     m_pClient.reset();
     Cleanup();
-    // this must be last!
-    pid_.reset();
 }
 }  // namespace opentxs

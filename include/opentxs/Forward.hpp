@@ -282,6 +282,7 @@ class PairEventCallbackSwig;
 class PayDividendVisitor;
 class PaymentCode;
 class PeerObject;
+class PIDFile;
 #if OT_CASH
 class Purse;
 #endif  // OT_CASH

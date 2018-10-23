@@ -17,6 +17,7 @@
 #define SERVER_CONFIG_KEY "server"
 #define DATA_FOLDER_EXT "_data"
 #define CONFIG_FILE_EXT ".cfg"
+#define PID_FILE "opentxs.pid"
 
 //#define OT_METHOD "opentxs::Legacy::"
 
@@ -34,6 +35,7 @@ Legacy::Legacy()
     , crypto_config_file_{std::string(CRYPTO_CONFIG_KEY) + CONFIG_FILE_EXT}
     , log_config_file_{std::string(LOG_CONFIG_KEY) + CONFIG_FILE_EXT}
     , server_config_file_{std::string(SERVER_CONFIG_KEY) + CONFIG_FILE_EXT}
+    , pid_file_{PID_FILE}
 {
 }
 
@@ -78,6 +80,8 @@ std::string Legacy::LogConfigFilePath() const
 {
     return get_file(log_config_file_);
 }
+
+std::string Legacy::PIDFilePath() const { return get_file(pid_file_); }
 
 std::string Legacy::ServerConfigFilePath(const int instance) const
 {

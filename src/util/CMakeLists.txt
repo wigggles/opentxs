@@ -6,13 +6,18 @@
 set(MODULE_NAME opentxs-util)
 
 set(cxx-sources
+  PIDFile.cpp
   Signals.cpp
 )
 
-file(GLOB cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/util/*.hpp")
+set(cxx-install-header
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/util/PIDFile.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/util/Signals.hpp"
+)
 
 set(cxx-headers
   ${cxx-install-headers}
+  PIDFile.hpp
 )
 
 if(WIN32)
