@@ -45,6 +45,7 @@
 #include "opentxs/ui/ContactList.hpp"
 #include "opentxs/ui/MessagableList.hpp"
 #include "opentxs/ui/PayableList.hpp"
+#include "opentxs/util/PIDFile.hpp"
 #include "opentxs/util/Signals.hpp"
 #include "opentxs/OT.hpp"
 #include "opentxs/Types.hpp"
@@ -356,6 +357,7 @@ Native::Native(
     , default_external_password_callback_{nullptr}
     , external_password_callback_{externalPasswordCallback}
     , rpc_(opentxs::Factory::RPC(*this))
+    , pid_(nullptr)
 {
     // NOTE: OT_ASSERT is not available until Init() has been called
     assert(legacy_);
@@ -481,6 +483,22 @@ void Native::Init_Log()
     if (false == init) { abort(); }
 }
 
+void Native::init_pid(const Lock& lock) const
+{
+    if (false == bool(pid_)) {
+        OT_ASSERT(legacy_);
+
+        pid_.reset(opentxs::Factory::PIDFile(legacy_->PIDFilePath()));
+
+        OT_ASSERT(pid_);
+
+        pid_->Open();
+    }
+
+    OT_ASSERT(pid_);
+    OT_ASSERT(pid_->isOpen());
+}
+
 void Native::Init_Zap()
 {
     zap_.reset(opentxs::Factory::ZAP(zmq_context_));
@@ -575,6 +593,7 @@ void Native::start_client(const Lock& lock, const ArgList& args) const
     OT_ASSERT(crypto_);
     OT_ASSERT(legacy_);
 
+    init_pid(lock);
     auto merged_args = merge_arglist(args);
     const int next = client_.size();
     const auto instance = client_instance(next);
@@ -614,6 +633,7 @@ void Native::start_server(const Lock& lock, const ArgList& args) const
     OT_ASSERT(verify_lock(lock))
     OT_ASSERT(crypto_);
 
+    init_pid(lock);
     const auto merged_args = merge_arglist(args);
     const auto next{server_.size()};
     const auto instance{server_instance(next)};
@@ -665,6 +685,8 @@ const api::network::ZAP& Native::ZAP() const
 
 Native::~Native()
 {
+    if (pid_) { pid_->Close(); }
+
     LogSource::Shutdown();
     log_.reset();
 }

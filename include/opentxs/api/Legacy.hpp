@@ -22,6 +22,7 @@ public:
     EXPORT virtual std::string ClientDataFolder(const int instance) const = 0;
     EXPORT virtual std::string CryptoConfigFilePath() const = 0;
     EXPORT virtual std::string LogConfigFilePath() const = 0;
+    EXPORT virtual std::string PIDFilePath() const = 0;
     EXPORT virtual std::string ServerConfigFilePath(
         const int instance) const = 0;
     EXPORT virtual std::string ServerDataFolder(const int instance) const = 0;

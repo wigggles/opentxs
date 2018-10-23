@@ -16,6 +16,7 @@ public:
     std::string ClientDataFolder(const int instance) const override;
     std::string CryptoConfigFilePath() const override;
     std::string LogConfigFilePath() const override;
+    std::string PIDFilePath() const override;
     std::string ServerConfigFilePath(const int instance) const override;
     std::string ServerDataFolder(const int instance) const override;
 
@@ -30,6 +31,7 @@ private:
     const std::string crypto_config_file_{""};
     const std::string log_config_file_{""};
     const std::string server_config_file_{""};
+    const std::string pid_file_{""};
 
     std::string get_path(const std::string& fragment, const int instance = 0)
         const;
