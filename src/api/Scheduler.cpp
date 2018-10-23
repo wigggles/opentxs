@@ -28,7 +28,8 @@ Scheduler::Scheduler(const Flag& running)
     , server_refresh_interval_{std::numeric_limits<std::int64_t>::max()}
     , unit_publish_interval_{std::numeric_limits<std::int64_t>::max()}
     , unit_refresh_interval_{std::numeric_limits<std::int64_t>::max()}
-    , running_{running}
+    , running_p_{Flag::Factory(running)}
+    , running_{running_p_.get()}
     , periodic_task_list_{}
     , periodic_{nullptr}
 {

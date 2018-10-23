@@ -7,9 +7,6 @@
 
 #include <gtest/gtest.h>
 
-#define TEST_NYM_1 "testNym1"
-#define TEST_NYM_2 "testNym2"
-#define TEST_NYM_3 "testNym3"
 #define TEST_SEED                                                              \
     "one two three four five six seven eight nine ten eleven twelve"
 #define TEST_SEED_PASSPHRASE "seed passphrase"
@@ -44,7 +41,9 @@ protected:
     static std::string server_id_;
     static std::string nym1_id_;
     static std::string nym2_account_id_;
+    static std::string nym2_id_;
     static std::string nym3_account1_id_;
+    static std::string nym3_id_;
     static std::string nym3_account2_id_;
     static std::string seed_id_;
     static std::map<std::string, int> widget_update_counters_;
@@ -116,7 +115,9 @@ proto::ServerContract Test_Rpc::server_contract_;
 std::string Test_Rpc::server_id_{};
 std::string Test_Rpc::nym1_id_{};
 std::string Test_Rpc::nym2_account_id_{};
+std::string Test_Rpc::nym2_id_{};
 std::string Test_Rpc::nym3_account1_id_{};
+std::string Test_Rpc::nym3_id_{};
 std::string Test_Rpc::nym3_account2_id_{};
 std::string Test_Rpc::seed_id_{};
 std::map<std::string, int> Test_Rpc::widget_update_counters_{};
@@ -423,7 +424,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
-    createnym->set_name(TEST_NYM_1);
+    createnym->set_name("testNym1");
     createnym->set_index(-1);
 
     auto response = ot_.RPC(command);
@@ -450,7 +451,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
-    createnym->set_name(TEST_NYM_2);
+    createnym->set_name("testNym2");
     createnym->set_index(-1);
 
     response = ot_.RPC(command);
@@ -461,6 +462,8 @@ TEST_F(Test_Rpc, Create_Nym)
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_TRUE(0 != response.identifier_size());
+
+    nym2_id_ = response.identifier(0);
 
     command = init(proto::RPCCOMMAND_CREATENYM);
     command.set_session(0);
@@ -471,7 +474,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     createnym->set_version(CREATENYM_VERSION);
     createnym->set_type(proto::CITEMTYPE_INDIVIDUAL);
-    createnym->set_name(TEST_NYM_3);
+    createnym->set_name("testNym3");
     createnym->set_index(-1);
 
     response = ot_.RPC(command);
@@ -482,6 +485,8 @@ TEST_F(Test_Rpc, Create_Nym)
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
 
     ASSERT_TRUE(0 != response.identifier_size());
+
+    nym3_id_ = response.identifier(0);
 }
 
 TEST_F(Test_Rpc, List_Contacts)
@@ -538,8 +543,7 @@ TEST_F(Test_Rpc, Add_Contact)
 
     auto& addcontact2 = *command.add_addcontact();
     addcontact2.set_version(ADDCONTACT_VERSION);
-    addcontact2.set_nymid(
-        client.Wallet().NymByIDPartialMatch(TEST_NYM_2)->ID().str());
+    addcontact2.set_nymid(nym2_id_);
 
     response = ot_.RPC(command);
 
@@ -562,7 +566,7 @@ TEST_F(Test_Rpc, Add_Contact)
     auto& addcontact3 = *command.add_addcontact();
     addcontact3.set_version(ADDCONTACT_VERSION);
     addcontact3.set_paymentcode(
-        client.Wallet().NymByIDPartialMatch(TEST_NYM_3)->PaymentCode());
+        client.Wallet().Nym(Identifier::Factory(nym3_id_))->PaymentCode());
 
     response = ot_.RPC(command);
 
@@ -661,11 +665,7 @@ TEST_F(Test_Rpc, RegisterNym)
     command = init(proto::RPCCOMMAND_REGISTERNYM);
     command.set_session(0);
 
-    auto nym = manager.Wallet().NymByIDPartialMatch(TEST_NYM_2);
-
-    ASSERT_TRUE(bool(nym));
-
-    command.set_owner(nym->ID().str());
+    command.set_owner(nym2_id_);
     command.set_notary(server.ID().str());
 
     response = ot_.RPC(command);
@@ -681,11 +681,7 @@ TEST_F(Test_Rpc, RegisterNym)
     command = init(proto::RPCCOMMAND_REGISTERNYM);
     command.set_session(0);
 
-    nym = manager.Wallet().NymByIDPartialMatch(TEST_NYM_3);
-
-    ASSERT_TRUE(bool(nym));
-
-    command.set_owner(nym->ID().str());
+    command.set_owner(nym3_id_);
     command.set_notary(server.ID().str());
 
     response = ot_.RPC(command);
@@ -777,11 +773,8 @@ TEST_F(Test_Rpc, Create_Account)
     auto command = init(proto::RPCCOMMAND_CREATEACCOUNT);
     command.set_session(0);
     auto& manager = ot_.Client(0);
-    auto nym = manager.Wallet().NymByIDPartialMatch(TEST_NYM_2);
 
-    ASSERT_TRUE(bool(nym));
-
-    command.set_owner(nym->ID().str());
+    command.set_owner(nym2_id_);
     auto& server = ot_.Server(0);
     command.set_notary(server.ID().str());
     const auto unitdefinitionlist = manager.Wallet().UnitDefinitionList();
@@ -812,11 +805,8 @@ TEST_F(Test_Rpc, Create_Account)
     // Create two accounts for nym 3.
     command = init(proto::RPCCOMMAND_CREATEACCOUNT);
     command.set_session(0);
-    nym = manager.Wallet().NymByIDPartialMatch(TEST_NYM_3);
 
-    ASSERT_TRUE(bool(nym));
-
-    command.set_owner(nym->ID().str());
+    command.set_owner(nym3_id_);
     command.set_notary(server.ID().str());
     command.set_unit(unitid);
 
@@ -842,11 +832,8 @@ TEST_F(Test_Rpc, Create_Account)
 
     command = init(proto::RPCCOMMAND_CREATEACCOUNT);
     command.set_session(0);
-    nym = manager.Wallet().NymByIDPartialMatch(TEST_NYM_3);
 
-    ASSERT_TRUE(bool(nym));
-
-    command.set_owner(nym->ID().str());
+    command.set_owner(nym3_id_);
     command.set_notary(server.ID().str());
     command.set_unit(unitid);
 
@@ -897,12 +884,8 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     sendpayment->set_version(SENDPAYMENT_VERSION);
     sendpayment->set_type(proto::RPCPAYMENTTYPE_TRANSFER);
 
-    auto nym3 = client.Wallet().NymByIDPartialMatch(TEST_NYM_3);
-
-    ASSERT_TRUE(bool(nym3));
-
     auto& contacts = client.Contacts();
-    const auto contactid = contacts.ContactID(nym3->ID());
+    const auto contactid = contacts.ContactID(Identifier::Factory(nym3_id_));
     sendpayment->set_contact(contactid->str());
     sendpayment->set_sourceaccount(issuer_account_id_);
     sendpayment->set_destinationaccount(nym3_account1_id_);
@@ -922,7 +905,7 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
     accept_transfer_1(
         client,
         Identifier::Factory(server_id_),
-        nym3->ID(),
+        Identifier::Factory(nym3_id_),
         Identifier::Factory(nym3_account1_id_));
     process_receipt_1(
         client,
@@ -958,9 +941,7 @@ TEST_F(Test_Rpc, Move_Funds)
     command.set_session(0);
 
     auto& manager = ot_.Client(0);
-    auto nym3 = manager.Wallet().NymByIDPartialMatch(TEST_NYM_3);
-
-    ASSERT_TRUE(bool(nym3));
+    auto nym3id = Identifier::Factory(nym3_id_);
 
     auto movefunds = command.mutable_movefunds();
 
@@ -986,12 +967,12 @@ TEST_F(Test_Rpc, Move_Funds)
     process_receipt_1(
         manager,
         Identifier::Factory(server_id_),
-        nym3->ID(),
+        nym3id,
         Identifier::Factory(nym3_account2_id_));
     process_receipt_1(
         manager,
         Identifier::Factory(server_id_),
-        nym3->ID(),
+        nym3id,
         Identifier::Factory(nym3_account1_id_));
 
     {
@@ -1020,27 +1001,25 @@ TEST_F(Test_Rpc, Get_Workflow)
     // Make sure the workflows on the client are up-to-date.
     client.Sync().Refresh();
 
-    auto nym3 = client.Wallet().NymByIDPartialMatch(TEST_NYM_3);
-
-    ASSERT_TRUE(bool(nym3));
+    auto nym3id = Identifier::Factory(nym3_id_);
 
     const auto& workflow = client.Workflow();
     auto workflows = workflow.List(
-        nym3->ID(),
+        nym3id,
         proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER,
         proto::PAYMENTWORKFLOWSTATE_COMPLETED);
-    
+
     ASSERT_TRUE(!workflows.empty());
-    
+
     auto workflowid = *workflows.begin();
-    
+
     auto command = init(proto::RPCCOMMAND_GETWORKFLOW);
 
     command.set_session(0);
 
     auto& getworkflow = *command.add_getworkflow();
     getworkflow.set_version(GETWORKFLOW_VERSION);
-    getworkflow.set_nymid(nym3->ID().str());
+    getworkflow.set_nymid(nym3_id_);
     getworkflow.set_workflowid(workflowid->str());
 
     auto response = ot_.RPC(command);
@@ -1058,8 +1037,51 @@ TEST_F(Test_Rpc, Get_Workflow)
 
     const auto& paymentworkflow = response.workflow(0);
     EXPECT_STREQ(workflowid->str().c_str(), paymentworkflow.id().c_str());
-    EXPECT_EQ(proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER, paymentworkflow.type());
+    EXPECT_EQ(
+        proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER, paymentworkflow.type());
     EXPECT_EQ(proto::PAYMENTWORKFLOWSTATE_COMPLETED, paymentworkflow.state());
+}
+
+TEST_F(Test_Rpc, Get_Account_Activity)
+{
+    auto& client_a = ot_.Client(0);
+
+    auto command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
+    command.set_session(0);
+    command.add_identifier(nym3_account2_id_);
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(1, response.version());
+
+    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
+    EXPECT_EQ(1, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(0, response.accountevent_size());
+
+    Log::Sleep(std::chrono::seconds(1));
+
+    command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
+    command.set_session(0);
+    command.add_identifier(nym3_account2_id_);
+    response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(1, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(2, response.accountevent_size());
+
+    const auto& accountevent = response.accountevent(0);
+    EXPECT_EQ(1, accountevent.version());
+    EXPECT_STREQ(nym3_account2_id_.c_str(), accountevent.id().c_str());
+    EXPECT_EQ(proto::ACCOUNTEVENT_INCOMINGTRANSFER, accountevent.type());
+    EXPECT_EQ(25, accountevent.amount());
 }
 
 TEST_F(Test_Rpc, Get_Account_Balance)

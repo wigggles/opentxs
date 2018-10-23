@@ -305,5 +305,9 @@ const api::network::ZMQ& Manager::ZMQ() const
     return *zeromq_;
 }
 
-Manager::~Manager() { Cleanup(); }
+Manager::~Manager()
+{
+    running_.Off();
+    Cleanup();
+}
 }  // namespace opentxs::api::client::implementation
