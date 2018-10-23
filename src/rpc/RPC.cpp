@@ -726,8 +726,9 @@ proto::RPCResponse RPC::get_account_activity(
 
     for (const auto& id : command.identifier()) {
         const auto accountid = Identifier::Factory(id);
-        auto& accountactivity = client.UI().AccountActivity(
-            client.Storage().AccountOwner(accountid), accountid);
+        const auto accountownerid = client.Storage().AccountOwner(accountid);
+        auto& accountactivity =
+            client.UI().AccountActivity(accountownerid, accountid);
         auto balanceitem = accountactivity.First();
 
         if (!balanceitem->Valid()) {
@@ -741,11 +742,26 @@ proto::RPCResponse RPC::get_account_activity(
             auto& accountevent = *output.add_accountevent();
             accountevent.set_version(ACCOUNTEVENT_VERSION);
             accountevent.set_id(id);
-            accountevent.set_type(
-                storagebox_to_accounteventtype(balanceitem->Type()));
+
+            auto accounteventtype =
+                storagebox_to_accounteventtype(balanceitem->Type());
+            if (proto::ACCOUNTEVENT_ERROR == accounteventtype &&
+                StorageBox::INTERNALTRANSFER == balanceitem->Type()) {
+                if (0 > balanceitem->Amount()) {
+                    accounteventtype = proto::ACCOUNTEVENT_OUTGOINGTRANSFER;
+                } else {
+                    accounteventtype = proto::ACCOUNTEVENT_INCOMINGTRANSFER;
+                }
+            }
+            accountevent.set_type(accounteventtype);
 
             if (0 < balanceitem->Contacts().size()) {
                 accountevent.set_contact(balanceitem->Contacts().at(0));
+            } else if (
+                proto::ACCOUNTEVENT_INCOMINGTRANSFER == accounteventtype) {
+                const auto contactid =
+                    client.Contacts().ContactID(accountownerid);
+                accountevent.set_contact(contactid->str());
             }
 
             accountevent.set_workflow(balanceitem->Workflow());
@@ -1914,12 +1930,12 @@ proto::AccountEventType RPC::storagebox_to_accounteventtype(
         case StorageBox::OUTGOINGCHEQUE: {
             accounteventtype = proto::ACCOUNTEVENT_OUTGOINGCHEQUE;
         } break;
-            //        case StorageBox::INCOMINGTRANSFER:
-            //            accounteventtype =
-            //            proto::ACCOUNTEVENT_INCOMINGTRANSFER; break;
-            //        case StorageBox::OUTGOINGTRANSFER:
-            //            accounteventtype =
-            //            proto::ACCOUNTEVENT_OUTGOINGTRANSFER; break;
+        case StorageBox::INCOMINGTRANSFER: {
+            accounteventtype = proto::ACCOUNTEVENT_INCOMINGTRANSFER;
+        } break;
+        case StorageBox::OUTGOINGTRANSFER: {
+            accounteventtype = proto::ACCOUNTEVENT_OUTGOINGTRANSFER;
+        } break;
         default: {
         }
     }

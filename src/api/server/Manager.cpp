@@ -71,14 +71,19 @@ api::server::Manager* Factory::ServerManager(
         try {
             manager->Init();
         } catch (const std::invalid_argument& e) {
-            manager->Cleanup();
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": There was a problem creating the server. The server "
+                "contract will be deleted. Error: ")(e.what())
+                .Flush();
+
+            const std::string datafolder = manager->DataFolder();
+
+            delete manager;
 
             OTDB::EraseValueByKey(
-                manager->DataFolder(), ".", "NEW_SERVER_CONTRACT.otc", "", "");
-            OTDB::EraseValueByKey(
-                manager->DataFolder(), ".", "notaryServer.xml", "", "");
-            OTDB::EraseValueByKey(
-                manager->DataFolder(), ".", "seed_backup.json", "", "");
+                datafolder, ".", "NEW_SERVER_CONTRACT.otc", "", "");
+            OTDB::EraseValueByKey(datafolder, ".", "notaryServer.xml", "", "");
+            OTDB::EraseValueByKey(datafolder, ".", "seed_backup.json", "", "");
 
             std::rethrow_exception(std::current_exception());
         }
@@ -594,6 +599,7 @@ bool Manager::verify_mint_directory(const std::string& serverID) const
 
 Manager::~Manager()
 {
+    running_.Off();
 #if OT_CASH
     if (mint_thread_.joinable()) { mint_thread_.join(); }
 #endif  // OT_CASH
