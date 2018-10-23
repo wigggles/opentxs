@@ -10,7 +10,7 @@ set(cxx-sources
   Signals.cpp
 )
 
-set(cxx-install-header
+set(cxx-install-headers
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/util/PIDFile.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/util/Signals.hpp"
 )
