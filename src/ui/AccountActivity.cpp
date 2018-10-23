@@ -158,7 +158,14 @@ AccountActivity::EventRow AccountActivity::extract_event(
         }
     }
 
-    OT_ASSERT(found)
+    if (false == found) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Workflow ")(workflow.id())(
+            ", type ")(workflow.type())(", state ")(workflow.state())(
+            " does not contain an event of type ")(eventType)
+            .Flush();
+
+        OT_FAIL;
+    }
 
     return output;
 }
@@ -279,9 +286,9 @@ std::vector<AccountActivity::RowKey> AccountActivity::extract_rows(
                         extract_event(
                             proto::PAYMENTEVENTTYPE_CONVEY, workflow));
                     output.emplace_back(
-                        proto::PAYMENTEVENTTYPE_COMPLETE,
+                        proto::PAYMENTEVENTTYPE_ACCEPT,
                         extract_event(
-                            proto::PAYMENTEVENTTYPE_COMPLETE, workflow));
+                            proto::PAYMENTEVENTTYPE_ACCEPT, workflow));
                 } break;
                 case proto::PAYMENTWORKFLOWSTATE_ERROR:
                 case proto::PAYMENTWORKFLOWSTATE_UNSENT:
