@@ -82,8 +82,6 @@
 #define OT_SCRIPTS_DIR "lib/opentxs"
 #endif
 
-#define OT_METHOD "opentxs::OTPaths::"
-
 namespace opentxs
 {
 
@@ -486,9 +484,6 @@ bool OTPaths::LoadSetScriptsFolder    // ie. PrefixFolder() + [ if (NOT Android)
             AppendFolder(
                 strAppBinaryScriptPath, AppBinaryFolder(), strConfigFolder);
             if (!OTPaths::FolderExists(strAppBinaryScriptPath)) {
-                LogNormal(OT_METHOD)(__FUNCTION__)(": Warning: Cannot Find: ")(
-                    strAppBinaryScriptPath)(", using default!")
-                    .Flush();
                 strAppBinaryScriptPath =
                     String::Factory();  // don't have anything here.
             }
@@ -836,9 +831,6 @@ bool OTPaths::ConfirmCreateFolder(
 #endif
 
         if (!bCreateDirSuccess) {
-            LogVerbose(OT_METHOD)(__FUNCTION__)(": Unable To Confirm ")(
-                "Created Directory ")(strExactPath)
-                .Flush();
             out_IsNew = false;
             out_Exists = false;
             return false;
@@ -918,18 +910,11 @@ bool OTPaths::ToReal(const String& strExactPath, String& out_strCanonicalPath)
     if (actualpath == NULL) {
 
         if (errno == ENOTDIR) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": Input value to RealPath is not a directory: (Realpath: "
-                "skipping)")
-                .Flush();
             out_strCanonicalPath.Set(strExactPath);
             return true;
         }
 
         if (errno == ENOENT) {
-            LogDetail(OT_METHOD)(__FUNCTION__)(
-                ": File doesn't exist: (Realpath: skipping)")
-                .Flush();
             out_strCanonicalPath.Set(strExactPath);
             return true;
         }
@@ -1174,8 +1159,6 @@ bool OTPaths::BuildFolderPath(
     std::string l_strPathPart("");
     bool l_FolderExists(false), l_bBuiltFolder(false);
 
-    const bool bLog(Log::IsInitialized());
-
     for (size_t i = 0; i < nSize; i++) {
 #ifndef _WIN32                             // aka UNIX
         if (0 == i) l_strPathPart += "/";  // add annother / for root.
@@ -1189,10 +1172,6 @@ bool OTPaths::BuildFolderPath(
 
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
             return false;
-        if (bLog && l_bBuiltFolder)
-            LogVerbose(OT_METHOD)(__FUNCTION__)(": Made new folder: ")(
-                l_strPathPart)
-                .Flush();
 
         if (!out_bFolderCreated && l_bBuiltFolder) out_bFolderCreated = true;
     }
@@ -1226,8 +1205,6 @@ bool OTPaths::BuildFilePath(
     std::string l_strPathPart("");
     bool l_FolderExists(false), l_bBuiltFolder(false);
 
-    const bool bLog(Log::IsInitialized());
-
     for (size_t i = 0; i < nSize; i++) {
 #ifndef _WIN32                             // aka UNIX
         if (0 == i) l_strPathPart += "/";  // add annother / for root.
@@ -1244,10 +1221,6 @@ bool OTPaths::BuildFilePath(
         auto strPathPart = String::Factory(l_strPathPart);
         if (!ConfirmCreateFolder(strPathPart, l_FolderExists, l_bBuiltFolder))
             return false;
-        if (bLog && l_bBuiltFolder)
-            LogNormal(OT_METHOD)(__FUNCTION__)(": Made new folder: ")(
-                l_strPathPart)(".")
-                .Flush();
 
         if (!out_bFolderCreated && l_bBuiltFolder) out_bFolderCreated = true;
     }
