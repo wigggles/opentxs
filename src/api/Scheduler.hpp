@@ -35,7 +35,8 @@ protected:
     std::int64_t server_refresh_interval_{0};
     std::int64_t unit_publish_interval_{0};
     std::int64_t unit_refresh_interval_{0};
-    const Flag& running_;
+    OTFlag running_p_;
+    Flag& running_;
 
     void Start(
         const api::storage::Storage* const storage,
