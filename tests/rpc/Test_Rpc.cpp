@@ -226,8 +226,17 @@ TEST_F(Test_Rpc, List_Seeds_None) { list(proto::RPCCOMMAND_LISTHDSEEDS, 0); }
 // The server created in this test gets used in subsequent tests.
 TEST_F(Test_Rpc, Add_Server_Session)
 {
+    ArgList args{{OPENTXS_ARG_INPROC, {std::to_string(ot_.Servers() * 2 + 1)}}};
+
     auto command = init(proto::RPCCOMMAND_ADDSERVERSESSION);
+
     command.set_session(-1);
+    for (auto& arg : args) {
+        auto apiarg = command.add_arg();
+        apiarg->set_version(APIARG_VERSION);
+        apiarg->set_key(arg.first);
+        apiarg->add_value(*arg.second.begin());
+    }
 
     auto response = ot_.RPC(command);
 
@@ -291,12 +300,12 @@ TEST_F(Test_Rpc, List_Client_Sessions)
 
 TEST_F(Test_Rpc, List_Server_Sessions)
 {
-    ArgList args{{OPENTXS_ARG_INPROC, {std::to_string(ot_.Servers())}}};
+    ArgList args{{OPENTXS_ARG_INPROC, {std::to_string(ot_.Servers() * 2 + 1)}}};
 
     auto added = add_session(proto::RPCCOMMAND_ADDSERVERSESSION, args);
     ASSERT_TRUE(added);
 
-    args[OPENTXS_ARG_INPROC] = {std::to_string(ot_.Servers())};
+    args[OPENTXS_ARG_INPROC] = {std::to_string(ot_.Servers() * 2 + 1)};
 
     added = add_session(proto::RPCCOMMAND_ADDSERVERSESSION, args);
     ASSERT_TRUE(added);
