@@ -137,7 +137,12 @@ void Receiver<T>::thread()
         auto reply = T::Factory();
         const auto received = Socket::receive_message(lock, socket_, reply);
 
-        if (false == received) { return; }
+        if (false == received) {
+            std::cerr << RECEIVER_METHOD << __FUNCTION__
+                      << ": Failed to receive incoming message." << std::endl;
+
+            continue;
+        }
 
         process_incoming(lock, reply);
     }

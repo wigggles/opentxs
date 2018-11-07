@@ -160,11 +160,14 @@ bool Socket::receive_message(
         if (false == received) {
             auto zerr = zmq_errno();
             if (EAGAIN == zerr) {
-                otErr << OT_METHOD << __FUNCTION__ << ": No messages."
-                      << std::endl;
+                std::cerr << OT_METHOD << __FUNCTION__
+                          << ": zmq_msg_recv returns EAGAIN. This should never "
+                             "happen."
+                          << std::endl;
             } else {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": Receive error: " << zmq_strerror(zerr) << std::endl;
+                std::cerr << OT_METHOD << __FUNCTION__
+                          << ": Receive error: " << zmq_strerror(zerr)
+                          << std::endl;
             }
 
             return false;
@@ -177,9 +180,9 @@ bool Socket::receive_message(
             (-1 != zmq_getsockopt(socket, ZMQ_RCVMORE, &option, &optionBytes));
 
         if (false == haveOption) {
-            otErr << OT_METHOD << __FUNCTION__
-                  << ": Failed to check socket options error:\n"
-                  << zmq_strerror(zmq_errno()) << std::endl;
+            std::cerr << OT_METHOD << __FUNCTION__
+                      << ": Failed to check socket options error:\n"
+                      << zmq_strerror(zmq_errno()) << std::endl;
 
             return false;
         }
