@@ -559,12 +559,27 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
 
     if (!is_session_valid(command.session())) {
         add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
         return output;
     }
 
-    auto& session = get_session(command.session());
+    if (!is_client_session(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    auto* session = get_client(command.session());
+
+    if (nullptr == session) {
+        add_output_status(output, proto::RPCRESPONSE_ERROR);
+
+        return output;
+    }
+
+    const auto& client = *session;
     const auto& createnym = command.createnym();
-    auto identifier = session.Wallet().CreateNymHD(
+    auto identifier = client.Exec().CreateNymHD(
         createnym.type(),
         createnym.name(),
         createnym.seedid(),
@@ -575,7 +590,7 @@ proto::RPCResponse RPC::create_nym(const proto::RPCCommand& command) const
     } else {
         if (0 < createnym.claims_size()) {
             auto nymdata =
-                session.Wallet().mutable_Nym(Identifier::Factory(identifier));
+                client.Wallet().mutable_Nym(Identifier::Factory(identifier));
 
             for (const auto& addclaim : createnym.claims()) {
                 const auto& contactitem = addclaim.item();

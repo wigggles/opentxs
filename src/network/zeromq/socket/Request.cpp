@@ -76,7 +76,7 @@ Socket::SendResult RequestSocket::SendRequest(zeromq::Message& request) const
     const auto ready = wait(lock);
 
     if (false == ready) {
-        otErr << OT_METHOD << __FUNCTION__ << ": Receive timeout." << std::endl;
+        LogVerbose(OT_METHOD)(__FUNCTION__)(": Receive timeout.").Flush();
         status = opentxs::SendResult::TIMEOUT;
 
         return output;
