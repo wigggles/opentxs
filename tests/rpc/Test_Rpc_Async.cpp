@@ -189,10 +189,10 @@ void Test_Rpc_Async::setup()
     ASSERT_TRUE(started);
 
     sender_nym_id_ =
-        client_a.Wallet().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_4);
+        client_a.Exec().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_4);
 
     receiver_nym_id_ =
-        client_b.Wallet().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_5);
+        client_b.Exec().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_5);
 
     auto unit_definition = client_a.Wallet().UnitDefinition(
         sender_nym_id_,
@@ -661,7 +661,7 @@ TEST_F(Test_Rpc_Async, Create_Account)
 
     auto& client_a = ot_.Client(get_index(client_a_));
     auto nym_id =
-        client_a.Wallet().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_6);
+        client_a.Exec().CreateNymHD(proto::CITEMTYPE_INDIVIDUAL, TEST_NYM_6);
 
     ASSERT_FALSE(nym_id.empty());
 
