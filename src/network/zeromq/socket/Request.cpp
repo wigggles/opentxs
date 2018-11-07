@@ -71,11 +71,14 @@ Socket::SendResult RequestSocket::SendRequest(zeromq::Message& request) const
     auto& status = output.first;
     auto& reply = output.second;
 
-    if (false == send_message(lock, request)) { return output; }
+    if (false == send_message(lock, request)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to deliver message.")
+            .Flush();
 
-    const auto ready = wait(lock);
+        return output;
+    }
 
-    if (false == ready) {
+    if (false == wait(lock)) {
         LogVerbose(OT_METHOD)(__FUNCTION__)(": Receive timeout.").Flush();
         status = opentxs::SendResult::TIMEOUT;
 
@@ -84,6 +87,9 @@ Socket::SendResult RequestSocket::SendRequest(zeromq::Message& request) const
 
     if (receive_message(lock, reply)) {
         status = opentxs::SendResult::VALID_REPLY;
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to receive reply.")
+            .Flush();
     }
 
     return output;
