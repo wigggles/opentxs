@@ -11,7 +11,9 @@
     "one two three four five six seven eight nine ten eleven twelve"
 #define TEST_SEED_PASSPHRASE "seed passphrase"
 
-#define COMMAND_VERSION 1
+#define COMMAND_VERSION 2
+#define RESPONSE_VERSION 2
+#define STATUS_VERSION 1
 #define APIARG_VERSION 1
 #define CREATENYM_VERSION 1
 #define ADDCONTACT_VERSION 1
@@ -101,7 +103,7 @@ protected:
 
         ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-        ASSERT_EQ(1, response.version());
+        ASSERT_EQ(RESPONSE_VERSION, response.version());
         ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
         ASSERT_EQ(command.type(), response.type());
 
@@ -209,7 +211,7 @@ TEST_F(Test_Rpc, Add_Client_Session)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -244,7 +246,7 @@ TEST_F(Test_Rpc, Add_Server_Session)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -266,6 +268,50 @@ TEST_F(Test_Rpc, Add_Server_Session)
     clientmanager.Sync().SetIntroductionServer(*clientservercontract);
 }
 
+TEST_F(Test_Rpc, Get_Server_Password)
+{
+    auto command = init(proto::RPCCOMMAND_GETSERVERPASSWORD);
+    command.set_session(1);
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+    ASSERT_EQ(1, response.status_size());
+
+    const auto& status = response.status(0);
+
+    EXPECT_EQ(STATUS_VERSION, status.version());
+    EXPECT_EQ(0, status.index());
+    EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, status.code());
+    ASSERT_EQ(1, response.identifier_size());
+
+    const auto& password = response.identifier(0);
+
+    EXPECT_FALSE(password.empty());
+}
+
+TEST_F(Test_Rpc, Get_Admin_Nym_None)
+{
+    auto command = init(proto::RPCCOMMAND_GETADMINNYM);
+    command.set_session(1);
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+    ASSERT_EQ(1, response.status_size());
+
+    const auto& status = response.status(0);
+
+    EXPECT_EQ(STATUS_VERSION, status.version());
+    EXPECT_EQ(0, status.index());
+    EXPECT_EQ(proto::RPCRESPONSE_NONE, status.code());
+    EXPECT_EQ(0, response.identifier_size());
+}
+
 TEST_F(Test_Rpc, List_Client_Sessions)
 {
     ArgList args;
@@ -284,7 +330,7 @@ TEST_F(Test_Rpc, List_Client_Sessions)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -319,7 +365,7 @@ TEST_F(Test_Rpc, List_Server_Sessions)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -344,7 +390,7 @@ TEST_F(Test_Rpc, List_Server_Contracts)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -363,7 +409,7 @@ TEST_F(Test_Rpc, Get_Notary_Contract)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -385,7 +431,7 @@ TEST_F(Test_Rpc, Import_Server_Contract)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 }
@@ -408,7 +454,7 @@ TEST_F(Test_Rpc, Import_Server_Contract_Partial)
     ASSERT_EQ(2, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
     ASSERT_EQ(proto::RPCRESPONSE_NONE, response.status(1).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 }
@@ -442,7 +488,7 @@ TEST_F(Test_Rpc, Create_Nym)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -507,7 +553,7 @@ TEST_F(Test_Rpc, List_Contacts)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -531,7 +577,7 @@ TEST_F(Test_Rpc, Add_Contact)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -558,7 +604,7 @@ TEST_F(Test_Rpc, Add_Contact)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -581,7 +627,7 @@ TEST_F(Test_Rpc, Add_Contact)
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
 
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -623,7 +669,7 @@ TEST_F(Test_Rpc, Create_Unit_Definition)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -641,7 +687,7 @@ TEST_F(Test_Rpc, List_Unit_Definitions)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -666,7 +712,7 @@ TEST_F(Test_Rpc, RegisterNym)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -683,7 +729,7 @@ TEST_F(Test_Rpc, RegisterNym)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -699,7 +745,7 @@ TEST_F(Test_Rpc, RegisterNym)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 }
@@ -733,7 +779,7 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
     ASSERT_EQ(1, response.identifier_size());
@@ -771,7 +817,7 @@ TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_UNNECESSARY, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
     ASSERT_EQ(0, response.identifier_size());
@@ -798,7 +844,7 @@ TEST_F(Test_Rpc, Create_Account)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
     ASSERT_EQ(1, response.identifier_size());
@@ -825,7 +871,7 @@ TEST_F(Test_Rpc, Create_Account)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -852,7 +898,7 @@ TEST_F(Test_Rpc, Create_Account)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -907,7 +953,7 @@ TEST_F(Test_Rpc, Send_Payment_Transfer)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -969,7 +1015,7 @@ TEST_F(Test_Rpc, Move_Funds)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -1034,11 +1080,11 @@ TEST_F(Test_Rpc, Get_Workflow)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
@@ -1061,11 +1107,11 @@ TEST_F(Test_Rpc, Get_Account_Activity)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(0, response.accountevent_size());
@@ -1081,7 +1127,7 @@ TEST_F(Test_Rpc, Get_Account_Activity)
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(2, response.accountevent_size());
@@ -1108,7 +1154,7 @@ TEST_F(Test_Rpc, Get_Account_Balance)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -1151,7 +1197,7 @@ TEST_F(Test_Rpc, List_Nyms)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -1170,7 +1216,7 @@ TEST_F(Test_Rpc, Get_Nym)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -1200,7 +1246,7 @@ TEST_F(Test_Rpc, Import_Seed_Invalid)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_INVALID, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -1222,7 +1268,7 @@ TEST_F(Test_Rpc, Import_Seed)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -1242,7 +1288,7 @@ TEST_F(Test_Rpc, List_Seeds)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -1265,7 +1311,7 @@ TEST_F(Test_Rpc, Get_Seed)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 

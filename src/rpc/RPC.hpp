@@ -69,7 +69,12 @@ private:
     proto::RPCResponse get_pending_payments(
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_seeds(const proto::RPCCommand& command) const;
+    const api::server::Manager* get_server(std::int32_t instance) const;
+    proto::RPCResponse get_server_admin_nym(
+        const proto::RPCCommand& command) const;
     proto::RPCResponse get_server_contracts(
+        const proto::RPCCommand& command) const;
+    proto::RPCResponse get_server_password(
         const proto::RPCCommand& command) const;
     const api::Core& get_session(std::int32_t instance) const;
     proto::RPCResponse get_workflow(const proto::RPCCommand& command) const;

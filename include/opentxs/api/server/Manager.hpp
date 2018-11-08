@@ -27,14 +27,16 @@ public:
     EXPORT virtual void DropIncoming(const int count) const = 0;
     /** Drop a specified number of outgoing replies for testing purposes */
     EXPORT virtual void DropOutgoing(const int count) const = 0;
-    EXPORT virtual const std::string GetCommandPort() const = 0;
-    EXPORT virtual const std::string GetDefaultBindIP() const = 0;
-    EXPORT virtual const std::string GetEEP() const = 0;
-    EXPORT virtual const std::string GetExternalIP() const = 0;
-    EXPORT virtual const std::string GetInproc() const = 0;
-    EXPORT virtual const std::string GetListenCommand() const = 0;
-    EXPORT virtual const std::string GetListenNotify() const = 0;
-    EXPORT virtual const std::string GetOnion() const = 0;
+    EXPORT virtual std::string GetAdminNym() const = 0;
+    EXPORT virtual std::string GetAdminPassword() const = 0;
+    EXPORT virtual std::string GetCommandPort() const = 0;
+    EXPORT virtual std::string GetDefaultBindIP() const = 0;
+    EXPORT virtual std::string GetEEP() const = 0;
+    EXPORT virtual std::string GetExternalIP() const = 0;
+    EXPORT virtual std::string GetInproc() const = 0;
+    EXPORT virtual std::string GetListenCommand() const = 0;
+    EXPORT virtual std::string GetListenNotify() const = 0;
+    EXPORT virtual std::string GetOnion() const = 0;
 #if OT_CASH
     EXPORT virtual std::shared_ptr<Mint> GetPrivateMint(
         const Identifier& unitid,
@@ -42,8 +44,8 @@ public:
     EXPORT virtual std::shared_ptr<const Mint> GetPublicMint(
         const Identifier& unitID) const = 0;
 #endif  // OT_CASH
-    EXPORT virtual const std::string GetUserName() const = 0;
-    EXPORT virtual const std::string GetUserTerms() const = 0;
+    EXPORT virtual std::string GetUserName() const = 0;
+    EXPORT virtual std::string GetUserTerms() const = 0;
     EXPORT virtual const Identifier& ID() const = 0;
     EXPORT virtual const Identifier& NymID() const = 0;
 #if OT_CASH

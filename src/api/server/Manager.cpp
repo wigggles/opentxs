@@ -240,42 +240,66 @@ const std::string Manager::get_arg(const std::string& argName) const
     return {};
 }
 
-const std::string Manager::GetCommandPort() const
+std::string Manager::GetAdminNym() const
+{
+    auto output = String::Factory();
+    bool exists{false};
+    const auto success = config_.Check_str(
+        String::Factory("permissions"),
+        String::Factory("override_nym_id"),
+        output,
+        exists);
+
+    if (success && exists) { return output->Get(); }
+
+    return {};
+}
+
+std::string Manager::GetAdminPassword() const
+{
+    auto output = String::Factory();
+    bool exists{false};
+    const auto success = config_.Check_str(
+        String::Factory("permissions"),
+        String::Factory("admin_password"),
+        output,
+        exists);
+
+    if (success && exists) { return output->Get(); }
+
+    return {};
+}
+
+std::string Manager::GetCommandPort() const
 {
     return get_arg(OPENTXS_ARG_COMMANDPORT);
 }
 
-const std::string Manager::GetDefaultBindIP() const
+std::string Manager::GetDefaultBindIP() const
 {
     return get_arg(OPENTXS_ARG_BINDIP);
 }
 
-const std::string Manager::GetEEP() const { return get_arg(OPENTXS_ARG_EEP); }
+std::string Manager::GetEEP() const { return get_arg(OPENTXS_ARG_EEP); }
 
-const std::string Manager::GetExternalIP() const
+std::string Manager::GetExternalIP() const
 {
     return get_arg(OPENTXS_ARG_EXTERNALIP);
 }
 
-const std::string Manager::GetInproc() const
-{
-    return get_arg(OPENTXS_ARG_INPROC);
-}
+std::string Manager::GetInproc() const { return get_arg(OPENTXS_ARG_INPROC); }
 
-const std::string Manager::GetListenCommand() const
+std::string Manager::GetListenCommand() const
 {
     return get_arg(OPENTXS_ARG_LISTENCOMMAND);
 }
 
-const std::string Manager::GetListenNotify() const
+std::string Manager::GetListenNotify() const
 {
     return get_arg(OPENTXS_ARG_LISTENNOTIFY);
 }
 
-const std::string Manager::GetOnion() const
-{
-    return get_arg(OPENTXS_ARG_ONION);
-}
+std::string Manager::GetOnion() const { return get_arg(OPENTXS_ARG_ONION); }
 
 #if OT_CASH
 std::shared_ptr<Mint> Manager::GetPrivateMint(
@@ -331,15 +355,9 @@ std::shared_ptr<const Mint> Manager::GetPublicMint(
 }
 #endif  // OT_CASH
 
-const std::string Manager::GetUserName() const
-{
-    return get_arg(OPENTXS_ARG_NAME);
-}
+std::string Manager::GetUserName() const { return get_arg(OPENTXS_ARG_NAME); }
 
-const std::string Manager::GetUserTerms() const
-{
-    return get_arg(OPENTXS_ARG_TERMS);
-}
+std::string Manager::GetUserTerms() const { return get_arg(OPENTXS_ARG_TERMS); }
 
 const Identifier& Manager::ID() const { return server_.GetServerID(); }
 

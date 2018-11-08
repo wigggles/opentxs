@@ -14,14 +14,16 @@ class Manager final : opentxs::api::server::Manager, api::implementation::Core
 public:
     void DropIncoming(const int count) const override;
     void DropOutgoing(const int count) const override;
-    const std::string GetCommandPort() const override;
-    const std::string GetDefaultBindIP() const override;
-    const std::string GetEEP() const override;
-    const std::string GetExternalIP() const override;
-    const std::string GetInproc() const override;
-    const std::string GetListenCommand() const override;
-    const std::string GetListenNotify() const override;
-    const std::string GetOnion() const override;
+    std::string GetAdminNym() const override;
+    std::string GetAdminPassword() const override;
+    std::string GetCommandPort() const override;
+    std::string GetDefaultBindIP() const override;
+    std::string GetEEP() const override;
+    std::string GetExternalIP() const override;
+    std::string GetInproc() const override;
+    std::string GetListenCommand() const override;
+    std::string GetListenNotify() const override;
+    std::string GetOnion() const override;
 #if OT_CASH
     std::shared_ptr<Mint> GetPrivateMint(
         const Identifier& unitID,
@@ -29,8 +31,8 @@ public:
     std::shared_ptr<const Mint> GetPublicMint(
         const Identifier& unitID) const override;
 #endif  // OT_CASH
-    const std::string GetUserName() const override;
-    const std::string GetUserTerms() const override;
+    std::string GetUserName() const override;
+    std::string GetUserTerms() const override;
     const Identifier& ID() const override;
     const Identifier& NymID() const override;
 #if OT_CASH
