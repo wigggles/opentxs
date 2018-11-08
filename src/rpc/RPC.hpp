@@ -70,6 +70,8 @@ private:
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_seeds(const proto::RPCCommand& command) const;
     const api::server::Manager* get_server(std::int32_t instance) const;
+    proto::RPCResponse get_server_admin_nym(
+        const proto::RPCCommand& command) const;
     proto::RPCResponse get_server_contracts(
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_server_password(

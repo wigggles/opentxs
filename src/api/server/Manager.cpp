@@ -240,6 +240,21 @@ const std::string Manager::get_arg(const std::string& argName) const
     return {};
 }
 
+std::string Manager::GetAdminNym() const
+{
+    auto output = String::Factory();
+    bool exists{false};
+    const auto success = config_.Check_str(
+        String::Factory("permissions"),
+        String::Factory("override_nym_id"),
+        output,
+        exists);
+
+    if (success && exists) { return output->Get(); }
+
+    return {};
+}
+
 std::string Manager::GetAdminPassword() const
 {
     auto output = String::Factory();

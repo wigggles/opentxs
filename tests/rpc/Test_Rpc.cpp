@@ -292,6 +292,26 @@ TEST_F(Test_Rpc, Get_Server_Password)
     EXPECT_FALSE(password.empty());
 }
 
+TEST_F(Test_Rpc, Get_Admin_Nym_None)
+{
+    auto command = init(proto::RPCCOMMAND_GETADMINNYM);
+    command.set_session(1);
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+    ASSERT_EQ(1, response.status_size());
+
+    const auto& status = response.status(0);
+
+    EXPECT_EQ(STATUS_VERSION, status.version());
+    EXPECT_EQ(0, status.index());
+    EXPECT_EQ(proto::RPCRESPONSE_NONE, status.code());
+    EXPECT_EQ(0, response.identifier_size());
+}
+
 TEST_F(Test_Rpc, List_Client_Sessions)
 {
     ArgList args;

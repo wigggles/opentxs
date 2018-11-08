@@ -27,6 +27,7 @@ public:
     EXPORT virtual void DropIncoming(const int count) const = 0;
     /** Drop a specified number of outgoing replies for testing purposes */
     EXPORT virtual void DropOutgoing(const int count) const = 0;
+    EXPORT virtual std::string GetAdminNym() const = 0;
     EXPORT virtual std::string GetAdminPassword() const = 0;
     EXPORT virtual std::string GetCommandPort() const = 0;
     EXPORT virtual std::string GetDefaultBindIP() const = 0;

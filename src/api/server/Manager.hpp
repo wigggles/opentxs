@@ -14,6 +14,7 @@ class Manager final : opentxs::api::server::Manager, api::implementation::Core
 public:
     void DropIncoming(const int count) const override;
     void DropOutgoing(const int count) const override;
+    std::string GetAdminNym() const override;
     std::string GetAdminPassword() const override;
     std::string GetCommandPort() const override;
     std::string GetDefaultBindIP() const override;

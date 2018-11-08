@@ -1132,6 +1132,38 @@ const api::server::Manager* RPC::get_server(const std::int32_t instance) const
     }
 }
 
+proto::RPCResponse RPC::get_server_admin_nym(
+    const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    if (false == is_server_session(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    auto pSession = get_server(command.session());
+
+    if (nullptr == pSession) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    const auto& session = *pSession;
+    const auto password = session.GetAdminNym();
+
+    if (password.empty()) {
+        add_output_status(output, proto::RPCRESPONSE_NONE);
+    } else {
+        output.add_identifier(password);
+        add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+    }
+
+    return output;
+}
+
 proto::RPCResponse RPC::get_server_contracts(
     const proto::RPCCommand& command) const
 {
@@ -1724,6 +1756,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_GETSERVERPASSWORD: {
             return get_server_password(command);
+        } break;
+        case proto::RPCCOMMAND_GETADMINNYM: {
+            return get_server_admin_nym(command);
         } break;
         case proto::RPCCOMMAND_ERROR:
         default: {
