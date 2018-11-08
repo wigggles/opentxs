@@ -38,6 +38,7 @@ public:
 protected:
     const opentxs::api::Native& ot_;
 
+    static std::string unit_definition_id_;
     static std::string issuer_account_id_;
     static proto::ServerContract server_contract_;
     static std::string server_id_;
@@ -112,6 +113,7 @@ protected:
     }
 };
 
+std::string Test_Rpc::unit_definition_id_{};
 std::string Test_Rpc::issuer_account_id_{};
 proto::ServerContract Test_Rpc::server_contract_;
 std::string Test_Rpc::server_id_{};
@@ -672,8 +674,11 @@ TEST_F(Test_Rpc, Create_Unit_Definition)
     ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
+    ASSERT_EQ(1, response.identifier_size());
 
-    ASSERT_TRUE(0 != response.identifier_size());
+    unit_definition_id_ = response.identifier(0);
+
+    ASSERT_TRUE(Identifier::Validate(unit_definition_id_));
 }
 
 TEST_F(Test_Rpc, List_Unit_Definitions)
@@ -692,6 +697,7 @@ TEST_F(Test_Rpc, List_Unit_Definitions)
     ASSERT_EQ(command.type(), response.type());
 
     ASSERT_EQ(1, response.identifier_size());
+    EXPECT_EQ(unit_definition_id_, response.identifier(0));
 }
 
 TEST_F(Test_Rpc, RegisterNym)
@@ -759,19 +765,33 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
 {
     auto command = init(proto::RPCCOMMAND_ISSUEUNITDEFINITION);
     command.set_session(0);
-
-    auto& manager = ot_.Client(0);
-
     command.set_owner(nym1_id_);
-
     auto& server = ot_.Server(0);
     command.set_notary(server.ID().str());
 
-    const auto unitdefinitionlist = manager.Wallet().UnitDefinitionList();
-    ASSERT_TRUE(!unitdefinitionlist.empty());
+    ASSERT_FALSE(unit_definition_id_.empty());
 
-    auto& unitid = unitdefinitionlist.front().first;
-    command.set_unit(unitid);
+    command.set_unit(unit_definition_id_);
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+    ASSERT_EQ(1, response.identifier_size());
+
+    issuer_account_id_ = response.identifier(0);
+
+    ASSERT_TRUE(Identifier::Validate(issuer_account_id_));
+}
+
+TEST_F(Test_Rpc, Get_Unit_Definition)
+{
+    auto command = init(proto::RPCCOMMAND_GETUNITDEFINITION);
+    command.set_session(0);
+    command.add_identifier(unit_definition_id_);
 
     auto response = ot_.RPC(command);
 
@@ -782,15 +802,7 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
     ASSERT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
-    ASSERT_EQ(1, response.identifier_size());
-
-    {
-        const auto& accountID = response.identifier(0);
-
-        ASSERT_TRUE(Identifier::Validate(accountID));
-
-        issuer_account_id_ = accountID;
-    }
+    ASSERT_EQ(1, response.unit_size());
 }
 
 TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)

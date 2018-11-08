@@ -1238,6 +1238,42 @@ const api::Core& RPC::get_session(const std::int32_t instance) const
     }
 }
 
+proto::RPCResponse RPC::get_unit_definitions(
+    const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    // This won't be necessary when CHECK_EXISTS is uncommented in
+    // CHECK_IDENTIFIERS in Check.hpp.
+    if (0 == command.identifier_size()) {
+        add_output_status(output, proto::RPCRESPONSE_INVALID);
+
+        return output;
+    }
+
+    if (!is_session_valid(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    auto& session = get_session(command.session());
+
+    for (const auto& id : command.identifier()) {
+        const auto contract =
+            session.Wallet().UnitDefinition(Identifier::Factory(id));
+
+        if (contract) {
+            *output.add_unit() = contract->PublicContract();
+            add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+        } else {
+            add_output_status(output, proto::RPCRESPONSE_NONE);
+        }
+    }
+
+    return output;
+}
+
 proto::RPCResponse RPC::get_workflow(const proto::RPCCommand& command) const
 {
     auto output = init(command);
@@ -1759,6 +1795,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_GETADMINNYM: {
             return get_server_admin_nym(command);
+        } break;
+        case proto::RPCCOMMAND_GETUNITDEFINITION: {
+            return get_unit_definitions(command);
         } break;
         case proto::RPCCOMMAND_ERROR:
         default: {
