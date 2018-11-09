@@ -384,21 +384,7 @@ bool OT_API::LoadConfigFile()
 {
     Lock lock(lock_);
 
-    // LOG LEVEL
-    {
-        bool bIsNewKey = false;
-        std::int64_t lValue = 0;
-        api_.Config().CheckSet_long(
-            String::Factory("logging"),
-            String::Factory("log_level"),
-            0,
-            lValue,
-            bIsNewKey);
-        Log::SetLogLevel(static_cast<std::int32_t>(lValue));
-    }
-
     // WALLET
-
     // WALLET FILENAME
     //
     // Clean and Set
