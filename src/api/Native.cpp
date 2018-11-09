@@ -353,7 +353,7 @@ Native::Native(
     , client_()
     , server_()
     , zap_(nullptr)
-    , server_args_(args)
+    , args_(args)
     , shutdown_callback_{nullptr}
     , null_callback_{nullptr}
     , default_external_password_callback_{nullptr}
@@ -474,7 +474,14 @@ void Native::HandleSignals(ShutdownCallback* callback) const
 
 void Native::Init()
 {
-    Init_Log();
+    std::int32_t argLevel{-2};
+
+    try {
+        argLevel = std::stoi(get_arg(args_, OPENTXS_ARG_LOGLEVEL));
+    } catch (...) {
+    }
+
+    Init_Log(argLevel);
     Init_Crypto();
     Init_Zap();
 }
@@ -485,11 +492,32 @@ void Native::Init_Crypto()
         opentxs::Factory::Crypto(Config(legacy_->CryptoConfigFilePath())));
 }
 
-void Native::Init_Log()
+void Native::Init_Log(const std::int32_t argLevel)
 {
     OT_ASSERT(legacy_)
 
-    const auto init = Log::Init(Config(legacy_->LogConfigFilePath()));
+    const auto& config = Config(legacy_->LogConfigFilePath());
+    const auto init = Log::Init(config);
+    bool notUsed{false};
+    std::int64_t level{0};
+
+    if (-1 > argLevel) {
+        config.CheckSet_long(
+            String::Factory("logging"),
+            String::Factory(OPENTXS_ARG_LOGLEVEL),
+            0,
+            level,
+            notUsed);
+    } else {
+        config.Set_long(
+            String::Factory("logging"),
+            String::Factory(OPENTXS_ARG_LOGLEVEL),
+            argLevel,
+            notUsed);
+        level = argLevel;
+    }
+
+    Log::SetLogLevel(static_cast<std::int32_t>(level));
 
     if (false == init) { abort(); }
 }
@@ -519,7 +547,7 @@ void Native::Init_Zap()
 
 const ArgList Native::merge_arglist(const ArgList& args) const
 {
-    ArgList arguments{server_args_};
+    ArgList arguments{args_};
 
     for (const auto& [arg, val] : args) { arguments[arg] = val; }
 

@@ -42,21 +42,7 @@ bool ConfigLoader::load(
     auto strConfigFolder = String::Factory(),
          strConfigFilename = String::Factory();
 
-    // LOG LEVEL
-    {
-        bool bIsNewKey = false;
-        std::int64_t lValue = 0;
-        config.CheckSet_long(
-            String::Factory("logging"),
-            String::Factory("log_level"),
-            0,
-            lValue,
-            bIsNewKey);
-        Log::SetLogLevel(static_cast<std::int32_t>(lValue));
-    }
-
     // WALLET
-
     // WALLET FILENAME
     //
     // Clean and Set

@@ -68,7 +68,7 @@ private:
         client_;
     mutable std::vector<std::unique_ptr<api::server::Manager>> server_;
     std::unique_ptr<api::network::ZAP> zap_;
-    const ArgList server_args_;
+    const ArgList args_;
     mutable ShutdownCallback* shutdown_callback_{nullptr};
     std::unique_ptr<OTCallback> null_callback_{nullptr};
     std::unique_ptr<OTCaller> default_external_password_callback_{nullptr};
@@ -86,7 +86,7 @@ private:
     void start_server(const Lock& lock, const ArgList& args) const;
 
     void Init_Crypto();
-    void Init_Log();
+    void Init_Log(const std::int32_t argLevel);
     void Init_Zap();
     void Init() override;
     void setup_default_external_password_callback();
