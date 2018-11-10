@@ -190,11 +190,13 @@ public:
     EXPORT virtual Action IssueBasketCurrency(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const proto::UnitDefinition& basket) const = 0;
+        const proto::UnitDefinition& basket,
+        const std::string& label = "") const = 0;
     EXPORT virtual Action IssueUnitDefinition(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const proto::UnitDefinition& contract) const = 0;
+        const proto::UnitDefinition& contract,
+        const std::string& label = "") const = 0;
     EXPORT virtual Action KillMarketOffer(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -240,7 +242,8 @@ public:
     EXPORT virtual Action RegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& instrumentDefinitionID) const = 0;
+        const Identifier& instrumentDefinitionID,
+        const std::string& label = "") const = 0;
     EXPORT virtual Action RegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;

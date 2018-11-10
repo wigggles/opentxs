@@ -704,7 +704,8 @@ public:
 
     EXPORT CommandResult registerInstrumentDefinition(
         ServerContext& context,
-        const proto::UnitDefinition& THE_CONTRACT) const;
+        const proto::UnitDefinition& THE_CONTRACT,
+        const std::string& label) const;
 
     EXPORT CommandResult getInstrumentDefinition(
         ServerContext& context,
@@ -728,7 +729,8 @@ public:
 
     EXPORT CommandResult registerAccount(
         ServerContext& context,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const;
+        const Identifier& INSTRUMENT_DEFINITION_ID,
+        const std::string& label) const;
 
     EXPORT CommandResult deleteAssetAccount(
         ServerContext& context,
@@ -744,7 +746,8 @@ public:
 
     EXPORT CommandResult issueBasket(
         ServerContext& context,
-        const proto::UnitDefinition& basket) const;
+        const proto::UnitDefinition& basket,
+        const std::string& label) const;
 
     EXPORT Basket* GenerateBasketExchange(
         const Identifier& NOTARY_ID,
@@ -1252,6 +1255,7 @@ private:
         const std::set<OTManagedNumber>& pending,
         ServerContext& context,
         const Message& message,
+        const std::string& label = "",
         const bool resync = false) const;
 
     std::set<std::unique_ptr<Cheque>> extract_cheques(

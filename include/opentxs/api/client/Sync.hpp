@@ -123,7 +123,8 @@ public:
     EXPORT virtual OTIdentifier ScheduleIssueUnitDefinition(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& unitID) const = 0;
+        const Identifier& unitIDD,
+        const std::string& label = "") const = 0;
     EXPORT virtual OTIdentifier ScheduleProcessInbox(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -135,7 +136,8 @@ public:
     EXPORT virtual OTIdentifier ScheduleRegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& unitID) const = 0;
+        const Identifier& unitID,
+        const std::string& label = "") const = 0;
     EXPORT virtual OTIdentifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const = 0;

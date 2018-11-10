@@ -188,8 +188,12 @@ SharedAccount Wallet::Account(const Identifier& accountID) const
     return {};
 }
 
-std::string Wallet::account_alias(const std::string& accountID) const
+std::string Wallet::account_alias(
+    const std::string& accountID,
+    const std::string& hint) const
 {
+    if (false == hint.empty()) { return hint; }
+
     for (const auto& [id, alias] : api_.Storage().AccountList()) {
         if (id == accountID) { return alias; }
     }
@@ -462,6 +466,15 @@ bool Wallet::UpdateAccount(
     const opentxs::ServerContext& context,
     const String& serialized) const
 {
+    return UpdateAccount(accountID, context, serialized, "");
+}
+
+bool Wallet::UpdateAccount(
+    const Identifier& accountID,
+    const opentxs::ServerContext& context,
+    const String& serialized,
+    const std::string& label) const
+{
     Lock mapLock(account_map_lock_);
     auto& row = account(mapLock, accountID, true);
     // WTF clang? This is perfectly valid c++17. Fix your shit.
@@ -554,7 +567,7 @@ bool Wallet::UpdateAccount(
     saved = api_.Storage().Store(
         accountID.str(),
         raw->Get(),
-        account_alias(accountID.str()),
+        account_alias(accountID.str(), label),
         localNym.ID(),
         localNym.ID(),
         contract->Nym()->ID(),

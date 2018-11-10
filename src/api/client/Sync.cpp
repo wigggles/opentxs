@@ -244,7 +244,7 @@ Sync::Sync(
 }
 
 std::pair<bool, std::size_t> Sync::accept_incoming(
-    const rLock& lock[[maybe_unused]],
+    const rLock& lock [[maybe_unused]],
     const std::size_t max,
     const Identifier& accountID,
     ServerContext& context) const
@@ -508,7 +508,7 @@ Depositability Sync::can_deposit(
                   << recipient.str() << " needs an account for "
                   << unitID->str() << " on server " << depositServer->str()
                   << std::endl;
-            schedule_register_account(recipient, depositServer, unitID);
+            schedule_register_account(recipient, depositServer, unitID, "");
         } break;
         case Depositability::READY: {
             LogDetail(OT_METHOD)(__FUNCTION__)(": Payment can be deposited.")
@@ -1259,7 +1259,8 @@ bool Sync::issue_unit_definition(
     const Identifier& taskID,
     const Identifier& nymID,
     const Identifier& serverID,
-    const Identifier& unitID) const
+    const Identifier& unitID,
+    const std::string& label) const
 {
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
@@ -1274,7 +1275,7 @@ bool Sync::issue_unit_definition(
     }
 
     auto action = client_.ServerAction().IssueUnitDefinition(
-        nymID, serverID, unitdefinition->PublicContract());
+        nymID, serverID, unitdefinition->PublicContract(), label);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1821,7 +1822,7 @@ void Sync::refresh_contacts() const
                     SHUTDOWN()
                     OT_ASSERT(item)
 
-                    const auto& notUsed[[maybe_unused]] = claimID;
+                    const auto& notUsed [[maybe_unused]] = claimID;
                     const OTIdentifier serverID =
                         Identifier::Factory(item->Value());
 
@@ -1847,7 +1848,8 @@ bool Sync::register_account(
     const Identifier& taskID,
     const Identifier& nymID,
     const Identifier& serverID,
-    const Identifier& unitID) const
+    const Identifier& unitID,
+    const std::string& label) const
 {
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
@@ -1881,7 +1883,7 @@ bool Sync::register_account(
     }
 
     auto action =
-        client_.ServerAction().RegisterAccount(nymID, serverID, unitID);
+        client_.ServerAction().RegisterAccount(nymID, serverID, unitID, label);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1978,7 +1980,8 @@ OTIdentifier Sync::schedule_download_nymbox(
 OTIdentifier Sync::schedule_register_account(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const Identifier& unitID) const
+    const Identifier& unitID,
+    const std::string& label) const
 {
     CHECK_ARGS(localNymID, serverID, unitID)
 
@@ -1986,7 +1989,8 @@ OTIdentifier Sync::schedule_register_account(
     auto& queue = get_operations({localNymID, serverID});
     const auto taskID(Identifier::Random());
 
-    return start_task(taskID, queue.register_account_.Push(taskID, unitID));
+    return start_task(
+        taskID, queue.register_account_.Push(taskID, {unitID, label}));
 }
 
 OTIdentifier Sync::ScheduleDownloadAccount(
@@ -2042,7 +2046,8 @@ OTIdentifier Sync::ScheduleDownloadNymbox(
 OTIdentifier Sync::ScheduleIssueUnitDefinition(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const Identifier& unitID) const
+    const Identifier& unitID,
+    const std::string& label) const
 {
     CHECK_ARGS(localNymID, serverID, unitID)
 
@@ -2051,7 +2056,7 @@ OTIdentifier Sync::ScheduleIssueUnitDefinition(
     const auto taskID(Identifier::Random());
 
     return start_task(
-        taskID, queue.issue_unit_definition_.Push(taskID, unitID));
+        taskID, queue.issue_unit_definition_.Push(taskID, {unitID, label}));
 }
 
 OTIdentifier Sync::ScheduleProcessInbox(
@@ -2085,9 +2090,10 @@ OTIdentifier Sync::SchedulePublishServerContract(
 OTIdentifier Sync::ScheduleRegisterAccount(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const Identifier& unitID) const
+    const Identifier& unitID,
+    const std::string& label) const
 {
-    return schedule_register_account(localNymID, serverID, unitID);
+    return schedule_register_account(localNymID, serverID, unitID, label);
 }
 
 OTIdentifier Sync::ScheduleRegisterNym(
@@ -2490,6 +2496,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                               "",
                               Clock::now(),
                               Clock::now()};
+    IssueUnitDefinitionTask issueUnit{Identifier::Factory(), ""};
+    RegisterAccountTask registerAccount{Identifier::Factory(), ""};
 #if OT_CASH
     PayCashTask cash_payment{Identifier::Factory(), {}, {}};
 #endif  // OT_CASH
@@ -2567,7 +2575,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            const auto& notUsed[[maybe_unused]] = taskID;
+            const auto& notUsed [[maybe_unused]] = taskID;
             find_server(nymID, serverID, targetID);
         }
 
@@ -2610,7 +2618,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            const auto& notUsed[[maybe_unused]] = taskID;
+            const auto& notUsed [[maybe_unused]] = taskID;
             find_nym(nymID, serverID, targetID);
         }
 
@@ -2791,7 +2799,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         SHUTDOWN()
 
         // Register any accounts which have been scheduled for creation
-        while (queue.register_account_.Pop(taskID, unitID)) {
+        while (queue.register_account_.Pop(taskID, registerAccount)) {
             SHUTDOWN()
 
             if (unitID->empty()) {
@@ -2805,13 +2813,18 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            registerNym |= !register_account(taskID, nymID, serverID, unitID);
+            registerNym |= !register_account(
+                taskID,
+                nymID,
+                serverID,
+                registerAccount.first,
+                registerAccount.second);
         }
 
         SHUTDOWN()
 
         // Issue unit definitions which have been scheduled
-        while (queue.issue_unit_definition_.Pop(taskID, unitID)) {
+        while (queue.issue_unit_definition_.Pop(taskID, issueUnit)) {
             SHUTDOWN()
 
             if (unitID->empty()) {
@@ -2825,29 +2838,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            registerNym |=
-                !issue_unit_definition(taskID, nymID, serverID, unitID);
-        }
-
-        SHUTDOWN()
-
-        // Issue unit definitions which have been scheduled
-        while (queue.issue_unit_definition_.Pop(taskID, unitID)) {
-            SHUTDOWN()
-
-            if (unitID->empty()) {
-                otErr << OT_METHOD << __FUNCTION__
-                      << ": How did an empty unit ID get in here?" << std::endl;
-
-                continue;
-            } else {
-                LogDetail(OT_METHOD)(__FUNCTION__)(
-                    ": Issuing unit definition for ")(unitID)(" on ")(serverID)
-                    .Flush();
-            }
-
-            registerNym |=
-                !issue_unit_definition(taskID, nymID, serverID, unitID);
+            registerNym |= !issue_unit_definition(
+                taskID, nymID, serverID, issueUnit.first, issueUnit.second);
         }
 
         SHUTDOWN()
@@ -3248,7 +3240,7 @@ bool Sync::write_and_send_cheque(
 Sync::~Sync()
 {
     for (auto& [id, thread] : state_machines_) {
-        const auto& notUsed[[maybe_unused]] = id;
+        const auto& notUsed [[maybe_unused]] = id;
 
         OT_ASSERT(thread)
 

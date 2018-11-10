@@ -34,6 +34,7 @@ class Storage
 public:
     using Bip47ChannelList = std::set<OTIdentifier>;
 
+    virtual std::string AccountAlias(const Identifier& accountID) const = 0;
     virtual ObjectList AccountList() const = 0;
     virtual OTIdentifier AccountContract(const Identifier& accountID) const = 0;
     virtual OTIdentifier AccountIssuer(const Identifier& accountID) const = 0;

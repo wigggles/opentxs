@@ -3013,7 +3013,8 @@ bool OTClient::processServerReply(
     const bool resync,
     ServerContext& context,
     std::shared_ptr<Message>& reply,
-    Ledger* pNymbox)
+    Ledger* pNymbox,
+    const std::string& label)
 {
     if (!reply) {
         otErr << OT_METHOD << __FUNCTION__ << ": Invalid reply" << std::endl;
@@ -3176,10 +3177,11 @@ bool OTClient::processServerReply(
     if (theReply.m_strCommand->Compare(
             "registerInstrumentDefinitionResponse")) {
         return processServerReplyRegisterInstrumentDefinition(
-            theReply, accountID, context);
+            theReply, accountID, label, context);
     }
     if (theReply.m_strCommand->Compare("registerAccountResponse")) {
-        return processServerReplyRegisterAccount(theReply, accountID, context);
+        return processServerReplyRegisterAccount(
+            theReply, accountID, label, context);
     }
 
     return false;
@@ -3189,9 +3191,10 @@ bool OTClient::processServerReply(
     const std::set<OTManagedNumber>& managed,
     const bool resync,
     ServerContext& context,
-    std::shared_ptr<Message>& reply)
+    std::shared_ptr<Message>& reply,
+    const std::string& label)
 {
-    return processServerReply(managed, resync, context, reply, nullptr);
+    return processServerReply(managed, resync, context, reply, nullptr, label);
 }
 
 bool OTClient::processServerReply(
@@ -3200,7 +3203,7 @@ bool OTClient::processServerReply(
     std::shared_ptr<Message>& reply,
     Ledger* pNymbox)
 {
-    return processServerReply(managed, false, context, reply, pNymbox);
+    return processServerReply(managed, false, context, reply, pNymbox, "");
 }
 
 bool OTClient::processServerReplyCheckNym(
@@ -7396,6 +7399,7 @@ bool OTClient::processServerReplyProcessNymbox(
 bool OTClient::processServerReplyRegisterAccount(
     const Message& theReply,
     const Identifier& accountID,
+    const std::string& label,
     ServerContext& context)
 {
     setRecentHash(theReply, false, context);
@@ -7404,8 +7408,8 @@ bool OTClient::processServerReplyRegisterAccount(
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         auto strAcctContents = String::Factory(theReply.m_ascPayload);
-        const auto updated =
-            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
+        const auto updated = api_.Wallet().UpdateAccount(
+            accountID, context, strAcctContents, label);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__
@@ -7424,6 +7428,7 @@ bool OTClient::processServerReplyRegisterAccount(
 bool OTClient::processServerReplyRegisterInstrumentDefinition(
     const Message& theReply,
     const Identifier& accountID,
+    const std::string& label,
     ServerContext& context)
 {
     setRecentHash(theReply, false, context);
@@ -7432,8 +7437,8 @@ bool OTClient::processServerReplyRegisterInstrumentDefinition(
         // this decodes the ascii-armor payload where the new account file
         // is stored, and returns a normal string in strAcctContents.
         auto strAcctContents = String::Factory(theReply.m_ascPayload);
-        const auto updated =
-            api_.Wallet().UpdateAccount(accountID, context, strAcctContents);
+        const auto updated = api_.Wallet().UpdateAccount(
+            accountID, context, strAcctContents, label);
 
         if (updated) {
             otErr << OT_METHOD << __FUNCTION__ << ": Saved new issuer account."

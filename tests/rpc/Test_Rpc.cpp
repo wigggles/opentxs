@@ -10,6 +10,8 @@
 #define TEST_SEED                                                              \
     "one two three four five six seven eight nine ten eleven twelve"
 #define TEST_SEED_PASSPHRASE "seed passphrase"
+#define ISSUER_ACCOUNT_LABEL "issuer account"
+#define USER_ACCOUNT_LABEL "user account"
 
 #define COMMAND_VERSION 2
 #define RESPONSE_VERSION 2
@@ -772,6 +774,7 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
     ASSERT_FALSE(unit_definition_id_.empty());
 
     command.set_unit(unit_definition_id_);
+    command.add_identifier(ISSUER_ACCOUNT_LABEL);
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
@@ -805,6 +808,46 @@ TEST_F(Test_Rpc, Get_Unit_Definition)
     ASSERT_EQ(1, response.unit_size());
 }
 
+TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
+{
+    auto& manager = ot_.Client(0);
+    auto command = init(proto::RPCCOMMAND_GETACCOUNTBALANCE);
+    command.set_session(0);
+    command.add_identifier(issuer_account_id_);
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+    ASSERT_TRUE(0 != response.balance_size());
+
+    const auto& accountdata = *response.balance().begin();
+
+    ASSERT_EQ(1, accountdata.version());
+    ASSERT_EQ(issuer_account_id_, accountdata.id());
+    EXPECT_STREQ(accountdata.label().c_str(), ISSUER_ACCOUNT_LABEL);
+
+    const auto account =
+        manager.Wallet().Account(Identifier::Factory(issuer_account_id_));
+
+    ASSERT_TRUE(bool(account));
+    ASSERT_EQ(
+        account.get().GetInstrumentDefinitionID().str(), accountdata.unit());
+    ASSERT_TRUE(account.get().VerifyOwnerByID(
+        Identifier::Factory(accountdata.owner())));
+
+    auto issuerid = manager.Storage().AccountIssuer(
+        Identifier::Factory(issuer_account_id_));
+
+    ASSERT_EQ(issuerid->str(), accountdata.issuer());
+    ASSERT_EQ(account.get().GetBalance(), accountdata.balance());
+    ASSERT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
+    ASSERT_EQ(0, accountdata.balance());
+}
+
 TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
 {
     auto command = init(proto::RPCCOMMAND_ISSUEUNITDEFINITION);
@@ -822,6 +865,7 @@ TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
 
     auto& unitid = unitdefinitionlist.front().first;
     command.set_unit(unitid);
+    command.add_identifier(ISSUER_ACCOUNT_LABEL);
 
     auto response = ot_.RPC(command);
 
@@ -850,6 +894,7 @@ TEST_F(Test_Rpc, Create_Account)
 
     auto& unitid = unitdefinitionlist.front().first;
     command.set_unit(unitid);
+    command.add_identifier(USER_ACCOUNT_LABEL);
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
@@ -872,11 +917,10 @@ TEST_F(Test_Rpc, Create_Account)
     // Create two accounts for nym 3.
     command = init(proto::RPCCOMMAND_CREATEACCOUNT);
     command.set_session(0);
-
     command.set_owner(nym3_id_);
     command.set_notary(server.ID().str());
     command.set_unit(unitid);
-
+    command.add_identifier(USER_ACCOUNT_LABEL);
     response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
@@ -899,11 +943,10 @@ TEST_F(Test_Rpc, Create_Account)
 
     command = init(proto::RPCCOMMAND_CREATEACCOUNT);
     command.set_session(0);
-
     command.set_owner(nym3_id_);
     command.set_notary(server.ID().str());
     command.set_unit(unitid);
-
+    command.add_identifier(USER_ACCOUNT_LABEL);
     response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
@@ -1111,8 +1154,6 @@ TEST_F(Test_Rpc, Get_Workflow)
 
 TEST_F(Test_Rpc, Get_Account_Activity)
 {
-    auto& client_a = ot_.Client(0);
-
     auto command = init(proto::RPCCOMMAND_GETACCOUNTACTIVITY);
     command.set_session(0);
     command.add_identifier(nym3_account2_id_);
@@ -1176,7 +1217,7 @@ TEST_F(Test_Rpc, Get_Account_Balance)
     ASSERT_EQ(1, accountdata.version());
     ASSERT_EQ(nym3_account2_id_, accountdata.id());
 
-    ASSERT_TRUE(accountdata.label().empty());
+    EXPECT_STREQ(accountdata.label().c_str(), USER_ACCOUNT_LABEL);
 
     const auto account =
         manager.Wallet().Account(Identifier::Factory(nym3_account2_id_));

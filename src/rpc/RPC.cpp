@@ -340,10 +340,13 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
         client.OTAPI().IsNym_RegisteredAtServer(ownerid, notaryid);
     const auto unitdefinition =
         client.Wallet().UnitDefinition(unitdefinitionid);
+    std::string label{};
+
+    if (0 < command.identifier_size()) { label = command.identifier(0); }
 
     if (registered && bool(unitdefinition)) {
         auto action = client.ServerAction().RegisterAccount(
-            ownerid, notaryid, unitdefinitionid);
+            ownerid, notaryid, unitdefinitionid, label);
         action->Run();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -360,7 +363,7 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
         }
     } else {
         const auto taskid = client.Sync().ScheduleRegisterAccount(
-            ownerid, notaryid, unitdefinitionid);
+            ownerid, notaryid, unitdefinitionid, label);
         add_output_task(output, taskid->str());
         add_output_status(output, proto::RPCRESPONSE_QUEUED);
     }
@@ -525,10 +528,13 @@ proto::RPCResponse RPC::create_issuer_account(
 
     auto registered =
         client.OTAPI().IsNym_RegisteredAtServer(ownerid, notaryid);
+    std::string label{};
 
-    if (false != registered) {
+    if (0 < command.identifier_size()) { label = command.identifier(0); }
+
+    if (registered) {
         auto action = client.ServerAction().IssueUnitDefinition(
-            ownerid, notaryid, unitdefinition->PublicContract());
+            ownerid, notaryid, unitdefinition->PublicContract(), label);
         action->Run();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -545,7 +551,7 @@ proto::RPCResponse RPC::create_issuer_account(
         }
     } else {
         const auto taskid = client.Sync().ScheduleIssueUnitDefinition(
-            ownerid, notaryid, unitdefinitionid);
+            ownerid, notaryid, unitdefinitionid, label);
         add_output_task(output, taskid->str());
         add_output_status(output, proto::RPCRESPONSE_QUEUED);
     }
@@ -826,9 +832,7 @@ proto::RPCResponse RPC::get_account_balance(
             auto& accountdata = *output.add_balance();
             accountdata.set_version(ACCOUNTDATA_VERSION);
             accountdata.set_id(id);
-            auto name = String::Factory();
-            account.get().GetName(name);
-            accountdata.set_label(name->Get());
+            accountdata.set_label(session.Storage().AccountAlias(accountid));
             accountdata.set_unit(
                 account.get().GetInstrumentDefinitionID().str());
             accountdata.set_owner(

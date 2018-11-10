@@ -106,7 +106,8 @@ public:
         const api::client::Manager& api,
         const Identifier& nymID,
         const Identifier& serverID,
-        const proto::UnitDefinition& unitDefinition);
+        const proto::UnitDefinition& unitDefinition,
+        const std::string& label);
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
         std::recursive_mutex& apilock,
@@ -375,6 +376,7 @@ private:
     std::string txid_;
     std::string url_;
     std::string value_;
+    std::string label_;
     bool ack_{false};
     bool direction_{false};
     bool isPrimary_{false};

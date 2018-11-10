@@ -35,7 +35,8 @@ public:
         const std::set<OTManagedNumber>& managed,
         const bool resync,
         ServerContext& context,
-        std::shared_ptr<Message>& reply);
+        std::shared_ptr<Message>& reply,
+        const std::string& label);
     bool processServerReply(
         const std::set<OTManagedNumber>& managed,
         ServerContext& context,
@@ -46,7 +47,8 @@ public:
         const bool resync,
         ServerContext& context,
         std::shared_ptr<Message>& reply,
-        Ledger* pNymbox);
+        Ledger* pNymbox,
+        const std::string& label);
     std::int32_t ProcessUserCommand(
         const MessageType requestedCommand,
         ServerContext& context,
@@ -217,10 +219,12 @@ private:
     bool processServerReplyRegisterInstrumentDefinition(
         const Message& theReply,
         const Identifier& accountID,
+        const std::string& label,
         ServerContext& context);
     bool processServerReplyRegisterAccount(
         const Message& theReply,
         const Identifier& accountID,
+        const std::string& label,
         ServerContext& context);
     bool processServerReplyResyncContext(
         const Message& theReply,

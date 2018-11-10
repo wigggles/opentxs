@@ -653,7 +653,8 @@ ServerAction::Action ServerAction::InitiateStoreSecret(
 ServerAction::Action ServerAction::IssueBasketCurrency(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const proto::UnitDefinition& basket) const
+    const proto::UnitDefinition& basket,
+    const std::string& label) const
 {
     return Action(new OTAPI_Func(
         ISSUE_BASKET,
@@ -661,13 +662,15 @@ ServerAction::Action ServerAction::IssueBasketCurrency(
         api_,
         localNymID,
         serverID,
-        basket));
+        basket,
+        label));
 }
 
 ServerAction::Action ServerAction::IssueUnitDefinition(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const proto::UnitDefinition& contract) const
+    const proto::UnitDefinition& contract,
+    const std::string& label) const
 {
     return Action(new OTAPI_Func(
         ISSUE_ASSET_TYPE,
@@ -675,7 +678,8 @@ ServerAction::Action ServerAction::IssueUnitDefinition(
         api_,
         localNymID,
         serverID,
-        contract));
+        contract,
+        label));
 }
 
 ServerAction::Action ServerAction::KillMarketOffer(
@@ -833,7 +837,8 @@ ServerAction::Action ServerAction::PublishUnitDefinition(
 ServerAction::Action ServerAction::RegisterAccount(
     const Identifier& localNymID,
     const Identifier& serverID,
-    const Identifier& instrumentDefinitionID) const
+    const Identifier& instrumentDefinitionID,
+    const std::string& label) const
 {
     return Action(new OTAPI_Func(
         CREATE_ASSET_ACCT,
@@ -841,7 +846,8 @@ ServerAction::Action ServerAction::RegisterAccount(
         api_,
         localNymID,
         serverID,
-        instrumentDefinitionID));
+        instrumentDefinitionID,
+        label));
 }
 
 ServerAction::Action ServerAction::RegisterNym(

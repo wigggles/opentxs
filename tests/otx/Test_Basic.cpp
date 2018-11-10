@@ -653,7 +653,7 @@ TEST_F(Test_Basic, issueAsset)
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
         client_1_.OTAPI().registerInstrumentDefinition(
-            serverContext.It(), asset_contract_1_->PublicContract());
+            serverContext.It(), asset_contract_1_->PublicContract(), "");
     const auto& [result, message] = reply;
     verify_state_post(
         client_1_,
@@ -864,7 +864,7 @@ TEST_F(Test_Basic, registerAccount)
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
         client_2_.OTAPI().registerAccount(
-            serverContext.It(), find_unit_definition_id());
+            serverContext.It(), find_unit_definition_id(), "");
     const auto& [result, message] = reply;
     clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
@@ -2654,7 +2654,7 @@ TEST_F(Test_Basic, register_second_account)
     verify_state_pre(*clientContext, serverContext.It(), sequence);
     const auto [requestNumber, transactionNumber, reply] =
         client_2_.OTAPI().registerAccount(
-            serverContext.It(), find_unit_definition_id());
+            serverContext.It(), find_unit_definition_id(), "");
     const auto& [result, message] = reply;
     clientContext =
         server_.Wallet().ClientContext(server_.NymID(), bob_nym_id_);
