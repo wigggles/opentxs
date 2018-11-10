@@ -2483,7 +2483,6 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     bool downloadNymbox{false};
     auto taskID = Identifier::Factory();
     auto accountID = Identifier::Factory();
-    auto unitID = Identifier::Factory();
     auto contractID = Identifier::Factory();
     auto targetNymID = Identifier::Factory();
     auto nullID = Identifier::Factory();
@@ -2802,6 +2801,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         while (queue.register_account_.Pop(taskID, registerAccount)) {
             SHUTDOWN()
 
+            const auto& [unitID, label] = registerAccount;
+
             if (unitID->empty()) {
                 otErr << OT_METHOD << __FUNCTION__
                       << ": How did an empty unit ID get in here?" << std::endl;
@@ -2813,12 +2814,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            registerNym |= !register_account(
-                taskID,
-                nymID,
-                serverID,
-                registerAccount.first,
-                registerAccount.second);
+            registerNym |=
+                !register_account(taskID, nymID, serverID, unitID, label);
         }
 
         SHUTDOWN()
@@ -2826,6 +2823,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         // Issue unit definitions which have been scheduled
         while (queue.issue_unit_definition_.Pop(taskID, issueUnit)) {
             SHUTDOWN()
+
+            const auto& [unitID, label] = issueUnit;
 
             if (unitID->empty()) {
                 otErr << OT_METHOD << __FUNCTION__
@@ -2838,8 +2837,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            registerNym |= !issue_unit_definition(
-                taskID, nymID, serverID, issueUnit.first, issueUnit.second);
+            registerNym |=
+                !issue_unit_definition(taskID, nymID, serverID, unitID, label);
         }
 
         SHUTDOWN()

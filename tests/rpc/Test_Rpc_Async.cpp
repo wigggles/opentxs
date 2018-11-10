@@ -7,9 +7,13 @@
 
 #include <gtest/gtest.h>
 
+#define COMMAND_VERSION 2
+#define RESPONSE_VERSION 2
 #define TEST_NYM_4 "testNym4"
 #define TEST_NYM_5 "testNym5"
 #define TEST_NYM_6 "testNym6"
+#define ISSUER_ACCOUNT_LABEL "issuer account"
+#define USER_ACCOUNT_LABEL "user account"
 
 using namespace opentxs;
 
@@ -74,7 +78,7 @@ protected:
         auto cookie = opentxs::Identifier::Random()->str();
 
         proto::RPCCommand command;
-        command.set_version(1);
+        command.set_version(COMMAND_VERSION);
         command.set_cookie(cookie);
         command.set_type(commandtype);
 
@@ -243,7 +247,7 @@ TEST_F(Test_Rpc_Async, RegisterNym)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
     ASSERT_TRUE(0 == response.identifier_size());
@@ -263,7 +267,7 @@ TEST_F(Test_Rpc_Async, RegisterNym)
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -281,13 +285,14 @@ TEST_F(Test_Rpc_Async, Create_Issuer_Account)
     auto& server = ot_.Server(get_index(server_));
     command.set_notary(server.ID().str());
     command.set_unit(unit_definition_id_);
+    command.add_identifier(ISSUER_ACCOUNT_LABEL);
 
     Lock lock(task_lock_);
     auto response = ot_.RPC(command);
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -328,7 +333,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
 
     auto response = ot_.RPC(command);
 
-    ASSERT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
@@ -384,7 +389,7 @@ TEST_F(Test_Rpc_Async, Send_Payment_Cheque)
         auto responseIsValid = responseCode == proto::RPCRESPONSE_RETRY ||
                                responseCode == proto::RPCRESPONSE_QUEUED;
         ASSERT_TRUE(responseIsValid);
-        ASSERT_EQ(1, response.version());
+        EXPECT_EQ(RESPONSE_VERSION, response.version());
         ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
         ASSERT_EQ(command.type(), response.type());
 
@@ -437,11 +442,11 @@ TEST_F(Test_Rpc_Async, Get_Pending_Payments)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
@@ -464,11 +469,11 @@ TEST_F(Test_Rpc_Async, Create_Compatible_Account)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
@@ -490,11 +495,11 @@ TEST_F(Test_Rpc_Async, Get_Compatible_Account)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
 
@@ -517,11 +522,11 @@ TEST_F(Test_Rpc_Async, Accept_Pending_Payments)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(1, response.task_size());
@@ -562,11 +567,11 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
     auto response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(0, response.accountevent_size());
@@ -583,7 +588,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(1, response.accountevent_size());
@@ -621,11 +626,11 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
     response = ot_.RPC(command);
 
     ASSERT_TRUE(proto::Validate(response, VERBOSE));
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_NONE, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(0, response.accountevent_size());
@@ -642,7 +647,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
-    EXPECT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(1, response.accountevent_size());
@@ -669,13 +674,14 @@ TEST_F(Test_Rpc_Async, Create_Account)
     auto& server = ot_.Server(get_index(server_));
     command.set_notary(server.ID().str());
     command.set_unit(unit_definition_id_);
+    command.add_identifier(USER_ACCOUNT_LABEL);
 
     Lock lock(task_lock_);
     auto response = ot_.RPC(command);
 
     ASSERT_EQ(1, response.status_size());
     ASSERT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
-    ASSERT_EQ(1, response.version());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
     ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     ASSERT_EQ(command.type(), response.type());
 
