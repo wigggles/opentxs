@@ -33,6 +33,7 @@ namespace opentxs::api::storage::implementation
 class Storage : public opentxs::api::storage::StorageInternal
 {
 public:
+    std::string AccountAlias(const Identifier& accountID) const override;
     ObjectList AccountList() const override;
     OTIdentifier AccountContract(const Identifier& accountID) const override;
     OTIdentifier AccountIssuer(const Identifier& accountID) const override;

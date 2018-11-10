@@ -67,6 +67,11 @@ public:
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized) const = 0;
+    EXPORT virtual bool UpdateAccount(
+        const Identifier& accountID,
+        const opentxs::ServerContext& context,
+        const String& serialized,
+        const std::string& label) const = 0;
     [[deprecated]] virtual bool ImportAccount(
         std::unique_ptr<opentxs::Account>& imported) const = 0;
 

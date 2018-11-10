@@ -340,10 +340,13 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
         client.OTAPI().IsNym_RegisteredAtServer(ownerid, notaryid);
     const auto unitdefinition =
         client.Wallet().UnitDefinition(unitdefinitionid);
+    std::string label{};
+
+    if (0 < command.identifier_size()) { label = command.identifier(0); }
 
     if (registered && bool(unitdefinition)) {
         auto action = client.ServerAction().RegisterAccount(
-            ownerid, notaryid, unitdefinitionid);
+            ownerid, notaryid, unitdefinitionid, label);
         action->Run();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -360,7 +363,7 @@ proto::RPCResponse RPC::create_account(const proto::RPCCommand& command) const
         }
     } else {
         const auto taskid = client.Sync().ScheduleRegisterAccount(
-            ownerid, notaryid, unitdefinitionid);
+            ownerid, notaryid, unitdefinitionid, label);
         add_output_task(output, taskid->str());
         add_output_status(output, proto::RPCRESPONSE_QUEUED);
     }
@@ -525,10 +528,13 @@ proto::RPCResponse RPC::create_issuer_account(
 
     auto registered =
         client.OTAPI().IsNym_RegisteredAtServer(ownerid, notaryid);
+    std::string label{};
 
-    if (false != registered) {
+    if (0 < command.identifier_size()) { label = command.identifier(0); }
+
+    if (registered) {
         auto action = client.ServerAction().IssueUnitDefinition(
-            ownerid, notaryid, unitdefinition->PublicContract());
+            ownerid, notaryid, unitdefinition->PublicContract(), label);
         action->Run();
 
         if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -545,7 +551,7 @@ proto::RPCResponse RPC::create_issuer_account(
         }
     } else {
         const auto taskid = client.Sync().ScheduleIssueUnitDefinition(
-            ownerid, notaryid, unitdefinitionid);
+            ownerid, notaryid, unitdefinitionid, label);
         add_output_task(output, taskid->str());
         add_output_status(output, proto::RPCRESPONSE_QUEUED);
     }
@@ -826,9 +832,7 @@ proto::RPCResponse RPC::get_account_balance(
             auto& accountdata = *output.add_balance();
             accountdata.set_version(ACCOUNTDATA_VERSION);
             accountdata.set_id(id);
-            auto name = String::Factory();
-            account.get().GetName(name);
-            accountdata.set_label(name->Get());
+            accountdata.set_label(session.Storage().AccountAlias(accountid));
             accountdata.set_unit(
                 account.get().GetInstrumentDefinitionID().str());
             accountdata.set_owner(
@@ -1236,6 +1240,42 @@ const api::Core& RPC::get_session(const std::int32_t instance) const
     } else {
         return ot_.Client(get_index(instance));
     }
+}
+
+proto::RPCResponse RPC::get_unit_definitions(
+    const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    // This won't be necessary when CHECK_EXISTS is uncommented in
+    // CHECK_IDENTIFIERS in Check.hpp.
+    if (0 == command.identifier_size()) {
+        add_output_status(output, proto::RPCRESPONSE_INVALID);
+
+        return output;
+    }
+
+    if (!is_session_valid(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    auto& session = get_session(command.session());
+
+    for (const auto& id : command.identifier()) {
+        const auto contract =
+            session.Wallet().UnitDefinition(Identifier::Factory(id));
+
+        if (contract) {
+            *output.add_unit() = contract->PublicContract();
+            add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+        } else {
+            add_output_status(output, proto::RPCRESPONSE_NONE);
+        }
+    }
+
+    return output;
 }
 
 proto::RPCResponse RPC::get_workflow(const proto::RPCCommand& command) const
@@ -1759,6 +1799,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_GETADMINNYM: {
             return get_server_admin_nym(command);
+        } break;
+        case proto::RPCCOMMAND_GETUNITDEFINITION: {
+            return get_unit_definitions(command);
         } break;
         case proto::RPCCOMMAND_ERROR:
         default: {

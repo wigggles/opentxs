@@ -122,7 +122,8 @@ public:
     OTIdentifier ScheduleIssueUnitDefinition(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& unitID) const override;
+        const Identifier& unitID,
+        const std::string& label) const override;
     OTIdentifier ScheduleProcessInbox(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -134,7 +135,8 @@ public:
     OTIdentifier ScheduleRegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& unitID) const override;
+        const Identifier& unitID,
+        const std::string& label) const override;
     OTIdentifier ScheduleRegisterNym(
         const Identifier& localNymID,
         const Identifier& serverID) const override;
@@ -204,6 +206,10 @@ private:
      */
     using SendChequeTask =
         std::tuple<OTIdentifier, OTIdentifier, Amount, std::string, Time, Time>;
+    /** RegisterAccountTask: unit definition id, account label */
+    using RegisterAccountTask = std::pair<OTIdentifier, std::string>;
+    /** IssueUnitDefinitionTask: unit definition id, account label */
+    using IssueUnitDefinitionTask = std::pair<OTIdentifier, std::string>;
 
     struct OperationQueue {
         int counter_{0};
@@ -212,8 +218,8 @@ private:
         UniqueQueue<OTIdentifier> download_account_;
         UniqueQueue<OTIdentifier> download_contract_;
         UniqueQueue<bool> download_nymbox_;
-        UniqueQueue<OTIdentifier> issue_unit_definition_;
-        UniqueQueue<OTIdentifier> register_account_;
+        UniqueQueue<IssueUnitDefinitionTask> issue_unit_definition_;
+        UniqueQueue<RegisterAccountTask> register_account_;
         UniqueQueue<bool> register_nym_;
         UniqueQueue<MessageTask> send_message_;
         UniqueQueue<PaymentTask> send_payment_;
@@ -330,7 +336,8 @@ private:
         const Identifier& taskID,
         const Identifier& nymID,
         const Identifier& serverID,
-        const Identifier& unitID) const;
+        const Identifier& unitID,
+        const std::string& label) const;
     void load_introduction_server(const Lock& lock) const;
     bool message_nym(
         const Identifier& taskID,
@@ -379,7 +386,8 @@ private:
         const Identifier& taskID,
         const Identifier& nymID,
         const Identifier& serverID,
-        const Identifier& unitID) const;
+        const Identifier& unitID,
+        const std::string& label) const;
     bool register_nym(
         const Identifier& taskID,
         const Identifier& nymID,
@@ -390,7 +398,8 @@ private:
     OTIdentifier schedule_register_account(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& unitID) const;
+        const Identifier& unitID,
+        const std::string& label) const;
     bool send_transfer(
         const Identifier& taskID,
         const Identifier& localNymID,

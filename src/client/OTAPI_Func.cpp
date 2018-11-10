@@ -179,6 +179,7 @@ OTAPI_Func::OTAPI_Func(
     , txid_("")
     , url_("")
     , value_("")
+    , label_("")
     , ack_(false)
     , direction_(false)
     , isPrimary_(false)
@@ -286,13 +287,15 @@ OTAPI_Func::OTAPI_Func(
     const api::client::Manager& api,
     const Identifier& nymID,
     const Identifier& serverID,
-    const proto::UnitDefinition& unitDefinition)
+    const proto::UnitDefinition& unitDefinition,
+    const std::string& label)
     : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case (ISSUE_BASKET):
         case (ISSUE_ASSET_TYPE): {
             unitDefinition_ = unitDefinition;
+            label_ = label;
         } break;
         default: {
             LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -313,12 +316,6 @@ OTAPI_Func::OTAPI_Func(
     : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
-        case CREATE_ASSET_ACCT: {
-            nTransNumsNeeded_ = 1;  // So it's done at least one "transaction
-            // statement" before it can ever processInbox
-            // on an account.
-            instrumentDefinitionID_ = nymID2;
-        } break;
         case GET_MINT:
         case GET_CONTRACT:
         case REGISTER_CONTRACT_UNIT: {
@@ -665,18 +662,25 @@ OTAPI_Func::OTAPI_Func(
         otErr << strError << "message" << std::endl;
     }
 
-    nTransNumsNeeded_ = 1;
-
-    if (theType == SEND_USER_MESSAGE) {
-        nTransNumsNeeded_ = 0;
-        recipientID_ = recipientID;
-        message_ = message;
-    } else {
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func(). "
-            "ERROR!!!!!!")
-            .Flush();
-        OT_FAIL
+    switch (theType) {
+        case SEND_USER_MESSAGE: {
+            nTransNumsNeeded_ = 0;
+            recipientID_ = recipientID;
+            message_ = message;
+        } break;
+        case CREATE_ASSET_ACCT: {
+            nTransNumsNeeded_ = 1;  // So it's done at least one "transaction
+            // statement" before it can ever processInbox
+            // on an account.
+            instrumentDefinitionID_ = recipientID;
+            label_ = message;
+        } break;
+        default: {
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": ERROR! WRONG TYPE passed to OTAPI_Func.OTAPI_Func().")
+                .Flush();
+            OT_FAIL
+        }
     }
 }
 
@@ -1317,8 +1321,8 @@ void OTAPI_Func::run()
             last_attempt_ = api_.OTAPI().getNymMarketOffers(context_);
         } break;
         case CREATE_ASSET_ACCT: {
-            last_attempt_ =
-                api_.OTAPI().registerAccount(context_, instrumentDefinitionID_);
+            last_attempt_ = api_.OTAPI().registerAccount(
+                context_, instrumentDefinitionID_, label_);
         } break;
         case DELETE_ASSET_ACCT: {
             last_attempt_ =
@@ -1354,11 +1358,12 @@ void OTAPI_Func::run()
                 api_.OTAPI().getMint(context_, instrumentDefinitionID_);
         } break;
         case ISSUE_BASKET: {
-            last_attempt_ = api_.OTAPI().issueBasket(context_, unitDefinition_);
+            last_attempt_ =
+                api_.OTAPI().issueBasket(context_, unitDefinition_, label_);
         } break;
         case ISSUE_ASSET_TYPE: {
             last_attempt_ = api_.OTAPI().registerInstrumentDefinition(
-                context_, unitDefinition_);
+                context_, unitDefinition_, label_);
         } break;
         case EXCHANGE_CASH: {
 #if OT_CASH

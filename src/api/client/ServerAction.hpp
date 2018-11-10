@@ -177,11 +177,13 @@ public:
     Action IssueBasketCurrency(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const proto::UnitDefinition& basket) const override;
+        const proto::UnitDefinition& basket,
+        const std::string& label) const override;
     Action IssueUnitDefinition(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const proto::UnitDefinition& contract) const override;
+        const proto::UnitDefinition& contract,
+        const std::string& label) const override;
     Action KillMarketOffer(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -227,7 +229,8 @@ public:
     Action RegisterAccount(
         const Identifier& localNymID,
         const Identifier& serverID,
-        const Identifier& instrumentDefinitionID) const override;
+        const Identifier& instrumentDefinitionID,
+        const std::string& label) const override;
     Action RegisterNym(const Identifier& localNymID, const Identifier& serverID)
         const override;
     Action RequestAdmin(

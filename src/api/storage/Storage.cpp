@@ -328,6 +328,11 @@ Storage::Storage(
     OT_ASSERT(multiplex_p_);
 }
 
+std::string Storage::AccountAlias(const Identifier& accountID) const
+{
+    return Root().Tree().AccountNode().Alias(accountID.str());
+}
+
 ObjectList Storage::AccountList() const
 {
     return Root().Tree().AccountNode().List();

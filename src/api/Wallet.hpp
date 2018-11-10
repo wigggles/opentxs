@@ -39,6 +39,11 @@ public:
         const Identifier& accountID,
         const opentxs::ServerContext& context,
         const String& serialized) const override;
+    bool UpdateAccount(
+        const Identifier& accountID,
+        const opentxs::ServerContext& context,
+        const String& serialized,
+        const std::string& label) const override;
     bool ImportAccount(
         std::unique_ptr<opentxs::Account>& imported) const override;
     std::shared_ptr<const opentxs::ClientContext> ClientContext(
@@ -243,7 +248,9 @@ private:
     OTZMQRequestSocket dht_server_requester_;
     OTZMQRequestSocket dht_unit_requester_;
 
-    std::string account_alias(const std::string& accountID) const;
+    std::string account_alias(
+        const std::string& accountID,
+        const std::string& hint) const;
     opentxs::Account* account_factory(
         const Identifier& accountID,
         const std::string& alias,

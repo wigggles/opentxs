@@ -7556,7 +7556,8 @@ bool OT_API::AddBasketCreationItem(
 // basket.
 CommandResult OT_API::issueBasket(
     ServerContext& context,
-    const proto::UnitDefinition& basket) const
+    const proto::UnitDefinition& basket,
+    const std::string& label) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -7578,7 +7579,7 @@ CommandResult OT_API::issueBasket(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
-    result = send_message({}, context, *message);
+    result = send_message({}, context, *message, label);
 
     return output;
 }
@@ -10728,7 +10729,8 @@ CommandResult OT_API::processInbox(
 
 CommandResult OT_API::registerInstrumentDefinition(
     ServerContext& context,
-    const proto::UnitDefinition& THE_CONTRACT) const
+    const proto::UnitDefinition& THE_CONTRACT,
+    const std::string& label) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -10761,7 +10763,7 @@ CommandResult OT_API::registerInstrumentDefinition(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
-    result = send_message({}, context, *message);
+    result = send_message({}, context, *message, label);
 
     return output;
 }
@@ -10874,7 +10876,8 @@ CommandResult OT_API::queryInstrumentDefinitions(
 // accounts for any instrument definition that they choose.
 CommandResult OT_API::registerAccount(
     ServerContext& context,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
+    const Identifier& INSTRUMENT_DEFINITION_ID,
+    const std::string& label) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -10900,7 +10903,7 @@ CommandResult OT_API::registerAccount(
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
-    result = send_message({}, context, *message);
+    result = send_message({}, context, *message, label);
 
     return output;
 }
@@ -12148,7 +12151,7 @@ CommandResult OT_API::registerNym(ServerContext& context, const bool resync)
 
     if (false == context.FinalizeServerCommand(*message)) { return output; }
 
-    result = send_message({}, context, *message, resync);
+    result = send_message({}, context, *message, "", resync);
 
     if (SendResult::VALID_REPLY == status) {
         OT_ASSERT(reply);
@@ -12197,6 +12200,7 @@ NetworkReplyMessage OT_API::send_message(
     const std::set<OTManagedNumber>& pending,
     ServerContext& context,
     const Message& message,
+    const std::string& label,
     const bool resync) const
 {
     rLock lock(
@@ -12206,7 +12210,8 @@ NetworkReplyMessage OT_API::send_message(
     auto result = context.Connection().Send(context, message);
 
     if (SendResult::VALID_REPLY == result.first) {
-        m_pClient->processServerReply(pending, resync, context, result.second);
+        m_pClient->processServerReply(
+            pending, resync, context, result.second, label);
         reply_received_->Publish(message.m_strCommand->Get());
     }
 
