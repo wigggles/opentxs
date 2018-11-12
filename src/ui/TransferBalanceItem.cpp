@@ -278,4 +278,15 @@ void TransferBalanceItem::startup(const CustomData& custom)
     lock.unlock();
     UpdateNotify();
 }
+
+std::string TransferBalanceItem::UUID() const
+{
+    if (transfer_) {
+
+        return uuid(
+            transfer_->GetPurportedNotaryID(), transfer_->GetTransactionNum());
+    }
+
+    return {};
+}
 }  // namespace opentxs::ui::implementation

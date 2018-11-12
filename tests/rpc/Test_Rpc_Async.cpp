@@ -9,6 +9,7 @@
 
 #define COMMAND_VERSION 2
 #define RESPONSE_VERSION 2
+#define ACCOUNTEVENT_VERSION 2
 #define TEST_NYM_4 "testNym4"
 #define TEST_NYM_5 "testNym5"
 #define TEST_NYM_6 "testNym6"
@@ -594,7 +595,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
     EXPECT_EQ(1, response.accountevent_size());
 
     const auto& accountevent = response.accountevent(0);
-    EXPECT_EQ(1, accountevent.version());
+    EXPECT_EQ(ACCOUNTEVENT_VERSION, accountevent.version());
     EXPECT_STREQ(issuer_account_id->str().c_str(), accountevent.id().c_str());
     EXPECT_EQ(proto::ACCOUNTEVENT_OUTGOINGCHEQUE, accountevent.type());
     EXPECT_EQ(-100, accountevent.amount());
@@ -653,7 +654,7 @@ TEST_F(Test_Rpc_Async, Get_Account_Activity)
     EXPECT_EQ(1, response.accountevent_size());
 
     const auto& accountevent2 = response.accountevent(0);
-    EXPECT_EQ(1, accountevent2.version());
+    EXPECT_EQ(ACCOUNTEVENT_VERSION, accountevent2.version());
     EXPECT_STREQ(destination_account_id_.c_str(), accountevent2.id().c_str());
     EXPECT_EQ(proto::ACCOUNTEVENT_INCOMINGCHEQUE, accountevent2.type());
     EXPECT_EQ(100, accountevent2.amount());

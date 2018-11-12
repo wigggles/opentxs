@@ -23,6 +23,10 @@
 #define SENDPAYMENT_VERSION 1
 #define MOVEFUNDS_VERSION 1
 #define GETWORKFLOW_VERSION 1
+#define ACCOUNTDATA_VERSION 1
+#define NYM_VERSION 4
+#define SESSIONDATA_VERSION 1
+#define ACCOUNTEVENT_VERSION 2
 
 using namespace opentxs;
 
@@ -341,7 +345,7 @@ TEST_F(Test_Rpc, List_Client_Sessions)
     ASSERT_EQ(3, response.sessions_size());
 
     for (auto& session : response.sessions()) {
-        ASSERT_EQ(1, session.version());
+        ASSERT_EQ(SESSIONDATA_VERSION, session.version());
         ASSERT_TRUE(
             0 == session.instance() || 2 == session.instance() ||
             4 == session.instance());
@@ -376,7 +380,7 @@ TEST_F(Test_Rpc, List_Server_Sessions)
     ASSERT_EQ(3, response.sessions_size());
 
     for (auto& session : response.sessions()) {
-        ASSERT_EQ(1, session.version());
+        ASSERT_EQ(SESSIONDATA_VERSION, session.version());
         ASSERT_TRUE(
             1 == session.instance() || 3 == session.instance() ||
             5 == session.instance());
@@ -826,7 +830,7 @@ TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
 
     const auto& accountdata = *response.balance().begin();
 
-    ASSERT_EQ(1, accountdata.version());
+    ASSERT_EQ(ACCOUNTDATA_VERSION, accountdata.version());
     ASSERT_EQ(issuer_account_id_, accountdata.id());
     EXPECT_STREQ(accountdata.label().c_str(), ISSUER_ACCOUNT_LABEL);
 
@@ -1186,7 +1190,7 @@ TEST_F(Test_Rpc, Get_Account_Activity)
     EXPECT_EQ(2, response.accountevent_size());
 
     const auto& accountevent = response.accountevent(0);
-    EXPECT_EQ(1, accountevent.version());
+    EXPECT_EQ(ACCOUNTEVENT_VERSION, accountevent.version());
     EXPECT_STREQ(nym3_account2_id_.c_str(), accountevent.id().c_str());
     EXPECT_EQ(proto::ACCOUNTEVENT_INCOMINGTRANSFER, accountevent.type());
     EXPECT_EQ(25, accountevent.amount());
@@ -1214,7 +1218,7 @@ TEST_F(Test_Rpc, Get_Account_Balance)
     ASSERT_TRUE(0 != response.balance_size());
 
     const auto& accountdata = *response.balance().begin();
-    ASSERT_EQ(1, accountdata.version());
+    ASSERT_EQ(ACCOUNTDATA_VERSION, accountdata.version());
     ASSERT_EQ(nym3_account2_id_, accountdata.id());
 
     EXPECT_STREQ(accountdata.label().c_str(), USER_ACCOUNT_LABEL);
@@ -1276,7 +1280,7 @@ TEST_F(Test_Rpc, Get_Nym)
     ASSERT_EQ(1, response.nym_size());
 
     const auto& credentialindex = response.nym(0);
-    ASSERT_EQ(4, credentialindex.version());
+    ASSERT_EQ(NYM_VERSION, credentialindex.version());
     ASSERT_STREQ(nym1_id_.c_str(), credentialindex.nymid().c_str());
     ASSERT_EQ(proto::CREDINDEX_PUBLIC, credentialindex.mode());
     ASSERT_EQ(4, credentialindex.revision());

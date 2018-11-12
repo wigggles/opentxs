@@ -30,6 +30,7 @@ public:
     }
     StorageBox Type() const override { return StorageBox::UNKNOWN; }
     bool Valid() const override { return false; }
+    std::string UUID() const override { return {}; }
     OTIdentifier WidgetID() const override { return Identifier::Factory(); }
 
     void reindex(
