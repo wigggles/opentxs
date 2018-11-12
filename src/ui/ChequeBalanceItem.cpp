@@ -227,4 +227,14 @@ void ChequeBalanceItem::startup(const CustomData& custom)
     lock.unlock();
     UpdateNotify();
 }
+
+std::string ChequeBalanceItem::UUID() const
+{
+    if (cheque_) {
+
+        return uuid(cheque_->GetNotaryID(), cheque_->GetTransactionNum());
+    }
+
+    return {};
+}
 }  // namespace opentxs::ui::implementation

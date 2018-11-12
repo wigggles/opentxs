@@ -47,7 +47,7 @@
 
 #include "RPC.hpp"
 
-#define ACCOUNTEVENT_VERSION 1
+#define ACCOUNTEVENT_VERSION 2
 #define ACCOUNTDATA_VERSION 1
 #define RPCTASK_VERSION 1
 #define RPCSTATUS_VERSION 1
@@ -791,6 +791,11 @@ proto::RPCResponse RPC::get_account_activity(
             accountevent.set_timestamp(
                 std::chrono::system_clock::to_time_t(balanceitem->Timestamp()));
             accountevent.set_memo(balanceitem->Memo());
+            accountevent.set_uuid(balanceitem->UUID());
+            auto workflow = client.Workflow().LoadWorkflow(
+                accountownerid, Identifier::Factory(balanceitem->Workflow()));
+
+            if (workflow) { accountevent.set_state(workflow->state()); }
 
             if (balanceitem->Last()) {
                 last = true;

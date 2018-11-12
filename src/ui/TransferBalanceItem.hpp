@@ -14,6 +14,7 @@ class TransferBalanceItem : public BalanceItem
 public:
     opentxs::Amount Amount() const override { return effective_amount(); }
     std::string Memo() const override;
+    std::string UUID() const override;
     std::string Workflow() const override { return workflow_; }
 
     void reindex(

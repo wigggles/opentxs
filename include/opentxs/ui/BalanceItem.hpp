@@ -48,6 +48,7 @@ public:
     EXPORT virtual std::string Text() const = 0;
     EXPORT virtual std::chrono::system_clock::time_point Timestamp() const = 0;
     EXPORT virtual StorageBox Type() const = 0;
+    EXPORT virtual std::string UUID() const = 0;
 
     EXPORT virtual ~BalanceItem() = default;
 
