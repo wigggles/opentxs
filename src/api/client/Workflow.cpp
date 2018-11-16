@@ -2449,6 +2449,8 @@ void Workflow::update_rpc(
     message->AddFrame();
     message->AddFrame(localNymID);
     message->AddFrame(proto::ProtoAsData(push));
+    const auto instance = api_.Instance();
+    message->AddFrame(Data::Factory(&instance, sizeof(instance)));
     rpc_publisher_->Push(message);
 }
 
