@@ -5,7 +5,7 @@ if [ `pwd` != ${GITREPO} ]; then
    exit 1
 fi
 DOCKERFILE=Dockerfiles/Dockerfile.tools
-DFILEHASH=`git log --format=%h ${DOCKERFILE} | head -1`
+DFILEHASH=`git hash-object ${DOCKERFILE}` # make a new toolset only if the Dockerfile changes
 NAME="opentxs_build:${DFILEHASH}"
 if [ `docker images ${NAME} | wc -l` -lt 2 ] ; then
     docker build -f ${DOCKERFILE} -t "${NAME}" `dirname ${DOCKERFILE}`
