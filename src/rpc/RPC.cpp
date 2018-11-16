@@ -50,7 +50,6 @@
 #define ACCOUNTEVENT_VERSION 2
 #define ACCOUNTDATA_VERSION 1
 #define RPCTASK_VERSION 1
-#define RPCSTATUS_VERSION 1
 #define SEED_VERSION 1
 #define SESSION_DATA_VERSION 1
 
@@ -295,7 +294,7 @@ void RPC::add_output_status(
     proto::RPCResponseCode code)
 {
     auto& status = *output.add_status();
-    status.set_version(RPCSTATUS_VERSION);
+    status.set_version(output.version());
     status.set_index(output.status_size() - 1);
     status.set_code(code);
 }
@@ -1247,6 +1246,32 @@ const api::Core& RPC::get_session(const std::int32_t instance) const
     }
 }
 
+proto::RPCResponse RPC::get_transaction_data(
+    const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    // This won't be necessary when CHECK_EXISTS is uncommented in
+    // CHECK_IDENTIFIERS in Check.hpp.
+    if (0 == command.identifier_size()) {
+        add_output_status(output, proto::RPCRESPONSE_INVALID);
+
+        return output;
+    }
+
+    if (!is_session_valid(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    for ([[maybe_unused]] const auto& id : command.identifier()) {
+        add_output_status(output, proto::RPCRESPONSE_UNIMPLEMENTED);
+    }
+
+    return output;
+}
+
 proto::RPCResponse RPC::get_unit_definitions(
     const proto::RPCCommand& command) const
 {
@@ -1807,6 +1832,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_GETUNITDEFINITION: {
             return get_unit_definitions(command);
+        } break;
+        case proto::RPCCOMMAND_GETTRANSACTIONDATA: {
+            return get_transaction_data(command);
         } break;
         case proto::RPCCOMMAND_ERROR:
         default: {

@@ -15,7 +15,7 @@
 
 #define COMMAND_VERSION 2
 #define RESPONSE_VERSION 2
-#define STATUS_VERSION 1
+#define STATUS_VERSION 2
 #define APIARG_VERSION 1
 #define CREATENYM_VERSION 1
 #define ADDCONTACT_VERSION 1
@@ -32,7 +32,6 @@ using namespace opentxs;
 
 namespace
 {
-
 class Test_Rpc : public ::testing::Test
 {
 public:
@@ -1380,4 +1379,17 @@ TEST_F(Test_Rpc, Get_Seed)
     ASSERT_STREQ(TEST_SEED_PASSPHRASE, seed.passphrase().c_str());
 }
 
+TEST_F(Test_Rpc, Get_Transaction_Data)
+{
+    auto command = init(proto::RPCCOMMAND_GETTRANSACTIONDATA);
+    command.set_session(0);
+    command.add_identifier(seed_id_);  // Not a real uuid
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_UNIMPLEMENTED, response.status(0).code());
+}
 }  // namespace

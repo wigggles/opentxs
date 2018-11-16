@@ -77,6 +77,8 @@ private:
     proto::RPCResponse get_server_password(
         const proto::RPCCommand& command) const;
     const api::Core& get_session(std::int32_t instance) const;
+    proto::RPCResponse get_transaction_data(
+        const proto::RPCCommand& command) const;
     proto::RPCResponse get_unit_definitions(
         const proto::RPCCommand& command) const;
     proto::RPCResponse get_workflow(const proto::RPCCommand& command) const;
