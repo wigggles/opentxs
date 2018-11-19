@@ -214,9 +214,9 @@ void OTPassword::zeroMemory(std::uint8_t* szMemory, std::uint32_t theSize)
 // static
 void* OTPassword::safe_memcpy(
     void* dest,
-    std::uint32_t dest_size,
+    const std::size_t dest_size,
     const void* src,
-    std::uint32_t src_length,
+    const std::size_t src_length,
     bool bZeroSource)  // if true, sets the
                        // source buffer to
                        // zero after copying
@@ -262,15 +262,9 @@ void* OTPassword::safe_memcpy(
                    (static_cast<std::uint8_t*>(dest) + dest_size))));
 
 #ifdef _WIN32
-    bool bSuccess =
-        (0 == memcpy_s(
-                  dest,
-                  static_cast<size_t>(dest_size),
-                  src,
-                  static_cast<size_t>(src_length)));
+    bool bSuccess = (0 == memcpy_s(dest, dest_size, src, src_length));
 #else
-    bool bSuccess =
-        (memcpy(dest, src, static_cast<size_t>(src_length)) == dest);
+    bool bSuccess = (memcpy(dest, src, src_length) == dest);
 #endif
 
     if (bSuccess) {
