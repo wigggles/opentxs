@@ -835,7 +835,7 @@ std::shared_ptr<const api::client::Issuer> Wallet::Issuer(
     const Identifier& issuerID) const
 {
     auto& [lock, pIssuer] = issuer(nymID, issuerID, false);
-    const auto& notUsed [[maybe_unused]] = lock;
+    const auto& notUsed[[maybe_unused]] = lock;
 
     return pIssuer;
 }
@@ -864,7 +864,7 @@ Wallet::IssuerLock& Wallet::issuer(
     Lock lock(issuer_map_lock_);
     auto& output = issuer_map_[{nymID, issuerID}];
     auto& [issuerMutex, pIssuer] = output;
-    const auto& notUsed [[maybe_unused]] = issuerMutex;
+    const auto& notUsed[[maybe_unused]] = issuerMutex;
 
     if (pIssuer) { return output; }
 
