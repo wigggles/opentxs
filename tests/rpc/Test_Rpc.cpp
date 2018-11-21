@@ -793,6 +793,23 @@ TEST_F(Test_Rpc, Create_Issuer_Account)
     ASSERT_TRUE(Identifier::Validate(issuer_account_id_));
 }
 
+TEST_F(Test_Rpc, Lookup_Account_ID)
+{
+    auto command = init(proto::RPCCOMMAND_LOOKUPACCOUNTID);
+    command.set_session(0);
+    command.set_param(ISSUER_ACCOUNT_LABEL);
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    ASSERT_EQ(1, response.identifier_size());
+    EXPECT_STREQ(response.identifier(0).c_str(), issuer_account_id_.c_str());
+}
+
 TEST_F(Test_Rpc, Get_Unit_Definition)
 {
     auto command = init(proto::RPCCOMMAND_GETUNITDEFINITION);

@@ -1647,6 +1647,33 @@ proto::RPCResponse RPC::list_unit_definitions(
     return output;
 }
 
+proto::RPCResponse RPC::lookup_account_id(
+    const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    if (false == is_session_valid(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    const auto& session = get_session(command.session());
+    const auto& label = command.param();
+
+    for (const auto& [id, alias] : session.Storage().AccountList()) {
+        if (alias == label) { output.add_identifier(id); }
+    }
+
+    if (0 == output.identifier_size()) {
+        add_output_status(output, proto::RPCRESPONSE_NONE);
+    } else {
+        add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+    }
+
+    return output;
+}
+
 proto::RPCResponse RPC::move_funds(const proto::RPCCommand& command) const
 {
     auto output = init(command);
@@ -1841,6 +1868,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_GETTRANSACTIONDATA: {
             return get_transaction_data(command);
+        } break;
+        case proto::RPCCOMMAND_LOOKUPACCOUNTID: {
+            return lookup_account_id(command);
         } break;
         case proto::RPCCOMMAND_ERROR:
         default: {
