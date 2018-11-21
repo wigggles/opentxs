@@ -48,7 +48,7 @@
 #include "RPC.hpp"
 
 #define ACCOUNTEVENT_VERSION 2
-#define ACCOUNTDATA_VERSION 1
+#define ACCOUNTDATA_VERSION 2
 #define RPCTASK_VERSION 1
 #define SEED_VERSION 1
 #define SESSION_DATA_VERSION 1
@@ -846,6 +846,12 @@ proto::RPCResponse RPC::get_account_balance(
             accountdata.set_balance(account.get().GetBalance());
             accountdata.set_pendingbalance(account.get().GetBalance());
 
+            if (account.get().IsIssuer()) {
+                accountdata.set_type(proto::ACCOUNTTYPE_ISSUER);
+            } else {
+                accountdata.set_type(proto::ACCOUNTTYPE_NORMAL);
+            }
+
             add_output_status(output, proto::RPCRESPONSE_SUCCESS);
         } else {
             add_output_status(output, proto::RPCRESPONSE_ERROR);
@@ -1641,6 +1647,33 @@ proto::RPCResponse RPC::list_unit_definitions(
     return output;
 }
 
+proto::RPCResponse RPC::lookup_account_id(
+    const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    if (false == is_session_valid(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+
+        return output;
+    }
+
+    const auto& session = get_session(command.session());
+    const auto& label = command.param();
+
+    for (const auto& [id, alias] : session.Storage().AccountList()) {
+        if (alias == label) { output.add_identifier(id); }
+    }
+
+    if (0 == output.identifier_size()) {
+        add_output_status(output, proto::RPCRESPONSE_NONE);
+    } else {
+        add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+    }
+
+    return output;
+}
+
 proto::RPCResponse RPC::move_funds(const proto::RPCCommand& command) const
 {
     auto output = init(command);
@@ -1835,6 +1868,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         } break;
         case proto::RPCCOMMAND_GETTRANSACTIONDATA: {
             return get_transaction_data(command);
+        } break;
+        case proto::RPCCOMMAND_LOOKUPACCOUNTID: {
+            return lookup_account_id(command);
         } break;
         case proto::RPCCOMMAND_ERROR:
         default: {

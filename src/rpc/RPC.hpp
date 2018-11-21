@@ -100,6 +100,8 @@ private:
         const proto::RPCCommand& command) const;
     proto::RPCResponse list_unit_definitions(
         const proto::RPCCommand& command) const;
+    proto::RPCResponse lookup_account_id(
+        const proto::RPCCommand& command) const;
     proto::RPCResponse move_funds(const proto::RPCCommand& command) const;
     proto::RPCResponse register_nym(const proto::RPCCommand& command) const;
     proto::RPCResponse send_payment(const proto::RPCCommand& command) const;
