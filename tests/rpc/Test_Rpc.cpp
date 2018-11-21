@@ -23,7 +23,7 @@
 #define SENDPAYMENT_VERSION 1
 #define MOVEFUNDS_VERSION 1
 #define GETWORKFLOW_VERSION 1
-#define ACCOUNTDATA_VERSION 1
+#define ACCOUNTDATA_VERSION 2
 #define NYM_VERSION 4
 #define SESSIONDATA_VERSION 1
 #define ACCOUNTEVENT_VERSION 2
@@ -849,6 +849,7 @@ TEST_F(Test_Rpc, Get_Issuer_Account_Balance)
     ASSERT_EQ(account.get().GetBalance(), accountdata.balance());
     ASSERT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
     ASSERT_EQ(0, accountdata.balance());
+    EXPECT_EQ(proto::ACCOUNTTYPE_ISSUER, accountdata.type());
 }
 
 TEST_F(Test_Rpc, Create_Issuer_Account_Unnecessary)
@@ -1240,6 +1241,7 @@ TEST_F(Test_Rpc, Get_Account_Balance)
     ASSERT_EQ(account.get().GetBalance(), accountdata.pendingbalance());
 
     ASSERT_EQ(25, accountdata.balance());
+    EXPECT_EQ(proto::ACCOUNTTYPE_NORMAL, accountdata.type());
 }
 
 TEST_F(Test_Rpc, List_Nyms)

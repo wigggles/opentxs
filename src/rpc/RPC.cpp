@@ -48,7 +48,7 @@
 #include "RPC.hpp"
 
 #define ACCOUNTEVENT_VERSION 2
-#define ACCOUNTDATA_VERSION 1
+#define ACCOUNTDATA_VERSION 2
 #define RPCTASK_VERSION 1
 #define SEED_VERSION 1
 #define SESSION_DATA_VERSION 1
@@ -845,6 +845,12 @@ proto::RPCResponse RPC::get_account_balance(
                 session.Storage().AccountIssuer(accountid)->str());
             accountdata.set_balance(account.get().GetBalance());
             accountdata.set_pendingbalance(account.get().GetBalance());
+
+            if (account.get().IsIssuer()) {
+                accountdata.set_type(proto::ACCOUNTTYPE_ISSUER);
+            } else {
+                accountdata.set_type(proto::ACCOUNTTYPE_NORMAL);
+            }
 
             add_output_status(output, proto::RPCRESPONSE_SUCCESS);
         } else {
