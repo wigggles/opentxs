@@ -16,6 +16,7 @@
 
 template class opentxs::Pimpl<opentxs::otx::Reply>;
 
+// TODO 1.14.0
 #define OTX_REPLY_CREATE_VERSION 1
 #define OTX_REPLY_SIGNATURE_VERSION 3
 

@@ -16,6 +16,7 @@
 
 template class opentxs::Pimpl<opentxs::otx::Request>;
 
+// TODO 1.14.0
 #define OTX_REQUEST_CREATE_VERSION 1
 #define OTX_REQUEST_SIGNATURE_VERSION 3
 

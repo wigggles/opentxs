@@ -17,14 +17,13 @@
 #define RESPONSE_VERSION 2
 #define STATUS_VERSION 2
 #define APIARG_VERSION 1
-#define CREATENYM_VERSION 1
+#define CREATENYM_VERSION 2
 #define ADDCONTACT_VERSION 1
 #define CREATEINSTRUMENTDEFINITION_VERSION 1
 #define SENDPAYMENT_VERSION 1
 #define MOVEFUNDS_VERSION 1
 #define GETWORKFLOW_VERSION 1
 #define ACCOUNTDATA_VERSION 2
-#define NYM_VERSION 4
 #define SESSIONDATA_VERSION 1
 #define ACCOUNTEVENT_VERSION 2
 
@@ -1430,7 +1429,7 @@ TEST_F(Test_Rpc, Get_Nym)
     ASSERT_EQ(1, response.nym_size());
 
     const auto& credentialindex = response.nym(0);
-    ASSERT_EQ(NYM_VERSION, credentialindex.version());
+    ASSERT_EQ(NYM_CREATE_VERSION, credentialindex.version());
     ASSERT_STREQ(nym1_id_.c_str(), credentialindex.nymid().c_str());
     ASSERT_EQ(proto::CREDINDEX_PUBLIC, credentialindex.mode());
     ASSERT_EQ(4, credentialindex.revision());
@@ -1461,7 +1460,7 @@ TEST_F(Test_Rpc, Get_Nyms)
     ASSERT_EQ(3, response.nym_size());
 
     auto& credentialindex = response.nym(0);
-    ASSERT_EQ(NYM_VERSION, credentialindex.version());
+    ASSERT_EQ(NYM_CREATE_VERSION, credentialindex.version());
     ASSERT_TRUE(
         nym1_id_ == credentialindex.nymid() ||
         nym2_id_ == credentialindex.nymid() ||
