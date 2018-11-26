@@ -27,7 +27,6 @@
 #include <sstream>
 #include <stdexcept>
 
-#define CURRENT_VERSION 2
 #define ID_BYTES 32
 
 #define OT_METHOD "opentxs::Contact::"
@@ -36,7 +35,7 @@ namespace opentxs
 {
 Contact::Contact(const api::Wallet& wallet, const proto::Contact& serialized)
     : wallet_(wallet)
-    , version_(check_version(serialized.version(), CURRENT_VERSION))
+    , version_(check_version(serialized.version(), OT_CONTACT_VERSION))
     , label_(serialized.label())
     , lock_()
     , id_(Identifier::Factory(Identifier::Factory(serialized.id())))
@@ -70,7 +69,7 @@ Contact::Contact(const api::Wallet& wallet, const proto::Contact& serialized)
 
 Contact::Contact(const api::Wallet& wallet, const std::string& label)
     : wallet_(wallet)
-    , version_(CURRENT_VERSION)
+    , version_(OT_CONTACT_VERSION)
     , label_(label)
     , lock_()
     , id_(Identifier::Factory(generate_id()))
