@@ -1648,6 +1648,18 @@ void Storage::save(opentxs::storage::Root* in, const Lock& lock) const
 
 ObjectList Storage::SeedList() const { return Root().Tree().SeedNode().List(); }
 
+bool Storage::SetAccountAlias(const std::string& id, const std::string& alias)
+    const
+{
+    return mutable_Root()
+        .It()
+        .mutable_Tree()
+        .It()
+        .mutable_Accounts()
+        .It()
+        .SetAlias(id, alias);
+}
+
 bool Storage::SetContactAlias(const std::string& id, const std::string& alias)
     const
 {

@@ -12,6 +12,7 @@
 #define TEST_SEED_PASSPHRASE "seed passphrase"
 #define ISSUER_ACCOUNT_LABEL "issuer account"
 #define USER_ACCOUNT_LABEL "user account"
+#define RENAMED_ACCOUNT_LABEL "renamed"
 
 #define COMMAND_VERSION 2
 #define RESPONSE_VERSION 2
@@ -26,6 +27,7 @@
 #define ACCOUNTDATA_VERSION 2
 #define SESSIONDATA_VERSION 1
 #define ACCOUNTEVENT_VERSION 2
+#define MODIFYACCOUNT_VERSION 1
 
 using namespace opentxs;
 
@@ -1390,6 +1392,58 @@ TEST_F(Test_Rpc, Get_Account_Balances)
     ASSERT_EQ(command.type(), response.type());
 
     ASSERT_EQ(2, response.balance_size());
+}
+
+TEST_F(Test_Rpc, Rename_Accounts)
+{
+    auto command = init(proto::RPCCOMMAND_RENAMEACCOUNT);
+    command.set_session(0);
+    auto& manager = ot_.Client(0);
+    const std::vector<std::string> accounts{issuer_account_id_,
+                                            nym2_account_id_,
+                                            nym3_account1_id_,
+                                            nym3_account2_id_};
+
+    for (const auto& id : accounts) {
+        auto& modify = *command.add_modifyaccount();
+        modify.set_version(MODIFYACCOUNT_VERSION);
+        modify.set_accountid(id);
+        modify.set_label(RENAMED_ACCOUNT_LABEL);
+    }
+
+    auto response = ot_.RPC(command);
+
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(4, response.status_size());
+
+    for (const auto& status : response.status()) {
+        EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, status.code());
+    }
+}
+
+TEST_F(Test_Rpc, Check_Account_Names)
+{
+    auto command = init(proto::RPCCOMMAND_GETACCOUNTBALANCE);
+    command.set_session(0);
+    auto& manager = ot_.Client(0);
+    command.add_identifier(issuer_account_id_);
+    command.add_identifier(nym2_account_id_);
+    command.add_identifier(nym3_account1_id_);
+    command.add_identifier(nym3_account2_id_);
+    auto response = ot_.RPC(command);
+
+    EXPECT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(4, response.status_size());
+
+    for (const auto& status : response.status()) {
+        EXPECT_EQ(proto::RPCRESPONSE_SUCCESS, status.code());
+    }
+
+    EXPECT_EQ(4, response.balance_size());
+
+    for (const auto& balance : response.balance()) {
+        EXPECT_STREQ(RENAMED_ACCOUNT_LABEL, balance.label().c_str());
+    }
 }
 
 TEST_F(Test_Rpc, List_Nyms)
