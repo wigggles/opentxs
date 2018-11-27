@@ -73,6 +73,7 @@ Account::Account(
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
     , outboxHash_(Identifier::Factory())
+    , alias_()
 {
     InitAccount();
     SetNymID(nymID);
@@ -90,6 +91,7 @@ Account::Account(const api::Core& core)
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
     , outboxHash_(Identifier::Factory())
+    , alias_()
 {
     InitAccount();
 }
@@ -109,6 +111,7 @@ Account::Account(
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
     , outboxHash_(Identifier::Factory())
+    , alias_(name.Get())
 {
     InitAccount();
     m_strName = name;
@@ -128,6 +131,7 @@ Account::Account(
     , markForDeletion_(false)
     , inboxHash_(Identifier::Factory())
     , outboxHash_(Identifier::Factory())
+    , alias_()
 {
     InitAccount();
 }
@@ -137,6 +141,8 @@ char const* Account::_GetTypeString(AccountType accountType)
     std::int32_t index = static_cast<std::int32_t>(accountType);
     return __TypeStringsAccount[index];
 }
+
+std::string Account::Alias() const { return alias_; }
 
 bool Account::create_box(
     std::unique_ptr<Ledger>& box,
@@ -1088,6 +1094,8 @@ void Account::Release()
     Release_Account();
     OTTransactionType::Release();
 }
+
+void Account::SetAlias(const std::string& alias) { alias_ = alias; }
 
 Account::~Account() { Release_Account(); }
 }  // namespace opentxs

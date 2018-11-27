@@ -198,11 +198,7 @@ std::string Wallet::account_alias(
 {
     if (false == hint.empty()) { return hint; }
 
-    for (const auto& [id, alias] : api_.Storage().AccountList()) {
-        if (id == accountID) { return alias; }
-    }
-
-    return {};
+    return api_.Storage().AccountAlias(Identifier::Factory(accountID));
 }
 
 opentxs::Account* Wallet::account_factory(
@@ -263,7 +259,7 @@ opentxs::Account* Wallet::account_factory(
         return nullptr;
     }
 
-    account->SetName(String::Factory(alias.c_str()));
+    account->SetAlias(alias.c_str());
 
     return account;
 }
@@ -566,10 +562,11 @@ bool Wallet::UpdateAccount(
         return false;
     }
 
+    const auto alias = account_alias(accountID.str(), label);
     saved = api_.Storage().Store(
         accountID.str(),
         raw->Get(),
-        account_alias(accountID.str(), label),
+        alias,
         localNym.ID(),
         localNym.ID(),
         contract->Nym()->ID(),
@@ -583,6 +580,7 @@ bool Wallet::UpdateAccount(
         return false;
     }
 
+    pAccount->SetAlias(alias);
     const auto balance = pAccount->GetBalance();
     auto message = opentxs::network::zeromq::Message::Factory();
     message->AddFrame(accountID.str());
@@ -832,7 +830,7 @@ std::shared_ptr<const api::client::Issuer> Wallet::Issuer(
     const Identifier& issuerID) const
 {
     auto& [lock, pIssuer] = issuer(nymID, issuerID, false);
-    const auto& notUsed[[maybe_unused]] = lock;
+    const auto& notUsed [[maybe_unused]] = lock;
 
     return pIssuer;
 }
@@ -861,7 +859,7 @@ Wallet::IssuerLock& Wallet::issuer(
     Lock lock(issuer_map_lock_);
     auto& output = issuer_map_[{nymID, issuerID}];
     auto& [issuerMutex, pIssuer] = output;
-    const auto& notUsed[[maybe_unused]] = issuerMutex;
+    const auto& notUsed [[maybe_unused]] = issuerMutex;
 
     if (pIssuer) { return output; }
 
@@ -1475,7 +1473,6 @@ bool Wallet::PeerReplyReceive(const Identifier& nym, const PeerObject& reply)
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to delete finished request from sent box.")
             .Flush();
-
     }
 
     return removedRequest;
@@ -1742,12 +1739,10 @@ void Wallet::save(
 
     OT_ASSERT(false == contractID->empty())
 
-    auto alias = String::Factory();
-    in->GetName(alias);
     saved = api_.Storage().Store(
         accountID->str(),
         serialized->Get(),
-        alias->Get(),
+        in->Alias(),
         api_.Storage().AccountOwner(accountID),
         api_.Storage().AccountSigner(accountID),
         api_.Storage().AccountIssuer(accountID),

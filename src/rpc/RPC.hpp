@@ -104,6 +104,7 @@ private:
         const proto::RPCCommand& command) const;
     proto::RPCResponse move_funds(const proto::RPCCommand& command) const;
     proto::RPCResponse register_nym(const proto::RPCCommand& command) const;
+    proto::RPCResponse rename_account(const proto::RPCCommand& command) const;
     proto::RPCResponse send_payment(const proto::RPCCommand& command) const;
     proto::RPCResponse start_client(const proto::RPCCommand& command) const;
     proto::RPCResponse start_server(const proto::RPCCommand& command) const;

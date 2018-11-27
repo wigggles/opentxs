@@ -26,6 +26,7 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/core/Log.hpp"
@@ -836,7 +837,7 @@ proto::RPCResponse RPC::get_account_balance(
             auto& accountdata = *output.add_balance();
             accountdata.set_version(ACCOUNTDATA_VERSION);
             accountdata.set_id(id);
-            accountdata.set_label(session.Storage().AccountAlias(accountid));
+            accountdata.set_label(account.get().Alias());
             accountdata.set_unit(
                 account.get().GetInstrumentDefinitionID().str());
             accountdata.set_owner(
@@ -1875,6 +1876,9 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         case proto::RPCCOMMAND_LOOKUPACCOUNTID: {
             return lookup_account_id(command);
         } break;
+        case proto::RPCCOMMAND_RENAMEACCOUNT: {
+            return rename_account(command);
+        } break;
         case proto::RPCCOMMAND_ERROR:
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unsupported command.")
@@ -1954,6 +1958,41 @@ proto::RPCResponse RPC::register_nym(const proto::RPCCommand& command) const
         }
     } else {
         add_output_status(output, proto::RPCRESPONSE_UNNECESSARY);
+    }
+
+    return output;
+}
+
+proto::RPCResponse RPC::rename_account(const proto::RPCCommand& command) const
+{
+    auto output = init(command);
+
+    if (false == is_session_valid(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_BAD_SESSION);
+        return output;
+    }
+
+    if (false == is_client_session(command.session())) {
+        add_output_status(output, proto::RPCRESPONSE_INVALID);
+        return output;
+    }
+
+    const auto pClient = get_client(command.session());
+
+    OT_ASSERT(nullptr != pClient)
+
+    const auto& client = *pClient;
+
+    for (const auto& rename : command.modifyaccount()) {
+        const auto accountID = Identifier::Factory(rename.accountid());
+        auto account = client.Wallet().mutable_Account(accountID);
+
+        if (account) {
+            account.get().SetAlias(rename.label());
+            add_output_status(output, proto::RPCRESPONSE_SUCCESS);
+        } else {
+            add_output_status(output, proto::RPCRESPONSE_ERROR);
+        }
     }
 
     return output;
