@@ -12,7 +12,19 @@
 
 #ifdef SWIG
 // clang-format off
-%rename (NymIDFactory) opentxs::identifier::Nym::Factory;
+%ignore opentxs::identifier::Nym::Factory;
+%extend opentxs::identifier::Nym {
+    static OTNymID Factory()
+    {
+        return opentxs::identifier::Nym::Factory();
+    }
+    static OTNymID Factory(
+        const std::string& rhs)
+    {
+        return opentxs::identifier::Nym::Factory(rhs);
+    }
+}
+%rename (NymID) opentxs::identifier::Nym;
 %template(OTNymID) opentxs::Pimpl<opentxs::identifier::Nym>;
 // clang-format on
 #endif
@@ -21,17 +33,14 @@ namespace opentxs
 {
 namespace identifier
 {
-class Nym : virtual public Identifier
+class Nym : virtual public opentxs::Identifier
 {
 public:
-    EXPORT static opentxs::Pimpl<opentxs::identifier::Nym> Factory();
-    EXPORT static opentxs::Pimpl<opentxs::identifier::Nym> Factory(
-        const std::string& rhs);
 #ifndef SWIG
-    EXPORT static opentxs::Pimpl<opentxs::identifier::Nym> Factory(
-        const String& rhs);
-    EXPORT static opentxs::Pimpl<opentxs::identifier::Nym> Factory(
-        const opentxs::Nym& nym);
+    EXPORT static OTNymID Factory();
+    EXPORT static OTNymID Factory(const std::string& rhs);
+    EXPORT static OTNymID Factory(const String& rhs);
+    EXPORT static OTNymID Factory(const opentxs::Nym& nym);
 #endif
 
     EXPORT virtual ~Nym() = default;
@@ -40,7 +49,7 @@ protected:
     Nym() = default;
 
 private:
-    friend opentxs::Pimpl<opentxs::identifier::Nym>;
+    friend OTNymID;
 
     virtual Nym* clone() const = 0;
 
