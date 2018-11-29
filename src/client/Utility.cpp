@@ -1382,10 +1382,9 @@ std::int32_t Utility::processNymbox(
 
     // Next, we have to make sure we have all the BOX RECEIPTS downloaded
     // for this Nymbox.
-    const auto [nProcess, trans, result] = api_.OTAPI().processNymbox(context_);
+    [[maybe_unused]] const auto [nProcess, trans, result] =
+        api_.OTAPI().processNymbox(context_);
     const auto& [status, reply] = result;
-    [[maybe_unused]] const auto& notUsed1 = trans;
-    [[maybe_unused]] const auto& notUsed2 = status;
 
     if (-1 == nProcess) {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -1395,6 +1394,19 @@ std::int32_t Utility::processNymbox(
             .Flush();
         return -1;  // (It didn't even send.)
     }
+
+    switch (status) {
+        case SendResult::INVALID_REPLY:
+        case SendResult::TIMEOUT:
+        case SendResult::ERROR: {
+            LogNormal(OT_METHOD)(__FUNCTION__)(": Send error").Flush();
+
+            return -1;
+        }
+        default: {
+        }
+    }
+
     // Nymbox was empty. (So we didn't send any process message because there
     // was nothing to process.)
     if (0 == nProcess) {

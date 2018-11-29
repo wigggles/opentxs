@@ -324,4 +324,9 @@ void Profile::startup()
     process_nym(*nym);
     startup_complete_->On();
 }
+
+Profile::~Profile()
+{
+    for (auto& it : listeners_) { delete it.second; }
+}
 }  // namespace opentxs::ui::implementation

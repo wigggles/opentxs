@@ -177,4 +177,9 @@ void Contact::startup()
     process_contact(*contact);
     startup_complete_->On();
 }
+
+Contact::~Contact()
+{
+    for (auto& it : listeners_) { delete it.second; }
+}
 }  // namespace opentxs::ui::implementation
