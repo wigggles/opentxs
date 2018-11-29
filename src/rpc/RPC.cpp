@@ -1843,8 +1843,8 @@ proto::RPCResponse RPC::Process(const proto::RPCCommand& command) const
         case proto::RPCCOMMAND_ACCEPTVERIFICATION:
         case proto::RPCCOMMAND_SENDCONTACTMESSAGE:
         case proto::RPCCOMMAND_GETCONTACTACTIVITY: {
-            otErr << OT_METHOD << __FUNCTION__ << ": Command not implemented"
-                  << std::endl;
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Command not implemented.")
+                  .Flush();
         } break;
         case proto::RPCCOMMAND_ACCEPTPENDINGPAYMENTS: {
             return accept_pending_payments(command);
