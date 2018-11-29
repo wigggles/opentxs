@@ -173,4 +173,9 @@ void PayableList::startup()
 
     startup_complete_->On();
 }
+
+PayableList::~PayableList()
+{
+    for (auto& it : listeners_) { delete it.second; }
+}
 }  // namespace opentxs::ui::implementation

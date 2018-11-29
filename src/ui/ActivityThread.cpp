@@ -423,6 +423,8 @@ std::string ActivityThread::ThreadID() const
 
 ActivityThread::~ActivityThread()
 {
+    for (auto& it : listeners_) { delete it.second; }
+
     if (contact_thread_ && contact_thread_->joinable()) {
         contact_thread_->join();
         contact_thread_.reset();
