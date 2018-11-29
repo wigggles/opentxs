@@ -147,4 +147,9 @@ void ContactList::startup()
 
     startup_complete_->On();
 }
+
+ContactList::~ContactList()
+{
+    for (auto& it : listeners_) { delete it.second; }
+}
 }  // namespace opentxs::ui::implementation

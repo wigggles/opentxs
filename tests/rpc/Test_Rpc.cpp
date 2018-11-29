@@ -1293,7 +1293,7 @@ TEST_F(Test_Rpc, Get_Account_Activity)
     EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
-    EXPECT_EQ(2, response.accountevent_size());
+    ASSERT_EQ(2, response.accountevent_size());
 
     const auto& accountevent = response.accountevent(0);
     EXPECT_EQ(ACCOUNTEVENT_VERSION, accountevent.version());
