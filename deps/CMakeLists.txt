@@ -368,4 +368,35 @@ else()
     set(bundled-secp256k1-path "" CACHE INTERNAL "" FORCE)
 endif()
 
+if (OT_BUNDLED_LMDB)
+    configure_file("lmdb-make.in" "${CMAKE_CURRENT_BINARY_DIR}/lmdb/make.sh" @ONLY)
+    set(bundled-lmdb-path "${CMAKE_CURRENT_BINARY_DIR}/lmdb/src/libraries/liblmdb/liblmdb.a" CACHE INTERNAL "" FORCE)
+    include(ExternalProject)
+    ExternalProject_Add(
+        lmdb
+        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/lmdb
+        TMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/lmdb/tmp
+        STAMP_DIR ${CMAKE_CURRENT_BINARY_DIR}/lmdb/stamp
+        EXCLUDE_FROM_ALL 1
+        DOWNLOAD_COMMAND mkdir -p ${CMAKE_CURRENT_BINARY_DIR}/lmdb/src/
+        DOWNLOAD_NO_PROGRESS 1
+        SOURCE_DIR "${CMAKE_CURRENT_BINARY_DIR}/lmdb/src/libraries/liblmdb/"
+        CONFIGURE_COMMAND true
+        BUILD_COMMAND sh "${CMAKE_CURRENT_BINARY_DIR}/lmdb/make.sh"
+        BUILD_IN_SOURCE 1
+        BUILD_BYPRODUCTS "${bundled-lmdb-path}"
+        INSTALL_COMMAND true
+    )
+
+    ExternalProject_Add_Step(
+        lmdb
+        checkout
+        COMMAND git -C ${CMAKE_CURRENT_SOURCE_DIR}/lmdb checkout-index --all --force --prefix=${CMAKE_CURRENT_BINARY_DIR}/lmdb/src/
+        DEPENDERS build
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lmdb
+    )
+else()
+    set(bundled-lmdb-path "" CACHE INTERNAL "" FORCE)
+endif()
+
 #clang-format on
