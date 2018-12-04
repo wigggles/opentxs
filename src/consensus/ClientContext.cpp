@@ -5,26 +5,53 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/consensus/ClientContext.hpp"
-
 #include "opentxs/api/Core.hpp"
+#include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 
+#include "Context.hpp"
+
+#include "ClientContext.hpp"
+
 #define CURRENT_VERSION 1
 
-#define OT_METHOD "ClientContext::"
+#define OT_METHOD "opentxs::implementation::ClientContext::"
 
 namespace opentxs
+{
+internal::ClientContext* Factory::ClientContext(
+    const api::Core& api,
+    const ConstNym& local,
+    const ConstNym& remote,
+    const Identifier& server)
+{
+    return new implementation::ClientContext(api, local, remote, server);
+}
+
+internal::ClientContext* Factory::ClientContext(
+    const api::Core& api,
+    const proto::Context& serialized,
+    const ConstNym& local,
+    const ConstNym& remote,
+    const Identifier& server)
+{
+    return new implementation::ClientContext(
+        api, serialized, local, remote, server);
+}
+}  // namespace opentxs
+
+namespace opentxs::implementation
 {
 ClientContext::ClientContext(
     const api::Core& api,
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server)
-    : ot_super(api, CURRENT_VERSION, local, remote, server)
+    : Signable(local, CURRENT_VERSION)
+    , implementation::Context(api, CURRENT_VERSION, local, remote, server)
 {
 }
 
@@ -34,7 +61,14 @@ ClientContext::ClientContext(
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server)
-    : ot_super(api, CURRENT_VERSION, serialized, local, remote, server)
+    : Signable(local, CURRENT_VERSION)
+    , implementation::Context(
+          api,
+          CURRENT_VERSION,
+          serialized,
+          local,
+          remote,
+          server)
 {
     if (serialized.has_clientcontext()) {
         for (const auto& it : serialized.clientcontext().opencronitems()) {
@@ -77,9 +111,7 @@ const Identifier& ClientContext::client_nym_id(const Lock& lock) const
 bool ClientContext::CloseCronItem(const TransactionNumber number)
 {
     Lock lock(lock_);
-
     auto output = open_cron_items_.erase(number);
-
     lock.unlock();
 
     return (0 < output);
@@ -252,4 +284,4 @@ bool ClientContext::VerifyIssuedNumber(
 
     return VerifyIssuedNumber(number);
 }
-}  // namespace opentxs
+}  // namespace opentxs::implementation

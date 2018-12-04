@@ -15,7 +15,7 @@ namespace opentxs
 {
 opentxs::ManagedNumber* Factory::ManagedNumber(
     const TransactionNumber number,
-    ServerContext& context)
+    opentxs::ServerContext& context)
 {
     return new implementation::ManagedNumber(number, context);
 }
@@ -30,7 +30,7 @@ namespace opentxs::implementation
 {
 ManagedNumber::ManagedNumber(
     const TransactionNumber number,
-    ServerContext& context)
+    opentxs::ServerContext& context)
     : context_(context)
     , number_(number)
     , success_(Flag::Factory(false))

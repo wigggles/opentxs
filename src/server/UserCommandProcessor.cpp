@@ -2888,7 +2888,7 @@ bool UserCommandProcessor::reregister_nym(ReplyMessage& reply) const
         return false;
     }
 
-    reply.SetPayload(proto::ProtoAsData(context.Serialized()));
+    reply.SetPayload(proto::ProtoAsData(context.Refresh()));
     reply.SetSuccess(true);
 
     return true;

@@ -5,16 +5,17 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/consensus/Context.hpp"
-
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/consensus/Context.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Ledger.hpp"
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/Nym.hpp"
 #include "opentxs/core/String.hpp"
+
+#include "Context.hpp"
 
 #ifndef OT_MAX_ACK_NUMS
 #define OT_MAX_ACK_NUMS 100
@@ -22,9 +23,9 @@
 
 #define SIGNATURE_VERSION 2
 
-#define OT_METHOD "Context::"
+#define OT_METHOD "opentxs::implementation::Context::"
 
-namespace opentxs
+namespace opentxs::implementation
 {
 Context::Context(
     const api::Core& api,
@@ -32,8 +33,7 @@ Context::Context(
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server)
-    : ot_super(local, targetVersion)
-    , api_(api)
+    : api_(api)
     , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)
     , available_transaction_numbers_()
@@ -53,8 +53,7 @@ Context::Context(
     const ConstNym& local,
     const ConstNym& remote,
     const Identifier& server)
-    : ot_super(local, serialized.version())
-    , api_(api)
+    : api_(api)
     , server_id_(Identifier::Factory(server))
     , remote_nym_(remote)
     , available_transaction_numbers_()
@@ -403,6 +402,14 @@ bool Context::RecoverAvailableNumber(const TransactionNumber& number)
     return available_transaction_numbers_.insert(number).second;
 }
 
+proto::Context Context::Refresh()
+{
+    Lock lock(lock_);
+    update_signature(lock);
+
+    return contract(lock);
+}
+
 const class Nym& Context::RemoteNym() const
 {
     OT_ASSERT(remote_nym_);
@@ -530,7 +537,7 @@ bool Context::update_signature(const Lock& lock)
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (!ot_super::update_signature(lock)) { return false; }
+    if (!Signable::update_signature(lock)) { return false; }
 
     if (version_ < target_version_) { version_ = target_version_; }
 
@@ -594,7 +601,7 @@ bool Context::verify_signature(
 {
     OT_ASSERT(verify_write_lock(lock));
 
-    if (!ot_super::verify_signature(lock, signature)) {
+    if (!Signable::verify_signature(lock, signature)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Error: invalid signature.")
             .Flush();
 
@@ -607,4 +614,4 @@ bool Context::verify_signature(
 
     return nym_->VerifyProto(serialized, sigProto);
 }
-}  // namespace opentxs
+}  // namespace opentxs::implementation

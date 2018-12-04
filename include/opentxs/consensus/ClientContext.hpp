@@ -9,67 +9,44 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/consensus/Context.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
-
-#include <set>
 
 namespace opentxs
 {
-class ClientContext : public Context
+class ClientContext : virtual public Context
 {
-private:
-    typedef Context ot_super;
-
 public:
-    ClientContext(
-        const api::Core& api,
-        const ConstNym& local,
-        const ConstNym& remote,
-        const Identifier& server);
-    ClientContext(
-        const api::Core& api,
-        const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
-        const Identifier& server);
-
-    bool hasOpenTransactions() const;
-    std::size_t IssuedNumbers(const std::set<TransactionNumber>& exclude) const;
-    std::size_t OpenCronItems() const;
-    proto::ConsensusType Type() const override;
-    bool Verify(
+    EXPORT virtual bool hasOpenTransactions() const = 0;
+    using Context::IssuedNumbers;
+    EXPORT virtual std::size_t IssuedNumbers(
+        const std::set<TransactionNumber>& exclude) const = 0;
+    EXPORT virtual std::size_t OpenCronItems() const = 0;
+    EXPORT virtual bool Verify(
         const TransactionStatement& statement,
         const std::set<TransactionNumber>& excluded,
-        const std::set<TransactionNumber>& included) const;
-    bool VerifyCronItem(const TransactionNumber number) const;
-    using ot_super::VerifyIssuedNumber;
-    bool VerifyIssuedNumber(
+        const std::set<TransactionNumber>& included) const = 0;
+    EXPORT virtual bool VerifyCronItem(
+        const TransactionNumber number) const = 0;
+    using Context::VerifyIssuedNumber;
+    EXPORT virtual bool VerifyIssuedNumber(
         const TransactionNumber& number,
-        const std::set<TransactionNumber>& exclude) const;
+        const std::set<TransactionNumber>& exclude) const = 0;
 
-    bool AcceptIssuedNumbers(std::set<TransactionNumber>& newNumbers);
-    bool CloseCronItem(const TransactionNumber number) override;
-    void FinishAcknowledgements(const std::set<RequestNumber>& req);
-    bool IssueNumber(const TransactionNumber& number);
-    bool OpenCronItem(const TransactionNumber number) override;
+    EXPORT virtual bool AcceptIssuedNumbers(
+        std::set<TransactionNumber>& newNumbers) = 0;
+    EXPORT virtual void FinishAcknowledgements(
+        const std::set<RequestNumber>& req) = 0;
+    EXPORT virtual bool IssueNumber(const TransactionNumber& number) = 0;
 
-    ~ClientContext() = default;
+    virtual ~ClientContext() override = default;
+
+protected:
+    ClientContext() = default;
 
 private:
-    std::set<TransactionNumber> open_cron_items_{};
-
-    const Identifier& client_nym_id(const Lock& lock) const override;
-    using ot_super::serialize;
-    proto::Context serialize(const Lock& lock) const override;
-    const Identifier& server_nym_id(const Lock& lock) const override;
-
-    ClientContext() = delete;
     ClientContext(const ClientContext&) = delete;
     ClientContext(ClientContext&&) = delete;
     ClientContext& operator=(const ClientContext&) = delete;
     ClientContext& operator=(ClientContext&&) = delete;
 };
 }  // namespace opentxs
-
 #endif

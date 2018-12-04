@@ -13,135 +13,67 @@
 #include "opentxs/Proto.hpp"
 #include "opentxs/Types.hpp"
 
-#include <atomic>
-#include <cstdint>
 #include <memory>
-#include <mutex>
 #include <set>
 
 namespace opentxs
 {
-namespace api
-{
-namespace implementation
-{
-class Wallet;
-}  // namespace implementation
-}  // namespace api
-
-class Context : public Signable
+class Context : virtual public Signable
 {
 public:
-    std::set<RequestNumber> AcknowledgedNumbers() const;
-    const api::Core& Api() const { return api_; }
-    std::size_t AvailableNumbers() const;
-    bool HaveLocalNymboxHash() const;
-    std::set<TransactionNumber> IssuedNumbers() const;
-    bool HaveRemoteNymboxHash() const;
-    std::string Name() const override;
-    bool NymboxHashMatch() const;
-    std::string LegacyDataFolder() const;
-    OTIdentifier LocalNymboxHash() const;
-    std::unique_ptr<const class NymFile> Nymfile(
-        const OTPasswordData& reason) const;
-    const class Nym& RemoteNym() const;
-    OTIdentifier RemoteNymboxHash() const;
-    RequestNumber Request() const;
-    OTData Serialize() const override;
-    proto::Context Serialized() const;
-    const Identifier& Server() const;
-    virtual proto::ConsensusType Type() const = 0;
-    bool VerifyAcknowledgedNumber(const RequestNumber& req) const;
-    bool VerifyAvailableNumber(const TransactionNumber& number) const;
-    bool VerifyIssuedNumber(const TransactionNumber& number) const;
+    EXPORT virtual std::set<RequestNumber> AcknowledgedNumbers() const = 0;
+    EXPORT virtual const api::Core& Api() const = 0;
+    EXPORT virtual std::size_t AvailableNumbers() const = 0;
+    EXPORT virtual bool HaveLocalNymboxHash() const = 0;
+    EXPORT virtual std::set<TransactionNumber> IssuedNumbers() const = 0;
+    EXPORT virtual bool HaveRemoteNymboxHash() const = 0;
+    EXPORT virtual bool NymboxHashMatch() const = 0;
+    EXPORT virtual std::string LegacyDataFolder() const = 0;
+    EXPORT virtual OTIdentifier LocalNymboxHash() const = 0;
+    EXPORT virtual std::unique_ptr<const opentxs::NymFile> Nymfile(
+        const OTPasswordData& reason) const = 0;
+    EXPORT virtual const opentxs::Nym& RemoteNym() const = 0;
+    EXPORT virtual OTIdentifier RemoteNymboxHash() const = 0;
+    EXPORT virtual RequestNumber Request() const = 0;
+    EXPORT virtual proto::Context Serialized() const = 0;
+    EXPORT virtual const Identifier& Server() const = 0;
+    EXPORT virtual proto::ConsensusType Type() const = 0;
+    EXPORT virtual bool VerifyAcknowledgedNumber(
+        const RequestNumber& req) const = 0;
+    EXPORT virtual bool VerifyAvailableNumber(
+        const TransactionNumber& number) const = 0;
+    EXPORT virtual bool VerifyIssuedNumber(
+        const TransactionNumber& number) const = 0;
 
-    bool AddAcknowledgedNumber(const RequestNumber req);
-    virtual bool CloseCronItem(const TransactionNumber) { return false; }
-    bool ConsumeAvailable(const TransactionNumber& number);
-    bool ConsumeIssued(const TransactionNumber& number);
-    RequestNumber IncrementRequest();
-    bool InitializeNymbox();
-    Editor<class NymFile> mutable_Nymfile(const OTPasswordData& reason);
-    virtual bool OpenCronItem(const TransactionNumber) { return false; }
-    bool RecoverAvailableNumber(const TransactionNumber& number);
-    bool RemoveAcknowledgedNumber(const std::set<RequestNumber>& req);
-    void Reset();
-    void SetLocalNymboxHash(const Identifier& hash);
-    void SetRemoteNymboxHash(const Identifier& hash);
-    void SetRequest(const RequestNumber req);
+    EXPORT virtual bool AddAcknowledgedNumber(const RequestNumber req) = 0;
+    EXPORT virtual bool CloseCronItem(const TransactionNumber) = 0;
+    EXPORT virtual bool ConsumeAvailable(const TransactionNumber& number) = 0;
+    EXPORT virtual bool ConsumeIssued(const TransactionNumber& number) = 0;
+    EXPORT virtual RequestNumber IncrementRequest() = 0;
+    EXPORT virtual bool InitializeNymbox() = 0;
+    EXPORT virtual Editor<opentxs::NymFile> mutable_Nymfile(
+        const OTPasswordData& reason) = 0;
+    EXPORT virtual bool OpenCronItem(const TransactionNumber) = 0;
+    EXPORT virtual bool RecoverAvailableNumber(
+        const TransactionNumber& number) = 0;
+    EXPORT virtual bool RemoveAcknowledgedNumber(
+        const std::set<RequestNumber>& req) = 0;
+    EXPORT virtual void Reset() = 0;
+    EXPORT virtual proto::Context Refresh() = 0;
+    EXPORT virtual void SetLocalNymboxHash(const Identifier& hash) = 0;
+    EXPORT virtual void SetRemoteNymboxHash(const Identifier& hash) = 0;
+    EXPORT virtual void SetRequest(const RequestNumber req) = 0;
 
-    virtual ~Context() = default;
+    virtual ~Context() override = default;
 
 protected:
-    const api::Core& api_;
-    const OTIdentifier server_id_;
-    std::shared_ptr<const class Nym> remote_nym_{};
-    std::set<TransactionNumber> available_transaction_numbers_{};
-    std::set<TransactionNumber> issued_transaction_numbers_{};
-    std::atomic<RequestNumber> request_number_{0};
-    std::set<RequestNumber> acknowledged_request_numbers_{};
-    OTIdentifier local_nymbox_hash_;
-    OTIdentifier remote_nymbox_hash_;
-
-    OTIdentifier GetID(const Lock& lock) const override;
-
-    virtual proto::Context serialize(
-        const Lock& lock,
-        const proto::ConsensusType type) const;
-    virtual proto::Context serialize(const Lock& lock) const = 0;
-
-    bool add_acknowledged_number(const Lock& lock, const RequestNumber req);
-    void finish_acknowledgements(
-        const Lock& lock,
-        const std::set<RequestNumber>& req);
-    bool issue_number(const Lock& lock, const TransactionNumber& number);
-    bool remove_acknowledged_number(
-        const Lock& lock,
-        const std::set<RequestNumber>& req);
-
-    Context(
-        const api::Core& api,
-        const std::uint32_t targetVersion,
-        const ConstNym& local,
-        const ConstNym& remote,
-        const Identifier& server);
-    Context(
-        const api::Core& api,
-        const std::uint32_t targetVersion,
-        const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
-        const Identifier& server);
+    Context() = default;
 
 private:
-    friend class Nym;
-    friend class api::implementation::Wallet;
-
-    typedef Signable ot_super;
-
-    const std::uint32_t target_version_{0};
-
-    virtual const Identifier& client_nym_id(const Lock& lock) const = 0;
-    proto::Context contract(const Lock& lock) const;
-    proto::Context IDVersion(const Lock& lock) const;
-    virtual const Identifier& server_nym_id(const Lock& lock) const = 0;
-    proto::Context SigVersion(const Lock& lock) const;
-    bool validate(const Lock& lock) const override;
-    bool verify_signature(const Lock& lock, const proto::Signature& signature)
-        const override;
-
-    // Transition method used for converting from Nym class
-    bool insert_available_number(const TransactionNumber& number);
-    // Transition method used for converting from Nym class
-    bool insert_issued_number(const TransactionNumber& number);
-    bool update_signature(const Lock& lock) override;
-
-    Context() = delete;
     Context(const Context&) = delete;
     Context(Context&&) = delete;
     Context& operator=(const Context&) = delete;
     Context& operator=(Context&&) = delete;
 };
 }  // namespace opentxs
-
 #endif

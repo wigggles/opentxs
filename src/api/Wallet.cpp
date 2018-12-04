@@ -1753,17 +1753,17 @@ void Wallet::save(
     OT_ASSERT(saved)
 }
 
-void Wallet::save(opentxs::Context* context) const
+void Wallet::save(opentxs::internal::Context* context) const
 {
     if (nullptr == context) { return; }
 
-    Lock lock(context->lock_);
+    Lock lock(context->GetLock());
+    const bool sig = context->UpdateSignature(lock);
 
-    context->update_signature(lock);
+    OT_ASSERT(sig);
+    OT_ASSERT(context->ValidateContext(lock));
 
-    OT_ASSERT(context->validate(lock));
-
-    api_.Storage().Store(context->contract(lock));
+    api_.Storage().Store(context->GetContract(lock));
 }
 
 void Wallet::save(const Lock& lock, api::client::Issuer* in) const
