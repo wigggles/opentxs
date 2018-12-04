@@ -97,6 +97,7 @@ bool Secp256k1::RandomKeypair(OTPassword& privateKey, Data& publicKey) const
 
         OT_ASSERT(3 > ++counter);
     }
+
     privateKey.setMemory(candidateKey, sizeof(candidateKey));
 
     return ScalarBaseMultiply(privateKey, publicKey);
@@ -113,15 +114,18 @@ bool Secp256k1::Sign(
     auto hash = Data::Factory();
     bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
 
-    if (!haveDigest) {
+    if (false == haveDigest) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Failed to obtain the contract hash.")
             .Flush();
 
         return false;
     }
+
+    OT_ASSERT(nullptr != hash->data());
+
     OTPassword privKey;
-    bool havePrivateKey;
+    bool havePrivateKey{false};
 
     // FIXME
     OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
@@ -141,8 +145,9 @@ bool Secp256k1::Sign(
     }
 
     if (havePrivateKey) {
-        secp256k1_ecdsa_signature ecdsaSignature;
+        OT_ASSERT(nullptr != privKey.getMemory());
 
+        secp256k1_ecdsa_signature ecdsaSignature{};
         bool signatureCreated = secp256k1_ecdsa_sign(
             context_,
             &ecdsaSignature,
@@ -154,6 +159,7 @@ bool Secp256k1::Sign(
         if (signatureCreated) {
             signature.Assign(
                 ecdsaSignature.data, sizeof(secp256k1_ecdsa_signature));
+
             return true;
         } else {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -182,7 +188,9 @@ bool Secp256k1::Verify(
     auto hash = Data::Factory();
     bool haveDigest = crypto_.Hash().Digest(hashType, plaintext, hash);
 
-    if (!haveDigest) { return false; }
+    if (false == haveDigest) { return false; }
+
+    OT_ASSERT(nullptr != hash->data());
 
     const crypto::key::EllipticCurve* key =
         dynamic_cast<const crypto::key::Secp256k1*>(&theKey);
@@ -194,12 +202,14 @@ bool Secp256k1::Verify(
 
     if (!havePublicKey) { return false; }
 
-    secp256k1_pubkey point;
+    OT_ASSERT(nullptr != ecdsaPubkey->data());
+
+    secp256k1_pubkey point{};
     const bool pubkeyParsed = ParsePublicKey(ecdsaPubkey, point);
 
     if (!pubkeyParsed) { return false; }
 
-    secp256k1_ecdsa_signature ecdsaSignature;
+    secp256k1_ecdsa_signature ecdsaSignature{};
     const bool haveSignature = DataToECSignature(signature, ecdsaSignature);
 
     if (!haveSignature) { return false; }
@@ -284,7 +294,7 @@ bool Secp256k1::ScalarBaseMultiply(
 
     if (!privateKey.isMemory()) { return false; }
 
-    secp256k1_pubkey key;
+    secp256k1_pubkey key{};
 
     const auto created = secp256k1_ec_pubkey_create(
         context_,
@@ -312,6 +322,7 @@ Secp256k1::~Secp256k1()
         secp256k1_context_destroy(context_);
         context_ = nullptr;
     }
+
     Initialized_ = false;
 }
 }  // namespace opentxs::crypto::implementation
