@@ -52,13 +52,8 @@ typedef std::array<bool, 4> OTfourbool;
 class Utility
 {
 public:
-    std::string strLastReplyReceived;
-    std::int32_t delay_ms{};
-    std::int32_t max_trans_dl{};
-
     EXPORT Utility(ServerContext& context, const api::client::Manager& api);
 
-    EXPORT void delay() const;
     EXPORT std::int32_t getAndProcessNymbox_3(
         const std::string& notaryID,
         const std::string& nymID,
@@ -110,7 +105,6 @@ public:
         const std::string& nymID,
         const std::string& accountID,
         bool bForceDownload);
-    EXPORT std::string getLastReplyReceived() const;
     EXPORT std::int32_t getNbrTransactionCount() const;
     EXPORT std::int32_t getNymbox(
         const std::string& notaryID,
@@ -119,8 +113,6 @@ public:
         const std::string& notaryID,
         const std::string& nymID,
         bool bForceDownload);
-    EXPORT std::int32_t getNymboxLowLevel();
-    EXPORT std::int32_t getNymboxLowLevel(bool& bWasSent);
     EXPORT bool insureHaveAllBoxReceipts(
         const std::string& notaryID,
         const std::string& nymID,
@@ -133,8 +125,7 @@ public:
         std::int32_t nBoxType,
         std::int32_t nRequestSeeking,
         bool& bFoundIt);
-    EXPORT void longDelay() const;
-    EXPORT std::int32_t processNymbox(
+    EXPORT CommandResult processNymbox(
         const std::string& notaryID,
         const std::string& nymID,
         bool& bWasMsgSent,
@@ -142,7 +133,6 @@ public:
         std::int32_t& nReplySuccessOut,
         std::int32_t& nBalanceSuccessOut,
         std::int32_t& nTransSuccessOut);
-    EXPORT void setLastReplyReceived(const std::string& strReply);
     EXPORT void setNbrTransactionCount(std::int32_t new_trans_dl);
 
     EXPORT ~Utility() = default;
@@ -150,6 +140,7 @@ public:
 protected:
     ServerContext& context_;
     const api::client::Manager& api_;
+    std::int32_t max_trans_dl{};
 
     Utility() = delete;
     Utility(const Utility&) = delete;

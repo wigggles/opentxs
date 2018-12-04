@@ -25,6 +25,12 @@
 
 namespace opentxs
 {
+Utility::Utility(ServerContext& context, const api::client::Manager& api)
+    : context_(context)
+    , api_(api)
+    , max_trans_dl(10)
+{
+}
 
 bool VerifyMessage(const std::string& message)
 {
@@ -213,78 +219,11 @@ std::int32_t InterpretTransactionMsgReply(
     return 1;
 }
 
-Utility::Utility(ServerContext& context, const api::client::Manager& api)
-    : strLastReplyReceived("")
-    , delay_ms(50)
-    , max_trans_dl(10)
-    , context_(context)
-    , api_(api)
-{
-}
-
-void Utility::delay() const { Log::Sleep(std::chrono::milliseconds(delay_ms)); }
-
-void Utility::longDelay() const
-{
-    Log::Sleep(std::chrono::milliseconds(delay_ms + 200));
-}
-
 std::int32_t Utility::getNbrTransactionCount() const { return max_trans_dl; }
 
 void Utility::setNbrTransactionCount(std::int32_t new_trans_dl)
 {
     max_trans_dl = new_trans_dl;
-}
-
-std::string Utility::getLastReplyReceived() const
-{
-    return strLastReplyReceived;
-}
-
-void Utility::setLastReplyReceived(const std::string& strReply)
-{
-    strLastReplyReceived = strReply;
-}
-
-std::int32_t Utility::getNymboxLowLevel()
-{
-    bool bWasSent = false;
-    return getNymboxLowLevel(bWasSent);
-}
-
-// This returns -1 if error, or a positive request number if it was sent.
-// (It cannot return 0;
-// Called by getAndProcessNymbox.
-std::int32_t Utility::getNymboxLowLevel(bool& bWasSent)
-{
-    bWasSent = false;
-    auto [nRequestNum, transactionNum, result] =
-        api_.OTAPI().getNymbox(context_);
-    const auto& [status, reply] = result;
-    [[maybe_unused]] const auto& notUsed1 = transactionNum;
-
-    switch (status) {
-        case SendResult::VALID_REPLY: {
-            bWasSent = true;
-            setLastReplyReceived(String::Factory(*reply)->Get());
-
-            return nRequestNum;
-        } break;
-        case SendResult::TIMEOUT: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed to send getNymbox message due to error.")
-                .Flush();
-            setLastReplyReceived("");
-
-            return -1;
-        } break;
-        default: {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Error!").Flush();
-            setLastReplyReceived("");
-
-            return -1;
-        }
-    }
 }
 
 std::int32_t Utility::getNymbox(
@@ -335,26 +274,30 @@ std::int32_t Utility::getNymbox(
     }
 
     // -- SECTION 1: "GET NYMBOX"
-    //
-    bool bWasMsgSent = false;
-    std::int32_t nGetNymbox = getNymboxLowLevel(bWasMsgSent);
+    [[maybe_unused]] auto [nGetNymbox, transactionNum, result] =
+        api_.OTAPI().getNymbox(context_);
+    const auto& [status, reply] = result;
 
     if (ConnectionState::ACTIVE != api_.ZMQ().Status(notaryID)) return -1;
 
-    if (bWasMsgSent) {
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": FYI: we just sent a getNymboxLowLevel msg. RequestNum: ")(
-            nGetNymbox)
-            .Flush();
+    switch (status) {
+        case SendResult::VALID_REPLY: {
+        } break;
+        case SendResult::TIMEOUT: {
+            return -1;
+        }
+        default: {
+            LogNormal(OT_METHOD)(__FUNCTION__)(
+                ": Failure: this.getNymboxLowLevel returned unexpected "
+                "value: ")(nGetNymbox)(".")
+                .Flush();
+            return -1;
+        }
     }
 
-    if (!(bWasMsgSent) || ((nGetNymbox <= 0) && (-1 != nGetNymbox))) {
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": Failure: this.getNymboxLowLevel returned unexpected value: ")(
-            nGetNymbox)(".")
-            .Flush();
-        return -1;
-    }  // NOTE: for getNymbox, there is no '0' return value;
+    LogDetail(OT_METHOD)(__FUNCTION__)(
+        ": FYI: we just sent a getNymboxLowLevel msg. RequestNum: ")(nGetNymbox)
+        .Flush();
 
     if (-1 == nGetNymbox)  // we'll try re-syncing the request number, then try
                            // again.
@@ -375,140 +318,37 @@ std::int32_t Utility::getNymbox(
             return -1;
         }
 
-        // todo: should the member variable strLastReplyReceived be set to this
-        // one?
-        // before, the member var was shadowed (string strLastReplyReceived =
-        // getLastReplyReceived();).
-        std::string lastReplyReceived = getLastReplyReceived();
-        // I had to do this bit because getRequestNumber doesn't return the
-        // reply itself. But in this case, I needed it.
-        if (!VerifyStringVal(lastReplyReceived))  // THIS SHOULD NEVER HAPPEN.
-        {
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": ERROR in getLastReplyReceived(): Why "
-                "was this std::string not set, when "
-                "this.getRequestNumber was otherwise an "
-                "apparent success?")
-                .Flush();
-            return -1;  // (SHOULD NEVER HAPPEN. This std::string is set in the
-                        // getRequestNumber function.)
-        }
+        const bool needNymbox =
+            (false ==
+             (context_.HaveLocalNymboxHash() &&
+              context_.HaveRemoteNymboxHash() && context_.NymboxHashMatch()));
 
-        // BY THIS POINT, we have received a server reply:
-        // getRequestNumberResponse
-        // (Unless it is malformed.) It's definitely not null, nor empty.
+        if (bForceDownload || needNymbox) {
+            const auto download = api_.OTAPI().getNymbox(context_);
+            const auto& status = std::get<0>(std::get<2>(download));
+            nGetNymbox = std::get<0>(download);
 
-        // Grab the NymboxHash on the getRequestNumberResponse reply, and also
-        // the one
-        // I
-        // already had on my client-side Nym... (So we can compare them.)
-        //
-        //      If the hashes do NOT match, then I DO need to download nymbox
-        // and box receipts.
-        /*
-         *      ===> If the NymboxHash is changed from what I expected, then I
-         *need to re-download the
-         *      nymbox (and any box receipts I don't already have.)
-         *
-         *      Then I need to process the Nymbox. But first, see if my missing
-         *server reply is in there.
-         *      If it is, then I have the server reply! (As if we had succeeded
-         *in the first place!!)
-         *      Next, process the Nymbox (which processes that reply) and then
-         *return strReply;
-         *
-         *      (Clearly this is just going to be a normal part of the
-         *getRequestNumber
-         *syncronization.)
-         *
-         *      By the time that much is done, I will KNOW the request number,
-         *the nymbox, the box receipts,
-         *      etc are ALL syncronized properly, and that I THEN processed the
-         *Nymbox successfully.
-         *
-         *
-         *      NOTICE: In this example I do NOT want to pull out my sent
-         *message from the outbuffer (using the request number) and try to
-         *harvest all the transaction numbers. Why not? Because possibly
-         *the server DID reply! And if I processed that reply properly, it would
-         *sync my transaction numbers properly just from that! ===>
-         *
-         *      ===> Therefore, I need to see FIRST if the old message has a
-         *reply WAITING in the Nymbox. THEN
-         *      I need to process the Nymbox. ONLY if the reply wasn't there,
-         *can I THEN pull out the message from my outbuffer and harvest it.
-         *(Which I am reticent to do, until I am SURE the server really
-         *never saw that message in the first place.)
-         *
-         *      However, as long as my NymboxHash hasn't changed, then I'm safe!
-         *But if it HAS changed,
-         *      then I HAVE to A. download it B. SEE if the reply is there for
-         *the request number, then
-         *      C. process it. ... If the reply wasn't there, THEN Harvest the
-         *transaction #s (for transaction
-         *      messages) and then re-try.
-         */
-
-        // Grabbing again in case it's changed.
-        std::string strServerHash =
-            api_.Exec().Message_GetNymboxHash(lastReplyReceived);
-        bool bServerHash = VerifyStringVal(strServerHash);
-        if (!bServerHash) {
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Warning: Unable to retrieve server-side NymboxHash "
-                "from server getRequestNumberResponse reply: ")(
-                lastReplyReceived)(".")
-                .Flush();
-        }
-
-        strLocalHash = api_.Exec().GetNym_NymboxHash(notaryID, nymID);
-        bLocalHash = VerifyStringVal(strLocalHash);
-        if (!bLocalHash) {
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Warning(2): Unable to retrieve client-side NymboxHash "
-                "for: notaryID: ")(notaryID)(" nymID: ")(nymID)(".")
-                .Flush();
-        }
-
-        // The hashes don't match -- so let's definitely re-try to download the
-        // latest nymbox.
-        if (bForceDownload || !bLocalHash || !bServerHash ||
-            (bServerHash && bLocalHash && !(strServerHash == strLocalHash))) {
-            // the getRequestNumber worked, and the server hashes don't match,
-            // so let's try the call again...
-
-            nGetNymbox = getNymboxLowLevel(bWasMsgSent);
-
-            if (!(bWasMsgSent) || ((nGetNymbox <= 0) && (-1 != nGetNymbox))) {
-                LogNormal(OT_METHOD)(__FUNCTION__)(
-                    ": Failure(2): this.getNymboxLowLevel returned "
-                    "unexpected value: ")(nGetNymbox)(".")
-                    .Flush();
-                return -1;
-            }
-
-            if (-1 == nGetNymbox)  // we'll try re-syncing the request number,
-                                   // then try again.
-            {
-                LogNormal(OT_METHOD)(__FUNCTION__)(
-                    ": Failure: this.getNymboxLowLevel "
-                    "returned -1, even after syncing the "
-                    "request number successfully. (Giving "
-                    "up).")
-                    .Flush();
-                return -1;
+            switch (status) {
+                case SendResult::VALID_REPLY: {
+                } break;
+                case SendResult::TIMEOUT: {
+                    return -1;
+                }
+                default: {
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": Error: failed to download nymbox after updating "
+                        "request number.")
+                        .Flush();
+                    return -1;
+                }
             }
         }
     }
 
     // By this point, we DEFINITELY know that the Nymbox was retrieved
-    // successfully.
-    // (With request number nGetNymbox.) This is because the getNymboxLowLevel()
-    // call
-    // also tries to receive the reply, so we already know by now whether the
-    // reply
-    // was successfully received.
-    //
+    // successfully. (With request number nGetNymbox.) This is because the
+    // getNymboxLowLevel() call also tries to receive the reply, so we already
+    // know by now whether the reply was successfully received.
 
     return nGetNymbox;
 }
@@ -887,7 +727,7 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // this function
         //    returns the REQUEST NUMBER from when it was originally sent.
 
-        std::int32_t nProcess = processNymbox(
+        const auto result = processNymbox(
             notaryID,
             nymID,
             bWasMsgSent,
@@ -895,59 +735,40 @@ std::int32_t Utility::getAndProcessNymbox_8(
             nReplySuccessOut,
             nBalanceSuccessOut,
             nTransSuccessOut);
+        const auto& status = std::get<0>(std::get<2>(result));
+        const auto& reply = std::get<1>(std::get<2>(result));
 
-        if (-1 == nProcess) {
-            // Todo: might want to remove the sent message here, IF bMsgWasSent
-            // is true.
-            // (Just like case 0.)
-            //
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Failure: processNymbox: error (-1). (It "
-                "couldn't send. I give up.).")
-                .Flush();
+        switch (status) {
+            case SendResult::INVALID_REPLY:
+            case SendResult::TIMEOUT:
+            case SendResult::ERROR: {
+                LogNormal(OT_METHOD)(__FUNCTION__)(
+                    ": Failure: processNymbox: error (-1). (It "
+                    "couldn't send. I give up.).")
+                    .Flush();
 
-            return -1;  // (It didn't even send.)
-        } else if (0 == nProcess) {
-            // Nymbox was empty. (So we didn't send any process message because
-            // there was nothing to process.)
-            if (!bWasMsgSent) {
-                return 0;  // success. done. (box was empty already.)
+                return -1;  // (It didn't even send.)
             }
-            // else: the message WAS sent, (the Nymbox was NOT empty)
-            //       and then the server replied "success==FALSE"
-            //       in its REPLY to that message! Thus we continue and DROP
-            // THROUGH...
-        } else if (nProcess < 0) {
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Failure: processNymbox: unexpected: ")(nProcess)(
-                ". (I give up.).")
-                .Flush();
+            case SendResult::UNNECESSARY: {
+                // Nymbox was empty. (So we didn't send any process message
+                // because there was nothing to process.)
 
-            return -1;
+                return 0;
+            }
+            default: {
+            }
         }
-        // bWasMsgSent = true;  // unnecessary -- set already by processNymbox
-        // call above.
+
+        OT_ASSERT(reply);
 
         // By this point, we definitely have a >0 request number from the
-        // sendProcessNymbox()
-        // call, stored in nProcess (meaning the message WAS sent.) (Except in
-        // case of 0, see next line which fixes this:)
-        //
-
-        nProcess = nMsgSentRequestNumOut;  // Sometimes this could be 0 still,
-                                           // so we fix it here.;
+        // sendProcessNymbox() call, stored in nProcess (meaning the message WAS
+        // sent.)
+        const auto nProcess = nMsgSentRequestNumOut;
         std::int32_t nReplySuccess = nReplySuccessOut;
         std::int32_t nTransSuccess = nTransSuccessOut;
         std::int32_t nBalanceSuccess = nBalanceSuccessOut;
 
-        /*
-
-        return const;
-
-        char *    SwigWrap::GetSentMessage(const char* REQUEST_NUMBER)
-        OT_BOOL   SwigWrap::RemoveSentMessage(const char* REQUEST_NUMBER)
-
-        */
         // All of these booleans (except "error") represent RECEIVED ANSWERS
         // from the server.
         // In other words, "false" does not mean "failed to find message."
@@ -957,28 +778,9 @@ std::int32_t Utility::getAndProcessNymbox_8(
         // SHOULD NEVER HAPPEN (processNymbox call just above was successful,
         // therefore the sent message SHOULD be here in my cache.)
         //
-        std::string strReplyProcess = getLastReplyReceived();
-        // I had to do this bit because getRequestNumber doesn't return the;
-        // reply itself. But in this case, I needed it.
-        if (!VerifyStringVal(strReplyProcess))  // THIS SHOULD NEVER HAPPEN.
-        {
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": ERROR in getLastReplyReceived(): why "
-                "was this std::string not set, when "
-                "getRequestNumber was otherwise an "
-                "apparent success?")
-                .Flush();
-
-            return -1;  // (SHOULD NEVER HAPPEN. This std::string is set in the
-                        // getRequestNumber function.)
-        }
-
-        bool bProcessNymboxReplyError =
-            (!VerifyStringVal(strReplyProcess) || (nReplySuccess < 0));
-        bool bProcessNymboxBalanceError =
-            (!VerifyStringVal(strReplyProcess) || (nBalanceSuccess < 0));
-        bool bProcessNymboxTransError =
-            (!VerifyStringVal(strReplyProcess) || (nTransSuccess < 0));
+        bool bProcessNymboxReplyError = (nReplySuccess < 0);
+        bool bProcessNymboxBalanceError = (nBalanceSuccess < 0);
+        bool bProcessNymboxTransError = (nTransSuccess < 0);
 
         bool bProcessNymboxReplySuccess =
             (!bProcessNymboxReplyError && (nReplySuccess > 0));
@@ -1361,7 +1163,7 @@ std::int32_t Utility::getAndProcessNymbox_3(
 //                                OTInteger nBalanceSuccessOut,
 //                                OTInteger nTransSuccessOut)
 
-std::int32_t Utility::processNymbox(
+CommandResult Utility::processNymbox(
     const std::string& notaryID,
     const std::string& nymID,
     bool& bWasMsgSent,
@@ -1371,8 +1173,6 @@ std::int32_t Utility::processNymbox(
     std::int32_t& nTransSuccessOut)
 {
     bWasMsgSent = false;
-    std::string strLocation = "Utility::processNymbox";
-
     nMsgSentRequestNumOut = -1;
     nReplySuccessOut = -1;
     nBalanceSuccessOut = -1;
@@ -1382,18 +1182,9 @@ std::int32_t Utility::processNymbox(
 
     // Next, we have to make sure we have all the BOX RECEIPTS downloaded
     // for this Nymbox.
-    [[maybe_unused]] const auto [nProcess, trans, result] =
-        api_.OTAPI().processNymbox(context_);
+    const auto output = api_.OTAPI().processNymbox(context_);
+    [[maybe_unused]] const auto [nProcess, trans, result] = output;
     const auto& [status, reply] = result;
-
-    if (-1 == nProcess) {
-        LogNormal(OT_METHOD)(__FUNCTION__)(
-            ": (2) error (-1), when calling "
-            "sendProcessNymboxLowLevel. (It couldn't send. "
-            "I give up).")
-            .Flush();
-        return -1;  // (It didn't even send.)
-    }
 
     switch (status) {
         case SendResult::INVALID_REPLY:
@@ -1401,35 +1192,29 @@ std::int32_t Utility::processNymbox(
         case SendResult::ERROR: {
             LogNormal(OT_METHOD)(__FUNCTION__)(": Send error").Flush();
 
-            return -1;
+            return output;
+        }
+        case SendResult::UNNECESSARY: {
+            // Nymbox was empty. (So we didn't send any process message because
+            // there was nothing to process.)
+
+            return output;
         }
         default: {
         }
     }
 
-    // Nymbox was empty. (So we didn't send any process message because there
-    // was nothing to process.)
-    if (0 == nProcess) {
-        return 0;  // success. done.
-    }
-    if (nProcess < 0) {
-        LogNormal(OT_METHOD)(__FUNCTION__)(": Unexpected: ")(nProcess)(
-            ", when calling sendProcessNymboxLowLevel. (I give up).")
-            .Flush();
-        return -1;
-    }
+    OT_ASSERT(0 < nProcess);
+    OT_ASSERT(reply)
 
     bWasMsgSent = true;
     nMsgSentRequestNumOut = nProcess;
-
-    OT_ASSERT(reply)
-
     const std::string strReplyProcess = String::Factory(*reply)->Get();
     std::int32_t nReplySuccess = VerifyMessageSuccess(
         api_, strReplyProcess);  // sendProcessNymboxLowLevel;
     std::int32_t nTransSuccess = -1;
     std::int32_t nBalanceSuccess = -1;
-    ;
+
     if (nReplySuccess > 0)  // If message was success, then let's see if the
                             // transaction was, too.
     {
@@ -1451,18 +1236,7 @@ std::int32_t Utility::processNymbox(
     nBalanceSuccessOut = nBalanceSuccess;
     nTransSuccessOut = nTransSuccess;
 
-    // NOTE: The caller MUST have a call to SwigWrap::RemoveSentMessage
-    // to correspond to THIS function's call of sendProcessNymboxLowLevel().
-    //
-    if (nTransSuccess > 0) {
-        setLastReplyReceived(strReplyProcess);
-
-        return nProcess;
-    }
-
-    setLastReplyReceived("");
-
-    return nTransSuccess;
+    return output;
 }
 
 // called by getBoxReceiptWithErrorCorrection   DONE
@@ -1484,7 +1258,6 @@ bool Utility::getBoxReceiptLowLevel(
     switch (status) {
         case SendResult::VALID_REPLY: {
             bWasSent = true;
-            setLastReplyReceived(String::Factory(*reply)->Get());
 
             return true;
         } break;
@@ -1492,7 +1265,6 @@ bool Utility::getBoxReceiptLowLevel(
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to send getNymbox message due to error.")
                 .Flush();
-            setLastReplyReceived("");
 
             return false;
         } break;
@@ -1501,7 +1273,6 @@ bool Utility::getBoxReceiptLowLevel(
     }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": Error!").Flush();
-    setLastReplyReceived("");
 
     return false;
 }
@@ -2356,19 +2127,16 @@ std::int32_t Utility::getInboxAccount(
         case SendResult::VALID_REPLY: {
             bWasSentAccount = true;
             bWasSentInbox = true;
-            setLastReplyReceived(String::Factory(*reply)->Get());
         } break;
         case SendResult::TIMEOUT: {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to send getNymbox message due to error.")
                 .Flush();
-            setLastReplyReceived("");
 
             return -1;
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error!").Flush();
-            setLastReplyReceived("");
 
             return -1;
         }
