@@ -10,6 +10,7 @@
 #define COMMAND_VERSION 2
 #define RESPONSE_VERSION 2
 #define ACCOUNTEVENT_VERSION 2
+#define APIARG_VERSION 1
 #define TEST_NYM_4 "testNym4"
 #define TEST_NYM_5 "testNym5"
 #define TEST_NYM_6 "testNym6"
@@ -221,7 +222,7 @@ void Test_Rpc_Async::setup()
 
 void Test_Rpc_Async::verify_nym_and_unitdef()
 {
-    auto end = std::time(nullptr) + 20;
+    auto end = std::time(nullptr) + 40;
     while (std::time(nullptr) < end) {
         if (2 == register_nyms_count_ && issue_unitdef_complete_) { break; }
 
@@ -302,6 +303,81 @@ TEST_F(Test_Rpc_Async, Create_Issuer_Account)
 }
 
 TEST_F(Test_Rpc_Async, Verify_Responses) { verify_nym_and_unitdef(); }
+
+TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Contact)
+{
+    auto& client_a = ot_.Client(get_index(client_a_));
+    auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
+    command.set_session(client_a_);
+
+    const auto issueraccounts = client_a.Storage().AccountsByIssuer(
+        Identifier::Factory(sender_nym_id_));
+
+    ASSERT_TRUE(false == issueraccounts.empty());
+
+    auto issueraccountid = *issueraccounts.cbegin();
+
+    auto sendpayment = command.mutable_sendpayment();
+
+    ASSERT_NE(nullptr, sendpayment);
+
+    sendpayment->set_version(1);
+    sendpayment->set_type(proto::RPCPAYMENTTYPE_CHEQUE);
+    // Use an id that isn't a contact.
+    sendpayment->set_contact(receiver_nym_id_);
+    sendpayment->set_sourceaccount(issueraccountid->str());
+    sendpayment->set_memo("Send_Payment_Cheque test");
+    sendpayment->set_amount(100);
+
+    auto response = ot_.RPC(command);
+
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_CONTACT_NOT_FOUND, response.status(0).code());
+}
+
+TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Account_Owner)
+{
+    auto& client_a = ot_.Client(get_index(client_a_));
+    auto command = init(proto::RPCCOMMAND_SENDPAYMENT);
+    command.set_session(client_a_);
+
+    const auto issueraccounts = client_a.Storage().AccountsByIssuer(
+        Identifier::Factory(sender_nym_id_));
+
+    ASSERT_TRUE(false == issueraccounts.empty());
+
+    auto issueraccountid = *issueraccounts.cbegin();
+
+    const auto contact = client_a.Contacts().NewContact(
+        "label_only_contact",
+        Identifier::Factory(),
+        client_a.Factory().PaymentCode(""));
+
+    auto sendpayment = command.mutable_sendpayment();
+
+    ASSERT_NE(nullptr, sendpayment);
+
+    sendpayment->set_version(1);
+    sendpayment->set_type(proto::RPCPAYMENTTYPE_CHEQUE);
+    sendpayment->set_contact(contact->ID().str());
+    sendpayment->set_sourceaccount(receiver_nym_id_);
+    sendpayment->set_memo("Send_Payment_Cheque test");
+    sendpayment->set_amount(100);
+
+    auto response = ot_.RPC(command);
+
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(
+        proto::RPCRESPONSE_ACCOUNT_OWNER_NOT_FOUND, response.status(0).code());
+}
 
 TEST_F(Test_Rpc_Async, Send_Payment_Cheque_No_Path)
 {
@@ -485,6 +561,29 @@ TEST_F(Test_Rpc_Async, Create_Compatible_Account)
     ASSERT_TRUE(!destination_account_id_.empty());
 }
 
+TEST_F(Test_Rpc_Async, Get_Compatible_Account_Bad_Workflow)
+{
+    auto command = init(proto::RPCCOMMAND_GETCOMPATIBLEACCOUNTS);
+
+    command.set_session(client_b_);
+    command.set_owner(receiver_nym_id_);
+    // Use an id that isn't a workflow.
+    command.add_identifier(receiver_nym_id_);
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+
+    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_WORKFLOW_NOT_FOUND, response.status(0).code());
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+
+    EXPECT_EQ(0, response.identifier_size());
+}
+
 TEST_F(Test_Rpc_Async, Get_Compatible_Account)
 {
     auto command = init(proto::RPCCOMMAND_GETCOMPATIBLEACCOUNTS);
@@ -510,6 +609,33 @@ TEST_F(Test_Rpc_Async, Get_Compatible_Account)
         destination_account_id_.c_str(), response.identifier(0).c_str());
 }
 
+TEST_F(Test_Rpc_Async, Accept_Pending_Payments_Bad_Workflow)
+{
+    auto command = init(proto::RPCCOMMAND_ACCEPTPENDINGPAYMENTS);
+
+    command.set_session(client_b_);
+    auto& acceptpendingpayment = *command.add_acceptpendingpayment();
+    acceptpendingpayment.set_version(1);
+    acceptpendingpayment.set_destinationaccount(destination_account_id_);
+    // Use an id that isn't a workflow.
+    acceptpendingpayment.set_workflow(destination_account_id_);
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+    EXPECT_EQ(RESPONSE_VERSION, response.version());
+
+    ASSERT_EQ(1, response.status_size());
+    EXPECT_EQ(proto::RPCRESPONSE_WORKFLOW_NOT_FOUND, response.status(0).code());
+    EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    EXPECT_EQ(command.type(), response.type());
+    EXPECT_EQ(1, response.task_size());
+
+    auto pending_payment_task_id = response.task(0).id();
+
+    ASSERT_TRUE(pending_payment_task_id.empty());
+}
+
 TEST_F(Test_Rpc_Async, Accept_Pending_Payments)
 {
     auto command = init(proto::RPCCOMMAND_ACCEPTPENDINGPAYMENTS);
@@ -527,7 +653,6 @@ TEST_F(Test_Rpc_Async, Accept_Pending_Payments)
 
     ASSERT_EQ(1, response.status_size());
     EXPECT_EQ(proto::RPCRESPONSE_QUEUED, response.status(0).code());
-    EXPECT_EQ(RESPONSE_VERSION, response.version());
     EXPECT_STREQ(command.cookie().c_str(), response.cookie().c_str());
     EXPECT_EQ(command.type(), response.type());
     EXPECT_EQ(1, response.task_size());
@@ -900,6 +1025,54 @@ TEST_F(Test_Rpc_Async, Create_Account)
     }
 
     ASSERT_TRUE(create_account_complete_);
+}
+
+TEST_F(Test_Rpc_Async, Add_Server_Session_Bad_Argument)
+{
+    // Start a server on a specific port.
+    ArgList args{{OPENTXS_ARG_COMMANDPORT, {"8922"}}};
+
+    auto command = init(proto::RPCCOMMAND_ADDSERVERSESSION);
+
+    command.set_session(-1);
+    for (auto& arg : args) {
+        auto apiarg = command.add_arg();
+        apiarg->set_version(APIARG_VERSION);
+        apiarg->set_key(arg.first);
+        apiarg->add_value(*arg.second.begin());
+    }
+
+    auto response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(proto::RPCRESPONSE_SUCCESS, response.status(0).code());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
+
+    // Try to start a second server on the same port.
+    command = init(proto::RPCCOMMAND_ADDSERVERSESSION);
+
+    command.set_session(-1);
+    for (auto& arg : args) {
+        auto apiarg = command.add_arg();
+        apiarg->set_version(APIARG_VERSION);
+        apiarg->set_key(arg.first);
+        apiarg->add_value(*arg.second.begin());
+    }
+
+    response = ot_.RPC(command);
+
+    ASSERT_TRUE(proto::Validate(response, VERBOSE));
+
+    ASSERT_EQ(1, response.status_size());
+    ASSERT_EQ(
+        proto::RPCRESPONSE_BAD_SERVER_ARGUMENT, response.status(0).code());
+    ASSERT_EQ(RESPONSE_VERSION, response.version());
+    ASSERT_STREQ(command.cookie().c_str(), response.cookie().c_str());
+    ASSERT_EQ(command.type(), response.type());
 
     cleanup();
 }

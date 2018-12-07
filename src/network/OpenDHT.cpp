@@ -21,7 +21,9 @@
 #include <stdexcept>
 #include <vector>
 
+#if OT_DHT
 #define OT_METHOD "opentxs::OpenDHT::"
+#endif
 
 namespace opentxs::network::implementation
 {
