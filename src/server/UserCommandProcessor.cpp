@@ -2015,7 +2015,7 @@ bool UserCommandProcessor::cmd_register_instrument_definition(
 
     if (false == bool(account)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to generate issued account.")
+            ": Unable to generate issuer account.")
             .Flush();
 
         return false;
