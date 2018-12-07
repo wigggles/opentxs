@@ -521,7 +521,7 @@ bool UserCommandProcessor::cmd_add_claim(ReplyMessage& reply) const
         LogOutput(OT_METHOD)(__FUNCTION__)(": Before: ")(
             std::string(nym.Claims()))(".")
             .Flush();
-        nym.AddClaim(claim);
+        reply.SetSuccess(nym.AddClaim(claim));
         LogOutput(OT_METHOD)(__FUNCTION__)(": After: ")(
             std::string(nym.Claims()))(".")
             .Flush();
@@ -2100,7 +2100,7 @@ bool UserCommandProcessor::cmd_register_nym(ReplyMessage& reply) const
             ": Error saving new user account verification file.")
             .Flush();
 
-        return true;
+        return false;
     }
 
     LogOutput(OT_METHOD)(__FUNCTION__)(
