@@ -1045,11 +1045,10 @@ void Notary::NotarizeTransfer(
                         tranIn,
                         std::set<TransactionNumber>(),
                         lNewTransactionNumber))) {
-                    Log::vOutput(
-                        0,
-                        "ERROR verifying balance statement while "
-                        "performing transfer. Acct ID:\n%s\n",
-                        strAccountID->Get());
+                    LogNormal(OT_METHOD)(__FUNCTION__)(
+                        ": ERROR verifying balance statement while performing "
+                        "transfer. Acct ID: ")(strAccountID)
+                        .Flush();
                 } else {
                     pResponseBalanceItem->SetStatus(
                         Item::acknowledgement);  // the balance agreement (just
@@ -1148,6 +1147,15 @@ void Notary::NotarizeTransfer(
                             pItem->GetAmount());
                     }
                 }
+
+                // For the reply message.
+                auto inboxHash = Identifier::Factory();
+                pInbox->CalculateInboxHash(inboxHash);
+                tranOut.SetInboxHash(inboxHash);
+
+                auto outboxHash = Identifier::Factory();
+                pOutbox->CalculateOutboxHash(outboxHash);
+                tranOut.SetOutboxHash(outboxHash);
             }  // both boxes were successfully loaded or generated.
         }
     }
@@ -1958,6 +1966,14 @@ void Notary::NotarizeWithdrawal(
 
             }  // purse loaded successfully from string
 
+            // For the reply message.
+            auto inboxHash = Identifier::Factory();
+            pInbox->CalculateInboxHash(inboxHash);
+            tranOut.SetInboxHash(inboxHash);
+
+            auto outboxHash = Identifier::Factory();
+            pOutbox->CalculateOutboxHash(outboxHash);
+            tranOut.SetOutboxHash(outboxHash);
         }  // the Account ID on the item matched properly
         // sign the response item before sending it back (it's already been
         // added to the transaction above)
@@ -2807,6 +2823,15 @@ void Notary::NotarizePayDividend(
                         szFunc,
                         strInstrumentDefinitionID->Get());
                 }
+
+                // For the reply message.
+                auto inboxHash = Identifier::Factory();
+                pInbox->CalculateInboxHash(inboxHash);
+                tranOut.SetInboxHash(inboxHash);
+
+                auto outboxHash = Identifier::Factory();
+                pOutbox->CalculateOutboxHash(outboxHash);
+                tranOut.SetOutboxHash(outboxHash);
             }
         }
     } else {
@@ -2861,10 +2886,6 @@ void Notary::NotarizeDeposit(
         depositItem = input.GetItem(itemType::deposit);
         permission &= NYM_IS_ALLOWED(
             nymID.str(), ServerSettings::__transact_deposit_cash);
-#if OT_CASH
-#endif
-#if OT_CASH
-#endif
     }
 
     responseItem.reset(
@@ -5555,7 +5576,16 @@ void Notary::NotarizeExchangeBasket(
                 }  // pBasket exists and signature verifies
             }      // theRequestBasket loaded properly.
         }          // else (balance agreement verified.)
-    }              // Balance Agreement item found.
+
+        // For the reply message.
+        auto inboxHash = Identifier::Factory();
+        pInbox->CalculateInboxHash(inboxHash);
+        tranOut.SetInboxHash(inboxHash);
+
+        auto outboxHash = Identifier::Factory();
+        pOutbox->CalculateOutboxHash(outboxHash);
+        tranOut.SetOutboxHash(outboxHash);
+    }  // Balance Agreement item found.
 
     // I put this here so it's signed/saved whether the balance agreement
     // itself was successful OR NOT.
@@ -8359,6 +8389,19 @@ void Notary::NotarizeProcessInbox(
         pResponseItem->SaveContract();
     }  // for LOOP (each item)
 
+    // For the reply message.
+    {
+        auto inboxHash = Identifier::Factory();
+        pInbox->CalculateInboxHash(inboxHash);
+        processInboxResponse.SetInboxHash(inboxHash);
+    }
+
+    {
+        auto outboxHash = Identifier::Factory();
+        pOutbox->CalculateOutboxHash(outboxHash);
+        processInboxResponse.SetOutboxHash(outboxHash);
+    }
+
 send_message:
     theAccount.Release();
     // I put this here so it's signed/saved whether the balance agreement
@@ -8769,8 +8812,17 @@ void Notary::process_cash_deposit(
                 pMintCashReserveAcct.Abort();
             }
         }  // the purse loaded successfully from the string
-    }      // the account ID matches correctly to the acct ID on the item.
-#endif     // OT_CASH
+
+        // For the reply message.
+        auto inboxHash = Identifier::Factory();
+        pInbox->CalculateInboxHash(inboxHash);
+        output.SetInboxHash(inboxHash);
+
+        auto outboxHash = Identifier::Factory();
+        pOutbox->CalculateOutboxHash(outboxHash);
+        output.SetOutboxHash(outboxHash);
+    }   // the account ID matches correctly to the acct ID on the item.
+#endif  // OT_CASH
 }
 
 void Notary::process_cheque_deposit(
@@ -8858,6 +8910,15 @@ void Notary::process_cheque_deposit(
             responseItem,
             responseBalanceItem);
     }
+
+    // For the reply message.
+    auto inboxHash = Identifier::Factory();
+    inbox->CalculateInboxHash(inboxHash);
+    output.SetInboxHash(inboxHash);
+
+    auto outboxHash = Identifier::Factory();
+    outbox->CalculateOutboxHash(outboxHash);
+    output.SetOutboxHash(outboxHash);
 }
 
 void Notary::send_push_notification(

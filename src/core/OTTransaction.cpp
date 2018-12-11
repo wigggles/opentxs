@@ -69,6 +69,8 @@ OTTransaction::OTTransaction(const api::Core& core)
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
+    , m_inboxhash{Identifier::Factory()}
+    , m_outboxhash{Identifier::Factory()}
 {
     InitTransaction();
 }
@@ -100,6 +102,8 @@ OTTransaction::OTTransaction(const api::Core& core, const Ledger& theOwner)
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
+    , m_inboxhash{Identifier::Factory()}
+    , m_outboxhash{Identifier::Factory()}
 {
     InitTransaction();
 }
@@ -140,6 +144,8 @@ OTTransaction::OTTransaction(
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
+    , m_inboxhash{Identifier::Factory()}
+    , m_outboxhash{Identifier::Factory()}
 {
     InitTransaction();
 
@@ -176,6 +182,8 @@ OTTransaction::OTTransaction(
     , m_lRequestNumber(0)
     , m_bReplyTransSuccess(false)
     , m_bCancelled(false)
+    , m_inboxhash{Identifier::Factory()}
+    , m_outboxhash{Identifier::Factory()}
 {
     InitTransaction();
 
@@ -231,6 +239,8 @@ OTTransaction::OTTransaction(
     , m_lRequestNumber(lRequestNum)
     , m_bReplyTransSuccess(bReplyTransSuccess)
     , m_bCancelled(false)
+    , m_inboxhash{Identifier::Factory()}
+    , m_outboxhash{Identifier::Factory()}
 {
     InitTransaction();
 
@@ -4043,6 +4053,9 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
                                               // std::set<std::int64_t>.)
         }
 
+        auto inboxHash = xml->getAttributeValue("inboxHash"),
+             outboxHash = xml->getAttributeValue("outboxHash");
+
         auto ACCOUNT_ID = Identifier::Factory(strAcctID),
              NOTARY_ID = Identifier::Factory(strNotaryID),
              NYM_ID = Identifier::Factory(strNymID);
@@ -4092,6 +4105,9 @@ std::int32_t OTTransaction::ProcessXMLNode(irr::io::IrrXMLReader*& xml)
             GetTransactionNum())(", in reference to: ")(GetReferenceToNum())(
             " type: ")(strType)
             .Flush();
+
+        SetInboxHash(Identifier::Factory(inboxHash));
+        SetOutboxHash(Identifier::Factory(outboxHash));
 
         return 1;
     } else if (!strcmp("closingTransactionNumber", xml->getNodeName())) {
@@ -4205,6 +4221,8 @@ void OTTransaction::UpdateContents()
     tag.add_attribute("nymID", strNymID->Get());
     tag.add_attribute("notaryID", strNotaryID->Get());
     tag.add_attribute("numberOfOrigin", formatLong(GetRawNumberOfOrigin()));
+    tag.add_attribute("inboxHash", GetInboxHash()->str());
+    tag.add_attribute("outboxHash", GetOutboxHash()->str());
 
     if (GetOriginType() != originType::not_applicable) {
         auto strOriginType = String::Factory(GetOriginTypeString());

@@ -539,6 +539,14 @@ public:
         bool bTransactionWasSuccess,   // false until positively asserted.
         bool bTransactionWasFailure);  // false until positively asserted.
 
+    OTIdentifier GetInboxHash() const { return m_inboxhash; }
+    OTIdentifier GetOutboxHash() const { return m_outboxhash; }
+    void SetInboxHash(const Identifier& inboxhash) { m_inboxhash = inboxhash; }
+    void SetOutboxHash(const Identifier& outboxhash)
+    {
+        m_outboxhash = outboxhash;
+    }
+
     EXPORT virtual ~OTTransaction();
 
 protected:
@@ -619,7 +627,7 @@ protected:
     listOfItems m_listItems;  // the various items in this transaction.
 
     TransactionNumber m_lClosingTransactionNo{0};  // used by finalReceipt
-    OTArmored m_ascCancellationRequest;              // used by finalReceipt
+    OTArmored m_ascCancellationRequest;            // used by finalReceipt
 
     // ONLY the "replyNotice" transaction uses this field.
     // When replyNotices are dropped into your Nymbox (server notices
@@ -662,6 +670,9 @@ protected:
     // marked as "rejected." All the client has to do is check m_bCancelled
     // to see if it's set to TRUE, and it will know.
     bool m_bCancelled{false};
+
+    OTIdentifier m_inboxhash;
+    OTIdentifier m_outboxhash;
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
