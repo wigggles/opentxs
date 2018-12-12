@@ -73,49 +73,36 @@ UserCommandProcessor::FinalizeResponse::FinalizeResponse(
     , nym_(nym)
     , reply_(reply)
     , ledger_(ledger)
-    , response_(nullptr)
-    , counter_(0)
+    , response_()
 {
 }
 
-OTTransaction* UserCommandProcessor::FinalizeResponse::Release()
+std::shared_ptr<OTTransaction>& UserCommandProcessor::FinalizeResponse::
+    AddResponse(std::shared_ptr<OTTransaction> response)
 {
-    counter_++;
-
-    return response_.release();
-}
-
-OTTransaction* UserCommandProcessor::FinalizeResponse::Response()
-{
-    return response_.get();
-}
-
-void UserCommandProcessor::FinalizeResponse::SetResponse(
-    OTTransaction* response)
-{
-    response_.reset(response);
-
-    if (false == bool(response_)) {
+    if (false == ledger_.AddTransaction(response)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to construct response transaction.")
+            ": Unable to add response transaction to response ledger.")
             .Flush();
 
         OT_FAIL;
     }
+
+    return response_.emplace_back(response);
 }
 
 UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
 {
-    if ((false == bool(response_)) && (0 == counter_)) {
-        response_.reset(api_.Factory()
-                            .Transaction(
-                                ledger_,
-                                transactionType::error_state,
-                                originType::not_applicable,
-                                0)
-                            .release());
+    if (response_.empty()) {
+        auto transaction = api_.Factory().Transaction(
+            ledger_,
+            transactionType::error_state,
+            originType::not_applicable,
+            0);
+        auto response =
+            AddResponse(std::shared_ptr<OTTransaction>(transaction.release()));
 
-        if (false == response_->SignContract(nym_)) {
+        if (false == response->SignContract(nym_)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to sign response transaction.")
                 .Flush();
@@ -123,18 +110,9 @@ UserCommandProcessor::FinalizeResponse::~FinalizeResponse()
             OT_FAIL;
         }
 
-        if (false == response_->SaveContract()) {
+        if (false == response->SaveContract()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Failed to serialize response transaction.")
-                .Flush();
-
-            OT_FAIL;
-        }
-
-        std::shared_ptr<OTTransaction> presponse{response_.release()};
-        if (false == ledger_.AddTransaction(presponse)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Unable to add response transaction to response ledger.")
                 .Flush();
 
             OT_FAIL;
@@ -1446,22 +1424,24 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
         if (nullptr == transaction) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid input ledger.")
                 .Flush();
+            continue;
         }
 
         const auto inputNumber = transaction->GetTransactionNum();
-        response.SetResponse(manager_.Factory()
-                                 .Transaction(
-                                     *responseLedger,
-                                     transactionType::error_state,
-                                     originType::not_applicable,
-                                     inputNumber)
-                                 .release());
+        auto outTrans = response.AddResponse(
+            std::shared_ptr<OTTransaction>(manager_.Factory()
+                                               .Transaction(
+                                                   *responseLedger,
+                                                   transactionType::error_state,
+                                                   originType::not_applicable,
+                                                   inputNumber)
+                                               .release()));
 
         bool success{false};
         server_.GetNotary().NotarizeTransaction(
-            context, *transaction, *response.Response(), success);
+            context, *transaction, *outTrans, success);
 
-        if (response.Response()->IsCancelled()) {
+        if (outTrans->IsCancelled()) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": Success canceling transaction ")(inputNumber)(" for nym ")(
                 nymID)(".")
@@ -1481,18 +1461,9 @@ bool UserCommandProcessor::cmd_notarize_transaction(ReplyMessage& reply) const
         }
 
         OT_ASSERT_MSG(
-            inputNumber == response.Response()->GetTransactionNum(),
+            inputNumber == outTrans->GetTransactionNum(),
             "Transaction number and response number should "
             "always be the same. (But this time, they weren't.)");
-
-        std::shared_ptr<OTTransaction> ptransaction{response.Release()};
-        if (false == responseLedger->AddTransaction(ptransaction)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Unable to add response transaction to response ledger.")
-                .Flush();
-
-            OT_FAIL;
-        }
     }
 
     return true;
@@ -1598,20 +1569,17 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     FinalizeResponse response(manager_, serverNym, reply, *responseLedger);
     reply.SetSuccess(true);
     reply.DropToNymbox(true);
-    response.SetResponse(manager_.Factory()
-                             .Transaction(
-                                 *responseLedger,
-                                 transactionType::error_state,
-                                 originType::not_applicable,
-                                 inputNumber)
-                             .release());
+    auto responseTrans = response.AddResponse(
+        std::shared_ptr<OTTransaction>(manager_.Factory()
+                                           .Transaction(
+                                               *responseLedger,
+                                               transactionType::error_state,
+                                               originType::not_applicable,
+                                               inputNumber)
+                                           .release()));
     bool transactionSuccess{false};
     server_.GetNotary().NotarizeProcessInbox(
-        context,
-        account,
-        *processInbox,
-        *response.Response(),
-        transactionSuccess);
+        context, account, *processInbox, *responseTrans, transactionSuccess);
     const auto consumed = context.ConsumeIssued(inputNumber);
 
     if (false == consumed) {
@@ -1635,18 +1603,9 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
     }
 
     OT_ASSERT_MSG(
-        inputNumber == response.Response()->GetTransactionNum(),
+        inputNumber == responseTrans->GetTransactionNum(),
         "Transaction number and response number should "
         "always be the same. (But this time they weren't).");
-
-    std::shared_ptr<OTTransaction> ptransaction{response.Release()};
-    if (false == responseLedger->AddTransaction(ptransaction)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to add response transaction to response ledger.")
-            .Flush();
-
-        OT_FAIL;
-    }
 
     return true;
 }
@@ -1704,17 +1663,19 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
         }
 
         const auto inputNumber = transaction->GetTransactionNum();
-        response.SetResponse(manager_.Factory()
-                                 .Transaction(
-                                     *responseLedger,
-                                     transactionType::error_state,
-                                     originType::not_applicable,
-                                     transaction->GetTransactionNum())
-                                 .release());
+        auto responseTrans =
+            response.AddResponse(std::shared_ptr<OTTransaction>(
+                manager_.Factory()
+                    .Transaction(
+                        *responseLedger,
+                        transactionType::error_state,
+                        originType::not_applicable,
+                        transaction->GetTransactionNum())
+                    .release()));
 
         bool success{false};
         server_.GetNotary().NotarizeProcessNymbox(
-            context, *transaction, *response.Response(), success);
+            context, *transaction, *responseTrans, success);
 
         if (success) {
             LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1729,18 +1690,9 @@ bool UserCommandProcessor::cmd_process_nymbox(ReplyMessage& reply) const
         }
 
         OT_ASSERT_MSG(
-            inputNumber == response.Response()->GetTransactionNum(),
+            inputNumber == responseTrans->GetTransactionNum(),
             "Transaction number and response number should "
             "always be the same. (But this time, they weren't.)");
-
-        std::shared_ptr<OTTransaction> ptransaction{response.Release()};
-        if (false == responseLedger->AddTransaction(ptransaction)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Unable to add response transaction to response ledger.")
-                .Flush();
-
-            OT_FAIL;
-        }
     }
 
     return true;

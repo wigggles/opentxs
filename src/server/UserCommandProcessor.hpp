@@ -55,9 +55,8 @@ private:
         FinalizeResponse& operator=(const FinalizeResponse&) = delete;
         FinalizeResponse& operator=(FinalizeResponse&&) = delete;
 
-        OTTransaction* Release();
-        OTTransaction* Response();
-        void SetResponse(OTTransaction* response);
+        std::shared_ptr<OTTransaction>& AddResponse(
+            std::shared_ptr<OTTransaction> response);
 
         ~FinalizeResponse();
 
@@ -66,8 +65,7 @@ private:
         const Nym& nym_;
         ReplyMessage& reply_;
         Ledger& ledger_;
-        std::unique_ptr<OTTransaction> response_{nullptr};
-        std::size_t counter_{0};
+        std::vector<std::shared_ptr<OTTransaction>> response_;
     };
 
     Server& server_;
