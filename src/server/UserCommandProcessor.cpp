@@ -1578,8 +1578,16 @@ bool UserCommandProcessor::cmd_process_inbox(ReplyMessage& reply) const
                                                inputNumber)
                                            .release()));
     bool transactionSuccess{false};
+    std::unique_ptr<Ledger> pInbox(account.get().LoadInbox(serverNym));
+    std::unique_ptr<Ledger> pOutbox(account.get().LoadOutbox(serverNym));
     server_.GetNotary().NotarizeProcessInbox(
-        context, account, *processInbox, *responseTrans, transactionSuccess);
+        context,
+        account,
+        *processInbox,
+        *responseTrans,
+        *pInbox,
+        *pOutbox,
+        transactionSuccess);
     const auto consumed = context.ConsumeIssued(inputNumber);
 
     if (false == consumed) {
