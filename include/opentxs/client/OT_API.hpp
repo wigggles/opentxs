@@ -1216,6 +1216,17 @@ private:
     OTZMQPublishSocket request_sent_;
     OTZMQPublishSocket reply_received_;
 
+    static void AddHashesToTransaction(
+        OTTransaction& transaction,
+        Ledger& inbox,
+        Ledger& outbox);
+
+    static void AddHashesToTransaction(
+        OTTransaction& transaction,
+        const Identifier& accountid,
+        const Nym& nym,
+        const api::Core& api);
+
     bool add_accept_item(
         const itemType type,
         const TransactionNumber originNumber,
