@@ -19,6 +19,8 @@ public:
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& outSuccess);
     void NotarizeProcessNymbox(
         ClientContext& context,
@@ -51,6 +53,11 @@ private:
     Server& server_;
     const opentxs::api::server::Manager& manager_;
     OTZMQPushSocket notification_socket_;
+
+    static void AddHashesToTransaction(
+        OTTransaction& transaction,
+        Ledger& inbox,
+        Ledger& outbox);
 
     std::unique_ptr<Cheque> extract_cheque(
         const Identifier& serverID,
@@ -121,12 +128,16 @@ private:
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& outSuccess);
     void NotarizeExchangeBasket(
         ClientContext& context,
         ExclusiveAccount& sourceAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& outSuccess);
     void NotarizeMarketOffer(
         ClientContext& context,
@@ -139,6 +150,8 @@ private:
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& outSuccess);
     void NotarizePaymentPlan(
         ClientContext& context,
@@ -157,12 +170,16 @@ private:
         ExclusiveAccount& fromAccount,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& outSuccess);
     void NotarizeWithdrawal(
         ClientContext& context,
         ExclusiveAccount& account,
         OTTransaction& tranIn,
         OTTransaction& tranOut,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& outSuccess);
     void process_cash_deposit(
         const OTTransaction& input,
@@ -171,6 +188,8 @@ private:
         ClientContext& context,
         ExclusiveAccount& depositorAccount,
         OTTransaction& output,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& success,
         Item& responseItem,
         Item& responseBalanceItem);
@@ -181,6 +200,8 @@ private:
         ClientContext& context,
         ExclusiveAccount& depositorAccount,
         OTTransaction& output,
+        Ledger& inbox,
+        Ledger& outbox,
         bool& success,
         Item& responseItem,
         Item& responseBalanceItem);

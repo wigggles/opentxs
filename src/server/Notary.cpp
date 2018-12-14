@@ -102,6 +102,20 @@ Notary::Finalize::~Finalize()
     balance_item_.SaveContract();
 }
 
+void Notary::AddHashesToTransaction(
+    OTTransaction& transaction,
+    Ledger& inbox,
+    Ledger& outbox)
+{
+    auto inboxHash{Identifier::Factory()};
+    inbox.CalculateInboxHash(inboxHash);
+    transaction.SetInboxHash(inboxHash);
+
+    auto outboxHash{Identifier::Factory()};
+    outbox.CalculateOutboxHash(outboxHash);
+    transaction.SetOutboxHash(outboxHash);
+}
+
 void Notary::cancel_cheque(
     const OTTransaction& input,
     const Cheque& cheque,
@@ -615,6 +629,8 @@ void Notary::NotarizeTransfer(
     ExclusiveAccount& theFromAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& bOutSuccess)
 {
     // The outgoing transaction is an "atTransfer", that is, "a reply to the
@@ -899,21 +915,7 @@ void Notary::NotarizeTransfer(
                     .Flush();
             }
 
-            std::unique_ptr<Ledger> pInbox(
-                theFromAccount.get().LoadInbox(server_.GetServerNym()));
-            std::unique_ptr<Ledger> pOutbox(
-                theFromAccount.get().LoadOutbox(server_.GetServerNym()));
-
-            if (nullptr == pInbox) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Error loading or verifying inbox.")
-                    .Flush();
-            } else if (nullptr == pOutbox) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Error loading or verifying outbox.")
-                    .Flush();
-            } else if (
-                !bSuccessLoadingInbox || false == bSuccessLoadingOutbox) {
+            if (!bSuccessLoadingInbox || false == bSuccessLoadingOutbox) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": ERROR generating ledger in Notary::NotarizeTransfer.")
                     .Flush();
@@ -932,7 +934,7 @@ void Notary::NotarizeTransfer(
                 // pOutbox.
                 //
                 auto pTEMPOutboxTransaction{manager_.Factory().Transaction(
-                    *pOutbox,
+                    outbox,
                     transactionType::pending,
                     originType::not_applicable,
                     lNewTransactionNumber)};
@@ -1003,7 +1005,7 @@ void Notary::NotarizeTransfer(
                 // when adding a transaction to a box.
                 std::shared_ptr<OTTransaction> TEMPOutboxTransaction{
                     pTEMPOutboxTransaction.release()};
-                pOutbox->AddTransaction(TEMPOutboxTransaction);
+                outbox.AddTransaction(TEMPOutboxTransaction);
 
                 // The balance item from the user, for the outbox transaction,
                 // will not have
@@ -1039,8 +1041,8 @@ void Notary::NotarizeTransfer(
                                                     // smaller as a result of
                                                     // this transfer.
                         context,
-                        *pInbox,
-                        *pOutbox,
+                        inbox,
+                        outbox,
                         theFromAccount.get(),
                         tranIn,
                         std::set<TransactionNumber>(),
@@ -1147,18 +1149,12 @@ void Notary::NotarizeTransfer(
                             pItem->GetAmount());
                     }
                 }
-
-                // For the reply message.
-                auto inboxHash = Identifier::Factory();
-                pInbox->CalculateInboxHash(inboxHash);
-                tranOut.SetInboxHash(inboxHash);
-
-                auto outboxHash = Identifier::Factory();
-                pOutbox->CalculateOutboxHash(outboxHash);
-                tranOut.SetOutboxHash(outboxHash);
             }  // both boxes were successfully loaded or generated.
         }
     }
+
+    // For the reply message.
+    AddHashesToTransaction(tranOut, inbox, outbox);
 
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -1190,6 +1186,8 @@ void Notary::NotarizeWithdrawal(
     ExclusiveAccount& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& bOutSuccess)
 {
     // The outgoing transaction is an "atWithdrawal", that is, "a reply to the
@@ -1351,10 +1349,6 @@ void Notary::NotarizeWithdrawal(
         // contains the server's funds to back vouchers of a specific instrument
         // definition
         ExclusiveAccount voucherReserveAccount;
-        std::unique_ptr<Ledger> pInbox(
-            theAccount.get().LoadInbox(server_.GetServerNym()));
-        std::unique_ptr<Ledger> pOutbox(
-            theAccount.get().LoadOutbox(server_.GetServerNym()));
 
         // I'm using the operator== because it exists.
         // If the ID on the "from" account that was passed in,
@@ -1367,14 +1361,6 @@ void Notary::NotarizeWithdrawal(
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Error: Account ID does not match account ID on "
                 "the withdrawal item.")
-                .Flush();
-        } else if (nullptr == pInbox) {
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Error loading or verifying inbox.")
-                .Flush();
-        } else if (nullptr == pOutbox) {
-            LogNormal(OT_METHOD)(__FUNCTION__)(
-                ": Error loading or verifying outbox.")
                 .Flush();
         }
         // The server will already have a special account for issuing vouchers.
@@ -1438,8 +1424,8 @@ void Notary::NotarizeWithdrawal(
                                (-1),  // My account's balance will go down by
                                       // this much.
                            context,
-                           *pInbox,
-                           *pOutbox,
+                           inbox,
+                           outbox,
                            theAccount.get(),
                            tranIn,
                            std::set<TransactionNumber>()))) {
@@ -1614,10 +1600,6 @@ void Notary::NotarizeWithdrawal(
             pItem->GetTransactionNum());  // This response item is IN RESPONSE
                                           // to
                                           // pItem and its Owner Transaction.
-        std::unique_ptr<Ledger> pInbox(
-            theAccount.get().LoadInbox(server_.GetServerNym()));
-        std::unique_ptr<Ledger> pOutbox(
-            theAccount.get().LoadOutbox(server_.GetServerNym()));
 
         std::shared_ptr<Mint> pMint{nullptr};
         ExclusiveAccount pMintCashReserveAcct{};
@@ -1635,14 +1617,6 @@ void Notary::NotarizeWithdrawal(
                 ": Error: 'From' account ID on the transaction does "
                 "not match 'from' account ID on the withdrawal "
                 "item.")
-                .Flush();
-        } else if (nullptr == pInbox) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error loading or verifying inbox.")
-                .Flush();
-        } else if (nullptr == pOutbox) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error loading or verifying outbox.")
                 .Flush();
         } else {
             // The COIN REQUEST (including the prototokens) comes from the
@@ -1708,8 +1682,8 @@ void Notary::NotarizeWithdrawal(
                                                               // subtracted from
                                                               // my acct.
                            context,
-                           *pInbox,
-                           *pOutbox,
+                           inbox,
+                           outbox,
                            theAccount.get(),
                            tranIn,
                            std::set<TransactionNumber>()))) {
@@ -1965,16 +1939,7 @@ void Notary::NotarizeWithdrawal(
                 }
 
             }  // purse loaded successfully from string
-
-            // For the reply message.
-            auto inboxHash = Identifier::Factory();
-            pInbox->CalculateInboxHash(inboxHash);
-            tranOut.SetInboxHash(inboxHash);
-
-            auto outboxHash = Identifier::Factory();
-            pOutbox->CalculateOutboxHash(outboxHash);
-            tranOut.SetOutboxHash(outboxHash);
-        }  // the Account ID on the item matched properly
+        }      // the Account ID on the item matched properly
         // sign the response item before sending it back (it's already been
         // added to the transaction above)
         // Now, whether it was rejection or acknowledgement, it is set properly
@@ -1999,6 +1964,9 @@ void Notary::NotarizeWithdrawal(
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
+
+    // For the reply message.
+    AddHashesToTransaction(tranOut, inbox, outbox);
 
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -2037,6 +2005,8 @@ void Notary::NotarizePayDividend(
     ExclusiveAccount& theSourceAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& bOutSuccess)
 {
     const char* szFunc = "Notary::NotarizePayDividend";
@@ -2347,10 +2317,7 @@ void Notary::NotarizePayDividend(
                 // individual receipts, containing the vouchers
                 // for any failures, so he can have a record of them, and so he
                 // can recover the funds.
-                std::unique_ptr<Ledger> pInbox(
-                    theSourceAccount.get().LoadInbox(server_.GetServerNym()));
-                std::unique_ptr<Ledger> pOutbox(
-                    theSourceAccount.get().LoadOutbox(server_.GetServerNym()));
+
                 // contains the server's funds to back vouchers of a specific
                 // instrument definition.
                 ExclusiveAccount voucherReserveAccount;
@@ -2368,12 +2335,6 @@ void Notary::NotarizePayDividend(
                         "account ID on the 'pay dividend' "
                         "item.\n",
                         szFunc);
-                } else if (nullptr == pInbox) {
-                    Log::vError(
-                        "%s: Error loading or verifying inbox.\n", szFunc);
-                } else if (nullptr == pOutbox) {
-                    Log::vError(
-                        "%s: Error loading or verifying outbox.\n", szFunc);
                 }
                 // The server will already have a special account for issuing
                 // vouchers. Actually, a list of them --
@@ -2415,8 +2376,8 @@ void Notary::NotarizePayDividend(
                                                           // balance will go
                                                           // down by this much.
                             context,
-                            *pInbox,
-                            *pOutbox,
+                            inbox,
+                            outbox,
                             theSourceAccount.get(),
                             tranIn,
                             std::set<TransactionNumber>()))) {
@@ -2823,15 +2784,6 @@ void Notary::NotarizePayDividend(
                         szFunc,
                         strInstrumentDefinitionID->Get());
                 }
-
-                // For the reply message.
-                auto inboxHash = Identifier::Factory();
-                pInbox->CalculateInboxHash(inboxHash);
-                tranOut.SetInboxHash(inboxHash);
-
-                auto outboxHash = Identifier::Factory();
-                pOutbox->CalculateOutboxHash(outboxHash);
-                tranOut.SetOutboxHash(outboxHash);
             }
         }
     } else {
@@ -2844,6 +2796,10 @@ void Notary::NotarizePayDividend(
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION INTO STRING) ");
     }
+
+    // For the reply message.
+    AddHashesToTransaction(tranOut, inbox, outbox);
+
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
     // Now, whether it was rejection or acknowledgement, it is set properly and
@@ -2863,6 +2819,8 @@ void Notary::NotarizeDeposit(
     ExclusiveAccount& theAccount,
     OTTransaction& input,
     OTTransaction& output,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& success)
 {
     const auto& nymID = context.Nym()->ID();
@@ -2942,6 +2900,8 @@ void Notary::NotarizeDeposit(
                 context,
                 theAccount,
                 output,
+                inbox,
+                outbox,
                 success,
                 *responseItem,
                 *responseBalanceItem);
@@ -2954,6 +2914,8 @@ void Notary::NotarizeDeposit(
                 context,
                 theAccount,
                 output,
+                inbox,
+                outbox,
                 success,
                 *responseItem,
                 *responseBalanceItem);
@@ -2962,9 +2924,12 @@ void Notary::NotarizeDeposit(
             LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid deposit item type.")
                 .Flush();
 
-            return;
+            break;
         }
     }
+
+    // For the reply message.
+    AddHashesToTransaction(output, inbox, outbox);
 }
 
 // DONE:  Need to make sure both parties have included TWO!!! transaction
@@ -3648,6 +3613,13 @@ void Notary::NotarizePaymentPlan(
             }      // else
         }
     }
+
+    std::unique_ptr<Ledger> pInbox(
+        theDepositorAccount.get().LoadInbox(server_.GetServerNym()));
+    std::unique_ptr<Ledger> pOutbox(
+        theDepositorAccount.get().LoadOutbox(server_.GetServerNym()));
+
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
 
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -4422,6 +4394,13 @@ void Notary::NotarizeSmartContract(
         }
     }
 
+    std::unique_ptr<Ledger> pInbox(
+        theActivatingAccount.get().LoadInbox(server_.GetServerNym()));
+    std::unique_ptr<Ledger> pOutbox(
+        theActivatingAccount.get().LoadOutbox(server_.GetServerNym()));
+
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
+
     // sign the response item before sending it back (it's already been
     // added to the transaction above) Now, whether it was rejection or
     // acknowledgement, it is set properly and it is signed, and it is owned
@@ -4638,6 +4617,14 @@ void Notary::NotarizeCancelCronItem(
             strTemp->Exists() ? strTemp->Get()
                               : " (ERROR LOADING TRANSACTION FROM STRING) ");
     }
+
+    std::unique_ptr<Ledger> pInbox(
+        theAssetAccount.get().LoadInbox(server_.GetServerNym()));
+    std::unique_ptr<Ledger> pOutbox(
+        theAssetAccount.get().LoadOutbox(server_.GetServerNym()));
+
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
+
     // sign the response item before sending it back (it's already been
     // added to the transaction above) Now, whether it was rejection or
     // acknowledgement, it is set properly and it is signed, and it is owned
@@ -4657,6 +4644,8 @@ void Notary::NotarizeExchangeBasket(
     ExclusiveAccount& theAccount,
     OTTransaction& tranIn,
     OTTransaction& tranOut,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& bOutSuccess)
 {
     // The outgoing transaction is an "atExchangeBasket", that is, "a reply
@@ -4679,11 +4668,6 @@ void Notary::NotarizeExchangeBasket(
                ACCOUNT_ID = Identifier::Factory(theAccount.get());
 
     const auto strNymID = String::Factory(NYM_ID);
-
-    std::unique_ptr<Ledger> pInbox(
-        theAccount.get().LoadInbox(server_.GetServerNym()));
-    std::unique_ptr<Ledger> pOutbox(
-        theAccount.get().LoadOutbox(server_.GetServerNym()));
 
     pResponseItem.reset(
         manager_.Factory()
@@ -4720,14 +4704,6 @@ void Notary::NotarizeExchangeBasket(
             ": No Balance "
             "Agreement item found on this transaction.")
             .Flush();
-    } else if ((nullptr == pInbox)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error loading or verifying inbox.")
-            .Flush();
-    } else if ((nullptr == pOutbox)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error loading or verifying outbox.")
-            .Flush();
     } else {
         pItem->SaveContractRaw(strInReferenceTo);
         pBalanceItem->SaveContractRaw(strBalanceItem);
@@ -4755,8 +4731,8 @@ void Notary::NotarizeExchangeBasket(
                              // change any balances.
                          context,  // Could have been a transaction
                                    // agreement.
-                         *pInbox,  // Still could be, in fact....
-                         *pOutbox,
+                         inbox,    // Still could be, in fact....
+                         outbox,
                          theAccount.get(),
                          tranIn,
                          std::set<TransactionNumber>())) {
@@ -5385,7 +5361,7 @@ void Notary::NotarizeExchangeBasket(
 
                                     auto pInboxTransaction{
                                         manager_.Factory().Transaction(
-                                            *pInbox,
+                                            inbox,
                                             transactionType::basketReceipt,
                                             originType::not_applicable,
                                             lNewTransactionNumber)};
@@ -5464,8 +5440,8 @@ void Notary::NotarizeExchangeBasket(
                                     std::shared_ptr<OTTransaction>
                                         inboxTransaction{
                                             pInboxTransaction.release()};
-                                    pInbox->AddTransaction(inboxTransaction);
-                                    inboxTransaction->SaveBoxReceipt(*pInbox);
+                                    inbox.AddTransaction(inboxTransaction);
+                                    inboxTransaction->SaveBoxReceipt(inbox);
                                 }
                             } else {
                                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -5521,11 +5497,11 @@ void Notary::NotarizeExchangeBasket(
                                 pTempInbox = nullptr;
                             }
                             if (true == bSuccess) {
-                                pInbox->ReleaseSignatures();
-                                pInbox->SignContract(server_.GetServerNym());
-                                pInbox->SaveContract();
+                                inbox.ReleaseSignatures();
+                                inbox.SignContract(server_.GetServerNym());
+                                inbox.SaveContract();
                                 theAccount.get().SaveInbox(
-                                    *pInbox, Identifier::Factory());
+                                    inbox, Identifier::Factory());
                                 theAccount.Release();
                                 basketAccount.Release();
 
@@ -5576,16 +5552,10 @@ void Notary::NotarizeExchangeBasket(
                 }  // pBasket exists and signature verifies
             }      // theRequestBasket loaded properly.
         }          // else (balance agreement verified.)
+    }              // Balance Agreement item found.
 
-        // For the reply message.
-        auto inboxHash = Identifier::Factory();
-        pInbox->CalculateInboxHash(inboxHash);
-        tranOut.SetInboxHash(inboxHash);
-
-        auto outboxHash = Identifier::Factory();
-        pOutbox->CalculateOutboxHash(outboxHash);
-        tranOut.SetOutboxHash(outboxHash);
-    }  // Balance Agreement item found.
+    // For the reply message.
+    AddHashesToTransaction(tranOut, inbox, outbox);
 
     // I put this here so it's signed/saved whether the balance agreement
     // itself was successful OR NOT.
@@ -6026,6 +5996,13 @@ void Notary::NotarizeMarketOffer(
         }  // transaction statement verified.
     }
 
+    std::unique_ptr<Ledger> pInbox(
+        theAssetAccount.get().LoadInbox(server_.GetServerNym()));
+    std::unique_ptr<Ledger> pOutbox(
+        theAssetAccount.get().LoadOutbox(server_.GetServerNym()));
+
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
+
     // sign the response item before sending it back (it's already been
     // added to the transaction above) Now, whether it was rejection or
     // acknowledgement, it is set properly and it is signed, and it is owned
@@ -6056,6 +6033,44 @@ void Notary::NotarizeTransaction(
     const auto strIDNym = String::Factory(NYM_ID);
     auto theFromAccount =
         manager_.Wallet().mutable_Account(tranIn.GetPurportedAccountID());
+
+    std::unique_ptr<Ledger> pInbox(
+        theFromAccount.get().LoadInbox(server_.GetServerNym()));
+    std::unique_ptr<Ledger> pOutbox(
+        theFromAccount.get().LoadOutbox(server_.GetServerNym()));
+
+    if (nullptr == pInbox) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error loading or verifying inbox.")
+            .Flush();
+    } else {
+        auto inboxHash = Identifier::Factory();
+        pInbox->CalculateInboxHash(inboxHash);
+
+        if (tranIn.GetInboxHash() != inboxHash) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Inbox hash mismatch. Local inbox hash: ")(inboxHash->str())(
+                " Remote inbox hash: ")(tranIn.GetInboxHash()->str())(".")
+                .Flush();
+        }
+    }
+
+    if (nullptr == pOutbox) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error loading or verifying outbox.")
+            .Flush();
+    } else {
+        auto outboxHash = Identifier::Factory();
+        pOutbox->CalculateOutboxHash(outboxHash);
+
+        if (tranIn.GetOutboxHash() != outboxHash) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Outbox hash mismatch. Local outbox hash: ")(
+                outboxHash->str())(" Remote outbox hash: ")(
+                tranIn.GetOutboxHash()->str())(".")
+                .Flush();
+        }
+    }
 
     // Make sure the Account ID loaded from the file matches the one we just
     // set and used as the filename.
@@ -6156,7 +6171,13 @@ void Notary::NotarizeTransaction(
                 case transactionType::transfer:
                     LogNormal(OT_METHOD)(__FUNCTION__)(": Transfer").Flush();
                     NotarizeTransfer(
-                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        *pInbox,
+                        *pOutbox,
+                        bOutSuccess);
                     theReplyItemType = itemType::atTransfer;
                     break;
 
@@ -6169,7 +6190,13 @@ void Notary::NotarizeTransaction(
                     LogNormal(OT_METHOD)(__FUNCTION__)(": Process Inbox")
                         .Flush();
                     NotarizeProcessInbox(
-                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        *pInbox,
+                        *pOutbox,
+                        bOutSuccess);
                     //                    theReplyItemType =
                     //                    Item::atProcessInbox;
                     // // Nonexistent, and here, unused.
@@ -6202,7 +6229,13 @@ void Notary::NotarizeTransaction(
                             .Flush();
                     }
                     NotarizeWithdrawal(
-                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        *pInbox,
+                        *pOutbox,
+                        bOutSuccess);
                 } break;
 
                 // DEPOSIT    (cash or cheque)
@@ -6213,7 +6246,13 @@ void Notary::NotarizeTransaction(
                 case transactionType::deposit:
                     LogNormal(OT_METHOD)(__FUNCTION__)(": Deposit").Flush();
                     NotarizeDeposit(
-                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        *pInbox,
+                        *pOutbox,
+                        bOutSuccess);
                     theReplyItemType = itemType::atDeposit;
                     break;
 
@@ -6226,7 +6265,13 @@ void Notary::NotarizeTransaction(
                     LogNormal(OT_METHOD)(__FUNCTION__)(": Pay Dividend")
                         .Flush();
                     NotarizePayDividend(
-                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        *pInbox,
+                        *pOutbox,
+                        bOutSuccess);
                     theReplyItemType = itemType::atPayDividend;
                     break;
 
@@ -6300,7 +6345,13 @@ void Notary::NotarizeTransaction(
                     LogNormal(OT_METHOD)(__FUNCTION__)(": Exchange Basket")
                         .Flush();
                     NotarizeExchangeBasket(
-                        context, theFromAccount, tranIn, tranOut, bOutSuccess);
+                        context,
+                        theFromAccount,
+                        tranIn,
+                        tranOut,
+                        *pInbox,
+                        *pOutbox,
+                        bOutSuccess);
                     theReplyItemType = itemType::atExchangeBasket;
                     break;
 
@@ -6322,7 +6373,8 @@ void Notary::NotarizeTransaction(
                 case transactionType::marketOffer:
                 case transactionType::paymentPlan:
                 case transactionType::smartContract:
-                    bIsCronItem = true;  // Falls through...
+                    bIsCronItem = true;
+                    [[fallthrough]];
                 case transactionType::transfer: {
                     // If success, then Issued number stays on Nym's issued
                     // list until the transfer, paymentPlan, marketOffer, or
@@ -7083,6 +7135,8 @@ void Notary::NotarizeProcessInbox(
     ExclusiveAccount& theAccount,
     OTTransaction& processInbox,
     OTTransaction& processInboxResponse,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& bOutSuccess)
 {
     // The outgoing transaction is an "atProcessInbox", that is, "a reply to
@@ -7108,10 +7162,6 @@ void Notary::NotarizeProcessInbox(
     const auto ACCOUNT_ID = Identifier::Factory(theAccount.get());
     const std::string strNymID(String::Factory(NYM_ID)->Get());
     std::set<TransactionNumber> closedNumbers, closedCron;
-    std::unique_ptr<Ledger> pInbox(
-        theAccount.get().LoadInbox(server_.GetServerNym()));
-    std::unique_ptr<Ledger> pOutbox(
-        theAccount.get().LoadOutbox(server_.GetServerNym()));
     pResponseBalanceItem.reset(manager_.Factory()
                                    .Item(
                                        processInboxResponse,
@@ -7140,22 +7190,6 @@ void Notary::NotarizeProcessInbox(
     if (nullptr == pBalanceItem) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": No Balance Agreement item found on this transaction.")
-            .Flush();
-
-        goto send_message;
-    }
-
-    if (nullptr == pInbox) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error loading or verifying inbox.")
-            .Flush();
-
-        goto send_message;
-    }
-
-    if (nullptr == pOutbox) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error loading or verifying outbox.")
             .Flush();
 
         goto send_message;
@@ -7209,7 +7243,7 @@ void Notary::NotarizeProcessInbox(
             case itemType::disputeFinalReceipt:
             case itemType::disputeBasketReceipt: {
                 pServerTransaction =
-                    pInbox->GetTransaction(pItem->GetReferenceToNum());
+                    inbox.GetTransaction(pItem->GetReferenceToNum());
             } break;
             // Accept an incoming (pending) transfer.
             case itemType::acceptPending:
@@ -7218,7 +7252,7 @@ void Notary::NotarizeProcessInbox(
             case itemType::rejectPending:
             case itemType::disputeItemReceipt: {
                 pServerTransaction =
-                    pInbox->GetTransaction(pItem->GetReferenceToNum());
+                    inbox.GetTransaction(pItem->GetReferenceToNum());
             } break;
             default: {
                 auto strItemType = String::Factory();
@@ -7312,8 +7346,8 @@ void Notary::NotarizeProcessInbox(
                         false != bool(pItemPointer),
                         "Pointer should not have been nullptr.");
 
-                    auto pTransPointer = pInbox->GetTransaction(
-                        pItemPointer->GetReferenceToNum());
+                    auto pTransPointer =
+                        inbox.GetTransaction(pItemPointer->GetReferenceToNum());
 
                     if ((false != bool(pTransPointer)) &&
                         (pTransPointer->GetReferenceToNum() ==
@@ -7323,7 +7357,7 @@ void Notary::NotarizeProcessInbox(
                     }
                 }
 
-                if (pInbox->GetTransactionCountInRefTo(
+                if (inbox.GetTransactionCountInRefTo(
                         pServerTransaction->GetReferenceToNum()) !=
                     static_cast<std::int32_t>(setOfRefNumbers.size())) {
                     Log::vOutput(
@@ -7607,7 +7641,7 @@ void Notary::NotarizeProcessInbox(
         // Notice I don't call DeleteBoxReceipt(lTemp) here like I
         // normally would when calling RemoveTransaction(lTemp), since
         // this is only a copy of my inbox and not the real thing.
-        if (false == pInbox->RemoveTransaction(lTemp)) {
+        if (false == inbox.RemoveTransaction(lTemp)) {
             Log::vError(
                 "%s: Failed removing receipt from Inbox copy: %" PRId64 " \n"
                 "Meaning the client probably has an old copy of his "
@@ -7623,8 +7657,8 @@ void Notary::NotarizeProcessInbox(
     bVerifiedBalanceStatement = pBalanceItem->VerifyBalanceStatement(
         lTotalBeingAccepted,
         context,
-        *pInbox,
-        *pOutbox,
+        inbox,
+        outbox,
         theAccount.get(),
         processInbox,
         closedNumbers);
@@ -8390,17 +8424,7 @@ void Notary::NotarizeProcessInbox(
     }  // for LOOP (each item)
 
     // For the reply message.
-    {
-        auto inboxHash = Identifier::Factory();
-        pInbox->CalculateInboxHash(inboxHash);
-        processInboxResponse.SetInboxHash(inboxHash);
-    }
-
-    {
-        auto outboxHash = Identifier::Factory();
-        pOutbox->CalculateOutboxHash(outboxHash);
-        processInboxResponse.SetOutboxHash(outboxHash);
-    }
+    AddHashesToTransaction(processInboxResponse, inbox, outbox);
 
 send_message:
     theAccount.Release();
@@ -8461,6 +8485,8 @@ void Notary::process_cash_deposit(
     ClientContext& context,
     ExclusiveAccount& depositorAccount,
     OTTransaction& output,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& success,
     Item& responseItem,
     Item& responseBalanceItem)
@@ -8527,22 +8553,6 @@ void Notary::process_cash_deposit(
             "account ID on the transaction does not match "
             "'from' account ID on the deposit item.\n");
     } else {
-        std::unique_ptr<Ledger> pInbox(
-            depositorAccount.get().LoadInbox(server_.GetServerNym()));
-        std::unique_ptr<Ledger> pOutbox(
-            depositorAccount.get().LoadOutbox(server_.GetServerNym()));
-
-        if (nullptr == pInbox) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading or "
-                                               "verifying inbox.")
-                .Flush();
-            OT_FAIL;
-        } else if (nullptr == pOutbox) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Error loading or "
-                                               "verifying outbox.")
-                .Flush();
-            OT_FAIL;
-        }
         auto strPurse = String::Factory();
         depositItem.GetAttachment(strPurse);
 
@@ -8559,8 +8569,8 @@ void Notary::process_cash_deposit(
         } else if (!(balanceItem.VerifyBalanceStatement(
                        thePurse->GetTotalValue(),
                        context,
-                       *pInbox,
-                       *pOutbox,
+                       inbox,
+                       outbox,
                        depositorAccount.get(),
                        input,
                        std::set<TransactionNumber>()))) {
@@ -8812,17 +8822,8 @@ void Notary::process_cash_deposit(
                 pMintCashReserveAcct.Abort();
             }
         }  // the purse loaded successfully from the string
-
-        // For the reply message.
-        auto inboxHash = Identifier::Factory();
-        pInbox->CalculateInboxHash(inboxHash);
-        output.SetInboxHash(inboxHash);
-
-        auto outboxHash = Identifier::Factory();
-        pOutbox->CalculateOutboxHash(outboxHash);
-        output.SetOutboxHash(outboxHash);
-    }   // the account ID matches correctly to the acct ID on the item.
-#endif  // OT_CASH
+    }      // the account ID matches correctly to the acct ID on the item.
+#endif     // OT_CASH
 }
 
 void Notary::process_cheque_deposit(
@@ -8832,6 +8833,8 @@ void Notary::process_cheque_deposit(
     ClientContext& context,
     ExclusiveAccount& depositorAccount,
     OTTransaction& output,
+    Ledger& inbox,
+    Ledger& outbox,
     bool& success,
     Item& responseItem,
     Item& responseBalanceItem)
@@ -8847,23 +8850,6 @@ void Notary::process_cheque_deposit(
     responseItem.SetReferenceToNum(depositItem.GetTransactionNum());
     responseBalanceItem.SetReferenceString(serializedBalanceItem);
     responseBalanceItem.SetReferenceToNum(depositItem.GetTransactionNum());
-
-    auto inbox(depositorAccount.get().LoadInbox(server_.GetServerNym()));
-    auto outbox(depositorAccount.get().LoadOutbox(server_.GetServerNym()));
-
-    if (false == bool(inbox)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load depositor inbox.")
-            .Flush();
-
-        return;
-    }
-
-    if (false == bool(outbox)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to load depositor output.")
-            .Flush();
-
-        return;
-    }
 
     if (accountID != depositItem.GetPurportedAccountID()) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -8888,8 +8874,8 @@ void Notary::process_cheque_deposit(
             balanceItem,
             context,
             depositorAccount.get(),
-            *inbox,
-            *outbox,
+            inbox,
+            outbox,
             output,
             success,
             responseItem,
@@ -8904,21 +8890,12 @@ void Notary::process_cheque_deposit(
             *cheque,
             context,
             depositorAccount,
-            *inbox,
-            *outbox,
+            inbox,
+            outbox,
             success,
             responseItem,
             responseBalanceItem);
     }
-
-    // For the reply message.
-    auto inboxHash = Identifier::Factory();
-    inbox->CalculateInboxHash(inboxHash);
-    output.SetInboxHash(inboxHash);
-
-    auto outboxHash = Identifier::Factory();
-    outbox->CalculateOutboxHash(outboxHash);
-    output.SetOutboxHash(outboxHash);
 }
 
 void Notary::send_push_notification(
