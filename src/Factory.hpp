@@ -69,6 +69,17 @@ public:
     static api::client::Cash* Cash(
         const api::client::Manager& api,
         const api::client::ServerAction& serverAction);
+    static internal::ClientContext* ClientContext(
+        const api::Core& api,
+        const ConstNym& local,
+        const ConstNym& remote,
+        const Identifier& server);
+    static internal::ClientContext* ClientContext(
+        const api::Core& api,
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote,
+        const Identifier& server);
     static api::client::internal::Manager* ClientManager(
         const api::Native& parent,
         Flag& running,
@@ -193,7 +204,7 @@ public:
         const ui::implementation::CustomData& custom);
     static opentxs::ManagedNumber* ManagedNumber(
         const TransactionNumber number,
-        ServerContext& context);
+        opentxs::ServerContext& context);
     static ui::implementation::MessagableExternalInterface* MessagableList(
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
@@ -275,6 +286,18 @@ public:
     static api::client::ServerAction* ServerAction(
         const api::client::Manager& api,
         const ContextLockCallback& lockCallback);
+    static internal::ServerContext* ServerContext(
+        const api::Core& api,
+        const ConstNym& local,
+        const ConstNym& remote,
+        const Identifier& server,
+        network::ServerConnection& connection);
+    static internal::ServerContext* ServerContext(
+        const api::Core& api,
+        const proto::Context& serialized,
+        const ConstNym& local,
+        const ConstNym& remote,
+        network::ServerConnection& connection);
     static api::server::Manager* ServerManager(
         const api::Native& parent,
         Flag& running,

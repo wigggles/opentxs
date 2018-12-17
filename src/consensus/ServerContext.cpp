@@ -7,14 +7,14 @@
 
 #include "Internal.hpp"
 
-#include "opentxs/consensus/ServerContext.hpp"
-
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Wallet.hpp"
 #include "opentxs/consensus/ManagedNumber.hpp"
+#include "opentxs/consensus/ServerContext.hpp"
 #include "opentxs/consensus/TransactionStatement.hpp"
 #include "opentxs/core/Armored.hpp"
+#include "opentxs/core/Flag.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Item.hpp"
 #include "opentxs/core/Log.hpp"
@@ -23,14 +23,43 @@
 #include "opentxs/core/String.hpp"
 #include "opentxs/network/ServerConnection.hpp"
 
-#include "Factory.hpp"
+#include "Context.hpp"
+
+#include <atomic>
+
+#include "ServerContext.hpp"
 
 #define CURRENT_VERSION 2
 #define DEFAULT_NODE_NAME "Stash Node Pro"
 
-#define OT_METHOD "ServerContext::"
+#define OT_METHOD "opentxs::implementation::ServerContext::"
 
 namespace opentxs
+{
+internal::ServerContext* Factory::ServerContext(
+    const api::Core& api,
+    const ConstNym& local,
+    const ConstNym& remote,
+    const Identifier& server,
+    network::ServerConnection& connection)
+{
+    return new implementation::ServerContext(
+        api, local, remote, server, connection);
+}
+
+internal::ServerContext* Factory::ServerContext(
+    const api::Core& api,
+    const proto::Context& serialized,
+    const ConstNym& local,
+    const ConstNym& remote,
+    network::ServerConnection& connection)
+{
+    return new implementation::ServerContext(
+        api, serialized, local, remote, connection);
+}
+}  // namespace opentxs
+
+namespace opentxs::implementation
 {
 const std::string ServerContext::default_node_name_{DEFAULT_NODE_NAME};
 
@@ -40,7 +69,8 @@ ServerContext::ServerContext(
     const ConstNym& remote,
     const Identifier& server,
     network::ServerConnection& connection)
-    : ot_super(api, CURRENT_VERSION, local, remote, server)
+    : Signable(local, CURRENT_VERSION)
+    , implementation::Context(api, CURRENT_VERSION, local, remote, server)
     , connection_(connection)
     , admin_password_("")
     , admin_attempted_(Flag::Factory(false))
@@ -57,7 +87,8 @@ ServerContext::ServerContext(
     const ConstNym& local,
     const ConstNym& remote,
     network::ServerConnection& connection)
-    : ot_super(
+    : Signable(local, CURRENT_VERSION)
+    , implementation::Context(
           api,
           CURRENT_VERSION,
           serialized,
@@ -292,7 +323,7 @@ std::pair<RequestNumber, std::unique_ptr<Message>> ServerContext::
     auto output = initialize_server_command(
         lock, type, provided, withAcknowledgments, withNymboxHash);
     auto& [requestNumber, message] = output;
-    const auto& notUsed[[maybe_unused]] = requestNumber;
+    const auto& notUsed [[maybe_unused]] = requestNumber;
 
     message->m_ascPayload = payload;
     message->m_strAcctID = String::Factory(accountID);
@@ -880,4 +911,4 @@ bool ServerContext::VerifyTentativeNumber(const TransactionNumber& number) const
 {
     return (0 < tentative_transaction_numbers_.count(number));
 }
-}  // namespace opentxs
+}  // namespace opentxs::implementation

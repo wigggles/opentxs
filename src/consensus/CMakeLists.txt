@@ -23,7 +23,11 @@ set(cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../src/internal/consensus/Internal.hpp"
+  ClientContext.hpp
+  Context.hpp
   ManagedNumber.hpp
+  ServerContext.hpp
 )
 
 if(WIN32)

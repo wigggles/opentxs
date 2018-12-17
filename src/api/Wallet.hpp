@@ -13,6 +13,8 @@
 #include "opentxs/network/zeromq/PublishSocket.hpp"
 #include "opentxs/network/zeromq/RequestSocket.hpp"
 
+#include "internal/consensus/Internal.hpp"
+
 #include <map>
 #include <tuple>
 
@@ -192,7 +194,8 @@ protected:
     using AccountLock =
         std::pair<std::shared_mutex, std::unique_ptr<opentxs::Account>>;
     using ContextID = std::pair<std::string, std::string>;
-    using ContextMap = std::map<ContextID, std::shared_ptr<opentxs::Context>>;
+    using ContextMap =
+        std::map<ContextID, std::shared_ptr<opentxs::internal::Context>>;
 
     const api::Core& api_;
     mutable ContextMap context_map_;
@@ -204,7 +207,7 @@ protected:
     proto::ContactItemType extract_unit(const Identifier& contractID) const;
     proto::ContactItemType extract_unit(
         const opentxs::UnitDefinition& contract) const;
-    void save(opentxs::Context* context) const;
+    void save(opentxs::internal::Context* context) const;
     OTIdentifier server_to_nym(OTIdentifier& serverID) const;
 
     Wallet(const api::Core& core);
@@ -261,14 +264,14 @@ private:
         const proto::Context& serialized,
         const std::shared_ptr<const opentxs::Nym>& localNym,
         const std::shared_ptr<const opentxs::Nym>& remoteNym,
-        std::shared_ptr<opentxs::Context>& output) const
+        std::shared_ptr<opentxs::internal::Context>& output) const
     {
     }
     virtual void instantiate_server_context(
         const proto::Context& serialized,
         const std::shared_ptr<const opentxs::Nym>& localNym,
         const std::shared_ptr<const opentxs::Nym>& remoteNym,
-        std::shared_ptr<opentxs::Context>& output) const
+        std::shared_ptr<opentxs::internal::Context>& output) const
     {
     }
     virtual bool load_legacy_account(

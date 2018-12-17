@@ -9,153 +9,90 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/consensus/Context.hpp"
-#include "opentxs/core/Flag.hpp"
-#include "opentxs/Proto.hpp"
-#include "opentxs/Types.hpp"
 
-#include <atomic>
-#include <set>
 #include <tuple>
 
 namespace opentxs
 {
-class ServerContext : public Context
+class ServerContext : virtual public Context
 {
 public:
-    ServerContext(
-        const api::Core& api,
-        const ConstNym& local,
-        const ConstNym& remote,
-        const Identifier& server,
-        network::ServerConnection& connection);
-    ServerContext(
-        const api::Core& api,
-        const proto::Context& serialized,
-        const ConstNym& local,
-        const ConstNym& remote,
-        network::ServerConnection& connection);
-
-    const std::string& AdminPassword() const;
-    bool AdminAttempted() const;
-    bool FinalizeServerCommand(Message& command) const;
-    bool HaveAdminPassword() const;
-    TransactionNumber Highest() const;
-    bool isAdmin() const;
-    std::uint64_t Revision() const;
-    bool ShouldRename(const std::string& defaultName = "") const;
-    bool StaleNym() const;
-    std::unique_ptr<Item> Statement(const OTTransaction& owner) const;
-    std::unique_ptr<Item> Statement(
+    EXPORT virtual const std::string& AdminPassword() const = 0;
+    EXPORT virtual bool AdminAttempted() const = 0;
+    EXPORT virtual bool FinalizeServerCommand(Message& command) const = 0;
+    EXPORT virtual bool HaveAdminPassword() const = 0;
+    EXPORT virtual TransactionNumber Highest() const = 0;
+    EXPORT virtual bool isAdmin() const = 0;
+    EXPORT virtual std::uint64_t Revision() const = 0;
+    EXPORT virtual bool ShouldRename(
+        const std::string& defaultName = "") const = 0;
+    EXPORT virtual bool StaleNym() const = 0;
+    EXPORT virtual std::unique_ptr<Item> Statement(
+        const OTTransaction& owner) const = 0;
+    EXPORT virtual std::unique_ptr<Item> Statement(
         const OTTransaction& owner,
-        const std::set<TransactionNumber>& adding) const;
-    std::unique_ptr<TransactionStatement> Statement(
+        const std::set<TransactionNumber>& adding) const = 0;
+    EXPORT virtual std::unique_ptr<TransactionStatement> Statement(
         const std::set<TransactionNumber>& adding,
-        const std::set<TransactionNumber>& without) const;
-    bool Verify(const TransactionStatement& statement) const;
-    bool VerifyTentativeNumber(const TransactionNumber& number) const;
+        const std::set<TransactionNumber>& without) const = 0;
+    EXPORT virtual bool Verify(const TransactionStatement& statement) const = 0;
+    EXPORT virtual bool VerifyTentativeNumber(
+        const TransactionNumber& number) const = 0;
 
-    bool AcceptIssuedNumber(const TransactionNumber& number);
-    bool AcceptIssuedNumbers(const TransactionStatement& statement);
-    bool AddTentativeNumber(const TransactionNumber& number);
-    network::ServerConnection& Connection();
-    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+    EXPORT virtual bool AcceptIssuedNumber(const TransactionNumber& number) = 0;
+    EXPORT virtual bool AcceptIssuedNumbers(
+        const TransactionStatement& statement) = 0;
+    EXPORT virtual bool AddTentativeNumber(const TransactionNumber& number) = 0;
+    EXPORT virtual network::ServerConnection& Connection() = 0;
+    EXPORT virtual std::pair<RequestNumber, std::unique_ptr<Message>>
+    InitializeServerCommand(
         const MessageType type,
         const Armored& payload,
         const Identifier& accountID,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = true);
-    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const bool withNymboxHash = true) = 0;
+    EXPORT virtual std::pair<RequestNumber, std::unique_ptr<Message>>
+    InitializeServerCommand(
         const MessageType type,
         const Identifier& recipientNymID,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = false);
-    std::pair<RequestNumber, std::unique_ptr<Message>> InitializeServerCommand(
+        const bool withNymboxHash = false) = 0;
+    EXPORT virtual std::pair<RequestNumber, std::unique_ptr<Message>>
+    InitializeServerCommand(
         const MessageType type,
         const RequestNumber provided,
         const bool withAcknowledgments = true,
-        const bool withNymboxHash = false);
-    OTManagedNumber NextTransactionNumber(const MessageType reason);
-    NetworkReplyMessage PingNotary();
-    bool RemoveTentativeNumber(const TransactionNumber& number);
-    bool Resync(const proto::Context& serialized);
-    void SetAdminAttempted();
-    void SetAdminPassword(const std::string& password);
-    void SetAdminSuccess();
-    bool SetHighest(const TransactionNumber& highest);
-    void SetRevision(const std::uint64_t revision);
-    TransactionNumber UpdateHighest(
+        const bool withNymboxHash = false) = 0;
+    EXPORT virtual OTManagedNumber NextTransactionNumber(
+        const MessageType reason) = 0;
+    EXPORT virtual NetworkReplyMessage PingNotary() = 0;
+    EXPORT virtual bool RemoveTentativeNumber(
+        const TransactionNumber& number) = 0;
+    EXPORT virtual bool Resync(const proto::Context& serialized) = 0;
+    EXPORT virtual void SetAdminAttempted() = 0;
+    EXPORT virtual void SetAdminPassword(const std::string& password) = 0;
+    EXPORT virtual void SetAdminSuccess() = 0;
+    EXPORT virtual bool SetHighest(const TransactionNumber& highest) = 0;
+    EXPORT virtual void SetRevision(const std::uint64_t revision) = 0;
+    EXPORT virtual TransactionNumber UpdateHighest(
         const std::set<TransactionNumber>& numbers,
         std::set<TransactionNumber>& good,
-        std::set<TransactionNumber>& bad);
-    RequestNumber UpdateRequestNumber();
-    RequestNumber UpdateRequestNumber(bool& sendStatus);
+        std::set<TransactionNumber>& bad) = 0;
+    EXPORT virtual RequestNumber UpdateRequestNumber() = 0;
+    EXPORT virtual RequestNumber UpdateRequestNumber(bool& sendStatus) = 0;
 
-    proto::ConsensusType Type() const override;
+    EXPORT virtual ~ServerContext() override = default;
 
-    ~ServerContext() = default;
+protected:
+    ServerContext() = default;
 
 private:
-    typedef Context ot_super;
-
-    static const std::string default_node_name_;
-
-    network::ServerConnection& connection_;
-    std::mutex message_lock_{};
-    std::string admin_password_{""};
-    OTFlag admin_attempted_;
-    OTFlag admin_success_;
-    std::atomic<std::uint64_t> revision_{0};
-    std::atomic<TransactionNumber> highest_transaction_number_{0};
-    std::set<TransactionNumber> tentative_transaction_numbers_{};
-
-    static void scan_number_set(
-        const std::set<TransactionNumber>& input,
-        TransactionNumber& highest,
-        TransactionNumber& lowest);
-    static void validate_number_set(
-        const std::set<TransactionNumber>& input,
-        const TransactionNumber limit,
-        std::set<TransactionNumber>& good,
-        std::set<TransactionNumber>& bad);
-
-    const Identifier& client_nym_id(const Lock& lock) const override;
-    bool finalize_server_command(Message& command) const;
-    std::unique_ptr<TransactionStatement> generate_statement(
-        const Lock& lock,
-        const std::set<TransactionNumber>& adding,
-        const std::set<TransactionNumber>& without) const;
-    std::unique_ptr<Message> initialize_server_command(
-        const MessageType type) const;
-    std::pair<RequestNumber, std::unique_ptr<Message>>
-    initialize_server_command(
-        const Lock& lock,
-        const MessageType type,
-        const RequestNumber provided,
-        const bool withAcknowledgments,
-        const bool withNymboxHash);
-    using ot_super::remove_acknowledged_number;
-    bool remove_acknowledged_number(const Lock& lock, const Message& reply);
-    bool remove_tentative_number(
-        const Lock& lock,
-        const TransactionNumber& number);
-    using ot_super::serialize;
-    proto::Context serialize(const Lock& lock) const override;
-    const Identifier& server_nym_id(const Lock& lock) const override;
-    TransactionNumber update_highest(
-        const Lock& lock,
-        const std::set<TransactionNumber>& numbers,
-        std::set<TransactionNumber>& good,
-        std::set<TransactionNumber>& bad);
-    OTIdentifier update_remote_hash(const Lock& lock, const Message& reply);
-
-    ServerContext() = delete;
     ServerContext(const ServerContext&) = delete;
     ServerContext(ServerContext&&) = delete;
     ServerContext& operator=(const ServerContext&) = delete;
     ServerContext& operator=(ServerContext&&) = delete;
 };
 }  // namespace opentxs
-
 #endif

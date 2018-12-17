@@ -57,9 +57,9 @@ void Wallet::instantiate_client_context(
     const proto::Context& serialized,
     const std::shared_ptr<const opentxs::Nym>& localNym,
     const std::shared_ptr<const opentxs::Nym>& remoteNym,
-    std::shared_ptr<opentxs::Context>& output) const
+    std::shared_ptr<opentxs::internal::Context>& output) const
 {
-    output.reset(new opentxs::ClientContext(
+    output.reset(opentxs::Factory::ClientContext(
         api_, serialized, localNym, remoteNym, server_.ID()));
 }
 
@@ -144,7 +144,9 @@ Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
     Lock lock(context_map_lock_);
     auto base = context(serverNymID, remoteNymID);
     std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void { this->save(in); };
+        [&](opentxs::Context* in) -> void {
+        this->save(dynamic_cast<opentxs::internal::Context*>(in));
+    };
 
     if (base) {
         OT_ASSERT(proto::CONSENSUSTYPE_CLIENT == base->Type());
@@ -161,7 +163,8 @@ Editor<opentxs::ClientContext> Wallet::mutable_ClientContext(
         // Create a new Context
         const ContextID contextID = {serverNymID.str(), remoteNymID.str()};
         auto& entry = context_map_[contextID];
-        entry.reset(new opentxs::ClientContext(api_, local, remote, serverID));
+        entry.reset(
+            opentxs::Factory::ClientContext(api_, local, remote, serverID));
         base = entry;
     }
 
@@ -180,7 +183,9 @@ Editor<opentxs::Context> Wallet::mutable_Context(
 {
     auto base = context(server_.NymID(), clientNymID);
     std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void { this->save(in); };
+        [&](opentxs::Context* in) -> void {
+        this->save(dynamic_cast<opentxs::internal::Context*>(in));
+    };
 
     OT_ASSERT(base);
 

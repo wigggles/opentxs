@@ -7547,7 +7547,7 @@ bool OTClient::processServerReplyResyncContext(
 {
     auto serialized = proto::DataToProto<proto::Context>(
         Data::Factory(theReply.m_ascPayload));
-    auto verified = proto::Validate(serialized, SILENT);
+    auto verified = proto::Validate(serialized, VERBOSE);
 
     if (false == verified) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid context.").Flush();

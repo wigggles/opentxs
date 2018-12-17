@@ -21,12 +21,14 @@ public:
 private:
     friend opentxs::Factory;
 
-    ServerContext& context_;
+    opentxs::ServerContext& context_;
     const TransactionNumber number_;
     mutable OTFlag success_;
     bool managed_{true};
 
-    ManagedNumber(const TransactionNumber number, ServerContext& context);
+    ManagedNumber(
+        const TransactionNumber number,
+        opentxs::ServerContext& context);
     ManagedNumber() = delete;
     ManagedNumber(const ManagedNumber&) = delete;
     ManagedNumber(ManagedNumber&& rhs) = delete;

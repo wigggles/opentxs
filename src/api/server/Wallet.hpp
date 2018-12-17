@@ -36,7 +36,7 @@ private:
         const proto::Context& serialized,
         const std::shared_ptr<const opentxs::Nym>& localNym,
         const std::shared_ptr<const opentxs::Nym>& remoteNym,
-        std::shared_ptr<opentxs::Context>& output) const override;
+        std::shared_ptr<opentxs::internal::Context>& output) const override;
     bool load_legacy_account(
         const Identifier& accountID,
         const eLock& lock,

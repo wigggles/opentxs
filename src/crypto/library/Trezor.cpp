@@ -184,6 +184,7 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::GetChild(
     } else {
         hdnode_public_ckd(node.get(), index);
     }
+
     std::shared_ptr<proto::AsymmetricKey> key =
         HDNodeToSerialized(parent.type(), *node, Trezor::DERIVE_PRIVATE);
 
@@ -267,8 +268,9 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::HDNodeToSerialized(
     const HDNode& node,
     const DerivationMode privateVersion) const
 {
-    std::shared_ptr<proto::AsymmetricKey> key =
-        std::make_shared<proto::AsymmetricKey>();
+    auto key = std::make_shared<proto::AsymmetricKey>();
+
+    OT_ASSERT(key);
 
     key->set_version(1);
     key->set_type(type);
@@ -277,12 +279,10 @@ std::shared_ptr<proto::AsymmetricKey> Trezor::HDNodeToSerialized(
         key->set_mode(proto::KEYMODE_PRIVATE);
         auto& encryptedKey = *key->mutable_encryptedkey();
         auto& chaincode = *key->mutable_chaincode();
-
         OTPasswordData password(__FUNCTION__);
         OTPassword privateKey, publicKey;
         privateKey.setMemory(node.private_key, sizeof(node.private_key));
         publicKey.setMemory(node.chain_code, sizeof(node.chain_code));
-
         EcdsaProvider::EncryptPrivateKey(
             privateKey, publicKey, password, encryptedKey, chaincode);
     } else {
@@ -369,7 +369,6 @@ std::unique_ptr<HDNode> Trezor::SerializedToHDNode(
             key.getMemory(),
             key.getMemorySize(),
             false);
-
         OTPassword::safe_memcpy(
             &(node->chain_code[0]),
             sizeof(node->chain_code),
@@ -427,12 +426,9 @@ bool Trezor::ValidPrivateKey(const OTPassword& key) const
 
     bn_read_be(key.getMemory_uint8(), input.get());
     bn_normalize(input.get());
-
     bn_read_be(KeyMax, max.get());
     bn_normalize(max.get());
-
     const bool zero = bn_is_zero(input.get());
-
     const bool size = bn_is_less(input.get(), max.get());
 
     return (!zero && size);
@@ -460,12 +456,10 @@ bool Trezor::ECDH(
         return false;
     }
 
-    bignum256 scalar;
+    bignum256 scalar{};
     bn_read_be(privateKey.getMemory_uint8(), &scalar);
-
-    curve_point sharedSecret;
+    curve_point sharedSecret{};
     point_multiply(secp256k1_->params, &scalar, &point, &sharedSecret);
-
     std::array<std::uint8_t, 32> output{};
     secret.setMemory(output.data(), sizeof(output));
 
@@ -491,7 +485,7 @@ bool Trezor::ScalarBaseMultiply(const OTPassword& privateKey, Data& publicKey)
         privateKey.getMemory_uint8(),
         static_cast<std::uint8_t*>(const_cast<void*>(publicKey.data())));
 
-    curve_point notUsed;
+    curve_point notUsed{};
 
     return (
         1 == ecdsa_read_pubkey(
@@ -505,7 +499,7 @@ std::string Trezor::Base58CheckEncode(
     const std::uint8_t* inputStart,
     const std::size_t& inputSize) const
 {
-    std::string output;
+    std::string output{};
 
     if (0 == inputSize) { return output; }
 
@@ -589,8 +583,11 @@ bool Trezor::Sign(
 
         return false;
     }
-    OTPassword privKey;
-    bool havePrivateKey;
+
+    OT_ASSERT(nullptr != hash->data());
+
+    OTPassword privKey{};
+    bool havePrivateKey{false};
 
     // FIXME
     OT_ASSERT_MSG(nullptr == exportPassword, "This case is not yet handled.");
@@ -610,9 +607,10 @@ bool Trezor::Sign(
     }
 
     if (havePrivateKey) {
-        std::array<std::uint8_t, 64> blank;
-        signature.Assign(blank.data(), blank.size());
+        OT_ASSERT(nullptr != privKey.getMemory());
 
+        std::array<std::uint8_t, 64> blank{};
+        signature.Assign(blank.data(), blank.size());
         const bool signatureCreated =
             (0 == ecdsa_sign_digest(
                       secp256k1_->params,

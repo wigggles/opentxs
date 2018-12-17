@@ -47,12 +47,12 @@ void Wallet::instantiate_server_context(
     const proto::Context& serialized,
     const std::shared_ptr<const opentxs::Nym>& localNym,
     const std::shared_ptr<const opentxs::Nym>& remoteNym,
-    std::shared_ptr<opentxs::Context>& output) const
+    std::shared_ptr<opentxs::internal::Context>& output) const
 {
     auto& zmq = client_.ZMQ();
     const auto& server = serialized.servercontext().serverid();
     auto& connection = zmq.Server(server);
-    output.reset(new opentxs::ServerContext(
+    output.reset(opentxs::Factory::ServerContext(
         api_, serialized, localNym, remoteNym, connection));
 }
 
@@ -63,7 +63,9 @@ Editor<opentxs::Context> Wallet::mutable_Context(
     auto serverID = Identifier::Factory(notaryID);
     auto base = context(clientNymID, server_to_nym(serverID));
     std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void { this->save(in); };
+        [&](opentxs::Context* in) -> void {
+        this->save(dynamic_cast<opentxs::internal::Context*>(in));
+    };
 
     OT_ASSERT(base);
 
@@ -82,7 +84,9 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
     auto base = context(localNymID, remoteNymID);
 
     std::function<void(opentxs::Context*)> callback =
-        [&](opentxs::Context* in) -> void { this->save(in); };
+        [&](opentxs::Context* in) -> void {
+        this->save(dynamic_cast<opentxs::internal::Context*>(in));
+    };
 
     if (base) {
         OT_ASSERT(proto::CONSENSUSTYPE_SERVER == base->Type());
@@ -101,7 +105,7 @@ Editor<opentxs::ServerContext> Wallet::mutable_ServerContext(
         auto& entry = context_map_[contextID];
         auto& zmq = client_.ZMQ();
         auto& connection = zmq.Server(serverID->str());
-        entry.reset(new opentxs::ServerContext(
+        entry.reset(opentxs::Factory::ServerContext(
             api_, localNym, remoteNym, serverID, connection));
         base = entry;
     }

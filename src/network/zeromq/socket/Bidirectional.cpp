@@ -177,15 +177,15 @@ void Bidirectional::thread()
     }
 
     LogVerbose(OT_METHOD)(__FUNCTION__)(": Callback ready").Flush();
-    zmq_pollitem_t poll[2];
-    poll[0].socket = socket_;
-    poll[0].events = ZMQ_POLLIN;
-    poll[1].socket = pull_socket_;
-    poll[1].events = ZMQ_POLLIN;
 
     while (running_.get()) {
         std::this_thread::yield();
         Lock lock(lock_, std::try_to_lock);
+        zmq_pollitem_t poll[2]{};
+        poll[0].socket = socket_;
+        poll[0].events = ZMQ_POLLIN;
+        poll[1].socket = pull_socket_;
+        poll[1].events = ZMQ_POLLIN;
 
         if (false == lock.owns_lock()) { continue; }
 
