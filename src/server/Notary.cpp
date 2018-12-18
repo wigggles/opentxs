@@ -104,8 +104,9 @@ Notary::Finalize::~Finalize()
 
 void Notary::AddHashesToTransaction(
     OTTransaction& transaction,
-    Ledger& inbox,
-    Ledger& outbox)
+    const Ledger& inbox,
+    const Ledger& outbox,
+    const Identifier& accounthash)
 {
     auto inboxHash{Identifier::Factory()};
     inbox.CalculateInboxHash(inboxHash);
@@ -114,6 +115,8 @@ void Notary::AddHashesToTransaction(
     auto outboxHash{Identifier::Factory()};
     outbox.CalculateOutboxHash(outboxHash);
     transaction.SetOutboxHash(outboxHash);
+
+    transaction.SetAccountHash(accounthash);
 }
 
 void Notary::cancel_cheque(
@@ -222,6 +225,10 @@ void Notary::cancel_cheque(
     LogDebug(OT_METHOD)(__FUNCTION__)(": Success cancelling cheque ")(
         cheque.GetTransactionNum())
         .Flush();
+
+    auto accountHash{Identifier::Factory()};
+    account.GetIdentifier(accountHash);
+    AddHashesToTransaction(output, inbox, outbox, accountHash);
 }
 
 void Notary::deposit_cheque(
@@ -234,6 +241,7 @@ void Notary::deposit_cheque(
     ExclusiveAccount& depositorAccount,
     Ledger& depositorInbox,
     const Ledger& depositorOutbox,
+    OTTransaction& output,
     bool& success,
     Item& responseItem,
     Item& responseBalanceItem)
@@ -390,6 +398,11 @@ void Notary::deposit_cheque(
             responseItem,
             responseBalanceItem);
     }
+
+    auto accountHash{Identifier::Factory()};
+    depositorAccount.get().GetIdentifier(accountHash);
+    AddHashesToTransaction(
+        output, depositorInbox, depositorOutbox, accountHash);
 
     if (success) {
         depositorAccount.Release();
@@ -679,6 +692,8 @@ void Notary::NotarizeTransfer(
     pResponseItem->SetStatus(Item::rejection);  // the default.
     tranOut.AddItem(pResponseItem);  // the Transaction's destructor will
                                      // cleanup the item. It "owns" it now.
+
+    auto accountHash{Identifier::Factory()};
 
     if (false ==
         NYM_IS_ALLOWED(strNymID->Get(), ServerSettings::__transact_transfer)) {
@@ -1101,6 +1116,7 @@ void Notary::NotarizeTransfer(
                         destinationAccount.get().SaveInbox(
                             *recipientInbox, Identifier::Factory());
 
+                        theFromAccount.get().GetIdentifier(accountHash);
                         theFromAccount.Release();
                         destinationAccount.Release();
 
@@ -1138,6 +1154,7 @@ void Notary::NotarizeTransfer(
                         outboxTransaction->SaveBoxReceipt(*theFromOutbox);
                         inboxTransaction->SaveBoxReceipt(*recipientInbox);
                     } else {
+                        theFromAccount.get().GetIdentifier(accountHash);
                         theFromAccount.Abort();
                         destinationAccount.Abort();
                         Log::vOutput(
@@ -1154,7 +1171,10 @@ void Notary::NotarizeTransfer(
     }
 
     // For the reply message.
-    AddHashesToTransaction(tranOut, inbox, outbox);
+    if (accountHash.get().empty() && theFromAccount) {
+        theFromAccount.get().GetIdentifier(accountHash);
+    }
+    AddHashesToTransaction(tranOut, inbox, outbox, accountHash);
 
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -1252,6 +1272,8 @@ void Notary::NotarizeWithdrawal(
     tranOut.AddItem(pResponseBalanceItem);  // the Transaction's destructor
                                             // will cleanup the item. It "owns"
                                             // it now.
+    auto accountHash{Identifier::Factory()};
+
     if (nullptr == pItem) {
         auto strTemp = String::Factory(tranIn);
         Log::vOutput(
@@ -1524,6 +1546,7 @@ void Notary::NotarizeWithdrawal(
                                 .Flush();
                         }
 
+                        theAccount.get().GetIdentifier(accountHash);
                         theAccount.Abort();
                         voucherReserveAccount.Abort();
                     } else {
@@ -1547,6 +1570,7 @@ void Notary::NotarizeWithdrawal(
                         // won't
                         // verify anymore anyway, since the content has
                         // changed.)
+                        theAccount.get().GetIdentifier(accountHash);
                         theAccount.Release();
                         voucherReserveAccount.Release();
                     }
@@ -1901,6 +1925,7 @@ void Notary::NotarizeWithdrawal(
 
                     bOutSuccess = true;  // The cash withdrawal was successful.
 
+                    theAccount.get().GetIdentifier(accountHash);
                     theAccount.Release();
 
                     // We also need to save the Mint's cash reserve.
@@ -1966,7 +1991,10 @@ void Notary::NotarizeWithdrawal(
     }
 
     // For the reply message.
-    AddHashesToTransaction(tranOut, inbox, outbox);
+    if (accountHash.get().empty() && theAccount) {
+        theAccount.get().GetIdentifier(accountHash);
+    }
+    AddHashesToTransaction(tranOut, inbox, outbox, accountHash);
 
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -2065,6 +2093,8 @@ void Notary::NotarizePayDividend(
     pResponseBalanceItem->SetStatus(Item::rejection);
     // the Transaction's destructor will cleanup the item. It "owns" it now.
     tranOut.AddItem(pResponseBalanceItem);
+
+    auto accountHash{Identifier::Factory()};
 
     if (nullptr == pItem) {
         auto strTemp = String::Factory(tranIn);
@@ -2465,6 +2495,8 @@ void Notary::NotarizePayDividend(
                                 // Release any signatures that were there before
                                 // (They won't verify anymore anyway, since the
                                 // content has changed.)
+                                theSourceAccount.get().GetIdentifier(
+                                    accountHash);
                                 theSourceAccount.Release();
 
                                 // We also need to save the Voucher cash reserve
@@ -2798,7 +2830,10 @@ void Notary::NotarizePayDividend(
     }
 
     // For the reply message.
-    AddHashesToTransaction(tranOut, inbox, outbox);
+    if (accountHash.get().empty() && theSourceAccount) {
+        theSourceAccount.get().GetIdentifier(accountHash);
+    }
+    AddHashesToTransaction(tranOut, inbox, outbox, accountHash);
 
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -2927,9 +2962,6 @@ void Notary::NotarizeDeposit(
             break;
         }
     }
-
-    // For the reply message.
-    AddHashesToTransaction(output, inbox, outbox);
 }
 
 // DONE:  Need to make sure both parties have included TWO!!! transaction
@@ -3001,6 +3033,9 @@ void Notary::NotarizePaymentPlan(
     tranOut.AddItem(pResponseBalanceItem);  // the Transaction's destructor
                                             // will cleanup the item. It "owns"
                                             // it now.
+
+    auto accountHash{Identifier::Factory()};
+
     if ((nullptr != pItem) &&
         (!NYM_IS_ALLOWED(
             strNymID->Get(), ServerSettings::__transact_payment_plan))) {
@@ -3619,7 +3654,8 @@ void Notary::NotarizePaymentPlan(
     std::unique_ptr<Ledger> pOutbox(
         theDepositorAccount.get().LoadOutbox(server_.GetServerNym()));
 
-    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
+    theDepositorAccount.get().GetIdentifier(accountHash);
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
 
     // sign the response item before sending it back (it's already been added to
     // the transaction above)
@@ -3684,6 +3720,9 @@ void Notary::NotarizeSmartContract(
     tranOut.AddItem(pResponseBalanceItem);  // the Transaction's destructor
                                             // will cleanup the item. It "owns"
                                             // it now.
+
+    auto accountHash{Identifier::Factory()};
+
     if ((nullptr != pItem) &&
         (false ==
          NYM_IS_ALLOWED(
@@ -4399,7 +4438,8 @@ void Notary::NotarizeSmartContract(
     std::unique_ptr<Ledger> pOutbox(
         theActivatingAccount.get().LoadOutbox(server_.GetServerNym()));
 
-    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
+    theActivatingAccount.get().GetIdentifier(accountHash);
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
 
     // sign the response item before sending it back (it's already been
     // added to the transaction above) Now, whether it was rejection or
@@ -4477,6 +4517,8 @@ void Notary::NotarizeCancelCronItem(
     tranOut.AddItem(pResponseBalanceItem);  // the Transaction's destructor
                                             // will cleanup the item. It
                                             // "owns" it now.
+    auto accountHash{Identifier::Factory()};
+
     if (!NYM_IS_ALLOWED(
             strNymID->Get(), ServerSettings::__transact_cancel_cron_item)) {
         Log::vOutput(
@@ -4623,7 +4665,8 @@ void Notary::NotarizeCancelCronItem(
     std::unique_ptr<Ledger> pOutbox(
         theAssetAccount.get().LoadOutbox(server_.GetServerNym()));
 
-    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
+    theAssetAccount.get().GetIdentifier(accountHash);
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
 
     // sign the response item before sending it back (it's already been
     // added to the transaction above) Now, whether it was rejection or
@@ -4686,6 +4729,7 @@ void Notary::NotarizeExchangeBasket(
                                             // will cleanup the item. It
                                             // "owns" it now.
     bool bSuccess = false;
+    auto accountHash{Identifier::Factory()};
 
     if (!NYM_IS_ALLOWED(
             strNymID->Get(), ServerSettings::__transact_exchange_basket)) {
@@ -5502,6 +5546,7 @@ void Notary::NotarizeExchangeBasket(
                                 inbox.SaveContract();
                                 theAccount.get().SaveInbox(
                                     inbox, Identifier::Factory());
+                                theAccount.get().GetIdentifier(accountHash);
                                 theAccount.Release();
                                 basketAccount.Release();
 
@@ -5537,6 +5582,7 @@ void Notary::NotarizeExchangeBasket(
                                 bOutSuccess = true;  // The exchangeBasket
                                                      // was successful.
                             } else {
+                                theAccount.get().GetIdentifier(accountHash);
                                 theAccount.Abort();
                                 basketAccount.Abort();
                             }
@@ -5555,7 +5601,10 @@ void Notary::NotarizeExchangeBasket(
     }              // Balance Agreement item found.
 
     // For the reply message.
-    AddHashesToTransaction(tranOut, inbox, outbox);
+    if (accountHash.get().empty() && theAccount) {
+        theAccount.get().GetIdentifier(accountHash);
+    }
+    AddHashesToTransaction(tranOut, inbox, outbox, accountHash);
 
     // I put this here so it's signed/saved whether the balance agreement
     // itself was successful OR NOT.
@@ -5617,6 +5666,8 @@ void Notary::NotarizeMarketOffer(
     tranOut.AddItem(pResponseBalanceItem);  // the Transaction's destructor
                                             // will cleanup the item. It
                                             // "owns" it now.
+    auto accountHash{Identifier::Factory()};
+
     if (!NYM_IS_ALLOWED(
             strNymID->Get(), ServerSettings::__transact_market_offer)) {
         Log::vOutput(
@@ -6001,7 +6052,8 @@ void Notary::NotarizeMarketOffer(
     std::unique_ptr<Ledger> pOutbox(
         theAssetAccount.get().LoadOutbox(server_.GetServerNym()));
 
-    AddHashesToTransaction(tranOut, *pInbox, *pOutbox);
+    theAssetAccount.get().GetIdentifier(accountHash);
+    AddHashesToTransaction(tranOut, *pInbox, *pOutbox, accountHash);
 
     // sign the response item before sending it back (it's already been
     // added to the transaction above) Now, whether it was rejection or
@@ -6044,7 +6096,7 @@ void Notary::NotarizeTransaction(
             ": Error loading or verifying inbox.")
             .Flush();
     } else {
-        auto inboxHash = Identifier::Factory();
+        auto inboxHash{Identifier::Factory()};
         pInbox->CalculateInboxHash(inboxHash);
 
         if (tranIn.GetInboxHash() != inboxHash) {
@@ -6060,7 +6112,7 @@ void Notary::NotarizeTransaction(
             ": Error loading or verifying outbox.")
             .Flush();
     } else {
-        auto outboxHash = Identifier::Factory();
+        auto outboxHash{Identifier::Factory()};
         pOutbox->CalculateOutboxHash(outboxHash);
 
         if (tranIn.GetOutboxHash() != outboxHash) {
@@ -6070,6 +6122,16 @@ void Notary::NotarizeTransaction(
                 tranIn.GetOutboxHash()->str())(".")
                 .Flush();
         }
+    }
+
+    auto accountHash{Identifier::Factory()};
+    theFromAccount.get().GetIdentifier(accountHash);
+    if (tranIn.GetAccountHash() != accountHash) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Account hash mismatch. Local account hash: ")(
+            accountHash->str())(" Remote account hash: ")(
+            tranIn.GetAccountHash()->str())(".")
+            .Flush();
     }
 
     // Make sure the Account ID loaded from the file matches the one we just
@@ -7178,6 +7240,8 @@ void Notary::NotarizeProcessInbox(
     bool bVerifiedBalanceStatement{false};
     const bool allowed =
         NYM_IS_ALLOWED(strNymID, ServerSettings::__transact_process_inbox);
+
+    auto accountHash{Identifier::Factory()};
 
     if (false == allowed) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": User ")(strNymID)(
@@ -8389,6 +8453,7 @@ void Notary::NotarizeProcessInbox(
                             //
                             inboxTransaction->SaveBoxReceipt(*theFromInbox);
                         } else {
+                            theAccount.get().GetIdentifier(accountHash);
                             theAccount.Abort();
                             LogOutput(OT_METHOD)(__FUNCTION__)(
                                 ": Unable to credit account in "
@@ -8424,7 +8489,10 @@ void Notary::NotarizeProcessInbox(
     }  // for LOOP (each item)
 
     // For the reply message.
-    AddHashesToTransaction(processInboxResponse, inbox, outbox);
+    if (accountHash.get().empty() && theAccount) {
+        theAccount.get().GetIdentifier(accountHash);
+    }
+    AddHashesToTransaction(processInboxResponse, inbox, outbox, accountHash);
 
 send_message:
     theAccount.Release();
@@ -8543,6 +8611,7 @@ void Notary::process_cash_deposit(
         depositItem.GetTransactionNum());  // This response item is IN
                                            // RESPONSE to pItem and its
                                            // Owner Transaction.
+    auto accountHash{Identifier::Factory()};
 
     // If the ID on the "from" account that was passed in,
     // does not match the "Acct From" ID on this transaction item
@@ -8792,6 +8861,7 @@ void Notary::process_cash_deposit(
             }  // while success popping token from purse
 
             if (bSuccess) {
+                depositorAccount.get().GetIdentifier(accountHash);
                 depositorAccount.Release();
                 // We also need to save the Mint's cash reserve.
                 // (Any cash issued by the Mint is automatically backed by
@@ -8818,12 +8888,18 @@ void Notary::process_cash_deposit(
                 // that number should stay on him! Same reason we don't save
                 // the accounts if anything goes wrong.
             } else {
+                depositorAccount.get().GetIdentifier(accountHash);
                 depositorAccount.Abort();
                 pMintCashReserveAcct.Abort();
             }
         }  // the purse loaded successfully from the string
     }      // the account ID matches correctly to the acct ID on the item.
-#endif     // OT_CASH
+
+    if (accountHash.get().empty() && depositorAccount) {
+        depositorAccount.get().GetIdentifier(accountHash);
+    }
+    AddHashesToTransaction(output, inbox, outbox, accountHash);
+#endif  // OT_CASH
 }
 
 void Notary::process_cheque_deposit(
@@ -8892,6 +8968,7 @@ void Notary::process_cheque_deposit(
             depositorAccount,
             inbox,
             outbox,
+            output,
             success,
             responseItem,
             responseBalanceItem);

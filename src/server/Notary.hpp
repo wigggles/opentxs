@@ -56,8 +56,9 @@ private:
 
     static void AddHashesToTransaction(
         OTTransaction& transaction,
-        Ledger& inbox,
-        Ledger& outbox);
+        const Ledger& inbox,
+        const Ledger& outbox,
+        const Identifier& accounthash);
 
     std::unique_ptr<Cheque> extract_cheque(
         const Identifier& serverID,
@@ -93,6 +94,7 @@ private:
         ExclusiveAccount& depositorAccount,
         Ledger& depositorInbox,
         const Ledger& depositorOutbox,
+        OTTransaction& output,
         bool& success,
         Item& responseItem,
         Item& responseBalanceItem);
