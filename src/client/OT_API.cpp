@@ -299,8 +299,9 @@ OT_API::OT_API(
 
 void OT_API::AddHashesToTransaction(
     OTTransaction& transaction,
-    Ledger& inbox,
-    Ledger& outbox)
+    const Ledger& inbox,
+    const Ledger& outbox,
+    const Account& account)
 {
     auto inboxHash{Identifier::Factory()};
     inbox.CalculateInboxHash(inboxHash);
@@ -309,6 +310,10 @@ void OT_API::AddHashesToTransaction(
     auto outboxHash{Identifier::Factory()};
     outbox.CalculateOutboxHash(outboxHash);
     transaction.SetOutboxHash(outboxHash);
+
+    auto accountHash{Identifier::Factory()};
+    account.GetIdentifier(accountHash);
+    transaction.SetAccountHash(accountHash);
 }
 
 void OT_API::AddHashesToTransaction(
@@ -322,7 +327,7 @@ void OT_API::AddHashesToTransaction(
     std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
     std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
 
-    OT_API::AddHashesToTransaction(transaction, *inbox, *outbox);
+    OT_API::AddHashesToTransaction(transaction, *inbox, *outbox, account.get());
 }
 
 // Call this once per INSTANCE of OT_API.
@@ -8144,7 +8149,7 @@ CommandResult OT_API::exchangeBasket(
 
     std::shared_ptr<Item> pbalanceItem{balanceItem.release()};
     transaction->AddItem(pbalanceItem);
-    AddHashesToTransaction(*transaction, *inbox, *outbox);
+    AddHashesToTransaction(*transaction, *inbox, *outbox, account.get());
     transaction->SignContract(nym);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
@@ -8408,7 +8413,7 @@ CommandResult OT_API::notarizeWithdrawal(
 
     std::shared_ptr<Item> pbalanceItem{balanceItem.release()};
     transaction->AddItem(pbalanceItem);
-    AddHashesToTransaction(*transaction, *inbox, *outbox);
+    AddHashesToTransaction(*transaction, *inbox, *outbox, account.get());
     transaction->SignContract(nym);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
@@ -8641,7 +8646,7 @@ CommandResult OT_API::notarizeDeposit(
 
     std::shared_ptr<Item> pbalanceItem{balanceItem.release()};
     transaction->AddItem(pbalanceItem);
-    AddHashesToTransaction(*transaction, *inbox, *outbox);
+    AddHashesToTransaction(*transaction, *inbox, *outbox, account.get());
     transaction->SignContract(nym);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
@@ -8939,7 +8944,8 @@ CommandResult OT_API::payDividend(
 
     std::shared_ptr<Item> pbalanceItem{balanceItem.release()};
     transaction->AddItem(pbalanceItem);
-    AddHashesToTransaction(*transaction, *inbox, *outbox);
+    AddHashesToTransaction(
+        *transaction, *inbox, *outbox, dividendAccount.get());
     transaction->SignContract(nym);
     transaction->SaveContract();
     auto ledger{
@@ -9101,7 +9107,7 @@ CommandResult OT_API::withdrawVoucher(
 
     std::shared_ptr<Item> pbalanceItem{balanceItem.release()};
     transaction->AddItem(pbalanceItem);
-    AddHashesToTransaction(*transaction, *inbox, *outbox);
+    AddHashesToTransaction(*transaction, *inbox, *outbox, account.get());
     transaction->SignContract(nym);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
@@ -9452,7 +9458,7 @@ CommandResult OT_API::depositCheque(
     std::shared_ptr<Item> pbalanceItem{balanceItem.release()};
     transaction->AddItem(pbalanceItem);
 
-    AddHashesToTransaction(*transaction, *inbox, *outbox);
+    AddHashesToTransaction(*transaction, *inbox, *outbox, account.get());
 
     transaction->SignContract(nym);
     transaction->SaveContract();
@@ -9612,7 +9618,7 @@ CommandResult OT_API::depositPaymentPlan(
     transaction->AddItem(pstatement);
     std::unique_ptr<Ledger> inbox(account.get().LoadInbox(nym));
     std::unique_ptr<Ledger> outbox(account.get().LoadOutbox(nym));
-    AddHashesToTransaction(*transaction, *inbox, *outbox);
+    AddHashesToTransaction(*transaction, *inbox, *outbox, account.get());
     transaction->SignContract(nym);
     transaction->SaveContract();
     auto ledger{api_.Factory().Ledger(nymID, accountID, serverID)};
@@ -10751,7 +10757,8 @@ CommandResult OT_API::notarizeTransfer(
     std::shared_ptr<Item> pbalanceItem{balanceItem.release()};
     transaction->AddItem(pbalanceItem);
 
-    AddHashesToTransaction(*transaction.get(), *inbox.get(), *outbox.get());
+    AddHashesToTransaction(
+        *transaction.get(), *inbox.get(), *outbox.get(), account.get());
 
     transaction->SignContract(nym);
     transaction->SaveContract();
@@ -13022,7 +13029,8 @@ bool OT_API::FinalizeProcessInbox(
     processInbox->AddItem(balanceStatement);
     processInbox->ReleaseSignatures();
 
-    AddHashesToTransaction(*processInbox.get(), inbox, *outbox.get());
+    AddHashesToTransaction(
+        *processInbox.get(), inbox, *outbox.get(), account.get());
 
     output &= (output && processInbox->SignContract(*nym));
     output &= (output && processInbox->SaveContract());

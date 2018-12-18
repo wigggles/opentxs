@@ -1218,8 +1218,9 @@ private:
 
     static void AddHashesToTransaction(
         OTTransaction& transaction,
-        Ledger& inbox,
-        Ledger& outbox);
+        const Ledger& inbox,
+        const Ledger& outbox,
+        const Account& account);
 
     static void AddHashesToTransaction(
         OTTransaction& transaction,

@@ -539,8 +539,13 @@ public:
         bool bTransactionWasSuccess,   // false until positively asserted.
         bool bTransactionWasFailure);  // false until positively asserted.
 
+    OTIdentifier GetAccountHash() const { return m_accounthash; }
     OTIdentifier GetInboxHash() const { return m_inboxhash; }
     OTIdentifier GetOutboxHash() const { return m_outboxhash; }
+    void SetAccountHash(const Identifier& accounthash)
+    {
+        m_accounthash = accounthash;
+    }
     void SetInboxHash(const Identifier& inboxhash) { m_inboxhash = inboxhash; }
     void SetOutboxHash(const Identifier& outboxhash)
     {
@@ -673,6 +678,7 @@ protected:
 
     OTIdentifier m_inboxhash;
     OTIdentifier m_outboxhash;
+    OTIdentifier m_accounthash;
 
     // return -1 if error, 0 if nothing, and 1 if the node was processed.
     std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
