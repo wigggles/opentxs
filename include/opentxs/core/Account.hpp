@@ -56,6 +56,8 @@ public:
     EXPORT static char const* _GetTypeString(AccountType accountType);
 
     EXPORT std::string Alias() const;
+    EXPORT bool ConsensusHash(const Context& context, Identifier& theOutput)
+        const;
     EXPORT bool DisplayStatistics(String& contents) const override;
     EXPORT Amount GetBalance() const;
     EXPORT const Identifier& GetInstrumentDefinitionID() const;

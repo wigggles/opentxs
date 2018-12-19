@@ -6125,7 +6125,7 @@ void Notary::NotarizeTransaction(
     }
 
     auto accountHash{Identifier::Factory()};
-    theFromAccount.get().GetIdentifier(accountHash);
+    theFromAccount.get().ConsensusHash(context, accountHash);
     if (tranIn.GetAccountHash() != accountHash) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": Account hash mismatch. Local account hash: ")(
