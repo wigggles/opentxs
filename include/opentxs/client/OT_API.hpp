@@ -1218,15 +1218,13 @@ private:
 
     static void AddHashesToTransaction(
         OTTransaction& transaction,
-        const Ledger& inbox,
-        const Ledger& outbox,
+        const Context& context,
         const Account& account);
 
     static void AddHashesToTransaction(
         OTTransaction& transaction,
-        const Identifier& accountid,
-        const Nym& nym,
-        const api::Core& api);
+        const Context& context,
+        const Identifier& accountid);
 
     bool add_accept_item(
         const itemType type,

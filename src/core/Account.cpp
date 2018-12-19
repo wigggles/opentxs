@@ -10,6 +10,8 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/consensus/Context.hpp"
+#include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -143,6 +145,82 @@ char const* Account::_GetTypeString(AccountType accountType)
 }
 
 std::string Account::Alias() const { return alias_; }
+
+bool Account::ConsensusHash(const Context& context, Identifier& theOutput) const
+{
+    auto preimage = Data::Factory();
+
+    auto& nymid = GetNymID();
+    if (false == nymid.empty()) {
+        preimage->Concatenate(nymid.data(), nymid.size());
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing nym id.").Flush();
+    }
+
+    auto& serverid = context.Server();
+    if (false == serverid.empty()) {
+        preimage->Concatenate(serverid.data(), serverid.size());
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing server id.").Flush();
+    }
+
+    auto accountid{Identifier::Factory()};
+    GetIdentifier(accountid);
+    if (false == accountid->empty()) {
+        preimage->Concatenate(accountid->data(), accountid->size());
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing account id.").Flush();
+    }
+
+    if (false == balanceAmount_->empty()) {
+        preimage->Concatenate(
+            balanceAmount_->Get(), balanceAmount_->GetLength());
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No account balance.").Flush();
+    }
+
+    const auto nymfile = context.Nymfile(__FUNCTION__);
+
+    auto inboxhash{Identifier::Factory()};
+    auto loaded = nymfile->GetInboxHash(accountid->str(), inboxhash);
+    if (false == loaded) {
+        const_cast<Account&>(*this).GetInboxHash(inboxhash);
+    }
+    if (false == inboxhash->empty()) {
+        preimage->Concatenate(inboxhash->data(), inboxhash->size());
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Empty inbox hash.").Flush();
+    }
+
+    auto outboxhash{Identifier::Factory()};
+    loaded = nymfile->GetOutboxHash(accountid->str(), outboxhash);
+    if (false == loaded) {
+        const_cast<Account&>(*this).GetOutboxHash(outboxhash);
+    }
+    if (false == outboxhash->empty()) {
+        preimage->Concatenate(outboxhash->data(), outboxhash->size());
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Empty outbox hash.").Flush();
+    }
+
+    const auto& issuednumbers = context.IssuedNumbers();
+    for (const auto num : issuednumbers) {
+        preimage->Concatenate(&num, sizeof(num));
+    }
+
+    theOutput.Release();
+
+    bool bCalcDigest = theOutput.CalculateDigest(preimage);
+
+    if (false == bCalcDigest) {
+        theOutput.Release();
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed trying to calculate hash (for a ")(GetTypeString())(").")
+            .Flush();
+    }
+
+    return bCalcDigest;
+}
 
 bool Account::create_box(
     std::unique_ptr<Ledger>& box,
