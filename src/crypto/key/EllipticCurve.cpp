@@ -7,6 +7,7 @@
 
 #include "opentxs/api/crypto/Crypto.hpp"
 #include "opentxs/api/crypto/Encode.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
@@ -84,6 +85,53 @@ EllipticCurve::EllipticCurve(
     auto key = OT::App().Crypto().Encode().DataDecode(publicKey.Get());
     auto dataKey = Data::Factory(key.data(), key.size());
     SetKey(dataKey);
+}
+
+OTData EllipticCurve::CalculateHash(
+    const proto::HashType hashType,
+    const OTPasswordData& password) const
+{
+    const auto isPrivate = key_->empty();
+
+    if (isPrivate) {
+        OTPassword key{};
+        OTPassword output{};
+        const auto decrypted =
+            ECDSA().AsymmetricKeyToECPrivatekey(*this, password, key);
+
+        if (false == decrypted) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to extract private key")
+                .Flush();
+
+            return Data::Factory();
+        }
+
+        const auto hashed =
+            OT::App().Crypto().Hash().Digest(hashType, key, output);
+
+        if (false == hashed) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hash")
+                .Flush();
+
+            return Data::Factory();
+        }
+
+        return Data::Factory(output.getMemory(), output.getMemorySize());
+    } else {
+        auto output = Data::Factory();
+        const auto hashed =
+            OT::App().Crypto().Hash().Digest(hashType, key_, output);
+
+        if (false == hashed) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hash")
+                .Flush();
+
+            return Data::Factory();
+        }
+
+        return output;
+    }
 }
 
 EllipticCurve* EllipticCurve::clone() const

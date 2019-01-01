@@ -44,6 +44,9 @@ public:
     EXPORT static proto::AsymmetricKeyType StringToKeyType(
         const String& keyType);
 
+    EXPORT virtual OTData CalculateHash(
+        const proto::HashType hashType,
+        const OTPasswordData& password) const = 0;
     /** Only works for public keys. */
     EXPORT virtual bool CalculateID(Identifier& theOutput) const = 0;
     EXPORT virtual const opentxs::crypto::AsymmetricProvider& engine()
@@ -82,7 +85,7 @@ public:
     {
         if (IsPublic()) {
             LogOutput(": You must use private keys to create signatures.")
-                  .Flush();
+                .Flush();
 
             return false;
         }
@@ -116,8 +119,8 @@ public:
         const proto::Signature& sig) const = 0;
 
     // Only used for RSA keys
-    EXPORT[[deprecated]] virtual void Release() = 0;
-    EXPORT[[deprecated]] virtual void ReleaseKey() = 0;
+    EXPORT [[deprecated]] virtual void Release() = 0;
+    EXPORT [[deprecated]] virtual void ReleaseKey() = 0;
     /** Don't use this, normally it's not necessary. */
     EXPORT virtual void SetAsPublic() = 0;
     /** (Only if you really know what you are doing.) */

@@ -16,6 +16,12 @@ namespace opentxs::crypto::key::implementation
 class Null : virtual public key::Asymmetric
 {
 public:
+    OTData CalculateHash(
+        const proto::HashType hashType,
+        const OTPasswordData& password) const override
+    {
+        return Data::Factory();
+    }
     bool CalculateID(Identifier&) const override { return false; }
     const opentxs::crypto::AsymmetricProvider& engine() const override
     {

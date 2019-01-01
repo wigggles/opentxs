@@ -16,6 +16,9 @@ class EllipticCurve : virtual public key::EllipticCurve, public Asymmetric
     using ot_super = Asymmetric;
 
 public:
+    OTData CalculateHash(
+        const proto::HashType hashType,
+        const OTPasswordData& password) const override;
     bool IsEmpty() const override;
     virtual bool GetKey(Data& key) const override;
     virtual bool GetKey(proto::Ciphertext& key) const override;
