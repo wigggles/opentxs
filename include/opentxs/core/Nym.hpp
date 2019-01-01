@@ -107,6 +107,18 @@ public:
     EXPORT const std::vector<OTIdentifier> GetRevokedCredentialIDs() const;
     EXPORT bool HasCapability(const NymCapability& capability) const;
     EXPORT const Identifier& ID() const { return m_nymID; }
+
+    /* Encrypt the a symmetric key's password
+     *
+     *  \param[in]  password     The password for the key
+     *  \param[in]  key          The symmetric key whose password will be
+     *                           encrypted
+     *  \param[out] output       The encrypted form of password
+     */
+    EXPORT bool Lock(
+        const OTPassword& password,
+        crypto::key::Symmetric& key,
+        proto::Ciphertext& output) const;
     EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
         const std::string& id) const;
     EXPORT std::string Name() const;
@@ -123,6 +135,17 @@ public:
     const std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
     EXPORT const NymIDSource& Source() const { return *source_; }
     EXPORT std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
+    /* Decrypt a symmetric key's password, then use that password to decrypt the
+     * symmetric key itself
+     *
+     *  \param[in]    input        The encrypted password
+     *  \param[inout] key          The symmetric key to be unlocked
+     *  \param[out]   password     The decrypted password
+     */
+    EXPORT bool Unlock(
+        const proto::Ciphertext& input,
+        crypto::key::Symmetric& key,
+        OTPassword& password) const;
     EXPORT std::unique_ptr<proto::VerificationSet> VerificationSet() const;
     EXPORT bool VerifyPseudonym() const;
     EXPORT bool WriteCredentials() const;
@@ -194,14 +217,16 @@ public:
                     haveSig = true;
                     break;
                 } else {
-                    LogOutput(": Credential set ")
-                          (it.second->GetMasterCredID())(" could not "
-                          "sign protobuf.").Flush();
+                    LogOutput(": Credential set ")(
+                        it.second->GetMasterCredID())(" could not "
+                                                      "sign protobuf.")
+                        .Flush();
                 }
             }
 
             LogOutput(": Did not find any credential sets "
-                  "capable of signing on this nym.").Flush();
+                      "capable of signing on this nym.")
+                .Flush();
         }
 
         return haveSig;

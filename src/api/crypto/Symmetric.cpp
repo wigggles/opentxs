@@ -9,10 +9,13 @@
 #include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/crypto/library/LegacySymmetricProvider.hpp"
 #include "opentxs/crypto/library/SymmetricProvider.hpp"
+#include "opentxs/core/Log.hpp"
 
 #include <string>
 
 #include "Symmetric.hpp"
+
+#define OT_METHOD "opentxs::api::crypto::implementation::Symmetric::"
 
 namespace opentxs
 {
@@ -42,6 +45,21 @@ opentxs::crypto::SymmetricProvider* Symmetric::GetEngine(
     }
 
     return engine;
+}
+
+std::size_t Symmetric::IvSize(const proto::SymmetricMode mode) const
+{
+    auto pEngine = GetEngine(mode);
+
+    if (nullptr == pEngine) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mode").Flush();
+
+        return 0;
+    }
+
+    auto& engine = *pEngine;
+
+    return engine.IvSize(mode);
 }
 
 OTSymmetricKey Symmetric::Key(
