@@ -129,6 +129,45 @@ RSA::RSA(const String& publicKey)
     SetPublicKey(publicKey);
 }
 
+OTData RSA::CalculateHash(const proto::HashType hashType, const OTPasswordData&)
+    const
+{
+    auto key = String::Factory();
+
+    if (IsPrivate()) {
+        const bool got = GetPrivateKey(key, this);
+
+        if (false == got) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failed to extract private key")
+                .Flush();
+
+            return Data::Factory();
+        }
+    } else {
+        const bool got = GetPublicKey(key);
+
+        if (false == got) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to extract public key")
+                .Flush();
+
+            return Data::Factory();
+        }
+    }
+
+    auto output = Data::Factory();
+    const auto hashed = OT::App().Crypto().Hash().Digest(hashType, key, output);
+
+    if (false == hashed) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hash")
+            .Flush();
+
+        return Data::Factory();
+    }
+
+    return output;
+}
+
 RSA* RSA::clone() const
 {
     auto output = ot_super::clone();

@@ -35,6 +35,9 @@ namespace opentxs::crypto::key::implementation
 class RSA final : virtual public key::RSA, public Asymmetric
 {
 public:
+    OTData CalculateHash(
+        const proto::HashType hashType,
+        const OTPasswordData& password) const override;
     const crypto::AsymmetricProvider& engine() const override;
     bool GetPrivateKey(
         String& strOutput,

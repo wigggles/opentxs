@@ -9,6 +9,7 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
@@ -62,10 +63,10 @@
 namespace opentxs
 {
 bool session_key_from_iv(
+    const api::Core& api,
     const crypto::key::Asymmetric& signingKey,
     const Data& iv,
     const proto::HashType hashType,
-    const opentxs::ID digestType,
     OTPasswordData& output);
 
 Nym::Nym(
@@ -1014,7 +1015,6 @@ bool Nym::Lock(
     crypto::key::Symmetric& key,
     proto::Ciphertext& output) const
 {
-    static const opentxs::ID digestType{ID::BLAKE2B};
     static const proto::HashType hashType{proto::HASHTYPE_BLAKE2B256};
     static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
 
@@ -1054,7 +1054,7 @@ bool Nym::Lock(
     const auto ivData = Data::Factory(iv.getMemory(), iv.getMemorySize());
     OTPasswordData sessionkeyPassword{""};
     const auto haveSessionPassword = session_key_from_iv(
-        GetPrivateEncrKey(), ivData, hashType, digestType, sessionkeyPassword);
+        api_, GetPrivateEncrKey(), ivData, hashType, sessionkeyPassword);
 
     if (false == haveSessionPassword) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -1403,31 +1403,56 @@ void Nym::SerializeNymIDSource(Tag& parent) const
 }
 
 bool session_key_from_iv(
+    const api::Core& api,
     const crypto::key::Asymmetric& signingKey,
     const Data& iv,
     const proto::HashType hashType,
-    const opentxs::ID digestType,
     OTPasswordData& output)
 {
     const auto& engine = signingKey.engine();
-    auto signature = Data::Factory();
+    const auto hash = signingKey.CalculateHash(hashType, "");
 
-    if (false == engine.Sign(iv, signingKey, hashType, signature)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign IV").Flush();
-
-        return false;
-    }
-
-    auto hashed = Identifier::Factory();
-
-    if (false == hashed->CalculateDigest(signature, digestType)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash signature")
+    if (hash->empty()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash private key")
             .Flush();
 
         return false;
     }
 
-    OTPassword sessionPassword{hashed->data(), hashed->size()};
+    OTPassword salt{hash->data(), hash->size()};
+    OTPassword hmac{};
+    const auto salted = api.Crypto().Hash().HMAC(hashType, salt, iv, hmac);
+
+    if (false == salted) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to calculate hmac")
+            .Flush();
+
+        return false;
+    }
+
+    auto signature = Data::Factory();
+    const auto haveSig = engine.Sign(
+        Data::Factory(hmac.getMemory(), hmac.getMemorySize()),
+        signingKey,
+        hashType,
+        signature);
+
+    if (false == haveSig) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign IV").Flush();
+
+        return false;
+    }
+
+    OTPassword sessionPassword{};
+    const auto hashed =
+        api.Crypto().Hash().HMAC(hashType, salt, signature, sessionPassword);
+
+    if (false == hashed) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash signature")
+            .Flush();
+
+        return false;
+    }
 
     if (false == output.SetOverride(sessionPassword)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed set session password")
@@ -1599,7 +1624,6 @@ bool Nym::Unlock(
     crypto::key::Symmetric& key,
     OTPassword& password) const
 {
-    static const opentxs::ID digestType{ID::BLAKE2B};
     static const proto::HashType hashType{proto::HASHTYPE_BLAKE2B256};
     static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
 
@@ -1613,7 +1637,7 @@ bool Nym::Unlock(
     const auto iv = Data::Factory(input.iv().data(), input.iv().size());
     OTPasswordData sessionkeyPassword{""};
     const auto haveSessionPassword = session_key_from_iv(
-        GetPrivateEncrKey(), iv, hashType, digestType, sessionkeyPassword);
+        api_, GetPrivateEncrKey(), iv, hashType, sessionkeyPassword);
 
     if (false == haveSessionPassword) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
