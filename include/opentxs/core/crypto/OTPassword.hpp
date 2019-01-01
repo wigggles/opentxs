@@ -84,9 +84,9 @@ public:
     EXPORT explicit OTPassword();
     EXPORT explicit OTPassword(const OTPassword& rhs);
 #ifndef SWIG
-    EXPORT explicit OTPassword(const char* input, std::uint32_t size);
-    EXPORT explicit OTPassword(const std::uint8_t* input, std::uint32_t size);
-    EXPORT explicit OTPassword(const void* input, std::uint32_t size);
+    EXPORT explicit OTPassword(const char* input, std::size_t size);
+    EXPORT explicit OTPassword(const std::uint8_t* input, std::size_t size);
+    EXPORT explicit OTPassword(const void* input, std::size_t size);
 #endif
     EXPORT ~OTPassword();
     EXPORT OTPassword& operator=(const OTPassword& rhs);
@@ -104,7 +104,7 @@ public:
     // (FYI, truncates if nInputSize larger than getBlockSize.)
     EXPORT std::int32_t setPassword_uint8(
         const std::uint8_t* input,
-        std::uint32_t size);
+        std::size_t size);
 #endif
     EXPORT bool addChar(std::uint8_t c);
     EXPORT std::int32_t randomizePassword(
@@ -179,8 +179,8 @@ private:
     const std::size_t blockSize_{OT_DEFAULT_BLOCKSIZE};
     std::uint32_t position_{};
 
-    bool ot_lockPage(void* addr, size_t len);
-    bool ot_unlockPage(void* addr, size_t len);
+    bool ot_lockPage(void* addr, std::size_t len);
+    bool ot_unlockPage(void* addr, std::size_t len);
 };
 
 }  // namespace opentxs

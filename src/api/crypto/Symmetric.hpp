@@ -9,9 +9,10 @@
 
 namespace opentxs::api::crypto::implementation
 {
-class Symmetric : virtual public api::crypto::Symmetric
+class Symmetric final : virtual public api::crypto::Symmetric
 {
 public:
+    virtual std::size_t IvSize(const proto::SymmetricMode mode) const override;
     OTSymmetricKey Key(
         const OTPasswordData& password,
         const proto::SymmetricMode mode =

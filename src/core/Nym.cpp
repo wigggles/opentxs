@@ -9,6 +9,7 @@
 
 #include "opentxs/api/client/Activity.hpp"
 #include "opentxs/api/crypto/Crypto.hpp"
+#include "opentxs/api/crypto/Symmetric.hpp"
 #include "opentxs/api/server/Manager.hpp"
 #include "opentxs/api/storage/Storage.hpp"
 #include "opentxs/api/Core.hpp"
@@ -42,6 +43,7 @@
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/LegacySymmetric.hpp"
+#include "opentxs/crypto/key/Symmetric.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <irrxml/irrXML.hpp>
@@ -59,6 +61,13 @@
 
 namespace opentxs
 {
+bool session_key_from_iv(
+    const crypto::key::Asymmetric& signingKey,
+    const Data& iv,
+    const proto::HashType hashType,
+    const opentxs::ID digestType,
+    OTPasswordData& output);
+
 Nym::Nym(
     const api::Core& api,
     const Identifier& nymID,
@@ -1000,6 +1009,74 @@ bool Nym::LoadPublicKey()
     return false;
 }
 
+bool Nym::Lock(
+    const OTPassword& password,
+    crypto::key::Symmetric& key,
+    proto::Ciphertext& output) const
+{
+    static const opentxs::ID digestType{ID::BLAKE2B};
+    static const proto::HashType hashType{proto::HASHTYPE_BLAKE2B256};
+    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
+
+    if (false == HasCapability(NymCapability::ENCRYPT_MESSAGE)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key available")
+            .Flush();
+
+        return false;
+    }
+
+    OTPasswordData keyPassword{""};
+    keyPassword.SetOverride(password);
+
+    if (false == key.Unlock(keyPassword)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Supplied password does not unlock the supplied key")
+            .Flush();
+
+        return false;
+    }
+
+    OTPassword iv;
+    const auto ivSize = api_.Crypto().Symmetric().IvSize(mode);
+
+    if (0 == ivSize) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid mode").Flush();
+
+        return false;
+    }
+
+    if (static_cast<std::int32_t>(ivSize) != iv.randomizeMemory(ivSize)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to allocate iv").Flush();
+
+        return false;
+    }
+
+    const auto ivData = Data::Factory(iv.getMemory(), iv.getMemorySize());
+    OTPasswordData sessionkeyPassword{""};
+    const auto haveSessionPassword = session_key_from_iv(
+        GetPrivateEncrKey(), ivData, hashType, digestType, sessionkeyPassword);
+
+    if (false == haveSessionPassword) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to calculate session key password")
+            .Flush();
+
+        return false;
+    }
+
+    auto sessionKey = api_.Crypto().Symmetric().Key(sessionkeyPassword, mode);
+
+    if (false == bool(sessionKey.get())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to generate session key")
+            .Flush();
+
+        return false;
+    }
+
+    return sessionKey->Encrypt(
+        password, ivData, sessionkeyPassword, output, true, mode);
+}
+
 const CredentialSet* Nym::MasterCredential(const String& strID) const
 {
     auto iter = m_mapCredentialSets.find(strID.Get());
@@ -1325,6 +1402,43 @@ void Nym::SerializeNymIDSource(Tag& parent) const
     }
 }
 
+bool session_key_from_iv(
+    const crypto::key::Asymmetric& signingKey,
+    const Data& iv,
+    const proto::HashType hashType,
+    const opentxs::ID digestType,
+    OTPasswordData& output)
+{
+    const auto& engine = signingKey.engine();
+    auto signature = Data::Factory();
+
+    if (false == engine.Sign(iv, signingKey, hashType, signature)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign IV").Flush();
+
+        return false;
+    }
+
+    auto hashed = Identifier::Factory();
+
+    if (false == hashed->CalculateDigest(signature, digestType)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to hash signature")
+            .Flush();
+
+        return false;
+    }
+
+    OTPassword sessionPassword{hashed->data(), hashed->size()};
+
+    if (false == output.SetOverride(sessionPassword)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed set session password")
+            .Flush();
+
+        return false;
+    }
+
+    return true;
+}
+
 bool Nym::set_contact_data(const eLock& lock, const proto::ContactData& data)
 {
     OT_ASSERT(verify_lock(lock));
@@ -1478,6 +1592,69 @@ std::unique_ptr<OTPassword> Nym::TransportKey(Data& pubkey) const
     OT_ASSERT(found);
 
     return privateKey;
+}
+
+bool Nym::Unlock(
+    const proto::Ciphertext& input,
+    crypto::key::Symmetric& key,
+    OTPassword& password) const
+{
+    static const opentxs::ID digestType{ID::BLAKE2B};
+    static const proto::HashType hashType{proto::HASHTYPE_BLAKE2B256};
+    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
+
+    if (false == HasCapability(NymCapability::ENCRYPT_MESSAGE)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key available")
+            .Flush();
+
+        return false;
+    }
+
+    const auto iv = Data::Factory(input.iv().data(), input.iv().size());
+    OTPasswordData sessionkeyPassword{""};
+    const auto haveSessionPassword = session_key_from_iv(
+        GetPrivateEncrKey(), iv, hashType, digestType, sessionkeyPassword);
+
+    if (false == haveSessionPassword) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to calculate session key password")
+            .Flush();
+
+        return false;
+    }
+
+    auto sessionKey = api_.Crypto().Symmetric().Key(input.key(), mode);
+
+    if (false == bool(sessionKey.get())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to instantiate session key")
+            .Flush();
+
+        return false;
+    }
+
+    const auto output =
+        sessionKey->Decrypt(input, sessionkeyPassword, password);
+
+    if (false == output) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt key password")
+            .Flush();
+
+        return false;
+    }
+
+    OTPasswordData keyPassword{""};
+    keyPassword.SetOverride(password);
+
+    if (false == key.Unlock(keyPassword)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Decrypted password does not unlock the supplied key")
+            .Flush();
+
+        return false;
+    }
+
+    return true;
 }
 
 bool Nym::update_nym(const eLock& lock, const std::int32_t version)

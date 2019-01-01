@@ -40,15 +40,17 @@
 #define mlock(a, b)                                                            \
     mlock(                                                                     \
         (reinterpret_cast<void*>(                                              \
-            (reinterpret_cast<size_t>(a)) & (~((PAGESIZE)-1)))),               \
-        ((((reinterpret_cast<size_t>(a)) + (b)-1) | ((PAGESIZE)-1)) + 1) -     \
-            ((reinterpret_cast<size_t>(a)) & (~((PAGESIZE)-1))))
+            (reinterpret_cast<std::size_t>(a)) & (~((PAGESIZE)-1)))),          \
+        ((((reinterpret_cast<std::size_t>(a)) + (b)-1) | ((PAGESIZE)-1)) +     \
+         1) -                                                                  \
+            ((reinterpret_cast<std::size_t>(a)) & (~((PAGESIZE)-1))))
 #define munlock(a, b)                                                          \
     munlock(                                                                   \
         (reinterpret_cast<void*>(                                              \
-            (reinterpret_cast<size_t>(a)) & (~((PAGESIZE)-1)))),               \
-        ((((reinterpret_cast<size_t>(a)) + (b)-1) | ((PAGESIZE)-1)) + 1) -     \
-            ((reinterpret_cast<size_t>(a)) & (~((PAGESIZE)-1))))
+            (reinterpret_cast<std::size_t>(a)) & (~((PAGESIZE)-1)))),          \
+        ((((reinterpret_cast<std::size_t>(a)) + (b)-1) | ((PAGESIZE)-1)) +     \
+         1) -                                                                  \
+            ((reinterpret_cast<std::size_t>(a)) & (~((PAGESIZE)-1))))
 #endif
 
 namespace opentxs
@@ -93,7 +95,7 @@ void* ot_secure_memset(void* v, std::uint8_t c, std::uint32_t n)
 // "So that it won't get swapped to disk, where the secret
 // could be recovered maliciously from the swap file."
 //
-bool OTPassword::ot_lockPage(void* addr, size_t len)
+bool OTPassword::ot_lockPage(void* addr, std::size_t len)
 {
 #ifdef _WIN32
 // return VirtualLock(addr, len);
@@ -118,7 +120,7 @@ bool OTPassword::ot_lockPage(void* addr, size_t len)
 // used except where the user is running as a privileged process. (Because that
 // may be the only way we CAN use those functions...)
 
-bool OTPassword::ot_unlockPage(void* addr, size_t len)
+bool OTPassword::ot_unlockPage(void* addr, std::size_t len)
 {
 #ifdef _WIN32
 //    return VirtualUnlock(addr, len);
@@ -203,10 +205,10 @@ void OTPassword::zeroMemory(std::uint8_t* szMemory, std::uint32_t theSize)
 
 /* WINDOWS:
  errno_t memcpy_s(void* dest,
-     size_t   numberOfElements,
+     std::size_t   numberOfElements,
      const
      void   * src,
-     size_t   count
+     std::size_t   count
      );
 
  FT: Apparently numberOfElements is similar to strcpy_s (where it's the maximum
@@ -216,7 +218,7 @@ void OTPassword::zeroMemory(std::uint8_t* szMemory, std::uint32_t theSize)
  (Then count is the actual size being copied.)
  */
 // UNIX:
-//    void * memcpy(void* restrict s1, const void* restrict s2, size_t n);
+//    void * memcpy(void* restrict s1, const void* restrict s2, std::size_t n);
 //
 // static
 void* OTPassword::safe_memcpy(
@@ -358,7 +360,7 @@ OTPassword::OTPassword(const OTPassword& rhs)
     }
 }
 
-OTPassword::OTPassword(const char* szInput, std::uint32_t nInputSize)
+OTPassword::OTPassword(const char* szInput, std::size_t nInputSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
@@ -370,7 +372,7 @@ OTPassword::OTPassword(const char* szInput, std::uint32_t nInputSize)
         reinterpret_cast<const std::uint8_t*>(szInput), nInputSize);
 }
 
-OTPassword::OTPassword(const std::uint8_t* szInput, std::uint32_t nInputSize)
+OTPassword::OTPassword(const std::uint8_t* szInput, std::size_t nInputSize)
     : size_(0)
     , isText_(true)
     , isBinary_(false)
@@ -381,7 +383,7 @@ OTPassword::OTPassword(const std::uint8_t* szInput, std::uint32_t nInputSize)
     setPassword_uint8(szInput, nInputSize);
 }
 
-OTPassword::OTPassword(const void* vInput, std::uint32_t nInputSize)
+OTPassword::OTPassword(const void* vInput, std::size_t nInputSize)
     : size_(0)
     , isText_(false)
     , isBinary_(true)
@@ -520,7 +522,7 @@ std::int32_t OTPassword::setPassword(
 //
 std::int32_t OTPassword::setPassword_uint8(
     const std::uint8_t* szInput,
-    std::uint32_t nInputSize)
+    std::size_t nInputSize)
 {
     OT_ASSERT(nullptr != szInput);
 
@@ -536,7 +538,7 @@ std::int32_t OTPassword::setPassword_uint8(
     if (0 == nInputSize) return 0;
 
     // Make sure no input size is larger than our block size
-    const size_t maxSize = getBlockSize();
+    const std::size_t maxSize = getBlockSize();
 
     if (nInputSize > maxSize) {
         nInputSize = maxSize;  // Truncated password beyond max size.
@@ -547,9 +549,7 @@ std::int32_t OTPassword::setPassword_uint8(
     // be SMALLER than what the user claims either. If it is, we error out.
     //
     if (String::safe_strlen(
-            reinterpret_cast<const char*>(szInput),
-            static_cast<size_t>(nInputSize)) <
-        static_cast<size_t>(nInputSize)) {
+            reinterpret_cast<const char*>(szInput), nInputSize) < nInputSize) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
             ": ERROR: String length of szInput did not match nInputSize.")
             .Flush();
