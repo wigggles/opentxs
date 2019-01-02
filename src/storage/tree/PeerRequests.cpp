@@ -84,7 +84,8 @@ proto::StorageNymList PeerRequests::serialize() const
         const bool good = goodID && goodHash;
 
         if (good) {
-            serialize_index(item.first, item.second, *serialized.add_nym());
+            serialize_index(
+                version_, item.first, item.second, *serialized.add_nym());
         }
     }
 

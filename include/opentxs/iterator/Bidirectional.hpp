@@ -27,7 +27,7 @@ public:
     using difference_type = std::ptrdiff_t;
     using iterator_category = std::bidirectional_iterator_tag;
 
-    EXPORT Bidirectional(const P* parent, std::size_t position = 0)
+    EXPORT Bidirectional(P* parent, std::size_t position = 0)
         : position_{position}
         , parent_{parent}
     {
@@ -92,7 +92,7 @@ public:
 
 private:
     std::size_t position_{0};
-    const P* parent_{nullptr};
+    P* parent_{nullptr};
 };
 }  // namespace iterator
 }  // namespace opentxs

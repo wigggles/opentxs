@@ -5,11 +5,8 @@
 
 #include "stdafx.hpp"
 
-#include "opentxs/cash/Mint.hpp"
-
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Wallet.hpp"
-#include "opentxs/cash/MintLucre.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/util/Common.hpp"
 #include "opentxs/core/util/OTFolders.hpp"
@@ -26,24 +23,24 @@
 
 #include <irrxml/irrXML.hpp>
 
-#include <cstdint>
 #include <cstdlib>
-#include <map>
 #include <memory>
 #include <ostream>
 #include <string>
 #include <utility>
 
-#define OT_METHOD "opentxs::Mint"
+#include "Mint.hpp"
 
-namespace opentxs
+#define OT_METHOD "opentxs::blind::mint::implementation::Mint::"
+
+namespace opentxs::blind::mint::implementation
 {
 Mint::Mint(
     const api::Core& core,
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID)
-    : Contract(core, strInstrumentDefinitionID)
+    : blind::Mint()
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory(strNotaryID))
@@ -71,7 +68,7 @@ Mint::Mint(
     const api::Core& core,
     const String& strNotaryID,
     const String& strInstrumentDefinitionID)
-    : Contract(core, strInstrumentDefinitionID)
+    : blind::Mint()
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory(strNotaryID))
@@ -96,7 +93,7 @@ Mint::Mint(
 }
 
 Mint::Mint(const api::Core& core)
-    : Contract(core)
+    : blind::Mint()
     , m_mapPrivate()
     , m_mapPublic()
     , m_NotaryID(Identifier::Factory())
@@ -112,12 +109,6 @@ Mint::Mint(const api::Core& core)
 {
     InitMint();
 }
-
-// SUBCLASSES OF OTMINT FOR EACH DIGITAL CASH ALGORITHM.
-
-#if OT_CASH_USING_MAGIC_MONEY
-// Todo:  Someday...
-#endif  // Magic Money
 
 // Verify the current date against the VALID FROM / EXPIRATION dates.
 // (As opposed to tokens, which are verified against the valid from/to dates.)
@@ -390,8 +381,9 @@ bool Mint::VerifyContractID() const
              str2 = String::Factory(m_InstrumentDefinitionID);
 
         LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Mint ID does NOT match Instrument Definition. ")
-        (str1)(" | ")(str2)(".").Flush();
+            ": Mint ID does NOT match Instrument Definition. ")(str1)(" | ")(
+            str2)(".")
+            .Flush();
         //                "\nRAW FILE:\n--->" << m_strRawFile << "<---"
         return false;
     } else {
@@ -405,7 +397,7 @@ bool Mint::VerifyContractID() const
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination)
+bool Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination) const
 {
     try {
         theArmor.Set(m_mapPrivate.at(lDenomination));
@@ -419,7 +411,7 @@ bool Mint::GetPrivate(Armored& theArmor, std::int64_t lDenomination)
 
 // The mint has a different key pair for each denomination.
 // Pass in the actual denomination such as 5, 10, 20, 50, 100...
-bool Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination)
+bool Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination) const
 {
     try {
         theArmor.Set(m_mapPublic.at(lDenomination));
@@ -437,7 +429,7 @@ bool Mint::GetPublic(Armored& theArmor, std::int64_t lDenomination)
 // Then you can subtract the denomination from the amount and call this method
 // again, and again, until it reaches 0, in order to create all the necessary
 // tokens to reach the full withdrawal amount.
-std::int64_t Mint::GetLargestDenomination(int64_t lAmount)
+std::int64_t Mint::GetLargestDenomination(std::int64_t lAmount) const
 {
     for (std::int32_t nIndex = GetDenominationCount() - 1; nIndex >= 0;
          nIndex--) {
@@ -452,7 +444,7 @@ std::int64_t Mint::GetLargestDenomination(int64_t lAmount)
 // If you call GetDenominationCount, you can then use this method
 // to look up a denomination by index.
 // You could also iterate through them by index.
-std::int64_t Mint::GetDenomination(std::int32_t nIndex)
+std::int64_t Mint::GetDenomination(std::int32_t nIndex) const
 {
     // index out of bounds.
     if (nIndex > (m_nDenominationCount - 1)) { return 0; }
@@ -663,16 +655,17 @@ void Mint::GenerateNewMint(
     const Identifier& theInstrumentDefinitionID,
     const Identifier& theNotaryID,
     const Nym& theNotary,
-    std::int64_t nDenom1,
-    std::int64_t nDenom2,
-    std::int64_t nDenom3,
-    std::int64_t nDenom4,
-    std::int64_t nDenom5,
-    std::int64_t nDenom6,
-    std::int64_t nDenom7,
-    std::int64_t nDenom8,
-    std::int64_t nDenom9,
-    std::int64_t nDenom10)
+    const std::int64_t nDenom1,
+    const std::int64_t nDenom2,
+    const std::int64_t nDenom3,
+    const std::int64_t nDenom4,
+    const std::int64_t nDenom5,
+    const std::int64_t nDenom6,
+    const std::int64_t nDenom7,
+    const std::int64_t nDenom8,
+    const std::int64_t nDenom9,
+    const std::int64_t nDenom10,
+    const std::size_t keySize)
 {
     Release();
 
@@ -707,57 +700,17 @@ void Mint::GenerateNewMint(
 
     account.Release();
 
-    if (nDenom1) {
-        AddDenomination(
-            theNotary,
-            nDenom1);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom2) {
-        AddDenomination(
-            theNotary,
-            nDenom2);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom3) {
-        AddDenomination(
-            theNotary,
-            nDenom3);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom4) {
-        AddDenomination(
-            theNotary,
-            nDenom4);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom5) {
-        AddDenomination(
-            theNotary,
-            nDenom5);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom6) {
-        AddDenomination(
-            theNotary,
-            nDenom6);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom7) {
-        AddDenomination(
-            theNotary,
-            nDenom7);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom8) {
-        AddDenomination(
-            theNotary,
-            nDenom8);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom9) {
-        AddDenomination(
-            theNotary,
-            nDenom9);  // std::int32_t nPrimeLength default = 1024
-    }
-    if (nDenom10) {
-        AddDenomination(
-            theNotary,
-            nDenom10);  // std::int32_t nPrimeLength default = 1024
-    }
+    if (0 != nDenom1) { AddDenomination(theNotary, nDenom1, keySize); }
+    if (0 != nDenom2) { AddDenomination(theNotary, nDenom2, keySize); }
+    if (0 != nDenom3) { AddDenomination(theNotary, nDenom3, keySize); }
+    if (0 != nDenom4) { AddDenomination(theNotary, nDenom4, keySize); }
+    if (0 != nDenom5) { AddDenomination(theNotary, nDenom5, keySize); }
+    if (0 != nDenom6) { AddDenomination(theNotary, nDenom6, keySize); }
+    if (0 != nDenom7) { AddDenomination(theNotary, nDenom7, keySize); }
+    if (0 != nDenom8) { AddDenomination(theNotary, nDenom8, keySize); }
+    if (0 != nDenom9) { AddDenomination(theNotary, nDenom9, keySize); }
+    if (0 != nDenom10) { AddDenomination(theNotary, nDenom10, keySize); }
 }
 
 Mint::~Mint() { Release_Mint(); }
-}  // namespace opentxs
+}  // namespace opentxs::blind::mint::implementation

@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "Symmetric.hpp"
 
@@ -232,6 +233,18 @@ bool Symmetric::Allocate(const std::size_t size, Data& container)
     return (size == container.size());
 }
 
+bool Symmetric::Allocate(const std::size_t size, String& container)
+{
+    std::vector<char> blank{};
+    blank.assign(size, 0x7f);
+
+    OT_ASSERT(blank.size() == size);
+
+    container.Set(blank.data(), blank.size());
+
+    return (size == container.GetLength());
+}
+
 bool Symmetric::Allocate(
     const std::size_t size,
     std::string& container,
@@ -330,6 +343,25 @@ bool Symmetric::Decrypt(
 bool Symmetric::Decrypt(
     const proto::Ciphertext& ciphertext,
     const OTPasswordData& keyPassword,
+    String& plaintext)
+{
+    if (false == Allocate(ciphertext.data().size(), plaintext)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Unable to allocate space for decryption.")
+            .Flush();
+
+        return false;
+    }
+
+    return (Decrypt(
+        ciphertext,
+        keyPassword,
+        reinterpret_cast<std::uint8_t*>(const_cast<char*>(plaintext.Get()))));
+}
+
+bool Symmetric::Decrypt(
+    const proto::Ciphertext& ciphertext,
+    const OTPasswordData& keyPassword,
     Data& plaintext)
 {
     if (false == Allocate(ciphertext.data().size(), plaintext)) {
@@ -421,6 +453,29 @@ bool Symmetric::Encrypt(
         plaintext_key_->getMemory_uint8(),
         plaintext_key_->getMemorySize(),
         ciphertext);
+}
+
+bool Symmetric::Encrypt(
+    const Data& plaintext,
+    const Data& iv,
+    const OTPasswordData& keyPassword,
+    proto::Ciphertext& ciphertext,
+    const bool attachKey,
+    const proto::SymmetricMode mode)
+{
+    const bool success = Encrypt(
+        static_cast<const std::uint8_t*>(plaintext.data()),
+        plaintext.size(),
+        static_cast<const std::uint8_t*>(iv.data()),
+        iv.size(),
+        mode,
+        keyPassword,
+        ciphertext,
+        false);
+
+    if (success && attachKey) { Serialize(*ciphertext.mutable_key()); }
+
+    return success;
 }
 
 bool Symmetric::Encrypt(
@@ -656,10 +711,16 @@ bool Symmetric::Unlock(const OTPasswordData& keyPassword)
         OT_SYMMETRIC_KEY_DEFAULT_OPERATIONS,
         OT_SYMMETRIC_KEY_DEFAULT_DIFFICULTY);
 
-    return engine_.Decrypt(
+    const auto output = engine_.Decrypt(
         *encrypted_key_,
         secondaryKey.plaintext_key_->getMemory_uint8(),
         secondaryKey.plaintext_key_->getMemorySize(),
         static_cast<std::uint8_t*>(plaintext_key_->getMemoryWritable()));
+
+    if (false == output) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to unlock key").Flush();
+    }
+
+    return output;
 }
 }  // namespace opentxs::crypto::key::implementation

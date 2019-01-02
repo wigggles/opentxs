@@ -22,6 +22,12 @@ private:
 
     EXPORT static BIO* assertBioNotNull(BIO* pBIO);
 
+    void read_bio(
+        const std::size_t amount,
+        std::size_t& read,
+        std::size_t& total,
+        std::vector<std::byte>& output);
+
 public:
     EXPORT OpenSSL_BIO(BIO* pBIO);
 
@@ -31,6 +37,8 @@ public:
 
     EXPORT void release();
     EXPORT void setFreeOnly();
-};
 
+    std::vector<std::byte> ToBytes();
+    OTString ToString();
+};
 }  // namespace opentxs::crypto::implementation

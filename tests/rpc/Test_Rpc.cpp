@@ -112,9 +112,11 @@ protected:
         if (proto::RPCCOMMAND_ADDSERVERSESSION == commandtype) {
             if (server2_id_.empty()) {
                 auto& manager = Test_Rpc::get_session(response.session());
-
                 auto& servermanager =
                     dynamic_cast<const api::server::Manager&>(manager);
+#if OT_CASH
+                servermanager.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
+#endif
                 server2_id_ = servermanager.ID().str();
                 auto servercontract =
                     servermanager.Wallet().Server(servermanager.ID());
@@ -127,9 +129,11 @@ protected:
                     servercontract->PublicContract());
             } else if (server3_id_.empty()) {
                 auto& manager = Test_Rpc::get_session(response.session());
-
                 auto& servermanager =
                     dynamic_cast<const api::server::Manager&>(manager);
+#if OT_CASH
+                servermanager.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
+#endif
                 server3_id_ = servermanager.ID().str();
                 auto servercontract =
                     servermanager.Wallet().Server(servermanager.ID());
@@ -316,6 +320,9 @@ TEST_F(Test_Rpc, Add_Server_Session)
 
     // Register the server on the client.
     auto& servermanager = dynamic_cast<const api::server::Manager&>(manager);
+#if OT_CASH
+    servermanager.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
+#endif
     server_id_ = servermanager.ID().str();
     auto servercontract = servermanager.Wallet().Server(servermanager.ID());
 

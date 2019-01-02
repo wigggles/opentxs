@@ -7,6 +7,9 @@
 
 #include "Nym.hpp"
 
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
+
 #include "storage/Plugin.hpp"
 #include "Bip47Channels.hpp"
 #include "Contexts.hpp"
@@ -20,10 +23,11 @@
 
 #include <functional>
 
-#define CURRENT_VERSION 7
+#define CURRENT_VERSION 8
 #define BLOCKCHAIN_INDEX_VERSION 1
+#define STORAGE_PURSE_VERSION 1
 
-//#define OT_METHOD "opentxs::storage::Nym::"
+#define OT_METHOD "opentxs::storage::Nym::"
 
 namespace opentxs::storage
 {
@@ -87,6 +91,7 @@ Nym::Nym(
     , workflows_root_(Node::BLANK_HASH)
     , workflows_lock_()
     , workflows_(nullptr)
+    , purse_id_()
 {
     if (check_hash(hash)) {
         init(hash);
@@ -293,6 +298,15 @@ void Nym::init(const std::string& hash)
 
     // Fields added in version 7
     bip47_root_ = normalize_hash(serialized->bip47());
+
+    // Fields added in version 8
+    for (const auto& purse : serialized->purse()) {
+        auto server = identifier::Server::Factory(purse.notary());
+        auto unit = identifier::UnitDefinition::Factory(purse.unit());
+        const auto& hash = purse.purse().hash();
+        PurseID id{std::move(server), std::move(unit)};
+        purse_id_.emplace(std::move(id), hash);
+    }
 }
 
 storage::Issuers* Nym::issuers() const
@@ -333,7 +347,7 @@ bool Nym::Load(
     Lock lock(write_lock_);
 
     if (!check_hash(credentials_)) {
-        if (!checking) {
+        if (false == checking) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Error: nym with id ")(nymid_)(
                 " has no credentials.")
                 .Flush();
@@ -351,6 +365,29 @@ bool Nym::Load(
     revision_.store(output->revision());
 
     return true;
+}
+
+bool Nym::Load(
+    const identifier::Server& notary,
+    const identifier::UnitDefinition& unit,
+    std::shared_ptr<proto::Purse>& output,
+    const bool checking) const
+{
+    Lock lock(write_lock_);
+    const PurseID id{notary, unit};
+    const auto it = purse_id_.find(id);
+
+    if (purse_id_.end() == it) {
+        if (false == checking) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Purse not found ").Flush();
+        }
+
+        return false;
+    }
+
+    const auto& hash = it->second;
+
+    return driver_.LoadProto(hash, output, false);
 }
 
 Mailbox* Nym::mail_inbox() const
@@ -664,6 +701,15 @@ proto::StorageNym Nym::serialize() const
     serialized.set_paymentworkflow(workflows_root_);
     serialized.set_bip47(bip47_root_);
 
+    for (const auto& [key, hash] : purse_id_) {
+        const auto& [server, unit] = key;
+        auto& purse = *serialized.add_purse();
+        purse.set_version(STORAGE_PURSE_VERSION);
+        purse.set_notary(server->str());
+        purse.set_unit(unit->str());
+        set_hash(purse.version(), unit->str(), hash, *purse.mutable_purse());
+    }
+
     return serialized;
 }
 
@@ -769,6 +815,21 @@ bool Nym::Store(
     private_->Set(!incomingPublic);
 
     return save(lock);
+}
+
+bool Nym::Store(const proto::Purse& purse)
+{
+    Lock lock(write_lock_);
+    const PurseID id{identifier::Server::Factory(purse.notary()),
+                     identifier::UnitDefinition::Factory(purse.mint())};
+    std::string hash{};
+    const auto output = driver_.StoreProto(purse, hash);
+
+    if (false == output) { return output; }
+
+    purse_id_[id] = hash;
+
+    return output;
 }
 
 storage::PaymentWorkflows* Nym::workflows() const

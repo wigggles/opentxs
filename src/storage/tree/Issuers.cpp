@@ -85,7 +85,8 @@ proto::StorageIssuers Issuers::serialize() const
         const bool good = goodID && goodHash;
 
         if (good) {
-            serialize_index(item.first, item.second, *serialized.add_issuer());
+            serialize_index(
+                version_, item.first, item.second, *serialized.add_issuer());
         }
     }
 

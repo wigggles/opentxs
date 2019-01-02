@@ -406,6 +406,8 @@ transactionType OTTransaction::GetTypeFromString(const String& strType)
         theType = transactionType::payDividend;
     else if (strType.Compare("atPayDividend"))
         theType = transactionType::atPayDividend;
+    else if (strType.Compare("incomingCash"))
+        theType = transactionType::incomingCash;
     else
         theType = transactionType::error_state;
 
@@ -4429,6 +4431,7 @@ void OTTransaction::SaveAbbrevPaymentInboxRecord(Tag& parent)
     std::int64_t lDisplayValue = 0;
 
     switch (m_Type) {
+        case transactionType::incomingCash:
         case transactionType::instrumentNotice:
             if (IsAbbreviated())
                 lDisplayValue = GetAbbrevDisplayAmount();
@@ -4507,6 +4510,7 @@ void OTTransaction::SaveAbbrevExpiredBoxRecord(Tag& parent)
 
     switch (m_Type) {
         // PAYMENT INBOX / PAYMENT OUTBOX
+        case transactionType::incomingCash:
         case transactionType::instrumentNotice:
             if (IsAbbreviated())  // not the actual value of 0.
                 lDisplayValue = GetAbbrevDisplayAmount();
@@ -4719,6 +4723,7 @@ void OTTransaction::SaveAbbrevRecordBoxRecord(Tag& parent)
             }
             break;
         // PAYMENT INBOX / PAYMENT OUTBOX
+        case transactionType::incomingCash:
         case transactionType::instrumentNotice:
             if (IsAbbreviated())  // not the actual value of 0.
             {
@@ -4860,6 +4865,7 @@ void OTTransaction::SaveAbbreviatedNymboxRecord(Tag& parent)
         // paymentInbox items are transported through the Nymbox.
         // Therefore, this switch statement from SaveAbbrevPaymentInbox
         // is also found here, to handle those receipts as they pass through.
+        case transactionType::incomingCash:
         case transactionType::instrumentNotice:  // A financial instrument sent
                                                  // from/to another nym.
             if (IsAbbreviated())
@@ -5655,6 +5661,7 @@ std::int64_t OTTransaction::GetNumberOfOrigin()
                                                         // your invoice, you get
                                                         // one of these in YOUR
                                                         // paymentInbox.
+            case transactionType::incomingCash:
 
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": In this case, you can't calculate the "
@@ -5728,6 +5735,7 @@ void OTTransaction::CalculateNumberOfOrigin()
                                           // or cheque)
         case transactionType::atDeposit:  // reply from the server regarding a
                                           // deposit request
+        case transactionType::incomingCash:
         case transactionType::instrumentNotice:     // Receive these in
                                                     // paymentInbox (by way of
                                                     // Nymbox), and send in
@@ -5886,6 +5894,7 @@ std::int64_t OTTransaction::GetReferenceNumForDisplay()
         case transactionType::successNotice:
         case transactionType::marketReceipt:
         case transactionType::basketReceipt:
+        case transactionType::incomingCash:
         case transactionType::instrumentNotice:
         /*
          NOTE: Right about here you might be wondering to yourself, Hmm,
@@ -6286,7 +6295,7 @@ bool OTTransaction::GetRecipientNymIDForDisplay(Identifier& theReturnID)
                 strUpdatedCronItem = strReference;  // Better than  nothing.
                                                     // This is the original
             // version of the payment plan, instead of
-            // the updated verison. (Or smart contract.)
+            // the updated version. (Or smart contract.)
             else {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
                     ": Failed trying to get notice item from notice "

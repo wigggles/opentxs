@@ -8,7 +8,6 @@
 #include "opentxs/Forward.hpp"
 
 #include "opentxs/api/Editor.hpp"
-#include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/ServerAction.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
@@ -42,7 +41,6 @@ typedef enum {
     PROCESS_INBOX = 13,
     EXCHANGE_BASKET = 14,
     DEPOSIT_CASH = 15,
-    EXCHANGE_CASH = 16,
     DEPOSIT_CHEQUE = 17,
     WITHDRAW_VOUCHER = 18,
     PAY_DIVIDEND = 19,
@@ -74,7 +72,8 @@ typedef enum {
     REQUEST_ADMIN = 45,
     SERVER_ADD_CLAIM = 46,
     STORE_SECRET = 47,
-    GET_TRANSACTION_NUMBERS = 48
+    GET_TRANSACTION_NUMBERS = 48,
+    SEND_USER_CASH = 49,
 } OTAPI_Func_Type;
 
 class OTAPI_Func : virtual public opentxs::client::ServerAction, Lockable
@@ -163,7 +162,7 @@ public:
         const Identifier& nymID,
         const Identifier& serverID,
         const Identifier& nymID2,
-        std::unique_ptr<Purse>& purse);
+        std::unique_ptr<blind::Purse>& purse);
 #endif
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
@@ -262,8 +261,7 @@ public:
         const Identifier& nymID,
         const Identifier& serverID,
         const Identifier& recipientID,
-        std::unique_ptr<const Purse>& purse,
-        std::unique_ptr<const Purse>& senderPurse);
+        const std::shared_ptr<blind::Purse> purse);
 #endif
     explicit OTAPI_Func(
         OTAPI_Func_Type theType,
@@ -357,8 +355,7 @@ private:
     std::unique_ptr<OTSmartContract> contract_;
     std::unique_ptr<OTPaymentPlan> paymentPlan_;
 #if OT_CASH
-    std::unique_ptr<const Purse> purse_;
-    std::unique_ptr<const Purse> senderPurse_;
+    std::shared_ptr<blind::Purse> purse_;
 #endif
     std::unique_ptr<Cheque> cheque_;
     std::unique_ptr<Ledger> ledger_;

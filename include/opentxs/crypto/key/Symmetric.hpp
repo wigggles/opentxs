@@ -94,6 +94,10 @@ public:
     EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const OTPasswordData& keyPassword,
+        String& plaintext) = 0;
+    EXPORT virtual bool Decrypt(
+        const proto::Ciphertext& ciphertext,
+        const OTPasswordData& keyPassword,
         Data& plaintext) = 0;
     EXPORT virtual bool Decrypt(
         const proto::Ciphertext& ciphertext,
@@ -126,6 +130,13 @@ public:
         const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
     EXPORT virtual bool Encrypt(
         const OTPassword& plaintext,
+        const Data& iv,
+        const OTPasswordData& keyPassword,
+        proto::Ciphertext& ciphertext,
+        const bool attachKey = true,
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) = 0;
+    EXPORT virtual bool Encrypt(
+        const Data& plaintext,
         const Data& iv,
         const OTPasswordData& keyPassword,
         proto::Ciphertext& ciphertext,

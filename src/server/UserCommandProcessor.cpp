@@ -12,7 +12,7 @@
 #include "opentxs/api/Identity.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
-#include "opentxs/cash/Mint.hpp"
+#include "opentxs/blind/Mint.hpp"
 #endif  // OT_CASH
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/consensus/ClientContext.hpp"

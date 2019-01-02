@@ -17,9 +17,6 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
-#if OT_CASH
-#include "opentxs/cash/Purse.hpp"
-#endif  // OT_CASH
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
@@ -34,6 +31,8 @@
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Flag.hpp"
@@ -241,7 +240,7 @@ Sync::Sync(
 }
 
 std::pair<bool, std::size_t> Sync::accept_incoming(
-    const rLock& lock[[maybe_unused]],
+    const rLock& lock [[maybe_unused]],
     const std::size_t max,
     const Identifier& accountID,
     ServerContext& context) const
@@ -1422,15 +1421,14 @@ bool Sync::pay_nym_cash(
     const Identifier& nymID,
     const Identifier& serverID,
     const Identifier& targetNymID,
-    std::shared_ptr<const Purse>& recipientCopy,
-    std::shared_ptr<const Purse>& senderCopy) const
+    const std::shared_ptr<blind::Purse> purse) const
 {
     OT_ASSERT(false == nymID.empty())
     OT_ASSERT(false == serverID.empty())
     OT_ASSERT(false == targetNymID.empty())
 
-    auto action = client_.ServerAction().SendCash(
-        nymID, serverID, targetNymID, recipientCopy, senderCopy);
+    auto action =
+        client_.ServerAction().SendCash(nymID, serverID, targetNymID, purse);
     action->Run();
 
     if (SendResult::VALID_REPLY == action->LastSendResult()) {
@@ -1540,8 +1538,7 @@ OTIdentifier Sync::PayContact(
 OTIdentifier Sync::PayContactCash(
     const Identifier& senderNymID,
     const Identifier& contactID,
-    std::shared_ptr<const Purse>& recipientCopy,
-    std::shared_ptr<const Purse>& senderCopy) const
+    const std::shared_ptr<blind::Purse> purse) const
 {
     CHECK_SERVER(senderNymID, contactID)
 
@@ -1560,12 +1557,7 @@ OTIdentifier Sync::PayContactCash(
     const auto taskID(Identifier::Random());
 
     return start_task(
-        taskID,
-        queue.send_cash_.Push(
-            taskID,
-            {recipientNymID,
-             std::shared_ptr<const Purse>(recipientCopy),
-             std::shared_ptr<const Purse>(senderCopy)}));
+        taskID, queue.send_cash_.Push(taskID, {recipientNymID, purse}));
 }
 #endif  // OT_CASH
 
@@ -1845,7 +1837,7 @@ void Sync::refresh_contacts() const
                     SHUTDOWN()
                     OT_ASSERT(item)
 
-                    const auto& notUsed[[maybe_unused]] = claimID;
+                    const auto& notUsed [[maybe_unused]] = claimID;
                     const OTIdentifier serverID =
                         Identifier::Factory(item->Value());
 
@@ -2523,7 +2515,8 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
     IssueUnitDefinitionTask issueUnit{Identifier::Factory(), ""};
     RegisterAccountTask registerAccount{Identifier::Factory(), ""};
 #if OT_CASH
-    PayCashTask cash_payment{Identifier::Factory(), {}, {}};
+    PayCashTask cash_payment{Identifier::Factory(), {}};
+    WithdrawCashTask cash_withdrawal{Identifier::Factory(), {}};
 #endif  // OT_CASH
     DepositPaymentTask deposit{Identifier::Factory(), {}};
     UniqueQueue<DepositPaymentTask> depositPaymentRetry;
@@ -2599,7 +2592,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            const auto& notUsed[[maybe_unused]] = taskID;
+            const auto& notUsed [[maybe_unused]] = taskID;
             find_server(nymID, serverID, targetID);
         }
 
@@ -2643,7 +2636,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                     .Flush();
             }
 
-            const auto& notUsed[[maybe_unused]] = taskID;
+            const auto& notUsed [[maybe_unused]] = taskID;
             find_nym(nymID, serverID, targetID);
         }
 
@@ -2776,12 +2769,18 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
         SHUTDOWN()
 
 #if OT_CASH
+        while (queue.withdraw_cash_.Pop(taskID, cash_withdrawal)) {
+            SHUTDOWN()
+
+            withdraw_cash(taskID, nymID, serverID, cash_withdrawal);
+        }
+
         // This is a list of cash payments which need to be delivered to a nym
         // on this server
         while (queue.send_cash_.Pop(taskID, cash_payment)) {
             SHUTDOWN()
 
-            auto& [recipientID, pRecipientPurse, pSenderPurse] = cash_payment;
+            auto& [recipientID, purse] = cash_payment;
 
             if (recipientID->empty()) {
                 LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -2791,13 +2790,7 @@ void Sync::state_machine(const ContextID id, OperationQueue& queue) const
                 continue;
             }
 
-            pay_nym_cash(
-                taskID,
-                nymID,
-                serverID,
-                recipientID,
-                pRecipientPurse,
-                pSenderPurse);
+            pay_nym_cash(taskID, nymID, serverID, recipientID, purse);
         }
 #endif
 
@@ -3150,6 +3143,59 @@ Depositability Sync::valid_recipient(
     return Depositability::WRONG_RECIPIENT;
 }
 
+#if OT_CASH
+OTIdentifier Sync::WithdrawCash(
+    const identifier::Nym& nymID,
+    const identifier::Server& serverID,
+    const Identifier& account,
+    const Amount value) const
+{
+    CHECK_NYM(account)
+
+    auto& queue = get_operations({nymID, serverID});
+    const auto taskID(Identifier::Random());
+
+    return start_task(
+        taskID, queue.withdraw_cash_.Push(taskID, {account, value}));
+}
+
+bool Sync::withdraw_cash(
+    const Identifier& taskID,
+    const Identifier& nymID,
+    const Identifier& serverID,
+    const WithdrawCashTask& task) const
+{
+    const auto& [accountID, amount] = task;
+
+    OT_ASSERT(false == nymID.empty());
+    OT_ASSERT(false == serverID.empty());
+    OT_ASSERT(false == accountID->empty());
+
+    auto action =
+        client_.ServerAction().WithdrawCash(nymID, serverID, accountID, amount);
+    action->Run();
+
+    if (SendResult::VALID_REPLY == action->LastSendResult()) {
+        OT_ASSERT(action->Reply());
+
+        if (action->Reply()->m_bSuccess) {
+
+            return finish_task(taskID, true);
+        } else {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Server ")(serverID)(
+                " does not accept withdraw cash message")
+                .Flush();
+        }
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Communication error while withdrawing cash on server ")(serverID)
+            .Flush();
+    }
+
+    return finish_task(taskID, false);
+}
+#endif  // OT_CASH
+
 bool Sync::write_and_send_cheque(
     const Identifier& taskID,
     const Identifier& nymID,
@@ -3271,7 +3317,7 @@ bool Sync::write_and_send_cheque(
 Sync::~Sync()
 {
     for (auto& [id, thread] : state_machines_) {
-        const auto& notUsed[[maybe_unused]] = id;
+        const auto& notUsed [[maybe_unused]] = id;
 
         OT_ASSERT(thread)
 

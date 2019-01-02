@@ -16,7 +16,6 @@
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include <opentxs/api/client/Blockchain.hpp>
 #endif  // OT_CRYPTO_SUPPORTED_KEY_HD
-#include <opentxs/api/client/Cash.hpp>
 #include <opentxs/api/client/Contacts.hpp>
 #include <opentxs/api/client/Issuer.hpp>
 #include <opentxs/api/client/Manager.hpp>
@@ -42,7 +41,9 @@
 #include <opentxs/api/Periodic.hpp>
 #include <opentxs/api/Wallet.hpp>
 #if OT_CASH
-#include <opentxs/cash/Purse.hpp>
+#include <opentxs/blind/Mint.hpp>
+#include <opentxs/blind/Purse.hpp>
+#include <opentxs/blind/Token.hpp>
 #endif
 #include <opentxs/client/OTAPI_Exec.hpp>
 #include <opentxs/client/OTWallet.hpp>

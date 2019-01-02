@@ -1153,7 +1153,7 @@ bool Nym::Open(
         encryptKey.Open(dhPublic, sessionKey, sessionkeyPassword);
 
     if (false == opened) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
             .Flush();
 
         return false;

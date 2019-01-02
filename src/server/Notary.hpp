@@ -195,6 +195,20 @@ private:
         bool& success,
         Item& responseItem,
         Item& responseBalanceItem);
+#if OT_CASH
+    void process_cash_withdrawal(
+        const OTTransaction& requestTransaction,
+        const Item& requestItem,
+        const Item& balanceItem,
+        ClientContext& context,
+        ExclusiveAccount& account,
+        Identifier& accountHash,
+        Ledger& inbox,
+        Ledger& outbox,
+        Item& responseItem,
+        Item& responseBalanceItem,
+        bool& success);
+#endif
     void process_cheque_deposit(
         const OTTransaction& input,
         const Item& depositItem,
@@ -207,6 +221,20 @@ private:
         bool& success,
         Item& responseItem,
         Item& responseBalanceItem);
+#if OT_CASH
+    bool process_token_deposit(
+        ExclusiveAccount& reserveAccount,
+        Account& depositAccount,
+        blind::Token& token);
+    bool process_token_withdrawal(
+        const Identifier& unit,
+        ClientContext& context,
+        ExclusiveAccount& reserveAccount,
+        Account& account,
+        blind::Purse& replyPurse,
+        std::shared_ptr<blind::Token> pToken);
+    bool verify_token(blind::Mint& mint, blind::Token& token);
+#endif
 
     explicit Notary(
         Server& server,

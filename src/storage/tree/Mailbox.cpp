@@ -85,6 +85,7 @@ proto::StorageNymList Mailbox::serialize() const
 
         if (good) {
             serialize_index(
+                version_,
                 item.first,
                 item.second,
                 *serialized.add_nym(),

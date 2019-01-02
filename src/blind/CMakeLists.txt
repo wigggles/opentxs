@@ -3,21 +3,31 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set(MODULE_NAME opentxs-cash)
+set(MODULE_NAME opentxs-blind)
 
 set(cxx-sources
+  mint/Lucre.cpp
+  token/Lucre.cpp
+  Lucre.cpp
   Mint.cpp
-  MintLucre.cpp
-  DigitalCash.cpp
   Purse.cpp
   Token.cpp
-  TokenLucre.cpp
 )
 
-file(GLOB cxx-install-headers "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/cash/*.hpp")
+set(cxx-install-headers
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/blind/Mint.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/blind/Purse.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/../../include/opentxs/blind/Token.hpp"
+)
 
 set(cxx-headers
   ${cxx-install-headers}
+  mint/Lucre.hpp
+  token/Lucre.hpp
+  Lucre.hpp
+  Mint.hpp
+  Purse.hpp
+  Token.hpp
 )
 
 if(WIN32)
@@ -41,7 +51,7 @@ else()
 endif()
 
 install(FILES ${cxx-install-headers}
-        DESTINATION include/opentxs/cash
+        DESTINATION include/opentxs/blind
         COMPONENT dev)
 
 set_property(TARGET ${MODULE_NAME} PROPERTY POSITION_INDEPENDENT_CODE 1)

@@ -27,6 +27,7 @@ class String;
 #define PAYMENT_CODE_VERSION 1
 #define PEER_MESSAGE_VERSION 2
 #define PEER_PAYMENT_VERSION 5
+#define PEER_CASH_VERSION 7
 #define NYM_CREATE_VERSION 5          // TODO 1.14.0
 #define NYM_UPGRADE_VERSION 5         // TODO 1.14.0
 #define CONTACT_CREDENTIAL_VERSION 5  // TODO 1.14.0
@@ -505,6 +506,7 @@ enum class transactionType : std::int8_t {
                        // shareholders...)
     atPayDividend,     // reply from the server regarding said dividend
                        // payment.
+    incomingCash,
     error_state
 };  // If you add any types to this list, update the list of strings at the
 // top of OTTransaction.cpp.

@@ -6,8 +6,8 @@
 set(cxx-sources
   Activity.cpp
   Blockchain.cpp
-  Cash.cpp
   Contacts.cpp
+  Factory.cpp
   Issuer.cpp
   Manager.cpp
   Pair.cpp
@@ -24,19 +24,19 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
-  ${CMAKE_CURRENT_SOURCE_DIR}/Activity.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Blockchain.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Cash.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Contacts.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Issuer.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/InternalClient.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Manager.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Pair.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/ServerAction.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Sync.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/UI.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Wallet.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/Workflow.hpp
+  Activity.hpp
+  Blockchain.hpp
+  Contacts.hpp
+  Factory.hpp
+  Issuer.hpp
+  InternalClient.hpp
+  Manager.hpp
+  Pair.hpp
+  ServerAction.hpp
+  Sync.hpp
+  UI.hpp
+  Wallet.hpp
+  Workflow.hpp
 )
 
 set(MODULE_NAME opentxs-api-client)

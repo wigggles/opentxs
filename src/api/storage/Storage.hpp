@@ -87,6 +87,13 @@ public:
         proto::ContactItemType chain,
         std::string address) const override;
     ObjectList BlockchainTransactionList() const override;
+#if OT_CASH
+    bool CheckTokenSpent(
+        const identifier::Server& notary,
+        const identifier::UnitDefinition& unit,
+        const std::uint64_t series,
+        const std::string& key) const override;
+#endif
     std::string ContactAlias(const std::string& id) const override;
     ObjectList ContactList() const override;
     ObjectList ContextList(const std::string& nymID) const override;
@@ -182,6 +189,12 @@ public:
         std::time_t& time,
         const bool checking = false) const override;
     bool Load(
+        const identifier::Nym& nym,
+        const identifier::Server& notary,
+        const identifier::UnitDefinition& unit,
+        std::shared_ptr<proto::Purse>& output,
+        const bool checking) const override;
+    bool Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
         const bool checking = false) const override;
@@ -216,6 +229,13 @@ public:
     void MapPublicNyms(NymLambda& lambda) const override;
     void MapServers(ServerLambda& lambda) const override;
     void MapUnitDefinitions(UnitLambda& lambda) const override;
+#if OT_CASH
+    bool MarkTokenSpent(
+        const identifier::Server& notary,
+        const identifier::UnitDefinition& unit,
+        const std::uint64_t series,
+        const std::string& key) const override;
+#endif
     bool MoveThreadItem(
         const std::string& nymId,
         const std::string& fromThreadID,
@@ -330,6 +350,8 @@ public:
         const proto::PeerRequest& data,
         const std::string& nymid,
         const StorageBox box) const override;
+    bool Store(const identifier::Nym& nym, const proto::Purse& purse)
+        const override;
     bool Store(
         const proto::Seed& data,
         const std::string& alias = std::string("")) const override;

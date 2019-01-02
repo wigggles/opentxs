@@ -25,7 +25,6 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     EXPORT virtual const api::client::Blockchain& Blockchain() const = 0;
 #endif
-    EXPORT virtual const client::Cash& Cash() const = 0;
     EXPORT virtual const api::client::Contacts& Contacts() const = 0;
     EXPORT virtual const OTAPI_Exec& Exec(
         const std::string& wallet = "") const = 0;

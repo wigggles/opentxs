@@ -88,6 +88,13 @@ public:
         proto::ContactItemType chain,
         std::string address) const = 0;
     virtual ObjectList BlockchainTransactionList() const = 0;
+#if OT_CASH
+    virtual bool CheckTokenSpent(
+        const identifier::Server& notary,
+        const identifier::UnitDefinition& unit,
+        const std::uint64_t series,
+        const std::string& key) const = 0;
+#endif
     virtual std::string ContactAlias(const std::string& id) const = 0;
     virtual ObjectList ContactList() const = 0;
     virtual ObjectList ContextList(const std::string& nymID) const = 0;
@@ -183,6 +190,12 @@ public:
         std::time_t& time,
         const bool checking = false) const = 0;
     virtual bool Load(
+        const identifier::Nym& nym,
+        const identifier::Server& notary,
+        const identifier::UnitDefinition& unit,
+        std::shared_ptr<proto::Purse>& output,
+        const bool checking) const = 0;
+    virtual bool Load(
         const std::string& id,
         std::shared_ptr<proto::Seed>& seed,
         const bool checking = false) const = 0;
@@ -217,6 +230,13 @@ public:
     virtual void MapPublicNyms(NymLambda& lambda) const = 0;
     virtual void MapServers(ServerLambda& lambda) const = 0;
     virtual void MapUnitDefinitions(UnitLambda& lambda) const = 0;
+#if OT_CASH
+    virtual bool MarkTokenSpent(
+        const identifier::Server& notary,
+        const identifier::UnitDefinition& unit,
+        const std::uint64_t series,
+        const std::string& key) const = 0;
+#endif
     virtual bool MoveThreadItem(
         const std::string& nymId,
         const std::string& fromThreadID,
@@ -337,6 +357,8 @@ public:
         const proto::PeerRequest& data,
         const std::string& nymid,
         const StorageBox box) const = 0;
+    virtual bool Store(const identifier::Nym& nym, const proto::Purse& purse)
+        const = 0;
     virtual bool Store(
         const proto::Seed& data,
         const std::string& alias = std::string("")) const = 0;

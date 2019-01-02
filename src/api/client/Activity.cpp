@@ -689,8 +689,7 @@ void Activity::preload(
 
     LogOutput(OT_METHOD)(__FUNCTION__)(": Decrypting message ")(id)(".")
         .Flush();
-    auto peerObject = PeerObject::Factory(
-        contact_, api_.Wallet(), nym, message->m_ascPayload);
+    auto peerObject = api_.Factory().PeerObject(nym, message->m_ascPayload);
     LogOutput(OT_METHOD)(__FUNCTION__)(": Message ")(id)(" decrypted.").Flush();
 
     if (!peerObject) {

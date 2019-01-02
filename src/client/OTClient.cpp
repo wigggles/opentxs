@@ -18,9 +18,8 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
-#include "opentxs/cash/Mint.hpp"
-#include "opentxs/cash/Purse.hpp"
-#include "opentxs/cash/Token.hpp"
+#include "opentxs/blind/Mint.hpp"
+#include "opentxs/blind/Purse.hpp"
 #endif  // OT_CASH
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/OTMessageOutbuffer.hpp"
@@ -34,8 +33,9 @@
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
-#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
 #include "opentxs/core/trade/OTTrade.hpp"
@@ -75,17 +75,11 @@
 namespace opentxs
 {
 OTClient::OTClient(
-    OTWallet& theWallet,
     const api::Core& core,
     const api::client::Activity& activity,
     const api::client::Contacts& contacts,
     const api::client::Workflow& workflow)
-    :
-#if OT_CASH
-    m_pWallet(theWallet)
-    ,
-#endif
-    api_(core)
+    : api_(core)
     , activity_(activity)
     , contacts_(contacts)
     , workflow_(workflow)
@@ -800,7 +794,7 @@ bool OTClient::add_item_to_workflow(
 
     auto payment = api_.Factory().Payment(plaintext);
 
-    OT_ASSERT((payment));
+    OT_ASSERT(payment);
 
     if (false == payment->IsCheque()) { return false; }
 
@@ -1388,11 +1382,8 @@ void OTClient::process_incoming_message(
         }
 
         if (recipientNymId == nymID) {
-            const auto peerObject = PeerObject::Factory(
-                contacts_,
-                api_.Wallet(),
-                context.Nym(),
-                pMessage->m_ascPayload);
+            const auto peerObject = api_.Factory().PeerObject(
+                context.Nym(), pMessage->m_ascPayload);
             proto::PeerObjectType type = proto::PEEROBJECT_ERROR;
 
             if (peerObject) { type = peerObject->Type(); }
@@ -1415,6 +1406,21 @@ void OTClient::process_incoming_message(
                             .Flush();
                     }
                 } break;
+#if OT_CASH
+                case (proto::PEEROBJECT_CASH): {
+                    const bool saved = save_incoming_cash(
+                        context,
+                        *pMessage,
+                        *peerObject,
+                        receipt.GetTransactionNum());
+
+                    if (false == saved) {
+                        LogOutput(OT_METHOD)(__FUNCTION__)(
+                            ": Failed to save cash")
+                            .Flush();
+                    }
+                } break;
+#endif
                 case (proto::PEEROBJECT_REQUEST): {
                     api_.Wallet().PeerRequestReceive(
                         recipientNymId, *peerObject);
@@ -7824,7 +7830,8 @@ void OTClient::ProcessWithdrawalResponse(
     ServerContext& context,
     OTTransaction& theTransaction) const
 {
-    const Identifier& NYM_ID = context.Nym()->ID();
+    // TODO nym id type
+    const auto NYM_ID = identifier::Nym::Factory(context.Nym()->ID().str());
     const auto strNotaryID = String::Factory(context.Server());
 
     // loop through the ALL items that make up this transaction and check to
@@ -7866,123 +7873,46 @@ void OTClient::ProcessWithdrawalResponse(
         else if (
             (itemType::atWithdrawal == pItem->GetType()) &&
             (Item::acknowledgement == pItem->GetStatus())) {
-            auto strPurse = String::Factory();
-            pItem->GetAttachment(strPurse);
+            auto rawPurse = Data::Factory();
+            pItem->GetAttachment(rawPurse);
+            const auto serializedPurse =
+                proto::DataToProto<proto::Purse>(rawPurse);
+            std::shared_ptr<blind::Purse> pPurse{};
 
-            auto thePurse = api_.Factory().Purse(context.Server());
+            if (proto::Validate(serializedPurse, VERBOSE)) {
+                pPurse.reset(api_.Factory().Purse(serializedPurse).release());
+            } else {
+                LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
+            }
 
-            OT_ASSERT((thePurse));
+            if (pPurse) {
+                auto& requestPurse = *pPurse;
 
-            if (thePurse->LoadContractFromString(strPurse)) {
-                // When we made the withdrawal request, we saved that purse
-                // pointer in the
-                // wallet so that we could get to the private coin
-                // unblinding data when we needed it (now).
-                Purse* pRequestPurse = m_pWallet.GetPendingWithdrawal();
+                OT_ASSERT(requestPurse.Unlock(*context.Nym()));
 
-                auto strInstrumentDefinitionID =
-                    String::Factory(thePurse->GetInstrumentDefinitionID());
-                auto pMint =
-                    api_.Factory().Mint(strNotaryID, strInstrumentDefinitionID);
+                auto pMint = api_.Factory().Mint(
+                    strNotaryID, String::Factory(requestPurse.Unit()));
 
-                OT_ASSERT((pMint));
+                OT_ASSERT(pMint);
 
-                // Unlike the purse which we read out of a message,
-                // now we try to open a purse as a file on the client side,
-                // keyed by Instrument Definition Id.  (The client should
-                // already have one
-                // purse file for each instrument definition, if he already
-                // has cash.)
-                //
-                // We don't want to just overwrite that file. So instead, we
-                // try to load that purse first, then add the token, then
-                // save it again.
-                auto theWalletPurse = api_.Factory().Purse(*thePurse);
+                const auto& mint = *pMint;
+                const auto processed =
+                    requestPurse.Process(*context.Nym(), mint);
 
-                OT_ASSERT((theWalletPurse));
+                if (processed) {
+                    auto purseEditor = api_.Wallet().mutable_Purse(
+                        NYM_ID, requestPurse.Notary(), requestPurse.Unit());
 
-                // TODO verify the wallet purse when loaded. My signature
-                // should be the last thing on it.
+                    auto& walletPurse = purseEditor.It();
 
-                // TODO: I don't check this for failure. If the file doesn't
-                // exist,
-                // we are still going to save the purse there regardless.
-                // HOWEVER need to make sure the wallet software has good
-                // backup strategy.  In the event that tokens are
-                // overwritten here, it shouldn't be a problem since they
-                // would be in the archive somewhere.
+                    OT_ASSERT(walletPurse.Unlock(*context.Nym()));
 
-                theWalletPurse->LoadPurse(
-                    strNotaryID->Get(),
-                    String::Factory(NYM_ID)->Get(),
-                    strInstrumentDefinitionID->Get());
+                    auto token = requestPurse.Pop();
 
-                bool bSuccess = false;
-
-                if ((nullptr != pRequestPurse) && pMint->LoadMint() &&
-                    pMint->VerifyMint(context.RemoteNym())) {
-                    std::unique_ptr<Token> pToken{
-                        thePurse->Pop(*context.Nym())};
-
-                    while (pToken) {
-                        std::unique_ptr<Token> pOriginalToken{
-                            pRequestPurse->Pop(*context.Nym())};
-
-                        if (false == bool(pOriginalToken)) {
-                            LogOutput(OT_METHOD)(__FUNCTION__)(
-                                ": ERROR, processing withdrawal response, "
-                                "but couldn't find original token: ")(strPurse)(
-                                ".")
-                                .Flush();
-                        } else if (Token::signedToken == pToken->GetState()) {
-                            LogDetail(OT_METHOD)(__FUNCTION__)(
-                                ": Retrieved signed token from purse, and "
-                                "have corresponding withdrawal request "
-                                "in wallet. Unblinding...")
-                                .Flush();
-
-                            if (pToken->ProcessToken(
-                                    *context.Nym(), *pMint, *pOriginalToken)) {
-                                // Now that it's processed, let's save it
-                                // again.
-                                pToken->ReleaseSignatures();
-                                pToken->SignContract(*context.Nym());
-                                pToken->SaveContract();
-
-                                bSuccess = true;
-
-                                // add it to the existing client-side purse
-                                // for storing tokens of that instrument
-                                // definition
-                                theWalletPurse->Push(*context.Nym(), *pToken);
-                            } else {
-                                bSuccess = false;
-                            }
-                        }
-
-                        pToken.reset(thePurse->Pop(*context.Nym()));
+                    while (token) {
+                        walletPurse.Push(token);
+                        token = requestPurse.Pop();
                     }
-                }
-
-                if (bSuccess) {
-                    // Sign it, save it.
-                    theWalletPurse->ReleaseSignatures();  // Might as well,
-                                                          // they're no good
-                                                          // anyway once the
-                                                          // data has
-                                                          // changed.
-                    theWalletPurse->SignContract(*context.Nym());
-                    theWalletPurse->SaveContract();
-                    theWalletPurse->SavePurse(
-                        strNotaryID->Get(),
-                        String::Factory(NYM_ID)->Get(),
-                        strInstrumentDefinitionID->Get());
-
-                    LogNormal(OT_METHOD)(__FUNCTION__)(
-                        ": SUCCESSFULLY UNBLINDED token, and added the "
-                        "cash "
-                        "to the local purse, and saved.")
-                        .Flush();
                 }
             }
         }
@@ -8044,6 +7974,106 @@ void OTClient::QueueOutgoingMessage(const Message& theMessage)
         OT_FAIL
     }
 }
+
+#if OT_CASH
+bool OTClient::save_incoming_cash(
+    const ServerContext& context,
+    const Message& message,
+    const PeerObject& peerObject,
+    const TransactionNumber number)
+{
+    OT_ASSERT(proto::PEEROBJECT_CASH == peerObject.Type());
+
+    if (false == peerObject.Validate()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid peer object.").Flush();
+
+        return false;
+    }
+
+    const auto& nym = *context.Nym();
+    const auto& nymID = nym.ID();
+    const auto strNotaryID = String::Factory(context.Server());
+    const auto strNymID = String::Factory(nymID);
+    const auto pPurse = peerObject.Purse();
+
+    if (false == bool(pPurse)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No purse found").Flush();
+
+        return false;
+    }
+
+    const auto& purse = *pPurse;
+    const bool bExists = OTDB::Exists(
+        api_.DataFolder(),
+        OTFolders::PaymentInbox().Get(),
+        strNotaryID->Get(),
+        strNymID->Get(),
+        "");
+    auto thePmntInbox = api_.Factory().Ledger(
+        nymID,
+        nymID,
+        context.Server());  // payment
+                            // inbox
+
+    OT_ASSERT((thePmntInbox));
+
+    bool bSuccessLoading = (bExists && thePmntInbox->LoadPaymentInbox());
+
+    if (bExists && bSuccessLoading) {
+        bSuccessLoading =
+            (thePmntInbox->VerifyContractID() &&
+             thePmntInbox->VerifySignature(nym));
+    } else if (!bExists) {
+        bSuccessLoading = thePmntInbox->GenerateLedger(
+            nymID,
+            context.Server(),
+            ledgerType::paymentInbox,
+            true);  // bGenerateFile=true
+    }
+
+    // By this point, the payment inbox DEFINITELY exists -- or not.
+    // (generation might have failed, or verification.)
+    // -------------------------------------------------
+    if (!bSuccessLoading) {
+        LogNormal(OT_METHOD)(__FUNCTION__)(
+            ": WARNING: Unable to load, verify, or generate paymentInbox, "
+            "with Notary ID / Nym ID: ")(strNotaryID)(" / ")(strNymID)(".")
+            .Flush();
+        return false;
+    }
+    // -------------------------------------------------
+    // I create the client-side-created instrumentNotice using the same
+    // transaction number that was already on the box receipt where it came
+    // from. Meaning the server already placed an "transactionType::message"
+    // in my Nymbox with Txn # X, so I will create the corresponding
+    // instrumentNotice for my Payments Inbox using Txn # X as well.
+    // After all, if the notary had created it (as normally happens) then
+    // that's the Txn# that would have been on it anyway.
+    //
+    auto pTransaction = api_.Factory().Transaction(
+        *thePmntInbox,
+        transactionType::incomingCash,
+        originType::not_applicable,
+        number);
+
+    OT_ASSERT((pTransaction));
+
+    pTransaction->SetReferenceToNum(number);
+    pTransaction->SetReferenceString(
+        proto::ProtoAsArmored(purse.Serialize(), String::Factory("PURSE")));
+    pTransaction->SignContract(nym);
+    pTransaction->SaveContract();
+    load_str_trans_add_to_ledger(
+        nymID,
+        String::Factory(*pTransaction),
+        String::Factory("paymentInbox"),
+        number,
+        nym,
+        *thePmntInbox);
+
+    return true;
+}
+#endif
 
 bool OTClient::update_workflow_send_transfer(
     const Message& reply,

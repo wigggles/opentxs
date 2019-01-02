@@ -113,13 +113,13 @@ public:
     inline std::int64_t GetNewOutboxTransNum() const
     {
         return m_lNewOutboxTransNum;
-    }                   // See above comment in protected section.
+    }                     // See above comment in protected section.
     OTArmored m_ascNote;  // a text field for the user. Cron may also store
     // receipt data here. Also inbox reports go here for
     // balance agreement
     OTArmored m_ascAttachment;  // the digital cash token is sent here,
-                              // signed, and returned here. (or purse of
-                              // tokens.)
+                                // signed, and returned here. (or purse of
+                                // tokens.)
     // As well as a cheque, or a voucher, or a server update on a market offer,
     // or a nym full of transactions for balance agreement.
     // Call this on the server side, on a balanceStatement item, to verify
@@ -157,7 +157,9 @@ public:
     EXPORT void GetNote(String& theStr) const;
     EXPORT void SetNote(const String& theStr);
     EXPORT void GetAttachment(String& theStr) const;
+    EXPORT void GetAttachment(Data& output) const;
     EXPORT void SetAttachment(const String& theStr);
+    EXPORT void SetAttachment(const Data& input);
     inline const Identifier& GetDestinationAcctID() const { return m_AcctToID; }
     inline void SetDestinationAcctID(const Identifier& theID)
     {

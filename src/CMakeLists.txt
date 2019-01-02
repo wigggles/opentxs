@@ -44,10 +44,10 @@ else()
 endif()
 
 if(OT_CASH_EXPORT)
-  set(cash $<TARGET_OBJECTS:opentxs-cash>)
-  add_subdirectory(cash)
+  set(blind $<TARGET_OBJECTS:opentxs-blind>)
+  add_subdirectory(blind)
 else()
-  set(cash "")
+  set(blind "")
 endif()
 
 if(OT_BUNDLED_OPENTXS_PROTO)
@@ -68,7 +68,7 @@ if(OT_BUNDLED_PROTOBUF)
   )
 
   if(OT_CASH_EXPORT)
-    add_dependencies(opentxs-cash protobuf)
+    add_dependencies(opentxs-blind protobuf)
   endif()
 
   if(CASH_LUCRE_EXPORT)
@@ -135,7 +135,7 @@ if(OT_BUNDLED_SSL)
   )
 
   if(OT_CASH_EXPORT)
-    add_dependencies(opentxs-cash libressl)
+    add_dependencies(opentxs-blind libressl)
   endif()
 
   if(CASH_LUCRE_EXPORT)
@@ -213,7 +213,7 @@ set(object-deps
   $<TARGET_OBJECTS:opentxs-api-server>
   $<TARGET_OBJECTS:opentxs-api-storage>
   $<TARGET_OBJECTS:opentxs-api>
-  ${cash}
+  ${blind}
   $<TARGET_OBJECTS:opentxs-client>
   $<TARGET_OBJECTS:opentxs-consensus>
   $<TARGET_OBJECTS:opentxs-core-contract-basket>

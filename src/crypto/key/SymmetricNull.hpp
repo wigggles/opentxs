@@ -21,6 +21,11 @@ public:
     {
         return false;
     }
+    bool Decrypt(const proto::Ciphertext&, const OTPasswordData&, String&)
+        override
+    {
+        return false;
+    }
     bool Decrypt(const proto::Ciphertext&, const OTPasswordData&, Data&)
         override
     {
@@ -53,6 +58,16 @@ public:
     }
     bool Encrypt(
         const OTPassword&,
+        const Data&,
+        const OTPasswordData&,
+        proto::Ciphertext&,
+        const bool = true,
+        const proto::SymmetricMode = proto::SMODE_ERROR) override
+    {
+        return false;
+    }
+    bool Encrypt(
+        const Data&,
         const Data&,
         const OTPasswordData&,
         proto::Ciphertext&,

@@ -8,9 +8,6 @@
 
 #include "opentxs/Forward.hpp"
 
-#include "opentxs/core/contract/peer/PeerReply.hpp"
-#include "opentxs/core/contract/peer/PeerRequest.hpp"
-#include "opentxs/core/contract/Signable.hpp"
 #include "opentxs/Proto.hpp"
 
 #include <cstdint>
@@ -22,83 +19,34 @@ namespace opentxs
 class PeerObject
 {
 public:
-    static std::unique_ptr<PeerObject> Create(
-        const api::Wallet& wallet,
-        const ConstNym& senderNym,
-        const std::string& message);
-    static std::unique_ptr<PeerObject> Create(
-        const api::Wallet& wallet,
-        const ConstNym& senderNym,
-        const std::string& payment,
-        const bool isPayment);
-    static std::unique_ptr<PeerObject> Create(
-        const api::Wallet& wallet,
-        const std::shared_ptr<PeerRequest>& request,
-        const std::shared_ptr<PeerReply>& reply,
-        const std::uint32_t& version);
-    static std::unique_ptr<PeerObject> Create(
-        const api::Wallet& wallet,
-        const std::shared_ptr<PeerRequest>& request,
-        const std::uint32_t& version);
-    static std::unique_ptr<PeerObject> Factory(
-        const api::client::Contacts& contacts,
-        const api::Wallet& wallet,
-        const ConstNym& signerNym,
-        const proto::PeerObject& serialized);
-    static std::unique_ptr<PeerObject> Factory(
-        const api::client::Contacts& contacts,
-        const api::Wallet& wallet,
-        const ConstNym& recipientNym,
-        const Armored& encrypted);
+    EXPORT virtual const std::unique_ptr<std::string>& Message() const = 0;
+    EXPORT virtual const ConstNym& Nym() const = 0;
+    EXPORT virtual const std::unique_ptr<std::string>& Payment() const = 0;
+#if OT_CASH
+    EXPORT virtual std::shared_ptr<blind::Purse> Purse() const = 0;
+#endif
+    EXPORT virtual const std::shared_ptr<PeerRequest> Request() const = 0;
+    EXPORT virtual const std::shared_ptr<PeerReply> Reply() const = 0;
+    EXPORT virtual proto::PeerObject Serialize() const = 0;
+    EXPORT virtual proto::PeerObjectType Type() const = 0;
+    EXPORT virtual bool Validate() const = 0;
 
-    const ConstNym& Nym() const { return nym_; }
-    const std::shared_ptr<PeerRequest>& Request() const { return request_; }
-    const std::shared_ptr<PeerReply>& Reply() const { return reply_; }
-    proto::PeerObject Serialize() const;
-    proto::PeerObjectType Type() const { return type_; }
-    bool Validate() const;
+    EXPORT virtual std::unique_ptr<std::string>& Message() = 0;
+    EXPORT virtual std::unique_ptr<std::string>& Payment() = 0;
+#if OT_CASH
+    EXPORT virtual std::shared_ptr<blind::Purse>& Purse() = 0;
+#endif
 
-    std::unique_ptr<std::string>& Message() { return message_; }
-    const std::unique_ptr<std::string>& Message() const { return message_; }
-    std::unique_ptr<std::string>& Payment() { return payment_; }
-    const std::unique_ptr<std::string>& Payment() const { return payment_; }
+    EXPORT virtual ~PeerObject() = default;
 
-    ~PeerObject() = default;
+protected:
+    PeerObject() = default;
 
 private:
-    const api::Wallet& wallet_;
-    ConstNym nym_{nullptr};
-    std::unique_ptr<std::string> message_{nullptr};
-    std::unique_ptr<std::string> payment_{nullptr};
-    std::shared_ptr<PeerReply> reply_{nullptr};
-    std::shared_ptr<PeerRequest> request_{nullptr};
-    proto::PeerObjectType type_{proto::PEEROBJECT_ERROR};
-    std::uint32_t version_{0};
-
-    PeerObject(
-        const api::client::Contacts& contacts,
-        const api::Wallet& wallet,
-        const ConstNym& signerNym,
-        const proto::PeerObject serialized);
-    PeerObject(
-        const api::Wallet& wallet,
-        const ConstNym& senderNym,
-        const std::string& message);
-    PeerObject(
-        const api::Wallet& wallet,
-        const std::string& payment,
-        const ConstNym& senderNym);
-    PeerObject(
-        const api::Wallet& wallet,
-        const std::shared_ptr<PeerRequest>& request,
-        const std::shared_ptr<PeerReply>& reply,
-        const std::uint32_t& version);
-    PeerObject(
-        const api::Wallet& wallet,
-        const std::shared_ptr<PeerRequest>& request,
-        const std::uint32_t& version);
-    PeerObject() = delete;
+    PeerObject(const PeerObject&) = delete;
+    PeerObject(PeerObject&&) = delete;
+    PeerObject& operator=(const PeerObject&) = delete;
+    PeerObject& operator=(PeerObject&&) = delete;
 };
 }  // namespace opentxs
-
 #endif

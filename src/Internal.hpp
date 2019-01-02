@@ -63,6 +63,22 @@ class StorageInternal;
 }  // namespace storage
 }  // namespace api
 
+namespace blind
+{
+namespace implementation
+{
+class Purse;
+}  // namespace implementation
+
+namespace token
+{
+namespace implementation
+{
+class Token;
+}  // namespace implementation
+}  // namespace token
+}  // namespace blind
+
 namespace crypto
 {
 class Ripemd160;
@@ -121,6 +137,7 @@ class Contexts;
 class Credentials;
 class Issuers;
 class Mailbox;
+class Notary;
 class Nym;
 class Nyms;
 class PaymentWorkflows;

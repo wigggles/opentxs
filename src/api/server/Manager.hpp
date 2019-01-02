@@ -25,10 +25,10 @@ public:
     std::string GetListenNotify() const override;
     std::string GetOnion() const override;
 #if OT_CASH
-    std::shared_ptr<Mint> GetPrivateMint(
+    std::shared_ptr<blind::Mint> GetPrivateMint(
         const Identifier& unitID,
         std::uint32_t series) const override;
-    std::shared_ptr<const Mint> GetPublicMint(
+    std::shared_ptr<const blind::Mint> GetPublicMint(
         const Identifier& unitID) const override;
 #endif  // OT_CASH
     std::string GetUserName() const override;
@@ -40,6 +40,10 @@ public:
 #endif  // OT_CASH
     opentxs::server::Server& Server() const override { return server_; }
 #if OT_CASH
+    void SetMintKeySize(const std::size_t size) const override
+    {
+        mint_key_size_.store(size);
+    }
     void UpdateMint(const Identifier& unitID) const override;
 #endif  // OT_CASH
 
@@ -49,7 +53,7 @@ private:
     friend opentxs::Factory;
 
 #if OT_CASH
-    typedef std::map<std::string, std::shared_ptr<Mint>> MintSeries;
+    typedef std::map<std::string, std::shared_ptr<blind::Mint>> MintSeries;
 #endif  // OT_CASH
 
     std::unique_ptr<opentxs::server::Server> server_p_;
@@ -63,6 +67,7 @@ private:
     mutable std::mutex mint_scan_lock_;
     mutable std::map<std::string, MintSeries> mints_;
     mutable std::deque<std::string> mints_to_check_;
+    mutable std::atomic<std::size_t> mint_key_size_;
 #endif  // OT_CASH
 
 #if OT_CASH
@@ -76,11 +81,11 @@ private:
     std::int32_t last_generated_series(
         const std::string& serverID,
         const std::string& unitID) const;
-    std::shared_ptr<Mint> load_private_mint(
+    std::shared_ptr<blind::Mint> load_private_mint(
         const Lock& lock,
         const std::string& unitID,
         const std::string seriesID) const;
-    std::shared_ptr<Mint> load_public_mint(
+    std::shared_ptr<blind::Mint> load_public_mint(
         const Lock& lock,
         const std::string& unitID,
         const std::string seriesID) const;
@@ -88,11 +93,11 @@ private:
 #endif  // OT_CASH
     bool verify_lock(const Lock& lock, const std::mutex& mutex) const;
 #if OT_CASH
-    std::shared_ptr<Mint> verify_mint(
+    std::shared_ptr<blind::Mint> verify_mint(
         const Lock& lock,
         const std::string& unitID,
         const std::string seriesID,
-        std::shared_ptr<Mint>& mint) const;
+        std::shared_ptr<blind::Mint>& mint) const;
     bool verify_mint_directory(const std::string& serverID) const;
 #endif  // OT_CASH
 

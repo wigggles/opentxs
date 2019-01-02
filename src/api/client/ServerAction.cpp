@@ -9,7 +9,6 @@
 #include "opentxs/api/client/ServerAction.hpp"
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
-#include "opentxs/cash/Purse.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/Utility.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -267,7 +266,7 @@ ServerAction::Action ServerAction::DepositCashPurse(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& accountID,
-    std::unique_ptr<Purse>& purse) const
+    const std::shared_ptr<blind::Purse>& purse) const
 {
     if (!GetTransactionNumbers(localNymID, serverID, 1)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(
@@ -563,30 +562,6 @@ ServerAction::Action ServerAction::ExchangeBasketCurrency(
         direction,
         api_.OTAPI().GetBasketMemberCount(basketID)));
 }
-
-#if OT_CASH
-ServerAction::Action ServerAction::ExchangeCash(
-    const Identifier& localNymID,
-    const Identifier& serverID,
-    const Identifier& instrumentDefinitionID,
-    std::unique_ptr<Purse>& purse) const
-{
-    if (!GetTransactionNumbers(localNymID, serverID, 1)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to obtain transaction numbers.")
-            .Flush();
-    }
-
-    return Action(new OTAPI_Func(
-        EXCHANGE_CASH,
-        lock_callback_({localNymID.str(), serverID.str()}),
-        api_,
-        localNymID,
-        serverID,
-        instrumentDefinitionID,
-        purse));
-}
-#endif  // OT_CASH
 
 ServerAction::Action ServerAction::InitiateBailment(
     const Identifier& localNymID,
@@ -909,32 +884,20 @@ ServerAction::Action ServerAction::SendCash(
     const Identifier& localNymID,
     const Identifier& serverID,
     const Identifier& recipientNymID,
-    std::shared_ptr<const Purse>& recipientCopy,
-    std::shared_ptr<const Purse>& senderCopy) const
+    const std::shared_ptr<blind::Purse> purse) const
 {
-    auto strRecip = String::Factory();
-    auto strSend = String::Factory();
-
-    if (recipientCopy) strRecip = String::Factory(*recipientCopy);
-    if (senderCopy) strSend = String::Factory(*senderCopy);
-
-    std::unique_ptr<const Purse> pRecip(api_.Factory().Purse(strRecip));
-
-    OT_ASSERT(false != bool(pRecip));
-
-    std::unique_ptr<const Purse> pSend(api_.Factory().Purse(strSend));
-
-    OT_ASSERT(false != bool(pSend));
+    if (false == bool(purse)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Missing purse").Flush();
+    }
 
     return Action(new OTAPI_Func(
-        SEND_USER_INSTRUMENT,
+        SEND_USER_CASH,
         lock_callback_({localNymID.str(), serverID.str()}),
         api_,
         localNymID,
         serverID,
         recipientNymID,
-        pRecip,
-        pSend));
+        purse));
 }
 #endif  // OT_CASH
 

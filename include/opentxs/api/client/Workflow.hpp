@@ -84,22 +84,50 @@ namespace client
  *    6. CompleteTransfer
  *       a. Called after a process inbox attempt
  *       b. May be repeated as necessary until successful
+ *
+ *  Sequence for sending cash
+ *
+ *    1. AllocateCash
+ *    2. SendCash
+ *
+ *  Sequence for receiving cash
+ *
+ *    1. ReceiveCash
+ *    2. AcceptCash
+ *    2. RejectCash
+ *
  */
 class Workflow
 {
 public:
     using Cheque = std::
         pair<proto::PaymentWorkflowState, std::unique_ptr<opentxs::Cheque>>;
+#if OT_CASH
+    using Purse =
+        std::pair<proto::PaymentWorkflowState, std::unique_ptr<blind::Purse>>;
+#endif
     using Transfer =
         std::pair<proto::PaymentWorkflowState, std::unique_ptr<opentxs::Item>>;
 
+#if OT_CASH
+    static bool ContainsCash(const proto::PaymentWorkflow& workflow);
+#endif
     static bool ContainsCheque(const proto::PaymentWorkflow& workflow);
     static bool ContainsTransfer(const proto::PaymentWorkflow& workflow);
     static std::string ExtractCheque(const proto::PaymentWorkflow& workflow);
+#if OT_CASH
+    static std::unique_ptr<proto::Purse> ExtractPurse(
+        const proto::PaymentWorkflow& workflow);
+#endif
     static std::string ExtractTransfer(const proto::PaymentWorkflow& workflow);
     static Cheque InstantiateCheque(
         const api::Core& core,
         const proto::PaymentWorkflow& workflow);
+#if OT_CASH
+    static Purse InstantiatePurse(
+        const api::Core& core,
+        const proto::PaymentWorkflow& workflow);
+#endif
     static Transfer InstantiateTransfer(
         const api::Core& core,
         const proto::PaymentWorkflow& workflow);
@@ -126,6 +154,11 @@ public:
         const Identifier& nymID,
         const Item& transfer,
         const Message& reply) const = 0;
+#if OT_CASH
+    EXPORT virtual OTIdentifier AllocateCash(
+        const identifier::Nym& id,
+        const blind::Purse& purse) const = 0;
+#endif
     /** Record a cheque cancellation or cancellation attempt */
     EXPORT virtual bool CancelCheque(
         const opentxs::Cheque& cheque,
@@ -199,11 +232,25 @@ public:
     EXPORT virtual std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
         const Identifier& nymID,
         const Identifier& workflowID) const = 0;
+#if OT_CASH
+    EXPORT virtual OTIdentifier ReceiveCash(
+        const identifier::Nym& receiver,
+        const blind::Purse& purse,
+        const Message& message) const = 0;
+#endif
     /** Create a new incoming cheque workflow from an OT message */
     EXPORT virtual OTIdentifier ReceiveCheque(
         const Identifier& nymID,
         const opentxs::Cheque& cheque,
         const Message& message) const = 0;
+#if OT_CASH
+    EXPORT virtual bool SendCash(
+        const identifier::Nym& sender,
+        const identifier::Nym& recipient,
+        const Identifier& workflowID,
+        const Message& request,
+        const Message* reply) const = 0;
+#endif
     /** Record a send or send attempt via an OT notary */
     EXPORT virtual bool SendCheque(
         const opentxs::Cheque& cheque,

@@ -92,8 +92,7 @@ public:
     OTIdentifier PayContactCash(
         const Identifier& senderNymID,
         const Identifier& contactID,
-        std::shared_ptr<const Purse>& recipientCopy,
-        std::shared_ptr<const Purse>& senderCopy) const override;
+        const std::shared_ptr<blind::Purse> purse) const override;
 #endif  // OT_CASH
     void Refresh() const override;
     std::uint64_t RefreshCount() const override;
@@ -172,6 +171,13 @@ public:
         const Time validTo) const override;
     void StartIntroductionServer(const Identifier& localNymID) const override;
     ThreadStatus Status(const Identifier& taskID) const override;
+#if OT_CASH
+    OTIdentifier WithdrawCash(
+        const identifier::Nym& nymID,
+        const identifier::Server& serverID,
+        const Identifier& account,
+        const Amount value) const override;
+#endif  // OT_CASH
 
     ~Sync();
 
@@ -188,11 +194,10 @@ private:
     using PaymentTask =
         std::pair<OTIdentifier, std::shared_ptr<const OTPayment>>;
 #if OT_CASH
-    /** PayCashTask: recipientID, recipientCopyOfPurse, senderCopyOfPurse */
-    using PayCashTask = std::tuple<
-        OTIdentifier,
-        std::shared_ptr<const Purse>,
-        std::shared_ptr<const Purse>>;
+    /** PayCashTask: recipientID, purse */
+    using PayCashTask = std::pair<OTIdentifier, std::shared_ptr<blind::Purse>>;
+    /** WithdrawCashTask: Account ID, amount*/
+    using WithdrawCashTask = std::pair<OTIdentifier, Amount>;
 #endif  // OT_CASH
     /** DepositPaymentTask: accountID, payment */
     using DepositPaymentTask =
@@ -225,6 +230,7 @@ private:
         UniqueQueue<PaymentTask> send_payment_;
 #if OT_CASH
         UniqueQueue<PayCashTask> send_cash_;
+        UniqueQueue<WithdrawCashTask> withdraw_cash_;
 #endif  // OT_CASH
         UniqueQueue<SendTransferTask> send_transfer_;
         UniqueQueue<OTIdentifier> publish_server_contract_;
@@ -357,8 +363,7 @@ private:
         const Identifier& nymID,
         const Identifier& serverID,
         const Identifier& targetNymID,
-        std::shared_ptr<const Purse>& recipientCopy,
-        std::shared_ptr<const Purse>& senderCopy) const;
+        const std::shared_ptr<blind::Purse> purse) const;
 #endif  // OT_CASH
     void process_account(
         const opentxs::network::zeromq::Message& message) const;
@@ -430,6 +435,13 @@ private:
         const OTPayment& payment,
         const Identifier& specifiedNymID,
         const Identifier& recipient) const;
+#if OT_CASH
+    bool withdraw_cash(
+        const Identifier& taskID,
+        const Identifier& nymID,
+        const Identifier& serverID,
+        const WithdrawCashTask& task) const;
+#endif  // OT_CASH
     bool write_and_send_cheque(
         const Identifier& taskID,
         const Identifier& nymID,

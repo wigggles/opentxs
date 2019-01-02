@@ -348,116 +348,6 @@ public:
         const Identifier& SENDER_ACCT_ID,
         const Identifier& RECIPIENT_NYM_ID,
         OTPaymentPlan& thePlan) const;
-#if OT_CASH
-    EXPORT Purse* LoadPurse(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& NYM_ID,
-        const String& pstrDisplay = String::Factory()) const;
-    EXPORT bool SavePurse(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& NYM_ID,
-        Purse& THE_PURSE) const;
-    EXPORT Purse* CreatePurse(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& OWNER_ID) const;
-    EXPORT Purse* CreatePurse_Passphrase(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const;
-    // This is a low-level utility function. Probably should
-    // make this private so people don't confuse it with the API.
-    // All the purse functions use this.
-    EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerFromString(
-        const Identifier& theNotaryID,
-        const Identifier& theInstrumentDefinitionID,
-        const String& strPurse,
-        Purse& thePurse,          // output
-        OTPassword& thePassword,  // Only used in the case of password-protected
-                                  // purses. Passed in so it won't go out of
-                                  // scope when return value has a member set to
-                                  // point to it.
-        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
-                                      // purse is password-protected.
-                                      // (It's
-        // just ignored in that case.) Otherwise MUST contain the
-        // NymID for the Purse owner.
-        bool bForEncrypting = true,  // true==encrypting,false==decrypting.
-        const String& pstrDisplay1 = String::Factory(),
-        const String& pstrDisplay2 = String::Factory()) const;
-    EXPORT OTNym_or_SymmetricKey* LoadPurseAndOwnerForMerge(
-        const String& strPurse,
-        Purse& thePurse,          // output
-        OTPassword& thePassword,  // Only used in the case of password-protected
-                                  // purses. Passed in so it won't go out of
-                                  // scope when pOwner is set to point to it.
-        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
-                                      // purse is password-protected.
-                                      // (It's
-        // just ignored in that case.) Otherwise if it's
-        // Nym-protected, the purse will have a NymID on it already.
-        // If not (it's optional), then pOWNER_ID is the ID it will
-        // try next, before failing.
-        bool bCanBePublic = false,  // true==private nym isn't mandatory.
-                                    // false==private nym IS mandatory.
-                                    // (Only relevant if there's an owner.)
-        const String& pstrDisplay = String::Factory()) const;
-    EXPORT Token* Purse_Peek(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const String& THE_PURSE,
-        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
-                                      // purse is password-protected.
-                                      // (It's
-        // just ignored in that case.) Otherwise MUST contain the
-        // NymID for the Purse owner (necessary to decrypt the token.)
-        const String& pstrDisplay = String::Factory()) const;
-
-    EXPORT Purse* Purse_Pop(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const String& THE_PURSE,
-        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
-                                      // purse
-                                      // is
-        // password-protected. (It's just
-        // ignored in that case.) Otherwise MUST
-        // contain the NymID for the Purse owner
-        // (necessary to decrypt the token.)
-        const String& pstrDisplay = String::Factory()) const;
-
-    EXPORT Purse* Purse_Empty(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const String& THE_PURSE,
-        const String& pstrDisplay = String::Factory()) const;
-
-    EXPORT Purse* Purse_Push(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const String& THE_PURSE,
-        const String& THE_TOKEN,
-        const Identifier& pOWNER_ID,  // This can be nullptr, **IF**
-                                      // purse is password-protected.
-                                      // (It's
-        // just ignored in that case.) Otherwise MUST contain the
-        // NymID for the Purse owner (recipient. necessary to encrypt
-        // the token to him.)
-        const String& pstrDisplay = String::Factory()) const;
-
-    EXPORT Token* Token_ChangeOwner(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const String& THE_TOKEN,
-        const Identifier& SIGNER_NYM_ID,
-        const String& OLD_OWNER,  // Pass a NymID here, or a purse.
-        const String& NEW_OWNER,  // Pass a NymID here, or a purse.
-        const String& pstrDisplay = String::Factory()) const;
-    EXPORT Mint* LoadMint(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const;
-#endif  // OT_CASH
     EXPORT bool IsBasketCurrency(
         const Identifier& BASKET_INSTRUMENT_DEFINITION_ID) const;
 
@@ -682,6 +572,13 @@ public:
         const std::string& THE_MESSAGE,
         Identifier& messageID) const;
 
+#if OT_CASH
+    EXPORT CommandResult sendNymCash(
+        ServerContext& context,
+        const Identifier& recipientNymID,
+        std::shared_ptr<blind::Purse> purse) const;
+#endif
+
     EXPORT CommandResult sendNymObject(
         ServerContext& context,
         std::unique_ptr<Message>& request,
@@ -781,7 +678,7 @@ public:
     EXPORT CommandResult notarizeDeposit(
         ServerContext& context,
         const Identifier& ACCT_ID,
-        const String& THE_PURSE) const;
+        const std::shared_ptr<blind::Purse> purse) const;
 #endif  // OT_CASH
 
     EXPORT CommandResult notarizeTransfer(

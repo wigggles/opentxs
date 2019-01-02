@@ -21,9 +21,8 @@
 #include "opentxs/api/Settings.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
-#include "opentxs/cash/Mint.hpp"
-#include "opentxs/cash/Purse.hpp"
-#include "opentxs/cash/Token.hpp"
+#include "opentxs/blind/Mint.hpp"
+#include "opentxs/blind/Purse.hpp"
 #endif  // OT_CASH
 #include "opentxs/client/Helpers.hpp"
 #include "opentxs/client/NymData.hpp"
@@ -35,6 +34,8 @@
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
 #include "opentxs/core/contract/basket/BasketContract.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTEnvelope.hpp"
@@ -47,6 +48,7 @@
 #if OT_CRYPTO_SUPPORTED_SOURCE_BIP47
 #include "opentxs/core/crypto/PaymentCode.hpp"
 #endif
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTAgent.hpp"
 #include "opentxs/core/script/OTBylaw.hpp"
@@ -383,8 +385,7 @@ bool OT_API::Init()
             .Flush();
 
         m_pWallet = new OTWallet(api_);
-        m_pClient.reset(
-            new OTClient(*m_pWallet, api_, activity_, contacts_, workflow_));
+        m_pClient.reset(new OTClient(api_, activity_, contacts_, workflow_));
 
         return true;
     } else {
@@ -4170,1143 +4171,6 @@ bool OT_API::ConfirmPaymentPlan(
     return true;
 }
 
-#if OT_CASH
-// LOAD PURSE
-//
-// Returns an Purse pointer, or nullptr.
-//
-// (Caller responsible to delete.)
-Purse* OT_API::LoadPurse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& NYM_ID,
-    const String& pstrDisplay) const
-{
-    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
-    const auto strReason = String::Factory(
-        (!pstrDisplay.Exists()) ? "Loading purse from local storage."
-                                : pstrDisplay.Get());
-    OTPasswordData thePWData(strReason);
-    const auto strNotaryID = String::Factory(NOTARY_ID);
-    const auto strNymID = String::Factory(NYM_ID);
-    const auto strInstrumentDefinitionID =
-        String::Factory(INSTRUMENT_DEFINITION_ID);
-    auto context = api_.Wallet().ServerContext(NYM_ID, NOTARY_ID);
-
-    if (false == bool(context)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(NYM_ID)(
-            " is not registered on ")(NOTARY_ID)(".")
-            .Flush();
-
-        return nullptr;
-    }
-
-    auto nym = context->Nym();
-    auto pPurse{
-        api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID)};
-    OT_ASSERT_MSG(
-        false != bool(pPurse),
-        "Error allocating memory in the OT API.");  // responsible to
-                                                    // delete or return
-                                                    // pPurse below
-                                                    // this point.
-
-    if (pPurse->LoadPurse(
-            strNotaryID->Get(),
-            strNymID->Get(),
-            strInstrumentDefinitionID->Get())) {
-        if (pPurse->VerifySignature(*nym) &&
-            (NOTARY_ID == pPurse->GetNotaryID()) &&
-            (INSTRUMENT_DEFINITION_ID == pPurse->GetInstrumentDefinitionID())) {
-            return pPurse.release();
-        } else
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Failed verifying purse.")
-                .Flush();
-    } else
-        LogVerbose(OT_METHOD)(__FUNCTION__)(": Failed loading purse. ").Flush();
-
-    return nullptr;
-}
-
-bool OT_API::SavePurse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& NYM_ID,
-    Purse& THE_PURSE) const
-{
-    rLock lock(lock_callback_({NYM_ID.str(), NOTARY_ID.str()}));
-
-    if (THE_PURSE.IsPasswordProtected()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure: This purse is password-protected (exported) "
-            "and cannot be saved inside the wallet without first "
-            "re-importing it.")
-            .Flush();
-    } else if (
-        (THE_PURSE.GetNotaryID() != NOTARY_ID) ||
-        (THE_PURSE.GetInstrumentDefinitionID() != INSTRUMENT_DEFINITION_ID)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error: Wrong server or instrument definition id passed in, "
-            "considering the purse that was passed.")
-            .Flush();
-    } else {
-        const auto strNotaryID = String::Factory(NOTARY_ID);
-        const auto strInstrumentDefinitionID =
-            String::Factory(INSTRUMENT_DEFINITION_ID);
-        const auto strNymID = String::Factory(NYM_ID);
-        if (THE_PURSE.SavePurse(
-                strNotaryID->Get(),
-                strNymID->Get(),
-                strInstrumentDefinitionID->Get()))
-            return true;
-    }
-    const auto strPurse = String::Factory(THE_PURSE);
-    LogOutput(OT_METHOD)(__FUNCTION__)(": Failed saving purse: ")(strPurse)(".")
-        .Flush();
-    return false;
-}
-
-// Creates a purse owned by a specific Nym. (OWNER_ID.)
-//
-// Caller is responsible to delete!
-//
-Purse* OT_API::CreatePurse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& OWNER_ID) const
-{
-    rLock lock(lock_callback_({OWNER_ID.str(), NOTARY_ID.str()}));
-    auto pPurse{
-        api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, OWNER_ID)};
-    OT_ASSERT_MSG(
-        false != bool(pPurse),
-        "Error allocating memory in the OT API.");  // responsible to
-                                                    // delete or return
-                                                    // pPurse below
-                                                    // this point.
-
-    return pPurse.release();
-}
-
-// This is the same as CreatePurse, except it creates a password-protected
-// purse,
-// instead of a Nym-encrypted purse.
-//
-// Caller is responsible to delete!
-//
-Purse* OT_API::CreatePurse_Passphrase(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    auto pPurse{api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-    OT_ASSERT_MSG(
-        false != bool(pPurse),
-        "Error allocating memory in the OT API.");  // responsible to
-                                                    // delete or return
-                                                    // pPurse below
-                                                    // this point.
-    if (pPurse->GenerateInternalKey())
-        return pPurse.release();
-    else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": pPurse->GenerateInternalKey() returned false. (Failure)!")
-            .Flush();
-    return nullptr;
-}
-
-// Caller responsible to delete!
-//
-// This method was added because otherwise its code would be
-// duplicated across many of the Purse functions.
-//
-OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerFromString(
-    const Identifier& theNotaryID,
-    const Identifier& theInstrumentDefinitionID,
-    const String& strPurse,
-    Purse& thePurse,          // output
-    OTPassword& thePassword,  // Only used in the case of password-protected
-                              // purses. Passed in so it won't go out of scope
-                              // when pOwner is set to point to it.
-    const Identifier& pOWNER_ID,       // This can be nullptr, **IF** purse
-                                       // is password-protected. (It's
-                                       // just ignored in that case.)
-                                       // Otherwise MUST contain the NymID
-                                       // for the Purse owner.
-    bool bForEncrypting,               // true==encrypting,false==decrypting.
-                                       // Only relevant if there's an owner.
-    const String& pstrDisplay1,        // for purses owned by the wallet
-                                       // already
-    const String& pstrDisplay2) const  // for password-protected purses
-{
-    const bool bDoesOwnerIDExist =
-
-        (!pOWNER_ID.empty());  // If not true, purse MUST be
-                               // password-protected.
-    OTPasswordData thePWData1(
-        (!pstrDisplay1.Exists())
-            ? "Enter the master passphrase for your wallet. "
-              "(LoadPurseAndOwnerFromString)"
-            : pstrDisplay1.Get());  // for purses already owned by the wallet
-    OTPasswordData thePWData2(
-        (!pstrDisplay2.Exists())
-            ? "Enter the passphrase for this purse. "
-              "(LoadPurseAndOwnerFromString)"
-            : pstrDisplay2.Get());  // for password-protected purses.
-    const Nym* pOwnerNym =
-        nullptr;  // In the case where there is an owner, this will point to it.
-    if (bDoesOwnerIDExist) {
-        pOwnerNym = api_.Wallet().Nym(pOWNER_ID).get();
-
-        if (nullptr == pOwnerNym) { return nullptr; }
-    }
-    // By this point, pOwnerNym may be a good pointer, and on the wallet. (No
-    // need to cleanup.)
-    // Or, it may also be nullptr, in the case that the purse is
-    // password-protected.
-    // bDoesOwnerIDExist is an easy way to tell, either way.
-    OTNym_or_SymmetricKey* pOwner = nullptr;
-    if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
-        const bool bNymIDIncludedInPurse = thePurse.IsNymIDIncluded();
-        auto idPurseNym = Identifier::Factory();
-
-        if (thePurse.GetNotaryID() != theNotaryID)
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed: NotaryID doesn't match.")
-                .Flush();
-        else if (
-            thePurse.GetInstrumentDefinitionID() != theInstrumentDefinitionID)
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed: InstrumentDefinitionID doesn't match.")
-                .Flush();
-        else if (bNymIDIncludedInPurse && !thePurse.GetNymID(idPurseNym))
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed trying to get the NymID from the "
-                "purse (though one WAS apparently present).")
-                .Flush();
-        else if (bNymIDIncludedInPurse && !bDoesOwnerIDExist) {
-            const auto strPurseNymID = String::Factory(idPurseNym);
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error: The purse is owned by a NymID, but no "
-                "NymID was passed into "
-                "this function. Nym who owns the purse: ")(strPurseNymID)(".")
-                .Flush();
-        } else if (bNymIDIncludedInPurse && !(pOwnerNym->ID() == idPurseNym)) {
-            const auto strPurseNymID = String::Factory(idPurseNym),
-                       strNymActuallyPassed = String::Factory(pOwnerNym->ID());
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error: The API call mentions Nym A, but the "
-                "purse is actually owned by Nym B. Nym A: ")(
-                strNymActuallyPassed)(", Nym B: ")(strPurseNymID)(".")
-                .Flush();
-        } else if (!bDoesOwnerIDExist && !thePurse.IsPasswordProtected())
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed: The NYM_ID was nullptr, which is only allowed "
-                "for a password-protected purse (and this purse is NOT "
-                "password-protected). Please provide a NYM_ID.")
-                .Flush();
-        // By this point, we know the purse loaded up properly, and the server
-        // and instrument definition ids match
-        // what we expected. We also know that if the purse included a NymID, it
-        // matches the NYM_ID
-        // that was passed in. We also know that if a Nym ID was NOT passed in,
-        // that the purse WAS
-        // definitely a password-protected purse.
-        //
-        else if (thePurse.IsPasswordProtected())  // Purse is encrypted based on
-                                                  // its own built-in symmetric
-                                                  // key.
-        {
-            auto& pSymmetricKey = thePurse.GetInternalKey();
-
-            OT_ASSERT(pSymmetricKey);
-
-            const bool bGotPassphrase = thePurse.GetPassphrase(
-                thePassword, thePWData2.GetDisplayString());
-
-            if (!bGotPassphrase) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Authentication failed, or otherwise failed "
-                    "retrieving secret from user.")
-                    .Flush();
-            } else {
-                pOwner = new OTNym_or_SymmetricKey(
-                    pSymmetricKey,
-                    thePassword,
-                    String::Factory(pstrDisplay2.Get()));  // Can't put
-                                                           // &strReason
-                                                           // here. (It
-                                                           // goes out of
-                                                           // scope.)
-                OT_ASSERT(nullptr != pOwner);
-            }
-        } else if (bDoesOwnerIDExist)  // Purse is encrypted based on Nym.
-        {
-            pOwner = new OTNym_or_SymmetricKey(
-                *pOwnerNym,
-                String::Factory(pstrDisplay1.Get()));  // Can't put &strReason
-                                                       // here. (It goes out of
-                                                       // scope.)
-            OT_ASSERT(nullptr != pOwner);
-        } else
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed: The purse is not password-protected, "
-                "but rather, is locked by a Nym. "
-                "However, no NYM_ID was passed in! Please supply a "
-                "NYM_ID in order "
-                "to open this purse.")
-                .Flush();
-        // (By this point, pOwner is all set up and ready to go.)
-    } else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure loading purse from string: ")(strPurse)(".")
-            .Flush();
-    return pOwner;
-}
-
-// NOTE: This function is identical to the one above it, except
-// that one has to verify that the Nym IDs match, whereas this one
-// takes the NymID from the purse, if one is there, and makes it
-// authoritative. If no NymID is listed on the purse (but it's NOT
-// password protected, i.e. there IS a Nym, it's just not listed)
-// then pOWNER_ID is the one it will try.
-//
-// Caller must delete.
-//
-OTNym_or_SymmetricKey* OT_API::LoadPurseAndOwnerForMerge(
-    const String& strPurse,
-    Purse& thePurse,          // output
-    OTPassword& thePassword,  // Only used in the case of password-protected
-                              // purses. Passed in so it won't go out of scope
-                              // when pOwner is set to point to it.
-
-    const Identifier& pOWNER_ID =
-        Identifier::Factory(),  // This can be nullptr, **IF** purse
-                                // is password-protected. (It's
-                                // just ignored in that case.)
-                                // Otherwise if it's Nym-protected,
-                                // the purse will have a NymID on
-                                // it already. If not (it's
-                                // optional), then pOWNER_ID is the
-                                // ID it will try next, before
-                                // failing.
-    bool bCanBePublic,          // true==private nym isn't mandatory.
-                                // false==private nym IS mandatory.
-                                // (Only relevant if there's an owner.)
-    const String& pstrDisplay) const
-{
-    OTPasswordData thePWData(
-        (!pstrDisplay.Exists()) ? OT_PW_DISPLAY : pstrDisplay.Get());
-    OTNym_or_SymmetricKey* pOwner = nullptr;
-
-    if (strPurse.Exists() && thePurse.LoadContractFromString(strPurse)) {
-        auto idPurseNym = Identifier::Factory();
-
-        if (thePurse.IsNymIDIncluded() && !thePurse.GetNymID(idPurseNym))
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed trying to get the NymID from the "
-                "purse (though one WAS apparently present).")
-                .Flush();
-        // Purse is encrypted based on Nym.
-        //
-        // If the purse includes a NymID, then we'll use it. (If we can't use
-        // that specific one, then we have failed.)
-        else if (
-            thePurse.IsNymIDIncluded() ||
-            // Else if the purse does NOT include a NymID (but also is NOT
-            // password protected, meaning a Nym still exists, but just
-            // isn't named) then we'll use pOWNER_ID passed in. If that's
-            // nullptr, or we fail to find the Nym with it, then we have
-            // failed.
-            (!thePurse.IsNymIDIncluded() &&
-             !thePurse.IsPasswordProtected())  // && (nullptr != pOWNER_ID))
-                                               //
-                                               // checked inside the block.
-        ) {
-            const auto& pActualOwnerID =
-                thePurse.IsNymIDIncluded() ? idPurseNym.get() : pOWNER_ID;
-
-            if (pActualOwnerID.empty()) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Failed: The purse is encrypted to a "
-                    "specific Nym (not a passphrase), "
-                    "but that Nym is not specified in the purse, nor "
-                    "was it passed into this "
-                    "function. (Failure! Unable to access purse).")
-                    .Flush();
-                return nullptr;
-            }
-            auto pOwnerNym = api_.Wallet().Nym(pActualOwnerID);
-            if (false == bool(pOwnerNym)) {
-                const auto strAttemptedID = String::Factory(pActualOwnerID);
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Failed: The purse is encrypted to a specific NymID "
-                    "(not a passphrase) which was either specified inside "
-                    "the purse, "
-                    "or wasn't specified so we guessed the user ID. "
-                    "Either way, we "
-                    "then failed loading that Nym: ")(strAttemptedID)(
-                    ". (Failure! Unable to access purse)")
-                    .Flush();
-                return nullptr;
-            }
-            // We found the Nym. If it was the Nym listed in the purse, then
-            // it's almost certainly the right one.
-            // Else if it was the Nym we guessed, it could be right and it could
-            // be wrong. We won't find out in that
-            // case, until we actually try to use it for decrypting tokens on
-            // the purse (and then we'll fail at that
-            // time, if it's the wrong Nym.)
-            //
-            pOwner = new OTNym_or_SymmetricKey(
-                *pOwnerNym,
-                String::Factory(pstrDisplay.Get()));  // Can't put &strReason
-                                                      // here. (It goes out of
-                                                      // scope.)
-            OT_ASSERT(nullptr != pOwner);
-        }
-        // Else if purse IS password protected, then use its internal key.
-        else if (thePurse.IsPasswordProtected())  // Purse is encrypted based on
-                                                  // its own built-in symmetric
-                                                  // key.
-        {
-            auto& pSymmetricKey = thePurse.GetInternalKey();
-
-            OT_ASSERT(pSymmetricKey);
-
-            const bool bGotPassphrase = thePurse.GetPassphrase(
-                thePassword, thePWData.GetDisplayString());
-
-            if (!bGotPassphrase) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Authentication failed, or otherwise failed "
-                    "retrieving secret from user.")
-                    .Flush();
-            } else {
-                pOwner = new OTNym_or_SymmetricKey(
-                    pSymmetricKey,
-                    thePassword,
-                    String::Factory(pstrDisplay.Get()));  // Can't put
-                                                          // &strReason
-                // here. (It goes
-                // out of scope.)
-                OT_ASSERT(nullptr != pOwner);
-            }
-        } else
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed: Somehow this purse is not "
-                "password-protected, nor "
-                "is it Nym-protected (this error should "
-                "never actually happen).")
-                .Flush();
-        // (By this point, pOwner is all set up and ready to go.)
-    } else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure loading purse from string: ")(strPurse)(".")
-            .Flush();
-    return pOwner;
-}
-
-/// Returns the TOKEN on top of the stock (LEAVING it on top of the stack,
-/// but giving you a decrypted copy of it.)
-///
-/// NYM_ID can be nullptr, **if** the purse is password-protected.
-/// (It's just ignored in that case.) Otherwise MUST contain the NymID for
-/// the Purse owner (necessary to decrypt the token.)
-///
-/// CALLER must delete!!
-///
-/// returns nullptr if failure.
-///
-Token* OT_API::Purse_Peek(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const String& THE_PURSE,
-    const Identifier& pOWNER_ID = Identifier::Factory(),  // This can be
-                                                          // nullptr,
-                                                          // **IF** purse
-    // is password-protected. (It's
-    // just ignored in that case.)
-    // Otherwise MUST contain the NymID
-    // for the Purse owner (necessary
-    // to decrypt the token.)
-    const String& pstrDisplay) const
-{
-    const auto strReason1 = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter your master passphrase for your wallet. (Purse_Peek)"
-            : pstrDisplay.Get());
-    const auto strReason2 = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter the passphrase for this purse. (Purse_Peek)"
-            : pstrDisplay.Get());
-    //  OTPasswordData thePWData(strReason);
-    auto thePurse{api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-    OTPassword thePassword;  // Only used in the case of password-protected
-                             // purses.
-    // What's going on here?
-    // A purse can be encrypted by a private key (controlled by a Nym) or by a
-    // symmetric
-    // key (embedded inside the purse along with a corresponding master key.)
-    // The below
-    // function is what actually loads up thePurse from string (THE_PURSE) and
-    // this call
-    // also returns pOwner, which is a pointer to a special wrapper class (which
-    // you must
-    // delete, when you're done with it) which contains a pointer EITHER to the
-    // owner Nym
-    // for that purse, OR to the "owner" symmetric key for that purse.
-    //
-    // This way, any subsequent purse operations can use pOwner, regardless of
-    // whether there
-    // is actually a Nym inside, or a symmetric key. (None of the purse
-    // operations will care,
-    // since they can use pOwner either way.)
-    //
-    std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
-        NOTARY_ID,
-        INSTRUMENT_DEFINITION_ID,
-        THE_PURSE,
-        *thePurse,
-        thePassword,
-        pOWNER_ID,
-        false,  // bForEncrypting=true by default. (Peek needs to decrypt.)
-        strReason1.get(),
-        strReason2.get()));
-    if (nullptr == pOwner)
-        return nullptr;  // This already logs, no need for more logs.
-    Token* token = nullptr;
-
-    if (thePurse->IsEmpty())
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed attempt to peek; purse is empty.")
-            .Flush();
-    else {
-        token = thePurse->Peek(*pOwner);
-
-        if (nullptr == token)
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed peeking a token from a "
-                "purse that supposedly had tokens on it...")
-                .Flush();
-    }
-    return token;
-}
-
-/// Returns the PURSE after popping a single token off of it.
-///
-/// NOTE: Caller must delete!
-/// NOTE: Caller must sign/save in order to effect the change.
-///
-/// OWNER_ID can be nullptr, **if** the purse is password-protected.
-/// (It's just ignored in that case.) Otherwise MUST contain the NymID for
-/// the Purse owner (necessary to decrypt the token.)
-///
-/// The reason you don't see a signer being passed here (to save the purse
-/// again, after popping) is because OTAPI.cpp Purse_Pop does the saving.
-/// (That's the function that calls this one.) So IT has a signer ID passed
-/// in, in addition to the owner ID--but we don't need that here.)
-///
-/// returns nullptr if failure.
-///
-Purse* OT_API::Purse_Pop(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const String& THE_PURSE,
-    const Identifier& pOWNER_ID = Identifier::Factory(),  // This can be
-                                                          // nullptr,
-                                                          // **IF** purse
-    // is password-protected. (It's
-    // just ignored in that case.)
-    // Otherwise MUST contain the NymID
-    // for the Purse owner (necessary
-    // to decrypt the token.)
-    const String& pstrDisplay) const
-{
-    const auto strReason1 = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter your master passphrase for your wallet. (Purse_Pop)"
-            : pstrDisplay.Get());
-    const auto strReason2 = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter the passphrase for this purse. (Purse_Pop)"
-            : pstrDisplay.Get());
-    //  OTPasswordData thePWData(strReason);
-    auto pPurse{api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-
-    OTPassword thePassword;  // Only used in the case of password-protected
-                             // purses.
-    // What's going on here?
-    // A purse can be encrypted by a private key (controlled by a Nym) or by a
-    // symmetric
-    // key (embedded inside the purse along with a corresponding master key.)
-    // The below
-    // function is what actually loads up pPurse from string (THE_PURSE) and
-    // this call
-    // also returns pOwner, which is a pointer to a special wrapper class (which
-    // you must
-    // delete, when you're done with it) which contains a pointer EITHER to the
-    // owner Nym
-    // for that purse, OR to the "owner" symmetric key for that purse.
-    //
-    // This way, any subsequent purse operations can use pOwner, regardless of
-    // whether there
-    // is actually a Nym inside, or a symmetric key. (None of the purse
-    // operations will care,
-    // since they can use pOwner either way.)
-    //
-    std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
-        NOTARY_ID,
-        INSTRUMENT_DEFINITION_ID,
-        THE_PURSE,
-        *pPurse,
-        thePassword,
-        Identifier::Factory(pOWNER_ID),
-        false,  // bForEncrypting=true by default, but Pop needs to decrypt.
-        strReason1.get(),
-        strReason2.get()));
-    if (nullptr == pOwner)
-        return nullptr;  // This already logs, no need for more logs.
-    Purse* pReturnPurse = nullptr;
-
-    if (pPurse->IsEmpty())
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed attempt to pop; purse is empty.")
-            .Flush();
-    else {
-        std::unique_ptr<Token> token(pPurse->Pop(*pOwner));
-
-        if (nullptr == token)
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Failed popping a token from a "
-                "purse that supposedly had tokens on it...")
-                .Flush();
-        else {
-            pReturnPurse = pPurse.release();
-        }
-    }
-    return pReturnPurse;
-
-    // NOTE: Caller must release/sign/save pReturnPurse, once this returns, in
-    // order to effect the change.
-}
-
-// Caller must delete.
-Purse* OT_API::Purse_Empty(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const String& THE_PURSE,
-    const String& pstrDisplay) const
-{
-    const auto strReason = String::Factory(
-        (!pstrDisplay.Exists()) ? "Making an empty copy of a cash purse."
-                                : pstrDisplay.Get());
-    //  OTPasswordData thePWData(strReason);
-    auto pPurse{
-        api_.Factory().Purse(THE_PURSE, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-
-    if (false == bool(pPurse)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error: THE_PURSE is an empty string. Please pass a "
-            "real purse when calling this function.")
-            .Flush();
-        return nullptr;
-    }
-    pPurse->ReleaseTokens();
-    // NOTE: Caller must release/sign/save pReturnPurse, once this returns, in
-    // order to effect the change.
-    return pPurse.release();
-}
-
-/// Returns the PURSE after pushing a single token onto it.
-///
-/// NOTE: Caller must delete!
-/// NOTE: Caller must sign/save in order to effect the change.
-///
-/// NYM_ID can be nullptr, **if** the purse is password-protected.
-/// (It's just ignored in that case.) Otherwise MUST contain the NymID for
-/// the Purse owner (necessary to encrypt the token.)
-///
-/// returns nullptr if failure.
-///
-Purse* OT_API::Purse_Push(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const String& THE_PURSE,
-    const String& THE_TOKEN,
-    const Identifier& pOWNER_ID = Identifier::Factory(),  // This can be
-                                                          // nullptr,
-                                                          // **IF** purse
-    // is password-protected. (It's
-    // just ignored in that case.)
-    // Otherwise MUST contain the NymID
-    // for the Purse owner (necessary
-    // to encrypt the token.)
-    const String& pstrDisplay) const
-{
-    const auto strReason1 = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter your master passphrase for your wallet. (Purse_Push)"
-            : pstrDisplay.Get());
-    const auto strReason2 = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter the passphrase for this purse. (Purse_Push)"
-            : pstrDisplay.Get());
-    //  OTPasswordData thePWData(strReason);
-    if (!THE_PURSE.Exists()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Purse does not exist.").Flush();
-        return nullptr;
-    } else if (!THE_TOKEN.Exists()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Token does not exist.").Flush();
-        return nullptr;
-    }
-    auto strToken = String::Factory(THE_TOKEN.Get());
-    auto token{
-        api_.Factory().Token(strToken, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-
-    if (false == bool(token))  // TokenFactory instantiates AND loads from
-                               // string.
-    {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to instantiate or load token from string: ")(THE_TOKEN)(
-            ".")
-            .Flush();
-        return nullptr;
-    }
-    auto pPurse{api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-
-    OT_ASSERT(false != bool(pPurse));
-
-    OTPassword thePassword;  // Only used in the case of password-protected
-                             // purses.
-    // What's going on here?
-    // A purse can be encrypted by a private key (controlled by a Nym) or by a
-    // symmetric
-    // key (embedded inside the purse along with a corresponding master key.)
-    // The below
-    // function is what actually loads up pPurse from string (THE_PURSE) and
-    // this call
-    // also returns pOwner, which is a pointer to a special wrapper class (which
-    // you must
-    // delete, when you're done with it) which contains a pointer EITHER to the
-    // owner Nym
-    // for that purse, OR to the "owner" symmetric key for that purse.
-    //
-    // This way, any subsequent purse operations can use pOwner, regardless of
-    // whether there
-    // is actually a Nym inside, or a symmetric key. (None of the purse
-    // operations will care,
-    // since they can use pOwner either way.)
-    //
-    std::unique_ptr<OTNym_or_SymmetricKey> pOwner(LoadPurseAndOwnerFromString(
-        NOTARY_ID,
-        INSTRUMENT_DEFINITION_ID,
-        THE_PURSE,
-        *pPurse,
-        thePassword,
-        Identifier::Factory(pOWNER_ID),
-        true,  // bForEncrypting=true by default
-        strReason1.get(),
-        strReason2.get()));
-    if (nullptr == pOwner)
-        return nullptr;  // This already logs, no need for more logs.
-    Purse* pReturnPurse = nullptr;
-
-    const bool bPushed = pPurse->Push(*pOwner, *token);
-
-    if (!bPushed)
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed pushing a token onto a purse.")
-            .Flush();
-    else {
-        pReturnPurse = pPurse.release();
-    }
-    return pReturnPurse;
-
-    // NOTE: Caller must release/sign/save pReturnPurse, once this returns, in
-    // order to effect the change.
-}
-
-bool OT_API::Wallet_ImportPurse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& SIGNER_ID,  // We must know the SIGNER_ID in order to
-                                  // know which "old purse" to load and merge
-                                  // into. The New Purse may have a different
-                                  // one, but its ownership will be re-assigned
-                                  // in that case, as part of the merging
-                                  // process, to SIGNER_ID. Otherwise the New
-                                  // Purse might be symmetrically encrypted
-                                  // (instead of using a Nym) in which case
-                                  // again, its ownership will be re-assigned
-                                  // from that key, to SIGNER_ID, as part of
-                                  // the merging process.
-    const String& THE_PURSE,
-    const String& pstrDisplay) const
-{
-    Lock lock(lock_);
-    auto reason = String::Factory(
-        (!pstrDisplay.Exists()) ? "Enter passphrase for purse being imported."
-                                : pstrDisplay.Get());
-    OTPasswordData cashPasswordReason(
-        (!pstrDisplay.Exists()) ? OT_PW_DISPLAY : pstrDisplay.Get());
-    OTPassword thePassword;  // Only used in the case of password-protected
-                             // purses.
-    auto context = api_.Wallet().ServerContext(SIGNER_ID, NOTARY_ID);
-
-    if (false == bool(context)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(SIGNER_ID)(
-            " is not registered on ")(NOTARY_ID)(".")
-            .Flush();
-
-        return false;
-    }
-
-    auto nym = context->Nym();
-
-    // By this point, nym is a good pointer, and is on the wallet. (No need
-    // to
-    // cleanup.)
-    auto pNewPurse{api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-    // What's going on here?
-    // A purse can be encrypted by a private key (controlled by a Nym) or by a
-    // symmetric
-    // key (embedded inside the purse along with a corresponding master key.)
-    // The below
-    // function is what actually loads up pPurse from string (THE_PURSE) and
-    // this call
-    // also returns pOwner, which is a pointer to a special wrapper class (which
-    // you must
-    // delete, when you're done with it) which contains a pointer EITHER to the
-    // owner Nym
-    // for that purse, OR to the "owner" symmetric key for that purse.
-    //
-    // This way, any subsequent purse operations can use pOwner, regardless of
-    // whether there
-    // is actually a Nym inside, or a symmetric key. (None of the purse
-    // operations will care,
-    // since they can use pOwner either way.)
-    //
-    std::unique_ptr<OTNym_or_SymmetricKey> pNewOwner(LoadPurseAndOwnerForMerge(
-        THE_PURSE,
-        *pNewPurse,
-        thePassword,
-
-        SIGNER_ID,  // This can be nullptr, **IF** purse is
-                    // password-protected.
-                    // (It's just ignored in that case.) Otherwise if it's
-        // Nym-protected, the purse will have a NymID on it already,
-        // which is what LoadPurseAndOwnerForMerge will try first.
-        // If not (it's optional), then SIGNER_ID is the ID it will
-        // try next, before failing altogether.
-        false,  // bCanBePublic=false by default. (Private Nym must be
-                // loaded, if
-                // a nym is the owner.)
-        reason.get()));
-    if (nullptr == pNewOwner)
-        return false;  // This already logs, no need for more logs.
-    std::unique_ptr<Purse> pOldPurse(
-        LoadPurse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID));
-
-    if (false == bool(pOldPurse))  // apparently there's not already a purse of
-                                   // this type, let's create it.
-    {
-        pOldPurse.reset(
-            api_.Factory()
-                .Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID)
-                .release());
-    } else if (!pOldPurse->VerifySignature(*nym)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed to verify signature on old purse. (Very strange)!")
-            .Flush();
-        return false;
-    }
-    // By this point, the old purse has either been loaded, or created.
-    // Let's make sure the server and instrument definition id match between the
-    // purses,
-    // since they are now actually loaded up.
-    //
-    if (pOldPurse->GetNotaryID() != pNewPurse->GetNotaryID()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure: NotaryIDs don't match between these two purses.")
-            .Flush();
-        return false;
-    } else if (
-        pOldPurse->GetInstrumentDefinitionID() !=
-        pNewPurse->GetInstrumentDefinitionID()) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failure: InstrumentDefinitionIDs don't "
-            "match between these two purses.")
-            .Flush();
-        return false;
-    }
-    //
-    // By this point, I have two owners, and two purses.
-    //
-    // NOTE: if I want to pass in a custom display string here, nymfile could be
-    // replaced with
-    // pOldOwner (an OTNym_or_SymmetricKey instance) which can contain that
-    // string.
-    // (I'm referring to the string that contains the "reason" why the
-    // passphrase needs to
-    // be entered, so it can be shown to the user on the passphrase dialog.)
-    //
-    if (pOldPurse->Merge(
-            *nym,         // signer
-            *nym,         // old owner (must be private, if a nym.)
-            *pNewOwner,   // new owner (must be private, if a nym.)
-            *pNewPurse))  // new purse (being merged into old.)
-    {
-        pOldPurse->ReleaseSignatures();
-        pOldPurse->SignContract(*nym);
-        pOldPurse->SaveContract();
-        return SavePurse(
-            NOTARY_ID, INSTRUMENT_DEFINITION_ID, SIGNER_ID, *pOldPurse);
-    } else  // Failed merge.
-    {
-        auto strNymID1 = String::Factory(), strNymID2 = String::Factory();
-        nym->GetIdentifier(strNymID1);
-        pNewOwner->GetIdentifier(strNymID2);
-        LogOutput(OT_METHOD)(__FUNCTION__)(": (OldNymID: ")(strNymID1)(
-            ".) (New Owner ID: ")(strNymID2)(".) Failure merging new "
-                                             "purse: ")(THE_PURSE)(".")
-            .Flush();
-    }
-    return false;
-}
-
-// ALLOW the caller to pass a symmetric key here, instead of either Nym ID.
-// We'll load it up and use it instead of a Nym. Update: make that a purse.
-// These tokens already belong to specific purses, so just pass the purse here
-//
-// Done: Also, add a key cache with a timeout (similar to Master Key) where we
-// can stash
-// any already-loaded symmetric keys, and a thread wipes them out later. That
-// way
-// even if we have to load the key each time this func is called, we still avoid
-// the
-// user having to enter the passphrase more than once per timeout period.
-//
-// Done also: allow a "Signer ID" to be passed in here, since either owner could
-// potentially
-// now be a symmetric key.
-//
-// Caller must delete!
-Token* OT_API::Token_ChangeOwner(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const String& THE_TOKEN,
-    const Identifier& SIGNER_NYM_ID,
-    const String& OLD_OWNER,  // Pass a NymID here, or a purse.
-    const String& NEW_OWNER,  // Pass a NymID here, or a purse.
-    const String& pstrDisplay) const
-{
-    auto strWalletReason = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter your wallet's master passphrase. (Token_ChangeOwner.)"
-            : pstrDisplay.Get());
-    auto reason = String::Factory(
-        (!pstrDisplay.Exists())
-            ? "Enter the passphrase for this purse. (Token_ChangeOwner.)"
-            : pstrDisplay.Get());
-    OTPasswordData cashPasswordReason(strWalletReason);
-    auto context = api_.Wallet().ServerContext(SIGNER_NYM_ID, NOTARY_ID);
-
-    if (false == bool(context)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Nym ")(SIGNER_NYM_ID)(
-            " is not registered on ")(NOTARY_ID)(".")
-            .Flush();
-
-        return nullptr;
-    }
-
-    auto pSignerNym = context->Nymfile(cashPasswordReason);
-
-    if (false == bool(pSignerNym)) { return nullptr; }
-
-    // By this point, nymfile is a good pointer, and is on the wallet. (No need
-    // to
-    // cleanup.)
-    // ALL THE COMPLEXITY YOU SEE BELOW is mainly just about handling OLD_OWNER
-    // and NEW_OWNER each as either a NymID or as a Purse (containing a
-    // symmetric key and
-    // a corresponding master key.)
-    auto oldOwnerNymID = Identifier::Factory(),
-         newOwnerNymID = Identifier::Factory();  // if either owner is a Nym,
-                                                 // the ID goes here.
-    std::unique_ptr<Purse> theOldPurseAngel;
-    OTPassword theOldPassword;  // Only used in the case of password-protected
-                                // purses.
-    OTNym_or_SymmetricKey* pOldOwner = nullptr;
-    std::unique_ptr<OTNym_or_SymmetricKey> theOldOwnerAngel;
-    std::unique_ptr<Purse> theNewPurseAngel;
-    OTPassword theNewPassword;  // Only used in the case of password-protected
-                                // purses.
-    OTNym_or_SymmetricKey* pNewOwner = nullptr;
-    std::unique_ptr<OTNym_or_SymmetricKey> theNewOwnerAngel;
-    const bool bOldOwnerIsPurse = OLD_OWNER.Contains("PURSE");
-    const bool bNewOwnerIsPurse = NEW_OWNER.Contains("PURSE");
-    if (!bOldOwnerIsPurse)  // The old owner is a NYM (public/private keys.)
-    {
-        oldOwnerNymID->SetString(OLD_OWNER);
-        auto pOldNym = api_.Wallet().Nym(oldOwnerNymID);
-
-        if (!pOldNym) { return nullptr; }
-
-        pOldOwner = new OTNym_or_SymmetricKey(*pOldNym, strWalletReason);
-        OT_ASSERT(nullptr != pOldOwner);
-        theOldOwnerAngel.reset(pOldOwner);
-    } else  // The old owner is a PURSE (Symmetric/master keys, internal to that
-            // purse.)
-    {
-        // if the old owner is a Purse (symmetric+master key), the entire
-        // purse is loaded.
-        auto pOldPurse{
-            api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-        OT_ASSERT(false != bool(pOldPurse));
-        pOldOwner = LoadPurseAndOwnerForMerge(
-            OLD_OWNER,
-            *pOldPurse,
-            theOldPassword,
-
-            SIGNER_NYM_ID,  // This can be nullptr, **IF** purse is
-                            // password-protected. (It's just ignored in that
-            // case.) Otherwise if it's Nym-protected, the purse
-            // will have a NymID on it already, which is what
-            // LoadPurseAndOwnerForMerge will try first. If not
-            // (it's optional), then SIGNER_NYM_ID is the ID it
-            // will try next, before failing altogether.
-            // ADDITIONAL NOTE: We don't expect the purse to
-            // ever be Nym-based since in this function, we pass
-            // a purse in order to pass the symmetric and master
-            // keys. Otherwise if this token's owner was already
-            // a Nym, then we would have passed a NymID in here,
-            // instead of a purse, in the first place.
-            false,  // bCanBePublic=false by default. In this case, it
-                    // definitely
-                    // must be private.
-            reason.get());
-        theOldOwnerAngel.reset(pOldOwner);
-        if (nullptr == pOldOwner)
-            return nullptr;  // This already logs, no need for more logs.
-    }
-    if (!bNewOwnerIsPurse)  // The new owner is a NYM
-    {
-        newOwnerNymID->SetString(NEW_OWNER);
-        auto pNewNym = api_.Wallet().Nym(newOwnerNymID);
-        if (!pNewNym) return nullptr;
-        pNewOwner = new OTNym_or_SymmetricKey(*pNewNym, strWalletReason);
-        OT_ASSERT(nullptr != pNewOwner);
-        theNewOwnerAngel.reset(pNewOwner);
-    } else  // The new owner is a PURSE
-    {
-        // if the new owner is a Purse (symmetric+master key), the entire purse
-        // is loaded.
-        auto pNewPurse{
-            api_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-        OT_ASSERT(false != bool(pNewPurse));
-        pNewOwner = LoadPurseAndOwnerForMerge(
-            NEW_OWNER,
-            *pNewPurse,
-            theNewPassword,
-
-            SIGNER_NYM_ID,  // This can be nullptr, **IF** purse is
-                            // password-protected. (It's just ignored in that
-            // case.) Otherwise if it's Nym-protected, the purse
-            // will have a NymID on it already, which is what
-            // LoadPurseAndOwnerForMerge will try first. If not
-            // (it's optional), then SIGNER_NYM_ID is the ID it
-            // will try next, before failing altogether.
-            // ADDITIONAL NOTE: We don't expect the purse to
-            // ever be Nym-based since in this function, we pass
-            // a purse in order to pass the symmetric and master
-            // keys. Otherwise if this token's owner was already
-            // a Nym, then we would have passed a NymID in here,
-            // instead of a purse, in the first place.
-            true,  // bCanBePublic=false by default, but set TRUE here, since
-                   // you
-            // SHOULD be able to re-assign ownership of a token to someone
-            // else, without having to load their PRIVATE key (which you
-            // don't have.) Sort of irrelevant here actually, since this
-            // block is for purses only...
-            reason.get());
-        theNewOwnerAngel.reset(pNewOwner);
-        if (nullptr == pNewOwner)
-            return nullptr;  // This already logs, no need for more logs.
-    }
-    //
-    // (By this point, pOldOwner and pNewOwner should both be good to go.)
-    //
-    auto token{
-        api_.Factory().Token(THE_TOKEN, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-    OT_ASSERT(false != bool(token));
-    if (false == token->ReassignOwnership(
-                     *pOldOwner,   // must be private, if a Nym.
-                     *pNewOwner))  // can be public, if a Nym.
-    {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error re-assigning ownership of token.")
-            .Flush();
-    } else {
-        LogDebug(OT_METHOD)(__FUNCTION__)(
-            ": Success re-assigning ownership of token.")
-            .Flush();
-
-        token->ReleaseSignatures();
-
-        auto pNym = api_.Wallet().Nym(pSignerNym->ID());
-        OT_ASSERT(nullptr != pNym);
-
-        token->SignContract(*pNym);
-        token->SaveContract();
-
-        return token.release();
-    }
-
-    return nullptr;
-}
-
-// LOAD Mint
-//
-// Returns an OTMint pointer, or nullptr.
-// (Caller responsible to delete.)
-//
-Mint* OT_API::LoadMint(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    const auto strNotaryID = String::Factory(NOTARY_ID);
-    const auto strInstrumentDefinitionID =
-        String::Factory(INSTRUMENT_DEFINITION_ID);
-    auto pServer = api_.Wallet().Server(NOTARY_ID);
-
-    if (!pServer) { return nullptr; }
-
-    auto pServerNym = pServer->Nym();
-
-    if (!pServerNym) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed trying to get contract public Nym for NotaryID: ")(
-            strNotaryID)(".")
-            .Flush();
-        return nullptr;
-    }
-    auto mint{api_.Factory().Mint(strNotaryID, strInstrumentDefinitionID)};
-    OT_ASSERT_MSG(
-        false != bool(mint),
-        "OT_API::LoadMint: Error allocating memory in the OT API");
-    // responsible to delete or return mint below this point.
-    if (!mint->LoadMint() || !mint->VerifyMint(*pServerNym)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Unable to load or verify Mintfile : ")(OTFolders::Mint())(
-            Log::PathSeparator())(strNotaryID)(Log::PathSeparator())(
-            strInstrumentDefinitionID)(".")
-            .Flush();
-        return nullptr;
-    }
-    return mint.release();
-}
-#endif  // OT_CASH
-
 // LOAD NYMBOX
 //
 // Caller IS responsible to delete
@@ -7080,51 +5944,8 @@ bool OT_API::RecordPayment(
                     // properly.
                 }
             }  // if (thePayment.GetTransactionNum(lPaymentTransNum))
-            else if (
-                bSaveCopy && (false != bool(pActualBox)) &&
-                thePayment->IsPurse()) {
 
-                // A purse has no transaction number on itself, and if it's
-                // in the outpayment box, it has no transaction number from
-                // its ledger, either! It's numberless. So what we do for
-                // now is, we use the expiration timestamp for the purse to
-                // create its "transaction number" (we also add a billion to
-                // it, and then increment it until we are sure it's unused
-                // in the box already) for the new receipt we're inserting
-                // for this purse into the record box. (Otherwise we'd have
-                // to skip this part and we wouldn't save a record of the
-                // purse at all.)
-                //
-                // ALSO NOTE that people shouldn't really be discarding the
-                // purse anyway from the outpayment box, since it will
-                // ALREADY disappear once it expires. (Presumably you'd want
-                // the option to recover it, at any time prior to that
-                // point...) But we still must consider that people sent
-                // cash and they just want it erased, so...
-                //
-                time64_t tValidTo = OT_TIME_ZERO;
-
-                if (thePayment->GetValidTo(tValidTo)) {
-                    lPaymentTransNum = OTTimeGetSecondsFromTime(tValidTo) +
-                                       1000000000;  // todo hardcoded. (But
-                                                    // should be harmless since
-                                                    // this is record box.)
-
-                    // Since we're using a made-up transaction number here,
-                    // let's make sure it's not already being used. If it
-                    // is, we'll increment it until nothing is found.
-                    //
-                    while (nullptr !=
-                           pActualBox->GetTransaction(lPaymentTransNum))
-                        ++lPaymentTransNum;
-                } else
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Failed trying to get 'valid to' from "
-                        "purse.")
-                        .Flush();
-            }
             // Create the notice to put in the Record Box.
-            //
             if (bSaveCopy && (false != bool(pActualBox)) &&
                 (lPaymentTransNum > 0)) {
 
@@ -8245,11 +7066,6 @@ CommandResult OT_API::notarizeWithdrawal(
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
     const auto& serverNym = context.RemoteNym();
-    const auto& serverNymID = serverNym.ID();
-    auto wallet = GetWallet(__FUNCTION__);
-
-    if (nullptr == wallet) { return output; }
-
     auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) {
@@ -8258,12 +7074,14 @@ CommandResult OT_API::notarizeWithdrawal(
         return output;
     }
 
-    const auto& contractID = account.get().GetInstrumentDefinitionID();
+    // TODO unit id type
+    const auto contractID = identifier::UnitDefinition::Factory(
+        account.get().GetInstrumentDefinitionID().str());
     const bool exists = OTDB::Exists(
         api_.DataFolder(),
         OTFolders::Mint().Get(),
         serverID.str(),
-        contractID.str(),
+        contractID->str(),
         "");
 
     if (false == exists) {
@@ -8339,75 +7157,24 @@ CommandResult OT_API::notarizeWithdrawal(
     if (false == bool(item)) { return output; }
 
     item->SetNote(String::Factory("Gimme cash!"));
-    auto purse{api_.Factory().Purse(serverID, contractID, serverNymID)};
+    std::shared_ptr<blind::Purse> pPurse{
+        api_.Factory().Purse(context, contractID, *mint, amount)};
 
-    if (false == bool(purse)) { return output; }
+    if (false == bool(pPurse)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to construct purse")
+            .Flush();
 
-    auto purseCopy{api_.Factory().Purse(serverID, contractID, serverNymID)};
-
-    if (false == bool(purseCopy)) { return output; }
-
-    // Create all the necessary tokens for the withdrawal amount. Push
-    // copies of each token into a purse to be sent to the server, as well
-    // as a purse to be kept for unblinding when we receive the server
-    // response. (Coin private unblinding keys are not sent to the server,
-    // obviously.)
-    const Amount totalAmount(amount);
-    Amount workingAmount(totalAmount);
-    Amount tokenAmount = 0;
-
-    while ((tokenAmount = mint->GetLargestDenomination(workingAmount)) > 0) {
-        workingAmount -= tokenAmount;
-        // Create the relevant token request with same server/instrument
-        // definition id as the purse. the purse does NOT own the token at
-        // this point. The token's constructor just uses it to copy some
-        // IDs, since they must match.
-        auto token{api_.Factory().Token(
-            *purse,
-            nym,
-            *mint,
-            tokenAmount,
-            Token::GetMinimumPrototokenCount())};
-
-        if (false == bool(token)) { return output; }
-
-        token->SignContract(nym);
-        token->SaveContract();
-        // Now the proto-token is generated, let's add it to a purse By
-        // pushing *token into purse with *pServerNym, I encrypt it to
-        // pServerNym. So now only the server Nym can decrypt that token and
-        // pop it out of that purse.
-        purse->Push(serverNym, *token);
-        // I'm saving my own copy of all this, encrypted to my nym instead
-        // of the server's, so I can get to my private coin data. The
-        // server's copy of token is already Pushed, so I can re-use the
-        // variable now for my own purse.
-        token->ReleaseSignatures();
-        token->SetSavePrivateKeys();
-        token->SignContract(nym);
-        token->SaveContract();
-        purseCopy->Push(nym, *token);
+        return output;
     }
 
-    auto purseAttachment = String::Factory();
-    purse->SignContract(nym);
-    purse->SaveContract();
-    purse->SaveContractRaw(purseAttachment);
-    item->SetAttachment(purseAttachment);
-    purseCopy->SignContract(nym);
-    purseCopy->SaveContract();
-    // This thing is neat and tidy. The wallet can just save it as an
-    // ascii-armored string as a purse field inside the wallet file.  It
-    // doesn't do that for now (TODO) but it easily could. Add the purse to
-    // the wallet (We will need it to look up the private coin info for
-    // unblinding the token, when the response comes from the server.)
-    wallet->AddPendingWithdrawal(*purseCopy);
+    auto& purse = *pPurse;
+    item->SetAttachment(proto::ProtoAsData(purse.Serialize()));
     item->SignContract(nym);
     item->SaveContract();
     std::shared_ptr<Item> pitem{item.release()};
     transaction->AddItem(pitem);
     std::unique_ptr<Item> balanceItem(inbox->GenerateBalanceStatement(
-        totalAmount * (-1), *transaction, context, account.get(), *outbox));
+        amount * (-1), *transaction, context, account.get(), *outbox));
 
     if (false == bool(balanceItem)) { return output; }
 
@@ -8444,7 +7211,7 @@ CommandResult OT_API::notarizeWithdrawal(
 CommandResult OT_API::notarizeDeposit(
     ServerContext& context,
     const Identifier& accountID,
-    const String& THE_PURSE) const
+    const std::shared_ptr<blind::Purse> purse) const
 {
     rLock lock(
         lock_callback_({context.Nym()->ID().str(), context.Server().str()}));
@@ -8458,11 +7225,6 @@ CommandResult OT_API::notarizeDeposit(
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
     const auto& serverID = context.Server();
-    const auto& serverNym = context.RemoteNym();
-    const auto reason = String::Factory(
-        "Depositing a cash purse. Enter passphrase for the purse.");
-    const OTPasswordData cashPasswordReason(
-        "Depositing a cash purse. Enter master passphrase for wallet.");
     auto account = api_.Wallet().Account(accountID);
 
     if (false == bool(account)) {
@@ -8521,7 +7283,7 @@ CommandResult OT_API::notarizeDeposit(
 
     if (false == bool(transaction)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed generate deposit txn. "
-                                           "account ")(accountID)(".")
+                                           "account ")(accountID)
             .Flush();
 
         return output;
@@ -8532,100 +7294,13 @@ CommandResult OT_API::notarizeDeposit(
 
     if (false == bool(item)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed generate deposit txn "
-                                           "item. "
-                                           "account ")(accountID)(".")
+                                           "item. Account ")(accountID)
             .Flush();
 
         return output;
     }
 
-    const auto& contractID = account.get().GetInstrumentDefinitionID();
-    auto outputPurse{
-        api_.Factory().Purse(serverID, contractID, serverNym.ID())};
-
-    // What's going on here?
-    // A purse can be encrypted by a private key (controlled by a Nym) or by
-    // a symmetric key (embedded inside the purse along with a corresponding
-    // master key.) The below function is what actually loads up pPurse from
-    // string (THE_PURSE) and this call also returns pOwner, which is a
-    // pointer to a special wrapper class (which you must delete, when
-    // you're done with it) which contains a pointer EITHER to the owner Nym
-    // for that purse, OR to the "owner" symmetric key for that purse.
-    //
-    // This way, any subsequent purse operations can use pOwner, regardless
-    // of whether there is actually a Nym inside, or a symmetric key. (None
-    // of the purse operations will care, since they can use pOwner either
-    // way.)
-    OTPassword pursePassword;
-    auto sourcePurse{api_.Factory().Purse(*outputPurse)};
-    std::unique_ptr<OTNym_or_SymmetricKey> purseOwner(LoadPurseAndOwnerForMerge(
-        THE_PURSE,
-        *sourcePurse,
-        pursePassword,
-        nymID,  // This can be nullptr, *IF* purse is
-                // password-protected. (It's just ignored in that case.)
-                // Otherwise if it's Nym-protected, the purse will have
-                // a NymID on it already, which is what
-                // LoadPurseAndOwnerForMerge will try first. If not
-                // (it's optional), then nymID is the ID it will try
-                // next, before failing altogether.
-        false,  // MUST be private, if a nym.
-        reason.get()));
-
-    if (false == bool(purseOwner)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed loading purse and owner.")
-            .Flush();
-
-        return output;
-    }
-
-    OTNym_or_SymmetricKey serverNymAsOwner(serverNym);
-
-    while (false == sourcePurse->IsEmpty()) {
-        std::unique_ptr<Token> token(sourcePurse->Pop(*purseOwner));
-
-        if (false == bool(token)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error loading token from purse.")
-                .Flush();
-
-            return output;
-        }
-
-        // TODO need 2-recipient envelopes. My request to the server is
-        // encrypted to the server's nym, but it should be encrypted to my
-        // Nym also, so both have access to decrypt it.
-        //
-        // Now the token is ready, let's add it to a purse By pushing
-        // theToken into outputPurse with serverNym, I encrypt it to
-        // pServerNym. So now only the server Nym can decrypt that token and
-        // pop it out of that purse.
-        if (false == token->ReassignOwnership(*purseOwner, serverNymAsOwner)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error re-assigning ownership of token (to server).")
-                .Flush();
-
-            return output;
-        }
-
-        LogDetail(OT_METHOD)(__FUNCTION__)(
-            ": Success re-assigning ownership of token (to server).")
-            .Flush();
-        token->ReleaseSignatures();
-        token->SignContract(nym);
-        token->SaveContract();
-
-        Token* pToken = token.get();
-        outputPurse->Push(serverNymAsOwner, *token.release());
-
-        item->SetAmount(item->GetAmount() + pToken->GetDenomination());
-    }
-
-    auto purseAttachment = String::Factory();
-    outputPurse->SignContract(nym);
-    outputPurse->SaveContract();
-    outputPurse->SaveContractRaw(purseAttachment);
-    item->SetAttachment(purseAttachment);
+    item->SetAttachment(proto::ProtoAsData(purse->Serialize()));
     item->SignContract(nym);
     item->SaveContract();
 
@@ -11500,8 +10175,7 @@ CommandResult OT_API::sendNymMessage(
     reply.reset();
     const auto& nym = *context.Nym();
     const auto& nymID = nym.ID();
-    const auto object =
-        PeerObject::Create(api_.Wallet(), context.Nym(), THE_MESSAGE);
+    const auto object = api_.Factory().PeerObject(context.Nym(), THE_MESSAGE);
 
     if (false == bool(object)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object.")
@@ -11530,7 +10204,7 @@ CommandResult OT_API::sendNymMessage(
     sent->m_strNymID2 = String::Factory(recipientNymID);
     sent->m_strNotaryID = String::Factory(context.Server());
     sent->m_strRequestNum->Format("%" PRId64, requestNum);
-    auto copy = PeerObject::Create(api_.Wallet(), nullptr, THE_MESSAGE);
+    auto copy = api_.Factory().PeerObject(nullptr, THE_MESSAGE);
 
     OT_ASSERT(copy);
 
@@ -11558,6 +10232,34 @@ CommandResult OT_API::sendNymMessage(
 
     return output;
 }
+
+#if OT_CASH
+CommandResult OT_API::sendNymCash(
+    ServerContext& context,
+    const Identifier& recipientNymID,
+    std::shared_ptr<blind::Purse> purse) const
+{
+    CommandResult output{};
+    auto& [requestNum, transactionNum, result] = output;
+    auto& [status, reply] = result;
+    requestNum = -1;
+    transactionNum = 0;
+    status = SendResult::ERROR;
+    reply.reset();
+    const auto object = api_.Factory().PeerObject(context.Nym(), purse);
+
+    if (false == bool(object)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object.")
+            .Flush();
+
+        return output;
+    }
+
+    std::unique_ptr<Message> request{nullptr};
+
+    return sendNymObject(context, request, recipientNymID, *object, requestNum);
+}
+#endif
 
 /// UPDATE: Sometimes you want to send something to yourself,
 /// meaning just put a copy in your outpayments box, without sending
@@ -11639,7 +10341,7 @@ CommandResult OT_API::sendNymInstrument(
                                 : strInstrumentForRecipient)};
 
     // REMOVE OLDER DUPLICATE (if applicable) FROM OUTPAYMENTS BOX.
-    if ((false == instrument.IsPurse()) && storeOutpayment) {
+    if (storeOutpayment) {
         auto nymfile = context.mutable_Nymfile(__FUNCTION__);
         std::int64_t lInstrumentOpeningNum{0};
         const bool bGotTransNum =
@@ -11719,8 +10421,7 @@ CommandResult OT_API::sendNymInstrument(
             const auto strMessageForRecipient = String::Factory(*theMessage);
             // Create the peer object we'll be sending to the
             // recipient.
-            const auto object = PeerObject::Create(
-                api_.Wallet(),
+            const auto object = api_.Factory().PeerObject(
                 context.Nym(),
                 strMessageForRecipient->Get(),
                 true);  // isPayment=true on creation.
@@ -12501,7 +11202,7 @@ CommandResult OT_API::initiatePeerRequest(
 
     const auto itemID = peerRequest->ID();
     auto object =
-        PeerObject::Create(api_.Wallet(), peerRequest, peerRequest->Version());
+        api_.Factory().PeerObject(peerRequest, peerRequest->Version());
 
     if (false == bool(object)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object.")
@@ -12579,8 +11280,7 @@ CommandResult OT_API::initiatePeerReply(
     const auto version = pRequest->Version() > peerReply->Version()
                              ? pRequest->Version()
                              : peerReply->Version();
-    auto object =
-        PeerObject::Create(api_.Wallet(), pRequest, peerReply, version);
+    auto object = api_.Factory().PeerObject(pRequest, peerReply, version);
 
     if (false == bool(object)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to create peer object.")

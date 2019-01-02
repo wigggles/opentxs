@@ -227,7 +227,7 @@ bool EllipticCurve::Open(
         plaintextKey);
 
     if (false == haveSessionKey) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
             .Flush();
 
         return false;

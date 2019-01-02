@@ -85,6 +85,9 @@ public:
         , bob_server_reply_listener_(
               bob_client_.ZeroMQ().SubscribeSocket(bob_server_reply_callback_))
     {
+#if OT_CASH
+        server_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
+#endif
         subscribe_sockets();
 
         if (false == init_) { init(); }
@@ -100,8 +103,8 @@ public:
         WidgetData& data,
         WidgetMap& map)
     {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Name: ")(name)(". ID: ")(id)(".").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Name: ")(name)(". ID: ")(id)(".")
+            .Flush();
         data.emplace(name, std::pair<OTIdentifier, int>({id, 0}));
         map.emplace(id, name);
     }
@@ -517,12 +520,12 @@ public:
         if (0 == incoming.Body().size()) { return; }
 
         const std::string replyType{incoming.Body().at(0)};
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Received ")(replyType)(".").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Received ")(replyType)(".")
+            .Flush();
         Lock lock(server_reply_lock_);
         auto& counter = map[replyType];
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": ")(std::to_string(++counter))(".").Flush();
+        LogOutput(OT_METHOD)(__FUNCTION__)(": ")(std::to_string(++counter))(".")
+            .Flush();
     }
 
     void subscribe_sockets()

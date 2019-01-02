@@ -15,7 +15,7 @@
 #define NYM_INDEX_VERSION 1
 #define MERGE_VERSION 1
 
-//#define OT_METHOD "opentxs::storage::Contacts::"
+#define OT_METHOD "opentxs::storage::Contacts::"
 
 namespace opentxs::storage
 {
@@ -301,7 +301,8 @@ proto::StorageContacts Contacts::serialize() const
         const bool good = goodID && goodHash;
 
         if (good) {
-            serialize_index(item.first, item.second, *serialized.add_contact());
+            serialize_index(
+                version_, item.first, item.second, *serialized.add_contact());
         }
     }
 

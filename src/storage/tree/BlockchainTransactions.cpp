@@ -11,7 +11,7 @@
 
 #define CURRENT_VERSION 1
 
-//#define OT_METHOD "opentxs::storage::BlockchainTransactions::"
+#define OT_METHOD "opentxs::storage::BlockchainTransactions::"
 
 namespace opentxs
 {
@@ -97,7 +97,10 @@ proto::StorageBlockchainTransactions BlockchainTransactions::serialize() const
 
         if (good) {
             serialize_index(
-                item.first, item.second, *serialized.add_transaction());
+                version_,
+                item.first,
+                item.second,
+                *serialized.add_transaction());
         }
     }
 

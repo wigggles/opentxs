@@ -14,9 +14,6 @@
 #include "opentxs/api/HDSeed.hpp"
 #endif
 #include "opentxs/api/Wallet.hpp"
-#if OT_CASH
-#include "opentxs/cash/Purse.hpp"
-#endif  // OT_CASH
 #include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
@@ -57,9 +54,6 @@ namespace opentxs
 OTWallet::OTWallet(const api::Core& api)
     : Lockable()
     , api_(api)
-#if OT_CASH
-    , m_pWithdrawalPurse(nullptr)
-#endif
     , m_strName(String::Factory())
     , m_strVersion(String::Factory())
     , m_strFilename(String::Factory())
@@ -69,36 +63,6 @@ OTWallet::OTWallet(const api::Core& api)
 }
 
 void OTWallet::release(const Lock&) {}
-
-#if OT_CASH
-// While waiting on server response to a withdrawal, we keep the private coin
-// data here so we can unblind the response.
-// This information is so important (as important as the digital cash token
-// itself, until the unblinding is done) that we need to save the file right
-// away.
-void OTWallet::AddPendingWithdrawal(const Purse& thePurse)
-{
-    Lock lock(lock_);
-    // TODO maintain a list here (I don't know why, the server response is
-    // nearly
-    // instant and then it's done.)
-
-    // TODO notice I don't check the pointer here to see if it's already set, I
-    // just start using it.. Fix that.
-    m_pWithdrawalPurse = const_cast<Purse*>(&thePurse);
-}  // TODO WARNING: If this data is lost before the transaction is completed,
-   // the user will be unable to unblind his tokens and make them spendable.
-   // So this data MUST be SAVED until the successful withdrawal is verified!
-
-void OTWallet::RemovePendingWithdrawal()
-{
-    Lock lock(lock_);
-
-    if (m_pWithdrawalPurse) delete m_pWithdrawalPurse;
-
-    m_pWithdrawalPurse = nullptr;
-}
-#endif  // OT_CASH
 
 std::string OTWallet::GetPhrase()
 {
@@ -161,15 +125,6 @@ std::string OTWallet::ImportSeed(
     return "";
 #endif
 }
-
-#if OT_CASH
-Purse* OTWallet::GetPendingWithdrawal()
-{
-    Lock lock(lock_);
-
-    return m_pWithdrawalPurse;
-}
-#endif
 
 void OTWallet::DisplayStatistics(String& strOutput) const
 {

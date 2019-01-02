@@ -30,7 +30,6 @@ class Factory;
   The PAYMENT can be of types:
     - CHEQUE, INVOICE, VOUCHER (these are all forms of cheque)
     - PAYMENT PLAN, SMART CONTRACT (these are cron items)
-    - PURSE (containing cash)
 
  FYI:
 
@@ -91,8 +90,6 @@ public:
                          // recurring payment plan.
         SMART_CONTRACT,  // An OTCronItem-derived OTSmartContract, related to a
                          // smart contract.
-        PURSE,   // An Contract-derived OTPurse containing a list of cash
-                 // OTTokens.
         NOTICE,  // An OTTransaction containing a notice that a cron item was
                  // activated/canceled.
         // NOTE: Even though a notice isn't a "payment instrument" it can still
@@ -157,15 +154,11 @@ public:
     EXPORT OTTrackable* Instantiate() const;
     EXPORT OTTrackable* Instantiate(const String& strPayment);
     EXPORT OTTransaction* InstantiateNotice() const;
-#if OT_CASH
-    EXPORT Purse* InstantiatePurse(const api::Wallet& wallet) const;
-#endif  // OT_CASH
     EXPORT bool IsCheque() const { return (CHEQUE == m_Type); }
     EXPORT bool IsVoucher() const { return (VOUCHER == m_Type); }
     EXPORT bool IsInvoice() const { return (INVOICE == m_Type); }
     EXPORT bool IsPaymentPlan() const { return (PAYMENT_PLAN == m_Type); }
     EXPORT bool IsSmartContract() const { return (SMART_CONTRACT == m_Type); }
-    EXPORT bool IsPurse() const { return (PURSE == m_Type); }
     EXPORT bool IsNotice() const { return (NOTICE == m_Type); }
     EXPORT bool IsValid() const { return (ERROR_STATE != m_Type); }
     EXPORT const String& Payment() const { return m_strPayment; }
@@ -175,11 +168,6 @@ public:
     EXPORT bool IsExpired(bool& bExpired);
     EXPORT void InitPayment();
     EXPORT OTTransaction* InstantiateNotice(const String& strNotice);
-#if OT_CASH
-    EXPORT Purse* InstantiatePurse(
-        const api::Wallet& wallet,
-        const String& strPayment);
-#endif  // OT_CASH
     EXPORT std::int32_t ProcessXMLNode(irr::io::IrrXMLReader*& xml) override;
     EXPORT void Release() override;
     EXPORT void Release_Payment();
@@ -193,9 +181,6 @@ public:
     EXPORT bool SetTempValuesFromCheque(const Cheque& theInput);
     EXPORT bool SetTempValuesFromPaymentPlan(const OTPaymentPlan& theInput);
     EXPORT bool SetTempValuesFromSmartContract(const OTSmartContract& theInput);
-#if OT_CASH
-    EXPORT bool SetTempValuesFromPurse(const Purse& theInput);
-#endif  // OT_CASH
     EXPORT bool SetTempValuesFromNotice(const OTTransaction& theInput);
     // Verify whether the CURRENT date is WITHIN the VALID FROM / TO dates.
     EXPORT bool VerifyCurrentDate(bool& bVerified);
@@ -261,9 +246,7 @@ private:
     using ot_super = Contract;
 
     EXPORT OTPayment(const api::Core& core);
-    EXPORT OTPayment(
-        const api::Core& core,
-        const String& strPayment);
+    EXPORT OTPayment(const api::Core& core, const String& strPayment);
 
     OTPayment() = delete;
 };

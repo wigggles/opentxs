@@ -20,12 +20,16 @@ public:
      *
      *  \param[in] ciphertext The data to be decrypted
      *  \param[in] keyPassword The password needed to decrypt the key
-     *  \param[out] plaintext The encrypted output
+     *  \param[out] plaintext The decrypted output
      */
     bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const OTPasswordData& keyPassword,
         std::string& plaintext) override;
+    bool Decrypt(
+        const proto::Ciphertext& ciphertext,
+        const OTPasswordData& keyPassword,
+        String& plaintext) override;
     bool Decrypt(
         const proto::Ciphertext& ciphertext,
         const OTPasswordData& keyPassword,
@@ -66,6 +70,13 @@ public:
         proto::Ciphertext& ciphertext,
         const bool attachKey = true,
         const proto::SymmetricMode mode = proto::SMODE_ERROR) override;
+    bool Encrypt(
+        const Data& plaintext,
+        const Data& iv,
+        const OTPasswordData& keyPassword,
+        proto::Ciphertext& ciphertext,
+        const bool attachKey = true,
+        const proto::SymmetricMode mode = proto::SMODE_ERROR) override;
 
     OTIdentifier ID() override;
 
@@ -97,6 +108,7 @@ private:
 
     Symmetric* clone() const override;
 
+    static bool Allocate(const std::size_t size, String& container);
     static bool Allocate(const std::size_t size, Data& container);
     static bool Allocate(
         const std::size_t size,

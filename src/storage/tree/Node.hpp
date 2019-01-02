@@ -18,8 +18,6 @@
 #include <string>
 #include <tuple>
 
-#define OT_METHOD "opentxs::Node::"
-
 namespace opentxs
 {
 namespace storage
@@ -148,8 +146,9 @@ protected:
             std::shared_ptr<T> existing{nullptr};
 
             if (false == driver_.LoadProto(hash, existing, false)) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to load object.")
-                      .Flush();
+                LogOutput("opentxs::storage::Node::")(__FUNCTION__)(
+                    ": Unable to load object.")
+                    .Flush();
 
                 abort();
             }
@@ -198,6 +197,7 @@ protected:
         const opentxs::api::storage::Driver& to) const;
     virtual bool save(const Lock& lock) const = 0;
     void serialize_index(
+        const std::uint32_t version,
         const std::string& id,
         const Metadata& metadata,
         proto::StorageItemHash& output,

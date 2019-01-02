@@ -9,7 +9,6 @@
 #if OT_CRYPTO_SUPPORTED_KEY_HD
 #include "opentxs/api/client/Blockchain.hpp"
 #endif
-#include "opentxs/api/client/Cash.hpp"
 #include "opentxs/api/client/Contacts.hpp"
 #include "opentxs/api/client/Manager.hpp"
 #include "opentxs/api/client/Pair.hpp"
@@ -81,7 +80,8 @@ Manager::Manager(
           context,
           dataFolder,
           instance,
-          false)
+          false,
+          opentxs::Factory::FactoryAPIClient(*this))
     , zeromq_(opentxs::Factory::ZMQ(*this, running_))
     , identity_(opentxs::Factory::Identity(*this))
     , contacts_(opentxs::Factory::Contacts(*this))
@@ -108,7 +108,6 @@ Manager::Manager(
     , server_action_(opentxs::Factory::ServerAction(
           *this,
           std::bind(&Manager::get_lock, this, std::placeholders::_1)))
-    , cash_(opentxs::Factory::Cash(*this, *server_action_))
     , sync_(opentxs::Factory::Sync(
           running_,
           *this,
@@ -133,7 +132,6 @@ Manager::Manager(
     OT_ASSERT(workflow_);
     OT_ASSERT(ot_api_);
     OT_ASSERT(otapi_exec_);
-    OT_ASSERT(cash_);
     OT_ASSERT(server_action_);
     OT_ASSERT(sync_);
     OT_ASSERT(ui_);
@@ -171,7 +169,6 @@ void Manager::Cleanup()
     ui_.reset();
     pair_.reset();
     sync_.reset();
-    cash_.reset();
     server_action_.reset();
     otapi_exec_.reset();
     ot_api_.reset();
@@ -230,13 +227,6 @@ const OT_API& Manager::OTAPI(const std::string&) const
     OT_ASSERT(ot_api_);
 
     return *ot_api_;
-}
-
-const api::client::Cash& Manager::Cash() const
-{
-    OT_ASSERT(cash_);
-
-    return *cash_;
 }
 
 const api::client::Pair& Manager::Pair() const

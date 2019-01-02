@@ -25,7 +25,7 @@
 
 #define CURRENT_VERSION 2
 
-//#define OT_METHOD "opentxs::storage::Root::"
+#define OT_METHOD "opentxs::storage::Root::"
 
 namespace opentxs
 {
@@ -200,7 +200,7 @@ void Root::save(class Tree* tree, const Lock& lock)
     OT_ASSERT(nullptr != tree);
 
     Lock treeLock(tree_lock_);
-    tree_root_ = tree->Root();
+    tree_root_ = tree->root_;
     treeLock.unlock();
 
     const bool saved = save(lock);

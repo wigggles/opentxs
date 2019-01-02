@@ -50,7 +50,7 @@
 #define ADDRESS_INDEX_VERSION 1
 #define CHANNEL_INDEX_VERSION 1
 
-//#define OT_METHOD "opentxs::storage::Bip47Channels::"
+#define OT_METHOD "opentxs::storage::Bip47Channels::"
 
 namespace opentxs::storage
 {
@@ -324,7 +324,8 @@ proto::StorageBip47Contexts Bip47Channels::serialize() const
         const bool good = goodID && goodHash;
 
         if (good) {
-            serialize_index(item.first, item.second, *serialized.add_context());
+            serialize_index(
+                version_, item.first, item.second, *serialized.add_context());
         }
     }
 
