@@ -12,6 +12,8 @@
 #include "opentxs/core/crypto/OTCachedKey.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/util/Assert.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -51,12 +53,57 @@ bool operator==(const OTIdentifier& lhs, const Identifier& rhs)
     return lhs.get() == rhs;
 }
 
+bool operator==(const OTNymID& lhs, const identifier::Nym& rhs)
+{
+    return lhs.get().operator==(rhs);
+}
+
+bool operator==(const OTServerID& lhs, const identifier::Server& rhs)
+{
+    return lhs.get().operator==(rhs);
+}
+
+bool operator==(const OTUnitID& lhs, const identifier::UnitDefinition& rhs)
+{
+    return lhs.get().operator==(rhs);
+}
+
 bool operator!=(const OTIdentifier& lhs, const Identifier& rhs)
 {
     return lhs.get() != rhs;
 }
 
+bool operator!=(const OTNymID& lhs, const identifier::Nym& rhs)
+{
+    return lhs.get().operator!=(rhs);
+}
+
+bool operator!=(const OTServerID& lhs, const identifier::Server& rhs)
+{
+    return lhs.get().operator!=(rhs);
+}
+
+bool operator!=(const OTUnitID& lhs, const identifier::UnitDefinition& rhs)
+{
+    return lhs.get().operator!=(rhs);
+}
+
 bool operator<(const OTIdentifier& lhs, const OTIdentifier& rhs)
+{
+    return lhs.get() < rhs.get();
+}
+
+bool operator<(const OTNymID& lhs, const OTNymID& rhs)
+{
+    return lhs.get() < rhs.get();
+}
+
+bool operator<(const OTServerID& lhs, const OTServerID& rhs)
+{
+    return lhs.get() < rhs.get();
+}
+
+bool operator<(const OTUnitID& lhs, const OTUnitID& rhs)
 {
     return lhs.get() < rhs.get();
 }
@@ -69,6 +116,16 @@ OTIdentifier Identifier::Factory()
 OTNymID identifier::Nym::Factory()
 {
     return OTNymID(new implementation::Identifier());
+}
+
+OTServerID identifier::Server::Factory()
+{
+    return OTServerID(new implementation::Identifier());
+}
+
+OTUnitID identifier::UnitDefinition::Factory()
+{
+    return OTUnitID(new implementation::Identifier());
 }
 
 OTIdentifier Identifier::Factory(const Identifier& rhs)
@@ -86,6 +143,16 @@ OTNymID identifier::Nym::Factory(const std::string& rhs)
     return OTNymID(new implementation::Identifier(rhs));
 }
 
+OTServerID identifier::Server::Factory(const std::string& rhs)
+{
+    return OTServerID(new implementation::Identifier(rhs));
+}
+
+OTUnitID identifier::UnitDefinition::Factory(const std::string& rhs)
+{
+    return OTUnitID(new implementation::Identifier(rhs));
+}
+
 OTIdentifier Identifier::Factory(const String& rhs)
 {
     return OTIdentifier(new implementation::Identifier(rhs));
@@ -94,6 +161,16 @@ OTIdentifier Identifier::Factory(const String& rhs)
 OTNymID identifier::Nym::Factory(const String& rhs)
 {
     return OTNymID(new implementation::Identifier(rhs));
+}
+
+OTServerID identifier::Server::Factory(const String& rhs)
+{
+    return OTServerID(new implementation::Identifier(rhs));
+}
+
+OTUnitID identifier::UnitDefinition::Factory(const String& rhs)
+{
+    return OTUnitID(new implementation::Identifier(rhs));
 }
 
 OTIdentifier Identifier::Factory(const opentxs::Nym& nym)

@@ -11,6 +11,8 @@ namespace opentxs::implementation
 {
 class Identifier final : virtual public opentxs::Identifier,
                          virtual public opentxs::identifier::Nym,
+                         virtual public opentxs::identifier::Server,
+                         virtual public opentxs::identifier::UnitDefinition,
                          public Data
 {
 public:
@@ -44,6 +46,8 @@ public:
 private:
     friend opentxs::Identifier;
     friend opentxs::identifier::Nym;
+    friend opentxs::identifier::Server;
+    friend opentxs::identifier::UnitDefinition;
 
     static const ID DefaultType{ID::BLAKE2B};
     static const std::size_t MinimumSize{10};

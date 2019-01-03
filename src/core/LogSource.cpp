@@ -8,6 +8,9 @@
 #include "opentxs/core/LogSource.hpp"
 
 #include "opentxs/api/Native.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/core/StringXML.hpp"
@@ -31,6 +34,8 @@ LogSource::LogSource(const int logLevel)
     : level_(logLevel)
 {
 }
+
+const LogSource& LogSource::operator()() const { return *this; }
 
 const LogSource& LogSource::operator()(char* in) const
 {
@@ -90,6 +95,37 @@ const LogSource& LogSource::operator()(const OTIdentifier& in) const
 }
 
 const LogSource& LogSource::operator()(const Identifier& in) const
+{
+    return operator()(in.str().c_str());
+}
+
+const LogSource& LogSource::operator()(const OTNymID& in) const
+{
+    return operator()(in.get());
+}
+
+const LogSource& LogSource::operator()(const identifier::Nym& in) const
+{
+    return operator()(in.str().c_str());
+}
+
+const LogSource& LogSource::operator()(const OTServerID& in) const
+{
+    return operator()(in.get());
+}
+
+const LogSource& LogSource::operator()(const identifier::Server& in) const
+{
+    return operator()(in.str().c_str());
+}
+
+const LogSource& LogSource::operator()(const OTUnitID& in) const
+{
+    return operator()(in.get());
+}
+
+const LogSource& LogSource::operator()(
+    const identifier::UnitDefinition& in) const
 {
     return operator()(in.str().c_str());
 }

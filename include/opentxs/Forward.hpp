@@ -109,7 +109,11 @@ class Trezor;
 
 namespace identifier
 {
+class Account;
+class Contact;
 class Nym;
+class Server;
+class UnitDefinition;
 }  // namespace identifier
 
 namespace network

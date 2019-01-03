@@ -27,6 +27,7 @@ public:
         const LogSource& source,
         const std::string& function);
 
+    const LogSource& operator()() const;
     const LogSource& operator()(const char* in) const;
     const LogSource& operator()(char* in) const;
     const LogSource& operator()(const std::string& in) const;
@@ -38,6 +39,12 @@ public:
     const LogSource& operator()(const Armored& in) const;
     const LogSource& operator()(const OTIdentifier& in) const;
     const LogSource& operator()(const Identifier& in) const;
+    const LogSource& operator()(const OTNymID& in) const;
+    const LogSource& operator()(const identifier::Nym& in) const;
+    const LogSource& operator()(const OTServerID& in) const;
+    const LogSource& operator()(const identifier::Server& in) const;
+    const LogSource& operator()(const OTUnitID& in) const;
+    const LogSource& operator()(const identifier::UnitDefinition& in) const;
     template <typename T>
     const LogSource& operator()(const T& in) const
     {

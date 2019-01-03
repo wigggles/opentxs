@@ -31,6 +31,18 @@
 
 namespace opentxs
 {
+#ifndef SWIG
+bool operator==(
+    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const opentxs::identifier::Nym& rhs);
+bool operator!=(
+    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const opentxs::identifier::Nym& rhs);
+bool operator<(
+    const opentxs::Pimpl<opentxs::identifier::Nym>& lhs,
+    const opentxs::Pimpl<opentxs::identifier::Nym>& rhs);
+#endif
+
 namespace identifier
 {
 class Nym : virtual public opentxs::Identifier
