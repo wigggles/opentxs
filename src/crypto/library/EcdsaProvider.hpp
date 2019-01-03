@@ -22,6 +22,12 @@ public:
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
         const OTPasswordData& password,
+        crypto::key::Symmetric& sessionKey,
+        OTPassword& plaintextKey) const override;
+    bool DecryptSessionKeyECDH(
+        const crypto::key::EllipticCurve& privateKey,
+        const crypto::key::EllipticCurve& publicKey,
+        const OTPasswordData& password,
         crypto::key::Symmetric& sessionKey) const override;
     bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,

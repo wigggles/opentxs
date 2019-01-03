@@ -25,6 +25,12 @@ public:
         const crypto::key::EllipticCurve& privateKey,
         const crypto::key::EllipticCurve& publicKey,
         const OTPasswordData& password,
+        crypto::key::Symmetric& sessionKey,
+        OTPassword& plaintextKey) const = 0;
+    EXPORT virtual bool DecryptSessionKeyECDH(
+        const crypto::key::EllipticCurve& privateKey,
+        const crypto::key::EllipticCurve& publicKey,
+        const OTPasswordData& password,
         crypto::key::Symmetric& sessionKey) const = 0;
     EXPORT virtual bool ECPrivatekeyToAsymmetricKey(
         const OTPassword& privkey,

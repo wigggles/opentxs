@@ -108,7 +108,7 @@ public:
     EXPORT bool HasCapability(const NymCapability& capability) const;
     EXPORT const Identifier& ID() const { return m_nymID; }
 
-    /* Encrypt the a symmetric key's password
+    /* Encrypt a symmetric key's password
      *
      *  \param[in]  password     The password for the key
      *  \param[in]  key          The symmetric key whose password will be
@@ -122,12 +122,36 @@ public:
     EXPORT std::shared_ptr<const proto::Credential> MasterCredentialContents(
         const std::string& id) const;
     EXPORT std::string Name() const;
+
+    /* Decrypt a symmetric key's password, then use that password to decrypt the
+     * symmetric key itself
+     *
+     *  \param[in]    input        The encrypted password
+     *  \param[inout] key          The symmetric key to be unlocked
+     *  \param[out]   password     The decrypted password
+     */
+    EXPORT bool Open(
+        const proto::SessionKey& input,
+        crypto::key::Symmetric& key,
+        OTPassword& password) const;
     EXPORT bool Path(proto::HDPath& output) const;
     EXPORT std::string PhoneNumbers(bool active = true) const;
     EXPORT std::uint64_t Revision() const;
     EXPORT std::shared_ptr<const proto::Credential> RevokedCredentialContents(
         const std::string& id) const;
     EXPORT bool SavePseudonymWallet(Tag& parent) const;
+
+    /* Encrypt a symmetric key's password
+     *
+     *  \param[in]  password     The password for the key
+     *  \param[in]  key          The symmetric key whose password will be
+     *                           encrypted
+     *  \param[out] output       The encrypted form of password
+     */
+    EXPORT bool Seal(
+        const OTPassword& password,
+        crypto::key::Symmetric& key,
+        proto::SessionKey& output) const;
     EXPORT void SerializeNymIDSource(Tag& parent) const;
     EXPORT std::string SocialMediaProfiles(
         const proto::ContactItemType type,
@@ -135,6 +159,7 @@ public:
     const std::set<proto::ContactItemType> SocialMediaProfileTypes() const;
     EXPORT const NymIDSource& Source() const { return *source_; }
     EXPORT std::unique_ptr<OTPassword> TransportKey(Data& pubkey) const;
+
     /* Decrypt a symmetric key's password, then use that password to decrypt the
      * symmetric key itself
      *

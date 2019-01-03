@@ -37,6 +37,13 @@ public:
     {
         return proto::AKEYTYPE_NULL;
     }
+    bool Open(
+        crypto::key::Asymmetric&,
+        crypto::key::Symmetric&,
+        OTPasswordData&) const override
+    {
+        return false;
+    }
     const std::string Path() const override { return {}; }
     bool Path(proto::HDPath&) const override { return false; }
     bool ReEncryptPrivateKey(const OTPassword&, bool bImporting) const override
@@ -74,6 +81,11 @@ public:
 
     void Release() override {}
     void ReleaseKey() override {}
+    bool Seal(OTAsymmetricKey&, crypto::key::Symmetric&, OTPasswordData&)
+        const override
+    {
+        return false;
+    }
     void SetAsPublic() override {}
     void SetAsPrivate() override {}
 

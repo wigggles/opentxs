@@ -59,12 +59,20 @@ public:
     EXPORT virtual bool IsPrivate() const = 0;
     EXPORT virtual bool IsPublic() const = 0;
     EXPORT virtual proto::AsymmetricKeyType keyType() const = 0;
+    EXPORT virtual bool Open(
+        crypto::key::Asymmetric& dhPublic,
+        crypto::key::Symmetric& sessionKey,
+        OTPasswordData& password) const = 0;
     EXPORT virtual const std::string Path() const = 0;
     EXPORT virtual bool Path(proto::HDPath& output) const = 0;
     EXPORT virtual bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const = 0;
     EXPORT virtual const proto::KeyRole& Role() const = 0;
+    EXPORT virtual bool Seal(
+        OTAsymmetricKey& dhPublic,
+        crypto::key::Symmetric& key,
+        OTPasswordData& password) const = 0;
     EXPORT virtual std::shared_ptr<proto::AsymmetricKey> Serialize() const = 0;
     EXPORT virtual OTData SerializeKeyToData(
         const proto::AsymmetricKey& rhs) const = 0;

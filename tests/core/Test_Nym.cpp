@@ -20,9 +20,12 @@ struct Test_Symmetric : public ::testing::Test {
     static opentxs::OTNymID alice_nym_id_;
     static opentxs::OTNymID bob_nym_id_;
     static opentxs::OTSymmetricKey key_;
+    static opentxs::OTSymmetricKey second_key_;
     static opentxs::OTPassword key_password_;
     static opentxs::proto::Ciphertext ciphertext_;
+    static opentxs::proto::Ciphertext second_ciphertext_;
     static opentxs::proto::Ciphertext encrypted_password_;
+    static opentxs::proto::SessionKey session_key_;
 
     const opentxs::api::client::Manager& api_;
     std::shared_ptr<const opentxs::Nym> alice_;
@@ -67,9 +70,13 @@ opentxs::OTNymID Test_Symmetric::bob_nym_id_{
     opentxs::identifier::Nym::Factory()};
 opentxs::OTSymmetricKey Test_Symmetric::key_{
     opentxs::crypto::key::Symmetric::Factory()};
+opentxs::OTSymmetricKey Test_Symmetric::second_key_{
+    opentxs::crypto::key::Symmetric::Factory()};
 opentxs::OTPassword Test_Symmetric::key_password_{};
 opentxs::proto::Ciphertext Test_Symmetric::ciphertext_{};
+opentxs::proto::Ciphertext Test_Symmetric::second_ciphertext_{};
 opentxs::proto::Ciphertext Test_Symmetric::encrypted_password_{};
+opentxs::proto::SessionKey Test_Symmetric::session_key_{};
 }  // namespace
 
 TEST_F(Test_Symmetric, create_key)
@@ -172,4 +179,62 @@ TEST_F(Test_Symmetric, wrongNym)
         bob_->Unlock(encrypted_password_, recoveredKey, decryptedPassword);
 
     EXPECT_FALSE(unlocked);
+}
+
+TEST_F(Test_Symmetric, create_second_key)
+{
+    ASSERT_TRUE(alice_);
+    ASSERT_TRUE(bob_);
+
+    opentxs::OTPasswordData password{""};
+
+    ASSERT_TRUE(password.SetOverride(key_password_));
+
+    second_key_ = api_.Crypto().Symmetric().Key(password, mode_);
+
+    EXPECT_TRUE(second_key_.get());
+
+    const auto encrypted = second_key_->Encrypt(
+        TEST_PLAINTEXT,
+        opentxs::Data::Factory(),
+        password,
+        second_ciphertext_,
+        true,
+        mode_);
+
+    ASSERT_TRUE(encrypted);
+}
+
+TEST_F(Test_Symmetric, seal)
+{
+    ASSERT_TRUE(bob_);
+
+    const auto sealed = alice_->Seal(key_password_, second_key_, session_key_);
+
+    ASSERT_TRUE(sealed);
+}
+
+TEST_F(Test_Symmetric, open)
+{
+    ASSERT_TRUE(bob_);
+
+    opentxs::OTPasswordData password{""};
+    opentxs::OTPassword decryptedPassword{};
+    auto recoveredKey =
+        api_.Crypto().Symmetric().Key(second_ciphertext_.key(), mode_);
+
+    ASSERT_TRUE(recoveredKey.get());
+
+    const auto unlocked =
+        alice_->Open(session_key_, recoveredKey, decryptedPassword);
+
+    ASSERT_TRUE(unlocked);
+    ASSERT_TRUE(password.SetOverride(decryptedPassword));
+
+    std::string plaintext{};
+    const auto decrypted =
+        recoveredKey->Decrypt(second_ciphertext_, password, plaintext);
+
+    ASSERT_TRUE(decrypted);
+    EXPECT_STREQ(TEST_PLAINTEXT, plaintext.c_str());
 }

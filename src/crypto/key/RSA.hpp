@@ -46,6 +46,10 @@ public:
         const OTPassword* pImportPassword = nullptr) const override;
     bool GetPublicKey(String& strKey) const override;
     bool IsEmpty() const override;
+    bool Open(
+        crypto::key::Asymmetric& dhPublic,
+        crypto::key::Symmetric& sessionKey,
+        OTPasswordData& password) const override;
     bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const override;
@@ -55,6 +59,10 @@ public:
         String& strOutput,
         const String& pstrReason = String::Factory(),
         const OTPassword* pImportPassword = nullptr) const override;
+    bool Seal(
+        OTAsymmetricKey& dhPublic,
+        crypto::key::Symmetric& key,
+        OTPasswordData& password) const override;
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     proto::HashType SigHashType() const override
     {

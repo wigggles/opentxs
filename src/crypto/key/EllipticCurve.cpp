@@ -9,6 +9,7 @@
 #include "opentxs/api/crypto/Encode.hpp"
 #include "opentxs/api/crypto/Hash.hpp"
 #include "opentxs/api/Native.hpp"
+#include "opentxs/core/crypto/NymParameters.hpp"
 #include "opentxs/core/crypto/OTPassword.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/util/Assert.hpp"
@@ -18,6 +19,7 @@
 #include "opentxs/core/Log.hpp"
 #include "opentxs/core/String.hpp"
 #include "opentxs/crypto/key/EllipticCurve.hpp"
+#include "opentxs/crypto/key/Keypair.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/crypto/library/EcdsaProvider.hpp"
 #include "opentxs/OT.hpp"
@@ -202,6 +204,40 @@ bool EllipticCurve::GetPublicKey(Data& key) const
 
 bool EllipticCurve::IsEmpty() const { return key_->empty(); }
 
+bool EllipticCurve::Open(
+    crypto::key::Asymmetric& dhPublic,
+    crypto::key::Symmetric& sessionKey,
+    OTPasswordData& password) const
+{
+    if (false == IsPrivate()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key type (public)")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& engine =
+        dynamic_cast<const crypto::EcdsaProvider&>(this->engine());
+    OTPassword plaintextKey{};
+    const bool haveSessionKey = engine.DecryptSessionKeyECDH(
+        *this,
+        dynamic_cast<crypto::key::EllipticCurve&>(dhPublic),
+        password,
+        sessionKey,
+        plaintextKey);
+
+    if (false == haveSessionKey) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
+            .Flush();
+
+        return false;
+    }
+
+    password.SetOverride(plaintextKey);
+
+    return true;
+}
+
 const std::string EllipticCurve::Path() const
 {
     auto path = String::Factory();
@@ -324,6 +360,46 @@ bool EllipticCurve::ReEncryptPrivateKey(
     }
 
     return bReturnVal;
+}
+
+bool EllipticCurve::Seal(
+    OTAsymmetricKey& dhPublic,
+    crypto::key::Symmetric& key,
+    OTPasswordData& password) const
+
+{
+    if (false == IsPublic()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect key type (private)")
+            .Flush();
+
+        return false;
+    }
+
+    const auto& engine =
+        dynamic_cast<const crypto::EcdsaProvider&>(this->engine());
+    NymParameters parameters(proto::CREDTYPE_LEGACY);
+    parameters.setNymParameterType(CreateType());
+    auto dhKeypair =
+        crypto::key::Keypair::Factory(parameters, proto::KEYROLE_ENCRYPT);
+    auto dhRawKey =
+        crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(true));
+    dhPublic = crypto::key::Asymmetric::Factory(*dhKeypair->Serialize(false));
+    auto& dhPrivate =
+        dynamic_cast<const crypto::key::EllipticCurve&>(dhRawKey.get());
+    OTPassword newPassword{};
+    const bool haveSessionKey = engine.EncryptSessionKeyECDH(
+        dhPrivate, *this, password, key, newPassword);
+
+    if (false == haveSessionKey) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to re-encrypt session key")
+            .Flush();
+
+        return false;
+    }
+
+    password.SetOverride(newPassword);
+
+    return true;
 }
 
 std::shared_ptr<proto::AsymmetricKey> EllipticCurve::Serialize() const
