@@ -205,6 +205,16 @@ bool RSA::GetPublicKey(String& strKey) const
     return false;
 }
 
+bool RSA::Open(
+    crypto::key::Asymmetric& dhPublic,
+    crypto::key::Symmetric& sessionKey,
+    OTPasswordData& password) const
+{
+    LogOutput(OT_METHOD)(__FUNCTION__)(": Not implemented.").Flush();
+
+    return false;
+}
+
 // virtual
 bool RSA::SetPublicKey(const String& strKey)
 {
@@ -249,6 +259,13 @@ void RSA::ReleaseKeyLowLevel_Hook()
     //
     if (nullptr != dp->m_pKey) EVP_PKEY_free(dp->m_pKey);
     dp->m_pKey = nullptr;
+}
+
+bool RSA::Seal(OTAsymmetricKey&, crypto::key::Symmetric&, OTPasswordData&) const
+{
+    LogOutput(OT_METHOD)(__FUNCTION__)(": Not implemented.").Flush();
+
+    return false;
 }
 
 // Load the private key from a .pem formatted cert string

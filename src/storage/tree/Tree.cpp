@@ -12,15 +12,16 @@
 #include "BlockchainTransactions.hpp"
 #include "Contacts.hpp"
 #include "Credentials.hpp"
+#include "Notary.hpp"
 #include "Nym.hpp"
 #include "Nyms.hpp"
 #include "Seeds.hpp"
 #include "Servers.hpp"
 #include "Units.hpp"
 
-#define TREE_VERSION 4
+#define TREE_VERSION 5
 
-//#define OT_METHOD "opentxs::storage::Tree::"
+#define OT_METHOD "opentxs::storage::Tree::"
 
 namespace opentxs::storage
 {
@@ -44,6 +45,8 @@ Tree::Tree(
     , contacts_(nullptr)
     , credential_lock_()
     , credentials_(nullptr)
+    , notary_lock_()
+    , notary_(nullptr)
     , nym_lock_()
     , nyms_(nullptr)
     , seed_lock_()
@@ -79,6 +82,8 @@ Tree::Tree(const Tree& rhs)
     , contacts_(nullptr)
     , credential_lock_()
     , credentials_(nullptr)
+    , notary_lock_()
+    , notary_(nullptr)
     , nym_lock_()
     , nyms_(nullptr)
     , seed_lock_()
@@ -89,27 +94,66 @@ Tree::Tree(const Tree& rhs)
     , units_(nullptr)
 {
     Lock lock(rhs.write_lock_);
-
     version_ = rhs.version_;
     root_ = rhs.root_;
     account_root_ = rhs.account_root_;
     blockchain_root_ = rhs.blockchain_root_;
     contact_root_ = rhs.contact_root_;
     credential_root_ = rhs.credential_root_;
+    notary_root_ = rhs.notary_root_;
     nym_root_ = rhs.nym_root_;
     seed_root_ = rhs.seed_root_;
     server_root_ = rhs.server_root_;
     unit_root_ = rhs.unit_root_;
 }
 
-Accounts* Tree::accounts() const
+storage::Accounts* Tree::accounts() const
 {
-    Lock lock(account_lock_);
+    return get_child<storage::Accounts>(account_lock_, account_, account_root_);
+}
 
-    if (false == bool(account_)) {
-        account_.reset(new Accounts(driver_, account_root_));
+storage::BlockchainTransactions* Tree::blockchain() const
+{
+    return get_child<storage::BlockchainTransactions>(
+        blockchain_lock_, blockchain_, blockchain_root_);
+}
 
-        if (false == bool(account_)) {
+const storage::Accounts& Tree::Accounts() const { return *accounts(); }
+
+const storage::BlockchainTransactions& Tree::Blockchain() const
+{
+    return *blockchain();
+}
+
+const storage::Contacts& Tree::Contacts() const { return *contacts(); }
+
+storage::Contacts* Tree::contacts() const
+{
+    return get_child<storage::Contacts>(
+        contact_lock_, contacts_, contact_root_);
+}
+
+const storage::Credentials& Tree::Credentials() const { return *credentials(); }
+
+storage::Credentials* Tree::credentials() const
+{
+    return get_child<storage::Credentials>(
+        credential_lock_, credentials_, credential_root_);
+}
+
+template <typename T, typename... Args>
+T* Tree::get_child(
+    std::mutex& mutex,
+    std::unique_ptr<T>& pointer,
+    const std::string& hash,
+    Args&&... params) const
+{
+    Lock lock(mutex);
+
+    if (false == bool(pointer)) {
+        pointer.reset(new T(driver_, hash, params...));
+
+        if (false == bool(pointer)) {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
                 .Flush();
 
@@ -119,79 +163,22 @@ Accounts* Tree::accounts() const
 
     lock.unlock();
 
-    return account_.get();
+    return pointer.get();
 }
 
-BlockchainTransactions* Tree::blockchain() const
+template <typename T, typename... Args>
+Editor<T> Tree::get_editor(
+    std::mutex& mutex,
+    std::unique_ptr<T>& pointer,
+    std::string& hash,
+    Args&&... params) const
 {
-    Lock lock(blockchain_lock_);
+    std::function<void(T*, Lock&)> callback = [&](T* in, Lock& lock) -> void {
+        save_child<T>(in, lock, mutex, hash);
+    };
 
-    if (false == bool(blockchain_)) {
-        blockchain_.reset(
-            new BlockchainTransactions(driver_, blockchain_root_));
-
-        if (false == bool(blockchain_)) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
-                .Flush();
-
-            OT_FAIL
-        }
-    }
-
-    lock.unlock();
-
-    return blockchain_.get();
-}
-
-const Accounts& Tree::AccountNode() const { return *accounts(); }
-
-const BlockchainTransactions& Tree::BlockchainNode() const
-{
-    return *blockchain();
-}
-
-const Contacts& Tree::ContactNode() const { return *contacts(); }
-
-Contacts* Tree::contacts() const
-{
-    Lock lock(contact_lock_);
-
-    if (!contacts_) {
-        contacts_.reset(new Contacts(driver_, contact_root_));
-
-        if (!contacts_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
-                .Flush();
-
-            OT_FAIL
-        }
-    }
-
-    lock.unlock();
-
-    return contacts_.get();
-}
-
-const Credentials& Tree::CredentialNode() const { return *credentials(); }
-
-Credentials* Tree::credentials() const
-{
-    Lock lock(credential_lock_);
-
-    if (!credentials_) {
-        credentials_.reset(new Credentials(driver_, credential_root_));
-
-        if (!credentials_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
-                .Flush();
-
-            OT_FAIL
-        }
-    }
-
-    lock.unlock();
-
-    return credentials_.get();
+    return Editor<T>(
+        write_lock_, get_child<T>(mutex, pointer, hash, params...), callback);
 }
 
 void Tree::init(const std::string& hash)
@@ -215,6 +202,7 @@ void Tree::init(const std::string& hash)
     blockchain_root_ = normalize_hash(serialized->blockchaintransactions());
     contact_root_ = normalize_hash(serialized->contacts());
     credential_root_ = normalize_hash(serialized->creds());
+    notary_root_ = normalize_hash(serialized->notary());
     nym_root_ = normalize_hash(serialized->nyms());
     seed_root_ = normalize_hash(serialized->seeds());
     server_root_ = normalize_hash(serialized->servers());
@@ -228,6 +216,7 @@ bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
     output &= blockchain()->Migrate(to);
     output &= contacts()->Migrate(to);
     output &= credentials()->Migrate(to);
+    output &= notary("")->Migrate(to);
     output &= nyms()->Migrate(to);
     output &= seeds()->Migrate(to);
     output &= servers()->Migrate(to);
@@ -237,91 +226,70 @@ bool Tree::Migrate(const opentxs::api::storage::Driver& to) const
     return output;
 }
 
-Editor<Accounts> Tree::mutable_Accounts()
+Editor<storage::Accounts> Tree::mutable_Accounts()
 {
-    std::function<void(Accounts*, Lock&)> callback =
-        [&](Accounts* in, Lock& lock) -> void { this->save(in, lock); };
-
-    return Editor<Accounts>(write_lock_, accounts(), callback);
+    return get_editor<storage::Accounts>(
+        account_lock_, account_, account_root_);
 }
 
-Editor<BlockchainTransactions> Tree::mutable_Blockchain()
+Editor<storage::BlockchainTransactions> Tree::mutable_Blockchain()
 {
-    std::function<void(BlockchainTransactions*, Lock&)> callback =
-        [&](BlockchainTransactions* in, Lock& lock) -> void {
-        this->save(in, lock);
-    };
-
-    return Editor<BlockchainTransactions>(write_lock_, blockchain(), callback);
+    return get_editor<storage::BlockchainTransactions>(
+        blockchain_lock_, blockchain_, blockchain_root_);
 }
 
-Editor<Contacts> Tree::mutable_Contacts()
+Editor<storage::Contacts> Tree::mutable_Contacts()
 {
-    std::function<void(Contacts*, Lock&)> callback =
-        [&](Contacts* in, Lock& lock) -> void { this->save(in, lock); };
-
-    return Editor<Contacts>(write_lock_, contacts(), callback);
+    return get_editor<storage::Contacts>(
+        contact_lock_, contacts_, contact_root_);
 }
 
-Editor<Credentials> Tree::mutable_Credentials()
+Editor<storage::Credentials> Tree::mutable_Credentials()
 {
-    std::function<void(Credentials*, Lock&)> callback =
-        [&](Credentials* in, Lock& lock) -> void { this->save(in, lock); };
-
-    return Editor<Credentials>(write_lock_, credentials(), callback);
+    return get_editor<storage::Credentials>(
+        credential_lock_, credentials_, credential_root_);
 }
 
-Editor<Nyms> Tree::mutable_Nyms()
+Editor<storage::Notary> Tree::mutable_Notary(const std::string& id)
 {
-    std::function<void(Nyms*, Lock&)> callback =
-        [&](Nyms* in, Lock& lock) -> void { this->save(in, lock); };
-
-    return Editor<Nyms>(write_lock_, nyms(), callback);
+    return get_editor<storage::Notary>(notary_lock_, notary_, notary_root_, id);
 }
 
-Editor<Seeds> Tree::mutable_Seeds()
+Editor<storage::Nyms> Tree::mutable_Nyms()
 {
-    std::function<void(Seeds*, Lock&)> callback =
-        [&](Seeds* in, Lock& lock) -> void { this->save(in, lock); };
-
-    return Editor<Seeds>(write_lock_, seeds(), callback);
+    return get_editor<storage::Nyms>(nym_lock_, nyms_, nym_root_);
 }
 
-Editor<Servers> Tree::mutable_Servers()
+Editor<storage::Seeds> Tree::mutable_Seeds()
 {
-    std::function<void(Servers*, Lock&)> callback =
-        [&](Servers* in, Lock& lock) -> void { this->save(in, lock); };
-
-    return Editor<Servers>(write_lock_, servers(), callback);
+    return get_editor<storage::Seeds>(seed_lock_, seeds_, seed_root_);
 }
 
-Editor<Units> Tree::mutable_Units()
+Editor<storage::Servers> Tree::mutable_Servers()
 {
-    std::function<void(Units*, Lock&)> callback =
-        [&](Units* in, Lock& lock) -> void { this->save(in, lock); };
-
-    return Editor<Units>(write_lock_, units(), callback);
+    return get_editor<storage::Servers>(server_lock_, servers_, server_root_);
 }
 
-const Nyms& Tree::NymNode() const { return *nyms(); }
-
-Nyms* Tree::nyms() const
+Editor<storage::Units> Tree::mutable_Units()
 {
-    Lock lock(nym_lock_);
+    return get_editor<storage::Units>(unit_lock_, units_, unit_root_);
+}
 
-    if (!nyms_) {
-        nyms_.reset(new Nyms(driver_, nym_root_));
+const storage::Notary& Tree::Notary(const std::string& id) const
+{
+    return *notary(id);
+}
 
-        if (!nyms_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
-                .Flush();
-            OT_FAIL
-        }
-    }
+const storage::Nyms& Tree::Nyms() const { return *nyms(); }
 
-    lock.unlock();
+storage::Notary* Tree::notary(const std::string& id) const
+{
+    return get_child<storage::Notary>(notary_lock_, notary_, notary_root_, id);
+}
 
-    return nyms_.get();
+storage::Nyms* Tree::nyms() const
+{
+    return get_child<storage::Nyms>(nym_lock_, nyms_, nym_root_);
 }
 
 bool Tree::save(const Lock& lock) const
@@ -338,201 +306,38 @@ bool Tree::save(const Lock& lock) const
     return driver_.StoreProto(serialized, root_);
 }
 
-void Tree::save(Accounts* accounts, const Lock& lock)
+template <typename T>
+void Tree::save_child(
+    T* input,
+    const Lock& lock,
+    std::mutex& hashLock,
+    std::string& hash) const
 {
-    if (!verify_write_lock(lock)) {
+    if (false == verify_write_lock(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
         OT_FAIL
     }
 
-    if (nullptr == account_) {
+    if (nullptr == input) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
         OT_FAIL
     }
 
-    Lock mapLock(account_lock_);
-    account_root_ = account_->Root();
-    mapLock.unlock();
+    Lock rootLock(hashLock);
+    hash = input->Root();
+    rootLock.unlock();
 
-    if (!save(lock)) {
+    if (false == save(lock)) {
         LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
         OT_FAIL
     }
 }
 
-void Tree::save(BlockchainTransactions* blockchain, const Lock& lock)
+const storage::Seeds& Tree::Seeds() const { return *seeds(); }
+
+storage::Seeds* Tree::seeds() const
 {
-    if (!verify_write_lock(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
-        OT_FAIL
-    }
-
-    if (nullptr == blockchain) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
-        OT_FAIL
-    }
-
-    Lock mapLock(blockchain_lock_);
-    blockchain_root_ = blockchain->Root();
-    mapLock.unlock();
-
-    if (!save(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
-        OT_FAIL
-    }
-}
-
-void Tree::save(Contacts* contacts, const Lock& lock)
-{
-    if (!verify_write_lock(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
-        OT_FAIL
-    }
-
-    if (nullptr == contacts) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
-        OT_FAIL
-    }
-
-    Lock mapLock(contact_lock_);
-    contact_root_ = contacts->Root();
-    mapLock.unlock();
-
-    if (!save(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
-        OT_FAIL
-    }
-}
-
-void Tree::save(Credentials* credentials, const Lock& lock)
-{
-    if (!verify_write_lock(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
-        OT_FAIL
-    }
-
-    if (nullptr == credentials) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
-        OT_FAIL
-    }
-
-    Lock mapLock(credential_lock_);
-    credential_root_ = credentials->Root();
-    mapLock.unlock();
-
-    if (!save(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
-        OT_FAIL
-    }
-}
-
-void Tree::save(Nyms* nyms, const Lock& lock)
-{
-    if (!verify_write_lock(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
-        OT_FAIL
-    }
-
-    if (nullptr == nyms) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
-        OT_FAIL
-    }
-
-    Lock mapLock(nym_lock_);
-    nym_root_ = nyms->Root();
-    mapLock.unlock();
-
-    if (!save(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
-        OT_FAIL
-    }
-}
-
-void Tree::save(Seeds* seeds, const Lock& lock)
-{
-    if (!verify_write_lock(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
-        OT_FAIL
-    }
-
-    if (nullptr == seeds) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
-        OT_FAIL
-    }
-
-    Lock mapLock(seed_lock_);
-    seed_root_ = seeds->Root();
-    mapLock.unlock();
-
-    if (!save(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
-        OT_FAIL
-    }
-}
-
-void Tree::save(Servers* servers, const Lock& lock)
-{
-    if (!verify_write_lock(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
-        OT_FAIL
-    }
-
-    if (nullptr == servers) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
-        OT_FAIL
-    }
-
-    Lock mapLock(server_lock_);
-    server_root_ = servers->Root();
-    mapLock.unlock();
-
-    if (!save(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
-        OT_FAIL
-    }
-}
-
-void Tree::save(Units* units, const Lock& lock)
-{
-    if (!verify_write_lock(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Lock failure.").Flush();
-        OT_FAIL
-    }
-
-    if (nullptr == units) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Null target.").Flush();
-        OT_FAIL
-    }
-
-    Lock mapLock(unit_lock_);
-    unit_root_ = units->Root();
-    mapLock.unlock();
-
-    if (!save(lock)) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Save error.").Flush();
-        OT_FAIL
-    }
-}
-
-const Seeds& Tree::SeedNode() const { return *seeds(); }
-
-Seeds* Tree::seeds() const
-{
-    Lock lock(seed_lock_);
-
-    if (!seeds_) {
-        seeds_.reset(new Seeds(driver_, seed_root_));
-
-        if (!seeds_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
-                .Flush();
-            OT_FAIL
-        }
-    }
-
-    lock.unlock();
-
-    return seeds_.get();
+    return get_child<storage::Seeds>(seed_lock_, seeds_, seed_root_);
 }
 
 proto::StorageItems Tree::serialize() const
@@ -556,6 +361,10 @@ proto::StorageItems Tree::serialize() const
     serialized.set_creds(credential_root_);
     credLock.unlock();
 
+    Lock notaryLock(notary_lock_);
+    serialized.set_notary(notary_root_);
+    notaryLock.unlock();
+
     Lock nymLock(nym_lock_);
     serialized.set_nyms(nym_root_);
     nymLock.unlock();
@@ -575,47 +384,19 @@ proto::StorageItems Tree::serialize() const
     return serialized;
 }
 
-const Servers& Tree::ServerNode() const { return *servers(); }
+const storage::Servers& Tree::Servers() const { return *servers(); }
 
-Servers* Tree::servers() const
+storage::Servers* Tree::servers() const
 {
-    Lock lock(server_lock_);
-
-    if (!servers_) {
-        servers_.reset(new Servers(driver_, server_root_));
-
-        if (!servers_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
-                .Flush();
-            OT_FAIL
-        }
-    }
-
-    lock.unlock();
-
-    return servers_.get();
+    return get_child<storage::Servers>(server_lock_, servers_, server_root_);
 }
 
-const Units& Tree::UnitNode() const { return *units(); }
+const storage::Units& Tree::Units() const { return *units(); }
 
-Units* Tree::units() const
+storage::Units* Tree::units() const
 {
-    Lock lock(unit_lock_);
-
-    if (!units_) {
-        units_.reset(new Units(driver_, unit_root_));
-
-        if (!units_) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to instantiate.")
-                .Flush();
-            OT_FAIL
-        }
-    }
-
-    lock.unlock();
-
-    return units_.get();
+    return get_child<storage::Units>(unit_lock_, units_, unit_root_);
 }
 
-Tree::~Tree() {}
+Tree::~Tree() = default;
 }  // namespace opentxs::storage

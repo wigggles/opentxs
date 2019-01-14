@@ -16,7 +16,7 @@
 #include <functional>
 #include <map>
 
-//#define OT_METHOD "opentxs::storage::Threads::"
+#define OT_METHOD "opentxs::storage::Threads::"
 
 namespace opentxs
 {
@@ -315,7 +315,8 @@ proto::StorageNymList Threads::serialize() const
         const bool good = goodID && goodHash;
 
         if (good) {
-            serialize_index(item.first, item.second, *serialized.add_nym());
+            serialize_index(
+                version_, item.first, item.second, *serialized.add_nym());
         }
     }
 

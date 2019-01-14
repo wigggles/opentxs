@@ -78,7 +78,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        std::unique_ptr<Purse>& purse) const override;
+        const std::shared_ptr<blind::Purse>& purse) const override;
 #endif  // OT_CASH
     Action DepositCheque(
         const Identifier& localNymID,
@@ -139,13 +139,6 @@ public:
         const Identifier& accountID,
         const Identifier& basketID,
         const bool direction) const override;
-#if OT_CASH
-    Action ExchangeCash(
-        const Identifier& localNymID,
-        const Identifier& serverID,
-        const Identifier& instrumentDefinitionID,
-        std::unique_ptr<Purse>& purse) const override;
-#endif  // OT_CASH
     bool GetTransactionNumbers(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -245,8 +238,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        std::shared_ptr<const Purse>& recipientCopy,
-        std::shared_ptr<const Purse>& senderCopy) const override;
+        const std::shared_ptr<blind::Purse> purse) const override;
 #endif  // OT_CASH
     Action SendMessage(
         const Identifier& localNymID,

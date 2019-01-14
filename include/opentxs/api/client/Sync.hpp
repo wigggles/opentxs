@@ -93,8 +93,7 @@ public:
     EXPORT virtual OTIdentifier PayContactCash(
         const Identifier& senderNymID,
         const Identifier& contactID,
-        std::shared_ptr<const Purse>& recipientCopy,
-        std::shared_ptr<const Purse>& senderCopy) const = 0;
+        const std::shared_ptr<blind::Purse> purse) const = 0;
 #endif  // OT_CASH
     EXPORT virtual void Refresh() const = 0;
     EXPORT virtual std::uint64_t RefreshCount() const = 0;
@@ -176,6 +175,13 @@ public:
     EXPORT virtual void StartIntroductionServer(
         const Identifier& localNymID) const = 0;
     EXPORT virtual ThreadStatus Status(const Identifier& thread) const = 0;
+#if OT_CASH
+    EXPORT virtual OTIdentifier WithdrawCash(
+        const identifier::Nym& nymID,
+        const identifier::Server& serverID,
+        const Identifier& account,
+        const Amount value) const = 0;
+#endif  // OT_CASH
 
     EXPORT virtual ~Sync() = default;
 

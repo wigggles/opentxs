@@ -61,7 +61,6 @@ public:
     void QueueOutgoingMessage(const Message& theMessage);
 
     explicit OTClient(
-        OTWallet& theWallet,
         const api::Core& api,
         const api::client::Activity& activity,
         const api::client::Contacts& contacts,
@@ -70,9 +69,6 @@ public:
 private:
     enum class TransactionAttempt : bool { Accepted = true, Rejected = false };
 
-#if OT_CASH
-    OTWallet& m_pWallet;
-#endif
     const api::Core& api_;
     const api::client::Activity& activity_;
     const api::client::Contacts& contacts_;
@@ -236,6 +232,13 @@ private:
         const TransactionNumber& lNymOpeningNumber,
         std::shared_ptr<OTTransaction> pTransaction,
         const String& strCronItem) const;
+#if OT_CASH
+    bool save_incoming_cash(
+        const ServerContext& context,
+        const Message& message,
+        const PeerObject& peerObject,
+        const TransactionNumber number);
+#endif
     void setRecentHash(
         const Message& theReply,
         bool setNymboxHash,

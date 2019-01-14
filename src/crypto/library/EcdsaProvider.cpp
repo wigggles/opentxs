@@ -94,6 +94,19 @@ bool EcdsaProvider::DecryptSessionKeyECDH(
     const OTPasswordData& password,
     crypto::key::Symmetric& sessionKey) const
 {
+    OTPassword plaintextKey{};
+
+    return DecryptSessionKeyECDH(
+        privateKey, publicKey, password, sessionKey, plaintextKey);
+}
+
+bool EcdsaProvider::DecryptSessionKeyECDH(
+    const crypto::key::EllipticCurve& privateKey,
+    const crypto::key::EllipticCurve& publicKey,
+    const OTPasswordData& password,
+    crypto::key::Symmetric& sessionKey,
+    OTPassword& plaintextKey) const
+{
     auto publicDHKey = Data::Factory();
 
     if (!publicKey.GetKey(publicDHKey)) {
@@ -125,7 +138,8 @@ bool EcdsaProvider::DecryptSessionKeyECDH(
     }
 
     OTPasswordData unlockPassword("");
-    unlockPassword.SetOverride(*ECDHSecret);
+    plaintextKey = *ECDHSecret;
+    unlockPassword.SetOverride(plaintextKey);
 
     return sessionKey.Unlock(unlockPassword);
 }

@@ -163,9 +163,11 @@ void Test_Rpc_Async::setup()
     const api::Native& ot = opentxs::OT::App();
 
     auto& intro_server = ot.StartServer(ArgList(), ot.Servers(), true);
-
     auto& server = ot.StartServer(ArgList(), ot.Servers(), true);
-
+#if OT_CASH
+    intro_server.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
+    server.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
+#endif
     auto server_contract = server.Wallet().Server(server.ID());
     intro_server.Wallet().Server(server_contract->PublicContract());
 

@@ -66,9 +66,6 @@ public:
         const api::Core& api,
         const api::client::Activity& activity);
 #endif
-    static api::client::Cash* Cash(
-        const api::client::Manager& api,
-        const api::client::ServerAction& serverAction);
     static internal::ClientContext* ClientContext(
         const api::Core& api,
         const ConstNym& local,
@@ -146,6 +143,7 @@ public:
         const network::zeromq::Context& zmq,
         const int instance);
     static api::Factory* FactoryAPI(const api::Core& api);
+    static api::Factory* FactoryAPIClient(const api::client::Manager& api);
     static api::crypto::Hash* Hash(
         const api::crypto::Encode& encode,
         const crypto::HashingProvider& ssl,
@@ -209,6 +207,18 @@ public:
         const api::client::Manager& api,
         const network::zeromq::PublishSocket& publisher,
         const Identifier& nymID);
+#if OT_CASH
+    static blind::Mint* MintLucre(const api::Core& core);
+    static blind::Mint* MintLucre(
+        const api::Core& core,
+        const String& strNotaryID,
+        const String& strInstrumentDefinitionID);
+    static blind::Mint* MintLucre(
+        const api::Core& core,
+        const String& strNotaryID,
+        const String& strServerNymID,
+        const String& strInstrumentDefinitionID);
+#endif
     static api::internal::Native* Native(
         Flag& running,
         const ArgList& args,
@@ -244,6 +254,40 @@ public:
         const ui::implementation::ActivityThreadRowID& rowID,
         const ui::implementation::ActivityThreadSortKey& sortKey,
         const ui::implementation::CustomData& custom);
+    static opentxs::PeerObject* PeerObject(
+        const api::Core& api,
+        const ConstNym& senderNym,
+        const std::string& message);
+    static opentxs::PeerObject* PeerObject(
+        const api::Core& api,
+        const ConstNym& senderNym,
+        const std::string& payment,
+        const bool isPayment);
+#if OT_CASH
+    static opentxs::PeerObject* PeerObject(
+        const api::Core& api,
+        const ConstNym& senderNym,
+        const std::shared_ptr<blind::Purse> purse);
+#endif
+    static opentxs::PeerObject* PeerObject(
+        const api::Core& api,
+        const std::shared_ptr<PeerRequest> request,
+        const std::shared_ptr<PeerReply> reply,
+        const std::uint32_t& version);
+    static opentxs::PeerObject* PeerObject(
+        const api::Core& api,
+        const std::shared_ptr<PeerRequest> request,
+        const std::uint32_t& version);
+    static opentxs::PeerObject* PeerObject(
+        const api::client::Contacts& contacts,
+        const api::Core& api,
+        const ConstNym& signerNym,
+        const proto::PeerObject& serialized);
+    static opentxs::PeerObject* PeerObject(
+        const api::client::Contacts& contacts,
+        const api::Core& api,
+        const ConstNym& recipientNym,
+        const Armored& encrypted);
     static opentxs::PIDFile* PIDFile(const std::string& path);
     static ui::implementation::ProfileExternalInterface* ProfileWidget(
         const api::client::Manager& api,
@@ -271,6 +315,35 @@ public:
         const ui::implementation::ProfileSectionRowID& rowID,
         const ui::implementation::ProfileSectionSortKey& key,
         const ui::implementation::CustomData& custom);
+#if OT_CASH
+    static blind::Purse* Purse(
+        const api::Core& api,
+        const proto::Purse& serialized);
+    static blind::Purse* Purse(
+        const api::Core& api,
+        const opentxs::ServerContext& context,
+        const proto::CashType type,
+        const blind::Mint& mint,
+        const Amount totalValue);
+    static blind::Purse* Purse(
+        const api::Core& api,
+        const Nym& owner,
+        const identifier::Server& server,
+        const Nym& serverNym,
+        const proto::CashType type,
+        const blind::Mint& mint,
+        const Amount totalValue);
+    static blind::Purse* Purse(
+        const api::Core& api,
+        const blind::Purse& request,
+        const Nym& requester);
+    static blind::Purse* Purse(
+        const api::Core& api,
+        const Nym& owner,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit,
+        const proto::CashType type);
+#endif
     static rpc::internal::RPC* RPC(const api::Native& native);
     static crypto::key::RSA* RSAKey(const proto::AsymmetricKey& serializedKey);
     static crypto::key::RSA* RSAKey(const String& publicKey);
@@ -373,6 +446,20 @@ public:
         const api::client::Manager& api,
         OTClient& otclient,
         const ContextLockCallback& lockCallback);
+#if OT_CASH
+    static blind::Token* Token(
+        const api::Core& api,
+        blind::Purse& purse,
+        const proto::Token& serialized);
+    static blind::Token* Token(
+        const api::Core& api,
+        const Nym& owner,
+        const blind::Mint& mint,
+        const std::uint64_t value,
+        blind::Purse& purse,
+        const OTPassword& primaryPassword,
+        const OTPassword& secondaryPassword);
+#endif
     static crypto::Trezor* Trezor(const api::Crypto& crypto);
     static api::client::UI* UI(
         const api::client::Manager& api,

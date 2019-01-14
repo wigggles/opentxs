@@ -1120,6 +1120,68 @@ std::string Nym::Name() const
     return alias_;
 }
 
+bool Nym::Open(
+    const proto::SessionKey& input,
+    crypto::key::Symmetric& key,
+    OTPassword& password) const
+{
+    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
+    const auto& serializedDHPublic = input.dh();
+    const auto& ciphertext = input.key();
+
+    if (false == HasCapability(NymCapability::ENCRYPT_MESSAGE)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": No private key available")
+            .Flush();
+
+        return false;
+    }
+
+    auto sessionKey = api_.Crypto().Symmetric().Key(ciphertext.key(), mode);
+
+    if (false == bool(sessionKey.get())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to instantiate session key")
+            .Flush();
+
+        return false;
+    }
+
+    OTPasswordData sessionkeyPassword{""};
+    auto dhPublic = crypto::key::Asymmetric::Factory(serializedDHPublic);
+    const auto& encryptKey = GetPrivateEncrKey();
+    const auto opened =
+        encryptKey.Open(dhPublic, sessionKey, sessionkeyPassword);
+
+    if (false == opened) {
+        LogDetail(OT_METHOD)(__FUNCTION__)(": Failed to decrypt session key")
+            .Flush();
+
+        return false;
+    }
+    const auto output =
+        sessionKey->Decrypt(ciphertext, sessionkeyPassword, password);
+
+    if (false == output) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt key password")
+            .Flush();
+
+        return false;
+    }
+
+    OTPasswordData keyPassword{""};
+    keyPassword.SetOverride(password);
+
+    if (false == key.Unlock(keyPassword)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Decrypted password does not unlock the supplied key")
+            .Flush();
+
+        return false;
+    }
+
+    return true;
+}
+
 bool Nym::Path(proto::HDPath& output) const
 {
     sLock lock(shared_lock_);
@@ -1340,13 +1402,83 @@ bool Nym::SavePseudonymWallet(Tag& parent) const
     return true;
 }
 
+bool Nym::Seal(
+    const OTPassword& password,
+    crypto::key::Symmetric& key,
+    proto::SessionKey& output) const
+{
+    static const proto::SymmetricMode mode{proto::SMODE_CHACHA20POLY1305};
+    OTPasswordData keyPassword{""};
+    keyPassword.SetOverride(password);
+
+    if (false == key.Unlock(keyPassword)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Supplied password does not unlock the supplied key")
+            .Flush();
+
+        return false;
+    }
+
+    OTPassword randomPassword{};
+
+    if (32 != randomPassword.randomizeMemory(32)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed generate random password")
+            .Flush();
+
+        return false;
+    }
+
+    OTPasswordData sessionKeyPassword{""};
+    sessionKeyPassword.SetOverride(randomPassword);
+    auto sessionKey = api_.Crypto().Symmetric().Key(sessionKeyPassword, mode);
+
+    if (false == bool(sessionKey.get())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to generate session key")
+            .Flush();
+
+        return false;
+    }
+
+    auto dhPublic = crypto::key::Asymmetric::Factory();
+    const auto& encryptKey = GetPublicEncrKey();
+    const auto sealed =
+        encryptKey.Seal(dhPublic, sessionKey, sessionKeyPassword);
+
+    if (false == sealed) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to set session key password")
+            .Flush();
+
+        return false;
+    }
+
+    output.set_version(1);
+    const auto serializedDH = dhPublic->Serialize();
+
+    if (false == bool(serializedDH)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to serialized DH public key")
+            .Flush();
+
+        return false;
+    }
+
+    *output.mutable_dh() = *serializedDH;
+
+    return sessionKey->Encrypt(
+        password,
+        Data::Factory(),
+        sessionKeyPassword,
+        *output.mutable_key(),
+        true,
+        mode);
+}
+
 serializedCredentialIndex Nym::SerializeCredentialIndex(
     const CredentialIndexModeFlag mode) const
 {
     sLock lock(shared_lock_);
-
     serializedCredentialIndex index;
-
     index.set_version(version_);
     auto nymID = String::Factory(m_nymID);
     index.set_nymid(nymID->Get());

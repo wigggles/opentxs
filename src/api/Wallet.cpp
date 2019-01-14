@@ -15,6 +15,9 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Identity.hpp"
+#if OT_CASH
+#include "opentxs/blind/Purse.hpp"
+#endif
 #include "opentxs/client/NymData.hpp"
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTWallet.hpp"
@@ -24,6 +27,8 @@
 #include "opentxs/contact/Contact.hpp"
 #include "opentxs/contact/ContactData.hpp"
 #include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
+#include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/crypto/OTPasswordData.hpp"
 #include "opentxs/core/Account.hpp"
@@ -95,6 +100,10 @@ Wallet::Wallet(const api::Core& core)
     , peer_lock_()
     , nymfile_map_lock_()
     , nymfile_lock_()
+#if OT_CASH
+    , purse_lock_()
+    , purse_id_lock_()
+#endif
     , account_publisher_(api_.ZeroMQ().PublishSocket())
     , issuer_publisher_(api_.ZeroMQ().PublishSocket())
     , nym_publisher_(api_.ZeroMQ().PublishSocket())
@@ -622,6 +631,19 @@ proto::ContactItemType Wallet::extract_unit(
         return proto::CITEMTYPE_UNKNOWN;
     }
 }
+
+#if OT_CASH
+std::mutex& Wallet::get_purse_lock(
+    const identifier::Nym& nym,
+    const identifier::Server& server,
+    const identifier::UnitDefinition& unit) const
+{
+    Lock lock(purse_lock_);
+    const PurseID id{nym, server, unit};
+
+    return purse_id_lock_[id];
+}
+#endif
 
 std::shared_ptr<opentxs::Context> Wallet::context(
     const Identifier& localNymID,
@@ -1660,6 +1682,85 @@ bool Wallet::PeerRequestUpdate(
     }
 }
 
+#if OT_CASH
+std::unique_ptr<blind::Purse> Wallet::purse(
+    const identifier::Nym& nym,
+    const identifier::Server& server,
+    const identifier::UnitDefinition& unit,
+    const bool checking) const
+{
+    auto serialized = std::make_shared<proto::Purse>();
+    const auto loaded =
+        api_.Storage().Load(nym, server, unit, serialized, checking);
+
+    if (false == loaded) {
+        if (false == checking) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Purse does not exist")
+                .Flush();
+        }
+
+        return {};
+    }
+
+    OT_ASSERT(serialized);
+
+    if (false == proto::Validate(*serialized, VERBOSE)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
+
+        return {};
+    }
+
+    std::unique_ptr<blind::Purse> output{
+        opentxs::Factory::Purse(api_, *serialized)};
+
+    if (false == bool(output)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to instantiate purse")
+            .Flush();
+
+        return {};
+    }
+
+    return output;
+}
+
+std::unique_ptr<const blind::Purse> Wallet::Purse(
+    const identifier::Nym& nym,
+    const identifier::Server& server,
+    const identifier::UnitDefinition& unit,
+    const bool checking) const
+{
+    return purse(nym, server, unit, checking);
+}
+
+Editor<blind::Purse> Wallet::mutable_Purse(
+    const identifier::Nym& nymID,
+    const identifier::Server& server,
+    const identifier::UnitDefinition& unit,
+    const proto::CashType type) const
+{
+    auto pPurse = purse(nymID, server, unit, true);
+
+    if (false == bool(pPurse)) {
+        const auto nym = Nym(nymID);
+
+        OT_ASSERT(nym);
+
+        pPurse.reset(opentxs::Factory::Purse(api_, *nym, server, unit, type));
+    }
+
+    OT_ASSERT(pPurse);
+
+    const OTNymID otNymID{nymID};
+    std::function<void(blind::Purse*, const Lock&)> callback =
+        [=](blind::Purse* in, const Lock& lock) -> void {
+        this->save(lock, otNymID, in);
+    };
+
+    return Editor<blind::Purse>(
+        get_purse_lock(nymID, server, unit), pPurse.release(), callback);
+}
+#endif
+
 bool Wallet::RemoveServer(const Identifier& id) const
 {
     std::string server(id.str());
@@ -1778,6 +1879,25 @@ void Wallet::save(const Lock& lock, api::client::Issuer* in) const
     message->AddFrame(issuerID.str());
     issuer_publisher_->Publish(message);
 }
+
+#if OT_CASH
+void Wallet::save(const Lock& lock, const OTNymID nym, blind::Purse* in) const
+{
+    OT_ASSERT(nullptr != in)
+    OT_ASSERT(lock.owns_lock())
+
+    std::unique_ptr<blind::Purse> pPurse{in};
+
+    auto& purse = *pPurse;
+    const auto serialized = purse.Serialize();
+
+    OT_ASSERT(proto::Validate(serialized, VERBOSE));
+
+    const auto stored = api_.Storage().Store(nym, serialized);
+
+    OT_ASSERT(stored);
+}
+#endif
 
 void Wallet::save(NymData* nymData, const Lock& lock) const
 {

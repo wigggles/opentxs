@@ -456,6 +456,19 @@ public:
         const Identifier& request,
         const StorageBox& box) const = 0;
 
+#if OT_CASH
+    EXPORT virtual std::unique_ptr<const blind::Purse> Purse(
+        const identifier::Nym& nym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit,
+        const bool checking = false) const = 0;
+    EXPORT virtual Editor<blind::Purse> mutable_Purse(
+        const identifier::Nym& nym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit,
+        const proto::CashType = proto::CASHTYPE_LUCRE) const = 0;
+#endif
+
     /**   Unload and delete a server contract
      *
      *    This method destroys the contract object, removes it from the

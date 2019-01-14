@@ -12,6 +12,12 @@
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Factory.hpp"
+#if OT_CASH
+#include "opentxs/blind/Purse.hpp"
+#endif
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
@@ -48,6 +54,14 @@
 #define INTERNAL_TRANSFER_EVENT_VERSION 2
 #define INTERNAL_TRANSFER_SOURCE_VERSION 1
 #define INTERNAL_TRANSFER_WORKFLOW_VERSION 2
+#if OT_CASH
+#define OUTGOING_CASH_EVENT_VERSION 3
+#define OUTGOING_CASH_SOURCE_VERSION 1
+#define OUTGOING_CASH_WORKFLOW_VERSION 3
+#define INCOMING_CASH_EVENT_VERSION 3
+#define INCOMING_CASH_SOURCE_VERSION 1
+#define INCOMING_CASH_WORKFLOW_VERSION 3
+#endif
 #define RPC_ACCOUNT_EVENT_VERSION 1
 #define RPC_PUSH_VERSION 1
 
@@ -68,6 +82,30 @@ api::client::Workflow* Factory::Workflow(
 
 namespace opentxs::api::client
 {
+#if OT_CASH
+bool Workflow::ContainsCash(const proto::PaymentWorkflow& workflow)
+{
+    switch (workflow.type()) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH: {
+            return true;
+        }
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
+        default: {
+        }
+    }
+
+    return false;
+}
+#endif
+
 bool Workflow::ContainsCheque(const proto::PaymentWorkflow& workflow)
 {
     switch (workflow.type()) {
@@ -82,6 +120,8 @@ bool Workflow::ContainsCheque(const proto::PaymentWorkflow& workflow)
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH:
         default: {
         }
     }
@@ -103,6 +143,8 @@ bool Workflow::ContainsTransfer(const proto::PaymentWorkflow& workflow)
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH:
         default: {
         }
     }
@@ -126,6 +168,33 @@ std::string Workflow::ExtractCheque(const proto::PaymentWorkflow& workflow)
 
     return workflow.source(0).item();
 }
+
+#if OT_CASH
+std::unique_ptr<proto::Purse> Workflow::ExtractPurse(
+    const proto::PaymentWorkflow& workflow)
+{
+    if (false == ContainsCash(workflow)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Wrong workflow type").Flush();
+
+        return {};
+    }
+
+    if (1 != workflow.source().size()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid workflow").Flush();
+
+        return {};
+    }
+
+    auto output = std::make_unique<proto::Purse>();
+
+    OT_ASSERT(output);
+
+    const auto& serialized = workflow.source(0).item();
+    *output = proto::TextToProto<proto::Purse>(serialized);
+
+    return output;
+}
+#endif
 
 std::string Workflow::ExtractTransfer(const proto::PaymentWorkflow& workflow)
 {
@@ -182,6 +251,8 @@ Workflow::Cheque Workflow::InstantiateCheque(
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
         case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH:
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow type")
                 .Flush();
@@ -190,6 +261,52 @@ Workflow::Cheque Workflow::InstantiateCheque(
 
     return output;
 }
+
+#if OT_CASH
+Workflow::Purse Workflow::InstantiatePurse(
+    const api::Core& core,
+    const proto::PaymentWorkflow& workflow)
+{
+    Purse output{proto::PAYMENTWORKFLOWSTATE_ERROR, nullptr};
+    auto& [state, purse] = output;
+
+    switch (workflow.type()) {
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH: {
+            const auto serialized = ExtractPurse(workflow);
+
+            if (false == bool(serialized)) { return output; }
+
+            purse.reset(core.Factory().Purse(*serialized).release());
+
+            if (false == bool(purse)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to instantiate purse")
+                    .Flush();
+                purse.reset();
+
+                return output;
+            }
+
+            state = workflow.state();
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_ERROR:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGTRANSFER:
+        case proto::PAYMENTWORKFLOWTYPE_INTERNALTRANSFER:
+        default: {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow type")
+                .Flush();
+        }
+    }
+
+    return output;
+}
+#endif
 
 Workflow::Transfer Workflow::InstantiateTransfer(
     const api::Core& core,
@@ -225,6 +342,8 @@ Workflow::Transfer Workflow::InstantiateTransfer(
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGCHEQUE:
         case proto::PAYMENTWORKFLOWTYPE_OUTGOINGINVOICE:
         case proto::PAYMENTWORKFLOWTYPE_INCOMINGINVOICE:
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH:
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow type")
                 .Flush();
@@ -274,6 +393,10 @@ OTIdentifier Workflow::UUID(
 
             notaryID = transfer->GetPurportedNotaryID();
             number = transfer->GetTransactionNum();
+        } break;
+        case proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH:
+        case proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH: {
+            // TODO
         } break;
         default: {
             LogOutput(OT_METHOD)(__FUNCTION__)(": Unknown workflow type")
@@ -477,6 +600,43 @@ bool Workflow::AcknowledgeTransfer(
         transfer.GetRealAccountID().str(),
         true);
 }
+
+#if OT_CASH
+OTIdentifier Workflow::AllocateCash(
+    const identifier::Nym& id,
+    const blind::Purse& purse) const
+{
+    Lock global(lock_);
+    auto workflowID = Identifier::Random();
+    proto::PaymentWorkflow workflow{};
+    workflow.set_version(OUTGOING_CASH_WORKFLOW_VERSION);
+    workflow.set_id(workflowID->str());
+    workflow.set_type(proto::PAYMENTWORKFLOWTYPE_OUTGOINGCASH);
+    workflow.set_state(proto::PAYMENTWORKFLOWSTATE_UNSENT);
+    auto& source = *(workflow.add_source());
+    source.set_version(OUTGOING_CASH_SOURCE_VERSION);
+    source.set_id(workflowID->str());
+    source.set_revision(1);
+    source.set_item(proto::ProtoAsString(purse.Serialize()));
+    workflow.set_notary(purse.Notary().str());
+    auto& event = *workflow.add_event();
+    event.set_version(OUTGOING_CASH_EVENT_VERSION);
+    event.set_time(now());
+    event.set_type(proto::PAYMENTEVENTTYPE_CREATE);
+    event.set_method(proto::TRANSPORTMETHOD_NONE);
+    event.set_success(true);
+    workflow.add_unit(purse.Unit().str());
+    const auto saved = save_workflow(id.str(), workflow);
+
+    if (false == saved) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save workflow").Flush();
+
+        return Identifier::Factory();
+    }
+
+    return workflowID;
+}
+#endif
 
 bool Workflow::add_cheque_event(
     const eLock& lock,
@@ -821,6 +981,20 @@ bool Workflow::can_complete_transfer(const proto::PaymentWorkflow& workflow)
 
     return true;
 }
+
+#if OT_CASH
+bool Workflow::can_convey_cash(const proto::PaymentWorkflow& workflow)
+{
+    if (proto::PAYMENTWORKFLOWSTATE_EXPIRED == workflow.state()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Incorrect workflow state.")
+            .Flush();
+
+        return false;
+    }
+
+    return true;
+}
+#endif
 
 bool Workflow::can_convey_cheque(const proto::PaymentWorkflow& workflow)
 {
@@ -2242,6 +2416,50 @@ std::shared_ptr<proto::PaymentWorkflow> Workflow::LoadWorkflow(
     return get_workflow_by_id(nymID.str(), workflowID.str());
 }
 
+#if OT_CASH
+OTIdentifier Workflow::ReceiveCash(
+    const identifier::Nym& receiver,
+    const blind::Purse& purse,
+    const Message& message) const
+{
+    Lock global(lock_);
+    const std::string serialized = String::Factory(message)->Get();
+    const std::string party = message.m_strNymID->Get();
+    auto workflowID = Identifier::Random();
+    proto::PaymentWorkflow workflow{};
+    workflow.set_version(INCOMING_CASH_WORKFLOW_VERSION);
+    workflow.set_id(workflowID->str());
+    workflow.set_type(proto::PAYMENTWORKFLOWTYPE_INCOMINGCASH);
+    workflow.set_state(proto::PAYMENTWORKFLOWSTATE_CONVEYED);
+    auto& source = *(workflow.add_source());
+    source.set_version(INCOMING_CASH_SOURCE_VERSION);
+    source.set_id(workflowID->str());
+    source.set_revision(1);
+    source.set_item(proto::ProtoAsString(purse.Serialize()));
+    workflow.set_notary(purse.Notary().str());
+    auto& event = *workflow.add_event();
+    event.set_version(INCOMING_CASH_EVENT_VERSION);
+    event.set_time(message.m_lTime);
+    event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
+    event.set_method(proto::TRANSPORTMETHOD_OT);
+    event.set_transport(message.m_strNotaryID->Get());
+    event.add_item(serialized);
+    event.set_nym(party);
+    event.set_success(true);
+    workflow.add_unit(purse.Unit().str());
+    workflow.add_party(party);
+    const auto saved = save_workflow(receiver.str(), workflow);
+
+    if (false == saved) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to save workflow").Flush();
+
+        return Identifier::Factory();
+    }
+
+    return workflowID;
+}
+#endif
+
 OTIdentifier Workflow::ReceiveCheque(
     const Identifier& nymID,
     const opentxs::Cheque& cheque,
@@ -2312,6 +2530,13 @@ OTIdentifier Workflow::ReceiveCheque(
 
 bool Workflow::save_workflow(
     const std::string& nymID,
+    const proto::PaymentWorkflow& workflow) const
+{
+    return save_workflow(nymID, "", workflow);
+}
+
+bool Workflow::save_workflow(
+    const std::string& nymID,
     const std::string& accountID,
     const proto::PaymentWorkflow& workflow) const
 {
@@ -2349,6 +2574,57 @@ std::pair<OTIdentifier, proto::PaymentWorkflow> Workflow::save_workflow(
 
     return {Identifier::Factory(), {}};
 }
+
+#if OT_CASH
+bool Workflow::SendCash(
+    const identifier::Nym& sender,
+    const identifier::Nym& recipient,
+    const Identifier& workflowID,
+    const Message& request,
+    const Message* reply) const
+{
+    Lock global(lock_);
+    const auto pWorkflow = get_workflow_by_id(sender.str(), workflowID.str());
+
+    if (false == bool(pWorkflow)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Workflow ")(workflowID)(
+            " does not exist.")
+            .Flush();
+
+        return false;
+    }
+
+    auto& workflow = *pWorkflow;
+    auto lock = get_workflow_lock(global, workflowID.str());
+
+    if (false == can_convey_cash(workflow)) { return false; }
+
+    const bool haveReply = (nullptr != reply);
+
+    if (haveReply) { workflow.set_state(proto::PAYMENTWORKFLOWSTATE_CONVEYED); }
+
+    auto& event = *(workflow.add_event());
+    event.set_version(OUTGOING_CASH_EVENT_VERSION);
+    event.set_type(proto::PAYMENTEVENTTYPE_CONVEY);
+    event.add_item(String::Factory(request)->Get());
+    event.set_method(proto::TRANSPORTMETHOD_OT);
+    event.set_transport(request.m_strNotaryID->Get());
+    event.set_nym(request.m_strNymID2->Get());
+
+    if (haveReply) {
+        event.add_item(String::Factory(*reply)->Get());
+        event.set_time(reply->m_lTime);
+        event.set_success(reply->m_bSuccess);
+    } else {
+        event.set_time(request.m_lTime);
+        event.set_success(false);
+    }
+
+    if (0 == workflow.party_size()) { workflow.add_party(recipient.str()); }
+
+    return save_workflow(sender.str(), workflow);
+}
+#endif
 
 bool Workflow::SendCheque(
     const opentxs::Cheque& cheque,

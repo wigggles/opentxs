@@ -14,6 +14,9 @@
 #include <memory>
 #include <string>
 
+#define OT_MINT_KEY_SIZE_DEFAULT 1536
+#define OT_MINT_KEY_SIZE_TEST 288
+
 namespace opentxs
 {
 namespace api
@@ -38,10 +41,10 @@ public:
     EXPORT virtual std::string GetListenNotify() const = 0;
     EXPORT virtual std::string GetOnion() const = 0;
 #if OT_CASH
-    EXPORT virtual std::shared_ptr<Mint> GetPrivateMint(
+    EXPORT virtual std::shared_ptr<blind::Mint> GetPrivateMint(
         const Identifier& unitid,
         std::uint32_t series) const = 0;
-    EXPORT virtual std::shared_ptr<const Mint> GetPublicMint(
+    EXPORT virtual std::shared_ptr<const blind::Mint> GetPublicMint(
         const Identifier& unitID) const = 0;
 #endif  // OT_CASH
     EXPORT virtual std::string GetUserName() const = 0;
@@ -53,6 +56,7 @@ public:
 #endif  // OT_CASH
     EXPORT virtual opentxs::server::Server& Server() const = 0;
 #if OT_CASH
+    EXPORT virtual void SetMintKeySize(const std::size_t size) const = 0;
     EXPORT virtual void UpdateMint(const Identifier& unitID) const = 0;
 #endif  // OT_CASH
 

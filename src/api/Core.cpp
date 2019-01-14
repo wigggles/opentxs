@@ -32,7 +32,8 @@ Core::Core(
     const opentxs::network::zeromq::Context& zmq,
     const std::string& dataFolder,
     const int instance,
-    const bool dhtDefault)
+    const bool dhtDefault,
+    api::Factory* factory)
     : StorageParent(running, args, crypto, config, dataFolder)
     , Scheduler(parent, running)
     , zmq_context_(zmq)
@@ -46,7 +47,8 @@ Core::Core(
           crypto_.BIP39(),
           crypto_.AES()))
 #endif
-    , factory_(opentxs::Factory::FactoryAPI(*this))
+    , factory_(
+          (nullptr == factory) ? opentxs::Factory::FactoryAPI(*this) : factory)
     , wallet_(nullptr)
     , dht_(opentxs::Factory::Dht(
           dhtDefault,

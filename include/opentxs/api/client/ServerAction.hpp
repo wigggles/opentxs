@@ -91,7 +91,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& accountID,
-        std::unique_ptr<Purse>& purse) const = 0;
+        const std::shared_ptr<blind::Purse>& purse) const = 0;
 #endif  // OT_CASH
     EXPORT virtual Action DepositCheque(
         const Identifier& localNymID,
@@ -152,13 +152,6 @@ public:
         const Identifier& accountID,
         const Identifier& basketID,
         const bool direction) const = 0;
-#if OT_CASH
-    EXPORT virtual Action ExchangeCash(
-        const Identifier& localNymID,
-        const Identifier& serverID,
-        const Identifier& instrumentDefinitionID,
-        std::unique_ptr<Purse>& purse) const = 0;
-#endif  // OT_CASH
     EXPORT virtual bool GetTransactionNumbers(
         const Identifier& localNymID,
         const Identifier& serverID,
@@ -260,8 +253,7 @@ public:
         const Identifier& localNymID,
         const Identifier& serverID,
         const Identifier& recipientNymID,
-        std::shared_ptr<const Purse>& recipientCopy,
-        std::shared_ptr<const Purse>& senderCopy) const = 0;
+        const std::shared_ptr<blind::Purse> purse) const = 0;
 #endif  // OT_CASH
     EXPORT virtual Action SendMessage(
         const Identifier& localNymID,

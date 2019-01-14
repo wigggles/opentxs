@@ -21,7 +21,6 @@ namespace client
 {
 class Activity;
 class Blockchain;
-class Cash;
 class Contacts;
 class Issuer;
 class Manager;
@@ -72,6 +71,15 @@ class Settings;
 class Wallet;
 }  // namespace api
 
+#if OT_CASH
+namespace blind
+{
+class Mint;
+class Purse;
+class Token;
+}  // namespace blind
+#endif
+
 namespace client
 {
 class ServerAction;
@@ -109,7 +117,11 @@ class Trezor;
 
 namespace identifier
 {
+class Account;
+class Contact;
 class Nym;
+class Server;
+class UnitDefinition;
 }  // namespace identifier
 
 namespace network
@@ -237,9 +249,6 @@ class Log;
 class MasterCredential;
 class ManagedNumber;
 class Message;
-#if OT_CASH
-class Mint;
-#endif  // OT_CASH
 class NumList;
 class Nym;
 class NymData;
@@ -288,10 +297,9 @@ class PairEventCallbackSwig;
 class PayDividendVisitor;
 class PaymentCode;
 class PeerObject;
+class PeerRequest;
+class PeerReply;
 class PIDFile;
-#if OT_CASH
-class Purse;
-#endif  // OT_CASH
 class ServerContext;
 class ServerContract;
 class Signals;
@@ -300,12 +308,6 @@ class StoragePlugin;
 class String;
 class StringXML;
 class Tag;
-#if OT_CASH
-class Token;
-#endif  // OT_CASH
-#if OT_CASH_USING_LUCRE
-class Token_Lucre;
-#endif  // OT_CASH_USING_LUCRE
 class TransactionStatement;
 class UnitDefinition;
 
@@ -317,12 +319,19 @@ using OTFlag = Pimpl<Flag>;
 using OTIdentifier = Pimpl<Identifier>;
 using OTLegacySymmetricKey = Pimpl<crypto::key::LegacySymmetric>;
 using OTManagedNumber = Pimpl<ManagedNumber>;
+using OTNymID = Pimpl<identifier::Nym>;
 using OTPaymentCode = Pimpl<PaymentCode>;
+using OTPeerObject = Pimpl<PeerObject>;
+#if OT_CASH
+using OTPurse = Pimpl<blind::Purse>;
+#endif
 using OTServerConnection = Pimpl<network::ServerConnection>;
+using OTServerID = Pimpl<identifier::Server>;
 using OTSignature = Pimpl<Signature>;
 using OTString = Pimpl<String>;
 using OTStringXML = Pimpl<StringXML>;
 using OTSymmetricKey = Pimpl<crypto::key::Symmetric>;
+using OTUnitID = Pimpl<identifier::UnitDefinition>;
 using OTXReply = Pimpl<otx::Reply>;
 using OTXRequest = Pimpl<otx::Request>;
 using OTZMQContext = Pimpl<network::zeromq::Context>;
@@ -330,7 +339,6 @@ using OTZMQDealerSocket = Pimpl<network::zeromq::DealerSocket>;
 using OTZMQListenCallback = Pimpl<network::zeromq::ListenCallback>;
 using OTZMQFrame = Pimpl<network::zeromq::Frame>;
 using OTZMQMessage = Pimpl<network::zeromq::Message>;
-using OTNymID = Pimpl<identifier::Nym>;
 using OTZMQPairEventCallback = Pimpl<network::zeromq::PairEventCallback>;
 using OTZMQPairSocket = Pimpl<network::zeromq::PairSocket>;
 using OTZMQProxy = Pimpl<network::zeromq::Proxy>;
@@ -342,6 +350,9 @@ using OTZMQReplySocket = Pimpl<network::zeromq::ReplySocket>;
 using OTZMQRequestSocket = Pimpl<network::zeromq::RequestSocket>;
 using OTZMQRouterSocket = Pimpl<network::zeromq::RouterSocket>;
 using OTZMQSubscribeSocket = Pimpl<network::zeromq::SubscribeSocket>;
+#if OT_CASH
+using OTToken = Pimpl<blind::Token>;
+#endif
 using OTZMQZAPCallback = Pimpl<network::zeromq::zap::Callback>;
 using OTZMQZAPHandler = Pimpl<network::zeromq::zap::Handler>;
 using OTZMQZAPReply = Pimpl<network::zeromq::zap::Reply>;

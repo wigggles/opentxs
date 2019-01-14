@@ -26,7 +26,7 @@
 
 #include "StorageMultiplex.hpp"
 
-//#define OT_METHOD "opentxs::StorageMultiplex::"
+#define OT_METHOD "opentxs::storage::implementation::StorageMultiplex::"
 
 namespace opentxs
 {

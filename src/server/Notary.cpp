@@ -12,9 +12,9 @@
 #include "opentxs/api/Endpoints.hpp"
 #include "opentxs/api/Wallet.hpp"
 #if OT_CASH
-#include "opentxs/cash/Mint.hpp"
-#include "opentxs/cash/Purse.hpp"
-#include "opentxs/cash/Token.hpp"
+#include "opentxs/blind/Mint.hpp"
+#include "opentxs/blind/Purse.hpp"
+#include "opentxs/blind/Token.hpp"
 #endif  // OT_CASH
 #include "opentxs/consensus/ClientContext.hpp"
 #include "opentxs/core/contract/basket/Basket.hpp"
@@ -22,7 +22,8 @@
 #include "opentxs/core/contract/basket/BasketItem.hpp"
 #include "opentxs/core/cron/OTCron.hpp"
 #include "opentxs/core/cron/OTCronItem.hpp"
-#include "opentxs/core/crypto/OTNymOrSymmetricKey.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
 #include "opentxs/core/script/OTSmartContract.hpp"
 #include "opentxs/core/trade/OTOffer.hpp"
@@ -71,9 +72,6 @@ namespace zmq = opentxs::network::zeromq;
 namespace opentxs::server
 {
 typedef std::vector<ExclusiveAccount> listOfAccounts;
-#if OT_CASH
-typedef std::deque<Token*> dequeOfTokenPtrs;
-#endif  // OT_CASH
 
 Notary::Notary(Server& server, const opentxs::api::server::Manager& manager)
     : server_(server)
@@ -1192,15 +1190,12 @@ void Notary::NotarizeTransfer(
 /// NotarizeWithdrawal supports two withdrawal types:
 ///
 /// Item::withdrawVoucher    This is a bank voucher, like a cashier's check.
-/// Funds are transferred to
-///                            the bank, who then issues a cheque drawn on an
+/// Funds are transferred to the bank, who then issues a cheque drawn on an
 /// internal voucher account.
 ///
 /// Item::withdrawal        This is a digital cash withdrawal, in the form of
-/// untraceable, blinded
-///                            tokens. Funds are transferred to the bank, who
+/// untraceable, blinded tokens. Funds are transferred to the bank, who
 /// blind-signs the tokens.
-///
 void Notary::NotarizeWithdrawal(
     ClientContext& context,
     ExclusiveAccount& theAccount,
@@ -1625,9 +1620,6 @@ void Notary::NotarizeWithdrawal(
                                           // to
                                           // pItem and its Owner Transaction.
 
-        std::shared_ptr<Mint> pMint{nullptr};
-        ExclusiveAccount pMintCashReserveAcct{};
-
         if (0 > pItem->GetAmount()) {
             LogNormal(OT_METHOD)(__FUNCTION__)(
                 ": Attempt to withdraw a negative amount.")
@@ -1643,328 +1635,20 @@ void Notary::NotarizeWithdrawal(
                 "item.")
                 .Flush();
         } else {
-            // The COIN REQUEST (including the prototokens) comes from the
-            // client side.
-            // so we assume the Token is in the payload. Now we need to
-            // randomly choose one for
-            // signing, and reply to the client with that number so that the
-            // client can reply back
-            // to us with the unblinding factors for all the other prototokens
-            // (but that one.)
-            //
-            // In the meantime, I have to store this request somewhere --
-            // presumably in the outbox or purse.
-            //
-            // UPDATE!!! Looks like Lucre protocol is simpler than that. The
-            // request only needs to contain a
-            // single blinded token, which the server signs and sends back.
-            // Done.
-            //
-            // The amount is known to be safe (by the mint) because the User
-            // asks the Mint to create
-            // a denomination (say, 10) token. The Mint therefore uses the
-            // "Denomination 10" key to sign
-            // the token, and will later use the "Denomination 10" key to verify
-            // the token. So the mint
-            // obviously trusts its own keys... There is nothing else to "open
-            // and verify", since only the ID
-            // itself is what gets blinded and verified.  The amount on the
-            // token (as well as the instrument definition)
-            // is only there to help the bank to look up the right key, without
-            // which the token will DEFINITELY
-            // NOT verify. So it is in the user's interest to supply the correct
-            // amount, because otherwise he'll
-            // just get the wrong key and then get rejected by the bank.
+            process_cash_withdrawal(
+                tranIn,
+                *pItem,
+                *pBalanceItem,
+                context,
+                theAccount,
+                accountHash,
+                inbox,
+                outbox,
+                *pResponseItem,
+                *pResponseBalanceItem,
+                bOutSuccess);
+        }
 
-            auto strPurse = String::Factory();
-            pItem->GetAttachment(strPurse);
-
-            // Todo do more security checking in here, like making sure the
-            // withdrawal amount matches the
-            // total of the proto-tokens. Update: I think this is done, since
-            // the Debits are done one-at-a-time
-            // for each token and it's amount/denomination
-
-            auto thePurse{
-                manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-            auto theOutputPurse{
-                manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-            Token* pToken = nullptr;
-            dequeOfTokenPtrs theDeque;
-
-            bool bSuccess = false;
-            bool bLoadContractFromString =
-                thePurse->LoadContractFromString(strPurse);
-
-            if (!bLoadContractFromString) {
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": ERROR loading purse from string: ")(strPurse->Get())(".")
-                    .Flush();
-            } else if (!(pBalanceItem->VerifyBalanceStatement(
-                           thePurse->GetTotalValue() * (-1),  // This amount
-                                                              // will be
-                                                              // subtracted from
-                                                              // my acct.
-                           context,
-                           inbox,
-                           outbox,
-                           theAccount.get(),
-                           tranIn,
-                           std::set<TransactionNumber>()))) {
-                Log::vOutput(
-                    0,
-                    "ERROR verifying balance statement while "
-                    "withdrawing cash. Acct ID: %s\n",
-                    strAccountID->Get());
-            } else  // successfully loaded the purse from the string...
-            {
-                pResponseBalanceItem->SetStatus(
-                    Item::acknowledgement);  // the transaction agreement was
-                                             // successful.
-
-                // Pull the token(s) out of the purse that was received from the
-                // client.
-                while ((pToken = thePurse->Pop(server_.GetServerNym())) !=
-                       nullptr) {
-                    // We are responsible to cleanup pToken
-                    // So I grab a copy here for later...
-                    theDeque.push_front(pToken);
-
-                    pMint = manager_.GetPrivateMint(
-                        INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
-
-                    if (false == bool(pMint)) {
-                        LogOutput(OT_METHOD)(__FUNCTION__)(
-                            ": Unable to find Mint (series ")(
-                            pToken->GetSeries())("): ")(
-                            strInstrumentDefinitionID->Get())(".")
-                            .Flush();
-                        bSuccess = false;
-                        break;  // Once there's a failure, we ditch the loop.
-                    } else if (
-                        false == bool(
-                                     pMintCashReserveAcct =
-                                         manager_.Wallet().mutable_Account(
-                                             pMint->AccountID()))) {
-                        Log::vError(
-                            "Notary::NotarizeWithdrawal: Unable to find cash "
-                            "reserve account for Mint (series %d): %s\n",
-                            pToken->GetSeries(),
-                            strInstrumentDefinitionID->Get());
-                        bSuccess = false;
-                        break;  // Once there's a failure, we ditch the loop.
-                    }
-                    // Mints expire halfway into their token expiration period.
-                    // So if a mint creates
-                    // tokens valid from Jan 1 through Jun 1, then the Mint
-                    // itself expires Mar 1.
-                    // That's when the next series Mint is phased in to start
-                    // issuing tokens, even
-                    // though the server continues redeeming the first series
-                    // tokens until June.
-                    //
-                    else if (pMint->Expired()) {
-                        Log::vError(
-                            "Notary::NotarizeWithdrawal: User attempting "
-                            "withdrawal with an expired mint (series %d): %s\n",
-                            pToken->GetSeries(),
-                            strInstrumentDefinitionID->Get());
-                        bSuccess = false;
-                        break;  // Once there's a failure, we ditch the loop.
-                    } else {
-                        auto theStringReturnVal = String::Factory();
-
-                        if (pToken->GetInstrumentDefinitionID() !=
-                            INSTRUMENT_DEFINITION_ID) {
-                            const auto str1 = String::Factory(
-                                           pToken->GetInstrumentDefinitionID()),
-                                       str2 = String::Factory(
-                                           INSTRUMENT_DEFINITION_ID);
-                            bSuccess = false;
-                            Log::vError(
-                                "%s: ERROR while signing token: "
-                                "Expected instrument definition id "
-                                "%s but found %s "
-                                "instead. (Failure.)\n",
-                                __FUNCTION__,
-                                str2->Get(),
-                                str1->Get());
-                            break;
-                        }
-                        // TokenIndex is for cash systems that send multiple
-                        // proto-tokens, so the Mint
-                        // knows which proto-token has been chosen for signing.
-                        // But Lucre only uses a single proto-token, so the
-                        // token index is always 0.
-                        //
-                        else if (!(pMint->SignToken(
-                                     server_.GetServerNym(),
-                                     *pToken,
-                                     theStringReturnVal,
-                                     0)))  // nTokenIndex = 0 //
-                        // ******************************************
-                        {
-                            bSuccess = false;
-                            Log::vError(
-                                "%s: Failure in call: "
-                                "pMint->SignToken(server_.GetServerNym(), "
-                                "*pToken, theStringReturnVal, 0). "
-                                "(Returning.)\n",
-                                __FUNCTION__);
-                            break;
-                        } else {
-                            auto theArmorReturnVal =
-                                Armored::Factory(theStringReturnVal);
-
-                            pToken->ReleaseSignatures();  // this releases the
-                                                          // normal signatures,
-                            // not the Lucre signed
-                            // token from the Mint,
-                            // above.
-
-                            pToken->SetSignature(
-                                theArmorReturnVal,
-                                0);  // nTokenIndex = 0
-
-                            // Sign and Save the token
-                            pToken->SignContract(server_.GetServerNym());
-                            pToken->SaveContract();
-
-                            // Now the token is in signedToken mode, and the
-                            // other prototokens have been released.
-
-                            // Deduct the amount from the account...
-                            if (theAccount.get().Debit(
-                                    pToken->GetDenomination())) {  // todo need
-                                                                   // to be able
-                                                                   // to "roll
-                                                                   // back" if
-                                                                   // anything
-                                // inside this
-                                // block
-                                // fails.
-                                bSuccess = true;
-
-                                // Credit the server's cash account for this
-                                // instrument definition in the same
-                                // amount that was debited. When the token is
-                                // deposited again, Debit that same
-                                // server cash account and deposit in the
-                                // depositor's acct.
-                                // Why, you might ask? Because if the token
-                                // expires, the money will stay in
-                                // the bank's cash account instead of being lost
-                                // (and screwing up the overall
-                                // issuer balance, with the issued money
-                                // disappearing forever.) The bank knows
-                                // that once the series expires, whatever funds
-                                // are left in that cash account are
-                                // for the bank to keep. They can be transferred
-                                // to another account and kept, instead
-                                // of being lost.
-                                if (!pMintCashReserveAcct.get().Credit(
-                                        pToken->GetDenomination())) {
-                                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                                        ": Error crediting mint cash "
-                                        "reserve account...")
-                                        .Flush();
-
-                                    // Reverse the account debit (even though
-                                    // we're not going to save it anyway.)
-                                    if (false == theAccount.get().Credit(
-                                                     pToken->GetDenomination()))
-                                        Log::vError(
-                                            "%s: Failed crediting "
-                                            "user account back.\n",
-                                            __FUNCTION__);
-
-                                    bSuccess = false;
-                                    break;
-                                }
-                            } else {
-                                bSuccess = false;
-                                Log::vOutput(
-                                    0,
-                                    "%s: Unable to debit account "
-                                    "%s in the amount of: %" PRId64 "\n",
-                                    __FUNCTION__,
-                                    strAccountID->Get(),
-                                    pToken->GetDenomination());
-                                break;  // Once there's a failure, we ditch the
-                                        // loop.
-                            }
-                        }
-                    }
-                }  // While success popping token out of the purse...
-
-                if (bSuccess) {
-                    while (!theDeque.empty()) {
-                        pToken = theDeque.front();
-                        theDeque.pop_front();
-
-                        theOutputPurse->Push(
-                            context.RemoteNym(), *pToken);  // these were in
-                                                            // reverse order.
-                                                            // Fixing with
-                                                            // theDeque.
-
-                        delete pToken;
-                        pToken = nullptr;
-                    }
-
-                    strPurse->Release();  // just in case it only concatenates.
-
-                    theOutputPurse->SignContract(server_.GetServerNym());
-                    theOutputPurse->SaveContract();  // todo this is probably
-                                                     // unnecessary
-                    theOutputPurse->SaveContractRaw(strPurse);
-
-                    // Add the digital cash token to the response message
-                    pResponseItem->SetAttachment(strPurse);
-                    pResponseItem->SetStatus(Item::acknowledgement);
-
-                    bOutSuccess = true;  // The cash withdrawal was successful.
-
-                    theAccount.get().GetIdentifier(accountHash);
-                    theAccount.Release();
-
-                    // We also need to save the Mint's cash reserve.
-                    // (Any cash issued by the Mint is automatically backed by
-                    // this reserve
-                    // account. If cash is deposited, it comes back out of this
-                    // account. If the
-                    // cash expires, then after the expiry period, if it remains
-                    // in the account,
-                    // it is now the property of the transaction server.)
-                    pMintCashReserveAcct.Release();
-
-                    // Notice if there is any failure in the above loop, then we
-                    // will never enter this block.
-                    // Therefore the account will never be saved with the new
-                    // debited balance, and the output
-                    // purse will never be added to the response item.  No
-                    // tokens will be returned to the user
-                    // and the account will not be saved, thus retaining the
-                    // original balance.
-                    //
-                    // Only if everything is successful do we enter this block,
-                    // save the output purse onto the
-                    // response, and save the newly-debitted account back to
-                    // disk.
-                }
-                // Still need to clean up theDeque
-                else {
-                    while (!theDeque.empty()) {
-                        pToken = theDeque.front();
-                        theDeque.pop_front();
-
-                        delete pToken;
-                        pToken = nullptr;
-                    }
-                }
-
-            }  // purse loaded successfully from string
-        }      // the Account ID on the item matched properly
         // sign the response item before sending it back (it's already been
         // added to the transaction above)
         // Now, whether it was rejection or acknowledgement, it is set properly
@@ -8572,7 +8256,6 @@ void Notary::process_cash_deposit(
                    Identifier::Factory(depositorAccount.get());
     const auto strNymID = String::Factory(NYM_ID),
                strAccountID = String::Factory(ACCOUNT_ID);
-    std::shared_ptr<Mint> pMint{nullptr};
     ExclusiveAccount pMintCashReserveAcct{};
 
     // BELOW -- DEPOSIT CASH
@@ -8622,285 +8305,259 @@ void Notary::process_cash_deposit(
             "account ID on the transaction does not match "
             "'from' account ID on the deposit item.\n");
     } else {
-        auto strPurse = String::Factory();
-        depositItem.GetAttachment(strPurse);
+        auto rawPurse = Data::Factory();
+        depositItem.GetAttachment(rawPurse);
+        const auto serializedPurse = proto::DataToProto<proto::Purse>(rawPurse);
 
-        auto thePurse{
-            manager_.Factory().Purse(NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-        bool bLoadContractFromString =
-            thePurse->LoadContractFromString(strPurse);
+        if (false == proto::Validate(serializedPurse, VERBOSE)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
+        } else {
+            auto pPurse{manager_.Factory().Purse(serializedPurse)};
 
-        if (!bLoadContractFromString) {
-            Log::vError(
-                "Notary::NotarizeDeposit: ERROR loading purse "
-                "from string:\n%s\n",
-                strPurse->Get());
-        } else if (!(balanceItem.VerifyBalanceStatement(
-                       thePurse->GetTotalValue(),
-                       context,
-                       inbox,
-                       outbox,
-                       depositorAccount.get(),
-                       input,
-                       std::set<TransactionNumber>()))) {
-            Log::vOutput(
-                0,
-                "Notary::NotarizeDeposit: ERROR verifying "
-                "balance statement while depositing cash. "
-                "Acct ID:\n%s\n",
-                strAccountID->Get());
-        }
+            if (false == bool(pPurse)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": Failed to instantiate request purse")
+                    .Flush();
+            } else {
+                auto& purse = *pPurse;
 
-        // TODO: double-check all verification stuff all around on the purse
-        // and token, transaction, mint, etc.
-        else  // the purse loaded successfully from the string
-        {
-            responseBalanceItem.SetStatus(
-                Item::acknowledgement);  // the transaction agreement was
-                                         // successful.
-
-            bool bSuccess = false;
-
-            // Pull the token(s) out of the purse that was received from the
-            // client.
-            while (true) {
-                std::unique_ptr<Token> pToken(
-                    thePurse->Pop(server_.GetServerNym()));
-                if (!pToken) { break; }
-
-                pMint = manager_.GetPrivateMint(
-                    INSTRUMENT_DEFINITION_ID, pToken->GetSeries());
-
-                if (false == bool(pMint)) {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to get "
-                                                       "or load Mint.")
+                if (false == purse.Unlock(*context.Nym())) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Failed to decrypt purse")
                         .Flush();
-                    break;
                 } else if (
-                    (pMintCashReserveAcct = manager_.Wallet().mutable_Account(
-                         pMint->AccountID())) &&
-                    pMintCashReserveAcct) {
-                    auto strSpendableToken = String::Factory();
-                    bool bToken = pToken->GetSpendableString(
-                        server_.GetServerNym(), strSpendableToken);
+                    false == balanceItem.VerifyBalanceStatement(
+                                 purse.Value(),
+                                 context,
+                                 inbox,
+                                 outbox,
+                                 depositorAccount.get(),
+                                 input,
+                                 std::set<TransactionNumber>())) {
+                    Log::vOutput(
+                        0,
+                        "Notary::NotarizeDeposit: ERROR verifying "
+                        "balance statement while depositing cash. "
+                        "Acct ID:\n%s\n",
+                        strAccountID->Get());
+                } else if (INSTRUMENT_DEFINITION_ID != purse.Unit()) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Incorrect unit definition ID on purse")
+                        .Flush();
+                } else if (NOTARY_ID != purse.Notary()) {
+                    LogOutput(OT_METHOD)(__FUNCTION__)(
+                        ": Incorrect notary ID on purse")
+                        .Flush();
+                } else {
+                    responseBalanceItem.SetStatus(Item::acknowledgement);
+                    bool bSuccess{false};
+                    auto pToken = purse.Pop();
 
-                    if (!bToken)  // if failure getting the spendable token
-                                  // data from the token object
-                    {
-                        bSuccess = false;
-                        Log::vOutput(
-                            0,
-                            "Notary::NotarizeDeposit: "
-                            "ERROR verifying token: Failure "
-                            "retrieving token data. \n");
-                        break;
-                    } else if (!(pToken->GetInstrumentDefinitionID() ==
-                                 INSTRUMENT_DEFINITION_ID))  // or if
-                                                             // failure
-                                                             // verifying
-                    // instrument definition
-                    {
-                        bSuccess = false;
-                        Log::vOutput(
-                            0,
-                            "Notary::NotarizeDeposit: "
-                            "ERROR verifying token: Wrong "
-                            "instrument definition. \n");
-                        break;
-                    } else if (!(pToken->GetNotaryID() ==
-                                 NOTARY_ID))  // or if failure verifying
-                                              // server ID
-                    {
-                        bSuccess = false;
-                        Log::vOutput(
-                            0,
-                            "Notary::NotarizeDeposit: "
-                            "ERROR verifying token: Wrong "
-                            "server ID. \n");
-                        break;
+                    while (pToken) {
+                        bSuccess = process_token_deposit(
+                            pMintCashReserveAcct,
+                            depositorAccount.get(),
+                            *pToken);
+
+                        if (bSuccess) {
+                            pToken = purse.Pop();
+                        } else {
+                            pToken.reset();
+                        }
                     }
-                    // This call to VerifyToken verifies the token's Series
-                    // and From/To dates against the
-                    // mint's, and also verifies that the CURRENT date is
-                    // inside that valid date range.
-                    //
-                    // It also verifies the Lucre coin data itself against
-                    // the key for that series and
-                    // denomination. (The signed and unblinded Lucre coin is
-                    // finally verified in Lucre
-                    // using the appropriate Mint private key.)
-                    //
-                    else if (!(pMint->VerifyToken(
-                                 server_.GetServerNym(),
-                                 strSpendableToken,
-                                 pToken->GetDenomination()))) {
-                        bSuccess = false;
-                        Log::vOutput(
-                            0,
-                            "Notary::NotarizeDeposit: "
-                            "ERROR verifying token: Token "
-                            "verification failed. \n");
-                        break;
-                    }
-                    // Lookup the token in the SPENT TOKEN DATABASE, and
-                    // make sure
-                    // that it hasn't already been spent...
-                    else if (pToken->IsTokenAlreadySpent(strSpendableToken)) {
-                        // TODO!!!! Need to store the spent token database
-                        // in multiple places, on multiple media!
-                        //          Furthermore need to CHECK those multiple
-                        // places inside IsTokenAlreadySpent.
-                        //          In fact, that should all be configurable
-                        // in the server config file!
-                        //          Related: make sure IsTokenAlreadySpent
-                        // differentiates between ACTUALLY not finding
-                        //          a token as spent (successfully), versus
-                        // some error state with the storage.
-                        bSuccess = false;
-                        Log::vOutput(
-                            0,
-                            "Notary::NotarizeDeposit: "
-                            "ERROR verifying token: Token "
-                            "was already spent. \n");
-                        break;
-                    } else {
-                        LogDebug(OT_METHOD)(__FUNCTION__)(
-                            ": SUCCESS verifying token...")
+
+                    if (bSuccess) {
+                        depositorAccount.get().GetIdentifier(accountHash);
+                        depositorAccount.Release();
+                        // We also need to save the Mint's cash reserve. (Any
+                        // cash issued by the Mint is automatically backed by
+                        // this reserve account. If cash is deposited, it comes
+                        // back out of this account. If the cash expires, then
+                        // after the expiry period, if it remains in the
+                        // account, it is now the property of the transaction
+                        // server.)
+                        pMintCashReserveAcct.Release();
+                        responseItem.SetStatus(Item::acknowledgement);
+                        success = true;  // The cash deposit was successful.
+                        LogDetail(OT_METHOD)(__FUNCTION__)(
+                            "SUCCESS -- crediting account from cash "
+                            "deposit.")
                             .Flush();
 
-                        // need to be able to "roll back" if anything inside
-                        // this block fails.
-                        // so unless bSuccess is true, I don't save the
-                        // account below.
-                        //
-
-                        // two defense mechanisms here:  mint cash reserve
-                        // acct, and spent token database
-                        //
-                        if (false == pMintCashReserveAcct.get().Debit(
-                                         pToken->GetDenomination())) {
-                            LogOutput(OT_METHOD)(__FUNCTION__)(
-                                ": Error "
-                                "debiting the mint cash reserve "
-                                "account. "
-                                "SHOULD NEVER HAPPEN!")
-                                .Flush();
-                            bSuccess = false;
-                            break;
-                        }
-                        // CREDIT the amount to the account...
-                        else if (
-                            false == depositorAccount.get().Credit(
-                                         pToken->GetDenomination())) {
-                            LogOutput(OT_METHOD)(__FUNCTION__)(
-                                ": Error "
-                                "crediting the user's asset "
-                                "account...")
-                                .Flush();
-
-                            if (false == pMintCashReserveAcct.get().Credit(
-                                             pToken->GetDenomination()))
-                                LogOutput(OT_METHOD)(__FUNCTION__)(
-                                    ": Failure crediting-back "
-                                    "mint's cash reserve account "
-                                    "while depositing cash.")
-                                    .Flush();
-                            bSuccess = false;
-                            break;
-                        }
-                        // Spent token database. This is where the call is
-                        // made to add
-                        // the token to the spent token database.
-                        else if (
-                            false ==
-                            pToken->RecordTokenAsSpent(strSpendableToken)) {
-                            LogOutput(OT_METHOD)(__FUNCTION__)(
-                                ": Failed recording token as "
-                                "spent...")
-                                .Flush();
-
-                            if (false == pMintCashReserveAcct.get().Credit(
-                                             pToken->GetDenomination()))
-                                LogOutput(OT_METHOD)(__FUNCTION__)(
-                                    ": Failure crediting-back "
-                                    "mint's cash reserve account "
-                                    "while depositing cash.")
-                                    .Flush();
-
-                            if (false == depositorAccount.get().Debit(
-                                             pToken->GetDenomination()))
-                                LogOutput(OT_METHOD)(__FUNCTION__)(
-                                    ": Failure debiting-back user's "
-                                    "asset account while "
-                                    "depositing cash.")
-                                    .Flush();
-
-                            bSuccess = false;
-                            break;
-                        } else  // SUCCESS!!! (this iteration)
-                        {
-                            Log::vOutput(
-                                2,
-                                "Notary::NotarizeDeposit: "
-                                "SUCCESS crediting account "
-                                "with cash token...");
-                            bSuccess = true;
-
-                            // No break here -- we allow the loop to carry
-                            // on through.
-                        }
+                        // TODO:  Right here, again, I need to save the receipt
+                        // from the new balance agreement, since we have
+                        // "ultimate success".  Also need to save the Nym, since
+                        // he had a transaction number removed in the above call
+                        // to VerifyBalanceAgreement. If we failed here, then we
+                        // wouldn't WANT to save, since that number should stay
+                        // on him! Same reason we don't save the accounts if
+                        // anything goes wrong.
+                    } else {
+                        depositorAccount.get().GetIdentifier(accountHash);
+                        depositorAccount.Abort();
+                        pMintCashReserveAcct.Abort();
                     }
-                } else {
-                    LogOutput(OT_METHOD)(__FUNCTION__)(
-                        ": Unable to get "
-                        "cash reserve account for Mint.")
-                        .Flush();
-                    bSuccess = false;
-                    break;
                 }
-            }  // while success popping token from purse
-
-            if (bSuccess) {
-                depositorAccount.get().GetIdentifier(accountHash);
-                depositorAccount.Release();
-                // We also need to save the Mint's cash reserve.
-                // (Any cash issued by the Mint is automatically backed by
-                // this reserve
-                // account. If cash is deposited, it comes back out of this
-                // account. If the
-                // cash expires, then after the expiry period, if it remains
-                // in the account,
-                // it is now the property of the transaction server.)
-                pMintCashReserveAcct.Release();
-                responseItem.SetStatus(Item::acknowledgement);
-                success = true;  // The cash deposit was successful.
-                LogDetail(OT_METHOD)(__FUNCTION__)(
-                    "SUCCESS -- crediting account from cash "
-                    "deposit.")
-                    .Flush();
-
-                // TODO:  Right here, again, I need to save the receipt from
-                // the new balance agreement, since we have
-                // "ultimate success".  Also need to save the Nym, since he
-                // had a transaction number removed in
-                // the above call to VerifyBalanceAgreement. If we failed
-                // here, then we wouldn't WANT to save, since
-                // that number should stay on him! Same reason we don't save
-                // the accounts if anything goes wrong.
-            } else {
-                depositorAccount.get().GetIdentifier(accountHash);
-                depositorAccount.Abort();
-                pMintCashReserveAcct.Abort();
             }
-        }  // the purse loaded successfully from the string
-    }      // the account ID matches correctly to the acct ID on the item.
+        }
+    }
 
     if (accountHash.get().empty() && depositorAccount) {
         depositorAccount.get().GetIdentifier(accountHash);
     }
+
     AddHashesToTransaction(output, inbox, outbox, accountHash);
 #endif  // OT_CASH
 }
+
+#if OT_CASH
+void Notary::process_cash_withdrawal(
+    const OTTransaction& requestTransaction,
+    const Item& requestItem,
+    const Item& balanceItem,
+    ClientContext& context,
+    ExclusiveAccount& account,
+    Identifier& accountHash,
+    Ledger& inbox,
+    Ledger& outbox,
+    Item& responseItem,
+    Item& responseBalanceItem,
+    bool& success)
+{
+    const auto& unit = account.get().GetInstrumentDefinitionID();
+    const auto& accountID = requestItem.GetPurportedAccountID();
+    bool bSuccess{false};
+    std::shared_ptr<blind::Mint> pMint{nullptr};
+    ExclusiveAccount pMintCashReserveAcct{};
+
+    auto rawPurse = Data::Factory();
+    requestItem.GetAttachment(rawPurse);
+    const auto serializedPurse = proto::DataToProto<proto::Purse>(rawPurse);
+
+    if (false == proto::Validate(serializedPurse, VERBOSE)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Invalid purse").Flush();
+
+        return;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Serialized purse is valid")
+            .Flush();
+    }
+
+    std::unique_ptr<blind::Purse> pRequestPurse{
+        Factory::Purse(manager_, serializedPurse)};
+
+    if (false == bool(pRequestPurse)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to instantiate request purse")
+            .Flush();
+
+        return;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Request purse instantiated")
+            .Flush();
+    }
+
+    auto& requestPurse = *pRequestPurse;
+
+    if (false == requestPurse.Unlock(*context.Nym())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to decrypt purse").Flush();
+
+        return;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Request purse unlocked").Flush();
+    }
+
+    std::unique_ptr<blind::Purse> pReplyPurse{
+        Factory::Purse(manager_, requestPurse, context.RemoteNym())};
+
+    if (false == bool(pReplyPurse)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to instantiate reply purse")
+            .Flush();
+
+        return;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Reply purse instantiated")
+            .Flush();
+    }
+
+    auto& replyPurse = *pReplyPurse;
+
+    if (false == replyPurse.AddNym(*context.Nym())) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to encrypt reply purse")
+            .Flush();
+
+        return;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Reply purse encrypted").Flush();
+    }
+
+    const auto verifiedBalance = balanceItem.VerifyBalanceStatement(
+        requestPurse.Value() * (-1),
+        context,
+        inbox,
+        outbox,
+        account.get(),
+        requestTransaction,
+        std::set<TransactionNumber>());
+
+    if (false == verifiedBalance) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to verify balance statement for account ")(accountID)
+            .Flush();
+
+        return;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Balance statement verified")
+            .Flush();
+    }
+
+    responseBalanceItem.SetStatus(Item::acknowledgement);
+    auto pToken = requestPurse.Pop();
+
+    while (pToken) {
+        bSuccess = process_token_withdrawal(
+            unit,
+            context,
+            pMintCashReserveAcct,
+            account.get(),
+            replyPurse,
+            pToken);
+
+        if (bSuccess) {
+            pToken = requestPurse.Pop();
+        } else {
+            pToken.reset();
+        }
+    }
+
+    if (bSuccess) {
+        // Add the digital cash token to the response message
+        responseItem.SetAttachment(proto::ProtoAsData(replyPurse.Serialize()));
+        responseItem.SetStatus(Item::acknowledgement);
+        success = true;  // The cash withdrawal was successful.
+        account.get().GetIdentifier(accountHash);
+        account.Release();
+
+        // We also need to save the Mint's cash reserve. (Any cash issued by the
+        // Mint is automatically backed by this reserve account. If cash is
+        // deposited, it comes back out of this account. If the cash expires,
+        // then after the expiry period, if it remains in the account, it is now
+        // the property of the transaction server.)
+        pMintCashReserveAcct.Release();
+
+        // Notice if there is any failure in the above loop, then we will never
+        // enter this block. Therefore the account will never be saved with the
+        // new debited balance, and the output purse will never be added to the
+        // response item.  No tokens will be returned to the user and the
+        // account will not be saved, thus retaining the original balance.
+        //
+        // Only if everything is successful do we enter this block, save the
+        // output purse onto the response, and save the newly-debited account
+        // back to disk.
+    }
+}
+#endif
 
 void Notary::process_cheque_deposit(
     const OTTransaction& input,
@@ -9021,4 +8678,232 @@ void Notary::send_push_notification(
     message->AddFrame(proto::ProtoAsString(push));
     notification_socket_->Push(message);
 }
+
+#if OT_CASH
+bool Notary::process_token_deposit(
+    ExclusiveAccount& reserveAccount,
+    Account& depositAccount,
+    blind::Token& token)
+{
+    const auto amount = token.Value();
+    auto pMint = manager_.GetPrivateMint(token.Unit(), token.Series());
+
+    if (false == bool(pMint)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to get or load Mint.")
+            .Flush();
+
+        return false;
+    }
+
+    auto& mint = *pMint;
+    reserveAccount = manager_.Wallet().mutable_Account(mint.AccountID());
+
+    if (false == bool(reserveAccount)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Unable to get cash reserve account for Mint.")
+            .Flush();
+
+        return false;
+    }
+
+    if (false == verify_token(mint, token)) { return false; }
+
+    if (false == reserveAccount.get().Debit(amount)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Error debiting the mint cash reserve account.")
+            .Flush();
+
+        return false;
+    }
+
+    if (false == depositAccount.Credit(amount)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Error "
+                                           "crediting the user's asset "
+                                           "account...")
+            .Flush();
+
+        if (false == reserveAccount.get().Credit(amount)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(": Failure crediting-back "
+                                               "mint's cash reserve account "
+                                               "while depositing cash.")
+                .Flush();
+        }
+
+        return false;
+    }
+
+    // Spent token database. This is where the call is made to add the token to
+    // the spent token database.
+    const auto spent = token.MarkSpent();
+
+    if (false == spent) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed recording token as spent...")
+            .Flush();
+
+        if (false == reserveAccount.get().Credit(amount)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failure crediting-back mint's cash reserve account while "
+                "depositing cash.")
+                .Flush();
+        }
+
+        if (false == depositAccount.Debit(amount)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Failure debiting-back user's asset account while depositing "
+                "cash.")
+                .Flush();
+        }
+
+        return false;
+    }
+
+    LogDetail(OT_METHOD)(__FUNCTION__)(
+        ": Success crediting account with cash token.")
+        .Flush();
+
+    return true;
+}
+
+bool Notary::process_token_withdrawal(
+    const Identifier& unit,
+    ClientContext& context,
+    ExclusiveAccount& reserveAccount,
+    Account& account,
+    blind::Purse& replyPurse,
+    std::shared_ptr<blind::Token> pToken)
+{
+    auto& token = *pToken;
+    const auto series = token.Series();
+    const auto value = token.Value();
+    auto pMint = manager_.GetPrivateMint(unit, series);
+
+    if (false == bool(pMint)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to find Mint (series ")(
+            series)("): ")(unit)
+            .Flush();
+
+        return false;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Mint loaded").Flush();
+    }
+
+    auto& mint = *pMint;
+    reserveAccount = manager_.Wallet().mutable_Account(mint.AccountID());
+
+    if (false == bool(reserveAccount)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            "Unable to find cash reserve account for Mint (series ")(series)(
+            "): ")(unit)
+            .Flush();
+
+        return false;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Reserve account loaded").Flush();
+    }
+
+    // Mints expire halfway into their token expiration period. So if a mint
+    // creates tokens valid from Jan 1 through Jun 1, then the Mint itself
+    // expires Mar 1. That's when the next series Mint is phased in to start
+    // issuing tokens, even though the server continues redeeming the first
+    // series tokens until June.
+    if (mint.Expired()) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": User attempting attempting withdrawal with an expired mint "
+            "(series ")(series)("): ")(unit)
+            .Flush();
+
+        return false;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Mint is valid").Flush();
+    }
+
+    const auto signedToken = mint.SignToken(*context.Nym(), *pToken);
+
+    if (false == signedToken) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to sign token").Flush();
+
+        return false;
+    } else {
+        LogInsane(OT_METHOD)(__FUNCTION__)(": Token signed").Flush();
+    }
+
+    if (false == replyPurse.Push(pToken)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(
+            ": Failed to push token to reply purse")
+            .Flush();
+
+        return false;
+    }
+
+    // Deduct the amount from the account...
+    // TODO need to be able to "roll back" if anything inside this block fails.
+    if (account.Debit(value)) {
+        // Credit the server's cash account for this instrument definition in
+        // the same amount that was debited. When the token is deposited again,
+        // Debit that same server cash account and deposit in the depositor's
+        // acct. Why, you might ask? Because if the token expires, the money
+        // will stay in the bank's cash account instead of being lost (and
+        // screwing up the overall issuer balance, with the issued money
+        // disappearing forever.) The bank knows that once the series expires,
+        // whatever funds are left in that cash account are for the bank to
+        // keep. They can be transferred to another account and kept, instead of
+        // being lost.
+        if (false == reserveAccount.get().Credit(value)) {
+            LogOutput(OT_METHOD)(__FUNCTION__)(
+                ": Error crediting mint cash reserve account...")
+                .Flush();
+
+            // Reverse the account debit (even though we're not going to save it
+            // anyway.)
+            if (false == account.Credit(value)) {
+                LogOutput(OT_METHOD)(__FUNCTION__)(
+                    ": failed crediting user account back.")
+                    .Flush();
+            }
+
+            return false;
+        }
+    } else {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Unable to debit account ")(
+            account.GetPurportedAccountID())(" in the amount of: ")(value)
+            .Flush();
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Notary::verify_token(blind::Mint& mint, blind::Token& token)
+{
+    // This call to VerifyToken verifies the token's Series and From/To dates
+    // against the mint's, and also verifies that the CURRENT date is inside
+    // that valid date range.
+    //
+    // It also verifies the Lucre coin data itself against the key for that
+    // series and denomination. (The signed and unblinded Lucre coin is finally
+    // verified in Lucre using the appropriate Mint private key.)
+    if (false == mint.VerifyToken(server_.GetServerNym(), token)) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Failed to verofy token").Flush();
+
+        return false;
+    }
+
+    // Lookup the token in the SPENT TOKEN DATABASE, and make sure
+    // that it hasn't already been spent...
+    const auto spent = token.IsSpent();
+
+    if (spent) {
+        LogOutput(OT_METHOD)(__FUNCTION__)(": Token is already spent").Flush();
+
+        return false;
+    } else {
+        LogDebug(OT_METHOD)(__FUNCTION__)(": SUCCESS verifying token...")
+            .Flush();
+
+        return true;
+    }
+}
+#endif
 }  // namespace opentxs::server

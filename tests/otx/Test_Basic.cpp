@@ -119,6 +119,10 @@ public:
         import_server_contract(*server_contract_, client_1_);
         import_server_contract(*server_contract_, client_2_);
 
+#if OT_CASH
+        server_.SetMintKeySize(OT_MINT_KEY_SIZE_TEST);
+#endif
+
         init_ = true;
     }
 

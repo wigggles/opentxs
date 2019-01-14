@@ -8,6 +8,11 @@ include_directories(SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/../deps/)
 if(OT_CRYPTO_SUPPORTED_KEY_HD)
   add_subdirectory(blockchain)
 endif()
+
+if(OT_CASH_EXPORT)
+  add_subdirectory(blind)
+endif()
+
 add_subdirectory(client)
 add_subdirectory(core)
 add_subdirectory(contact)

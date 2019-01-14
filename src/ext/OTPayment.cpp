@@ -7,9 +7,6 @@
 
 #include "opentxs/ext/OTPayment.hpp"
 
-#if OT_CASH
-#include "opentxs/cash/Purse.hpp"
-#endif  // OT_CASH
 #include "opentxs/api/Core.hpp"
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/core/recurring/OTPaymentPlan.hpp"
@@ -58,8 +55,6 @@ char const* const __TypeStringsPayment[] = {
                       // recurring payment plan.
     "SMARTCONTRACT",  // An OTCronItem-derived OTSmartContract, related to a
                       // smart contract.
-    "PURSE",          // An Contract-derived OTPurse containing a list of cash
-                      // OTTokens.
     "NOTICE",  // An OTTransaction containing a notice that a cron item was
                // activated/canceled.
     // NOTE: Even though a notice isn't a "payment instrument" it can still be
@@ -160,33 +155,9 @@ bool OTPayment::SetTempRecipientNymID(const Identifier& id)
 // values will
 // be available thereafter.
 //
-bool OTPayment::SetTempValues()  // This version for OTTrackable (all types
-                                 // EXCEPT purses.)
+bool OTPayment::SetTempValues()  // This version for OTTrackable
 {
-    if (OTPayment::PURSE == m_Type) {
-#if OT_CASH
-        // Perform instantiation of a purse, then use it to set the temp values,
-        // then cleans it up again before returning success/fail.
-        //
-        std::unique_ptr<Purse> pPurse(InstantiatePurse(api_.Wallet()));
-
-        if (!pPurse) {
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": Error: Failed instantiating "
-                "OTPayment (purported purse) contents: ")(m_strPayment)(".")
-                .Flush();
-            return false;
-        }
-
-        return SetTempValuesFromPurse(*pPurse);
-#else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Support for cash was not compiled in.")
-            .Flush();
-
-        return false;
-#endif  // OT_CASH
-    } else if (OTPayment::NOTICE == m_Type) {
+    if (OTPayment::NOTICE == m_Type) {
         // Perform instantiation of a notice (OTTransaction), then use it to set
         // the temp values, then clean it up again before returning
         // success/fail.
@@ -342,50 +313,6 @@ bool OTPayment::SetTempValuesFromCheque(const Cheque& theInput)
 
     return false;
 }
-
-#if OT_CASH
-bool OTPayment::SetTempValuesFromPurse(const Purse& theInput)
-{
-    if (OTPayment::PURSE == m_Type) {
-        m_bAreTempValuesSet = true;
-        m_bHasRecipient = theInput.IsNymIDIncluded();
-        m_bHasRemitter = false;
-
-        m_lAmount = theInput.GetTotalValue();
-        m_lTransactionNum = 0;   // (A purse has no transaction number.)
-        m_lTransNumDisplay = 0;  // (A purse has no transaction number.)
-
-        m_strMemo->Release();  // So far there's no purse memo (could add it,
-                               // though.)
-
-        m_InstrumentDefinitionID = theInput.GetInstrumentDefinitionID();
-        m_NotaryID = theInput.GetNotaryID();
-
-        m_SenderNymID->Release();
-        m_SenderAcctID->Release();
-
-        if (!m_bHasRecipient || !theInput.GetNymID(m_RecipientNymID)) {
-            m_bHasRecipient = false;
-            m_RecipientNymID->Release();
-        }
-
-        m_RecipientAcctID->Release();
-
-        m_RemitterNymID->Release();
-        m_RemitterAcctID->Release();
-
-        m_VALID_FROM = theInput.GetLatestValidFrom();
-        m_VALID_TO = theInput.GetEarliestValidTo();
-
-        return true;
-    } else
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Error: Wrong type. (Returning false).")
-            .Flush();
-
-    return false;
-}
-#endif  // OT_CASH
 
 bool OTPayment::SetTempValuesFromNotice(const OTTransaction& theInput)
 {
@@ -635,7 +562,6 @@ bool OTPayment::GetMemo(String& strOutput) const
             break;
 
         case OTPayment::SMART_CONTRACT:
-        case OTPayment::PURSE:
             bSuccess = false;
             break;
 
@@ -660,7 +586,6 @@ bool OTPayment::GetAmount(std::int64_t& lOutput) const
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
         case OTPayment::PAYMENT_PLAN:
-        case OTPayment::PURSE:
             lOutput = m_lAmount;
             bSuccess = true;
             break;
@@ -796,10 +721,6 @@ bool OTPayment::GetAllTransactionNumbers(NumList& numlistOutput) const
             bSuccess = true;
             break;
 
-        case OTPayment::PURSE:
-            bSuccess = false;
-            break;
-
         default:
         case OTPayment::PAYMENT_PLAN:  // Should never happen. (Handled already
                                        // above.)
@@ -914,10 +835,6 @@ bool OTPayment::HasTransactionNum(const std::int64_t& lInput) const
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
             if (lInput == m_lTransactionNum) bSuccess = true;
-            break;
-
-        case OTPayment::PURSE:
-            bSuccess = false;
             break;
 
         default:
@@ -1037,7 +954,6 @@ bool OTPayment::GetClosingNum(
         case OTPayment::CHEQUE:
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
-        case OTPayment::PURSE:
             lOutput = 0;  // Redundant, but just making sure.
             bSuccess = false;
             break;
@@ -1178,11 +1094,6 @@ bool OTPayment::GetOpeningNum(std::int64_t& lOutput, const Identifier& theNymID)
             }
             break;
 
-        case OTPayment::PURSE:
-            lOutput = 0;  // Redundant, but just making sure.
-            bSuccess = false;
-            break;
-
         default:
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::SMART_CONTRACT:
@@ -1245,11 +1156,6 @@ bool OTPayment::GetTransNumDisplay(std::int64_t& lOutput) const
             bSuccess = true;
             break;
 
-        case OTPayment::PURSE:
-            lOutput = 0;
-            bSuccess = false;
-            break;
-
         default:
             LogOutput(OT_METHOD)(__FUNCTION__)(": Bad payment type!").Flush();
             break;
@@ -1282,11 +1188,6 @@ bool OTPayment::GetTransactionNum(std::int64_t& lOutput) const
             bSuccess = true;
             break;
 
-        case OTPayment::PURSE:
-            lOutput = 0;
-            bSuccess = false;
-            break;
-
         default:
             LogOutput(OT_METHOD)(__FUNCTION__)(": Bad payment type!").Flush();
             break;
@@ -1304,7 +1205,6 @@ bool OTPayment::GetValidFrom(time64_t& tOutput) const
     bool bSuccess = false;
 
     switch (m_Type) {
-        case OTPayment::PURSE:
         case OTPayment::NOTICE:
         case OTPayment::CHEQUE:
         case OTPayment::VOUCHER:
@@ -1332,7 +1232,6 @@ bool OTPayment::GetValidTo(time64_t& tOutput) const
     bool bSuccess = false;
 
     switch (m_Type) {
-        case OTPayment::PURSE:
         case OTPayment::NOTICE:
         case OTPayment::CHEQUE:
         case OTPayment::VOUCHER:
@@ -1406,7 +1305,6 @@ bool OTPayment::GetInstrumentDefinitionID(Identifier& theOutput) const
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
         case OTPayment::PAYMENT_PLAN:
-        case OTPayment::PURSE:
         case OTPayment::NOTICE:
             theOutput.Assign(m_InstrumentDefinitionID);
             bSuccess = !m_InstrumentDefinitionID->empty();
@@ -1443,7 +1341,6 @@ bool OTPayment::GetNotaryID(Identifier& theOutput) const
         case OTPayment::INVOICE:
         case OTPayment::PAYMENT_PLAN:
         case OTPayment::SMART_CONTRACT:
-        case OTPayment::PURSE:
         case OTPayment::NOTICE:
             theOutput.Assign(m_NotaryID);
             bSuccess = !m_NotaryID->empty();
@@ -1545,10 +1442,6 @@ bool OTPayment::GetSenderNymID(Identifier& theOutput) const
             bSuccess = !m_SenderNymID->empty();
             break;
 
-        case OTPayment::PURSE:
-            bSuccess = false;
-            break;
-
         default:
             LogOutput(OT_METHOD)(__FUNCTION__)(": Bad payment type!").Flush();
             break;
@@ -1576,7 +1469,6 @@ bool OTPayment::GetSenderAcctID(Identifier& theOutput) const
             break;
 
         case OTPayment::SMART_CONTRACT:
-        case OTPayment::PURSE:
             bSuccess = false;
             break;
 
@@ -1601,7 +1493,6 @@ bool OTPayment::GetRecipientNymID(Identifier& theOutput) const
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
         case OTPayment::PAYMENT_PLAN:
-        case OTPayment::PURSE:
         case OTPayment::NOTICE:
             if (m_bHasRecipient) {
                 theOutput.Assign(m_RecipientNymID);
@@ -1654,9 +1545,6 @@ bool OTPayment::GetRecipientAcctID(Identifier& theOutput) const
         case OTPayment::VOUCHER:
         case OTPayment::INVOICE:
         case OTPayment::SMART_CONTRACT:
-        case OTPayment::PURSE:  // A purse might have a recipient USER, but
-                                // never a
-                                // recipient ACCOUNT.
             bSuccess = false;
             break;
 
@@ -1759,13 +1647,6 @@ OTTrackable* OTPayment::Instantiate() const
                     .Flush();
             break;
 
-        case PURSE:
-            LogOutput(OT_METHOD)(__FUNCTION__)(
-                ": ERROR: Tried to instantiate purse, "
-                "but should have called OTPayment::InstantiatePurse.")
-                .Flush();
-            return nullptr;
-
         case NOTICE:
             LogOutput(OT_METHOD)(__FUNCTION__)(
                 ": ERROR: Tried to instantiate a notice, "
@@ -1843,49 +1724,6 @@ OTTransaction* OTPayment::InstantiateNotice() const
 
     return nullptr;
 }
-
-#if OT_CASH
-// You need the server ID to instantiate a purse, unlike all the
-// other payment types. UPDATE: Not anymore.
-//
-// CALLER is responsible to delete!
-//
-Purse* OTPayment::InstantiatePurse(const api::Wallet& wallet) const
-{
-    if (OTPayment::PURSE == GetType()) {
-        auto purse = api_.Factory().Purse(m_strPayment);
-        OT_ASSERT(false != bool(purse));
-        return purse.release();
-    } else
-        LogOutput(OT_METHOD)(__FUNCTION__)(": Failure: This payment object "
-                                           "does NOT contain a purse. "
-                                           "Contents: ")(m_strPayment)(".")
-            .Flush();
-
-    return nullptr;
-}
-
-Purse* OTPayment::InstantiatePurse(
-    const api::Wallet& wallet,
-    const String& strPayment)
-{
-    if (!SetPayment(strPayment))
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": WARNING: Failed setting the "
-            "payment string based on "
-            "what was passed in: ")(strPayment)(".")
-            .Flush();
-    else if (OTPayment::PURSE != m_Type)
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": WARNING: No purse was found in "
-            "the payment string: ")(strPayment)(".")
-            .Flush();
-    else
-        return InstantiatePurse(wallet);
-
-    return nullptr;
-}
-#endif  // OT_CASH
 
 bool OTPayment::IsCancelledCheque()
 {
@@ -2046,8 +1884,6 @@ bool OTPayment::SetPayment(const String& strPayment)
     else if (strContract->Contains("-----BEGIN SIGNED SMARTCONTRACT-----"))
         m_Type = OTPayment::SMART_CONTRACT;
 
-    else if (strContract->Contains("-----BEGIN SIGNED PURSE-----"))
-        m_Type = OTPayment::PURSE;
     else if (strContract->Contains("-----BEGIN SIGNED TRANSACTION-----"))
         m_Type = OTPayment::NOTICE;
     else {

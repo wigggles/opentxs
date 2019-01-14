@@ -11,11 +11,19 @@
 #if OT_CRYPTO_WITH_BIP39
 #include "opentxs/api/HDSeed.hpp"
 #endif
-#include "opentxs/cash/Mint.hpp"
-#include "opentxs/cash/MintLucre.hpp"
-#include "opentxs/cash/Purse.hpp"
-#include "opentxs/cash/Token.hpp"
-#include "opentxs/cash/TokenLucre.hpp"
+#if OT_CASH
+#include "opentxs/blind/Mint.hpp"
+#include "opentxs/blind/Purse.hpp"
+#endif
+#include "opentxs/core/contract/basket/Basket.hpp"
+#include "opentxs/core/contract/peer/PeerObject.hpp"
+#include "opentxs/core/crypto/OTSignedFile.hpp"
+#include "opentxs/core/crypto/PaymentCode.hpp"
+#include "opentxs/core/recurring/OTAgreement.hpp"
+#include "opentxs/core/recurring/OTPaymentPlan.hpp"
+#include "opentxs/core/script/OTSmartContract.hpp"
+#include "opentxs/core/trade/OTOffer.hpp"
+#include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/core/Account.hpp"
 #include "opentxs/core/Cheque.hpp"
 #include "opentxs/core/Contract.hpp"
@@ -24,14 +32,6 @@
 #include "opentxs/core/Message.hpp"
 #include "opentxs/core/OTTransaction.hpp"
 #include "opentxs/core/OTTransactionType.hpp"
-#include "opentxs/core/contract/basket/Basket.hpp"
-#include "opentxs/core/crypto/OTSignedFile.hpp"
-#include "opentxs/core/crypto/PaymentCode.hpp"
-#include "opentxs/core/recurring/OTAgreement.hpp"
-#include "opentxs/core/recurring/OTPaymentPlan.hpp"
-#include "opentxs/core/script/OTSmartContract.hpp"
-#include "opentxs/core/trade/OTOffer.hpp"
-#include "opentxs/core/trade/OTTrade.hpp"
 #include "opentxs/ext/OTPayment.hpp"
 
 #include <array>
@@ -176,26 +176,6 @@ std::unique_ptr<opentxs::Contract> Factory::Contract(
 #endif  // OT_CASH
         } else if (strFirstLine->Contains("-----BEGIN SIGNED FILE-----")) {
             OT_ASSERT(false != bool(pContract));
-        } else if (strFirstLine->Contains("-----BEGIN SIGNED CASH-----")) {
-#if OT_CASH
-            auto token = TokenLowLevel(strFirstLine);
-            pContract.reset(token.release());
-            OT_ASSERT(false != bool(pContract));
-#endif  // OT_CASH
-        } else if (strFirstLine->Contains(
-                       "-----BEGIN SIGNED CASH TOKEN-----")) {
-#if OT_CASH
-            auto token = TokenLowLevel(strFirstLine);
-            pContract.reset(token.release());
-            OT_ASSERT(false != bool(pContract));
-#endif  // OT_CASH
-        } else if (strFirstLine->Contains(
-                       "-----BEGIN SIGNED LUCRE CASH TOKEN-----")) {
-#if OT_CASH
-            auto token = TokenLowLevel(strFirstLine);
-            pContract.reset(token.release());
-            OT_ASSERT(false != bool(pContract));
-#endif  // OT_CASH
         }
 
         // The string didn't match any of the options in the factory.
@@ -497,75 +477,65 @@ std::unique_ptr<opentxs::Message> Factory::Message() const
 }
 
 #if OT_CASH
-std::unique_ptr<opentxs::Mint> Factory::Mint() const
+std::unique_ptr<blind::Mint> Factory::Mint() const
 {
-    std::unique_ptr<opentxs::Mint> pMint;
+    std::unique_ptr<blind::Mint> pMint;
 
 #if OT_CASH_USING_LUCRE
-    pMint.reset(new MintLucre(api_));
+    pMint.reset(opentxs::Factory::MintLucre(api_));
+
     OT_ASSERT(false != bool(pMint));
-#elif OT_CASH_USING_MAGIC_MONEY
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Open-Transactions doesn't support Magic Money "
-        "by Product Cypher (yet), "
-        "so it's impossible to instantiate a mint.")
-        .Flush();
+
 #else
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Open-Transactions isn't built with any digital cash algorithms, "
         "so it's impossible to instantiate a mint.")
         .Flush();
 #endif
+
     return pMint;
 }
 
-std::unique_ptr<opentxs::Mint> Factory::Mint(
+std::unique_ptr<blind::Mint> Factory::Mint(
     const String& strNotaryID,
     const String& strInstrumentDefinitionID) const
 {
-    std::unique_ptr<opentxs::Mint> pMint;
+    std::unique_ptr<blind::Mint> pMint;
 
 #if OT_CASH_USING_LUCRE
-    pMint.reset(new MintLucre(api_, strNotaryID, strInstrumentDefinitionID));
+    pMint.reset(opentxs::Factory::MintLucre(
+        api_, strNotaryID, strInstrumentDefinitionID));
+
     OT_ASSERT(false != bool(pMint));
-#elif OT_CASH_USING_MAGIC_MONEY
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Open-Transactions doesn't support Magic Money "
-        "by Product Cypher (yet), "
-        "so it's impossible to instantiate a mint.")
-        .Flush();
 #else
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Open-Transactions isn't built with any digital cash algorithms, "
         "so it's impossible to instantiate a mint.")
         .Flush();
 #endif
+
     return pMint;
 }
 
-std::unique_ptr<opentxs::Mint> Factory::Mint(
+std::unique_ptr<blind::Mint> Factory::Mint(
     const String& strNotaryID,
     const String& strServerNymID,
     const String& strInstrumentDefinitionID) const
 {
-    std::unique_ptr<opentxs::Mint> pMint;
+    std::unique_ptr<blind::Mint> pMint;
 
 #if OT_CASH_USING_LUCRE
-    pMint.reset(new MintLucre(
+    pMint.reset(opentxs::Factory::MintLucre(
         api_, strNotaryID, strServerNymID, strInstrumentDefinitionID));
+
     OT_ASSERT(false != bool(pMint));
-#elif OT_CASH_USING_MAGIC_MONEY
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Open-Transactions doesn't support Magic Money "
-        "by Product Cypher (yet), "
-        "so it's impossible to instantiate a mint.")
-        .Flush();
 #else
     LogOutput(OT_METHOD)(__FUNCTION__)(
         ": Open-Transactions isn't built with any digital cash algorithms, "
         "so it's impossible to instantiate a mint.")
         .Flush();
 #endif
+
     return pMint;
 }
 #endif
@@ -688,202 +658,114 @@ std::unique_ptr<OTPaymentPlan> Factory::PaymentPlan(
     return paymentplan;
 }
 
+std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+    [[maybe_unused]] const ConstNym& senderNym,
+    [[maybe_unused]] const std::string& message) const
+{
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Peer objects are only supported in client sessions")
+        .Flush();
+
+    return {};
+}
+
+std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+    [[maybe_unused]] const ConstNym& senderNym,
+    [[maybe_unused]] const std::string& payment,
+    [[maybe_unused]] const bool isPayment) const
+{
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Peer objects are only supported in client sessions")
+        .Flush();
+
+    return {};
+}
+
 #if OT_CASH
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const opentxs::Purse& thePurse) const
+std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+    [[maybe_unused]] const ConstNym& senderNym,
+    [[maybe_unused]] const std::shared_ptr<blind::Purse> purse) const
 {
-    std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(new opentxs::Purse(api_, thePurse));
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Peer objects are only supported in client sessions")
+        .Flush();
 
-    return purse;
+    return {};
+}
+#endif
+
+std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+    [[maybe_unused]] const std::shared_ptr<PeerRequest> request,
+    [[maybe_unused]] const std::shared_ptr<PeerReply> reply,
+    [[maybe_unused]] const std::uint32_t& version) const
+{
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Peer objects are only supported in client sessions")
+        .Flush();
+
+    return {};
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
+std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+    [[maybe_unused]] const std::shared_ptr<PeerRequest> request,
+    [[maybe_unused]] const std::uint32_t& version) const
 {
-    std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(new opentxs::Purse(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Peer objects are only supported in client sessions")
+        .Flush();
 
-    return purse;
+    return {};
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const Identifier& NOTARY_ID) const
+std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+    [[maybe_unused]] const ConstNym& signerNym,
+    [[maybe_unused]] const proto::PeerObject& serialized) const
 {
-    std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(new opentxs::Purse(api_, NOTARY_ID));
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Peer objects are only supported in client sessions")
+        .Flush();
 
-    return purse;
+    return {};
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID,
-    const Identifier& NYM_ID) const
+std::unique_ptr<opentxs::PeerObject> Factory::PeerObject(
+    [[maybe_unused]] const ConstNym& recipientNym,
+    [[maybe_unused]] const Armored& encrypted) const
 {
-    std::unique_ptr<opentxs::Purse> purse;
-    purse.reset(
-        new opentxs::Purse(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID, NYM_ID));
+    LogOutput(OT_METHOD)(__FUNCTION__)(
+        ": Peer objects are only supported in client sessions")
+        .Flush();
 
-    return purse;
+    return {};
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(const String& strInput) const
+#if OT_CASH
+std::unique_ptr<blind::Purse> Factory::Purse(
+    const ServerContext& context,
+    const identifier::UnitDefinition& unit,
+    const blind::Mint& mint,
+    const Amount totalValue,
+    const proto::CashType type) const
 {
-    auto strContract = String::Factory(),
-         strFirstLine = String::Factory();  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        auto pPurse = PurseLowLevel(strFirstLine);
-
-        // The string didn't match any of the options in the factory.
-        if (false == bool(pPurse)) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pPurse->LoadContractFromString(strContract)) return pPurse;
-    }
-
-    return nullptr;
+    return std::unique_ptr<blind::Purse>(
+        opentxs::Factory::Purse(api_, context, type, mint, totalValue));
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const String& strInput,
-    const Identifier& NOTARY_ID) const
+std::unique_ptr<blind::Purse> Factory::Purse(
+    const proto::Purse& serialized) const
 {
-    auto strContract = String::Factory(),
-         strFirstLine = String::Factory();  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        auto pPurse = PurseLowLevel(strFirstLine, NOTARY_ID);
-
-        // The string didn't match any of the options in the factory.
-        if (false == bool(pPurse)) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pPurse->LoadContractFromString(strContract)) {
-            if (NOTARY_ID != pPurse->GetNotaryID()) {
-                const auto strNotaryID = String::Factory(NOTARY_ID),
-                           strPurseNotaryID =
-                               String::Factory(pPurse->GetNotaryID());
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Failure: NotaryID on purse (")(strPurseNotaryID)(
-                    ") doesn't match expected server ID (")(strNotaryID)(").")
-                    .Flush();
-            } else
-                return pPurse;
-        }
-    }
-
-    return nullptr;
+    return std::unique_ptr<blind::Purse>(
+        opentxs::Factory::Purse(api_, serialized));
 }
 
-std::unique_ptr<opentxs::Purse> Factory::Purse(
-    const String& strInput,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
+std::unique_ptr<blind::Purse> Factory::Purse(
+    const Nym& owner,
+    const identifier::Server& server,
+    const identifier::UnitDefinition& unit,
+    const proto::CashType type) const
 {
-    auto strContract = String::Factory(),
-         strFirstLine = String::Factory();  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        auto pPurse =
-            PurseLowLevel(strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-
-        // The string didn't match any of the options in the factory.
-        if (false == bool(pPurse)) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pPurse->LoadContractFromString(strContract)) {
-
-            if (NOTARY_ID != pPurse->GetNotaryID()) {
-                const auto strNotaryID = String::Factory(NOTARY_ID),
-                           strPurseNotaryID =
-                               String::Factory(pPurse->GetNotaryID());
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Failure: NotaryID on purse (")(strPurseNotaryID)(
-                    ") doesn't match expected "
-                    "server ID (")(strNotaryID)(").")
-                    .Flush();
-            } else if (
-                INSTRUMENT_DEFINITION_ID !=
-                pPurse->GetInstrumentDefinitionID()) {
-                const auto strInstrumentDefinitionID =
-                               String::Factory(INSTRUMENT_DEFINITION_ID),
-                           strPurseInstrumentDefinitionID = String::Factory(
-                               pPurse->GetInstrumentDefinitionID());
-                LogOutput(OT_METHOD)(__FUNCTION__)(
-                    ": Failure: InstrumentDefinitionID on purse (")(
-                    strPurseInstrumentDefinitionID)(
-                    ") doesn't match expected "
-                    "instrument definition id (")(strInstrumentDefinitionID)(
-                    ").")
-                    .Flush();
-            } else
-                return pPurse;
-        }
-    }
-
-    return nullptr;
-}
-
-std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
-    const String& strFirstLine) const
-{
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
-                                                                // is
-    // 28 chars long.
-    // todo
-    // hardcoding.
-    {
-        std::unique_ptr<opentxs::Purse> pPurse{new opentxs::Purse(api_)};
-        OT_ASSERT(false != bool(pPurse));
-        return pPurse;
-    }
-    return nullptr;
-}
-
-std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
-    const String& strFirstLine,
-    const Identifier& NOTARY_ID) const
-{
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
-                                                                // is
-    // 28 chars long.
-    // todo
-    // hardcoding.
-    {
-        std::unique_ptr<opentxs::Purse> pPurse{
-            new opentxs::Purse(api_, NOTARY_ID)};
-        OT_ASSERT(false != bool(pPurse));
-        return pPurse;
-    }
-    return nullptr;
-}
-
-std::unique_ptr<opentxs::Purse> Factory::PurseLowLevel(
-    const String& strFirstLine,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    if (strFirstLine.Contains("-----BEGIN SIGNED PURSE-----"))  // this string
-                                                                // is
-    // 28 chars long.
-    // todo
-    // hardcoding.
-    {
-        std::unique_ptr<opentxs::Purse> pPurse{
-            new opentxs::Purse(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID)};
-        OT_ASSERT(false != bool(pPurse));
-        return pPurse;
-    }
-    return nullptr;
+    return std::unique_ptr<blind::Purse>(
+        opentxs::Factory::Purse(api_, owner, server, unit, type));
 }
 #endif  // OT_CASH
 
@@ -1004,257 +886,6 @@ std::unique_ptr<OTSmartContract> Factory::SmartContract(
 
     return smartcontract;
 }
-
-#if OT_CASH
-// static -- class factory.
-//
-std::unique_ptr<opentxs::Token> Factory::Token(
-    const String& strInput,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    auto strContract = String::Factory(),
-         strFirstLine = String::Factory();  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        std::unique_ptr<opentxs::Token> pToken =
-            TokenLowLevel(strFirstLine, NOTARY_ID, INSTRUMENT_DEFINITION_ID);
-
-        // The string didn't match any of the options in the factory.
-        if (false == bool(pToken)) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pToken->LoadContractFromString(strContract)) return pToken;
-    }
-
-    return nullptr;
-}
-
-std::unique_ptr<opentxs::Token> Factory::Token(const String& strInput) const
-{
-    auto strContract = String::Factory(),
-         strFirstLine = String::Factory();  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        std::unique_ptr<opentxs::Token> pToken = TokenLowLevel(strFirstLine);
-
-        // The string didn't match any of the options in the factory.
-        if (false == bool(pToken)) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pToken->LoadContractFromString(strContract)) return pToken;
-    }
-
-    return nullptr;
-}
-
-std::unique_ptr<opentxs::Token> Factory::Token(
-    const String& strInput,
-    const opentxs::Purse& thePurse) const
-{
-    auto strContract = String::Factory(),
-         strFirstLine = String::Factory();  // output for the below function.
-    const bool bProcessed =
-        Contract::DearmorAndTrim(strInput, strContract, strFirstLine);
-
-    if (bProcessed) {
-        std::unique_ptr<opentxs::Token> pToken =
-            TokenLowLevel(strFirstLine, thePurse);
-
-        // The string didn't match any of the options in the factory.
-        if (false == bool(pToken)) return nullptr;
-
-        // Does the contract successfully load from the string passed in?
-        if (pToken->LoadContractFromString(strContract)) return pToken;
-    }
-
-    return nullptr;
-}
-
-std::unique_ptr<Token> Factory::Token(
-    const opentxs::Purse& thePurse,
-    const Nym& theNym,
-    opentxs::Mint& theMint,
-    std::int64_t lDenomination,
-    std::int32_t nTokenCount) const
-{
-    auto pToken{TokenLowLevel(thePurse)};  // already asserts.
-    OT_ASSERT(false != bool(pToken));      // Just for good measure.
-
-    const bool bGeneratedRequest = pToken->GenerateTokenRequest(
-        theNym, theMint, lDenomination, nTokenCount);
-
-    if (!bGeneratedRequest) {
-        LogOutput(OT_METHOD)(__FUNCTION__)(
-            ": Failed trying to generate token request.")
-            .Flush();
-    }
-
-    return pToken;
-}
-
-std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
-    const String& strFirstLine,
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    std::unique_ptr<opentxs::Token> pToken;
-
-#if OT_CASH_USING_LUCRE
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
-                                                               // 27 chars long.
-    {
-        pToken.reset(
-            new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
-        OT_ASSERT(false != bool(pToken));
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
-                                                          // chars long.
-    {
-        pToken.reset(
-            new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
-        OT_ASSERT(false != bool(pToken));
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
-                                                                // is
-    // 39 chars long.
-    {
-        pToken.reset(
-            new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
-        OT_ASSERT(false != bool(pToken));
-    }
-#else
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Open-Transactions is not built for any digital "
-        "cash algorithms. (Failure).")
-        .Flush();
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-
-std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
-    const String& strFirstLine,
-    const opentxs::Purse& thePurse) const
-{
-    std::unique_ptr<opentxs::Token> pToken;
-
-#if OT_CASH_USING_LUCRE
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
-                                                               // 27 chars long.
-    {
-        pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
-        OT_ASSERT(false != bool(pToken));
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
-                                                          // chars long.
-    {
-        pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
-        OT_ASSERT(false != bool(pToken));
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
-                                                                // is
-    // 39 chars long.
-    {
-        pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
-        OT_ASSERT(false != bool(pToken));
-    }
-#else
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Open-Transactions is not built for any digital "
-        "cash algorithms. (Failure).")
-        .Flush();
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-
-std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
-    const opentxs::Purse& thePurse) const
-{
-    std::unique_ptr<opentxs::Token> pToken;
-
-#if OT_CASH_USING_LUCRE
-    pToken.reset(new Token_Lucre(thePurse.API(), thePurse));
-    OT_ASSERT(false != bool(pToken));
-#else
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Open-Transactions is not built for any digital "
-        "cash algorithms. (Failure).")
-        .Flush();
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-
-std::unique_ptr<opentxs::Token> Factory::TokenLowLevel(
-    const String& strFirstLine) const
-{
-    std::unique_ptr<opentxs::Token> pToken;
-
-#if OT_CASH_USING_LUCRE
-    if (strFirstLine.Contains("-----BEGIN SIGNED CASH-----"))  // this string is
-                                                               // 27 chars long.
-    {
-        pToken.reset(new Token_Lucre(api_));
-        OT_ASSERT(false != bool(pToken));
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED CASH TOKEN-----"))  // this string is 33
-                                                          // chars long.
-    {
-        pToken.reset(new Token_Lucre(api_));
-        OT_ASSERT(false != bool(pToken));
-    } else if (strFirstLine.Contains(
-                   "-----BEGIN SIGNED LUCRE CASH TOKEN-----"))  // this string
-                                                                // is
-    // 39 chars long.
-    {
-        pToken.reset(new Token_Lucre(api_));
-        OT_ASSERT(false != bool(pToken));
-    }
-#else
-    LogOutput(OT_METHOD)(__FUNCTION__)(
-        ": Open-Transactions is not built for any digital "
-        "cash algorithms. (Failure).")
-        .Flush();
-#endif  // OT_CASH_USING_LUCRE
-
-    return pToken;
-}
-#endif  // OT_CASH
-
-#if OT_CASH_USING_LUCRE
-std::unique_ptr<Token_Lucre> Factory::TokenLucre() const
-{
-    std::unique_ptr<Token_Lucre> token;
-    token.reset(new Token_Lucre(api_));
-
-    return token;
-}
-
-std::unique_ptr<Token_Lucre> Factory::TokenLucre(
-    const Identifier& NOTARY_ID,
-    const Identifier& INSTRUMENT_DEFINITION_ID) const
-{
-    std::unique_ptr<Token_Lucre> token;
-    token.reset(new Token_Lucre(api_, NOTARY_ID, INSTRUMENT_DEFINITION_ID));
-
-    return token;
-}
-
-std::unique_ptr<Token_Lucre> Factory::TokenLucre(
-    const opentxs::Purse& thePurse) const
-{
-    std::unique_ptr<Token_Lucre> token;
-    token.reset(new Token_Lucre(api_, thePurse));
-
-    return token;
-}
-#endif
 
 std::unique_ptr<OTTrade> Factory::Trade() const
 {

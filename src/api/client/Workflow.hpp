@@ -9,7 +9,7 @@
 
 namespace opentxs::api::client::implementation
 {
-class Workflow : virtual public opentxs::api::client::Workflow, Lockable
+class Workflow final : opentxs::api::client::Workflow, Lockable
 {
 public:
     bool AbortTransfer(
@@ -25,6 +25,11 @@ public:
         const Identifier& nymID,
         const Item& transfer,
         const Message& reply) const override;
+#if OT_CASH
+    OTIdentifier AllocateCash(
+        const identifier::Nym& id,
+        const blind::Purse& purse) const override;
+#endif
     bool CancelCheque(
         const opentxs::Cheque& cheque,
         const Message& request,
@@ -80,10 +85,24 @@ public:
     std::shared_ptr<proto::PaymentWorkflow> LoadWorkflow(
         const Identifier& nymID,
         const Identifier& workflowID) const override;
+#if OT_CASH
+    OTIdentifier ReceiveCash(
+        const identifier::Nym& receiver,
+        const blind::Purse& purse,
+        const Message& message) const override;
+#endif
     OTIdentifier ReceiveCheque(
         const Identifier& nymID,
         const opentxs::Cheque& cheque,
         const Message& message) const override;
+#if OT_CASH
+    bool SendCash(
+        const identifier::Nym& sender,
+        const identifier::Nym& recipient,
+        const Identifier& workflowID,
+        const Message& request,
+        const Message* reply) const override;
+#endif
     bool SendCheque(
         const opentxs::Cheque& cheque,
         const Message& request,
@@ -113,6 +132,9 @@ private:
     static bool can_cancel_cheque(const proto::PaymentWorkflow& workflow);
     static bool can_clear_transfer(const proto::PaymentWorkflow& workflow);
     static bool can_complete_transfer(const proto::PaymentWorkflow& workflow);
+#if OT_CASH
+    static bool can_convey_cash(const proto::PaymentWorkflow& workflow);
+#endif
     static bool can_convey_cheque(const proto::PaymentWorkflow& workflow);
     static bool can_convey_transfer(const proto::PaymentWorkflow& workflow);
     static bool can_deposit_cheque(const proto::PaymentWorkflow& workflow);
@@ -241,6 +263,9 @@ private:
     bool isInternalTransfer(
         const Identifier& sourceAccount,
         const Identifier& destinationAccount) const;
+    bool save_workflow(
+        const std::string& nymID,
+        const proto::PaymentWorkflow& workflow) const;
     bool save_workflow(
         const std::string& nymID,
         const std::string& accountID,

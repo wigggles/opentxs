@@ -11,11 +11,12 @@
 
 #include "storage/Plugin.hpp"
 
-#define CURRENT_VERSION 2
-#define TYPE_VERSION 2
+#define CURRENT_VERSION 3
+#define TYPE_VERSION 3
 #define INDEX_VERSION 1
+#define HASH_VERSION 2
 
-//#define OT_METHOD "opentxs::storage::PaymentWorkflows::"
+#define OT_METHOD "opentxs::storage::PaymentWorkflows::"
 
 namespace opentxs::storage
 {
@@ -248,7 +249,10 @@ proto::StoragePaymentWorkflows PaymentWorkflows::serialize() const
 
         if (good) {
             serialize_index(
-                item.first, item.second, *serialized.add_workflow());
+                HASH_VERSION,
+                item.first,
+                item.second,
+                *serialized.add_workflow());
         }
     }
 

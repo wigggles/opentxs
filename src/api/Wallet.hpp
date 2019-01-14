@@ -8,6 +8,9 @@
 #include "Internal.hpp"
 
 #include "opentxs/api/Wallet.hpp"
+#include "opentxs/core/identifier/Nym.hpp"
+#include "opentxs/core/identifier/Server.hpp"
+#include "opentxs/core/identifier/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
 #include "opentxs/core/Lockable.hpp"
 #include "opentxs/network/zeromq/PublishSocket.hpp"
@@ -137,6 +140,18 @@ public:
         const Identifier& nym,
         const Identifier& request,
         const StorageBox& box) const override;
+#if OT_CASH
+    std::unique_ptr<const blind::Purse> Purse(
+        const identifier::Nym& nym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit,
+        const bool checking) const override;
+    Editor<blind::Purse> mutable_Purse(
+        const identifier::Nym& nym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit,
+        const proto::CashType type) const override;
+#endif
     bool RemoveServer(const Identifier& id) const override;
     bool RemoveUnitDefinition(const Identifier& id) const override;
     ConstServerContract Server(
@@ -224,6 +239,7 @@ private:
     using IssuerLock =
         std::pair<std::mutex, std::shared_ptr<api::client::Issuer>>;
     using IssuerMap = std::map<IssuerID, IssuerLock>;
+    using PurseID = std::tuple<OTNymID, OTServerID, OTUnitID>;
 
     friend opentxs::Factory;
 
@@ -243,6 +259,10 @@ private:
     mutable std::map<std::string, std::mutex> peer_lock_;
     mutable std::mutex nymfile_map_lock_;
     mutable std::map<OTIdentifier, std::mutex> nymfile_lock_;
+#if OT_CASH
+    mutable std::mutex purse_lock_;
+    mutable std::map<PurseID, std::mutex> purse_id_lock_;
+#endif
     OTZMQPublishSocket account_publisher_;
     OTZMQPublishSocket issuer_publisher_;
     OTZMQPublishSocket nym_publisher_;
@@ -260,6 +280,12 @@ private:
         const Identifier& accountID,
         const std::string& alias,
         const std::string& serialized) const;
+#if OT_CASH
+    std::mutex& get_purse_lock(
+        const identifier::Nym& nym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit) const;
+#endif
     virtual void instantiate_client_context(
         const proto::Context& serialized,
         const std::shared_ptr<const opentxs::Nym>& localNym,
@@ -289,12 +315,22 @@ private:
     std::mutex& nymfile_lock(const Identifier& nymID) const;
     std::mutex& peer_lock(const std::string& nymID) const;
     void publish_server(const Identifier& id) const;
+#if OT_CASH
+    std::unique_ptr<blind::Purse> purse(
+        const identifier::Nym& nym,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit,
+        const bool checking) const;
+#endif
     void save(
         const std::string id,
         std::unique_ptr<opentxs::Account>& in,
         eLock& lock,
         bool success) const;
     void save(const Lock& lock, api::client::Issuer* in) const;
+#if OT_CASH
+    void save(const Lock& lock, const OTNymID nym, blind::Purse* in) const;
+#endif
     void save(NymData* nymData, const Lock& lock) const;
     void save(opentxs::NymFile* nym, const Lock& lock) const;
     bool SaveCredentialIDs(const opentxs::Nym& nym) const;

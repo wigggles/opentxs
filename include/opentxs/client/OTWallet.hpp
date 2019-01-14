@@ -20,21 +20,13 @@
 
 namespace opentxs
 {
-class OTWallet : Lockable
+class OTWallet final : Lockable
 {
 public:
     EXPORT void DisplayStatistics(String& strOutput) const;
     EXPORT std::string ImportSeed(
         const OTPassword& words,
         const OTPassword& passphrase) const;
-
-#if OT_CASH
-    // While waiting on server response to a withdrawal, we keep the private
-    // coin data here so we can unblind the response. This information is so
-    // important (as important as the digital cash token itself, until the
-    // unblinding is done) that we need to save the file right away.
-    EXPORT void AddPendingWithdrawal(const Purse& thePurse);
-#endif
     // These allow the client application to encrypt its own sensitive data.
     // For example, let's say the client application is storing your Bitmessage
     // username and password in its database. It can't store those in the clear,
@@ -48,33 +40,21 @@ public:
     // (We do this for Nyms already. These methods basically give us the same
     // functionality for symmetric keys as we already had for the wallet's
     // Nyms.)
-    EXPORT[[deprecated]] bool Decrypt_ByKeyID(
+    EXPORT [[deprecated]] bool Decrypt_ByKeyID(
         const std::string& key_id,
         const String& strCiphertext,
         String& strOutput,
         const String& pstrDisplay = String::Factory());
-    EXPORT[[deprecated]] bool Encrypt_ByKeyID(
+    EXPORT [[deprecated]] bool Encrypt_ByKeyID(
         const std::string& key_id,
         const String& strPlaintext,
         String& strOutput,
         const String& pstrDisplay = String::Factory(),
         bool bBookends = true);
-#if OT_CASH
-    EXPORT Purse* GetPendingWithdrawal();
-#endif  // OT_CASH
     EXPORT std::string GetPhrase();
     EXPORT std::string GetSeed();
     EXPORT std::string GetWords();
     EXPORT bool LoadWallet(const char* szFilename = nullptr);
-    // These functions are low-level. They don't check for dependent data before
-    // deleting, and they don't save the wallet after they do.
-    //
-    // (You have to handle that at a higher level.) higher level version of
-    // these two will require a server message, in addition to removing from
-    // wallet. (To delete them on server side.)
-#if OT_CASH
-    EXPORT void RemovePendingWithdrawal();
-#endif  // OT_CASH
     EXPORT bool SaveWallet(const char* szFilename = nullptr);
 
     EXPORT ~OTWallet();
@@ -83,11 +63,6 @@ private:
     friend OT_API;
 
     const api::Core& api_;
-#if OT_CASH
-    // While waiting on server response to withdrawal, store private coin data
-    // here for unblinding
-    Purse* m_pWithdrawalPurse{nullptr};
-#endif  // OT_CASH
     OTString m_strName;
     OTString m_strVersion;
     OTString m_strFilename;

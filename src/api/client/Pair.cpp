@@ -19,6 +19,7 @@
 #include "opentxs/contact/ContactGroup.hpp"
 #include "opentxs/contact/ContactItem.hpp"
 #include "opentxs/contact/ContactSection.hpp"
+#include "opentxs/core/contract/peer/PeerReply.hpp"
 #include "opentxs/core/contract/peer/PeerRequest.hpp"
 #include "opentxs/core/contract/UnitDefinition.hpp"
 #include "opentxs/core/Identifier.hpp"
@@ -814,7 +815,7 @@ void Pair::state_machine(
                         SHUTDOWN()
                         OT_ASSERT(pClaim);
 
-                        const auto& notUsed[[maybe_unused]] = id;
+                        const auto& notUsed [[maybe_unused]] = id;
                         const auto& claim = *pClaim;
                         const OTIdentifier unitID =
                             Identifier::Factory(claim.Value());
@@ -919,7 +920,7 @@ void Pair::update_peer() const
     Lock lock(peer_lock_);
 
     for (const auto& [nymID, issuerSet] : create_issuer_map()) {
-        const auto& notUsed[[maybe_unused]] = issuerSet;
+        const auto& notUsed [[maybe_unused]] = issuerSet;
         process_peer_replies(lock, nymID);
         process_peer_requests(lock, nymID);
     }

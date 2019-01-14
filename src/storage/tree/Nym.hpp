@@ -18,6 +18,7 @@
 #include <set>
 #include <shared_mutex>
 #include <string>
+#include <tuple>
 
 namespace opentxs::storage
 {
@@ -68,6 +69,11 @@ public:
         std::shared_ptr<proto::CredentialIndex>& output,
         std::string& alias,
         const bool checking) const;
+    bool Load(
+        const identifier::Server& notary,
+        const identifier::UnitDefinition& unit,
+        std::shared_ptr<proto::Purse>& output,
+        const bool checking) const;
     bool Migrate(const opentxs::api::storage::Driver& to) const override;
 
     bool SetAlias(const std::string& alias);
@@ -78,11 +84,14 @@ public:
         const proto::CredentialIndex& data,
         const std::string& alias,
         std::string& plaintext);
+    bool Store(const proto::Purse& purse);
 
     ~Nym();
 
 private:
     friend class Nyms;
+
+    using PurseID = std::pair<OTServerID, OTUnitID>;
 
     std::string alias_;
     std::string nymid_;
@@ -142,6 +151,7 @@ private:
     std::string workflows_root_;
     mutable std::mutex workflows_lock_;
     mutable std::unique_ptr<class PaymentWorkflows> workflows_;
+    std::map<PurseID, std::string> purse_id_;
 
     template <typename T, typename... Args>
     T* construct(

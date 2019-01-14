@@ -1133,10 +1133,17 @@ void Item::GetAttachment(String& theStr) const
     m_ascAttachment->GetString(theStr);
 }
 
+void Item::GetAttachment(Data& output) const
+{
+    m_ascAttachment->GetData(output);
+}
+
 void Item::SetAttachment(const String& theStr)
 {
     m_ascAttachment->SetString(theStr);
 }
+
+void Item::SetAttachment(const Data& input) { m_ascAttachment->SetData(input); }
 
 void Item::SetNote(const String& theStr)
 {

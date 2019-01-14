@@ -14,7 +14,7 @@
 #include "storage/Plugin.hpp"
 #include "Mailbox.hpp"
 
-//#define OT_METHOD "opentxs::storage::Thread::"
+#define OT_METHOD "opentxs::storage::Thread::"
 
 namespace opentxs
 {

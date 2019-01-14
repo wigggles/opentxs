@@ -14,6 +14,10 @@ class Ed25519 final : virtual public key::Ed25519,
                       public implementation::EllipticCurve
 {
 public:
+    NymParameterType CreateType() const override
+    {
+        return NymParameterType::ED25519;
+    }
     const crypto::EcdsaProvider& ECDSA() const override;
     const crypto::AsymmetricProvider& engine() const override;
     bool hasCapability(const NymCapability& capability) const override;

@@ -11,7 +11,7 @@
 
 #include "storage/Plugin.hpp"
 
-//#define OT_METHOD "opentxs::storage::Node::"
+#define OT_METHOD "opentxs::storage::Node::"
 
 namespace opentxs::storage
 {
@@ -173,18 +173,19 @@ std::string Node::normalize_hash(const std::string& hash)
 
 std::string Node::Root() const
 {
-    std::lock_guard<std::mutex> lock_(write_lock_);
+    Lock lock_(write_lock_);
 
     return root_;
 }
 
 void Node::serialize_index(
+    const std::uint32_t version,
     const std::string& id,
     const Metadata& metadata,
     proto::StorageItemHash& output,
     const proto::StorageHashType type) const
 {
-    set_hash(version_, id, std::get<0>(metadata), output, type);
+    set_hash(version, id, std::get<0>(metadata), output, type);
     output.set_alias(std::get<1>(metadata));
 }
 

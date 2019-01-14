@@ -12,6 +12,9 @@
 #include "opentxs/api/Factory.hpp"
 #include "opentxs/api/Native.hpp"
 #include "opentxs/api/Wallet.hpp"
+#if OT_CASH
+#include "opentxs/blind/Purse.hpp"
+#endif
 #include "opentxs/client/OT_API.hpp"
 #include "opentxs/client/OTAPI_Exec.hpp"
 #include "opentxs/client/Utility.hpp"
@@ -55,7 +58,6 @@ const std::map<OTAPI_Func_Type, std::string> OTAPI_Func::type_name_{
     {PROCESS_INBOX, "PROCESS_INBOX"},
     {EXCHANGE_BASKET, "EXCHANGE_BASKET"},
     {DEPOSIT_CASH, "DEPOSIT_CASH"},
-    {EXCHANGE_CASH, "EXCHANGE_CASH"},
     {DEPOSIT_CHEQUE, "DEPOSIT_CHEQUE"},
     {WITHDRAW_VOUCHER, "WITHDRAW_VOUCHER"},
     {PAY_DIVIDEND, "PAY_DIVIDEND"},
@@ -88,6 +90,7 @@ const std::map<OTAPI_Func_Type, std::string> OTAPI_Func::type_name_{
     {SERVER_ADD_CLAIM, "SERVER_ADD_CLAIM"},
     {STORE_SECRET, "STORE_SECRET"},
     {GET_TRANSACTION_NUMBERS, "GET_TRANSACTION_NUMBERS"},
+    {SEND_USER_CASH, "SEND_USER_CASH"},
 };
 
 const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
@@ -105,7 +108,6 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
     {PROCESS_INBOX, true},
     {EXCHANGE_BASKET, true},
     {DEPOSIT_CASH, true},
-    {EXCHANGE_CASH, true},
     {DEPOSIT_CHEQUE, true},
     {WITHDRAW_VOUCHER, true},
     {PAY_DIVIDEND, true},
@@ -138,6 +140,7 @@ const std::map<OTAPI_Func_Type, bool> OTAPI_Func::type_type_{
     {SERVER_ADD_CLAIM, false},
     {STORE_SECRET, false},
     {GET_TRANSACTION_NUMBERS, false},
+    {SEND_USER_CASH, false},
 };
 
 OTAPI_Func::OTAPI_Func(
@@ -162,7 +165,6 @@ OTAPI_Func::OTAPI_Func(
     , paymentPlan_(nullptr)
 #if OT_CASH
     , purse_(nullptr)
-    , senderPurse_(nullptr)
 #endif
     , cheque_(nullptr)
     , ledger_(nullptr)
@@ -431,18 +433,13 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& nymID,
     const Identifier& serverID,
     const Identifier& nymID2,
-    std::unique_ptr<Purse>& purse)
+    std::unique_ptr<blind::Purse>& purse)
     : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     switch (theType) {
         case DEPOSIT_CASH: {
             nTransNumsNeeded_ = 1;
             accountID_ = nymID2;
-            purse_.reset(purse.release());
-        } break;
-        case EXCHANGE_CASH: {
-            nTransNumsNeeded_ = 1;
-            instrumentDefinitionID_ = nymID2;
             purse_.reset(purse.release());
         } break;
         default: {
@@ -925,19 +922,15 @@ OTAPI_Func::OTAPI_Func(
     const Identifier& nymID,
     const Identifier& serverID,
     const Identifier& recipientID,
-    std::unique_ptr<const Purse>& purse,
-    std::unique_ptr<const Purse>& senderPurse)
+    const std::shared_ptr<blind::Purse> purse)
     : OTAPI_Func(apilock, api, nymID, serverID, theType)
 {
     nTransNumsNeeded_ = 1;
 
-    if (theType == SEND_USER_INSTRUMENT) {
+    if (theType == SEND_USER_CASH) {
         nTransNumsNeeded_ = 0;
-        recipientID_ = recipientID;     // Recipient Nym;
-        purse_.reset(purse.release());  // Instrument for recipient.;
-        senderPurse_.reset(senderPurse.release());  // sender_instrument is
-                                                    // attached here.
-                                                    // (Optional.);
+        recipientID_ = recipientID;  // Recipient Nym;
+        purse_ = purse;
         cash_ = true;
     } else {
         LogNormal(OT_METHOD)(__FUNCTION__)(
@@ -1228,15 +1221,13 @@ void OTAPI_Func::run()
             last_attempt_ = api_.OTAPI().sendNymMessage(
                 context_, recipientID_, message_, message_id_);
         } break;
-        case SEND_USER_INSTRUMENT: {
 #if OT_CASH
-            if (cash_) {
-                OT_ASSERT(purse_)
-
-                payment_ = api_.Factory().Payment(String::Factory(*purse_));
-            }
+        case SEND_USER_CASH: {
+            last_attempt_ =
+                api_.OTAPI().sendNymCash(context_, recipientID_, purse_);
+        } break;
 #endif
-
+        case SEND_USER_INSTRUMENT: {
             OT_ASSERT(payment_)
 
             auto serialized = String::Factory();
@@ -1252,44 +1243,13 @@ void OTAPI_Func::run()
                 return;
             }
 
-#if OT_CASH
-            if (cash_) {
-                OT_ASSERT(senderPurse_)
+            last_attempt_ = api_.OTAPI().sendNymInstrument(
+                context_,
+                request_,
+                recipientID_,
+                *payment,
+                !payment->IsCheque());
 
-                const String& senderPurseString =
-                    String::Factory(*senderPurse_);
-                auto theSenderPayment{
-                    api_.Factory().Payment(senderPurseString)};
-
-                if (!theSenderPayment->IsValid() ||
-                    !theSenderPayment->SetTempValues()) {
-                    LogNormal(OT_METHOD)(__FUNCTION__)(
-                        ": Failure loading payment instrument (copy "
-                        "intended for sender's records) from string: ")(
-                        senderPurseString.Get())
-                        .Flush();
-
-                    return;
-                }
-
-                last_attempt_ = api_.OTAPI().sendNymInstrument(
-                    context_,
-                    request_,
-                    recipientID_,
-                    *payment,
-                    true,
-                    theSenderPayment.get());
-            } else {
-#endif
-                last_attempt_ = api_.OTAPI().sendNymInstrument(
-                    context_,
-                    request_,
-                    recipientID_,
-                    *payment,
-                    !payment->IsCheque());
-#if OT_CASH
-            }
-#endif
             if (request_ && payment->IsCheque()) {
                 bool workflowUpdated{false};
                 auto cheque{api_.Factory().Cheque()};
@@ -1374,12 +1334,6 @@ void OTAPI_Func::run()
             last_attempt_ = api_.OTAPI().registerInstrumentDefinition(
                 context_, unitDefinition_, label_);
         } break;
-        case EXCHANGE_CASH: {
-#if OT_CASH
-            LogOutput(OT_METHOD)(__FUNCTION__)(": TODO (NOT CODED YET).")
-                .Flush();
-#endif  // OT_CASH
-        } break;
         case KILL_MARKET_OFFER: {
             last_attempt_ = api_.OTAPI().cancelCronItem(
                 context_, accountID_, transactionNumber_);
@@ -1405,8 +1359,8 @@ void OTAPI_Func::run()
 #if OT_CASH
             OT_ASSERT(purse_)
 
-            last_attempt_ = api_.OTAPI().notarizeDeposit(
-                context_, accountID_, String::Factory(*purse_));
+            last_attempt_ =
+                api_.OTAPI().notarizeDeposit(context_, accountID_, purse_);
 #endif  // OT_CASH
         } break;
         case DEPOSIT_CHEQUE: {

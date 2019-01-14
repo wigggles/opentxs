@@ -24,6 +24,7 @@ file(GLOB cxx-install-headers
 
 set(cxx-headers
   ${cxx-install-headers}
+  PeerObject.hpp
 )
 
 set(MODULE_NAME opentxs-core-contract-peer)

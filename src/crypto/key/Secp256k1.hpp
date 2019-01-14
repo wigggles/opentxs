@@ -13,6 +13,10 @@ namespace opentxs::crypto::key::implementation
 class Secp256k1 final : virtual public key::Secp256k1, public EllipticCurve
 {
 public:
+    NymParameterType CreateType() const override
+    {
+        return NymParameterType::SECP256K1;
+    }
     const crypto::EcdsaProvider& ECDSA() const override;
     const crypto::AsymmetricProvider& engine() const override;
 

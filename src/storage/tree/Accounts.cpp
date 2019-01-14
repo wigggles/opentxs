@@ -77,7 +77,7 @@
 #define ACCOUNT_VERSION 1
 #define INDEX_VERSION 1
 
-//#define OT_METHOD "opentxs::storage::Accounts::"
+#define OT_METHOD "opentxs::storage::Accounts::"
 
 namespace opentxs::storage
 {
@@ -391,6 +391,7 @@ proto::StorageAccounts Accounts::serialize() const
 
         if (good) {
             serialize_index(
+                version_,
                 item.first,
                 item.second,
                 *serialized.add_account(),

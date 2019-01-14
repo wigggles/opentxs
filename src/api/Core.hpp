@@ -56,7 +56,8 @@ protected:
         const opentxs::network::zeromq::Context& zmq,
         const std::string& dataFolder,
         const int instance,
-        const bool dhtDefault);
+        const bool dhtDefault,
+        api::Factory* factory = nullptr);
 
 private:
     void storage_gc_hook() override;

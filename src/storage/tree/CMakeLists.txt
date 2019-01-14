@@ -12,6 +12,7 @@ set(cxx-sources
   Issuers.cpp
   Node.cpp
   Mailbox.cpp
+  Notary.cpp
   Nym.cpp
   Nyms.cpp
   PaymentWorkflows.cpp
@@ -36,6 +37,7 @@ set(cxx-headers
   Issuers.hpp
   Node.hpp
   Mailbox.hpp
+  Notary.hpp
   Nym.hpp
   Nyms.hpp
   PaymentWorkflows.hpp

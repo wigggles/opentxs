@@ -98,6 +98,7 @@ char const* const TypeStrings[] = {
     "payDividend",       // this transaction is a dividend payment (to the
                          // shareholders.)
     "atPayDividend",  // reply from the server regarding said dividend payment.
+    "incomingCash",
     "error_state"};
 
 char const* const OriginTypeStrings[] = {

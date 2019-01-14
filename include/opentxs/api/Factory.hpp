@@ -97,11 +97,11 @@ public:
     EXPORT virtual std::unique_ptr<opentxs::Message> Message() const = 0;
 
 #if OT_CASH
-    EXPORT virtual std::unique_ptr<opentxs::Mint> Mint() const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Mint> Mint(
+    EXPORT virtual std::unique_ptr<blind::Mint> Mint() const = 0;
+    EXPORT virtual std::unique_ptr<blind::Mint> Mint(
         const String& strNotaryID,
         const String& strInstrumentDefinitionID) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Mint> Mint(
+    EXPORT virtual std::unique_ptr<blind::Mint> Mint(
         const String& strNotaryID,
         const String& strServerNymID,
         const String& strInstrumentDefinitionID) const = 0;
@@ -149,34 +149,46 @@ public:
         const Identifier& RECIPIENT_ACCT_ID,
         const Identifier& RECIPIENT_NYM_ID) const = 0;
 
+    EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const ConstNym& senderNym,
+        const std::string& message) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const ConstNym& senderNym,
+        const std::string& payment,
+        const bool isPayment) const = 0;
 #if OT_CASH
-    /** just for copy another purse's Server and Instrument Definition Id */
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const opentxs::Purse& thePurse) const = 0;
-    /** similar thing */
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
-    /** Don't use this unless you really don't know the instrument definition
-     * (Like if you're about to read it out of a string.) */
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const Identifier& NOTARY_ID) const = 0;
-    /** Normally you really really want to set the instrument definition. */
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID,
-        const Identifier& NYM_ID) const = 0;  // NymID optional
-    // OTPayment needs to be able to instantiate OTPurse without knowing the
-    // server ID in advance.
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const String& strInput) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const String& strInput,
-        const Identifier& NOTARY_ID) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Purse> Purse(
-        const String& strInput,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const ConstNym& senderNym,
+        const std::shared_ptr<blind::Purse> purse) const = 0;
+#endif
+    EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const std::shared_ptr<PeerRequest> request,
+        const std::shared_ptr<PeerReply> reply,
+        const std::uint32_t& version) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const std::shared_ptr<PeerRequest> request,
+        const std::uint32_t& version) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const ConstNym& signerNym,
+        const proto::PeerObject& serialized) const = 0;
+    EXPORT virtual std::unique_ptr<opentxs::PeerObject> PeerObject(
+        const ConstNym& recipientNym,
+        const Armored& encrypted) const = 0;
+
+#if OT_CASH
+    EXPORT virtual std::unique_ptr<blind::Purse> Purse(
+        const ServerContext& context,
+        const identifier::UnitDefinition& unit,
+        const blind::Mint& mint,
+        const Amount totalValue,
+        const proto::CashType type = proto::CASHTYPE_LUCRE) const = 0;
+    EXPORT virtual std::unique_ptr<blind::Purse> Purse(
+        const proto::Purse& serialized) const = 0;
+    EXPORT virtual std::unique_ptr<blind::Purse> Purse(
+        const Nym& owner,
+        const identifier::Server& server,
+        const identifier::UnitDefinition& unit,
+        const proto::CashType type = proto::CASHTYPE_LUCRE) const = 0;
 #endif  // OT_CASH
 
     EXPORT virtual std::unique_ptr<OTScriptable> Scriptable(
@@ -196,36 +208,6 @@ public:
     EXPORT virtual std::unique_ptr<OTSmartContract> SmartContract() const = 0;
     EXPORT virtual std::unique_ptr<OTSmartContract> SmartContract(
         const Identifier& NOTARY_ID) const = 0;
-
-#if OT_CASH
-    /** Preparing to polymorphize tokens. This will allow us to instantiate
-     * LucreTokens, and other types of tokens, dynamically, without having to
-     * know beforehand which OTToken subclass we're dealing with. */
-    EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        const String& strInput) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        const String& strInput,
-        const opentxs::Purse& thePurse) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        const String& strInput,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Token> Token(
-        const opentxs::Purse& thePurse,
-        const Nym& theNym,
-        opentxs::Mint& theMint,
-        std::int64_t lDenomination,
-        std::int32_t nTokenCount) const = 0;
-#endif
-
-#if OT_CASH_USING_LUCRE
-    EXPORT virtual std::unique_ptr<Token_Lucre> TokenLucre() const = 0;
-    EXPORT virtual std::unique_ptr<Token_Lucre> TokenLucre(
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
-    EXPORT virtual std::unique_ptr<Token_Lucre> TokenLucre(
-        const opentxs::Purse& thePurse) const = 0;
-#endif
 
     EXPORT virtual std::unique_ptr<OTTrade> Trade() const = 0;
     EXPORT virtual std::unique_ptr<OTTrade> Trade(
@@ -293,30 +275,6 @@ protected:
     Factory() = default;
 
 private:
-#if OT_CASH
-    EXPORT virtual std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const String& strFirstLine) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const String& strFirstLine,
-        const Identifier& NOTARY_ID) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Purse> PurseLowLevel(
-        const String& strFirstLine,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
-
-    EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const opentxs::Purse& thePurse) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const String& strFirstLine) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const String& strFirstLine,
-        const opentxs::Purse& thePurse) const = 0;
-    EXPORT virtual std::unique_ptr<opentxs::Token> TokenLowLevel(
-        const String& strFirstLine,
-        const Identifier& NOTARY_ID,
-        const Identifier& INSTRUMENT_DEFINITION_ID) const = 0;
-#endif  // OT_CASH
-
     Factory(const Factory&) = delete;
     Factory(Factory&&) = delete;
     Factory& operator=(const Factory&) = delete;

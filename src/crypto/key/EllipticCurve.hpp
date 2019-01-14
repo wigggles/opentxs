@@ -19,17 +19,26 @@ public:
     OTData CalculateHash(
         const proto::HashType hashType,
         const OTPasswordData& password) const override;
+    virtual NymParameterType CreateType() const = 0;
     bool IsEmpty() const override;
     virtual bool GetKey(Data& key) const override;
     virtual bool GetKey(proto::Ciphertext& key) const override;
     bool GetPublicKey(String& strKey) const override;
     virtual bool GetPublicKey(Data& key) const override;
+    bool Open(
+        crypto::key::Asymmetric& dhPublic,
+        crypto::key::Symmetric& sessionKey,
+        OTPasswordData& password) const override;
     using ot_super::Path;
     const std::string Path() const override;
     bool Path(proto::HDPath& output) const override;
     virtual bool ReEncryptPrivateKey(
         const OTPassword& theExportPassword,
         bool bImporting) const override;
+    bool Seal(
+        OTAsymmetricKey& dhPublic,
+        crypto::key::Symmetric& key,
+        OTPasswordData& password) const override;
     std::shared_ptr<proto::AsymmetricKey> Serialize() const override;
     bool TransportKey(Data& publicKey, OTPassword& privateKey) const override;
 

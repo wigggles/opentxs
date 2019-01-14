@@ -17,7 +17,6 @@ public:
 #if OT_CRYPTO_SUPPORTED_KEY_HD
     const api::client::Blockchain& Blockchain() const override;
 #endif
-    const api::client::Cash& Cash() const override;
     const api::client::Contacts& Contacts() const override;
     const OTAPI_Exec& Exec(const std::string& wallet = "") const override;
     std::recursive_mutex& Lock(
@@ -51,7 +50,6 @@ private:
     std::unique_ptr<OT_API> ot_api_;
     std::unique_ptr<OTAPI_Exec> otapi_exec_;
     std::unique_ptr<api::client::ServerAction> server_action_;
-    std::unique_ptr<api::client::Cash> cash_;
     std::unique_ptr<api::client::Sync> sync_;
     std::unique_ptr<api::client::Pair> pair_;
     std::unique_ptr<api::client::UI> ui_;
