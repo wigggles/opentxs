@@ -1,0 +1,33 @@
+language: c
+
+env:
+  - TARGET=opentxs-proto CMAKE_FLAGS="-DPYTTHON3:BOOL=ON" DIR=deps/opentxs-proto/build DEB=no_deb_needed_this_file_doesnt_exist
+  - TARGET=opentxs       CMAKE_FLAGS=""                   DIR=build                    DEB=deps/opentxs-proto/build/opentxs-proto*.deb
+
+build:
+  pre_ci_boot:
+    # this maps a spot on the host volume into the CI running container
+    options: "-v /tmp/src:/tmp/src"
+  pre_ci:
+    # cause the docker-tools container to be built
+    - ./scripts/build/dtools.sh uptime
+  ci:
+    # copy source from wherever we are to the mapped shared location
+    - RESULTDIR=`pwd`/shippable/testresults
+    - if [ ! -d /tmp/src/scripts ]; then cp -r . /tmp/src ; fi
+    # do everything else there so the tools container can reach it too
+    - cd /tmp/src
+    # if a $DEB exists, set it up to get installed
+    - |-
+      if ls $DEB >/dev/null 2>&1; then
+        INST="dpkg --install `ls $DEB | head -1` && "
+      else
+        INST=""
+      fi
+    # make sure there's a build dir for cmake
+    - mkdir -p $DIR
+    # build and run tests
+    - ./scripts/build/dtools.sh "$INST cd /src/$DIR && cmake ${CMAKE_FLAGS} .. && make && make test" | tee ${RESULTDIR}/${TARGET}.txt
+    # make a .deb package
+    - ./scripts/build/dtools.sh "$INST cd /src/$DIR && checkinstall -D --fstrans=yes --install=no --pkgname ${TARGET} --nodoc -y make install"
+
