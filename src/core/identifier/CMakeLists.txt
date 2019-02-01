@@ -7,6 +7,8 @@ set(MODULE_NAME opentxs-core-identifier)
 
 set(cxx-install-headers
      "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/identifier/Nym.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/identifier/Server.hpp"
+     "${CMAKE_CURRENT_SOURCE_DIR}/../../../include/opentxs/core/identifier/UnitDefinition.hpp"
 )
 
 install(FILES ${cxx-install-headers}
